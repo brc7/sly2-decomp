@@ -2303,7 +2303,7 @@ extern qword D_002C09E0, D_002A2DD0;
 void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
-void func_00209EE0(struct X *x);
+void StunStepguardThrownOp2(struct X *x);
 void func_001F7A68(struct X *x, int n);
 qword ConvertAloVec(struct P *p, int n, qword q);
 /** @sly2-annot addr=0x1B7BA8
@@ -2330,7 +2330,7 @@ void DropMurrayCarried(struct P *p)
     }
     DetachMurrayCarried(p);
     x = p->x13F0->x180;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) func_00209EE0(x);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else func_001F7A68(x, 1);
     switch (p->x13D0) {
     case 5: {
@@ -3497,7 +3497,7 @@ extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void func_001B72B0(P*,NODE*,const M4*,qword*,qword*);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
-extern "C" void func_00209E28(OWNER*,int);
+extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
 extern "C" void StunStepguardThrownOp1(OWNER*);
 extern "C" void func_001B7700(P*,qword,float*,float*,qword*,qword*);
 extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
@@ -3541,7 +3541,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   M4 work=ConvertAloMat4(p,0,&predicted);
   predicted=work;
   func_001B72B0(p,0,&predicted,&work.row[0].q,&work.row[1].q);
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E28(owner,(int)p);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))SendStepguardRootBhvMode6(owner,(int)p);
   func_001B7700(p,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
   p->m13FC=func_0012DE58(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
   VTE*entry=&owner->vt[35];

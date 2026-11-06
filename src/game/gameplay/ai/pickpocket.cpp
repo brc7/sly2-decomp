@@ -88,7 +88,7 @@ TABLE D_002C3968[9] = {
 };
 extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
-ulong GrfFromSgf(int);
+ulong GetSgfMask(int);
 int PpoHero(G *);
 void func_001C2DB8(OWNER *);
 int func_001C2DC8(OWNER *, OBJECT *, int, int);
@@ -186,8 +186,8 @@ extern "C" void UpdateStepguardPickpocket(P *p)
     if (!p->owner) return;
     k = -1;
     if (p->owner->n158) {
-        m = GrfFromSgf(0x1D) | GrfFromSgf(0x20) | GrfFromSgf(5) | GrfFromSgf(6)
-            | GrfFromSgf(7) | GrfFromSgf(0x17) | GrfFromSgf(0x16);
+        m = GetSgfMask(0x1D) | GetSgfMask(0x20) | GetSgfMask(5) | GetSgfMask(6)
+            | GetSgfMask(7) | GetSgfMask(0x17) | GetSgfMask(0x16);
         if (p->grfsg & m) k = 0;
         else if (!p->count || p->items[p->count - 1].kind == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) k = 1;
         else k = 2;

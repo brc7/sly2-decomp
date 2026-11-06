@@ -1,6 +1,6 @@
 // guardbhv.cpp -- the guard behaviours (BHV subclasses on a STEPGUARD's behaviour stack): anim, strike, attack,
 // combat, path, patrol, ko/hit, leap, juggled, shoot, rail, pipe, goto, path link, patrol path...
-// TU 0x174898..0x17F090 (189 functions, address order), then the inline func_002562A8 (linkonce copy 0x2562A8).
+// TU 0x174898..0x17F090 (189 functions, address order), then the inline ClearPointerPair (linkonce copy 0x2562A8).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_guardbhv
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0017F070
 // The per-function files keep their views in namespaces named after the function (docs/guides/tu-merging.md
@@ -113,7 +113,7 @@ int IsBhvBusyAbove(BHV *pbhv);
 void AddStepguardSgf(STEPGUARD *pstepguard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *pstepguard, int sgf);
 void SetStepguardTarget(STEPGUARD *pstepguard, LO *plo);
-STEPGUARD *PstepguardFromLo(LO *plo);
+STEPGUARD *GetStepguardFromLo(LO *plo);
 void RecalcSwOxfFilterForObject(SW *psw, STEP *pstep);
 void InitBhvanim(BHVANIMV *pbhv);
 void StartBhvanim(BHVANIMV *pbhv);
@@ -122,29 +122,29 @@ void SetBhvanimState(BHVANIMV *pbhv, int nState);
 int IsBhvanimDone(BHVANIMV *pbhv);
 void SetBhvattackState(BHVATTACKV *pbhv, int nState);
 void SetBhvcombatState(BHVCOMBATV *pbhv, int nState);
-void *PentryChooseStepguardAttack(STEPGUARD *pstepguard, LO *ploTarget, void *pvEngage);
+void *ChooseStepguardAttack(STEPGUARD *pstepguard, LO *ploTarget, void *pvEngage);
 void CloseBhvhit(BHV *pbhv);
 void SetBhvpatrolState(BHV *pbhv, int nState);
-void func_0017A8C8(BHVSTATE *pbhv, int nState);
+void SetBhvThrownState(BHVSTATE *pbhv, int nState);
 void SetBhvjuggledState(BHVANIMV *pbhv, int nState);
 void SetBhvshootState(BHVSTATE *pbhv, int nState);
-void func_0017B8B0(BHVSTATE *pbhv, int nState);
-void func_0017C550(BHVSTATE *pbhv, int nState);
-void func_0017C928(BHVSTATE *pbhv, int nState);
+void SetBhvTargetsState(BHVSTATE *pbhv, int nState);
+void SetBhvCircleState(BHVSTATE *pbhv, int nState);
+void SetBhvEscortState(BHVSTATE *pbhv, int nState);
 void SetBhvrailState(BHVSTATE *pbhv, int nState);
 void SetBhvpipeState(BHVSTATE *pbhv, int nState);
 void SetBhvgotoState(BHVGOTOV *pbhv, int nState);
 void PlanBhvgoto(BHVGOTOV *pbhv);
-int FBhvpathAtEnd(BHVPATHV *pbhv);
+int IsBhvpathAtEnd(BHVPATHV *pbhv);
 int HasBhvgotoArrived(BHVGOTOV *pbhv);
-void func_0017E278(BHVTARGET *pbhv, int nState);
+void SetBhvStalkState(BHVTARGET *pbhv, int nState);
 void SetBhvpathlinkState(BHVPATHLINKV *pbhv, int nState);
 void AdvanceBhvpathlink(BHVPATHLINKV *pbhv);
-void func_0017E9B0(BHV *pbhv);
+void MoveBhvRelocateToPoint(BHV *pbhv);
 void AdvanceBhvpatrolpathGoal(BHV *pbhv, int n);
 }
 
-// 0x174898 PstepguardFromLo
+// 0x174898 GetStepguardFromLo
 namespace M_PstepguardFromLo { extern "C" {
 struct L; struct O;
 struct O;
@@ -154,13 +154,13 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 /** @sly2-annot addr=0x174898
  * Purpose: Return the STEPGUARD that owns an object: the object's LOROOT if it is a STEPGUARD, else (for cid
  *   0x4F children) the root of its +0x200 owner; NULL otherwise
- * Info: proposed name PstepguardFromLo (T1); TU guardbhv
+ * Info: proposed name GetStepguardFromLo (T1); TU guardbhv
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-struct O *PstepguardFromLo(struct O *p) {
+struct O *GetStepguardFromLo(struct O *p) {
     if (!p) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p14->po, 0x38)) return p->p14->po;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x4F) && FIsBasicDerivedFrom__FP5BASIC3CID(p->p200->p14->po, 0x38)) return p->p200->p14->po;
@@ -190,7 +190,7 @@ struct S;
 struct S { char pad[0x10]; void *p10; char pad2[0x28]; int n3C; int n40; };
 void StartBhv(struct S *p);
 void AddStepguardSgf(void *p, int n);
-int func_00209BC0(void *p);
+int FindCurrentAnimBinding(void *p);
 void SetBhvanimState(struct S *p, int n);
 /** @sly2-annot addr=0x174950
  * Purpose: BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags
@@ -205,7 +205,7 @@ void StartBhvanim(struct S *p) {
     StartBhv(p);
     AddStepguardSgf(p->p10, p->n3C);
     if (!p->n40) {
-        p->n40 = func_00209BC0(p->p10);
+        p->n40 = FindCurrentAnimBinding(p->p10);
         if (!p->n40) { SetBhvanimState(p, 1); return; }
     }
     SetBhvanimState(p, 0);
@@ -292,7 +292,7 @@ namespace M_UpdateBhvanim { extern "C" {
 struct S;
 struct S { char pad[0x30]; int n30; char pad2[0xC]; void *p40; };
 void UpdateBhv(struct S *p);
-int FAnimBindingDone(void *p);
+int IsAnimBindingDone(void *p);
 void SetBhvanimState(struct S *p, int n);
 /** @sly2-annot addr=0x174B68
  * Purpose: BHVANIM Update: finish (state 1) when the anim binding is done
@@ -307,12 +307,12 @@ void UpdateBhvanim(struct S *p) {
     UpdateBhv(p);
     do {
         s = p->n30;
-        if (s == 0 && FAnimBindingDone(p->p40)) SetBhvanimState(p, 1);
+        if (s == 0 && IsAnimBindingDone(p->p40)) SetBhvanimState(p, 1);
     } while (s != p->n30);
 }
 } } // namespace M_UpdateBhvanim
 
-// 0x174BD0 BHVANIM_FHandleMessage
+// 0x174BD0 HandleBhvanimMessage
 namespace M_BHVANIM_FHandleMessage { extern "C" {
 struct VTE; struct A; struct O; struct S; struct M;
 typedef int qword __attribute__((mode(TI)));
@@ -331,7 +331,7 @@ struct A {
 struct O { char pad[0x30]; void *p30; char pad2[0x1C]; void *parent; };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; void *p40; };
 struct M { struct ANIMATION *animation; float f4; int n8; };
-struct ANIMATION *func_00209518(void *p);
+struct ANIMATION *GetAnimBindingInstance(void *p);
 qword func_00204E38(struct A *a, struct ANIMATION *animation, float f);
 void LockStepguardMover(void *p, struct S *s);
 void UnlockStepguardMover(void *p, struct S *s);
@@ -347,7 +347,7 @@ void func_001F7A68(struct A *a, int n);
  * Purpose: BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation,
  *   0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35
  *   rumble/camera jolt on hit
- * Info: proposed name BHVANIM_FHandleMessage (T1); class BHVANIM slot13; TU guardbhv
+ * Info: proposed name HandleBhvanimMessage (T1); class BHVANIM slot13; TU guardbhv
  * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41) | BHV slot 13 (_FHandleMessage):
  *   canonical form would be BHVLEAP_FHandleMessage | BHV slot 13 (_FHandleMessage): canonical form would be
  *   BHV175_FHandleMessage
@@ -355,11 +355,11 @@ void func_001F7A68(struct A *a, int n);
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
+int HandleBhvanimMessage(struct S *p, int msg, struct M *pm) {
     struct ANIMATION *animation;
     if (msg != 9) return 0;
     if (!p->p40) return 0;
-    animation = func_00209518(p->p40);
+    animation = GetAnimBindingInstance(p->p40);
     if (animation != pm->animation) return 0;
     switch (pm->n8) {
     case 0x15E:
@@ -446,7 +446,7 @@ typedef char layout_M_f4[((unsigned)&((struct M*)0)->f4==0x4)?1:-1];
 typedef char layout_M_n8[((unsigned)&((struct M*)0)->n8==0x8)?1:-1];
 } } // namespace M_BHVANIM_FHandleMessage
 
-// 0x174EA0 BHVANIM_GrfGroundProbe
+// 0x174EA0 GetBhvanimGroundProbeFlags
 namespace M_BHVANIM_GrfGroundProbe { extern "C" {
 struct U; struct T; struct S;
 struct U { char pad[0x10]; int n10; };
@@ -456,7 +456,7 @@ int GetBhvGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x174EA0
  * Purpose: BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes
  *   0/3/4 else 1), else base
- * Info: proposed name BHVANIM_GrfGroundProbe (T1); class BHVANIM slot12; TU guardbhv
+ * Info: proposed name GetBhvanimGroundProbeFlags (T1); class BHVANIM slot12; TU guardbhv
  * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41) | BHV slot 12 (_GrfGroundProbe):
  *   canonical form would be BHVLEAP_GrfGroundProbe | BHV slot 12 (_GrfGroundProbe): canonical form would be
  *   BHV175_GrfGroundProbe
@@ -464,7 +464,7 @@ int GetBhvGroundProbeFlags(struct S *p);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVANIM_GrfGroundProbe(struct S *p) {
+int GetBhvanimGroundProbeFlags(struct S *p) {
     if (p->p40->n0 == 2) {
         switch (p->p40->p8->n10) { case 0: case 3: case 4: return 7; default: return 1; }
     }
@@ -480,7 +480,7 @@ struct A { char pad[0x190]; qword q190; char pad2[0xFD0 - 0x1A0]; char aFD0[4]; 
 struct S { char pad[0x10]; struct A *p10; char pad2[0x30 - 0x14]; int n30; int pad3; void *p38; int pad4; void *p40; };
 extern qword D_002A2DD0;
 void UpdateBhvMotion(struct S *p);
-void func_00209618(void *a, struct A *b);
+void DriveStepguardFromAnim(void *a, struct A *b);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
@@ -502,7 +502,7 @@ void UpdateBhvanimMotion(struct S *p)
 {
     UpdateBhvMotion(p);
     if (p->n30 == 0)
-        func_00209618(p->p40, p->p10);
+        DriveStepguardFromAnim(p->p40, p->p10);
     else
         p->p10->q190 = D_002A2DD0;
     if (p->p38) {
@@ -555,7 +555,7 @@ struct T { char pad[0x58]; int n58; int n5C; char pad2[0xF64 - 0x60]; void *pF64
 struct S { char pad[0x10]; struct T *pt; char pad2[0x24]; int n38; };
 void StartBhvanim(struct S *p);
 int StepguardHasSgf(struct T *t, int n);
-void func_0020AB68(struct T *t, int a, int b, qword q);
+void SetStepguardAttack(struct T *t, int a, int b, qword q);
 void ResetDetectorTargets(void *p);
 void func_002303A0(struct T *t, int a, int b);
 /** @sly2-annot addr=0x174FF8
@@ -570,7 +570,7 @@ void func_002303A0(struct T *t, int a, int b);
 void StartBhvidle(struct S *p) {
     StartBhvanim(p);
     if (StepguardHasSgf(p->pt, 1)) {
-        func_0020AB68(p->pt, 0, 0, D_002A2DD0);
+        SetStepguardAttack(p->pt, 0, 0, D_002A2DD0);
         ResetDetectorTargets(p->pt->pF64);
         if (p->pt->nFCC) p->n38 = p->pt->nFCC;
     }
@@ -597,32 +597,32 @@ void func_002303A0(struct T *t, int a, int b);
 void CloseBhvidle(struct S *p) { CloseBhvanim(p); func_002303A0(p->pt, p->pt->n58, 2); if (!p->n38) func_002303A0(p->pt, p->pt->n5C, 2); }
 } } // namespace M_CloseBhvidle
 
-// 0x1750E0 BHVIDLE_FHandleMessage
+// 0x1750E0 HandleBhvidleMessage
 namespace M_BHVIDLE_FHandleMessage { extern "C" {
 struct M; struct T; struct S;
 struct M { int n0; int n4; int n8; };
 struct T { char pad[0x5C]; int n5C; char pad2[0x1A4 - 0x60]; int n1A4; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x24]; int n38; char pad3[4]; void *p40; };
-int func_00209518(void *p);
-int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm);
+int GetAnimBindingInstance(void *p);
+int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
 void func_002303A0(struct T *t, int a, int b);
 /** @sly2-annot addr=0x1750E0
  * Purpose: BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM
  *   handler
- * Info: proposed name BHVIDLE_FHandleMessage (T1); class BHVIDLE slot13; TU guardbhv
+ * Info: proposed name HandleBhvidleMessage (T1); class BHVIDLE slot13; TU guardbhv
  * Notes: runtime2/4 confirmed the BHVIDLE role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVIDLE_FHandleMessage(struct S *p, int msg, struct M *pm) {
-    if (msg == 9 && p->p40 && func_00209518(p->p40) == pm->n0) {
+int HandleBhvidleMessage(struct S *p, int msg, struct M *pm) {
+    if (msg == 9 && p->p40 && GetAnimBindingInstance(p->p40) == pm->n0) {
         switch (pm->n8) {
         case 0x29: p->pt->n1A4 = 1; func_002303A0(p->pt, p->pt->n5C, 2); return 1;
         case 0x2A: p->pt->n1A4 = 0; if (!p->n38) func_002303A0(p->pt, p->pt->n5C, 1); return 1;
         }
     }
-    return BHVANIM_FHandleMessage(p, msg, pm);
+    return HandleBhvanimMessage(p, msg, pm);
 }
 } } // namespace M_BHVIDLE_FHandleMessage
 
@@ -705,34 +705,34 @@ void CloseBhvanim(struct S *p);
 void CloseBhvstrike(struct S *p) { CloseBhvanim(p); p->pt->nF3C = 0; }
 } } // namespace M_CloseBhvstrike
 
-// 0x1752F0 BHVSTRIKE_FHandleMessage
+// 0x1752F0 HandleBhvstrikeMessage
 namespace M_BHVSTRIKE_FHandleMessage { extern "C" {
 struct M; struct T; struct P; struct S;
 struct M { int n0; int n4; int n8; };
 struct T { char pad[0xF3C]; int nF3C; };
 struct P { char pad[8]; int n8; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; struct P *p40; char pad3[0xC]; int n50; };
-int func_00209518(void *p);
-int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm);
+int GetAnimBindingInstance(void *p);
+int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
 void func_0020C760(int n);
 /** @sly2-annot addr=0x1752F0
  * Purpose: BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases
  *   the leap; else BHVANIM
- * Info: proposed name BHVSTRIKE_FHandleMessage (T1); class BHVSTRIKE slot13; TU guardbhv
+ * Info: proposed name HandleBhvstrikeMessage (T1); class BHVSTRIKE slot13; TU guardbhv
  * Notes: runtime2/4 confirmed the BHVSTRIKE role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVSTRIKE_FHandleMessage(struct S *p, int msg, struct M *pm) {
-    if (msg == 9 && p->p40 && func_00209518(p->p40) == pm->n0) {
+int HandleBhvstrikeMessage(struct S *p, int msg, struct M *pm) {
+    if (msg == 9 && p->p40 && GetAnimBindingInstance(p->p40) == pm->n0) {
         switch (pm->n8) {
         case 0x2D: p->pt->nF3C = 1; return 1;
         case 0x2E: p->pt->nF3C = 0; return 1;
         case 0x30: p->n50 = 0; func_0020C760(p->p40->n8); return 1;
         }
     }
-    return BHVANIM_FHandleMessage(p, msg, pm);
+    return HandleBhvanimMessage(p, msg, pm);
 }
 } } // namespace M_BHVSTRIKE_FHandleMessage
 
@@ -800,7 +800,7 @@ struct P { char pad[0xA0]; int nA0; char pad2[0x1C]; int nC0; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; struct Q *q30; int n34; float g38; struct P *p3C; };
 void UnsubscribeLoObject(struct Q *q, void *p);
 void SubscribeLoObject(struct Q *q, void *p);
-void func_0020AC28(void *p, void *po, int n, qword v);
+void SetStepguardAimAct(void *p, void *po, int n, qword v);
 void PopBhv(void *p);
 void ClearBhvBusy(struct S *p);
 struct O *func_00205438(void *p, int n);
@@ -818,7 +818,7 @@ void SetBhvattackState(struct S *p, int n) {
     if (p->n34 == 0) {
         UnsubscribeLoObject(p->q30, p->p10);
         p->q30 = 0;
-        func_0020AC28(p->p10, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(p->p10, 0, 0, D_002A2DD0);
     }
     PopBhv(p->a18);
     p->n34 = n;
@@ -836,7 +836,7 @@ void SetBhvattackState(struct S *p, int n) {
                 struct B { char pad[0x30]; qword v; } b;
                 struct Q *q = p->q30;
                 struct VTE *f = &q->vt[0x20];
-                func_0020AC28(p->p10, p->p3C, f->pfn((char *)q + f->d, &b), b.v);
+                SetStepguardAimAct(p->p10, p->p3C, f->pfn((char *)q + f->d, &b), b.v);
             }
             e = &o->vt[8]; ((void (*)(void *))e->pfn)((char *)o + e->d);
         }
@@ -908,7 +908,7 @@ extern "C" int HandleBhvattackMessage(BHVATTACKV *pbhv, int msgid, MSGLO *pmsg)
     if (msgid == 0xB) {
         plo = pmsg->plo;
         if (plo == pbhv->plo) {
-            if (PstepguardFromLo(plo) == (STEPGUARD *)pbhv->pstep) {
+            if (GetStepguardFromLo(plo) == (STEPGUARD *)pbhv->pstep) {
                 pbhv->fHit = 1;
                 return 1;
             }
@@ -995,7 +995,7 @@ extern "C" int IsBhvcombatDone(BHVCOMBATV *pbhv)
     return pbhv->nState == -1;
 }
 
-// 0x175820 func_00175820
+// 0x175820 FilterAttackLineOfSightHit
 namespace M_func_00175820 { extern "C" {
 struct U; struct O; struct Y; struct X;
 struct U { char pad[0x70]; unsigned long fl70; };
@@ -1010,7 +1010,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int func_00175820(struct X *x, struct Y *p) {
+int FilterAttackLineOfSightHit(struct X *x, struct Y *p) {
     if (p->fl10 & (1UL << 48)) return 0;
     if (p->p4->pEC->fl70 & 4) return 0;
     if (x->n74 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p4, 0x62)) return 0;
@@ -1018,10 +1018,10 @@ int func_00175820(struct X *x, struct Y *p) {
 }
 } } // namespace M_func_00175820
 
-// 0x1758A0 PentryChooseStepguardAttack
+// 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
 union U; struct M4; struct VTE; struct NAME; struct SCALE; struct LM; struct ENTRY; struct P; struct LSG; struct LOS; struct CREF; struct POLY; struct CLOCK; struct BASIC;
-// PentryChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
+// ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
 // FRAME with out-of-line ctor/dtor (STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2)), CRef(bool) with inline dtor
@@ -1081,17 +1081,17 @@ extern POLY D_002BE600;
 extern LM D_002BBB60;
 extern char D_003DD490[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
-int func_0020A818(void *, P *);
+int DoesTargetRecordAllowGuard(void *, P *);
 qword func_001A62E8(P *);
 unsigned IsrcFromIdProxy__Fi(unsigned);
 int FCheckLm__FP2LMf(LM *, float);
 qword ConvertAloPos(P *, P *, qword);
 float atan2f(float, float);
-int func_00175820(void *, void *);
+int FilterAttackLineOfSightHit(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, void **, LSG *);
-void func_0020AB68(P *, ENTRY *, void *, qword);
-void func_0020A9A8(void *, int);
+void SetStepguardAttack(P *, ENTRY *, void *, qword);
+void SetTargetRecordState(void *, int);
 }
 static inline qword QwSub(qword qw0, qword qw1)
 {
@@ -1157,12 +1157,12 @@ static inline int Blocked(LOS *line, float limit)
 /** @sly2-annot addr=0x1758A0
  * Purpose: Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via
  *   Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking
- * Info: proposed name PentryChooseStepguardAttack (T1); TU guardbhv
+ * Info: proposed name ChooseStepguardAttack (T1); TU guardbhv
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
+extern "C" ENTRY *ChooseStepguardAttack(P *p, P *target, void *gate)
 {
     qword from, to;
     float height, distance;
@@ -1184,7 +1184,7 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
         if (((int (*)(void *))e->fn)((char *)target + e->delta))
             return 0;
     }
-    if (gate && !func_0020A818(gate, p))
+    if (gate && !DoesTargetRecordAllowGuard(gate, p))
         return 0;
     from = func_001A62E8(p);
     to = func_001A62E8(target);
@@ -1230,7 +1230,7 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
             void **objects;
             line.start.q = from;
             line.end.q = to;
-            IntersectSwBoundingBox(D_003DD490, from, to, func_00175820, entry, &count, &objects);
+            IntersectSwBoundingBox(D_003DD490, from, to, FilterAttackLineOfSightHit, entry, &count, &objects);
             if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, line.start.q, line.end.q, count, objects, &line.hit) &&
                 Blocked(&line, entry->minHit))
                 continue;
@@ -1245,10 +1245,10 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
                 M4 frame;
                 VTE *e = &target->vt[32];
                 void *owner = ((void *(*)(void *, M4 *))e->fn)((char *)target + e->delta, &frame);
-                func_0020AB68(p, entry, owner, frame.row[3].q);
+                SetStepguardAttack(p, entry, owner, frame.row[3].q);
                 entry = 0;
                 if (gate)
-                    func_0020A9A8(gate, 3);
+                    SetTargetRecordState(gate, 3);
             }
             return entry;
         }
@@ -1257,7 +1257,7 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
 }
 } // namespace M_PentryChooseStepguardAttack
 
-// 0x175D00 FBhvcombatCanShoot
+// 0x175D00 CanBhvcombatShoot
 namespace M_FBhvcombatCanShoot { extern "C" {
 struct CLOCK; struct VTE; struct T; struct A; struct S; struct X; struct Y; struct R2; struct R1; struct R; union V;
 typedef int qword __attribute__((mode(TI)));
@@ -1295,14 +1295,14 @@ struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b
  * Purpose: Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's
  *   range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging,
  *   on pipe, special JT states) else only after 3 s in close range
- * Info: proposed name FBhvcombatCanShoot (T1); TU guardbhv
+ * Info: proposed name CanBhvcombatShoot (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVCOMBAT role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/engine/guards-ai.md#3-the-behaviour-stack-and-the-guard-modes,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvcombatCanShoot(struct S *p) {
+int CanBhvcombatShoot(struct S *p) {
     struct X x;
     struct Y y;
     float f[4];
@@ -1376,7 +1376,7 @@ int FBhvcombatCanShoot(struct S *p) {
 
 // 0x175FF0 TryBhvcombatChooseAttack
 /** @sly2-annot addr=0x175FF0
- * Purpose: Try PentryChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward
+ * Purpose: Try ChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward
  * Info: proposed name TryBhvcombatChooseAttack (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVCOMBAT role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
@@ -1388,7 +1388,7 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *pbhv)
     STEPGUARD *pstepguard;
     void *pentry;
     pstepguard = (STEPGUARD *)pbhv->pstep;
-    pentry = PentryChooseStepguardAttack(pstepguard, pbhv->ploTarget, pstepguard->pvEngage);
+    pentry = ChooseStepguardAttack(pstepguard, pbhv->ploTarget, pstepguard->pvEngage);
     pbhv->pentry = pentry;
     if (pentry != 0) {
         return 1;
@@ -1400,22 +1400,22 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *pbhv)
     return 0;
 }
 
-// 0x176060 FBhvcombatLostTarget
+// 0x176060 HasBhvcombatLostTarget
 namespace M_FBhvcombatLostTarget { extern "C" {
 struct T; struct S;
 struct T { char pad[0x3CC]; void *p3CC; int pad2; int n3D4; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; int n40; };
-int func_0020A7E0(void *p);
+int IsTargetRecordStale(void *p);
 /** @sly2-annot addr=0x176060
  * Purpose: Target lost: not hit-confirmed and the shared target record is stale (FTargetRecordStale)
- * Info: proposed name FBhvcombatLostTarget (T1); TU guardbhv
+ * Info: proposed name HasBhvcombatLostTarget (T1); TU guardbhv
  * Notes: names_v2 C hint not used: FIsZeroV__FP6VECTOR | runtime2/4 confirmed the BHVCOMBAT role on live
  *   guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); static naming pass; sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvcombatLostTarget(struct S *p) { int f; if (p->n40) f = 0; else if (p->pt->n3D4) f = 0; else f = func_0020A7E0(p->pt->p3CC); return f; }
+int HasBhvcombatLostTarget(struct S *p) { int f; if (p->n40) f = 0; else if (p->pt->n3D4) f = 0; else f = IsTargetRecordStale(p->pt->p3CC); return f; }
 } } // namespace M_FBhvcombatLostTarget
 
 // 0x176098 UpdateBhvcombat
@@ -1438,19 +1438,19 @@ extern float D_002BE614;
 
 void UpdateBhv(C*);
 int IsBhvBusyAbove(C*);
-int func_00209098(P*);
-int FBhvcombatLostTarget(C*);
+int IsStepguardHandsOff(P*);
+int HasBhvcombatLostTarget(C*);
 int TryBhvcombatChooseAttack(C*);
-int FBhvcombatCanShoot(C*);
+int CanBhvcombatShoot(C*);
 void SetBhvcombatState(C*,int);
 qword func_001A62E8(P*);
 void*PpathzoneFromPos(qword,int);
-void func_002562A8(X*);
+void ClearPointerPair(X*);
 void SetBhvgotoGoal(void*,X*);
 int IsBhvattackDone(void*);
 int IsBhvshootDone(void*);
 int IsBhvanimDone(void*);
-void func_0020B140(P*,P*);
+void EmitStepguardStimulus(P*,P*);
 static inline void StorePoint(U*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
 static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
@@ -1524,10 +1524,10 @@ void UpdateBhvcombat(C*p){
   case 0:case 3:{
    float distance;void*region;qword current;P*actor;int mode;
    if(IsBhvBusyAbove(p))break;
-   if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
-   if(FBhvcombatLostTarget(p)){SetBhvcombatState(p,4);break;}
+   if(IsStepguardHandsOff(p->actor)){SetBhvcombatState(p,5);break;}
+   if(HasBhvcombatLostTarget(p)){SetBhvcombatState(p,4);break;}
    if(TryBhvcombatChooseAttack(p)){SetBhvcombatState(p,1);break;}
-   if(FBhvcombatCanShoot(p)){SetBhvcombatState(p,2);break;}
+   if(CanBhvcombatShoot(p)){SetBhvcombatState(p,2);break;}
    StorePoint(&work.point,func_001A62E8(p->target));
    current=func_001A62E8(p->actor);
    distance=DistanceXY(p,&work.point,current,&actor,&mode);
@@ -1538,7 +1538,7 @@ void UpdateBhvcombat(C*p){
     if(distance<p->actor->close &&region==ActorRegion(p->actor)){SetBhvcombatState(p,0);break;}
     if(p->region==region&&!Moved(p,&work.point))break;
     p->region=region;p->cached=work.point;
-    func_002562A8(&work.frame);
+    ClearPointerPair(&work.frame);
     {register qword framePoint __asm__("$3")=work.point.q;
      work.frame.point=framePoint;
     }
@@ -1549,23 +1549,23 @@ void UpdateBhvcombat(C*p){
    break;
   }
   case 1:
-   if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
+   if(IsStepguardHandsOff(p->actor)){SetBhvcombatState(p,5);break;}
    if(!IsBhvBusyAbove(p)&&IsBhvattackDone(p->sub))SetBhvcombatState(p,0);
    break;
   case 2:
-   if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
+   if(IsStepguardHandsOff(p->actor)){SetBhvcombatState(p,5);break;}
    if(!IsBhvBusyAbove(p)&&IsBhvshootDone(p->sub))SetBhvcombatState(p,0);
    break;
   case 4:
    if(!IsBhvBusyAbove(p)&&IsBhvanimDone(p->sub))SetBhvcombatState(p,-1);
    break;
   case 5:
-   if(!IsBhvBusyAbove(p)&&!func_00209098(p->actor))SetBhvcombatState(p,3);
+   if(!IsBhvBusyAbove(p)&&!IsStepguardHandsOff(p->actor))SetBhvcombatState(p,3);
    break;
   }
  }while(old!=p->state);
  if(p->actor->emit &&old<4 &&old>=0 &&p->actor->time<=D_002DDED0.time &&g_sw.tUnk4758<=D_002DDED0.time)
-  func_0020B140(p->actor,p->target);
+  EmitStepguardStimulus(p->actor,p->target);
 }
 
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
@@ -1595,9 +1595,9 @@ struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; int n30; int
 void PopBhv(void *p);
 float GRandInRange__Fff(float a, float b);
 struct O *func_00205438(void *p, int n);
-void func_0020A9A8(void *p, int n);
+void SetTargetRecordState(void *p, int n);
 qword func_001A62E8(int p);
-void func_002562A8(struct X *x);
+void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 int PpathzoneFromPos(qword v, int n);
 void SetDetectorTargetStateById(void *p, int a, int b);
@@ -1636,11 +1636,11 @@ void SetBhvcombatState(struct S *p, int n) {
             p->p10->fF04 = D_002A5408;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }
-        func_0020A9A8(p->p10->p3CC, 3);
+        SetTargetRecordState(p->p10->p3CC, 3);
         break;
     case 2:
         { struct O *o = func_00205438(p->p10, 0xAD); struct VTE *e; o->n38 = p->n30; e = &o->vt[8]; e->pfn((char *)o + e->d); }
-        func_0020A9A8(p->p10->p3CC, 4);
+        SetTargetRecordState(p->p10->p3CC, 4);
         break;
     case 3:
         {
@@ -1652,7 +1652,7 @@ void SetBhvcombatState(struct S *p, int n) {
             o->n38 = 0x1C;
             v1 = func_001A62E8(p->n30);
             v2 = func_001A62E8(p->n30);
-            func_002562A8(&x);
+            ClearPointerPair(&x);
             x.v = v2;
             SetBhvgotoGoal(o, &x);
             o->nA8 = p->n30;
@@ -1727,10 +1727,10 @@ struct O {
 };
 struct A { char pad[0x4B0]; qword v4B0; char pad2[0xF68 - 0x4C0]; int nF68; int pad3; qword vF70; char pad4[0x108C - 0xF80]; int n108C; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct F f30; float fA0; float fA4; };
-int FBhvguardModeSame(struct F *a, struct F *b);
+int IsBhvguardModeSame(struct F *a, struct F *b);
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-void func_00171258(struct O *o, int a, int b, int c);
+void SetBhvScriptScript(struct O *o, int a, int b, int c);
 void SetBhvSearchWatched(struct O *o, int n);
 float GRandInRange__Fff(float a, float b);
 void SetStepguardTarget(void *p, int n);
@@ -1750,14 +1750,14 @@ void SetStepguardTarget(void *p, int n);
  * @end-sly2-annot */
 void SetBhvguardMode(struct S *p, struct F *m) {
     int fl;
-    if (FBhvguardModeSame(m, &p->f30)) return;
+    if (IsBhvguardModeSame(m, &p->f30)) return;
     PopBhv(p->a18);
     p->f30 = *m;
     p->fA0 = D_002DDED0.t;
     fl = 0;
     switch (m->a) {
     case 5:
-        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xA9); func_00171258(o, m->u.s.n10, 1, 0); VCALL(o) }
+        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xA9); SetBhvScriptScript(o, m->u.s.n10, 1, 0); VCALL(o) }
         break;
     case 1:
         { struct O *o; fl = 1; o = func_00205438(p->p10, 0xAA); VCALL(o) }
@@ -1838,7 +1838,7 @@ void func_001F7598(struct F *pf);
 void InflictBhvguardZap(struct S *p, int a, int b) { struct F f; func_002333B4(&f, 0, sizeof(f)); f.a0 = b; f.n10 = a; f.nC = 0x40000; f.n8 = p->n10; func_001F7598(&f); }
 } } // namespace M_InflictBhvguardZap
 
-// 0x176BE8 BHVGUARD_FHandleMessage
+// 0x176BE8 HandleBhvguardMessage
 namespace M_BHVGUARD_FHandleMessage {
 union U; struct VE; struct OBJECT; struct MSGDATA; union MSG; struct STATE; struct HELPER; struct S; struct SLOT; struct M4; struct CLOCK; struct WORK; struct OFFSETINPUTS;
 // Handle movement-state response events.
@@ -1889,13 +1889,13 @@ void SetStepguardSpecial(OBJECT*,int);
 void func_001F7A68(OBJECT*,int);
 unsigned GrfzpdFromSoGrfzpk(OBJECT*,unsigned);
 int func_001F78A0(unsigned);
-void func_0020A9A8(TUNE*,int);
-void func_0017A5B0(HELPER*,int);
+void SetTargetRecordState(TUNE*,int);
+void SetBhvSleepState(HELPER*,int);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
-unsigned long GrfFromSgf(int);
+unsigned long GetSgfMask(int);
 int IsStepguardTargetValidEx(OBJECT*,OBJECT*,unsigned long);
-int func_0020A298(OBJECT*,OBJECT*,unsigned long);
-void*PanimbindBest(OBJECT*,unsigned long);
+int IsStepguardTargetValid(OBJECT*,OBJECT*,unsigned long);
+void*FindBestAnimBinding(OBJECT*,unsigned long);
 int HandleBhvMessage(S*,int,MSG*);
 }
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
@@ -1917,7 +1917,7 @@ enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
  * Purpose: BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction
  *   tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held),
  *   0x1000000/0x2000000 shrink/rage gadgets, 0x4000/0x2000 relocate; emits noise
- * Info: proposed name BHVGUARD_FHandleMessage (T1); class BHVGUARD slot13; TU guardbhv
+ * Info: proposed name HandleBhvguardMessage (T1); class BHVGUARD slot13; TU guardbhv
  * Notes: runtime4: BHVGUARD zap handler: zap 0x200000 -> hp=max(hp+dhp,5), mode 7 (S38) | runtime4
  *   CORRECTION: pad bit 0x400 = look mode (JTMODE); gadgets are slot buttons 0x4/0x1/0x2 | runtime2/4
  *   confirmed the BHVGUARD role on live guards (S02-S41)
@@ -1927,7 +1927,7 @@ enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
  *   docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
+extern "C" int HandleBhvguardMessage(S*p,int event,MSG*msg){
  WORK w;int flags;int originalFlags;
  if(event==12){
  MSG*selected=msg;
@@ -1954,10 +1954,10 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   if(p->helper->flags&p->actor->mask11)return 1;
   break;
  }
- if(p->actor->selected==msg->data.object)func_0020A9A8(p->actor->tuning,5);
+ if(p->actor->selected==msg->data.object)SetTargetRecordState(p->actor->tuning,5);
  if(msg->data.kind==0x80000&&(msg->data.flags&8)){
   if(p->current.kind==8){
-   HELPER*h=p->helper;func_0017A5B0(h,0);h->until=Max(D_002DDED0.t+D_002BE620,h->until);
+   HELPER*h=p->helper;SetBhvSleepState(h,0);h->until=Max(D_002DDED0.t+D_002BE620,h->until);
   }else{
    p->actor->otherProgress+=msg->data.amount;
    if(p->actor->otherProgress<=0){
@@ -1966,18 +1966,18 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   }goto finish;
  }
  if(msg->data.kind==0x200000&&(msg->data.flags&8)){
-  if(IsStepguardTargetValidEx(p->actor,msg->data.object,GrfFromSgf(6))){
+  if(IsStepguardTargetValidEx(p->actor,msg->data.object,GetSgfMask(6))){
    {int reserve=p->actor->reserve+msg->data.amount;int limited=4<reserve?reserve:5;p->actor->reserve=limited;}
    (void)NewNoise(D_003DD490.context,func_001A62E8(p->actor),p->actor);
    Clear(&w.next);w.next.kind=7;w.next.msg.data.object=msg->data.object;SetBhvguardMode(p,&w.next);goto finish;
   }
  }
  if(msg->data.kind==0x1000000&&(msg->data.flags&8)){
-  Clear(&w.next);if(func_0020A298(p->actor,msg->data.object,GrfFromSgf(0x17)))w.next.kind=10;else w.next.kind=9;
+  Clear(&w.next);if(IsStepguardTargetValid(p->actor,msg->data.object,GetSgfMask(0x17)))w.next.kind=10;else w.next.kind=9;
   w.next.msg=*msg;p->current.kind=-1;SetBhvguardMode(p,&w.next);SetStepguardSpecial(p->actor,8);goto finish;
  }
  if(msg->data.kind==0x2000000&&(msg->data.flags&8)){
-  Clear(&w.next);if(func_0020A298(p->actor,msg->data.object,GrfFromSgf(0x17)))w.next.kind=10;else w.next.kind=9;
+  Clear(&w.next);if(IsStepguardTargetValid(p->actor,msg->data.object,GetSgfMask(0x17)))w.next.kind=10;else w.next.kind=9;
   w.next.msg=*msg;p->current.kind=-1;SetBhvguardMode(p,&w.next);SetStepguardSpecial(p->actor,0x22);goto finish;
  }
  originalFlags=msg->data.flags;
@@ -1989,14 +1989,14 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   qword position=func_001A62E8(p->actor);(void)NewNoise(context,position,p->actor);
  }
  if(Below(p->current.kind,11)&&!Below(p->current.kind,8)&&FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object,0x65)&&(originalFlags&0xB0))flags=originalFlags|0x40;
- if(func_0020A298(p->actor,msg->data.object,GrfFromSgf(0x17)))flags|=0x80;
+ if(IsStepguardTargetValid(p->actor,msg->data.object,GetSgfMask(0x17)))flags|=0x80;
  if(flags&0x40)flags&=~0xB0;
  if(flags&0xA0)flags&=~0x10;
  if(flags&0x80){
   flags&=~0x20;
   int type=Slot(p->actor,msg->data.kind,0x8D0)->kind;
   if(type==-1&&Slot(p->actor,msg->data.kind,0xA70)->kind!=type){flags&=~0x80;flags|=0x20;}
-  if(Slot(p->actor,msg->data.kind,0x8D0)->kind==-1&&!PanimbindBest(p->actor,GrfFromSgf(6))){flags&=~0x80;flags|=0x20;}
+  if(Slot(p->actor,msg->data.kind,0x8D0)->kind==-1&&!FindBestAnimBinding(p->actor,GetSgfMask(6))){flags&=~0x80;flags|=0x20;}
  }
  if(flags&0x10){
   if(p->actor->capacity>0){
@@ -2138,26 +2138,26 @@ extern "C"{
  void UpdateBhv(C*);
  int IsBhvBusyAbove(C*);
  int HasBhvguardTargetList(C*);
- int FBhvguardEscortActive(C*);
- int FBhvguardModeSame(const STATE*,const STATE*);
+ int IsBhvguardEscortActive(C*);
+ int IsBhvguardModeSame(const STATE*,const STATE*);
  void SetBhvguardMode(C*,const STATE*);
  void*func_002333B4(void*,int,unsigned int) __asm__("memset");
- int func_00208B38(P*,P*);
- float func_00208BB0(P*);
- P*func_0020A408(P*,P*);
+ int IsStepguardForceClass(P*,P*);
+ float GetRandomStepguardDelay(P*);
+ P*ChooseStepguardStimulus(P*,P*);
  void SetBhvSearchWatched(H*,P*);
  int IsBhvSearchIdle(H*);
  int IsBhvanimDone(H*);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  int IsBhvScriptDone(H*);
  int IsBhvcombatDone(H*);
- P*PstepguardFromLo(void*);
+ P*GetStepguardFromLo(void*);
  qword func_001A62E8(P*);
  P*EmitSwNoise(void*,int,qword,P*);
  void RemoveNoise(P*);
  void InflictBhvguardZap(C*,int,P*);
  int IsBhvThrownDone(H*);
- int func_0017EAE8(H*);
+ int IsBhvRelocateDone(H*);
  int IsBhvStalkDone(H*);
  void ResumeBhvguard(C*);
 }
@@ -2165,7 +2165,7 @@ static inline P*Target(P*p){VE*v=&p->vt[88];return ((P*(*)(P*))v->fn)((P*)((char
 static inline int Mode(P*p){VE*v=&p->vt[77];return ((int(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline void Clear(STATE*s){func_002333B4(s,0,sizeof(*s));}
 static inline void Attack(C*p,STATE*s,P*object){
- if(func_00208B38(p->actor,object)){s->kind=18;s->payload.s.object=object;s->payload.s.amount=func_00208BB0(p->actor);}
+ if(IsStepguardForceClass(p->actor,object)){s->kind=18;s->payload.s.object=object;s->payload.s.amount=GetRandomStepguardDelay(p->actor);}
  else{s->kind=3;s->payload.s.object=object;}
 }
 typedef char qword_Size[sizeof(qword)==16?1:-1];
@@ -2214,10 +2214,10 @@ extern "C" void UpdateBhvguard(C*p){
     P*object=Target(p->actor);
     if(object)Attack(p,&next,object);
     else{
-     P*selected=func_0020A408(p->actor,0);
+     P*selected=ChooseStepguardStimulus(p->actor,0);
      if(selected){next.kind=2;next.payload.s.object=selected;}
      else if(p->state.kind==17&&D_002DDED0.time<p->expires)next.kind=17;
-     else{if(FBhvguardEscortActive(p))next.kind=16;else next.kind=1;}
+     else{if(IsBhvguardEscortActive(p))next.kind=16;else next.kind=1;}
     }
    }else next.kind=12;
    SetBhvguardMode(p,&next);break;
@@ -2228,7 +2228,7 @@ extern "C" void UpdateBhvguard(C*p){
     P*object=Target(p->actor);
     if(object){STATE next;Clear(&next);Attack(p,&next,object);SetBhvguardMode(p,&next);}
     else{
-     H*h=p->helper;P*old=h->target;P*selected=func_0020A408(p->actor,old);
+     H*h=p->helper;P*old=h->target;P*selected=ChooseStepguardStimulus(p->actor,old);
      if(selected!=old)SetBhvSearchWatched(h,selected);
      else if(IsBhvSearchIdle(h)){STATE next;Clear(&next);next.kind=1;SetBhvguardMode(p,&next);}
     }
@@ -2255,7 +2255,7 @@ extern "C" void UpdateBhvguard(C*p){
      else{
       next.kind=1;P*other=h->object;
       if(other&&FIsBasicDerivedFrom__FP5BASIC3CID(other,0x34)&&Mode(other)==2){
-       P*owner=PstepguardFromLo(other->extra);
+       P*owner=GetStepguardFromLo(other->extra);
        if(owner&&owner!=p->actor){next.payload.s.object=owner;next.kind=17;}
       }
      }
@@ -2284,10 +2284,10 @@ extern "C" void UpdateBhvguard(C*p){
   case 6:if(IsBhvThrownDone(p->helper))ResumeBhvguard(p);break;
   case 9:if(IsBhvanimDone(p->helper))ResumeBhvguard(p);break;
   case 10:if(IsBhvanimDone(p->helper))ResumeBhvguard(p);break;
-  case 19:if(func_0017EAE8(p->helper))ResumeBhvguard(p);break;
+  case 19:if(IsBhvRelocateDone(p->helper))ResumeBhvguard(p);break;
   case 18:if(IsBhvStalkDone(p->helper))ResumeBhvguard(p);break;
   }
-  if(FBhvguardModeSame(current,&previous))break;
+  if(IsBhvguardModeSame(current,&previous))break;
  }
 }
 } // namespace M_UpdateBhvguard
@@ -2308,8 +2308,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
 void *PpoHero(struct G *g);
 int HasBhvguardTargetList(struct S *p);
 int ShouldBhvguardUseNeelaBehavior(struct S *p);
-int func_00208B38(struct A *p, void *q);
-float func_00208BB0(struct A *p);
+int IsStepguardForceClass(struct A *p, void *q);
+float GetRandomStepguardDelay(struct A *p);
 qword func_001A62E8(struct A *p);
 void *EmitSwNoise(struct G *g, int n, qword v, struct A *p);
 void SetBhvguardMode(struct S *p, struct F *f);
@@ -2341,10 +2341,10 @@ void ResumeBhvguard(struct S *p) {
         void *q;
         { struct A *a = p->p10; struct VTE *e = &a->vt[0x58]; q = e->pfn((char *)a + e->d); }
         if (q) {
-            if (func_00208B38(p->p10, q)) {
+            if (IsStepguardForceClass(p->p10, q)) {
                 f.a = 0x12;
                 f.p10 = q;
-                f.f14 = func_00208BB0(p->p10);
+                f.f14 = GetRandomStepguardDelay(p->p10);
             } else {
                 f.a = 4;
                 f.p10 = q;
@@ -2388,7 +2388,7 @@ extern "C" int HasBhvguardTargetList(BHV *pbhv)
     return f;
 }
 
-// 0x177D48 FBhvguardEscortActive
+// 0x177D48 IsBhvguardEscortActive
 namespace M_FBhvguardEscortActive { extern "C" {
 struct T; struct U; struct S;
 struct T { char pad[0x28]; unsigned long fl; };
@@ -2396,13 +2396,13 @@ struct U { char pad[0xF68]; struct T *pt; };
 struct S { char pad[0x10]; struct U *pu; };
 /** @sly2-annot addr=0x177D48
  * Purpose: Escort object at guard +0xF68 exists and is in the world (bit 60)
- * Info: proposed name FBhvguardEscortActive (T1); TU guardbhv
+ * Info: proposed name IsBhvguardEscortActive (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVGUARD role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvguardEscortActive(struct S *p) { struct T *t = p->pu->pt; int f = 0; if (t) f = (int)(t->fl >> 60) & 1; return f; }
+int IsBhvguardEscortActive(struct S *p) { struct T *t = p->pu->pt; int f = 0; if (t) f = (int)(t->fl >> 60) & 1; return f; }
 } } // namespace M_FBhvguardEscortActive
 
 // 0x177D70 ShouldBhvguardUseNeelaBehavior
@@ -2426,20 +2426,20 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *pbhv)
 }
 
 namespace RO_ORDER { extern const float r_D_002A54D0 __asm__("D_002A54D0") = 3.40282347e+38f; }
-// 0x177DC0 FBhvguardModeSame
+// 0x177DC0 IsBhvguardModeSame
 namespace M_FBhvguardModeSame { extern "C" {
 struct S;
 struct S { int k; int a[3]; int n10; int b[2]; int n1C; };
 /** @sly2-annot addr=0x177DC0
  * Purpose: Compare two mode records (kind plus the kind's key field)
- * Info: proposed name FBhvguardModeSame (T1); TU guardbhv
+ * Info: proposed name IsBhvguardModeSame (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVGUARD role on live guards (S02-S41)
  * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+verdicts_followups+runtime(class role)
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvguardModeSame(struct S *a, struct S *b) {
+int IsBhvguardModeSame(struct S *a, struct S *b) {
     if (a->k != b->k) return 0;
     switch (a->k) {
     case 9: case 10: case 11: return a->n1C == b->n1C;
@@ -2622,7 +2622,7 @@ float SWrapShape(CURVE *pcrv, float s);
 float SMaxShape(CURVE *pcrv);
 void FindShapeClosestPointFromS(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
 void EvaluateShapeS(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
-int FBhvpathAtEnd(S *p);
+int IsBhvpathAtEnd(S *p);
 void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
 int func_001C0B50(CONTEXT *pctx, qword pos, VEC *pv);
 }
@@ -2863,7 +2863,7 @@ extern "C" void StepBhvpathAlongShape(S *p)
     if (fReverse)
         ds = -ds;
     float gSpeed;
-    if (FBhvpathAtEnd(p))
+    if (IsBhvpathAtEnd(p))
     {
         gSpeed = 0.0f;
         nextDir.qw = D_002A2DA0;
@@ -3151,7 +3151,7 @@ extern "C" void SetBhvpathState(BHVPATHV *pbhv, int nState)
 // 0x178CF8: dead-code scrap, a nop unit (sly2/scrap.h)
 SLY2_SCRAP("nop");
 
-// 0x178D00 FBhvpathAtEnd
+// 0x178D00 IsBhvpathAtEnd
 namespace M_FBhvpathAtEnd { extern "C" {
 struct O;
 typedef int qword __attribute__((mode(TI)));
@@ -3177,12 +3177,12 @@ static inline float Dist(qword a, qword b) {
 }
 /** @sly2-annot addr=0x178D00
  * Purpose: Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0
- * Info: proposed name FBhvpathAtEnd (T1); TU guardbhv
+ * Info: proposed name IsBhvpathAtEnd (T1); TU guardbhv
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090,
  *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
  * @end-sly2-annot */
-int FBhvpathAtEnd(struct O *p)
+int IsBhvpathAtEnd(struct O *p)
 {
     if (!p->f3C)
         return 0;
@@ -3528,19 +3528,19 @@ void SetBhvwalkpathState(struct S *p, int n) {
 }
 } } // namespace M_SetBhvwalkpathState
 
-// 0x1792E8 FBhvwalkpathStuck
+// 0x1792E8 IsBhvwalkpathStuck
 namespace M_FBhvwalkpathStuck { extern "C" {
 struct S;
 struct S { char pad[0x4C]; int n4C; char pad2[0x90]; float gE0; };
 /** @sly2-annot addr=0x1792E8
  * Purpose: Walking and the stuck timer +0xE0 ran out
- * Info: proposed name FBhvwalkpathStuck (T1); TU guardbhv
+ * Info: proposed name IsBhvwalkpathStuck (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVWALKPATH role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvwalkpathStuck(struct S *p) { int f = 0; if (p->n4C < 2) { if (p->n4C >= 0) f = p->gE0 < 0.0f; } return f; }
+int IsBhvwalkpathStuck(struct S *p) { int f = 0; if (p->n4C < 2) { if (p->n4C >= 0) f = p->gE0 < 0.0f; } return f; }
 } } // namespace M_FBhvwalkpathStuck
 
 // 0x179328 StartBhvhit
@@ -3567,7 +3567,7 @@ float RadNormalize__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
 qword func_001A62E8(void *p);
 void func_0020C6F8(void *p, qword v);
-void func_0020AB68(struct A *a, int b, int c, qword v);
+void SetStepguardAttack(struct A *a, int b, int c, qword v);
 void SetBhvBusy(struct S *p);
 void ReplaceHeldSwNoise(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
@@ -3612,7 +3612,7 @@ void StartBhvhit(struct S *p) {
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));
         func_0020C6F8(p->p40->p8, s);
     }
-    func_0020AB68(p->p10, 0, 0, D_002A2DD0);
+    SetStepguardAttack(p->p10, 0, 0, D_002A2DD0);
     if (p->n30 == 0) SetBhvBusy(p);
     ReplaceHeldSwNoise(&D_003DD490, 1, func_001A62E8(p->p10), p->p10, p->p10->a35C);
     p->fB0 = p->fB4 = D_002A5584;
@@ -3696,7 +3696,7 @@ void InitBhvanim(struct S *p);
 } } // namespace M_func_001796A0
 void BHV161::OnPush() { using namespace M_func_001796A0; M_func_001796A0::S *p = (M_func_001796A0::S *)this; InitBhvanim(p); p->n3C = 5; }
 
-// 0x1796D0 func_001796D0
+// 0x1796D0 StartBhvHurt
 namespace M_func_001796D0 { extern "C" {
 struct E; struct T; struct T2; struct S;
 struct E { int n; int a, b, c; };
@@ -3716,7 +3716,7 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_001796D0(struct S *p) {
+void StartBhvHurt(struct S *p) {
     p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;
     StartBhvhit(p);
@@ -3740,7 +3740,7 @@ void InitBhvanim(struct S *p);
 } } // namespace M_func_00179750
 void BHV162::OnPush() { using namespace M_func_00179750; M_func_00179750::S *p = (M_func_00179750::S *)this; InitBhvanim(p); p->n3C = 6; }
 
-// 0x179780 func_00179780
+// 0x179780 StartBhvKnockdown
 namespace M_func_00179780 { extern "C" {
 struct E; struct T; struct VTE; struct O; struct T2; struct S;
 struct E { int n; int a, b, c; };
@@ -3762,7 +3762,7 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  *   verify:verdicts_B+verdicts_B+r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_00179780(struct S *p) {
+void StartBhvKnockdown(struct S *p) {
     p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;
     StartBhvhit(p);
@@ -3772,7 +3772,7 @@ void func_00179780(struct S *p) {
 }
 } } // namespace M_func_00179780
 
-// 0x179820 func_00179820
+// 0x179820 CloseBhvKnockdown
 namespace M_func_00179820 { extern "C" {
 struct VTE; struct O; struct T; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -3787,7 +3787,7 @@ void CloseBhvhit(struct S *p);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_00179820(struct S *p) { struct O *o; CloseBhvhit(p); o = p->pt->pFEC; if (o) { struct VTE *e = &o->vt[9]; e->pfn((char *)o + e->d); } }
+void CloseBhvKnockdown(struct S *p) { struct O *o; CloseBhvhit(p); o = p->pt->pFEC; if (o) { struct VTE *e = &o->vt[9]; e->pfn((char *)o + e->d); } }
 } } // namespace M_func_00179820
 
 // 0x179868 InitBhvko
@@ -3949,8 +3949,8 @@ struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; int n40; };
 void StartBhv(struct S *p);
 void SetBhvpatrolState(struct S *p, int n);
 qword func_001A62E8(void *p);
-void func_00170E90(int n, qword q, void *pv);
-int func_00209098(struct T *t);
+void ChooseGuardScriptNearestCommand(int n, qword q, void *pv);
+int IsStepguardHandsOff(struct T *t);
 /** @sly2-annot addr=0x179AA0
  * Purpose: BHVPATROL Start: take the patrol script (+0x2E8, or +0x2EC with capability 2); resume at nearest
  *   script point; walk (0) or stand (2) or hands-off (3)
@@ -3967,8 +3967,8 @@ void StartBhvpatrol(struct S *p) {
     if (t->n2E8) p->n40 = t->n2E8;
     else if (t->nFE8 & 2) p->n40 = t->n2EC;
     else { p->n40 = 0; SetBhvpatrolState(p, 2); return; }
-    if (p->pt->n2DC) func_00170E90(p->n40, func_001A62E8(p->pt), &p->pt->n2DC);
-    if (func_00209098(p->pt)) SetBhvpatrolState(p, 3); else SetBhvpatrolState(p, 0);
+    if (p->pt->n2DC) ChooseGuardScriptNearestCommand(p->n40, func_001A62E8(p->pt), &p->pt->n2DC);
+    if (IsStepguardHandsOff(p->pt)) SetBhvpatrolState(p, 3); else SetBhvpatrolState(p, 0);
 }
 } } // namespace M_StartBhvpatrol
 
@@ -3996,7 +3996,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x10]; void *p10; int pad2; void *p18; char pad3[0x14]; float f30; float f34; int n38; char pad4[4]; int n40; };
 void UpdateBhv(struct S *p);
-int func_00209098(void *p);
+int IsStepguardHandsOff(void *p);
 int IsBhvBusyAbove(struct S *p);
 void SetBhvpatrolState(struct S *p, int n);
 int IsBhvScriptDone(void *p);
@@ -4012,7 +4012,7 @@ int IsBhvScriptDone(void *p);
 void UpdateBhvpatrol(struct S *p) {
     int f, s;
     UpdateBhv(p);
-    f = func_00209098(p->p10);
+    f = IsStepguardHandsOff(p->p10);
     while (!IsBhvBusyAbove(p)) {
         s = p->n38;
         switch (s) {
@@ -4051,8 +4051,8 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
 struct S { char pad[0x10]; char *p10; int pad2; void *p18; char pad3[0x14]; float g30; float g34; int n38; float g3C; void *p40; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-void func_00171C18(void *p, void *q);
-void func_00171258(struct O *o, void *t, int a, void *u);
+void SaveBhvScriptResumeState(void *p, void *q);
+void SetBhvScriptScript(struct O *o, void *t, int a, void *u);
 void ArmBhvpatrolPauseTimer(struct S *p);
 void ArmBhvpatrolWalkTimer(struct S *p);
 /** @sly2-annot addr=0x179D30
@@ -4067,7 +4067,7 @@ void ArmBhvpatrolWalkTimer(struct S *p);
  * @end-sly2-annot */
 void SetBhvpatrolState(struct S *p, int n) {
     if (n == p->n38) return;
-    if (p->n38 == 0) func_00171C18(p->p18, p->p10 + 0x2DC);
+    if (p->n38 == 0) SaveBhvScriptResumeState(p->p18, p->p10 + 0x2DC);
     PopBhv(&p->p18);
     p->n38 = n;
     p->g3C = D_002DDED0.t;
@@ -4078,7 +4078,7 @@ void SetBhvpatrolState(struct S *p, int n) {
         p->g30 = 3.40282346638528859812e+38f;
         break;
     case 0:
-        { struct O *o = func_00205438(p->p10, 0xA9); struct VTE *e; func_00171258(o, p->p40, 0, p->p10 + 0x2DC); e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = func_00205438(p->p10, 0xA9); struct VTE *e; SetBhvScriptScript(o, p->p40, 0, p->p10 + 0x2DC); e = &o->vt[8]; e->pfn((char *)o + e->d); }
         ArmBhvpatrolWalkTimer(p);
         p->g34 = 3.40282346638528859812e+38f;
         break;
@@ -4171,7 +4171,7 @@ extern "C"{
  extern int D_002DFB78;
  extern qword D_002A2DC0;
  extern LIMIT D_002BE6B8;
- unsigned long GrfFromSgf(int);
+ unsigned long GetSgfMask(int);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  qword func_001A62E8(P*);
  M3*func_001A6318(P*);
@@ -4181,11 +4181,11 @@ extern "C"{
  void func_0011B500(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
  void GetPipeGoalMat(P*,int,M3*,float);
- void func_0017A468(C*);
+ void AdjustBhvleapAttachPoint(C*);
  int SnapToGround(qword*,float,float,int,int(*)(void));
  void StartBhvanim(C*);
  void SetStepguardMoverRadTarget(CONTROL*,float);
- void func_00209840(CONTROL*,M3*);
+ void SetStepguardMoverTargetMatrix(CONTROL*,M3*);
  void func_0020C6F8(INFO*,qword);
  void SetBhvBusy(C*);
 }
@@ -4242,7 +4242,7 @@ typedef char LIMIT_high_Offset[FIELD_OFFSET(LIMIT,high)==4?1:-1];
 extern "C" void StartBhvleap(C*p){
  WORK work;U point,otherPoint,direction;
  if(!D_002DFB78){
-  unsigned long a=GrfFromSgf(0x1B),b=GrfFromSgf(0x27),c=GrfFromSgf(0x28),d=GrfFromSgf(0x29);
+  unsigned long a=GetSgfMask(0x1B),b=GetSgfMask(0x27),c=GetSgfMask(0x28),d=GetSgfMask(0x29);
   D_002DFB78=1;D_002DFB70=a|b|c|d;
  }
  unsigned long mask=D_002DFB70;
@@ -4263,25 +4263,25 @@ extern "C" void StartBhvleap(C*p){
    heading=atan2f(((U*)a->r)->f[1],((U*)b->r)->f[0]);
   }
   if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,13)){
-   active|=GrfFromSgf(0x1B);
+   active|=GetSgfMask(0x1B);
    if(!p->reverse)heading=RadNormalize__Ff(heading+3.1415927410125732421875f);
    p->basisValid=1;
    func_0011B500(&work.temp.first.rotation,heading,D_002A2DC0);
    p->matrix=work.temp.first.rotation;
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x27)){
-   active|=GrfFromSgf(0x29);
+   active|=GetSgfMask(0x29);
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,11)){
-   active|=GrfFromSgf(0x27);
+   active|=GetSgfMask(0x27);
    p->basisValid=1;
    GetPipeGoalMat(p->target,p->reverse,&p->matrix,work.curve);
-   func_0017A468(p);
+   AdjustBhvleapAttachPoint(p);
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x13)&&p->target->kind==3){
-   active|=GrfFromSgf(0x28);
+   active|=GetSgfMask(0x28);
    p->basisValid=1;
    M3*m=func_001A6318(p->target);
    (void)BuildOrthonormalMatrixZ(&work.temp.basis,m->r[0],D_002A2DC0);
    p->matrix=work.temp.basis;
-   func_0017A468(p);
+   AdjustBhvleapAttachPoint(p);
   }else{
   (void)SnapToGround(&p->point.q,D_002BE6B8.high,D_002BE6B8.low,1,0);
   p->target=0;
@@ -4308,7 +4308,7 @@ extern "C" void StartBhvleap(C*p){
    P*actor;direction.q=BasisInputs(p,&otherPoint,current,&actor);
    M3*m=func_001A6318(actor->linked);
    (void)BuildOrthonormalMatrixZ(&work.temp.basis,m->r[0],direction.q);
-   func_00209840(Control(p->actor),&work.temp.basis);
+   SetStepguardMoverTargetMatrix(Control(p->actor),&work.temp.basis);
    break;
   }
   }
@@ -4344,7 +4344,7 @@ struct U { char pad[0x10]; int n10; };
 struct T { int a, b; struct U *p8; };
 struct S { char pad[0x10]; char *p10; char pad1[0x1C]; int n30; char pad2[0xC]; struct T *p40; char pad3[0x28]; int n6C; int a70[4]; };
 void UpdateBhvanim(struct S *p);
-void func_00209840(void *p, void *q);
+void SetStepguardMoverTargetMatrix(void *p, void *q);
 /** @sly2-annot addr=0x17A400
  * Purpose: BHVLEAP Update: BHVANIM update; after the jump phase lock heading to the attach basis
  * Info: proposed name UpdateBhvleap (T1); class BHVLEAP slot10; TU guardbhv
@@ -4355,10 +4355,10 @@ void func_00209840(void *p, void *q);
  *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void UpdateBhvleap(struct S *p) { UpdateBhvanim(p); if (p->n6C && !p->n30 && p->p40->p8->n10 >= 2) func_00209840(p->p10 + 0xFD0, p->a70); }
+void UpdateBhvleap(struct S *p) { UpdateBhvanim(p); if (p->n6C && !p->n30 && p->p40->p8->n10 >= 2) SetStepguardMoverTargetMatrix(p->p10 + 0xFD0, p->a70); }
 } } // namespace M_UpdateBhvleap
 
-// 0x17A468 func_0017A468
+// 0x17A468 AdjustBhvleapAttachPoint
 namespace M_func_0017A468 { extern "C" {
 struct B; struct C; struct A; struct O;
 typedef int qword __attribute__((mode(TI)));
@@ -4381,7 +4381,7 @@ struct O {
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A468(struct O *p)
+void AdjustBhvleapAttachPoint(struct O *p)
 {
     struct A *a = p->p10;
     qword *m = p->m;
@@ -4410,7 +4410,7 @@ void BHV175::OnPush()
     pbhv->n50 = -1;
 }
 
-// 0x17A4E8 func_0017A4E8
+// 0x17A4E8 StartBhvSleep
 namespace M_func_0017A4E8 { extern "C" {
 struct G; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4419,7 +4419,7 @@ extern struct G D_003DD490;
 struct T { char pad[0xF64]; void *pF64; };
 struct S { char pad[0x10]; struct T *pt; };
 void StartBhvanim(struct S *p);
-void func_0017A5B0(struct S *p, int n);
+void SetBhvSleepState(struct S *p, int n);
 void ResetDetectorTargets(void *p);
 qword func_001A62E8(void *p);
 void ReplaceHeldSwNoise(struct G *g, int a, qword q, void *b, void *pv);
@@ -4431,10 +4431,10 @@ void ReplaceHeldSwNoise(struct G *g, int a, qword q, void *b, void *pv);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A4E8(struct S *p) { StartBhvanim(p); func_0017A5B0(p, 0); ResetDetectorTargets(p->pt->pF64); ReplaceHeldSwNoise(&D_003DD490, 1, func_001A62E8(p->pt), p->pt, (char *)p->pt + 0x35C); }
+void StartBhvSleep(struct S *p) { StartBhvanim(p); SetBhvSleepState(p, 0); ResetDetectorTargets(p->pt->pF64); ReplaceHeldSwNoise(&D_003DD490, 1, func_001A62E8(p->pt), p->pt, (char *)p->pt + 0x35C); }
 } } // namespace M_func_0017A4E8
 
-// 0x17A558 func_0017A558
+// 0x17A558 CloseBhvSleep
 namespace M_func_0017A558 { extern "C" {
 struct G; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4443,7 +4443,7 @@ struct G { int a; };
 extern struct G D_003DD490;
 struct S { char pad[0x10]; char *p10; };
 void CloseBhvanim(struct S *p);
-void func_0017A5B0(struct S *p, int n);
+void SetBhvSleepState(struct S *p, int n);
 void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
 /** @sly2-annot addr=0x17A558
  * Purpose: BHVSLEEP Close: BHVANIM Close, release held noise
@@ -4452,10 +4452,10 @@ void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A558(struct S *p) { CloseBhvanim(p); func_0017A5B0(p, -1); ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, p->p10 + 0x35C); }
+void CloseBhvSleep(struct S *p) { CloseBhvanim(p); SetBhvSleepState(p, -1); ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, p->p10 + 0x35C); }
 } } // namespace M_func_0017A558
 
-// 0x17A5B0 func_0017A5B0
+// 0x17A5B0 SetBhvSleepState
 namespace M_func_0017A5B0 { extern "C" {
 struct CLOCK; struct U; struct T; struct S;
 struct CLOCK { float t; float dt; };
@@ -4473,7 +4473,7 @@ float GRandInRange__Fff(float a, float b);
  *   verify:verdicts_B+verdicts_B+r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A5B0(struct S *p, int n) {
+void SetBhvSleepState(struct S *p, int n) {
     if (n == p->n50) return;
     p->n50 = n;
     p->g54 = n;
@@ -4489,7 +4489,7 @@ void func_0017A5B0(struct S *p, int n) {
 }
 } } // namespace M_func_0017A5B0
 
-// 0x17A670 func_0017A670
+// 0x17A670 UpdateBhvSleep
 namespace M_func_0017A670 { extern "C" {
 struct CLOCK; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4499,7 +4499,7 @@ struct V { char pad[0x20]; qword q20; };
 struct T { char pad[0x35C]; struct V *p35C; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x3C]; int n50; int pad3; float g58; };
 void UpdateBhvanim(struct S *p);
-void func_0017A5B0(struct S *p, int n);
+void SetBhvSleepState(struct S *p, int n);
 qword func_001A62E8(void *p);
 /** @sly2-annot addr=0x17A670
  * Purpose: BHVSLEEP Update: wake (state 1) when timer expires; keep held noise at the guard
@@ -4511,18 +4511,18 @@ qword func_001A62E8(void *p);
  *   names_v2:B(unverified)+r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A670(struct S *p) {
+void UpdateBhvSleep(struct S *p) {
     int s;
     UpdateBhvanim(p);
     do {
         s = p->n50;
-        if (s == 0 && D_002DDED0.t > p->g58) func_0017A5B0(p, 1);
+        if (s == 0 && D_002DDED0.t > p->g58) SetBhvSleepState(p, 1);
     } while (p->n50 != s);
     { struct T *t = p->pt; struct V *v = t->p35C; v->q20 = func_001A62E8(t); }
 }
 } } // namespace M_func_0017A670
 
-// 0x17A6F8 func_0017A6F8
+// 0x17A6F8 InitBhvThrown
 namespace M_func_0017A6F8 { extern "C" {
 struct S;
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; int n30; };
@@ -4535,10 +4535,10 @@ void AddStepguardSgf(void *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A6F8(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x16); p->n30 = -1; }
+void InitBhvThrown(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x16); p->n30 = -1; }
 } } // namespace M_func_0017A6F8
 
-// 0x17A730 func_0017A730
+// 0x17A730 StartBhvThrown
 namespace M_func_0017A730 { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4546,9 +4546,9 @@ extern qword D_002A2DD0;
 struct T { char pad[0xF64]; void *pF64; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x28]; int n3C; };
 void StartBhv(struct S *p);
-void func_0017A8C8(struct S *p, int n);
-void func_0020B210(struct T *t);
-void func_0020AB68(struct T *t, int a, int b, qword q);
+void SetBhvThrownState(struct S *p, int n);
+void DetachStepguard(struct T *t);
+void SetStepguardAttack(struct T *t, int a, int b, qword q);
 void func_001F4E28(struct T *t);
 void SetBhvBusy(struct S *p);
 void ResetDetectorTargets(void *p);
@@ -4560,8 +4560,8 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A730(struct S *p) {
-    StartBhv(p); func_0017A8C8(p, 0); func_0020B210(p->pt); func_0020AB68(p->pt, 0, 0, D_002A2DD0);
+void StartBhvThrown(struct S *p) {
+    StartBhv(p); SetBhvThrownState(p, 0); DetachStepguard(p->pt); SetStepguardAttack(p->pt, 0, 0, D_002A2DD0);
     func_001F4E28(p->pt); SetBhvBusy(p); ResetDetectorTargets(p->pt->pF64);
     if (p->n3C) SetDetectorTargetStateById(p->pt->pF64, p->n3C, 2);
 }
@@ -4579,11 +4579,11 @@ void BHV176::VSlot9()
 {
     BHVSTATE *pbhv = (BHVSTATE *)this;
     CloseBhv(pbhv);
-    func_0017A8C8(pbhv, -1);
+    SetBhvThrownState(pbhv, -1);
     RemoveStepguardSgf((STEPGUARD *)pbhv->pstep, 0x16);
 }
 
-// 0x17A7F8 func_0017A7F8
+// 0x17A7F8 UpdateBhvThrown
 namespace M_func_0017A7F8 { extern "C" {
 struct CLOCK; struct G; struct R; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4596,7 +4596,7 @@ struct R { char pad[0x54]; int n54; };
 struct T { char pad[0x208]; int n208; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x1C]; int n30; int pad3; float g38; };
 void UpdateBhv(struct S *p);
-void func_0017A8C8(struct S *p, int n);
+void SetBhvThrownState(struct S *p, int n);
 qword func_001A62E8(void *p);
 struct R *NewNoise(void *p, qword q, struct T *t);
 /** @sly2-annot addr=0x17A7F8
@@ -4607,12 +4607,12 @@ struct R *NewNoise(void *p, qword q, struct T *t);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A7F8(struct S *p) {
+void UpdateBhvThrown(struct S *p) {
     int s;
     UpdateBhv(p);
     do {
         s = p->n30;
-        if (s < 4) { if (s >= 2 && p->pt->n208) func_0017A8C8(p, -1); }
+        if (s < 4) { if (s >= 2 && p->pt->n208) SetBhvThrownState(p, -1); }
     } while (s != p->n30);
     if (s == 1 || s == 4) {
         if (D_002DDED0.t - p->g38 > D_002BE6C0) {
@@ -4624,7 +4624,7 @@ void func_0017A7F8(struct S *p) {
 }
 } } // namespace M_func_0017A7F8
 
-// 0x17A8C8 func_0017A8C8
+// 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct T; struct S;
 struct CLOCK { float t; float dt; };
@@ -4645,7 +4645,7 @@ struct O *func_00205438(void *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r9_bhv_screen+top50_round
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A8C8(struct S *p, int n) {
+void SetBhvThrownState(struct S *p, int n) {
     if (p->n30 == n) return;
     PopBhv(p->a18);
     p->n30 = n;
@@ -4707,8 +4707,8 @@ extern qword D_002A2DD0;
 struct T { char pad[0xF64]; void *pF64; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x48]; int n5C; };
 void StartBhvanim(struct S *p);
-void func_0020AB68(struct T *t, int a, int b, qword q);
-void func_0020B210(struct T *t);
+void SetStepguardAttack(struct T *t, int a, int b, qword q);
+void DetachStepguard(struct T *t);
 void SetBhvjuggledState(struct S *p, int n);
 void SetBhvBusy(struct S *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
@@ -4722,10 +4722,10 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void StartBhvjuggled(struct S *p) { StartBhvanim(p); func_0020AB68(p->pt, 0, 0, D_002A2DD0); func_0020B210(p->pt); SetBhvjuggledState(p, 0); SetBhvBusy(p); SetDetectorTargetStateById(p->pt->pF64, p->n5C, 2); }
+void StartBhvjuggled(struct S *p) { StartBhvanim(p); SetStepguardAttack(p->pt, 0, 0, D_002A2DD0); DetachStepguard(p->pt); SetBhvjuggledState(p, 0); SetBhvBusy(p); SetDetectorTargetStateById(p->pt->pF64, p->n5C, 2); }
 } } // namespace M_StartBhvjuggled
 
-// 0x17AA78 func_0017AA78
+// 0x17AA78 CalculateBhvjuggledHoldPoint
 namespace M_func_0017AA78 { extern "C" {
 struct P; struct REQUEST;
 typedef int qword __attribute__((mode(TI)));
@@ -4753,7 +4753,7 @@ static inline void PublishPoint(U*home,qword scalar,qword*out,qword point){__asm
  *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017AA78(struct P*p,struct REQUEST*request,qword*outPoint,qword*outDirection){
+void CalculateBhvjuggledHoldPoint(struct P*p,struct REQUEST*request,qword*outPoint,qword*outDirection){
 
  qword first=ToVU(func_001A62E8(p->actor));
  qword direction=Normal(Reject(Sub(first,func_001A62E8(p->target)),D_002A2DC0),D_002A2DA0);
@@ -4797,7 +4797,7 @@ typedef char U_q_Offset[(unsigned)&((U*)0)->q==0?1:-1];
 typedef char U_scalar_Offset[(unsigned)&((U*)0)->g==0?1:-1];
 } } // namespace M_func_0017AA78
 
-// 0x17ABC8 func_0017ABC8
+// 0x17ABC8 UpdateBhvjuggledHoldAct
 namespace M_func_0017ABC8 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct R; struct U; struct W; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4810,7 +4810,7 @@ struct U { char pad[0x1C]; float g1C; };
 struct W { char pad[0xA0]; int nA0; };
 struct T { char pad[0x58]; struct W *p58; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x48]; struct O *p5C; int n60; struct U *p64; };
-void func_0017AA78(struct S *p, struct R *r, qword *a, qword *b);
+void CalculateBhvjuggledHoldPoint(struct S *p, struct R *r, qword *a, qword *b);
 qword func_0022FC48(int a, int b, qword q);
 qword ConvertXfVec(int a, int b, qword q);
 void func_0012E0F0(struct U *u, qword a, qword b);
@@ -4824,7 +4824,7 @@ void func_0012E0F0(struct U *u, qword a, qword b);
  *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017ABC8(struct S *p) {
+void UpdateBhvjuggledHoldAct(struct S *p) {
     struct R r;
     qword q30, q40;
     struct W *w;
@@ -4833,7 +4833,7 @@ void func_0017ABC8(struct S *p) {
     { struct O *o = p->p5C; struct VTE *e = &o->vt[0x60]; ((void (*)(void *, struct R *, float))e->pfn)((char *)o + e->d, &r, p->p64->g1C - D_002DDED0.t); }
     if (!r.n0) { p->n60 = 0; return; }
     w = p->pt->p58;
-    func_0017AA78(p, &r, &q30, &q40);
+    CalculateBhvjuggledHoldPoint(p, &r, &q30, &q40);
     a = func_0022FC48(0, w->nA0, q30);
     func_0012E0F0(p->p64, a, ConvertXfVec(0, w->nA0, q40));
 }
@@ -4858,7 +4858,7 @@ struct S { char pad[0x10]; struct A *p10; char pad2[0x50 - 0x14]; int n50; float
 struct OUT { char pad[0x30]; qword v; };
 void UpdateBhvanim(struct S *p);
 void SetBhvjuggledState(struct S *p, int n);
-void func_0017ABC8(struct S *p);
+void UpdateBhvjuggledHoldAct(struct S *p);
 qword func_001A62E8(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
@@ -4894,7 +4894,7 @@ void UpdateBhvjuggled(struct S *p) {
             } else if (GetZ(v) < 0.0f && p->n50 == 0) {
                 SetBhvjuggledState(p, 1);
             } else {
-                func_0017ABC8(p);
+                UpdateBhvjuggledHoldAct(p);
             }
             break;
         case 2:
@@ -4984,7 +4984,7 @@ typedef char layout_S_control[((unsigned)&((struct S*)0)->p64==0x64)?1:-1];
 typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 } } // namespace M_UpdateBhvjuggled
 
-// 0x17AF30 BHVJUGGLED_FHandleMessage
+// 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
 struct G; struct VTE; struct O; struct C; struct A; struct S; struct M; struct X;
 typedef int qword __attribute__((mode(TI)));
@@ -4999,9 +4999,9 @@ struct A { char pad[0x33C]; int n33C; };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; struct C *p40; char pad3[0xC]; int n50; int pad4; int n58; };
 struct M { int n0; int pad; int n8; int nC; int n10; char pad2[0x30]; int n44; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
-int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm);
-int func_00209518(struct C *c);
-int FAnimBindingDone(struct C *c);
+int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
+int GetAnimBindingInstance(struct C *c);
+int IsAnimBindingDone(struct C *c);
 void StopAnimBinding(struct C *c);
 void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
 float *func_0012F938(void *p, void *q);
@@ -5014,19 +5014,19 @@ void NewNoise(void *p, qword v, struct A *a);
 /** @sly2-annot addr=0x17AF30
  * Purpose: BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held =
  *   extra hit (seek labels, spawn effect, raise hit value +0x33C, noise)
- * Info: proposed name BHVJUGGLED_FHandleMessage (T1); class BHVJUGGLED slot13; TU guardbhv
- * Notes: BHV class word normalised: BHVHELD_FHandleMessage -> BHVJUGGLED_FHandleMessage | runtime2/4
+ * Info: proposed name HandleBhvjuggledMessage (T1); class BHVJUGGLED slot13; TU guardbhv
+ * Notes: BHV class word normalised: BHVHELD_FHandleMessage -> HandleBhvjuggledMessage | runtime2/4
  *   confirmed the BHVJUGGLED role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVJUGGLED_FHandleMessage(struct S *p, int msg, struct M *pm) {
-    if (BHVANIM_FHandleMessage(p, msg, pm)) return 1;
+int HandleBhvjuggledMessage(struct S *p, int msg, struct M *pm) {
+    if (HandleBhvanimMessage(p, msg, pm)) return 1;
     switch (msg) {
     case 9:
         if (p->p40 == 0) return 0;
-        if (func_00209518(p->p40) != pm->n0) return 0;
+        if (GetAnimBindingInstance(p->p40) != pm->n0) return 0;
         if (pm->n8 == 0x3D) p->n58 = 0;
         return 0;
     case 0xC:
@@ -5039,7 +5039,7 @@ int BHVJUGGLED_FHandleMessage(struct S *p, int msg, struct M *pm) {
             if (pm->nC != 0x200000) return 0;
             if (!(pm->n44 & 8)) return 0;
             if (!p->n50) return 0;
-            if (FAnimBindingDone(p->p40)) {
+            if (IsAnimBindingDone(p->p40)) {
                 StopAnimBinding(p->p40);
                 StartAnimBinding(p->p40, p->p10, p->p40->nC | 1, 0.0f);
             }
@@ -5126,7 +5126,7 @@ extern "C"{
  void RecalcSwOxfFilterForObject(void*,P*);
  void func_001F4E28(P*);
  void SetBhvanimState(C*,int);
- void func_0017AA78(C*,REQUEST*,U*,U*);
+ void CalculateBhvjuggledHoldPoint(C*,REQUEST*,U*,U*);
  qword func_001A62E8(P*);
  qword func_0022FC48(void*,void*,qword);
  qword ConvertXfVec(void*,void*,qword);
@@ -5256,7 +5256,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
  case -1:SetSoMass(p->actor,p->actor->tuning->speed/D_002BE6FC);SetBhvanimState(p,1);break;
  case 0:{
   Request(p->target,&request,D_002BE700);
-  func_0017AA78(p,&request,&point,&direction);
+  CalculateBhvjuggledHoldPoint(p,&request,&point,&direction);
   register qword scalar __asm__("$2");
   register P*beforeActor __asm__("$4");
   register float duration __asm__("$f1")=D_002BE700;
@@ -5287,20 +5287,20 @@ extern "C" void SetBhvjuggledState(C*p,int next){
 }
 } // namespace M_SetBhvjuggledState
 
-// 0x17B578 BHVJUGGLED_GrfGroundProbe
+// 0x17B578 GetBhvjuggledGroundProbeFlags
 namespace M_BHVJUGGLED_GrfGroundProbe { extern "C" {
 struct S;
 struct S { char pad[0x50]; int n50; };
 /** @sly2-annot addr=0x17B578
  * Purpose: BHVHELD ground-probe flags: 7 when landed (state 3) else 1
- * Info: proposed name BHVJUGGLED_GrfGroundProbe (T1); class BHVJUGGLED slot12; TU guardbhv
- * Notes: BHV class word normalised: BHVHELD_GrfGroundProbe -> BHVJUGGLED_GrfGroundProbe | runtime2/4
+ * Info: proposed name GetBhvjuggledGroundProbeFlags (T1); class BHVJUGGLED slot12; TU guardbhv
+ * Notes: BHV class word normalised: BHVHELD_GrfGroundProbe -> GetBhvjuggledGroundProbeFlags | runtime2/4
  *   confirmed the BHVJUGGLED role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); semantic review; sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVJUGGLED_GrfGroundProbe(struct S *p) { return p->n50 != 3 ? 1 : 7; }
+int GetBhvjuggledGroundProbeFlags(struct S *p) { return p->n50 != 3 ? 1 : 7; }
 } } // namespace M_BHVJUGGLED_GrfGroundProbe
 
 // 0x17B590 InitBhvshoot
@@ -5381,27 +5381,27 @@ extern "C" void UpdateBhvshoot(BHVSTATE *pbhv)
     }
 }
 
-// 0x17B690 BHVSHOOT_FHandleMessage
+// 0x17B690 HandleBhvshootMessage
 namespace M_BHVSHOOT_FHandleMessage { extern "C" {
 struct M; struct U; struct T; struct S;
 struct M { int n0; int n4; int n8; };
 struct U { char pad[0x40]; void *p40; };
 struct T { char pad[0xF60]; int nF60; };
 struct S { char pad[0x10]; struct T *pt; int pad2; struct U *p18; char pad3[0x14]; int n30; };
-int func_00209518(void *p);
+int GetAnimBindingInstance(void *p);
 int HandleBhvMessage(struct S *p, int msg, struct M *pm);
 /** @sly2-annot addr=0x17B690
  * Purpose: BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60)
- * Info: proposed name BHVSHOOT_FHandleMessage (T1); class BHVSHOOT slot13; TU guardbhv
- * Notes: BHV class word normalised: BHVSHOOT_FHandleMessage -> BHV173_FHandleMessage | v3 BHV class word
+ * Info: proposed name HandleBhvshootMessage (T1); class BHVSHOOT slot13; TU guardbhv
+ * Notes: BHV class word normalised: HandleBhvshootMessage -> BHV173_FHandleMessage | v3 BHV class word
  *   (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): BHV173_FHandleMessage ->
- *   BHVSHOOT_FHandleMessage | runtime7a: BHVSHOOT role confirmed
+ *   HandleBhvshootMessage | runtime7a: BHVSHOOT role confirmed
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)+runtime
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int BHVSHOOT_FHandleMessage(struct S *p, int msg, struct M *pm) {
-    if (msg == 9 && !p->n30 && p->p18->p40 && func_00209518(p->p18->p40) == pm->n0) {
+int HandleBhvshootMessage(struct S *p, int msg, struct M *pm) {
+    if (msg == 9 && !p->n30 && p->p18->p40 && GetAnimBindingInstance(p->p18->p40) == pm->n0) {
         switch (pm->n8) {
         case 0x31: p->pt->nF60 = 1; return 1;
         case 0x32: p->pt->nF60 = 0; return 1;
@@ -5465,7 +5465,7 @@ extern "C" int IsBhvshootDone(BHVSTATE *pbhv)
     return pbhv->nState == -1;
 }
 
-// 0x17B808 func_0017B808
+// 0x17B808 InitBhvTargets
 namespace M_func_0017B808 { extern "C" {
 struct S;
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; int n30; };
@@ -5478,7 +5478,7 @@ void AddStepguardSgf(void *p, int n);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017B808(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x20); p->n30 = -1; }
+void InitBhvTargets(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x20); p->n30 = -1; }
 } } // namespace M_func_0017B808
 
 // 0x17B840 func_0017B840
@@ -5494,7 +5494,7 @@ void BHV178::Start()
 {
     BHVSTATE *pbhv = (BHVSTATE *)this;
     StartBhv(pbhv);
-    func_0017B8B0(pbhv, 0);
+    SetBhvTargetsState(pbhv, 0);
 }
 
 // 0x17B870 CloseBhvTargets
@@ -5508,11 +5508,11 @@ void BHV178::Start()
 extern "C" void CloseBhvTargets(BHVSTATE *pbhv)
 {
     CloseBhv(pbhv);
-    func_0017B8B0(pbhv, -1);
+    SetBhvTargetsState(pbhv, -1);
     RemoveStepguardSgf((STEPGUARD *)pbhv->pstep, 0x20);
 }
 
-// 0x17B8B0 func_0017B8B0
+// 0x17B8B0 SetBhvTargetsState
 namespace M_func_0017B8B0 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
 struct CLOCK { float t; float dt; };
@@ -5530,7 +5530,7 @@ void SetStepguardTarget(void *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017B8B0(struct S *p, int n) {
+void SetBhvTargetsState(struct S *p, int n) {
     if (n == p->n30) return;
     PopBhv(p->a18);
     p->n30 = n;
@@ -5550,7 +5550,7 @@ void func_0017B8B0(struct S *p, int n) {
 }
 } } // namespace M_func_0017B8B0
 
-// 0x17B9C0 func_0017B9C0
+// 0x17B9C0 ChooseBhvTargetsTarget
 namespace M_func_0017B9C0 {
 union U; struct RANGE; struct POLY; struct P; struct C; struct WORK; struct CLOCK;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -5618,7 +5618,7 @@ typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-extern "C" void func_0017B9C0(C*p){
+extern "C" void ChooseBhvTargetsTarget(C*p){
  WORK work;
  P*best;
  float lower;
@@ -5691,16 +5691,16 @@ typedef char C_Size[sizeof(C)==0x48?1:-1];
 typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 } // namespace M_func_0017B9C0
 
-// 0x17BD78 func_0017BD78
+// 0x17BD78 UpdateBhvTargets
 namespace M_func_0017BD78 { extern "C" {
 struct T; struct S;
 struct T { char pad[0x30]; int n30; };
 struct S { char pad[0x10]; void *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; char pad4[0xC]; int n40; };
 void UpdateBhv(struct S *p);
-int func_00209098(void *p);
-void func_0017B9C0(struct S *p);
+int IsStepguardHandsOff(void *p);
+void ChooseBhvTargetsTarget(struct S *p);
 int IsBhvBusyAbove(struct S *p);
-void func_0017B8B0(struct S *p, int n);
+void SetBhvTargetsState(struct S *p, int n);
 int IsBhvcombatDone(struct T *p);
 /** @sly2-annot addr=0x17BD78
  * Purpose: BHVTARGETS Update: re-choose and (re)engage designated targets; hands-off pause
@@ -5709,26 +5709,26 @@ int IsBhvcombatDone(struct T *p);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017BD78(struct S *p) {
+void UpdateBhvTargets(struct S *p) {
     int f, s;
     UpdateBhv(p);
-    f = func_00209098(p->p10);
-    func_0017B9C0(p);
+    f = IsStepguardHandsOff(p->p10);
+    ChooseBhvTargetsTarget(p);
     while (!IsBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 0:
-            if (f) func_0017B8B0(p, 2);
-            else if (p->n40) func_0017B8B0(p, 1);
+            if (f) SetBhvTargetsState(p, 2);
+            else if (p->n40) SetBhvTargetsState(p, 1);
             break;
         case 1:
-            if (f) func_0017B8B0(p, 2);
-            else if (!p->n40) func_0017B8B0(p, 0);
-            else if (p->n40 != p->p18->n30) { func_0017B8B0(p, -1); func_0017B8B0(p, 1); }
-            else if (IsBhvcombatDone(p->p18)) func_0017B8B0(p, 0);
+            if (f) SetBhvTargetsState(p, 2);
+            else if (!p->n40) SetBhvTargetsState(p, 0);
+            else if (p->n40 != p->p18->n30) { SetBhvTargetsState(p, -1); SetBhvTargetsState(p, 1); }
+            else if (IsBhvcombatDone(p->p18)) SetBhvTargetsState(p, 0);
             break;
         case 2:
-            if (!f) func_0017B8B0(p, 0);
+            if (!f) SetBhvTargetsState(p, 0);
             break;
         }
         if (s != p->n30) continue;
@@ -5737,7 +5737,7 @@ void func_0017BD78(struct S *p) {
 }
 } } // namespace M_func_0017BD78
 
-// 0x17BED0 func_0017BED0
+// 0x17BED0 InitBhvCircle
 namespace M_func_0017BED0 { extern "C" {
 struct S;
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; int n30; };
@@ -5751,10 +5751,10 @@ void AddStepguardSgf(void *p, int n);
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017BED0(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x19); p->n30 = -1; }
+void InitBhvCircle(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x19); p->n30 = -1; }
 } } // namespace M_func_0017BED0
 
-// 0x17BF08 func_0017BF08
+// 0x17BF08 StartBhvCircle
 namespace M_func_0017BF08 { extern "C" {
 struct C; struct B; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -5765,7 +5765,7 @@ struct S { char pad[0x10]; struct T *pt; };
 void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
 void func_001C02D0(void *p, qword a, qword b, int n);
-void func_0017C550(struct S *p, int n);
+void SetBhvCircleState(struct S *p, int n);
 /** @sly2-annot addr=0x17BF08
  * Purpose: BHVCIRCLE Start: with path-zone capability (bit 2) walk to a spacing point, else stand facing
  * Info: proposed name StartBhv179 (T2); class BHV179 slot8; TU guardbhv
@@ -5773,16 +5773,16 @@ void func_0017C550(struct S *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017BF08(struct S *p) {
+void StartBhvCircle(struct S *p) {
     StartBhv(p);
     if (p->pt->nFE8 & 4) {
         struct C *c = p->pt->pE8 ? p->pt->pE8->pDC : 0;
         void *pv = c ? c->p10 : 0;
         qword q = func_001A62E8(p->pt);
         func_001C02D0(pv, q, func_001A62E8(p->pt), p->pt->n294);
-        func_0017C550(p, 1);
+        SetBhvCircleState(p, 1);
     } else {
-        func_0017C550(p, 0);
+        SetBhvCircleState(p, 0);
     }
 }
 } } // namespace M_func_0017BF08
@@ -5799,18 +5799,18 @@ void BHV179::VSlot9()
 {
     BHVSTATE *pbhv = (BHVSTATE *)this;
     CloseBhv(pbhv);
-    func_0017C550(pbhv, -1);
+    SetBhvCircleState(pbhv, -1);
     RemoveStepguardSgf((STEPGUARD *)pbhv->pstep, 0x19);
 }
 
-// 0x17BFF8 func_0017BFF8
+// 0x17BFF8 ChooseBhvCirclePosition
 namespace M_func_0017BFF8 {
 union U; struct LM; struct TUNING; struct SCALE; struct ACTOR; struct P; struct FLOW; struct SEGMENT; struct VU_FLOAT;
-// func_0017BFF8 MATCH (Claude agent lane H14), no pins: laneH13v2 with the inner loop as `int k=0;int i=hits;do{SEGMENT*base=segments;Closest(target,&base[k],...);...;k++;}while(--i);`. base is its own pseudo inside the do-body (cse block after the loop label, so not shared with the 1C0A40 call arg, which stays `addiu t0,sp,0x50`); loop.c hoists it to the inner preheader, the &base[k] giv is then initialised as a copy of it, and pass 1 hoists base once more into the index-loop preheader (s4), like the target.
-// func_0017BFF8 laneH13v2 (Claude agent lane H13): inner loop `SEGMENT*segment=base;int i=hits;do{...segment++;}while(--i);` with a function-scope `SEGMENT*base=segments;` so cse cannot share &segments with the 1C0A40 call arg (rematerialized like the target), 22 -> 17. Left: base is set before the mode loop (s6) instead of the index-loop preheader (target s4), which shifts s-reg roles.
-// func_0017BFF8 laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (QwFromMemWord) into QwOffset(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
-// func_0017BFF8 laneH11v2 (Claude agent lane H11): laneH6v1 + 11EE08 call via inline Closest(qword,const SEGMENT*,U&,float&) (55->33) + plain QwAddScaled with `U point` declared mid-block before `if(hits>0)` (frame 0x460 exact, 33->26).
-// func_0017BFF8 laneH6v1 (Claude agent lane H6): fresh Lilly-style rewrite, no pins, VU helper asms only. aligned 55 (old .c 81, which used lw/lqc2 instruction asms).
+// ChooseBhvCirclePosition MATCH (Claude agent lane H14), no pins: laneH13v2 with the inner loop as `int k=0;int i=hits;do{SEGMENT*base=segments;Closest(target,&base[k],...);...;k++;}while(--i);`. base is its own pseudo inside the do-body (cse block after the loop label, so not shared with the 1C0A40 call arg, which stays `addiu t0,sp,0x50`); loop.c hoists it to the inner preheader, the &base[k] giv is then initialised as a copy of it, and pass 1 hoists base once more into the index-loop preheader (s4), like the target.
+// ChooseBhvCirclePosition laneH13v2 (Claude agent lane H13): inner loop `SEGMENT*segment=base;int i=hits;do{...segment++;}while(--i);` with a function-scope `SEGMENT*base=segments;` so cse cannot share &segments with the 1C0A40 call arg (rematerialized like the target), 22 -> 17. Left: base is set before the mode loop (s6) instead of the index-loop preheader (target s4), which shifts s-reg roles.
+// ChooseBhvCirclePosition laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (QwFromMemWord) into QwOffset(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
+// ChooseBhvCirclePosition laneH11v2 (Claude agent lane H11): laneH6v1 + 11EE08 call via inline Closest(qword,const SEGMENT*,U&,float&) (55->33) + plain QwAddScaled with `U point` declared mid-block before `if(hits>0)` (frame 0x460 exact, 33->26).
+// ChooseBhvCirclePosition laneH6v1 (Claude agent lane H6): fresh Lilly-style rewrite, no pins, VU helper asms only. aligned 55 (old .c 81, which used lw/lqc2 instruction asms).
 // Left: frame 0x480 vs 0x460 (VU_FLOAT temps get their own slot 0x370; target stores them into point at 0x40), region spilled instead of fp, &point/&distance hoisted by loop.c into s-regs (target rematerializes them).
 typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];int i[4];};
@@ -5848,7 +5848,7 @@ static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){FindClosestPoin
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
+extern "C" qword ChooseBhvCirclePosition(P*p,void*region,qword origin,float heading){
  U closest;LM first,second,selected;U point;SEGMENT segments[8];FLOW flow;
  TUNING*tuning;
  first=p->actor->first;second=p->actor->second;
@@ -5896,7 +5896,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
 }
 } // namespace M_func_0017BFF8
 
-// 0x17C3E8 func_0017C3E8
+// 0x17C3E8 UpdateBhvCircle
 namespace M_func_0017C3E8 { extern "C" {
 struct D; struct C; struct B; struct K; struct A; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -5909,12 +5909,12 @@ struct A { char pad[0xE8]; struct C *pE8; char pad2[0x294 - 0xEC]; struct B *p29
 struct T { char pad[0x70]; float f70; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; };
 void UpdateBhv(struct S *p);
-float func_0020A690(struct K *k);
+float GetTargetRecordFacing(struct K *k);
 qword func_001A62E8(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
 int FCheckLm__FP2LMf(void *p, float f);
-qword func_0017BFF8(struct S *p, void *q, float f, qword v);
+qword ChooseBhvCirclePosition(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *t, struct B *b, int n);
 /** @sly2-annot addr=0x17C3E8
@@ -5925,7 +5925,7 @@ void SetBhvpathShape(struct T *t, struct B *b, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017C3E8(struct S *p) {
+void UpdateBhvCircle(struct S *p) {
     struct A *a;
     struct C *c;
     struct D *d;
@@ -5947,7 +5947,7 @@ void func_0017C3E8(struct S *p) {
     q = d ? d->p10 : 0;
     k = a->p3CC;
     o = k->pC;
-    g = func_0020A690(k);
+    g = GetTargetRecordFacing(k);
     pos = func_001A62E8(o);
     t = p->p18;
     if (t->f70 > D_002BE748) goto doit;
@@ -5961,14 +5961,14 @@ void func_0017C3E8(struct S *p) {
 doit:
     {
         qword v = func_001A62E8(p->p10);
-        func_001C02D0(q, v, func_0017BFF8(p, q, g, pos), b);
+        func_001C02D0(q, v, ChooseBhvCirclePosition(p, q, g, pos), b);
     }
     SetBhvpathShape(t, b, 0);
     }
 }
 } } // namespace M_func_0017C3E8
 
-// 0x17C550 func_0017C550
+// 0x17C550 SetBhvCircleState
 namespace M_func_0017C550 { extern "C" {
 struct VTE; struct O; struct X; struct T; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -5986,7 +5986,7 @@ void SetBhvpathShape(struct O *o, int a, int b);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017C550(struct S *p, int n) {
+void SetBhvCircleState(struct S *p, int n) {
     if (n == p->n30) return;
     PopBhv(p->a18);
     p->n30 = n;
@@ -6042,13 +6042,13 @@ void BHV183::Start()
 {
     BHVSTATE *pbhv = (BHVSTATE *)this;
     StartBhv(pbhv);
-    func_0017C928(pbhv, 0);
+    SetBhvEscortState(pbhv, 0);
 }
 
-// 0x17C6D0 func_0017C6D0
+// 0x17C6D0 UpdateBhvEscort
 namespace M_func_0017C6D0 { extern "C" {
 struct X; struct P;
-/* func_0017C6D0 (Claude agent): state-machine controller. pos is a plain qword (spilled pseudo) so p->v60=pos goes qmfc2+sq; the goto loop + explicit 250.0f local stops loop.c hoisting the case-1 constant. */
+/* UpdateBhvEscort (Claude agent): state-machine controller. pos is a plain qword (spilled pseudo) so p->v60=pos goes qmfc2+sq; the goto loop + explicit 250.0f local stops loop.c hoisting the case-1 constant. */
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct X {qword header,v;};
@@ -6057,9 +6057,9 @@ void UpdateBhv(struct P*);
 int IsBhvBusyAbove(struct P*);
 qword func_001A62E8(void*);
 qword ConvertAloPos(void*,void*,qword);
-int func_00209098(void*);
-void func_0017C928(struct P*,int);
-void func_002562A8(struct X*);
+int IsStepguardHandsOff(void*);
+void SetBhvEscortState(struct P*,int);
+void ClearPointerPair(struct X*);
 void SetBhvgotoGoal(void*,const struct X*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -6072,7 +6072,7 @@ static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x 
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017C6D0(struct P*p){
+void UpdateBhvEscort(struct P*p){
  struct X x;qword pos;float dist;int state;float lim=250.0f;
  UpdateBhv(p);
  pos=func_001A62E8(p->p30);
@@ -6082,21 +6082,21 @@ void func_0017C6D0(struct P*p){
   state=p->state;
   switch(state){
   case 0:
-   if(func_00209098(p->p10))func_0017C928(p,2);
-   else if(1000.0f<dist)func_0017C928(p,1);
+   if(IsStepguardHandsOff(p->p10))SetBhvEscortState(p,2);
+   else if(1000.0f<dist)SetBhvEscortState(p,1);
    else if(lim<LenXY(SubIn(p->v60,pos))){
     qword v;p->v60=pos;v=ConvertAloPos(p->p30,0,p->v40);
-    func_002562A8(&x);x.v=v;SetBhvgotoGoal(p->p18,&x);
+    ClearPointerPair(&x);x.v=v;SetBhvgotoGoal(p->p18,&x);
    }
    break;
   case 1:
-   if(func_00209098(p->p10))func_0017C928(p,2);
-   else if(dist<700.0f)func_0017C928(p,0);
+   if(IsStepguardHandsOff(p->p10))SetBhvEscortState(p,2);
+   else if(dist<700.0f)SetBhvEscortState(p,0);
    else if(lim<LenXY(SubIn(p->v60,pos))){
-    p->v60=pos;func_002562A8(&x);x.v=pos;SetBhvgotoGoal(p->p18,&x);
+    p->v60=pos;ClearPointerPair(&x);x.v=pos;SetBhvgotoGoal(p->p18,&x);
    }
    break;
-  case 2:if(!func_00209098(p->p10))func_0017C928(p,0);break;
+  case 2:if(!IsStepguardHandsOff(p->p10))SetBhvEscortState(p,0);break;
   }
   if(state==p->state)return;
  }
@@ -6122,7 +6122,7 @@ typedef char layout_X_header[((unsigned)&((struct X*)0)->header==0x0)?1:-1];
 typedef char layout_X_v[((unsigned)&((struct X*)0)->v==0x10)?1:-1];
 } } // namespace M_func_0017C6D0
 
-// 0x17C928 func_0017C928
+// 0x17C928 SetBhvEscortState
 namespace M_func_0017C928 { extern "C" {
 struct CLOCK; struct VTE; struct X; struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -6136,7 +6136,7 @@ void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(void *p, int n, qword v);
-void func_002562A8(struct X *x);
+void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 /** @sly2-annot addr=0x17C928
  * Purpose: BHVESCORT state: 0 push BHVGOTO to the offset point, 1 push BHVGOTO with run flag 0x1C to the
@@ -6147,7 +6147,7 @@ void SetBhvgotoGoal(void *p, struct X *x);
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017C928(struct S *p, int n) {
+void SetBhvEscortState(struct S *p, int n) {
     struct X x;
     if (n == p->n50) return;
     PopBhv(p->a18);
@@ -6161,7 +6161,7 @@ void func_0017C928(struct S *p, int n) {
             struct VTE *e;
             p->v60 = v;
             o->nC0 = 1; o->pA8 = p->p30; o->nAC = 1;
-            func_002562A8(&x);
+            ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
             o->n38 = 0x1C;
@@ -6185,7 +6185,7 @@ void func_0017C928(struct S *p, int n) {
             p->v60 = func_001A62E8(p->p30);
             v = ConvertAloPos(p->p30, 0, p->v40);
             o->nC0 = 1;
-            func_002562A8(&x);
+            ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
             o->pA8 = p->p30;
@@ -6254,7 +6254,7 @@ void UpdateBhv(struct S *p);
 qword func_001A62E8(void *p);
 float SWrapShape(void *p, float f);
 void FindShapeClosestPointFromS(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
-int FBhvrailArrived(struct S *p);
+int HasBhvrailArrived(struct S *p);
 void SetBhvrailState(struct S *p, int n);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
@@ -6281,7 +6281,7 @@ void UpdateBhvrail(struct S *p) {
             pos = func_001A62E8(p->p10);
             FindShapeClosestPointFromS(q, SWrapShape(q, p->p10->nF8C ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
             p->p10->fF88 = t;
-            if (FBhvrailArrived(p)) {
+            if (HasBhvrailArrived(p)) {
                 SetBhvrailState(p, 1);
             } else {
                 if (p->p10->nF8C == 0) {
@@ -6354,18 +6354,18 @@ void SetBhvrailGoal(struct S *p, int f) {
 }
 } } // namespace M_SetBhvrailGoal
 
-// 0x17CE30 FBhvrailArrived
+// 0x17CE30 HasBhvrailArrived
 namespace M_FBhvrailArrived { extern "C" {
 struct T; struct S;
 struct T { char pad[0xF88]; float gF88; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x28]; float g3C; };
 /** @sly2-annot addr=0x17CE30
  * Purpose: |param - goal| < 50
- * Info: proposed name FBhvrailArrived (T1); TU guardbhv
+ * Info: proposed name HasBhvrailArrived (T1); TU guardbhv
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvrailArrived(struct S *p) { return __builtin_fabsf(p->pt->gF88 - p->g3C) < 50.0f; }
+int HasBhvrailArrived(struct S *p) { return __builtin_fabsf(p->pt->gF88 - p->g3C) < 50.0f; }
 } } // namespace M_FBhvrailArrived
 
 // 0x17CE68 InitBhvpipe
@@ -6420,7 +6420,7 @@ struct O { char pad[0x198]; float g198; char pad2[0x14]; char a1B0[0xF84 - 0x1B0
 struct S { char pad[0x10]; struct O *p10; char pad2[0x1C]; int n30; int pad3; float g38; float g3C; };
 struct L { float a, b, c; };
 void UpdateBhv(struct S *p);
-int FBhvpipeArrived(struct S *p);
+int HasBhvpipeArrived(struct S *p);
 void SetBhvpipeState(struct S *p, int n);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float SWrapShape(int n, float g);
@@ -6438,7 +6438,7 @@ void UpdateBhvpipe(struct S *p) {
     do {
         s = p->n30;
         if (s == 0) {
-            if (FBhvpipeArrived(p)) {
+            if (HasBhvpipeArrived(p)) {
                 SetBhvpipeState(p, 1);
             } else {
                 struct L l;
@@ -6521,21 +6521,21 @@ void SetBhvpipeGoal(struct S *p, int f) {
 }
 } } // namespace M_SetBhvpipeGoal
 
-// 0x17D188 FBhvpipeArrived
+// 0x17D188 HasBhvpipeArrived
 namespace M_FBhvpipeArrived { extern "C" {
 struct T; struct S;
 struct T { char pad[0xF88]; float gF88; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x24]; float g38; };
 /** @sly2-annot addr=0x17D188
  * Purpose: |param - goal| < 50
- * Info: proposed name FBhvpipeArrived (T1); TU guardbhv
+ * Info: proposed name HasBhvpipeArrived (T1); TU guardbhv
  * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded:
  *   SetAloRotationSmooth (names_v2:B(unverified))
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources:
  *   names_v2:B(unverified)+r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvpipeArrived(struct S *p) { return __builtin_fabsf(p->pt->gF88 - p->g38) < 50.0f; }
+int HasBhvpipeArrived(struct S *p) { return __builtin_fabsf(p->pt->gF88 - p->g38) < 50.0f; }
 } } // namespace M_FBhvpipeArrived
 
 // 0x17D1C0 func_0017D1C0
@@ -6553,7 +6553,7 @@ void BHV187::OnPush()
     AddStepguardSgf((STEPGUARD *)pbhv->pstep, 0x28);
 }
 
-// 0x17D1F0 func_0017D1F0
+// 0x17D1F0 StartBhvAttachCid19
 namespace M_func_0017D1F0 { extern "C" {
 struct M3; struct VTE; struct O; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -6574,7 +6574,7 @@ struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017D1F0(struct S *p) {
+void StartBhvAttachCid19(struct S *p) {
     struct O *o; struct VTE *e; struct T *t;
     StartBhv(p);
     o = func_00205438(p->pt, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d);
@@ -6612,7 +6612,7 @@ void BHV188::OnPush()
     AddStepguardSgf((STEPGUARD *)pbhv->pstep, 0x29);
 }
 
-// 0x17D2E0 func_0017D2E0
+// 0x17D2E0 StartBhvAttachCid39
 namespace M_func_0017D2E0 { extern "C" {
 struct VTE; struct O; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -6627,7 +6627,7 @@ struct O *func_00205438(void *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017D2E0(struct S *p) { struct O *o; struct VTE *e; StartBhv(p); o = func_00205438(p->p10, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+void StartBhvAttachCid39(struct S *p) { struct O *o; struct VTE *e; StartBhv(p); o = func_00205438(p->p10, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
 } } // namespace M_func_0017D2E0
 
 // 0x17D330 CloseBhvAttachCid39
@@ -6883,13 +6883,13 @@ struct S {
 };
 void UpdateBhv(struct S *p);
 int IsBhvBusyAbove(struct S *p);
-int FBhvpathAtEnd(struct T *t);
+int IsBhvpathAtEnd(struct T *t);
 void SetBhvgotoState(struct S *p, int n);
-int FBhvwalkpathStuck(struct T *t);
+int IsBhvwalkpathStuck(struct T *t);
 float SMaxShape(void *p);
 void EvaluateShapeS(void *p, float f, float *pv, int n);
 int IsBhvpathlinkDone(struct T *t);
-int func_0017EAE8(struct T *t);
+int IsBhvRelocateDone(struct T *t);
 void PlanBhvgoto(struct S *p);
 /** @sly2-annot addr=0x17D6C8
  * Purpose: BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it;
@@ -6911,11 +6911,11 @@ void UpdateBhvgoto(struct S *p) {
         case 2:
             {
                 struct T *t = p->p18;
-                if (s == 2 && FBhvpathAtEnd(t)) {
+                if (s == 2 && IsBhvpathAtEnd(t)) {
                     SetBhvgotoState(p, 3);
                 } else if (D_002DDED0.t - p->fA0 > D_002BE758 || p->nA4 != D_003DD490.p45CC->n28) {
                     PlanBhvgoto(p);
-                } else if (FBhvwalkpathStuck(t)) {
+                } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->f34 + D_002BE75C;
                     float hi = SMaxShape(t->p30);
                     p->n80 = 0;
@@ -6930,7 +6930,7 @@ void UpdateBhvgoto(struct S *p) {
             if (IsBhvpathlinkDone(p->p18)) PlanBhvgoto(p);
             break;
         case 5:
-            if (func_0017EAE8(p->p18)) PlanBhvgoto(p);
+            if (IsBhvRelocateDone(p->p18)) PlanBhvgoto(p);
             break;
         }
         if (s != p->n30) continue;
@@ -7042,7 +7042,7 @@ struct S {
 int IsBhvBusyAbove(struct S *p);
 void SetBhvgotoState(struct S *p, int n);
 void FindBhvgotoRoute(struct S *p);
-void func_002562A8(struct X *x);
+void ClearPointerPair(struct X *x);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct X *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
@@ -7066,7 +7066,7 @@ void PlanBhvgoto(struct S *p) {
     if (IsBhvBusyAbove(p)) return;
     SetBhvgotoState(p, 0);
     FindBhvgotoRoute(p);
-    func_002562A8(&x);
+    ClearPointerPair(&x);
     if (p->nB4 == 0) {
         x = p->x60;
         k = 1;
@@ -7140,19 +7140,19 @@ extern "C" int HasBhvgotoArrived(BHVGOTOV *pbhv)
     nState = pbhv->nState;
     f = 0;
     if (nState == 1) {
-        f = (FBhvpathAtEnd((BHVPATHV *)pbhv->pbhvNext) != 0) ? nState : 0;
+        f = (IsBhvpathAtEnd((BHVPATHV *)pbhv->pbhvNext) != 0) ? nState : 0;
     }
     return f;
 }
 
-// 0x17DCF8 FBhvgotoPathFinished
+// 0x17DCF8 IsBhvgotoPathFinished
 namespace M_FBhvgotoPathFinished { extern "C" {
 struct S;
 struct S { char pad[0x18]; void *p18; char pad2[0x14]; int n30; };
 int IsBhvpathFinished(void *p);
 /** @sly2-annot addr=0x17DCF8
  * Purpose: Walking (states 1-2) and the walk path finished
- * Info: proposed name FBhvgotoPathFinished (T1); TU guardbhv
+ * Info: proposed name IsBhvgotoPathFinished (T1); TU guardbhv
  * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded:
  *   SetAloLookAtPanFunction (names_v2:B(unverified)) | runtime2/4 confirmed the BHVGOTO role on live guards
  *   (S02-S41)
@@ -7160,7 +7160,7 @@ int IsBhvpathFinished(void *p);
  *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvgotoPathFinished(struct S *p) { if (p->n30 >= 3) return 0; if (p->n30 <= 0) return 0; return IsBhvpathFinished(p->p18); }
+int IsBhvgotoPathFinished(struct S *p) { if (p->n30 >= 3) return 0; if (p->n30 <= 0) return 0; return IsBhvpathFinished(p->p18); }
 } } // namespace M_FBhvgotoPathFinished
 
 // 0x17DD38 SetBhvgotoGoal
@@ -7183,7 +7183,7 @@ void PlanBhvgoto(struct S *p);
 void SetBhvgotoGoal(struct S *p, struct Q2 *pq) { p->q = *pq; p->gA0 = -3.40282346638528859812e+38f; PlanBhvgoto(p); }
 } } // namespace M_SetBhvgotoGoal
 
-// 0x17DD70 func_0017DD70
+// 0x17DD70 InitBhvStalk
 namespace M_func_0017DD70 { extern "C" {
 struct S;
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; int n30; };
@@ -7199,7 +7199,7 @@ void AddStepguardSgf(void *p, int n);
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017DD70(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x2B); p->n30 = -1; }
+void InitBhvStalk(struct S *p) { InitBhv(p); AddStepguardSgf(p->p10, 0x2B); p->n30 = -1; }
 } } // namespace M_func_0017DD70
 
 // 0x17DDA8 func_0017DDA8
@@ -7217,17 +7217,17 @@ void BHV189::Start()
 {
     BHVTARGET *pbhv = (BHVTARGET *)this;
     StartBhv(pbhv);
-    func_0017E278(pbhv, 0);
+    SetBhvStalkState(pbhv, 0);
     SetStepguardTarget((STEPGUARD *)pbhv->pstep, pbhv->plo);
 }
 
-// 0x17DDE8 func_0017DDE8
+// 0x17DDE8 CloseBhvStalk
 namespace M_func_0017DDE8 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xF64]; void *pF64; };
 struct S { char pad[0x10]; struct T *pt; };
 void CloseBhv(struct S *p);
-void func_0017E278(struct S *p, int n);
+void SetBhvStalkState(struct S *p, int n);
 void ResetDetectorTargets(void *p);
 void SetStepguardTarget(struct T *t, int n);
 void RemoveStepguardSgf(struct T *t, int n);
@@ -7240,7 +7240,7 @@ void RemoveStepguardSgf(struct T *t, int n);
  *   names_v2:B(unverified)+r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017DDE8(struct S *p) { CloseBhv(p); func_0017E278(p, -1); ResetDetectorTargets(p->pt->pF64); SetStepguardTarget(p->pt, 0); RemoveStepguardSgf(p->pt, 0x2B); }
+void CloseBhvStalk(struct S *p) { CloseBhv(p); SetBhvStalkState(p, -1); ResetDetectorTargets(p->pt->pF64); SetStepguardTarget(p->pt, 0); RemoveStepguardSgf(p->pt, 0x2B); }
 } } // namespace M_func_0017DDE8
 
 // 0x17DE40 IsBhvStalkDone
@@ -7256,7 +7256,7 @@ extern "C" int IsBhvStalkDone(BHVTARGET *pbhv)
     return pbhv->nState == -1;
 }
 
-// 0x17DE50 func_0017DE50
+// 0x17DE50 UpdateBhvStalk
 namespace M_func_0017DE50 { extern "C" {
 struct CLOCK; struct VTE; struct X; struct T; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -7271,13 +7271,13 @@ struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x1
 void UpdateBhv(struct S *p);
 int IsBhvBusyAbove(struct S *p);
 int IsBhvanimDone(void *p);
-int func_00209098(void *p);
-void func_0017E278(struct S *p, int n);
-int func_00208B38(struct A *a, void *o);
-float func_00208BB0(struct A *a);
+int IsStepguardHandsOff(void *p);
+void SetBhvStalkState(struct S *p, int n);
+int IsStepguardForceClass(struct A *a, void *o);
+float GetRandomStepguardDelay(struct A *a);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct X *s, qword v);
-void func_0017E0E0(struct S *p);
+void RegoalBhvStalk(struct S *p);
 static __inline__ float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -7295,32 +7295,32 @@ static __inline__ float Dist(qword a, qword b) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017DE50(struct S *p) {
+void UpdateBhvStalk(struct S *p) {
     int s;
     UpdateBhv(p);
     while (s = p->n30, !IsBhvBusyAbove(p)) {
         switch (p->n30) {
         case 0:
-            if (IsBhvanimDone(p->p18)) func_0017E278(p, 1);
+            if (IsBhvanimDone(p->p18)) SetBhvStalkState(p, 1);
             break;
         case 1:
-            if (func_00209098(p->p10)) {
-                func_0017E278(p, 2);
+            if (IsStepguardHandsOff(p->p10)) {
+                SetBhvStalkState(p, 2);
             } else {
                 { float dt = D_002DDED0.dt; p->f40 -= dt; }
                 if (p->f40 <= 0.0f) {
                     void *o;
                     { struct A *a = p->p10; struct VTE *e = &a->vt[0x58]; o = ((void *(*)(void *))e->pfn)((char *)a + e->d); }
-                    if (o == p->p38 && func_00208B38(p->p10, o)) {
-                        p->f40 = func_00208BB0(p->p10);
+                    if (o == p->p38 && IsStepguardForceClass(p->p10, o)) {
+                        p->f40 = GetRandomStepguardDelay(p->p10);
                     } else {
-                        func_0017E278(p, -1);
+                        SetBhvStalkState(p, -1);
                     }
                 }
             }
             break;
         case 2:
-            if (!func_00209098(p->p10)) func_0017E278(p, 1);
+            if (!IsStepguardHandsOff(p->p10)) SetBhvStalkState(p, 1);
             break;
         }
         if (p->n30 != s) continue;
@@ -7338,13 +7338,13 @@ void func_0017DE50(struct S *p) {
         } else if (Dist(func_001A62E8(p->p10), func_001A62E8(p->p38)) < D_002BE768) {
             f = 1;
         }
-        if (f) func_0017E0E0(p);
+        if (f) RegoalBhvStalk(p);
         }
     }
 }
 } } // namespace M_func_0017DE50
 
-// 0x17E0E0 func_0017E0E0
+// 0x17E0E0 RegoalBhvStalk
 namespace M_func_0017E0E0 {
 struct CLOCK; struct X; struct T; struct D; struct C; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -7365,10 +7365,10 @@ float atan2f(float y, float x);
 qword func_001C1EC0(struct X *s, qword v);
 qword SetVectorCylind(float a, float b, float c);
 int func_001C0B50(void *q, qword v, qword *out);
-void func_002562A8(struct X *x);
+void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 }
-inline X::X() { func_002562A8(this); }
+inline X::X() { ClearPointerPair(this); }
 extern "C" {
 }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -7380,7 +7380,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-extern "C" void func_0017E0E0(struct S *p) {
+extern "C" void RegoalBhvStalk(struct S *p) {
     union { qword q; } hit;
     qword a, b, d, r;
     struct T *t;
@@ -7423,7 +7423,7 @@ extern "C" void func_0017E0E0(struct S *p) {
 }
 } // namespace M_func_0017E0E0
 
-// 0x17E278 func_0017E278
+// 0x17E278 SetBhvStalkState
 namespace M_func_0017E278 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
 struct CLOCK { float t; float dt; };
@@ -7433,7 +7433,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; cha
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g34; int n38; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-void func_0017E0E0(struct S *p);
+void RegoalBhvStalk(struct S *p);
 /** @sly2-annot addr=0x17E278
  * Purpose: BHVSTALK state: 0 BHVANIM flag 0xB at target, 1 BHVGOTO with run flag 0x1C, 2 idle hands-off
  * Info: proposed name SetBhv189State (T2); TU guardbhv
@@ -7441,7 +7441,7 @@ void func_0017E0E0(struct S *p);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017E278(struct S *p, int n) {
+void SetBhvStalkState(struct S *p, int n) {
     if (n == p->n30) return;
     PopBhv(p->a18);
     p->n30 = n;
@@ -7451,7 +7451,7 @@ void func_0017E278(struct S *p, int n) {
         { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 0xB; o->n38 = p->n38; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
-        { struct O *o = func_00205438(p->p10, 0xBA); struct VTE *e; o->nC0 = 1; o->n38 = 0x1C; func_0017E0E0(p); e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = func_00205438(p->p10, 0xBA); struct VTE *e; o->nC0 = 1; o->n38 = 0x1C; RegoalBhvStalk(p); e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 2:
         { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
@@ -7524,12 +7524,12 @@ struct T { char pad[0x120]; int n120; int pad2; int n128; };
 struct S { char pad[0x10]; struct O *p10; int pad2; void *p18; char pad3[0x14]; struct T *p30; int pad4; int n38; int pad5; float g40; };
 void UpdateBhv(struct S *p);
 int IsBhvpathlinkDone(struct S *p);
-int func_0017EAE8(void *p);
+int IsBhvRelocateDone(void *p);
 int IsBhvanimDone(void *p);
-int FBhvpathlinkAtSegmentEnd(struct S *p);
+int IsBhvpathlinkAtSegmentEnd(struct S *p);
 void AdvanceBhvpathlink(struct S *p);
 void SetBhvpathlinkState(struct S *p, int n);
-int FBhvpathAtEnd(void *p);
+int IsBhvpathAtEnd(void *p);
 /** @sly2-annot addr=0x17E458
  * Purpose: BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment
  *   end; final relocation step
@@ -7544,14 +7544,14 @@ void UpdateBhvpathlink(struct S *p) {
     if (IsBhvpathlinkDone(p)) return;
     switch (p->n38) {
     case 1:
-        if (func_0017EAE8(p->p18)) AdvanceBhvpathlink(p);
+        if (IsBhvRelocateDone(p->p18)) AdvanceBhvpathlink(p);
         break;
     case 0: {
         struct T *t = p->p30;
         switch (t->n120) {
         case 1:
             if (IsBhvanimDone(p->p18)) {
-                if (FBhvpathlinkAtSegmentEnd(p)) AdvanceBhvpathlink(p);
+                if (IsBhvpathlinkAtSegmentEnd(p)) AdvanceBhvpathlink(p);
                 else SetBhvpathlinkState(p, 1);
             }
             break;
@@ -7562,7 +7562,7 @@ void UpdateBhvpathlink(struct S *p) {
                 struct C *c = p->p10->pE8;
                 struct D *d = c ? c->pDC : 0;
                 int n = d ? d->n10 : 0;
-                if (n == t->n128 && FBhvpathAtEnd(p->p18)) AdvanceBhvpathlink(p);
+                if (n == t->n128 && IsBhvpathAtEnd(p->p18)) AdvanceBhvpathlink(p);
             }
             break;
         }
@@ -7609,7 +7609,7 @@ extern "C" void AdvanceBhvpathlink(BHVPATHLINKV *pbhv)
     ClearBhvBusy(pbhv);
 }
 
-// 0x17E5F0 FBhvpathlinkAtSegmentEnd
+// 0x17E5F0 IsBhvpathlinkAtSegmentEnd
 namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
 struct E; struct S;
 struct E { int a[8]; };
@@ -7617,13 +7617,13 @@ struct S { char pad[0x10]; void *p10; char pad2[0x1C]; char *p30; int n34; };
 int func_001C1FA0(void *pe, void *p, float g);
 /** @sly2-annot addr=0x17E5F0
  * Purpose: Within 25 of the current segment endpoint
- * Info: proposed name FBhvpathlinkAtSegmentEnd (T1); TU guardbhv
+ * Info: proposed name IsBhvpathlinkAtSegmentEnd (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVPATHLINK role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvpathlinkAtSegmentEnd(struct S *p) { return func_001C1FA0(p->p30 + 0x60 + p->n34 * 32, p->p10, 25.0f); }
+int IsBhvpathlinkAtSegmentEnd(struct S *p) { return func_001C1FA0(p->p30 + 0x60 + p->n34 * 32, p->p10, 25.0f); }
 } } // namespace M_FBhvpathlinkAtSegmentEnd
 
 // 0x17E628 PushBhvpathlinkLeap
@@ -7766,7 +7766,7 @@ void BHV191::Start()
 {
     BHV *pbhv = (BHV *)this;
     StartBhv(pbhv);
-    func_0017E9B0(pbhv);
+    MoveBhvRelocateToPoint(pbhv);
 }
 
 // 0x17E8E8 CloseBhvRelocate
@@ -7784,7 +7784,7 @@ extern "C" void CloseBhvRelocate(BHV *pbhv)
     RemoveStepguardSgf((STEPGUARD *)pbhv->pstep, 0x2D);
 }
 
-// 0x17E918 func_0017E918
+// 0x17E918 UpdateBhvRelocate
 namespace M_func_0017E918 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xFE8]; int nFE8; };
@@ -7792,7 +7792,7 @@ struct S { char pad[0x10]; struct T *pt; int pad2; void *p18; char pad3[0x14]; i
 void UpdateBhv(struct S *p);
 int IsBhvanimDone(void *p);
 int func_001C1FA0(void *pe, void *p, float g);
-void func_0017E9B0(struct S *p);
+void MoveBhvRelocateToPoint(struct S *p);
 /** @sly2-annot addr=0x17E918
  * Purpose: BHVRELOCATE Update: retry until within 25 of the point
  * Info: proposed name UpdateBhv191 (T2); class BHV191 slot10; TU guardbhv
@@ -7801,15 +7801,15 @@ void func_0017E9B0(struct S *p);
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017E918(struct S *p) {
+void UpdateBhvRelocate(struct S *p) {
     UpdateBhv(p);
     if (p->pt->nFE8 & 1) {
-        if (IsBhvanimDone(p->p18) && !func_001C1FA0(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
-    } else if (!func_001C1FA0(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
+        if (IsBhvanimDone(p->p18) && !func_001C1FA0(p->a30, p->pt, 25.0f)) MoveBhvRelocateToPoint(p);
+    } else if (!func_001C1FA0(p->a30, p->pt, 25.0f)) MoveBhvRelocateToPoint(p);
 }
 } } // namespace M_func_0017E918
 
-// 0x17E9B0 func_0017E9B0
+// 0x17E9B0 MoveBhvRelocateToPoint
 namespace M_func_0017E9B0 { extern "C" {
 struct VTE; struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -7823,7 +7823,7 @@ qword func_001C1EC0(void *p, qword q);
 int SnapToGround(qword *pq, float a, float b, int n, void *pfn);
 void SnapPositionToSurfaceAbove(qword *pq);
 struct O *func_00205438(struct O *p, int n);
-void func_0020B210(struct O *p);
+void DetachStepguard(struct O *p);
 /** @sly2-annot addr=0x17E9B0
  * Purpose: Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport
  *   (detach, set position, zero velocities)
@@ -7832,7 +7832,7 @@ void func_0020B210(struct O *p);
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017E9B0(struct S *p) {
+void MoveBhvRelocateToPoint(struct S *p) {
     union { qword q; float a[4]; } u;
     PopBhv(p->a18);
     u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
@@ -7845,7 +7845,7 @@ void func_0017E9B0(struct S *p) {
         e = &o->vt[8];
         e->pfn((char *)o + e->d);
     } else {
-        func_0020B210(p->p10);
+        DetachStepguard(p->p10);
         {
             struct O *o = p->p10;
             { qword u_q; __asm__("vsub.xyzw %0, %1, %2" : "=j"(u_q) : "j"(u.q), "j"(o->pos)); u.q = u_q; }
@@ -7857,7 +7857,7 @@ void func_0017E9B0(struct S *p) {
 }
 } } // namespace M_func_0017E9B0
 
-// 0x17EAE8 func_0017EAE8
+// 0x17EAE8 IsBhvRelocateDone
 namespace M_func_0017EAE8 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xFE8]; int nFE8; };
@@ -7871,7 +7871,7 @@ int func_001C1FA0(void *pe, void *p, float g);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int func_0017EAE8(struct S *p) { if (p->pt->nFE8 & 1) { if (!IsBhvanimDone(p->p18)) return 0; } return func_001C1FA0(p->a30, p->pt, 25.0f); }
+int IsBhvRelocateDone(struct S *p) { if (p->pt->nFE8 & 1) { if (!IsBhvanimDone(p->p18)) return 0; } return func_001C1FA0(p->a30, p->pt, 25.0f); }
 } } // namespace M_func_0017EAE8
 
 // 0x17EB48 InitBhvpatrolpath
@@ -7981,7 +7981,7 @@ float SWrapShape(struct B *b, float f);
 void func_001EA000(void *p);
 struct R *func_001EA3B0(void *p, float f);
 void EvaluateShapeS(struct B *b, float f, qword *pv, int n);
-void func_002562A8(struct X *x);
+void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 /** @sly2-annot addr=0x17ECF0
  * Purpose: Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip
@@ -8019,32 +8019,32 @@ void AdvanceBhvpatrolpathGoal(struct S *p, int force) {
         p->f38 = t;
         EvaluateShapeS(p->p30, t, &p->v40, 0);
         q = p->p18;
-        func_002562A8(&x);
+        ClearPointerPair(&x);
         x.v = p->v40;
         SetBhvgotoGoal(q, &x);
     }
 }
 } } // namespace M_AdvanceBhvpatrolpathGoal
 
-// 0x17EE78 FBhvpatrolpathDone
+// 0x17EE78 IsBhvpatrolpathDone
 namespace M_FBhvpatrolpathDone { extern "C" {
 struct S;
 struct S { char pad[0x18]; void *p18; };
-int FBhvpatrolpathAtEnd(struct S *p);
+int IsBhvpatrolpathAtEnd(struct S *p);
 int HasBhvgotoArrived(void *p);
 /** @sly2-annot addr=0x17EE78
  * Purpose: At the end of an open shape and arrived
- * Info: proposed name FBhvpatrolpathDone (T1); TU guardbhv
+ * Info: proposed name IsBhvpatrolpathDone (T1); TU guardbhv
  * Notes: names_v2 v1 hint not used: FUN_001c8d40 | runtime2/4 confirmed the BHVPATROLPATH role on live guards
  *   (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); static naming pass; sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvpatrolpathDone(struct S *p) { if (!FBhvpatrolpathAtEnd(p)) return 0; return HasBhvgotoArrived(p->p18); }
+int IsBhvpatrolpathDone(struct S *p) { if (!IsBhvpatrolpathAtEnd(p)) return 0; return HasBhvgotoArrived(p->p18); }
 } } // namespace M_FBhvpatrolpathDone
 
-// 0x17EEB8 FBhvpatrolpathAtEnd
+// 0x17EEB8 IsBhvpatrolpathAtEnd
 namespace M_FBhvpatrolpathAtEnd { extern "C" {
 struct O; struct S;
 struct O { char pad[0xE4]; int nE4; };
@@ -8054,13 +8054,13 @@ float SMaxShape(struct O *p);
 float SMinShape(struct O *p);
 /** @sly2-annot addr=0x17EEB8
  * Purpose: Open shape and parameter within tolerance of its end
- * Info: proposed name FBhvpatrolpathAtEnd (T1); TU guardbhv
+ * Info: proposed name IsBhvpatrolpathAtEnd (T1); TU guardbhv
  * Notes: runtime2/4 confirmed the BHVPATROLPATH role on live guards (S02-S41)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvpatrolpathAtEnd(struct S *p) {
+int IsBhvpatrolpathAtEnd(struct S *p) {
     float g;
     if (p->p30->nE4) return 0;
     if (p->n34) g = SMaxShape(p->p30); else g = SMinShape(p->p30);
@@ -8069,19 +8069,19 @@ int FBhvpatrolpathAtEnd(struct S *p) {
 }
 } } // namespace M_FBhvpatrolpathAtEnd
 
-// 0x2562A8 func_002562A8
+// 0x2562A8 ClearPointerPair
 namespace M_func_002562A8 { extern "C" {
 typedef struct { int a; int b; } P;
 /** @sly2-annot addr=0x2562A8
  * Purpose: Inline default constructor of a two-pointer record: p->a=0; p->b=0
  * Info: proposed name ClearPathlinkEndpoint (T2); TU game_linkonce
  * Notes: v3: superseded ClearTwoWords | top50_round (0.30): Body only. In PlanBhvgoto 0x17DA28 the record is
- *   then filled from p->x60 and passed to PosPathlinkEndpoint 0x1C1EC0 ({pshape,plo,..,pos}); PbhvNew
+ *   then filled from p->x60 and passed to PosPathlinkEndpoint 0x1C1EC0 ({pshape,plo,..,pos}); ConstructBhv
  *   0x1EF138 constructs four at +0x30..+0x80. Role of the record HYPOTHESIS |
  * Confidence: low (draft) [T2 0.30] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-inline void func_002562A8(P *p) { p->a = 0; p->b = 0; }   /* inline, after its callers: they call it and g++ emits the linkonce copy */
+inline void ClearPointerPair(P *p) { p->a = 0; p->b = 0; }   /* inline, after its callers: they call it and g++ emits the linkonce copy */
 } } // namespace M_func_002562A8
 
 

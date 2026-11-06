@@ -90,13 +90,13 @@ void PopBhv(void *pbhvstk);
 void AddStepguardSgf(GUARDV *pguard, int sgf);
 void RemoveStepguardSgf(GUARDV *pguard, int sgf);
 int IsBhvanimDone(void *pbhv);
-int func_00209098(GUARDV *pguard);
+int IsStepguardHandsOff(GUARDV *pguard);
 BHVO *func_00205438(GUARDV *pguard, int n);
 qword func_001A62E8(void *plo);
-void func_002562A8(GOAL *pgoal);
+void ClearPointerPair(GOAL *pgoal);
 void SetBhvgotoGoal(void *pbhv, GOAL *pgoal);
 int HasBhvgotoArrived(void *pbhv);
-int FBhvgotoPathFinished(void *pbhv);
+int IsBhvgotoPathFinished(void *pbhv);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *pmover, float rad);
 void SetBhvSearchState(BHV171V *pbhv, int state);
@@ -183,7 +183,7 @@ extern "C" void UpdateBhvSearch(BHV171V *p) {
             if (IsBhvanimDone(p->pbhvCur)) SetBhvSearchState(p, 1);
             break;
         case 1:
-            if (func_00209098(p->pguard)) {
+            if (IsStepguardHandsOff(p->pguard)) {
                 SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
                 if (HasBhvSearchReachedTarget(p)) {
@@ -191,17 +191,17 @@ extern "C" void UpdateBhvSearch(BHV171V *p) {
                 } else {
                     qword v = GetBhvSearchLastKnownPosition(p);
                     GOAL x;
-                    func_002562A8(&x);
+                    ClearPointerPair(&x);
                     x.v = v;
                     SetBhvgotoGoal(p->pbhvCur, &x);
                 }
                 p->fReplan = 0;
-            } else if (HasBhvSearchReachedTarget(p) || HasBhvgotoArrived(p->pbhvCur) || FBhvgotoPathFinished(p->pbhvCur)) {
+            } else if (HasBhvSearchReachedTarget(p) || HasBhvgotoArrived(p->pbhvCur) || IsBhvgotoPathFinished(p->pbhvCur)) {
                 SetBhvSearchState(p, 2);
             }
             break;
         case 2:
-            if (func_00209098(p->pguard)) {
+            if (IsStepguardHandsOff(p->pguard)) {
                 SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
                 if (HasBhvSearchReachedTarget(p)) {
@@ -223,7 +223,7 @@ extern "C" void UpdateBhvSearch(BHV171V *p) {
             }
             break;
         case 3:
-            if (func_00209098(p->pguard)) {
+            if (IsStepguardHandsOff(p->pguard)) {
                 SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
                 if (HasBhvSearchReachedTarget(p)) {
@@ -239,7 +239,7 @@ extern "C" void UpdateBhvSearch(BHV171V *p) {
             }
             break;
         case 5:
-            if (!func_00209098(p->pguard)) SetBhvSearchState(p, 1);
+            if (!IsStepguardHandsOff(p->pguard)) SetBhvSearchState(p, 1);
             break;
         case 4:
             if (p->fReplan) {
@@ -287,7 +287,7 @@ extern "C" void SetBhvSearchState(BHV171V *p, int n) {
             qword v;
             o->nC0 = 1;
             v = GetBhvSearchLastKnownPosition(p);
-            func_002562A8(&x);
+            ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
             e = &o->pvt[8]; e->pfn((char *)o + e->d);
@@ -562,7 +562,7 @@ extern "C" void StepBhvSearchPoint(BHV171V *p) {
     if (D_002DDED0.t < p->tNext) return;
     pe = &p->apair[p->ipair++];
     if (p->ipair >= 4) p->ipair = 0;
-    func_002562A8(&q);
+    ClearPointerPair(&q);
     q.v = pe->candidate.q;
     SetBhvgotoGoal(pbhvCur, &q);
     p->tNext = D_002A53D4;

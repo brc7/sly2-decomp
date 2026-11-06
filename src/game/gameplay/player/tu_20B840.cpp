@@ -163,7 +163,7 @@ CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
 qword GetSoDvGravity(ALO *);
-void func_0020B210(ALO *);
+void DetachStepguard(ALO *);
 void DisableStuckWatch(void *);
 float func_00196928(qword,qword,float,float,float,float);
 qword func_0022FC48(XF *,XF *,qword);
@@ -172,7 +172,7 @@ ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
 void SetSoDvGravity(ALO *,qword);
 void func_00130D30(ASEGA *,int,float,float);
-void func_0020B2A8(ALO *,ALO *,int);
+void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
 int FAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
@@ -626,7 +626,7 @@ void SetLeapState(LEAPV *p,int state)
     case 1:{
         if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38)){
             ALO *subject=p->subject;
-            func_0020B210(subject);
+            DetachStepguard(subject);
             DisableStuckWatch(subject->control);
         }
         float playbackRate=p->job->svt;
@@ -693,7 +693,7 @@ void SetLeapState(LEAPV *p,int state)
     case 2:func_00130D30(p->job,0,p->tuning->afterStart,1.0f);break;
     case 3:
         func_00130D30(p->job,0,p->tuning->afterEnd,1.0f);
-        if(p->related)func_0020B2A8(p->subject,p->related,p->kind);
+        if(p->related)AttachStepguard(p->subject,p->related,p->kind);
         break;
     case 4:
         if(p->ballistic)func_0020C760(p);

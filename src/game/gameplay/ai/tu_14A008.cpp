@@ -1,7 +1,7 @@
 // tu_14A008.cpp -- ROUTE (a list of stations along a path shape, loaded from oids) and the guard behaviour that
 // patrols it (BHVRT, flag 0x24): pick the best station to stand at (distance along the route, screen position),
-// walk/jump there, attack when the hero is close, and a hero-chasing position search (UpdateBhvPaceSpeed); plus the
-// guard's own init/post-load/message/target functions. VU0 and FPU asm; UpdateBhvPaceSpeed has one register pin.
+// walk/jump there, attack when the hero is close, and a hero-chasing position search (UpdateBhvRouteChase); plus the
+// guard's own init/post-load/message/target functions. VU0 and FPU asm; UpdateBhvRouteChase has one register pin.
 // TU 0x14A008..0x14B660 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_14A008
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014B640
@@ -59,7 +59,7 @@ struct GUARDV
     LOV *ploMarker;          /* +0x1010 the position marker the guard targets while patrolling */
 };
 typedef char assert_GUARDV_ploMarker[(unsigned int)&((GUARDV *)0)->ploMarker == 0x1010 ? 1 : -1];
-/* An attack entry (PentryChooseStepguardAttack; +0x60 the cool-down range). */
+/* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
 struct ATKENTRY { char pad[0x60]; LMV lm; };
 /* The behaviour. */
 struct BHVRT
@@ -77,13 +77,13 @@ struct BHVRT
     float t48;               /* +0x48 last time the hero moved fast */
 };
 typedef char assert_BHVRT_t48[(unsigned int)&((BHVRT *)0)->t48 == 0x48 ? 1 : -1];
-/* The hero (UpdateBhvPaceSpeed): vtable slot 33, his path while hanging (+0x258), his state (+0x2DC). */
+/* The hero (UpdateBhvRouteChase): vtable slot 33, his path while hanging (+0x258), his state (+0x2DC). */
 struct PATH { char pad[0x90]; int c; qword *av; };
 struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *ppath; char pad2[0x2DC - 0x25C]; int x2DC; };
-/* An object of the hiding-place list (*(SO **)&g_sw.dlCid98) (UpdateBhvPaceSpeed). */
+/* An object of the hiding-place list (*(SO **)&g_sw.dlCid98) (UpdateBhvRouteChase). */
 struct XEC { char pad[0x20]; qword pos; float g30; };
 struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int grfE8; XEC *pxEC; char pad2[0x174 - 0xF0]; SOV *pnext; };
-/* The sub-behaviours started by SetBhvPaceState. */
+/* The sub-behaviours started by SetBhvRouteState. */
 struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *x38; int x3C; };
 struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int x40; char pad2[0x64 - 0x44]; float x64; char pad3[0xC0 - 0x68]; int xC0; char pad4[4]; void *xC8; };
 struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword x50; char pad1[0x68 - 0x60]; int x68; };
@@ -131,10 +131,10 @@ void func_001FEE90(void *p);
 void func_001FEEA0(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
-int func_00209098(GUARDV *p);
+int IsStepguardHandsOff(GUARDV *p);
 HEROV *PpoHero(SW *psw);
-ATKENTRY *PentryChooseStepguardAttack(GUARDV *p, HEROV *phero, int m);
-int FBhvpathAtEnd(void *p);
+ATKENTRY *ChooseStepguardAttack(GUARDV *p, HEROV *phero, int m);
+int IsBhvpathAtEnd(void *p);
 int IsBhvanimDone(void *p);
 int IsBhvattackDone(void *p);
 int SnapToGround(qword *pq, int a, int b, float f, float g);
@@ -149,7 +149,7 @@ float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
 void FindShapeClosestPoint(SHAPEV *, qword, int, int, int, int, float *);
 qword ConvertCmWorldToScreen(void *, qword);
-void func_0020AC28(GUARDV *, int, int, qword);
+void SetStepguardAimAct(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
 void *func_00205438(GUARDV *, int);
@@ -159,16 +159,16 @@ void PostStepguardLoad(GUARDV *p);
 void HandleStepguardMessage(GUARDV *p, int msgid, void *pv);
 int StepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *plo, int k);
-LOV *PloChooseStepguardTarget(GUARDV *p);
+LOV *ChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
 void *func_00205458(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
-void UpdateBhvPaceSpeed(BHVRT *p);
-int IsBhvPaceOffGround(BHVRT *p);
-int FindBhvPaceNearestRoutePoint(BHVRT *p);
-void AdvanceBhvPaceRoutePoint(BHVRT *p);
-void *GetBhvPaceRoutePointKind(BHVRT *p);
-void SetBhvPaceState(BHVRT *p, int n);
+void UpdateBhvRouteChase(BHVRT *p);
+int IsBhvRouteOffGround(BHVRT *p);
+int FindBhvRouteBestStation(BHVRT *p);
+void AdvanceBhvRouteStation(BHVRT *p);
+void *GetBhvRouteStationKind(BHVRT *p);
+void SetBhvRouteState(BHVRT *p, int n);
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
@@ -254,7 +254,7 @@ extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void InitBhvPace(BHVRT *p)
+extern "C" void InitBhvRoute(BHVRT *p)
 {
     InitBhv(p);
     func_001FEE90(D_003DD040);
@@ -276,7 +276,7 @@ void BHV182::Start()
 {
     BHVRT *p = (BHVRT *)this;
     StartBhv(p);
-    SetBhvPaceState(p, 0);
+    SetBhvRouteState(p, 0);
     p->t48 = D_002DDED0.t;
     p->pguard->n4A4 = 0;
 }
@@ -288,10 +288,10 @@ void BHV182::Start()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void CloseBhvPace(BHVRT *p)
+extern "C" void CloseBhvRoute(BHVRT *p)
 {
     CloseBhv(p);
-    SetBhvPaceState(p, -1);
+    SetBhvRouteState(p, -1);
     RemoveStepguardSgf(p->pguard, 0x24);
     func_001FEEA0(D_003DD040);
     p->pguard->n4A4 = 1;
@@ -304,59 +304,59 @@ extern "C" void CloseBhvPace(BHVRT *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void UpdateBhvPace(BHVRT *p)
+extern "C" void UpdateBhvRoute(BHVRT *p)
 {
     int s;
     UpdateBhv(p);
-    UpdateBhvPaceSpeed(p);
+    UpdateBhvRouteChase(p);
     for (;;) {
         if (IsBhvBusyAbove(p))
             break;
         s = p->state;
         switch (s) {
         case 0:
-            if (func_00209098(p->pguard)) {
-                SetBhvPaceState(p, 4);
-            } else if (IsBhvPaceOffGround(p)) {
-                SetBhvPaceState(p, 2);
+            if (IsStepguardHandsOff(p->pguard)) {
+                SetBhvRouteState(p, 4);
+            } else if (IsBhvRouteOffGround(p)) {
+                SetBhvRouteState(p, 2);
             } else {
-                int v = FindBhvPaceNearestRoutePoint(p);
+                int v = FindBhvRouteBestStation(p);
                 p->iTarget = v;
                 if (v == p->iCur) {
-                    ATKENTRY *r = PentryChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
+                    ATKENTRY *r = ChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
                     p->pentry = r;
                     if (r)
-                        SetBhvPaceState(p, 3);
+                        SetBhvRouteState(p, 3);
                 } else {
-                    AdvanceBhvPaceRoutePoint(p);
+                    AdvanceBhvRouteStation(p);
                 }
             }
             break;
         case 1:
-            if (func_00209098(p->pguard))
-                SetBhvPaceState(p, 4);
-            else if (IsBhvPaceOffGround(p))
-                SetBhvPaceState(p, 2);
-            else if (FBhvpathAtEnd(p->pbhvCur))
-                SetBhvPaceState(p, 0);
+            if (IsStepguardHandsOff(p->pguard))
+                SetBhvRouteState(p, 4);
+            else if (IsBhvRouteOffGround(p))
+                SetBhvRouteState(p, 2);
+            else if (IsBhvpathAtEnd(p->pbhvCur))
+                SetBhvRouteState(p, 0);
             else
-                PentryChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
+                ChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
             break;
         case 2:
-            if (func_00209098(p->pguard))
-                SetBhvPaceState(p, 4);
+            if (IsStepguardHandsOff(p->pguard))
+                SetBhvRouteState(p, 4);
             else if (IsBhvanimDone(p->pbhvCur))
-                SetBhvPaceState(p, 0);
+                SetBhvRouteState(p, 0);
             break;
         case 3:
-            if (func_00209098(p->pguard))
-                SetBhvPaceState(p, 4);
+            if (IsStepguardHandsOff(p->pguard))
+                SetBhvRouteState(p, 4);
             else if (IsBhvattackDone(p->pbhvCur))
-                SetBhvPaceState(p, 0);
+                SetBhvRouteState(p, 0);
             break;
         case 4:
-            if (!func_00209098(p->pguard))
-                SetBhvPaceState(p, 0);
+            if (!IsStepguardHandsOff(p->pguard))
+                SetBhvRouteState(p, 0);
             break;
         }
         if (s == p->state)
@@ -374,7 +374,7 @@ extern "C" void UpdateBhvPace(BHVRT *p)
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" int IsBhvPaceOffGround(BHVRT *p)
+extern "C" int IsBhvRouteOffGround(BHVRT *p)
 {
     GUARDV *q = p->pguard;
     qword t;
@@ -428,7 +428,7 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void UpdateBhvPaceSpeed(BHVRT *p)
+extern "C" void UpdateBhvRouteChase(BHVRT *p)
 {
     SW *pg = &D_003DD490;
     HEROV *pso = PpoHero(pg);
@@ -526,7 +526,7 @@ static inline float GRemap(LMV *pr, float g)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" int FindBhvPaceNearestRoutePoint(BHVRT *p)
+extern "C" int FindBhvRouteBestStation(BHVRT *p)
 {
     int iBest = -1;
     int i = 0;
@@ -576,7 +576,7 @@ extern "C" int FindBhvPaceNearestRoutePoint(BHVRT *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void AdvanceBhvPaceRoutePoint(BHVRT *p)
+extern "C" void AdvanceBhvRouteStation(BHVRT *p)
 {
     int k;
     if (p->iCur < p->iTarget) {
@@ -588,10 +588,10 @@ extern "C" void AdvanceBhvPaceRoutePoint(BHVRT *p)
     }
     switch (k) {
     case 0:
-        SetBhvPaceState(p, 1);
+        SetBhvRouteState(p, 1);
         break;
     case 1:
-        SetBhvPaceState(p, 2);
+        SetBhvRouteState(p, 2);
         break;
     }
 }
@@ -602,7 +602,7 @@ extern "C" void AdvanceBhvPaceRoutePoint(BHVRT *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void *GetBhvPaceRoutePointKind(BHVRT *p)
+extern "C" void *GetBhvRouteStationKind(BHVRT *p)
 {
     return p->proute->arte[p->iCur].plo;
 }
@@ -614,13 +614,13 @@ extern "C" void *GetBhvPaceRoutePointKind(BHVRT *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
  * @end-sly2-annot */
-extern "C" void SetBhvPaceState(BHVRT *p, int state)
+extern "C" void SetBhvRouteState(BHVRT *p, int state)
 {
     if (state == p->state)
         return;
     switch (p->state) {
     case 0:
-        func_0020AC28(p->pguard, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(p->pguard, 0, 0, D_002A2DD0);
         break;
     case -1:
     case 1:
@@ -666,7 +666,7 @@ extern "C" void SetBhvPaceState(BHVRT *p, int state)
             qword *pq = psp->mpicvpos;
             *pq = func_001A62E8(p->pguard);
             pq = psp->mpicvpos;
-            pq[1] = func_001A62E8(GetBhvPaceRoutePointKind(p));
+            pq[1] = func_001A62E8(GetBhvRouteStationKind(p));
         }
         MeasureShape(psp);
         po = (struct OA7 *)func_00205438(p->pguard, 0xA7);
@@ -683,7 +683,7 @@ extern "C" void SetBhvPaceState(BHVRT *p, int state)
     }
     case 2: {
         struct OAC *po = (struct OAC *)func_00205438(p->pguard, 0xAC);
-        po->x50 = func_001A62E8(GetBhvPaceRoutePointKind(p));
+        po->x50 = func_001A62E8(GetBhvRouteStationKind(p));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
@@ -796,7 +796,7 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
     qword pos;
     int i;
     if (StepguardHasSgf(p, 0x24))
-        return PloChooseStepguardTarget(p);
+        return ChooseStepguardTarget(p);
     poBest = 0;
     po = p->plo390;
     if (po && (uchar)po->f) {   /* (uchar): the bit extract of the target (see brx) */

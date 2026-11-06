@@ -168,17 +168,17 @@ void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
 R30 *func_00205458(ACTOR *, int);
 int IsBhvThrownDone(R30 *);
-void func_00209840(CONTROL *, const M3 *);
-void func_0017A8C8(R30 *, int);
+void SetStepguardMoverTargetMatrix(CONTROL *, const M3 *);
+void SetBhvThrownState(R30 *, int);
 void SetActPositionGoal(void *, qwordV);
 void SprayDprizes(SW *, int, qwordV, void *, int);
 void BroadcastGameEvent(GAME *, int, void *);
 void AddSoAcceleration(SOV *o, qwordV v);
 void AccelSoTowardPosSpring(SOV *o, qwordV v, void *a, qwordV b, void *c);
 void func_00229738(ACTOR *po, HOOK *node);
-int func_00206EB0(ACTOR *po, int k);
+int CanSetStepguardSpecial(ACTOR *po, int k);
 void AddSoXa(ACTOR *po, HOOK *node);
-void func_00209E28(ACTOR *po, int k);
+void SendStepguardRootBhvMode6(ACTOR *po, int k);
 
 void func_00223F70(CID100V *p);
 void func_00224258(CID100V *p, SOV *q);
@@ -832,12 +832,12 @@ extern "C" void func_00225300(CID100V *p) {
                 VCALL(p, 76),2);
             } else {
                 M3 m((p->source?func_001A6318(p->source):func_001A6318(p))->basis);
-                func_00209840(&p->actor->basis,&m);
+                SetStepguardMoverTargetMatrix(&p->actor->basis,&m);
                 if(r->state!=4) {
                     qwordV pos=p->source?func_001A62E8(p->source):func_001A62E8(p);
                     qwordV other;
                     other=func_001A62E8(p->actor);
-                    if(LengthL(Sub(pos,other))<100.0f)func_0017A8C8(r,4);
+                    if(LengthL(Sub(pos,other))<100.0f)SetBhvThrownState(r,4);
                 }
                 if(p->actor->color) {
                     float t=(D_002DDED0.t-p->time)/D_002C43B0;
@@ -923,7 +923,7 @@ extern "C" void func_00225660(CID100V *p, int k)
         func_00229738(p->actor, &p->hook);
         pv = func_00205458(p->actor, 0xB0);
         if (pv)
-            func_0017A8C8(pv, 2);
+            SetBhvThrownState(pv, 2);
         if (p->actor->color)
             SetActPositionGoal(p->actor->color, D_002A2DE0);
         p->actor = 0;
@@ -940,7 +940,7 @@ extern "C" void func_00225660(CID100V *p, int k)
         poBest = 0;
         for (i = 0; i < c; i++) {
             ACTOR *po = apo[i];
-            if (func_00206EB0(po, 0xB)) {
+            if (CanSetStepguardSpecial(po, 0xB)) {
                 float g = GDist(func_001A62E8(po), pos);
                 if (g < gBest) {
                     gBest = g;
@@ -963,7 +963,7 @@ extern "C" void func_00225660(CID100V *p, int k)
             v.q = s;
             u.f[2] = D_002C43F4;
             ((void (*)(void *, qwordV))poBest->pvt[35].pfn)((char *)poBest + poBest->pvt[35].d, u.q);
-            func_00209E28(poBest, 0);
+            SendStepguardRootBhvMode6(poBest, 0);
         }
     }
 }

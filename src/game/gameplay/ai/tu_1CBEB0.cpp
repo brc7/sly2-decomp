@@ -26,7 +26,7 @@ extern int D_002F7900;
 
 extern "C" {
 void InitStepguard(STEPGUARD *pstepguard);
-int FStepguardSenseStimulus(void *p, STIMULUS *pstim);
+int CanStepguardSenseStimulus(void *p, STIMULUS *pstim);
 void SetCmPolicy(CMVIEW *pcm, int n, void *pv, int m, void *p);
 void RevokeCmPolicy(CMVIEW *pcm, int a, int b, void *c, void *d, int e);
 }
@@ -48,7 +48,7 @@ void RAJAN::Init()
 
 /** @sly2-annot addr=0x1CBEE0
  * Purpose: CID 61 vt89: for stimulus 0x246 temporarily double the sense range/arc, then STEPGUARD
- *   FStepguardSenseStimulus 0x208BE0
+ *   CanStepguardSenseStimulus 0x208BE0
  * Info: proposed name Rajan_FSenseStimulus (T2); class RAJAN slot89; TU tu_1CBEB0
  * Notes: class identity from whole_game WE names/object strings: Cid61Guard_FSenseStimulus ->
  *   Rajan_FSenseStimulus
@@ -71,7 +71,7 @@ extern "C" int CanRajanSenseStimulus(void *p, STIMULUS *pstim)
             psrc->range.hi = c + d;
             psrc->range.lo = c - d;
       }
-      ret = FStepguardSenseStimulus(p, pstim);
+      ret = CanStepguardSenseStimulus(p, pstim);
       psrc->range = range;
       psrc->g54 = g;
       return ret;

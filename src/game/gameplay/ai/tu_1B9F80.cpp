@@ -93,10 +93,10 @@ int IsBhvBusyAbove(NBHV *p);
 void AddStepguardSgf(NEELAV *p, int n);
 void RemoveStepguardSgf(NEELAV *p, int n);
 void SetBhvNeelaChaseState(NBHV *p, int n);
-void func_00171C18(int a, void *b);
+void SaveBhvScriptResumeState(int a, void *b);
 void PopBhv(int *p);
 O *func_00205438(NEELAV *p, int b);
-void func_00171258(O *o, void *a, int b, void *c);
+void SetBhvScriptScript(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
@@ -414,14 +414,14 @@ extern "C" void UpdateBhvNeelaChase(NBHV *p)
 extern "C" void SetBhvNeelaChaseState(NBHV *p, int st)
 {
     if (st == p->state) return;
-    if (p->state == 0) func_00171C18(p->x18, p->po->ab);
+    if (p->state == 0) SaveBhvScriptResumeState(p->x18, p->po->ab);
     PopBhv(&p->x18);
     p->state = st;
     p->changed = D_002DDED0.t;
     switch (st) {
     case 0: {
         O *o = func_00205438(p->po, 0xA9);
-        func_00171258(o, p->pv38, 0, p->po->ab);
+        SetBhvScriptScript(o, p->pv38, 0, p->po->ab);
         VCALL0(o, 8);
         break;
     }

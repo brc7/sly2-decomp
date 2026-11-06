@@ -56,7 +56,7 @@ struct BHVO { int a[3]; VTE *vt; char pad[0x20]; union { void *plo30; int x30; }
               char pad44[8]; void *n4C; char pad50[0xC0 - 0x50]; int xC0; int padC4; void *pC8; };
 typedef char assert_BHVO_xC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
 struct BHVY { char pad[0x30]; int x30; };
-/* An attack entry chosen by PentryChooseStepguardAttack (+0x60 the hide time range). */
+/* An attack entry chosen by ChooseStepguardAttack (+0x60 the hide time range). */
 struct LMV { float gMin, gMax; };
 struct ATKENTRY { char pad[0x60]; LMV lm; };
 /* The two behaviours (BHV header: +0x10 the guard, +0x18 the running sub-behaviour / the stack, +0x30 state). */
@@ -124,15 +124,15 @@ void SetStepguardTarget(DIMITRIV *pguard, void *plo);
 qwordV func_001A62E8(void *p);
 BHVO *func_00205438(DIMITRIV *pguard, int n);
 int FCheckVolPoint(void *p, qwordV q);
-void func_0020AC28(DIMITRIV *pso, int a, int b, qwordV q);
+void SetStepguardAimAct(DIMITRIV *pso, int a, int b, qwordV q);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
 void MeasureShape(PATHV *p);
 void SetBhvpathShape(BHVO *a, PATHV *b, int c);
 int IsBhvanimDone(void *p);
-int FBhvpathAtEnd(void *p);
+int IsBhvpathAtEnd(void *p);
 int IsBhvattackDone(void *p);
-int PentryChooseStepguardAttack(DIMITRIV *p, void *ploTarget, int z);
+int ChooseStepguardAttack(DIMITRIV *p, void *ploTarget, int z);
 void SetBhvDimitriRootState(BHVESC *p, int k);
 ESC *FindDimitriFarthestRoute(BHVESC *p);
 void SetBhvFleeState(BHVATK *p, int k);
@@ -499,7 +499,7 @@ extern "C" void SetBhvFleeState(BHVATK *p, int k)
     if (k == p->state) return;
     switch (p->state) {
     case 1:
-        func_0020AC28(p->pguard, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(p->pguard, 0, 0, D_002A2DD0);
         break;
     case 3:
         {
@@ -597,12 +597,12 @@ extern "C" void UpdateBhvFlee(BHVATK *p)
             }
             break;
         case 2:
-            if (FBhvpathAtEnd(p->pbhvCur))
+            if (IsBhvpathAtEnd(p->pbhvCur))
                 SetBhvFleeState(p, 1);
             break;
         case 1:
             if (2.5f < D_002DDED0.t - p->t48 && 0.1f < D_002DDED0.t - p->tState) {
-                if ((p->pentry = (ATKENTRY *)PentryChooseStepguardAttack(p->pguard, p->ploTarget, 0)) != 0)
+                if ((p->pentry = (ATKENTRY *)ChooseStepguardAttack(p->pguard, p->ploTarget, 0)) != 0)
                     SetBhvFleeState(p, 3);
             }
             break;

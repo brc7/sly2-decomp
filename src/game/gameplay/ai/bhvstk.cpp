@@ -1,6 +1,6 @@
 // bhvstk.cpp -- behaviours (BHV) and the per-object behaviour stack (BHVSTK). A guard (STEPGUARD) owns one stack of
 // up to eight behaviours in preallocated 0xF0-byte slots; the top behaviour is the active one. Entry points:
-// PushBhvstk (construct a behaviour of a given class in the next slot via PbhvNew and start it), PopBhv /
+// PushBhvstk (construct a behaviour of a given class in the next slot via ConstructBhv and start it), PopBhv /
 // ClearBhvstk (close a behaviour and everything above it), UpdateBhvstk and HandleBhvstkMessage (per-frame update
 // and message dispatch, top first), SetBhvBusy / ClearBhvBusy (busy state propagated to the behaviours below and
 // the owning guard), and the empty BHV base methods that subclasses override.
@@ -35,7 +35,7 @@ struct BHVV
 struct BHVSTKV { OWNERV *owner; int depth; BHVV *slots[8]; };
 struct OWNERV { char pad[0x1A8]; float targetHeading; char pad1AC[0x204 - 0x1AC]; int groundProbeOverride; char pad208[0x26C - 0x208]; BHVSTKV bhvstk; };
 typedef char assert_OWNERV_bhvstk[(unsigned int)&((OWNERV *)0)->bhvstk == 0x26C ? 1 : -1];
-/* PbhvNew's view of a new behaviour (the vtable at +0xC) and of an embedded goal record. */
+/* ConstructBhv's view of a new behaviour (the vtable at +0xC) and of an embedded goal record. */
 struct BHVP { int tag, value, word8; void *vtable; };
 struct REFV { int tag, value; };
 struct AREQV { int cb; int nKind; };
@@ -86,8 +86,8 @@ extern "C" {
 int GetBhvSlotSize();
 void *func_001AE1D0(AREQV *request);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-void func_002562A8(REFV *);
-BHVV *PbhvNew(int kind, void *memory);
+void ClearPointerPair(REFV *);
+BHVV *ConstructBhv(int kind, void *memory);
 void PopBhv(BHVV **slot);
 void DecrementBhvstk(BHVSTKV *stack);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
@@ -164,7 +164,7 @@ static inline int Count(const int*p){
     return value;
 }
 // 0x1EEE00: Pushes a new behaviour of class `cid`: takes the next free slot, clears it, constructs the behaviour
-// there (PbhvNew), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
+// there (ConstructBhv), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
 // the new behaviour.
 extern "C" BHVV *PushBhvstk(BHVSTKV *stack,int cid){
     BHVV *below,*behavior;
@@ -177,7 +177,7 @@ extern "C" BHVV *PushBhvstk(BHVSTKV *stack,int cid){
         stack->depth=index+1;
     }
     func_002333B4(memory,0,GetBhvSlotSize());
-    behavior=PbhvNew(cid,memory);
+    behavior=ConstructBhv(cid,memory);
     {
         register OWNERV *owner __asm__("$3")=stack->owner;
         behavior->owner=owner;
@@ -317,7 +317,7 @@ extern "C" void PopBhv(BHVV **slot)
 
 // 0x1EF138: Placement factory: constructs the behaviour of class `cid` (0x9C..0xC6) in `memory` by clearing the
 // class's size and installing its BASIC header and vtable; some classes also initialize embedded reference fields.
-extern "C" BHVV *PbhvNew(int cid,void *memory){
+extern "C" BHVV *ConstructBhv(int cid,void *memory){
  BHVV *behavior;
  switch(cid){
  case 0x9C:
@@ -464,9 +464,9 @@ extern "C" BHVV *PbhvNew(int cid,void *memory){
  case 0xBA:
   func_002333B4(memory,0,0xD0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFE20;
-  func_002562A8((REFV*)((char*)memory+0x40));
-  func_002562A8((REFV*)((char*)memory+0x60));
-  func_002562A8((REFV*)((char*)memory+0x80));
+  ClearPointerPair((REFV*)((char*)memory+0x40));
+  ClearPointerPair((REFV*)((char*)memory+0x60));
+  ClearPointerPair((REFV*)((char*)memory+0x80));
   behavior=(BHVV*)memory;break;
  case 0xBD:
   func_002333B4(memory,0,0x50);
@@ -479,7 +479,7 @@ extern "C" BHVV *PbhvNew(int cid,void *memory){
  case 0xBF:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFC20;
-  func_002562A8((REFV*)((char*)memory+0x30));
+  ClearPointerPair((REFV*)((char*)memory+0x30));
   behavior=(BHVV*)memory;break;
  case 0xC0:
   func_002333B4(memory,0,0x60);

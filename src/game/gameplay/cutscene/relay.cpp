@@ -324,7 +324,7 @@ struct BHV193V : public BHV
       qword qwUnk40;
 };
 
-void SetBhv193Goal(BHV193V *pbhv, qword qwPos) __asm__("func_00144F48");
+void SetBhv193Goal(BHV193V *pbhv, qword qwPos) __asm__("SetBhvWalkToGoal");
 
 void SetBhv166Path(BHV166 *pbhv, void *pshape, int nUnk38) __asm__("SetBhvpathShape");
 
@@ -1007,9 +1007,9 @@ struct SUBTITLE
 
 void ClearSubtitle(SUBTITLE *psubtitle) __asm__("func_00227788");
 
-void SetStepSsgGoal(STEP *pstep, SSG *pssg) __asm__("func_00171CF8");
+void SetStepSsgGoal(STEP *pstep, SSG *pssg) __asm__("StartGuardScript");
 
-void ResetStepGoal(STEP *pstep, SSG *pssg) __asm__("func_00171D58");
+void ResetStepGoal(STEP *pstep, SSG *pssg) __asm__("SetGuardRoutineMode");
 
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm);
 
@@ -1190,9 +1190,9 @@ struct LOUPD
 
 int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
 
-int FBhv193AtGoal(BHV193V *pbhv) __asm__("func_00144EE8");
+int FBhv193AtGoal(BHV193V *pbhv) __asm__("IsBhvWalkToDone");
 
-int FBhv166NearEnd(BHV166 *pbhv) __asm__("FBhvpathAtEnd");
+int FBhv166NearEnd(BHV166 *pbhv) __asm__("IsBhvpathAtEnd");
 
 void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("func_0019E110");
 
@@ -1214,7 +1214,7 @@ void RemoveRelayAlarm(RELAYV *prelay, ALARM *palarm) __asm__("func_001E0070");
 
 int FRelayHasAlarm(RELAYV *prelay, ALARM *palarm) __asm__("FWipingAseg__FP4ASEG");
 
-int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("func_00171DA8");
+int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("IsGuardRunningScript");
 
 /* The alarm set of a guard group (SGG) as EnsureSggAlarm reads it (RELAY has the same block at +0x84). */
 struct SGG
