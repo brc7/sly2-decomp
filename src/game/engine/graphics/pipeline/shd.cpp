@@ -93,17 +93,8 @@ int NLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
 
-/** @sly2-annot addr=0x1EA568
- * Purpose: After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load
- *   offset to its data pointer and color-correct its entries
- * Info: proposed name RelocateSharedColorTables (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data
+// pointer and color-correct its entries. (inferred)
 /* Rebases the shared (kind 1) colour tables and bitmaps by ib, colour-correcting each table entry. */
 extern "C" void RelocateSharedColorTables(int ib)
 {
@@ -145,13 +136,7 @@ extern "C" void RelocateSharedColorTables(int ib)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001EA688 { extern "C" {
 struct S { int n0; unsigned char b4; unsigned char b5; };
-/** @sly2-annot addr=0x1EA688
- * Purpose: Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1
- * Info: proposed name CpassShd (T2); TU shd
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/formats/textures.md#4-shd-record-shader-and-tex-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1. (inferred)
 int func_001EA688(struct S *p)
 {
     switch (p->b4) {
@@ -171,14 +156,7 @@ typedef unsigned long ulong;
 struct E { char pad[0x18]; ulong a; ulong b; };
 struct S { int x0, x4; void *p8; struct E **apeC; struct E **ape10; };
 int func_001EA688(void *p);
-/** @sly2-annot addr=0x1EA6C8
- * Purpose: TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0
- * Info: proposed name Tex0FromTexIframeCtk (T1); TU shd
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest+format-doc:textures
- * See: docs/formats/textures.md#4-shd-record-shader-and-tex-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0. (inferred)
 ulong Tex0FromTexIframeCtk(struct S *p, int i, int j)
 {
     ulong fl = p->apeC[i]->b;
@@ -199,13 +177,7 @@ struct Y { int a; unsigned short grf; short pad; struct S8 *ps8; };
 ulong Tex0FromTexIframeCtk(struct Y *py, int i, int n);
 void PackAD__4GIFSll(void *pq, int reg, ulong val);
 void *func_002333B4(void *p, int b, int cb) __asm__("memset");
-/** @sly2-annot addr=0x1EA750
- * Purpose: Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D
- *   stream
- * Info: proposed name PackTexGifs (T1); TU shd
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream. (inferred)
 void PackTexGifs(struct Y *py, int n, void *pq)
 {
     struct TEX1 tex1;
@@ -241,18 +213,8 @@ int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED5D0(int id);
 void *func_001AE1D0(struct AR *par);
 void ColorCorrectRgba(int *p);
-/** @sly2-annot addr=0x1EA8A8
- * Purpose: Read one color table header (0x10) and colors; skip if its name fails the load filter; shared
- *   entries resolved via PclutFindHash; color-correct entries
- * Info: proposed name LoadClutFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via
+// PclutFindHash; color-correct entries.
 void LoadClutFromBrx(void *pbis, struct X *px)
 {
     union { short aw[0x80]; struct AR ar; } u;
@@ -331,14 +293,8 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
-/** @sly2-annot addr=0x1EA9F0
- * Purpose: Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block
- *   (tex0 saved at g_sw+0x3EA0)
- * Info: proposed name BuildSwBackgroundGifs (T2); TU shd
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at
+// g_sw+0x3EA0) (inferred)
 void func_001EA9F0(O *p, void *pbs)
 {
     if (!pbs && !(p->tex0 & (0x3FFFL << 37)))
@@ -416,12 +372,7 @@ namespace M_func_001EAD98 { extern "C" {
 struct H { int a; int b; unsigned short c; unsigned short d; int *ap; };
 struct S { struct H h; unsigned int cqw; };
 void ColorCorrectRgba(int *p);
-/** @sly2-annot addr=0x1EAD98
- * Purpose: Copy a CLUT header, color-correct its colors, compute qword count
- * Info: proposed name CopyClutHeader (T2); TU shd
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Copy a CLUT header, color-correct its colors, compute qword count. (inferred)
 struct S *func_001EAD98(struct S *p, struct H *ph)
 {
     int *pn;
@@ -443,17 +394,7 @@ extern int D_003DCF9C;
 int U16Read__18CBinaryInputStream(void *pbis);
 void *func_001AE378(struct AR *par);
 void LoadClutFromBrx(void *pbis, struct E *pe);
-/** @sly2-annot addr=0x1EAE40
- * Purpose: Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count
- * Info: proposed name LoadColorTablesFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
- * @end-sly2-annot */
+// Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count.
 void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
@@ -481,17 +422,7 @@ void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED4E0(int id);
 void *func_001AE1D0(struct AR *par);
-/** @sly2-annot addr=0x1EAF50
- * Purpose: Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
- * Info: proposed name LoadBmpFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
 void LoadBmpFromBrx(void *pbis, struct X *px)
 {
     union { short aw[0x80]; struct AR ar; } u;
@@ -527,12 +458,7 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
 namespace M_func_001EB050 { extern "C" {
 struct S { int a, b, c, d; unsigned int n10; int n14; unsigned int n18; };
 struct T { int a, b, c, d; unsigned int n10; int n14; };
-/** @sly2-annot addr=0x1EB050
- * Purpose: Copy a BMP header and compute qword count
- * Info: proposed name CopyBmpHeader (T2); TU shd
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Copy a BMP header and compute qword count. (inferred)
 struct S *func_001EB050(struct S *p, struct T *q)
 {
     *(struct T *)p = *q;
@@ -551,17 +477,7 @@ extern int D_003DCF98;
 int U16Read__18CBinaryInputStream(void *pbis);
 void *func_001AE378(struct AR *par);
 void LoadBmpFromBrx(void *pbis, struct E *pe);
-/** @sly2-annot addr=0x1EB098
- * Purpose: Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each
- * Info: proposed name LoadBitmapsFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
- * @end-sly2-annot */
+// Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each.
 void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
@@ -590,13 +506,7 @@ extern struct E20 *D_003DCFFC;
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 int U16Read__18CBinaryInputStream(void *pbis);
 void *func_001AE1D0(struct AR *par);
-/** @sly2-annot addr=0x1EB1A8
- * Purpose: Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none)
- * Info: proposed name LoadTexFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest+parse-verified
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) (inferred)
 void LoadTexFromBrx(void *pbis, struct Z *pz)
 {
     struct AR ar;
@@ -657,18 +567,7 @@ static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
     pmsg->nKind = 0x10;
     pe->p = (__typeof__(pe->p))func_001AE2A0(pmsg);
 }
-/** @sly2-annot addr=0x1EB2F0
- * Purpose: Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame
- *   data
- * Info: proposed name LoadShdFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
- * @end-sly2-annot */
+// Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data.
 void LoadShdFromBrx(void *pbis, struct L *p)
 {
     struct MSG msg;
@@ -769,12 +668,7 @@ struct Src { int x0; char pad4; unsigned char b5; unsigned char b6; char pad7; s
 struct Dst { int x0; int x4; int x8; struct B4 bc; int c; ulong *a; };
 void *func_001AE2A0(struct MSG *);
 ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
-/** @sly2-annot addr=0x1EB678
- * Purpose: Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture)
- * Info: proposed name BuildShdTex0List (T2); TU shd
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) (inferred)
 void func_001EB678(struct Src *ps, struct Dst *pd)
 {
     struct S3 *p;
@@ -815,25 +709,15 @@ void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
 void *func_001AE378(struct MSG *);
 void *func_001AE2A0(struct MSG *);
-void *func_001ED7A8(int, void *);
+void *LoadSaaFromBrx(int, void *);
 void LoadShdFromBrx(void *, struct E *);
 void LoadSwSharedDataFromBrx(void *, void *);
 void *UploadPermShaders(int, int);
 void func_001EB960(void);
 void func_001EB678(struct E *, void *);
 void func_0011A070(void *, void *);
-/** @sly2-annot addr=0x1EB748
- * Purpose: Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload
- *   permanent textures (0x1ECE58); build shader packets
- * Info: proposed name LoadShadersFromBrx (T1); TU shd
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
- * @end-sly2-annot */
+// Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures
+// (0x1ECE58); build shader packets.
 void LoadShadersFromBrx(void *p, int k, void *pbis)
 {
     struct MSG msg;
@@ -846,7 +730,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
     msg.nKind = 0x10;
     D_003DD004 = (__typeof__(D_003DD004))func_001AE378(&msg);
     for (i = 0; i < D_003DD000; i++)
-        D_003DD004[i] = func_001ED7A8(0, pbis);
+        D_003DD004[i] = LoadSaaFromBrx(0, pbis);
     D_003DCFE8 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DCFE8 * 0x2C;
     msg.nKind = 0x10;
@@ -906,12 +790,7 @@ static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKin
   :"+r"(base),"+r"(marked),"+r"(retained):"r"(rawKind));
  depthKind=retained;flags4=marked;return base;
 }
-/** @sly2-annot addr=0x1EB960
- * Purpose: Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind
- * Info: proposed name FillShaders (T2); TU shd
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind. (inferred)
 void func_001EB960(){
  int i;
  for(i=0;i<D_003DCFE8;i++){
@@ -1053,12 +932,7 @@ namespace M_func_001EC688 { extern "C" {
 struct E { int a; int b; };
 struct S { char pad[0x20]; struct E *ae; };
 void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, int d, int e);
-/** @sly2-annot addr=0x1EC688
- * Purpose: Emit a VIF unpack (0x226F28 kind 12) for record i; return its size
- * Info: proposed name AddShdVifUnpack (T2); TU shd
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Emit a VIF unpack (0x226F28 kind 12) for record i; return its size. (inferred)
 int func_001EC688(struct S *p, int i, int x, int y)
 {
     struct E *pe = &p->ae[i];
@@ -1074,12 +948,7 @@ struct O { char pad[0x30]; qword q; };
 struct E { int a; struct O *po; };
 struct S { char pad[0x20]; struct E *ae; };
 void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, qword *d, int e);
-/** @sly2-annot addr=0x1EC6D0
- * Purpose: Variant of 0x1EC688 for a single qword from an object
- * Info: proposed name AddShdVifUnpackQw (T2); TU shd
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Variant of 0x1EC688 for a single qword from an object. (inferred)
 int func_001EC6D0(struct S *p, int i, int x, int y)
 {
     struct E *pe = p->ae + i; qword q = pe->po->q;
@@ -1088,15 +957,10 @@ int func_001EC6D0(struct S *p, int i, int x, int y)
 }
 } } // namespace M_func_001EC6D0
 
-/** @sly2-annot addr=0x1EC718
- * Purpose: CopyAb(dst=+8, src=+4, cb=+0)
- * Info: proposed name ApplyCopyRecord (T2); TU shd
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
 struct COPYREC { unsigned int cb; void *pvSrc; void *pvDst; };
-extern "C" void func_001EC718(COPYREC *prec)
+extern "C" void ApplyCopyRecord(COPYREC *prec)
 {
     CopyAb__FPvT0Ui(prec->pvDst, prec->pvSrc, prec->cb);
 }
@@ -1105,12 +969,7 @@ extern "C" void func_001EC718(COPYREC *prec)
 namespace M_func_001EC740 { extern "C" {
 struct E { int a; int b; unsigned int p; int c; int d; };
 extern struct E D_003DA798[];
-/** @sly2-annot addr=0x1EC740
- * Purpose: Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew
- * Info: proposed name RelocateShdRefs (T2); TU shd
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew. (inferred)
 void func_001EC740(int iFirst, int iLast, int cb, unsigned int pOld, unsigned int pNew)
 {
     int i;
@@ -1122,14 +981,7 @@ void func_001EC740(int iFirst, int iLast, int cb, unsigned int pOld, unsigned in
 }
 } } // namespace M_func_001EC740
 
-/** @sly2-annot addr=0x1EC7A0
- * Purpose: Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004)
- * Info: proposed name ResetShaders (T1); TU shd
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest+format-doc:textures
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/formats/textures.md#6-runtime-notes, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) (inferred)
 extern "C" void ResetShaders()
 {
     D_003DCFE8 = 0;
@@ -1142,13 +994,8 @@ extern "C" void ResetShaders()
     D_003DD004 = 0;
 }
 
-/** @sly2-annot addr=0x1EC7E8
- * Purpose: Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8)
- * Info: proposed name UnloadShaders (T2); TU shd
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
-extern "C" void func_001EC7E8()
+// Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8) (inferred)
+extern "C" void ClearShaderGsState()
 {
     D_003DA790 = 0;
     D_003DCFA0 = 0;
@@ -1161,13 +1008,7 @@ namespace M_PshdFindShader { extern "C" {
 struct E { int oid; char pad[0x28]; };
 extern int D_003DCFE8;
 extern struct E *D_003DCFEC;
-/** @sly2-annot addr=0x1EC820
- * Purpose: Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL
- * Info: proposed name PshdFindShader (T1); TU shd
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL. (inferred)
 struct E *PshdFindShader(int oid)
 {
     int i;
@@ -1182,12 +1023,7 @@ struct E *PshdFindShader(int oid)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001EC880 { extern "C" {
 struct O { int oid; char pad[0x14]; struct O *pNext; };
-/** @sly2-annot addr=0x1EC880
- * Purpose: Find an entry by oid in linked list (*(struct O * *)&g_sw.slShd) (next +0x18)
- * Info: proposed name PfontFind (T2); TU shd
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Find an entry by oid in linked list (*(struct O * *)&g_sw.slShd) (next +0x18) (inferred)
 struct O *func_001EC880(int oid)
 {
     int unused[4];
@@ -1200,15 +1036,9 @@ struct O *func_001EC880(int oid)
 }
 } } // namespace M_func_001EC880
 
-/** @sly2-annot addr=0x1EC8D0
- * Purpose: 0x1EC880(oid) or the list head
- * Info: proposed name PfontFindOrDefault (T2); TU shd
- * Notes: names_v2 C proposed ResetGsMemory__Fv (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// 0x1EC880(oid) or the list head. (inferred)
 /* func_001EC880's shader, else the default one ((*(void * *)&g_sw.slShd)). */
-extern "C" void *func_001EC8D0()
+extern "C" void *FindShdOrDefault()
 {
     void *pshd;
     pshd = func_001EC880();
@@ -1218,15 +1048,8 @@ extern "C" void *func_001EC8D0()
     return pshd;
 }
 
-/** @sly2-annot addr=0x1EC8F8
- * Purpose: &D_003DCFEC[i] (stride 0x2C)
- * Info: proposed name PshdFromIshd (T1); TU shd
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/textures.md#4-shd-record-shader-and-tex-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
-extern "C" SHDV *func_001EC8F8(int ishd)
+// &D_003DCFEC[i] (stride 0x2C)
+extern "C" SHDV *GetShdByIndex(int ishd)
 {
     return D_003DCFEC + ishd;
 }
@@ -1237,13 +1060,7 @@ struct O { char pad[0x14]; int n14; char pad2[0x30-0x18]; struct O *pChild; char
 // 0x1EC910: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addu $2, $2, $4");
 
-/** @sly2-annot addr=0x1EC918
- * Purpose: Find an SAA by id (+0x14) in list (*(struct O * *)&g_sw.slSaa) (stops at entries with a child)
- * Info: proposed name PsaaFind (T2); TU shd
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
+// Find an SAA by id (+0x14) in list (*(struct O * *)&g_sw.slSaa) (stops at entries with a child) (inferred)
 struct O *func_001EC918(int n)
 {
     int unused[4];
@@ -1262,12 +1079,7 @@ namespace M_UpdateShaders { extern "C" {
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 int FUpdatableSaa__FP3SAA(struct O *p);
-/** @sly2-annot addr=0x1EC968
- * Purpose: For each SAA in (*(struct O * *)&g_sw.slSaa): if FUpdatableSaa call its vt8 (Update)
- * Info: proposed name UpdateShaders (T1); TU shd
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// For each SAA in (*(struct O * *)&g_sw.slSaa): if FUpdatableSaa call its vt8 (Update) (inferred)
 void UpdateShaders(void)
 {
     int unused[4];
@@ -1286,15 +1098,7 @@ struct TEX0 {
     ulong TFX : 2; ulong CBP : 14; ulong CPSM : 4; ulong CSM : 1; ulong CSA : 5; ulong CLD : 3;
 };
 struct CLUT { int pad[2]; unsigned short c; char pad2[0x18 - 0xA]; struct TEX0 tex0; };
-/** @sly2-annot addr=0x1EC9D0
- * Purpose: Fill TEX2-style CLUT fields
- * Info: proposed name BuildClutTex2 (T1); TU shd
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r6b_rest+verdicts_A2+format-doc:textures
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/textures.md#2-clut-record-0x10-byte-header-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Fill TEX2-style CLUT fields.
 void BuildClutTex2__FP4CLUTi(struct CLUT *pclut, int cbp)
 {
     pclut->tex0.CBP = cbp;
@@ -1306,13 +1110,7 @@ void BuildClutTex2__FP4CLUTi(struct CLUT *pclut, int cbp)
 }
 } } // namespace M_BuildClutTex2__FP4CLUTi
 
-/** @sly2-annot addr=0x1ECAB0
- * Purpose: existing name kept
- * Info: proposed name BuildClutGifs__FP4CLUTiP4GIFS (EXISTING); TU shd
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6b_rest+verdicts_tu_r4r6
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Existing name kept.
 /* The GS image upload of a colour table: 16 entries per row (8 for 16 or fewer). */
 void BuildClutGifs(CLUT *pclut, int gsb, GIFS *pgifs)
 {
@@ -1321,13 +1119,7 @@ void BuildClutGifs(CLUT *pclut, int gsb, GIFS *pgifs)
     BuildImageGifs(gsb, 1, 0, rrw, rrh, pclut->cqwPal, pgifs);
 }
 
-/** @sly2-annot addr=0x1ECB18
- * Purpose: existing name kept
- * Info: proposed name BuildBmpTex0__FP3BMPi (EXISTING); TU shd
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6b_rest+verdicts_tu_r4r6
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Existing name kept.
 /* The bitmap's TEX0 register: base, width, format, log2 size, with alpha. */
 void BuildBmpTex0(BMP *pbmp, int tbp)
 {
@@ -1343,12 +1135,7 @@ void BuildBmpTex0(BMP *pbmp, int tbp)
 namespace M_BuildBmpGifs { extern "C" {
 struct BMP { char pad[8]; unsigned short w; unsigned short h; unsigned char psm; unsigned char bw; char pad2[0x18-0xE]; int cqw; };
 void BuildImageGifs__FiiiiiiP4GIFS(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs);
-/** @sly2-annot addr=0x1ECBF0
- * Purpose: BuildImageGifs for a bitmap
- * Info: proposed name BuildBmpGifs (T1); TU shd
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// BuildImageGifs for a bitmap. (inferred)
 void BuildBmpGifs(struct BMP *pbmp, int dbp, void *pgifs)
 {
     BuildImageGifs__FiiiiiiP4GIFS(dbp, pbmp->bw, pbmp->psm, pbmp->w, pbmp->h, pbmp->cqw, pgifs);
@@ -1377,14 +1164,7 @@ void BuildBmpGifs(struct E2 *, int, struct X *);
 void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
 void func_001ED560(struct E1 *);
 void func_001ED470(struct E2 *);
-/** @sly2-annot addr=0x1ECC28
- * Purpose: Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added
- * Info: proposed name FBuildUploadBitmapGifs (T1); TU shd
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest+verdicts_B
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions,
- *   docs/guides/port-plan.md#63-textures-k8-renderingmd-9-formatstexturesmd
- * @end-sly2-annot */
+// Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added.
 int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int k, struct BS *pbs, struct X *px)
 {
     int c0 = 0;
@@ -1479,15 +1259,7 @@ void AddPrimEnd__4GIFS(struct DMAS *);
 void EndDmaCnt__4DMAS(struct X *);
 void AddDmaRet__4DMAS(struct X *);
 void DetachCopySw__4DMASPiPP2QWT2(struct X *, int, int, int *);
-/** @sly2-annot addr=0x1ECE58
- * Purpose: Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs
- * Info: proposed name UploadPermShaders (T1); TU shd
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest+format-doc:textures
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions,
- *   docs/guides/port-plan.md#63-textures-k8-renderingmd-9-formatstexturesmd
- * @end-sly2-annot */
+// Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs. (inferred)
 int UploadPermShaders(struct BS *pbs, int k)
 {
     struct DMAS dmas;
@@ -1571,15 +1343,7 @@ static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b
 // 0x1ED1A0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
-/** @sly2-annot addr=0x1ED1A8
- * Purpose: Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.fUnk3e38)
- * Info: proposed name ColorCorrectRgba16 (T2); TU shd
- * Notes: names_v2 B proposed PqwGifsBitmapUpload__Fi (0.889)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.fUnk3e38) (inferred)
 void func_001ED1A8(U *pu)
 {
     if (!g_sw.fUnk3e38) return;
@@ -1596,16 +1360,7 @@ struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
 void func_0011DCD8(struct RGBA *prgba, struct VECTOR *pv);
 void func_001ED2D8(struct VECTOR *pv);
 void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba);
-/** @sly2-annot addr=0x1ED278
- * Purpose: If color correction enabled (g_sw.fUnk3e38): RGBA -> vector -> ColorCorrectVector -> RGBA
- * Info: proposed name ColorCorrectRgba (T1); TU shd
- * Notes: names_v2 C proposed PropagateSur__FP3SUR (0.638) | textures format doc cites this function by this
- *   name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r6b_rest+format-doc:textures
- * See: docs/engine/camera.md#5-key-functions,
- *   docs/formats/textures.md#2-clut-record-0x10-byte-header-cstatic,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// If color correction enabled (g_sw.fUnk3e38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
 void ColorCorrectRgba(struct RGBA *prgba)
 {
     struct VECTOR v;
@@ -1631,15 +1386,8 @@ extern char D_002BBB60[];
 float powf(float, float);
 float GLimitLm__FP2LMf(void *, float);
 void ConvertUserRgbToUserHsv(struct G3 *, VEC *);
-/** @sly2-annot addr=0x1ED2D8
- * Purpose: Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x)
- *   and rebuild via HSV
- * Info: proposed name ColorCorrectVector (T2); TU shd
- * Notes: names_v2 C proposed ReferenceShaderAqwRegs__FP3SHDP4SHDPP2QWiiP3SAI (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
- * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via
+// HSV. (inferred)
 void func_001ED2D8(VEC *p)
 {
     struct G3 c;
@@ -1670,13 +1418,7 @@ extern void *D_003DD010;
 extern void *D_003DD018;
 extern int D_003DD00C;
 extern int D_003DD014;
-/** @sly2-annot addr=0x1ED3A8
- * Purpose: Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018)
- * Info: proposed name AllocTexHashTables (T2); TU shd
- * Notes: names_v2 C proposed ReferenceUVAnimation__FP2QWiP3SAI (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) (inferred)
 void func_001ED3A8(void)
 {
     struct AR ar;
@@ -1697,12 +1439,7 @@ void func_001ED3A8(void)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001ED448 { extern "C" {
 extern int D_003DD00C, D_003DD010, D_003DD014, D_003DD018;
-/** @sly2-annot addr=0x1ED448
- * Purpose: Null both hash tables and counts
- * Info: proposed name ClearTexHashTables (T2); TU shd
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Null both hash tables and counts. (inferred)
 void func_001ED448(void)
 {
     D_003DD010 = 0;
@@ -1715,12 +1452,7 @@ void func_001ED448(void)
 namespace M_func_001ED470 { extern "C" {
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
-/** @sly2-annot addr=0x1ED470
- * Purpose: Insert a record into the bitmap hash (key % 0x3FFD, linear probe)
- * Info: proposed name AddBmpHash (T2); TU shd
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Insert a record into the bitmap hash (key % 0x3FFD, linear probe) (inferred)
 void func_001ED470(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");
@@ -1762,12 +1494,7 @@ typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 namespace M_func_001ED4E0 { extern "C" {
 struct S { int n; };
 extern struct S **D_003DD010;
-/** @sly2-annot addr=0x1ED4E0
- * Purpose: Look up a bitmap by id in the hash
- * Info: proposed name PbmpFindHash (T2); TU shd
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Look up a bitmap by id in the hash. (inferred)
 struct S *func_001ED4E0(int n)
 {
     int i;
@@ -1786,14 +1513,7 @@ loop:
 namespace M_func_001ED560 { extern "C" {
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
-/** @sly2-annot addr=0x1ED560
- * Purpose: Insert into the clut hash
- * Info: proposed name AddClutHash (T2); TU shd
- * Notes: names_v2 C proposed PropagateSurs__Fv (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
- * See: docs/formats/textures.md#2-clut-record-0x10-byte-header-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Insert into the clut hash. (inferred)
 void func_001ED560(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");
@@ -1835,13 +1555,7 @@ typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 namespace M_func_001ED5D0 { extern "C" {
 struct S { int n; };
 extern struct S **D_003DD018;
-/** @sly2-annot addr=0x1ED5D0
- * Purpose: Look up a clut by id
- * Info: proposed name PclutFindHash (T2); TU shd
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/formats/textures.md#2-clut-record-0x10-byte-header-cstatic,
- *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
- * @end-sly2-annot */
+// Look up a clut by id. (inferred)
 struct S *func_001ED5D0(int n)
 {
     int i;

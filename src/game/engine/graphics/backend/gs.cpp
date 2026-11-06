@@ -164,12 +164,9 @@ static inline void EnablePrimary(PMODE*mode)
     __asm__("li %1,%2\n\tld %0,%3":"=r"(word),"=r"(mask):"i"(primaryMask),"m"(*mode));
     mode->word=word|mask;
 }
-/** @sly2-annot addr=0x16F2D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/formats/textures.md#6-runtime-notes
- * @end-sly2-annot */
+// Interlace fix-up run at vblank: when the field about to be shown differs from the one the frame was rendered for,
+// shifts the display one line (DISPLAY height-1 and DY+1, or DISPFB DBY+1) and enables the primary read circuit; then
+// writes PMODE. Keeps a field-rendered frame from jittering when a frame is late.
 void BlendDisplayOnBufferMismatch()
 {
     int field=D_002DEDB8;
@@ -192,11 +189,8 @@ typedef char layout_DISPLAY[(sizeof(DISPLAY)==8)?1:-1];
 typedef char layout_DISPENV[(sizeof(DISPENV)==0x28)?1:-1];
 typedef char layout_DRAWENV[(sizeof(DRAWENV)==0xF0)?1:-1];
 
-/** @sly2-annot addr=0x16F468
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// VBlank-start interrupt handler: wakes a thread waiting in SyncVBlank, then by display mode (D_002DEDBC) applies the
+// field fix-up (modes 1, 2) or flips the display buffer itself (mode 3).
 int VBlankS_Interrupt(int ch)
 {
     if (D_002DFB58) {
@@ -224,11 +218,7 @@ int VBlankS_Interrupt(int ch)
     return 0;
 }
 
-/** @sly2-annot addr=0x16F560
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Waits for the next vblank (blocks on the semaphore the vblank handler signals).
 void SyncVBlank()
 {
     D_002DFB58 = 1;
@@ -236,11 +226,9 @@ void SyncVBlank()
 }
 
 static inline int FFieldCsr() { return ((CSR *)0x12001000)->FIELD; }
-/** @sly2-annot addr=0x16F590
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Presents the frame: waits for vblank, picks the field for the next frame, sets the draw environment's half-pixel
+// offset for it, and swaps the double-buffered display/draw environments (sceGsSwapDBuff), under the GS critical
+// section.
 void SwapGsBuffers()
 {
     D_002DFB5C = 1;
@@ -264,11 +252,8 @@ void SwapGsBuffers()
     LeaveCritSect(&D_002DFB40);
 }
 
-/** @sly2-annot addr=0x16F6B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Puts the draw environment back after a vblank-handler flip (display mode 3 drops to mode 2): re-reads the field and
+// reapplies the half offset and draw environment.
 void RestoreGsBuffers()
 {
     if (D_002DEDBC == 3)
@@ -282,11 +267,8 @@ void RestoreGsBuffers()
     }
 }
 
-/** @sly2-annot addr=0x16F788
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Recovers the GS after a reset: clears both frame buffers, waits for vblank, resets the GS (sceGsResetGraph),
+// re-derives the field and swaps buffers so drawing resumes cleanly (inferred from the body; the name is Sly 1's).
 void GS_Interrupt(int ch)
 {
     DRAWENV *pdraw;
@@ -314,11 +296,8 @@ void GS_Interrupt(int ch)
     sceGsSwapDBuff(D_002DEB80, c);
 }
 
-/** @sly2-annot addr=0x16F868
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// GS FINISH interrupt handler: when a SendDmaSyncGsFinish is waiting and the FINISH event fired, signals its
+// semaphore.
 int ResetGs()
 {
     if (D_002DFB54 && (*(volatile long *)0x12001000 & 2)) {
@@ -329,11 +308,8 @@ int ResetGs()
     return -1;
 }
 
-/** @sly2-annot addr=0x16F8B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Sends a DMA chain to the given channel and blocks until the GS signals FINISH (enables the FINISH interrupt, sends,
+// waits on the semaphore). Used for synchronous uploads such as textures at level load.
 void SendDmaSyncGsFinish(sceDmaChan *pch, QW *pqw)
 {
     EnterCritSect(&D_002DFB40);
@@ -346,13 +322,9 @@ void SendDmaSyncGsFinish(sceDmaChan *pch, QW *pqw)
     LeaveCritSect(&D_002DFB40);
 }
 
-/** @sly2-annot addr=0x16F960
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name BuildClearGifs__FP2QWG4RGBAi (EXISTING); TU gs
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
- *   docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Builds the static GIF packet that clears a frame: a flat sprite in the given colour (blended when alpha < 0x80)
+// drawn as 32-pixel-wide strips over the 512-line screen, with the depth test set by n (1: colour only, 2: colour and
+// depth, 3: depth only).
 void BuildClearGifs(QW *aqw, RGBA rgba, int n)
 {
     GIFS gifs;
@@ -375,12 +347,7 @@ void BuildClearGifs(QW *aqw, RGBA rgba, int n)
     gifs.AddPrimEnd();
 }
 
-/** @sly2-annot addr=0x16FAF8
- * Purpose: Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer
- * Info: proposed name BuildFbaGifs (T1); TU gs
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer. (inferred)
 void BuildFbaGifs(int cqw, QW *aqw, long d)
 {
     GIFS gifs;
@@ -394,13 +361,8 @@ static inline ulong FrameFromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14);
 }
-/** @sly2-annot addr=0x16FB78
- * Purpose: Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width
- *   of the current and the other display framebuffer (lets the framebuffer be sampled as a texture)
- * Info: proposed name BuildFrameTex0Gifs (T1); TU gs
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and
+// the other display framebuffer (lets the framebuffer be sampled as a texture) (inferred)
 void BuildFrameTex0Gifs()
 {
     DRAWENV *pdisp;
@@ -431,14 +393,9 @@ struct TEXBITS{
 };
 union TEX{ulong word;TEXBITS bits;};
 static inline ulong FrameBits(ulong frame){return (frame&0x1FFUL)|(((frame>>16)&0x3FUL)<<16)|(((frame>>24)&0x3FUL)<<24);}
-/** @sly2-annot addr=0x16FCA8
- * Purpose: Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1
- *   and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for
- *   current/other buffer
- * Info: proposed name BuildFrameContextGifs (T1); TU gs
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the
+// current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer.
+// (inferred)
 void BuildFrameContextGifs(int gifCount,QW*gifBuffer,int vifCount,QW*vifBuffer,uint mask){
  DRAWENV*current;DRAWENV*other;
  if(D_002DEDB0&1){current=&D_002DECD0;other=current-1;}
@@ -495,13 +452,8 @@ void BuildFrameContextGifs(int gifCount,QW*gifBuffer,int vifCount,QW*vifBuffer,u
  vifs.EndDmaCnt();vifs.AddDmaRet();
 }
 
-/** @sly2-annot addr=0x170048
- * Purpose: Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture
- *   packets after a buffer swap
- * Info: proposed name RebuildFrameGifs (T1); TU gs
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a
+// buffer swap.
 void RebuildFrameGifs()
 {
     BuildFrameContextGifs(0xC, D_002DF740, 8, D_002DF800, 0);
@@ -510,14 +462,8 @@ void RebuildFrameGifs()
     BuildFrameTex0Gifs();
 }
 
-/** @sly2-annot addr=0x1700D0
- * Purpose: GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame
- *   context packets, semaphores, VBlank/GS interrupt handlers
- * Info: proposed name StartupGs (T1); TU gs
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/overview.md#1-boot, docs/engine/rendering.md#1-frame-structure,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets,
+// semaphores, VBlank/GS interrupt handlers.
 void StartupGs()
 {
     int i;
@@ -551,12 +497,8 @@ void StartupGs()
     *(volatile int *)0x10003010 = 0;
 }
 
-/** @sly2-annot addr=0x170278
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name BlastAqwGifsBothFrames__FP2QW (EXISTING); TU gs
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Sends a static GIF chain to the GS once for each of the two draw buffers (switching the draw environment between
+// them), synchronously.
 void BlastAqwGifsBothFrames(QW *aqw)
 {
     EnterCritSect(&D_002DFB40);
@@ -570,11 +512,7 @@ void BlastAqwGifsBothFrames(QW *aqw)
     LeaveCritSect(&D_002DFB40);
 }
 
-/** @sly2-annot addr=0x170348
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Clears both frame buffers with the prebuilt clear packet D_002DF260.
 void ClearFrameBuffers()
 {
     DMAS dmas;
@@ -589,11 +527,7 @@ void ClearFrameBuffers()
 // 0x1703B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x4d0");
 
-/** @sly2-annot addr=0x1703C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Returns ceil(log2(value)) (0 for 0 and 1, at most 31): used for texture width/height exponents.
 uint NLog2(uint value)
 {
     uint log2 = 0;
@@ -606,24 +540,14 @@ uint NLog2(uint value)
     return log2;
 }
 
-/** @sly2-annot addr=0x1703F8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name InitGsb__FP3GSBii (EXISTING); TU gs
- * Notes: RENAME proposed -> InitGsb__FP3GSBii (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.85]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Misnamed: this is the GS memory allocator's init (Sly 1's InitGsb), not a ZPR function. font.cpp calls it as
+// func_001703F8(&gsb, 0x1000, 0x1800): it zeroes the GSB and sets the first free and current GS address (both "zpk"
+// fields here) to the second argument and the limit ("ploSource") to the third. The Sly 1 symbol
+// InitZpr__FP3ZPR3ZPKP2LO was attached by address; renaming it means changing its C++ signature (left for the type
+// pass).
 void InitZpr(ZPR *pzpr, ZPK zpk, LO *ploSource) { func_002333B4(pzpr, 0, sizeof(ZPR)); pzpr->zpk = pzpr->zpk2 = zpk; pzpr->ploSource = ploSource; }
 
-/** @sly2-annot addr=0x170448
- * Purpose: Size-class index (0..7, -1 for 0) of a free GS-memory run of n units:
- *   1,2,3-4,5-8,9-16,17-32,33-64,>64
- * Info: proposed name IgsbBucketFromCgs (T1); TU gs
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64. (inferred)
 int IgsbBucketFromCgs(int n)
 {
     if (n >= 9) {
@@ -642,13 +566,8 @@ int IgsbBucketFromCgs(int n)
     return n >= 2;
 }
 
-/** @sly2-annot addr=0x1704B8
- * Purpose: Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the
- *   GSB bucket lists
- * Info: proposed name PadGsbToPage (T1); TU gs
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists.
+// (inferred)
 void PadGsbToPage(GSB *p)
 {
     GSBB *pb;
@@ -664,14 +583,8 @@ void PadGsbToPage(GSB *p)
     p->ap[i] = pb;
 }
 
-/** @sly2-annot addr=0x170548
- * Purpose: Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump
- *   igsMac (padding to a 0x80 boundary if it would straddle); returns the start index
- * Info: proposed name IgsAllocGsb (T1); TU gs
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a
+// 0x80 boundary if it would straddle); returns the start index.
 int IgsAllocGsb(GSB *input, int cb)
 {
     register GSB *p __asm__("$19")=input;
@@ -711,12 +624,8 @@ done:
     return old;
 }
 
-/** @sly2-annot addr=0x170650
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name BuildImageGifs__FiiiiiiP4GIFS (EXISTING); TU gs
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
- * @end-sly2-annot */
+// Adds a GS image-upload header to a GIF stream: BITBLTBUF (destination base, width, format), TRXPOS, TRXREG
+// (rectangle size), TRXDIR (host to local), then an IMAGE tag for cqw quadwords.
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs)
 {
     pgifs->AddPrimPack(0, 1, 0xE);
@@ -727,16 +636,8 @@ void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS 
     pgifs->AddImage(cqw);
 }
 
-/** @sly2-annot addr=0x170730
- * Purpose: Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory
- *   allocated from the GSB, then TEXFLUSH + FINISH
- * Info: proposed name UploadBitmaps (T1); TU gs
- * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+format-doc:textures
- * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
- * @end-sly2-annot */
+// Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the
+// GSB, then TEXFLUSH + FINISH. (inferred)
 void UploadBitmaps(GSB *p)
 {
     GIFS gifs;
@@ -757,15 +658,8 @@ void UploadBitmaps(GSB *p)
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }
 
-/** @sly2-annot addr=0x170828
- * Purpose: Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS)
- * Info: proposed name AllocBitmapsGsb (T2); TU gs
- * Notes: mangled withheld (not T1): AllocBitmapsGsb__FP3GSB
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
-extern "C" void func_00170828(GSB *p)
+// Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) (inferred)
+extern "C" void AllocGsbBitmaps(GSB *p)
 {
     FBuildUploadBitmapGifs(1, p, 0);
 }

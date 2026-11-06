@@ -103,14 +103,8 @@ void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw);
 void RenderFrame(FRM *pfrm, int fGifs);
 void BlendPrevFrame();
 
-/** @sly2-annot addr=0x1607A0
- * Purpose: Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores
- *   (0,2)/(2,2), clears the two deferred-release DLs, starts the render thread
- * Info: proposed name StartupFrame (T1); TU frm
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/object-model.md#8-source-files, docs/engine/overview.md#1-boot,
- *   docs/engine/rendering.md#12-source-files
- * @end-sly2-annot */
+// Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears
+// the two deferred-release DLs, starts the render thread.
 void StartupFrame()
 {
     AddIntcHandler(5, VU1_Interrupt, 0);
@@ -122,13 +116,10 @@ void StartupFrame()
     func_002355E0(D_004425D4, 0);
 }
 
-/** @sly2-annot addr=0x160828
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name OpenFrame__Fv (EXISTING); TU frm
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order, docs/engine/rendering.md#1-frame-structure,
- *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Starts building a new frame: (first time) enters render phase 3, waits for a free frame slot (the render thread
+// releases one after sending it), takes the next of the two frames as g_pfrmOpen, clears its pending objects, records
+// the camera's visibility flags, points the frame GIF/VIF builders at the frame's buffers and starts the GIF chain
+// with the 12-quadword frame setup packet D_002DF740.
 void OpenFrame()
 {
     if (!D_003D3980)
@@ -148,23 +139,14 @@ void OpenFrame()
     D_002DEA00.AddDmaCnt();
 }
 
-/** @sly2-annot addr=0x160918
- * Purpose: Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd)
- * Info: proposed name EnsureVu1Code (T1); TU frm
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd)
 void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd)
 {
     pvifs->AddDmaRefs((uint)((char *)pvEnd - (char *)pvStart + 15) >> 4, (QW *)pvStart);
 }
 
-/** @sly2-annot addr=0x160940
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Ends the frame's VIF chain: a FLUSH and a GIF packet writing GS FINISH (register 0x61), then a REF that uploads the
+// VU1 microcode block D_0025E680..D_00262320, then END; detaches the chain into the caller's count/pointer.
 void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
 {
     QW aqw[8];
@@ -182,11 +164,7 @@ void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
     pvifs->Detach(pcqw, paqw);
 }
 
-/** @sly2-annot addr=0x160A20
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Ends the frame's GIF chain with a GS FINISH write and END, and detaches it into the caller's count/pointer.
 void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw)
 {
     pgifs->AddPrimPack(0, 1, 0xE);
@@ -196,15 +174,8 @@ void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw)
     pgifs->Detach(pcqw, paqw);
 }
 
-/** @sly2-annot addr=0x160A98
- * Purpose: Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two
- *   deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread
- * Info: proposed name CloseFrame (T1); TU frm
- * Notes: names_v2 C proposed check_anticrack_antigrab__Fv (0.650)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r3_1539A8+verify_side
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order, docs/engine/rendering.md#1-frame-structure,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the
+// frame, clears g_pfrmOpen and signals the render thread.
 void CloseFrame()
 {
     FinalizeFrameVifs(&D_002DEA28, &g_pfrmOpen->cqwVifs, &g_pfrmOpen->aqwVifs);
@@ -219,14 +190,8 @@ void CloseFrame()
 }
 
 /* register-pinned locals (n in $v1, pfr in $a0) reproduce the madd-into-a0 form */
-/** @sly2-annot addr=0x160B70
- * Purpose: Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA
- *   VIF1 then GIF chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever
- * Info: proposed name FrameRenderLoop (T1); TU frm
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/rendering.md#1-frame-structure
- * @end-sly2-annot */
+// Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF
+// chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever.
 void FrameRenderLoop(void *pv)
 {
     for (;;) {
@@ -252,14 +217,8 @@ void FrameRenderLoop(void *pv)
     }
 }
 
-/** @sly2-annot addr=0x160C80
- * Purpose: Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain,
- *   and GIF chain if fRenderGifs
- * Info: proposed name RenderFrame (T1); TU frm
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5+verdicts_A1
- * See: docs/engine/rendering.md#13-key-functions, docs/guides/port-plan.md#61-interception-point-k7-k8-k16,
- *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if
+// fRenderGifs.
 void RenderFrame(FRM *p, int f)
 {
     PropagateSaisF(p, f);
@@ -269,13 +228,8 @@ void RenderFrame(FRM *p, int f)
         SendDmaSyncGsFinish(D_002DE598, p->aqwGifs);
 }
 
-/** @sly2-annot addr=0x160CE0
- * Purpose: Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2
- *   (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40
- * Info: proposed name ClearPendingFrame (T1); TU frm
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO
+// in frm->dl34 and frees the pool blocks in frm->dl40. (inferred)
 void ClearPendingFrame(FRM *frame){
  if(!FIsDlEmpty__FP2DL(&frame->dl34)){
   DLI iter(&frame->dl34);
@@ -311,14 +265,8 @@ typedef char FR_FirstList[FIELD_OFFSET(FRM,dl34)==0x34?1:-1];
 typedef char FR_SecondList[FIELD_OFFSET(FRM,dl40)==0x40?1:-1];
 #undef FIELD_OFFSET
 
-/** @sly2-annot addr=0x160E68
- * Purpose: Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to
- *   both buffers and clears pending frames
- * Info: proposed name FlushFrames (T1); TU frm
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/rendering.md#13-key-functions, docs/guides/port-plan.md#61-interception-point-k7-k8-k16,
- *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and
+// clears pending frames.
 void FlushFrames(int fReset)
 {
     unsigned int i;
@@ -352,16 +300,8 @@ static inline ulong Tex0FromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14) | (((disp >> 24) & 0x3F) << 20);
 }
-/** @sly2-annot addr=0x160F98
- * Purpose: Draws the other (previous) framebuffer back over the current one as 32-px textured strips with
- *   alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8
- * Info: proposed name BlendPrevFrame (T1); TU frm
- * Notes: verifier: purpose partly wrong: Sly 1 has BlendPrevFrame in frm; same callers (FrameRenderLoop,
- *   FlushFrames). Draws the other framebuffer as 32-px sprite strips. Detail wrong: ALPHA_1=0x300000
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#1-frame-structure, docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
- * @end-sly2-annot */
+// Draws the other (previous) framebuffer back over the current one as 32-px textured strips with alpha 0x64/0x80
+// (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8.
 void BlendPrevFrame()
 {
     if (D_002DEB24 || g_sw.fUnk3e38)

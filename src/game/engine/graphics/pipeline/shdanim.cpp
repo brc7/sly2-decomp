@@ -73,7 +73,7 @@ void func_0011A070(SLV *psl, void *pv);
 void PrependSlEntry(SLV *psl, void *pv);
 int FIsSlEmpty(SLV *psl);
 void UnpackHelper__4VIFS3UPKiiPiPPUi(void *a, int b, int c, void *d, SAIE *pe, int *pb);
-void func_001EC718(SAIE *pe);
+void ApplyCopyRecord(SAIE *pe);
 float GRandInRange__Fff(float gLow, float gHigh);
 float GModPositive__Fff(float g, float gMod);
 int NRandInRange__Fii(int nLow, int nHigh);
@@ -84,22 +84,13 @@ void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);
 void func_001ED8E0(SAAV *p, SAAF *psaaf);
 void SetSaiIframe(SAAV *p, int n);
 void SetSaiDuDv(SAAV *p, float du, float dv);
-int func_001EDB80(SAAV *p, int *pid);
+int DoesSaaMatchOid(SAAV *p, int *pid);
 }
 void SetEyesEyess(EYESV *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS");
 
-/** @sly2-annot addr=0x1ED7A8
- * Purpose: Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set
- *   owner (+0x30), read 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
- * Info: proposed name PsaaLoadFromBrx (T1); TU shdanim
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources:
- *   r6b_rest+parse-verified+format-doc:textures+verdicts_followups
- * See: docs/engine/rendering.md#12-source-files, docs/engine/rendering.md#13-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
- * @end-sly2-annot */
-extern "C" SAAV *func_001ED7A8(void *pv, void *pbis)
+// Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read
+// 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
+extern "C" SAAV *LoadSaaFromBrx(void *pv, void *pbis)
 {
     char buf[0x20];
     int i = U16Read__18CBinaryInputStream(pbis);
@@ -112,15 +103,9 @@ extern "C" SAAV *func_001ED7A8(void *pv, void *pbis)
     return p;
 }
 
-/** @sly2-annot addr=0x1ED850
- * Purpose: Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the
- *   SAA list g_sw.slSaa
- * Info: proposed name PsaaClone (T2); TU shdanim
- * Notes: names_v2 v1 proposed PvtsaaFromSaak__F4SAAK (0.012)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
-extern "C" SAAV *func_001ED850(SAAV *p) {
+// Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list g_sw.slSaa.
+// (inferred)
+extern "C" SAAV *CloneSaa(SAAV *p) {
     SAACLS *pcls = ((SAACLS *(*)(void *))p->vt[6].pfn)((char *)p + p->vt[6].d);
     SAAV *pNew = pcls->pfnNew();
     CopyAb__FPvT0Ui(pNew, p, pcls->cb);
@@ -130,13 +115,7 @@ extern "C" SAAV *func_001ED850(SAAV *p) {
     return pNew;
 }
 
-/** @sly2-annot addr=0x1ED8E0
- * Purpose: SAA (CID 0x8A) vt7 Init
- * Info: proposed name InitSaa (T1); class SAA slot7; TU shdanim
- * Notes: names_v2 v1 proposed PsaaLoadFromBrx__FP18CBinaryInputStream (0.001)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// SAA (CID 0x8A) vt7 Init. (inferred)
 void SAA::VSlot7(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
     SAAV *p = (SAAV *)this;
@@ -149,14 +128,9 @@ void SAA::VSlot7(SAAF *q)   /* key function: SAA's vtable comes out here */
     else func_0011A070((SLV *)&g_sw.slSaa, p);
 }
 
-/** @sly2-annot addr=0x1ED960
- * Purpose: Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack
- *   (0x226E88) and apply it
- * Info: proposed name AddSaaCopyRecord (T2); TU shdanim
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
-extern "C" int func_001ED960(SAAV *p, void *a1, void *a2)
+// Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply
+// it. (inferred)
+extern "C" int AddSaaCopyRecord(SAAV *p, void *a1, void *a2)
 {
     SAIE e;
     SAIE *pe;
@@ -170,15 +144,12 @@ extern "C" int func_001ED960(SAAV *p, void *a1, void *a2)
     }
     UnpackHelper__4VIFS3UPKiiPiPPUi(a2, 0xD, 1, a1, pe, &pe->b);
     pe->pv = &p->du;
-    func_001EC718(pe);
+    ApplyCopyRecord(pe);
     return 1;
 }
 
-/** @sly2-annot addr=0x1EDA20
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
+// by several shaders is advanced only once per frame.
 int FUpdatableSaa(SAAV *p) __asm__("FUpdatableSaa__FP3SAA");
 int FUpdatableSaa(SAAV *p) {
     if (p->tUpdated != D_002DDED0.t) {
@@ -188,21 +159,11 @@ int FUpdatableSaa(SAAV *p) {
     return 0;
 }
 
-/** @sly2-annot addr=0x1EDA50
- * Purpose: SAA vt8 base: empty
- * Info: proposed name UpdateSaa (T1); class SAA slot8; TU shdanim
- * Notes: agent qualifier: (UpdateSaa)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// SAA vt8 base: empty. (inferred)
 extern "C" void UpdateSaa(SAAV *p) {
 }
 
-/** @sly2-annot addr=0x1EDA58
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Base completion fraction (0..1) of an animation cycle: always 0.
 float UCompleteSaa(SAAV *p) __asm__("UCompleteSaa__FP3SAA");
 float UCompleteSaa(SAAV *p) {
     return 0.0f;
@@ -214,13 +175,7 @@ static inline int Clamp(int n, int lo, int hi)
     if (n > hi) return hi;
     return n;
 }
-/** @sly2-annot addr=0x1EDA68
- * Purpose: Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked
- * Info: proposed name SetSaiIframe (T1); TU shdanim
- * Notes: names_v2 v1 proposed InitLoop__FP4LOOPP4SAAF (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked. (inferred)
 void SetSaiIframe(SAAV *p, int n)
 {
     unsigned short i;
@@ -233,13 +188,7 @@ void SetSaiIframe(SAAV *p, int n)
 }
 
 static inline int IFromG(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
-/** @sly2-annot addr=0x1EDAD8
- * Purpose: Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked
- * Info: proposed name SetSaiDuDv (T1); TU shdanim
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
- *   docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
 void SetSaiDuDv(SAAV *p, float du, float dv)
 {
     int u, v;
@@ -252,24 +201,12 @@ void SetSaiDuDv(SAAV *p, float du, float dv)
     p->fDirty = 1;
 }
 
-/** @sly2-annot addr=0x1EDB80
- * Purpose: SAA vt10: *poid == psaa->+0x14
- * Info: proposed name SAA_FMatches (T2); class SAA slot10; TU shdanim
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
-int func_001EDB80(SAAV *p, int *pid) {
+// SAA vt10: *poid == psaa->+0x14. (inferred)
+int DoesSaaMatchOid(SAAV *p, int *pid) {
     return *pid == p->id;
 }
 
-/** @sly2-annot addr=0x1EDB98
- * Purpose: LOOP vt7 Init
- * Info: proposed name InitLoop (T1); class LOOP slot7; TU shdanim
- * Notes: names_v2 C proposed PostLoopLoad__FP4LOOP (0.638)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// LOOP vt7 Init.
 void LOOP::VSlot7(SAAF *psaa)
 {
     LOOPV *p = (LOOPV *)this;
@@ -286,11 +223,9 @@ void LOOP::VSlot7(SAAF *psaa)
     p->dtPauseRemaining = p->dtPause = g;
 }
 
-/** @sly2-annot addr=0x1EDC40
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Advances a LOOP animation: steps the frame index at its rate, and at the end of a cycle picks a new cycle duration
+// and pause from their random ranges (lmLoop, lmPause), waiting out the pause before the next cycle; pushes the frame
+// to the shader instances. Nothing to do with fewer than two frames or no instances.
 void UpdateLoop(LOOPV *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
 void UpdateLoop(LOOPV *ploop, float dt)
 {
@@ -316,24 +251,14 @@ void UpdateLoop(LOOPV *ploop, float dt)
     SetSaiIframe(ploop, (int)ploop->iframe);
 }
 
-/** @sly2-annot addr=0x1EDD30
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
 float UCompleteLoop(LOOPV *p) __asm__("UCompleteLoop__FP4LOOP");
 float UCompleteLoop(LOOPV *p) {
     float dframe = p->dframe;
     return (p->iframe / dframe) / (((float)p->cframe / dframe) + p->dtPause);
 }
 
-/** @sly2-annot addr=0x1EDD60
- * Purpose: PINGPONG vt7 Init
- * Info: proposed name InitPingpong (T1); class PINGPONG slot7; TU shdanim
- * Notes: names_v2 B proposed PostPingpongLoad__FP8PINGPONG (0.856)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// PINGPONG vt7 Init. (inferred)
 void PINGPONG::VSlot7(SAAF *psaa)
 {
     PINGPONGV *p = (PINGPONGV *)this;
@@ -350,11 +275,8 @@ void PINGPONG::VSlot7(SAAF *psaa)
     p->dtPauseRemaining = p->dtPause = g;
 }
 
-/** @sly2-annot addr=0x1EDE10
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Advances a PINGPONG animation: frames run forward then backward; at frame 0 it picks a new round-trip duration and
+// pause from the random ranges and waits out the pause.
 void UpdatePingpong(PINGPONGV *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
 void UpdatePingpong(PINGPONGV *ppingpong, float dt)
 {
@@ -384,11 +306,7 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     SetSaiIframe(ppingpong, (int)ppingpong->iframe);
 }
 
-/** @sly2-annot addr=0x1EDF28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
 float UCompletePingpong(PINGPONGV *ppingpong) __asm__("UCompletePingpong__FP8PINGPONG");
 float UCompletePingpong(PINGPONGV *ppingpong)
 {
@@ -407,11 +325,7 @@ float UCompletePingpong(PINGPONGV *ppingpong)
            (((float)(ppingpong->cframe * 2) / absDframe) + ppingpong->dtPause);
 }
 
-/** @sly2-annot addr=0x1EDFA0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// SHUFFLE init (vtable slot 7): base SAA init, then the random pause range between frame changes.
 void SHUFFLE::VSlot7(SAAF *psaaf)
 {
     SHUFFLEV *pshuffle = (SHUFFLEV *)this;
@@ -423,11 +337,7 @@ void SHUFFLE::VSlot7(SAAF *psaaf)
     pshuffle->dtPauseMin = dtMin;
 }
 
-/** @sly2-annot addr=0x1EDFE0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Advances a SHUFFLE animation: after each random pause, jumps to a different random frame.
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt) __asm__("UpdateShuffle__FP7SHUFFLEf");
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 {
@@ -444,12 +354,7 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
     pshuffle->dtPause = GRandInRange__Fff(pshuffle->dtPauseMin, pshuffle->dtPauseMax);
 }
 
-/** @sly2-annot addr=0x1EE090
- * Purpose: EYES vt7 Init
- * Info: proposed name InitEyes (T1); class EYES slot7; TU shdanim
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// EYES vt7 Init. (inferred)
 extern "C" void InitEyes(EYESV *p, SAAF *psaaf)
 {
     func_001ED8E0(p, psaaf);
@@ -461,11 +366,8 @@ extern "C" void InitEyes(EYESV *p, SAAF *psaaf)
     SetEyesEyess(p,EYESS_Open);
 }
 
-/** @sly2-annot addr=0x1EE100
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Sets the blink state of an EYES animation (open, closing, closed, opening) and starts its timing: on opening, picks
+// how long the eyes stay open (zero for a double blink, chance uDoubleBlink) and the frame rate of the blink.
 void SetEyesEyess(EYESV *peyes, EYESS eyess)
 {
     if (eyess == peyes->eyess)
@@ -491,12 +393,7 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
     peyes->tEyess = D_002DDED0.t;
 }
 
-/** @sly2-annot addr=0x1EE228
- * Purpose: EYES vt8 Update
- * Info: proposed name UpdateEyes (T1); class EYES slot8; TU shdanim
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// EYES vt8 Update. (inferred)
 void EYES::VSlot8()
 {
     EYESV *peyes = (EYESV *)this;
@@ -534,13 +431,7 @@ void EYES::VSlot8()
     SetSaiIframe(peyes, (int)peyes->iframe);
 }
 
-/** @sly2-annot addr=0x1EE3B0
- * Purpose: Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0)
- * Info: proposed name SetEyesClosed (T1); TU shdanim
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
+// Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) (inferred)
 extern "C" void SetEyesClosed(EYESV *p, float g)
 {
     p->uOpen = g;
@@ -553,25 +444,15 @@ extern "C" void SetEyesClosed(EYESV *p, float g)
     SetSaiIframe(p, (int)p->iframe);
 }
 
-/** @sly2-annot addr=0x1EE420
- * Purpose: EYES vt10: SAA::FMatches or *poid == +0x60
- * Info: proposed name EYES_FMatches (T2); class EYES slot10; TU shdanim
- * Notes: names_v2 v1 proposed PsaiFromEyesShd__FP4EYESP3SHD (0.000)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
-extern "C" int func_001EE420(EYESV *p, int *pid)
+// EYES vt10: SAA::FMatches or *poid == +0x60. (inferred)
+extern "C" int DoesEyesMatchOid(EYESV *p, int *pid)
 {
     int f = 0;
-    if (func_001EDB80(p, pid) || *pid == p->n60) f = 1;
+    if (DoesSaaMatchOid(p, pid) || *pid == p->n60) f = 1;
     return f;
 }
 
-/** @sly2-annot addr=0x1EE480
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// SCROLLER init: base SAA init, then the u/v scroll speeds and wrap ranges; master speed multipliers start at 1.
 void InitScroller(SCROLLERV *p, SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");
 void InitScroller(SCROLLERV *p, SAAF *psaaf) {
     func_001ED8E0(p, psaaf);
@@ -583,12 +464,7 @@ void InitScroller(SCROLLERV *p, SAAF *psaaf) {
     p->su = 1.0f;
 }
 
-/** @sly2-annot addr=0x1EE4E0
- * Purpose: SCROLLER vt8 Update
- * Info: proposed name UpdateScroller (T1); class SCROLLER slot8; TU shdanim
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// SCROLLER vt8 Update. (inferred)
 void SCROLLER::VSlot8()
 {
     SCROLLERV *p = (SCROLLERV *)this;
@@ -599,11 +475,8 @@ void SCROLLER::VSlot8()
     SetSaiDuDv(p, du, dv);
 }
 
-/** @sly2-annot addr=0x1EE5B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
+// axis that does not move).
 float UCompleteScroller(SCROLLERV *pscroller) __asm__("UCompleteScroller__FP8SCROLLER");
 float UCompleteScroller(SCROLLERV *pscroller)
 {
@@ -619,11 +492,8 @@ float UCompleteScroller(SCROLLERV *pscroller)
     return uComp;
 }
 
-/** @sly2-annot addr=0x1EE678
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Sets the SCROLLER's u and v speed multipliers (lets game code speed up or stop a scrolling texture, e.g. water
+// flow).
 void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float su, float sv) __asm__("SetScrollerMasterSpeeds__FP8SCROLLERff");
 void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float su, float sv)
 {
@@ -631,12 +501,7 @@ void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float su, float sv)
     pscroller->sv = sv;
 }
 
-/** @sly2-annot addr=0x1EE688
- * Purpose: CIRCLER vt7 Init
- * Info: proposed name InitCircler (T1); class CIRCLER slot7; TU shdanim
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// CIRCLER vt7 Init. (inferred)
 void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
     func_001ED8E0(p, psaaf);
     p->radsSpeed = psaaf->ag[0];
@@ -645,11 +510,8 @@ void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
     p->dvCenter = psaaf->ag[3];
 }
 
-/** @sly2-annot addr=0x1EE6D8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Advances a CIRCLER animation: the uv offset moves around a circle (radius, centre) at radsSpeed, driven by the game
+// clock.
 void UpdateCircler(CIRCLERV *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
 void UpdateCircler(CIRCLERV *pcircler, float dt)
 {
@@ -664,11 +526,7 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
     SetSaiDuDv(pcircler, sinOut, cosOut);
 }
 
-/** @sly2-annot addr=0x1EE768
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
 float UCompleteCircler(CIRCLERV *pcircler) __asm__("UCompleteCircler__FP7CIRCLER");
 float UCompleteCircler(CIRCLERV *pcircler)
 {
@@ -676,12 +534,7 @@ float UCompleteCircler(CIRCLERV *pcircler)
     return GModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;
 }
 
-/** @sly2-annot addr=0x1EE7B0
- * Purpose: For every dirty SAA in g_sw.slSaa apply its copy records and clear dirty
- * Info: proposed name PropagateSais (T1); TU shdanim
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
- * @end-sly2-annot */
+// For every dirty SAA in g_sw.slSaa apply its copy records and clear dirty. (inferred)
 extern "C" void PropagateSais(void)
 {
     SAAV *p;
@@ -690,7 +543,7 @@ extern "C" void PropagateSais(void)
     for (p = (SAAV *)((SLV *)&g_sw.slSaa)->pvFirst; p; p = p->pnext) {
         if (p->fDirty) {
             p->fDirty = 0;
-            for (q = (SAIE *)p->slsaie.pvFirst; q; q = q->pnext) func_001EC718(q);
+            for (q = (SAIE *)p->slsaie.pvFirst; q; q = q->pnext) ApplyCopyRecord(q);
         }
     }
 }

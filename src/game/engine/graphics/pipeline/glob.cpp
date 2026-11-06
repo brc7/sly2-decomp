@@ -146,15 +146,7 @@ struct SWALLOC
     int cbAlign;
 };
 
-/** @sly2-annot addr=0x167310
- * Purpose: GLOBSET constructor, at the start of the glob TU
- * Info: GLOBSET::GLOBSET() (was __4CRef); class GLOBSET; TU glob
- * Notes: agent/verifier proposes CRef_ctor for this existing name (see existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r3_1539A8
- * See: docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// GLOBSET constructor, at the start of the glob TU.
 /* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
 GLOBSET::GLOBSET()
 {
@@ -182,15 +174,15 @@ void* memset(void* ptr, int value, size_t num);
 
 
 
-void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("func_00167870");
+void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("LoadPoseSetsFromBrx");
 
 int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("FMatchLoadFilter__FiPs");
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
-extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("func_001ED7A8");
+extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("LoadSaaFromBrx");
 extern "C" void LoadSubglobType2FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
 extern "C" void LoadSubglobType1FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
-void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016CF78");
+void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType3FromBrx");
 extern "C" {
 void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016A000");
 }
@@ -202,15 +194,7 @@ static inline void *PvAllocSwClear(int cb)
     return PvAllocSwClearImpl(&swalloc);
 }
 void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis) __asm__("LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream");
-/** @sly2-annot addr=0x167320
- * Purpose: Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type
- *   geometry
- * Info: proposed name LoadGlobsetFromBrx (T1); TU glob
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type geometry.
 void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 {
     pglobset->pso = pso;
@@ -339,20 +323,9 @@ float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryI
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
 void*func_001AE2A0(struct REQUEST*);
 static inline float Min(float a,float b){float r;__asm__("min.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
-/** @sly2-annot addr=0x167870
- * Purpose: Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per
- *   globset descriptor
- * Info: proposed name LoadPoseSetsFromBrx (T1); TU glob
- * Notes: superseded: LoadGlobsetLodsFromBrx (r3_1539A8) | name from the hand source of 0x167320
- *   (LoadPoseSetsFromBrx) + MESH_FORMAT "posesets"; v1 LoadGlobsetLodsFromBrx | level_parser CONFIRMED-parse:
- *   payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
- *   r3_1539A8+format-docs+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
-void func_00167870(struct P*p,struct STREAM*stream){
+// Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
+// (inferred)
+void LoadPoseSetsFromBrx(struct P*p,struct STREAM*stream){
     int count=S16Read__18CBinaryInputStream(stream);
     if(count){
         struct REQUEST request;
@@ -428,14 +401,8 @@ extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" void func_0022B7A0(LO *plo, X *px);
-/** @sly2-annot addr=0x167B68
- * Purpose: Resolves globset bone references after load: finds each referenced LO by oid, its bone, and
- *   computes the relative bind matrix
- * Info: proposed name BindGlobset (T1); TU glob
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Resolves globset bone references after load: finds each referenced LO by oid, its bone, and computes the relative
+// bind matrix. (inferred)
 extern "C" void BindGlobset(S *p)
 {
     if (p->f4C != -1)
@@ -499,14 +466,8 @@ static inline float Length(qword v)
 }
 static inline qword Broadcast(float f) { qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r; }
 static inline qword MAdd(qword p,qword v,qword k) {qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(p),"j"(v),"j"(k));return r; }
-/** @sly2-annot addr=0x167DA0
- * Purpose: Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume
- *   geometry)
- * Info: proposed name ExpandSphereForProjection (T2); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume geometry)
+// (inferred)
 qword func_00167DA0(const struct M4 *m,qword p,float *radius)
 {
  U u;
@@ -530,15 +491,8 @@ typedef struct { unsigned char r, pad0[3], g, pad1[3], b, pad2[3], a, pad3[3]; }
 struct X { int pad[2]; int iA; int iB; int iEnd; char *ib14; char *ib18; int pad2; char *ib20; char *ib24; };
 struct S { char pad[0x3010]; int pbBase; char pad2[0x3070 - 0x3014]; struct X x; };
 typedef struct { unsigned short rgb : 15, a : 1; } C16;
-/** @sly2-annot addr=0x167E58
- * Purpose: Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the
- *   glob's EE colour buffers (+alpha bytes)
- * Info: proposed name StoreRelightColors (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#6-lighting-relight-and-outlines-the-cel-look,
- *   docs/engine/rendering.md#13-key-functions, docs/guides/port-plan.md#62-which-vu-programs-become-what
- * @end-sly2-annot */
+// Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the glob's EE colour
+// buffers (+alpha bytes) (inferred)
 void StoreRelightColors(struct S *p)
 {
     struct X *px = &p->x;
@@ -580,14 +534,8 @@ void StoreRelightColors(struct S *p)
 namespace M_VU1_Interrupt { extern "C" {
 void StoreRelightColors(int n);
 void iFlushCache(int n);
-/** @sly2-annot addr=0x167F78
- * Purpose: INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears
- *   the VIF1 stall (VIF1_FBRST=8), returns -1
- * Info: proposed name VU1_Interrupt (T1); TU glob
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/rendering.md#6-lighting-relight-and-outlines-the-cel-look,
- *   docs/engine/rendering.md#13-key-functions, docs/guides/port-plan.md#43-kernel-and-threads-k6
- * @end-sly2-annot */
+// INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears the VIF1 stall
+// (VIF1_FBRST=8), returns -1. (inferred)
 int VU1_Interrupt(void)
 {
     StoreRelightColors(0x1100C320);
@@ -609,18 +557,8 @@ extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvE
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 static inline int Min(int a, int b) { return a < b ? a : b; }
-/** @sly2-annot addr=0x167FC0
- * Purpose: Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE
- *   0x32 OFFSET 0, upload up to 256 lights x 3 qw
- * Info: proposed name BeginRpRelight (T1); TU glob
- * Notes: verifier: purpose partly wrong: No name proposed. Pass-table entry 4 begin: VU1 code + UNPACK of up
- *   to 256 objects' 0x30-byte matrices. Wrong detail: 0x505 is the grffso; class arg is cid 4 = | no usable
- *   identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources:
- *   r3_1539A8+verdicts_tu_r3r5+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
+// up to 256 lights x 3 qw. (inferred)
 extern "C" void BeginRpRelight(VIFS *pvifs)
 {
     X *apx[0x180];
@@ -664,14 +602,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
 }
 } // namespace M_BeginRpRelight
 
-/** @sly2-annot addr=0x1681B0
- * Purpose: Pass 4 end: FLUSHA, restore BASE/OFFSET 0x32/0x1E7
- * Info: proposed name EndRpRelight (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 4 end: FLUSHA, restore BASE/OFFSET 0x32/0x1E7. (inferred)
 extern "C" void EndRpRelight(VIFS *pvifs)
 {
     pvifs->AddDmaCnt();
@@ -834,15 +765,8 @@ static inline M4 ModelMatrix(const ENTRY *entry) return model
         func_0023320C(&model, &product, sizeof(M4));
     }
 }
-/** @sly2-annot addr=0x1681F8
- * Purpose: Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU
- *   TOPS+0x301 + RET; stamps the model with g_sw+0x3D5C
- * Info: proposed name SubmitGlobsetRelight (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#2-render-list-entries-rpl,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU TOPS+0x301 + RET;
+// stamps the model with g_sw+0x3D5C. (inferred)
 extern "C" void SubmitGlobsetRelight(PACKETS *p)
 {
     int fNever = 0;
@@ -940,13 +864,7 @@ static __inline__ void Align(uint align)
     }
 }
 
-/** @sly2-annot addr=0x1684D0
- * Purpose: Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet
- * Info: proposed name UnpackSubglobBones (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet. (inferred)
 void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
 {
     uint opcode;
@@ -1408,15 +1326,8 @@ static inline int KindOf(SUB *psub)
 {
     return (ulong)(psub->grf & 0xF8) >> 3;
 }
-/** @sly2-annot addr=0x168638
- * Purpose: Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates
- *   shader animations, builds/queues VIF packets (0x1681F8/0x1684D0)
- * Info: proposed name RenderSoGlobset (T1); TU glob
- * Notes: verifier PLAUSIBLE: DrawGlobset -> RenderSoGlobset
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#2-render-list-entries-rpl, docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
+// Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader
+// animations, builds/queues VIF packets (0x1681F8/0x1684D0) (inferred)
 extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SHD *pshd)
 {
     SUBDESC *pdesc;
@@ -1753,9 +1664,9 @@ extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void func_001A4AD8(G *pg, int c, void **apv, SHD *pshd);
+void BuildLightPackets(G *pg, int c, void **apv, SHD *pshd);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
-int func_001BEE10(ALO *palo, int n);
+int GetRenderTargetTexture(ALO *palo, int n);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
@@ -1835,15 +1746,8 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
-/** @sly2-annot addr=0x169198
- * Purpose: Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin
- *   matrices) and queues it with its sort distance
- * Info: proposed name DrawGlobsetSkinned (T2); TU glob
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/rendering.md#2-render-list-entries-rpl,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
+// Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it
+// with its sort distance. (inferred)
 extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
 {
     SHD shd;
@@ -1853,7 +1757,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
     {
         func_002333B4(&shd, 0, sizeof(SHD));
         pshd = &shd;
-        func_001A4AD8(&D_003DD490, palo->cpshd, palo->apshd, &shd);
+        BuildLightPackets(&D_003DD490, palo->cpshd, palo->apshd, &shd);
     }
     else
     {
@@ -1878,7 +1782,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
             continue;
         if ((grf & 7) == 2)
             continue;
-        int kind = func_001BEE10(palo, (grf >> 3) & 0x1F);
+        int kind = GetRenderTargetTexture(palo, (grf >> 3) & 0x1F);
         if (kind == -1)
             continue;
         if (psub->grf & 0x1000)
@@ -1985,17 +1889,11 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
 }
 } // namespace M_func_00169198
 
-/** @sly2-annot addr=0x169988
- * Purpose: qsort comparator over 4 int keys (>>6 granularity on two)
- * Info: proposed name NCmpGlobKeys (T2); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Qsort comparator over 4 int keys (>>6 granularity on two) (inferred)
 /* qsort order of the 0x14-byte draw records: by the first pointer (+4, in 0x40 units), the word at +8, the second
    pointer (+0xC, in 0x40 units), then the word at +0x10. */
 struct SORTREC { int n0; int ib4; int n8; int ibC; int n10; };
-extern "C" int func_00169988(SORTREC *prec0, SORTREC *prec1)
+extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
 {
     int d;
     d = (prec0->ib4 - prec1->ib4) >> 6;
@@ -2017,14 +1915,9 @@ struct A { int a[5]; };
 struct B { int a[10]; };
 struct C { int a[6]; };
 void LoadSubglobInstanceFromBrx(void *p, struct A *pa0, struct B *pb0, struct C *pc0, struct A *pa, struct B *pb, struct C *pc, int x, int y, int z, int w);
-/** @sly2-annot addr=0x1699E8
- * Purpose: For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance
- *   record (0x169AC8)
- * Info: proposed name LoadSubglobInstancesFromBrx (T2); TU glob
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
-void func_001699E8(void *p, struct A *aa, struct B *ab, struct C *ac, int c, int x, int y, int z, int w)
+// For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8)
+// (inferred)
+void LoadSubglobInstancesFromBrx(void *p, struct A *aa, struct B *ab, struct C *ac, int c, int x, int y, int z, int w)
 {
     int i;
     for (i = 0; i < c; i++) {
@@ -2104,22 +1997,14 @@ void*func_001AE1D0(const REQUEST&);
 void*func_001AE238(const REQUEST&,void*);
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-BINDING*func_0016C8E0(P*,STREAM*);
+BINDING*LoadClutsetFromBrx(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
 static inline void*Allocate(int bytes){return func_001AE1D0(REQUEST(bytes,16));}
 static inline void*Reallocate(int bytes,void*old){return func_001AE238(REQUEST(bytes,16),old);}
-/** @sly2-annot addr=0x169AC8
- * Purpose: Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional
- *   binding table, relocates packet data
- * Info: proposed name LoadSubglobInstanceFromBrx (T1); TU glob
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table,
+// relocates packet data. (inferred)
 extern "C" void LoadSubglobInstanceFromBrx(P*p,const D*sourceD,const E*sourceE,const SPHERE*sourceSphere,D*desc,E*entry,SPHERE*sphere,int groups,const int*counts,FACE**faces,STREAM*stream){
     M4 matrix;
     (void)S8Read__18CBinaryInputStream(stream);
@@ -2137,7 +2022,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P*p,const D*sourceD,const E*sourceE,c
     entry->value=S32Read__18CBinaryInputStream(stream);
     entry->flags.bits.feature=S8Read__18CBinaryInputStream(stream);
     STACKSCOPE scope;
-    BINDING*binding=func_0016C8E0(p,stream);
+    BINDING*binding=LoadClutsetFromBrx(p,stream);
     if(!(desc->flags&1)&&desc->kind==0){
         char*old=entry->data;
         char*data=(char*)Reallocate(desc->words*16,old);
@@ -2178,16 +2063,8 @@ typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct X { int pad[4]; int cqw; };
 struct Y { int pad[4]; QW *aqw; char *pb; };
 QW *func_001AE238(ALLOCREQ *preq, QW *aqw);
-/** @sly2-annot addr=0x169EB8
- * Purpose: Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by
- *   a delta
- * Info: proposed name CopyRelocateDmaChain (T1); TU glob
- * Notes: verifier PLAUSIBLE: -> CopyRelocateDmaChain
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/guides/port-plan.md#11-known-facts-that-drive-the-design,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta.
+// (inferred)
 void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
 {
     ALLOCREQ req;
@@ -2752,15 +2629,15 @@ static inline void *PvAllocSwCopy(int cb, void *pvBase)
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwCopyImpl(&swalloc, pvBase);
 }
-SHD *PshdFromIshd(int ishd) __asm__("func_001EC8F8");
+SHD *PshdFromIshd(int ishd) __asm__("GetShdByIndex");
 int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("func_001EC688");
 extern "C" { extern uint D_002BE540[]; }
 extern "C" { extern int D_002BE558[]; }
 extern "C" { extern QW D_002DEB60; }
 void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut) __asm__("BuildCmFgfn");
-CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("func_0016C8E0");
-void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("func_001699E8");
-int CompareVertRec(const void *pv1, const void *pv2) __asm__("func_00169988");
+CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("LoadClutsetFromBrx");
+void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("LoadSubglobInstancesFromBrx");
+int CompareVertRec(const void *pv1, const void *pv2) __asm__("CompareSortRecs");
 void CopyDmaRefsChainSw(SUBGLOB *psubglob, GLOB *pglob, int cqw, void *pvBase, int cqwMain, char *pbNew, char *pbOld) __asm__("CopyRelocateDmaChain");
 extern "C" {
 void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
@@ -2787,7 +2664,7 @@ static inline void *PvAllocSwClearP(int cb)
 }
 extern "C" SHD *PshdFindShader(int oid);
 extern "C" int func_001EC6D0(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
-extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
+extern "C" int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
 extern "C" { extern int D_003DA790; }
 extern "C" { 
@@ -2856,18 +2733,7 @@ static inline int Min(int a, int b) { return a < b ? a : b; }
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A52A0 __asm__("D_002A52A0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x16A000
- * Purpose: Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches
- * Info: proposed name LoadSubglobType0FromBrx (T1); TU glob
- * Notes: sub-glob type->loader correction (CONFLICTS #16, MESH_FORMAT, level_parser type switch 0x167748): v1
- *   had the types permuted | level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of
- *   bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
- *   0x167750)+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
- *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse
- * @end-sly2-annot */
+// Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches.
 void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis)
 {
     psubglob->bUnk02 = pbis->U8Read();
@@ -3246,7 +3112,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 if (ppart->iqwSaa == 0)
                 {
                     ppart->iqwSaa = iqw;
-                    iqw += func_001ED960(pbatch->psaa, iqw, &vifs);
+                    iqw += AddSaaCopyRecord(pbatch->psaa, iqw, &vifs);
                 }
             }
             iqw += 1;
@@ -3724,21 +3590,8 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     preq->nKind = nKind;
     return func_001AE378(preq);
 }
-/** @sly2-annot addr=0x16C8E0
- * Purpose: Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices
- *   (0x1ED1A8)
- * Info: proposed name LoadClutsetFromBrx (T2); TU glob
- * Notes: no usable identifier; purpose only | rendering proposes LoadSubglobBindingsFromBrx (0.35) |
- *   MESH_FORMAT + LEVEL_FORMAT both call this block CLUTSET; rendering proposes LoadSubglobBindingsFromBrx
- *   (0.35) | level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- *   | T2 forced: noun disputed (CLUTSET vs subglob bindings); layout parse-verified
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources:
- *   r3_1539A8+rendering+format-docs+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse,
- *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
- * @end-sly2-annot */
-extern "C" T *func_0016C8E0(void *pv, CBinaryInputStream *pbis)
+// Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices (0x1ED1A8) (inferred)
+extern "C" T *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 {
     T *pt = 0;
     int c = pbis->U16Read();
@@ -3785,9 +3638,9 @@ extern "C"{
 void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
-OBJECT*func_001EC8F8(int);
+OBJECT*GetShdByIndex(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
-void func_001699E8(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
+void LoadSubglobInstancesFromBrx(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 void*memset(void*,int,uint);
 extern QW D_002DEB60;
 extern uint D_002BE540[];
@@ -3828,18 +3681,7 @@ typedef char HEADER_segments_Offset[FIELD_OFFSET(HEADER,segments)==20?1:-1];
 typedef char HEADER_bones_Offset[FIELD_OFFSET(HEADER,bones)==24?1:-1];
 typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
-/** @sly2-annot addr=0x16CAA0
- * Purpose: Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline
- * Info: proposed name LoadSubglobType2FromBrx (T1); TU glob
- * Notes: superseded: LoadSubglobType1FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
- *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
- *   0x167750)+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
- *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
- * @end-sly2-annot */
+// Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline.
 extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  int i=0;
  p->flags|=1UL<<33;
@@ -3867,7 +3709,7 @@ extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphe
   if(desc->count)header[0]|=4;
   int current=base;
   header[1]=current;
-  OBJECT*object=func_001EC8F8(stream->U16Read());
+  OBJECT*object=GetShdByIndex(stream->U16Read());
   for(int segment=0;segment<object->count;segment++){
    HEADER*slot=(HEADER*)((uint)header+segment*2);slot->segments[0]=current;
    current+=func_001EC688(object,segment,current,&vifs);
@@ -3894,7 +3736,7 @@ extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphe
  }
  vifs.EndDmaCnt();vifs.AddDmaRet();
  vifs.DetachCopySw(&desc->words,&data,&entry->chain);
- func_001699E8(p,desc,entry,sphere,groups,0,0,0,stream);
+ LoadSubglobInstancesFromBrx(p,desc,entry,sphere,groups,0,0,0,stream);
 }
 } // namespace M_LoadSubglobType2FromBrx
 
@@ -3918,9 +3760,9 @@ void*func_001AE2A0(const REQUEST&);
 void*PvAllocSlot__FP8ALLOCREQ(const REQUEST&);
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-OBJECT*func_001EC8F8(int);
+OBJECT*GetShdByIndex(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
-void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
+void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 /* func_002599D8/E0/E8: the file-scope inline readers */
 
 
@@ -3980,19 +3822,8 @@ static inline void WriteVertex(U *destination,U value){
  float z=::func_002599E8((VECTOR *)&value);
  destination->f[0]=x;destination->f[1]=y;destination->f[2]=z;
 }
-/** @sly2-annot addr=0x16CF78
- * Purpose: Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips
- * Info: proposed name LoadSubglobType3FromBrx (T1); TU glob
- * Notes: superseded: LoadSubglobType2FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
- *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
- *   0x167750)+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
- *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
- * @end-sly2-annot */
-extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
+// Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips.
+extern "C" void LoadSubglobType3FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  register CBinaryInputStream *input asm("$23")=stream; // pin: the game keeps the stream in s7 for the whole function
  int i=0;
  int vertex;
@@ -4030,7 +3861,7 @@ extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int g
    break;
   }
   header->base=base;
-  OBJECT*object=func_001EC8F8(input->U16Read());
+  OBJECT*object=GetShdByIndex(input->U16Read());
   vertices=input->U8Read();
   int vectorCount=input->U8Read();
   vectors=(U*)PvAllocSlot__FP8ALLOCREQ(REQUEST(vectorCount*sizeof(U),16));
@@ -4079,7 +3910,7 @@ extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int g
  }
  vifs.EndDmaCnt();vifs.AddDmaRet();
  vifs.DetachCopySw(&desc->words,&data,&entry->chain);
- func_001699E8(p,desc,entry,sphere,groups,0,0,0,input);
+ LoadSubglobInstancesFromBrx(p,desc,entry,sphere,groups,0,0,0,input);
 }
 } // namespace M_func_0016CF78
 
@@ -4087,14 +3918,8 @@ extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int g
 namespace M_AddFramePatch { extern "C" {
 struct D { int a; char *b; int c; char *d; };
 struct H { short a; short b; };
-/** @sly2-annot addr=0x16D698
- * Purpose: Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills
- *   FRAME/TEX0 of the current buffer from VU qw 0xB/0xC
- * Info: proposed name AddFramePatch (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills FRAME/TEX0 of the
+// current buffer from VU qw 0xB/0xC. (inferred)
 void AddFramePatch(int n, struct D *pd, struct H **pph)
 {
     struct H *ph = (*pph)++;
@@ -4106,14 +3931,8 @@ void AddFramePatch(int n, struct D *pd, struct H **pph)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0016D6C8 {
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
-/** @sly2-annot addr=0x16D6C8
- * Purpose: Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected
- *   by grf bits
- * Info: proposed name BuildProjVolumeGifs (T2); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected by grf bits.
+// (inferred)
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
 {
     pgifs->AddPrimPack(0x200, 1, 0xE);
@@ -4170,16 +3989,8 @@ extern "C" { extern int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps);
-/** @sly2-annot addr=0x16DA48
- * Purpose: Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040,
- *   build/kick (MSCAL 0x1AA0) the masked full-screen stencil-init strips
- * Info: proposed name BeginRpProjVolume (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040, build/kick (MSCAL 0x1AA0)
+// the masked full-screen stencil-init strips. (inferred)
 extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
 {
     EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025C1C0, D_0025E040);
@@ -4257,16 +4068,8 @@ typedef char GIFS_m_pb_Offset[FIELD_OFFSET(GIFS,m_pb)==12?1:-1];
 typedef char GAME_ready_Offset[FIELD_OFFSET(GAME,ready)==15928?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
-/** @sly2-annot addr=0x16DD58
- * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with
- *   alpha blend over full-screen strips (MSCAL 0x1C48)
- * Info: proposed name EndRpProjVolume (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with alpha blend
+// over full-screen strips (MSCAL 0x1C48) (inferred)
 extern "C" void EndRpProjVolume(VIFS*input,int first,int mode){
  register VIFS*vifs __asm__("$20")=input;
  register uint programHigh __asm__("$22");
@@ -4358,15 +4161,8 @@ extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvE
 extern "C" { extern char D_0025E680[]; }
 extern "C" { extern char D_00262320[]; }
 extern "C" { extern char D_00000000[]; }
-/** @sly2-annot addr=0x16E1A8
- * Purpose: Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch
- *   descriptor at TOPS+0xA, MSCAL 0
- * Info: proposed name BeginRpGlob (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch descriptor at TOPS+0xA,
+// MSCAL 0. (inferred)
 extern "C" void BeginRpGlob(VIFS *pvifs)
 {
     uint *pun;
@@ -4383,14 +4179,7 @@ extern "C" void BeginRpGlob(VIFS *pvifs)
 namespace M_EndRpGlob {
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" { extern char D_00003AB0[]; }
-/** @sly2-annot addr=0x16E228
- * Purpose: Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA
- * Info: proposed name EndRpGlob (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA. (inferred)
 extern "C" void EndRpGlob(VIFS *pvifs)
 {
     uint *pun;
@@ -4408,15 +4197,8 @@ namespace M_BeginRpBackground {
 extern "C" { extern int D_003DCFA0; }
 extern "C" { extern QW *D_003DCFA8[]; }
 extern "C" void BeginRpGlob(VIFS *pvifs);
-/** @sly2-annot addr=0x16E298
- * Purpose: Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain
- *   D_003DCFA8[0..D_003DCFA0)
- * Info: proposed name BeginRpBackground (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain
+// D_003DCFA8[0..D_003DCFA0) (inferred)
 extern "C" void BeginRpBackground(VIFS *pvifs)
 {
     int i;
@@ -4426,13 +4208,7 @@ extern "C" void BeginRpBackground(VIFS *pvifs)
 }
 } // namespace M_BeginRpBackground
 
-/** @sly2-annot addr=0x16E318
- * Purpose: CNT{FLUSH, DIRECT(cqw, static GIF packet), FLUSH}
- * Info: proposed name AddVifDirectFlushed (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// CNT{FLUSH, DIRECT(cqw, static GIF packet), FLUSH}. (inferred)
 /* A flushed VIF DIRECT transfer of cqw quadwords (its own DMA cnt). */
 extern "C" void AddVifDirectFlushed(VIFS *pvifs, int cqw, QW *aqw)
 {
@@ -4449,15 +4225,8 @@ extern int D_003DCFA0;
 extern char D_002DF010[];
 void EndRpGlob(void *p);
 void AddVifDirectFlushed(void *p, int n, void *pv);
-/** @sly2-annot addr=0x16E380
- * Purpose: Pass 3 end: EndRpGlob + Z-only clear (D_002DF010) when per-frame uploads were made (textures
- *   parked in Z-buffer memory)
- * Info: proposed name EndRpBackground (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 3 end: EndRpGlob + Z-only clear (D_002DF010) when per-frame uploads were made (textures parked in Z-buffer
+// memory) (inferred)
 void EndRpBackground(void *p)
 {
     EndRpGlob(p);
@@ -4466,28 +4235,14 @@ void EndRpBackground(void *p)
 }
 } } // namespace M_EndRpBackground
 
-/** @sly2-annot addr=0x16E3C8
- * Purpose: Pass 11 begin (kinds 4/6): BeginRpGlob + DIRECT FBA_1=1 packet D_002DF700
- * Info: proposed name BeginRpCutout (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 11 begin (kinds 4/6): BeginRpGlob + DIRECT FBA_1=1 packet D_002DF700. (inferred)
 extern "C" void BeginRpCutout(VIFS *pvifs)
 {
     BeginRpGlobV(pvifs);
     AddVifDirectFlushed(pvifs, 2, D_002DF700);
 }
 
-/** @sly2-annot addr=0x16E400
- * Purpose: Pass 11 end: EndRpGlob + DIRECT FBA_1=0 packet D_002DF720
- * Info: proposed name EndRpCutout (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 11 end: EndRpGlob + DIRECT FBA_1=0 packet D_002DF720. (inferred)
 extern "C" void EndRpCutout(VIFS *pvifs)
 {
     EndRpGlobV(pvifs);
@@ -4511,7 +4266,7 @@ void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
 void*func_002333B4(void*,int,uint) __asm__("memset");
-void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
+void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 extern ENV D_002DDF40;
 extern uint D_002DEB50;
 extern QW D_002DEB60;
@@ -4558,18 +4313,7 @@ typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 typedef char ENV_width_Offset[FIELD_OFFSET(ENV,width)==576?1:-1];
 typedef char ENV_height_Offset[FIELD_OFFSET(ENV,height)==580?1:-1];
 typedef char ENV_fade_Offset[FIELD_OFFSET(ENV,fade)==584?1:-1];
-/** @sly2-annot addr=0x16E438
- * Purpose: Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader
- * Info: proposed name LoadSubglobType1FromBrx (T1); TU glob
- * Notes: superseded: LoadSubglobType3FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
- *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
- *   0x167750)+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
- *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
- * @end-sly2-annot */
+// Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader.
 extern "C" void LoadSubglobType1FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  int i=0;
  VIFS vifs;
@@ -4633,32 +4377,17 @@ extern "C" void LoadSubglobType1FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sp
  }
  vifs.EndDmaCnt();vifs.AddDmaRet();
  vifs.DetachCopySw(&desc->words,&data,&entry->chain);
- func_001699E8(p,desc,entry,sphere,groups,0,0,0,stream);
+ LoadSubglobInstancesFromBrx(p,desc,entry,sphere,groups,0,0,0,stream);
 }
 } // namespace M_LoadSubglobType1FromBrx
 
-/** @sly2-annot addr=0x16EA20
- * Purpose: Pass 1 begin (kinds 9/17/20/24): upload the cel-border microprogram D_0025B880..D_0025C1B0
- * Info: proposed name BeginRpCelBorder (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources:
- *   r3_1539A8+verdicts_tu_r3r5+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 1 begin (kinds 9/17/20/24): upload the cel-border microprogram D_0025B880..D_0025C1B0. (inferred)
 extern "C" void BeginRpCelBorder(VIFS *pvifs)
 {
     EnsureVu1Code(pvifs, D_0025B880, D_0025C1B0);
 }
 
-/** @sly2-annot addr=0x16EA48
- * Purpose: Pass 1 end: FLUSHA
- * Info: proposed name EndRpCelBorder (T1); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Pass 1 end: FLUSHA. (inferred)
 extern "C" void EndRpCelBorder(VIFS *pvifs)
 {
     pvifs->AddDmaCnt();
@@ -4722,7 +4451,7 @@ extern "C"{
 extern int D_003DA790;
 extern LINK D_003DA798[];
 void*func_001AE238(REQUEST*,void*);
-SO*func_001ED850(SO*);
+SO*CloneSaa(SO*);
 void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*);
@@ -4732,13 +4461,8 @@ void func_001EC740(int,int,int,uint,uint);
 static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return func_001AE238(&request,source);}
 static inline void ReadTransform(SO*object,STREAM*stream,TRANSFORM**output){VE*method=&object->vt[52];method->readTransform((SO*)((char*)object+method->delta),stream,output);}
 static inline void CopyObjects(P*p){for(int i=0;i<p->objectCount;i++){if(p->objects[i]->flags&4){p->objects=(SO**)Copy(p->objectCount*4,p->objects);return;}}}
-/** @sly2-annot addr=0x16EA80
- * Purpose: Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned
- *   objects, relocates packet copies
- * Info: proposed name CloneGlobset (T2); TU glob
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned objects, relocates
+// packet copies. (inferred)
 extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
     int bytes;
     p->owner=owner;
@@ -4753,7 +4477,7 @@ extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
         for(int j=0;j<descriptor->segments;j++){uint address=(uint)entry->segments;address+=j*0x50;ReadTransform(owner,stream,(TRANSFORM**)(address+0xC));}
         int cloned=entry->object&&(entry->object->flags&4);
         if(cloned){
-            SO*object=func_001ED850(entry->object);
+            SO*object=CloneSaa(entry->object);
             for(int j=0;j<p->objectCount;j++)if(p->objects[j]==entry->object){p->objects[j]=object;break;}
             entry->object=object;
         }
@@ -4799,25 +4523,19 @@ typedef struct { char pad[0x148]; unsigned long f148; } A;
 typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 v10; float g20; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
-void func_001D6310(A *pa);
+void RemoveLoFromSphereTree(A *pa);
 /* func_002599D8/E0/E8: the file-scope inline readers */
 
 
 
-/** @sly2-annot addr=0x16EF00
- * Purpose: Resets an attachment record (clear flag on attached object, zero vector, radius 1e6)
- * Info: proposed name ResetGlobAttachment (T2); TU glob
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
- * @end-sly2-annot */
+// Resets an attachment record (clear flag on attached object, zero vector, radius 1e6) (inferred)
 void func_0016EF00(S *p, int i)
 {
     float g = 1000000.0f;
     E *pe;
     V4 v;
     float x, y, z;
-    func_001D6310(p->pa);
+    RemoveLoFromSphereTree(p->pa);
     p->pa->f148 &= 0xFFFFFFF7FFFFFFFFUL;
     p->v10 = D_002A2DD0;
     p->g20 = g;
@@ -4833,12 +4551,7 @@ void func_0016EF00(S *p, int i)
 }
 } } // namespace M_func_0016EF00
 
-/** @sly2-annot addr=0x2599D8
- * Purpose: return v[0] [game linkonce (inline/template)]
- * Info: proposed name VECTOR_GetX (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Return v[0] [game linkonce (inline/template)]. (inferred)
 // 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
 inline float func_002599D8(VECTOR *pvec)
@@ -4846,12 +4559,7 @@ inline float func_002599D8(VECTOR *pvec)
     return pvec->x;
 }
 
-/** @sly2-annot addr=0x2599E0
- * Purpose: return v[1] [game linkonce (inline/template)]
- * Info: proposed name VECTOR_GetY (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Return v[1] [game linkonce (inline/template)]. (inferred)
 // 0x2599E0: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
 inline float func_002599E0(VECTOR *pvec)
@@ -4859,12 +4567,7 @@ inline float func_002599E0(VECTOR *pvec)
     return pvec->y;
 }
 
-/** @sly2-annot addr=0x2599E8
- * Purpose: return v[2] [game linkonce (inline/template)]
- * Info: proposed name VECTOR_GetZ (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Return v[2] [game linkonce (inline/template)]. (inferred)
 // 0x2599E8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
 inline float func_002599E8(VECTOR *pvec)
