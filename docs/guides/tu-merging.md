@@ -1434,9 +1434,9 @@ Other layout rules found:
 - **main's build strings** (region, date, build number at 0x2C46C0) lie after xf's `.data`, in a later TU's place:
   section `.data.buildinfo` (stylistic, as `.rodata.early`).
 
-Nothing was reverted for changing codegen. Left: class_registry (its literals interleave with the splicewrap
-objects' in the ELF: 112 `.text` bytes of %hi/%lo, the merged crt0 block of "What is left" in full-link.md) and 3
-bytes of a jump-table word in serialize's PpairSerializeIn (also in the old default mode). throw keeps its private
+Nothing was reverted for changing codegen. Left then: class_registry (its literals interleave with the splicewrap
+objects' in the ELF: 112 `.text` bytes of %hi/%lo) and 3 bytes of a jump-table word in serialize's PpairSerializeIn;
+both fixed on link/crt0-block ("class_registry" below; the jump table had its case labels rotated). throw keeps its private
 3-float CLQ view (`CLQV`, types/views-3); D_002C40F0 is defined as the 16-byte record under its asm label.
 
 ## Linkage of namespace-scoped declarations
@@ -1915,20 +1915,22 @@ initialiser (`U s = (U){back};`) gives the same code; an assignment in the block
 | TU | why |
 |---|---|
 | crt0 | not a TU: platform/boot/crt0/_start.c is the hand-written `_start` as one top-level `__asm__` block (already one file); left as it is |
-| splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
+| splice_thunks | merged into the crt0_splicewrap TU (class_registry.cpp) on link/crt0-block, with the generated wrappers; see "class_registry" |
 
 After wave 10 and the integration of the class_registry and big-six branches (integrate/round2), every game TU
-with per-function files is merged (air last, see "air" in Merged TUs); the non-TUs crt0 and splice_thunks stay as they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
+with per-function files is merged (air last, see "air" in Merged TUs); crt0 stays as it is (splice_thunks went into class_registry.cpp with the generated wrappers on link/crt0-block). The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
 copies"): src/game/core/linkonce no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the
 mismatch table, then "Recurring asm idioms" before renaming any helper.
 
 ## class_registry
 
-src/game/app/class_registry/ (424 functions, the non-generated part of the crt0_splicewrap block, not a TU of its
-own) is one file, src/game/app/class_registry.cpp, in address order: the two crt0 asm fragments, the 33 Splice
-option thunks, the 185 `New<Class>` factories, the 199 `Get<Class>ClassDesc` getters, the generated static
-initializer, and the out-of-line constructors STEPGUARD_ctor, JT_ctor and MURRAY_ctor from the linkonce area. All
-424 match. What it needed:
+src/game/app/class_registry.cpp is the whole crt0_splicewrap TU (0x100218..0x1147D8) since link/crt0-block: 825
+functions in address order (the two crt0 asm fragments, 64 hand-written Splice thunks, 373 generated wrappers, the
+185 `New<Class>` factories, the 199 `Get<Class>ClassDesc` getters, the generated static initializer) plus the
+out-of-line constructors STEPGUARD_ctor, JT_ctor and MURRAY_ctor from the linkonce area (link/linkonce-misc turns
+those into inlines). All 828 functions and D_002BAAE8 match. Until then the file held only the 424 non-generated,
+non-thunk functions; how the merge was done is in "The crt0_splicewrap TU (link/crt0-block)" below. What the
+registry part needed:
 
 - Factories are `return new CLASS;` over the real classes (types/views-2; until then construction views in
   `namespace REG`): sly2/classes.h and the class headers, one class per CID with the real name, parent and size
@@ -1951,6 +1953,41 @@ initializer, and the out-of-line constructors STEPGUARD_ctor, JT_ctor and MURRAY
   does not clear, GLOBSET had no constructor), hence the namespace until types/views-2; now BASIC's and PO's
   constructors are declared in the headers and defined inline in sly2/classes.h, GLOBSET and the out-of-line
   constructors are declared in theirs (Representation decisions).
+
+### The crt0_splicewrap TU (link/crt0-block, 2026-11-05)
+
+Why one object: in 0x100218..0x110AB0 class_registry's asm fragments and 33 option thunks alternate with 31
+hand-written thunks (src/game/app/splice_thunks/) and 373 generated wrappers (src/generated/splicewrap/), and the
+`.rodata` literals they load (the OTYP argument-type arrays that initialise each thunk's local `ak`/`aotyp`) are
+emitted in the same function order. As 405 objects, class_registry's one `.rodata` could not interleave with the
+wrappers' (112 `.text` bytes of %hi/%lo in 28 functions in tools/link.py) and its `.text` was 24 runs.
+
+Representation (the decision for review):
+
+| part | form | why |
+|---|---|---|
+| generated wrappers | stay generator output, one file each, renamed `.c` -> `.inc` (content unchanged), included at their address: `SLY2_SPLICEWRAP_BEGIN(name)` / `#include "../../generated/splicewrap/name.inc"` / `SLY2_SPLICEWRAP_END` | the generator stays the source of truth for their text; `.inc` keeps progress.py/link.py (which glob or list `.c`/`.cpp`) from building them a second time as objects. tools/gen_splicewrap.py now writes `.inc` (it needs the matching-era helpers automatch/quickfix/c_rewrites, which are not in the repo, so it cannot run as is) |
+| their C view | the macro opens `namespace SPLICEWRAP { namespace W_<name> { extern "C" {`; splicewrap.h's plain `struct CRef` and m2c_prelude.h's types live in `SPLICEWRAP` | C linkage keeps every symbol's C name; one namespace per wrapper because the wrappers declare the same native function with different prototypes; the C `CRef` must not meet the file's C++ `CRef` (whose constructors/destructor would change the code). `SW` was the first name tried: it hides class SW (NewSw) |
+| `-fpermissive` | `// SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions -fno-rtti -fpermissive` | 371 of the 373 drafts pass `void *pbasic` for an `int` parameter or do arithmetic on `void *` (fine in C, errors in C++); the flag turns those into warnings and changes no code. The line replaces the default flags, so a change of the global CFLAGS has to be repeated here |
+| splice_thunks (31) | inlined verbatim, each in `namespace T_<name>`, at its address; the per-file `struct CRef` and `qword` typedefs dropped, the file's CRef used | their CRef members must keep global mangling. Two edits beyond the move: the variadic `RefSetArgsFromSplice__FiP4CRefP4OTYPe` declaration identical to the file-scope one is dropped (27 files; g++ 2.95 reports the calls as ambiguous otherwise, as in "Big six"), the three non-variadic ones stay |
+| file name | class_registry.cpp kept | fewer moving parts tonight (matched.csv, docs links, the linkonce-misc branch edits this file); a rename to crt0_splicewrap.cpp is mechanical |
+
+Result: all 828 functions and D_002BAAE8 MATCH (matchtool on class_registry.cpp; the wrappers and thunks are only
+checked through it now). Global symbols: the union of the 405 old objects' except that the thunks' references
+InitTag__4CRefi, __as__4CRefPv, __as__4CRefb and __as__4CRefi (names no config file had; link.py resolved them from
+the ELF) are now SetTag__4CRef4TAGK, CRef_SetBasic, CRef_SetBool and SetS32__4CRefi, the same addresses (relverify:
+0 mismatches; the last one by a new asm label on the file CRef's `operator=(int)`, as serialize.cpp has it), and the
+`_GLOBAL_$I$` suffix (aliased by wildcard). tools/link.py: 0 differing bytes; the object's `.text` is one run at
+0x100218 except the three linkonce constructors. The full link also showed two source errors that matchtool cannot
+see, since it masks relocated words and does not compare anonymous `.rodata`: func_001047A0's OTYP array was
+`{2, 0x16}` (the ELF and the annotation say Vector, Float: `{2, 1}`), and serialize's PpairSerializeIn had the case
+labels of its three U32 payload bodies rotated (33/24/25, tags 0x21/0x18/0x19, go to CRef_SetBasic/SetSymid/
+SetBifk; the source said 24/25/33).
+
+While the merge was in progress cc1plus sometimes died without a message (exit 1 from the driver, no diagnostics):
+on intermediate states with errors in them (a CRef used before its definition, duplicated blocks), and, in a
+reduced test, on any top-level `__asm__` after a namespace under `-fsyntax-only` (it compiles with `-O2`). A silent
+failure from matchtool is such a crash: compile by hand without `-quiet` filtering, and bisect with the real flags.
 
 ## Big six (hud, relay, stepguard, bif, so, guardbhv)
 

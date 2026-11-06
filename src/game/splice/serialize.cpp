@@ -22,9 +22,9 @@ struct CRef {
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
     CRef &operator=(float g) __asm__("SetF32__4CReff");
     CRef &operator=(bool f) __asm__("CRef_SetBool");
-    CRef &operator=(OBJ *p) __asm__("CRef_SetBifk");
-    CRef &operator=(T18 *p) __asm__("CRef_SetBasic");
-    CRef &operator=(T19 *p) __asm__("CRef_SetSymid");
+    CRef &operator=(OBJ *p) __asm__("CRef_SetBasic");     // tag 0x21
+    CRef &operator=(T18 *p) __asm__("CRef_SetSymid");     // tag 0x18
+    CRef &operator=(T19 *p) __asm__("CRef_SetBifk");      // tag 0x19
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
@@ -83,9 +83,9 @@ SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Rea
  case 21: *pref = S32Read__18CBinaryInputStream(pbis); break;
  case 22: *pref = F32Read__18CBinaryInputStream(pbis); break;
  case 23: *pref = U32Read__18CBinaryInputStream(pbis) != 0; break;
+ case 33: *pref = (OBJ *)U32Read__18CBinaryInputStream(pbis); break;
  case 24: *pref = (T18 *)U32Read__18CBinaryInputStream(pbis); break;
  case 25: *pref = (T19 *)U32Read__18CBinaryInputStream(pbis); break;
- case 33: *pref = (OBJ *)U32Read__18CBinaryInputStream(pbis); break;
  case 26: pref->SetTag(0x1A); for (int i = 0; i < 3; i++) { float *pg = &pref->u.ag[i]; *pg = F32Read__18CBinaryInputStream(pbis); } break;
  case 27: pref->SetTag(0x1B); for (int i = 0; i < 16; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
  case 28: pref->SetTag(0x1C); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;

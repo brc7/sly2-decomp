@@ -9,8 +9,10 @@
 #                        PASS = every source built and 6662/6662 functions match
 # 3. matched.csv         unchanged against git (a changed row means a function's result changed)
 # 4. doc links           tools/docs/linkcheck.py
-# 5. full link           tools/link.py: ld.lld errors must be 0; differing bytes against the ELF are reported
-#                        (informational: compare with the Status table in docs/guides/full-link.md)
+# 5. full link           tools/link.py (real link: one section per object, per-function fallback for the objects
+#                        that are not contiguous yet): ld.lld errors must be 0; differing bytes against the ELF and
+#                        the fallback count are reported (informational: compare with the Status table in
+#                        docs/guides/full-link.md)
 # Outputs of each step are in build/logs/verify-<step>.log.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
@@ -63,7 +65,8 @@ if [ $LINK -eq 1 ]; then
   log="$LOGS/verify-link.log"
   lderr=$(sed -n 's/^ld\.lld: exit [0-9]*, \([0-9]*\) errors.*/\1/p' "$log" | tail -1)
   diff=$(awk '/^differing bytes by class:/{f=1;next} f&&/^$/{f=0} f{s+=$1} END{print s+0}' "$log")
-  if [ $rc -eq 0 ] && [ "${lderr:-x}" = 0 ]; then result "full link" PASS "$diff bytes differ from the ELF"
+  fb=$(sed -n 's/^mode: real link: .*, \([0-9]*\) in per-function fallback.*/\1/p' "$log" | tail -1)
+  if [ $rc -eq 0 ] && [ "${lderr:-x}" = 0 ]; then result "full link" PASS "$diff bytes differ from the ELF, ${fb:-?} objects in per-function fallback"
   else result "full link" FAIL "exit $rc, ld.lld errors: ${lderr:-?} (see $log)"; fi
 else
   result "full link" SKIP "--no-link"
