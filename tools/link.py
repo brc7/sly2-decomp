@@ -436,19 +436,37 @@ def script(objs, base, img, reasons):
 
 def symbols(objs, img, ext):
     """_gp and an absolute address for every name no object defines (address names D_/func_XXXXXXXX by their
-    address, config names by config's, the rest by the ELF's relocated value) and for commons"""
+    address, config names by config's, the rest by the ELF's relocated value) and for commons; each one goes to
+    build/link/absolute.txt with its class and the objects that reference it (the address dependencies left)"""
     lines = [f'_gp = 0x{img.gp:X};']
     defined = {s[0] for o in objs for s in o.syms if s[3] and s[5] and s[5] != 0xFFF2}
     commons = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0xFFF2}
     undef = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0}
-    extra, derived = [], []
+    users = collections.defaultdict(set)
+    for o in objs:
+        for s in o.syms:
+            if s[3] and s[5] in (0, 0xFFF2):
+                users[s[0]].add(o.src)
+    named_at = collections.defaultdict(list)                 # address -> config names that are not address names
+    for n, a in config_addrs().items():
+        if not ADDR_NAME.match(n):
+            named_at[a].append(n)
+    extra, derived, report = [], [], []
     for n in sorted((undef - defined - {'_gp'}) | commons):
         a = addr_of(n)
         if a is None and n in ext:                           # named by no config file: the ELF's relocated value
             a = ext[n]; derived.append(n)
         if a is not None:
             extra.append(f'{q(n)} = 0x{a:08X};')  # COMMON too: its address is the ELF's
-    return '\n'.join(lines + extra), derived
+            cls = ('common' if n in commons else 'ELF-derived' if n in derived else
+                   'address name at a config name' if ADDR_NAME.match(n) and named_at.get(a) else
+                   'address name' if ADDR_NAME.match(n) else 'config name')
+            sec = img.sec_at(a)
+            report.append((a, n, sec[0] if sec else '-', cls, ' '.join(named_at.get(a, [])[:1]), sorted(users[n])))
+    with open(os.path.join(OUT, 'absolute.txt'), 'w') as f:
+        f.writelines(f'0x{a:08X} {n} {sec} [{cls}{": " + at if at else ""}] <- {" ".join(u)}\n'
+                     for a, n, sec, cls, at, u in sorted(report))
+    return '\n'.join(lines + extra), derived, collections.Counter(r[3] for r in report)
 
 
 # ---- compare ----
@@ -549,7 +567,7 @@ def main():
           f'sources without an object: --sdk-only builds them)', file=sys.stderr)
     base, conflicts, ext = place(objs, img)
     unplaced = [(objs[k].src, o.secs[i][0], o.secs[i][5]) for k, o in enumerate(objs) for i in o.alloc() if (k, i) not in base]
-    syms, derived = symbols(objs, img, ext)
+    syms, derived, absolute = symbols(objs, img, ext)
     secs, layout, why, st = script(objs, base, img, blob_reasons(img, unbuilt))
     fixed(objs)
     ld, elf = os.path.join(OUT, 'sly2.ld'), os.path.join(OUT, 'sly2.elf')
@@ -580,6 +598,8 @@ def main():
           f'{len(st["bound"])} .bss overlapping another bound to their address, {len(st["overlaps"])} other '
           f'overlapping (to .unplaced)')
     print(f'{len(derived)} undefined names no config file knows, resolved from the ELF\'s relocated fields')
+    print(f'absolute symbols: {sum(absolute.values())} (build/link/absolute.txt): '
+          + ', '.join(f'{k} {v}' for k, v in absolute.most_common()))
     print(f'blob bytes by reason ({sum(why.values())}): ' + ', '.join(f'{k} {v}' for k, v in why.most_common()))
     if os.path.exists(elf):
         compare(elf, img, layout, objs, set(conflicts))
