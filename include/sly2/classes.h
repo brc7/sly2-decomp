@@ -2047,9 +2047,9 @@ typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 struct WAYPT : SO
 {
     char pad150[0x190 - 0x150];
+    virtual void VUnk14() __asm__("PostWayptLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWayptClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWaypt");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostWayptLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateWaypt");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderWaypt");   /* slot 19 */
 };
