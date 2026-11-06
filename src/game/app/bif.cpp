@@ -7,7 +7,7 @@
 // Entry points: the table D_002BBB90 and the RefOp* functions.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001258D0
-// Every builtin is `CRef RefOpX(int cref, CRef *aref, CFrame *pframe)` (the mangled symbols say so); the per-function
+// Every builtin is `CRef RefOpX(int cref, CRef *args, CFrame *pframe)` (the mangled symbols say so); the per-function
 // files define them under their literal symbols with C linkage and private CRef views, and keep those views in
 // namespaces named after the function (docs/guides/tu-merging.md "Representation decisions"). The former m2c bodies
 // follow the same convention at file scope: C linkage under the literal symbol, the hidden result pointer passed by
@@ -45,8 +45,8 @@ int IlevelCur();
 extern "C" {
 void SetTag(CREFV *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void Decref(CREFV *pref) __asm__("Decref__4CRef");
-void RefCmp(CREFV *pref, CREFV *aref, int cmpk) __asm__("RefCmp__FP4CRef4CMPK");
-void RefUfo(CREFV *pref, CREFV *aref, int ufok) __asm__("RefUfo__FP4CRef4UFOK");
+void RefCmp(CREFV *pref, CREFV *args, int cmpk) __asm__("RefCmp__FP4CRef4CMPK");
+void RefUfo(CREFV *pref, CREFV *args, int ufok) __asm__("RefUfo__FP4CRef4UFOK");
 void RefEqualHelper(CREFV *pref, CREFV *pref1, CREFV *pref2) __asm__("RefEqualHelper__FP4CRefT0");
 CREFV *__4CRefRC4CRef(CREFV *pref, CREFV *prefSrc);             /* CRef copy constructor */
 CREFV *CRef_ctor_CPair(CREFV *pref, PAIRV *ppair);
@@ -85,7 +85,7 @@ struct CRef {
     CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
-extern "C" CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref);
+extern "C" CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
 /** @sly2-annot addr=0x11F440
@@ -96,13 +96,13 @@ static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
  *   docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime
  * @end-sly2-annot */
 // Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion).
-CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref)
+CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
-    int tagk = aref[0].m_tagk;
+    int tagk = args[0].m_tagk;
     NODE *pn;
-    if (aref[1].m_tagk)
-        pn = PnFromRef(&aref[1]);
+    if (args[1].m_tagk)
+        pn = PnFromRef(&args[1]);
     else
         pn = 0;
     switch (tagk) {
@@ -111,10 +111,10 @@ CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref)
         float g;
         int fInt;
         if (tagk == 0x15) {
-            g = (float)aref[0].u.n;
+            g = (float)args[0].u.n;
             fInt = 1;
         } else {
-            g = aref[0].u.g;
+            g = args[0].u.g;
             fInt = 0;
         }
         for (; pn; pn = pn->pnext) {
@@ -132,7 +132,7 @@ CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref)
         break;
     }
     case 0x1A:
-        ref = *(VECTOR *)aref[0].u.pv;
+        ref = *(VECTOR *)args[0].u.pv;
         for (; pn; pn = pn->pnext) {
             qword *pq = (qword *)ref.u.pv;
             qword a = *pq, b = *(qword *)pn->ref.u.pv, r;
@@ -141,7 +141,7 @@ CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref)
         }
         break;
     case 0x1B:
-        ref = *(MATRIX4 *)aref[0].u.pv;
+        ref = *(MATRIX4 *)args[0].u.pv;
         for (; pn; pn = pn->pnext) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
@@ -178,7 +178,7 @@ struct CRef {
     CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
-extern "C" CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref);
+extern "C" CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
 /** @sly2-annot addr=0x11F6D0
@@ -188,13 +188,13 @@ static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "-": n-ary subtract, same shape as +.
-CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref)
+CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
-    int tagk = aref[0].m_tagk;
+    int tagk = args[0].m_tagk;
     NODE *pn;
-    if (aref[1].m_tagk)
-        pn = PnFromRef(&aref[1]);
+    if (args[1].m_tagk)
+        pn = PnFromRef(&args[1]);
     else
         pn = 0;
     switch (tagk) {
@@ -203,10 +203,10 @@ CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref)
         float g;
         int fInt;
         if (tagk == 0x15) {
-            g = (float)aref[0].u.n;
+            g = (float)args[0].u.n;
             fInt = 1;
         } else {
-            g = aref[0].u.g;
+            g = args[0].u.g;
             fInt = 0;
         }
         for (; pn; pn = pn->pnext) {
@@ -224,7 +224,7 @@ CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref)
         break;
     }
     case 0x1A:
-        ref = *(VECTOR *)aref[0].u.pv;
+        ref = *(VECTOR *)args[0].u.pv;
         for (; pn; pn = pn->pnext) {
             qword *pq = (qword *)ref.u.pv;
             qword a = *pq, b = *(qword *)pn->ref.u.pv, r;
@@ -233,7 +233,7 @@ CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref)
         }
         break;
     case 0x1B:
-        ref = *(MATRIX4 *)aref[0].u.pv;
+        ref = *(MATRIX4 *)args[0].u.pv;
         for (; pn; pn = pn->pnext) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
@@ -299,7 +299,7 @@ struct CRef {
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
-extern "C" CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref);
+extern "C" CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 static inline qword MulVF(const qword *pv, float g)
 {
@@ -369,13 +369,13 @@ static inline void Mul2(V8 *p, float d)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU).
-CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref)
+CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
     int fInt = 0;
-    switch (aref[0].m_tagk) {
+    switch (args[0].m_tagk) {
     case 0x15:
-        ref = (float)aref[0].u.n;
+        ref = (float)args[0].u.n;
         fInt = 1;
         break;
     case 0x16:
@@ -383,13 +383,13 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref)
     case 0x1B:
     case 0x1C:
     case 0x1D:
-        ref = CRef_CloneTo(&aref[0], 0, 0);
+        ref = CRef_CloneTo(&args[0], 0, 0);
         break;
     }
     NODE *pn = 0;
     int bits;
-    if (aref[1].m_tagk)
-        pn = (NODE *)aref[1].u.pv;
+    if (args[1].m_tagk)
+        pn = (NODE *)args[1].u.pv;
     for (; pn; pn = pn->pnext) {
         CRef *pr = &pn->ref;
         switch (ref.m_tagk) {
@@ -517,7 +517,7 @@ struct CRef {
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
-extern "C" CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *aref);
+extern "C" CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 struct VU_FLOAT_V {
     qword q;
@@ -554,13 +554,13 @@ static inline void DivMatrix(MATRIX4 *pm, float d)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "/": n-ary divide incl. int-matrix path.
-CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *aref)
+CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
     int fInt = 0;
-    switch (aref[0].m_tagk) {
+    switch (args[0].m_tagk) {
     case 0x15:
-        ref = (float)aref[0].u.n;
+        ref = (float)args[0].u.n;
         fInt = 1;
         break;
     case 0x16:
@@ -568,12 +568,12 @@ CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *aref)
     case 0x1B:
     case 0x1C:
     case 0x1D:
-        ref = CRef_CloneTo(&aref[0], 0, 0);
+        ref = CRef_CloneTo(&args[0], 0, 0);
         break;
     }
     NODE *pn = 0;
-    if (aref[1].m_tagk)
-        pn = (NODE *)aref[1].u.pv;
+    if (args[1].m_tagk)
+        pn = (NODE *)args[1].u.pv;
     for (; pn; pn = pn->pnext) {
         CRef *pr = &pn->ref;
         switch (ref.m_tagk) {
@@ -705,10 +705,10 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "=": bool(tag0==tag1 payload ints equal).
-CRef *RefOpIntEqual__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpIntEqual__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int a = aref[0].m_tag;
-    int b = aref[1].m_tag;
+    int a = args[0].m_tag;
+    int b = args[1].m_tag;
     ret->m_tagk = 0x17;
     ret->m_tag = a == b;
     return ret;
@@ -726,17 +726,17 @@ typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool.
-CRef *RefCmp__FP4CRef4CMPK(CRef *ret, CRef *aref, int op)
+// Numeric compare of args[0],args[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool.
+CRef *RefCmp__FP4CRef4CMPK(CRef *ret, CRef *args, int op)
 {
     float ag[2];
     int i;
     int f;
     for (i = 0; i < 2; i++) {
-        if (aref[i].m_tagk == 0x16)
-            ag[i] = aref[i].u.g;
+        if (args[i].m_tagk == 0x16)
+            ag[i] = args[i].u.g;
         else
-            ag[i] = (float)aref[i].u.n;
+            ag[i] = (float)args[i].u.n;
     }
     switch (op) {
     case 0:
@@ -766,10 +766,10 @@ CRef *RefCmp__FP4CRef4CMPK(CRef *ret, CRef *aref, int op)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "<": RefCmp(aref,0) <.
-extern "C" CREFV *RefOpL__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+// Splice builtin "<": RefCmp(args,0) <.
+extern "C" CREFV *RefOpL__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefCmp(pref, aref, 0);
+    RefCmp(pref, args, 0);
     return pref;
 }
 
@@ -781,10 +781,10 @@ extern "C" CREFV *RefOpL__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "<=": RefCmp(aref,1) <=.
-extern "C" CREFV *RefOpLE__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+// Splice builtin "<=": RefCmp(args,1) <=.
+extern "C" CREFV *RefOpLE__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefCmp(pref, aref, 1);
+    RefCmp(pref, args, 1);
     return pref;
 }
 
@@ -796,10 +796,10 @@ extern "C" CREFV *RefOpLE__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin ">": RefCmp(aref,2) >.
-extern "C" CREFV *RefOpG__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+// Splice builtin ">": RefCmp(args,2) >.
+extern "C" CREFV *RefOpG__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefCmp(pref, aref, 2);
+    RefCmp(pref, args, 2);
     return pref;
 }
 
@@ -811,10 +811,10 @@ extern "C" CREFV *RefOpG__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin ">=": RefCmp(aref,3) >=.
-extern "C" CREFV *RefOpGE__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+// Splice builtin ">=": RefCmp(args,3) >=.
+extern "C" CREFV *RefOpGE__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefCmp(pref, aref, 3);
+    RefCmp(pref, args, 3);
     return pref;
 }
 
@@ -827,7 +827,7 @@ struct CRef {
     int m_tagk; int m_tag;
     CRef(int n, int tagk) { m_tag = n; m_tagk = tagk; }
 };
-extern "C" CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x120548
  * Purpose: Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare
  * Info: proposed name RefOpEqv (T1); TU bif
@@ -837,10 +837,10 @@ extern "C" CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
 // Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare.
-CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
-    CRef *pa = &aref[0];
-    register CRef *pb __asm__("$5") = &aref[1];  /* register pin: &aref[1] reuses the dead pbasic register (a1) as in the target */
+    CRef *pa = &args[0];
+    register CRef *pb __asm__("$5") = &args[1];  /* register pin: &aref[1] reuses the dead pbasic register (a1) as in the target */
     int f;
     if (pa->m_tagk != pb->m_tagk) {
         f = 0;
@@ -974,9 +974,9 @@ CRef RefEqualHelper__FP4CRefT0(const CRef &a, const CRef &b)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "equal?": calls RefEqualHelper (recursive).
-extern "C" CREFV *RefOpEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefEqualHelper(pref, &aref[0], &aref[1]);
+    RefEqualHelper(pref, &args[0], &args[1]);
     return pref;
 }
 
@@ -1256,12 +1256,12 @@ CRef *RefOpIsObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
  * @end-sly2-annot */
 // Splice builtin "null-obj?": tag==0x21 && ptr==NULL.
 /* (null-object? x): x is an object reference (tag 0x21) holding no object. */
-extern "C" CREFV *RefOpIsNullObj__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpIsNullObj__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     int f;
     f = 0;
-    if (aref->m_tagk == 0x21) {
-        f = aref->u.pv == 0;
+    if (args->m_tagk == 0x21) {
+        f = args->u.pv == 0;
     }
     pref->u.n = f;
     pref->m_tagk = 0x17;
@@ -1328,13 +1328,13 @@ int FFloatsNear__Ffff(float a, float b, float c);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "near?": FFloatsNear(a,b,eps).
-CRef *RefOpAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     float ag[3];
     int i;
     int f;
     for (i = 0; i < 3; i++) {
-        CRef *p = &aref[i];
+        CRef *p = &args[i];
         if (p->m_tagk == 0x15) ag[i] = p->u.n; else ag[i] = p->u.g;
     }
     f = FFloatsNear__Ffff(ag[0], ag[1], ag[2]) != 0;
@@ -1353,12 +1353,12 @@ CRef *RefOpAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
  * @end-sly2-annot */
 // Splice builtin "not": true iff arg is Bool false.
 /* (not x): true only for the boolean false. */
-extern "C" CREFV *RefOpNot__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpNot__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     int f;
     f = 0;
-    if (aref->m_tagk == 0x17) {
-        f = aref->u.n == 0;
+    if (args->m_tagk == 0x17) {
+        f = args->u.n == 0;
     }
     pref->m_tagk = 0x17;
     pref->u.n = f;
@@ -1381,7 +1381,7 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x120B08
  * Purpose: Splice builtin "cons": new pair node (ref=a0, next=a1 if list)
  * Info: proposed name RefOpCons (T1); TU bif
@@ -1390,12 +1390,12 @@ extern "C" CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "cons": new pair node (ref=a0, next=a1 if list).
-CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
-    sp->ref = aref[0];
-    CRef *pref = &aref[1];
+    sp->ref = args[0];
+    CRef *pref = &args[1];
     if (pref->m_tagk == 0x1F)
         sp->pnext = (CPair *)pref->u.pv;
     return CRef(sp.p);
@@ -1410,9 +1410,9 @@ CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "car": copy of node->ref.
-extern "C" CREFV *RefOpCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    __4CRefRC4CRef(pref, &aref->u.ppair->ref);
+    __4CRefRC4CRef(pref, &args->u.ppair->ref);
     return pref;
 }
 
@@ -1425,10 +1425,10 @@ extern "C" CREFV *RefOpCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "cdr": CRef(node->pnext) or Nil.
-extern "C" CREFV *RefOpCdr__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpCdr__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     PAIRV *ppairNext;
-    ppairNext = aref->u.ppair->ppairNext;
+    ppairNext = args->u.ppair->ppairNext;
     if (ppairNext == 0) {
         SetTag(pref, 0);
     } else {
@@ -1452,13 +1452,13 @@ void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void.
-CRef *RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *aref, int cref, int k)
+CRef *RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *args, int cref, int k)
 {
-    char *p = (__typeof__(p))aref[0].m_p;
+    char *p = (__typeof__(p))args[0].m_p;
     if (k == 0x23)
-        func_00129658((CRef *)(p + 8), &aref[1]);
-    else if (aref[1].m_tagk == 0x1F)
-        PairPtr_Assign(p + 0x10, aref[1].m_p);
+        func_00129658((CRef *)(p + 8), &args[1]);
+    else if (args[1].m_tagk == 0x1F)
+        PairPtr_Assign(p + 0x10, args[1].m_p);
     else
         PairPtr_Assign(p + 0x10, 0);
     SetTag__4CRef4TAGK(ret, 0x24);
@@ -1470,7 +1470,7 @@ CRef *RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *aref, i
 namespace M_RefOpSetCar__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x120CC8
  * Purpose: Splice builtin "set-car!": RefOpSetCadr(...,0x23)
  * Info: proposed name RefOpSetCar (T1); TU bif
@@ -1479,9 +1479,9 @@ void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "set-car!": RefOpSetCadr(...,0x23).
-CRef *RefOpSetCar__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpSetCar__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x23);
+    RefOpSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x23);
     return ret;
 }
 } } // namespace M_RefOpSetCar__FiP4CRefP6CFrame
@@ -1490,7 +1490,7 @@ CRef *RefOpSetCar__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *are
 namespace M_RefOpSetCdr__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x120CF8
  * Purpose: Splice builtin "set-cdr!": RefOpSetCadr(...,0x24)
  * Info: proposed name RefOpSetCdr (T1); TU bif
@@ -1499,9 +1499,9 @@ void RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "set-cdr!": RefOpSetCadr(...,0x24).
-CRef *RefOpSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x24);
+    RefOpSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x24);
     return ret;
 }
 } } // namespace M_RefOpSetCdr__FiP4CRefP6CFrame
@@ -1514,13 +1514,13 @@ CRef *RefOpSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *are
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "length": count of list nodes -> S32.
-extern "C" CREFV *RefOpLength__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpLength__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     int c;
     PAIRV *ppair;
     c = 0;
-    if (aref->m_tagk == 0x1F) {
-        ppair = aref->u.ppair;
+    if (args->m_tagk == 0x1F) {
+        ppair = args->u.ppair;
         if (ppair != 0) {
             do {
                 ppair = ppair->ppairNext;
@@ -1549,13 +1549,13 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "nth": walk list to index a1.
-CRef *RefOpNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     SetTag__4CRef4TAGK(&ref, 0);
-    if (aref[0].m_tagk == 0x1F) {
-        PAIR *p = (PAIR *)aref[0].m_tag;
-        CRef *pn = &aref[1];
+    if (args[0].m_tagk == 0x1F) {
+        PAIR *p = (PAIR *)args[0].m_tag;
+        CRef *pn = &args[1];
         int i;
         for (i = 0; p; p = p->pnext, i++) {
             if (i == pn->m_tag) {
@@ -1585,8 +1585,8 @@ struct CRef {
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" {
-CRef RefOpEqual__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx);
-CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx);
+CRef RefOpEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
+CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
 }
 /** @sly2-annot addr=0x120E10
  * Purpose: Splice builtin "member?": loop calling RefOpEqual on each element
@@ -1596,16 +1596,16 @@ CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "member?": loop calling RefOpEqual on each element.
-CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx)
+CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 {
     CRef ref;
     CRef arefT[2];
     CRef res(false);
     CRef *pres = &res;
-    if (aref[1].m_tagk == 0x1F) {
+    if (args[1].m_tagk == 0x1F) {
         NODE *p;
-        arefT[0] = aref[0];
-        for (p = (NODE *)aref[1].u.pv; p; p = p->pnext) {
+        arefT[0] = args[0];
+        for (p = (NODE *)args[1].u.pv; p; p = p->pnext) {
             arefT[1] = p->ref;
             ref = RefOpEqual__FiP4CRefP6CFrame(2, arefT, pctx);
             if (ref.m_tagk == 0x17 && ref.u.n) {
@@ -1627,9 +1627,9 @@ CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "list": returns the arg list itself (varargs).
-extern "C" CREFV *RefOpList__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpList__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    __4CRefRC4CRef(pref, aref);
+    __4CRefRC4CRef(pref, args);
     return pref;
 }
 
@@ -1653,7 +1653,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" CRef RefOpShuffle(void *pbasic, CRef *aref);
+extern "C" CRef RefOpShuffle(void *pbasic, CRef *args);
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
 static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->pnext = psp->p; *psp = sp.p; }
 /** @sly2-annot addr=0x120FB0
@@ -1669,17 +1669,17 @@ static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->pnext = psp->p; *ps
  * @end-sly2-annot */
 // Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element changes; Nil entry
 // pins tail.
-CRef RefOpShuffle(void *pbasic, CRef *aref)
+CRef RefOpShuffle(void *pbasic, CRef *args)
 {
-    if (aref[0].m_tagk == 0) return CRef(0);
-    if (aref[0].m_tagk != 0x1F) return CRef(0);
+    if (args[0].m_tagk == 0) return CRef(0);
+    if (args[0].m_tagk != 0x1F) return CRef(0);
     CRef *apref[128];
     int c = 0;
     int iNil = -1;
     SPN spRes;
     CPairPtr *pspHead = (CPairPtr *)&spRes;
     CPair *pn;
-    for (pn = aref[0].u.ppair; pn; pn = pn->pnext.p) {
+    for (pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
         if (pn->ref.m_tagk == 0) iNil = c;
         else apref[c++] = &pn->ref;
     }
@@ -1748,7 +1748,7 @@ struct SP {
     CPair *operator->() { return p; }
 };
 extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
-extern "C" CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x1212F8
  * Purpose: Splice builtin "append": concatenates list args (copies all but last)
  * Info: proposed name RefOpAppend (T1); TU bif
@@ -1757,9 +1757,9 @@ extern "C" CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "append": concatenates list args (copies all but last).
-CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { if (aref[0].m_tagk == 0) return aref[0];
+CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args) { if (args[0].m_tagk == 0) return args[0];
  SP spRes; CPair *pTail;
- for (CPair *pn = aref[0].u.ppair; pn; pn = pn->pnext.p) {
+ for (CPair *pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
    if (pn->ref.m_tagk != 0x1F) continue;
    SP spCopy;
    if (pn->pnext.p) { SP t = CPair_CloneTo(pn->ref.u.ppair, 0, 0); spCopy = t.p; } else spCopy = pn->ref.u.ppair;
@@ -1842,8 +1842,8 @@ struct SPN {
     int pad[3];
 };
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *aref);
-extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall);
+extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
+extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121710
  * Purpose: Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects
  *   results
@@ -1853,10 +1853,10 @@ extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefC
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
-CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
+CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) { if (args[1].m_tagk == 0) return args[1];
  SPN spRes; spRes.Set(PtNew__t6CGcObj1Z5CPair());
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = aref[0]; CPair *pTail; CPair *pn; pn = (CPair *)aref[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
+ *pa = args[0]; CPair *pTail; CPair *pn; pn = (CPair *)args[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } return CRef((CPair *)spRes->ref.u.pv); }
 } // namespace M_RefOpMap__FiP4CRefP6CFrame
@@ -1887,8 +1887,8 @@ struct SPN {
     int pad[3];
 };
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *aref);
-extern "C" CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall);
+extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
+extern "C" CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121938
  * Purpose: Splice builtin "filter": same, keeps elems where result true
  * Info: proposed name RefOpFilter (T1); TU bif
@@ -1897,13 +1897,13 @@ extern "C" CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *ar
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "filter": same, keeps elems where result true.
-CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
+CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) { if (args[1].m_tagk == 0) return args[1];
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = aref[0];
- SP spRes; CPair *pTail; CPair *pn = aref[1].u.ppair;
+ *pa = args[0];
+ SP spRes; CPair *pTail; CPair *pn = args[1].u.ppair;
  while (pn) {
    *pb = pn->ref;
-   CRef r = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
+   CRef r = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
    if (r.m_tagk == 0x17 && r.u.n) {
      SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
      spNew->ref = pn->ref;
@@ -1933,8 +1933,8 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *aref);
-extern "C" CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall);
+extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
+extern "C" CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121C20
  * Purpose: Splice builtin "for-each": same, discards results
  * Info: proposed name RefOpForEach (T1); TU bif
@@ -1943,19 +1943,19 @@ extern "C" CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *a
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "for-each": same, discards results.
-CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall)
+CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
-    if (aref[1].m_tagk == 0x1F) {
+    if (args[1].m_tagk == 0x1F) {
         SPN sp;
         CRef *pa;
         CRef *pb;
         CPair *pn;
         func_00121578(&sp, &pa, &pb);
-        *pa = aref[0];
-        pn = (CPair *)aref[1].u.pv;
+        *pa = args[0];
+        pn = (CPair *)args[1].u.pv;
         while (pn) {
             *pb = pn->ref;
-            CRef ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
+            CRef ref = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
             pn = pn->pnext.p;
         }
     }
@@ -1979,8 +1979,8 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *aref);
-extern "C" CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *aref);
+extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
+extern "C" CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args);
 /** @sly2-annot addr=0x121D20
  * Purpose: Splice builtin "eval": wraps arg in list and applies 0x127838
  * Info: proposed name RefOpEval (T1); TU bif
@@ -1989,12 +1989,12 @@ extern "C" CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *aref
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "eval": wraps arg in list and applies 0x127838.
-CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *aref)
+CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 {
     SPN sp;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->ref = *pref;
-    return RefEval__FP5CPairP6CFrame(sp.p, aref);
+    return RefEval__FP5CPairP6CFrame(sp.p, args);
 }
 } // namespace M_RefOpEval__FiP4CRefP6CFrame
 
@@ -2150,7 +2150,7 @@ CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "clq": 3 floats -> tag 0x1C.
-CRef *RefOpClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     int i;
@@ -2159,7 +2159,7 @@ CRef *RefOpClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
     pg = (float *)ref.u.pv;
     for (i = 0; i < 3; i++) {
         CRef tmp;
-        CRef_RefCoerceF32(&tmp, &aref[i]);
+        CRef_RefCoerceF32(&tmp, &args[i]);
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
@@ -2185,7 +2185,7 @@ CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "lm": 2 floats -> tag 0x1D.
-CRef *RefOpLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     int i;
@@ -2194,7 +2194,7 @@ CRef *RefOpLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
     pg = (float *)ref.u.pv;
     for (i = 0; i < 2; i++) {
         CRef tmp;
-        CRef_RefCoerceF32(&tmp, &aref[i]);
+        CRef_RefCoerceF32(&tmp, &args[i]);
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
@@ -2220,7 +2220,7 @@ CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "smp": 3 floats -> tag 0x1E.
-CRef *RefOpSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     int i;
@@ -2229,7 +2229,7 @@ CRef *RefOpSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
     pg = (float *)ref.u.pv;
     for (i = 0; i < 3; i++) {
         CRef tmp;
-        CRef_RefCoerceF32(&tmp, &aref[i]);
+        CRef_RefCoerceF32(&tmp, &args[i]);
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
@@ -2259,7 +2259,7 @@ CRef *CRef_SetVector(CRef *pref, VECTOR *pv);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "get-element": element of vector/matrix by index list.
-CRef *RefOpGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *aref)
+CRef *RefOpGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *args)
 {
     CRef ref;
     IDX *pidx;
@@ -2267,14 +2267,14 @@ CRef *RefOpGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *aref)
     int j;
     register float *pf __asm__("$2"); /* register pin: pf must be v0 (j gets v1) in the shared pf[j] tail */
     ref.m_tagk = -1;
-    pidx = (IDX *)aref[1].u.pv;
-    switch (aref[0].m_tagk) {
+    pidx = (IDX *)args[1].u.pv;
+    switch (args[0].m_tagk) {
     case 0x1B: {
         i = pidx->i;
         if (carg == 2) {
-            CRef_SetVector(&ref, &((VECTOR *)aref[0].u.pv)[i]);
+            CRef_SetVector(&ref, &((VECTOR *)args[0].u.pv)[i]);
         } else {
-            { register int pv __asm__("$5") = (int)aref[0].u.pv; /* register pin: pv must be a1 so i<<4 lands in pf (v0) */
+            { register int pv __asm__("$5") = (int)args[0].u.pv; /* register pin: pv must be a1 so i<<4 lands in pf (v0) */
               pf = (float *)((i << 4) + pv); }
             pidx = pidx->pnext;
             j = pidx->i;
@@ -2284,13 +2284,13 @@ CRef *RefOpGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *aref)
         break;
     }
     case 0x1A: case 0x1C: case 0x1D:
-        pf = (float *)aref[0].u.pv;
+        pf = (float *)args[0].u.pv;
         j = pidx->i;
         pf += j;
             SetF32__4CReff(&ref, *pf);
         break;
     case 0x1E:
-        pf = (float *)aref[0].u.pv;
+        pf = (float *)args[0].u.pv;
         j = pidx->i;
         pf += j;
             SetF32__4CReff(&ref, *pf);
@@ -2321,7 +2321,7 @@ extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
 int NRandInRange__Fii(int a, int b);
 float GRandInRange__Fff(float a, float b);
-CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1223C0
  * Purpose: Splice builtin "random": NRandInRange for ints else GRandInRange
@@ -2330,14 +2330,14 @@ CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "random": NRandInRange for ints else GRandInRange.
-CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
-    if (aref[0].m_tagk == 0x15 && aref[1].m_tagk == aref[0].m_tagk) {
-        ref = NRandInRange__Fii(aref[0].u.n, aref[1].u.n);
+    if (args[0].m_tagk == 0x15 && args[1].m_tagk == args[0].m_tagk) {
+        ref = NRandInRange__Fii(args[0].u.n, args[1].u.n);
     } else {
-        float g0 = CRef_RefCoerceF32(&aref[0]).u.g;
-        float g1 = CRef_RefCoerceF32(&aref[1]).u.g;
+        float g0 = CRef_RefCoerceF32(&args[0]).u.g;
+        float g1 = CRef_RefCoerceF32(&args[1]).u.g;
         ref = GRandInRange__Fff(g0, g1);
     }
     return ref;
@@ -2387,9 +2387,9 @@ CRef *RefUfo__FP4CRef4UFOK(CRef *ret, CRef *parg, int i)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "sqrt": RefUfo(arg,0).
-extern "C" CREFV *RefOpSqrt__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpSqrt__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 0);
+    RefUfo(pref, args, 0);
     return pref;
 }
 
@@ -2402,9 +2402,9 @@ extern "C" CREFV *RefOpSqrt__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "sin": RefUfo(arg,1).
-extern "C" CREFV *RefOpSin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpSin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 1);
+    RefUfo(pref, args, 1);
     return pref;
 }
 
@@ -2417,9 +2417,9 @@ extern "C" CREFV *RefOpSin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "cos": RefUfo(arg,2).
-extern "C" CREFV *RefOpCos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpCos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 2);
+    RefUfo(pref, args, 2);
     return pref;
 }
 
@@ -2432,9 +2432,9 @@ extern "C" CREFV *RefOpCos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "tan": RefUfo(arg,3).
-extern "C" CREFV *RefOpTan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpTan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 3);
+    RefUfo(pref, args, 3);
     return pref;
 }
 
@@ -2447,9 +2447,9 @@ extern "C" CREFV *RefOpTan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "asin": RefUfo(arg,4).
-extern "C" CREFV *RefOpAsin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpAsin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 4);
+    RefUfo(pref, args, 4);
     return pref;
 }
 
@@ -2462,9 +2462,9 @@ extern "C" CREFV *RefOpAsin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "acos": RefUfo(arg,5).
-extern "C" CREFV *RefOpAcos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpAcos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 5);
+    RefUfo(pref, args, 5);
     return pref;
 }
 
@@ -2477,9 +2477,9 @@ extern "C" CREFV *RefOpAcos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "atan": RefUfo(arg,6).
-extern "C" CREFV *RefOpAtan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpAtan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 6);
+    RefUfo(pref, args, 6);
     return pref;
 }
 
@@ -2492,9 +2492,9 @@ extern "C" CREFV *RefOpAtan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "rad-normalize": RefUfo(arg,7).
-extern "C" CREFV *RefOpRadNormalize__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpRadNormalize__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
-    RefUfo(pref, aref, 7);
+    RefUfo(pref, args, 7);
     return pref;
 }
 
@@ -2511,13 +2511,13 @@ float atan2f(float y, float x);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "atan2": atan2f(a0,a1).
-CRef *RefOpAtan2__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpAtan2__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     float ag[2];
     int i;
     float g;
     for (i = 0; i < 2; i++) {
-        CRef *p = &aref[i];
+        CRef *p = &args[i];
         if (p->m_tagk == 0x16) ag[i] = p->u.g; else ag[i] = p->u.n;
     }
     g = atan2f(ag[0], ag[1]);
@@ -2553,9 +2553,9 @@ static __inline__ int GDot(qword *pa, qword *pb)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-dot-product": VU dot xyz.
-CRef *RefOpVectorDotProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpVectorDotProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int g = GDot((qword *)aref[0].m_tag, (qword *)aref[1].m_tag);
+    int g = GDot((qword *)args[0].m_tag, (qword *)args[1].m_tag);
     ret->m_tagk = 0x16;
     *(volatile int *)&ret->m_tag = g;
     return ret;
@@ -2577,11 +2577,11 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-cross-product": VU outer product (cross).
-CRef *RefOpVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    register qword a __asm__("vf1") = *(qword *)aref[0].m_tag;
-    register qword b __asm__("vf2") = *(qword *)aref[1].m_tag;
+    register qword a __asm__("vf1") = *(qword *)args[0].m_tag;
+    register qword b __asm__("vf2") = *(qword *)args[1].m_tag;
     register qword v __asm__("vf3");
     __asm__ ("vopmula.xyz ACC, %1, %2\n"
         "vopmsub.xyz %0, %2, %1" : "=j"(v) : "j"(a), "j"(b));
@@ -2619,9 +2619,9 @@ static __inline__ int GLength(qword *pa)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-lth": VU length.
-CRef *RefOpVectorLth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpVectorLth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int g = GLength((qword *)aref[0].m_tag);
+    int g = GLength((qword *)args[0].m_tag);
     ret->m_tagk = 0x16;
     *(volatile int *)&ret->m_tag = g;
     return ret;
@@ -2646,7 +2646,7 @@ struct CRef {
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
-CRef RefOpVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 static inline float SDist(qword *pa, qword *pb)
 {
@@ -2673,15 +2673,15 @@ static inline float SDist(qword *pa, qword *pb)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-distance": distance to a1 or origin.
-CRef RefOpVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
-    if (aref[1].m_tagk == 0)
-        ref = SDist((qword *)aref[0].u.pv, &D_002A2DD0);
+    if (args[1].m_tagk == 0)
+        ref = SDist((qword *)args[0].u.pv, &D_002A2DD0);
     else
     {
-        register W *pw __asm__("$5") = (W *)aref[1].u.pv;
-        ref = SDist((qword *)aref[0].u.pv, pw->pv);
+        register W *pw __asm__("$5") = (W *)args[1].u.pv;
+        ref = SDist((qword *)args[0].u.pv, pw->pv);
     }
     return ref;
 }
@@ -2705,7 +2705,7 @@ struct CRef {
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
-CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 static inline float SDistSq(qword *pa, qword *pb)
 {
@@ -2730,7 +2730,7 @@ static inline float SDistSq(qword *pa, qword *pb)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-distance-squared": squared distance.
-CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { CRef ref; if (aref[1].m_tagk == 0) ref = SDistSq((qword *)aref[0].u.pv, &D_002A2DD0); else { register W *pw __asm__("$5") = (W *)aref[1].u.pv; ref = SDistSq((qword *)aref[0].u.pv, pw->pv);} return ref; }
+CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args) { CRef ref; if (args[1].m_tagk == 0) ref = SDistSq((qword *)args[0].u.pv, &D_002A2DD0); else { register W *pw __asm__("$5") = (W *)args[1].u.pv; ref = SDistSq((qword *)args[0].u.pv, pw->pv);} return ref; }
 } // namespace M_RefOpVectorDistanceSquared__FiP4CRefP6CFrame
 
 // 0x1229B8 RefOpVectorNormalize__FiP4CRefP6CFrame
@@ -2749,7 +2749,7 @@ struct CRef {
 };
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
-extern "C" CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -2794,7 +2794,7 @@ static __inline__ void Normalize1(qword *pv, qword *pdef)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-normalize": normalize with 1e-4 guard/default.
-CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { CRef ref((qword *)aref[0].u.pv); if (aref[1].m_tagk == 0) Normalize1(ref.u.pq, &D_002A2DD0); else Normalize(ref.u.pq, ((W *)aref[1].u.pv)->pv); return ref; }
+CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args) { CRef ref((qword *)args[0].u.pv); if (args[1].m_tagk == 0) Normalize1(ref.u.pq, &D_002A2DD0); else Normalize(ref.u.pq, ((W *)args[1].u.pv)->pv); return ref; }
 } // namespace M_RefOpVectorNormalize__FiP4CRefP6CFrame
 
 // 0x122B08 RefOpVectorProjectNormal__FiP4CRefP6CFrame
@@ -2812,11 +2812,11 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-project-normal": (a.b)b.
-CRef *RefOpVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    register qword a __asm__("vf1") = *(qword *)aref[0].m_tag;
-    register qword b __asm__("vf2") = *(qword *)aref[1].m_tag;
+    register qword a __asm__("vf1") = *(qword *)args[0].m_tag;
+    register qword b __asm__("vf2") = *(qword *)args[1].m_tag;
     register qword t __asm__("vf3");
     __asm__ ("vmul.xyz %0, %0, %2\n"
         "vaddw.x %1, $vf0, $vf0w\n"
@@ -2845,11 +2845,11 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-project-tangent": a-(a.b)b.
-CRef *RefOpVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    register qword a __asm__("vf3") = *(qword *)aref[0].m_tag;
-    register qword b __asm__("vf2") = *(qword *)aref[1].m_tag;
+    register qword a __asm__("vf3") = *(qword *)args[0].m_tag;
+    register qword b __asm__("vf2") = *(qword *)args[1].m_tag;
     register qword t __asm__("vf1");
     register qword u __asm__("vf4");
     __asm__ ("vmul.xyz %0, %2, %3\n"
@@ -2887,7 +2887,7 @@ struct W { char pad[0xC]; O *po; };
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
 qword func_001D6848(qword a, qword b, qword c, float g);
-CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x122BE0
  * Purpose: Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with
@@ -2898,20 +2898,20 @@ CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * @end-sly2-annot */
 // Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750)
 // or object xfm.
-CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     VQ v;
     v.v.x = 0.0f;
     v.v.y = 0.0f;
     v.v.z = -1750.0f;
-    if (aref[3].m_tagk) {
-        O *po = ((W *)aref[3].u.pv)->po;
+    if (args[3].m_tagk) {
+        O *po = ((W *)args[3].u.pv)->po;
         if (po && po->pxfm)
             v.q = po->pxfm->pos;
     }
     CRef ref(0x1A);
     qword *pq = (qword *)ref.u.pv;
-    *pq = func_001D6848(*(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, v.q, CRef_RefCoerceF32(&aref[2]).u.g);
+    *pq = func_001D6848(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, v.q, CRef_RefCoerceF32(&args[2]).u.g);
     return ref;
 }
 } // namespace M_RefOpVectorBallisticVelocity__FiP4CRefP6CFrame
@@ -2934,7 +2934,7 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" float RadBetweenVectors(qword a, qword b, void *pvec);
-extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x122CE0
  * Purpose: Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0
  * Info: proposed name RefOpVectorRadianNormal (T1); TU bif
@@ -2942,14 +2942,14 @@ extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0.
-CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->SetNext(PtNew__t6CGcObj1Z5CPair());
     CRef *pref = &sp->pnext.p->ref;
     pref->Retag(0x1A);
-    sp->ref.SetF32(RadBetweenVectors(*(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, pref->u.pv));
+    sp->ref.SetF32(RadBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
     return CRef(sp.p);
 }
 } // namespace M_RefOpVectorRadianNormal__FiP4CRefP6CFrame
@@ -2972,11 +2972,11 @@ void CRef_ctor_MATRIX4(CRef *pref, MATRIX4 *pmat);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-transpose": 0x11C1D8.
-CRef *RefOpMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     MATRIX4 mat;
-    TransposeMatrix4(&mat, aref->m_tag);
+    TransposeMatrix4(&mat, args->m_tag);
     CRef_ctor_MATRIX4(&ref, &mat);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -2992,11 +2992,11 @@ CRef *RefOpMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-invert": 0x11C2F0.
-extern "C" CREFV *RefOpMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     CREFV ref;
     SetTag(&ref, 0x1B);
-    InvertMatrix4(aref->u.pmat, ref.u.pmat);
+    InvertMatrix4(args->u.pmat, ref.u.pmat);
     __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
@@ -3010,11 +3010,11 @@ extern "C" CREFV *RefOpMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CRE
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat).
-extern "C" CREFV *RefOpMatrixCalculateDmat__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpMatrixCalculateDmat__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     CREFV ref;
     SetTag(&ref, 0x1B);
-    CalculateDmat4(aref[0].u.pmat, aref[1].u.pmat, ref.u.pmat);
+    CalculateDmat4(args[0].u.pmat, args[1].u.pmat, ref.u.pmat);
     __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
@@ -3058,7 +3058,7 @@ static inline M3 MulM3(const M3 &a, M3 *pb) return m
             : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[2]));
     m.r[2] = r2; t.r[2] = r2;
 }
-extern "C" CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref);
+extern "C" CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args);
 /** @sly2-annot addr=0x122F00
  * Purpose: Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500)
  * Info: proposed name RefOpMatrixInterpolateRotate (T1); TU bif
@@ -3066,9 +3066,9 @@ extern "C" CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *a
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500).
-CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
+CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
-    M3 mat = MulMatrix3Matrix3((M3 *)aref[0].u.pv, (M3 *)aref[1].u.pv);
+    M3 mat = MulMatrix3Matrix3((M3 *)args[0].u.pv, (M3 *)args[1].u.pv);
     UF normal;
     float rad;
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mat, &rad, &normal.q);
@@ -3076,7 +3076,7 @@ CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
     func_002333B4(pm, 0, 0x40);
     pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
-    *(M3 *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * aref[2].u.g, normal.q), (M3 *)aref[0].u.pv);
+    *(M3 *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * args[2].u.g, normal.q), (M3 *)args[0].u.pv);
     return ref;
 }
 } // namespace M_RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame
@@ -3089,10 +3089,10 @@ CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-translate": translation column -> vector.
-extern "C" CREFV *RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     CREFV ref;
-    CRef_ctor_VECTOR(&ref, (VECTORQ *)aref->u.pmat->mat[3]);
+    CRef_ctor_VECTOR(&ref, (VECTORQ *)args->u.pmat->mat[3]);
     __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
@@ -3106,10 +3106,10 @@ extern "C" CREFV *RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pref,
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix.
-extern "C" CREFV *RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
     CREFV ref;
-    CRef_ctor_MATRIX4(&ref, aref->u.pmat);
+    CRef_ctor_MATRIX4(&ref, args->u.pmat);
     __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
@@ -3131,10 +3131,10 @@ TI DecomposeRotationMatrixToEuler(int n);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler.
-CRef *RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    CRef_ctor(&ref, DecomposeRotationMatrixToEuler(aref->m_tag));
+    CRef_ctor(&ref, DecomposeRotationMatrixToEuler(args->m_tag));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -3158,7 +3158,7 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
-extern "C" CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x123118
  * Purpose: Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad
  * Info: proposed name RefOpMatrixDecomposeToRadianNormal (T1); TU bif
@@ -3167,7 +3167,7 @@ extern "C" CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasi
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad.
-CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
     struct { float g, h, i; } g;
@@ -3175,7 +3175,7 @@ CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
     sp->SetNext(PtNew__t6CGcObj1Z5CPair());
     CRef *pref = &sp->pnext.p->ref;
     pref->Retag(0x1A);
-    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(aref[0].u.pv, &g.g, pref->u.pv);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(args[0].u.pv, &g.g, pref->u.pv);
     sp->ref.SetF32(g.g);
     return CRef(sp.p);
 }
@@ -3201,7 +3201,7 @@ struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
-CRef RefOpMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 static inline qword VecSub(qword *pb, qword *pa)
 {
@@ -3217,15 +3217,15 @@ static inline qword VecSub(qword *pb, qword *pa)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0.
-CRef RefOpMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     qword *pup;
-    if (aref[2].m_tagk == 0)
+    if (args[2].m_tagk == 0)
         pup = &D_002A2DC0;
     else
-        pup = ((W *)aref[2].u.pv)->pv;
+        pup = ((W *)args[2].u.pv)->pv;
     union { qword q; } v;
-    v.q = VecSub((qword *)aref[1].u.pv, (qword *)aref[0].u.pv);
+    v.q = VecSub((qword *)args[1].u.pv, (qword *)args[0].u.pv);
     CRef ref(0x1B);
     MATRIX3 *pmat = (MATRIX3 *)ref.u.pv;
     *pmat = BuildOrthonormalMatrixZ(v.q, *pup);
@@ -3257,7 +3257,7 @@ struct XF { char pad[0x30]; qword pos; };
 extern "C" {
 void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat);
 VECTOR *VECTOR_opAssign(VECTOR *pv, qword q);
-CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1232D0
  * Purpose: Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright
@@ -3266,13 +3266,13 @@ CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright.
-CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     MATRIX3 mat;
-    TiltMatUpright((XF *)aref[0].u.pv, 0, &mat);
+    TiltMatUpright((XF *)args[0].u.pv, 0, &mat);
     CRef ref(0x1B);
     MATRIX4 *pmat = (MATRIX4 *)ref.u.pv;
-    VECTOR_opAssign(&pmat->pos, ((XF *)aref[0].u.pv)->pos);
+    VECTOR_opAssign(&pmat->pos, ((XF *)args[0].u.pv)->pos);
     *(MATRIX3 *)pmat = mat;
     pmat->mat[2].w = 0.0f;
     pmat->mat[1].w = 0.0f;
@@ -3295,12 +3295,12 @@ void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "clq-evaluate": a0+t(a1+t a2).
-CRef *RefOpClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float *a = (float *)aref[0].u.p;
+    float *a = (float *)args[0].u.p;
     CRef ref;
     float t, g;
-    CRef_RefCoerceF32(&ref, &aref[1]);
+    CRef_RefCoerceF32(&ref, &args[1]);
     t = ref.u.g;
     g = a[0] + t * (a[1] + t * a[2]);
     ret->m_tagk = 0x16;
@@ -3333,13 +3333,13 @@ static __inline__ float GLimit(float g, float gMin, float gMax)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
-CRef *RefOpClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float *c = (float *)aref[0].u.pv;
-    LM *plm = (LM *)aref[1].u.pv;
+    float *c = (float *)args[0].u.pv;
+    LM *plm = (LM *)args[1].u.pv;
     CRef ref;
     float g;
-    CRef_RefCoerceF32(&ref, &aref[2]);
+    CRef_RefCoerceF32(&ref, &args[2]);
     g = ref.u.g;
     ret->u.g = GLimit(c[0] + g * (c[1] + g * c[2]), plm->gMin, plm->gMax);
     ret->m_tagk = 0x16;
@@ -3365,7 +3365,7 @@ struct CRef {
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
 void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d);
-CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x123498
  * Purpose: Splice builtin "clq-fit": FitClq
@@ -3375,17 +3375,17 @@ CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "clq-fit": FitClq.
-CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(0x1C);
     {
-        CRef r0 = CRef_RefCoerceF32(&aref[0]);
+        CRef r0 = CRef_RefCoerceF32(&args[0]);
         float g0 = r0.u.g;
-        CRef r1 = CRef_RefCoerceF32(&aref[1]);
+        CRef r1 = CRef_RefCoerceF32(&args[1]);
         float g1 = r1.u.g;
-        CRef r2 = CRef_RefCoerceF32(&aref[2]);
+        CRef r2 = CRef_RefCoerceF32(&args[2]);
         float g2 = r2.u.g;
-        CRef r3 = CRef_RefCoerceF32(&aref[3]);
+        CRef r3 = CRef_RefCoerceF32(&args[3]);
         FitClq__FffffP3CLQ(ref.u.pv, g0, g1, g2, r3.u.g);
     }
     return ref;
@@ -3406,12 +3406,12 @@ float GLimitLm__FP2LMf(int n, float g);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "lm-limit": GLimitLm.
-CRef *RefOpLmLimit__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpLmLimit__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int n = aref[0].u.n;
+    int n = args[0].u.n;
     CRef ref;
     float g;
-    CRef_RefCoerceF32(&ref, &aref[1]);
+    CRef_RefCoerceF32(&ref, &args[1]);
     g = GLimitLm__FP2LMf(n, ref.u.g);
     ret->u.g = g;
     ret->m_tagk = 0x16;
@@ -3435,12 +3435,12 @@ int FCheckLm__FP2LMf(int n, float g);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "lm-check?": FCheckLm.
-CRef *RefOpLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int n = aref[0].u.n;
+    int n = args[0].u.n;
     CRef ref;
     int f;
-    CRef_RefCoerceF32(&ref, &aref[1]);
+    CRef_RefCoerceF32(&ref, &args[1]);
     f = FCheckLm__FP2LMf(n, ref.u.g) != 0;
     ret->m_tagk = 0x17;
     ret->u.n = f;
@@ -3460,9 +3460,9 @@ typedef struct CRef { int m_tagk; float m_g; } CRef;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "floor": (int)g.
-CRef *RefOpFloor__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpFloor__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float g = aref->m_g;
+    float g = args->m_g;
     ret->m_tagk = 0x15;
     *(int *)&ret->m_g = (int)g;
     return ret;
@@ -3481,9 +3481,9 @@ typedef struct CRef { int m_tagk; float m_g; } CRef;
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "ceiling": (int)(g+1).
-CRef *RefOpCeiling__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpCeiling__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float g = aref->m_g;
+    float g = args->m_g;
     ret->m_tagk = 0x15;
     *(int *)&ret->m_g = (int)(g + 1.0f);
     return ret;
@@ -3501,9 +3501,9 @@ typedef struct CRef { int m_tagk; float m_g; } CRef;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "round": (int)(g+0.5).
-CRef *RefOpRound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpRound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float g = aref->m_g;
+    float g = args->m_g;
     ret->m_tagk = 0x15;
     *(int *)&ret->m_g = (int)(g + 0.5f);
     return ret;
@@ -3521,9 +3521,9 @@ typedef struct CRef { int m_tagk; float m_g; } CRef;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "truncate": (int)g.
-CRef *RefOpTruncate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpTruncate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    float g = aref->m_g;
+    float g = args->m_g;
     ret->m_tagk = 0x15;
     *(int *)&ret->m_g = (int)g;
     return ret;
@@ -3546,15 +3546,15 @@ void Decref__4CRef(CRef *pref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "abs": abs int/float.
-CRef *RefOpAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     ref.m_tagk = -1;
-    if (aref->m_tagk == 0x15) {
-        int n = aref->m_tag;
+    if (args->m_tagk == 0x15) {
+        int n = args->m_tag;
         SetS32__4CRefi(&ref, n < 0 ? -n : n);
     } else {
-        float g = *(float *)&aref->m_tag;
+        float g = *(float *)&args->m_tag;
         if (g < 0.0f) g = -g;
         SetF32__4CReff(&ref, g);
     }
@@ -3567,7 +3567,7 @@ CRef *RefOpAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 // 0x123788 RefOpMaximum__FiP4CRefP6CFrame
 namespace M_RefOpMaximum__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
-// same shape as RefOpMinimum (max instead of min): list pointer reuses the aref parameter variable
+// same shape as RefOpMinimum (max instead of min): list pointer reuses the args parameter variable
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -3580,7 +3580,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
-extern "C" CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x123788
  * Purpose: Splice builtin "max": max over varargs
  * Info: proposed name RefOpMaximum (T1); TU bif
@@ -3588,11 +3588,11 @@ extern "C" CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "max": max over varargs.
-CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
-    CRef ref(aref[0]);
-    if (aref[1].m_tagk != 0) aref = (CRef *)aref[1].u.pv; else aref = 0;
-    NODE *pn = (NODE *)aref;
+    CRef ref(args[0]);
+    if (args[1].m_tagk != 0) args = (CRef *)args[1].u.pv; else args = 0;
+    NODE *pn = (NODE *)args;
     for (; pn; pn = pn->pnext) {
         if (ref.m_tagk == 0x15) {
             if (pn->ref.m_tagk == 0x15) {
@@ -3623,7 +3623,7 @@ CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 // 0x1238B0 RefOpMinimum__FiP4CRefP6CFrame
 namespace M_RefOpMinimum__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
-// pn reuses the aref parameter variable (if/else, tag != 0 arm first) -> beql s0=0
+// pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -3636,7 +3636,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
-extern "C" CRef RefOpMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+extern "C" CRef RefOpMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x1238B0
  * Purpose: Splice builtin "min": min over varargs
  * Info: proposed name RefOpMinimum (T1); TU bif
@@ -3644,11 +3644,11 @@ extern "C" CRef RefOpMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "min": min over varargs.
-CRef RefOpMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
-    CRef ref(aref[0]);
-    if (aref[1].m_tagk != 0) aref = (CRef *)aref[1].u.pv; else aref = 0;
-    NODE *pn = (NODE *)aref;
+    CRef ref(args[0]);
+    if (args[1].m_tagk != 0) args = (CRef *)args[1].u.pv; else args = 0;
+    NODE *pn = (NODE *)args;
     for (; pn; pn = pn->pnext) {
         if (ref.m_tagk == 0x15) {
             if (pn->ref.m_tagk == 0x15) {
@@ -3687,9 +3687,9 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "modulo": int %.
-CRef *RefOpModulo__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpModulo__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int r = aref[0].m_tag % aref[1].m_tag;
+    int r = args[0].m_tag % args[1].m_tag;
     ret->m_tagk = 0x15;
     ret->m_tag = r;
     return ret;
@@ -3888,7 +3888,7 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref);
+extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args);
 /** @sly2-annot addr=0x123BD8
  * Purpose: Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32
  *   handle
@@ -3897,7 +3897,7 @@ extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32 handle.
-CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew); sp->ref = PtNew__t6CGcObj1Z5CPair(); CPair *pn = sp->ref.u.ppair; pn->ref.SetProc((CProc *)pobj); if (c >= 3) { CPair *pnT = pn; for (CPair *pw = aref[2].u.ppair; pw; pw = pw->pnext.p) { pnT->SetNext(PtNew__t6CGcObj1Z5CPair()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = PtNew__t6CGcObj1Z5CPair(); CPair *pc = pref->u.ppair; pc->ref.Retag(0x12); pc->SetNext(PtNew__t6CGcObj1Z5CPair()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res.SetS32(pr->n); return res; }
+CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)args[1].u.pv; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew); sp->ref = PtNew__t6CGcObj1Z5CPair(); CPair *pn = sp->ref.u.ppair; pn->ref.SetProc((CProc *)pobj); if (c >= 3) { CPair *pnT = pn; for (CPair *pw = args[2].u.ppair; pw; pw = pw->pnext.p) { pnT->SetNext(PtNew__t6CGcObj1Z5CPair()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = PtNew__t6CGcObj1Z5CPair(); CPair *pc = pref->u.ppair; pc->ref.Retag(0x12); pc->SetNext(PtNew__t6CGcObj1Z5CPair()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(args).u.g); res.SetS32(pr->n); return res; }
 } // namespace M_RefOpScheduleCallback__FiP4CRefP6CFrame
 
 // 0x123DD8 RefOpCancelCallback
@@ -3911,9 +3911,9 @@ CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Cancels a scheduled callback by handle: 0x133130(g_sw, id) unlinks and frees; returns Void.
-extern "C" CREFV *RefOpCancelCallback(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpCancelCallback(CREFV *pref, int cref, CREFV *args)
 {
-    CancelSwSpliceCallback(D_003DD490, aref->u.n);
+    CancelSwSpliceCallback(D_003DD490, args->u.n);
     SetTag(pref, 0x24);
     return pref;
 }
@@ -3934,15 +3934,15 @@ extern float D_002DDED0;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt.
-CRef *RefOpDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     CRef refT;
     char *p;
     float g;
     SetTag__4CRef4TAGK(&ref, 0x24);
-    p = (char *)aref[0].u.pv;
-    CRef_RefCoerceF32(&refT, &aref[1]);
+    p = (char *)args[0].u.pv;
+    CRef_RefCoerceF32(&refT, &args[1]);
     g = refT.u.g;
     Decref__4CRef(&refT);
     *(float *)(p + 0x30) = D_002DDED0 + g;
@@ -3971,7 +3971,7 @@ CRef RefAddOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefEnsureOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefSetOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefGetOption__FP5BASICi(void *a, void *b);
-CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv, int op);
+CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
 }
 /** @sly2-annot addr=0x123EB0
  * Purpose: Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
@@ -3983,20 +3983,20 @@ CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv
  * @end-sly2-annot */
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
 // RefAddOption/RefEnsureOption/RefSetOption/RefGetOption.
-CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv, int op)
+CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
 {
     CRef ref;
-    void *a = aref[0].u.pv;
-    void *b = aref[1].u.pv;
+    void *a = args[0].u.pv;
+    void *b = args[1].u.pv;
     switch (op) {
     case 0x6C:
-        ref = RefAddOption__FP5BASICiP4CRef(a, b, &aref[2]);
+        ref = RefAddOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6D:
-        ref = RefEnsureOption__FP5BASICiP4CRef(a, b, &aref[2]);
+        ref = RefEnsureOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6E:
-        ref = RefSetOption__FP5BASICiP4CRef(a, b, &aref[2]);
+        ref = RefSetOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6F:
         ref = RefGetOption__FP5BASICi(a, b);
@@ -4010,7 +4010,7 @@ CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv
 namespace M_RefOpAddO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FB8
  * Purpose: Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption
  * Info: proposed name RefOpAddO (T1); TU bif
@@ -4019,9 +4019,9 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption.
-CRef *RefOpAddO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpAddO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x6C);
+    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
     return ret;
 }
 } } // namespace M_RefOpAddO__FiP4CRefP6CFrame
@@ -4030,7 +4030,7 @@ CRef *RefOpAddO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
 namespace M_RefOpEnsureO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FE8
  * Purpose: Splice builtin "ensureo": op 0x6D RefEnsureOption
  * Info: proposed name RefOpEnsureO (T1); TU bif
@@ -4039,9 +4039,9 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "ensureo": op 0x6D RefEnsureOption.
-CRef *RefOpEnsureO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpEnsureO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x6D);
+    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
     return ret;
 }
 } } // namespace M_RefOpEnsureO__FiP4CRefP6CFrame
@@ -4050,7 +4050,7 @@ CRef *RefOpEnsureO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *ar
 namespace M_RefOpSetO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124018
  * Purpose: Splice builtin "seto!": op 0x6E RefSetOption
  * Info: proposed name RefOpSetO (T1); TU bif
@@ -4059,9 +4059,9 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "seto!": op 0x6E RefSetOption.
-CRef *RefOpSetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpSetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x6E);
+    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
     return ret;
 }
 } } // namespace M_RefOpSetO__FiP4CRefP6CFrame
@@ -4070,7 +4070,7 @@ CRef *RefOpSetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
 namespace M_RefOpGetO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *aref, int k);
+void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124048
  * Purpose: Splice builtin "geto": op 0x6F RefGetOption
  * Info: proposed name RefOpGetO (T1); TU bif
@@ -4079,9 +4079,9 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "geto": op 0x6F RefGetOption.
-CRef *RefOpGetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *aref)
+CRef *RefOpGetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, aref, 0x6F);
+    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
     return ret;
 }
 } } // namespace M_RefOpGetO__FiP4CRefP6CFrame
@@ -4154,23 +4154,23 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root.
-CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     LO *b;
     LO *plo;
     void *pv;
     ref.m_tagk = -1;
-    b = (LO *)aref[1].m_tag;
-    if (aref[2].m_tagk) {
-        plo = ((LO *)aref[2].m_tag)->pc;
+    b = (LO *)args[1].m_tag;
+    if (args[2].m_tagk) {
+        plo = ((LO *)args[2].m_tag)->pc;
     } else {
         plo = b;
     }
     {
         G *pg = &D_003DD490;
         int k = b ? 1 : 5;
-        int a = aref[0].m_tag;
+        int a = args[0].m_tag;
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, k, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
@@ -4198,7 +4198,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" {
 int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
-CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1241E8
  * Purpose: Splice builtin "find-objects": 0x15E678 + RefPairFromAplo
@@ -4207,19 +4207,19 @@ CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-objects": 0x15E678 + RefPairFromAplo.
-CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     void *ap[0x40];
-    Q *pq = (Q *)aref[1].u.pv;
+    Q *pq = (Q *)args[1].u.pv;
     Q *pqT;
-    if (aref[2].m_tagk)
-        pqT = ((W *)aref[2].u.pv)->pq;
+    if (args[2].m_tagk)
+        pqT = ((W *)args[2].u.pv)->pq;
     else
         pqT = pq;
     G *pg = &D_003DD490;
     int k = pq ? 1 : 5;
-    void *p0 = aref[0].u.pv;
+    void *p0 = args[0].u.pv;
     void *pv;
     if (pqT)
         pv = pqT->pv;
@@ -4254,7 +4254,7 @@ struct OW { char pad[0xC]; SW *psw; };
 struct G { char pad[0x3F0C]; int n3F0C; };
 extern "C" { extern G D_003DD490; }
 extern "C" LO *PloFindSwObject_15E958(G *pg, int kind, int n, void *pv, int n2);
-extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
+extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x1242B8
  * Purpose: Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as
  *   find-object)
@@ -4267,10 +4267,10 @@ extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
-CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref) { CRef res; if (aref[0].m_tagk == 0) return aref[0];
- void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
+CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args) { CRef res; if (args[0].m_tagk == 0) return args[0];
+ void *pv = args[1].u.pv; SW *psw; if (args[2].m_tagk != 0) psw = ((OW *)args[2].u.pv)->psw; else psw = (SW *)pv;
  SPN spRes; CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes.Set(pnR);
- CPair *pTail; CPair *pn = (CPair *)aref[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
+ CPair *pTail; CPair *pn = (CPair *)args[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
    int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)PloFindSwObject_15E958(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((CPair *)spRes->ref.u.pv); return res; }
@@ -4294,22 +4294,22 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-nearest-object": like find-object with k=4.
-CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     LO *b;
     LO *plo;
     void *pv;
     ref.m_tagk = -1;
-    b = (LO *)aref[1].m_tag;
-    if (aref[2].m_tagk) {
-        plo = ((LO *)aref[2].m_tag)->pc;
+    b = (LO *)args[1].m_tag;
+    if (args[2].m_tagk) {
+        plo = ((LO *)args[2].m_tag)->pc;
     } else {
         plo = b;
     }
     {
         G *pg = &D_003DD490;
-        int a = aref[0].m_tag;
+        int a = args[0].m_tag;
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, 4, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
@@ -4337,7 +4337,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" {
 int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
-CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x124578
  * Purpose: Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo
@@ -4347,17 +4347,17 @@ CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo.
-CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     void *ap[0x40];
-    Q *pq = (Q *)aref[1].u.pv;
+    Q *pq = (Q *)args[1].u.pv;
     Q *pqT;
-    if (aref[2].m_tagk)
-        pqT = ((W *)aref[2].u.pv)->pq;
+    if (args[2].m_tagk)
+        pqT = ((W *)args[2].u.pv)->pq;
     else
         pqT = pq;
-    void *p0 = aref[0].u.pv;
+    void *p0 = args[0].u.pv;
     G *pg = &D_003DD490;
     void *pv;
     if (pqT)
@@ -4470,7 +4470,7 @@ extern "C" { extern char D_003DD490[]; }
 extern "C" {
 int CploFindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
-CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x124730
  * Purpose: Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo
@@ -4479,12 +4479,12 @@ CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo.
-CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     void *ap[0x180];
-    int b = aref[1].u.n;
-    int c = CploFindSwObjectsByClass(D_003DD490, b ? 0x401 : 0x405, aref[0].u.pv, b, 0x180, ap);
+    int b = args[1].u.n;
+    int c = CploFindSwObjectsByClass(D_003DD490, b ? 0x401 : 0x405, args[0].u.pv, b, 0x180, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }
@@ -4510,7 +4510,7 @@ extern "C" {
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
 void func_0020FDC8(int c, void *ap, int *pc, void **pap);
 CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
-CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1247D8
  * Purpose: Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter
@@ -4519,7 +4519,7 @@ CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter.
-CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     STACKSCOPE obj;
@@ -4527,7 +4527,7 @@ CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
     void *ap0;
     int c1;
     void *ap1;
-    IntersectSwBoundingBox(D_003DD490, *(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, 0, 0, &c0, &ap0);
+    IntersectSwBoundingBox(D_003DD490, *(qword *)args[0].u.pv, *(qword *)args[1].u.pv, 0, 0, &c0, &ap0);
     func_0020FDC8(c0, ap0, &c1, &ap1);
     ref = RefPairFromAplo__FiPP2LO(c1, ap1);
     return ref;
@@ -4554,7 +4554,7 @@ extern "C" {
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
 void func_0020FDC8(int c, void *ap, int *pc, void **pap);
 CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
-CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1248B0
  * Purpose: Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8
@@ -4563,20 +4563,20 @@ CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8.
-CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
+CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     float g;
-    if (aref[1].m_tagk == 0x15)
-        g = (float)aref[1].u.n;
+    if (args[1].m_tagk == 0x15)
+        g = (float)args[1].u.n;
     else
-        g = aref[1].u.g;
+        g = args[1].u.g;
     STACKSCOPE obj;
     int c0;
     void *ap0;
     int c1;
     void *ap1;
-    IntersectSwBoundingSphere(D_003DD490, *(qword *)aref[0].u.pv, 0, 0, g, &c0, &ap0);
+    IntersectSwBoundingSphere(D_003DD490, *(qword *)args[0].u.pv, 0, 0, g, &c0, &ap0);
     func_0020FDC8(c0, ap0, &c1, &ap1);
     ref = RefPairFromAplo__FiPP2LO(c1, ap1);
     return ref;
@@ -4634,25 +4634,25 @@ extern "C" int ClsgClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT 
  * @end-sly2-annot */
 // Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C returns first
 // hit.
-extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CRef *aref)
+extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CRef *args)
 {
     CRef ref;
-    if (aref[0].m_tagk == 0) {
-        ref = aref[0];
+    if (args[0].m_tagk == 0) {
+        ref = args[0];
     } else {
         SPN spHead(0);
         SPN spTail(0);
         CPair *pn;
 
-        for (pn = aref[0].u.ppair; pn; pn = pn->pnext.p) {
-            CRef *prefTo = &aref[2];
+        for (pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
+            CRef *prefTo = &args[2];
             LO *plo = (LO *)pn->ref.u.pv;
             int i;
             if (!plo)
                 continue;
             for (i = 0; i < plo->cso; i++) {
                 SO *pso = &plo->aso[i];
-                CRef *prefFrom = &aref[1];
+                CRef *prefFrom = &args[1];
                 HIT hit;
                 if (pso->grf & (1UL << 50))
                     continue;
@@ -4772,10 +4772,10 @@ TI ConvertAloPos(int a, int b, TI v);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "convert-object-position": ConvertAloPos 0x1A6F00.
-CRef *RefOpConvertObjectPosition__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpConvertObjectPosition__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    CRef_ctor(&ref, ConvertAloPos(aref[0].m_tag, aref[1].m_tag, *(TI *)aref[2].m_tag));
+    CRef_ctor(&ref, ConvertAloPos(args[0].m_tag, args[1].m_tag, *(TI *)args[2].m_tag));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -4800,13 +4800,13 @@ TI ConvertAloVec(void *a, void *b, TI v);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0.
-CRef *RefOpConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     TI *pv;
     SetTag__4CRef4TAGK(&ref, 0x1A);
     pv = (__typeof__(pv))ref.m_p;
-    *pv = ConvertAloVec(aref[0].m_p, aref[1].m_p, *(TI *)aref[2].m_p);
+    *pv = ConvertAloVec(args[0].m_p, args[1].m_p, *(TI *)args[2].m_p);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -4831,14 +4831,14 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0.
-CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     MATRIX4 mat;
     MATRIX4 *pmat;
     SetTag__4CRef4TAGK(&ref, 0x1B);
     pmat = (MATRIX4 *)ref.m_tag;
-    ConvertAloMat4(&mat, aref[0].m_tag, aref[1].m_tag, aref[2].m_tag);
+    ConvertAloMat4(&mat, args[0].m_tag, args[1].m_tag, args[2].m_tag);
     *pmat = mat;
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -4912,10 +4912,10 @@ void CRef_ctor_BASIC(CRef *pref, void *p);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound.
-CRef *RefOpStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int n = aref[1].m_tag;
-    void *p = PsndStartSound(aref[0].m_tag);
+    int n = args[1].m_tag;
+    void *p = PsndStartSound(args[0].m_tag);
     SetSndSourceLo(p, n);
     CRef_ctor_BASIC(ret, p);
     return ret;
@@ -4940,12 +4940,12 @@ extern char D_002DFC00[];
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28.
-CRef *RefOpStartRumble__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpStartRumble__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     void *p = D_002DFC00;
-    int n = aref[0].u.n;
+    int n = args[0].u.n;
     CRef ref;
-    CRef_RefCoerceF32(&ref, &aref[1]);
+    CRef_RefCoerceF32(&ref, &args[1]);
     TriggerJoyRumbleRumk__FP3JOY4RUMKf(p, n, ref.u.g);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
@@ -5012,7 +5012,7 @@ extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
 CRef RefGetSaveVar(void *a, X *px, void *b);
-CRef RefOpGetSaveVar(void *pbasic, CRef *aref);
+CRef RefOpGetSaveVar(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x125398
  * Purpose: Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..)
@@ -5027,12 +5027,12 @@ CRef RefOpGetSaveVar(void *pbasic, CRef *aref);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..).
-CRef RefOpGetSaveVar(void *pbasic, CRef *aref)
+CRef RefOpGetSaveVar(void *pbasic, CRef *args)
 {
     CRef ref;
     STACKSCOPE obj;
     X x;
-    FillAsFromPair(aref[0].u.pv, &x);
+    FillAsFromPair(args[0].u.pv, &x);
     ref = RefGetSaveVar(&g_sw.savevars, &x, D_003D4A60);
     return ref;
 }
@@ -5055,7 +5055,7 @@ extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
 CRef RefSetSaveVar(void *a, X *px, CRef *pref, void *b);
-CRef RefOpSetSaveVar(void *pbasic, CRef *aref);
+CRef RefOpSetSaveVar(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x125450
  * Purpose: Path list + value -> RefSetSaveVar 0x1D80C8
@@ -5066,13 +5066,13 @@ CRef RefOpSetSaveVar(void *pbasic, CRef *aref);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Path list + value -> RefSetSaveVar 0x1D80C8.
-CRef RefOpSetSaveVar(void *pbasic, CRef *aref)
+CRef RefOpSetSaveVar(void *pbasic, CRef *args)
 {
     CRef ref;
     STACKSCOPE obj;
     X x;
-    FillAsFromPair(aref[0].u.pv, &x);
-    ref = RefSetSaveVar(&g_sw.savevars, &x, &aref[1], D_003D4A60);
+    FillAsFromPair(args[0].u.pv, &x);
+    ref = RefSetSaveVar(&g_sw.savevars, &x, &args[1], D_003D4A60);
     return ref;
 }
 } // namespace M_RefOpSetSaveVar
@@ -5094,7 +5094,7 @@ struct CRef {
 };
 struct O { int pad[2]; int k; O *pparent; int pad2[5]; int f; };
 class CFrame { public: CRef *PrefFindBinding(unsigned int sym, int fRecurse) __asm__("PrefFindBinding__6CFrameUii"); };
-extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *aref, O *po);
+extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *po);
 /** @sly2-annot addr=0x125510
  * Purpose: Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound
  *   returns Bifk 0x86 (slot 134 no-op builtin)
@@ -5109,7 +5109,7 @@ extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *aref, O *po);
  * @end-sly2-annot */
 // Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound returns Bifk 0x86
 // (slot 134 no-op builtin).
-CRef RefOpFindBindingOrNoop(void *pbasic, CRef *aref, O *po)
+CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *po)
 {
     if (po && po->k == 1) {
         while (!po->f) {
@@ -5118,7 +5118,7 @@ CRef RefOpFindBindingOrNoop(void *pbasic, CRef *aref, O *po)
                 goto fail;
         }
         {
-            CRef *pref = ((CFrame *)po->pparent)->PrefFindBinding(aref[0].u.n, 1);
+            CRef *pref = ((CFrame *)po->pparent)->PrefFindBinding(args[0].u.n, 1);
             if (pref)
                 return *pref;
         }
@@ -5152,14 +5152,14 @@ extern "C" CREFV *RefOpNoop(CREFV *pref)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Bitwise AND of all S32 list args (init -1).
-extern "C" CREFV *RefOpBitAnd(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpBitAnd(CREFV *pref, int cref, CREFV *args)
 {
     int n;
     PAIRV *ppair;
     n = -1;
     ppair = 0;
-    if (aref->m_tagk != 0) {
-        ppair = aref->u.ppair;
+    if (args->m_tagk != 0) {
+        ppair = args->u.ppair;
     }
     if (ppair != 0) {
         do {
@@ -5183,14 +5183,14 @@ extern "C" CREFV *RefOpBitAnd(CREFV *pref, int cref, CREFV *aref)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Bitwise OR of all S32 list args (init 0).
-extern "C" CREFV *RefOpBitOr(CREFV *pref, int cref, CREFV *aref)
+extern "C" CREFV *RefOpBitOr(CREFV *pref, int cref, CREFV *args)
 {
     int n;
     PAIRV *ppair;
     n = 0;
     ppair = 0;
-    if (aref->m_tagk != 0) {
-        ppair = aref->u.ppair;
+    if (args->m_tagk != 0) {
+        ppair = args->u.ppair;
     }
     if (ppair != 0) {
         do {
@@ -5251,11 +5251,11 @@ int FPowerupAcquired(int n);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8.
-CRef *RefOpIsPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpIsPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     ref.m_tagk = -1;
-    CRef_SetBool(&ref, FPowerupAcquired(aref->m_tag) != 0);
+    CRef_SetBool(&ref, FPowerupAcquired(args->m_tag) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -5280,11 +5280,11 @@ void SetPowerupAcquired(int a, int b);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set).
-CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
+CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     SetTag__4CRef4TAGK(&ref, 0x24);
-    SetPowerupAcquired(aref[0].m_tag, aref[1].m_tag);
+    SetPowerupAcquired(args[0].m_tag, args[1].m_tag);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
