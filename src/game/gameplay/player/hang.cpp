@@ -136,10 +136,10 @@ void CroutSolve(int,float*,float*,float*);
  * @end-sly2-annot */
 // Creates the 3-entry dynamic swing blend (forward, backward, idle) over the swing clips and returns it through the
 // out pointer (Sly 1: PostJtLoadSwing).
-extern "C" void PostJtLoadSwing(void *p, void *q, int *pn)
+extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
 {
     int n;
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, q, 0, 0, 0, &n);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(jt, 0xC, 3, q, 0, 0, 0, &n);
     if (pn) *pn = n;
 }
 
@@ -193,13 +193,13 @@ static inline const qword&Ref(const qword&q){return q;}
  * @end-sly2-annot */
 // Solves a 3x3 linear system (Crout decomposition) of the per-axis impulse responses of Sly and the hang object to
 // find the force pair that produces the requested relative velocity; stores it for AddJtExternalAccelerations.
-extern "C" void AnticipateJtForce(NODE*p,NODE*other,qword*point,float*input,DELTA*out){
+extern "C" void AnticipateJtForce(NODE*jt,NODE*other,qword*point,float*input,DELTA*out){
  int axisIndex=0,side;
  OBJ objects[2];U points[2];/* initializer only marks axis addressable at its declaration (keeps slot 0x30) */qword axis=(sizeof(&axis),axis);
  DELTA effects[2][3];U velocity[2];U relative[3];
  float matrix[3][3],decomposed[3][3],rhs[3],weights[3];qword scalar;
- objects[0].p=p;objects[1].p=other;
- StoreQ(&points[0],func_001A62E8(p));StoreQ(&points[1],*point);
+ objects[0].p=jt;objects[1].p=other;
+ StoreQ(&points[0],func_001A62E8(jt));StoreQ(&points[1],*point);
  
  for(;axisIndex<3;axisIndex++){
   for(side=0;side<2;side++){
@@ -209,7 +209,7 @@ extern "C" void AnticipateJtForce(NODE*p,NODE*other,qword*point,float*input,DELT
    (second-1)->q=func_001FAA00(objects[side].p,axis);
    /* empty asm, allocation-only: two extra refs make the arg and .second store givs outrank objects/points in global-alloc (target s1 store, s2 arg, s3 objects, s4 points); "=m"(scalar) keeps it a non-barrier */__asm__("" : "=m"(scalar) : "r"(effect),"r"(second));
    second->q=func_001FAA48(object,Addr(&points[side])->q,Ref(axis));
-   VTE*method=&p->vt[69];((void(*)(NODE*,DELTA*,qword,U*))method->fn)((NODE*)((char*)p+method->delta),effect,*point,&velocity[side]);
+   VTE*method=&jt->vt[69];((void(*)(NODE*,DELTA*,qword,U*))method->fn)((NODE*)((char*)jt+method->delta),effect,*point,&velocity[side]);
   }
   relative[axisIndex].q=SubV(velocity[0].q,velocity[1].q);
  }
