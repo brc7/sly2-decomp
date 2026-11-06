@@ -372,13 +372,48 @@ static inline qwordV LoadCpu(const U&u){register qwordV q asm("$5");__asm__("lq 
 // VU0 helper: loads a quadword into a VU register.
 static inline qwordV Load(const U&u){register qwordV q asm("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(u.q));return q;}
 // VU0 helper: length of a vector (third instruction pattern for the match).
-static inline float Len3(qwordV a,const U&u){qwordV b=Load(u);register qwordV d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+static inline float Len3(qwordV a, const U &u)
+{
+    qwordV b = Load(u);
+    register qwordV d asm("vf1");
+    float f;
+    d = VuDot(a, b);
+    __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
+    f = VuToFloat(d);
+    return f;
+}
 // VU0 helper: length of a vector (alternate instruction pattern for the match).
-static inline float Len2(qwordV input){register qwordV a asm("vf2")=input,d asm("vf1");float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(d):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+static inline float Len2(qwordV input)
+{
+    register qwordV a asm("vf2") = input, d asm("vf1");
+    float f;
+    __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(d) : "j"(a));
+    __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
+    f = VuToFloat(d);
+    return f;
+}
 // Loads the camera and position operands (register-pinned asm for the match).
-static inline void ReadInputs(CMV*source,const U&position,qwordV&cpu,qwordV&point,qwordV&vector){register CMV*p asm("$2")=source;register qwordV r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
+static inline void ReadInputs(CMV *source, const U &position, qwordV &cpu, qwordV &point, qwordV &vector)
+{
+    register CMV *p asm("$2") = source;
+    register qwordV r asm("$5"), v asm("vf1"), o asm("vf2");
+    __asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2" : "=r"(r), "=j"(v), "=j"(o) : "m"(p->mat.r[3]), "m"(position.q));
+    cpu = r;
+    point = v;
+    vector = o;
+}
 // z component of a quadword vector.
-static inline float Z(qwordV a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
+static inline float Z(qwordV a)
+{
+    register int bits asm("$5");
+    union {
+        int n;
+        float f;
+    } value;
+    __asm__("pextuw %0,$0,%1" : "=r"(bits) : "r"(a));
+    value.n = bits;
+    return value.f;
+}
 // True if a vector is longer than `limit`.
 static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
 // 0x173768: Camera concealment of a spawn point: 0 if it is visible (or too far / behind / off screen: unusable),
@@ -458,7 +493,16 @@ extern "C" qwordV GetSpawnerFocusPosition(CID119V *spawner)
 }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
-static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+static inline float DistanceXY(qwordV a, qwordV b)
+{
+    qwordV d;
+    float f;
+    d = VuSub(a, b);
+    __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y" : "+j"(d));
+    __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
+    f = VuToFloat(d);
+    return f;
+}
 // 0x173A68: Spawner vtable slot 16 (Update): periodically, when a slot is free (and gated by the player's last
 // alert event), spawns a guard at a concealed spawn point, aims it at the player and sends it message 0x19.
 extern "C" void UpdateSpawner(CID119V *spawner)
@@ -539,9 +583,19 @@ struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } };
 // VU0 helper: vector difference.
 static inline VU_VECTOR VsubXyzw(VU_VECTOR a, VU_VECTOR b) { qwordV d; d = VuSub(a.q, b.q); return VU_VECTOR(d); }
 // VU0 helper: x*x + y*y of a vector.
-static inline VU_VECTOR SumXY(VU_VECTOR a) { qwordV d; __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
+static inline VU_VECTOR SumXY(VU_VECTOR a)
+{
+    qwordV d;
+    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q));
+    return VU_VECTOR(d);
+}
 // VU0 helper: square root of a VU vector's x.
-static inline VU_VECTOR SqrtV(VU_VECTOR a) { qwordV d; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
+static inline VU_VECTOR SqrtV(VU_VECTOR a)
+{
+    qwordV d;
+    __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q));
+    return VU_VECTOR(d);
+}
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
 // VU0 helper: horizontal (xy) length as a VU vector.
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
