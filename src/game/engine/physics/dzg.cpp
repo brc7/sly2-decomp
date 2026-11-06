@@ -20,25 +20,25 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    velocity. */
 struct XPS
 {
-    void *pv0;              /* +0x00 */
-    void *pv4;              /* +0x04 */
+    void *unknown0;              /* +0x00 */
+    void *unknown4;              /* +0x04 */
     SO *pso;                /* +0x08 */
-    void *pvC;              /* +0x0C */
-    qword qwPos;            /* +0x10 */
+    void *unknownC;              /* +0x0C */
+    qword position;            /* +0x10 */
     char pad20[0x20];
 };
 struct XP
 {
-    XPS axps[2];
+    XPS sides[2];
     qword qwNormal;         /* +0x80 */
     int pad90;
-    float gFriction;        /* +0x94 friction coefficient (HYPOTHESIS: scales the friction rows' limits) */
+    float friction;        /* +0x94 friction coefficient (HYPOTHESIS: scales the friction rows' limits) */
     int pad98;
     int nKind;              /* +0x9C 14: the limit comes from the first side's gravity and mass */
     int padA0[2];
-    int ixp;                /* +0xA8 index in the group (DZGXP::apxp) */
-    XP *pxpNext;            /* +0xAC */
-    qword qwVRel;           /* +0xB0 */
+    int groupIndex;                /* +0xA8 index in the group (DZGXP::apxp) */
+    XP *next;            /* +0xAC */
+    qword relativeVelocity;           /* +0xB0 */
 };
 
 /* Allocation request (cb bytes, cbAlign alignment). 16 bytes: with an 8-byte request ApplyDzg's frame is 0x10 bigger
@@ -91,18 +91,18 @@ static __inline__ int Dot(qword a, qword b)
  * @end-sly2-annot */
 // Initialises a DZGXP for cpxp contacts and cpso objects: base DZG init with two rows per contact, stores the
 // contact/object arrays and allocates one 0x60-byte DZX record per row.
-extern "C" DZGXP *InitDzgXp(DZGXP *pdzgxp, int cpxp, XP **apxp, int cpso, SO **apso)
+extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int numObjects, SO **objects)
 {
-    AL al;
-    InitDzg(pdzgxp, cpxp * 2);
-    pdzgxp->cpxp = cpxp;
-    pdzgxp->apxp = apxp;
-    pdzgxp->cpso = cpso;
-    pdzgxp->apso = apso;
-    al.cbAlign = 0x10;
-    al.cb = sizeof(DZX) * pdzgxp->cdzMax;
-    pdzgxp->adzx = (DZX *)func_001AE378(&al);
-    return pdzgxp;
+    AL request;
+    InitDzg(group, numContacts * 2);
+    group->cpxp = numContacts;
+    group->apxp = contacts;
+    group->cpso = numObjects;
+    group->apso = objects;
+    request.cbAlign = 0x10;
+    request.cb = sizeof(DZX) * group->cdzMax;
+    group->adzx = (DZX *)func_001AE378(&request);
+    return group;
 }
 
 /* AppendDzgDz: the symbol is Sly 1's two-argument signature; this one also takes the new row's DZX, so it stays a
@@ -114,23 +114,23 @@ extern "C" DZGXP *InitDzgXp(DZGXP *pdzgxp, int cpxp, XP **apxp, int cpso, SO **a
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
 // Appends one constraint row (DZ) and its contact record (DZX) to the group. Sly 1 name.
-extern "C" void AppendDzgDz__FP3DZGP2DZ(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx)
+extern "C" void AppendDzgDz__FP3DZGP2DZ(DZGXP *group, DZ *row, DZX *rowContact)
 {
     int i;
-    int k = pdzx->pxp->ixp;
-    for (i = 0; i < pdzgxp->cdz; i++) {
-        DZ *pdzI = &pdzgxp->adz[i];
-        int *ag = (int *)pdzI->ag;
-        if (ag) {
+    int contactIndex = rowContact->pxp->groupIndex;
+    for (i = 0; i < group->cdz; i++) {
+        DZ *otherRow = &group->adz[i];
+        int *coefficients = (int *)otherRow->ag;
+        if (coefficients) {
             __asm__ __volatile__("" : : : "memory");
             {
-                DZX *pdzxI = &pdzgxp->adzx[i];
-                ag[pdzgxp->cdz] = Dot(pdzx->qwNormal, pdzxI->aqwRel[k]);
+                DZX *otherRowContact = &group->adzx[i];
+                coefficients[group->cdz] = Dot(rowContact->qwNormal, otherRowContact->aqwRel[contactIndex]);
             }
         }
     }
-    AppendDlEntry(&pdzgxp->dlD, pdz);
-    pdzgxp->cdz++;
+    AppendDlEntry(&group->dlD, row);
+    group->cdz++;
 }
 
 /* FillDzgDz: each side object adds its impulse response to the row (SO slot 67), then for every contact of the group
@@ -149,46 +149,46 @@ static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return Pv
  * @end-sly2-annot */
 // Fills one constraint row: each of the two bodies adds its impulse response (virtual call), then the row's
 // coupling terms against the existing rows are computed from the per-object relative vectors.
-extern "C" void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx)
+extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 {
     int i;
-    XP *pxp = pdzx->pxp;
+    XP *contact = rowContact->pxp;
     for (i = 0; i < 2; i++) {
-        SO *pso = pxp->axps[i].pso;
-        if (pso)
-            pso->VUnk67(pdz, pdzx, grf, i);
+        SO *object = contact->sides[i].pso;
+        if (object)
+            object->VUnk67(row, rowContact, flags, i);
     }
-    qword *pqw = (qword *)PvAlloc(pdzgxp->cpxp * 16, 16);
-    pdzx->aqwRel = pqw;
-    for (int k = 0; k < pdzgxp->cpxp; k++) {
-        XP *pxpK = pdzgxp->apxp[k];
-        qword *pqwNext = pqw + 1;
+    qword *relative = (qword *)PvAlloc(group->cpxp * 16, 16);
+    rowContact->aqwRel = relative;
+    for (int contactIndex = 0; contactIndex < group->cpxp; contactIndex++) {
+        XP *otherContact = group->apxp[contactIndex];
+        qword *nextRelative = relative + 1;
         /* the two sides' responses; a missing side is zeroed through the int view (integer $0 stores: this form
            exists to reproduce the original codegen, a float 0.0f costs an FPU register and a bigger frame) */
         union VECW { VECTOR4 vec; int an[4]; };
         union { qword q[2]; VECW v[2]; } u;
-        VECW *pv = u.v;
-        XPS *pxps = pxpK->axps;
-        for (i = 0; i < 2; pv++, i++, pxps++) {
-            SO *pso = pxps->pso;
-            if (!pso)
-                pv->an[0] = pv->an[1] = pv->an[2] = 0;
-            else if (pso == pxp->axps[0].pso)
-                pso->VUnk68(&pdzx->afx[0], pxps->qwPos, &pv->vec);
-            else if (pso == pxp->axps[1].pso)
-                pso->VUnk68(&pdzx->afx[1], pxps->qwPos, &pv->vec);
+        VECW *response = u.v;
+        XPS *side = otherContact->sides;
+        for (i = 0; i < 2; response++, i++, side++) {
+            SO *object = side->pso;
+            if (!object)
+                response->an[0] = response->an[1] = response->an[2] = 0;
+            else if (object == contact->sides[0].pso)
+                object->VUnk68(&rowContact->afx[0], side->position, &response->vec);
+            else if (object == contact->sides[1].pso)
+                object->VUnk68(&rowContact->afx[1], side->position, &response->vec);
             else
-                pv->an[0] = pv->an[1] = pv->an[2] = 0;
+                response->an[0] = response->an[1] = response->an[2] = 0;
         }
-        qword d;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(u.q[0]), "j"(u.q[1]));
-        qword *pq = pqw; pqw = pqwNext; *pq = d;
+        qword difference;
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(difference) : "j"(u.q[0]), "j"(u.q[1]));
+        qword *slot = relative; relative = nextRelative; *slot = difference;
     }
-    int *ag = (int *)PvAlloc(pdzgxp->cdz * 4, 16);
-    pdz->ag = (float *)ag;
-    for (int m = 0; m < pdzgxp->cdz; m++) {
-        DZX *pdzxM = &pdzgxp->adzx[m];
-        *ag++ = Dot(pdzxM->qwNormal, pdzx->aqwRel[pdzxM->pxp->ixp]);
+    int *coefficients = (int *)PvAlloc(group->cdz * 4, 16);
+    row->ag = (float *)coefficients;
+    for (int rowIndex = 0; rowIndex < group->cdz; rowIndex++) {
+        DZX *otherRowContact = &group->adzx[rowIndex];
+        *coefficients++ = Dot(otherRowContact->qwNormal, rowContact->aqwRel[otherRowContact->pxp->groupIndex]);
     }
 }
 
@@ -200,9 +200,9 @@ extern "C" void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx)
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
 // Returns the contact record (DZX) that parallels constraint row pdz: same index, 0x60-byte stride.
-extern "C" DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz)
+extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
 {
-    return &pdzgxp->adzx[pdz - pdzgxp->adz];
+    return &group->adzx[row - group->adz];
 }
 
 /* SolveDzg: the symbol is Sly 1's signature (the contacts and objects were arguments there; here they are in the
@@ -218,37 +218,37 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz)
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
 // Solves the group's constraint rows for the impulses that stop interpenetration (grf selects the pass). Sly 1 name.
-extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf)
+extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *group, int flags)
 {
     DLI dli;
     DLI dliUnused;          /* unused, but part of the frame */
-    DZ *pdz;
-    InitDli(&dli, &pdzgxp->dlD);
-    while ((pdz = (DZ *)PvNextDli(&dli)) != 0) {
-        if (pdz->nKind == 1) {
-            if (!pdz->ag)
-                FillDzgDz(pdzgxp, grf, pdz, GetDzgExtraForDz(pdzgxp, pdz));
-            RemoveDlEntry(&pdzgxp->dlD, pdz);
-            AppendDlEntry(&pdzgxp->dlA, pdz);
-            pdzgxp->cdzA++;
+    DZ *row;
+    InitDli(&dli, &group->dlD);
+    while ((row = (DZ *)PvNextDli(&dli)) != 0) {
+        if (row->nKind == 1) {
+            if (!row->ag)
+                FillDzgDz(group, flags, row, GetDzgExtraForDz(group, row));
+            RemoveDlEntry(&group->dlD, row);
+            AppendDlEntry(&group->dlA, row);
+            group->cdzA++;
         }
     }
-    EnforceDzgDz(pdzgxp, 0);
+    EnforceDzgDz(group, 0);
     D_002DD2FC = dli.m_pdliNext;
     for (;;) {
-        DZ *pdzBest = 0;
-        float gMin = -0.01f;
-        for (DZ *pdzT = (DZ *)pdzgxp->dlD.head; pdzT; pdzT = (DZ *)pdzT->dle.next) {
-            if (pdzT->g10 < gMin) {
-                gMin = pdzT->g10;
-                pdzBest = pdzT;
+        DZ *worstRow = 0;
+        float minResidual = -0.01f;
+        for (DZ *candidate = (DZ *)group->dlD.head; candidate; candidate = (DZ *)candidate->dle.next) {
+            if (candidate->g10 < minResidual) {
+                minResidual = candidate->g10;
+                worstRow = candidate;
             }
         }
-        if (!pdzBest)
+        if (!worstRow)
             break;
-        if (!pdzBest->ag)
-            FillDzgDz(pdzgxp, grf, pdzBest, GetDzgExtraForDz(pdzgxp, pdzBest));
-        EnforceDzgDz(pdzgxp, pdzBest);
+        if (!worstRow->ag)
+            FillDzgDz(group, flags, worstRow, GetDzgExtraForDz(group, worstRow));
+        EnforceDzgDz(group, worstRow);
     }
 }
 
@@ -319,73 +319,73 @@ union VEC4 { qword q; float f[4]; };
  * @end-sly2-annot */
 // Friction pass: repeatedly solves the rows, then adds a friction row for the free contact with the largest
 // tangential push, its limit clamped by the contact's friction coefficient, until no contact slips.
-extern "C" void SolveDzgFriction(DZGXP *pdzgxp, int grf)
+extern "C" void SolveDzgFriction(DZGXP *group, int flags)
 {
     for (;;) {
-        SolveDzg__FP3DZGiiPP2XPPiPPP2SO(pdzgxp, grf);
-        int iBest = -1;
-        float gBest = 0.01f;
-        XP *pxpBest = 0;
-        VEC4 vBest;
-        vBest.f[2] = 0.0f;
-        vBest.f[1] = 0.0f;
-        vBest.f[0] = 0.0f;
-        for (int i = 0; i < pdzgxp->cpxp; i++) {
-            DZ *pdz = &pdzgxp->adz[i];
-            if (pdz->pdzOther)
+        SolveDzg__FP3DZGiiPP2XPPiPPP2SO(group, flags);
+        int bestIndex = -1;
+        float bestPushSquared = 0.01f;
+        XP *bestContact = 0;
+        VEC4 bestPush;
+        bestPush.f[2] = 0.0f;
+        bestPush.f[1] = 0.0f;
+        bestPush.f[0] = 0.0f;
+        for (int i = 0; i < group->cpxp; i++) {
+            DZ *row = &group->adz[i];
+            if (row->pdzOther)
                 continue;
-            if (pdz->gC < 0.0001f)
+            if (row->gC < 0.0001f)
                 continue;
-            XP *pxp = pdzgxp->apxp[i];
-            if (pxp->gFriction < 0.0001f)
+            XP *contact = group->apxp[i];
+            if (contact->friction < 0.0001f)
                 continue;
-            VEC4 v;
-            v.q = pxp->qwVRel;
-            for (int j = 0; j < pdzgxp->cdz; j++) {
-                DZ *pdzJ = &pdzgxp->adz[j];
-                if (pdzJ->gC != 0.0f) {
-                    VU_FLOAT s = VuFloat(pdzJ->gC);
-                    v.q = QwAddScaled(v.q, pdzgxp->adzx[j].aqwRel[i], s, pdzJ);
+            VEC4 push;
+            push.q = contact->relativeVelocity;
+            for (int j = 0; j < group->cdz; j++) {
+                DZ *otherRow = &group->adz[j];
+                if (otherRow->gC != 0.0f) {
+                    VU_FLOAT scale = VuFloat(otherRow->gC);
+                    push.q = QwAddScaled(push.q, group->adzx[j].aqwRel[i], scale, otherRow);
                 }
             }
-            v.q = QwProjectOut(v.q, pxp->qwNormal);
-            float g = GFromVf(QwDot(v.q, v.q));
-            if (gBest < g) {
-                vBest.q = v.q;
-                gBest = g;
-                iBest = i;
-                pxpBest = pxp;
+            push.q = QwProjectOut(push.q, contact->qwNormal);
+            float amount = GFromVf(QwDot(push.q, push.q));
+            if (bestPushSquared < amount) {
+                bestPush.q = push.q;
+                bestPushSquared = amount;
+                bestIndex = i;
+                bestContact = contact;
             }
         }
-        if (!pxpBest)
+        if (!bestContact)
             break;
-        DZ *pdz = &pdzgxp->adz[pdzgxp->cdz];
-        DZ *pdzA = &pdzgxp->adz[iBest];
-        DZX *pdzx = &pdzgxp->adzx[pdzgxp->cdz];
-        pdz->pdzOther = pdzA;
-        pdzA->pdzOther = pdz;
-        pdz->g10 = -SqrtF(gBest);
-        pdzx->pxp = pxpBest;
-        pdzx->qwNormal = QwDivX(vBest.q, VuFloatFromMemWord((const int *)&pdz->g10));
-        pdz->nKind = 1;
-        if (pxpBest->nKind == 14) {
-            SOPHYS *psophys = pxpBest->axps[0].pso->psophys;
-            float gLimit;
-            if (grf & 1) {
-                gLimit = -psophys->dvGravity.z * psophys->m * D_002DDED0.dt;
-                float g = __builtin_fabsf(pdz->pdzOther->gC);
-                pdz->gMax = pxpBest->gFriction * (g < gLimit ? gLimit : g);
+        DZ *row = &group->adz[group->cdz];
+        DZ *pairedRow = &group->adz[bestIndex];
+        DZX *rowContact = &group->adzx[group->cdz];
+        row->pdzOther = pairedRow;
+        pairedRow->pdzOther = row;
+        row->g10 = -SqrtF(bestPushSquared);
+        rowContact->pxp = bestContact;
+        rowContact->qwNormal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->g10));
+        row->nKind = 1;
+        if (bestContact->nKind == 14) {
+            SOPHYS *physics = bestContact->sides[0].pso->psophys;
+            float limit;
+            if (flags & 1) {
+                limit = -physics->dvGravity.z * physics->m * D_002DDED0.dt;
+                float amount = __builtin_fabsf(row->pdzOther->gC);
+                row->gMax = bestContact->friction * (amount < limit ? limit : amount);
             } else {
-                float m = psophys->m;
-                gLimit = m * D_002BDDE8;
-                float g = pxpBest->gFriction * __builtin_fabsf(pdz->pdzOther->gC);
-                pdz->gMax = g < gLimit ? g : gLimit;
+                float mass = physics->m;
+                limit = mass * D_002BDDE8;
+                float amount = bestContact->friction * __builtin_fabsf(row->pdzOther->gC);
+                row->gMax = amount < limit ? amount : limit;
             }
         } else {
-            pdz->gMax = __builtin_fabsf(pdz->pdzOther->gC) * pxpBest->gFriction;
+            row->gMax = __builtin_fabsf(row->pdzOther->gC) * bestContact->friction;
         }
-        pdz->gMin = -pdz->gMax;
-        AppendDzgDz__FP3DZGP2DZ(pdzgxp, pdz, pdzx);
+        row->gMin = -row->gMax;
+        AppendDzgDz__FP3DZGP2DZ(group, row, rowContact);
     }
 }
 
@@ -410,31 +410,31 @@ static inline qword AddScale(qword a, qword b, const VUF &t)
  * @end-sly2-annot */
 // Applies the solved row impulses to every object's linear (+0xF0) and angular (+0x100) velocity change and clamps
 // both to the maxima gDv and gDw.
-extern "C" void ApplyDzg(DZGXP *pdzgxp, float gDv, float gDw)
+extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)
 {
     STACKSCOPE scope;
     int i;
-    SO *pso;
-    { register int n asm("$3") = pdzgxp->cpso;  /* register pin: cso in v1 like the target */
+    SO *object;
+    { register int n asm("$3") = group->cpso;  /* register pin: cso in v1 like the target */
       PvAllocSlot__FP8ALLOCREQ(AL(n * 32, 0x10)); }
-    for (i = 0; i < pdzgxp->cdz; i++) {
-        DZ *pdz = &pdzgxp->adz[i];
-        if (pdz->gC == 0.0f) continue;
-        DZX *pdzx = &pdzgxp->adzx[i];
+    for (i = 0; i < group->cdz; i++) {
+        DZ *row = &group->adz[i];
+        if (row->gC == 0.0f) continue;
+        DZX *rowContact = &group->adzx[i];
         for (int j = 0; j < 2; j++) {
-            XPS *pxps = &pdzx->pxp->axps[j];
-            pso = pxps->pso;
-            if (!pso) continue;
-            qword *pv = &pdzx->afx[j].qwDv;   /* qwDv, then qwDw at pv[1] */
-            qword r = AddScale(pso->qwDvContact, pv[0], VUF(pdz->gC));
-            qword a1 = pso->qwDwContact;
-            __asm__ __volatile__("sqc2 %1, %0" : "=m"(pso->qwDvContact) : "j"(r));
-            pso->qwDwContact = AddScale(a1, pv[1], VUF(pdz->gC));
+            XPS *side = &rowContact->pxp->sides[j];
+            object = side->pso;
+            if (!object) continue;
+            qword *effect = &rowContact->afx[j].qwDv;   /* qwDv, then qwDw at pv[1] */
+            qword dv = AddScale(object->qwDvContact, effect[0], VUF(row->gC));
+            qword dw = object->qwDwContact;
+            __asm__ __volatile__("sqc2 %1, %0" : "=m"(object->qwDvContact) : "j"(dv));
+            object->qwDwContact = AddScale(dw, effect[1], VUF(row->gC));
         }
     }
-    for (int k = 0; k < pdzgxp->cpso; k++) {
-        pso = pdzgxp->apso[k];
-        pso->qwDvContact = LimitVectorLength(pso->qwDvContact, gDv);
-        pso->qwDwContact = LimitVectorLength(pso->qwDwContact, gDw);
+    for (int objectIndex = 0; objectIndex < group->cpso; objectIndex++) {
+        object = group->apso[objectIndex];
+        object->qwDvContact = LimitVectorLength(object->qwDvContact, maxDv);
+        object->qwDwContact = LimitVectorLength(object->qwDwContact, maxDw);
     }
 }
