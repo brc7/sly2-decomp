@@ -1127,11 +1127,11 @@ typedef char assert_HACKWALL_size[sizeof(HACKWALL) == 0x2A0 ? 1 : -1];
 struct CID12 : SHAPE, GRABSPOT
 {
     char pad1B4[0x1C0 - 0x1B4];
+    virtual void Unfreeze() __asm__("func_00182EB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00182E80");   /* slot 7 */
     virtual void VUnk14() __asm__("func_00182F28");   /* slot 15 */
     virtual void Freeze() __asm__("func_00182EF0");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_00182EB8");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("func_00182FA0");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("func_00182FE8");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("func_00183040");   /* GRABSPOT slot 2 (delta -400) */
@@ -1145,11 +1145,11 @@ typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
 struct CID34 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
+    virtual void Unfreeze() __asm__("func_00183370");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00183340");   /* slot 7 */
     virtual void VUnk14() __asm__("func_001833E0");   /* slot 15 */
     virtual void Freeze() __asm__("func_001833A8");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_00183370");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("func_00183450");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("func_00183498");   /* GRABSPOT slot 1 (delta -224) */
     virtual void GetClosestParam() __asm__("func_001834D0");   /* GRABSPOT slot 2 (delta -224) */
@@ -1163,11 +1163,11 @@ typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
 struct CID38 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
+    virtual void Unfreeze() __asm__("func_001836F8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001836C8");   /* slot 7 */
     virtual void VUnk14() __asm__("func_00183768");   /* slot 15 */
     virtual void Freeze() __asm__("func_00183730");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_001836F8");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("func_001837D0");   /* slot 41 */
     virtual void GetGrabPos() __asm__("func_00183818");   /* GRABSPOT slot 3 (delta -224) */
     virtual void VtF() __asm__("func_00259A10");   /* GRABSPOT slot 6 (delta -224) */
@@ -1178,10 +1178,10 @@ typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
 struct BARREL : SO, GRABSPOT
 {
     char pad174[0x1A0 - 0x174];
+    virtual void Unfreeze() __asm__("OnBarrelAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBarrelClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBarrel");   /* slot 7 */
     virtual void Freeze() __asm__("OnBarrelRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnBarrelAdd");   /* slot 23 */
     virtual void VUnk25(LO *plo) __asm__("func_00183970");   /* slot 26 */
     virtual void Clone(LO *ploBase) __asm__("CloneBarrel");   /* slot 41 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("func_00183A50");   /* slot 61 */
@@ -1195,11 +1195,11 @@ typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
 struct CID35 : XFM, GRABSPOT
 {
     char pad104[0x180 - 0x104];
+    virtual void Unfreeze() __asm__("func_00183FB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid35ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00183F08");   /* slot 7 */
     virtual void VUnk14() __asm__("func_00183F50");   /* slot 15 */
     virtual void Freeze() __asm__("func_00183FF0");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_00183FB8");   /* slot 23 */
     virtual void GetGrabPos() __asm__("func_00184208");   /* GRABSPOT slot 3 (delta -224) */
     virtual void AdjustScore() __asm__("func_00184238");   /* GRABSPOT slot 4 (delta -224) */
     virtual void VtF() __asm__("func_00259A30");   /* GRABSPOT slot 6 (delta -224) */
@@ -1223,9 +1223,9 @@ typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 struct CID36 : CID35
 {
     char pad180[0x1A0 - 0x180];
+    virtual void VUnk14() __asm__("func_001842B0");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00184268");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_001842B0");   /* slot 15 */
     virtual void VSlot51() __asm__("func_00184330");   /* slot 51 */
 };
 typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
@@ -1234,11 +1234,11 @@ typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 struct CID27 : VOL, GRABSPOT
 {
     char pad154[0x160 - 0x154];
+    virtual void Unfreeze() __asm__("func_001844A0");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid27ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001843C0");   /* slot 7 */
     virtual void VUnk14() __asm__("func_001843F0");   /* slot 15 */
     virtual void Freeze() __asm__("func_001844D8");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_001844A0");   /* slot 23 */
     virtual void GetGrabPos() __asm__("func_00184510");   /* GRABSPOT slot 3 (delta -304) */
     virtual void GetSparklePos() __asm__("func_001845A0");   /* GRABSPOT slot 5 (delta -304) */
     virtual void VtF() __asm__("func_00259A40");   /* GRABSPOT slot 6 (delta -304) */
