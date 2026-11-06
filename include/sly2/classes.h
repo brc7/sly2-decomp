@@ -1414,8 +1414,8 @@ typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 struct CID14 : SHAPE
 {
     char pad190[0x1F0 - 0x190];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid14ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001BC050");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid14ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("func_001BC160");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("func_001BC198");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001BC088");   /* slot 14 */
