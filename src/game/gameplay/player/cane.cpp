@@ -630,7 +630,7 @@ static inline int IsBonus(ALO*const &n){return PloFindSwObjectByClass__FP2SWi3CI
  * @end-sly2-annot */
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
-extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtInput,U*offset,ALO**out,qword*outvector,float cone){
+extern "C" void ChooseJtAttackTarget(ALO*jt,float headingInput,int mask,float dtInput,U*offset,ALO**out,qword*outvector,float cone){
  register float heading __asm__("$f21")=headingInput; float dt=dtInput; // the one pin: heading in f21 (else f20/f21 swap)
  M3 rotation;
  U origin,reference,target,delta,candidate;
@@ -641,10 +641,10 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
  qword position;
  qword early=QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
  rotation=func_0011B500(D_002A2DC0,headingInput);
- position=func_001A62E8(p);
+ position=func_001A62E8(jt);
  VU_FLOAT scalar=VuFloatBits(dt);
- origin.q=AddScaled(position,GetVelocity(p),scalar);
- reference.q=ConvertAloPos(p,0,offset->q);
+ origin.q=AddScaled(position,GetVelocity(jt),scalar);
+ reference.q=ConvertAloPos(jt,0,offset->q);
  target.q=VuAdd(Rotate(rotation,offset->q),origin.q);
  delta.q=VuSubRef(target.q,reference.q);
  for(ALO*node=(*(ALO * *)&g_sw.dlTarget);node;node=node->next){
@@ -658,7 +658,7 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
   if(IsBonus(node))distance+=D_002BF4B8;
   if(distance<nearest){
    qword other=candidate.q;
-   U scratch;scratch.q=VuSubRef(other,func_001A62E8(p));
+   U scratch;scratch.q=VuSubRef(other,func_001A62E8(jt));
    float angle=AbsF(RadNormalize__Ff(atan2f(scratch.f[1],scratch.f[0])-heading));
    if(cone<angle)continue;
    best=node;nearest=distance;
