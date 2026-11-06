@@ -35,6 +35,7 @@ struct EMITV4 { float a[4]; };
    +0x08..+0x14 hold OIDs that func_002586D8 resolves (record 1: +0x08, +0x0C, +0x10; record 0: +0x14);
    LoadEmitblipColorsFromBrx stores a byte it reads at +0x0C and its colour list at +0x1C. */
 struct EMITBLIPCLRS { int c; RGBA argba[1]; };   /* count, then c colours (0x10-aligned allocation) */
+/* EMITV: see the comment above EMITBLIPCLRS. */
 struct EMITV
 {
     int k;                  /* +0x00 kind of the payload (-1 or 0: unset) */
@@ -44,7 +45,7 @@ struct EMITV
     int oid10;              /* +0x10 an OID (record 1) */
     int oid14;              /* +0x14 an OID (record 0) */
     char pad18[4];
-    EMITBLIPCLRS *pblipclrs; /* +0x1C */
+    EMITBLIPCLRS *pblipclrs; /* +0x1C the blip colour list */
     char pad20[0x10];
     union
     {
@@ -53,7 +54,7 @@ struct EMITV
         EMITV2 v2;
         EMITV3 v3;
         EMITV4 v4;
-    } u;                    /* +0x30 */
+    } u;                    /* +0x30 the payload (shape given by k) */
 } __attribute__((aligned(16)));
 typedef char assert_EMITV_size[sizeof(EMITV) == 0x40 ? 1 : -1];
 
@@ -71,26 +72,28 @@ struct EMITB
     char pad24[0xC];
     int pvEmito;            /* +0x30 EMITO data (allocated per kind; for kind 2: -1, then an OID) */
     char pad34[0x8C];
-    EMITV v;                /* +0xC0 */
+    EMITV v;                /* +0xC0 the variant record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];
 
+/* EMITTER: a particle emitter placed in a level: emits particles (RIPG) or sprites (BLIPG) at a rate, configured
+   through its shared EMITB block. */
 struct EMITTER : public XFM
 {
     int fDirty;             /* +0xE0 set by an ensure for writing */
-    EMITB *pemitb;          /* +0xE4 */
+    EMITB *pemitb;          /* +0xE4 the emitter block (shared until written: PemitbEnsure) */
     char padE8[8];
     int k;                  /* +0xF0 emission kind (3: rate per second) */
-    int c;                  /* +0xF4 */
-    LM lmRate;              /* +0xF8 */
+    int c;                  /* +0xF4 emission count (inferred: particles per burst) */
+    LM lmRate;              /* +0xF8 emission rate range (per second, kind 3) */
     char pad100[0x114 - 0x100];
-    int fAutoPause;         /* +0x114 */
+    int fAutoPause;         /* +0x114 pause emitting automatically (inferred: when off screen or far away) */
     char pad118[0x130 - 0x118];
-    float tNext;            /* +0x130 */
+    float tNext;            /* +0x130 game time of the next emission */
     char pad134[0x148 - 0x134];
-    float tUnpause;         /* +0x148 */
-    RIPG *pripg;            /* +0x14C */
-    BLIPG *pblipg;          /* +0x150 */
+    float tUnpause;         /* +0x148 game time emission resumes */
+    RIPG *pripg;            /* +0x14C particle group it emits into */
+    BLIPG *pblipg;          /* +0x150 sprite group it emits into */
     char pad154[0x160 - 0x154];
     virtual void Init() __asm__("InitEmitter");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
@@ -102,6 +105,7 @@ struct EMITTER : public XFM
 };
 typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class descriptor cb */
 
+/* EXPL: the explosion base class (an XFM; no own fields known here). */
 struct EXPL : public XFM
 {
     virtual void VSlot51() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
@@ -109,10 +113,11 @@ struct EXPL : public XFM
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */
 
+/* EXPLO: an explosion that emits like an EMITTER, through its own EMITB block (copy on write). */
 struct EXPLO : public EXPL
 {
-    int fDirty;             /* +0xE0 */
-    EMITB *pemitb;          /* +0xE4 */
+    int fDirty;             /* +0xE0 set by an ensure for writing */
+    EMITB *pemitb;          /* +0xE4 the emitter block (shared until written) */
     char padE8[0xF0 - 0xE8];
     virtual CLASSINFO *Pclassinfo() __asm__("GetExploClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z5EXPLO_PX01P18CBinaryInputStream_v");   /* slot 14 */
