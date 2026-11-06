@@ -22,8 +22,8 @@ typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1];
 struct CID146 : BASIC
 {
     char pad10[0x40 - 0x10];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid146ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_0020CAA8");   /* slot 5 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid146ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID146_size[sizeof(CID146) == 0x40 ? 1 : -1];
 
