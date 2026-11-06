@@ -14,7 +14,7 @@ struct CRef;
 extern "C" {
 void Decref__4CRef(CRef *pref);
 void __4CRefRC4CRef(CRef *pref, const CRef *prefSrc);    /* copy constructor */
-void func_00129658(CRef *pref, const CRef *prefSrc);    /* assignment */
+void func_00129658(CRef *pref, const CRef *prefSrc) __asm__("__as__4CRefRC4CRef+0");    /* assignment: ref.cpp's CRef::operator=; the +0 keeps g++ from emitting the inline operator= below under that name */
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 }
 

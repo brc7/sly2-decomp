@@ -149,7 +149,7 @@ HERO *PpoHero(void *p);
 extern char D_002DE578[];
 M3 *func_001A6318(void *p);
 float GGetDifficulty(void *p);
-VUV func_00256CE8(float g);
+VUV func_00256CE8(float g) __asm__("__8VU_FLOATf+0");   /* VU_FLOAT(float); +0: a plain label would make g++ emit this file's inline constructor under that name */
 VUV __9VU_VECTORRC6VECTOR(VECTORV *pv);
 qwordV VecComboQ(qwordV a, qwordV b, qwordV c, qwordV d) __asm__("VecCombo__FG8VU_FLOATG9VU_VECTORT0T1");   /* VecCombo below, called with plain quadwords */
 void VECTOR_opAssign(VECTORV *pv, qwordV v);
