@@ -1,7 +1,9 @@
 // bomb.cpp -- BOMB (an SO): init/load/clone, priming and detonation (the blast: objects hit within the radii get
 // a 0x1C-style impact message with a push away from the blast; the bomb then moves to the detonation pose and
 // removes itself), custom contacts it adds while flying near marked objects, throwing, absorbing a hit, and the
-// detonation-pose setup. VU0 macro-mode asm with register pins.
+// detonation-pose setup. Entry points: the BOMB vtable (InitBomb, PostBombLoad, HandleMessage, UpdateBomb, ResetBomb,
+// HandleBombContact, AddBombCustomXps, FIgnoreBombIntersection, FAbsorbBombWkr, CloneBomb, ApplyBombThrow), PrimeBomb
+// and DetonateBomb (also used by MISSILE). VU0 macro-mode asm with register pins.
 // TU 0x13A9E8..0x13BDF0 (22 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bomb
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013BDD0
@@ -161,41 +163,42 @@ void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
 // BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
-extern "C" void InitBomb(BOMBV *p) {
+extern "C" void InitBomb(BOMBV *bomb) {
     int x;
-    InitSo(p);
-    p->tDetonate = 3.40282346638528859812e+38f;
-    p->sRadius = D_002BC9C8;
-    p->sRadiusHero = D_002BC9C8;
-    p->x1E0 = 1;
-    p->x1EC = 0x100;
-    p->x1F0 = -10;
-    x = p->grfUnk40;
-    p->k = 0;
+    InitSo(bomb);
+    bomb->tDetonate = 3.40282346638528859812e+38f;
+    bomb->sRadius = D_002BC9C8;
+    bomb->sRadiusHero = D_002BC9C8;
+    bomb->x1E0 = 1;
+    bomb->x1EC = 0x100;
+    bomb->x1F0 = -10;
+    x = bomb->grfUnk40;
+    bomb->k = 0;
     if ((x ^ 1) & 1) *(int *)x |= 2;
-    else p->grfUnk40 = x | 2;
-    p->pbombOwner = p;
+    else bomb->grfUnk40 = x | 2;
+    bomb->pbombOwner = bomb;
 }
 
 // BOMB vt76: SO Clone then reset owner to self (0x13BC60). (inferred)
-extern "C" void CloneBomb(BOMBV *p, BOMBV *pbombBase)
+extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 {
-    CloneSo(p, pbombBase);
-    SetBombOwner(p, p);
+    CloneSo(bomb, source);
+    SetBombOwner(bomb, bomb);
 }
 
 // BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0).
-extern "C" void PostBombLoad(BOMBV *p) {
-    PostSoLoad(p);
-    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)func_001AE1D0(&k); }
+extern "C" void PostBombLoad(BOMBV *bomb) {
+    PostSoLoad(bomb);
+    if (bomb->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; bomb->axp = (CXP *)func_001AE1D0(&k); }
 }
 
 // BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0).
-void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *p = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
-    HandleBasicMessage(p, msg, pm);
-    if (msg == 4 && (BOMBV *)pm->po == p && p->k == 0) PrimeBomb(p, 0.0f);
+void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *bomb = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
+    HandleBasicMessage(bomb, msg, pm);
+    if (msg == 4 && (BOMBV *)pm->po == bomb && bomb->k == 0) PrimeBomb(bomb, 0.0f);
 }
 
+// Length of a vector as a float (VU0 sqrt).
 static __inline__ float GLength(qword v)
 {
     qword d;
@@ -208,38 +211,37 @@ static __inline__ float GLength(qword v)
     return g;
 }
 // BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled.
-// BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled.
-extern "C" void UpdateBomb(BOMBV *p)
+extern "C" void UpdateBomb(BOMBV *bomb)
 {
-    UpdateSo(p);
-    if (p->tDetonate <= D_002DDED0.t)
+    UpdateSo(bomb);
+    if (bomb->tDetonate <= D_002DDED0.t)
         goto out;
     {
         VTE *vt;
         qword v;
         int f;
-        vt = p->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
-        v = ((qword (*)(void *))vt[33].pfn)((char *)p + vt[33].d);
-        f = GLength(v) < p->sv158;
+        vt = bomb->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
+        v = ((qword (*)(void *))vt[33].pfn)((char *)bomb + vt[33].d);
+        f = GLength(v) < bomb->sv158;
         if (f) {
         out:
-            DetonateBomb(p);
-        } else if (p->fCustomXps) {
-            UpdateBombCustomXps(p);
+            DetonateBomb(bomb);
+        } else if (bomb->fCustomXps) {
+            UpdateBombCustomXps(bomb);
         }
     }
 }
 
 // Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100. (inferred)
-extern "C" void UpdateBombCustomXps(BOMBV *p)
+extern "C" void UpdateBombCustomXps(BOMBV *bomb)
 {
     int i;
     SOV *pso;
     int unused[4];
     HITB hit;
-    for (i = 0; i < p->cxp; i++)
-        UpdateSwPox(&D_003DD490, p->pxp, p->axp[i].plo->pxp, 2);
-    p->cxp = 0;
+    for (i = 0; i < bomb->cxp; i++)
+        UpdateSwPox(&D_003DD490, bomb->pxp, bomb->axp[i].plo->pxp, 2);
+    bomb->cxp = 0;
     for (pso = (*(SOLIST *)&g_sw.dlTarget).p; pso; pso = pso->pnext) {
         LOV *plo;
         SOV *pp;
@@ -261,15 +263,15 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
         {
             qword a = func_001A62E8(pso);
             XEC *px = plo->pxp;
-            qword b = p->pxa->pos;
-            if (func_0014C748(a, b, func_001A62E8(p), 1, &hit, px->g30)) {
+            qword b = bomb->pxa->pos;
+            if (func_0014C748(a, b, func_001A62E8(bomb), 1, &hit, px->g30)) {
                 CXP *pe;
                 qword d;
                 register qword vp __asm__("vf2");
                 register qword vn __asm__("vf1");
                 register int n __asm__("$2");
-                UpdateSwPox(&D_003DD490, p->pxp, plo->pxp, 1);
-                pe = &p->axp[p->cxp++];
+                UpdateSwPox(&D_003DD490, bomb->pxp, plo->pxp, 1);
+                pe = &bomb->axp[bomb->cxp++];
                 pe->plo = plo;
                 __asm__("" : "+r"(pe));
                 vp = hit.pos;
@@ -279,7 +281,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
                 __asm__("qmfc2.ni %0, %1" : "=r"(n) : "j"(d));
                 pe->normal = vn;
                 pe->n20 = n;
-                if (p->cxp >= 4)
+                if (bomb->cxp >= 4)
                     break;
             }
         }
@@ -287,29 +289,31 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
 }
 
 // BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9). (inferred)
-extern "C" void AddBombCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5)
+extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, int a5)
 {
-    func_001F5990(p, ps, a2, a3, a4, a5);
-    if (p->fCustomXps) {
+    func_001F5990(bomb, ps, a2, a3, a4, a5);
+    if (bomb->fCustomXps) {
         CXP *pe;
-        for (pe = p->axp; pe < p->axp + p->cxp; pe++) {
+        for (pe = bomb->axp; pe < bomb->axp + bomb->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                PxpAdd(&D_003DD490, p->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                PxpAdd(&D_003DD490, bomb->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
                 return;
             }
         }
     }
 }
 
-typedef struct XPE { BOMBV *p; void *x; int pad[14]; } XPE;
+typedef struct XPE { BOMBV *object; void *x; int pad[14]; } XPE;
 typedef struct XPQ { int x0, x4; XPE ae[2]; char pad88[0x24]; struct XPQ *pqNext; } XPQ;
 #define AE(q) ((q)->ae)
-static inline int IOther(XPQ *pq, BOMBV *p)
+// Index (0/1) of the other end of a contact pair, relative to this bomb.
+static inline int IOther(XPQ *pq, BOMBV *bomb)
 {
-    int i = p != AE(pq)[0].p;
+    int i = bomb != AE(pq)[0].object;
     i = 1 - i;
     return i;
 }
+// Length of a vector, in lane x.
 static inline qword Length(qword a)
 {
     qword r, one;
@@ -318,6 +322,7 @@ static inline qword Length(qword a)
         : "=j"(r), "=j"(one) : "j"(a));
     return r;
 }
+// Length of a vector, in lane x (dot product form).
 static __inline__ qword VLenA(qword c)
 {
     qword l;
@@ -325,12 +330,14 @@ static __inline__ qword VLenA(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Vector divided by lane x of f.
 static inline qword DivQ(qword v, qword f)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
     return r;
 }
+// Lane x of a 128-bit register as a float.
 static inline float GetX(qword q)
 {
     float f;
@@ -338,6 +345,7 @@ static inline float GetX(qword q)
     return f;
 }
 
+// Unit vector of v, or def for a near-zero vector.
 static inline qword NormalizeSafe(qword v, qword def)
 {
     qword len = Length(v);
@@ -353,9 +361,7 @@ namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B
 namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
 // BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
 // 0/1/2). (inferred)
-// BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
-// 0/1/2). (inferred)
-extern "C" void HandleBombContact(BOMBV *p)
+extern "C" void HandleBombContact(BOMBV *bomb)
 {
     qword pos;
     float gBest;
@@ -363,36 +369,36 @@ extern "C" void HandleBombContact(BOMBV *p)
     XPL *pl;
     XPQ *pq;
 
-    func_001F4F10(p);
-    switch (p->k) {
+    func_001F4F10(bomb);
+    switch (bomb->k) {
     case 0:
     case 2:
-        if (p->x174)
+        if (bomb->x174)
             return;
         break;
     case 1:
-        if (!p->x1E4)
+        if (!bomb->x1E4)
             return;
-        if (p->x1E8)
+        if (bomb->x1E8)
             return;
         break;
     }
-    pos = p->pxa->pos;
+    pos = bomb->pxa->pos;
     gBest = D_002A4B18;
     pqBest = 0;
-    for (pl = p->pxp->pl; pl; pl = pl->next) {
+    for (pl = bomb->pxp->pl; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
             float g = GetX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
             if (gBest <= g)
                 continue;
             f = 0;
-            switch (p->k) {
+            switch (bomb->k) {
             case 0:
                 f = 1;
                 break;
             case 2: {
-                BOMBV *pOther = AE(pq)[IOther(pq, p)].p;
+                BOMBV *pOther = AE(pq)[IOther(pq, bomb)].object;
                 if (FIsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
                     if (func_001C4098(pOther))
@@ -401,7 +407,7 @@ extern "C" void HandleBombContact(BOMBV *p)
                 break;
             }
             case 1:
-                if (IsBombChainFreeOfExcludedClasses(p, (SOV *)AE(pq)[IOther(pq, p)].x))
+                if (IsBombChainFreeOfExcludedClasses(bomb, (SOV *)AE(pq)[IOther(pq, bomb)].x))
                     f = 1;
                 break;
             }
@@ -413,12 +419,12 @@ extern "C" void HandleBombContact(BOMBV *p)
     }
     if (!pqBest)
         return;
-    switch (p->k) {
+    switch (bomb->k) {
     case 0:
     case 2: {
         qword posT = *(qword *)AE(pqBest)[0].pad;
-        VTEQ *pe = &((VTEQ *)p->vt)[33];
-        qword v = pe->pfn((char *)p + pe->d);
+        VTEQ *pe = &((VTEQ *)bomb->vt)[33];
+        qword v = pe->pfn((char *)bomb + pe->d);
         register qword n __asm__("vf1");
         register qword kDef __asm__("$6");
         qword l;
@@ -433,18 +439,18 @@ extern "C" void HandleBombContact(BOMBV *p)
             __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(rn) : "j"(v), "j"(l));
             n = rn;
         }
-        PrepareBombDetonation(p, posT, n);
-        PrimeBomb(p, 0.0f);
+        PrepareBombDetonation(bomb, posT, n);
+        PrimeBomb(bomb, 0.0f);
         break;
     }
     case 1:
-        PostSwCallback(&D_003DD490, p, D_002A4B10.l, AE(pqBest)[IOther(pqBest, p)].x);
+        PostSwCallback(&D_003DD490, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].x);
         break;
     }
 }
 
 // 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1. (inferred)
-extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pn) {
+extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
     unsigned int i;
     for (; pn; pn = pn->pparent) {
         for (i = 0; i < 4; i++) {
@@ -456,16 +462,17 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pn) {
 
 // BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
 // 0x1B. (inferred)
-extern "C" void ApplyBombThrow(BOMBV *p, Q18 *q) {
-    p->pq1E8 = q;
-    SetLoParent_1A58D0(p, q->f18 != 1 ? q : 0, 3);
-    func_001F4898(p, D_002A2DD0);
-    func_001F4930(p, D_002A2DD0);
-    SetSoCnstrForce(p, 1);
-    SetSoCnstrTorque(p, 1);
-    ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x1b, 0, 0, 0, 0);
+extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
+    bomb->pq1E8 = q;
+    SetLoParent_1A58D0(bomb, q->f18 != 1 ? q : 0, 3);
+    func_001F4898(bomb, D_002A2DD0);
+    func_001F4930(bomb, D_002A2DD0);
+    SetSoCnstrForce(bomb, 1);
+    SetSoCnstrTorque(bomb, 1);
+    ((void (*)(void *, int, int, int, int, int))bomb->vt[3].pfn)((char *)bomb + bomb->vt[3].d, 0x1b, 0, 0, 0, 0);
 }
 
+// Length of a vector, in lane x.
 static __inline__ qword VLen(qword c)
 {
     qword l;
@@ -474,13 +481,12 @@ static __inline__ qword VLen(qword c)
     return l;
 }
 // BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
-// BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
-extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
+extern "C" int FAbsorbBombWkr(BOMBV *bomb, WKR *pm)
 {
     int r;
-    if (p->k == 1)
+    if (bomb->k == 1)
         return 0;
-    r = func_001F7588(p, pm);
+    r = func_001F7588(bomb, pm);
     if (r && (pm->x44 & 8)) {
         U u;
         U *pu;
@@ -501,74 +507,75 @@ extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
             n = rn;
         }
         pu->q = n;
-        PrepareBombDetonation(p, func_001A62E8(p), u.q);
+        PrepareBombDetonation(bomb, func_001A62E8(bomb), u.q);
         if (FIsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
-            PrimeBomb(p, 0.25f);
+            PrimeBomb(bomb, 0.25f);
         else
-            PrimeBomb(p, 0.0f);
+            PrimeBomb(bomb, 0.0f);
     }
     return r;
 }
 
+// 3x3 matrix times vector.
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
     o = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v);
     return o;
 }
-static __inline__ void MulStore(BOMBV *p, M3 *pm)
+// Writes a rotation into the bomb\x27s transform (helper of PrepareBombDetonation).
+static __inline__ void MulStore(BOMBV *bomb, M3 *pm)
 {
     M3 t, u;
-    M3 *pb = func_001A6318(p);
+    M3 *pb = func_001A6318(bomb);
     u.r[0] = t.r[0] = MulV(pm, pb->r[0]);
     u.r[1] = t.r[1] = MulV(pm, pb->r[1]);
     t.r[2] = u.r[2] = MulV(pm, pb->r[2]);
-    p->matDetonate = t;
+    bomb->matDetonate = t;
 }
 // Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal.
-// Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal.
-extern "C" void PrepareBombDetonation(BOMBV *p, qword pos, qword q)
+extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 {
     M3 m;
-    if (p->x174)
+    if (bomb->x174)
         return;
-    p->posDetonate = pos;
-    p->x174 = 1;
+    bomb->posDetonate = pos;
+    bomb->x174 = 1;
     {
-        VTE *e = &p->vt[33];
-        p->v1C0 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
+        VTE *e = &bomb->vt[33];
+        bomb->v1C0 = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
     {
-        VTE *e = &p->vt[34];
-        p->v1D0 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
+        VTE *e = &bomb->vt[34];
+        bomb->v1D0 = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
-    switch (p->x170) {
+    switch (bomb->x170) {
     case 0:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[2], q);
-        MulStore(p, &m);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(bomb)->r[2], q);
+        MulStore(bomb, &m);
         break;
     case 1:
-        BuildOrthonormalMatrixZ(&m, p->v1C0, D_002A2DC0);
-        p->matDetonate = m;
+        BuildOrthonormalMatrixZ(&m, bomb->v1C0, D_002A2DC0);
+        bomb->matDetonate = m;
         break;
     case 2:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[0], q);
-        MulStore(p, &m);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(bomb)->r[0], q);
+        MulStore(bomb, &m);
         break;
     case 3:
-        p->matDetonate = *func_001A6318(p);
+        bomb->matDetonate = *func_001A6318(bomb);
         break;
     }
 }
 
 // tDetonate = min(tDetonate, now + dt).
-void PrimeBomb(BOMBV *p, float f) { p->tDetonate = (p->tDetonate < D_002DDED0.t + f) ? p->tDetonate : D_002DDED0.t + f; }
+void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < D_002DDED0.t + f) ? bomb->tDetonate : D_002DDED0.t + f; }
 
 // (Claude agent) CsbiIntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).
 // Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of
 // sight, sorted/uniqued. (inferred)
-extern "C" void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo)
+extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
 {
     AREQV req;
     int c;
@@ -576,7 +583,7 @@ extern "C" void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo)
     int n;
     SOV **apo;
     int i;
-    { float a = p->sRadius; float b = p->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, p->posDetonate, func_0020FA10, p->pxp, b >= a ? b : a, &c, &aps); }
+    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, bomb->posDetonate, func_0020FA10, bomb->pxp, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;
@@ -592,14 +599,14 @@ extern "C" void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo)
         void *pso60 = ps->po->pxp->pso60;
         if (ps->xC == 1)
             continue;
-        if (pso60 == p->pxp->pso60)
+        if (pso60 == bomb->pxp->pso60)
             continue;
-        if (ps->x74 && !CsbiIntersectSphereBsp(p->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? p->sRadiusHero : p->sRadius, &hit))
+        if (ps->x74 && !CsbiIntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;
     }
-    SortUniqueBombVictims(p, &n, apo);
+    SortUniqueBombVictims(bomb, &n, apo);
     *pc = n;
     *papo = apo;
 }
@@ -627,18 +634,18 @@ extern "C" void SortUniqueBombVictims(BOMBV *unused, int *pc, SOV **a) {
 namespace RO_ORDER { extern const float r_D_002A4B1C __asm__("D_002A4B1C") = 3.40282347e+38f; }
 // If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or
 // remove.
-extern "C" void DetonateBomb(BOMBV *p)
+extern "C" void DetonateBomb(BOMBV *bomb)
 {
-    if (((p->fl >> 60) & 1) == 0)
+    if (((bomb->fl >> 60) & 1) == 0)
         return;
-    PrepareBombDetonation(p, func_001A62E8(p), D_002A2DC0);
+    PrepareBombDetonation(bomb, func_001A62E8(bomb), D_002A2DC0);
     FRAME frame;
-    if (p->x164 == 0) {
+    if (bomb->x164 == 0) {
         FrameInit(&frame);
         int c;
         SOV **apo;
         int i;
-        CollectBombVictims(p, &c, &apo);
+        CollectBombVictims(bomb, &c, &apo);
         for (i = 0; i < c; i++) {
             SOV *po = apo[i];
             MSG msg;
@@ -646,14 +653,14 @@ extern "C" void DetonateBomb(BOMBV *p)
             qword d, n;
             float l;
             func_002333B4(&msg, 0, 0x60);
-            msg.xC = p->x1EC;
-            msg.x10 = p->x1F0;
-            msg.v20 = p->posDetonate;
-            msg.p = p;
+            msg.xC = bomb->x1EC;
+            msg.x10 = bomb->x1F0;
+            msg.v20 = bomb->posDetonate;
+            msg.p = bomb;
             msg.po = (POV *)po;
             qword pos = func_001A62E8(po);
             qword def = D_002A2DC0;
-            d = VuSub(pos, p->posDetonate);
+            d = VuSub(pos, bomb->posDetonate);
             {
                 register qword t __asm__("vf2");
                 t = VuDot(d, d);
@@ -676,63 +683,63 @@ extern "C" void DetonateBomb(BOMBV *p)
         }
         FrameFree(&frame, 2);
     }
-    ((void (*)(BOMBV *, qword))p->vt[29].pfn)((BOMBV *)((char *)p + p->vt[29].d), p->posDetonate);
-    ((void (*)(BOMBV *, void *))p->vt[30].pfn)((BOMBV *)((char *)p + p->vt[30].d), &p->matDetonate);
-    ((void (*)(BOMBV *, qword))p->vt[35].pfn)((BOMBV *)((char *)p + p->vt[35].d), p->v1C0);
-    ((void (*)(BOMBV *, qword))p->vt[36].pfn)((BOMBV *)((char *)p + p->vt[36].d), p->v1D0);
-    if (p->p168) {
+    ((void (*)(BOMBV *, qword))bomb->vt[29].pfn)((BOMBV *)((char *)bomb + bomb->vt[29].d), bomb->posDetonate);
+    ((void (*)(BOMBV *, void *))bomb->vt[30].pfn)((BOMBV *)((char *)bomb + bomb->vt[30].d), &bomb->matDetonate);
+    ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->v1C0);
+    ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->v1D0);
+    if (bomb->p168) {
         MSG2 msg2;
-        POV *po = p->p168;
+        POV *po = bomb->p168;
         msg2.k = 9;
-        msg2.g8 = p->g16C;
-        msg2.gC = p->sRadius;
-        msg2.p = p;
+        msg2.g8 = bomb->g16C;
+        msg2.gC = bomb->sRadius;
+        msg2.p = bomb;
         ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
     }
-    if (p->x1E0) {
-        POV *po = (POV *)p->pbombOwner;
-        void *pv = p;
-        if (po != (POV *)p && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
+    if (bomb->x1E0) {
+        POV *po = (POV *)bomb->pbombOwner;
+        void *pv = bomb;
+        if (po != (POV *)bomb && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        func_00156698(D_003DD490.x402C, func_001A62E8(p), pv)[0x54 / 4] = 1;
+        func_00156698(D_003DD490.x402C, func_001A62E8(bomb), pv)[0x54 / 4] = 1;
     }
-    ((void (*)(BOMBV *))p->vt[9].pfn)((BOMBV *)((char *)p + p->vt[9].d));
-    p->x174 = 0;
-    p->tDetonate = D_002A4B1C;
-    ((void (*)(BOMBV *, int, int, int, int, int))p->vt[3].pfn)((BOMBV *)((char *)p + p->vt[3].d), 5, 0, 0, 0, 0);
+    ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
+    bomb->x174 = 0;
+    bomb->tDetonate = D_002A4B1C;
+    ((void (*)(BOMBV *, int, int, int, int, int))bomb->vt[3].pfn)((BOMBV *)((char *)bomb + bomb->vt[3].d), 5, 0, 0, 0, 0);
 }
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
 // BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
-extern "C" void ResetBomb(BOMBV *p) {
-    func_001CB518(p);
-    p->x174 = 0;
-    p->tDetonate = D_002A4B20;
-    SetBombOwner(p, p);
-    SetSoCnstrForce(p, 0);
-    SetSoCnstrTorque(p, 0);
-    func_001F6860(p, 0);
-    p->x1E8 = 0;
-    SetLoParent_1A58D0(p, 0, 0xf);
+extern "C" void ResetBomb(BOMBV *bomb) {
+    func_001CB518(bomb);
+    bomb->x174 = 0;
+    bomb->tDetonate = D_002A4B20;
+    SetBombOwner(bomb, bomb);
+    SetSoCnstrForce(bomb, 0);
+    SetSoCnstrTorque(bomb, 0);
+    func_001F6860(bomb, 0);
+    bomb->x1E8 = 0;
+    SetLoParent_1A58D0(bomb, 0, 0xf);
 }
 
 // BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
-extern "C" int FIgnoreBombIntersection(BOMBV *p, SOV *pso)
+extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
 {
-    int r = FIgnoreSoIntersection(p, pso);
-    if (pso->ploroot->plo == p->pbombOwner->ploroot->plo) {
+    int r = FIgnoreSoIntersection(bomb, pso);
+    if (pso->ploroot->plo == bomb->pbombOwner->ploroot->plo) {
         r = func_00134310(r, 1);
     }
     return r;
 }
 
 // Set owner (+0x200) and RecalcSwOxfFilterForObject if changed. (inferred)
-extern "C" void SetBombOwner(BOMBV *p, BOMBV *pbombOwner)
+extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
-    if (pbombOwner != p->pbombOwner) {
-        p->pbombOwner = pbombOwner;
-        RecalcSwOxfFilterForObject(&D_003DD490, p);
+    if (pbombOwner != bomb->pbombOwner) {
+        bomb->pbombOwner = pbombOwner;
+        RecalcSwOxfFilterForObject(&D_003DD490, bomb);
     }
 }
