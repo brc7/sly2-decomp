@@ -1,6 +1,6 @@
 // ref.cpp -- CRef, the Splice value reference: constructors and setters per value kind, assignment, comparison,
-// cloning, coercion and the reference counting of the payloads. TU 0x1291A8..0x12A3D8 (35 functions) plus three
-// linkonce instances of the proc/method pool helpers homed here (0x255AB0..0x257148), address order.
+// cloning, coercion and the reference counting of the payloads. TU 0x1291A8..0x12A3D8 (35 functions) plus the
+// linkonce proc destructor homed here (0x257148), address order.
 // Several functions still have C names (CRef_ctor_*, CRef_Set*): they are CRef members whose symbols tools/rename.py
 // has not given yet, so they stay C-linkage functions taking the CRef as a pointer.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_ref
@@ -828,94 +828,9 @@ void CRef::SetTag(TAGK tagk)
     }
 }
 
-/* Linkonce instances (0x255AB0..0x257148): out-of-line copies of inline Splice GC helpers for procs (pool 3,
-   CSlotPool<0x1C, 0x800>) and methods (pool 6, CSlotPool<0x14, 0x100>), and the proc destructor, homed in this TU.
-   Kept as plain functions under their current symbols. */
-
-extern "C" {
-extern char *D_00452110[4];                          /* proc pool blocks */
-extern GCNODE *D_002DD2B0, *D_002DD2B8, *D_002DD2BC; /* proc GC lists */
-extern char *D_00452160[4];                          /* method pool blocks */
-extern GCNODE *D_002DD2D0, *D_002DD2D8, *D_002DD2DC; /* method GC lists */
-}
-
-static inline GCNODE *PnodeProc(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (GCNODE *)(D_00452110[pg] + idx * 28);
-}
-
-/** @sly2-annot addr=0x255AB0
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name Unlink__t6CGcObj1Z5CProc (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void Unlink__t6CGcObj1Z5CProc(GCNODE *p)
-{
-    GCNODE *prev = PnodeProc(p->prev, p->prevpg);
-    GCNODE *next = PnodeProc(p->next, p->nextpg);
-    if (p == D_002DD2B8)
-        D_002DD2B8 = next;
-    if (prev)
-    {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    }
-    else if (p == D_002DD2B0)
-    {
-        D_002DD2B0 = next;
-    }
-    else if (p == D_002DD2BC)
-    {
-        D_002DD2BC = next;
-    }
-    if (next)
-    {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
-
-static inline GCNODE *PnodeMethod(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (GCNODE *)(D_00452160[pg] + idx * 20);
-}
-
-/** @sly2-annot addr=0x256120
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name Unlink__t6CGcObj1Z7CMethod (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void Unlink__t6CGcObj1Z7CMethod(GCNODE *p)
-{
-    GCNODE *prev = PnodeMethod(p->prev, p->prevpg);
-    GCNODE *next = PnodeMethod(p->next, p->nextpg);
-    if (p == D_002DD2D8)
-        D_002DD2D8 = next;
-    if (prev)
-    {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    }
-    else if (p == D_002DD2D0)
-    {
-        D_002DD2D0 = next;
-    }
-    else if (p == D_002DD2DC)
-    {
-        D_002DD2DC = next;
-    }
-    if (next)
-    {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
+/* Linkonce instance (0x257148): the proc destructor, homed in this TU and kept as a plain function under its current
+   symbol. The proc and method pools' GC members are CGcObj<CProc>'s and CGcObj<CMethod>'s (sly2/gc.h, emitted by
+   splice/gc.cpp). */
 
 /* The proc as its destructor sees it (splice/proc.cpp's CProc: frame link at 0x8, parameter and body lists at
    0x14/0x18). */
