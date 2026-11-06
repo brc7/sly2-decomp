@@ -33,50 +33,62 @@ struct SHAPE;
 struct EFFECT;
 struct SOURCE;
 struct CBinaryInputStream;
-struct LOV { int x0, x4, x8; VTE *pvt; char pad10[0x74 - 0x10]; float tMax; float svtMaster; };
+struct LOV { int pad0[3]; VTE *pvt; char pad10[0x74 - 0x10]; float duration; float masterSpeed; };   /* duration/speed: as an ASEG */
 
 /* The XFs at SO+0x58/+0x5C as far as this TU reads them. */
-struct XFV { char pad0[0x98]; short nRole; char pad9A[0xF0 - 0x9A]; V3 a; };
+struct XFV { char pad0[0x98]; short role; char pad9A[0xF0 - 0x9A]; V3 unknownF0; };   /* unknownF0: a vector cleared as three words */
 
 /* Per-state animation: the clip's OID until PostLoad resolves it to the ASEG, and its apply flags. */
-struct E96 { OID oid; ASEG *paseg; int grf; };
+struct E96 { OID oid; ASEG *paseg; int applyFlags; };
 
 struct CID96V
 {
-    int x0, x4, x8;
+    int pad0[3];
     VTE *pvt;               /* 0x0C */
     char pad10[0x40 - 0x10];
-    unsigned int x40;       /* 0x40 tagged word (pointer, or odd flags) */
+    unsigned int taggedFlags; /* 0x40 tagged word (pointer, or odd flags) */
     char pad44[0x58 - 0x44];
-    XFV *pxf58;              /* 0x58 */
-    XFV *pxf5C;              /* 0x5C ("group" of the state controller) */
+    XFV *positionXf;        /* 0x58 */
+    XFV *rotationXf;        /* 0x5C ("group" of the state controller) */
     char pad60[0x150 - 0x60];
-    float g150, g154;       /* 0x150 near / far distance of the closest-object test */
-    float low0, high0;      /* 0x158 random wait range, state 0 */
-    float low1, high1;      /* 0x160 random wait range, state 1 */
-    float lead;             /* 0x168 (also the fade-out time) */
-    SHAPE *pshape;          /* 0x16C walking curve */
-    SHAPE *pshapeFlee;      /* 0x170 fleeing curve */
-    float u;                /* 0x174 parameter on the curve */
-    float du;               /* 0x178 search increment (phase) */
-    E96 ae[6];              /* 0x17C */
-    ASEGA *pasega;          /* 0x1C4 */
-    LOV *plo1C8;             /* 0x1C8 */
-    float speedWalk;        /* 0x1CC */
-    F speed;                /* 0x1D0 */
-    int oldMode;            /* 0x1D4 */
+    float nearDistance;     /* 0x150 a player this close startles it */
+    float farDistance;      /* 0x154 ... or this close while moving faster than 150 */
+    float idleWaitMin, idleWaitMax;     /* 0x158 random time spent idle */
+    float walkWaitMin, walkWaitMax;     /* 0x160 random time spent walking */
+    float fadeTime;         /* 0x168 fade-out time, also how early the flight ends */
+    SHAPE *walkPath;        /* 0x16C */
+    SHAPE *fleePath;        /* 0x170 */
+    float pathU;            /* 0x174 parameter on the current path */
+    float pathStep;         /* 0x178 search increment along it (sign: direction) */
+    E96 stateAnims[6];      /* 0x17C animation per CRITTER_STATE */
+    ASEGA *segmentAnim;     /* 0x1C4 */
+    LOV *hitListener;       /* 0x1C8 told (vtable slot 51, message 6) when the critter is hit */
+    float walkSpeed;        /* 0x1CC from the walk animation's root motion */
+    F fleeSpeed;            /* 0x1D0 from the flee animation's root motion */
+    int defaultRole;        /* 0x1D4 the rotation XF's role at load, restored when leaving idle/turn/startled */
     float heading;          /* 0x1D8 */
     int pad1DC;
-    M3 basis;               /* 0x1E0 */
-    VECTOR3 spin;           /* 0x210 */
-    float ratio;            /* 0x21C */
-    int state;              /* 0x220 */
-    float changed;          /* 0x224 */
-    float randomDeadline;   /* 0x228 */
-    float deadline;         /* 0x22C */
-    int amount;             /* 0x230 */
+    M3 headingBasis;        /* 0x1E0 rotation for heading, the spring target */
+    VECTOR3 spinScale;      /* 0x210 spring parameters scaled by spinRatio */
+    float spinRatio;        /* 0x21C */
+    int state;              /* 0x220 CRITTER_STATE */
+    float stateTime;        /* 0x224 */
+    float nextStateTime;    /* 0x228 idle/walk end time */
+    float fleeEndTime;      /* 0x22C when the fleeing critter fades out */
+    int amount;             /* 0x230 passed to func_00154E10 when hit (-1 by default) */
     char pad234[12];
-    U damageOffset;         /* 0x240 */
+    U damageOffset;         /* 0x240 local offset of the hit effect */
+};
+/* Critter states (inferred from the update and SetCritterState). */
+enum CRITTER_STATE
+{
+    CRITTER_NONE = -1,
+    CRITTER_IDLE = 0,
+    CRITTER_WALK = 1,
+    CRITTER_TURN = 2,       /* turning around at a path end */
+    CRITTER_STARTLED = 3,   /* faces away from the player (spin doubled) */
+    CRITTER_FLEE = 4,       /* runs along the flee path (or away) and fades out */
+    CRITTER_HIT = 5
 };
 typedef char assert_CID96_size[sizeof(CID96V) == 0x250 ? 1 : -1];
 
@@ -141,88 +153,92 @@ float RadNormalize(float r);                                                    
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
-// CID 96 vtable slot 7 Init: InitSo + defaults. (inferred)
+// CID96 vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
+// (apply flags from D_002C0230); speeds 300/1000; no state; LO flag 2.
 extern "C" void InitCritter(CID96V *critter)
 {
     int i;
     E96 *pe;
     int *pi;
     InitSo(critter);
-    critter->g150 = 400.0f;
-    critter->g154 = 800.0f;
-    critter->low0 = 2.0f;
-    critter->high0 = 6.0f;
-    critter->low1 = 6.0f;
-    critter->high1 = 10.0f;
-    critter->lead = 1.0f;
-    pe = critter->ae;
+    critter->nearDistance = 400.0f;
+    critter->farDistance = 800.0f;
+    critter->idleWaitMin = 2.0f;
+    critter->idleWaitMax = 6.0f;
+    critter->walkWaitMin = 6.0f;
+    critter->walkWaitMax = 10.0f;
+    critter->fadeTime = 1.0f;
+    pe = critter->stateAnims;
     pi = D_002C0230;
-    for (i = 5; i >= 0; i--) {
+    for (i = 5; i >= 0; i--) {   /* counted down: the target's loop shape */
         pe->oid = (OID)-1;
-        pe->grf = *pi++;
+        pe->applyFlags = *pi++;
         pe++;
     }
-    critter->speedWalk = 300.0f;
-    critter->speed.value = 1000.0f;
-    critter->state = -1;
+    critter->walkSpeed = 300.0f;
+    critter->fleeSpeed.value = 1000.0f;
+    critter->state = CRITTER_NONE;
     critter->amount = -1;
-    if ((critter->x40 ^ 1) & 1) *(int *)critter->x40 |= 2;
-    else critter->x40 |= 2;
+    if ((critter->taggedFlags ^ 1) & 1) *(int *)critter->taggedFlags |= 2;
+    else critter->taggedFlags |= 2;
 }
 
-// CID 96 vtable slot 12: RemoveSoHierarchy then stop animation (ApplyAsegCur null). (inferred)
+// CID96 vtable slot 12 (RemoveHierarchy): SO removal, animation stopped.
 extern "C" void RemoveCritterHierarchy(CID96V *critter)
 {
     RemoveSoHierarchy(critter);
-    ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &critter->pasega);
+    ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &critter->segmentAnim);
 }
 
-// CID 96 vtable slot 14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects. (inferred)
-extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *pbis)
+// CID96 vtable slot 14 (LoadFromBrx): SO load; the position XF gets role 1 and a cleared vector; remembers the
+// rotation XF's role; resolves the animation oids.
+extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *stream)
 {
-    XFV *pxf;
-    V3 *pa;
-    LoadSoFromBrx(critter, pbis);
-    func_002303A0(critter, critter->pxf58, 1);
-    pxf = critter->pxf58;
-    pa = &pxf->a;
-    pa->z = 0;
-    pa->y = 0;
-    pxf->a.x = 0;
-    critter->oldMode = critter->pxf5C->nRole;
+    XFV *xf;
+    V3 *vector;
+    LoadSoFromBrx(critter, stream);
+    func_002303A0(critter, critter->positionXf, 1);
+    xf = critter->positionXf;
+    vector = &xf->unknownF0;
+    vector->z = 0;
+    vector->y = 0;
+    xf->unknownF0.x = 0;
+    critter->defaultRole = critter->rotationXf->role;
     ResolveCritterLinks(critter);
 }
 
-// CID 96 vtable slot 15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset. (inferred)
+// CID96 vtable slot 15 (PostLoad): SO post-load, resolves the animations, takes the walk and flee speeds from their
+// root motion, then resets.
 extern "C" void PostCritterLoad(CID96V *critter)
 {
     PostSoLoad(critter);
     ResolveCritterLinks(critter);
-    GetAsegSpeedForObject(critter, (LOV *)critter->ae[1].paseg, &critter->speedWalk);
-    GetAsegSpeedForObject(critter, (LOV *)critter->ae[4].paseg, &critter->speed.value);
+    GetAsegSpeedForObject(critter, (LOV *)critter->stateAnims[CRITTER_WALK].paseg, &critter->walkSpeed);
+    GetAsegSpeedForObject(critter, (LOV *)critter->stateAnims[CRITTER_FLEE].paseg, &critter->fleeSpeed.value);
     ResetCritter(critter);
 }
 
-// CID 96 vtable slot 26: proxy base then reset. (inferred)
+// CID96 vtable slot 26 (proxy reset): the base, then ResetCritter.
 extern "C" void ResetCritterFromProxy(CID96V *critter)
 {
     func_001CB518(critter);
     ResetCritter(critter);
 }
 
-// Squash ratio 1, if on a path go to state 1 at path start (vtable slot 29 TranslateToPos), else idle. (inferred)
+// Spin ratio 1; a critter with a walk path starts walking from the path's start (vtable slot 29 moves it there),
+// others idle.
 void ResetCritter(CID96V *critter)
 {
     qwordV v;
     SetStepSpinRatio((STEP *)critter, 1.0f);
-    if (critter->pshape) {
-        SetCritterState(critter, 1);
-        critter->u = UMinShape(critter->pshape);
-        critter->du = DuGetShapeSearchIncrement(critter->pshape);
-        EvaluateShapeU(critter->pshape, critter->u, &v, 0);
+    if (critter->walkPath) {
+        SetCritterState(critter, CRITTER_WALK);
+        critter->pathU = UMinShape(critter->walkPath);
+        critter->pathStep = DuGetShapeSearchIncrement(critter->walkPath);
+        EvaluateShapeU(critter->walkPath, critter->pathU, &v, 0);
         ((void (*)(void *, qwordV))critter->pvt[29].pfn)((char *)critter + critter->pvt[29].d, v);
     } else {
-        SetCritterState(critter, 0);
+        SetCritterState(critter, CRITTER_IDLE);
     }
 }
 
@@ -230,94 +246,98 @@ void ResetCritter(CID96V *critter)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.40282347e+38f; }
-// CID 96 vtable slot 16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following.
-// (inferred)
+// CID96 vtable slot 16 (Update): SO update and the state machine: idle, walking and turning critters are startled by a
+// nearby player, otherwise idle and walk alternate on their timers and a turn ends when the critter faces its
+// heading; a startled critter flees once it faces away and its animation has finished; a fleeing one fades out at
+// fleeEndTime. Then the path following.
 extern "C" void UpdateCritter(CID96V *critter)
 {
-    int st;
+    int newState;
     UpdateSo(critter);
-    st = critter->state;
-    switch (st) {
-    case 0:
-        st = ChooseCritterStateFromPlayer(critter);
-        if (st != 3 && critter->randomDeadline <= D_002DDED0.t) {
-            if (critter->pshape) st = 1;
+    newState = critter->state;
+    switch (newState) {
+    case CRITTER_IDLE:
+        newState = ChooseCritterStateFromPlayer(critter);
+        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.t) {
+            if (critter->walkPath) newState = CRITTER_WALK;
         }
         break;
-    case 1:
-        st = ChooseCritterStateFromPlayer(critter);
-        if (st != 3 && critter->randomDeadline <= D_002DDED0.t) st = 0;
+    case CRITTER_WALK:
+        newState = ChooseCritterStateFromPlayer(critter);
+        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.t) newState = CRITTER_IDLE;
         break;
-    case 2:
-        st = ChooseCritterStateFromPlayer(critter);
-        if (st != 3 && IsCritterFacingHeading(critter)) st = 1;
+    case CRITTER_TURN:
+        newState = ChooseCritterStateFromPlayer(critter);
+        if (newState != CRITTER_STARTLED && IsCritterFacingHeading(critter)) newState = CRITTER_WALK;
         break;
-    case 3:
-        if (!critter->pasega && IsCritterFacingHeading(critter)) st = 4;
+    case CRITTER_STARTLED:
+        if (!critter->segmentAnim && IsCritterFacingHeading(critter)) newState = CRITTER_FLEE;
         break;
-    case 4:
-        if (critter->deadline <= D_002DDED0.t) {
-            FadeSoOut(critter, critter->lead);
-            critter->deadline = D_002A70E0;
+    case CRITTER_FLEE:
+        if (critter->fleeEndTime <= D_002DDED0.t) {
+            FadeSoOut(critter, critter->fadeTime);
+            critter->fleeEndTime = D_002A70E0;   /* FLT_MAX: once */
         }
         break;
     }
-    SetCritterState(critter, st);
+    SetCritterState(critter, newState);
     UpdateCritterPathFollow(critter);
 }
 
-struct M96 { int k; int pad[3]; qwordV a; qwordV b; qwordV c; };
-struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
-// vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8.
-// (inferred)
-extern "C" int TakeCritterDamage(CID96V *critter, A96 *pa)
+struct M96 { int kind; int pad[3]; qwordV vectorA; qwordV vectorB; qwordV vectorC; };
+struct A96 { char pad[0x20]; qwordV unknown20; qwordV unknown30; int pad1; int flags; };   /* the hit (a WKR) */
+// CID96 vtable slot 75 (absorb a hit): after the base absorb, a hit with flag 8 kills the critter (CRITTER_HIT) and
+// tells its hit listener (vtable slot 51, message 6 with the hit's two vectors). Returns the base result.
+extern "C" int TakeCritterDamage(CID96V *critter, A96 *hit)
 {
-    int r = func_001F7588(critter, pa);
-    if (r && (pa->n44 & 8) && critter->state != 5) {
-        SetCritterState(critter, 5);
-        if (critter->plo1C8) {
+    int result = func_001F7588(critter, hit);
+    if (result && (hit->flags & 8) && critter->state != CRITTER_HIT) {
+        SetCritterState(critter, CRITTER_HIT);
+        if (critter->hitListener) {
             M96 m;
-            m.k = 6;
-            m.b = pa->q20;
-            m.a = pa->q30;
-            ((void (*)(void *, M96 *))critter->plo1C8->pvt[51].pfn)((char *)critter->plo1C8 + critter->plo1C8->pvt[51].d, &m);
+            m.kind = 6;
+            m.vectorB = hit->unknown20;
+            m.vectorA = hit->unknown30;
+            ((void (*)(void *, M96 *))critter->hitListener->pvt[51].pfn)((char *)critter->hitListener + critter->hitListener->pvt[51].d, &m);
         }
     }
-    return r;
+    return result;
 }
 
-// Inline helper ClearV: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Clears a three-word vector.
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
-// CID 96 vtable slot 17: in states 2-3 clear child velocities and call vtable slot 70, then SO vtable slot 17. (inferred)
+// CID96 vtable slot 17: while turning or startled, clears both XFs' vectors and springs toward the heading (vtable
+// slot 70, PresetCritterAccel); then the SO step.
 extern "C" void UpdateCritterXfWorld(CID96V *critter)
 {
-    int n = critter->state;
-    if (n < 4) if (n >= 2) {
-        VTE *e;
-        ClearV(&critter->pxf58->a);
-        ClearV(&critter->pxf5C->a);
-        e = &critter->pvt[70];
-        ((void (*)(void *))e->pfn)((char *)critter + e->d);
+    int state = critter->state;
+    if (state < CRITTER_FLEE) if (state >= CRITTER_TURN) {   /* nested: a range test becomes one unsigned compare */
+        VTE *entry;
+        ClearV(&critter->positionXf->unknownF0);
+        ClearV(&critter->rotationXf->unknownF0);
+        entry = &critter->pvt[70];
+        ((void (*)(void *))entry->pfn)((char *)critter + entry->d);
     }
     func_001F3980(critter);
 }
 
-// CID 96 vtable slot 70: AccelSoTowardMatBounded toward stored matrix/position. (inferred)
+// CID96 vtable slot 70: spring acceleration toward the heading basis with the spin parameters (func_001F59A0). (inferred)
 extern "C" void PresetCritterAccel(CID96V *critter)
 {
-    func_001F59A0(critter, &critter->basis, &critter->spin);
+    func_001F59A0(critter, &critter->headingBasis, &critter->spinScale);
 }
 
 struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */
-// CID 96 vtable slot 5: base handler; msg 2 from its own SMA with matching id -> state 4. (inferred)
-extern "C" void HandleCritterMessage(CID96V *critter, int msg, ASEGA *pm)
+// CID96 vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
+// ASEGA playing that clip) the critter flees.
+extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)
 {
-    HandleBasicMessage(critter, msg, pm);
-    if (msg == 2 && pm == critter->pasega && ((MSG *)pm)->paseg == critter->ae[3].paseg) SetCritterState(critter, 4);
+    HandleBasicMessage(critter, kind, anim);
+    if (kind == 2 && anim == critter->segmentAnim && ((MSG *)anim)->paseg == critter->stateAnims[CRITTER_STARTLED].paseg)
+        SetCritterState(critter, CRITTER_FLEE);
 }
 
-// CID 96 vtable slot 19: RenderSoSelf. (inferred)
+// CID96 vtable slot 19 (RenderSelf): the SO render.
 void CID96::RenderSelf()
 {
     CID96V *critter = (CID96V *)this;
@@ -336,40 +356,41 @@ static __inline__ qwordV VLen(qwordV c)
     return r;
     }
 }
-// Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends. (inferred)
+// Path following while walking or fleeing: from the closest point on the path, aims one search step ahead and sets
+// the velocity toward it at the state's speed; a walking critter past either end turns around.
 void UpdateCritterPathFollow(CID96V *critter)
 {
-    SHAPE *q;
-    float g, t;
+    SHAPE *path;
+    float speed, t;
     VU upos;
     switch (critter->state) {
-    case 1:
-        q = critter->pshape;
-        g = critter->speedWalk;
+    case CRITTER_WALK:
+        path = critter->walkPath;
+        speed = critter->walkSpeed;
         break;
-    case 4:
-        q = critter->pshapeFlee;
-        g = critter->speed.value;
+    case CRITTER_FLEE:
+        path = critter->fleePath;
+        speed = critter->fleeSpeed.value;
         break;
     default:
-        q = 0;
+        path = 0;
         break;
     }
-    if (!q)
+    if (!path)
         return;
     upos.q = func_001A62E8(critter);
-    FindShapeClosestPointFromU(q,upos.q,0,0,0,&critter->u,0,critter->u);
-    t = UWrapShape(q, critter->u + critter->du);
-    if (t < UMinShape(q) || UMaxShape(q) < t) {
-        if (critter->state == 1)
-            SetCritterState(critter, 2);
+    FindShapeClosestPointFromU(path, upos.q, 0, 0, 0, &critter->pathU, 0, critter->pathU);
+    t = UWrapShape(path, critter->pathU + critter->pathStep);
+    if (t < UMinShape(path) || UMaxShape(path) < t) {
+        if (critter->state == CRITTER_WALK)
+            SetCritterState(critter, CRITTER_TURN);
     } else {
         VU v, uc, ur, ub;
         qwordV d, c, l, n, b, r;
         register qwordV k __asm__("$2");
         float gl;
         register int lengthBits __asm__("$3");
-        EvaluateShapeU(q,t,&v.q,0);
+        EvaluateShapeU(path, t, &v.q, 0);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v.q), "j"(upos.q));
         {
             register const qwordV *address __asm__("$2") = &D_002A2DA0.q;
@@ -384,7 +405,7 @@ void UpdateCritterPathFollow(CID96V *critter)
         } else {
             __asm__ __volatile__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(n) : "j"(d), "j"(l));
         }
-        __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(g));
+        __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(speed));
         ub.q = b;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(n), "j"(ub.q));
         ur.q = r;
@@ -396,117 +417,167 @@ void UpdateCritterPathFollow(CID96V *critter)
 // Leaving states -1/0/2/3 restores the group's default action; entering a state sets up its velocity, mode, timers or
 // effect; afterwards the new state, its time stamp and (except for state 2) the state's animation entry are recorded.
 struct WORK{U first,second,direction,velocity,scalar;float angle,parameter;};
-// Inline helpers SetVelocity, SetZeroVelocity: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Sets the critter's velocity (vtable slot 35); to zero.
 static inline void SetVelocity(CID96V*critter,qwordV q){VTE&v=critter->pvt[35];((void(*)(void*,qwordV))v.pfn)((char*)critter+v.d,q);}
 static inline void SetZeroVelocity(CID96V*critter){SetVelocity(critter,D_002A2DD0.q);}
 // broadcast a float into a VU register and keep the scratch store the original left in `home`
 static inline qwordV SplatInto(float f,U*home){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));home->q=q;return q;}
-// Inline helper ScaleX: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// a scaled by lane x of s.
 static inline qwordV ScaleX(qwordV a,qwordV s){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
 // length of a vector, in two steps (sum of squares, then sqrt) so the stores/loads of the callers can sit between them
 static inline qwordV LengthV(qwordV v){qwordV d,one;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));return d;}
-// Inline helper FloatOf: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Lane x as a float.
 static inline float FloatOf(qwordV a){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
 // v * (1/n.x); the "memory" clobbers (here and on LEN1M/LEN2M) keep the surrounding loads/stores in source order
 static inline qwordV DivBy(qwordV v,qwordV n){qwordV r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(n),"j"(v):"memory");return r;}
-// Inline helper SplatBits: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// A float's bit pattern into a VU register.
 static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 #define LEN1M(d,one,v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v):"memory")
 #define LEN2M(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d): :"memory")
-// Inline helpers Call, SetMode, GetMatrix: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Virtual calls: a no-argument slot, slot 47 with 4 (the walking mode, inferred), slot 31 (the world matrix).
 static inline void Call(CID96V*critter,int index){VTE&v=critter->pvt[index];((void(*)(void*))v.pfn)((char*)critter+v.d);}
 static inline void SetMode(CID96V*critter){VTE&v=critter->pvt[47];((void(*)(void*,int))v.pfn)((char*)critter+v.d,4);}
 static inline M4*GetMatrix(CID96V*critter){VTE&v=critter->pvt[31];return ((M4*(*)(void*))v.pfn)((char*)critter+v.d);}
-// State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from
-// nearest player with deadline, 5 hit; sound and ASEG per state. (inferred)
-void SetCritterState(CID96V*critter,int next){
- int old=critter->state;if(old==next)return;WORK w;
- switch(old){case -1:case 0:case 2:case 3:func_002303A0(critter,critter->pxf5C,critter->oldMode);func_0022C840(critter,critter->pxf5C);break;}
- switch(next){
- case 0:
-  SetVelocity(critter,D_002A2DD0.q);func_0022C818(critter,critter->pxf5C);{float now=D_002DDED0.t;critter->randomDeadline=now+GRandInRange__Fff(critter->low0,critter->high0);}break;
- case 1:
-  SetMode(critter);{float now=D_002DDED0.t;critter->randomDeadline=now+GRandInRange__Fff(critter->low1,critter->high1);}break;
- case 2:{
-  critter->du=-critter->du;float negative=-1.0f;M4*m=GetMatrix(critter);
-  qwordV row=m->row[0].q;qwordV factor=SplatInto(negative,&w.first);qwordV scaled=ScaleX(row,factor);
-  GetVectorSphere(scaled,&w.angle,0,0);SetCritterHeading(critter,w.angle);SetZeroVelocity(critter);func_002303A0(critter,critter->pxf5C,1);func_0022C840(critter,critter->pxf5C);break;
- }
- case 3:
-  SetZeroVelocity(critter);SetStepSpinRatio((STEP*)critter,critter->ratio+critter->ratio);
-  func_002303A0(critter,critter->pxf5C,1);func_0022C840(critter,critter->pxf5C);break;
- case 4:{
-  w.first.q=func_001A62E8(critter);
-  if(critter->pshapeFlee){
-   FindShapeClosestPoint(critter->pshapeFlee,w.first.q,0,&w.second,0,&critter->u,&w.parameter);
-   float phase=DuGetShapeSearchIncrement(critter->pshapeFlee);
-   qwordV delta=VuSub(w.first.q,w.second.q);
-   float speed=critter->speed.value;
-   float travel=FloatOf(LengthV(delta));
-   critter->du=phase;
-   travel/=speed;
-   float end=SMaxShape(critter->pshapeFlee);
-   critter->deadline=D_002DDED0.t+travel+(end-w.parameter)/critter->speed.value-critter->lead;
-  }else{
-   LOV*near=PpoClosestSw(&D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);critter->deadline=D_002DDED0.t+2.0f;
-  }
-  qwordV ff=w.first.q;qwordV ss=w.second.q;qwordV gap=VuSub(ss,ff);
-  w.direction.q=gap;w.direction.i[2]=0;
-  qwordV point=w.direction.q;
-  // register pin: local-alloc would otherwise give vf1 to the unused `one` scratch of LEN1M (the original has the length in vf1)
-  register qwordV norm __asm__("vf1");qwordV one;LEN1M(norm,one,point);
-  qwordV fallback=D_002A2DA0.q;LEN2M(norm);float length=FloatOf(norm);qwordV direction;
-  if(length<0.0001f)direction=fallback;else direction=DivBy(point,norm);
-  qwordV factor=SplatBits(critter->speed.bits);
-  w.scalar.q=factor;
-  qwordV velocity=ScaleX(direction,factor);
-  w.velocity.q=velocity;SetVelocity(critter,velocity);SetMode(critter);break;
- }
- case 5:{
-  EFFECT*e=PsndStartSound(0x14);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(critter));
-  func_00154E10(D_002DE578,ConvertAloPos(critter,0,critter->damageOffset.q),critter->amount,-100,critter);Call(critter,9);break;
- }
- }
- critter->state=next;critter->changed=D_002DDED0.t;
- if(next!=2){
-  ApplyAsegCur(critter->ae[next].paseg,(ALO*)critter,0.0f,1.0f,critter->ae[next].grf|1,&critter->pasega);
- }
+// State change. Leaving idle/turn/startled restores the rotation XF's role. Idle: stops, picks the idle time. Walk:
+// walking mode, picks the walk time. Turn: reverses the path direction and heads the other way. Startled: stops and
+// doubles the spin ratio. Flee: runs along the flee path from its closest point (fading out fadeTime before the end)
+// or, without one, away from the closest player for 2 s, at the flee speed. Hit: a sound and func_00154E10's effect
+// at damageOffset (amount, -100), then removed (vtable slot 9). Every state but turn plays its animation.
+void SetCritterState(CID96V *critter, int next)
+{
+    int old = critter->state;
+    if (old == next) return;
+    WORK w;
+    switch (old) {
+    case CRITTER_NONE:
+    case CRITTER_IDLE:
+    case CRITTER_TURN:
+    case CRITTER_STARTLED:
+        func_002303A0(critter, critter->rotationXf, critter->defaultRole);
+        func_0022C840(critter, critter->rotationXf);
+        break;
+    }
+    switch (next) {
+    case CRITTER_IDLE:
+        SetVelocity(critter, D_002A2DD0.q);
+        func_0022C818(critter, critter->rotationXf);
+        {
+            float now = D_002DDED0.t;
+            critter->nextStateTime = now + GRandInRange__Fff(critter->idleWaitMin, critter->idleWaitMax);
+        }
+        break;
+    case CRITTER_WALK:
+        SetMode(critter);
+        {
+            float now = D_002DDED0.t;
+            critter->nextStateTime = now + GRandInRange__Fff(critter->walkWaitMin, critter->walkWaitMax);
+        }
+        break;
+    case CRITTER_TURN: {
+        critter->pathStep = -critter->pathStep;
+        float negative = -1.0f;
+        M4 *m = GetMatrix(critter);
+        qwordV row = m->row[0].q;
+        qwordV factor = SplatInto(negative, &w.first);
+        qwordV scaled = ScaleX(row, factor);
+        GetVectorSphere(scaled, &w.angle, 0, 0);
+        SetCritterHeading(critter, w.angle);
+        SetZeroVelocity(critter);
+        func_002303A0(critter, critter->rotationXf, 1);
+        func_0022C840(critter, critter->rotationXf);
+        break;
+    }
+    case CRITTER_STARTLED:
+        SetZeroVelocity(critter);
+        SetStepSpinRatio((STEP *)critter, critter->spinRatio + critter->spinRatio);
+        func_002303A0(critter, critter->rotationXf, 1);
+        func_0022C840(critter, critter->rotationXf);
+        break;
+    case CRITTER_FLEE: {
+        w.first.q = func_001A62E8(critter);
+        if (critter->fleePath) {
+            FindShapeClosestPoint(critter->fleePath, w.first.q, 0, &w.second, 0, &critter->pathU, &w.parameter);
+            float phase = DuGetShapeSearchIncrement(critter->fleePath);
+            qwordV delta = VuSub(w.first.q, w.second.q);
+            float speed = critter->fleeSpeed.value;
+            float travel = FloatOf(LengthV(delta));
+            critter->pathStep = phase;
+            travel /= speed;
+            float end = SMaxShape(critter->fleePath);
+            critter->fleeEndTime = D_002DDED0.t + travel + (end - w.parameter) / critter->fleeSpeed.value - critter->fadeTime;
+        } else {
+            LOV *near = PpoClosestSw(&D_003DD490, w.first.q);
+            w.second = w.first;
+            w.first.q = func_001A62E8(near);
+            critter->fleeEndTime = D_002DDED0.t + 2.0f;
+        }
+        qwordV ff = w.first.q;
+        qwordV ss = w.second.q;
+        qwordV gap = VuSub(ss, ff);
+        w.direction.q = gap;
+        w.direction.i[2] = 0;   /* horizontal */
+        qwordV point = w.direction.q;
+        // register pin: local-alloc would otherwise give vf1 to the unused `one` scratch of LEN1M (the original has the length in vf1)
+        register qwordV norm __asm__("vf1");
+        qwordV one;
+        LEN1M(norm, one, point);
+        qwordV fallback = D_002A2DA0.q;
+        LEN2M(norm);
+        float length = FloatOf(norm);
+        qwordV direction;
+        if (length < 0.0001f) direction = fallback;
+        else direction = DivBy(point, norm);
+        qwordV factor = SplatBits(critter->fleeSpeed.bits);
+        w.scalar.q = factor;
+        qwordV velocity = ScaleX(direction, factor);
+        w.velocity.q = velocity;
+        SetVelocity(critter, velocity);
+        SetMode(critter);
+        break;
+    }
+    case CRITTER_HIT: {
+        EFFECT *sound = PsndStartSound(0x14);
+        SetSndSourceLo(sound, 0);
+        SetSndSourcePos(sound, func_001A62E8(critter));
+        func_00154E10(D_002DE578, ConvertAloPos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);
+        Call(critter, 9);
+        break;
+    }
+    }
+    critter->state = next;
+    critter->stateTime = D_002DDED0.t;
+    if (next != CRITTER_TURN) {
+        ApplyAsegCur(critter->stateAnims[next].paseg, (ALO *)critter, 0.0f, 1.0f, critter->stateAnims[next].applyFlags | 1, &critter->segmentAnim);
+    }
 }
 
 /* SetCid96SpinRatio (docs/engine/gameplay-objects.md): the symbol still says STEP. */
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
-// Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C.
-void SetStepSpinRatio(STEP *pstep, float r)
+// Spin spring parameters: D_002C0248 {25, 0, 0.25} scaled by (ratio, ratio, 1/sqrt(ratio)); a larger ratio turns faster.
+void SetStepSpinRatio(STEP *pstep, float ratio)
 {
-    CID96V *p = (CID96V *)pstep;
-    p->spin = D_002C0248;
-    p->spin.x *= r;
-    p->spin.y *= r;
-    p->spin.z *= 1.0f / SqrtF(r);
-    p->ratio = r;
+    CID96V *critter = (CID96V *)pstep;
+    critter->spinScale = D_002C0248;
+    critter->spinScale.x *= ratio;
+    critter->spinScale.y *= ratio;
+    critter->spinScale.z *= 1.0f / SqrtF(ratio);
+    critter->spinRatio = ratio;
 }
 
-// Store heading and rotation matrix about up. (inferred)
-void SetCritterHeading(CID96V *critter, float g)
+// Sets the heading (radians about the up axis) and its rotation.
+void SetCritterHeading(CID96V *critter, float heading)
 {
-    critter->heading = g;
-    critter->basis = func_0011B500(D_002A2DC0.q, g);
+    critter->heading = heading;
+    critter->headingBasis = func_0011B500(D_002A2DC0.q, heading);
 }
 
-// True when facing within 1 degree of stored heading. (inferred)
+// True when the critter's x axis (world matrix, vtable slot 31, read twice) is within 1 degree of the heading.
 int IsCritterFacingHeading(CID96V *critter)
 {
     float *a = ((float *(*)(void *))critter->pvt[31].pfn)((char *)critter + critter->pvt[31].d);
     float *b = ((float *(*)(void *))critter->pvt[31].pfn)((char *)critter + critter->pvt[31].d);
-    float r = RadNormalize(critter->heading - atan2f(a[1], b[0]));
-    if (__builtin_fabsf(r) < 0.017453294f)
+    float error = RadNormalize(critter->heading - atan2f(a[1], b[0]));
+    if (__builtin_fabsf(error) < 0.017453294f)   /* 1 degree */
         return 1;
     return 0;
 }
@@ -521,89 +592,92 @@ static inline float Length(qwordV v)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-// Look at nearest player (PpoClosestSw): flee/turn decision and heading. (inferred)
+// The closest player startles the critter when within nearDistance, or within farDistance while moving at 150 or
+// more (velocity: vtable slot 33); the critter then heads the player's way (the startled turn) and the result is
+// CRITTER_STARTLED. Otherwise the current state.
 int ChooseCritterStateFromPlayer(CID96V *critter)
 {
-    int r = critter->state;
+    int result = critter->state;
     qwordV pos = func_001A62E8(critter);
-    LOV *po = PpoClosestSw(&D_003DD490, pos);
+    LOV *player = PpoClosestSw(&D_003DD490, pos);
     U d;
-    float len;
-    if (!po)
-        return r;
+    float distance;
+    if (!player)
+        return result;
     qwordV d_q;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d_q) : "j"(func_001A62E8(po)), "j"(pos));   /* via a scalar (C++) */
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d_q) : "j"(func_001A62E8(player)), "j"(pos));   /* via a scalar (C++) */
     d.q = d_q;
-    len = Length(d.q);
-    if (critter->g154 < len)
-        return r;
-    if (critter->g150 < len) {
-        qwordV v = ((qwordV (*)(void *))po->pvt[33].pfn)((char *)po + po->pvt[33].d);
+    distance = Length(d.q);
+    if (critter->farDistance < distance)
+        return result;
+    if (critter->nearDistance < distance) {
+        qwordV v = ((qwordV (*)(void *))player->pvt[33].pfn)((char *)player + player->pvt[33].d);
         if (Length(v) < 150.0f)
-            return r;
+            return result;
     }
     SetCritterHeading(critter, atan2f(d.f[1], d.f[0]));
-    return 3;
+    return CRITTER_STARTLED;
 }
 
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V;
 struct C96 { VTE *vt; };
 struct Y96 { int x0; C96 *pc; };
-// Root-motion speed of a clip for this object (displacement / duration). (inferred)
-void GetAsegSpeedForObject(CID96V *critter, LOV *px, float *pf)
+// Root-motion speed of a clip on this critter: |x at the end - x at the start| / duration * master speed (the clip's
+// channel for the critter, func_0012FF10, evaluated through vtable slot 3). Leaves *speed alone without one.
+void GetAsegSpeedForObject(CID96V *critter, LOV *clip, float *speed)
 {
-    V v0, v1;
-    Y96 *py;
-    C96 *pc;
-    if (!px) return;
-    py = (Y96 *)func_0012FF10(px, critter, 1, 1);
-    if (!py) return;
-    pc = py->pc;
-    ((void (*)(void *, V *, int, float, float))pc->vt[3].pfn)((char *)pc + pc->vt[3].d, &v0, 0, 0.0f, 1.0f);
-    pc = py->pc;
-    ((void (*)(void *, V *, int, float, float))pc->vt[3].pfn)((char *)pc + pc->vt[3].d, &v1, 0, px->tMax, 1.0f);
-    *pf = __builtin_fabsf(v1.x - v0.x) / px->tMax * px->svtMaster;
+    V start, end;
+    Y96 *channel;
+    C96 *curve;
+    if (!clip) return;
+    channel = (Y96 *)func_0012FF10(clip, critter, 1, 1);
+    if (!channel) return;
+    curve = channel->pc;
+    ((void (*)(void *, V *, int, float, float))curve->vt[3].pfn)((char *)curve + curve->vt[3].d, &start, 0, 0.0f, 1.0f);
+    curve = channel->pc;
+    ((void (*)(void *, V *, int, float, float))curve->vt[3].pfn)((char *)curve + curve->vt[3].d, &end, 0, clip->duration, 1.0f);
+    *speed = __builtin_fabsf(end.x - start.x) / clip->duration * clip->masterSpeed;
 }
 
-// index < 6. (inferred)
+// Is this a state index (0..5)?
 int IsValidCritterLinkIndex(unsigned int n)
 {
     return n < 6U;
 }
 
-// Set link slot n (not 2/5) id and optional value. (inferred)
-extern "C" void SetCritterLink(CID96V *critter, int n, OID oid, int grf)
+// Splice: sets the animation of a state (not turn or hit) and, unless -1, its apply flags.
+extern "C" void SetCritterLink(CID96V *critter, int state, OID oid, int applyFlags)
 {
-    if (IsValidCritterLinkIndex(n) && n != 2 && n != 5) {
-        E96 *pe = &critter->ae[n];
-        pe->oid = oid;
-        if (grf != -1)
-            pe->grf = grf;
+    if (IsValidCritterLinkIndex(state) && state != CRITTER_TURN && state != CRITTER_HIT) {
+        E96 *anim = &critter->stateAnims[state];
+        anim->oid = oid;
+        if (applyFlags != -1)
+            anim->applyFlags = applyFlags;
     }
 }
 
-// PloFindSwObject by id and call its vt (slot 9). (inferred)
+// Finds an animation by oid (from the critter) and removes it from the world (vtable slot 9).
 ASEG *FindCritterLinkObject(CID96V *critter, OID oid)
 {
-    LOV *plo;
-    plo = PloFindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
-    if (plo != 0) {
-        VTE *pvt = plo->pvt;
-        ((void (*)(void *))pvt[9].pfn)((char *)plo + pvt[9].d);
+    LOV *object;
+    object = PloFindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
+    if (object != 0) {
+        VTE *vt = object->pvt;
+        ((void (*)(void *))vt[9].pfn)((char *)object + vt[9].d);
     }
-    return (ASEG *)plo;
+    return (ASEG *)object;
 }
 
-// Resolve the 6 link ids into object pointers. (inferred)
+// Resolves the pending animation oids (each only once).
 void ResolveCritterLinks(CID96V *critter)
 {
     int i;
-    E96 *pe;
+    E96 *anim;
     for (i = 0; i < 6; i++) {
-        pe = &critter->ae[i];
-        if (pe->oid != -1) {
-            pe->paseg = FindCritterLinkObject(critter, pe->oid);
-            pe->oid = (OID)-1;
+        anim = &critter->stateAnims[i];
+        if (anim->oid != -1) {
+            anim->paseg = FindCritterLinkObject(critter, anim->oid);
+            anim->oid = (OID)-1;
         }
     }
 }
