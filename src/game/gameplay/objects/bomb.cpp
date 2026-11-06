@@ -54,8 +54,8 @@ struct BOMBV
     float sRadius;             /* +0x15C blast radius */
     float sRadiusHero;         /* +0x160 blast radius against the hero (CID 0x34) */
     int noBlast;               /* +0x164 detonation without blast damage */
-    POV *unknown168;
-    float unknown16C;
+    POV *blastListener;        /* +0x168 told about the blast (vtable slot 51) */
+    float blastListenerArg;    /* +0x16C passed with it (inferred) */
     int detonationPoseMode;    /* detonation pose: 0/2 rotate to the hit normal, 1 face the velocity, 3 keep */
     int isDetonationPrepared;  /* +0x174 */
     int pad178[2];
@@ -63,11 +63,11 @@ struct BOMBV
     M3 matDetonate;            /* +0x190 */
     qword velocityAtDetonation;        /* +0x1C0 */
     qword angularVelocityAtDetonation; /* +0x1D0 */
-    int x1E0;
-    int x1E4;
-    union { int x1E8; Q18 *thrower; };   /* +0x1E8 the thrower */
-    int x1EC;
-    int x1F0;
+    int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (func_00156698), inferred */
+    int detonatesOnContact;    /* +0x1E4 (inferred: kind-1 bombs detonate on contact only when set) */
+    Q18 *thrower;              /* +0x1E8 the thrower */
+    int zapKind;               /* +0x1EC zap kind of the blast message (0x100) */
+    int blastDamage;           /* +0x1F0 damage of the blast message (-10) */
     int fCustomXps;            /* +0x1F4 */
     int cxp;
     CXP *axp;                  /* +0x1FC */
@@ -85,17 +85,17 @@ struct HIT48 { int a[12]; };
 /* AddBombCustomXps's contact request and its object. */
 struct CREQ { int x0; SOV *po; };
 /* A bounding-sphere hit (CollectBombVictims). */
-struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int x74; };
+struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int planeCount; };   /* a SOPART */
 struct AREQV { int cb; int cbAlign; };
 /* The hit FAbsorbBombWkr absorbs. */
-struct WKR { int x0; char pad[0x2C]; qword v30; char pad2[4]; int x44; };
+struct WKR { int x0; char pad[0x2C]; qword v30; char pad2[4]; int flags; };
 /* 8 bytes read with ldl/ldr (alignment 1). */
 struct LONGU { long l; } __attribute__((packed));
 /* DetonateBomb's impact message and the message to +0x168. */
 struct POV { int pad[3]; VTE *pvt; int x10; POV **pp14; };
-struct MSG { BOMBV *p; int x4; POV *po; int xC; int x10; int pad14[3]; qword v20; qword v30; char pad40[0x60 - 0x40]; };
+struct MSG { BOMBV *p; int x4; POV *po; int zapKind; int damage; int pad14[3]; qword v20; qword v30; char pad40[0x60 - 0x40]; };
 struct MSG2 { int k; BOMBV *p; float g8; float gC; };
-struct G { char pad[0x402C]; int x402C; };
+struct G { char pad[0x402C]; int stimulusSystem; };   /* (inferred: func_00156698 adds a stimulus to it) */
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
 extern CLOCK D_002DDED0;
@@ -169,9 +169,9 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->tDetonate = 3.40282346638528859812e+38f;
     bomb->sRadius = D_002BC9C8;
     bomb->sRadiusHero = D_002BC9C8;
-    bomb->x1E0 = 1;
-    bomb->x1EC = 0x100;
-    bomb->x1F0 = -10;
+    bomb->makesNoise = 1;
+    bomb->zapKind = 0x100;
+    bomb->blastDamage = -10;
     x = bomb->grfUnk40;
     bomb->k = 0;
     if ((x ^ 1) & 1) *(int *)x |= 2;
@@ -377,9 +377,9 @@ extern "C" void HandleBombContact(BOMBV *bomb)
             return;
         break;
     case 1:
-        if (!bomb->x1E4)
+        if (!bomb->detonatesOnContact)
             return;
-        if (bomb->x1E8)
+        if (bomb->thrower)
             return;
         break;
     }
@@ -487,7 +487,7 @@ extern "C" int FAbsorbBombWkr(BOMBV *bomb, WKR *pm)
     if (bomb->k == 1)
         return 0;
     r = func_001F7588(bomb, pm);
-    if (r && (pm->x44 & 8)) {
+    if (r && (pm->flags & 8)) {
         U u;
         U *pu;
         register qword n __asm__("vf1");
@@ -601,7 +601,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
             continue;
         if (pso60 == bomb->pxp->pso60)
             continue;
-        if (ps->x74 && !CsbiIntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
+        if (ps->planeCount && !CsbiIntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;
@@ -653,8 +653,8 @@ extern "C" void DetonateBomb(BOMBV *bomb)
             qword d, n;
             float l;
             func_002333B4(&msg, 0, 0x60);
-            msg.xC = bomb->x1EC;
-            msg.x10 = bomb->x1F0;
+            msg.zapKind = bomb->zapKind;
+            msg.damage = bomb->blastDamage;
             msg.v20 = bomb->posDetonate;
             msg.p = bomb;
             msg.po = (POV *)po;
@@ -687,23 +687,23 @@ extern "C" void DetonateBomb(BOMBV *bomb)
     ((void (*)(BOMBV *, void *))bomb->vt[30].pfn)((BOMBV *)((char *)bomb + bomb->vt[30].d), &bomb->matDetonate);
     ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->velocityAtDetonation);
     ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->angularVelocityAtDetonation);
-    if (bomb->unknown168) {
+    if (bomb->blastListener) {
         MSG2 msg2;
-        POV *po = bomb->unknown168;
+        POV *po = bomb->blastListener;
         msg2.k = 9;
-        msg2.g8 = bomb->unknown16C;
+        msg2.g8 = bomb->blastListenerArg;
         msg2.gC = bomb->sRadius;
         msg2.p = bomb;
         ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
     }
-    if (bomb->x1E0) {
+    if (bomb->makesNoise) {
         POV *po = (POV *)bomb->owner;
         void *pv = bomb;
         if (po != (POV *)bomb && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        func_00156698(D_003DD490.x402C, func_001A62E8(bomb), pv)[0x54 / 4] = 1;
+        func_00156698(D_003DD490.stimulusSystem, func_001A62E8(bomb), pv)[0x54 / 4] = 1;
     }
     ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
     bomb->isDetonationPrepared = 0;
@@ -721,7 +721,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
     SetSoCnstrForce(bomb, 0);
     SetSoCnstrTorque(bomb, 0);
     func_001F6860(bomb, 0);
-    bomb->x1E8 = 0;
+    bomb->thrower = 0;
     SetLoParent_1A58D0(bomb, 0, 0xf);
 }
 
