@@ -128,6 +128,8 @@ src/
                                    eopid_linkonce.cpp (not a TU): takes the addresses of the inline option accessors defined in the
                                    class headers (include/sly2/*.h), as the option table g_aeopid does, so g++ emits their linkonce copies
                                    (formerly game/core/linkonce/unhomed; see docs/guides/tu-merging.md "Inline functions and linkonce copies")
+                                   class_registry_options.inc (not a TU): crt0_splicewrap's Splice option tables (g_aeopid, the class option
+                                   arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables")
   generated/splicewrap/        L11 tools/gen_splicewrap.py output (373 wrappers, .inc); never edit by hand
                                    not a TU: fragments that app/class_registry.cpp (crt0_splicewrap) includes at their addresses
 ```
@@ -146,7 +148,7 @@ src/
 | C-RUNTIME | 13 | 36 | SDK code calls game-provided runtime functions (libgcc EH -> malloc/free in memory; 989snd -> printf-family in text; libc -> 0x100218 in the crt0 block). Inherent to how the ELF was linked; in a port these become host libc. |
 | ONE-HIERARCHY | 7 | 31 | BASIC/LO/XFM base methods call SO/XF/ACT/CPLCY services (BindLoOidTable -> PsopartFindSo, TranslateXfmToPos -> ConvertXfPos). The object model and engine classes are one C++ hierarchy split over many files; xf could join engine/object at the cost of xf->act/so up-edges (tried: no gain). |
 | SCRIPT-API | 1 | 15 | Splice is the game's scripting API: values wrap BASIC objects (CRef_SetBasic -> BASIC vtable), frames/eval resolve proxies, built-ins query the world. The VM part could be decoupled by a vtable-only interface; the built-ins cannot. |
-| BINDING | 4 | 6 | Option/property binding records in the crt0-block .data prefix (0x2AC880-0x2BAAE8) point at generated wrappers; brx/proxy/emitter/so read them by address. |
+| BINDING | 4 | 6 | Option/property binding records in the crt0-block .data prefix (0x2AC880-0x2BAAE8, app/class_registry_options.inc) point at generated wrappers; brx/proxy/emitter/so read them by address. |
 | REGISTRY | 1 | 1 | Class descriptor table D_002BAAE8 / factories live in the crt0-block registry; FIsBasicDerivedFrom (basic) and PloNew (brx) read it. Header fix: declare the descriptor record type and an extern for the table in object/; only the definition stays in app/. |
 
 All upward subsystem pairs with weight >= 3 (54 of 134; the other 80 pairs total 112 weight, mostly single vtable slots

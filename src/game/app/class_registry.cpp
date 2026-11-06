@@ -4799,7 +4799,7 @@ extern "C" BHV198 *NewBhv198() { return new BHV198; }
 
 // ---- Descriptor getters (0x113A10 + 0x10 * cid) ----
 /* D_002BAAE8: the class descriptor table, one 0x14-byte record per CID: sly2/basic.h's CLASSINFO and the factory
-   (object-model.md section 1). It is in crt0_splicewrap's .data, not in the source. */
+   (object-model.md section 1). Defined at the end of the file, after g_aeopid (crt0_splicewrap's .data). */
 struct CLASSDESC : CLASSINFO
 {
     void *(*pfnNew)();

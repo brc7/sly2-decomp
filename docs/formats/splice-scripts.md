@@ -48,7 +48,7 @@ from an oid list, 41 shuffle. Most used `~` builtins: `find-sound-object~` 1454,
 
 **Symbols** (tag 24) are global across levels `[C:data]`:
 - **0-28 are event symbols.** `HandleBasicSpliceEvent` 0x1331F8 looks up symid k in the object's frame and calls `(k <object> args...)` with arguments typed by
-  `s_aotypEvtParm` D_0027A10C[`s_aiEvtParm` D_0027A1D8[k]] `[C:static]`. A handler is `(define <k> (lambda (self arg...) ...))`. Meanings: 0 post-load, 4 label (ASEG/RELAY
+  `s_aotypEvtParm` D_0027A108[1 + `s_aiEvtParm` D_0027A1D8[k]] (read from 0x27A10C) `[C:static]`. A handler is `(define <k> (lambda (self arg...) ...))`. Meanings: 0 post-load, 4 label (ASEG/RELAY
   label callbacks), 5 trigger / 6 untrigger (`HandleLoSpliceEvent` 0x1A61E0 also broadcasts game events 0x1A/0x1B), 14 hit, 17 game event (JOBs; case 16 = hero died ->
   RestartJob), 19 activate / 20 deactivate (TASK/JOB) `[H]`, with 0, 6, 17, 19, 20 bound in live mission frames `[C:runtime]`. Whole game: evt19 3358, evt4 3036, evt0 2100, evt5 1418.
 - **30-989** are named by the save-schema symbol table in every level head (`LoadSaveSchemaFromBrx` 0x1D7B88: `U16 n; n x {U16 symid; string16 name}`, identical in all
