@@ -197,7 +197,7 @@ void UpdateGeomWorld(void *a, void *b, void *c);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
-// point as the base height (+0x210) and adds two helper points.
+// point as the base height (+0x210) and adds two helper points. (inferred)
 void BuildStepPhysPart(struct S *step, struct M *m)
 {
     int n, fl, i, c;
@@ -1081,7 +1081,7 @@ static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
-// one whose height is inside the step-height window: there is floor nearby to step onto.
+// one whose height is inside the step-height window: there is floor nearby to step onto. (inferred)
 int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
@@ -1381,7 +1381,7 @@ void InvalidateSoAaox(struct O *p);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
-// attachment pair through UpdateSwPox.
+// attachment pair through UpdateSwPox. (inferred)
 void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)PsoFromLo(pv);
@@ -1618,7 +1618,7 @@ void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (+0x2A0); the first reference
-// ensures a state-machine instance (SMA) of the role's dialog SM.
+// ensures a state-machine instance (SMA) of the role's dialog SM. (inferred)
 void AddStepDialogSmRefs(struct S *step, int mask)
 {
     int i;
@@ -1657,7 +1657,7 @@ void func_001F0598(void *y);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-// Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted.
+// Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted. (inferred)
 void RemoveStepDialogSmRefs(struct S *step, int mask)
 {
     int i;
@@ -1885,7 +1885,7 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
  *   docs/engine/bosses.md#6-open-questions, docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
  * @end-sly2-annot */
 // Fits the step's orientation to the floor under three probe points (bounding-sphere query and line tests), with
-// the tilt limited to a maximum angle.
+// the tilt limited to a maximum angle. (inferred)
 extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
