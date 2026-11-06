@@ -4799,7 +4799,7 @@ extern "C" BHV198 *NewBhv198() { return new BHV198; }
 
 // ---- Descriptor getters (0x113A10 + 0x10 * cid) ----
 /* D_002BAAE8: the class descriptor table, one 0x14-byte record per CID: sly2/basic.h's CLASSINFO and the factory
-   (object-model.md section 1). It is in crt0_splicewrap's .data, not in the source. */
+   (object-model.md section 1). Defined at the end of the file, after g_aeopid (crt0_splicewrap's .data). */
 struct CLASSDESC : CLASSINFO
 {
     void *(*pfnNew)();
@@ -6901,6 +6901,7 @@ MURRAY::MURRAY() {}
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+#include "class_registry_options.inc"   /* the Splice option tables: g_aeopid, the class option arrays */
 /* The class descriptor table D_002BAAE8 (declared above as CLASSDESC[199]). CLASSDESC derives from CLASSINFO and so
    has no aggregate initializer: the table is defined under C linkage with a plain record of the same layout
    {parent, cid, cidEnd, cb, pfnNew}; the getters keep returning &D_002BAAE8[cid]. */

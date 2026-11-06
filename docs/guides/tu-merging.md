@@ -661,7 +661,8 @@ The 56 functions that were in src/game/core/linkonce/unhomed (removed in pass 3)
 are pointers to member functions (`{0xFFFF0000, pfn}`: delta 0, index -1, non-virtual) in the option table g_aeopid
 (D_002AC880, 0x28-byte EOPID records: get PMF at +0x8, set at +0x10, setUser at +0x18, ensure at +0x20). The owner class
 of a record is the root-most class whose option array in g_mpcidarysplopt (D_00279AD0, 199 x {count, SPLOPT *}) lists
-it. g_aeopid lives in crt0_splicewrap's .data and is not in the source, so:
+it. g_aeopid lives in crt0_splicewrap's .data and was not in the source (it is since data/crt0-tables: "The
+crt0_splicewrap tables" below; its records reference these accessors through asm labels that do not emit them), so:
 
 - the accessor becomes an inline function in its class's header (sly2/cm.h, lo.h, so.h, xfm.h, stepplayer.h,
   guard.h; function templates in emitter.h, pass 3), written against the header types;
@@ -964,7 +965,8 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
   after tu_114AE0's palette; owner undecided) and the two zero-filled palettes (since resolved: section attribute, "Resolved decisions" below).
 - **Ownership by layout beats the survey's first-user guess** where they disagree: frm owns D_002DEA4C (survey: font),
   cd owns D_002BD4C0 (survey: tu_14A008, medium), phasemem owns the RPL buffer D_003B3980 that only other TUs name;
-  basic's two int tables lie in crt0_splicewrap's `.rodata` (0x27A108.., generated area) and are not basic's.
+  basic's two int tables lie in crt0_splicewrap's `.rodata` (0x27A108.., generated area) and are not basic's
+  (defined in class_registry_options.inc since data/crt0-tables).
 - **Spelling.** `.data`: a plain definition. `.rodata`: `extern const T x = v;` (`extern` keeps the symbol, `const`
   puts it in `.rodata`); strings as `extern const char x[] = "...";`. Where a callee or return wants `char *`, change a
   plain-C-symbol callee's parameter to `const` (check the declaration is inside `extern "C"`) or cast; never change a
@@ -2066,6 +2068,42 @@ While the merge was in progress cc1plus sometimes died without a message (exit 1
 on intermediate states with errors in them (a CRef used before its definition, duplicated blocks), and, in a
 reduced test, on any top-level `__asm__` after a namespace under `-fsyntax-only` (it compiles with `-O2`). A silent
 failure from matchtool is such a crash: compile by hand without `-quiet` filtering, and bisect with the real flags.
+
+### The crt0_splicewrap tables (data/crt0-tables, 2026-11-06)
+
+What the TU's data is: the Splice option tables, read by spliceobj.cpp (PeopidFind, RefGetPeopid/RefSetPeopid),
+brx.cpp and proxy.cpp (LoadOptionsFromBrx), basic.cpp (HandleBasicSpliceEvent). Not per wrapper: the records point at
+wrappers and thunks, but also at getters/setters all over the game, so tools/gen_splicewrap.py is not involved.
+
+| address | object | what |
+|---|---|---|
+| `.rodata` 0x262380..0x279AD0 | 199 arrays `D_<addr>`, one per CID in CID order | the class's options `{option id, &D_002AC880[record]}` sorted by id (the binary search), its own merged with every base class's (12,010 entries; a few ids twice) |
+| 0x279AD0 | `D_00279AD0[199]` (g_mpcidarysplopt) | `{count, array}` per CID; the count is `sizeof(a) / sizeof(a[0])` |
+| 0x27A108 | `D_0027A108[52]` (s_aotypEvtParm) | event parameter types; basic.cpp reads from 0x27A10C (`&D_0027A108[1 + s_aiEvtParm[k]]`), see below |
+| 0x27A1D8 | `D_0027A1D8[30]` (s_aiEvtParm) | the first type of each event 0..28 and the end (51) |
+| `.data` 0x2AC880..0x2BAAE8 | `D_002AC880[1449]` (g_aeopid) | sly2/eopid.h's EOPID per option binding; D_002BAAE8 (the class descriptors) follows |
+
+Everything after 0x27A250 up to tu_1147D8's palette is tu_1147D8's font, not this TU's (full-link.md, data work list).
+
+Representation (the decisions for review):
+
+| part | form | why |
+|---|---|---|
+| file | src/game/app/class_registry_options.inc (5,256 lines), `#include`d once in class_registry.cpp's data part, before D_002BAAE8 | keeps class_registry.cpp readable; one line added after the functions, so no function's line moves (path-hash quirk). Source, not generator output: written once from the ELF by a scratch converter (/home/claude/work/scratch/ct/gen.py), edited like any file (tools/rename.py covers `.inc`) |
+| records | `EOPIDROW {otyp, grfeopid, get, set, file, obj}` under `extern "C"` (as CLASSROW), each word through a macro: `EOPID_PMF(fn)` `{0xFFFF0000, &fn}` (g++ 2.95 PMF: delta 0, index -1), `EOPID_VPMF(i, d2)` (virtual: index, delta2; 15 words), `EOPID_FN(fn)` (a thunk: pointer, 0), `EOPID_INT(n)` (offset/count), `EOPID_NONE`; a comment per record: option id(s) and the root-most class listing it | EOPID's unions take a brace initializer only for their first member; real PMF constants (`&LO::GetX`) would need every accessor declared as a member with its true signature (719 functions, many still `func_`) |
+| function references | `namespace EOPIDFN { void <sym>() __asm__("<sym>"); }`, one per referenced function (719) | the current symbol without meeting the file's other declarations of the same function (C++ prototypes, wrappers under C linkage in their namespaces). A label equal to the mangled name of an inline function of the headers makes g++ emit that function here (as with GLOBSET's `"__4CRef "`): the 25 non-template accessors eopid_linkonce.cpp emits carry a trailing space |
+| arrays | global (`extern const`), `D_<addr>` names, `__attribute__((section(".rodata.early")))` | g++ emits file-static data at the end of the TU (tested: statics land after later globals), which breaks address order; named constants of the first part of `.rodata` ("Phase 5"); D_ names make matchtool check each one |
+| names | D_ names kept for the four objects other files use (D_002AC880, D_00279AD0, D_0027A108, D_0027A1D8); the Sly names in comments | renames touch brx, proxy, spliceobj, basic: naming phase |
+| 0x27A10C | one 52-int array from 0x27A108, basic.cpp indexes `[1 + ...]` | an int array is 8-aligned, so no object can start at 0x27A10C; the word at 0x27A108 (0x2002, a BASIC * type) is unreferenced. HYPOTHESIS: the event object's type, the handlers' first parameter. basic.cpp's code is unchanged (MATCH; the link compares the reloc) |
+
+Result: class_registry.cpp's 828 functions and 204 data symbols MATCH (each array, D_00279AD0, D_0027A108,
+D_0027A1D8, D_002AC880, D_002BAAE8), basic.cpp MATCH; tools/link.py 0 differing bytes with "data no object defines"
+437,056 -> 281,096. Nothing changed codegen, nothing reverted.
+
+Follow-up for the linkonce branches: with g_aeopid in source, its records could take the real addresses of the
+inline accessors (`&func_00259AE8` for a `func_00259AE8__FP2LO` record) and emit their linkonce copies here, as the
+original TU did; eopid_linkonce.cpp would then go. Not done here: it moves 61 functions' source (matched.csv) and
+belongs to link/linkonce-misc's area.
 
 ## Big six (hud, relay, stepguard, bif, so, guardbhv)
 

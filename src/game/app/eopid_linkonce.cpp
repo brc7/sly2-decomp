@@ -6,7 +6,7 @@
 // headers; only the table takes their address, and that is what made g++ emit them out of line (in
 // .gnu.linkonce.t.<symbol>; the linker keeps one copy and places it in the linkonce area 0x254F00..0x259DE4).
 //
-// g_aeopid is data and is not in the source, so this file takes the same addresses, one SLY2_EOPID_REF per accessor
+// g_aeopid (class_registry_options.inc) names them through asm labels that do not emit them; this file takes the same addresses, one SLY2_EOPID_REF per accessor
 // (the variables are data; tools/matchtool.py and tools/progress.py compare every FUNC symbol of the object, the
 // weak linkonce ones included). The owner class of an accessor is the root-most class whose option array in
 // g_mpcidarysplopt (D_00279AD0) lists the record. The EMITTER and EXPLO accessors are function templates

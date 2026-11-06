@@ -48,6 +48,28 @@ linkonce-misc's for its own), basic.cpp (both branches removed a copy: the GC he
 to emitter.cpp), full-link.md and tu-merging.md (both sections kept; the family table with linkonce-misc's column).
 No branch touched tools/link.py; real-link's classification gives the new verdicts unchanged.
 
+### Status (data/crt0-tables on link/real-link, 2026-11-06; superseded above)
+
+data/crt0-tables (from link/real-link 1a662931): crt0_splicewrap's Splice option tables are source
+(src/game/app/class_registry_options.inc, included in class_registry.cpp's data part; tu-merging.md "The
+crt0_splicewrap tables (data/crt0-tables)"). Values of `python3 tools/link.py`; link/real-link's in brackets.
+
+| measure | value | tool |
+|---|---|---|
+| differing bytes | 0 [0]; `.rodata` from objects 126,184 [28,184], `.data` from objects 95,896 [37,936] | `tools/link.py` |
+| blob bytes | 911,120 [1,067,080]: data no object defines 281,096 [437,056] (-155,960: `.rodata` 0x262380..0x27A250 98,000, `.data` 0x2AC880..0x2BAAE8 57,960); the rest unchanged | `tools/link.py` |
+| object sections placed | 4,674 [4,673]: class_registry's `.rodata.early` at 0x262380 | `tools/link.py` |
+| config names at their config address | 7,605 / 7,605 [7,402]: the 203 new data symbols | `tools/link.py` |
+| class_registry.cpp | 828 functions and 204 data symbols MATCH [828 and 1] | `tools/matchtool.py check` |
+| symbols (class_registry, basic) | class_registry defines D_002AC880 (`.data`) and 202 `.rodata.early` objects and references 282 more functions (all config names); basic references D_0027A108 instead of D_0027A10C; nothing else changed | scratch nmcmp.sh / symcheck.py |
+| relocations | class_registry + basic: 3,758 OK, 0 mismatched; every data pointer of the tables also compared by the link (0 differing bytes) | scratch relverify.py |
+| everything else | as link/real-link below (528 objects, 76 in fallback, 0 ld errors, 20 address assignments) | `tools/link.py` |
+| progress | 6,662 / 6,662 (the 329 SDK sources that do not build here carried over); config/matched.csv unchanged | `JOBS=3 tools/progress.py` (cache deleted) |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
+The rest of the old "crt0_splicewrap `.rodata`" gap, 0x27A250..0x29A7C0 (132,464 bytes), is not crt0_splicewrap's:
+it is tu_1147D8's built-in font (data work list below).
+
 ### Status (link/real-link, 2026-11-06; superseded above)
 
 link/real-link (from link/crt0-block adaf9219; no source changed): tools/link.py links as the original build did —
@@ -146,7 +168,7 @@ Entry `_start` at 0x100008, `_gp` = 0x2E5270 (from `.reginfo`), two PT_LOAD segm
 | .vutext | 0x259DF0 | 0x8540 | VU microcode, with 21 `.DVP.overlay..*` sections and `.DVP.ovlytab` describing the VU-memory overlays | not source: a blob from the ELF (or the original DVP assembler sources, which we do not have) |
 | .rodata | 0x262380 | 0x4A4E4 | constants, strings, jump tables, vtables | objects (named data and anonymous literals) + unbuilt data |
 | .vudata | 0x2AC864 | 0 | | |
-| .data | 0x2AC880 | 0x309B0 | initialized data; starts with the crt0-block binding records (0x2AC880-0x2BAAE8, docs/architecture.md) | objects + unbuilt data |
+| .data | 0x2AC880 | 0x309B0 | initialized data; starts with the crt0-block option records g_aeopid (0x2AC880-0x2BAAE8, src/game/app/class_registry_options.inc) | objects + unbuilt data |
 | .sbss | 0x2DD280 | 0x9C | small (gp-relative) bss | objects |
 | .bss | 0x2DD380 | 0x174E80 | | objects + unbuilt data |
 | .vubss | 0x452200 | 0 | | |
@@ -650,7 +672,8 @@ to the tool. Check per branch: fallback count, still 0 differing bytes and 0 ld 
 
 ### 2. Data no object defines (the data work list)
 
-437,056 blob bytes in `.rodata`/`.data` and 487,824 bytes of `.bss`/`.sbss` gaps. Owner = the TU whose place in the
+437,056 blob bytes in `.rodata`/`.data` at link/real-link (281,096 since data/crt0-tables) and 487,824 bytes of
+`.bss`/`.sbss` gaps. Owner = the TU whose place in the
 layout the gap takes: the original link put every object's sections in one command-line order (the order check in
 Status: all but 7 sections follow `.text` order), so a gap between objects P and N belongs to P's tail, N's head or a
 TU between them in `.text` order that places nothing in that section. Measured with a scratch script over
@@ -658,8 +681,9 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 
 | block | bytes | address | owner | what it takes |
 |---|---:|---|---|---|
-| crt0_splicewrap `.rodata` | 230,464 | 0x262380..0x29A7C0 | class_registry.cpp (the crt0_splicewrap TU, first in TU order) | the binding index (pairs of id and pointer into the `.data` records) and the tables filled with 0xFF that follow it; generated like the wrappers |
-| crt0_splicewrap `.data` | 57,960 | 0x2AC880..0x2BAAE8 | class_registry.cpp | the binding records (docs/architecture.md, crt0-block), pointing at the wrappers; D_002BAAE8 after them is defined already |
+| ~~crt0_splicewrap `.rodata`~~ | ~~98,000~~ | 0x262380..0x27A250 | class_registry.cpp | done (data/crt0-tables): the 199 class option arrays, g_mpcidarysplopt, HandleBasicSpliceEvent's event parameter types |
+| ~~crt0_splicewrap `.data`~~ | ~~57,960~~ | 0x2AC880..0x2BAAE8 | class_registry.cpp | done (data/crt0-tables): g_aeopid, the 1,449 option records |
+| tu_1147D8's built-in font | 132,464 | 0x27A250..0x29A7C0 | tu_1147D8 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
 | registry vtables | 100,312 | six gaps: 0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520 | the classes' key TUs (the TUs between the objects around each gap) | the `_vt$<len><NAME>` tables class_registry's factories reference (absolute addresses today); a TU emits a vtable where it defines the class's first non-inline virtual, as missile.cpp does for `_vt$7ACCMISS` |
 | palette TUs' tables | 33,024 | 0x29A800 | tail of tu_1147D8 / head of tu_114AE0 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
@@ -671,8 +695,8 @@ D_00443800.., libkernel's `_sif_*`, libgcc's `objects`, then the template static
 0x4520A8.., which the original emitted as commons); 21,536 at 0x3D4A50 (D_003D4A50/54/60, the record many TUs
 reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gaps.
 
-Order of work: the crt0_splicewrap tables (66% of the blob bytes, one TU), then the vtables (23%, needs the key
-TUs' first virtuals), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
+Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
+needs the key TUs' first virtuals), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
 of tools/linkaliases.py.
 
 ### 3. SDK objects instead of blobs
