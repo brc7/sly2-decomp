@@ -1247,7 +1247,7 @@ int CanBhvcombatShoot(struct S *behavior) {
     qword pa, pb;
     qword d;
     float g;
-    int k;
+    int mustShootNow;
     struct T *t;
     struct A *a = behavior->guard;
     if ((a->grfCapability & 8) == 0 || a->currentAttack || behavior->chosenAttack || !behavior->target || (((int)(behavior->target->loFlags >> 60) & 1) == 0)) return 0;
@@ -1256,20 +1256,20 @@ int CanBhvcombatShoot(struct S *behavior) {
         struct VTE *entry = &q->vt[0x4D];
         if (((int (*)(void *))entry->pfn)((char *)q + entry->d) == 2) return 0;
     }
-    k = 0;
+    mustShootNow = 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_STEPPLAYER)) {
         t = behavior->target;
         if (t->unknown4CC != -1) {
-            if (t->grabState < 5) k = t->grabState >= 3;
+            if (t->grabState < 5) mustShootNow = t->grabState >= 3;
         }
         if (t->airState != -1) {
-            if (t->airState == 0x11) k = 1;
+            if (t->airState == 0x11) mustShootNow = 1;
         }
-        if (t->unknownF54 != -1) k = 1;
+        if (t->unknownF54 != -1) mustShootNow = 1;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(t, CID_JT)) {
             switch (t->jts) {
             case 3: case 0x15: case 0x16:
-                k = 1;
+                mustShootNow = 1;
                 break;
             }
         }
@@ -1289,7 +1289,7 @@ int CanBhvcombatShoot(struct S *behavior) {
         float h = RadNormalize__Ff(f[1] - f[3]);
         if (!FCheckLm__FP2LMf(behavior->guard->shootTilt, h)) return 0;
     }
-    if (!k) {
+    if (!mustShootNow) {
         if (behavior->state == 0) {
             if (D_002DDED0.t - behavior->stateTime < 3.0f) return 0;
         } else if (behavior->state != 2) {
@@ -7181,48 +7181,48 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
 void PlanBhvgoto(struct S *behavior) {
-    struct X x;
-    int k;
+    struct X nextGoal;
+    int nextState;
     if (behavior->state == -1) return;
     if (!(behavior->guard->capabilities & 2)) return;
     if (IsBhvBusyAbove(behavior)) return;
     SetBhvgotoState(behavior, 0);
     FindBhvgotoRoute(behavior);
-    ClearPointerPair(&x);
+    ClearPointerPair(&nextGoal);
     if (behavior->numRouteLinks == 0) {
-        x = behavior->waypoint;
-        k = 1;
+        nextGoal = behavior->waypoint;
+        nextState = 1;
     } else {
         struct Q *q = behavior->firstLink;
-        x = q->start;
-        k = 2;
+        nextGoal = q->start;
+        nextState = 2;
         if (q->kind == 0) {
             union { qword q; float f[4]; } c;
-            float t;
+            float segmentParam;
             qword pos = func_001A62E8(behavior->guard);
             qword a = func_001C1EC0(&q->start, pos);
             qword b = func_001C1EC0(&q->end, pos);
-            int f;
-            FindClosestPointOnLineSegment(pos, a, b, &c.q, &t, 0);
-            f = 0;
-            if (t > 0.0f && t < 1.0f) {
+            int isNearLink;
+            FindClosestPointOnLineSegment(pos, a, b, &c.q, &segmentParam, 0);
+            isNearLink = 0;
+            if (segmentParam > 0.0f && segmentParam < 1.0f) {
                 qword d, l;
-                float g;
+                float distance;
                 __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(c.q), "j"(pos));
                 __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
                 __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
-                __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-                if (g < 50.0f) {
-                    if (__builtin_fabsf(c.f[2] - GetZ(pos)) < 300.0f) f = 1;
+                __asm__("qmfc2.ni %0, %1" : "=r"(distance) : "j"(l));
+                if (distance < 50.0f) {
+                    if (__builtin_fabsf(c.f[2] - GetZ(pos)) < 300.0f) isNearLink = 1;
                 }
             }
-            if (f) k = 3;
+            if (isNearLink) nextState = 3;
         }
     }
-    if (k > 0) if (k < 3) {
+    if (nextState > 0) if (nextState < 3) {   // (two ifs: "&&" lays the blocks out differently)
         struct B *b = behavior->guard->path;
         qword pos = func_001A62E8(behavior->guard);
-        qword q = func_001C1EC0(&x, pos);
+        qword q = func_001C1EC0(&nextGoal, pos);
         if (behavior->isDirect) {
             b->numPoints = 2;
             b->points[0] = pos;
@@ -7233,12 +7233,12 @@ void PlanBhvgoto(struct S *behavior) {
             struct D *d = c ? c->unknownDC : 0;
             void *e = d ? d->pathzone : 0;
             if (!func_001C02D0(e, pos, q, b)) {
-                behavior->relocateGoal = x;
-                k = 5;
+                behavior->relocateGoal = nextGoal;
+                nextState = 5;
             }
         }
     }
-    SetBhvgotoState(behavior, k);
+    SetBhvgotoState(behavior, nextState);
     behavior->planTime = D_002DDED0.t;
     behavior->pathGraphVersion = D_003DD490.pathGraph->version;
 }
