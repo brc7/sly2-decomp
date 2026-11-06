@@ -603,7 +603,7 @@ extern "C" void RemoveSoXa(SOW *object, N *node)
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
 // Asks each owner in the object's XA list for its accelerations (owner slot 71); called by the solver before
-// integration.
+// integration. (inferred)
 extern "C" void ApplySoExternalAccelerations(SOW *object)
 {
     N *node;
@@ -726,7 +726,7 @@ extern "C" int CanWaterInflictZap(void *water, COLL *collider)
  * Notes: descriptive only: water wrapper -> ExtendSoBounds | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-// Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument.
+// Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument. (inferred)
 extern "C" void IsPosInWater(SOW *water)
 {
     IsPosInSo(water);
