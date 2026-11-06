@@ -150,19 +150,19 @@ static inline void SetV(V3 *pv, float x, float y, float z) { pv->x = x; pv->y = 
  * @end-sly2-annot */
 // Initializes the player's carry/throw controller (JTTHROW): owner, state -1, aim ranges 500/1500, timing and the
 // default launch vectors.
-extern "C" void InitThrow(JTTHROW *p, O *a)
+extern "C" void InitThrow(JTTHROW *thrower, O *a)
 {
-    p->owner = a;
-    p->state = -1;
-    p->bounds.lo = 500.0f;
-    p->bounds.hi = 1500.0f;
-    p->tPredict = 1.5f;
-    p->idleThreshold = 1.0f;
-    p->activeThreshold = 1.0f;
-    p->scale = 1000.0f;
-    SetV((V3 *)&p->launchOffset, 0.0f, 0.0f, 25.0f);
-    SetV((V3 *)&p->targetLocal, 1000.0f, 0.0f, 0.0f);
-    SetV((V3 *)&p->secondary, 42.0f, -73.0f, -50.0f);
+    thrower->owner = a;
+    thrower->state = -1;
+    thrower->bounds.lo = 500.0f;
+    thrower->bounds.hi = 1500.0f;
+    thrower->tPredict = 1.5f;
+    thrower->idleThreshold = 1.0f;
+    thrower->activeThreshold = 1.0f;
+    thrower->scale = 1000.0f;
+    SetV((V3 *)&thrower->launchOffset, 0.0f, 0.0f, 25.0f);
+    SetV((V3 *)&thrower->targetLocal, 1000.0f, 0.0f, 0.0f);
+    SetV((V3 *)&thrower->secondary, 42.0f, -73.0f, -50.0f);
 }
 
 /** @sly2-annot addr=0x21F388
@@ -175,11 +175,11 @@ extern "C" void InitThrow(JTTHROW *p, O *a)
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
 // Post-load: builds the three aim blends (2-clip, 4-clip and 2-clip).
-extern "C" void PostJtThrowLoad(JTTHROW *p)
+extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 {
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 2, &p->blend0, 0, 0, 0, &p->animation0);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 4, p->ablB, 0, 0, 0, &p->animation4);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 2, p->ablC, 0, 0, 0, &p->animation7);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->owner, 0xC, 2, &thrower->blend0, 0, 0, 0, &thrower->animation0);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->owner, 0xC, 4, thrower->ablB, 0, 0, 0, &thrower->animation4);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->owner, 0xC, 2, thrower->ablC, 0, 0, 0, &thrower->animation7);
 }
 
 // Update the controller target and consume state/animation transitions.
@@ -461,7 +461,7 @@ static inline qword PosOnArc(const qword &pos,const qword &a,const qword &v,floa
 static inline qword QwCombine(qword a,qword b,VU_FLOAT g0,VU_FLOAT g1){qword r;
  __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(a),"j"(g0.q),"j"(b),"j"(g1.q));return r;
 }
-static inline float GClamp(float g,float gMin,float gMax){if(g<gMin)return gMin;if(gMax<g)return gMax;return g;}
+static inline float GClamp(float g,float minValue,float maxValue){if(g<minValue)return minValue;if(maxValue<g)return maxValue;return g;}
 static inline float GMax(float g0,float g1){return g0<g1?g1:g0;}
 static inline float GFromClq(const CLQV &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
@@ -478,19 +478,19 @@ namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.4
  * @end-sly2-annot */
 // Predicts the arc of the held object, line-tests 28 samples against the world, writes up to 30 points into the aim
 // marker ring and updates the aim blends.
-extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
+extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
 {
- qword posLaunch=ConvertAloPos(pjtthrow->owner,0,pjtthrow->secondary.q);
- qword posHold=pjtthrow->targetWorld.q;
- qword vAccel=pjtthrow->selected->pgravity->vAccel.q;
- qword posHero=func_001A62E8(pjtthrow->owner);
- float uFar=GClamp((GLengthXY(QwSub(posHold,posHero))-pjtthrow->bounds.lo)/(pjtthrow->bounds.hi-pjtthrow->bounds.lo),0.0f,1.0f);
- qword vLaunch=func_001D6848(posLaunch,pjtthrow->targetWorld.q,vAccel,GFromClq(D_002C40F0,uFar));
+ qword posLaunch=ConvertAloPos(thrower->owner,0,thrower->secondary.q);
+ qword posHold=thrower->targetWorld.q;
+ qword vAccel=thrower->selected->pgravity->vAccel.q;
+ qword posHero=func_001A62E8(thrower->owner);
+ float uFar=GClamp((GLengthXY(QwSub(posHold,posHero))-thrower->bounds.lo)/(thrower->bounds.hi-thrower->bounds.lo),0.0f,1.0f);
+ qword vLaunch=func_001D6848(posLaunch,thrower->targetWorld.q,vAccel,GFromClq(D_002C40F0,uFar));
  float tApex=GMax(-GZOfQw(vLaunch)/GZOfQw(vAccel),0.0f);
  qword posApex=PosOnArc(posLaunch,vAccel,vLaunch,tApex,0.5f);
  float t;
- if(FPowerupAcquired(0x24))t=D_002C40E4*pjtthrow->tPredict;
- else t=pjtthrow->tPredict;
+ if(FPowerupAcquired(0x24))t=D_002C40E4*thrower->tPredict;
+ else t=thrower->tPredict;
  qword posEnd=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
  STACKSCOPE stackscope;
  qword posMin=QwMin(posApex,posEnd);
@@ -498,8 +498,8 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  posMax=QwMax(posLaunch,posMax);
  posMin=QwMin(posLaunch,posMin);
  int cso;SO **apso;
- IntersectSwBoundingBox(&D_003DD490,posMin,posMax,FilterJtThrowArcObject,pjtthrow->selected->pvFilter,&cso,&apso);
- pjtthrow->velocity.q=vLaunch;
+ IntersectSwBoundingBox(&D_003DD490,posMin,posMax,FilterJtThrowArcObject,thrower->selected->pvFilter,&cso,&apso);
+ thrower->velocity.q=vLaunch;
  float dt=t*0.034482758f;
  V apos[30];
  qword posPrev=posLaunch;
@@ -525,57 +525,57 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
   posPrev=pos;
  }
  float dtMax=D_002C4100*D_002DDED0.dt;
- pjtthrow->distance=GClamp(t,pjtthrow->distance-dtMax,pjtthrow->distance+dtMax);
- t=pjtthrow->distance;
+ thrower->distance=GClamp(t,thrower->distance-dtMax,thrower->distance+dtMax);
+ t=thrower->distance;
  i=0;
  for(;;){
   if(t<0.1f)break;
   apos[i].q=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
   if(++i>=29)break;
-  t=pjtthrow->distance-(float)(int)i*dt;
+  t=thrower->distance-(float)(int)i*dt;
  }
  (apos+i)->q=posLaunch;
  int cpos=i+1;
- if(pjtthrow->effect){
-  ARCFRAME *pframe=pjtthrow->effect->aframe+pjtthrow->effect->cframe;
+ if(thrower->effect){
+  ARCFRAME *pframe=thrower->effect->aframe+thrower->effect->cframe;
   qword posBefore=QwCombine(apos[0].q,apos[1].q,VuFloat(2.0f),VuFloat(-1.0f));
-  V *ppos=apos;
+  V *posOut=apos;
   M4 mat;M3 matRot;
-  for(int iframe=0;iframe<pjtthrow->effect->cframe;iframe++){
+  for(int iframe=0;iframe<thrower->effect->cframe;iframe++){
    pframe--;
    if(iframe<cpos){
-    V *pposCur=ppos++;
+    V *pposCur=posOut++;
     qword pos=pposCur->q;
     qword dpos=QwSub(pos,posBefore);
     BuildOrthonormalMatrixZ(&matRot,dpos,D_002A2DC0.q);
-    M4 *pmat=&mat;
+    M4 *matrix=&mat;
     VECTOR_opAssign(&mat.position,pos);
-    pmat->basis=matRot;
+    matrix->basis=matRot;
     posBefore=pos;
     mat.basis.r[2].n[3]=0;
     mat.basis.r[1].n[3]=0;
     mat.basis.r[0].n[3]=0;
-    pmat->position.f[3]=1.0f;
+    matrix->position.f[3]=1.0f;
     pframe->gValid=1.0f;
    }else pframe->gValid=0.0f;
    pframe->t=D_002DDED0.t;
    pframe->s=0.0f;
    pframe->mat=mat;
   }
-  func_0021C5F8(pjtthrow->effect,posLaunch);
+  func_0021C5F8(thrower->effect,posLaunch);
  }
- qword posAim=pjtthrow->targetWorld.q;
- qword posHeroNow=func_001A62E8(pjtthrow->owner);
+ qword posAim=thrower->targetWorld.q;
+ qword posHeroNow=func_001A62E8(thrower->owner);
  V dpos;
  dpos.q=QwSub(posAim,posHeroNow);
  float rad=atan2f(dpos.f[1],dpos.f[0]);
- float radHero=RadStepHeading(pjtthrow->owner);
+ float radHero=RadStepHeading(thrower->owner);
  rad=RadNormalize__Ff(rad-radHero);
- float uTurn=GClamp(rad/pjtthrow->activeThreshold,-1.0f,1.0f)*0.5f+0.5f;
+ float uTurn=GClamp(rad/thrower->activeThreshold,-1.0f,1.0f)*0.5f+0.5f;
  if(fUpdateBlends){
-  float uFarOld=pjtthrow->ablC[1].gWeight,uTurnOld;
-  if(uFarOld>0.5f)uTurnOld=pjtthrow->ablB[3].gWeight/uFarOld;
-  else uTurnOld=pjtthrow->ablB[1].gWeight/(1.0f-uFarOld);
+  float uFarOld=thrower->ablC[1].gWeight,uTurnOld;
+  if(uFarOld>0.5f)uTurnOld=thrower->ablB[3].gWeight/uFarOld;
+  else uTurnOld=thrower->ablB[1].gWeight/(1.0f-uFarOld);
   float dtFrame=D_002DDED0.dt;
   float du=D_002C4104*dtFrame;
   uFar=GClamp(uFar,uFarOld-du,uFarOld+du);
@@ -583,14 +583,14 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  }
  float uTurnOpp=1.0f-uTurn;
  float uNear=1.0f-uFar;
- pjtthrow->ablB[0].gWeight=uTurnOpp*uNear;
- pjtthrow->ablB[1].gWeight=uTurn*uNear;
- pjtthrow->ablB[2].gWeight=uTurnOpp*uFar;
- pjtthrow->ablB[3].gWeight=uTurn*uFar;
- func_001384C0(pjtthrow->animation4);
- pjtthrow->ablC[0].gWeight=uNear;
- pjtthrow->ablC[1].gWeight=uFar;
- func_001384C0(pjtthrow->animation7);
+ thrower->ablB[0].gWeight=uTurnOpp*uNear;
+ thrower->ablB[1].gWeight=uTurn*uNear;
+ thrower->ablB[2].gWeight=uTurnOpp*uFar;
+ thrower->ablB[3].gWeight=uTurn*uFar;
+ func_001384C0(thrower->animation4);
+ thrower->ablC[0].gWeight=uNear;
+ thrower->ablC[1].gWeight=uFar;
+ func_001384C0(thrower->animation7);
 }
 #include "sly2/vu0.h" // here, not at the top: declared before UpdateJtThrowArc, the helpers change its code (355 of 517 off)
 
@@ -647,12 +647,12 @@ extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner,Q *value){
  * @end-sly2-annot */
 // Intersection-flag hook: for the carried object while carrying (state >= 3, or the player in state 0x12) adds the
 // ignore flags so the player does not collide with it; otherwise returns the flags unchanged.
-extern "C" int AdjustJtThrowFindFlags(JTTHROW *p, O *po, int n)
+extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, O *object, int n)
 {
-    if (po == p->selected) {
-        int k = p->state;
+    if (object == thrower->selected) {
+        int k = thrower->state;
         if (k != -1) {
-            if (k >= 3 || (po == D_002DD5BC && po->x2DC == 0x12))
+            if (k >= 3 || (object == D_002DD5BC && object->x2DC == 0x12))
                 return func_00134310(n, 3);
             return n;
         }
@@ -663,7 +663,7 @@ extern "C" int AdjustJtThrowFindFlags(JTTHROW *p, O *po, int n)
 
 static inline float DivideBits(int bits,float denominator){register float value asm("$f0");register float rate asm("$f2")=denominator;__asm__ ("mtc1 %1,%0\n\tdiv.s %0,%0,%2":"=&f"(value):"r"(bits),"f"(rate));return value;}
 static inline float ClockNow(void){float value;__asm__ __volatile__ ("lwc1 %0,%1":"=f"(value):"m"(D_002DDED0.t));return value;}
-static inline void PublishStart(JTTHROW *p,int active,float now,float span){asm("sw %3,%0\n\tswc1 %4,%1\n\tswc1 %5,%2":"=m"(p->transitioning),"=m"(p->transitionStart),"=m"(p->transitionDuration):"r"(active),"f"(now),"f"(span));}
+static inline void PublishStart(JTTHROW *thrower,int active,float now,float span){asm("sw %3,%0\n\tswc1 %4,%1\n\tswc1 %5,%2":"=m"(thrower->transitioning),"=m"(thrower->transitionStart),"=m"(thrower->transitionDuration):"r"(active),"f"(now),"f"(span));}
 static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero,1":"=r"(value));return value;}
 /** @sly2-annot addr=0x220508
  * Purpose: for states 4..6: store launch/target points, flight time = distance / speed, start time = now,
@@ -674,23 +674,23 @@ static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero
  * @end-sly2-annot */
 // In states 4..6: stores the launch and target points, flight time = distance / speed, start time = now, and marks
 // the flight active.
-extern "C" void StartJtThrowFlight(JTTHROW *p, void *q)
+extern "C" void StartJtThrowFlight(JTTHROW *thrower, void *q)
 {
-    int k = p->state;
+    int k = thrower->state;
     if (k < 7) if (k >= 4) {
-        qword v = func_001A62E8(q), a = p->targetWorld.q, d, r;
+        qword v = func_001A62E8(q), a = thrower->targetWorld.q, d, r;
         int len;
         int enabled=Enabled();
         d = VuSub(a, v);
-        p->transitionEnd.q = v;
+        thrower->transitionEnd.q = v;
         r = VuDot(d, d);
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(r));
-        p->transitionBegin.q = a;
+        thrower->transitionBegin.q = a;
         __asm__("qmfc2.ni %0, %1" : "=r"(len) : "j"(r));
         {
-            float f = DivideBits(len,p->scale);
+            float f = DivideBits(len,thrower->scale);
             float now=ClockNow();
-            PublishStart(p,enabled,now,f);
+            PublishStart(thrower,enabled,now,f);
         }
     }
 }
@@ -703,30 +703,30 @@ extern "C" void StartJtThrowFlight(JTTHROW *p, void *q)
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
 // Detaches the carried object and gives it its launch linear and angular velocity; removes the arc marker.
-extern "C" void ReleaseJtThrowObject(JTTHROW *p)
+extern "C" void ReleaseJtThrowObject(JTTHROW *thrower)
 {
-    O *po;
-    if (p->selected == D_002DD5BC) {
-        if (p->selected->mode != 8) goto tail;
-        SetBentleyHoverState(p->selected, 1);
+    O *object;
+    if (thrower->selected == D_002DD5BC) {
+        if (thrower->selected->mode != 8) goto tail;
+        SetBentleyHoverState(thrower->selected, 1);
     } else {
-        SetLoParent_1A58D0(p->selected, 0, 3);
-        SetSoCnstrForce(p->selected, 0);
-        SetSoCnstrTorque(p->selected, 0);
+        SetLoParent_1A58D0(thrower->selected, 0, 3);
+        SetSoCnstrForce(thrower->selected, 0);
+        SetSoCnstrTorque(thrower->selected, 0);
     }
-    p->selected->vt[35].f.vector((char *)p->selected + p->selected->vt[35].delta, p->velocity.q);
+    thrower->selected->vt[35].f.vector((char *)thrower->selected + thrower->selected->vt[35].delta, thrower->velocity.q);
     {
         VE *pve;
-        po = p->selected;
-        pve = &po->vt[36];
-        po = (O *)((char *)po + pve->delta);
-        pve->f.vector(po, ConvertAloVec(p->owner, 0, p->launchOffset.q));
+        object = thrower->selected;
+        pve = &object->vt[36];
+        object = (O *)((char *)object + pve->delta);
+        pve->f.vector(object, ConvertAloVec(thrower->owner, 0, thrower->launchOffset.q));
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->selected, 100))
-        p->selected->vt[76].f.integer((char *)p->selected + p->selected->vt[76].delta, 1);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(thrower->selected, 100))
+        thrower->selected->vt[76].f.integer((char *)thrower->selected + thrower->selected->vt[76].delta, 1);
 tail:
-    if (p->effect)
-        p->effect->vt[9].f.plain((char *)p->effect + p->effect->vt[9].delta);
+    if (thrower->effect)
+        thrower->effect->vt[9].f.plain((char *)thrower->effect + thrower->effect->vt[9].delta);
 }
 
 // Transition controller states and select the corresponding animation.
