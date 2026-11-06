@@ -4425,9 +4425,10 @@ void BHVLEAP::VSlot9()
 // 0x17A400 UpdateBhvleap
 namespace M_UpdateBhvleap { extern "C" {
 struct U; struct T; struct S;
-struct U { char pad[0x10]; int n10; };
-struct T { int a, b; struct U *p8; };
-struct S { char pad[0x10]; char *guard; char pad1[0x1C]; int state; char pad2[0xC]; struct T *binding; char pad3[0x28]; int n6C; int a70[4]; };
+struct U { char pad[0x10]; int mode; };
+struct T { int a, b; struct U *payload; };
+struct A { char pad[0xFD0]; char mover[4]; };
+struct S { char pad[0x10]; struct A *guard; char pad1[0x1C]; int state; char pad2[0xC]; struct T *binding; char pad3[0x28]; int hasAttachBasis; int attachBasis[4]; };
 void UpdateBhvanim(struct S *p);
 void SetStepguardMoverTargetMatrix(void *p, void *q);
 // 0x17A400: BHVLEAP vtable slot 10 (Update): BHVANIM update; after the jump phase locks the heading to the attach
@@ -4435,8 +4436,8 @@ void SetStepguardMoverTargetMatrix(void *p, void *q);
 void UpdateBhvleap(struct S *behavior)
 {
     UpdateBhvanim(behavior);
-    if (behavior->n6C && !behavior->state && behavior->binding->p8->n10 >= 2)
-        SetStepguardMoverTargetMatrix(behavior->guard + 0xFD0, behavior->a70);
+    if (behavior->hasAttachBasis && !behavior->state && behavior->binding->payload->mode >= 2)
+        SetStepguardMoverTargetMatrix(behavior->guard->mover, behavior->attachBasis);
 }
 } } // namespace M_UpdateBhvleap
 
@@ -4446,26 +4447,26 @@ struct B; struct C; struct A; struct O;
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0x90]; qword v; };
 struct C { char pad[0x30]; qword v; };
-struct A { char pad[0x60]; struct C *p60; char pad2[0xF90 - 0x64]; struct B *pF90; };
+struct A { char pad[0x60]; struct C *xfRoot; char pad2[0xF90 - 0x64]; struct B *attachPoint; };
 struct O {
     char pad[0x10];
     struct A *guard;
     char pad2[0x50 - 0x14];
-    qword v50;
+    qword landingPoint;
     char pad3[0x70 - 0x60];
-    qword m[3];
+    qword attachBasis[3];
 };
 // 0x17A468: Offsets the leap landing point by the guard's attach-point offset in the attach basis.
 void AdjustBhvleapAttachPoint(struct O *behavior)
 {
     struct A *a = behavior->guard;
-    qword *m = behavior->m;
+    qword *attachBasis = behavior->attachBasis;
     qword d, t;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(behavior->v50), "j"(a->p60->v));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(behavior->landingPoint), "j"(a->xfRoot->v));
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(t) : "j"(a->pF90->v), "j"(m[0]), "j"(m[1]), "j"(m[2]));
+            : "=j"(t) : "j"(a->attachPoint->v), "j"(attachBasis[0]), "j"(attachBasis[1]), "j"(attachBasis[2]));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(d), "j"(t));
-    behavior->v50 = d;
+    behavior->landingPoint = d;
 }
 } } // namespace M_func_0017A468
 
@@ -4486,7 +4487,7 @@ struct G; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct G { int a; };
 extern struct G D_003DD490;
-struct T { char pad[0xF64]; void *detector; };
+struct T { char pad[0x35C]; char heldNoise[4]; char pad2[0xF64 - 0x360]; void *detector; };
 struct S { char pad[0x10]; struct T *guard; };
 void StartBhvanim(struct S *p);
 void SetBhvSleepState(struct S *p, int n);
@@ -4501,7 +4502,7 @@ void StartBhvSleep(struct S *behavior)
     SetBhvSleepState(behavior, 0);
     ResetDetectorTargets(behavior->guard->detector);
     ReplaceHeldSwNoise(&D_003DD490, 1, func_001A62E8(behavior->guard), behavior->guard,
-                       (char *)behavior->guard + 0x35C);
+                       behavior->guard->heldNoise);
 }
 } } // namespace M_func_0017A4E8
 
@@ -4512,7 +4513,8 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 struct G { int a; };
 extern struct G D_003DD490;
-struct S { char pad[0x10]; char *guard; };
+struct T { char pad[0x35C]; char heldNoise[4]; };
+struct S { char pad[0x10]; struct T *guard; };
 void CloseBhvanim(struct S *p);
 void SetBhvSleepState(struct S *p, int n);
 void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
@@ -4521,7 +4523,7 @@ void CloseBhvSleep(struct S *behavior)
 {
     CloseBhvanim(behavior);
     SetBhvSleepState(behavior, -1);
-    ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, behavior->guard + 0x35C);
+    ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, behavior->guard->heldNoise);
 }
 } } // namespace M_func_0017A558
 
@@ -4530,9 +4532,9 @@ namespace M_func_0017A5B0 { extern "C" {
 struct CLOCK; struct U; struct T; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct U { int k; int pad; void *p8; };
+struct U { int kind; int pad; void *payload; };
 struct T { char pad[0xE7C]; float sleepTimeMin; float sleepTimeMax; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float g54; float wakeTime; };
+struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float unknown54; float wakeTime; };
 void SetSmaGoal(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
@@ -4540,14 +4542,14 @@ float GRandInRange__Fff(float a, float b);
 void SetBhvSleepState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     behavior->state = n;
-    behavior->g54 = n;
+    behavior->unknown54 = n;
     switch (n) {
     case 0:
-        if (behavior->binding->k == 1) SetSmaGoal(behavior->binding->p8, 0x44);
+        if (behavior->binding->kind == 1) SetSmaGoal(behavior->binding->payload, 0x44);
         { float t = D_002DDED0.t; behavior->wakeTime = t + GRandInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
         break;
     case 1:
-        if (behavior->binding->k == n) SetSmaGoal(behavior->binding->p8, 0x43);
+        if (behavior->binding->kind == n) SetSmaGoal(behavior->binding->payload, 0x43);
         break;
     }
 }
@@ -4559,8 +4561,8 @@ struct CLOCK; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct V { char pad[0x20]; qword q20; };
-struct T { char pad[0x35C]; struct V *p35C; };
+struct V { char pad[0x20]; qword position; };
+struct T { char pad[0x35C]; struct V *heldNoise; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x3C]; int state; int pad3; float wakeTime; };
 void UpdateBhvanim(struct S *p);
 void SetBhvSleepState(struct S *p, int n);
@@ -4574,7 +4576,7 @@ void UpdateBhvSleep(struct S *behavior) {
         s = behavior->state;
         if (s == 0 && D_002DDED0.t > behavior->wakeTime) SetBhvSleepState(behavior, 1);
     } while (behavior->state != s);
-    { struct T *t = behavior->guard; struct V *v = t->p35C; v->q20 = func_001A62E8(t); }
+    { struct T *t = behavior->guard; struct V *v = t->heldNoise; v->position = func_001A62E8(t); }
 }
 } } // namespace M_func_0017A670
 
@@ -4636,9 +4638,9 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE6C0;
-struct G { char pad[0x4020]; void *p4020; };
+struct G { char pad[0x4020]; void *noises; };
 extern struct G D_003DD490;
-struct R { char pad[0x54]; int n54; };
+struct R { char pad[0x54]; int noiseType; };
 struct T { char pad[0x208]; int isOnGround; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; int state; int pad3; float lastYellTime; };
 void UpdateBhv(struct S *p);
@@ -4658,7 +4660,7 @@ void UpdateBhvThrown(struct S *behavior) {
         if (D_002DDED0.t - behavior->lastYellTime > D_002BE6C0) {
             struct G *g = &D_003DD490;
             behavior->lastYellTime = D_002DDED0.t;
-            NewNoise(g->p4020, func_001A62E8(behavior->guard), behavior->guard)->n54 = 3;
+            NewNoise(g->noises, func_001A62E8(behavior->guard), behavior->guard)->noiseType = 3;
         }
     }
 }
@@ -4670,7 +4672,7 @@ struct CLOCK; struct VTE; struct O; struct T; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
 struct T { char pad[0x32C]; int isInvulnerable32C; };
 struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
@@ -4689,7 +4691,7 @@ void SetBhvThrownState(struct S *behavior, int n) {
             struct O *o = PushStepBhv(behavior->guard, CID_BHVANIM);
             int a[5] = { 18, 19, 20, 21, 19 };
             struct VTE *entry;
-            o->n3C = a[behavior->state];
+            o->sgf = a[behavior->state];
             entry = &o->vt[8]; entry->pfn((char *)o + entry->d);
         }
         behavior->guard->isInvulnerable32C = (unsigned)behavior->state < 2;
