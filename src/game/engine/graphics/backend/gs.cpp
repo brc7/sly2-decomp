@@ -37,8 +37,8 @@ struct DRAWENV
 struct CSR { unsigned int SIGNAL:1, FINISH:1, HSINT:1, VSINT:1, EDWINT:1, ZERO1:3, FLUSH:1, RESET:1, ZERO2:2, NFIELD:1, FIELD:1, FIFO:2, REV:8, ID:8; };
 
 /* The GS memory allocator: free blocks in eight size buckets, a bump pointer, and the block records. */
-struct GSBB { int n0; int n4; GSBB *next; };
-struct GSB { int n0; int n4; int n8; GSBB *ap[8]; int c; GSBB ab[1]; };
+struct GSBB { int start; int end; GSBB *next; };   /* a free run of GS blocks [start, end) */
+struct GSB { int first; int top; int limit; GSBB *freeRuns[8]; int numRuns; GSBB runs[1]; };   /* first..limit: the GS block range; top: next free block */
 
 struct RGBA {
     uchar bRed; uchar bGreen; uchar bBlue; uchar bAlpha;
@@ -127,7 +127,7 @@ void RebuildFrameGifs();
 void BlastAqwGifsBothFrames(QW *aqw);
 void ClearFrameBuffers();
 int IgsbBucketFromCgs(int n);
-void PadGsbToPage(GSB *p);
+void PadGsbToPage(GSB *gsb);
 /* StartupGs calls GS_Interrupt with no argument (a0 is left as it is) and passes the clear colour of BuildClearGifs
    by address (the RGBA's copy constructor is never called): asm-labelled declarations keep those calls. */
 extern "C" void GS_InterruptV() __asm__("GS_Interrupt__Fi");
@@ -566,50 +566,50 @@ int IgsbBucketFromCgs(int n)
     return n >= 2;
 }
 
-// Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists.
-// (inferred)
-void PadGsbToPage(GSB *p)
+// Rounds the allocation top up to the next 0x80-block page and records the skipped gap as a free run in the size-bucket
+// lists (inferred).
+void PadGsbToPage(GSB *gsb)
 {
-    GSBB *pb;
+    GSBB *run;
     int n, i;
-    if (!(p->n4 & 0x7F)) return;
-    pb = &p->ab[p->c++];
-    pb->n0 = p->n4;
-    n = (p->n4 + 0x7F) & ~0x7F;
-    p->n4 = n;
-    pb->n4 = n;
-    i = IgsbBucketFromCgs(n - pb->n0);
-    pb->next = p->ap[i];
-    p->ap[i] = pb;
+    if (!(gsb->top & 0x7F)) return;
+    run = &gsb->runs[gsb->numRuns++];
+    run->start = gsb->top;
+    n = (gsb->top + 0x7F) & ~0x7F;
+    gsb->top = n;
+    run->end = n;
+    i = IgsbBucketFromCgs(n - run->start);
+    run->next = gsb->freeRuns[i];
+    gsb->freeRuns[i] = run;
 }
 
-// Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a
+// Allocates count blocks of GS memory from a GSB: first-fit from the size-bucket free lists, else bump the top (padding to a
 // 0x80 boundary if it would straddle); returns the start index.
-int IgsAllocGsb(GSB *input, int cb)
+int IgsAllocGsb(GSB *input, int count)
 {
-    register GSB *p __asm__("$19")=input;
+    register GSB *gsb __asm__("$19")=input;
     unsigned int i;
     int old;
-    GSBB *pb;
+    GSBB *run;
     int mask;
-    i = IgsbBucketFromCgs(cb - 1) + 1;
+    i = IgsbBucketFromCgs(count - 1) + 1;
     mask = ~0x7F;
     goto test;
 loop:
-    pb = p->ap[i];
-    if (pb) {
-        old = pb->n0;
-        pb->n0 = old + cb;
-        if (pb->n0 == pb->n4) {
-            p->ap[i] = pb->next;
+    run = gsb->freeRuns[i];
+    if (run) {
+        old = run->start;
+        run->start = old + count;
+        if (run->start == run->end) {
+            gsb->freeRuns[i] = run->next;
         } else {
-            unsigned int j = IgsbBucketFromCgs(pb->n4 - pb->n0);
+            unsigned int j = IgsbBucketFromCgs(run->end - run->start);
             if (j != i) {
-                register GSBB *next __asm__("$4")=pb->next;
-                p->ap[i] = next;
-                register GSBB *replacement __asm__("$2")=p->ap[j];
-                pb->next = replacement;
-                p->ap[j] = pb;
+                register GSBB *next __asm__("$4")=run->next;
+                gsb->freeRuns[i] = next;
+                register GSBB *replacement __asm__("$2")=gsb->freeRuns[j];
+                run->next = replacement;
+                gsb->freeRuns[j] = run;
             }
         }
         goto done;
@@ -617,9 +617,9 @@ loop:
     i++;
 test:
     if (i < 8) goto loop;
-    if (((p->n4 + cb) & mask) != (p->n4 & mask)) PadGsbToPage(p);
-    old = p->n4;
-    p->n4 = old + cb;
+    if (((gsb->top + count) & mask) != (gsb->top & mask)) PadGsbToPage(gsb);
+    old = gsb->top;
+    gsb->top = old + count;
 done:
     return old;
 }
