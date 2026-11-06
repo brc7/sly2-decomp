@@ -876,7 +876,7 @@ What the counted-pointer and destructor copies needed (each measured on a scratc
 | ~CProc (0x257148) | an implicit destructor is emitted only where a call needs it; nothing in gc.cpp deletes a proc | splice/ref.cpp's proc view derives from CGcObj<CProc> with inline-release link views and declares `~CProc();`, defined `inline` at the end of the file: its callers in the file (CRef::Decref's proc case, the SPO release) were compiled before the body, so they call it, and the definition is emitted as the linkonce copy (MATCH) |
 | identifiers spelled like operator names | `void __as__t7CRefPtr1Z6CFrameP6CFrame(...)` as a C declaration: "`operator =(void *, CFrame *)` must have an argument of class type" (g++ 2.95 reads `__as__` as operator=) | callers keep a plain identifier with the mangled name as asm label (`FramePtr_Assign(...) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame")`, 16 files) |
 | an extern "C" identifier equal to an instance's mangled name | in a file that instantiates the class, calling `PtNew__t6CGcObj1Z7CMethod()` declared as a C function is "ambiguous" with `CGcObj<CMethod>::PtNew` | call the member (`CGcObj<CMethod>::PtNew()`) |
-| CPairPtr / CVarbPtr (sly2/pair.h, varb.h) | views of CRefPtr<CPair>/<CVarb> whose includers call the destructor by its view name `_$_8CPairPtr` / `_$_8CVarbPtr`; a destructor cannot take an asm label | two global lines in config/link_aliases.txt (`_$_8CPairPtr = _$_t7CRefPtr1Z5CPair;`), as brx_sw's `_$_3OBJ`; the assignments' asm labels now name the instances |
+| CPairPtr / CVarbPtr (sly2/pair.h, varb.h) | views of CRefPtr<CPair>/<CVarb> whose includers called the destructor by its view name `_$_8CPairPtr` / `_$_8CVarbPtr`; a destructor cannot take an asm label | (data/vtables-2) explicit specializations `template <> class CRefPtr<CPair> { CPair *p; ~CRefPtr(); void operator=(CPair *); }` with `typedef CRefPtr<CPair> CPairPtr;`: the includers' calls name the instances gc.cpp emits from the real template (which it does not see specialized), no asm label, no alias line; the 8 includers MATCH unchanged (was: two alias lines) |
 | a file that uses a member gc.cpp emits | spliceobj (a method's PtNew and its release through ~CGcObj -> Unlink) and ref (~CProc -> Unlink) emitted their own weak copies, which tools/progress.py then listed as second matched.csv rows for the same functions (harmless for a link: the linker keeps one linkonce copy, as the original's did) | declare the specialization there, `template <> void CGcObj<CMethod>::Unlink();`: the calls stay, no copy is emitted (as classes.h does for ~CRefPtr) |
 | names in template bodies | gc.h uses g_sw, g_gc and the node types without declaring them | g++ 2.95 looks them up at instantiation (no two-phase lookup); only the instantiating files need them complete |
 
@@ -1632,8 +1632,9 @@ link/round3, 2026-11-05; the data definitions of the Data section follow them to
   (`template <> void CRefPtr<CMethod>::Attach(CMethod *) __asm__(...)` still references the mangled name).
 - The symbol name can be codegen: `extern FR *g_pfrmOpen __asm__("D_002DEA4C")` (and the rename to `D_002DEA4C`)
   changes DrawSw's register allocation (8 instructions), like the path-hash quirk above. Such a declaration keeps its
-  name; the link resolves it through the alias table.
-- What source cannot bind goes to config/link_aliases.txt, `symbol = target;` with the target recovered from the
+  name; since data/vtables-2 config names 0x2DEA4C `g_pfrmOpen` and frm.cpp defines it so (frm still MATCHes).
+- (Until data/vtables-2; the table is gone since, see "Vtables emitted (data/vtables)".) What source cannot bind went
+  to config/link_aliases.txt, `symbol = target;` with the target recovered from the
   ELF: the vtables of namespace-scoped view classes (21 since types/views-2, act.cpp's curve classes and two local
   classes; class_registry's 191 went when its classes became real: their `_vt$<len><NAME>` are config data names
   now, see "Views unified (types/views-2)"), the view destructors (one left after types/views-1: brx_sw's

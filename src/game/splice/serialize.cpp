@@ -38,11 +38,17 @@ int S16Read__18CBinaryInputStream(BIS *pbis);
 float F32Read__18CBinaryInputStream(BIS *pbis);
 unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 }
-struct CPairPtr {
+/* The pair link: the CRefPtr<CPair> view as an explicit specialization (as sly2/pair.h), so the destructor call names
+   gc.cpp's instance _$_t7CRefPtr1Z5CPair; the assignment takes the NODE view, hence its label. */
+struct CPair;
+template <class T> class CRefPtr;
+template <> class CRefPtr<CPair> {
+public:
     NODE *p;
-    ~CPairPtr();
+    ~CRefPtr();
     void operator=(NODE *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 };
+typedef CRefPtr<CPair> CPairPtr;
 struct NODE {
     int cref;
     int x4;
