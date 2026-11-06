@@ -27,6 +27,13 @@ enum {
     CID_STEPPLAYER = 0x34,
     CID_BHV168 = 0xA8,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_STRIKE = 0x3,
+    SGF_KO = 0x7,
+    SGF_JUGGLED = 0x17,
+};
 
 /* Guard behaviours (BHV, bhvstk.cpp's layout: vtable +0xC, the guard +0x10), as the m2c bodies read them. */
 struct VTE { short d; short pad; void (*pfn)(); };
@@ -401,7 +408,7 @@ struct SO *PickBhvfollowTarget(struct P *p)
     int i;
     func_001A62E8(p->p10);
     pos = func_001A62E8(p->p30);
-    grf = GetSgfMask(7) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(0x17) |
+    grf = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
           GetSgfMask(0x2A) | GetSgfMask(0x2B);
     plist = p->p10->plist;
     for (i = 0; i < plist->c; i++) {
@@ -412,7 +419,7 @@ struct SO *PickBhvfollowTarget(struct P *p)
         g = GDist(pos, func_001A62E8(pso));
         if (pso == p->p90)
             g = GFromClq(g, &D_002BD300);
-        if (StepguardHasSgf(pso, 3))
+        if (StepguardHasSgf(pso, SGF_STRIKE))
             g = GFromClq(g, &D_002BD320);
         if (g < gBest) {
             psoBest = pso;
@@ -430,7 +437,7 @@ struct SO *PickBhvfollowTarget(struct P *p)
             g = GFromClq(g, &D_002BD310);
             if (pso == p->p90)
                 g = GFromClq(g, &D_002BD300);
-            if (StepguardHasSgf(pso, 3))
+            if (StepguardHasSgf(pso, SGF_STRIKE))
                 g = GFromClq(g, &D_002BD320);
             if (g < gBest) {
                 psoBest = pso;
