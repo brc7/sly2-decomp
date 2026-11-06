@@ -21,11 +21,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
-import matchtool, linkaliases
+import matchtool
 
 OUT = os.path.join(ROOT, 'build', 'link')
 ELF = matchtool.ELF
 LINKONCE = (0x254F00, 0x259DF0)                              # the ELF's .gnu.linkonce.t area (end of .text)
+ADDR_NAME = re.compile(r'(?:D|func)_([0-9A-F]{8})$')          # an address name: the address is in the name
 
 
 @functools.lru_cache(None)
@@ -181,7 +182,7 @@ def config_addrs():
 def addr_of(name):
     if name in config_addrs():
         return config_addrs()[name]
-    m = linkaliases.ADDR_NAME.match(name)
+    m = ADDR_NAME.match(name)
     return int(m.group(1), 16) if m else None
 
 
@@ -340,14 +341,13 @@ def q(s):
 
 def fixed(objs):
     """normalize each object for ld.lld (llvm-objcopy re-sorts the symbol table: gcc 2.95's as leaves locals after
-    globals), apply the per-object renames of config/link_aliases.txt, and patch what script() decided: section
+    globals), and patch what script() decided: section
     padding cut where the next section starts (o.size) and sections bound to an address (o.absolute: their symbols
     made absolute)"""
     for o in objs:
         p = fix_path(o)
         os.makedirs(os.path.dirname(p), exist_ok=True)
-        r = os.path.join(OUT, 'redefine', o.src.replace('/', '__') + '.redefine')
-        subprocess.run([llvm_tool('llvm-objcopy')] + (['--redefine-syms=' + r] if os.path.exists(r) else []) + [o.path, p], check=True)
+        subprocess.run([llvm_tool('llvm-objcopy'), o.path, p], check=True)
         cut = {o.secs[i][0]: n for i, n in o.size.items() if n != o.secs[i][5]}
         if not (cut or o.absolute):
             continue
@@ -435,22 +435,19 @@ def script(objs, base, img, reasons):
 
 
 def symbols(objs, img, ext):
-    """_gp, linkaliases.py's lines, and absolute addresses for what only unbuilt code/data defines"""
-    p = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'linkaliases.py'), '--redefine',
-                        os.path.join(OUT, 'redefine')] + [o.path for o in objs], capture_output=True, text=True, check=True)
-    lines = [f'_gp = 0x{img.gp:X};'] + p.stdout.split('\n')
+    """_gp and an absolute address for every name no object defines (address names D_/func_XXXXXXXX by their
+    address, config names by config's, the rest by the ELF's relocated value) and for commons"""
+    lines = [f'_gp = 0x{img.gp:X};']
     defined = {s[0] for o in objs for s in o.syms if s[3] and s[5] and s[5] != 0xFFF2}
     commons = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0xFFF2}
-    assigned = {re.match(r'"?([^"\s]+)', l).group(1) for l in lines if '=' in l}
-    rhs = {re.search(r'=\s*"?([^";]+)', l).group(1) for l in lines if '=' in l}
-    undef = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0} | rhs
+    undef = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0}
     extra, derived = [], []
-    for n in sorted((undef - defined - assigned) | commons):
+    for n in sorted((undef - defined - {'_gp'}) | commons):
         a = addr_of(n)
         if a is None and n in ext:                           # named by no config file: the ELF's relocated value
             a = ext[n]; derived.append(n)
-        if a is not None and not n.startswith('0x'):
-            extra.append(f'{linkaliases.q(n)} = 0x{a:08X};')  # COMMON too: its address is the ELF's
+        if a is not None:
+            extra.append(f'{q(n)} = 0x{a:08X};')  # COMMON too: its address is the ELF's
     return '\n'.join(lines + extra), derived
 
 

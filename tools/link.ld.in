@@ -3,8 +3,8 @@
    placed there in address order (whole .text/.data/.rodata/.bss per object, per function for the objects in
    fallback), blobs cut from the ELF for the bytes no object covers, and an address assignment only where the
    linker's own layout would not land (gaps in .bss/.sbss); padding filled with zeros.
-   After it: _gp from the ELF's .reginfo, tools/linkaliases.py's aliases, and the absolute addresses of names that
-   only unbuilt code or data defines. */
+   After it: _gp from the ELF's .reginfo and the absolute addresses of names no object defines (address names,
+   names only unbuilt code or data defines, commons). */
 ENTRY(_start)
 
 SECTIONS
