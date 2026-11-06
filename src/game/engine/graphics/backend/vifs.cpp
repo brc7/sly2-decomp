@@ -280,3 +280,7 @@ void VIFS::AddVifGifs(GIFS *pgifs)
     DMAS *pdmas = (DMAS *)pgifs;
     AddVifDirect((uint)(pdmas->m_pb - pdmas->m_ab) >> 4, (QW *)pdmas->m_ab, 0);
 }
+
+// ---- vifs's .data (tu-merging.md "Data"): the bytes per element of each VIF unpack format (S/V2/V3/V4 x 32/16/8 bit,
+// -1: none; V4-5 is 2), the Sly 1 name. Defined after the functions, so none sees a definition.
+int s_mpupkcb[16] = {4, 2, 1, -1, 8, 4, 2, -1, 12, 6, 3, -1, 16, 8, 4, 2};

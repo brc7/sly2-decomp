@@ -77,6 +77,10 @@ extern "C" void CTextBox_SetHorizontalJust(CONFIG *,int);
 extern "C" void CTextBox_SetVerticalJust(CONFIG *,int);
 struct CONFIG {float x,y,width,height;RGBA color;int hAlign,vAlign;CONFIG(uint bits=0xFF808080){CTextBox_SetPos(this,0.0f,0.0f);CTextBox_SetSize(this,640.0f,492.8000183f);RGBA gray(bits);CTextBox_SetTextColor(this,&gray);CTextBox_SetHorizontalJust(this,0);CTextBox_SetVerticalJust(this,0);}};
 extern CM D_002DDF40;
+/* The two vectors draw and tu_1BE398 copy as clip-plane / key values (16 bytes each, the fourth word 0; render's
+   .data, first). */
+float D_002C1F00[4] = {33218888.0f, 33218888.0f, 4.25201766e+09f, 0.0f};
+float D_002C1F10[4] = {8.62348902e+09f, 8.62348902e+09f, 1.28849019e+10f, 0.0f};
 float D_002C1F20 = 640.0f;   /* render's .data (address order) */
 LM D_002C1F28 = {0.4f, 1.5f};
 int D_002C1F30 = 8, D_002C1F34 = 8;   /* screen margins x, y */

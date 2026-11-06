@@ -397,3 +397,8 @@ void BlendPrevFrame()
     SendDmaSyncGsFinish(D_002DE598, aqw);
 }
 
+
+// ---- frm's .data (tu-merging.md "Data"): the frame count (main, prog and hud read it; prog increments it after
+// CloseFrame), starting at 1. Its place (0x2BE538, after font's .data, before glob's) lies in frm's or game's; frm,
+// the frame TU, is the choice. Defined after the functions, so none sees a definition.
+int D_002BE538 = 1;
