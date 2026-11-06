@@ -91,6 +91,7 @@ struct MURRAY : public STEPPLAYER
       struct ACT1 *pact1Unk1acc;
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
+    virtual int VUnk93() __asm__("func_001B8180");   /* slot 94 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */
@@ -109,7 +110,6 @@ struct MURRAY : public STEPPLAYER
     virtual void VUnk89() __asm__("func_001B8008");   /* slot 90 */
     virtual void VUnk90() __asm__("func_001B80F0");   /* slot 91 */
     virtual int VUnk91() __asm__("func_001B80F8");   /* slot 92 */
-    virtual int VUnk93() __asm__("func_001B8180");   /* slot 94 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("func_001B9B70");   /* slot 96 */
     virtual int VUnk97() __asm__("func_001B8100");   /* slot 98 */
     virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__6MURRAYi");   /* slot 99 */
