@@ -8,7 +8,40 @@ tools/link.py links the image (since link/real-link a real link: one section per
 the ELF the way the original build did is "End state" at the end. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (link/real-link, 2026-11-06)
+## Status (integrate/round8, 2026-11-06)
+
+Authoritative numbers for integrate/round8: main f674c97e + link/real-link (with link/crt0-block: the crt0_splicewrap
+TU as one object, the real-link mode as tools/link.py's default) + link/junk-padding (the junk.csv scraps as
+`SLY2_SCRAP` in their sources, "Junk scraps and padding") + link/linkonce-pools (the Splice GC pool family as
+`CGcObj<T>`/`CRefPtr<T>` instances, "Linkonce pools"), plus one fix the merge needed: ref.cpp and splicemap.cpp emit
+their scraps 0x129D50 and 0x1FFA68 (`SLY2_SCRAP`), the last thing linkonce-pools left in their way. Values of
+`python3 tools/link.py` (real link); link/real-link's values in brackets where different.
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (100%; 857 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv unchanged by the run) | `tools/progress.py`, cache deleted first |
+| files the branches touched, and every includer of a touched header (gc.h, basic.h, scrap.h, pair.h, varb.h, cframe.h, slotheap.h) or `.inc` fragment: 210 sources | functions 6,016 / 6,016, data symbols 1,555 / 1,555 MATCH | `tools/matchtool.py check` |
+| nm symbol sets (those 210 objects; the 31 splice_thunks objects of the other trees included) | every object's global symbols (defined and undefined) are the merge of the three branches' against main f674c97e (a symbol is in the merge iff a branch added it, or it was there and no branch removed it): 0 deviations | scratch nmN.py |
+| undefined references not in config (210 merged objects) | 41 [35] (link/linkonce-pools' value: the 9 view-destructor references bound by alias lines added, the 3 template members of proxy/spliceobj resolved) | scratch symcheck.py |
+| duplicate strong definitions | 0 | scratch symcheck.py |
+| relocations checked against the ELF | 29,602 [29,603] OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
+| link objects | 528: 501 whole (one section each), 27 in per-function fallback [452 / 76] | `tools/link.py` |
+| fallback, by reason (build/link/tutext.txt) | linkonce copies kept as plain functions: 27 objects, 69 functions (class_registry's 3 constructors, the EMITTER/EXPLO set, the accessors, containers, math/text-box inlines and "other" families of tu-merging.md "Linkonce copies by family"); no object is held back by junk scraps, padding or grab any more [76: linkonce 38, scraps 33, scraps and padding 3, padding 1, grab 1] | `tools/link.py` |
+| ld.lld | 0 errors; 3,092 [4,673] sections placed, 4 unplaced (416 bytes: eopid_linkonce's and an SDK object's `.data`, bq's `__17CQueueInputMemoryPUci` and tn's `_vt$7CMPART2` linkonce copies) [6, 544], 2 `.bss` overlapping another bound to their address (tn, cplcy: 4 bytes each) | `tools/link.py` |
+| address assignments in the script | 20, all in `.bss`/`.sbss`: gaps no object defines, 487,824 bytes | `tools/link.py` |
+| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; .text from objects 1,295,692 [1,294,948] | `tools/link.py` |
+| blob bytes | 1,066,336 [1,067,080]: IOP modules 474,176; data no object defines 437,056; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,660 [2,124] (the rows at TU boundaries and inside the 27 fallback objects); padding / not in config 1,104 [1,384]; `func_00100000` 4 | `tools/link.py` |
+| config names at their config address | 7,402 / 7,402 | `tools/link.py` |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
+Merge conflicts: only the guides. full-link.md: link/real-link's Status, "What is left" and "End state" kept, the two
+branches' sections ("Junk scraps and padding", "Linkonce pools") added after "Code order"; tu-merging.md and the
+config files (junk.csv, symbol_addrs.txt, functions.csv, matched.csv, link_aliases.txt, units.csv) merged without
+conflict (disjoint rows), and so did the sources both junk-padding and linkonce-pools touched (sm, so, lo) and
+serialize (real-link's case labels, linkonce-pools' declarations). Neither branch touched tools/link.py; real-link's
+classification gives the new verdicts with no change.
+
+### Status (link/real-link, 2026-11-06; superseded above)
 
 link/real-link (from link/crt0-block adaf9219; no source changed): tools/link.py links as the original build did —
 each object's `.text`, `.data`, `.rodata`, `.bss` whole and its `.gnu.linkonce.*` sections in the linkonce area —
@@ -210,7 +243,8 @@ from). A full run is about 5 min here (528 sources, 2 cores, plus the fallback o
    `.gnu.linkonce.*` section per vague-linkage instance.
 2. **Which objects link whole.** For each object, every function of its `.text` with a config address must sit at
    that address relative to one base, which is what a contiguous TU in the ELF means. The others are classified
-   the way link/contiguous-tus's TU check did (same 76 objects; reasons per object in build/link/tutext.txt):
+   the way link/contiguous-tus's TU check did (the same 76 objects on link/real-link, 27 on integrate/round8; reasons
+   per object in build/link/tutext.txt):
    linkonce copies (a function whose address is in the linkonce area 0x254F00..0x259DF0), split by other objects'
    code, junk.csv scraps inside, gap/padding, functions in another order, code the ELF does not have. Those objects
    fall back to their `-ffunction-sections` build (build/link/obj/, compiled only for them), each function placed
@@ -482,6 +516,7 @@ placeholder) they are inline functions with nothing that needs them out of line,
 
 **config/junk.csv:** the 64 rows inside these objects now end with "; emitted by its TU source (SLY2_SCRAP)"
 (they are still not functions, so progress.py keeps skipping them); five rows for the nop units are new (173 rows).
+On integrate/round8 ref's 0x129D50 and splicemap's 0x1FFA68 joined them (71 rows emitted by sources).
 The rows at TU boundaries or inside the linkonce/crt0 objects are unchanged. No entry decodes as a function, so none
 moved to functions.csv.
 
@@ -491,6 +526,10 @@ symcheck: 35 undefined not in config, 0 duplicate definitions (unchanged); relve
 mismatched. No change to codegen was needed or reverted.
 
 ### Linkonce pools (link/linkonce-pools on integrate/round7 f674c97e, 2026-11-06)
+
+(Measured with the per-function TU check of main f674c97e, before the real-link and junk-padding merges; the
+integrated count is in Status: 27 fallback objects, all linkonce copies. The two scraps of splicemap and ref are
+emitted by their sources since integrate/round8.)
 
 Fix (1) for the first family: the 58 Splice GC pool copies (tu-merging.md, "The Splice GC pool family") are template
 and inline instances again (`CGcObj<T>` in sly2/gc.h, `CRefPtr<T>` in sly2/basic.h, the implicit ~CFrame/~CProc),
@@ -546,28 +585,28 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
    (link/crt0-block; the link now differs from the ELF in no byte).
 3. ~~Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU~~ (done, link/crt0-block).
 4. ~~A real-link mode~~ (done, link/real-link: one section per object, per-function fallback). The rest is "End
-   state" below: the 76 fallback objects (link/linkonce-pools, link/linkonce-misc, link/junk-padding), the data no
-   object defines, the SDK objects.
+   state" below: the 27 fallback objects (link/linkonce-misc; link/junk-padding and link/linkonce-pools are merged),
+   the data no object defines, the SDK objects.
 
 ## End state
 
 The goal: a link that reproduces SCUS_973.16 byte for byte the way the original build did: every object compiled
 once, its sections whole, the linkonce sections where the linker puts them, and no blob except what genuinely is
-not source (the IOP modules, the VU microcode). Measured on link/real-link; three work lists stand between it and
-today's link.
+not source (the IOP modules, the VU microcode). Planned on link/real-link, counts updated on integrate/round8; three
+work lists stand between it and today's link.
 
-### 1. Drop the per-function fallback (76 objects)
+### 1. Drop the per-function fallback (27 objects)
 
 build/link/tutext.txt is the list; when it is empty, every object links whole, build/link/obj/ is not needed and
 `--per-function` can go.
 
 | reason | objects | branch |
 |---|---:|---|
-| linkonce copies kept as plain functions (127 functions; the Splice GC pools, the EMITTER/EXPLO set, small accessors) | 38 | link/linkonce-pools, link/linkonce-misc: back to templates/inline functions so they are emitted as `.gnu.linkonce.t.*` |
-| junk.csv dead-code scraps inside the object's range | 33 | link/junk-padding: the scraps as source (`.word` blocks or the dead functions) at their place |
-| scraps and 8 zero bytes before a 16-aligned function | 3 (language, mat, joy) | link/junk-padding |
-| 8 zero bytes before a 16-aligned function | 1 (so 0x1F6A68) | link/junk-padding |
-| code the ELF does not have (grab.cpp's local class constructor/destructor, func_00192A28's) | 1 | link/junk-padding ("grab") |
+| linkonce copies kept as plain functions (69 functions left of 127: the EMITTER/EXPLO set, small accessors, containers, math/text-box inlines, class_registry's 3 constructors, "other") | 27 | link/linkonce-misc: back to templates/inline functions so they are emitted as `.gnu.linkonce.t.*` (the Splice GC pools, 58 functions, are done: link/linkonce-pools) |
+| ~~junk.csv dead-code scraps inside the object's range~~ | ~~33~~ 0 | done: link/junk-padding (`SLY2_SCRAP`), ref and splicemap on integrate/round8 |
+| ~~scraps and 8 zero bytes before a function~~ | ~~3 (language, mat, joy)~~ 0 | done: link/junk-padding (nop scraps, not alignment) |
+| ~~8 zero bytes before a function~~ | ~~1 (so 0x1F6A68)~~ 0 | done: link/junk-padding |
+| ~~code the ELF does not have (grab.cpp's local class constructor/destructor, func_00192A28's)~~ | ~~1~~ 0 | done: link/junk-padding ("grab") |
 
 The classification is computed from the TU objects alone, so each branch that lands lowers the count with no change
 to the tool. Check per branch: fallback count, still 0 differing bytes and 0 ld errors.

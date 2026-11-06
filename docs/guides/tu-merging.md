@@ -723,10 +723,12 @@ macro); not checked.
 
 ### Linkonce copies by family (link/contiguous-tus)
 
-The plain-function copies are what keeps 38 objects' `.text` from linking as one section without
-`-ffunction-sections` ([full-link.md, "Code order (link/contiguous-tus)"](full-link.md#code-order-linkcontiguous-tus-2026-11-05)):
-127 functions in the linkonce area 0x254F00..0x259DE4 are still plain `.text` functions. By family (homes in
-brackets; the template/inline form is a HYPOTHESIS from the address pattern, not matched yet):
+The plain-function copies are what keeps 38 objects' `.text` (27 on integrate/round8, after the Splice GC pools
+below; full-link.md "Status") from linking as one section without `-ffunction-sections`
+([full-link.md, "Code order (link/contiguous-tus)"](full-link.md#code-order-linkcontiguous-tus-2026-11-05)): 127
+functions in the linkonce area 0x254F00..0x259DE4 were plain `.text` functions (69 still are, after the first row's
+58). By family (homes in brackets; the template/inline form is a HYPOTHESIS from the address pattern, not matched
+yet):
 
 | family | addresses | functions (homes) | likely original form |
 |---|---|---|---|
