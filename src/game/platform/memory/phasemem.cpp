@@ -1,4 +1,8 @@
-// phasemem.cpp -- phase memory: per-phase scratch buffer assignment. TU 0x1C2A78..0x1C2BC8 (4 functions, address order).
+// phasemem.cpp -- phase memory: per-phase scratch buffer assignment.
+// The game reuses a few large static blocks for different jobs depending on the current phase (g_phase,
+// D_003D3980). SetPhase gives the two render frames (FRM D_002DEA50[2], engine/graphics/backend/frm.cpp) their GIF and
+// VIF packet buffers from the blocks the phase uses (phase 3: 0x6000-byte GIF + 0x58000-byte VIF buffers per frame;
+// phase 2: 0x1800 + 0x800; any other phase: none). Buffer sizes are in qwords (16 bytes). Entry points: SetPhase, ClearPhase. TU 0x1C2A78..0x1C2BC8 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_phasemem
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C2D00
 #include "sly2/slotheap.h"
@@ -8,9 +12,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 enum PHASE { PHASE_Nil = 0 };   /* values 2 and 3 select the two buffer layouts below (names unknown) */
 
-struct BUF { int pad0[2]; char *p; int c; int pad1[2]; char *p2; int c2; int pad2[12]; };
+/* This TU's view of FRM (frm.cpp): only the two packet buffers it assigns are named. */
+struct BUF { int pad0[2]; char *gifBuffer; int gifBufferQwords; int pad1[2]; char *vifBuffer; int vifBufferQwords; int pad2[12]; };
 extern struct BUF D_002DEA50[2];
-/* phasemem's .bss (address order): the phase buffers (layout 2: two 0x6000 + two 0x58000 halves; layout 3: two
+/* phasemem's .bss (address order): the phase buffers (phase 3: two 0x6000 + two 0x58000 halves; phase 2: two
  * 0x1800 + two 0x800 in one 0x4000 block), the RPL buffer between them (no code here names it: render, draw and
  * tu_1D57A8 use it; it fills the gap exactly) and g_phase. */
 char D_002F7980[0xC000] __attribute__((aligned(128)));   /* 128-aligned by layout: 0x2F7980 after murray's word at 0x2F7900 */
@@ -18,7 +23,7 @@ char D_00303980[0xB0000];
 char D_003B3980[0x1C000];
 char D_003CF980[0x4000];
 int D_003D3980;                     /* g_phase */
-extern "C" void func_00234CA0(int n) __asm__("FlushCache");
+extern "C" void FlushCacheAsm(int mode) __asm__("FlushCache");
 /** @sly2-annot addr=0x1C2A78
  * Purpose: if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers
  * Info: proposed name SetPhase (T1); TU phasemem
@@ -27,39 +32,41 @@ extern "C" void func_00234CA0(int n) __asm__("FlushCache");
  * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/engine/world-sw.md#9-source-files, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-void SetPhase(PHASE mode)
+// Switches the memory phase: no-op if unchanged; otherwise flushes the data cache (the blocks change owner) and
+// re-points both render frames' packet buffers at the new phase's blocks (or clears them).
+void SetPhase(PHASE phase)
 {
-    struct BUF *pb;
+    struct BUF *buffer;
     int i;
-    if (mode == D_003D3980) return;
-    func_00234CA0(0);
-    D_003D3980 = mode;
-    switch (mode) {
+    if (phase == D_003D3980) return;
+    FlushCacheAsm(0);
+    D_003D3980 = phase;
+    switch (phase) {
     case 3:
         for (i = 0; i < 2; i++) {
-            pb = &D_002DEA50[i];
-            pb->p = D_002F7980 + i * 0x6000;
-            pb->p2 = D_00303980 + i * 0x58000;
-            pb->c = 0x600;
-            pb->c2 = 0x5800;
+            buffer = &D_002DEA50[i];
+            buffer->gifBuffer = D_002F7980 + i * 0x6000;
+            buffer->vifBuffer = D_00303980 + i * 0x58000;
+            buffer->gifBufferQwords = 0x600;
+            buffer->vifBufferQwords = 0x5800;
         }
         break;
     case 2:
         for (i = 0; i < 2; i++) {
-            pb = &D_002DEA50[i];
-            pb->p = D_003CF980 + i * 0x1800;
-            pb->p2 = D_003CF980 + 0x3000 + i * 0x800;
-            pb->c = 0x180;
-            pb->c2 = 0x80;
+            buffer = &D_002DEA50[i];
+            buffer->gifBuffer = D_003CF980 + i * 0x1800;
+            buffer->vifBuffer = D_003CF980 + 0x3000 + i * 0x800;
+            buffer->gifBufferQwords = 0x180;
+            buffer->vifBufferQwords = 0x80;
         }
         break;
     default:
         for (i = 0; i < 2; i++) {
-            pb = &D_002DEA50[i];
-            pb->c = 0;
-            pb->p = 0;
-            pb->c2 = 0;
-            pb->p2 = 0;
+            buffer = &D_002DEA50[i];
+            buffer->gifBufferQwords = 0;
+            buffer->gifBuffer = 0;
+            buffer->vifBufferQwords = 0;
+            buffer->vifBuffer = 0;
         }
         break;
     }
@@ -73,6 +80,7 @@ void SetPhase(PHASE mode)
  * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#phasemem-0x1c2a78-0x1c2d20
  * @end-sly2-annot */
+// Leaves every phase: SetPhase(PHASE_Nil), which detaches the render frames' packet buffers.
 extern "C" void ClearPhase()
 {
       SetPhase(PHASE_Nil);
