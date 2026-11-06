@@ -118,3 +118,9 @@ SLY2_EOPID_TREF(00259830, void, func_00258D98, (EXPLO *, int))           // set 
 SLY2_EOPID_TREF(002598D8, int, func_00258E40, (EXPLO *))                 // get
 SLY2_EOPID_TREF(002598F8, void *, func_00258E60, (EXPLO *, ENSK))        // ensure
 SLY2_EOPID_TREF(00259960, void *, func_00258EC8, (EXPLO *, ENSK))        // ensure
+// The kind-5 animation channel (act.cpp's M_PacNewKind2::C5; vtable 0x2CB5A8, its blend slots 0x138660 and
+// EvaluateBlendChnPosVel): slot 4 is an inline virtual returning the kind. No emitted vtable refers to it, so it is
+// emitted here like the GRABSPOT getters; C linkage keeps its config name (HYPOTHESIS: in the original an in-class
+// `virtual int Kind() { return 5; }` of that class).
+extern "C" inline int func_002581B8(void) { return 5; }
+SLY2_EOPID_REF(002581B8, &func_002581B8)

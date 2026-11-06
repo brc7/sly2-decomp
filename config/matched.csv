@@ -6563,7 +6563,7 @@ Shutdown__t6CGcObj1Z7CMethod,0x257FC8,16,match,src/game/splice/gc.cpp
 RcPtr_Assign,0x258040,26,match,src/game/engine/camera/cplcy.cpp
 func_002580A8,0x2580A8,51,match,src/game/engine/anim/asega.cpp
 MakeRoot__t6CGcObj1Z8CSidebag,0x258178,16,match,src/game/splice/gc.cpp
-func_002581B8,0x2581B8,2,match,src/game/engine/anim/blend.cpp
+func_002581B8,0x2581B8,2,match,src/game/app/eopid_linkonce.cpp
 RefGetGlobalSaveVar,0x2581C0,15,match,src/game/world/state/game.cpp
 RefSetGlobalSaveVar,0x258200,16,match,src/game/world/state/game.cpp
 func_00258248,0x258248,14,match,src/game/ui/memcard.cpp

@@ -1,7 +1,7 @@
 // blend.cpp -- ASEGBL, an animation segment that blends several segments: building one from a set of segments
 // (EnsureAsegBlendDynamic), per-segment MRSG timing tables, the dominant segment, and evaluating blended channels
-// (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order) and the linkonce
-// instance func_002581B8.
+// (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order). Its former linkonce
+// copy func_002581B8 is emitted by app/eopid_linkonce.cpp.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_blend
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00138EE8
 #include "sly2/slotheap.h"
@@ -719,17 +719,4 @@ extern "C" void func_00138BA0(BLCHNF *p, float t, float r, float *pa, float *pb)
         *pa = sa;
     if (pb)
         *pb = sb;
-}
-
-// 0x2581B8 func_002581B8: linkonce instance homed in this TU (returns 5; HYPOTHESIS an inline virtual returning a
-// kind constant). Kept as a C-linkage function under its current symbol.
-/** @sly2-annot addr=0x2581B8
- * Purpose: virtual returning constant 5 [game linkonce (inline/template)]
- * Info: proposed name GetKind5 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" int func_002581B8(void)
-{
-    return 5;
 }
