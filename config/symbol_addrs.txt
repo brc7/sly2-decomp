@@ -4327,3 +4327,6 @@ _vt$8GRABSPOT = 0x2D28D8; // type:data size:0x40
 _vt$6SENSOR = 0x2D89A0; // type:data size:0x268
 _vt$6CID148 = 0x2D9938; // type:data size:0x40
 _vt$4LEAP = 0x2DAA10; // type:data size:0x40
+_vt$6DPRIZE = 0x2D6B98; // type:data size:0x270
+_vt$6WIDGET = 0x2DAF30; // type:data size:0x1A0
+_vt$10STEPPLAYER = 0x2CBE68; // type:data size:0x358

@@ -699,14 +699,17 @@ struct Q { char pad[0x44]; int grf; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
-int func_001C5DF0(struct O *p, struct Q *q)
+} } // namespace M_func_001C5DF0
+int DPRIZE::FTakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
 {
+    using namespace M_func_001C5DF0;
+    struct O *p = (struct O *)this;
+    struct Q *q = (struct Q *)pzpr;
     if (!p->n1c8) return 0;
     if (!(q->grf & 8)) return 0;
     { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 1); }
     return 1;
 }
-} } // namespace M_func_001C5DF0
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF

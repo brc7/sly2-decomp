@@ -482,6 +482,7 @@ struct STEPPLAYER : public STEP
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int nUnk1318;
       float tUnk131c;
+    virtual void VUnk57() __asm__("func_00140D70");   /* slot 58; key function (stepplayer.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepplayer");   /* slot 7 */
@@ -491,7 +492,6 @@ struct STEPPLAYER : public STEP
     virtual void RenderSelf() __asm__("RenderStepplayerSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepplayerToPos");   /* slot 29 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetStepplayerCpdefi");   /* slot 50 */
-    virtual void VUnk57() __asm__("func_00140D70");   /* slot 58 */
     virtual void VUnk58() __asm__("func_00140D00");   /* slot 59 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("func_00140DB0");   /* slot 68 */

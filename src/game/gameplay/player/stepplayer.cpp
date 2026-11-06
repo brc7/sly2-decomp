@@ -687,8 +687,9 @@ void func_00140D00(char *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" void func_00140D70(STEPPLAYER *pstepplayer)
+void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here */
 {
+    STEPPLAYER *pstepplayer = this;
     func_00204768(pstepplayer);
     if (pstepplayer->jtair.nState != -1) {
         func_00199298(&pstepplayer->jtair);

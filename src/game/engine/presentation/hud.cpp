@@ -798,7 +798,7 @@ void func_00211F90(struct S *p)
 // 0x212158 WIDGET_ctor
 namespace M_WIDGET_ctor { extern "C" {
 struct S { int x0; int x4; char pad[4]; void *vt; char pad2[0x6C]; int x7c; char pad3[0x4C]; int a[10]; char pad4[8]; char xfc[4]; };
-extern char D_002DAF30[];
+extern char D_002DAF30[] __asm__("_vt$6WIDGET");
 void func_0011A050(void *p, int n);
 /** @sly2-annot addr=0x212158
  * Purpose: WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68)
@@ -1584,7 +1584,10 @@ static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->bas
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void RenderWidget(S *p){
+} // namespace M_RenderWidget
+void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (the namespace's views) */
+    using namespace M_RenderWidget;
+    S *p=(S *)this;
     RenderLoSelf(p);
     if(!FWidgetVisible(p))return;
     func_002185D0(p->sprites);
@@ -1620,7 +1623,6 @@ extern "C" void RenderWidget(S *p){
     }
     Finish(&D_002DEA28,p);
 }
-} // namespace M_RenderWidget
 
 // 0x2137F0 FWidgetObscured
 namespace M_FWidgetObscured { extern "C" {

@@ -130,6 +130,7 @@ typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 struct DPRIZE : SO
 {
     char pad150[0x230 - 0x150];
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001C5DF0");   /* slot 75; key function (prize.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDprizeClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDprizeMessage");   /* slot 5 */
     virtual void Init() __asm__("InitDprize");   /* slot 7 */
@@ -138,7 +139,6 @@ struct DPRIZE : SO
     virtual void VUnk15() __asm__("UpdateDprize");   /* slot 16 */
     virtual void VUnk16() __asm__("ProjectDprizeTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderDprizeSelf");   /* slot 19 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001C5DF0");   /* slot 75 */
     virtual void VSlot76() __asm__("SetDprizeDprizes");   /* slot 76 */
 };
 typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
@@ -148,11 +148,11 @@ struct WIDGET : LO
 {
     char pad50[0x110 - 0x50];
     WIDGET() __asm__("WIDGET_ctor");          /* out of line: presentation/hud/WIDGET_ctor.c */
+    virtual void RenderSelf() __asm__("RenderWidget");   /* slot 19; key function (hud.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidgetClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWidgetFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostWidgetLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateWidget");   /* slot 16 */
-    virtual void RenderSelf() __asm__("RenderWidget");   /* slot 19 */
     virtual void VSlot49() __asm__("ShowWidget");   /* slot 49 */
     virtual void VSlot50() __asm__("HideWidget");   /* slot 50 */
 };
