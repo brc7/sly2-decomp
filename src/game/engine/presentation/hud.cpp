@@ -941,7 +941,7 @@ typedef struct { int cb; int cbAlign; } AREQ;
 struct O { char pad[0x40]; void *owner; };
 struct S {
     char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
-    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteOps;
+    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;
 };
 extern char D_003E1C70[], D_003E1C80[];
 
@@ -984,14 +984,14 @@ void LoadWidgetFromBrx(struct S *widget, void *pbis)
         widget->state = WIDGET_STATE_UNLOADED;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        widget->spriteOps = D_003E1C70;
+        widget->spriteHeap = D_003E1C70;   /* the streamed-sprite linear heap */
         widget->deferredLoad = func_001AE2A0(&req);
         widget->deferredLoad->owner = widget;
         CBinaryInputStream_ReadCb64(pbis, widget->deferredLoad);
         func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), widget->deferredLoad);
     } else {
         widget->state = WIDGET_STATE_HIDDEN;
-        widget->spriteOps = D_003E1C80;
+        widget->spriteHeap = D_003E1C80;   /* the level heap */
         LoadSpriteTable(widget, pbis, widget, &widget->spriteCount, &widget->sprites);
         LoadSpriteGroups(widget, pbis, widget);
     }
@@ -1158,7 +1158,7 @@ load:
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
 struct C { char pad[0x44]; int priority; int lastPriority; };   /* the deferred load record */
-struct S { char pad[0x48]; int unknown48; int unknown4C; int spriteCount; int sprites; char pad2[0x28]; short numSpriteGroups; short pad3; int spriteGroups; char pad4[0x38]; struct C *deferredLoad; char pad5[0x34]; int unknownF8; char childList[4]; };
+struct S { char pad[0x48]; int unknown48; int unknown4C; int spriteCount; int sprites; char pad2[0x28]; short numSpriteGroups; short pad3; int spriteGroups; char pad4[0x38]; struct C *deferredLoad; char pad5[0x34]; int xform; char childList[4]; };
 void ClearSl(void *p);
 /** @sly2-annot addr=0x212780
  * Purpose: state 0 entry: drop sprite tables and lists
@@ -1170,7 +1170,7 @@ void ClearSl(void *p);
 void UnloadWidgetSprites(struct S *widget)
 {
     struct C *load;
-    widget->unknownF8 = 0;
+    widget->xform = 0;
     widget->spriteCount = 0;
     widget->sprites = 0;
     widget->numSpriteGroups = 0;
@@ -1507,11 +1507,11 @@ void UpdateWidget(struct S *widget)
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short h; char pada[0xE]; };
-struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char padc[0x24]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void SetSpriteDefaultPhase(struct A *pa, float g);
-void SetSpriteAnimPhase(struct A *pa, int l, float g, int z);
+struct H { char pad[8]; short index; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct H *reuse; char padc[0x24]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void SetSpriteDefaultPhase(struct A *pa, float phase);
+void SetSpriteAnimPhase(struct A *pa, int animIndex, float g, int z);
 /** @sly2-annot addr=0x212E40
  * Purpose: seek anim id (0x314=main) to fraction g of its length (meters)
  * Info: proposed name SetWidgetAnimPhase (T1); TU hud
@@ -1520,25 +1520,25 @@ void SetSpriteAnimPhase(struct A *pa, int l, float g, int z);
  *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks a widget animation (0x314 = main) to a fraction of its length (meters and gauges).
-void SetWidgetAnimPhase(struct S *p, int k, float g)
+void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
 {
-    int i, j;
-    if (k == 0x314) {
-        SetSpriteDefaultPhase(p->aa, g);
+    int groupIndex, animIndex;
+    if (animId == 0x314) {
+        SetSpriteDefaultPhase(widget->spriteGroups, phase);
         return;
     }
-    for (i = 0; i < p->c80; i++) {
-        struct A *a = &p->aa[i];
-        for (j = 0; j < a->c; j++) {
-            struct E *e = &a->ae[j];
-            int l = -1;
-            if (k == e->id) {
-                int m;
-                for (m = 0; m < a->c2; m++)
-                    if (a->ah[m].h != -1)
-                        l = m;
-                if (l >= 0)
-                    SetSpriteAnimPhase(a, l, g, 0);
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            int reuseIndex = -1;
+            if (animId == anim->id) {
+                int i;
+                for (i = 0; i < group->numReuse; i++)
+                    if (group->reuse[i].index != -1)
+                        reuseIndex = i;
+                if (reuseIndex >= 0)
+                    SetSpriteAnimPhase(group, reuseIndex, phase, 0);
             }
         }
     }
@@ -1548,11 +1548,11 @@ void SetWidgetAnimPhase(struct S *p, int k, float g)
 // 0x212F80 SetWidgetAnimTime
 namespace M_func_00212F80 { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short h; char pada[0xE]; };
-struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char padc[0x24]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void SetSpriteDefaultTime(struct A *pa, float g);
-void SetSpriteAnimTime(struct A *pa, int l, float g, int z);
+struct H { char pad[8]; short index; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct H *reuse; char padc[0x24]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void SetSpriteDefaultTime(struct A *pa, float phase);
+void SetSpriteAnimTime(struct A *pa, int animIndex, float g, int z);
 // 0x212F78: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
@@ -1563,25 +1563,25 @@ SLY2_SCRAP("addiu $sp, $sp, 0xb0");
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks a widget animation to an absolute time. (inferred)
-void SetWidgetAnimTime(struct S *p, int k, float g)
+void SetWidgetAnimTime(struct S *widget, int animId, float phase)
 {
-    int i, j;
-    if (k == 0x314) {
-        SetSpriteDefaultTime(p->aa, g);
+    int groupIndex, animIndex;
+    if (animId == 0x314) {
+        SetSpriteDefaultTime(widget->spriteGroups, phase);
         return;
     }
-    for (i = 0; i < p->c80; i++) {
-        struct A *a = &p->aa[i];
-        for (j = 0; j < a->c; j++) {
-            struct E *e = &a->ae[j];
-            int l = -1;
-            if (k == e->id) {
-                int m;
-                for (m = 0; m < a->c2; m++)
-                    if (a->ah[m].h != -1)
-                        l = m;
-                if (l >= 0)
-                    SetSpriteAnimTime(a, l, g, 0);
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            int reuseIndex = -1;
+            if (animId == anim->id) {
+                int i;
+                for (i = 0; i < group->numReuse; i++)
+                    if (group->reuse[i].index != -1)
+                        reuseIndex = i;
+                if (reuseIndex >= 0)
+                    SetSpriteAnimTime(group, reuseIndex, phase, 0);
             }
         }
     }
@@ -1732,7 +1732,7 @@ void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (th
 
 // 0x2137F0 FWidgetObscured
 namespace M_FWidgetObscured { extern "C" {
-struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
+struct S { char pad[0xA4]; int priority; char pad2[0xC]; struct S *next; };
 /** @sly2-annot addr=0x2137F0
  * Purpose: some widget in exclusive list (*(struct S * *)&g_sw.dlWidgetExclusive) has higher priority (+0x0? field a)
  * Info: proposed name FWidgetObscured (T1); TU hud
@@ -1741,12 +1741,12 @@ struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // True when an exclusive widget of higher priority is shown.
-int FWidgetObscured(struct S *p)
+int FWidgetObscured(struct S *widget)
 {
-    struct S *q;
-    int unused[4];
-    for (q = (*(struct S * *)&g_sw.dlWidgetExclusive); q; q = q->next) {
-        if (p->a < q->a)
+    struct S *other;
+    int unused[4];   /* an unused 16-byte stack frame in the original */
+    for (other = (*(struct S * *)&g_sw.dlWidgetExclusive); other; other = other->next) {
+        if (widget->priority < other->priority)
             return 1;
     }
     return 0;
@@ -1756,7 +1756,7 @@ int FWidgetObscured(struct S *p)
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x6C]; int x7c; char pad3[4]; void *x84; char pad4[0x24]; int xac; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x6C]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
 void StartSpriteAnimById(void *p);
 void SetWidgetExclusive(struct S *p, int a);
 /** @sly2-annot addr=0x213830
@@ -1766,13 +1766,13 @@ void SetWidgetExclusive(struct S *p, int a);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
-void StartWidgetMainAnim(struct S *p, int a)
+void StartWidgetMainAnim(struct S *widget, int animId)
 {
-    StartSpriteAnimById(p->x84);
-    p->vt[21].pf((char *)p + p->vt[21].d, 1);
-    if (p->xac)
-        SetWidgetExclusive(p, 0);
-    p->x7c = a;
+    StartSpriteAnimById(widget->spriteGroups);
+    widget->vt[21].pf((char *)widget + widget->vt[21].d, 1);   /* slot 21 (1 = on) */
+    if (widget->isExclusive)
+        SetWidgetExclusive(widget, 0);
+    widget->mainAnimId = animId;
 }
 } } // namespace M_StartWidgetMainAnim
 
@@ -1787,30 +1787,30 @@ struct B { char pad[0xC];
   virtual void v19(); virtual void v20(); virtual void v21(int);
 };
 struct S : B {
-  char pad10[0x6C]; int x7C; char pad80[4]; void *x84; int x88; char pad8C[0x20]; int xAC;
-  void F(int) __asm__("SetWidgetExclusive");
-  void M() __asm__("StopWidgetMainAnim");
+  char pad10[0x6C]; int mainAnimId; char pad80[4]; void *spriteGroups; int mainAnimTime /* a float, cleared as a word */; char pad8C[0x20]; int isExclusive;
+  void SetExclusive(int) __asm__("SetWidgetExclusive");
+  void StopMainAnim() __asm__("StopWidgetMainAnim");
 };
 // StopWidgetMainAnim: stops the widget's main sprite and leaves the exclusive list.
-void S::M()
+void S::StopMainAnim()
 {
-    StopSprite(x84);
-    if (xAC)
-        F(-1);
+    StopSprite(spriteGroups);
+    if (isExclusive)
+        SetExclusive(-1);
     v21(0);
-    v3(6, 0, 0, 0, 0);
-    x88 = 0;
-    x7C = -1;
+    v3(6, 0, 0, 0, 0);   /* HandleSpliceEvent slot: event 6 (inferred) */
+    mainAnimTime = 0;
+    mainAnimId = -1;
 }
 } // namespace M_StopWidgetMainAnim
 
 // 0x213928 StopWidgetAnim
 namespace M_StopWidgetAnim { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short h8; char pada[0xE]; };
-struct A { unsigned short c; unsigned short c2; struct E *ae; struct C *ac; char padc[0x14]; int x20; char pad24[0xC]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
+struct C { char pad[8]; short index; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct C *reuse; char padc[0x14]; int currentAnim; char pad24[0xC]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
 /** @sly2-annot addr=0x213928
  * Purpose: reset the sprite holding anim id back to its rest anim
  * Info: proposed name StopWidgetAnim (T1); TU hud
@@ -1818,23 +1818,23 @@ void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Returns the sprite that plays an animation id to its rest animation.
-void StopWidgetAnim(struct S *p, int k)
+void StopWidgetAnim(struct S *widget, int animId)
 {
-    int j, l, m;
-    for (j = 0; j < p->c80; j++) {
-        struct A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            struct E *e = &a->ae[l];
-            if (k == e->id) {
-                int f = 0;
-                for (m = 0; m < a->c2; m++) {
-                    if (a->ac[m].h8 != -1)
-                        f = 1;
+    int groupIndex, animIndex, i;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            if (animId == anim->id) {
+                int hasReuse = 0;
+                for (i = 0; i < group->numReuse; i++) {
+                    if (group->reuse[i].index != -1)
+                        hasReuse = 1;
                 }
-                if (f)
-                    RestartNestedSprite(p, j, 0, 0, 0);
+                if (hasReuse)
+                    RestartNestedSprite(widget, groupIndex, 0, 0, 0);
                 else
-                    a->x20 = -1;
+                    group->currentAnim = -1;
                 return;
             }
         }
@@ -1845,9 +1845,9 @@ void StopWidgetAnim(struct S *p, int k)
 // 0x213A08 PlayWidgetAnimsWithArg
 namespace M_func_00213A08 { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
+struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
 /** @sly2-annot addr=0x213A08
  * Purpose: start every sprite holding anim id with argument x
  * Info: proposed name PlayWidgetAnimsArg (T2); TU hud
@@ -1856,15 +1856,15 @@ void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts every sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimsWithArg(struct S *p, int k, int x)
+void PlayWidgetAnimsWithArg(struct S *widget, int animId, int arg)
 {
-    int j, l;
-    for (j = 0; j < p->c80; j++) {
-        struct A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            struct E *e = &a->ae[l];
-            if (k == e->id)
-                RestartNestedSpriteWithArg(p, j, 0, x, 0, 0);
+    int groupIndex, animIndex;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            if (animId == anim->id)
+                RestartNestedSpriteWithArg(widget, groupIndex, 0, arg, 0, 0);
         }
     }
 }
@@ -1873,10 +1873,10 @@ void PlayWidgetAnimsWithArg(struct S *p, int k, int x)
 // 0x213B00 PlayWidgetAnim
 namespace M_PlayWidgetAnim { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short h8; char pada[0xE]; };
-struct A { unsigned short c; unsigned short c2; struct E *ae; struct C *ac; char padc[0x14]; int x20; char pad24[0xC]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
+struct C { char pad[8]; short index; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct C *reuse; char padc[0x14]; int currentAnim; char pad24[0xC]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
 /** @sly2-annot addr=0x213B00
  * Purpose: find sprite owning anim id and start it (restart in place if instanced)
  * Info: proposed name PlayWidgetAnim (T1); TU hud
@@ -1885,25 +1885,25 @@ void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts the animation id on the sprite that owns it (restarting in place if it is instanced).
-void PlayWidgetAnim(struct S *p, int k)
+void PlayWidgetAnim(struct S *widget, int animId)
 {
-    int j, l, m;
-    if (k == -1)
+    int groupIndex, animIndex, i;
+    if (animId == -1)
         return;
-    for (j = 0; j < p->c80; j++) {
-        struct A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            struct E *e = &a->ae[l];
-            if (k == e->id) {
-                int f = 0;
-                for (m = 0; m < a->c2; m++) {
-                    if (a->ac[m].h8 != -1)
-                        f = 1;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            if (animId == anim->id) {
+                int hasReuse = 0;
+                for (i = 0; i < group->numReuse; i++) {
+                    if (group->reuse[i].index != -1)
+                        hasReuse = 1;
                 }
-                if (f)
-                    RestartNestedSprite(p, j, l, 0, 0);
+                if (hasReuse)
+                    RestartNestedSprite(widget, groupIndex, animIndex, 0, 0);
                 else
-                    a->x20 = l;
+                    group->currentAnim = animIndex;
                 return;
             }
         }
@@ -1914,9 +1914,9 @@ void PlayWidgetAnim(struct S *p, int k)
 // 0x213BD8 PlayWidgetAnimWithArg
 namespace M_func_00213BD8 { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
+struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
+void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
 /** @sly2-annot addr=0x213BD8
  * Purpose: start first anim id match with argument x
  * Info: proposed name PlayWidgetAnimArg (T2); TU hud
@@ -1925,15 +1925,15 @@ void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts the first sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimWithArg(struct S *p, int k, int x)
+void PlayWidgetAnimWithArg(struct S *widget, int animId, int arg)
 {
-    int j, l;
-    for (j = 0; j < p->c80; j++) {
-        struct A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            struct E *e = &a->ae[l];
-            if (k == e->id) {
-                RestartNestedSpriteWithArg(p, j, l, x, 0, 0);
+    int groupIndex, animIndex;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            struct E *anim = &group->anims[animIndex];
+            if (animId == anim->id) {
+                RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, 0, 0);
                 return;
             }
         }
@@ -1944,10 +1944,10 @@ void PlayWidgetAnimWithArg(struct S *p, int k, int x)
 // 0x213C68 SetWidgetXf
 namespace M_SetWidgetXf { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b; };
+struct M { qword a, b; };   /* a 2x3 matrix */
 struct VE { short d; short pad; struct M *(*pf)(void *, int, int); };
-struct A { struct VE *vt; };
-struct S { char pad[0xC4]; struct A *pa; char pad2[0x30]; struct M *pm; };
+struct A { struct VE *vt; };   /* a heap; slot 1 allocates */
+struct S { char pad[0xC4]; struct A *spriteHeap; char pad2[0x30]; struct M *xform; };
 /** @sly2-annot addr=0x213C68
  * Purpose: set widget 2D transform override (alloc 0x20 M23 at +0xF8)
  * Info: proposed name SetWidgetXf (T1); TU hud
@@ -1956,23 +1956,23 @@ struct S { char pad[0xC4]; struct A *pa; char pad2[0x30]; struct M *pm; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Sets the widget's 2D transform override.
-void SetWidgetXf(struct S *p, struct M *src)
+void SetWidgetXf(struct S *widget, struct M *src)
 {
-    if (!p->pm) {
-        struct A *a = p->pa;
-        p->pm = a->vt[1].pf((char *)a + a->vt[1].d, 0x20, 0x1F);
+    if (!widget->xform) {
+        struct A *heap = widget->spriteHeap;
+        widget->xform = heap->vt[1].pf((char *)heap + heap->vt[1].d, 0x20, 0x1F);
     }
-    *p->pm = *src;
+    *widget->xform = *src;
 }
 } } // namespace M_SetWidgetXf
 
 // 0x213CD8 SetWidgetAnimXf
 namespace M_SetWidgetAnimXf {
 struct M { int a[8]; } __attribute__((aligned(16)));
-struct H { virtual void *Alloc(int cb, int k); };
+struct H { virtual void *Alloc(int cb, int animId); };
 struct E { char pad[0x14]; int id; };
-struct A { unsigned short c; short pad; E *ae; char pad8[0x24]; M *x2C; };
-struct S { char pad[0x80]; unsigned short c80; short pad82; A *aa; char pad88[0x3C]; H *xC4; };
+struct A { unsigned short numAnims; short pad; E *anims; char pad8[0x24]; M *xform; };
+struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; A *spriteGroups; char pad88[0x3C]; H *spriteHeap; };
 /** @sly2-annot addr=0x213CD8
  * Purpose: set M23 transform of the sprite that holds anim id
  * Info: proposed name SetWidgetAnimXf (T1); TU hud
@@ -1980,17 +1980,17 @@ struct S { char pad[0x80]; unsigned short c80; short pad82; A *aa; char pad88[0x
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Sets the 2D transform of the sprite that plays an animation id.
-extern "C" void SetWidgetAnimXf(S *p, int k, M *pm)
+extern "C" void SetWidgetAnimXf(S *widget, int animId, M *xform)
 {
-    int j, l;
-    for (j = 0; j < p->c80; j++) {
-        A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            E *e = &a->ae[l];
-            if (e->id == k) {
-                if (!a->x2C)
-                    a->x2C = (M *)p->xC4->Alloc(0x20, 0x1F);
-                *a->x2C = *pm;
+    int groupIndex, animIndex;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        A *group = &widget->spriteGroups[groupIndex];
+        for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
+            E *anim = &group->anims[animIndex];
+            if (anim->id == animId) {
+                if (!group->xform)
+                    group->xform = (M *)widget->spriteHeap->Alloc(0x20, 0x1F);
+                *group->xform = *xform;
                 return;
             }
         }
