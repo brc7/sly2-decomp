@@ -1,104 +1,94 @@
 // gc.cpp -- CGc, the Splice mark-and-sweep garbage collector over the six engine slot pools (pairs, bindings,
-// frames, procs, sidebags and a sixth kind), and the global collector g_gc.
-// TU 0x128138..0x128B60 (7 functions, address order) plus twelve linkonce instances (0x2574E0..0x257D80): six empty
-// per-pool hooks and six per-pool sweeps, one instance of each per pool.
+// frames, procs, sidebags and methods), and the global collector g_gc.
+// TU 0x128138..0x128B60 (7 functions, address order). It also emits the per-kind members of the GC node template
+// (sly2/gc.h, CGcObj<T>: 44 linkonce instances in 0x254F00..0x259DE4), instantiated at the end of the file.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gc
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00128B40
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
+#include "sly2/gc.h"
 
-struct CGc;
-extern "C" CGc *CGc_ctor(CGc *pgc);
-
-/* GC header of every collected node: reference count, then a link word holding prev/next as (index, page) pairs into
-   the pool's block table and the mark bit (a node is live when fMark equals g_gc.fMark). */
-struct GCHDR
+/* The six collected node kinds as the collector sees them (views: the fields it reads, at their offsets; the sizes
+   are the pools' slot sizes, which CGcObj<T>'s block arithmetic divides by). The counted links are GCPTR, cleared
+   by their constructors as the PtNew instances show (CRefPtr's own default constructor does not clear, see
+   sly2/basic.h). */
+template <class T>
+struct GCPTR
 {
-    int cref;
-    unsigned prev : 13;
-    unsigned prevpg : 2;
-    unsigned p1 : 1;
-    unsigned next : 13;
-    unsigned nextpg : 2;
-    unsigned fMark : 1;
+    T *p;
+    GCPTR() : p(0) {}
+    operator T *() { return p; }
+    T *operator->() { return p; }
 };
 
-struct BIND;
-struct FRAME;
-struct NODE;
-struct CLO;
+struct CVarb;
 
-/* Binding (CVarb, pool 1). */
-struct BIND : GCHDR
+/* Pair (pool 0). */
+struct CPair : CGcObj<CPair>
+{
+    CRef car;
+    GCPTR<CPair> pnNext;
+};
+
+/* Binding (pool 1). */
+struct CVarb : CGcObj<CVarb>
 {
     int sym;
     CRef ref;
-    BIND *pbNext;
+    GCPTR<CVarb> pbNext;
 };
 
-/* Frame (CFrame, pool 2). */
-struct FRAME : GCHDR
+/* Frame (pool 2). */
+class CFrame : public CGcObj<CFrame>
 {
+public:
     int c;
-    FRAME *apf[4];
-    BIND *pbFirst;
+    GCPTR<CFrame> apf[4];
+    GCPTR<CVarb> pbFirst;
+    int fBusy;
+    int x24;
 };
 
-/* Pair (CPair, pool 0). */
-struct NODE : GCHDR
+/* Proc / closure (pool 3): its frame, the parameter list and the body. */
+struct CProc : CGcObj<CProc>
 {
-    CRef car;
-    NODE *pnNext;
-};
-
-/* Link of a proc's list. */
-struct LINK : GCHDR
-{
-    int x8;
-    int xC;
-    LINK *plNext;
-};
-
-/* Proc / closure (CProc, pool 3). */
-struct CLO : GCHDR
-{
-    FRAME *pf;
+    GCPTR<CFrame> pf;
     int xC;
     int x10;
-    LINK *pl;
-    NODE *pn;
+    GCPTR<CPair> pl;
+    GCPTR<CPair> pn;
 };
 
-/* Sidebag (pool 4, 0xC bytes). */
-struct ENV : GCHDR
+/* Sidebag (pool 4). */
+struct CSidebag : CGcObj<CSidebag>
 {
-    BIND *pbFirst;
+    GCPTR<CVarb> pbFirst;
 };
+
+/* Method (pool 5; object/spliceobj.cpp's CMethod). */
+struct CMethod : CGcObj<CMethod>
+{
+    void *pbasic;
+    void *pfnthunk;
+    int crefReq;
+};
+
+typedef char assert_CPair_size[sizeof(CPair) == 0x14 ? 1 : -1];
+typedef char assert_CVarb_size[sizeof(CVarb) == 0x18 ? 1 : -1];
+typedef char assert_CFrame_size[sizeof(CFrame) == 0x28 ? 1 : -1];
+typedef char assert_CProc_size[sizeof(CProc) == 0x1C ? 1 : -1];
+typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
+typedef char assert_CMethod_size[sizeof(CMethod) == 0x14 ? 1 : -1];
 
 /* External root: a counted reference to a node. */
 struct ROOT
 {
     int x0;
     int x4;
-    NODE *pobj;
+    CPair *pobj;
     int xC;
     ROOT *prNext;
-};
-
-struct CGc
-{
-    /* 0x00 */ unsigned int fMark;  /* current mark, flipped by every collection */
-    /* 0x04 */ int cFrame;          /* mark stacks (allocated per collection) */
-    /* 0x08 */ FRAME **apFrame;
-    /* 0x0C */ int cNode;
-    /* 0x10 */ NODE **apNode;
-    /* 0x14 */ int cClo;
-    /* 0x18 */ CLO **apClo;
-
-    CGc() { CGc_ctor(this); }
-    void MarkLiveObjects();
-    void Collect();
 };
 
 /* 0x002DD598: g_gc (the stub's name, _GLOBAL_$I$g_gc, says the original file's first global was g_gc). */
@@ -121,49 +111,12 @@ struct STACKSCOPE
 };
 
 extern "C" {
-/* Per-pool lists, 0x10 apart: {first node, ?, first recyclable node, ?} for pairs, bindings, frames, procs,
-   sidebags and the sixth pool. HYPOTHESIS: the +0xC words (D_002DD2AC frames, D_002DD2CC sidebags) are the
-   permanent (root) lists. */
-extern GCHDR *D_002DD280, *D_002DD288;
-extern GCHDR *D_002DD290, *D_002DD298;
-extern GCHDR *D_002DD2A0, *D_002DD2A8;
-extern FRAME *D_002DD2AC;
-extern GCHDR *D_002DD2B0, *D_002DD2B8;
-extern GCHDR *D_002DD2C0, *D_002DD2C8;
-extern ENV *D_002DD2CC;
-extern GCHDR *D_002DD2D0, *D_002DD2D8;
-/* Block tables of the six pools, each 0x10 bytes before the pool's SLOTHEAP (HYPOTHESIS: the pool object is
-   {block table[4]; SLOTHEAP}, which would explain the 0x28 spacing of the pools). */
-extern char *D_00452098[4];
-extern char *D_004520C0[4];
-extern char *D_004520E8[4];
-extern char *D_00452110[4];
-extern char *D_00452138[4];
-extern char *D_00452160[4];
-/* Pool capacities, used to size the mark stacks (the SLOTHEAP c fields of the frame, pair and proc pools). */
+/* Live-slot counts of the frame, pair and proc pools (their SLOTHEAPs' cAlloc), which size the mark stacks. */
 extern int D_00452108, D_004520B8, D_00452130;
-void func_002574E0();
-void func_002574E8();
-void func_002574F0();
-void func_002574F8();
-void func_00257500();
-void func_00257508();
-void func_00257510();
-void func_00257678();
-void func_002577E0();
-void func_00257948();
-void func_00257AB0();
-void func_00257C18();
 void STACKSCOPE_ctor(STACKSCOPE *pss);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(MSG *pmsg);
 void func_001285D8(CGc *pgc, CRef *pref);
-void GcFrame_Unlink(GCHDR *p);
-void GcBinding_Unlink(GCHDR *p);
-void GcPair_Unlink(GCHDR *p);
-void GcProc_Unlink(GCHDR *p);
-void GcSidebag_Unlink(GCHDR *p);
-void GcPool6_Unlink(GCHDR *p);
 void CGc_UpdateRecyclable();
 }
 
@@ -190,17 +143,17 @@ extern "C" CGc *CGc_ctor(CGc *pgc)
  * @end-sly2-annot */
 extern "C" void CGc_UpdateRecyclable()
 {
-    D_002DD288 = D_002DD280;
-    D_002DD2A8 = D_002DD2A0;
-    D_002DD298 = D_002DD290;
-    D_002DD2B8 = D_002DD2B0;
-    D_002DD2C8 = D_002DD2C0;
-    D_002DD2D8 = D_002DD2D0;
+    CGcObj<CPair>::s_ptRecycle = CGcObj<CPair>::s_ptFirst;
+    CGcObj<CFrame>::s_ptRecycle = CGcObj<CFrame>::s_ptFirst;
+    CGcObj<CVarb>::s_ptRecycle = CGcObj<CVarb>::s_ptFirst;
+    CGcObj<CProc>::s_ptRecycle = CGcObj<CProc>::s_ptFirst;
+    CGcObj<CSidebag>::s_ptRecycle = CGcObj<CSidebag>::s_ptFirst;
+    CGcObj<CMethod>::s_ptRecycle = CGcObj<CMethod>::s_ptFirst;
 }
 
-static inline void PushNode(CGc *pgc, NODE *pn) { pgc->apNode[pgc->cNode++] = pn; }
-static inline void PushClo(CGc *pgc, CLO *pc) { pgc->apClo[pgc->cClo++] = pc; }
-static inline void PushFrame(CGc *pgc, FRAME *pf) { pgc->apFrame[pgc->cFrame++] = pf; }
+static inline void PushNode(CGc *pgc, CPair *pn) { pgc->apNode[pgc->cNode++] = pn; }
+static inline void PushClo(CGc *pgc, CProc *pc) { pgc->apClo[pgc->cClo++] = pc; }
+static inline void PushFrame(CGc *pgc, CFrame *pf) { pgc->apFrame[pgc->cFrame++] = pf; }
 
 /* Mark one reference: pairs (tag 0x1F) and procs (0x20) are pushed, methods (0x22) only marked. In MarkLiveObjects
    the 0x20 case keeps the proc in the function-level pcRef, and the 0x22 case of a binding marks through that
@@ -208,12 +161,12 @@ static inline void PushFrame(CGc *pgc, FRAME *pf) { pgc->apFrame[pgc->cFrame++] 
 #define MARKREF(pref, STMT22) \
     switch ((pref)->m_tagk) { \
     case 0x1F: { \
-        NODE *pn_ = (NODE *)(pref)->u.pv; \
-        if (pn_->fMark != g_gc.fMark) { pn_->fMark = g_gc.fMark; PushNode(pgc, pn_); } \
+        CPair *pn_ = (CPair *)(pref)->u.pv; \
+        if (pn_->m_fMark != g_gc.fMark) { pn_->m_fMark = g_gc.fMark; PushNode(pgc, pn_); } \
         break; } \
     case 0x20: \
-        pcRef = (CLO *)(pref)->u.pv; \
-        if (pcRef->fMark != g_gc.fMark) { pcRef->fMark = g_gc.fMark; PushClo(pgc, pcRef); } \
+        pcRef = (CProc *)(pref)->u.pv; \
+        if (pcRef->m_fMark != g_gc.fMark) { pcRef->m_fMark = g_gc.fMark; PushClo(pgc, pcRef); } \
         break; \
     case 0x22: STMT22; break; \
     }
@@ -227,29 +180,29 @@ static inline void PushFrame(CGc *pgc, FRAME *pf) { pgc->apFrame[pgc->cFrame++] 
 void CGc::MarkLiveObjects()
 {
     CGc *pgc = this;
-    CLO *pcRef;
-    NODE *pn;
-    FRAME *pf;
+    CProc *pcRef;
+    CPair *pn;
+    CFrame *pf;
     for (;;)
     {
         pf = (pgc->cFrame > 0) ? pgc->apFrame[--pgc->cFrame] : 0;
         if (pf)
         {
-            BIND *pb;
+            CVarb *pb;
             int i;
             for (pb = pf->pbFirst; pb; pb = pb->pbNext)
             {
                 CRef *pref;
-                pb->fMark = g_gc.fMark;
+                pb->m_fMark = g_gc.fMark;
                 pref = &pb->ref;
-                MARKREF(pref, pcRef->fMark = g_gc.fMark)
+                MARKREF(pref, pcRef->m_fMark = g_gc.fMark)
             }
             for (i = 0; i < pf->c; i++)
             {
-                FRAME *pfChild = pf->apf[i];
-                if (pfChild->fMark != g_gc.fMark)
+                CFrame *pfChild = pf->apf[i];
+                if (pfChild->m_fMark != g_gc.fMark)
                 {
-                    pfChild->fMark = g_gc.fMark;
+                    pfChild->m_fMark = g_gc.fMark;
                     PushFrame(pgc, pfChild);
                 }
             }
@@ -259,36 +212,36 @@ void CGc::MarkLiveObjects()
             pcRef = (pgc->cClo > 0) ? pgc->apClo[--pgc->cClo] : 0;
             if (pcRef)
             {
-                for (pn = (NODE *)pcRef->pl; pn; pn = pn->pnNext)
+                for (pn = pcRef->pl.p; pn; pn = pn->pnNext)
                 {
-                    if (pn->fMark != g_gc.fMark)
-                        pn->fMark = g_gc.fMark;
+                    if (pn->m_fMark != g_gc.fMark)
+                        pn->m_fMark = g_gc.fMark;
                 }
                 pn = pcRef->pn;
-                if (pn->fMark != g_gc.fMark)
+                if (pn->m_fMark != g_gc.fMark)
                 {
-                    pn->fMark = g_gc.fMark;
+                    pn->m_fMark = g_gc.fMark;
                     PushNode(pgc, pn);
                 }
                 pf = pcRef->pf;
-                if (pf->fMark != g_gc.fMark)
+                if (pf->m_fMark != g_gc.fMark)
                 {
-                    pf->fMark = g_gc.fMark;
+                    pf->m_fMark = g_gc.fMark;
                     PushFrame(pgc, pf);
                 }
                 continue;
             }
         }
         {
-            NODE *pnNext;
+            CPair *pnNext;
             pn = (pgc->cNode > 0) ? pgc->apNode[--pgc->cNode] : 0;
             if (!pn)
                 return;
-            MARKREF(&pn->car, ((GCHDR *)pn->car.u.pv)->fMark = g_gc.fMark)
+            MARKREF(&pn->car, pn->car.u.pmethod->m_fMark = g_gc.fMark)
             pnNext = pn->pnNext;
-            if (pnNext && pnNext->fMark != g_gc.fMark)
+            if (pnNext && pnNext->m_fMark != g_gc.fMark)
             {
-                pnNext->fMark = g_gc.fMark;
+                pnNext->m_fMark = g_gc.fMark;
                 PushNode(pgc, pnNext);
             }
         }
@@ -309,26 +262,26 @@ extern "C" void func_001285D8(CGc *pgc, CRef *pref)
     {
     case 0x1F:
     {
-        NODE *pn = (NODE *)pref->u.pv;
-        if (pn->fMark != g_gc.fMark)
+        CPair *pn = (CPair *)pref->u.pv;
+        if (pn->m_fMark != g_gc.fMark)
         {
-            pn->fMark = g_gc.fMark;
+            pn->m_fMark = g_gc.fMark;
             PushNode(pgc, pn);
         }
         break;
     }
     case 0x20:
     {
-        CLO *pc = (CLO *)pref->u.pv;
-        if (pc->fMark != g_gc.fMark)
+        CProc *pc = (CProc *)pref->u.pv;
+        if (pc->m_fMark != g_gc.fMark)
         {
-            pc->fMark = g_gc.fMark;
+            pc->m_fMark = g_gc.fMark;
             PushClo(pgc, pc);
         }
         break;
     }
     case 0x22:
-        ((GCHDR *)pref->u.pv)->fMark = g_gc.fMark;
+        pref->u.pmethod->m_fMark = g_gc.fMark;
         break;
     }
 }
@@ -349,22 +302,6 @@ static inline void InitMarkStack(int *pc, void ***pap, int c)
     *pc = 0;
 }
 
-/* Node from an (index, page) handle into a pool's block table; (0, 0) is null. One function per pool, each naming its
-   table directly: a shared helper taking the table as an argument changes register allocation in every caller. */
-#define GC_DEFINE_HANDLE(NAME, APB, CB) \
-    static inline GCHDR *NAME(unsigned idx, unsigned pg) \
-    { \
-        if (idx == 0 && pg == 0) \
-            return 0; \
-        return (GCHDR *)(APB[pg] + idx * CB); \
-    }
-GC_DEFINE_HANDLE(PgcFromPairHandle, D_00452098, 0x14)
-GC_DEFINE_HANDLE(PgcFromBindingHandle, D_004520C0, 0x18)
-GC_DEFINE_HANDLE(PgcFromFrameHandle, D_004520E8, 0x28)
-GC_DEFINE_HANDLE(PgcFromProcHandle, D_00452110, 0x1C)
-GC_DEFINE_HANDLE(PgcFromSidebagHandle, D_00452138, 0xC)
-GC_DEFINE_HANDLE(PgcFromPool6Handle, D_00452160, 0x14)
-#undef GC_DEFINE_HANDLE
 
 /** @sly2-annot addr=0x1286E0
  * Purpose: Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots
@@ -376,228 +313,87 @@ GC_DEFINE_HANDLE(PgcFromPool6Handle, D_00452160, 0x14)
 void CGc::Collect()
 {
     STACKSCOPE ss;
-    GCHDR *pn;
-    ENV *penv;
+    CFrame *pn;
+    CSidebag *penv;
     ROOT *pr;
     fMark = !fMark;
-    func_002574E0();
-    func_002574E8();
-    func_002574F0();
-    func_002574F8();
-    func_00257500();
-    func_00257508();
+    CGcObj<CFrame>::ClearMarks();
+    CGcObj<CVarb>::ClearMarks();
+    CGcObj<CPair>::ClearMarks();
+    CGcObj<CProc>::ClearMarks();
+    CGcObj<CSidebag>::ClearMarks();
+    CGcObj<CMethod>::ClearMarks();
     STACKSCOPE_ctor(&ss);
     InitMarkStack(&cFrame, (void ***)&apFrame, D_00452108);
     InitMarkStack(&cNode, (void ***)&apNode, D_004520B8);
-    apClo = (CLO **)PvAllocMarkStack(D_00452130);
+    apClo = (CProc **)PvAllocMarkStack(D_00452130);
     cClo = 0;
-    for (pn = D_002DD2AC; pn;)
+    for (pn = CGcObj<CFrame>::s_ptRoot; pn;)
     {
-        if (pn->fMark != g_gc.fMark)
+        if (pn->m_fMark != g_gc.fMark)
         {
-            pn->fMark = g_gc.fMark;
-            apFrame[cFrame++] = (FRAME *)pn;
+            pn->m_fMark = g_gc.fMark;
+            apFrame[cFrame++] = pn;
         }
         {
-            GCHDR *pnNext = PgcFromFrameHandle(pn->next, pn->nextpg);
+            CFrame *pnNext = CGcObj<CFrame>::PtFromHandle(pn->m_iNext, pn->m_ipageNext);
             pn = pnNext;
         }
     }
-    for (penv = D_002DD2CC; penv;)
+    for (penv = CGcObj<CSidebag>::s_ptRoot; penv;)
     {
-        BIND *pb;
-        if (penv->fMark != g_gc.fMark)
-            penv->fMark = g_gc.fMark;
+        CVarb *pb;
+        if (penv->m_fMark != g_gc.fMark)
+            penv->m_fMark = g_gc.fMark;
         for (pb = penv->pbFirst; pb; pb = pb->pbNext)
         {
-            pb->fMark = g_gc.fMark;
+            pb->m_fMark = g_gc.fMark;
             func_001285D8(this, &pb->ref);
         }
         {
-            ENV *penvNext = (ENV *)PgcFromSidebagHandle(penv->next, penv->nextpg);
+            CSidebag *penvNext = CGcObj<CSidebag>::PtFromHandle(penv->m_iNext, penv->m_ipageNext);
             penv = penvNext;
         }
     }
     for (pr = (*(ROOT * *)&g_sw.slEvent); pr; pr = pr->prNext)
     {
-        NODE *p = pr->pobj;
-        if (p->fMark != g_gc.fMark)
+        CPair *p = pr->pobj;
+        if (p->m_fMark != g_gc.fMark)
         {
-            p->fMark = g_gc.fMark;
+            p->m_fMark = g_gc.fMark;
             apNode[cNode++] = p;
         }
     }
     MarkLiveObjects();
-    func_00257510();
-    func_00257678();
-    func_002577E0();
-    func_00257948();
-    func_00257AB0();
-    func_00257C18();
+    CGcObj<CFrame>::FreeGarbage();
+    CGcObj<CVarb>::FreeGarbage();
+    CGcObj<CPair>::FreeGarbage();
+    CGcObj<CProc>::FreeGarbage();
+    CGcObj<CSidebag>::FreeGarbage();
+    CGcObj<CMethod>::FreeGarbage();
     STACKSCOPE_ctor_1AE4A0(&ss, 2);
 }
 
-/* Linkonce instances (0x2574E0..0x257D80), homed in this TU: per pool an empty pre-collection hook and a sweep. */
-
-/** @sly2-annot addr=0x2574E0
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop0 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002574E0()
-{
-}
-
-/** @sly2-annot addr=0x2574E8
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop1 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002574E8()
-{
-}
-
-/** @sly2-annot addr=0x2574F0
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop2 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002574F0()
-{
-}
-
-/** @sly2-annot addr=0x2574F8
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop3 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002574F8()
-{
-}
-
-/** @sly2-annot addr=0x257500
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop4 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257500()
-{
-}
-
-/** @sly2-annot addr=0x257508
- * Purpose: empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
- * Info: proposed name GcCollectNop5 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257508()
-{
-}
-
-/* Sweep of one pool: nodes before the recyclable cursor survive (their mark is refreshed); from the cursor on, unmarked
-   nodes are unlinked and freed into the pool. One instance per pool; written as a macro over the pool's globals
-   because a shared inline function taking them as arguments hoists the addresses into saved registers (67 of 90
-   instructions differ). */
-#define GC_SWEEP_POOL(FIRST, RECYCLE, HANDLE, UNLINK, POOL) \
-    GCHDR *p = FIRST; \
-    while (p != RECYCLE) \
-    { \
-        GCHDR *pNext; \
-        if (p->fMark != g_gc.fMark) \
-            p->fMark = g_gc.fMark; \
-        pNext = HANDLE(p->next, p->nextpg); \
-        p = pNext; \
-    } \
-    while (p) \
-    { \
-        GCHDR *pCur = p; \
-        GCHDR *pNext = HANDLE(pCur->next, pCur->nextpg); \
-        p = pNext; \
-        if (pCur->fMark != g_gc.fMark) \
-        { \
-            UNLINK(pCur); \
-            func_0011CD98(&POOL::s_pool.slotheap, pCur); \
-        } \
-    }
-
-/** @sly2-annot addr=0x257510
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepFrames (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257510()
-{
-    typedef CSlotPool<0x28, 0x200> POOL;
-    GC_SWEEP_POOL(D_002DD2A0, D_002DD2A8, PgcFromFrameHandle, GcFrame_Unlink, POOL)
-}
-
-/** @sly2-annot addr=0x257678
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepBindings (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257678()
-{
-    typedef CSlotPool<0x18, 0x800> POOL;
-    GC_SWEEP_POOL(D_002DD290, D_002DD298, PgcFromBindingHandle, GcBinding_Unlink, POOL)
-}
-
-/** @sly2-annot addr=0x2577E0
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepPairs (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002577E0()
-{
-    typedef CSlotPool<0x14, 0x2000> POOL;
-    GC_SWEEP_POOL(D_002DD280, D_002DD288, PgcFromPairHandle, GcPair_Unlink, POOL)
-}
-
-/** @sly2-annot addr=0x257948
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepProcs (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257948()
-{
-    typedef CSlotPool<0x1C, 0x800> POOL;
-    GC_SWEEP_POOL(D_002DD2B0, D_002DD2B8, PgcFromProcHandle, GcProc_Unlink, POOL)
-}
-
-/** @sly2-annot addr=0x257AB0
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepSidebags (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257AB0()
-{
-    typedef CSlotPool<0xC, 0xC8> POOL;
-    GC_SWEEP_POOL(D_002DD2C0, D_002DD2C8, PgcFromSidebagHandle, GcSidebag_Unlink, POOL)
-}
-
-/** @sly2-annot addr=0x257C18
- * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
- * Info: proposed name GcSweepPool6s (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257C18()
-{
-    typedef CSlotPool<0x14, 0x100> POOL;
-    GC_SWEEP_POOL(D_002DD2D0, D_002DD2D8, PgcFromPool6Handle, GcPool6_Unlink, POOL)
-}
-
-#undef GC_SWEEP_POOL
+/* The members of the GC node template (sly2/gc.h) for the six kinds: linkonce copies in the original (one per kind,
+   at the addresses below; config names them by their mangled names), emitted here by explicit instantiation. The
+   pre-collection hooks and the sweeps are instantiated by Collect above. Which kind each of the six identical empty
+   hooks 0x2574E0..0x257508 belongs to is not visible in the code; they are named in Collect's call order, which is
+   the sweeps' (frame, binding, pair, proc, sidebag, method). */
+#define SLY2_GC_INSTANTIATE(T) \
+    template void CGcObj<T>::PushFront(T **); \
+    template CGcObj<T>::CGcObj(); \
+    template void CGcObj<T>::Unlink(); \
+    template T *CGcObj<T>::PtNew(); \
+    template void CGcObj<T>::Shutdown();
+SLY2_GC_INSTANTIATE(CPair)       /* 0x254F00 PushFront, 0x2550A0 ctor, 0x2550F8 Unlink, 0x256B48 PtNew, 0x257E88 */
+SLY2_GC_INSTANTIATE(CVarb)       /* 0x255248, 0x2553E0, 0x255438, 0x257340, 0x257F08 */
+SLY2_GC_INSTANTIATE(CFrame)      /* 0x255588, 0x255718, 0x255770, 0x256DD0, 0x257EC8 */
+SLY2_GC_INSTANTIATE(CProc)       /* 0x2558C0, 0x255A58, 0x255AB0, 0x256F48, 0x257F48 */
+SLY2_GC_INSTANTIATE(CSidebag)    /* 0x255C00, 0x255D90, 0x255DE8, 0x257D80, 0x257F88 */
+SLY2_GC_INSTANTIATE(CMethod)     /* 0x255F38, 0x2560C8, 0x256120, 0x259C18, 0x257FC8 */
+#undef SLY2_GC_INSTANTIATE
+template void CGcObj<CSidebag>::MakeRoot();   /* 0x258178 */
+template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 */
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

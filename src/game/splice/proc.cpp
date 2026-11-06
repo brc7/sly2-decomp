@@ -31,7 +31,7 @@ struct SPO {
     CProc *operator->() { return p; }
 };
 extern "C" {
-CProc *PvNewProc();
+CProc *PtNew__t6CGcObj1Z5CProc();
 SPO CProc_CloneTo(CProc *pprocSrc, X *px);
 }
 /** @sly2-annot addr=0x128F70
@@ -46,7 +46,7 @@ SPO CProc_CloneTo(CProc *pprocSrc, X *px);
 SPO CProc_CloneTo(CProc *pprocSrc, X *px)
 {
     SPO sp;
-    sp.Set(PvNewProc());
+    sp.Set(PtNew__t6CGcObj1Z5CProc());
     if (px)
         sp->spx = px;
     else

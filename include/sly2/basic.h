@@ -223,23 +223,7 @@ public:
     T *operator->() { return m_p; }
 };
 
-/* CGcObj: from src/game/object/spliceobj/RefGetPeopid.cpp (4 copies in Lilly ports) */
-template <class T>
-class CGcObj
-{
-public:
-      int m_cref;
-      uint m_grfGc;
-    void Unlink();
-    ~CGcObj() { Unlink(); }
-    void Release()
-    {
-        if (--m_cref == 0)
-        {
-            delete (T *)this;
-        }
-    }
-};
+/* CGcObj (the base of the collected Splice nodes): sly2/gc.h. */
 
 /* CFrame: sly2/cframe.h (types/views-3: out of basic.h so that splice/frame.cpp and eval.cpp, which define their own
    CFrame views, can include the shared headers). */

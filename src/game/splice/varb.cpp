@@ -12,7 +12,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 
 extern "C" {
-CVarb *PvNewBinding();
+CVarb *PtNew__t6CGcObj1Z5CVarb();
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 
@@ -44,7 +44,7 @@ extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
 SPW CVarb_CloneTo(CVarb *src, void *a, void *b)
 {
       SPW sp;
-      sp.Set(PvNewBinding());
+      sp.Set(PtNew__t6CGcObj1Z5CVarb());
       sp->sym = src->sym;
       sp->ref = CRef_CloneTo(&src->ref, a, b);
       if (src->pnext.p)

@@ -769,7 +769,7 @@ void CloneXfm(struct S *p, struct S *q);
 struct E *func_001AE238(struct AL *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
-void func_00259A88(struct RC *p);
+void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
 /** @sly2-annot addr=0x1CA7B8
  * Purpose: PROXY::Clone (vt41): clone XFM base and copy init records
  * Info: proposed name CloneProxy (T1); class PROXY slot41; TU proxy
@@ -795,7 +795,7 @@ void CloneProxy(struct S *p, struct S *q)
         pe->x8 = u.sp.p;
         prc = u.sp.p;
         if (prc && --prc->cRef == 0) func_00257078(prc, 3);
-        func_00259A88(pe->x8);
+        MakeRoot__t6CGcObj1Z6CFrame(pe->x8);
     }
 }
 } } // namespace M_CloneProxy

@@ -37,6 +37,5 @@ _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 g_pfrmOpen = D_002DEA4C;   # engine/graphics/pipeline/draw.cpp: codegen depends on the symbol name: neither an asm label nor a rename keeps DrawSw matching
 __builtin_new = func_001AE4F8;   # app/class_registry.cpp: g++'s global operator new; the game's own allocator (next to __builtin_delete at 0x1AE520)
 Attach__t7CRefPtr1Z7CMethodP7CMethod = func_00259CF8;   # object/spliceobj.cpp: template member: g++ 2.95 ignores an asm label on an explicit specialization
-Unlink__t6CGcObj1Z7CMethod = GcPool6_Unlink;   # object/spliceobj.cpp: same
 __as__t7CRefPtr1Z6CFrameP6CFrame = FramePtr_Assign;   # object/proxy.cpp: same
 D_C0 = 0xC0;   # engine/presentation/hud.cpp: an absolute address used as a symbol (%hi/%lo of 0xC0)

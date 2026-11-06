@@ -15,7 +15,7 @@
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"
 
-extern "C" void GcPair_Unlink(void *pv);
+extern "C" void Unlink__t6CGcObj1Z5CPair(void *pv);
 
 struct CPair;
 
@@ -35,7 +35,7 @@ struct CPair
       CPairPtr pnext;         /* 0x10 the rest of the list */
       void SetNext(CPair *ppair) { pnext = ppair; }
       /* Pairs live in the first engine slot pool (slot size 0x14 == sizeof(CPair)). */
-      void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
+      void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };
 typedef char assert_CPair_size[sizeof(CPair) == 0x14 ? 1 : -1];
 

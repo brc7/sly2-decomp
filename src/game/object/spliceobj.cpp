@@ -43,7 +43,7 @@ struct SPLOPTS { int csplopt; SPLOPT *asplopt; };
 extern SPLOPTS D_00279AD0[];
 
 extern "C" {
-CMethod *PvNewPool6(void);
+CMethod *PtNew__t6CGcObj1Z7CMethod(void);
 CRef *CRef_SetBool(CRef *pref, int f);
 CRef *CRef_SetVector(CRef *pref, const VECTOR4 *pvec);
 CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
@@ -106,7 +106,7 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
     if (grf & 1)
     {
         CRefPtr<CMethod> pmethod;
-        CMethod *pmethodNew = PvNewPool6();
+        CMethod *pmethodNew = PtNew__t6CGcObj1Z7CMethod();
         pmethod.Attach(pmethodNew);
         pmethod->m_pbasic = (BASIC *)pv;
         pmethod->m_pfnthunk = ppvrec->pfnthunk;
@@ -412,8 +412,8 @@ extern "C" {
 void func_00256C38(SPPAIR *psp, CPair *ppair);
 void PairPtr_Assign(SPPAIR *psp, CPair *ppair);
 void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_8CPairPtr");
-CPair *PvNewPair(void);
-void GcPair_Unlink(CPair *ppair);
+CPair *PtNew__t6CGcObj1Z5CPair(void);
+void Unlink__t6CGcObj1Z5CPair(CPair *ppair);
 }
 inline SPPAIR::SPPAIR(CPair *q) { func_00256C38(this, q); }
 inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
@@ -424,7 +424,7 @@ inline SPPAIR::~SPPAIR()
         if (--q->cref == 0) {
             PairPtr_Release(&q->next, 2);
             q->ref.Decref();
-            GcPair_Unlink(q);
+            Unlink__t6CGcObj1Z5CPair(q);
             func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
@@ -452,7 +452,7 @@ CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
     for (int i = 0; i < c; i++) {
         void *pv = apv[i];
         pvrec.otyp = aotyp[i];
-        SPPAIR nw(PvNewPair());
+        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
         CRef *pref = &nw.p->ref;
         *pref = RefGetPeopid(pv, &pvrec);
         ppTail->Set(nw.p);
@@ -484,7 +484,7 @@ CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv)
     SPPAIR *ppTail = &list;
     for (int i = 0; i < c; i++) {
         pvrec.ib = i * 4;
-        SPPAIR nw(PvNewPair());
+        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
         CRef *pref = &nw.p->ref;
         *pref = RefGetPeopid(pv, &pvrec);
         ppTail->Set(nw.p);
@@ -634,8 +634,8 @@ extern unsigned int D_002DD2D4;
 extern GCNODE6 *D_002DD2D0;   /* the pool's node list */
 extern int g_gc;        /* g_gc; its first word is the current mark */
 void Collect__3CGc(void *pgc);
-void GcPool6_PushFront(GCNODE6 *pnode, GCNODE6 **ppnodeHead);
-GCNODE6 *GcPool6_InitNode(GCNODE6 *pnode);
+void PushFront__t6CGcObj1Z7CMethodPP7CMethod(GCNODE6 *pnode, GCNODE6 **ppnodeHead);
+GCNODE6 *__t6CGcObj1Z7CMethod(GCNODE6 *pnode);
 }
 
 static inline void Handle(GCNODE6 *p, int *pidx, int *ppg)
@@ -655,11 +655,11 @@ static inline void Handle(GCNODE6 *p, int *pidx, int *ppg)
 /** @sly2-annot addr=0x255F38
  * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
  *   linkonce (inline/template)]
- * Info: proposed name GcPool6_PushFront (T1); TU game_linkonce
+ * Info: proposed name PushFront__t6CGcObj1Z7CMethodPP7CMethod (T1); TU game_linkonce
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" void GcPool6_PushFront(GCNODE6 *p, GCNODE6 **phead)
+extern "C" void PushFront__t6CGcObj1Z7CMethodPP7CMethod(GCNODE6 *p, GCNODE6 **phead)
 {
     int idx0, pg0, idx1, pg1;
     GCNODE6 *head;
@@ -675,12 +675,12 @@ extern "C" void GcPool6_PushFront(GCNODE6 *p, GCNODE6 **phead)
     *phead = p;
 }
 
-/* 0x2560C8 GcPool6_InitNode (linkonce): a new node has no references, goes to the front of the pool list and takes
+/* 0x2560C8 __t6CGcObj1Z7CMethod (linkonce): a new node has no references, goes to the front of the pool list and takes
    the current mark. */
-extern "C" GCNODE6 *GcPool6_InitNode(GCNODE6 *p)
+extern "C" GCNODE6 *__t6CGcObj1Z7CMethod(GCNODE6 *p)
 {
     p->cref = 0;
-    GcPool6_PushFront(p, &D_002DD2D0);
+    PushFront__t6CGcObj1Z7CMethodPP7CMethod(p, &D_002DD2D0);
     p->fMark = g_gc;
     return p;
 }
@@ -689,11 +689,11 @@ extern "C" GCNODE6 *GcPool6_InitNode(GCNODE6 *p)
 /** @sly2-annot addr=0x259C18
  * Purpose: allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
  *   linkonce (inline/template)]
- * Info: proposed name PvNewPool6 (T1); TU game_linkonce
+ * Info: proposed name PtNew__t6CGcObj1Z7CMethod (T1); TU game_linkonce
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" CMethod *PvNewPool6(void)
+extern "C" CMethod *PtNew__t6CGcObj1Z7CMethod(void)
 {
     GCNODE6 *p;
     if (CSlotPool<0x14, 0x100>::s_pool.slotheap.pslotFree == 0) {
@@ -707,7 +707,7 @@ extern "C" CMethod *PvNewPool6(void)
         }
     }
     p = (GCNODE6 *)PvAllocSlotheapClear(&CSlotPool<0x14, 0x100>::s_pool.slotheap);
-    GcPool6_InitNode(p);
+    __t6CGcObj1Z7CMethod(p);
     return (CMethod *)p;
 }
 

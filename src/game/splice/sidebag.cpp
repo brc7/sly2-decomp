@@ -1,5 +1,6 @@
-// sidebag.cpp -- CSidebag, a Splice object's side bag of variable bindings (CVarb): add, set, find, clone, plus six
-// linkonce instances of the Splice GC/counted-pointer helpers homed here (0x255438..0x257E68).
+// sidebag.cpp -- CSidebag, a Splice object's side bag of variable bindings (CVarb): add, set, find, clone, plus two
+// linkonce instances of the counted-pointer helpers homed here (0x257250, 0x257E68). The sidebag pool's GC members
+// are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp).
 // TU 0x12A980..0x12AE18 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
@@ -28,21 +29,11 @@ struct GCHDR
 };
 
 extern "C" {
-void GcSidebag_Unlink(GCHDR *p);
-void GcSidebag_PushFront(GCHDR *p, void *ppHead);
-CVarb *PvNewBinding();
-CSidebag *PvNewSidebag();
+void Unlink__t6CGcObj1Z8CSidebag(GCHDR *p);
+CVarb *PtNew__t6CGcObj1Z5CVarb();
+CSidebag *PtNew__t6CGcObj1Z8CSidebag();
 void func_00129658(CRef *pref, const CRef *prefSrc) __asm__("__as__4CRefRC4CRef");   /* CRef assignment (out of line) */
 void func_001AE520(void *pv) __asm__("__builtin_delete");
-void Collect__3CGc(void *pgc);
-/* Pool bookkeeping (see splice/gc.cpp): block tables 0x10 bytes before each pool's SLOTHEAP, block counts and the
-   GC list heads. */
-extern char *D_004520C0[4];
-extern char *D_00452138[4];
-extern GCHDR *D_002DD290, *D_002DD298, *D_002DD29C;
-extern GCHDR *D_002DD2C0, *D_002DD2C8, *D_002DD2CC;
-extern unsigned int D_002DD2C4;
-extern int g_gc;   /* g_gc (CGc); its first word is the current mark */
 }
 
 
@@ -71,7 +62,7 @@ public:
     int FFindBinding(int sym, CRef *pref);
     void SetBinding(CVarb *pvarb) { pbindingFirst = pvarb; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
-    void operator delete(void *pv) { GcSidebag_Unlink((GCHDR *)pv); func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
+    void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
 };
 typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
 
@@ -105,7 +96,7 @@ extern "C" CRef CSidebag_RefAddBinding(CSidebag *psb, int sym, CRef *pref)
 {
     SPW *ppbFirst = &psb->pbindingFirst;
     SPW sp;
-    sp.Set(PvNewBinding());
+    sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
     sp->ref = *pref;
     sp->pnext = ppbFirst->p;
@@ -165,89 +156,13 @@ int CSidebag::FFindBinding(int sym, CRef *pref)
 extern "C" SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q)
 {
     SPS sp;
-    sp.Set(PvNewSidebag());
+    sp.Set(PtNew__t6CGcObj1Z8CSidebag());
     if (psbSrc->pbindingFirst.p)
         sp->SetBinding(CVarb_CloneTo(psbSrc->pbindingFirst.p, 0, q).p);
     return SPS(sp.p);
 }
 
 /* Linkonce instances homed in this TU (C-linkage functions under their current symbols). */
-
-static inline GCHDR *PgcFromBindingHandle(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (GCHDR *)(D_004520C0[pg] + idx * 24);
-}
-
-/** @sly2-annot addr=0x255438
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcBinding_Unlink (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcBinding_Unlink(void *pv)
-{
-    GCHDR *p = (GCHDR *)pv;
-    GCHDR *prev = PgcFromBindingHandle(p->prev, p->prevpg);
-    GCHDR *next = PgcFromBindingHandle(p->next, p->nextpg);
-    if (p == D_002DD298)
-        D_002DD298 = next;
-    if (prev) {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    } else if (p == D_002DD290) {
-        D_002DD290 = next;
-    } else if (p == D_002DD29C) {
-        D_002DD29C = next;
-    }
-    if (next) {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
-
-// 0x255D90 GcSidebag_InitNode: clear the count, push the node on the sidebag GC list, copy the current mark.
-extern "C" GCHDR *GcSidebag_InitNode(GCHDR *p)
-{
-    p->cref = 0;
-    GcSidebag_PushFront(p, &D_002DD2C0);
-    p->fMark = g_gc;
-    return p;
-}
-
-static inline GCHDR *PgcFromSidebagHandle(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (GCHDR *)(D_00452138[pg] + idx * 12);
-}
-
-/** @sly2-annot addr=0x255DE8
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcSidebag_Unlink (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcSidebag_Unlink(GCHDR *p)
-{
-    GCHDR *prev = PgcFromSidebagHandle(p->prev, p->prevpg);
-    GCHDR *next = PgcFromSidebagHandle(p->next, p->nextpg);
-    if (p == D_002DD2C8)
-        D_002DD2C8 = next;
-    if (prev) {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    } else if (p == D_002DD2C0) {
-        D_002DD2C0 = next;
-    } else if (p == D_002DD2CC) {
-        D_002DD2CC = next;
-    }
-    if (next) {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
 
 // 0x257250 _$_8CVarbPtr: ~CVarbPtr (sly2/varb.h): releases the binding; deleting it destroys its own link (the
 // recursive call) and value.
@@ -256,34 +171,6 @@ CVarbPtr::~CVarbPtr()
     CVarb *pvarb = p;
     if (pvarb && --pvarb->cref == 0)
         delete pvarb;
-}
-
-/** @sly2-annot addr=0x257D80
- * Purpose: allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewSidebag (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
- * @end-sly2-annot */
-extern "C" CSidebag *PvNewSidebag()
-{
-    CSidebag *psb;
-    if (CSlotPool<0xC, 0xC8>::s_pool.slotheap.pslotFree == 0) {
-        if (!g_sw.fUnk3a14 || D_002DD2C4 >= 4)
-            Collect__3CGc(&g_gc);
-        if (CSlotPool<0xC, 0xC8>::s_pool.slotheap.pslotFree == 0) {
-            void *pv = PvAllocSlotheapClear(&CSlotPool<0xC, 0xC8>::s_pool.slotheap);
-            if (D_002DD2C4)
-                func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv);
-            D_00452138[D_002DD2C4++] = (char *)pv;
-        }
-    }
-    psb = (CSidebag *)PvAllocSlotheapClear(&CSlotPool<0xC, 0xC8>::s_pool.slotheap);
-    GcSidebag_InitNode((GCHDR *)psb);
-    psb->pbindingFirst.p = 0;
-    return psb;
 }
 
 // 0x257E68 func_00257E68: a counted-pointer store (count the new target, then store it).

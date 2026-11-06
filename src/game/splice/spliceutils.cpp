@@ -12,12 +12,12 @@ SLY2_INSTANTIATE_SPLICE_HEAPS()
 
 int D_002DD5B8;                          /* Splice running flag (spliceutils' .bss) */
 extern "C" {
-void GcShutdownPairPool();
-void GcShutdownFramePool();
-void GcShutdownBindingPool();
-void GcShutdownProcPool();
-void GcShutdownSidebagPool();
-void GcShutdownPool6Pool();
+void Shutdown__t6CGcObj1Z5CPair();
+void Shutdown__t6CGcObj1Z6CFrame();
+void Shutdown__t6CGcObj1Z5CVarb();
+void Shutdown__t6CGcObj1Z5CProc();
+void Shutdown__t6CGcObj1Z8CSidebag();
+void Shutdown__t6CGcObj1Z7CMethod();
 }
 
 /** @sly2-annot addr=0x12AE18
@@ -44,12 +44,12 @@ extern "C" void StartupSplice()
 extern "C" void ShutdownSplice()
 {
       D_002DD5B8 = 0;
-      GcShutdownPairPool();
-      GcShutdownFramePool();
-      GcShutdownBindingPool();
-      GcShutdownProcPool();
-      GcShutdownSidebagPool();
-      GcShutdownPool6Pool();
+      Shutdown__t6CGcObj1Z5CPair();
+      Shutdown__t6CGcObj1Z6CFrame();
+      Shutdown__t6CGcObj1Z5CVarb();
+      Shutdown__t6CGcObj1Z5CProc();
+      Shutdown__t6CGcObj1Z8CSidebag();
+      Shutdown__t6CGcObj1Z7CMethod();
       ResetSlotheap(&CSpliceHeap<0x20, 0x100>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0x50, 0x100>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0x20, 0x40>::s_heap.slotheap);
@@ -61,7 +61,7 @@ extern "C" void ShutdownSplice()
 // plain C-linkage functions under their current symbols. Each clears the kind's four bookkeeping words (separate
 // globals: each store gets its own lui) and resets its slot pool.
 extern int D_002DD280, D_002DD284, D_002DD288, D_002DD28C;
-extern "C" void GcShutdownPairPool()
+extern "C" void Shutdown__t6CGcObj1Z5CPair()
 {
       D_002DD280 = 0;
       D_002DD288 = 0;
@@ -71,7 +71,7 @@ extern "C" void GcShutdownPairPool()
 }
 
 extern int D_002DD2A0, D_002DD2A4, D_002DD2A8, D_002DD2AC;
-extern "C" void GcShutdownFramePool()
+extern "C" void Shutdown__t6CGcObj1Z6CFrame()
 {
       D_002DD2A0 = 0;
       D_002DD2A8 = 0;
@@ -81,7 +81,7 @@ extern "C" void GcShutdownFramePool()
 }
 
 extern int D_002DD290, D_002DD294, D_002DD298, D_002DD29C;
-extern "C" void GcShutdownBindingPool()
+extern "C" void Shutdown__t6CGcObj1Z5CVarb()
 {
       D_002DD290 = 0;
       D_002DD298 = 0;
@@ -91,7 +91,7 @@ extern "C" void GcShutdownBindingPool()
 }
 
 extern int D_002DD2B0, D_002DD2B4, D_002DD2B8, D_002DD2BC;
-extern "C" void GcShutdownProcPool()
+extern "C" void Shutdown__t6CGcObj1Z5CProc()
 {
       D_002DD2B0 = 0;
       D_002DD2B8 = 0;
@@ -101,7 +101,7 @@ extern "C" void GcShutdownProcPool()
 }
 
 extern int D_002DD2C0, D_002DD2C4, D_002DD2C8, D_002DD2CC;
-extern "C" void GcShutdownSidebagPool()
+extern "C" void Shutdown__t6CGcObj1Z8CSidebag()
 {
       D_002DD2C0 = 0;
       D_002DD2C8 = 0;
@@ -111,7 +111,7 @@ extern "C" void GcShutdownSidebagPool()
 }
 
 extern int D_002DD2D0, D_002DD2D4, D_002DD2D8, D_002DD2DC;
-extern "C" void GcShutdownPool6Pool()
+extern "C" void Shutdown__t6CGcObj1Z7CMethod()
 {
       D_002DD2D0 = 0;
       D_002DD2D8 = 0;

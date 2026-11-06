@@ -43,6 +43,7 @@ void func_0011CDD8(SLOTHEAP *pslotheap);                                    /* P
 template <int CB, int C>
 struct CSlotPool
 {
+      enum { cb = CB, c = C };   /* slot size, slots per block */
       SLOTHEAP slotheap;
       CSlotPool() { func_0011CCA8(&slotheap, CB, C, 16); }
       static CSlotPool s_pool;

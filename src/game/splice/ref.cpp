@@ -50,8 +50,8 @@ struct GCNODE
 
 struct CProc;
 extern "C" {
-void GcProc_Unlink(GCNODE *pnode);
-void GcPool6_Unlink(GCNODE *pnode);
+void Unlink__t6CGcObj1Z5CProc(GCNODE *pnode);
+void Unlink__t6CGcObj1Z7CMethod(GCNODE *pnode);
 int func_00233178(const void *a, const void *b, int cb) __asm__("memcmp");   /* memcmp */
 }
 
@@ -756,7 +756,7 @@ void CRef::Decref()
         CMethod *p = (CMethod *)u.pv;
         if (--p->cref == 0 && p)
         {
-            GcPool6_Unlink((GCNODE *)p);
+            Unlink__t6CGcObj1Z7CMethod((GCNODE *)p);
             func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, p);
         }
         break;
@@ -848,11 +848,11 @@ static inline GCNODE *PnodeProc(unsigned idx, unsigned pg)
 
 /** @sly2-annot addr=0x255AB0
  * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcProc_Unlink (T1); TU game_linkonce
+ * Info: proposed name Unlink__t6CGcObj1Z5CProc (T1); TU game_linkonce
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" void GcProc_Unlink(GCNODE *p)
+extern "C" void Unlink__t6CGcObj1Z5CProc(GCNODE *p)
 {
     GCNODE *prev = PnodeProc(p->prev, p->prevpg);
     GCNODE *next = PnodeProc(p->next, p->nextpg);
@@ -887,11 +887,11 @@ static inline GCNODE *PnodeMethod(unsigned idx, unsigned pg)
 
 /** @sly2-annot addr=0x256120
  * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcPool6_Unlink (T1); TU game_linkonce
+ * Info: proposed name Unlink__t6CGcObj1Z7CMethod (T1); TU game_linkonce
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" void GcPool6_Unlink(GCNODE *p)
+extern "C" void Unlink__t6CGcObj1Z7CMethod(GCNODE *p)
 {
     GCNODE *prev = PnodeMethod(p->prev, p->prevpg);
     GCNODE *next = PnodeMethod(p->next, p->nextpg);
@@ -936,7 +936,7 @@ static inline void ReleasePair(PAIRNODE *p)
         {
             PairPtr_Release(p->pnext, 2);
             Decref__4CRef(p->ref);
-            GcPair_Unlink(p);
+            Unlink__t6CGcObj1Z5CPair(p);
             func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, p);
         }
     }
@@ -964,7 +964,7 @@ extern "C" void func_00257148(PROCNODE *p, int flags)
                 func_00257078(pframe, 3);
         }
     }
-    GcProc_Unlink((GCNODE *)p);
+    Unlink__t6CGcObj1Z5CProc((GCNODE *)p);
     if (flags & 1)
         func_0011CD98(&CSlotPool<0x1C, 0x800>::s_pool.slotheap, p);
 }
