@@ -1473,11 +1473,11 @@ typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
 struct PIPE : SHAPE, GRABSPOT
 {
     char pad1B4[0x1E0 - 0x1B4];
+    virtual void Unfreeze() __asm__("OnPipeAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPipeClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPipe");   /* slot 7 */
     virtual void VUnk14() __asm__("PostPipeLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnPipeRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnPipeAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("func_001C3BB0");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("func_001C3958");   /* GRABSPOT slot 2 (delta -400) */
