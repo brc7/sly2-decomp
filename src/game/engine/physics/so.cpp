@@ -1579,7 +1579,7 @@ void func_001A4478(struct G *pg, int n, struct Q *pq);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-// Recomputes the shared bounds record when its stamp is older than the world's current stamp.
+// Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
 void RefreshSoBoundsRecord(struct A *so)
 {
     struct Q *pq = so->pq;
@@ -2613,7 +2613,7 @@ void EnsureSwCallback(struct G *, struct P *, long, int);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 58 (contact adjustment after marking): when the tree has touch flags, schedules the touch-zap callback
-// (HandleSoTouchZaps).
+// (HandleSoTouchZaps). (inferred)
 void AdjustSoXps(struct P *so)
 {
     struct E *pe = so->pe;
@@ -2744,6 +2744,7 @@ extern "C" int IsSoFixed(SO *so)
  * @end-sly2-annot */
 /* Wakes the object (LO slot 47 with 4) and unsettles its two physics transforms. */
 // Wakes an object in the broad phase: sets the awake flag (4) and un-settles its position and rotation slots.
+// (inferred)
 extern "C" void WakeSo(SO *so)
 {
     if (so->ptree != 0) {
@@ -3053,6 +3054,7 @@ static inline qword NormalizeOr(qword value,qword fallback) {
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Looks up constraint i in the constraint tables: its mode, and its axis transformed by a matrix and normalised.
+// (inferred)
 void GetSoConstraintAxis(void *unused,M3 *matrix,int index,struct OUT *out) {
     out->mode=D_002C3C20[index];
     out->axis=NormalizeOr(Transform(matrix,D_002C3BA0[index]),D_002A2DD0);
@@ -3121,7 +3123,7 @@ void RebuildSoPhysHook(struct O *so)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Slot 53: creates the object's tree record in the broad phase (AddSwAaobrObject).
+// Slot 53: creates the object's tree record in the broad phase (AddSwAaobrObject). (inferred)
 extern "C" void NewSoTree(SO *so)
 {
     AddSwAaobrObject(&D_003DD490, so);
@@ -3785,7 +3787,7 @@ struct N { char pad[0x14]; struct B *pb; int n; char pad2[8]; struct N *next; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Searches the world's ASEGA list for an entry with the given oid (and owner oid m unless m is -1).
+// Searches the world's ASEGA list for an entry with the given oid (and owner oid m unless m is -1). (inferred)
 struct N *FindAsegaByOid(int n, int m)
 {
     struct N *p;
@@ -3811,7 +3813,7 @@ struct N { char pad[0x1C]; struct N *next; int pad2; struct B *pb; int n; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// The same search over the world's list of live state-machine instances (SMA).
+// The same search over the world's list of live state-machine instances (SMA). (inferred)
 struct N *FindLiveSma(int n, int m)
 {
     struct N *p;
@@ -3837,7 +3839,7 @@ struct S { char pad[0xEC]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Bit 2 of the tree flags; 1 when the object has no tree.
+// Bit 2 of the tree flags; 1 when the object has no tree. (inferred)
 int GetSoTreeFlag2(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->pt->fl << 30) >> 32) & 1; }
 } } // namespace M_func_001F6838
 
@@ -3848,7 +3850,7 @@ int GetSoTreeFlag2(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->p
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets bit 2 of the tree flags and frees the tree's contacts.
+// Sets bit 2 of the tree flags and frees the tree's contacts. (inferred)
 extern "C" void SetSoTreeFlag2(SO *so, int f)
 {
     SOTREE *ptree;
@@ -3871,7 +3873,7 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets (f = 1) bit 48 in the flag word of every part.
+// Sets (f = 1) bit 48 in the flag word of every part. (inferred)
 void SetSoPartsBit48(struct P *so, int f)
 {
     int i;
@@ -4370,6 +4372,7 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
+// (inferred)
 void InflictSoContactZaps(struct P *so)
 {
     struct N *pn;
@@ -4657,7 +4660,7 @@ void DeliverZapToSo(struct M *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Deferred touch callback: processes the contacts' zaps (slot 74), then emits the object's own zap according to
-// its zap mode.
+// its zap mode. (inferred)
 void HandleSoTouchZaps(struct P *so)
 {
     int k;
@@ -4742,7 +4745,7 @@ int GetSoZapMode(struct S *p) { return (int)((long)(p->fl << 8) >> 32) & 3; }
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the hit damage (stored negated in the byte at +0x148; default 10).
+// Sets the hit damage (stored negated in the byte at +0x148; default 10). (inferred)
 extern "C" void SetSoHitDamage(SO *so, int n)
 {
     so->bUnk148 = -n;
@@ -4755,7 +4758,7 @@ extern "C" void SetSoHitDamage(SO *so, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Returns the hit damage.
+// Returns the hit damage. (inferred)
 extern "C" int GetSoHitDamage(SO *so)
 {
     return -so->bUnk148;
@@ -4768,7 +4771,7 @@ extern "C" int GetSoHitDamage(SO *so)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the second hit damage (byte +0x149, negated; default 20).
+// Sets the second hit damage (byte +0x149, negated; default 20). (inferred)
 extern "C" void SetSoHitDamage2(SO *so, int n)
 {
     so->bUnk149 = -n;
@@ -4781,7 +4784,7 @@ extern "C" void SetSoHitDamage2(SO *so, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Returns the second hit damage.
+// Returns the second hit damage. (inferred)
 extern "C" int GetSoHitDamage2(SO *so)
 {
     return -so->bUnk149;
@@ -4796,7 +4799,7 @@ extern "C" int GetSoHitDamage2(SO *so)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Gives the object a CID 0x12 child with oid 0x187 unless it has one. */
-// Adds the object to world list 0x187 if it is not in it yet (meaning of the list unknown).
+// Adds the object to world list 0x187 if it is not in it yet (meaning of the list unknown). (inferred)
 extern "C" void EnsureSoInSwList187(SO *so)
 {
     if (PloFindSwObject(&D_003DD490, 2, (OID)0x187, so) == 0) {
@@ -5020,7 +5023,7 @@ void RebuildSoPhysHook(struct A *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the tree-root flag (+0x148 bit 34, so.h fTreeRoot) and rebuilds the physics hook when it changed.
+// Sets the tree-root flag (+0x148 bit 34, so.h fTreeRoot) and rebuilds the physics hook when it changed. (inferred)
 void SetSoTreeRoot(struct A *so, long f)
 {
     if (f != so->f) {
@@ -5139,7 +5142,7 @@ struct A { char pad[0xAC]; int c; int *a; int n; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Selects an animation by oid: +0xB4 = -(index in the list + 3), or 0 when not found.
+// Selects an animation by oid: +0xB4 = -(index in the list + 3), or 0 when not found. (inferred)
 void SetSoAnimIndex(struct A *so, int n)
 {
     int i;
@@ -5164,7 +5167,7 @@ void SetSoAnimIndex(struct A *so, int n)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Clears the selected animation (+0xB4 = 0).
+// Clears the selected animation (+0xB4 = 0). (inferred)
 extern "C" void ClearSoAnimIndex(SOWATCH *pwatch)
 {
     pwatch->nB4 = 0;
@@ -5180,7 +5183,7 @@ struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Finds a target record in the world's list by id.
+// Finds a target record in the world's list by id. (inferred)
 struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
 } } // namespace M_func_001F8240
 
@@ -5193,7 +5196,7 @@ struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Makes a target record (0xAC bytes, func_0020A5F8) for plo unless it has one. */
-// Finds a target record by id, creating one when missing.
+// Finds a target record by id, creating one when missing. (inferred)
 extern "C" void EnsureTargetRecordById(LO *plo)
 {
     if (FindTargetRecordById(plo) == 0) {
@@ -5218,7 +5221,7 @@ struct T *EnsureTargetRecordById(void *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-// Ensures the target record and sets its value and optional 8-byte key.
+// Ensures the target record and sets its value and optional 8-byte key. (inferred)
 void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = EnsureTargetRecordById(p); pt->x = x; if (pk) pt->k = *pk; }
 } } // namespace M_func_001F82B8
 
@@ -5242,6 +5245,7 @@ static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pc
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
+// (inferred)
 struct Q *EnsureSoPhysRegionRecord(struct P *so)
 {
     if (!so->pe) return 0;
@@ -5266,7 +5270,7 @@ struct Q *EnsureSoPhysRegionRecord(struct P *so)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the region record's second float.
+// Sets the region record's second float. (inferred)
 extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 {
     STEPREC *prec;
@@ -5289,7 +5293,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Returns the region record's second float (0 without a record).
+// Returns the region record's second float (0 without a record). (inferred)
 float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F83E0
 
@@ -5301,7 +5305,7 @@ float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the region record's third float.
+// Sets the region record's third float. (inferred)
 extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 {
     STEPREC *prec;
@@ -5324,7 +5328,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Returns the region record's third float (0 without a record).
+// Returns the region record's third float (0 without a record). (inferred)
 float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F8440
 
@@ -5337,7 +5341,7 @@ float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the region record's first float.
+// Sets the region record's first float. (inferred)
 extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 {
     STEPREC *prec;
@@ -5359,7 +5363,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Returns the region record's first float (0 without a record).
+// Returns the region record's first float (0 without a record). (inferred)
 float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F84A0
 
@@ -5477,7 +5481,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
  * Confidence: low (draft) [T2 0.30] - evidence: semantic review; static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets bit 35 of +0x148 on the object and its children, registering them when the world requires it.
+// Sets bit 35 of +0x148 on the object and its children, registering them when the world requires it. (inferred)
 void SetSoBit35Hierarchy(struct L *so, long f)
 {
     struct L *q;
