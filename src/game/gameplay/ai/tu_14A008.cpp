@@ -340,7 +340,12 @@ extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
 // a < b (kept as a helper for the match).
 static inline int FLess(float a, float b) { return a < b; }
 // VU0 helper: vector difference.
-static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */ return r; }
+static inline qword SubX(qword a, qword b)
+{
+    qword r;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */
+    return r;
+}
 // VU0 helper: vector sum.
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // VU0 helper: length of a vector.
