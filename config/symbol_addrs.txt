@@ -2120,6 +2120,7 @@ STACKSCOPE_ctor = 0x1AE478; // type:func
 _$_10STACKSCOPE = 0x1AE4A0; // type:func
 malloc = 0x1AE4E8; // type:func
 free = 0x1AE4F0; // type:func
+__builtin_new = 0x1AE4F8; // type:func
 __builtin_delete = 0x1AE520; // type:func
 CopyAqw__FPvT0i = 0x1AE528; // type:func
 CopyAb__FPvT0Ui = 0x1AE5A0; // type:func

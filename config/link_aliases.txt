@@ -17,5 +17,4 @@ _$_8CVarbPtr = _$_t7CRefPtr1Z5CVarb;   # sly2/varb.h's CVarbPtr: the CRefPtr<CVa
 
 # other declarations that cannot be bound in source (6)
 g_pfrmOpen = D_002DEA4C;   # engine/graphics/pipeline/draw.cpp: codegen depends on the symbol name: neither an asm label nor a rename keeps DrawSw matching
-__builtin_new = func_001AE4F8;   # app/class_registry.cpp: g++'s global operator new; the game's own allocator (next to __builtin_delete at 0x1AE520)
 D_C0 = 0xC0;   # engine/presentation/hud.cpp: an absolute address used as a symbol (%hi/%lo of 0xC0)
