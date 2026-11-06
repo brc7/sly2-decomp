@@ -1850,15 +1850,15 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
     }
     grab->step = step;
     grab->tStep = D_002DDED0.t;
-    if (step != -1) {
-        ReleaseAsega(&grab->pactor->animation);
-        ReleaseSma(&grab->pactor->component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
-        ReplaceSma(script, grab->pactor, -1, flags, &grab->pactor->component);
-        Notify(grab->pactor, 90);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))
-            EnableJtLeanActs(grab->pactor, special);
-    }
+    if (step == -1)
+        return;
+    ReleaseAsega(&grab->pactor->animation);
+    ReleaseSma(&grab->pactor->component);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
+    ReplaceSma(script, grab->pactor, -1, flags, &grab->pactor->component);
+    Notify(grab->pactor, 90);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))
+        EnableJtLeanActs(grab->pactor, special);
 }
 } // namespace M_SetJtGrabKind
 
@@ -2909,14 +2909,13 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
         else
             idHint = D_003DD490.ajtgrabcand[0].pspot->nUnk14;
     }
-    if (idHint != idHintOld)
-    {
-        if (idHint == -1)
-            CancelNotice(&D_003DA0C0, D_003DD490.idHintGrab);
-        else
-            PostNotice(&D_003DA0C0, idHint, -1.0f);
-        D_003DD490.idHintGrab = idHint;
-    }
+    if (idHint == idHintOld)
+        return;
+    if (idHint == -1)
+        CancelNotice(&D_003DA0C0, D_003DD490.idHintGrab);
+    else
+        PostNotice(&D_003DA0C0, idHint, -1.0f);
+    D_003DD490.idHintGrab = idHint;
 }
 } // namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi
 
