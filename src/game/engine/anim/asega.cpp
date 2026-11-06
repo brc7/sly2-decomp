@@ -85,7 +85,7 @@ void DetachActBase(ACTSEGV *channel);
 void GetActGoalDefault(ACTSEGV *channel, qword *pq1, qword *pq2);
 void StartSwAsegSound(SW *, int, int, int, int, ALO *, LO *, ASEG *, CRefPtr<SND> *, float, float, float);
 void StopSwAsegSound(SW *, EASND *, ASEG *, CRefPtr<SND> *);
-void func_0014F750(void *, void *);
+void JoltCamera(void *, void *);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *, void *, float);
 int GetBasicCid(LO *);
 void FireRelay(LO *, int);
@@ -456,7 +456,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         StopSwAsegSound(&D_003DD490, event->pesnd, pq, &player->psnd);
         break;
     case 2:
-        func_0014F750(D_002DDF40, event->pesnd);
+        JoltCamera(D_002DDF40, event->pesnd);
         break;
     case 3:
         TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, event->pesnd, event->gC);

@@ -52,9 +52,9 @@ extern PFNRP D_002BDD88[][2];
 
 extern "C" {
 void qsort(void *, int, int, int (*)(const void *, const void *));
-void func_0014F768(CM *pcm, int k, int n, MATRIX4V *pm0, MATRIX4V *pm1);
+void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4V *pm0, MATRIX4V *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
-void func_001EA9F0(GAME *pgame, int n);
+void BuildWorldBackgroundImage(GAME *pgame, int n);
 }
 
 typedef int (*PFNCMP)(const void *, const void *);
@@ -149,9 +149,9 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
         vifs->AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
         if (D_003DD490.f3E38) {
             if (g_pfrmOpen == &D_002DEA50)
-                func_0014F768(camera, 1, 0, &viewProj, &cameraMatrix);
+                BuildStereoEyeViewProj(camera, 1, 0, &viewProj, &cameraMatrix);
             else
-                func_0014F768(camera, 2, 0, &viewProj, &cameraMatrix);
+                BuildStereoEyeViewProj(camera, 2, 0, &viewProj, &cameraMatrix);
         } else {
             MATRIX4V *pm1 = &camera->viewProj;
             MATRIX4V *pm2 = &camera->cameraMatrix;
@@ -216,9 +216,9 @@ extern "C" void DrawSw(GAME *world)
     D_002DE5A4 = 0;
     if (D_003DD490.f3E38) {
         if (g_pfrmOpen == &D_002DEA50)
-            func_0014F768(&D_002DDF40, 1, 0, &mat0, &mat1);
+            BuildStereoEyeViewProj(&D_002DDF40, 1, 0, &mat0, &mat1);
         else
-            func_0014F768(&D_002DDF40, 2, 0, &mat0, &mat1);
+            BuildStereoEyeViewProj(&D_002DDF40, 2, 0, &mat0, &mat1);
     } else {
         MATRIX4V *pm0 = &D_002DDF40.viewProj;
         MATRIX4V *pm1 = &D_002DDF40.cameraMatrix;
@@ -259,7 +259,7 @@ extern "C" void DrawSw(GAME *world)
     D_002DEA28.Flush();
     if (world->f3EA8) {
         world->f3EA8 = 0;
-        func_001EA9F0(world, 0);
+        BuildWorldBackgroundImage(world, 0);
     }
 }
 

@@ -1361,7 +1361,7 @@ extern int D_002DD5BC;
 void SetXfRole(P *, void *, int);
 void ScheduleIdleTimer(P *);
 void SetMurrayFlopSubstate(P *, int);
-void func_0015C150(OBJ *);
+void ExplodeWithDefaults(OBJ *);
 void SetJtAirState(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
@@ -1451,7 +1451,7 @@ extern "C" void SetMurrayState(P *murray, int next)
             }
             if (object) {
                 Call(object, 8);
-                func_0015C150(object);
+                ExplodeWithDefaults(object);
                 Call(object, 9);
             }
         }

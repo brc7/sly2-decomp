@@ -151,7 +151,7 @@ struct AREQ { int cb; int cbAlign; };
 void *PvAllocLevelHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocLevelHeapUncleared(AREQ *preq) __asm__("AllocFromWorldHeap");   /* allocate (uncleared); labelled as above */
 void *PvAllocLevelHeapCopy(AREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");   /* allocate a copy of pv */
-extern "C" void func_00159118(EMITB *pemitb); /* InitEmitb: zero the block, install the EMITO/EMITV defaults */
+extern "C" void InitEmitBlock(EMITB *pemitb); /* InitEmitb: zero the block, install the EMITO/EMITV defaults */
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 /* CBinaryInputStream's readers by their symbols (the class is only forward-declared in the sly2 headers: bis.h's
    definition clashes with basic.h's VECTOR/MATRIX types); C++ names bound by label, as PvAllocLevelHeap */
@@ -248,7 +248,7 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
     AREQ req;
     req.cb = 0x100;
     req.cbAlign = 0x10;
-    func_00159118(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
+    InitEmitBlock(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
     p->XFM::LoadFromBrx(pbis);
     if (p->pemitb->kEmito == 3)
         LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->pvEmito, pbis);

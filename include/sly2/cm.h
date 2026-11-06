@@ -126,9 +126,9 @@ struct CPZOOM : public CPLCY
     void SetFocus(LO *plo) __asm__("SetCpzoomFocus");
     void SetPose(qword pos, qword eul, float radFov) __asm__("SetCpzoomPose");
     void SetZoom(float u) __asm__("SetCpzoomUZoomTarget");
-    int FAtTargetFocus() __asm__("func_00150F58");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
-    int FAtTargetEye() __asm__("func_00151018");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
-    int FAtTargetZoom() __asm__("func_001510D8");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetFocus() __asm__("HasZoomCenterArrived");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetEye() __asm__("HasZoomEyeArrived");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetZoom() __asm__("HasZoomReachedTarget");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 
 /* CPHANG: the hang camera policy: sways the camera while the hero hangs (inferred from the fields).

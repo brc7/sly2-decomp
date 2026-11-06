@@ -288,7 +288,7 @@ struct F { struct S *p0; int n4; int n8; int nC; int n10; int pad[3]; qword q20;
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(void *p);
 void DeliverZapToSo(struct F *pf);
-void func_0015C150(void *p);
+void ExplodeWithDefaults(void *p);
 // vtable slot 82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190,
 // then vtable slot 9 Remove. (inferred)
 void KillHack(struct S *hack, int n) {
@@ -305,7 +305,7 @@ void KillHack(struct S *hack, int n) {
         f.n10 = -hack->n188;
         DeliverZapToSo(&f);
     }
-    if (hack->p190) func_0015C150(hack->p190);
+    if (hack->p190) ExplodeWithDefaults(hack->p190);
     { struct VTE *e = &hack->vt[9]; ((void (*)(void *))e->pfn)((char *)hack + e->d); }
 }
 } } // namespace M_func_0017F5F8

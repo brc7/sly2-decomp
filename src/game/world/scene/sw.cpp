@@ -383,7 +383,7 @@ void AbortJob(int h);
 void ResetScreens(void *p);
 void DeleteSwSplice(struct S *p);
 void ClearGameDifficulty(void *p);
-void func_0014D650(void *p);
+void ResetCameraPolicies(void *p);
 void ResetSndmgr(void *p);
 void ClearShaderGsState(void);
 void SetRumbleRums__FP6RUMBLE4RUMS(void *p, int n);
@@ -411,7 +411,7 @@ void DeleteSw(struct S *world)
     ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
     ClearGameDifficulty(pv);
-    func_0014D650(D_002DDF40);
+    ResetCameraPolicies(D_002DDF40);
     ResetSndmgr(D_003DD040);
     ClearShaderGsState();
     SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
@@ -1130,7 +1130,7 @@ typedef union { qword q; V3 v; } UV;
 extern char D_002BBB60[];
 struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
 void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
-void func_001ED2D8(UV *pv);
+void ColorCorrectVector(UV *pv);
 float GLimitLm__FP2LMf(void *p, float g);
 /** @sly2-annot addr=0x20F1C8
  * Purpose: Recompute ambient light colour from HSV (+0x3E10) scaled by midtone (+0x3E20/255) and shadow level
@@ -1160,7 +1160,7 @@ void UpdateSwIllum(struct S *world)
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
-    func_001ED2D8(&out);
+    ColorCorrectVector(&out);
     world->rgb = out.v;
     world->shadowScale = world->shadow * k;
     if (world->isShadowLimited)
@@ -2135,7 +2135,7 @@ void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *
 
 namespace M_func_00210678 { extern "C" {
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
-void *func_001EC918(int id);
+void *FindShaderAnimById(int id);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void SetSoEyesClosed(void *p, float f);
 void SetEyesClosed(void *p, float f);
@@ -2158,7 +2158,7 @@ void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
             p1 = q;
     }
     if (id2 != -1) {
-        p2 = func_001EC918(id2);
+        p2 = FindShaderAnimById(id2);
         if (p2 && !FIsBasicDerivedFrom__FP5BASIC3CID(p2, 0x8E))
             p2 = 0;
     }

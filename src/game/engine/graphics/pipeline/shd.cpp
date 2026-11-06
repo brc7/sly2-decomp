@@ -63,7 +63,7 @@ extern "C" {
 /* The tables (separate globals: one lui per store in ResetShaders). */
 /* shd's .bss (address order; the per-function views below redeclare some with their own types). D_003DA790 and
  * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the 0x200-entry table of
- * 0x14-byte records between them (func_001EC740's E, shdanim's SAIE, glob's LINK); defined here with a file-scope
+ * 0x14-byte records between them (RelocateShaderUploadRecords's E, shdanim's SAIE, glob's LINK); defined here with a file-scope
  * record type of that size so the .bss after it keeps the ELF's addresses (g++ 2.95 does not compare the views'
  * namespaced extern "C" declarations with it). */
 struct SHDREC { int a; int b; unsigned int p; int c; int d; };
@@ -88,7 +88,7 @@ void *D_003DD018;
 void ColorCorrectRgba(RGBAV *prgba);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 void *memset(void *pv, int n, unsigned int cb);
-void *func_001EC880();
+void *FindShaderById();
 int NLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
@@ -134,10 +134,10 @@ extern "C" void RelocateSharedColorTables(int ib)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EA688 { extern "C" {
+namespace M_GetShaderPassCount { extern "C" {
 struct S { int n0; unsigned char b4; unsigned char b5; };
 // Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1. (inferred)
-int func_001EA688(struct S *p)
+int GetShaderPassCount(struct S *p)
 {
     switch (p->b4) {
     case 1:
@@ -148,19 +148,19 @@ int func_001EA688(struct S *p)
     }
     return 1;
 }
-} } // namespace M_func_001EA688
+} } // namespace M_GetShaderPassCount
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_Tex0FromTexIframeCtk { extern "C" {
 typedef unsigned long ulong;
 struct E { char pad[0x18]; ulong a; ulong b; };
 struct S { int x0, x4; void *p8; struct E **apeC; struct E **ape10; };
-int func_001EA688(void *p);
+int GetShaderPassCount(void *p);
 // TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0. (inferred)
 ulong Tex0FromTexIframeCtk(struct S *p, int i, int j)
 {
     ulong fl = p->apeC[i]->b;
-    struct E *pe = p->ape10[i * func_001EA688(p->p8) + j];
+    struct E *pe = p->ape10[i * GetShaderPassCount(p->p8) + j];
     if (pe)
         fl |= pe->a;
     return fl;
@@ -210,7 +210,7 @@ struct Y { char pad[0xC]; int *pv; };
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
-struct Y *func_001ED5D0(int id);
+struct Y *FindClutInHash(int id);
 void *AllocFromWorldHeap(struct AR *par);
 void ColorCorrectRgba(int *p);
 // Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via
@@ -231,7 +231,7 @@ void LoadClutFromBrx(void *pbis, struct X *px)
         }
     }
     if (px->b4 != 1) {
-        struct Y *py = func_001ED5D0(px->id);
+        struct Y *py = FindClutInHash(px->id);
         if (py) {
             px->pv = py->pv;
             Skip__18CBinaryInputStreami(pbis, cb);
@@ -250,7 +250,7 @@ void LoadClutFromBrx(void *pbis, struct X *px)
 } } // namespace M_LoadClutFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EA9F0 {
+namespace M_BuildWorldBackgroundImage {
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 struct VEC3 { float x, y, z; VEC3() {} };
@@ -277,7 +277,7 @@ void AddPrimEnd__4GIFS(GIFS *);
 void AddDmaEnd__4DMAS(GIFS *);
 void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
-void func_001EA9F0(O *p, void *pbs);
+void BuildWorldBackgroundImage(O *p, void *pbs);
 }
 static inline void ClearClr(CLR *pc)
 {
@@ -295,7 +295,7 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
 }
 // Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at
 // g_sw+0x3EA0) (inferred)
-void func_001EA9F0(O *p, void *pbs)
+void BuildWorldBackgroundImage(O *p, void *pbs)
 {
     if (!pbs && !(p->tex0 & (0x3FFFL << 37)))
         return;
@@ -365,15 +365,15 @@ void func_001EA9F0(O *p, void *pbs)
     SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
     }
 }
-} // namespace M_func_001EA9F0
+} // namespace M_BuildWorldBackgroundImage
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EAD98 { extern "C" {
+namespace M_CopyClutHeader { extern "C" {
 struct H { int a; int b; unsigned short c; unsigned short d; int *ap; };
 struct S { struct H h; unsigned int cqw; };
 void ColorCorrectRgba(int *p);
 // Copy a CLUT header, color-correct its colors, compute qword count. (inferred)
-struct S *func_001EAD98(struct S *p, struct H *ph)
+struct S *CopyClutHeader(struct S *p, struct H *ph)
 {
     int *pn;
     p->h = *ph;
@@ -382,7 +382,7 @@ struct S *func_001EAD98(struct S *p, struct H *ph)
     p->cqw = (p->h.c * sizeof(int) + 15) >> 4;
     return p;
 }
-} } // namespace M_func_001EAD98
+} } // namespace M_CopyClutHeader
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream { extern "C" {
@@ -420,7 +420,7 @@ struct Y { char pad[0x14]; void *pv; };
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
-struct Y *func_001ED4E0(int id);
+struct Y *FindBitmapInHash(int id);
 void *AllocFromWorldHeap(struct AR *par);
 // Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
 void LoadBmpFromBrx(void *pbis, struct X *px)
@@ -439,7 +439,7 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
         }
     }
     if (px->b4 != 1) {
-        struct Y *py = func_001ED4E0(px->id);
+        struct Y *py = FindBitmapInHash(px->id);
         if (py) {
             px->pv = py->pv;
             Skip__18CBinaryInputStreami(pbis, px->cb);
@@ -455,17 +455,17 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
 } } // namespace M_LoadBmpFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EB050 { extern "C" {
+namespace M_CopyBitmapHeader { extern "C" {
 struct S { int a, b, c, d; unsigned int n10; int n14; unsigned int n18; };
 struct T { int a, b, c, d; unsigned int n10; int n14; };
 // Copy a BMP header and compute qword count. (inferred)
-struct S *func_001EB050(struct S *p, struct T *q)
+struct S *CopyBitmapHeader(struct S *p, struct T *q)
 {
     *(struct T *)p = *q;
     p->n18 = (p->n10 + 15) >> 4;
     return p;
 }
-} } // namespace M_func_001EB050
+} } // namespace M_CopyBitmapHeader
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream { extern "C" {
@@ -659,7 +659,7 @@ void LoadShdFromBrx(void *pbis, struct L *p)
 } } // namespace M_LoadShdFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EB678 { extern "C" {
+namespace M_BuildShaderTex0List { extern "C" {
 typedef unsigned long ulong;
 struct B4 { char a[4]; };
 struct MSG { int cb; int nKind; };
@@ -669,7 +669,7 @@ struct Dst { int x0; int x4; int x8; struct B4 bc; int c; ulong *a; };
 void *AllocClearedFromWorldHeap(struct MSG *);
 ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
 // Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) (inferred)
-void func_001EB678(struct Src *ps, struct Dst *pd)
+void BuildShaderTex0List(struct Src *ps, struct Dst *pd)
 {
     struct S3 *p;
     struct MSG msg;
@@ -692,7 +692,7 @@ void func_001EB678(struct Src *ps, struct Dst *pd)
         *pe = Tex0FromTexIframeCtk(p, i, 0);
     }
 }
-} } // namespace M_func_001EB678
+} } // namespace M_BuildShaderTex0List
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadShadersFromBrx { extern "C" {
@@ -713,8 +713,8 @@ void *LoadSaaFromBrx(int, void *);
 void LoadShdFromBrx(void *, struct E *);
 void LoadSwSharedDataFromBrx(void *, void *);
 void *UploadPermShaders(int, int);
-void func_001EB960(void);
-void func_001EB678(struct E *, void *);
+void BuildShaderGifPackets(void);
+void BuildShaderTex0List(struct E *, void *);
 void AppendSlEntry(void *, void *);
 // Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures
 // (0x1ECE58); build shader packets.
@@ -741,7 +741,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
     pv = UploadPermShaders(k, 3);
     if (pv && (unsigned)D_003DCFA0 < 16)
         D_003DCFA8[D_003DCFA0++] = pv;
-    func_001EB960();
+    BuildShaderGifPackets();
     for (i = 0; i < D_003DCFE8; i++) {
         struct E *pe = &D_003DCFEC[i];
         if (pe->b5 & 0x40) {
@@ -749,7 +749,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
             msg.cb = 0x1C;
             msg.nKind = 0x10;
             q = (__typeof__(q))AllocClearedFromWorldHeap(&msg);
-            func_001EB678(pe, q);
+            BuildShaderTex0List(pe, q);
             AppendSlEntry((*(char (*)[])&g_sw.slShd), q);
         }
     }
@@ -757,7 +757,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
 } } // namespace M_LoadShadersFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EB960 {
+namespace M_BuildShaderGifPackets {
 #include "gifs.h"
 struct RGBA {uchar r,g,b,a;};
 struct PACKET {int count;QW*data;};
@@ -768,7 +768,7 @@ extern "C" { extern ENTRY *D_003DCFEC; }
 extern "C" { 
  }
 extern "C" void PackTexGifs(TEXTURE*,int,GIFS*);
-extern "C" void func_001EB960();
+extern "C" void BuildShaderGifPackets();
 static inline ulong ColorWord(const RGBA&color,const ENTRY*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->flags&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
 static inline void Pair(GIFS&q,int first,ulong regs){q.AddPrimBulk(first,0,4,regs,0);q.AddPrimBulk(first+1,0,4,regs,0);}
 static inline void Packed(GIFS&q){q.AddPrimPack(0,1,0xE);}
@@ -791,7 +791,7 @@ static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKin
  depthKind=retained;flags4=marked;return base;
 }
 // Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind. (inferred)
-void func_001EB960(){
+void BuildShaderGifPackets(){
  int i;
  for(i=0;i<D_003DCFE8;i++){
   ENTRY*e=D_003DCFEC+i;
@@ -925,37 +925,37 @@ void func_001EB960(){
   }
  }
 }
-} // namespace M_func_001EB960
+} // namespace M_BuildShaderGifPackets
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EC688 { extern "C" {
+namespace M_AddShaderVifUnpack { extern "C" {
 struct E { int a; int b; };
 struct S { char pad[0x20]; struct E *ae; };
 void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, int d, int e);
 // Emit a VIF unpack (0x226F28 kind 12) for record i; return its size. (inferred)
-int func_001EC688(struct S *p, int i, int x, int y)
+int AddShaderVifUnpack(struct S *p, int i, int x, int y)
 {
     struct E *pe = &p->ae[i];
     AddVifUnpack__4VIFS3UPKiPvi(y, 12, pe->a, pe->b, x);
     return pe->a;
 }
-} } // namespace M_func_001EC688
+} } // namespace M_AddShaderVifUnpack
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EC6D0 { extern "C" {
+namespace M_AddShaderVifUnpackQword { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x30]; qword q; };
 struct E { int a; struct O *po; };
 struct S { char pad[0x20]; struct E *ae; };
 void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, qword *d, int e);
 // Variant of 0x1EC688 for a single qword from an object. (inferred)
-int func_001EC6D0(struct S *p, int i, int x, int y)
+int AddShaderVifUnpackQword(struct S *p, int i, int x, int y)
 {
     struct E *pe = p->ae + i; qword q = pe->po->q;
     AddVifUnpack__4VIFS3UPKiPvi(y, 12, 1, &q, x);
     return 1;
 }
-} } // namespace M_func_001EC6D0
+} } // namespace M_AddShaderVifUnpackQword
 
 // CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
@@ -966,11 +966,11 @@ extern "C" void ApplyCopyRecord(COPYREC *prec)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EC740 { extern "C" {
+namespace M_RelocateShaderUploadRecords { extern "C" {
 struct E { int a; int b; unsigned int p; int c; int d; };
 extern struct E D_003DA798[];
 // Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew. (inferred)
-void func_001EC740(int iFirst, int iLast, int cb, unsigned int pOld, unsigned int pNew)
+void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, unsigned int pOld, unsigned int pNew)
 {
     int i;
     unsigned int pEnd = pOld + cb;
@@ -979,7 +979,7 @@ void func_001EC740(int iFirst, int iLast, int cb, unsigned int pOld, unsigned in
         if (pe->p >= pOld && pe->p < pEnd) pe->p = pNew + (pe->p - pOld);
     }
 }
-} } // namespace M_func_001EC740
+} } // namespace M_RelocateShaderUploadRecords
 
 // Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) (inferred)
 extern "C" void ResetShaders()
@@ -1021,10 +1021,10 @@ struct E *PshdFindShader(int oid)
 } } // namespace M_PshdFindShader
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EC880 { extern "C" {
+namespace M_FindShaderById { extern "C" {
 struct O { int oid; char pad[0x14]; struct O *pNext; };
 // Find an entry by oid in linked list (*(struct O * *)&g_sw.slShd) (next +0x18) (inferred)
-struct O *func_001EC880(int oid)
+struct O *FindShaderById(int oid)
 {
     int unused[4];
     struct O *p;
@@ -1034,14 +1034,14 @@ struct O *func_001EC880(int oid)
     }
     return 0;
 }
-} } // namespace M_func_001EC880
+} } // namespace M_FindShaderById
 
 // 0x1EC880(oid) or the list head. (inferred)
-/* func_001EC880's shader, else the default one ((*(void * *)&g_sw.slShd)). */
+/* FindShaderById's shader, else the default one ((*(void * *)&g_sw.slShd)). */
 extern "C" void *FindShdOrDefault()
 {
     void *pshd;
-    pshd = func_001EC880();
+    pshd = FindShaderById();
     if (pshd == 0) {
         pshd = (*(void * *)&g_sw.slShd);
     }
@@ -1055,13 +1055,13 @@ extern "C" SHDV *GetShdByIndex(int ishd)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001EC918 { extern "C" {
+namespace M_FindShaderAnimById { extern "C" {
 struct O { char pad[0x14]; int n14; char pad2[0x30-0x18]; struct O *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 // 0x1EC910: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addu $2, $2, $4");
 
 // Find an SAA by id (+0x14) in list (*(struct O * *)&g_sw.slSaa) (stops at entries with a child) (inferred)
-struct O *func_001EC918(int n)
+struct O *FindShaderAnimById(int n)
 {
     int unused[4];
     struct O *p;
@@ -1072,7 +1072,7 @@ struct O *func_001EC918(int n)
     }
     return 0;
 }
-} } // namespace M_func_001EC918
+} } // namespace M_FindShaderAnimById
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateShaders { extern "C" {
@@ -1154,16 +1154,16 @@ extern int D_003DCFF8;
 extern struct E1 *D_003DCFFC;
 extern int D_003DCFF0;
 extern struct E2 *D_003DCFF4;
-struct T1 *func_001ED5D0(int);
-struct T2 *func_001ED4E0(int);
+struct T1 *FindClutInHash(int);
+struct T2 *FindBitmapInHash(int);
 int IgsAllocGsb__FP3GSBi(struct BS *, int);
 void BuildClutTex2__FP4CLUTi(struct E1 *, int);
 void BuildClutGifs__FP4CLUTiP4GIFS(struct E1 *, int, struct X *);
 void BuildBmpTex0__FP3BMPi(struct E2 *, int);
 void BuildBmpGifs(struct E2 *, int, struct X *);
 void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
-void func_001ED560(struct E1 *);
-void func_001ED470(struct E2 *);
+void AddClutToHash(struct E1 *);
+void AddBitmapToHash(struct E2 *);
 // Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added.
 int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
 {
@@ -1177,7 +1177,7 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gi
         int gsAddress;
         if (kind != entry->kind)
             continue;
-        cached = func_001ED5D0(entry->n0);
+        cached = FindClutInHash(entry->n0);
         if (cached) {
             entry->tex2 = cached->tex2;
             continue;
@@ -1188,7 +1188,7 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gi
             BuildClutGifs__FP4CLUTiP4GIFS(entry, gsAddress, gifs);
             AddDmaRefs__4DMASiP2QW(gifs, entry->colorQwords, entry->colors);
         }
-        func_001ED560(entry);
+        AddClutToHash(entry);
     }
     for (j = 0; j < D_003DCFF0; j++) {
         struct E2 *entry = &D_003DCFF4[j];
@@ -1196,7 +1196,7 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gi
         int gsAddress;
         if (kind != entry->kind)
             continue;
-        cached = func_001ED4E0(entry->n0);
+        cached = FindBitmapInHash(entry->n0);
         if (cached) {
             entry->tex0 = cached->tex0;
             continue;
@@ -1212,7 +1212,7 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gi
             BuildBmpGifs(entry, gsAddress, gifs);
             AddDmaRefs__4DMASiP2QW(gifs, entry->pixelQwords, entry->pixels);
         }
-        func_001ED470(entry);
+        AddBitmapToHash(entry);
     }
     if (!gifs)
         return 0;
@@ -1330,7 +1330,7 @@ int UploadPermShaders(struct BS *pbs, int k)
 } } // namespace M_UploadPermShaders
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED1A8 {
+namespace M_ColorCorrectRgba16 {
 struct RGBA { unsigned char r, g, b, a;
   RGBA() {}
   RGBA(unsigned char r_, unsigned char g_, unsigned char b_, unsigned char a_) { r = r_; g = g_; b = b_; a = a_; }
@@ -1338,27 +1338,27 @@ struct RGBA { unsigned char r, g, b, a;
 struct BF { unsigned short r : 5; unsigned short g : 5; unsigned short b : 5; unsigned short a : 1; };
 union U { unsigned short w; BF bf; };
 extern "C" { 
- void ColorCorrectRgba(RGBA *prgba); void func_001ED1A8(U *pu); }
+ void ColorCorrectRgba(RGBA *prgba); void ColorCorrectRgba16(U *pu); }
 static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b = c.b >> 3; u.bf.a = c.a >> 7; return u; }
 // 0x1ED1A0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
 // Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.fUnk3e38) (inferred)
-void func_001ED1A8(U *pu)
+void ColorCorrectRgba16(U *pu)
 {
     if (!g_sw.fUnk3e38) return;
     RGBA c(pu->bf.r << 3, pu->bf.g << 3, pu->bf.b << 3, pu->bf.a ? 0xFF : 0);
     ColorCorrectRgba(&c);
     *pu = Pack(c);
 }
-} // namespace M_func_001ED1A8
+} // namespace M_ColorCorrectRgba16
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ColorCorrectRgba { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
 void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv);
-void func_001ED2D8(struct VECTOR *pv);
+void ColorCorrectVector(struct VECTOR *pv);
 void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba);
 // If color correction enabled (g_sw.fUnk3e38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
 void ColorCorrectRgba(struct RGBA *prgba)
@@ -1368,14 +1368,14 @@ void ColorCorrectRgba(struct RGBA *prgba)
     if (g_sw.fUnk3e38) {
         rgba = *prgba;
         ConvertRgbaToFloats(&rgba, &v);
-        func_001ED2D8(&v);
+        ColorCorrectVector(&v);
         ConvertVectorToRgba(&v, prgba->a, prgba);
     }
 }
 } } // namespace M_ColorCorrectRgba
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED2D8 { extern "C" {
+namespace M_ColorCorrectVector { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) VEC;
 struct G3 { float x, y, z; };
@@ -1388,7 +1388,7 @@ float GLimitLm__FP2LMf(void *, float);
 void ConvertUserRgbToUserHsv(struct G3 *, VEC *);
 // Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via
 // HSV. (inferred)
-void func_001ED2D8(VEC *p)
+void ColorCorrectVector(VEC *p)
 {
     struct G3 c;
     VEC w;
@@ -1407,10 +1407,10 @@ void func_001ED2D8(VEC *p)
     c.z = GLimitLm__FP2LMf(D_002BBB60, powf(dot, D_002C3698));
     ConvertUserRgbToUserHsv(&c, p);
 }
-} } // namespace M_func_001ED2D8
+} } // namespace M_ColorCorrectVector
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED3A8 { extern "C" {
+namespace M_AllocateTextureHashTables { extern "C" {
 struct AR { int cb; int cbAlign; };
 void *AllocFromStack(struct AR *par);
 void *func_002333B4(void *p, int b, int cb) __asm__("memset");
@@ -1419,7 +1419,7 @@ extern void *D_003DD018;
 extern int D_003DD00C;
 extern int D_003DD014;
 // Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) (inferred)
-void func_001ED3A8(void)
+void AllocateTextureHashTables(void)
 {
     struct AR ar;
     void **pp1 = &D_003DD010;
@@ -1434,26 +1434,26 @@ void func_001ED3A8(void)
     func_002333B4(*pp2, 0, 0xFFF4);
     D_003DD00C = D_003DD014 = 0;
 }
-} } // namespace M_func_001ED3A8
+} } // namespace M_AllocateTextureHashTables
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED448 { extern "C" {
+namespace M_ClearTextureHashTables { extern "C" {
 extern int D_003DD00C, D_003DD010, D_003DD014, D_003DD018;
 // Null both hash tables and counts. (inferred)
-void func_001ED448(void)
+void ClearTextureHashTables(void)
 {
     D_003DD010 = 0;
     D_003DD018 = 0;
     D_003DD00C = D_003DD014 = 0;
 }
-} } // namespace M_func_001ED448
+} } // namespace M_ClearTextureHashTables
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED470 { extern "C" {
+namespace M_AddBitmapToHash { extern "C" {
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
 // Insert a record into the bitmap hash (key % 0x3FFD, linear probe) (inferred)
-void func_001ED470(struct S *input){
+void AddBitmapToHash(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");
 
@@ -1488,33 +1488,30 @@ typedef char S_Size[sizeof(struct S)==4?1:-1];
 typedef char Table_Pointer_Size[sizeof(struct S**)==4?1:-1];
 typedef char Key_Offset[(unsigned)&((struct S*)0)->n==0?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
-} } // namespace M_func_001ED470
+} } // namespace M_AddBitmapToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED4E0 { extern "C" {
-struct S { int n; };
+namespace M_FindBitmapInHash { extern "C" {
+struct S { int id; };
 extern struct S **D_003DD010;
-// Look up a bitmap by id in the hash. (inferred)
-struct S *func_001ED4E0(int n)
+enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
+// Look up a bitmap by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
+struct S *FindBitmapInHash(int id)
 {
-    int i;
-    struct S *p;
     if (!D_003DD010) return 0;
-    i = n % 0x3FFD;
-loop:
-    p = D_003DD010[i];
-    if (!p || p->n == n) return p;
-    i = (i + 1) % 0x3FFD;
-    goto loop;
+    for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
+        struct S *entry = D_003DD010[i];
+        if (!entry || entry->id == id) return entry;
+    }
 }
-} } // namespace M_func_001ED4E0
+} } // namespace M_FindBitmapInHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED560 { extern "C" {
+namespace M_AddClutToHash { extern "C" {
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
 // Insert into the clut hash. (inferred)
-void func_001ED560(struct S *input){
+void AddClutToHash(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");
 
@@ -1549,32 +1546,29 @@ typedef char S_Size[sizeof(struct S)==4?1:-1];
 typedef char Table_Pointer_Size[sizeof(struct S**)==4?1:-1];
 typedef char Key_Offset[(unsigned)&((struct S*)0)->n==0?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
-} } // namespace M_func_001ED560
+} } // namespace M_AddClutToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001ED5D0 { extern "C" {
-struct S { int n; };
+namespace M_FindClutInHash { extern "C" {
+struct S { int id; };
 extern struct S **D_003DD018;
-// Look up a clut by id. (inferred)
-struct S *func_001ED5D0(int n)
+enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
+// Look up a clut by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
+struct S *FindClutInHash(int id)
 {
-    int i;
-    struct S *p;
     if (!D_003DD018) return 0;
-    i = n % 0x3FFD;
-loop:
-    p = D_003DD018[i];
-    if (!p || p->n == n) return p;
-    i = (i + 1) % 0x3FFD;
-    goto loop;
+    for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
+        struct S *entry = D_003DD018[i];
+        if (!entry || entry->id == id) return entry;
+    }
 }
-} } // namespace M_func_001ED5D0
+} } // namespace M_FindClutInHash
 
 // ---- shd's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-namespace M_func_001EA9F0 { extern "C" {
+namespace M_BuildWorldBackgroundImage { extern "C" {
 int D_002C3680[3] = {8, -16, 8};
-} } // namespace M_func_001EA9F0 extern "C"
-namespace M_func_001ED2D8 { extern "C" {
+} } // namespace M_BuildWorldBackgroundImage extern "C"
+namespace M_ColorCorrectVector { extern "C" {
 float D_002C3690 __attribute__((aligned(16))) = 60.0f;
 float D_002C3694 = 0.0f;
 float D_002C3698 = 0.6f;

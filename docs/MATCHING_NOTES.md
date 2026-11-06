@@ -540,6 +540,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - `(unsigned)x - 8u < 5u` -> `x >= 8 && x <= 12` when x is a plain field or local (via a local when it came from a macro read).
 - A `goto skip` around one call becomes an `if` when the skipped condition is assigned in the condition
   (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
+- Search loops written as `loop: p = t[i]; if (!p || p->id == id) return p; i = (i+1) % N; goto loop;` -> `for (;;)`
+  (FindBitmapInHash), and `goto set` chains that all reach one call -> a single `&&` condition (SetTnTns gate).
 - Declaring a helper as `(..., float, int)` instead of `(..., int, float)`: float and int arguments go to separate register
   files, so fixing a view's argument order is free.
 
@@ -550,7 +552,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - Gotos that share tails across switch cases or jump into a common cleanup label (MsgFromMcError, McJobCreateSave,
   load_file_from_disc, SetBentleyState, ChooseJtGroundState): `break` + a re-test of the result, per-case `return`s or a
   duplicated tail reorder blocks (40-90% differ). Case-tail sharing is a layout decision.
-- A `goto out;` to a label right after a loop -> `break` (FindPathzoneSegmentBlocker, BuildConvexHull's inner `while`), or an
+- A `goto out;`/`goto found;` to a label right after a loop -> `break` (FindPathzoneSegmentBlocker, BuildConvexHull's inner
+  `while`, UpdateRipt1: 15% differ), `goto done;` to a shared tail -> wrapping the body in `if`, or an
   early `return` instead of `goto leaf` (FindPathzoneAtPos, moves the leaf block): keep such gotos, give the label a meaning,
   and say why. (A `goto test;` into a rotated `for (;;)` did become a plain `for`: RemoveObstacleEvents.)
 - Dropping a redundant test: `if (r == 3) return; if (r != 4) return;` keeps the first test (PostCid14Load).
@@ -558,6 +561,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - `if (a) goto L; if (b) goto L;` -> `if (a || b) goto L` (CanJtUseGadgetInAir).
 - `again: ... goto again` search loops (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)` or a reset of the
   iterator moves the loop test.
+- `goto test; loop: ... test: if (i < 8) goto loop;` with an early `goto done` (IgsAllocGsb) -> `for` + `return` (register
+  choice changes); RenderBlipgSelf's `top:/next:` list walk as a `for`/`do-while` (frame size changes).
 - A `do { ... goto end; } while (0)` tail -> `if/else` (SetMurrayLiftSubstate).
 - `*(*pp)++ = x` -> `T **slot = (*pp)++; *slot = x;` (CollectBspSurfacesTouchingPolygon): the temp form fixes the evaluation
   order the target has.

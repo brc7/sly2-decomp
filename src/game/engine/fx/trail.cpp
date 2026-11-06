@@ -57,7 +57,7 @@ void ResetTrailHistory(TRAIL *p);
 void PostSoLoad(TRAIL *);
 void *AllocClearedFromWorldHeap(ALLOC *);
 void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
-void func_0016EF00(MODEL *,int);
+void ResetGlobAttachment(MODEL *,int);
 void UpdateLo(TRAIL *p, float dt);
 void UpdateSoXfWorld(TRAIL *);
 qwordV GetLoWorldPos(void *);
@@ -174,7 +174,7 @@ extern "C" void PostTrailLoad(TRAIL *p){
             RecordOperands(p,node,bytes,divisor,stride,metadata);
             int index=Product(bytes,divisor)>>2;
             ((Meta *)((char *)metadata+Product(index,stride)))->style=D_002C44F0;
-            func_0016EF00(&p->model,index);
+            ResetGlobAttachment(&p->model,index);
             for(int i=0;i<node->count;i++){
                 Batch *batch=&node->batches[i];
                 CopyAb__FPvT0Ui(buffer,batch->positions,batch->count*16);

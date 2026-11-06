@@ -604,7 +604,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(struct P *, void *, int);
 void ScheduleIdleTimer(struct P *);
-void func_0015C150(struct VO *);
+void ExplodeWithDefaults(struct VO *);
 void SetJtAirState(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
@@ -683,7 +683,7 @@ void SetBentleyState(struct P *p, int k)
             }
             if (object) {
                 VCALL0(object, 8);
-                func_0015C150(object);
+                ExplodeWithDefaults(object);
                 VCALL0(object, 9);
             }
         }

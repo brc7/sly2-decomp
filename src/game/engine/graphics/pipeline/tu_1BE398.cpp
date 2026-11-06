@@ -95,7 +95,7 @@ RT *AcquireRenderTarget(RTCAM *pcam);
 void InitXfm(RTCAM *pcam);
 void LoadXfmFromBrx(RTCAM *pcam, void *pbis);
 int IsLoInWorld(LOV *plo);
-void func_00169198(void *pv, RTCAM *pcam);
+void BuildModelDrawPackets(void *pv, RTCAM *pcam);
 POV *GetHeroPo(SW *psw);
 }
 int IgsAllocGsb(GSB *pgsb, int cb);
@@ -365,7 +365,7 @@ extern "C" void RenderRtcam(RTCAM *p)
 {
     int i;
     if (p->prt) {
-        for (i = 0; i < p->c; i++) func_00169198((char *)p->ap[i] + 0x80, p);
+        for (i = 0; i < p->c; i++) BuildModelDrawPackets((char *)p->ap[i] + 0x80, p);
     }
 }
 

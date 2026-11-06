@@ -184,7 +184,7 @@ extern "C" void LoadSubglobType2FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GL
 extern "C" void LoadSubglobType1FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
 void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType3FromBrx");
 extern "C" {
-void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016A000");
+void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType0FromBrx");
 }
 static inline void *PvAllocSwClear(int cb)
 {
@@ -301,7 +301,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00167870 { extern "C" {
+namespace M_LoadPoseSetsFromBrx { extern "C" {
 typedef unsigned int uint;
 typedef unsigned long ulong;
 struct META{float limit;long kind:4;ulong count:8;ulong channel:6;ulong feature:1;ulong index:13;};
@@ -369,7 +369,7 @@ void LoadPoseSetsFromBrx(struct P*p,struct STREAM*stream){
         p->groups=groups;
     }
 }
-} } // namespace M_func_00167870
+} } // namespace M_LoadPoseSetsFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
@@ -443,7 +443,7 @@ extern "C" void BindGlobset(S *p)
 } // namespace M_BindGlobset
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00167DA0 { extern "C" {
+namespace M_ExpandSphereForProjection { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct M4 { qword r[4]; };
@@ -468,7 +468,7 @@ static inline qword Broadcast(float f) { qword r;__asm__("qmtc2.ni %1,%0":"=j"(r
 static inline qword MAdd(qword p,qword v,qword k) {qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(p),"j"(v),"j"(k));return r; }
 // Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume geometry)
 // (inferred)
-qword func_00167DA0(const struct M4 *m,qword p,float *radius)
+qword ExpandSphereForProjection(const struct M4 *m,qword p,float *radius)
 {
  U u;
  qword d=Sub(Transform(m,D_002BE570),p);
@@ -481,7 +481,7 @@ qword func_00167DA0(const struct M4 *m,qword p,float *radius)
  }
  return p;
 }
-} } // namespace M_func_00167DA0
+} } // namespace M_ExpandSphereForProjection
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_StoreRelightColors { extern "C" {
@@ -616,7 +616,7 @@ namespace M_SubmitGlobsetRelight {
 // SubmitGlobsetRelight (Claude agent, T1651): builds one VIF packet per entry of a model's packet list: a DMA CNT tag, an UNPACK of
 // 6 qwords to VU address 0x301 (entry word + bounding sphere + model matrix), padding, and a DMA RET tag, then queues it
 // in a render-list entry (AllocRenderListEntry) with the descriptor's chain. Stamps the game tick at the end.
-// From lanef9v1 (aligned 5) plus func_00169198's packet idioms (template UNPACK tag, CopyQws with the empty do-while).
+// From lanef9v1 (aligned 5) plus BuildModelDrawPackets's packet idioms (template UNPACK tag, CopyQws with the empty do-while).
 // STAND-IN (same trick as ApplySpriteKeyPoses / LoadOptionFromBrx): `if (fNever)` is dead code (gcse's last cprop folds it, jump
 // deletes it; the final code is unchanged). It only supplies the extra basic block the game had between the UNPACK tag and
 // the copy loop at gcse time: gcse PRE then inserts the %hi(D_002DEA28) copy (t2) before that block and the outer `i + 1`
@@ -991,7 +991,7 @@ namespace M_RenderSoGlobset {
 //   From laneH21v2: (1) cull 2 radius loaded by a `lw` asm straight into the qword (VU_FLOATM, as SetBentleyHelperState): real-load timing, target order (30 -> 28).
 //   (2) case-3 SqDist: the compiler moves the length out of vf (qmfc2) and an `mtc1` asm makes the float (GetX idiom, SteerRobottankAlongPath): mtc1 before add.s (28 -> 26).
 //   (3) cull-2 result: qmfc2 asm into an int (dead-$3 clobber kept) + separate `mtc1` asm: c.eq.s/swc1 one cycle earlier, the hazard nop and the 1-insn shift are gone (26 -> 15).
-//   (4) UnpackWords copy as `for (k = 0; k < cw; k++)`: loop.c creates the counter init after gcse's &matModel PRE insn, as func_00169198 (15 -> 14).
+//   (4) UnpackWords copy as `for (k = 0; k < cw; k++)`: loop.c creates the counter init after gcse's &matModel PRE insn, as BuildModelDrawPackets (15 -> 14).
 //   Left: cull 1 load/sq order + registers (target: radius lw after gain, regs v1/a0/v0/a2), cull 2 radius/range registers swapped (target radius v1, range a0),
 //   cull-2 tail `sw v1,0x1A4` / `swc1 f0,0x158` (sched1 puts the i+1 PRE insn before the swc1, so reload's spill store wins the sched2 luid tie).
 // laneH21v2 (Claude agent): aligned 30. laneI9v1 + CopyQws as `do { } while (0);` + for-k copy loop (no asm barrier; 31) + cull 2 through GCullSphereSync (vcallms and the cfc2.i sync as separate asms: target mtc1 zero / qmfc2 order) with a commented dead-$3 clobber on its qmfc2 (30).
@@ -1152,7 +1152,7 @@ void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
-qword func_00167DA0(const MATRIX4 *pmat, qword qwPos, float *psRadius);
+qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius);
 int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
 RPL *AllocRenderListEntry(void);
@@ -1340,7 +1340,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         sRadius *= GetMaxRowLengthMatrix3(pmatWorld);
     }
     if ((pmodel->grf & 0x200000000UL) && pshd->pmatClip)
-        pos = func_00167DA0(pshd->pmatClip, pos, &sRadius);
+        pos = ExpandSphereForProjection(pshd->pmatClip, pos, &sRadius);
     qword dpos;
     float gVis = GCullSphere(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
     if (gVis == 0.0f)
@@ -1391,7 +1391,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         qword posSub = QwXfm(matModel, *(qword *)&posSph);
         float sRadiusSub = GetMaxRowLengthMatrix3(&matModel) * psph->rad;
         if ((psub->grf & 7) == 2 && pshd->pmatClip)
-            posSub = func_00167DA0(pshd->pmatClip, posSub, &sRadiusSub);
+            posSub = ExpandSphereForProjection(pshd->pmatClip, posSub, &sRadiusSub);
         float gVisSub;
         qword dposSub;
         if (!psub->abone)
@@ -1541,8 +1541,8 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
 } // namespace M_RenderSoGlobset
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00169198 {
-// func_00169198 (Claude agent, lanes I1-I9, H21): fresh rewrite in the style of Lilly's matched files.
+namespace M_BuildModelDrawPackets {
+// BuildModelDrawPackets (Claude agent, lanes I1-I9, H21): fresh rewrite in the style of Lilly's matched files.
 // H21: the copy loop is a `for` counter loop (loop.c turns it into the target's 12/-4/bgez count) preceded by an
 // empty do-while(0), whose loop notes act as the scheduling barrier the target shows after `pb += 4`.
 // Builds the VIF packet for every submodel of a model: model matrix, optional bone matrices, optional skin matrices,
@@ -1748,7 +1748,7 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
 }
 // Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it
 // with its sort distance. (inferred)
-extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
+extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 {
     SHD shd;
     MATRIX4 matModel;
@@ -1887,7 +1887,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
         prpl->pv = psub->pb;
     }
 }
-} // namespace M_func_00169198
+} // namespace M_BuildModelDrawPackets
 
 // Qsort comparator over 4 int keys (>>6 granularity on two) (inferred)
 /* qsort order of the 0x14-byte draw records: by the first pointer (+4, in 0x40 units), the word at +8, the second
@@ -1910,7 +1910,7 @@ extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001699E8 { extern "C" {
+namespace M_LoadSubglobInstancesFromBrx { extern "C" {
 struct A { int a[5]; };
 struct B { int a[10]; };
 struct C { int a[6]; };
@@ -1927,7 +1927,7 @@ void LoadSubglobInstancesFromBrx(void *p, struct A *aa, struct B *ab, struct C *
         LoadSubglobInstanceFromBrx(p, aa, ab, ac, pa, pb, pcw, x, y, z, w);
     }
 }
-} } // namespace M_func_001699E8
+} } // namespace M_LoadSubglobInstancesFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobInstanceFromBrx {
@@ -2097,8 +2097,8 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
 } } // namespace M_CopyRelocateDmaChain
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016A000 {
-// func_0016A000 = LoadSubglobType0FromBrx (name from Lilly's personal decomp, decomp/src/P2/glob.c T1082 draft). MATCH (T1701).
+namespace M_LoadSubglobType0FromBrx {
+// LoadSubglobType0FromBrx = LoadSubglobType0FromBrx (name from Lilly's personal decomp, decomp/src/P2/glob.c T1082 draft). MATCH (T1701).
 // Built on lilly4 (T1697) / lilly3 (T1693); see notes/160000.md for the tricks that matched it, the last ones being:
 //  - the header flags word (BATCHHDR0 +0x8) is a one-member struct, set from an aggregate initializer in the ibatch
 //    switch: the clear-then-set keeps loop.c from hoisting the constant with the other 1s;
@@ -2617,7 +2617,7 @@ struct WRBG
 };
 extern "C" { extern char D_00000000[]; }
 extern "C" {
-void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016A000");
+void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType0FromBrx");
 }
 static inline void *PvAllocSw(int cb)
 {
@@ -2630,7 +2630,7 @@ static inline void *PvAllocSwCopy(int cb, void *pvBase)
     return PvAllocSwCopyImpl(&swalloc, pvBase);
 }
 SHD *PshdFromIshd(int ishd) __asm__("GetShdByIndex");
-int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("func_001EC688");
+int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("AddShaderVifUnpack");
 extern "C" { extern uint D_002BE540[]; }
 extern "C" { extern int D_002BE558[]; }
 extern "C" { extern QW D_002DEB60; }
@@ -2663,9 +2663,9 @@ static inline void *PvAllocSwClearP(int cb)
     return PvAllocSwClearImpl(&swalloc);
 }
 extern "C" SHD *PshdFindShader(int oid);
-extern "C" int func_001EC6D0(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
+extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs);
-extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
+extern "C" void RelocateShaderUploadRecords(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
 extern "C" { extern int D_003DA790; }
 extern "C" { 
  }
@@ -3091,7 +3091,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         int ioid = pglobset->cnUnk2c;
                         while (--ioid >= 0)
-                            iqw += func_001EC6D0(PshdFindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
+                            iqw += AddShaderVifUnpackQword(PshdFindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);
@@ -3526,7 +3526,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     if (pclutset != 0)
         pglobset->nUnk4c = g_sw.nUnk3d5c;
     pglob->iUnkEnd = D_003DA790;
-    func_001EC740(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
+    RelocateShaderUploadRecords(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)
     {
         for (WRBGBATCH *pwb = (WRBGBATCH *)pglob->pwrbg->slBatch.head; pwb != 0; pwb = pwb->pwrbgbatchNext)
@@ -3568,10 +3568,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     }
     LoadSubglobInstancesFromBrx(pglobset, psubglob, pglob, psubglobx, cSubExtra, cbatch, acbatch, apbatch, pbis);
 }
-} // namespace M_func_0016A000
+} // namespace M_LoadSubglobType0FromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016C8E0 {
+namespace M_LoadClutsetFromBrx {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream {
 public:
@@ -3583,7 +3583,7 @@ struct E6 { short a; short b; char c; char pad; };
 struct E8 { int c; E6 *a; };
 struct T { int c; E8 *a; int *ai; };
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" void func_001ED1A8(short *ps);
+extern "C" void ColorCorrectRgba16(short *ps);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -3610,8 +3610,8 @@ extern "C" T *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
                 p6->a = pbis->U16Read();
                 p6->b = pbis->U16Read();
                 p6->c = pbis->U8Read();
-                func_001ED1A8(&p6->a);
-                func_001ED1A8(pb);
+                ColorCorrectRgba16(&p6->a);
+                ColorCorrectRgba16(pb);
             }
         }
         int m = pbis->U16Read();
@@ -3621,7 +3621,7 @@ extern "C" T *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
     }
     return pt;
 }
-} // namespace M_func_0016C8E0
+} // namespace M_LoadClutsetFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobType2FromBrx {
@@ -3639,7 +3639,7 @@ void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*AllocClearedFromWorldHeap(const REQUEST&);
 OBJECT*GetShdByIndex(int);
-int func_001EC688(OBJECT*,int,int,VIFS*);
+int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
 void LoadSubglobInstancesFromBrx(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 void*memset(void*,int,uint);
 extern QW D_002DEB60;
@@ -3712,7 +3712,7 @@ extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphe
   OBJECT*object=GetShdByIndex(stream->U16Read());
   for(int segment=0;segment<object->count;segment++){
    HEADER*slot=(HEADER*)((uint)header+segment*2);slot->segments[0]=current;
-   current+=func_001EC688(object,segment,current,&vifs);
+   current+=AddShaderVifUnpack(object,segment,current,&vifs);
   }
   int vertices=stream->U8Read();
   vifs.AddVifStcycl(1,2);
@@ -3741,7 +3741,7 @@ extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphe
 } // namespace M_LoadSubglobType2FromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016CF78 {
+namespace M_LoadSubglobType3FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
@@ -3761,7 +3761,7 @@ void*AllocFromStack(const REQUEST&);
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*GetShdByIndex(int);
-int func_001EC688(OBJECT*,int,int,VIFS*);
+int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
 void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 /* func_002599D8/E0/E8: the file-scope inline readers */
 
@@ -3883,7 +3883,7 @@ extern "C" void LoadSubglobType3FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sp
   int current=base;
   for(int segment=0;segment<object->count;segment++){
    HEADER*slot=(HEADER*)((uint)header+segment*2);slot->segments[0]=current;
-   current+=func_001EC688(object,segment,current,&vifs);
+   current+=AddShaderVifUnpack(object,segment,current,&vifs);
   }
   ++current;header->weight=current;current+=2*vertices;header->end=current;header->vertices=vertices;
   vifs.AddVifStcycl(1,2);
@@ -3912,7 +3912,7 @@ extern "C" void LoadSubglobType3FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sp
  vifs.DetachCopySw(&desc->words,&data,&entry->chain);
  LoadSubglobInstancesFromBrx(p,desc,entry,sphere,groups,0,0,0,input);
 }
-} // namespace M_func_0016CF78
+} // namespace M_LoadSubglobType3FromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddFramePatch { extern "C" {
@@ -3929,11 +3929,11 @@ void AddFramePatch(int n, struct D *pd, struct H **pph)
 } } // namespace M_AddFramePatch
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016D6C8 {
+namespace M_BuildProjectedVolumeGifs {
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
 // Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected by grf bits.
 // (inferred)
-extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
+extern "C" void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps)
 {
     pgifs->AddPrimPack(0x200, 1, 0xE);
     AddFramePatch((grf & 4) ? 4 : 5, pgifs, pps);
@@ -3975,7 +3975,7 @@ extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
     pgifs->AddPrimPack(0x200, 1, 0xE);
     pgifs->PackAD(0x41, 0xE0000002000000L);
 }
-} // namespace M_func_0016D6C8
+} // namespace M_BuildProjectedVolumeGifs
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpProjVolume {
@@ -3988,7 +3988,7 @@ extern "C" { extern QW D_002DF800[]; }
 extern "C" { extern int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
-extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps);
+extern "C" void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps);
 // Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040, build/kick (MSCAL 0x1AA0)
 // the masked full-screen stencil-init strips. (inferred)
 extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
@@ -4007,7 +4007,7 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
     QW aqw[0x100];
     gifs.AllocStatic(0x100, aqw);
     if (n2 != 7)
-        func_0016D6C8(&gifs, 0x299, &ps);
+        BuildProjectedVolumeGifs(&gifs, 0x299, &ps);
     gifs.AddPrimPack(0, 1, 0xE);
     AddFramePatch(0, &gifs, &ps);
     if (n1 == 7 || n2 != 7)
@@ -4055,7 +4055,7 @@ extern "C" {
 extern "C" { extern QW*D_002DEA4C __asm__("g_pfrmOpen"); }
 extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
 extern "C" void AddFramePatch(int,GIFS*,COMMAND**);
-extern "C" void func_0016D6C8(GIFS*,uint,COMMAND**);
+extern "C" void BuildProjectedVolumeGifs(GIFS*,uint,COMMAND**);
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
 typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
@@ -4102,8 +4102,8 @@ extern "C" void EndRpProjVolume(VIFS*input,int first,int mode){
     right+=0x200;
    }while(remaining>=0);
   }
-  func_0016D6C8(&gifs,0x810095,&cursor);
-  func_0016D6C8(&gifs,0x266,&cursor);
+  BuildProjectedVolumeGifs(&gifs,0x810095,&cursor);
+  BuildProjectedVolumeGifs(&gifs,0x266,&cursor);
  }
  gifs.AddPrimPack(0,1,0xE);
  AddFramePatch(0,&gifs,&cursor);
@@ -4396,7 +4396,7 @@ extern "C" void EndRpCelBorder(VIFS *pvifs)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016EA80 {
+namespace M_CloneGlobset {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef unsigned int uint;
 struct TRANSFORM;
@@ -4456,14 +4456,14 @@ void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*);
 void PrependSlEntry(void*,LINK*);
-void func_001EC740(int,int,int,uint,uint);
+void RelocateShaderUploadRecords(int,int,int,uint,uint);
 }
 static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return AllocCopyFromWorldHeap(&request,source);}
 static inline void ReadTransform(SO*object,STREAM*stream,TRANSFORM**output){VE*method=&object->vt[52];method->readTransform((SO*)((char*)object+method->delta),stream,output);}
 static inline void CopyObjects(P*p){for(int i=0;i<p->objectCount;i++){if(p->objects[i]->flags&4){p->objects=(SO**)Copy(p->objectCount*4,p->objects);return;}}}
 // Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned objects, relocates
 // packet copies. (inferred)
-extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
+extern "C" void CloneGlobset(P*p,SO*owner,STREAM*stream){
     int bytes;
     p->owner=owner;
     p->entries=(E*)Copy(p->count*sizeof(E),p->entries);
@@ -4509,14 +4509,14 @@ extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
                 ClearSle(&link->next);
                 PrependSlEntry(link->object->list,link);
             }
-            func_001EC740(entry->flags.bits.first,entry->flags.bits.last,bytes,(uint)old,(uint)data);
+            RelocateShaderUploadRecords(entry->flags.bits.first,entry->flags.bits.last,bytes,(uint)old,(uint)data);
         }
     }
 }
-} // namespace M_func_0016EA80
+} // namespace M_CloneGlobset
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0016EF00 { extern "C" {
+namespace M_ResetGlobAttachment { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct V4 { float x, y, z, w; } __attribute__((aligned(16)));   /* attribute on the struct (C++) */
 typedef struct { char pad[0x148]; unsigned long f148; } A;
@@ -4529,7 +4529,7 @@ void RemoveLoFromRenderTree(A *pa);
 
 
 // Resets an attachment record (clear flag on attached object, zero vector, radius 1e6) (inferred)
-void func_0016EF00(S *p, int i)
+void ResetGlobAttachment(S *p, int i)
 {
     float g = 1000000.0f;
     E *pe;
@@ -4549,7 +4549,7 @@ void func_0016EF00(S *p, int i)
     pe->z = z;
     pe->w = g;
 }
-} } // namespace M_func_0016EF00
+} } // namespace M_ResetGlobAttachment
 
 // Return v[0] [game linkonce (inline/template)]. (inferred)
 // 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
@@ -4593,6 +4593,6 @@ int D_002DEB70[2];
 uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};
 int D_002BE558[5] = {-1, 2, 6, 10, 14};
 VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};
-namespace M_func_0016A000 {
+namespace M_LoadSubglobType0FromBrx {
 extern "C" int D_002BE580 = 0;
 }

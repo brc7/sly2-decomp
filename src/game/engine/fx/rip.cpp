@@ -51,15 +51,15 @@ struct RIP
     int refCount;               /* +0x04 */
     RIPGV *ripGroup;            /* +0x08 */
     char padC[0x18 - 0xC];
-    float g18;              /* +0x18 */
+    float duration;            /* +0x18 */
     char pad1C[0x20 - 0x1C];
-    qword q20;              /* +0x20 */
-    qword q30;              /* +0x30 */
+    qword scale;            /* +0x20 */
+    qword alpha;            /* +0x30 */
     char pad40[0x70 - 0x40];
     qword currentPosition;           /* +0x70 */
     qword previousPosition;          /* +0x80 */
     char pad90[0xA0 - 0x90];
-    qword qA0;              /* +0xA0 */
+    qword acceleration;          /* +0xA0 */
     char padB0[0xE8 - 0xB0];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
@@ -78,7 +78,7 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
 struct RIPF : RIP
 {
     LO *followObject;          /* +0xF0 */
-    int nF4;                /* +0xF4 */
+    int spawnCount;             /* +0xF4 */
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
@@ -106,7 +106,7 @@ struct MATCH : RIP   /* RIPT 6 */
 };
 struct GLINT : RIP   /* RIPT 4 */
 {
-    virtual void Init(qword pos, int n, float g) __asm__("func_001D0108");   /* key function */
+    virtual void Init(qword pos, int n, float g) __asm__("InitGlint");   /* key function */
     virtual void Project() __asm__("ProjectGlint");
     virtual void Render(CM *pcm) __asm__("RenderGlint");
 };
@@ -119,13 +119,13 @@ struct SMACK : RIP   /* RIPT 9 */
 };
 struct RIPT1 : RIP   /* RIPT 1 */
 {
-    virtual void Init(qword pos, int n, float g) __asm__("func_001D0CA8");   /* key function */
+    virtual void Init(qword pos, int n, float g) __asm__("InitRipt1");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostRipt1Emit");
     virtual void Touch(int fRemove) __asm__("UpdateRipt1");
 };
 struct RIPT0 : RIP   /* RIPT 0 */
 {
-    virtual void Touch(int fRemove) __asm__("func_001D10E8");   /* key function */
+    virtual void Touch(int fRemove) __asm__("TouchBublet");   /* key function */
     virtual void Init(qword pos, int n, float g) __asm__("InitBublet");
     virtual void Project() __asm__("ProjectBubletTransform");
 };
@@ -693,7 +693,7 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
 namespace M_InitRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a, b, c; };
-struct RIP { char pad[0x14]; float t14; float g18; int x1c; float g20; char pad2[0xC]; qword q30; struct M3 m; qword q70; qword q80; char pad3[0x50]; int ne0; };
+struct RIP { char pad[0x14]; float startTime; float duration; int followObject1C; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int unknownE0; };
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
@@ -703,13 +703,13 @@ void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes 
 {
     using namespace M_InitRip;
     M_InitRip::RIP *p = (M_InitRip::RIP *)this;
-    /*B*/p->ne0 = n;
-    p->g18 = 1.0f;
-    p->t14 = D_002DDED0;
-    p->g20 = g;
-    p->q30 = D_002C1F50;
-    p->q80 = pos;
-    p->q70 = pos;
+    /*B*/p->unknownE0 = n;
+    p->duration = 1.0f;
+    p->startTime = D_002DDED0;
+    p->scale = g;
+    p->alpha = D_002C1F50;
+    p->previousPosition = pos;
+    p->currentPosition = pos;
     p->m = D_002A2D00;/*E*/
 }
 
@@ -764,16 +764,16 @@ void TouchRip(RIP *prip, int fRemove)
 }
 
 namespace M_ForceRipFade__FP3RIPf {
-struct RIP { char pad[0x14]; float t14; float g18; };
+struct RIP { char pad[0x14]; float startTime; float duration; };
 extern "C" { extern CLOCK D_002DDED0; }
 // Start fade.
 extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 {
-    float t = prip->g18 - (D_002DDED0.t - prip->t14);
+    float t = prip->duration - (D_002DDED0.t - prip->startTime);
     if (dt < t) {
-        float u = t / prip->g18;
-        prip->g18 = dt / u;
-        prip->t14 = D_002DDED0.t - (1.0f - u) * prip->g18;
+        float u = t / prip->duration;
+        prip->duration = dt / u;
+        prip->startTime = D_002DDED0.t - (1.0f - u) * prip->duration;
     }
 }
 } // namespace M_ForceRipFade__FP3RIPf
@@ -1037,10 +1037,10 @@ typedef char layout_ceb08_69[(sizeof(((PROX*)0)->fraction)==4)?1:-1];
 typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
 } // namespace M_FBounceRip
 
-namespace M_func_001CEFC8 { extern "C" {
+namespace M_IsVectorShorterThan2 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 4. (inferred)
-int func_001CEFC8(qword v)
+int IsVectorShorterThan2(qword v)
 {
     float g;
     float lim;
@@ -1053,12 +1053,12 @@ int func_001CEFC8(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_func_001CEFC8
+} } // namespace M_IsVectorShorterThan2
 
-namespace M_func_001CF010 { extern "C" {
+namespace M_IsVectorNearlyZero { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 0.0004. (inferred)
-int func_001CF010(qword v)
+int IsVectorNearlyZero(qword v)
 {
     float g;
     float lim;
@@ -1071,12 +1071,12 @@ int func_001CF010(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_func_001CF010
+} } // namespace M_IsVectorNearlyZero
 
-namespace M_func_001CF058 { extern "C" {
+namespace M_IsVectorShorterThan5 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 25. (inferred)
-int func_001CF058(qword v)
+int IsVectorShorterThan5(qword v)
 {
     float g;
     float lim;
@@ -1089,7 +1089,7 @@ int func_001CF058(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_func_001CF058
+} } // namespace M_IsVectorShorterThan5
 
 namespace M_ProjectRipTransform {
 typedef int qword __attribute__((mode(TI)));
@@ -1099,7 +1099,7 @@ struct PHYS {qword accel,axis;float rate,scale;};
 struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float gE0,gE4;};
 extern "C" { extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0; }
 extern "C" {
-int func_001CF010(qword);int func_001CEFC8(qword);int func_001CF058(qword);
+int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorterThan5(qword);
 M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void ProjectRipTransform(S*);
 }
@@ -1134,7 +1134,7 @@ static inline void PublishBasisStart(S*p,qword first,qword second){__asm__("sqc2
 // RIP default Project (vt entry 4): integrate velocity/position with damping and gravity. (inferred)
 void ProjectRipTransform(S*p){
  WORK w;
- if(!func_001CF010(p->omega)) {
+ if(!IsVectorNearlyZero(p->omega)) {
   qword omega=Scale(p->omega,Broadcast(&w.shared.math.first,p->gE4*D_002DDED0.dt+1.0f));
   p->omega=omega;
   float length=Float(Sqrt(Sq(omega)));
@@ -1147,7 +1147,7 @@ void ProjectRipTransform(S*p){
  }
  p->prev=p->pos;
  int moving=0;
- if(!func_001CEFC8(p->vel) || !func_001CF058(p->phys.accel))moving=1;
+ if(!IsVectorShorterThan2(p->vel) || !IsVectorShorterThan5(p->phys.accel))moving=1;
  if(moving){
   CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(&w.shared.matrix,&p->phys);
   char*page=ClockPage();
@@ -1200,25 +1200,25 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x28; char p2[0xE8 - 0x30]; int xE8; };
 struct G { char pad[0x150]; int x150; };
-struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float x14; float x18; char p1[0x70 - 0x1C]; qword x70;
-    char p2[0xE0 - 0x80]; struct LO *xE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
+struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
+    char p2[0xE0 - 0x80]; struct LO *unknownE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void RemoveRip__FP3RIP(struct S *p);
 // RIP default Update (vt entry 5): fade/age and RemoveRip when expired. (inferred)
 void UpdateRip(struct S *p)
 {
     struct LO *plo;
     int f;
-    if (D_002DDED0.t - p->x14 > p->x18) {
+    if (D_002DDED0.t - p->startTime > p->duration) {
         RemoveRip__FP3RIP(p);
         return;
     }
     if (p->pg->x150 == 1) return;
-    plo = p->xE0;
+    plo = p->unknownE0;
     if (!plo) return;
     if (!plo->xE8) return;
     f = 0;
     if ((int)(plo->x28 >> 60) & 1)
-        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->x70)) f = 1;
+        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->currentPosition)) f = 1;
     ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, f);
 }
 } } // namespace M_UpdateRip
@@ -1774,9 +1774,9 @@ void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable co
 {
     RIP *prip = this;
     InitRip(prip);
-    prip->g18 = 0.5f;
-    prip->q30 = D_002C1F90;
-    prip->q20 = D_002C1FA0;
+    prip->duration = 0.5f;
+    prip->alpha = D_002C1F90;
+    prip->scale = D_002C1FA0;
 }
 
 // RIPT 4 Project: snap position to followed LO (PosLoWorld) (inferred)
@@ -2161,7 +2161,7 @@ extern "C" void ProjectLeafTransform(P *p)
 }
 } // namespace M_ProjectLeafTransform
 
-namespace M_func_001D0BF8 { extern "C" {
+namespace M_StickLeafOnBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } M3;
 typedef struct { void *x0; void *x4; } S;
@@ -2186,7 +2186,7 @@ int StickLeafOnBounce(OBJ *p, S *s, qword a, qword b)
     RemoveRip__FP3RIP(p);
     return 1;
 }
-} } // namespace M_func_001D0BF8
+} } // namespace M_StickLeafOnBounce
 
 // RIPT 1 Init: InitRip + params. (inferred)
 /* RIPT 1 Init. */
@@ -2194,8 +2194,8 @@ void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable co
 {
     RIP *prip = this;
     InitRip(prip);
-    prip->g18 = 5.0f;
-    prip->qA0 = D_002C1F40;
+    prip->duration = 5.0f;
+    prip->acceleration = D_002C1F40;
 }
 
 // RIPT 1 PostEmit. (inferred)
@@ -2205,11 +2205,11 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
     void *pvEmit;
     PostRipEmit(prip, pv);
     pvEmit = *(void **)((char *)pv + 8);
-    prip->nF4 = *(int *)((char *)pvEmit + 0xC);
+    prip->spawnCount = *(int *)((char *)pvEmit + 0xC);
     return pvEmit;
 }
 
-namespace M_func_001D0D28 { extern "C" {
+namespace M_UpdateRipt1 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, float, qword, int); } a[4]; } VT;
 typedef struct {
@@ -2261,14 +2261,14 @@ found:
 done:
     TouchRip__FP3RIPi(p, n);
 }
-} } // namespace M_func_001D0D28
+} } // namespace M_UpdateRipt1
 
-namespace M_func_001D0E48 { extern "C" {
+namespace M_InitBublet { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float a[4]; };
 struct S {
-    char pad[0x20]; float f20;
-    char pad2[0xA0 - 0x24]; qword qA0;
+    char pad[0x20]; float scale;
+    char pad2[0xA0 - 0x24]; qword acceleration;
     char pad3[0xC4 - 0xB0]; float fC4;
 };
 extern qword D_002C1F40;
@@ -2280,16 +2280,16 @@ void InitBublet(struct S *p)
     union U u;
     qword k, r;
     InitRip(p);
-    p->f20 = 0.33f;
+    p->scale = 0.33f;
     __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-0.2f));
     u.q = k;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(D_002C1F40), "j"(k));
-    p->qA0 = r;
+    p->acceleration = r;
     p->fC4 = -8.0f;
 }
-} } // namespace M_func_001D0E48
+} } // namespace M_InitBublet
 
-namespace M_func_001D0EB8 { extern "C" {
+namespace M_ProjectBubletTransform { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct B { qword x,y; };
@@ -2409,7 +2409,7 @@ typedef char layout_union_float[(MIX_OFF(union U,f)==0)?1:-1];
 typedef char layout_word_float[(MIX_OFF(union FLOATWORD,value)==0)?1:-1];
 typedef char layout_word_integer[(MIX_OFF(union FLOATWORD,bits)==0)?1:-1];
 typedef char layout_clock_time[(MIX_OFF(struct CLOCK,time)==0)?1:-1];
-} } // namespace M_func_001D0EB8
+} } // namespace M_ProjectBubletTransform
 #undef MIX_OFF
 
 // RIPT 0 Touch: TouchRip. (inferred)

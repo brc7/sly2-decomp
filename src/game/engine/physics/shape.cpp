@@ -2488,7 +2488,7 @@ extern "C" { extern char D_002C44F0; }
 extern "C" {
 void PostSoLoad(S *);
 M3 *GetLoWorldMatrix(S *);
-void func_0016EF00(CONFIG *, int);
+void ResetGlobAttachment(CONFIG *, int);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);   /* memcpy */
 void *AllocFromWorldHeap(AL *);                            /* allocate (size, align) */
 void FindShapeClosestPoint(void *, qword, void *, qword *, qword *, float *, float *);
@@ -2556,7 +2556,7 @@ void PostCid106Load(S *cid106)
         OWNER *object = state->object;
         state->object = (OWNER *)&D_002C44F0;
         int j = 0;
-        func_0016EF00(&cid106->config, index);
+        ResetGlobAttachment(&cid106->config, index);
         if (j < node->n) {
             PHASE *phase = &w.phase;
             do {

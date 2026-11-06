@@ -305,7 +305,7 @@ struct O *FindStepBehavior(struct A *a, int n);
 void *GetHeroPo(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 int IsLoSelfOrDescendantOf(void *n, void *o);
-void func_0014F750(void *p, int n);
+void JoltCamera(void *p, int n);
 void SetSoZapMode(struct A *a, int n);
 // 0x174BD0: BHVANIM vtable slot 13 (HandleMessage): message 9 carries an ASEG event of the playing animation: 0x15E
 // root-motion translation, 0x25/0x26 lock/unlock the mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, rumble
@@ -366,7 +366,7 @@ int HandleBhvanimMessage(struct S *behavior, int msg, struct M *pm) {
             struct O *o = FindStepBehavior(behavior->guard, 0xA0);
             if (o && IsLoSelfOrDescendantOf(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
-                case 0x35: func_0014F750(D_002DDF40, 0); break;
+                case 0x35: JoltCamera(D_002DDF40, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
                 }
             }
@@ -3299,7 +3299,7 @@ struct T { char pad[0x35C]; struct V *p35C; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x9C]; float cameraJoltTime; float zapModeTime; };
 void UpdateBhvanim(struct S *p);
 qword GetLoWorldPos(void *p);
-void func_0014F750(void *p, int n);
+void JoltCamera(void *p, int n);
 void SetSoZapMode(struct T *t, int n);
 // 0x1795E8: BHVHIT vtable slot 10 (Update): BHVANIM update, keeps the held noise at the guard, fires the delayed
 // camera jolt and zap-mode change.
@@ -3308,7 +3308,7 @@ void UpdateBhvhit(struct S *behavior) {
     UpdateBhvanim(behavior);
     { struct T *pt = behavior->guard; struct V *v = pt->p35C; v->q20 = GetLoWorldPos(pt); }
     t = D_002DDED0.t + 0.0001f;
-    if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; func_0014F750(D_002DDF40, 0); }
+    if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; JoltCamera(D_002DDF40, 0); }
     if (behavior->zapModeTime < t) { behavior->zapModeTime = 3.40282346638528859812e+38f; SetSoZapMode(behavior->guard, 2); }
 }
 } } // namespace M_UpdateBhvhit
