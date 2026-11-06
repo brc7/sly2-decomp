@@ -1722,7 +1722,7 @@ struct F { int kind; int pad[3]; union { struct { int arg; float argFloat; } s; 
 struct O {
     char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int combatTarget; int escortObject; }; int pad3;
     union { int lookAt; int target; int useChaseBehavior; }; union { int sgf; int thrownKind; };
-    union { qword pos; float stalkParam; } u40; union { struct B6 zap; struct { int pad[3]; int holder; } juggled; };
+    union { qword pos; float stalkParam; }; union { struct B6 zap; struct { int pad[3]; int holder; } juggled; };
 };
 struct A { char pad[0x4B0]; qword relocatePoint; char pad2[0xF68 - 0x4C0]; int escortObject; int pad3; qword escortPos; char pad4[0x108C - 0xF80]; int useChaseBehavior; };
 struct S { char pad[0x10]; struct A *guard; int pad2; char childSlot[0x18]; struct F mode; float modeTime; float watchEndTime; };
@@ -1860,7 +1860,7 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
             clearsTarget = 1;
             o = PushStepBhv(behavior->guard, CID_BHV183);
             o->escortObject = behavior->guard->escortObject;
-            o->u40.pos = behavior->guard->escortPos;
+            o->pos = behavior->guard->escortPos;
             StartPushedBhv(o);
         }
         break;
@@ -1877,14 +1877,14 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHV189);
             o->target = m->u.s.arg;
-            o->u40.stalkParam = m->u.s.argFloat;
+            o->stalkParam = m->u.s.argFloat;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_RELOCATE:
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHV191);
-            o->u40.pos = behavior->guard->relocatePoint;
+            o->pos = behavior->guard->relocatePoint;
             StartPushedBhv(o);
         }
         break;
@@ -6861,7 +6861,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int a, b, lookAt; } s; } u30; union { int ignoresBlockers; qword goalPos; } u40; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
 struct A { char pad[0x294]; int pathShape; char pad2[0xFE8 - 0x298]; int capabilities; };
 struct S {
     char pad[0x10]; struct A *guard; int pad2; struct O *child; char pad3[0x14]; int state; float stateTime;
@@ -6881,14 +6881,14 @@ void SetBhvgotoState(struct S *behavior, int n) {
     case 4:
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE);
-            o->u30.s.lookAt = behavior->lookAtTarget;
+            o->idle.lookAt = behavior->lookAtTarget;
             StartPushedBhv(o);
         }
         break;
     case 3:
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHVPATHLINK);
-            o->u30.pathlink = behavior->firstLink;
+            o->pathlink = behavior->firstLink;
             StartPushedBhv(o);
         }
         break;
@@ -6899,7 +6899,7 @@ void SetBhvgotoState(struct S *behavior, int n) {
             if (o == 0) {
                 o = PushStepBhv(behavior->guard, CID_BHVWALKPATH);
                 o->lookAtTarget = behavior->lookAtTarget;
-                o->u40.ignoresBlockers = behavior->isDirect;
+                o->ignoresBlockers = behavior->isDirect;
                 if (!behavior->lookAtTarget || behavior->unknownAC || !(behavior->guard->capabilities & 4)) o->animSgf = 9; else o->animSgf = 8;
                 SetBhvpathShape(o, behavior->guard->pathShape, 0);
                 StartPushedBhv(o);
@@ -6914,8 +6914,8 @@ void SetBhvgotoState(struct S *behavior, int n) {
     case 5:
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHV191);
-            o->u30.goalRef = behavior->relocateGoalRef;
-            o->u40.goalPos = behavior->relocatePos;
+            o->goalRef = behavior->relocateGoalRef;
+            o->goalPos = behavior->relocatePos;
             StartPushedBhv(o);
         }
         break;
@@ -7700,7 +7700,7 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BE7B0, D_002BE7B4;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct SEG { qword a; qword b; };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; qword goalRef; union { qword goalPos; int ignoresBlockers; } u40; char pad3[0x14]; float arrivalRadius; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; qword goalRef; union { qword goalPos; int ignoresBlockers; }; char pad3[0x14]; float arrivalRadius; };
 struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
 struct A { char pad[0x294]; struct B *pathShape; };
 struct P { char pad[0x60]; struct SEG segments[(0x120 - 0x60) / 32]; int kind; };
@@ -7742,7 +7742,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
                 b->points[0] = pos;
                 b->points[1] = q;
                 MeasureShape(b);
-                o->u40.ignoresBlockers = 1;
+                o->ignoresBlockers = 1;
                 o->arrivalRadius = 10.0f;
                 SetBhvpathShape(o, b, 0);
                 StartPushedBhv(o);
@@ -7759,7 +7759,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
             /* segments[segmentIndex] (sg[3] == +0x60); the int arithmetic keeps the target's address computation */
             struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)behavior->pathlink);
             o->goalRef = sg[3].a;
-            o->u40.goalPos = sg[3].b;
+            o->goalPos = sg[3].b;
             StartPushedBhv(o);
         }
         break;
