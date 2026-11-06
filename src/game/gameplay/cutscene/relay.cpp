@@ -1252,7 +1252,7 @@ struct DL { void *a, *b; int ib; };
 struct S { char pad[0x58]; int n58; struct DL dl; };
 void InitLo(struct S *p);
 void InitDl__FP2DLi(struct DL *pdl, int ib);
-// RELAY::Init (vtable slot 7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4).
+// RELAY vtable slot 7 (Init): LO defaults, no private command limit (-1), and an empty list of running scripts.
 } } // namespace M_InitRelay
 void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRelay::S *)this;
     InitLo(p);
@@ -1279,9 +1279,9 @@ extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
 static inline int Max(int a, int b) { return a < b ? b : a; }
-// RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start with BlockBegin(-1),
-// fAppendEnd=1, LoadLoFromBrx (the object's Splice init adds commands), then copy into an exact-size world-heap
-// array.
+// RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
+// implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
+// calls append the commands; the result is copied into an exact-size world-heap array.
 extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
 {
     STACKSCOPE frame;
@@ -1312,7 +1312,7 @@ struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *func_001AE238(struct MSG *pmsg, void *pv);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
-// RELAY::Clone (vtable slot 41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the
+// RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
 void CloneRelay(struct S *p) {
     struct MSG msg;
@@ -1357,8 +1357,8 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
-// RELAY::Update (vt16): UpdateLo; while firing advance tFired (real-time dt if grf 0x100), UpdateJsg on every running
-// script; StopRelay when none remain.
+// RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
+// update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
 void UpdateRelay(OBJ *p)
 {
     DLI dli;
@@ -1411,9 +1411,9 @@ void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
-// Start the relay (if not already firing): ploFirer=arg, fFiring=1, send itself msg 5, append BlockEnd if fAppendEnd,
-// spawn a JSG for the top block (NewRelayJsg) and run it; if still running mark the LO busy (0x1A6CA8(p,1), grf bit
-// 2, fBusy).
+// Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
+// list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
+// still running afterwards the relay marks itself busy.
 void FireRelay(OBJ *p, int n)
 {
     int fl;
@@ -1451,7 +1451,7 @@ void FireRelay(OBJ *p, int n)
 } } // namespace M_FireRelay
 
 // 0x1DFE80 FireRelayFromPlayer
-// FireRelay(prelay, PpoCur()). (inferred)
+// Fires the relay with the current player character as the firer.
 /* Fires the relay with the hero as the firer. */
 extern "C" void FireRelayFromPlayer(RELAYV *relay)
 {
@@ -1498,8 +1498,8 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
-// If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy (0x1A6CA8(p,2)),
-// send itself msg 6. (inferred)
+// Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
+// the busy mark and tells itself (message 6). (inferred)
 void StopRelay(OBJ *p)
 {
     DLI dli;
@@ -1526,7 +1526,7 @@ void StopRelay(OBJ *p)
 } } // namespace M_StopRelay
 
 // 0x1DFFD8 IsRelayFiring
-// return fFiring (+0x74). (inferred)
+// Whether the relay is firing.
 extern "C" int IsRelayFiring(RELAYV *relay)
 {
     return relay->fFiring;
@@ -1538,7 +1538,8 @@ struct S;
 struct S { char p0[0x50]; int n50; char p1[0x7C-0x54]; int n7C; };
 void StopRelay(struct S *p);
 void AddRelayBlockBegin(struct S *p, int n);
-// StopRelay, drop all commands (crelaycmd=0), re-add BlockBegin(-1), fAppendEnd=1. (inferred)
+// Stops the relay and empties its command list back to the implicit BlockBegin(-1) (used before a script rebuilds
+// it). (inferred)
 void ResetRelay(struct S *p) {
     StopRelay(p);
     p->n50 = 0;
@@ -1548,7 +1549,7 @@ void ResetRelay(struct S *p) {
 } } // namespace M_ResetRelay
 
 // 0x1E0020 EnsureSggAlarm__FP3SGGP5ALARM
-// Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room.
+// Adds an alarm to the relay's alarm list (at most eight) unless it is already there.
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm)
 {
     int i;
@@ -1563,7 +1564,7 @@ namespace M_func_001E0070 { extern "C" {
 struct SGG;
 struct SGG { char pad[0x84]; int calarm; void *apalarm[8]; };
 void *memmove(void *d, void *s, int cb);
-// Remove an ALARM from the relay alarm list (memmove down). (inferred)
+// Removes an alarm from the relay's alarm list. (inferred)
 void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
 {
     int i;
@@ -1581,7 +1582,7 @@ void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
 namespace M_FWipingAseg__FP4ASEG { extern "C" {
 struct ASEG;
 struct ASEG { char pad[0x84]; int c; int a[1]; };
-// Return whether the alarm list (+0x84/+0x88) contains x.
+// Whether the alarm is in the relay's alarm list.
 int IsRelayAlarm(struct ASEG *paseg, int n)
 {
     int i;
@@ -1593,15 +1594,14 @@ int IsRelayAlarm(struct ASEG *paseg, int n)
 } } // namespace M_FWipingAseg__FP4ASEG
 
 // 0x1E0120 ClearRelayAlarms
-// calarm=0. (inferred)
+// Empties the relay's alarm list.
 extern "C" void ClearRelayAlarms(RELAYV *relay)
 {
     relay->calarm = 0;
 }
 
 // 0x1E0128 GetRelaySignalContext
-// If the signal-waiting JSG (+0x68 pjsgSignal) is on a Signal command (kind 9) return its +0x18 (ploContext), else 0.
-// (inferred)
+// The context object of the script waiting on a Signal command (kind 9), or null. (inferred)
 /* The context object of the relay's signalling script, if it is waiting on a signal command (0 otherwise). */
 extern "C" LO *GetRelaySignalContext(RELAYV *relay)
 {
@@ -1614,7 +1614,7 @@ extern "C" LO *GetRelaySignalContext(RELAYV *relay)
 }
 
 // 0x1E0158 SetRelaySignalContext
-// Setter counterpart of 0x1E0128. (inferred)
+// Sets the context object of the script waiting on a Signal command (counterpart of GetRelaySignalContext). (inferred)
 /* Sets the context object of the relay's signalling script, if it is waiting on a signal command. */
 extern "C" void SetRelaySignalContext(RELAYV *relay, LO *plo)
 {
@@ -1631,7 +1631,7 @@ struct T; struct O; struct S;
 struct T { char pad[0x10]; int n; };
 struct O { char pad[0x28]; struct T *pt; char pad2[0xE4-0x2C]; struct O *pNext; };
 struct S { char pad[0x5C]; struct O *pFirst; };
-// Find a running JSG of this relay whose block label (prelaycmdFirst->oidLabel) == oid, skipping pjsgSkip. (inferred)
+// Finds a running script of this relay whose block has the given label, ignoring one script. (inferred)
 struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 {
     int unused[4];
@@ -1647,7 +1647,7 @@ struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 namespace M_func_001E01C8 { extern "C" {
 struct S;
 struct S { char pad[0x50]; int n50; int n54; int n58; char pad2[0x80-0x5C]; int n80; };
-// If 0<n<0x200 and at most one command so far: crelaycmdMax=n and mark private limit (+0x80). (inferred)
+// Splice: gives the relay its own command limit n (0 < n < 0x200), allowed only before commands are added. (inferred)
 void SetRelayCommandLimit(struct S *p, int n)
 {
     if (n > 0) {
@@ -1666,8 +1666,8 @@ struct CMD { int kind; int b; char pad[0x48]; };
 struct Q { char pad[0x50]; int c; struct CMD *a; int cMax; };
 extern struct CMD D_003DA740;
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
-// Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200); on overflow return
-// a scratch command D_003DA740. (inferred)
+// Appends a zeroed command of the given kind (async flag set as asked) to the relay and returns it for the builder to
+// fill; past the limit it returns a scratch command (D_003DA740) so builders never fail. (inferred)
 struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
 {
     struct CMD *p;
