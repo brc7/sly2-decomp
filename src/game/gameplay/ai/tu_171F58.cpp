@@ -1,6 +1,7 @@
-// tu_171F58.cpp -- BHV171, a guard's search behaviour: after losing its target the guard goes to the last known
-// position, looks around, then visits up to four search points picked from nearby hiding places (several global
-// object lists and three object classes) and gives up after a timeout. VU0 macro-mode asm.
+// tu_171F58.cpp -- the guard search behaviour (BHV171, guard flag 0x1F). After losing its target the guard reacts,
+// goes to the last known position, faces it, looks around, then visits up to four search points picked from nearby
+// hiding places (several global object lists and three object classes) and gives up after a timeout. Entry points:
+// the BHV slots (InitBhvSearch, Start, CloseBhvSearch, UpdateBhvSearch) and SetBhvSearchState. VU0 macro-mode asm.
 // TU 0x171F58..0x173158 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_171F58
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00173138
@@ -123,26 +124,11 @@ int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
-/** @sly2-annot addr=0x171F58
- * Purpose: BHV171 slot 7: base, guard flag 0x1F, state -1, timers = FLT_MAX
- * Info: proposed name InitBhv171 (T2); class BHV171 slot7; TU tu_171F58
- * Notes: superseded: OnBhv171Push (r3b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv171Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
+// timers off (FLT_MAX).
 extern "C" void InitBhvSearch(BHV171V *pbhv) { InitBhv(pbhv); AddStepguardSgf(pbhv->pguard, 0x1F); pbhv->state = -1; pbhv->g40 = pbhv->tLook = 3.40282346638528859812e+38f; }
 
-/** @sly2-annot addr=0x171FA0
- * Purpose: BHV171 slot 8: base, SetBhv171State(0)
- * Info: proposed name StartBhv171 (T2); class BHV171 slot8; TU tu_171F58
- * Notes: superseded: OnBhv171Resume (r3b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv171Resume
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x171FA0: Search behaviour vtable slot 8 (Start): base, then state 0 (react).
 void BHV171::Start()
 {
     BHV171V *pbhv = (BHV171V *)this;
@@ -150,13 +136,8 @@ void BHV171::Start()
     SetBhvSearchState(pbhv, 0);
 }
 
-/** @sly2-annot addr=0x171FD0
- * Purpose: BHV171 slot 9: base, state -1, clear flag 0x1F, clear watched object
- * Info: proposed name CloseBhv171 (T2); class BHV171 slot9; TU tu_171F58
- * Notes: superseded: OnBhv171Pop (r3b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv171Pop
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x171FD0: Search behaviour vtable slot 9 (Close): base, state -1, lowers flag 0x1F and drops the watched
+// stimulus.
 extern "C" void CloseBhvSearch(BHV171V *pbhv)
 {
     CloseBhv(pbhv);
@@ -165,14 +146,8 @@ extern "C" void CloseBhvSearch(BHV171V *pbhv)
     SetBhvSearchWatched(pbhv, 0);
 }
 
-/** @sly2-annot addr=0x172018
- * Purpose: Search state machine: 0 react, 1 go to last-known position, 2 face it, 3 visit search points, 4
- *   give up, 5 hold while 0x209098
- * Info: proposed name UpdateBhv171 (T2); class BHV171 slot10; TU tu_171F58
- * Notes: names_v2 C proposed CalculateAloTransform__FP3ALOT0iP6VECTORP7MATRIX3T3T3 (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172018: Search behaviour vtable slot 10 (Update): state machine 0 react, 1 go to the last known position, 2
+// face it and look, 3 visit the search points, 4 give up, 5 hold while the guard is hands-off.
 extern "C" void UpdateBhvSearch(BHV171V *p) {
     int s;
     UpdateBhv(p);
@@ -263,13 +238,8 @@ extern "C" void UpdateBhvSearch(BHV171V *p) {
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x172320
- * Purpose: Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto,
- *   BHV158 look) and timers
- * Info: proposed name SetBhv171State (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172320: Enters a search state, pushing its child behaviour (an animation for react/look/give-up, a goto for
+// travel, a look-at) and arming its timers.
 extern "C" void SetBhvSearchState(BHV171V *p, int n) {
     if (n == p->state) return;
     PopBhv(p->abhvstk);
@@ -326,23 +296,14 @@ extern "C" void SetBhvSearchState(BHV171V *p, int n) {
     }
 }
 
-/** @sly2-annot addr=0x172550
- * Purpose: True if state == -1
- * Info: proposed name FBhv171Idle (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172550: True if the search behaviour is idle (state -1).
 extern "C" int IsBhvSearchIdle(BHV171V *pbhv)
 {
     return ~pbhv->state == 0;
 }
 
-/** @sly2-annot addr=0x172560
- * Purpose: Random look duration from guard +0xE6C..+0xE70; second timer only if guard +0xE78 == 1
- * Info: proposed name SetBhv171LookTimers (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172560: Arms the look timers: a random look duration from the guard's range (+0xE6C..+0xE70); the second
+// (give-up) timer only for guards with +0xE78 == 1.
 extern "C" void SetBhvSearchLookTimers(BHV171V *p) {
     float t = D_002DDED0.t;
     p->tLook = t + GRandInRange(p->pguard->gLookMin, p->pguard->gLookMax);
@@ -350,13 +311,8 @@ extern "C" void SetBhvSearchLookTimers(BHV171V *p) {
     else p->tNext = 3.40282346638528859812e+38f;
 }
 
-/** @sly2-annot addr=0x1725E0
- * Purpose: Swaps a watched refcounted object (+0x44) via its vt1/vt2 (incref/decref) and flags a re-plan
- * Info: proposed name SetBhv171Watched (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
+// flags a re-plan.
 extern "C" void SetBhvSearchWatched(BHV171V *p, WATCH *o) {
     if (o == p->pwatch) return;
     if (p->pwatch) { VE *e = &p->pwatch->pvt[2]; e->pfn((char *)p->pwatch + e->d); }
@@ -374,12 +330,8 @@ static inline float Dist(qword a, qword b) {
     f = VuToFloat(d);
     return f;
 }
-/** @sly2-annot addr=0x172658
- * Purpose: True if the guard can't search or the last-known position is nearer than the target object + 50
- * Info: proposed name FBhv171TargetReached (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172658: True if the guard cannot search any more or its last known position is nearer than the target object +
+// 50.
 extern "C" int HasBhvSearchReachedTarget(BHV171V *p) {
     GUARDV *o = p->pguard;
     struct LOV *t;
@@ -392,21 +344,12 @@ extern "C" int HasBhvSearchReachedTarget(BHV171V *p) {
     return 0;
 }
 
-/** @sly2-annot addr=0x172760
- * Purpose: Last-known target position from the perception record (q20 if mode 4 for this guard, else q30)
- * Info: proposed name PosBhv171LastKnown (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172760: Returns the last known target position from the shared target record (its first position when this
+// guard is in mode 4 for it, else its second).
 extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *p) { WATCH *t = p->pwatch; if (t->n54 == 4 && t->pguard == p->pguard) return t->pos20; return p->pwatch->pos30; }
 
-/** @sly2-annot addr=0x172798
- * Purpose: Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its
- *   relative heading
- * Info: proposed name FAddSearchCandidate (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
+// recording its heading relative to the guard.
 extern "C" int TryAddSearchCandidate(QUERY *p) {
     float a, b, c;
     qword d;
@@ -425,13 +368,7 @@ extern "C" int TryAddSearchCandidate(QUERY *p) {
     return 1;
 }
 
-/** @sly2-annot addr=0x172888
- * Purpose: Sort predicate on heading
- * Info: proposed name FCompareSearchCandidates (T2); TU tu_171F58
- * Notes: names_v2 C proposed GetAloThrobInColor__FP3ALOP6VECTOR (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172888: Sort predicate for search candidates: by relative heading.
 extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
@@ -466,13 +403,9 @@ static inline qword VuFloatVolatile(float g){qword v;
 namespace RO_ORDER { extern const LMV r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
 namespace RO_ORDER { extern const LMV r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }
 namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x1728B0
- * Purpose: Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by
- *   heading, keeps up to 4 spread points, fills the rest randomly behind the guard
- * Info: proposed name ChooseBhv171SearchPoints (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x1728B0: Chooses up to four search points: gathers candidate hiding places (several global object lists, cids
+// 0x23/0x67/0x1B), sorts them by heading, keeps up to four well-spread points and fills the rest randomly behind
+// the guard.
 extern "C" void ChooseBhvSearchPoints(BHV171V*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=func_001A62E8(p->pguard);
@@ -543,13 +476,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V*p){
 }
 
 namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x172F10
- * Purpose: Every ~1 s after arriving, moves BHV186 to the next of the 4 search points
- * Info: proposed name StepBhv171SearchPoint (T2); TU tu_171F58
- * Notes: names_v2 C proposed anticrack_itm_firewall (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x172F10: About once a second after arriving, sends the goto child to the next of the four search points.
 extern "C" void StepBhvSearchPoint(BHV171V *p) {
     void *pbhvCur;
     PAIR *pe;
