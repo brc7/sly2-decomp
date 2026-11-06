@@ -31,7 +31,9 @@ struct HERO;
 struct RLO { char pad[0xC]; VT *pvt; };
 
 /* A booty entry (0x2C bytes; at most 0x20, LoadBootyFromBrx copies the used ones to the SW heap). */
-struct BOOTYE { int id; int x4; char pad8[4]; int xC; int x10; int x14; int x18; unsigned int c1C; OID aoid[3]; };
+struct BOOTYE { int id; int unknown4; char pad8[4]; int hasTimer; int allowedDuringJob; int containerKind; int partsId; unsigned int c1C; OID aoid[3]; };
+/* hasTimer: carrying it runs the HUD timer; allowedDuringJob: may be put in a container during a job; containerKind: the
+   container kind (CID37V::acceptedKind) it fits; partsId: SO parts shown while it is current, -1 none. (inferred) */
 typedef char assert_BOOTYE_size[sizeof(BOOTYE) == 0x2C ? 1 : -1];
 
 struct BOOTYV
@@ -39,7 +41,7 @@ struct BOOTYV
     char pad0[0xC];
     VT *pvt;                /* 0x0C */
     char pad10[0x40 - 0x10];
-    int x40;                /* 0x40 tagged flags word */
+    int taggedFlags;        /* 0x40 tagged flags word */
     char pad44[0xE0 - 0x44];
     int cpart;              /* 0xE0 */
     char *apart;            /* 0xE4 SOPARTs (0xB0 each) */
@@ -65,13 +67,13 @@ struct CID37V
 {
     char pad0[0xC];
     VT *pvt;                /* 0x0C */
-    int x10;                /* 0x10 */
+    void *parent;           /* 0x10 LO::psoParent */
     char pad14[0x180 - 0x14];
     union { int id; unsigned short idShort; };  /* 0x180 */
     int kind;               /* 0x184 */
-    int n188;               /* 0x188 */
-    union { float g18C; int n18C; };    /* 0x18C */
-    union { RLO *p190; int f190; };     /* 0x190 */
+    int acceptedKind;       /* 0x188 the booty kind it takes (inferred) */
+    float timerSeconds;     /* 0x18C HUD timer started when booty goes in (inferred) */
+    int isLocked;           /* 0x190 refuses booty while set (inferred) */
     BOOTYV *pbooty;          /* 0x194 */
     char pad198[4];
 };
@@ -180,9 +182,9 @@ int IlevelCur();                                    /* IlevelCur__Fv */
 extern "C" void InitBooty(BOOTYV *booty) {
     int x;
     InitSo(booty);
-    booty->vScale.q = D_002A2DE0; booty->st = -1; x = booty->x40;
+    booty->vScale.q = D_002A2DE0; booty->st = -1; x = booty->taggedFlags;
     if ((x ^ 1) & 1) *(int *)x |= 2;
-    else booty->x40 = x | 2;
+    else booty->taggedFlags = x | 2;
 }
 
 // Inline helper SetReq: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
@@ -226,7 +228,7 @@ extern "C" void UpdateBooty(BOOTYV *booty) {
         }
         return;
     case 4:
-        if ((booty->pbootyeCur->xC != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
+        if ((booty->pbootyeCur->hasTimer != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
             DropStepplayerBooty(booty->phero);
         }
         break;
@@ -322,7 +324,7 @@ extern "C" int TakeBootyDamage(BOOTYV *booty, void *pv) {
 }
 
 // Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158). (inferred)
-extern "C" void AddBootyEntry(BOOTYV *booty, int id, int x4, int x14) {
+extern "C" void AddBootyEntry(BOOTYV *booty, int id, int unknown4, int containerKind) {
     int c;
     BOOTYE *pe;
     ClearCurrentBootyEntry(booty);
@@ -332,9 +334,9 @@ extern "C" void AddBootyEntry(BOOTYV *booty, int id, int x4, int x14) {
         pe = booty->abootye + c;
         booty->pbootyeCur = pe;
         pe->id = id;
-        pe->x4 = x4;
-        pe->x14 = x14;
-        pe->x18 = -1;
+        pe->unknown4 = unknown4;
+        pe->containerKind = containerKind;
+        pe->partsId = -1;
         pe->c1C = 0;
     }
 }
@@ -510,12 +512,12 @@ void SetBootyState(BOOTYV *booty, int st)
             ShowSoGlobsById(booty, booty->pbootyeCur->aoid[i]);
         for (i = 0; i < booty->cpart; i++)
             HideSoPart(booty, booty->apart + i * 0xB0);
-        if (booty->pbootyeCur->x18 != -1)
-            ShowSoPartsById(booty, booty->pbootyeCur->x18);
+        if (booty->pbootyeCur->partsId != -1)
+            ShowSoPartsById(booty, booty->pbootyeCur->partsId);
         break;
     case 1:
-        if (booty->pbootyeCur->xC)
-            ShowCountdownHud(&g_sw, booty->pcont->g18C + 0.99f);
+        if (booty->pbootyeCur->hasTimer)
+            ShowCountdownHud(&g_sw, booty->pcont->timerSeconds + 0.99f);
         ReplaceHeldSwNoise(&g_sw, 1, GetLoWorldPos(booty->pcont), booty->pcont, (char *)booty->pcont + 0x198);
         if (st == 2)
             BroadcastGameEvent(D_002DEB30, 0x2F, booty);
@@ -536,9 +538,9 @@ void SetBootyState(BOOTYV *booty, int st)
         booty->phero = 0;
         VCALL(pot4->pr, 9, PFNV));
         pot4->pbooty = 0;
-        if (booty->pbootyeCur->x18 != -1)
-            ShowSoPartsById(booty, booty->pbootyeCur->x18);
-        if (booty->pbootyeCur->xC)
+        if (booty->pbootyeCur->partsId != -1)
+            ShowSoPartsById(booty, booty->pbootyeCur->partsId);
+        if (booty->pbootyeCur->hasTimer)
             HideCountdownHud(&g_sw);
         break;
     case 5: {
@@ -567,7 +569,7 @@ void SetBootyState(BOOTYV *booty, int st)
     case 1:
         ReplaceHeldSwNoise(&g_sw, -1, D_002A2DD0, 0, (char *)booty->pcont + 0x198);
         SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
-        SetLoParent(booty, (void *)booty->pcont->x10, 3);
+        SetLoParent(booty, (void *)booty->pcont->parent, 3);
         booty->pcont->pbooty = booty;
         if (stOld != 3) {
             VCALL(booty, 9, PFNV));
@@ -597,7 +599,7 @@ void SetBootyState(BOOTYV *booty, int st)
         break;
     case 3: {
         SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
-        SetLoParent(booty, (void *)booty->pcont->x10, 3);
+        SetLoParent(booty, (void *)booty->pcont->parent, 3);
         booty->pmatch = PripNewRipg(&g_sw, 6, 0);
         if (booty->pmatch)
             LINKE3(booty->pmatch, pot->pr, booty);
@@ -607,8 +609,8 @@ void SetBootyState(BOOTYV *booty, int st)
     }
     case 4:
         booty->phero->pbooty = booty;
-        if (booty->pbootyeCur->x18 != -1)
-            HideSoPartsById(booty, booty->pbootyeCur->x18);
+        if (booty->pbootyeCur->partsId != -1)
+            HideSoPartsById(booty, booty->pbootyeCur->partsId);
         break;
     case 5: {
         union { qword q; float f[4]; } v;
@@ -651,8 +653,8 @@ void SetBootyState(BOOTYV *booty, int st)
 extern "C" void InitBootyContainer(CID37V *container) {
     InitTriggerGrabspot(container);
     container->kind = 0x2BC;
-    container->n188 = -1;
-    container->g18C = 15.0f;
+    container->acceptedKind = -1;
+    container->timerSeconds = 15.0f;
 }
 
 // cid 0x25 vtable slot 15: base 0x183F50, unique id from a g_sw counter. (inferred)
@@ -693,12 +695,12 @@ extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
     ppa = container->pbooty;
     if (!pqa && !ppa)
         return;
-    if (ppa && g_sw.ploJobCur && !ppa->pbootyeCur->x10) {
+    if (ppa && g_sw.ploJobCur && !ppa->pbootyeCur->allowedDuringJob) {
         PostNotice(D_003DA0C0, 0x124, 15.0f);
         SetSndSourceLo(PsndStartSound(0x36), 0);
         return;
     }
-    if (container->f190 || (pqa && pqa->pbootyeCur->x14 != container->n188)) {
+    if (container->isLocked || (pqa && pqa->pbootyeCur->containerKind != container->acceptedKind)) {
         BroadcastGameEvent(D_002DEB30, 0x32, container);
         return;
     }

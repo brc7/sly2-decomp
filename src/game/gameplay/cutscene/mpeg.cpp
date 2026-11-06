@@ -11,11 +11,11 @@
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 struct LM { float low, high; };
-struct CLOCK { float t; float dt; char pad[0x34]; float t3c; };
+struct CLOCK { float t; float dt; char pad[0x34]; float tReal; };   /* +0x3C: real (unscaled) time, inferred */
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
-struct K { uint x0, x4, x8; char pad[0x34 - 0xC]; uint x34, x38, x3C; };
+struct K { uint offsetScrambled, lengthScrambled, idScrambled; char pad[0x34 - 0xC]; uint offsetKey, idKey, lengthKey; };   /* each value = scrambled ^ key */
 /* The subtitle shown over a movie: its text id and the time window. */
-struct SUBT { int x0; int idText; LM window; };
+struct SUBT { int unknown0; int idText; LM window; };
 /* A byte queue (0x20); +0x10 is how many bytes it can take. */
 struct CByteQueue { int a[4]; union { unsigned int ucb; int cb; }; int cb14; int a18[2]; };
 typedef char CByteQueue_Size[sizeof(CByteQueue)==0x20?1:-1];
@@ -30,11 +30,15 @@ class CQueueOutputIop : public CQueueOutput {
 public:
     virtual int FAsyncDrain();   /* key function: CQueueOutputIop's vtable comes out here */
     virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIop_CbWrite");
-    int x4;                     /* 0x10: ADPCM, else PCM */
-    int x8, xC, x10;
-    int x14;                    /* IOP buffer */
-    int x18;                    /* its size */
-    int m_x1c, m_x20, m_x24, m_x28, m_x2c;
+    int format;                 /* 0x10: ADPCM (interleaved per channel), else PCM */
+    int sampleRate;             /* (inferred: passed on to snd_StartMovieSound) */
+    int channelCount;
+    int interleave;             /* bytes per channel block */
+    int iopBuffer;              /* IOP buffer */
+    int bufferSize;             /* its size */
+    int writeOffset, readOffset;    /* ring cursors in the IOP buffer */
+    int freeBytes, queuedBytes;     /* how many bytes it can take / holds */
+    int totalSent;
     void Reset();
 };
 typedef char CQueueOutputIop_Size[sizeof(CQueueOutputIop)==0x30?1:-1];
@@ -45,7 +49,7 @@ public:
     virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIpu_CbWrite");
 };
 /* The audio stream header record. */
-struct MPEGAUDIOREC { int a[2]; int x8, xC, x10, x14; int pad[4]; };
+struct MPEGAUDIOREC { int a[2]; int format, sampleRate, channelCount, interleave; int pad[4]; };
 struct CMpegAudio {
     int state;                  /* 0 off, 1 reading the header, 2 filling, 3 playing */
     int id;
@@ -53,7 +57,7 @@ struct CMpegAudio {
     CByteQueue qHeader;         /* 0x30 */
     CByteQueue qData;           /* 0x50 */
     CQueueOutputIop out;        /* 0x70 */
-    int xA0, xA4;               /* the saved master volumes */
+    int savedVolume2, savedVolume10;    /* the saved master volumes (channels 2 and 0x10) */
 };
 typedef char CMpegAudio_Size[sizeof(CMpegAudio)==0xA8?1:-1];
 /* libmpeg's decoder state (its first words are the picture size and frame count). */
@@ -97,7 +101,7 @@ struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };
 struct SLOT;
-struct GSAVE { int x0, x4, x8, xC; float x10, x14; char pad[0xFD50 - 0x18]; SLOT *xFD50; };
+struct GSAVE { char pad[0xFD50]; SLOT *pendingSlot; };   /* +0xFD50: the save slot being written (inferred; UpdateSave runs while it is null) */
 struct JOY;
 
 extern "C" {
@@ -232,7 +236,7 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
-        if (D_002F66B0.psubt && FCheckLm__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.t3c - D_002F66B0.t10C))
+        if (D_002F66B0.psubt && FCheckLm__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.tReal - D_002F66B0.t10C))
             x = (QW *)((unsigned)D_002F66B0.pb + 0x41DC00);
         Draw(x, &D_002F66B0);
         Draw(x, &D_002F66B0);
@@ -258,18 +262,18 @@ void StartupMpeg()
 // Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset. (inferred)
 int CQueueOutputIop_Init(CQueueOutputIop *queue, MPEGAUDIOREC *pa)
 {
-    queue->x4 = pa->x8;
-    queue->x8 = pa->xC;
-    queue->xC = pa->x10;
-    queue->x10 = pa->x14;
-    if (queue->x4 == 0x10) {
-        queue->x18 = queue->xC << 12;
-        queue->x14 = snd_InitMovieSound(0x400, 0x1000, 0x400, 0, 2, 3);
+    queue->format = pa->format;
+    queue->sampleRate = pa->sampleRate;
+    queue->channelCount = pa->channelCount;
+    queue->interleave = pa->interleave;
+    if (queue->format == 0x10) {
+        queue->bufferSize = queue->channelCount << 12;
+        queue->iopBuffer = snd_InitMovieSound(0x400, 0x1000, 0x400, 0, 2, 3);
     } else {
-        queue->x18 = 0x6000;
-        queue->x14 = snd_InitMovieSound(0x6000, 0, 0x400, 0, 2, 2);
+        queue->bufferSize = 0x6000;
+        queue->iopBuffer = snd_InitMovieSound(0x6000, 0, 0x400, 0, 2, 2);
     }
-    if (queue->x14 < 0)
+    if (queue->iopBuffer < 0)
         return 0;
     queue->Reset();
     return 1;
@@ -278,11 +282,11 @@ int CQueueOutputIop_Init(CQueueOutputIop *queue, MPEGAUDIOREC *pa)
 // Empties the IOP ring buffer: read/write cursors and counters back to the start.
 void CQueueOutputIop::Reset()
 {
-    m_x24 = x18;
-    m_x28 = 0;
-    m_x20 = 0;
-    m_x1c = 0;
-    m_x2c = 0;
+    freeBytes = bufferSize;
+    queuedBytes = 0;
+    readOffset = 0;
+    writeOffset = 0;
+    totalSent = 0;
 }
 
 // Inline helper Alloc: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
@@ -292,20 +296,20 @@ static inline char *Alloc(int cb, int align) { return AllocFromStack(AREQ(cb, al
 // (inferred)
 void StageInterleavedIopAudio(CQueueOutputIop *queue, int cb, char *pb)
 {
-    int ch = queue->x4;
+    int ch = queue->format;
     if (ch != 0x10) return;
-    if (queue->xC == 1) return;
+    if (queue->channelCount == 1) return;
     STACKSCOPE ctx;
     char *pbCur = pb;
-    int chunk = queue->xC << 10;
+    int chunk = queue->channelCount << 10;
     char *tmp = Alloc(chunk, 0x10);
     int cbCur = cb;
     while (cbCur) {
         int i = 0, k = 0, off;
-        for (off = 0; off < chunk; off += queue->x10) {
-            CopyAb__FPvT0Ui(tmp + ((i << 10) + k * queue->x10), pbCur + off, queue->x10);
+        for (off = 0; off < chunk; off += queue->interleave) {
+            CopyAb__FPvT0Ui(tmp + ((i << 10) + k * queue->interleave), pbCur + off, queue->interleave);
             i++;
-            if (i >= queue->xC) {
+            if (i >= queue->channelCount) {
                 k++;
                 i = 0;
             }
@@ -324,20 +328,20 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
     int rd;
     int n, r, avail;
     char *dst;
-    if (c <= 0 || queue->m_x24 < c) c = queue->m_x24;
-    if (queue->x4 == 0x10) {
-        c &= -(queue->xC << 10);
+    if (c <= 0 || queue->freeBytes < c) c = queue->freeBytes;
+    if (queue->format == 0x10) {
+        c &= -(queue->channelCount << 10);
         StageInterleavedIopAudio(queue, c, pb);
     } else {
         c &= -0x400;
     }
     if (c) do {
-        avail = queue->x18 - queue->m_x1c;
+        avail = queue->bufferSize - queue->writeOffset;
         if (c < avail) n = c; else n = avail;
         dst = pb + total;
-        if (queue->x4 == 0x10) {
+        if (queue->format == 0x10) {
             n = 0x400;
-            r = queue->m_x2c / 1024 / queue->xC % 4;
+            r = queue->totalSent / 1024 / queue->channelCount % 4;
             if (r == 0) {
                 dst[1] = 6;
                 dst[0x11] = 2;
@@ -349,11 +353,11 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
         c -= rd;
         if (!rd) break;
         total += rd;
-        queue->m_x1c += rd;
-        queue->m_x1c %= queue->x18;
-        queue->m_x28 += rd;
-        queue->m_x24 -= rd;
-        queue->m_x2c += rd;
+        queue->writeOffset += rd;
+        queue->writeOffset %= queue->bufferSize;
+        queue->queuedBytes += rd;
+        queue->freeBytes -= rd;
+        queue->totalSent += rd;
         if (cb <= 0) break;
     } while (c);
     return total;
@@ -365,19 +369,19 @@ int CQueueOutputIop_CbSend(CQueueOutputIop *queue, int b, char *c)
 {
     REQ req;
     int off, h, n;
-    off = (queue->x4 == 0x10) ? 0 : queue->m_x1c;
+    off = (queue->format == 0x10) ? 0 : queue->writeOffset;
     req.a = (int)c;
-    req.b = queue->x14 + off;
+    req.b = queue->iopBuffer + off;
     req.c = b;
     req.d = 0;
     func_00234CA0(0);
     h = func_00234DE0(&req, 1);
     while (func_00234DC0(h) >= 0) ;
-    if (queue->x4 == 0x10) {
+    if (queue->format == 0x10) {
         int col, row;
-        n = queue->m_x2c / 1024;
-        col = n % queue->xC;
-        row = (n / queue->xC) % 4;
+        n = queue->totalSent / 1024;
+        col = n % queue->channelCount;
+        row = (n / queue->channelCount) % 4;
         func_00232FE8(b, (row << 10) + (col << 12));
     }
     return b;
@@ -386,23 +390,23 @@ int CQueueOutputIop_CbSend(CQueueOutputIop *queue, int b, char *c)
 // Read IOP playback position and update read/write cursors. (inferred)
 void CQueueOutputIop_Update(CQueueOutputIop *queue)
 {
-    if (queue->x4 == 0x10) {
-        int pos = func_00233018() * queue->xC;
-        if (pos >= 0 && pos <= queue->x18) {
-            queue->m_x20 = pos % queue->x18;
-            if (queue->m_x20 == queue->m_x1c) queue->m_x24 = queue->x18;
+    if (queue->format == 0x10) {
+        int pos = func_00233018() * queue->channelCount;
+        if (pos >= 0 && pos <= queue->bufferSize) {
+            queue->readOffset = pos % queue->bufferSize;
+            if (queue->readOffset == queue->writeOffset) queue->freeBytes = queue->bufferSize;
             else {
-                queue->m_x24 = queue->m_x20 - queue->m_x1c + queue->x18;
-                queue->m_x24 %= queue->x18;
+                queue->freeBytes = queue->readOffset - queue->writeOffset + queue->bufferSize;
+                queue->freeBytes %= queue->bufferSize;
             }
         }
-        queue->m_x28 = queue->x18 - queue->m_x24;
+        queue->queuedBytes = queue->bufferSize - queue->freeBytes;
     } else {
-        queue->m_x24 = (snd_GetTransStatus() & 0xFFFFFF) - queue->x14 - queue->m_x1c + (queue->x18 - 0x400);
-        queue->m_x24 %= queue->x18;
-        queue->m_x28 = queue->x18 - queue->m_x24;
-        queue->m_x20 = queue->m_x1c - queue->m_x28 + queue->x18;
-        queue->m_x20 %= queue->x18;
+        queue->freeBytes = (snd_GetTransStatus() & 0xFFFFFF) - queue->iopBuffer - queue->writeOffset + (queue->bufferSize - 0x400);
+        queue->freeBytes %= queue->bufferSize;
+        queue->queuedBytes = queue->bufferSize - queue->freeBytes;
+        queue->readOffset = queue->writeOffset - queue->queuedBytes + queue->bufferSize;
+        queue->readOffset %= queue->bufferSize;
     }
 }
 
@@ -438,8 +442,8 @@ void Init__10CMpegAudio(CMpegAudio *audio)
     while (snd_FlushSoundCommands()) ;
     snd_StreamSafeCheckCDIdle(1);
     snd_StreamSafeCdSync(0);
-    audio->xA0 = snd_GetMasterVolume(2);
-    audio->xA4 = snd_GetMasterVolume(0x10);
+    audio->savedVolume2 = snd_GetMasterVolume(2);
+    audio->savedVolume10 = snd_GetMasterVolume(0x10);
     snd_SetMasterVolume(2, 0x400);
     snd_SetMasterVolume(0x10, 0x400);
     audio->state = 1;
@@ -466,8 +470,8 @@ void Close__10CMpegAudio(CMpegAudio *audio)
 {
     audio->state = 0;
     snd_CloseMovieSound();
-    snd_SetMasterVolume(2, audio->xA0);
-    snd_SetMasterVolume(0x10, audio->xA4);
+    snd_SetMasterVolume(2, audio->savedVolume2);
+    snd_SetMasterVolume(0x10, audio->savedVolume10);
     snd_ContinueAllSoundsInGroup(0xFFFFFFFF);
 }
 
@@ -502,16 +506,16 @@ void Update__10CMpegAudio(CMpegAudio *audio)
 {
     switch (audio->state) {
     case 2:
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.m_x24, &audio->out);
-        if (audio->out.m_x24 == 0) {
-            if (audio->out.x4 == 0x10) snd_StartMovieSound(audio->out.x14, 0x1000, 0, audio->out.x8, audio->out.xC);
-            else snd_StartMovieSound(audio->out.x14, audio->out.x18, audio->out.x14, 0, 0);
+        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
+        if (audio->out.freeBytes == 0) {
+            if (audio->out.format == 0x10) snd_StartMovieSound(audio->out.iopBuffer, 0x1000, 0, audio->out.sampleRate, audio->out.channelCount);
+            else snd_StartMovieSound(audio->out.iopBuffer, audio->out.bufferSize, audio->out.iopBuffer, 0, 0);
             audio->state = 3;
         }
         break;
     case 3:
         CQueueOutputIop_Update(&audio->out);
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.m_x24, &audio->out);
+        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
         break;
     }
 }
@@ -691,7 +695,7 @@ void DrawMpegSubtitles(CMPEG *player)
 // Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid. (inferred)
 extern "C" void CMpeg_QueueMovie(CMPEG *player, K *pe)
 {
-    if (pe && pe->x4 != pe->x3C && player->un < 4) {
+    if (pe && pe->lengthScrambled != pe->lengthKey && player->un < 4) {
         player->ae[player->un++] = *pe;
     }
 }
@@ -715,23 +719,23 @@ extern "C" int CMpeg_ExecuteOids(CMPEG *player)
 
 // ~CBinaryAsyncStream() is the out-of-line g++ dtor _$_18CBinaryAsyncStream (0x1325B8); calling it (rather than an inline wrapper) keeps `this` in $s6.
 struct X {
-    uint x0; uint x4; int x8; char opaqueC[0x110 - 0xC];
-    X() { x8 = 2; Init(); }
+    uint sector; uint length; int mode; char opaqueC[0x110 - 0xC];   /* a disc file (sceCdlFILE-like, inferred) */
+    X() { mode = 2; Init(); }
     void Init() __asm__("InitFileKey");
     bool FSet(K *k);
 };
-struct CBinaryAsyncStream { char pad[0x1C]; int x1C; int x20; int x24; int x28; char pad2C[0x30 - 0x2C];
+struct CBinaryAsyncStream { char pad[0x1C]; int bytesLoaded; int buffer; int readOffset; int moreToRead;   /* (inferred) */ char pad2C[0x30 - 0x2C];
     CBinaryAsyncStream(int cb, void *pv) __asm__("__18CBinaryAsyncStreamPv"); ~CBinaryAsyncStream(); };
 // Points the stream at a movie entry: the entry stores its disc offset and length XOR-masked with two key words
-// (x34/x3C); the sector offset is biased by 0xCA0. Returns the length (0 for no entry).
+// (offsetKey/lengthKey); the sector offset is biased by 0xCA0. Returns the length (0 for no entry).
 inline bool X::FSet(K *k)
 {
     if (!k) return 0;
-    uint offset = k->x0 ^ k->x34;
-    uint length = k->x4 ^ k->x3C;
-    x8 = 2;
-    x0 = offset + 0xCA0;
-    x4 = length;
+    uint offset = k->offsetScrambled ^ k->offsetKey;
+    uint length = k->lengthScrambled ^ k->lengthKey;
+    mode = 2;
+    this->sector = offset + 0xCA0;
+    this->length = length;
     return length;
 }
 // Whether two movie entries are the same movie (same pointer, or equal XOR-unmasked ids).
@@ -739,13 +743,13 @@ static inline int FMatch(K *a, K *b)
 {
     if (a == b) return 1;
     if (!a || !b) return 0;
-    return ((a->x8 ^ a->x38) ^ (b->x8 ^ b->x38)) == 0;
+    return ((a->idScrambled ^ a->idKey) ^ (b->idScrambled ^ b->idKey)) == 0;
 }
 typedef char X_PrefixSize[sizeof(X)==272?1:-1];
 typedef char K_PrefixSize[sizeof(K)==64?1:-1];
 typedef char STRM_PrefixSize[sizeof(CBinaryAsyncStream)==48?1:-1];
 typedef char MPEG_PrefixSize[sizeof(MPEG)==68?1:-1];
-typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,xFD50)==64848?1:-1];
+typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,pendingSlot)==64848?1:-1];
 // Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish.
 void Execute__5CMpegPv(CMPEG *player, K *k)
 {
@@ -760,7 +764,7 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
             int f;
             MarkClockTick(&D_002DDED0, 1);
             UpdateJoy__FP3JOY(&D_002DFC00);
-            if (!D_002E65E0.xFD50) UpdateSave__FP4SAVE(&D_002E65E0);
+            if (!D_002E65E0.pendingSlot) UpdateSave__FP4SAVE(&D_002E65E0);
             f = 0;
             if (FMatch(k, (K *)D_002A3968) || FMatch(k, (K *)D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;
@@ -772,7 +776,7 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
                     break;
                 }
             }
-            if (x.x8 == 2) {
+            if (x.mode == 2) {
                 UpdateCd__Fv();
                 if (D_002BD4C0 != 3) break;
             }
@@ -812,7 +816,7 @@ void Update__5CMpeg(CMPEG *player)
     while (player->stage == 1) CbDemuxed__5CMpegi(player, 0);
     if (sceMpegGetPicture(&player->mpeg, player->pb + 0x285A80, 0x5CD) < 0) return;
     if (player->mpeg.frameCount == 0) {
-        player->t10C = D_002DDED0.t3c;
+        player->t10C = D_002DDED0.tReal;
         BuildMpegGifs(player);
         DrawMpegSubtitles(player);
         func_00234CA0(0);
@@ -840,15 +844,15 @@ void Finish__5CMpeg(CMPEG *player)
 int CbDemuxed__5CMpegi(CMPEG *player, int wait)
 {
     int n, r;
-    n = player->pstrm->x1C - player->pstrm->x24;
+    n = player->pstrm->bytesLoaded - player->pstrm->readOffset;
     while (n == 0) {
-        if (!player->pstrm->x28) return 2;
+        if (!player->pstrm->moreToRead) return 2;
         Spool__18CBinaryAsyncStream(player->pstrm);
-        n = player->pstrm->x1C - player->pstrm->x24;
+        n = player->pstrm->bytesLoaded - player->pstrm->readOffset;
         if (n == 0 && !wait) return 0;
     }
     func_00234CA0(0);
-    r = sceMpegDemuxPss(&player->mpeg, player->pstrm->x20 + player->pstrm->x24, n);
+    r = sceMpegDemuxPss(&player->mpeg, player->pstrm->buffer + player->pstrm->readOffset, n);
     Skip__18CBinaryAsyncStreami(player->pstrm, r);
     if (r) return 0;
     if (player->qVideo.cb >= n && player->audio.qData.cb >= n) return 2;

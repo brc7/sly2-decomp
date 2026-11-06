@@ -34,24 +34,24 @@ struct TRIG
     int fCnstr;                 /* 0xE8 */
     XPO *pxEC;                  /* 0xEC: its contacts */
     char padF0[0x148 - 0xF0];
-    unsigned long x148;         /* 0x148 */
-    int c150;                   /* 0x150 */
-    I *a154;                    /* 0x154: trigger classes */
-    int x158;                   /* 0x158: firings of the current event */
-    int i;                      /* 0x15C: current event */
-    int c;                      /* 0x160 */
-    E *ae;                      /* 0x164 */
-    int x168;                   /* 0x168: what the firing may do (camera 2, rumble 4, noise 8; 1 none) */
-    void *x16C;                 /* 0x16C: the object that fired it */
-    int x170;                   /* 0x170 */
+    unsigned long breakFlags;   /* 0x148 */
+    int triggerClassCount;      /* 0x150 */
+    I *triggerClasses;          /* 0x154: trigger classes */
+    int firingCount;            /* 0x158: firings of the current event */
+    int stage;                  /* 0x15C: current event */
+    int stageCount;             /* 0x160 */
+    E *stages;                  /* 0x164 */
+    int reactionMask;           /* 0x168: what the firing may do (camera 2, rumble 4, noise 8; 1 none) */
+    void *instigator;           /* 0x16C: the object that fired it */
+    int zapKind;                /* 0x170: the zap kind that fired it (0 for contacts, inferred) */
     void Action() __asm__("ReactBreakable");
 };
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef char offset_0_marker[FIELD_OFFSET(TRIG,x158)==344?1:-1];
-typedef char offset_0_current[FIELD_OFFSET(TRIG,i)==348?1:-1];
-typedef char offset_0_eventCount[FIELD_OFFSET(TRIG,c)==352?1:-1];
-typedef char offset_0_events[FIELD_OFFSET(TRIG,ae)==356?1:-1];
-typedef char offset_0_x170[FIELD_OFFSET(TRIG,x170)==0x170?1:-1];
+typedef char offset_0_marker[FIELD_OFFSET(TRIG,firingCount)==344?1:-1];
+typedef char offset_0_current[FIELD_OFFSET(TRIG,stage)==348?1:-1];
+typedef char offset_0_eventCount[FIELD_OFFSET(TRIG,stageCount)==352?1:-1];
+typedef char offset_0_events[FIELD_OFFSET(TRIG,stages)==356?1:-1];
+typedef char offset_0_x170[FIELD_OFFSET(TRIG,zapKind)==0x170?1:-1];
 typedef char size_1[sizeof(E)==16?1:-1];
 typedef char size_2[sizeof(I)==8?1:-1];
 
@@ -133,15 +133,15 @@ extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
 {
     STACKSCOPE ctx;
     int i, j;
-    breakable->a154 = (I *)Alloc(0x40);
-    breakable->ae = (E *)AllocB(0x200) + 1;
+    breakable->triggerClasses = (I *)Alloc(0x40);
+    breakable->stages = (E *)AllocB(0x200) + 1;
     LoadSoFromBrx(breakable, a);
-    breakable->i = 0;
-    breakable->a154 = (I *)Realloc(breakable->a154, breakable->c150 << 3);
-    if (breakable->c) {
-        breakable->ae = (E *)Realloc(breakable->ae - 1, (breakable->c << 4) + 0x10) + 1;
-        for (i = -1; i < breakable->c; i++) {
-            E *pe = &breakable->ae[i];
+    breakable->stage = 0;
+    breakable->triggerClasses = (I *)Realloc(breakable->triggerClasses, breakable->triggerClassCount << 3);
+    if (breakable->stageCount) {
+        breakable->stages = (E *)Realloc(breakable->stages - 1, (breakable->stageCount << 4) + 0x10) + 1;
+        for (i = -1; i < breakable->stageCount; i++) {
+            E *pe = &breakable->stages[i];
             pe->a = (I *)Realloc(pe->a, pe->c << 3);
             for (j = 0; j < pe->c; j++) {
                 I *pi = &pe->a[j];
@@ -151,7 +151,7 @@ extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
             }
         }
     } else {
-        breakable->ae = 0;
+        breakable->stages = 0;
     }
 }
 
@@ -176,10 +176,10 @@ extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
     if (func_001BBE48X(breakable, e)) return 0;
     if (!e->x40.w.hi) return 0;
     if ((e->x40.l & 0xC00000000UL) != 0x800000000UL) return 1;
-    if (breakable->c150 != 0 && e->x0 != breakable) {
-        for (i = 0; i < breakable->c150; i++)
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->a154[i].a)) break;
-        if (i >= breakable->c150) return 0;
+    if (breakable->triggerClassCount != 0 && e->x0 != breakable) {
+        for (i = 0; i < breakable->triggerClassCount; i++)
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->triggerClasses[i].a)) break;
+        if (i >= breakable->triggerClassCount) return 0;
     }
     ScheduleBreakableReaction(breakable, e->x0, e->xC);
     return 1;
@@ -188,8 +188,8 @@ extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
 // Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React). (inferred)
 void ScheduleBreakableReaction(TRIG *breakable, void *a, int b)
 {
-    breakable->x170 = b;
-    breakable->x16C = a;
+    breakable->zapKind = b;
+    breakable->instigator = a;
     EnsureSwCallback(&D_003DD490, breakable, &TRIG::Action, 0);
 }
 
@@ -198,27 +198,27 @@ enum { EVENT_SHIFT = 4 };
 // (inferred)
 void SetBreakableStage(TRIG *breakable, int id)
 {
-    int iTarget = breakable->i;
+    int iTarget = breakable->stage;
     int cur, j, k;
     if (id == 0x609) {
         iTarget = 0;
     } else if (id == 0x60A) {
-        iTarget = breakable->c;
+        iTarget = breakable->stageCount;
     } else if (id != -1) {
-        for (j = 0; j < breakable->c; j++) {
-            if (breakable->ae[j].id == id) {
+        for (j = 0; j < breakable->stageCount; j++) {
+            if (breakable->stages[j].id == id) {
                 iTarget = j;
                 break;
             }
         }
     }
-    cur = breakable->i;
-    if (breakable->i == iTarget) return;
-    if (breakable->i < iTarget) {
+    cur = breakable->stage;
+    if (breakable->stage == iTarget) return;
+    if (breakable->stage < iTarget) {
         do {
             E *pe;
-            breakable->i = cur + 1;
-            pe = &breakable->ae[cur];
+            breakable->stage = cur + 1;
+            pe = &breakable->stages[cur];
             for (k = 0; k < pe->c; k++) {
                 I *pi = &pe->a[k];
                 SOX *ps = 0;
@@ -247,19 +247,19 @@ void SetBreakableStage(TRIG *breakable, int id)
                     break;
                 }
             }
-            cur = breakable->i;
+            cur = breakable->stage;
         } while (cur < iTarget);
-        breakable->x158 = 0;
-    } else if (iTarget < breakable->i) {
-        register int rewind __asm__("$6") = breakable->i;
+        breakable->firingCount = 0;
+    } else if (iTarget < breakable->stage) {
+        register int rewind __asm__("$6") = breakable->stage;
         int fresh;
         do {
             E *pe;
             register int previous __asm__("$2") = rewind - 1;
             register int offset __asm__("$3");
             __asm__("sll %0,%2,%3\n\tsw %2,%1"
-                    : "=&r"(offset), "=m"(breakable->i) : "r"(previous), "i"(EVENT_SHIFT));
-            pe = (E *)((char *)breakable->ae + offset);
+                    : "=&r"(offset), "=m"(breakable->stage) : "r"(previous), "i"(EVENT_SHIFT));
+            pe = (E *)((char *)breakable->stages + offset);
             k = pe->c;
             while (k-- > 0) {
                 I *pi = &pe->a[k];
@@ -289,12 +289,12 @@ void SetBreakableStage(TRIG *breakable, int id)
                     break;
                 }
             }
-            fresh = breakable->i;
+            fresh = breakable->stage;
             __asm__("daddu %0,%1,$zero" : "=r"(rewind) : "r"(fresh));
         } while (iTarget < fresh);
-        breakable->x158 = 0;
+        breakable->firingCount = 0;
     } else {
-        breakable->x158 = 0;
+        breakable->firingCount = 0;
     }
 }
 typedef char event_shift[sizeof(E)==(1<<EVENT_SHIFT)?1:-1];
@@ -313,15 +313,15 @@ void CID98::VUnk57()
     if (IsBreakableDone(breakable)) return;
     for (pl = breakable->pxEC->pl; pl; pl = pl->next) {
         if (*pl->px8 == 0) continue;
-        for (i = 0; i < breakable->c150; i++) {
-            I *pe = &breakable->a154[i];
+        for (i = 0; i < breakable->triggerClassCount; i++) {
+            I *pe = &breakable->triggerClasses[i];
             if (!pe->b) continue;
             if (!FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
-            if (!(breakable->x148 & 0x3000000)) ScheduleBreakableReaction(breakable, pl->po, 0);
+            if (!(breakable->breakFlags & 0x3000000)) ScheduleBreakableReaction(breakable, pl->po, 0);
             if (FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
                 TRIG *q = pl->po;
-                for (j = 0; j < q->c150; j++) {
-                    I *pe2 = &q->a154[j];
+                for (j = 0; j < q->triggerClassCount; j++) {
+                    I *pe2 = &q->triggerClasses[j];
                     if (!pe2->b) continue;
                     if (!FIsBasicDerivedFrom__FP5BASIC3CID(breakable, pe2->a)) continue;
                     ScheduleBreakableReaction(q, breakable, 0);
@@ -346,27 +346,27 @@ void TRIG::Action()
     E *pe;
     int v;
     if (IsBreakableDone(p)) return;
-    if (p->x16C == GetHeroPo(&D_003DD490)) {
-        p->x168 = 0xE;
+    if (p->instigator == GetHeroPo(&D_003DD490)) {
+        p->reactionMask = 0xE;
     } else {
-        v = p->x170;
-        if (v == 0x100 || v == 0x10000 || v == 0x20000 || (p->x16C && FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x3B)))
-            p->x168 = 8;
+        v = p->zapKind;
+        if (v == 0x100 || v == 0x10000 || v == 0x20000 || (p->instigator && FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3B)))
+            p->reactionMask = 8;
         else
-            p->x168 = 0;
+            p->reactionMask = 0;
     }
     ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x10, 0, 0, 0, 0);
-    if (p->x168 & 1) return;
-    pe = &p->ae[p->i];
-    RunBreakableStageActions(p, p->ae - 1);
+    if (p->reactionMask & 1) return;
+    pe = &p->stages[p->stage];
+    RunBreakableStageActions(p, p->stages - 1);
     RunBreakableStageActions(p, pe);
-    if (!p->x16C || !FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x3C)) {
-        EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(p), p->x16C);
+    if (!p->instigator || !FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3C)) {
+        EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(p), p->instigator);
     }
     if (pe->n > 0) {
-        if (++p->x158 >= pe->n) {
-            p->x158 = 0;
-            if (++p->i >= p->c) {
+        if (++p->firingCount >= pe->n) {
+            p->firingCount = 0;
+            if (++p->stage >= p->stageCount) {
                 ((void (*)(void *, int, TRIG *))p->vt[4].pfn)((char *)p + p->vt[4].d, 0x10, p);
                 ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
                 BroadcastGameEvent(D_002DEB30, 0x11, p);
@@ -374,10 +374,10 @@ void TRIG::Action()
         }
     }
     if (IsBreakableStageValid(p)) {
-        pe = &p->ae[p->i];
+        pe = &p->stages[p->stage];
         if (pe->n <= 0) {
             int i;
-            for (i = 0; i < p->c150; i++) p->a154[i].b = 0;
+            for (i = 0; i < p->triggerClassCount; i++) p->triggerClasses[i].b = 0;
         }
     }
 }
@@ -392,7 +392,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
     for (i = 0; i < pe->c; i++) {
         I *pi = &pe->a[i];
         SOX *ps;
-        if ((breakable->x158 > 0 || pe->n <= 0) && ((0x3F >> pi->a) & 1)) continue;
+        if ((breakable->firingCount > 0 || pe->n <= 0) && ((0x3F >> pi->a) & 1)) continue;
         ps = 0;
         if ((0xC3 >> pi->a) & 1) {
             ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
@@ -429,13 +429,13 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             }
             break;
         case 8:
-            if (breakable->x168 & 2) JoltCamera(D_002DDF40, pi->b);
+            if (breakable->reactionMask & 2) JoltCamera(D_002DDF40, pi->b);
             break;
         case 9:
-            if (breakable->x168 & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);
+            if (breakable->reactionMask & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);
             break;
         case 10:
-            if (breakable->x168 & 8) {
+            if (breakable->reactionMask & 8) {
                 qword q;
                 if (psPrev) q = GetLoWorldPos(psPrev);
                 else q = GetLoWorldPos(breakable);
@@ -457,12 +457,12 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
 
 // Append (class, flag) to trigger list (max 8). (inferred)
 extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
-    int c = breakable->c150;
+    int c = breakable->triggerClassCount;
     int r = c < 8;
     if (r != 0) {
-        I *pi = (I *)((char *)breakable->a154 + c * 8);
+        I *pi = (I *)((char *)breakable->triggerClasses + c * 8);
         r = (int)pi;
-        breakable->c150 = c + 1;
+        breakable->triggerClassCount = c + 1;
         pi->b = b;
         pi->a = a;
     }
@@ -473,10 +473,10 @@ extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
 extern "C" void AddBreakableStage(TRIG *breakable, int id)
 {
     MSG msg;
-    if (breakable->c < 0x20) {
+    if (breakable->stageCount < 0x20) {
         E *pe;
-        breakable->i = breakable->c++;
-        pe = &breakable->ae[breakable->i];
+        breakable->stage = breakable->stageCount++;
+        pe = &breakable->stages[breakable->stage];
         pe->id = id;
         pe->n = 1;
         pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
@@ -488,8 +488,8 @@ extern "C" void InitBreakablePreStage(TRIG *breakable)
 {
     E *pe;
     MSG msg;
-    breakable->i = -1;
-    pe = &breakable->ae[-1];
+    breakable->stage = -1;
+    pe = &breakable->stages[-1];
     pe->id = -1;
     pe->n = 1;
     if (!pe->a) pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
@@ -498,7 +498,7 @@ extern "C" void InitBreakablePreStage(TRIG *breakable)
 // Set a field of the current stage record (D_002A76B8 key). (inferred)
 extern "C" void SetBreakableStageParam(TRIG *breakable, int x)
 {
-    if (breakable->i != -1) {
+    if (breakable->stage != -1) {
         E *r = func_001BBE68K(breakable, D_002A76B8);
         if (r && x) r->n = x;
     }
@@ -609,9 +609,9 @@ I *AddBreakableAction(TRIG *breakable, int x)
 
 // current stage index valid (0..count-1 or -1). (inferred)
 int IsBreakableStageValid(TRIG *breakable) {
-    int i = breakable->i;
+    int i = breakable->stage;
     int f = 0;
-    if (((i >= 0) && (i < breakable->c)) || (i == -1)) {
+    if (((i >= 0) && (i < breakable->stageCount)) || (i == -1)) {
         f = 1;
     }
     return f;
@@ -627,7 +627,7 @@ E *GetCurrentBreakableStage(TRIG *breakable) {
     if (IsBreakableStageValid(breakable) == 0) {
         return 0;
     }
-    return (E *)((char *)breakable->ae + breakable->i * 0x10);
+    return (E *)((char *)breakable->stages + breakable->stage * 0x10);
 }
 
 // CID 98 vtable slot 26: proxy base, reset to first stage (0x609), restore constraints. (inferred)

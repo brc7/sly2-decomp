@@ -530,6 +530,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   pad buttons); renaming locals/fields of TU-private views; switching a type name of a view used only under C linkage or by
   a global variable.
 - Whitespace/layout (clang-format on a function range; there are no debug sections, but mind `#line` pins).
+- `static inline` helpers that wrap one repeated statement (LO tagged-flag get/set/clear in relay.cpp, ZeroVector in
+  UpdateHackship); a helper that does a loop's fallback stores through `p` itself (NewRelayJsg's SetBlockEnd).
 - Field access through the real layout instead of `(char *)p + 0x2C0` or `*(T *)((char *)p + off)` with the same type.
 - An early `return` for a trailing `if` without else (a void function whose whole body is `if (c) {...}` -> `if (!c) return;`);
   merging `if (A) { if (B) {...} }` into `&&`; `} else { if` -> `} else if`; dropping a bare `{ }` block that holds no
@@ -568,7 +570,12 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   early `return` instead of `goto leaf` (FindPathzoneAtPos, moves the leaf block): keep such gotos, give the label a meaning,
   and say why. (A `goto test;` into a rotated `for (;;)` did become a plain `for`: RemoveObstacleEvents.)
 - Dropping a redundant test: `if (r == 3) return; if (r != 4) return;` keeps the first test (PostCid14Load).
-- Merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal: one jump-table target instead of three blocks).
+- Merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal, four cases in UpdateHackship: one jump-table
+  target instead of separate blocks); keep one call per case (a helper keeps it short). Duplicated selector branches
+  (`switch (n) { case A: q = x; if (q) q->vt[8](); ... default: ... vt[9] }`) do not collapse into a computed slot either
+  (SetDprizeDprizes).
+- A loop's fallback store keeps its reload: `for (...) { ... goto done; } p->last = p->first; done:` as a helper that
+  returns a pointer reuses the register instead of reloading `p->first` (NewRelayJsg).
 - `if (a) goto L; if (b) goto L;` -> `if (a || b) goto L` (CanJtUseGadgetInAir).
 - `again: ... goto again` search loops (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)` or a reset of the
   iterator moves the loop test.

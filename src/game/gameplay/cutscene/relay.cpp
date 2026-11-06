@@ -1330,16 +1330,16 @@ namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
 typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern struct CLOCK { float a[20]; } D_002DDED0;
+extern struct CLOCK { float t; float dt; float pad8[14]; float dtReal; float pad44[3]; } D_002DDED0;
 extern DLI *D_002DD2FC;
 typedef struct {
     char pad[0x40];
-    unsigned int x40;
+    unsigned int taggedFlags;
     char pad44[0x5C - 0x44];
-    DL dl;
+    DL scripts;
     char pad68[0x70 - 0x68];
-    float t;
-    int x74;
+    float firedTime;
+    int isFiring;
 } OBJ;
 void UpdateLo(OBJ *);
 void UpdateRelayScript(void *);
@@ -1361,6 +1361,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
+enum { LO_FLAG_UNPAUSED = 0x100 };   /* runs on real time while the game clock is paused (inferred) */
+// The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
+static inline unsigned int GetLoFlags(OBJ *lo)
+{
+    unsigned int fl = lo->taggedFlags;
+    if ((fl ^ 1) & 1)
+        fl = *(unsigned int *)fl;
+    return fl;
+}
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
 // update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
 void UpdateRelay(OBJ *relay)
@@ -1369,19 +1378,17 @@ void UpdateRelay(OBJ *relay)
     void *pv;
     unsigned int fl;
     UpdateLo(relay);
-    if (relay->x74 == 0)
+    if (relay->isFiring == 0)
         return;
-    fl = relay->x40;
-    if ((fl ^ 1) & 1)
-        fl = *(unsigned int *)fl;
-    if (fl & 0x100)
-        relay->t += D_002DDED0.a[16];
+    fl = GetLoFlags(relay);
+    if (fl & LO_FLAG_UNPAUSED)
+        relay->firedTime += D_002DDED0.dtReal;
     else
-        relay->t += D_002DDED0.a[1];
-    InitDli(&dli, &relay->dl);
+        relay->firedTime += D_002DDED0.dt;
+    InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         UpdateRelayScript(pv);
-    if (FIsDlEmpty__FP2DL(&relay->dl))
+    if (FIsDlEmpty__FP2DL(&relay->scripts))
         StopRelay(relay);
     D_002DD2FC = dli.pdliNext;
 }
@@ -1397,17 +1404,17 @@ struct OBJ {
     char pad[0xC];
     VT *vt;
     char pad10[0x40 - 0x10];
-    int x40;
+    int taggedFlags;
     char pad44[0x54 - 0x44];
-    void *x54;
+    void *topBlock;
     int pad58;
-    DL dl;
+    DL scripts;
     char pad68[0x6C - 0x68];
-    int x6C;
-    int x70;
-    int x74;
-    int x78;
-    int x7C;
+    int firer;
+    int firedTime;
+    int isFiring;
+    int isMarkedBusy;
+    int needsBlockEnd;
 };
 void AddRelayBlockEnd(OBJ *);
 void *NewRelayJsg(OBJ *, void *, int);
@@ -1415,42 +1422,52 @@ void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
+enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by several Init functions; meaning inferred only that far) */
+// The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
+static inline int GetLoFlags(OBJ *lo)
+{
+    int fl = lo->taggedFlags;
+    if ((fl ^ 1) & 1)
+        fl = *(int *)fl;
+    return fl;
+}
+// Sets bits of the LO flag word wherever it lives.
+static inline void SetLoFlagBits(OBJ *lo, int bits)
+{
+    if ((lo->taggedFlags ^ 1) & 1)
+        *(int *)lo->taggedFlags |= bits;
+    else
+        lo->taggedFlags |= bits;
+}
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
 // still running afterwards the relay marks itself busy.
 void FireRelay(OBJ *relay, int n)
 {
-    int fl;
-    if (relay->x74)
+    if (relay->isFiring)
         return;
-    relay->x6C = n;
-    relay->x74 = 1;
-    relay->x78 = 0;
+    relay->firer = n;
+    relay->isFiring = 1;
+    relay->isMarkedBusy = 0;
     relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 5, 0, 0, 0, 0);
-    if (!relay->x74)
+    if (!relay->isFiring)
         return;
-    if (relay->x7C) {
+    if (relay->needsBlockEnd) {
         AddRelayBlockEnd(relay);
-        relay->x7C = 0;
+        relay->needsBlockEnd = 0;
     }
-    UpdateRelayScript(NewRelayJsg(relay, relay->x54, 0));
-    if (!relay->x74)
+    UpdateRelayScript(NewRelayJsg(relay, relay->topBlock, 0));
+    if (!relay->isFiring)
         return;
-    if (FIsDlEmpty__FP2DL(&relay->dl)) {
+    if (FIsDlEmpty__FP2DL(&relay->scripts)) {
         StopRelay(relay);
         return;
     }
-    fl = relay->x40;
-    if ((fl ^ 1) & 1)
-        fl = *(int *)fl;
-    if (fl & 2)
+    if (GetLoFlags(relay) & LO_FLAG_02)
         return;
     SetLoBusyk(relay, 1);
-    if ((relay->x40 ^ 1) & 1)
-        *(int *)relay->x40 |= 2;
-    else
-        relay->x40 |= 2;
-    relay->x78 = 1;
+    SetLoFlagBits(relay, LO_FLAG_02);
+    relay->isMarkedBusy = 1;
 }
 } } // namespace M_FireRelay
 
@@ -1474,18 +1491,27 @@ struct OBJ {
     char pad[0xC];
     VT *vt;
     char pad10[0x40 - 0x10];
-    int x40;
+    int taggedFlags;
     char pad44[0x5C - 0x44];
-    DL dl;
+    DL scripts;
     char pad68[0x6C - 0x68];
-    int x6C;
-    int x70;
-    int x74;
-    int x78;
+    int firer;
+    int firedTime;
+    int isFiring;
+    int isMarkedBusy;
 };
 void RemoveJsg(void *);
 void ClearRelayAlarms(OBJ *);
 void SetLoBusyk(OBJ *, int);
+enum { LO_FLAG_02 = 2 };
+// Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
+static inline void ClearLoFlagBits(OBJ *lo, int bits)
+{
+    if ((lo->taggedFlags ^ 1) & 1)
+        *(int *)lo->taggedFlags &= ~bits;
+    else
+        lo->taggedFlags &= ~bits;
+}
 // Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -1508,21 +1534,18 @@ void StopRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
-    if (relay->x74 == 0)
+    if (relay->isFiring == 0)
         return;
-    relay->x6C = 0;
-    relay->x70 = 0;
-    relay->x74 = 0;
-    InitDli(&dli, &relay->dl);
+    relay->firer = 0;
+    relay->firedTime = 0;
+    relay->isFiring = 0;
+    InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         RemoveJsg(pv);
     ClearRelayAlarms(relay);
-    if (relay->x78) {
+    if (relay->isMarkedBusy) {
         SetLoBusyk(relay, 2);
-        if ((relay->x40 ^ 1) & 1)
-            *(int *)relay->x40 &= ~2;
-        else
-            relay->x40 &= ~2;
+        ClearLoFlagBits(relay, LO_FLAG_02);
     }
     relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
     D_002DD2FC = dli.pdliNext;
@@ -2797,16 +2820,16 @@ extern "C" void ReleaseJsg(JSGV *script)
 // 0x1E1BC8 HandleJsgMessage
 namespace M_HandleJsgMessage { extern "C" {
 struct T; struct M; struct S;
-typedef struct T { char pad[0x18]; int x18; } T;
+typedef struct T { char pad[0x18]; int targetState; } T;
 typedef struct M { int a; int b; int c; } M;
-typedef struct S { char pad[0x30]; T *pt; char pad2[0x24]; int x58; int x5C; } S;
+typedef struct S { char pad[0x30]; T *currentCommand; char pad2[0x24]; int sma; int isSmaReached; } S;
 void HandleBasicMessage(S *p, int a, M *m);
 // BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
 // (inferred)
 void HandleJsgMessage(S *script, int a, M *m)
 {
     HandleBasicMessage(script, a, m);
-    if (a == 10 && m->a == script->x58 && m->c == script->pt->x18) script->x5C = 1;
+    if (a == 10 && m->a == script->sma && m->c == script->currentCommand->targetState) script->isSmaReached = 1;
 }
 } } // namespace M_HandleJsgMessage
 
@@ -2872,7 +2895,7 @@ void ReleaseJsgJtIfComplete(struct S *script)
 // 0x1E1DB8 FindJsgObject
 namespace M_func_001E1DB8 { extern "C" {
 struct S;
-typedef struct S { char pad[0x18]; int x18; } S;
+typedef struct S { char pad[0x18]; int context; } S;
 extern struct G D_003DD490;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
@@ -2885,7 +2908,7 @@ void *FindJsgObject(S *script, int id)
     if (id == -1) {
         q = 0;
     } else {
-        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->x18);
+        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->context);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
     }
     return q;
@@ -4846,41 +4869,41 @@ extern struct G D_003DD040;
 extern struct G D_002DE578;
 extern float D_002BD850;
 union U { int n; float g; };
-struct P { int kind; int x4; int pad[2]; union U u10; union U u14; int x18; };
-struct C { char pad[0x18]; int x18; };
-struct O { char pad[0x74]; float g74; float g78; char pad2[0x80 - 0x7C]; float a[3]; int pad3; float gMin; float gMax; };
-struct O *FindJsgObject(struct C *pc, int n);
+struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
+struct C { char pad[0x18]; int context; };
+struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
+struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int speedByDifficulty, int b);
 void *FindLiveSma(void *p, int n);
 float DtSmaToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
-// Inline helper GClamp: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// Inline helper GClamp: speedByDifficulty few VU0/EE instructions in asm (or speedByDifficulty small accessor) written so the compiler's register and
 // instruction choice matches the original; its name says what it computes.
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
-// Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
+// Seconds speedByDifficulty command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
-float GetJsgCommandDuration(struct C *pc, struct P *script)
+float GetJsgCommandDuration(struct C *script, struct P *command)
 {
     float g = 0.0f;
-    if (script->x4) return g;
-    switch (script->kind) {
+    if (command->isAsync) return g;
+    switch (command->kind) {
     case 0xA: {
-        struct O *po = FindJsgObject(pc, script->u10.n);
+        struct O *po = FindJsgObject(script, command->u10.n);
         if (po) {
             float t = GetDifficulty(&D_002DE578);
-            float *pa = po->a; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->gMin, po->gMax);
-            g = po->g74 / (po->g78 * s);
+            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->speedMin, po->speedMax);
+            g = po->duration / (po->speed * s);
         }
         break;
     }
     case 0xD:
-        if (script->x18 != -1) {
-            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, script->u10.n, pc->x18);
+        if (command->targetState != -1) {
+            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->u10.n, script->context);
             if (px) {
-                void *py = FindLiveSma(px, script->u14.n);
-                if (py) g = DtSmaToState(py, script->x18);
+                void *py = FindLiveSma(px, command->u14.n);
+                if (py) g = DtSmaToState(py, command->targetState);
             }
         }
         break;
@@ -4889,15 +4912,15 @@ float GetJsgCommandDuration(struct C *pc, struct P *script)
         break;
     case 0x23:
     case 0x33:
-        g = script->u10.g;
+        g = command->u10.g;
         break;
     case 0x45:
-        g = GetDialogStreamDuration(&D_003DD040, script->u10.n);
+        g = GetDialogStreamDuration(&D_003DD040, command->u10.n);
         break;
     case 0x2C:
     case 0x2D:
     case 0x53:
-        g = script->u14.g;
+        g = command->u14.g;
         break;
     }
     return g;
@@ -5535,7 +5558,7 @@ namespace M_RemoveJsg {
 struct VTE; struct Q; struct P; class LOCK; 
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct Q { char pad[0x5C]; int dl; };
-struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int x9C; char pad3[0xEC - 0xA0]; void *pvEC; };
+struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int isCamBlending; char pad3[0xEC - 0xA0]; void *sound; };
 class LOCK {
 public:
     P *m_p;
@@ -5570,7 +5593,7 @@ void RemoveJsg(P *script)
 {
     if (IsJsgRemoved(script)) return;
     LOCK lock(script);
-    void **ppv = &script->pvEC;
+    void **ppv = &script->sound;
     RemoveDlEntry__FP2DLPv(&script->pq->dl, script);
     ClearJsgAseg(script);
     ClearJsgRelayWait(script);
@@ -5588,7 +5611,7 @@ void RemoveJsg(P *script)
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (script->x9C) EndJsgCamBlend(script, 1);
+    if (script->isCamBlending) EndJsgCamBlend(script, 1);
     script->vt[2].pfn((char *)script + script->vt[2].d);
 }
 } // namespace M_RemoveJsg
@@ -5698,55 +5721,59 @@ void EndJsgCamBlend(struct S *script, int n)
 namespace M_PjsgNew { extern "C" {
 struct VTE; struct E; struct A; struct C; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct E { int k; char pad[0x4C]; };
-struct A { char pad[0x50]; int c; struct E *ae; char pad2[4]; char dl[1]; };
-struct C { char pad[0x18]; int x18; };
-struct S { int x0; int x4; int pad8; struct VTE *pvt; int pad10; struct A *pa; int x18; int x1C; int pad20[2]; struct E *pe28; struct E *pe2C; char pad30[0xEC - 0x30]; int xEC; };
+struct E { int kind; char pad4[0xC]; int oid; char pad14[0x3C]; };   /* RELAYCMD: kind, then (BlockBegin) the block object's oid at +0x10 */
+struct A { char pad[0x50]; int commandCount; struct E *commands; char pad2[4]; char dl[1]; };
+struct C { char pad[0x18]; int context; };
+struct S { int unknown0; int unknown4; int pad8; struct VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
 extern char D_003DD490[];
 extern struct VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
 struct S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
-// Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
-// (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
-struct S *NewRelayJsg(struct A *pa, struct E *pe, struct C *pc)
+// Sets the script's last command to the BlockEnd that closes the block opened at `first` (nesting counted), or to its
+// first command when the block is never closed.
+static inline void SetBlockEnd(struct S *script, struct E *first, struct E *last)
 {
-    struct S *p = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapJsg));
-    struct E *peLast, *pe2;
-    int depth;
-    func_002333B4(p, 0, 0xF0);
-    p->x0 = 0;
-    p->x4 = 0;
-    p->pvt = D_002D8C08;
-    p->xEC = 0;
-    p->pa = pa;
-    if (pc)
-        p->x18 = pc->x18;
-    else
-        p->x18 = (int)pa;
-    if (((int *)pe)[4] != -1)
-        p->x1C = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, ((int *)pe)[4], 0);
-    p->pe28 = pe;
-    peLast = &pa->ae[pa->c - 1];
-    depth = 1;
-    for (pe2 = pe + 1; pe2 <= peLast; pe2++) {
-        switch (pe2->k) {
-        case 0:
+    int depth = 1;
+    struct E *pe;
+    for (pe = first + 1; pe <= last; pe++) {
+        switch (pe->kind) {
+        case RELAYCK_BlockBegin:
             depth++;
             break;
-        case 1:
-            depth--;
-            if (depth == 0) {
-                p->pe2C = pe2;
-                goto done;
+        case RELAYCK_BlockEnd:
+            if (--depth == 0) {
+                script->lastCommand = pe;
+                return;
             }
             break;
         }
     }
-    p->pe2C = p->pe28;
-done:
-    PrependDlEntry__FP2DLPv(pa->dl, p);
+    script->lastCommand = script->firstCommand;
+}
+// Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
+// (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
+struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
+{
+    struct S *p = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapJsg));
+    struct E *peLast;
+    func_002333B4(p, 0, 0xF0);
+    p->unknown0 = 0;
+    p->unknown4 = 0;
+    p->pvt = D_002D8C08;
+    p->unknownEC = 0;
+    p->relay = relay;
+    if (pc)
+        p->context = pc->context;
+    else
+        p->context = (int)relay;
+    if (pe->oid != -1)
+        p->block = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pe->oid, 0);
+    p->firstCommand = pe;
+    peLast = &relay->commands[relay->commandCount - 1];
+    SetBlockEnd(p, pe, peLast);
+    PrependDlEntry__FP2DLPv(relay->dl, p);
     p->pvt[1].pfn((char *)p + p->pvt[1].d);
     return p;
 }
