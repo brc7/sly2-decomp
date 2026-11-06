@@ -672,19 +672,19 @@ void SetHackshipEntry(struct S *ship, unsigned int i, int a, int d)
 } } // namespace M_func_001800D8
 
 namespace M_UpdateHackshipHealthBar { extern "C" {
-struct S { char pad[0x180]; int c; int n; char p1[0x118]; void *p2a0; };
-void SetWidgetAnimPhase(void *p, int n, float g);
+struct S { char pad[0x180]; int maxHealth; int health; char p1[0x118]; void *healthWidget; };
+void SetWidgetAnimPhase(void *p, int anim, float phase);
 // Set widget anim 0x34F phase = 1 - health/max (clamped). (inferred)
 void UpdateHackshipHealthBar(struct S *ship)
 {
-    if (ship->p2a0) {
-        int n = ship->n;
+    if (ship->healthWidget) {
+        int health = ship->health;
         float g;
-        if (n <= 0) n = 0;
-        g = 1.0f - (float)n / (float)ship->c;
+        if (health <= 0) health = 0;
+        g = 1.0f - (float)health / (float)ship->maxHealth;
         if (g < 0.0f) g = 0.0f;
         else if (g > 1.0f) g = 1.0f;
-        SetWidgetAnimPhase(ship->p2a0, 0x34F, g);
+        SetWidgetAnimPhase(ship->healthWidget, 0x34F, g);
     }
 }
 } } // namespace M_UpdateHackshipHealthBar
@@ -792,7 +792,7 @@ void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
 
 namespace M_func_00180478 { extern "C" {
 struct T { char pad[0x60]; void *p60; };
-struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float t1c0; float g1c4; int n; };
+struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float expireTime; float lifetime; int n; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 void RecalcSwOxfFilterForObject(void *g, struct S *p);
@@ -803,7 +803,7 @@ void SetHackbulletMode(struct S *bullet, int n)
         bullet->n = n;
         if (bullet->pt->p60 == bullet) RecalcSwOxfFilterForObject(D_003DD490, bullet);
     }
-    bullet->t1c0 = (bullet->g1c4 == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + bullet->g1c4;
+    bullet->expireTime = (bullet->lifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + bullet->lifetime;
 }
 } } // namespace M_func_00180478
 
@@ -1050,9 +1050,9 @@ namespace M_func_00180EE8 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
 struct VT { struct { short d; short pad; qword (*pfn)(void *); } a[40]; };
-struct X { char pad[0xA0]; void *pA0; };
-struct O { char pad[0xC]; struct VT *pvt; char pad1[0x5C - 0x10]; struct X *p5C; char pad2[0x1C0 - 0x60]; int n1C0;
-    char pad3[0x204 - 0x1C4]; float g204; char pad4[0x210 - 0x208]; qword v210; char pad5[0x378 - 0x220]; char a378[0xC]; float g384; };
+struct X { char pad[0xA0]; void *parentFrame; };
+struct O { char pad[0xC]; struct VT *pvt; char pad1[0x5C - 0x10]; struct X *rotationChannel; char pad2[0x1C0 - 0x60]; int state;
+    char pad3[0x204 - 0x1C4]; float heading; char pad4[0x210 - 0x208]; qword stepVelocity; char pad5[0x378 - 0x220]; char scale[0xC]; float range; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
@@ -1066,21 +1066,21 @@ extern "C" void PresetHackenemyAccel(struct O *p);
 // vtable slot 70 override. (inferred)
 void PresetHackenemyAccel(struct O *enemy)
 {
-    if (enemy->n1C0 != 4) {
+    if (enemy->state != 4) {
         MATRIX3 mat;
-        mat = func_0011B500(D_002A2DC0, enemy->g204);
-        if (enemy->n1C0 != 3)
-            mat = ConvertXfMat(enemy->p5C->pA0, 0, &mat);
-        func_001F59A0(enemy, &mat, enemy->a378);
+        mat = func_0011B500(D_002A2DC0, enemy->heading);
+        if (enemy->state != 3)
+            mat = ConvertXfMat(enemy->rotationChannel->parentFrame, 0, &mat);
+        func_001F59A0(enemy, &mat, enemy->scale);
     }
-    if (enemy->n1C0 == 3) {
-        qword v = enemy->v210;
+    if (enemy->state == 3) {
+        qword v = enemy->stepVelocity;
         qword w = enemy->pvt->a[33].pfn((char *)enemy + enemy->pvt->a[33].d);
         qword d, s, r;
         union { qword q; float f[4]; } u;
         d = VSub(v, w);
         {
-        s = Bc(*(int *)&enemy->g384);
+        s = Bc(*(int *)&enemy->range);
         }
         u.q = s;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(d), "j"(s));
@@ -1177,18 +1177,18 @@ typedef char layout_VT_a_35_pfn[((unsigned long)&((VT*)0)->a[35].pfn==0x11c)?1:-
 } // namespace M_func_00181060
 
 namespace M_func_001811B8 { extern "C" {
-struct S { char pad[0x184]; int n; char p1[0x38]; int x1c0; };
+struct S { char pad[0x184]; int health; char p1[0x38]; int state; };
 extern char D_002DEB30[];
 int TakeHackDamage(struct S *p, void *message);
-void BroadcastGameEvent(void *g, int n, struct S *p);
-void SetHackenemyState(struct S *p, int n);
+void BroadcastGameEvent(void *g, int event, struct S *p);
+void SetHackenemyState(struct S *p, int state);
 // vtable slot 75: CID47::TakeDamage + state change. (inferred)
 int TakeHackenemyDamage(struct S *enemy, void *message)
 {
-    register int four __asm__("$2") = 4; if (enemy->x1c0 == four) return 0;
+    register int four __asm__("$2") = 4; if (enemy->state == four) return 0;
     if (!TakeHackDamage(enemy, message)) return 0;
-    if (enemy->n < 0) return 1;
-    if (enemy->n <= 0) BroadcastGameEvent(D_002DEB30, 0x18, enemy);
+    if (enemy->health < 0) return 1;
+    if (enemy->health <= 0) BroadcastGameEvent(D_002DEB30, 0x18, enemy);
     SetHackenemyState(enemy, 4);
     return 1;
 }
@@ -1428,14 +1428,14 @@ void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
 
 namespace M_func_00181728 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
-struct S { char pad[0xC]; struct VTE *vt; char p2[0x1B8]; void *x1c8; };
+struct S { char pad[0xC]; struct VTE *vt; char p2[0x1B8]; void *ship; };
 void SetHackshipState(void *p, int n);
 // SetCid48State(singleton x1C8, 1) and own vt call. (inferred)
 void ActivateHackshipFromHacklock(struct S *ship)
 {
     struct VTE *e;
-    SetHackshipState(ship->x1c8, 1);
-    ship->x1c8 = 0;
+    SetHackshipState(ship->ship, 1);
+    ship->ship = 0;
     e = &ship->vt[3];
     e->pfn((char *)ship + e->d, 6, 0, 0, 0, 0);
 }
@@ -1558,12 +1558,12 @@ void ResetHackwall(struct S *wall)
 } } // namespace M_func_001819E0
 
 namespace M_func_00181A90 { extern "C" {
-struct Q { char pad[0x24]; int n; char p1[0x14]; float g3c; int x40; char p2[8]; int x4c; char p3[0x10]; struct Q *next; };
+struct Q { char pad[0x24]; int state; char p1[0x14]; float shapeS; int unknown40; char p2[8]; int unknown4C; char p3[0x10]; struct Q *next; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S;
 void LayoutHackwallPieces(struct S *p, struct E *pe);
-float SMaxShape(int n);
-void SetHackwallSegmentState(struct S *p, struct Q *q, int n);
+float SMaxShape(int state);
+void SetHackwallSegmentState(struct S *p, struct Q *q, int state);
 // Reset one segment's pieces along its shape. (inferred)
 void ResetHackwallSegment(struct S *wall, struct E *pe)
 {
@@ -1573,11 +1573,11 @@ void ResetHackwallSegment(struct S *wall, struct E *pe)
     LayoutHackwallPieces(wall, pe);
     g = SMaxShape(pe->shape);
     for (q = pe->pqFirst; q; q = q->next) {
-        q->n = -1;
+        q->state = -1;
         SetHackwallSegmentState(wall, q, 0);
-        q->g3c = g * ((float)i + 0.5f) / (float)pe->activePieceCount;
-        q->x40 = 0;
-        q->x4c = pe->pieceParam;
+        q->shapeS = g * ((float)i + 0.5f) / (float)pe->activePieceCount;
+        q->unknown40 = 0;
+        q->unknown4C = pe->pieceParam;
         i++;
     }
 }
@@ -1620,7 +1620,7 @@ void LayoutHackwallPieces(struct S *wall, struct E *pe)
 } } // namespace M_func_00181B60
 
 namespace M_func_00181CB0 { extern "C" {
-struct Q { char pad[0x2C]; float g2c; float g30; float g34; float g38; char p1[8]; float g44; float g48; char p2[0x14]; struct Q *next; };
+struct Q { char pad[0x2C]; float sStart; float sEnd; float sMin; float sMax; char p1[8]; float sCurrent; float negDistanceToShip; char p2[0x14]; struct Q *next; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
 struct S;
 float SMaxShape(int n);
@@ -1642,17 +1642,17 @@ void UpdateHackwallPieces(struct S *wall, struct E *pe)
     for (i = 0, q = pe->pqFirst; q; q = q->next, i++) {
         int j = pe->activePieceCount - i - 1;
         float lo, hi, x;
-        float t = (pe->closestS - q->g34) / (q->g38 - q->g34);
+        float t = (pe->closestS - q->sMin) / (q->sMax - q->sMin);
         if (t < 0.0f) t = 0.0f;
         else if (t > 1.0f) t = 1.0f;
         lo = (2.0f * (float)i + 1.0f) * r;
         hi = g - (2.0f * (float)j + 1.0f) * r;
-        x = (1.0f - t) * q->g2c + t * q->g30;
+        x = (1.0f - t) * q->sStart + t * q->sEnd;
         if (x < lo) x = lo;
         else if (hi < x) x = hi;
-        q->g44 = x;
-        x = (q->g2c + q->g30) * 0.5f;
-        q->g48 = -__builtin_fabsf(x - pe->closestS);
+        q->sCurrent = x;
+        x = (q->sStart + q->sEnd) * 0.5f;
+        q->negDistanceToShip = -__builtin_fabsf(x - pe->closestS);
     }
 }
 } } // namespace M_func_00181CB0
