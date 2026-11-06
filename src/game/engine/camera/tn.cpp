@@ -1143,7 +1143,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 {
     LO *plo = (LO *)pvHero;
     TN *ptnCur = ptn;
-    float dt = D_002DDED0.dtCm;
+    float dt = D_002DDED0.cameraDeltaTime;
     LO *ploPlayer = 0;
     if (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x34))
         ploPlayer = plo;
@@ -1315,9 +1315,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             radPanNew = RadNormalize(radPanNew + dradPan * dt);
             radTiltNew = RadNormalize(radTiltNew + dradTilt * dt);
             radTiltNew = GLimitLm(&D_002C41B0, radTiltNew);
-            if (D_002DDED0.tCm - D_002DEB30.tCmTurned > 5.0f)
+            if (D_002DDED0.cameraTime - D_002DEB30.tCmTurned > 5.0f)
             {
-                D_002DEB30.tCmTurned = D_002DDED0.tCm;
+                D_002DEB30.tCmTurned = D_002DDED0.cameraTime;
                 BroadcastGameEvent(&D_002DEB30, 6, 0);
             }
         }

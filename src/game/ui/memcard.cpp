@@ -640,7 +640,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     if (FMemcardThreadValid__FP7MEMCARD(s->xFD5C))
         return;
     if (s->x8 == s->xC) {
-        if (s->x14 <= g_clock.tReal)
+        if (s->x14 <= g_clock.realTime)
             CreateMemcardThreadJob(s->xFD5C, &MCJOB::GetInfo);
         else
             func_001AB630(s);
@@ -653,7 +653,7 @@ void UpdateSave__FP4SAVE(struct S *s)
         return;
     if (D_002E6550.x44 != 1)
         return;
-    if (0.3f <= g_clock.tReal - s->x10) {
+    if (0.3f <= g_clock.realTime - s->x10) {
     if (func_001B01E8(D_003D9ED0)) {
         if (s->x8 != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
@@ -1619,7 +1619,7 @@ int McJobGetInfo(struct S *s)
             s->xC = 1;
         }
     }
-    s->x14 = g_clock.tReal + 0.3f;
+    s->x14 = g_clock.realTime + 0.3f;
     return r;
 }
 } } // namespace M_McJobGetInfo
@@ -1899,7 +1899,7 @@ extern "C" void func_001ACC18(MCDLG *pdlg, int nMode)
 {
     if (nMode != pdlg->nMode) {
         pdlg->nMode = nMode;
-        pdlg->tMode = D_002DDED0.tReal;
+        pdlg->tMode = D_002DDED0.realTime;
     }
 }
 
@@ -2776,7 +2776,7 @@ extern "C" void func_001ADEE8(MCDLG *pdlg)
     func_001DA808(pdlg);
     pchild = pdlg->pchild;
     if (pchild != 0) {
-        if (pchild->n58 == 2 && pchild->n64 == pchild->n58 && D_002DDED0.tReal - pchild->t5C > 1.0f &&
+        if (pchild->n58 == 2 && pchild->n64 == pchild->n58 && D_002DDED0.realTime - pchild->t5C > 1.0f &&
             FMemcardThreadValid(&D_002F633C) == 0) {
             HideMcDialogWidget(pdlg);
         }
@@ -2798,7 +2798,7 @@ void CMcStatus::SetMode(int nMode)
     MCDLG *pdlg = (MCDLG *)this;
     if (nMode != pdlg->nMode) {
         pdlg->nMode = nMode;
-        pdlg->tMode = D_002DDED0.tReal;
+        pdlg->tMode = D_002DDED0.realTime;
     }
 }
 

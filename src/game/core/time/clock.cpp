@@ -37,9 +37,9 @@ extern "C" void StartupClock(void)
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
     c[0] = count;
     D_002DDED0.tickLastRaw = c[0];
-    D_002DDED0.tickFrame = TickNow(&D_002DDED0);
+    D_002DDED0.frameTick = TickNow(&D_002DDED0);
     for (i = 0; i < 9; i++) D_002DDED0.art[i] = 1.0f;
-    D_002DDED0.rt = 1.0f;
+    D_002DDED0.rate = 1.0f;
     D_002DDED0.rtCm = 1.0f;
     ResetClock(&D_002DDED0);
 }
@@ -80,20 +80,20 @@ extern "C" void ResetClock(CLOCK *pclock)
 extern "C" void MarkClockTick(CLOCK *p, int fPaused)
 {
     TICK tick = TickNow(p);
-    float dt = GClamp((float)(tick - p->tickFrame) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
-    p->dtCm = dt * p->rtCm;
-    p->tCm += p->dtCm;
+    float dt = GClamp((float)(tick - p->frameTick) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
+    p->cameraDeltaTime = dt * p->rtCm;
+    p->cameraTime += p->cameraDeltaTime;
     {
     float dt2 = dt * p->art[3];
-    p->dtReal = dt2;
+    p->realDeltaTime = dt2;
     if (!fPaused) {
-        p->dt = dt2 * p->rt;
+        p->dt = dt2 * p->rate;
         p->t += p->dt;
         UpdateGameTimers(D_002DEB30);
     }
     }
-    p->tickFrame = tick;
-    p->tReal += p->dtReal;
+    p->frameTick = tick;
+    p->realTime += p->realDeltaTime;
 }
 
 /** @sly2-annot addr=0x14D1D0
@@ -120,9 +120,9 @@ extern "C" void func_0014D1D0(CLOCK *p, int i, float f)
 extern "C" void RecalcClockRate(CLOCK *p)
 {
     unsigned int i;
-    p->rt = 1.0f;
+    p->rate = 1.0f;
     for (i = 0; i < 9; i++) {
-        p->rt *= p->art[i];
+        p->rate *= p->art[i];
     }
     p->rtCm = p->art[8];
 }
@@ -139,9 +139,9 @@ extern "C" TICK TickNow(CLOCK *p)
     unsigned long c;
     __asm__ volatile ("mfc0 %0, $9" : "=r"(c));
     c &= 0xFFFFFFFF;
-    if (c < p->tickLastRaw) p->cWrapAround++;
+    if (c < p->tickLastRaw) p->numTickWraps++;
     p->tickLastRaw = c;
-    return ((unsigned long)p->cWrapAround << 32) | c;
+    return ((unsigned long)p->numTickWraps << 32) | c;
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

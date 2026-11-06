@@ -4737,7 +4737,7 @@ void NextJsgCommand(JSGV *pjsg)
     }
     if (GrfUpdateLo(pjsg->prelay) & 0x100)
     {
-        pjsg->tCommand = D_002DDED0.tReal;
+        pjsg->tCommand = D_002DDED0.realTime;
     }
     else
     {
@@ -4884,7 +4884,7 @@ static inline float TJsgNow(JSGV *pjsg)
 {
     if (GrfUpdateLo(pjsg->prelay) & 0x100)
     {
-        return D_002DDED0.tReal;
+        return D_002DDED0.realTime;
     }
     return D_002DDED0.t;
 }

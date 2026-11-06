@@ -175,7 +175,7 @@ extern "C" void UpdateAsega(ASEGA *p)
         __asm__ __volatile__("" : : "r"(&g) : "memory");
         ((void (*)(void *))PVT(p)[1].pfn)((char *)p + PVT(p)[1].d);
         if (GrfQ(p->paseg) & 0x100)
-            p->tLocal = p->tLocal + p->svt * D_002DDED0.dtReal;
+            p->tLocal = p->tLocal + p->svt * D_002DDED0.realDeltaTime;
         else
             p->tLocal = p->tLocal + p->svt * D_002DDED0.dt;
         HandleAsegaEvents(p);

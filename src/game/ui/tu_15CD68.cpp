@@ -252,7 +252,7 @@ extern "C" void func_0015CF30(EPMENU *p)
             setf:
                 f = 1;
             }
-            if (n && f && 10.0f < D_002DDED0.tReal - p->tPrompt)
+            if (n && f && 10.0f < D_002DDED0.realTime - p->tPrompt)
                 func_0015D880(p, 1);
             return;
         }
@@ -263,7 +263,7 @@ extern "C" void func_0015CF30(EPMENU *p)
                 PlaySound(0x34);
                 return;
             }
-            if (2.0f < D_002DDED0.tReal - p->tPrompt)
+            if (2.0f < D_002DDED0.realTime - p->tPrompt)
                 func_0015D880(p, 0);
             return;
         }
@@ -407,7 +407,7 @@ extern "C" void func_0015D648(EPMENU *p, int state, int sub)
         SetWidgetState(p, 1);
         p->state = state;
         p->sub = sub;
-        p->tState = D_002DDED0.tReal;
+        p->tState = D_002DDED0.realTime;
         int r = func_0015D5C8(p);
         if (r != -1)
             ((void (*)(void *, int))p->vt[49].pfn)((char *)p + p->vt[49].d, r);
@@ -460,7 +460,7 @@ extern "C" void func_0015D880(EPMENU *p, int f)
             PlayWidgetAnim(p, 0x5BE);
         }
         p->fPrompt = f;
-        p->tPrompt = D_002DDED0.tReal;
+        p->tPrompt = D_002DDED0.realTime;
     }
 }
 

@@ -623,7 +623,7 @@ void func_00211D38(struct S *p)
     if (r)
         return;
     UpdateWidget(p);
-    if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
+    if (p->x58 == 2 && 0.5f < g_clock.realTime - p->x5C && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
@@ -1251,7 +1251,7 @@ extern "C" void HideWidget(WIDGETV *pwidget)
 extern "C" void func_00212A30(WIDGETV *pwidget)
 {
     if (pwidget->nState == 2) {
-        pwidget->tState = D_002DDED0.tReal;
+        pwidget->tState = D_002DDED0.realTime;
     }
 }
 
@@ -1270,7 +1270,7 @@ extern "C" void SetWidgetRequest(WIDGETV *pwidget, int nRequest)
 {
     if (pwidget->nRequest != nRequest) {
         pwidget->nRequest = nRequest;
-        pwidget->tRequest = D_002DDED0.tReal;
+        pwidget->tRequest = D_002DDED0.realTime;
     }
 }
 
@@ -1396,7 +1396,7 @@ void UpdateWidget(struct S *p) {
     }
     SetWidgetState(p,state);
     if(p->selected!=-1) {
-        float dt=g_clock.dtReal;
+        float dt=g_clock.realDeltaTime;
         p->animtime+=dt;
         func_00218220(p->sprite,dt);
     }
@@ -3826,7 +3826,7 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
         i = p->x20;
         if (i != -1) {
             p->x20 = -1;
-        } else if (p->ul10 == (*(unsigned long *)&g_clock.tickFrame)) {
+        } else if (p->ul10 == (*(unsigned long *)&g_clock.frameTick)) {
             t = p->f18;
             i = p->x1C;
         } else {
@@ -4234,7 +4234,7 @@ void func_00218660(struct S *p, int i)
         float t=e->fC;
         p->x1C = e->h8;
         p->f18 = t;
-        p->ul10 = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
+        p->ul10 = (*(struct CLOCK *)&g_clock.frameTick).ticks;
         p->x20 = -1;
         e->h8 = -1;
         e->x10 = 0;

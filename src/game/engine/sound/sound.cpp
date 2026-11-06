@@ -2111,7 +2111,7 @@ void func_001FDC08(struct P *input)
     p->weights[p->selected]=1.0f;
     goto norm;
 smooth:
-    p->weights[p->selected]=GSmooth__FfffP3SMPPf(p->weights[p->selected],1.0f,g_clock.dtReal,&p->coefficients[p->selected],0);
+    p->weights[p->selected]=GSmooth__FfffP3SMPPf(p->weights[p->selected],1.0f,g_clock.realDeltaTime,&p->coefficients[p->selected],0);
 norm:
     sum=0.0f;selectedSquare=p->weights[p->selected]*p->weights[p->selected];
     for(i=0;i<3;i++)if(i!=p->selected)sum+=p->weights[i]*p->weights[i];
@@ -2167,7 +2167,7 @@ void func_001FDEC8(struct P *p)
     x = p->r200;
     if (x->n4E > 0) return;
     ps = x->ps;
-    p->f24C += g_clock.dtReal;
+    p->f24C += g_clock.realDeltaTime;
     f = 0;
     if (!x->n40) {
         f = x->n52 || (x->f50 & 1);

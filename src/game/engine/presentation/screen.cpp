@@ -1142,7 +1142,7 @@ extern "C" void func_001DA7B0(SCREENV *pscreen)
 extern "C" void func_001DA7D0(SCREENV *pscreen)
 {
     pscreen->nMode = -1;
-    pscreen->tMode = D_002DDED0.tReal;
+    pscreen->tMode = D_002DDED0.realTime;
     func_001DA950(pscreen, -1, -1);
 }
 
@@ -1284,7 +1284,7 @@ void GADGETMENU::VSlot13()   /* key function */
 extern "C" void ClearGadgetMenu(GADGETMENUV *pgm)
 {
     pgm->nState = -1;
-    pgm->tState = D_002DDED0.tReal;
+    pgm->tState = D_002DDED0.realTime;
 }
 
 namespace M_UpdateGadgetMenu { extern "C" {
@@ -3440,7 +3440,7 @@ extern "C" void func_001DD7B8(SCREENV *pscreen, int nMode)
 {
     if (nMode != pscreen->nMode) {
         pscreen->nMode = nMode;
-        pscreen->tMode = D_002DDED0.tReal;
+        pscreen->tMode = D_002DDED0.realTime;
     }
 }
 
@@ -3675,7 +3675,7 @@ void TITLE::SetMode(int nMode)   /* key function */
     SCREENV *pscreen = (SCREENV *)this;
     if (nMode != pscreen->nMode) {
         pscreen->nMode = nMode;
-        pscreen->tMode = D_002DDED0.tReal;
+        pscreen->tMode = D_002DDED0.realTime;
     }
 }
 

@@ -169,7 +169,7 @@ void UpdateJoy(JOY *pjoy)
 
 
     if (pjoy->joys != 3 && pjoy->joyk != 0) {
-        if (D_002DDED0.tReal - pjoy->tJoys >= 2.0f)
+        if (D_002DDED0.realTime - pjoy->tJoys >= 2.0f)
             state = 0;
     }
 
@@ -332,7 +332,7 @@ void SetJoyJoys(JOY *p, JOYS a, JOYK b)
     }
     p->joys = a;
     p->joyk = b;
-    p->tJoys = D_002DDED0.tReal;
+    p->tJoys = D_002DDED0.realTime;
 }
 
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
@@ -452,26 +452,26 @@ extern "C" int func_00187998(JOY *p)
                 p->uDeflectLeft = 1.0f;
             }
         }
-        p->dxdtLeft = (p->dxLeft - x) / D_002DDED0.dtReal;
-        p->dydtLeft = (p->dyLeft - y) / D_002DDED0.dtReal;
-        p->dxdtRight = (p->dxRight - x2) / D_002DDED0.dtReal;
-        p->dydtRight = (p->dyRight - y2) / D_002DDED0.dtReal;
+        p->dxdtLeft = (p->dxLeft - x) / D_002DDED0.realDeltaTime;
+        p->dydtLeft = (p->dyLeft - y) / D_002DDED0.realDeltaTime;
+        p->dxdtRight = (p->dxRight - x2) / D_002DDED0.realDeltaTime;
+        p->dydtRight = (p->dyRight - y2) / D_002DDED0.realDeltaTime;
         _MatchCodes(D_002DDEC0, p, old & 0xFFFF);
-        p->tRead = D_002DDED0.tReal;
+        p->tRead = D_002DDED0.realTime;
         if (p->grfbtn != 0 || p->uDeflectLeft != 0.0f || p->sRight != 0.0f) {
 
-            p->tActive = D_002DDED0.tReal;
+            p->tActive = D_002DDED0.realTime;
             p->dtIdle = 0;
 
-            if (D_002DDED0.tReal - D_002DEB30.t > 15.0f) {
+            if (D_002DDED0.realTime - D_002DEB30.t > 15.0f) {
                 BroadcastGameEvent(&D_002DEB30, 0xE, PpoHero(D_003DD490));
-                D_002DEB30.t = D_002DDED0.tReal;
+                D_002DEB30.t = D_002DDED0.realTime;
             }
         } else {
-            p->dtIdle = (int)(D_002DDED0.tReal - p->tActive);
+            p->dtIdle = (int)(D_002DDED0.realTime - p->tActive);
         }
     } else {
-        if (D_002DDED0.tReal - p->tRead >= 2.0f)
+        if (D_002DDED0.realTime - p->tRead >= 2.0f)
             fRet = 0;
     }
     return fRet;
@@ -584,7 +584,7 @@ extern "C" int DxSelectionJoy(JOY *p)
         if (p->dirX) {
             g = 0.3333f;
             p->tRepX = g;
-            p->tNextX = D_002DDED0.tReal + g;
+            p->tNextX = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
@@ -599,10 +599,10 @@ extern "C" int DxSelectionJoy(JOY *p)
         }
         if (!fHeld) {
             p->dirX = 0;
-        } else if (p->tNextX <= D_002DDED0.tReal) {
+        } else if (p->tNextX <= D_002DDED0.realTime) {
             g = GClamp(2.0f * p->tRepX / 3.0f, 0.1f, 0.3333f);
             p->tRepX = g;
-            p->tNextX = D_002DDED0.tReal + g;
+            p->tNextX = D_002DDED0.realTime + g;
         } else {
             return 0;
         }
@@ -631,7 +631,7 @@ extern "C" int DySelectionJoy(JOY *p)
         if (p->dirY) {
             g = 0.3333f;
             p->tRepY = g;
-            p->tNextY = D_002DDED0.tReal + g;
+            p->tNextY = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
@@ -646,10 +646,10 @@ extern "C" int DySelectionJoy(JOY *p)
         }
         if (!fHeld) {
             p->dirY = 0;
-        } else if (p->tNextY <= D_002DDED0.tReal) {
+        } else if (p->tNextY <= D_002DDED0.realTime) {
             g = GClamp(2.0f * p->tRepY / 3.0f, 0.1f, 0.3333f);
             p->tRepY = g;
-            p->tNextY = D_002DDED0.tReal + g;
+            p->tNextY = D_002DDED0.realTime + g;
         } else {
             return 0;
         }

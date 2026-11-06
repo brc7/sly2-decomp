@@ -143,7 +143,7 @@ extern "C" void _MatchCodes(CODES *pcodes, JOYV *pjoy, unsigned short btnPrev)
             else pcode->ibtn = 0;
         }
     }
-    pcodes->tMatch = D_002DDED0.tReal + 1.0f;
+    pcodes->tMatch = D_002DDED0.realTime + 1.0f;
 }
 
 /** @sly2-annot addr=0x14BFF8
@@ -159,7 +159,7 @@ extern "C" void UpdateCodes(CODES *pcodes)
     SLI sli;
     CODE *pcode, *pcodeBest;
     if (pcodes->tMatch == 0.0f) return;
-    if (pcodes->tMatch <= D_002DDED0.tReal) {
+    if (pcodes->tMatch <= D_002DDED0.realTime) {
         InitSli(&sli, &pcodes->sl);
         pcodeBest = 0;
         while ((pcode = (CODE *)PvNextSli(&sli)) != 0) {

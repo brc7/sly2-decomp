@@ -111,7 +111,7 @@ void InitRumble(RUMBLE *prumble, int nPort, int nSlot)
 void UpdateRumble(RUMBLE *prumble)
 {
     byte abShockDirect[6];
-    float dtReal = D_002DDED0.dtReal;
+    float dtReal = D_002DDED0.realDeltaTime;
     switch (prumble->rums) {
     case RUMS_Rumble:
         if (prumble->dtRumble > 0.0f) {
@@ -196,7 +196,7 @@ void SetRumbleRums(RUMBLE *prumble, RUMS rums)
     case RUMS_Stop:
     case RUMS_Kill:
         StopRumbleActuators(prumble);
-        prumble->dtRumins = g_clock.dtReal * 4.0f;
+        prumble->dtRumins = g_clock.realDeltaTime * 4.0f;
     case RUMS_Dead:
     case RUMS_Idle:
     default:

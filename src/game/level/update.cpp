@@ -106,7 +106,7 @@ void SW::Update()
     }
     UpdateSave__FP4SAVE(D_002E65E0);
     UpdateSndmgr(D_003DD040);
-    if (0.0f < D_002DDED0.dtCm)
+    if (0.0f < D_002DDED0.cameraDeltaTime)
         UpdateCmLast__FP2CM(D_002DDF40);
     func_0020F7E0(p);
     CGc_UpdateRecyclable(g_gc);
