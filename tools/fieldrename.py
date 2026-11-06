@@ -181,6 +181,12 @@ def swap(t, offs, old, new):
     for o in sorted(offs, reverse=True):
         assert t[o:o + len(old)] == old
         t = t[:o] + new + t[o + len(old):]
+        # keep a same-line trailing comment in its column: absorb the length change in the gap before it
+        e = t.find('\n', o); e = len(t) if e < 0 else e
+        m = re.search(r'(\S)(  +)(/\*|//)', t[o + len(new):e])
+        if m and '/*' not in t[o + len(new):o + len(new) + m.start(2)] and '"' not in t[o + len(new):e]:
+            a = o + len(new) + m.start(2); gap = len(m.group(2)) - (len(new) - len(old))
+            t = t[:a] + ' ' * max(gap, 1) + t[a + len(m.group(2)):]
     return t
 
 # ------------------------------------------------------------------------------------------------------------ compile
@@ -194,11 +200,15 @@ def _compile(tu):
     except Exception as e:   # noqa: BLE001 - report, never crash the batch midway
         return tu, None, 'fieldrename: %r' % e
 
+def stable(name):
+    # g++ names static constructors/destructors after the temp file (_GLOBAL_$I$<path><random>): not a real change
+    return re.sub(r'^(_GLOBAL_\$[A-Z]\$).*', r'\1*', name)
+
 def signature(obj):
     d, secs, syms, relocs = mt.read_obj(obj)
-    nm = sorted((s['name'], s['shndx'] == 0, s['type']) for s in syms if s['name'] and s['type'] not in (3, 4))
-    data = {k: (v[0], v[1], sorted(v[2].items()), v[3]) for k, v in mt.obj_data(obj).items()}
-    funcs = {k: (w, sorted(r.items())) for k, (w, r) in mt.obj_functions(obj).items()}
+    nm = sorted((stable(s['name']), s['shndx'] == 0, s['type']) for s in syms if s['name'] and s['type'] not in (3, 4))
+    data = {stable(k): (v[0], v[1], sorted(v[2].items()), v[3]) for k, v in mt.obj_data(obj).items()}
+    funcs = {stable(k): (w, sorted(r.items())) for k, (w, r) in mt.obj_functions(obj).items()}
     os.unlink(obj)
     return dict(funcs=funcs, data=data, nm=nm)
 
