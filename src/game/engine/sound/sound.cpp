@@ -23,16 +23,16 @@
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
-struct SNDOBJ { char pad0[0xC]; VTESND *pvt; };
+struct SNDOBJ { char pad0[0xC]; VTESND *vtable; };
 /* A counted pointer to a sound object: released through its vtable slot 2. */
 struct SNDREF
 {
     SNDOBJ *p;
-    ~SNDREF() { if (p) p->pvt[2].pfn((char *)p + p->pvt[2].d); }
+    ~SNDREF() { if (p) p->vtable[2].pfn((char *)p + p->vtable[2].d); }
 };
 struct SNDMGRG;
 extern "C" {
-void SNDMGR_ctor(SNDMGRG *psndmgr);
+void SNDMGR_ctor(SNDMGRG *soundManager);
 void DestroyBasic(void *pv, int grfDelete);   /* ~BASIC */
 }
 struct SNDMGRBASE
@@ -61,48 +61,48 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct SNDV
 {
     char pad0[0xC];
-    VTESND *pvt;            /* +0x0C */
+    VTESND *vtable;            /* +0x0C */
     char pad10[4];
-    int nPan;               /* +0x14 */
-    float rPitch;           /* +0x18 */
+    int panAngle;               /* +0x14 */
+    float pitchRatio;           /* +0x18 */
     char pad1C[0x40 - 0x1C];
-    int hvoice;             /* +0x40 */
+    int voiceHandle;             /* +0x40 */
     char pad44[0x48 - 0x44];
-    float dtFade;           /* +0x48 */
-    ushort cref;            /* +0x4C */
+    float fadeTime;           /* +0x48 */
+    ushort refCount;            /* +0x4C */
     char pad4E[0x60 - 0x4E];
-    int sfxid;              /* +0x60 (BANKSND) */
+    int sfxId;              /* +0x60 (BANKSND) */
 };
 /* The sound manager as the m2c bodies read it. */
 struct SNDMGRV
 {
     char pad0[0x1C];
-    SLOTHEAP slotheapBanksnd;   /* +0x1C */
-    SLOTHEAP slotheapStreamsnd; /* +0x34 */
-    DL dlDirty;             /* +0x4C */
+    SLOTHEAP bankSoundPool;   /* +0x1C */
+    SLOTHEAP streamSoundPool; /* +0x34 */
+    DL dirtySounds;             /* +0x4C */
     char pad58[0x5C - 0x58];
-    int c5C;                /* +0x5C */
-    int c60;                /* +0x60 */
+    int musicLayer2Requests;                /* +0x5C */
+    int musicLayer0Requests;                /* +0x60 */
     char pad64[0x68 - 0x64];
-    int nState;             /* +0x68 (3: muted) */
+    int managerMode;             /* +0x68 (3: muted) */
     char pad6C[0xFC - 0x6C];
-    SNDV **apsnd;           /* +0xFC */
+    SNDV **soundTable;           /* +0xFC */
     char pad100[0x104 - 0x100];
-    int nPlaybackMode;      /* +0x104 */
+    int playbackMode;      /* +0x104 */
 };
 #define G_SNDMGR (*(SNDMGRV *)&D_003DD040)
 /* A stream record (FindDialogStream) with a float parameter at +0x50. */
-struct STREAMREC { char pad0[0x50]; float g50; };
+struct STREAMREC { char pad0[0x50]; float duration; };
 
 extern "C" {
 extern void *D_002D9C70[] __asm__("_vt$7BANKSND");  /* BANKSND vtable */
-void SetSndFlags(SNDV *psnd, int grfMask, int grf);
-SNDV *SND_ctor(SNDV *psnd);
-SNDV *BANKSND_ctor(SNDV *psnd, int sfxid);
+void SetSndFlags(SNDV *sound, int grfMask, int grf);
+SNDV *SND_ctor(SNDV *sound);
+SNDV *BANKSND_ctor(SNDV *sound, int sfxId);
 void *PvAllocBanksnd(int cb);
-int *PsndFromSfxid(SNDMGRV *psndmgr, int sfxid);
-void snd_PauseSound(int hvoice);
-void snd_ContinueSound(int hvoice);
+int *PsndFromSfxid(SNDMGRV *soundManager, int sfxId);
+void snd_PauseSound(int voiceHandle);
+void snd_ContinueSound(int voiceHandle);
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
@@ -193,10 +193,10 @@ void ResumeSnd(struct S *p) { if (--p->c == 0) SetSndFlags(p, 6, 4); }
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Requests that a sound stop, fading out over dtFade seconds (applied by the next UpdateSnd).
-extern "C" void StopSnd(SNDV *psnd, float dtFade)
+extern "C" void StopSnd(SNDV *sound, float fadeTime)
 {
-    psnd->dtFade = dtFade;
-    SetSndFlags(psnd, 0x1FFF, 8);
+    sound->fadeTime = fadeTime;
+    SetSndFlags(sound, 0x1FFF, 8);
 }
 
 namespace M_StartSnd { extern "C" {
@@ -269,13 +269,13 @@ void SetSndVolume(struct P *p, float x)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets a sound's pan angle in degrees (normalized to 0..359) and marks it dirty.
-extern "C" void SetSndPan(SNDV *psnd, int deg)
+extern "C" void SetSndPan(SNDV *sound, int deg)
 {
-    int nPan = deg % 360;
-    nPan = (nPan > -1) ? nPan : nPan + 360;
-    if (nPan != psnd->nPan) {
-        psnd->nPan = nPan;
-        SetSndFlags(psnd, 0x20, 0x20);
+    int panAngle = deg % 360;
+    panAngle = (panAngle > -1) ? panAngle : panAngle + 360;
+    if (panAngle != sound->panAngle) {
+        sound->panAngle = panAngle;
+        SetSndFlags(sound, 0x20, 0x20);
     }
 }
 
@@ -286,11 +286,11 @@ extern "C" void SetSndPan(SNDV *psnd, int deg)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets a sound's pitch and marks it dirty.
-extern "C" void SetSndPitch(SNDV *psnd, int n1, int n2, float rPitch)
+extern "C" void SetSndPitch(SNDV *sound, int n1, int n2, float pitchRatio)
 {
-    if (rPitch != psnd->rPitch) {
-        psnd->rPitch = rPitch;
-        SetSndFlags(psnd, 0x40, 0x40);
+    if (pitchRatio != sound->pitchRatio) {
+        sound->pitchRatio = pitchRatio;
+        SetSndFlags(sound, 0x40, 0x40);
     }
 }
 
@@ -383,7 +383,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0x28]; ulong fl; };
-struct P { char pad[0xC]; struct VTE *pvt; float f10; char pad1[0x1C - 0x14]; struct O *po; qword v20; char x30[0x14]; float f44; };
+struct P { char pad[0xC]; struct VTE *vtable; float f10; char pad1[0x1C - 0x14]; struct O *po; qword v20; char x30[0x14]; float f44; };
 void StopSnd(struct P *, float);
 qword ConvertAloPos(struct O *, int, qword);
 void CalculateSndVolPan(struct P *, qword, void *, float *, int *);
@@ -410,8 +410,8 @@ void UpdateSndPositional(struct P *p)
     CalculateSndVolPan(p, ConvertAloPos(p->po, 0, p->v20), p->x30, &f, &n);
     r = p->f10 * f;
     if ((int)(r * 1024.0f) != (int)(p->f44 * 1024.0f)) {
-        if (p->f44 == 0.0f) p->pvt[15].pfn((char *)p + p->pvt[15].d, 0);
-        else if (r == 0.0f) p->pvt[15].pfn((char *)p + p->pvt[15].d, 1);
+        if (p->f44 == 0.0f) p->vtable[15].pfn((char *)p + p->vtable[15].d, 0);
+        else if (r == 0.0f) p->vtable[15].pfn((char *)p + p->vtable[15].d, 1);
         p->f44 = r;
         SetSndFlags(p, 0x10, 0x10);
     }
@@ -446,18 +446,18 @@ void SetSndFlags(struct S *p, unsigned short m, unsigned short v)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Puts a sound on the manager's dirty list (taking a reference) if it is not already there.
-extern "C" void AddSndToDirtyList(SNDV *psnd)
+extern "C" void AddSndToDirtyList(SNDV *sound)
 {
-    if (FFindDlEntry(&G_SNDMGR.dlDirty, psnd) == 0) {
-        VTESND *pvt = psnd->pvt;
-        pvt[1].pfn((char *)psnd + pvt[1].d);   /* Incref */
-        AppendDlEntry(&G_SNDMGR.dlDirty, psnd);
+    if (FFindDlEntry(&G_SNDMGR.dirtySounds, sound) == 0) {
+        VTESND *vtable = sound->vtable;
+        vtable[1].pfn((char *)sound + vtable[1].d);   /* Incref */
+        AppendDlEntry(&G_SNDMGR.dirtySounds, sound);
     }
 }
 
 namespace M_RemoveSndFromDirtyList { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 struct DL;
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
@@ -472,7 +472,7 @@ void RemoveSndFromDirtyList(struct X *px)
 {
     if (FFindDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px)) {
         RemoveDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px);
-        px->pvt->pfn((char *)px + px->pvt->d);
+        px->vtable->pfn((char *)px + px->vtable->d);
     }
 }
 } } // namespace M_RemoveSndFromDirtyList
@@ -541,10 +541,10 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
 
 namespace M_UpdateSnd {
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; VTE *pvt; float f10; char pad2[0x40 - 0x14]; int n40; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; };
+struct P { char pad[0xC]; VTE *vtable; float f10; char pad2[0x40 - 0x14]; int n40; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; };
 extern "C" void SetSndFlags(P *, int, int);
-#define VCALL(p, n) ((p)->pvt[n].pfn((char *)(p) + (p)->pvt[n].d))
-#define ICALL(p, n) (((int (*)(void *))(p)->pvt[n].pfn)((char *)(p) + (p)->pvt[n].d))
+#define VCALL(p, n) ((p)->vtable[n].pfn((char *)(p) + (p)->vtable[n].d))
+#define ICALL(p, n) (((int (*)(void *))(p)->vtable[n].pfn)((char *)(p) + (p)->vtable[n].d))
 struct Lock {
     P *p;
     Lock(P *pp) { p = pp; VCALL(p, 1); }
@@ -646,9 +646,9 @@ void OnBankSoundStatus(int f, long l)
  *   docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
 // Creates a bank sound for a sound-effect id from the manager's pool; it starts at the next flush.
-extern "C" void PsndStartSound(int sfxid)
+extern "C" void PsndStartSound(int sfxId)
 {
-    BANKSND_ctor((SNDV *)PvAllocBanksnd(0x70), sfxid);
+    BANKSND_ctor((SNDV *)PvAllocBanksnd(0x70), sfxId);
 }
 
 /** @sly2-annot addr=0x1FBBC8
@@ -658,13 +658,13 @@ extern "C" void PsndStartSound(int sfxid)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Bank-sound constructor: base sound constructor, then the start request.
-extern "C" SNDV *BANKSND_ctor(SNDV *psnd, int sfxid)
+extern "C" SNDV *BANKSND_ctor(SNDV *sound, int sfxId)
 {
-    SND_ctor(psnd);
-    psnd->sfxid = sfxid;
-    psnd->pvt = (VTESND *)D_002D9C70;
-    SetSndFlags(psnd, 1, 1);
-    return psnd;
+    SND_ctor(sound);
+    sound->sfxId = sfxId;
+    sound->vtable = (VTESND *)D_002D9C70;
+    SetSndFlags(sound, 1, 1);
+    return sound;
 }
 
 /** @sly2-annot addr=0x1FBC20
@@ -674,9 +674,9 @@ extern "C" SNDV *BANKSND_ctor(SNDV *psnd, int sfxid)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Kind of a bank sound (slot 8): 2 for looping effects, from the level's sound table, else -1.
-extern "C" int GetBanksndKind(SNDV *psnd)
+extern "C" int GetBanksndKind(SNDV *sound)
 {
-    int *pn = PsndFromSfxid(&G_SNDMGR, psnd->sfxid);
+    int *pn = PsndFromSfxid(&G_SNDMGR, sound->sfxId);
     int n = -1;
     if (pn != 0) {
         n = *pn;
@@ -686,7 +686,7 @@ extern "C" int GetBanksndKind(SNDV *psnd)
 
 namespace M_PlayBanksnd { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *pvt; char pad1[0x14 - 0x10]; int n14; float f18; char pad2[0x44 - 0x1C]; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; char pad4[0x60 - 0x54]; int n60; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int n14; float f18; char pad2[0x44 - 0x1C]; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; char pad4[0x60 - 0x54]; int n60; };
 struct G { char pad[0xE8]; int nE8; };
 struct S { int n0; };
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
@@ -744,7 +744,7 @@ void PlayBanksnd(struct P *p)
     }
     if (ps->n0 == 2) {
         p->n52 = 1;
-        p->pvt[1].pfn((char *)p + p->pvt[1].d);
+        p->vtable[1].pfn((char *)p + p->vtable[1].d);
         func_00232320(&m, OnBankSoundStarted, p);
         SetSndFlags(p, 0x7F, 0);
         return;
@@ -788,9 +788,9 @@ void StopBanksnd(struct A *p)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Pauses a bank sound's voice (slot 11).
-extern "C" void PauseBanksnd(SNDV *psnd)
+extern "C" void PauseBanksnd(SNDV *sound)
 {
-    snd_PauseSound(psnd->hvoice);
+    snd_PauseSound(sound->voiceHandle);
 }
 
 /** @sly2-annot addr=0x1FBF00
@@ -800,9 +800,9 @@ extern "C" void PauseBanksnd(SNDV *psnd)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Resumes a bank sound's voice (slot 12).
-extern "C" void ContinueBanksnd(SNDV *psnd)
+extern "C" void ContinueBanksnd(SNDV *sound)
 {
-    snd_ContinueSound(psnd->hvoice);
+    snd_ContinueSound(sound->voiceHandle);
 }
 
 namespace M_ApplyBanksndParams { extern "C" {
@@ -831,7 +831,7 @@ void ApplyBanksndParams(struct X *px)
 
 namespace M_BANKSND_QueryStatus { extern "C" {
 struct VT { int pad[2]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *pvt; char pad2[0x40 - 0x10]; void *p40; char pad3[0x50 - 0x44]; unsigned short fl; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *p40; char pad3[0x50 - 0x44]; unsigned short fl; };
 void OnBankSoundStatus(void);
 void snd_SoundIsStillPlaying_CB(void *, void (*)(void), void *);
 void SetSndFlags(struct X *, int, int);
@@ -845,7 +845,7 @@ void SetSndFlags(struct X *, int, int);
 void BANKSND_QueryStatus(struct X *px)
 {
     if (px->fl & 0x400) {
-        px->pvt->pfn((char *)px + px->pvt->d);
+        px->vtable->pfn((char *)px + px->vtable->d);
         snd_SoundIsStillPlaying_CB(px->p40, OnBankSoundStatus, px);
         SetSndFlags(px, 0x400, 0);
     }
@@ -855,7 +855,7 @@ void BANKSND_QueryStatus(struct X *px)
 namespace M_func_001FC018 { extern "C" {
 struct VTE { short d; short p; void *pfn; };
 struct VT { struct VTE a[9]; };
-struct P { char pad[0xC]; struct VT *pvt; };
+struct P { char pad[0xC]; struct VT *vtable; };
 void SetSndFlags(struct P *, int, int);
 /** @sly2-annot addr=0x1FC018
  * Purpose: vt15: on becoming audible restart (vt7); on silence request stop (loopers keep params)
@@ -867,10 +867,10 @@ void SetSndFlags(struct P *, int, int);
 // their parameters so they can restart).
 void SetBankSoundCulled(struct P *p, int f)
 {
-    if (!f) ((void (*)(void *))p->pvt->a[7].pfn)((char *)p + p->pvt->a[7].d);
+    if (!f) ((void (*)(void *))p->vtable->a[7].pfn)((char *)p + p->vtable->a[7].d);
     else {
         int n = 0x1FF;
-        SetSndFlags(p, ((int (*)(void *))p->pvt->a[8].pfn)((char *)p + p->pvt->a[8].d) == 2 ? n : 0x3FF, 8);
+        SetSndFlags(p, ((int (*)(void *))p->vtable->a[8].pfn)((char *)p + p->vtable->a[8].d) == 2 ? n : 0x3FF, 8);
     }
 }
 } } // namespace M_func_001FC018
@@ -884,8 +884,8 @@ void SetBankSoundCulled(struct P *p, int f)
 // Adds a reference to a bank sound (slot 1).
 void BANKSND::VUnk00()   /* key function: BANKSND's vtable comes out here */
 {
-    SNDV *psnd = (SNDV *)this;
-    psnd->cref++;
+    SNDV *sound = (SNDV *)this;
+    sound->refCount++;
 }
 
 namespace M_DecrefBanksnd { extern "C" {
@@ -911,7 +911,7 @@ void DecrefBanksnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); Fr
 // Allocates a bank sound from the manager's pool.
 extern "C" void *PvAllocBanksnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.slotheapBanksnd);
+    return PvAllocSlotheapClear(&G_SNDMGR.bankSoundPool);
 }
 
 /** @sly2-annot addr=0x1FC110
@@ -923,7 +923,7 @@ extern "C" void *PvAllocBanksnd(int cb)
 // Returns a bank sound to the manager's pool.
 extern "C" void FreeBanksnd(void *pv)
 {
-    func_0011CD98(&G_SNDMGR.slotheapBanksnd, pv);
+    func_0011CD98(&G_SNDMGR.bankSoundPool, pv);
 }
 
 namespace M_PstreamsndNew {
@@ -952,7 +952,7 @@ extern "C" X *PstreamsndNew(A *pa, B *pb)
 } // namespace M_PstreamsndNew
 
 namespace M_STREAMSND_ctor { extern "C" {
-struct P { char pad[0xC]; void *pvt; char pad2[0x60 - 0x10]; int n60; char pad3[0x70 - 0x64]; float a[6]; char pad4[0x3B8 - 0x88]; int n3B8; };
+struct P { char pad[0xC]; void *vtable; char pad2[0x60 - 0x10]; int n60; char pad3[0x70 - 0x64]; float a[6]; char pad4[0x3B8 - 0x88]; int n3B8; };
 struct G { char pad[0x58]; int n58; char pad2[0x15C - 0x5C]; float a[1]; };
 extern struct G D_003DD040;
 extern char D_002D9BE0[] __asm__("_vt$9STREAMSND");
@@ -973,7 +973,7 @@ struct P *STREAMSND_ctor(struct P *p, int n, int m)
     struct G *pg;
     SND_ctor(p);
     p->n60 = n;
-    p->pvt = D_002D9BE0;
+    p->vtable = D_002D9BE0;
     p->n3B8 = m;
     for (i = 0; i < 6; i++) p->a[i] = 1.0f;
     pg = &D_003DD040;
@@ -1098,7 +1098,7 @@ namespace M_PlayStreamsnd { extern "C" {
 struct K { int n0; int n4; int n8; char bC; char pad[0x110 - 0xD]; };
 struct X { int n0; int n4; char pad[0x34 - 8]; int n34; int n38; int n3C; char pad2[0x4C - 0x40]; int n4C; };
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *pvt; char pad1[0x14 - 0x10]; int n14; char pad2[0x44 - 0x18]; float f44; char pad3[0x52 - 0x48]; short h52; char pad4[0x60 - 0x54]; struct X *p60; char pad5[0x3B8 - 0x64]; int n3B8; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int n14; char pad2[0x44 - 0x18]; float f44; char pad3[0x52 - 0x48]; short h52; char pad4[0x60 - 0x54]; struct X *p60; char pad5[0x3B8 - 0x64]; int n3B8; };
 struct M { int n0; int n4; int n8; int nC; int n10; int n14; };
 struct G { char pad[0x10]; int n10; };
 extern struct G D_003DD040;
@@ -1156,7 +1156,7 @@ void PlayStreamsnd(struct P *p)
             m.n14 = fl;
         }
         p->h52 = 1;
-        p->pvt[1].pfn((char *)p + p->pvt[1].d);
+        p->vtable[1].pfn((char *)p + p->vtable[1].d);
         func_00233130(0x524B5553, 1, 0x18, &m, OnStreamSoundStarted, p);
         SetSndFlags(p, 0x3F, 0);
     } else {
@@ -1173,9 +1173,9 @@ void PlayStreamsnd(struct P *p)
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 2 (stop) for the stream. */
 // Stops a streamed sound on the IOP (slot 10).
-extern "C" void StopStreamSound(SNDV *psnd)
+extern "C" void StopStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 2, psnd->hvoice, 0, 0, 0, 0);
+    func_00233088(0x524B5553, 2, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x1FC6D0
@@ -1186,9 +1186,9 @@ extern "C" void StopStreamSound(SNDV *psnd)
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 3 (pause) for the stream. */
 // Pauses a streamed sound on the IOP (slot 11).
-extern "C" void PauseStreamSound(SNDV *psnd)
+extern "C" void PauseStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 3, psnd->hvoice, 0, 0, 0, 0);
+    func_00233088(0x524B5553, 3, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x1FC708
@@ -1199,9 +1199,9 @@ extern "C" void PauseStreamSound(SNDV *psnd)
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 4 (continue) for the stream. */
 // Resumes a streamed sound on the IOP (slot 12).
-extern "C" void ResumeStreamSound(SNDV *psnd)
+extern "C" void ResumeStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 4, psnd->hvoice, 0, 0, 0, 0);
+    func_00233088(0x524B5553, 4, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 namespace M_ApplyStreamsndParams { extern "C" {
@@ -1245,7 +1245,7 @@ void ApplyStreamsndParams(struct P *p)
 
 namespace M_func_001FC878 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x40 - 0x10]; int n40; char pad3[0x4E - 0x44]; short n4E; unsigned short f50; unsigned short n52; char pad4[0x68 - 0x54]; long l68; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad2[0x40 - 0x10]; int n40; char pad3[0x4E - 0x44]; short n4E; unsigned short f50; unsigned short n52; char pad4[0x68 - 0x54]; long l68; };
 struct G { char pad[0x1F0]; long l1F0; long l1F8; };
 extern struct G D_003DD040;
 void OnStreamsndStatus(void);
@@ -1262,13 +1262,13 @@ void SetSndFlags(struct P *, int, int);
 void QueryStreamSoundStatus(struct P *p)
 {
     if (p->f50 & 0x1000) {
-        p->pvt[1].pfn((char *)p + p->pvt[1].d);
+        p->vtable[1].pfn((char *)p + p->vtable[1].d);
         func_002330D0(0x524B5553, 7, p->n40, 0, 0, 0, 0, OnStreamsndStatus, (long)p);
         SetSndFlags(p, 0x1000, 0);
     }
     if (p->n52) return;
     if (p->f50 & 0x400) {
-        p->pvt[1].pfn((char *)p + p->pvt[1].d);
+        p->vtable[1].pfn((char *)p + p->vtable[1].d);
         func_002330D0(0x524B5553, 8, p->n40, 0, 0, 0, 0, OnBankSoundStatus, (long)p);
         SetSndFlags(p, 0x400, 0);
     }
@@ -1349,10 +1349,10 @@ void UpdateStreamsndPositional(struct P *p)
 namespace M_func_001FCBA8 { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[8]; };
-struct X { char pad[0xC]; struct VT *pvt; char pad2[0x40 - 0x10]; int f40; char pad3[0x50 - 0x44]; unsigned short fl; short s52; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; int f40; char pad3[0x50 - 0x44]; unsigned short fl; short s52; };
 void ResumeSnd(struct X *);
 void SetSndFlags(struct X *, int, int);
-#define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+#define VF(q, n) (q)->vtable->a[n].pfn((char *)(q) + (q)->vtable->a[n].d)
 /** @sly2-annot addr=0x1FCBA8
  * Purpose: SUKR start callback: store stream handle or stop on failure; Decref
  * Info: proposed name OnStreamsndStarted (T2); TU sound
@@ -1378,7 +1378,7 @@ void OnStreamSoundStarted(int f, long l)
 
 namespace M_OnStreamsndStatus { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *pvt; char pad2[0x52 - 0x10]; short s52; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x52 - 0x10]; short s52; };
 void ResumeSnd(struct X *);
 void SetSndFlags(struct X *, int, int);
 /** @sly2-annot addr=0x1FCC30
@@ -1394,7 +1394,7 @@ void OnStreamsndStatus(int f, long l)
     struct X *px = (struct X *)l;
     if (f) { px->s52 = 0; ResumeSnd(px); }
     else SetSndFlags(px, 0x1000, 0x1000);
-    px->pvt->pfn((char *)px + px->pvt->d);
+    px->vtable->pfn((char *)px + px->vtable->d);
 }
 } } // namespace M_OnStreamsndStatus
 
@@ -1407,8 +1407,8 @@ void OnStreamsndStatus(int f, long l)
 // Adds a reference to a streamed sound (slot 1).
 void STREAMSND::VUnk00()   /* key function: STREAMSND's vtable comes out here */
 {
-    SNDV *psnd = (SNDV *)this;
-    psnd->cref++;
+    SNDV *sound = (SNDV *)this;
+    sound->refCount++;
 }
 
 namespace M_DecrefStreamsnd { extern "C" {
@@ -1434,7 +1434,7 @@ void DecrefStreamsnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); 
 // Allocates a streamed sound from the manager's pool.
 extern "C" void *PvAllocStreamsnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.slotheapStreamsnd);
+    return PvAllocSlotheapClear(&G_SNDMGR.streamSoundPool);
 }
 
 /** @sly2-annot addr=0x1FCD10
@@ -1446,14 +1446,14 @@ extern "C" void *PvAllocStreamsnd(int cb)
 // Returns a streamed sound to the manager's pool.
 extern "C" void FreeStreamsnd(void *pv)
 {
-    func_0011CD98(&G_SNDMGR.slotheapStreamsnd, pv);
+    func_0011CD98(&G_SNDMGR.streamSoundPool, pv);
 }
 
 namespace M_SNDMGR_ctor { extern "C" {
 struct T { float a; float b; float c; };
 struct V2 { float x, y; };
 struct P {
-    int n0; int n4; int pad8; void *pvt; int n10; char pad14[0x1C - 0x14]; char x1C[0x18]; char x34[0x18]; char x4C[0xC];
+    int n0; int n4; int pad8; void *vtable; int n10; char pad14[0x1C - 0x14]; char x1C[0x18]; char x34[0x18]; char x4C[0xC];
     int n58; char pad5C[0x68 - 0x5C]; int n68; char pad6C[0x80 - 0x6C]; char x80[0x10]; char x90[0x10];
     char padA0[0x104 - 0xA0]; int n104; char pad108[0x114 - 0x108]; struct T t114; struct T t120; struct T t12C;
     char pad138[0x200 - 0x138]; int n200; int pad204; int a208[8]; int n228;
@@ -1484,7 +1484,7 @@ struct P *SNDMGR_ctor(struct P *p)
     int *q;
     p->n0 = 0;
     p->n4 = 0;
-    p->pvt = D_002CA510;
+    p->vtable = D_002CA510;
     func_0011CCA8(p->x1C, 0x70, 0x80, 0x10);
     func_0011CCA8(p->x34, 0x3C0, 0x10, 0x10);
     p->n200 = 0;
@@ -1593,7 +1593,7 @@ extern "C" float GetDialogStreamDuration(int id)
     STREAMREC *prec = FindDialogStream(id);
     float g = 0.0f;
     if (prec != 0) {
-        g = prec->g50;
+        g = prec->duration;
     }
     return g;
 }
@@ -1636,9 +1636,9 @@ int *PsndFromSfxid(struct S *p, int n)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Index of a sound entry in the manager's table.
-extern "C" int IsndFromPsnd(SNDMGRV *psndmgr, SNDV **ppsnd)
+extern "C" int IsndFromPsnd(SNDMGRV *soundManager, SNDV **ppsnd)
 {
-    return (int)((char *)ppsnd - (char *)psndmgr->apsnd) >> 2;
+    return (int)((char *)ppsnd - (char *)soundManager->soundTable) >> 2;
 }
 
 namespace M_func_001FD080 { extern "C" {
@@ -1799,7 +1799,7 @@ inline int FSameFileId(FILEREC *prec, FILEREC *precOther)
         return 0;
     return (prec->aw[2] ^ prec->aw[14]) == (precOther->aw[2] ^ precOther->aw[14]);
 }
-extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbis) __asm__("LoadSoundSectionFromBrx");
+extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream *pbis) __asm__("LoadSoundSectionFromBrx");
 /** @sly2-annot addr=0x1FD0E8
  * Purpose: Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream,
  *   dialogue/music stream records per language, loose file records
@@ -1812,46 +1812,46 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbi
  * @end-sly2-annot */
 // Loads the level's sound section: the sound bank file, the kind of each sound, the effect-id table, the ambience
 // stream, the dialog and music stream records per language and the loose files.
-extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbis)
+extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream *pbis)
 {
     FILEREC rec;
     pbis->ReadFileRecord(&rec);
-    if (!FSameFileId(&rec, &psndmgr->rec))
+    if (!FSameFileId(&rec, &soundManager->rec))
     {
-        psndmgr->rec = rec;
-        if (psndmgr->pbank)
+        soundManager->rec = rec;
+        if (soundManager->pbank)
         {
-            snd_UnloadBank(psndmgr->pbank);
+            snd_UnloadBank(soundManager->pbank);
             while (snd_FlushSoundCommands())
                 ;
-            psndmgr->pbank = 0;
+            soundManager->pbank = 0;
         }
     }
     int i;
-    psndmgr->csnd = pbis->S16Read();
-    psndmgr->anKind = (int *)PvAllocSwClearLoad(psndmgr->csnd * sizeof(int), 0x10);
-    for (i = 0; i < psndmgr->csnd; i++)
+    soundManager->csnd = pbis->S16Read();
+    soundManager->anKind = (int *)PvAllocSwClearLoad(soundManager->csnd * sizeof(int), 0x10);
+    for (i = 0; i < soundManager->csnd; i++)
     {
-        int *pn = &psndmgr->anKind[i];
+        int *pn = &soundManager->anKind[i];
         *pn = pbis->S8Read();
     }
-    psndmgr->csfx = pbis->S16Read();
-    psndmgr->aisnd = (int *)PvAllocSwLoad(psndmgr->csfx * sizeof(int), 0x10);
-    func_002333B4(psndmgr->aisnd, -1, psndmgr->csfx * sizeof(int));
+    soundManager->csfx = pbis->S16Read();
+    soundManager->aisnd = (int *)PvAllocSwLoad(soundManager->csfx * sizeof(int), 0x10);
+    func_002333B4(soundManager->aisnd, -1, soundManager->csfx * sizeof(int));
     int j;
-    for (j = 0; j < psndmgr->csnd; j++)
-        psndmgr->aisnd[pbis->S16Read()] = j;
-    psndmgr->cUnk1D0 = pbis->S16Read();
-    if (psndmgr->cUnk1D0 > 0)
+    for (j = 0; j < soundManager->csnd; j++)
+        soundManager->aisnd[pbis->S16Read()] = j;
+    soundManager->cUnk1D0 = pbis->S16Read();
+    if (soundManager->cUnk1D0 > 0)
     {
-        psndmgr->precAmbience = (FILEREC *)PvAllocSwClearLoad(sizeof(FILEREC), 0x10);
-        pbis->ReadFileRecord(psndmgr->precAmbience);
-        STREAMSND *psnd = PstreamsndNew(psndmgr->precAmbience, 4);
-        AssignSoundRef(&psndmgr->psndAmbience, psnd);
+        soundManager->precAmbience = (FILEREC *)PvAllocSwClearLoad(sizeof(FILEREC), 0x10);
+        pbis->ReadFileRecord(soundManager->precAmbience);
+        STREAMSND *sound = PstreamsndNew(soundManager->precAmbience, 4);
+        AssignSoundRef(&soundManager->psndAmbience, sound);
     }
-    func_002333B4(psndmgr->anUnk1D4, -1, sizeof(psndmgr->anUnk1D4));
-    for (i = 0; i < psndmgr->cUnk1D0; i++)
-        psndmgr->anUnk1D4[i] = pbis->S16Read();
+    func_002333B4(soundManager->anUnk1D4, -1, sizeof(soundManager->anUnk1D4));
+    for (i = 0; i < soundManager->cUnk1D0; i++)
+        soundManager->anUnk1D4[i] = pbis->S16Read();
     int clang = pbis->U8Read();
     int ilangMatch = 0;
     for (int ilang = 0; ilang < clang; ilang++)
@@ -1882,8 +1882,8 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbi
         pstream->cpair = pbis->S32Read();
         pstream->apair = (ulong *)PvAllocSwLoad(pstream->cpair * 8, 0x10);
         pbis->Read(pstream->cpair * 8, pstream->apair);
-        pstream->psndstreamNext = psndmgr->psndstreamFirst;
-        psndmgr->psndstreamFirst = pstream;
+        pstream->psndstreamNext = soundManager->psndstreamFirst;
+        soundManager->psndstreamFirst = pstream;
     }
     int cfile = pbis->S32Read();
     SNDFILE *afile = (SNDFILE *)PvAllocSwClearLoad(cfile * sizeof(SNDFILE), 0x10);
@@ -1892,8 +1892,8 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbi
         SNDFILE *pfile = &afile[i];
         pfile->id = pbis->S16Read();
         pbis->ReadFileRecord(pfile);
-        pfile->psndfileNext = psndmgr->psndfileFirst;
-        psndmgr->psndfileFirst = pfile;
+        pfile->psndfileNext = soundManager->psndfileFirst;
+        soundManager->psndfileFirst = pfile;
     }
 }
 } // namespace M_LoadSoundSectionFromBrx
@@ -2308,7 +2308,7 @@ void ApplyDialogEvent(struct P *p, struct E *pe)
 namespace M_PushMusic {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *pvt; };
+struct X { char pad[0xC]; VT *vtable; };
 struct Ref;
 extern "C" void InitSoundRef(Ref *, X *);
 extern "C" void AssignSoundRef(Ref *, X *);
@@ -2318,7 +2318,7 @@ struct Ref {
     Ref(const Ref &r) { InitSoundRef(this, r.px); }
     Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
     Ref &operator=(X *p) { AssignSoundRef(this, p); return *this; }
-    ~Ref() { if (px) px->pvt->a[2].pfn((char *)px + px->pvt->a[2].d); }
+    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 struct S { int c; Ref a[8]; };
 struct P { char pad[0x204]; S s; };
@@ -2349,7 +2349,7 @@ extern "C" X *PushMusic(P *p, int n)
     X *top = p->s.c > 0 ? (p->s.a + p->s.c - 1)->px : 0;
     if (top) StopSnd(top, 0.0f);
     if (r.px) {
-        r.px->pvt->a[7].pfn((char *)r.px + r.px->pvt->a[7].d);
+        r.px->vtable->a[7].pfn((char *)r.px + r.px->vtable->a[7].d);
     } else {
         X *v = FindMusicStream(p, n);
         if (!v || p->s.c == 8) return 0;
@@ -2368,12 +2368,12 @@ extern "C" X *PushMusic(P *p, int n)
 namespace M_func_001FE310 {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *pvt; char pad2[0x40 - 0x10]; int n40; char pad3[0x50 - 0x44]; unsigned short fl; unsigned short c52; };
+struct X { char pad[0xC]; VT *vtable; char pad2[0x40 - 0x10]; int n40; char pad3[0x50 - 0x44]; unsigned short fl; unsigned short c52; };
 struct S { int c; void *a[8]; };
 struct P { char pad[0x204]; S s; };
 struct Ref {
     X *px;
-    ~Ref() { if (px) px->pvt->a[2].pfn((char *)px + px->pvt->a[2].d); }
+    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 extern "C" void FindMusic(Ref *, P *, int);
 extern "C" void StopSnd(X *, float);
@@ -2395,7 +2395,7 @@ extern "C" void StopMusic(P *p, int n)
         if (!f) {
             StopSnd(r.px, 0.0f);
             AssignSoundRef(&r, p->s.c > 0 ? *(p->s.a + p->s.c - 1) : 0);
-            if (r.px) r.px->pvt->a[7].pfn((char *)r.px + r.px->pvt->a[7].d);
+            if (r.px) r.px->vtable->a[7].pfn((char *)r.px + r.px->vtable->a[7].d);
         }
     }
 }
@@ -2427,7 +2427,7 @@ float TMusicCur(struct P *p)
 namespace M_func_001FE478 {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *pvt; char pad2[0x60 - 0x10]; X *p60; };
+struct X { char pad[0xC]; VT *vtable; char pad2[0x60 - 0x10]; X *p60; };
 struct Ref;
 extern "C" void InitSoundRef(Ref *, X *);
 extern "C" void AssignSoundRef(Ref *, X *);
@@ -2436,7 +2436,7 @@ struct Ref {
     Ref(X *p) { InitSoundRef(this, p); }
     Ref(const Ref &r) { InitSoundRef(this, r.px); }
     Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
-    ~Ref() { if (px) px->pvt->a[2].pfn((char *)px + px->pvt->a[2].d); }
+    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 struct S { int c; Ref a[8]; };
 struct P { char pad[0x204]; S s; };
@@ -2482,14 +2482,14 @@ void SetSoundManagerFlags(struct S *p, int f, int fSet) { if (fSet) p->fl |= f; 
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // True when the manager's mode is 3 (inferred: muted / paused).
-extern "C" int IsSoundManagerMuted(SNDMGRV *psndmgr)
+extern "C" int IsSoundManagerMuted(SNDMGRV *soundManager)
 {
-    return psndmgr->nState == 3;
+    return soundManager->managerMode == 3;
 }
 
 namespace M_StartDialog {
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; VTE *pvt; };
+struct X { char pad[0xC]; VTE *vtable; };
 struct Ref;
 extern "C" void AssignSoundRef(Ref *, X *);
 struct Ref {
@@ -2541,7 +2541,7 @@ extern "C" X *StartDialog(P *p, int k, int f)
                 if(i==primaryRole)p->a[3]=po;
                 else *slot=func_001F67E0(po,GetDialogRoleSmOid(p,i));
                 { X *current=*slot;
-                  if(current) { VTE &entry=current->pvt[1];
+                  if(current) { VTE &entry=current->vtable[1];
                     entry.pfn((char *)current+entry.d); } }
             }
         }
@@ -2553,7 +2553,7 @@ extern "C" X *StartDialog(P *p, int k, int f)
 namespace M_StopDialog { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 struct A { int a, b; };
 struct E { char pad[0x54]; int c; struct A *ae; };
 struct Y { char pad[0x60]; struct E *pe; };
@@ -2596,7 +2596,7 @@ void StopDialog(struct P *p)
     p->g24C = 0.0f;
     for (i = 0; i < 6; i++) {
         struct X *px = p->ap[i];
-        if (px) px->pvt->a[2].pfn((char *)px + px->pvt->a[2].d);
+        if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d);
     }
     func_002333B4(p->ap, 0, 0x18);
 }
@@ -2682,10 +2682,10 @@ int FindStreamGroupIndex(struct S *p, int n) { int i; for (i = 0; i < p->c; i++)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets the 989snd output mode (mono / stereo option) if it changed.
-extern "C" void SetSndmgrPlaybackMode(SNDMGRV *psndmgr, int nMode)
+extern "C" void SetSndmgrPlaybackMode(SNDMGRV *soundManager, int nMode)
 {
-    if (psndmgr->nPlaybackMode != nMode) {
-        psndmgr->nPlaybackMode = nMode;
+    if (soundManager->playbackMode != nMode) {
+        soundManager->playbackMode = nMode;
         snd_SetPlaybackMode(nMode);
     }
 }
@@ -2817,9 +2817,9 @@ void ResetSndmgrVolumes(void *p)
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Adds a request for music layer 2 (counted; AI code raises it, inferred: the alert layer).
-extern "C" void AddMusicLayer2Request(SNDMGRV *psndmgr)
+extern "C" void AddMusicLayer2Request(SNDMGRV *soundManager)
 {
-    psndmgr->c5C++;
+    soundManager->musicLayer2Requests++;
 }
 
 /** @sly2-annot addr=0x1FEEA0
@@ -2829,9 +2829,9 @@ extern "C" void AddMusicLayer2Request(SNDMGRV *psndmgr)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Removes a request for music layer 2.
-extern "C" void RemoveMusicLayer2Request(SNDMGRV *psndmgr)
+extern "C" void RemoveMusicLayer2Request(SNDMGRV *soundManager)
 {
-    psndmgr->c5C--;
+    soundManager->musicLayer2Requests--;
 }
 
 /** @sly2-annot addr=0x1FEEB0
@@ -2841,9 +2841,9 @@ extern "C" void RemoveMusicLayer2Request(SNDMGRV *psndmgr)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Adds a request for music layer 0 (counted).
-extern "C" void AddMusicLayer0Request(SNDMGRV *psndmgr)
+extern "C" void AddMusicLayer0Request(SNDMGRV *soundManager)
 {
-    psndmgr->c60++;
+    soundManager->musicLayer0Requests++;
 }
 
 /** @sly2-annot addr=0x1FEEC0
@@ -2853,9 +2853,9 @@ extern "C" void AddMusicLayer0Request(SNDMGRV *psndmgr)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Removes a request for music layer 0.
-extern "C" void RemoveMusicLayer0Request(SNDMGRV *psndmgr)
+extern "C" void RemoveMusicLayer0Request(SNDMGRV *soundManager)
 {
-    psndmgr->c60--;
+    soundManager->musicLayer0Requests--;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
