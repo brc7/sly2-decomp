@@ -2508,10 +2508,10 @@ void AddRelayButtonPrompt(void *pq, int a, int b)
 }
 } } // namespace M_AddRelayButtonPrompt
 
-// 0x1E15B0 func_001E15B0
+// 0x1E15B0 AddRelayCommand43
 // Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E15B0(RELAYV *relay, int n, OID oidActor)
+extern "C" void AddRelayCommand43(RELAYV *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk43, 0);
@@ -2546,7 +2546,7 @@ extern "C" void AddRelayClearSubtitle(RELAYV *relay)
     AddRelayCommand(relay, RELAYCK_ClearSubtitle, 1);
 }
 
-// 0x1E1670 func_001E1670
+// 0x1E1670 AddRelayCommand47
 namespace M_func_001E1670 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
@@ -2554,14 +2554,14 @@ struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int 
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builtin: append a RELAYCK 0x47 (Unk47) command to the relay (AddRelayCommand(prelay,0x47,fAsync)) and fill
 // its args. (inferred)
-void func_001E1670(void *pq, int a, int b, int c)
+void AddRelayCommand47(void *pq, int a, int b, int c)
 {
     struct CMD *p = AddRelayCommand(pq, 0x47, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E1670
 
-// 0x1E16C0 func_001E16C0
+// 0x1E16C0 AddRelayCommand48
 namespace M_func_001E16C0 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
@@ -2569,22 +2569,22 @@ struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int 
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builtin: append a RELAYCK 0x48 (Unk48) command to the relay (AddRelayCommand(prelay,0x48,fAsync)) and fill
 // its args. (inferred)
-void func_001E16C0(void *pq, int a, int b, int c)
+void AddRelayCommand48(void *pq, int a, int b, int c)
 {
     struct CMD *p = AddRelayCommand(pq, 0x48, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E16C0
 
-// 0x1E1710 func_001E1710
+// 0x1E1710 AddRelayCommand49
 // Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay (AddRelayCommand(prelay,0x49,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1710(RELAYV *relay, int n)
+extern "C" void AddRelayCommand49(RELAYV *relay, int n)
 {
     AddRelayCommand(relay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
 }
 
-// 0x1E1740 func_001E1740
+// 0x1E1740 AddRelayCommand4A
 namespace M_func_001E1740 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
@@ -2592,7 +2592,7 @@ struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builtin: append a RELAYCK 0x4A (Unk4A) command to the relay (AddRelayCommand(prelay,0x4A,fAsync)) and fill
 // its args. (inferred)
-void func_001E1740(void *pq, int a, int b, int c, float g)
+void AddRelayCommand4A(void *pq, int a, int b, int c, float g)
 {
     struct CMD *p = AddRelayCommand(pq, 0x4A, 0);
     p->a[0].g = g; p->a[1].n = a; p->a[2].n = b; p->a[3].n = c;
@@ -2634,7 +2634,7 @@ extern "C" void AddRelayWaitTimer(RELAYV *relay, float dtWait)
     AddRelayCommand(relay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
 }
 
-// 0x1E1870 func_001E1870
+// 0x1E1870 AddRelayCommand4F
 namespace M_func_001E1870 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
@@ -2642,7 +2642,7 @@ struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builtin: append a RELAYCK 0x4F (Unk4F) command to the relay (AddRelayCommand(prelay,0x4F,fAsync)) and fill
 // its args. (inferred)
-void func_001E1870(void *pq, int a, int b, int c, int d, int e, int x)
+void AddRelayCommand4F(void *pq, int a, int b, int c, int d, int e, int x)
 {
     struct CMD *p = AddRelayCommand(pq, 0x4F, x);
     p->a[1].n = a;
@@ -2653,26 +2653,26 @@ void func_001E1870(void *pq, int a, int b, int c, int d, int e, int x)
 }
 } } // namespace M_func_001E1870
 
-// 0x1E18E0 func_001E18E0
+// 0x1E18E0 AddRelayCommand50
 // Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E18E0(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayCommand50(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
 }
 
-// 0x1E1910 func_001E1910
+// 0x1E1910 AddRelayCommand51
 // Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay (AddRelayCommand(prelay,0x51,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1910(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayCommand51(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
 }
 
-// 0x1E1940 func_001E1940
+// 0x1E1940 AddRelayCommand52
 // Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay (AddRelayCommand(prelay,0x52,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1940(RELAYV *relay, float dtWait)
+extern "C" void AddRelayCommand52(RELAYV *relay, float dtWait)
 {
     AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
 }
@@ -2718,18 +2718,18 @@ extern "C" void AddRelayResetStepGoal(RELAYV *relay, OID oidStep, OID oidUnk5)
     prelaycmd->resetStepGoal.oidUnk5 = oidUnk5;
 }
 
-// 0x1E1A60 func_001E1A60
+// 0x1E1A60 AddRelayCommand57
 // Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay (AddRelayCommand(prelay,0x57,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1A60(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayCommand57(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
 }
 
-// 0x1E1A90 func_001E1A90
+// 0x1E1A90 AddRelayCommand58
 // Splice builtin: append a RELAYCK 0x58 (Unk58) command to the relay (AddRelayCommand(prelay,0x58,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1A90(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void AddRelayCommand58(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk58, fAsync);
@@ -2737,10 +2737,10 @@ extern "C" void func_001E1A90(RELAYV *relay, OID oidShip, OID oidActor, int fAsy
     prelaycmd->unk58.oidActor = oidActor;
 }
 
-// 0x1E1AD0 func_001E1AD0
+// 0x1E1AD0 AddRelayCommand59
 // Splice builtin: append a RELAYCK 0x59 (Unk59) command to the relay (AddRelayCommand(prelay,0x59,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1AD0(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void AddRelayCommand59(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk59, fAsync);
@@ -2748,10 +2748,10 @@ extern "C" void func_001E1AD0(RELAYV *relay, OID oidShip, OID oidActor, int fAsy
     prelaycmd->unk59.oidActor = oidActor;
 }
 
-// 0x1E1B10 func_001E1B10
+// 0x1E1B10 AddRelayCommand5A
 // Splice builtin: append a RELAYCK 0x5A (Unk5A) command to the relay (AddRelayCommand(prelay,0x5A,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1B10(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void AddRelayCommand5A(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk5A, fAsync);

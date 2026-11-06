@@ -2259,7 +2259,7 @@ extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
-extern "C" void UpdateVaultDial(struct S*,int);
+extern "C" void SetVaultDialState(struct S*,int);
 extern "C" int FAsegaRetracted(void*);
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline qword Sub(qword a,qword b){qword d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return d;}
@@ -2279,11 +2279,11 @@ extern "C" void UpdateVaultInput(struct S*p){
   old=p->state;
   if(GrfConsumePressed__5POCTLUif(p->input,0x30,0)){
    func_001E0020(p->alarms,(ALARM*)0x655);
-   UpdateVaultDial(p,3);
+   SetVaultDialState(p,3);
   }
   switch(p->state){
   case 0:
-   if(GrfConsumePressed__5POCTLUif(p->input,0xC0,0)){UpdateVaultDial(p,2);break;}
+   if(GrfConsumePressed__5POCTLUif(p->input,0xC0,0)){SetVaultDialState(p,2);break;}
    {
     char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=p->index,best;register int comparison __asm__("$7")=current;
     unsigned i;qword*table;
@@ -2294,18 +2294,18 @@ extern "C" void UpdateVaultInput(struct S*p){
      if(i==comparison)distance*=bias;
      if(distance<smallest){smallest=distance;best=i;}
     }
-    if(best!=current){p->index=best;UpdateVaultDial(p,1);}
+    if(best!=current){p->index=best;SetVaultDialState(p,1);}
    }
    break;
   case 1:
-   if(p->timer->end<=ClockTime())UpdateVaultDial(p,0);
+   if(p->timer->end<=ClockTime())SetVaultDialState(p,0);
    break;
   case 2:
    if(!p->pending||FAsegaRetracted(p->pending)){
     int next=(p->step*10)%divisor;next++;next+=p->index;
     p->step=next;
-    if(next==p->target){func_001E0020(p->alarms,(ALARM*)0x655);UpdateVaultDial(p,3);}
-    else UpdateVaultDial(p,0);
+    if(next==p->target){func_001E0020(p->alarms,(ALARM*)0x655);SetVaultDialState(p,3);}
+    else SetVaultDialState(p,0);
    }
    break;
   }
@@ -2331,7 +2331,7 @@ extern char D_003DD040[];
 extern char D_003DD490[];
 void StopDialog(void *p);
 void StopRelay(void *p);
-void UpdateVaultDial(struct S *p, int n);
+void SetVaultDialState(struct S *p, int n);
 void ReleaseSwLetterbox(void *p);
 void SetPowerupAcquired(int n, int f);
 int StartDialog(void *p, void *q, int f);
@@ -2352,7 +2352,7 @@ void SetVaultState(struct S *p, int n)
         StopRelay(p->x19C);
     switch (p->x180) {
     case 2:
-        UpdateVaultDial(p, -1);
+        SetVaultDialState(p, -1);
         ReleaseSwLetterbox(D_003DD490);
         break;
     case 3:
@@ -2373,7 +2373,7 @@ void SetVaultState(struct S *p, int n)
         return;
     case 2:
         p->x194 = 5;
-        UpdateVaultDial(p, 1);
+        SetVaultDialState(p, 1);
         AcquireSwLetterbox(D_003DD490);
         if (p->x1F4)
             p->x1A4 = StartDialog(D_003DD040, p->x1F4, 0);
@@ -2424,9 +2424,8 @@ static inline void Selection(const struct S*p,int*index,struct X**timer){
  *index=selected;*timer=receiver;
 }
 // Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
-// animation and timer for the new sub-state. Despite the name it is a state setter (a better name would be
-// SetVaultDialState; not renamed yet). (inferred)
-void UpdateVaultDial(struct S *p, int n)
+// animation and timer for the new sub-state. (inferred)
+void SetVaultDialState(struct S *p, int n)
 {
     struct X *px;
     qword q;

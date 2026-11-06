@@ -1871,7 +1871,7 @@ typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
 struct CID21 : XFM
 {
     char padE0[0x100 - 0xE0];
-    virtual void Unfreeze() __asm__("func_0021D460");   /* slot 23 */
+    virtual void Unfreeze() __asm__("OnLookTargetAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid21ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLookTarget");   /* slot 7 */
     virtual void Freeze() __asm__("OnLookTargetRemove");   /* slot 22 */
