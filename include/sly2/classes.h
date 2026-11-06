@@ -425,9 +425,9 @@ typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 struct DIMITRI : GUARD
 {
     char pad1010[0x1020 - 0x1010];
+    virtual void VUnk14() __asm__("PostDimitriLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDimitriClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDimitriFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostDimitriLoad");   /* slot 15 */
 };
 typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 
@@ -435,8 +435,8 @@ typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 struct BHV180 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_00155560");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("func_001555E0");   /* slot 8 */
     virtual void VSlot9() __asm__("func_00155598");   /* slot 9 */
     virtual void VSlot10() __asm__("func_00155660");   /* slot 10 */
@@ -447,9 +447,9 @@ typedef char assert_BHV180_size[sizeof(BHV180) == 0x40 ? 1 : -1];
 struct BHV181 : BHV
 {
     char pad30[0x60 - 0x30];
+    virtual void Start() __asm__("func_00155A38");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_001559B0");   /* slot 7 */
-    virtual void Start() __asm__("func_00155A38");   /* slot 8 */
     virtual void VSlot9() __asm__("func_001559F8");   /* slot 9 */
     virtual void VSlot10() __asm__("func_00155D90");   /* slot 10 */
 };
