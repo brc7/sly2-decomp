@@ -116,9 +116,9 @@ void RemoveJtPlacesOf(JTPLACES *p, LO *a, PLACESPOT *b);
  *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
 // Initializes the player's safe-place table (STEPPLAYER+0x9E0): stores the owner.
-extern "C" void InitJtPlaces(JTPLACES *p, JT *pjt)
+extern "C" void InitJtPlaces(JTPLACES *places, JT *jt)
 {
-    p->pjt = pjt;
+    places->pjt = jt;
 }
 
 /** @sly2-annot addr=0x19F3F0
@@ -141,7 +141,7 @@ extern "C" void PostLoadJtPlaces(void)
  * @end-sly2-annot */
 // World position of a recorded place: an object-local position converted through the object's transform, a curve
 // distance evaluated on the object, or a stored world position.
-extern "C" qword GetJtPlacePosition(JT *p, PLACE *q, float g)
+extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
 {
     U t;
     M4 m;
@@ -150,7 +150,7 @@ extern "C" qword GetJtPlacePosition(JT *p, PLACE *q, float g)
     qword r;
     if (q->pso) {
         PLACESO *s = q->pso;
-        ((void (*)(void *, JT *, U *, int, float))s->vt[3].pfn)((char *)s + s->vt[3].d, p, &t, 0, q->v.f[0]);
+        ((void (*)(void *, JT *, U *, int, float))s->vt[3].pfn)((char *)s + s->vt[3].d, jt, &t, 0, q->v.f[0]);
         o = ((void *(*)(void *, int))q->plo->vt[32].pfn)((char *)q->plo + q->plo->vt[32].d, 0);
         v = func_0022FC48(0, o, t.q);
     } else {
@@ -164,7 +164,7 @@ extern "C" qword GetJtPlacePosition(JT *p, PLACE *q, float g)
         r = func_0022FC48(o, 0, v);
     }
     if (!q->pso)
-        r = VuSub(r, p->x240);
+        r = VuSub(r, jt->x240);
     return r;
 }
 
@@ -175,7 +175,7 @@ extern "C" qword GetJtPlacePosition(JT *p, PLACE *q, float g)
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
 // Builds a place record for a world position and returns the player there (ReturnJtToSafePlace).
-extern "C" void ReturnJtToPosition(JT *p, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(p, &f); }
+extern "C" void ReturnJtToPosition(JT *jt, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(jt, &f); }
 
 /** @sly2-annot addr=0x19F590
  * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
@@ -190,29 +190,29 @@ extern "C" void ReturnJtToPosition(JT *p, qword q) { PLACE f; func_002333B4(&f, 
 // Puts the player back at a safe place (the best recorded one when `place` is null): a ballistic launch toward it
 // when reachable (ComputeMaxBallisticTime, SetJtAirJump, ChooseJtLanding), otherwise a teleport with a camera cut.
 // Used after falling into hazards and by the hurt callbacks.
-extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
+extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
 {
     PLACE e;
     if (!q) {
-        ChooseJtSafePlace(&p->places, &e);
+        ChooseJtSafePlace(&jt->places, &e);
         q = &e;
-        if (p == PpoHero(&D_003DD490)) {
-            qword r = GetJtPlacePosition(p, &e, 0.0f);
-            float g = ComputeMaxBallisticTime(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
+        if (jt == PpoHero(&D_003DD490)) {
+            qword r = GetJtPlacePosition(jt, &e, 0.0f);
+            float g = ComputeMaxBallisticTime(VuSub(r, jt->x58->x70), jt->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
-                int save = p->places.c;
-                ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VuSub(r, p->x240));
-                p->places.c = save;
-                SetStepRadTargetVec(p, D_002DDF40.x60);
-                ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);
+                int save = jt->places.c;
+                ((void (*)(void *, qword))jt->vt[29].pfn)((char *)jt + jt->vt[29].d, VuSub(r, jt->x240));
+                jt->places.c = save;
+                SetStepRadTargetVec(jt, D_002DDF40.x60);
+                ((void (*)(void *, void *))jt->vt[30].pfn)((char *)jt + jt->vt[30].d, jt->x1b0);
                 CutCm__FP2CM(&D_002DDF40);
-                SetJtAirJump(p->x2c0, 0xB, 0, 0);
+                SetJtAirJump(jt->x2c0, 0xB, 0, 0);
                 if (e.pso) {
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xD) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x22) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x26)) {
                         func_00148300(&D_003DD490, e.plo);
-                        ChooseJtLanding(p->x2c0, e.plo);
+                        ChooseJtLanding(jt->x2c0, e.plo);
                     }
                 }
                 func_0015E1D8(D_003DD490.x3e60);
@@ -220,12 +220,12 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
             }
         }
     }
-    p->x490 = *(qword *)q;
-    p->x4a0 = q->v.q;
-    SetJtAirJump(p->x2c0, 0xA, 0, 0);
+    jt->x490 = *(qword *)q;
+    jt->x4a0 = q->v.q;
+    SetJtAirJump(jt->x2c0, 0xA, 0, 0);
 }
 
-static inline float GFromClq(CLQ *pclq, float g) { return pclq->g + g * (pclq->gFirst + g * pclq->gSecond); }
+static inline float GFromClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
 /** @sly2-annot addr=0x19F7D0
  * Purpose: Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects
  * Info: proposed name ScoreJtPlace (T2); TU places
@@ -234,16 +234,16 @@ static inline float GFromClq(CLQ *pclq, float g) { return pclq->g + g * (pclq->g
  * @end-sly2-annot */
 // Scores a recorded place: distance from nearby STEP objects (guards) and a line-of-sight / bounding-sphere test
 // against them; lower is better. (inferred)
-extern "C" float ScoreJtPlace(JTPLACES *p, PLACE *q, int n, LO2 **apo)
+extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
 {
     float g = 0.0f;
-    qword pos = GetJtPlacePosition(p->pjt, q, g);
+    qword pos = GetJtPlacePosition(places->pjt, q, g);
     if (q->pspot) {
         STACKSCOPE frame;
         U a, b;
         HIT hit;
         int i0, i1;
-        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, p->pjt->pvFilter, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, places->pjt->pvFilter, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;
@@ -273,7 +273,7 @@ extern "C" float ScoreJtPlace(JTPLACES *p, PLACE *q, int n, LO2 **apo)
     }
     for (int i = 0; i < n; i++) {
         LO2 *lo = apo[i];
-        if (lo == (LO2 *)p->pjt) continue;
+        if (lo == (LO2 *)places->pjt) continue;
         qword d;
         float dist;
         d = VuSub(*lo->x218, *(qword *)(void *)&pos);
@@ -296,7 +296,7 @@ namespace RO_ORDER { extern const float r_D_002A66A0 __asm__("D_002A66A0") = 3.4
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
 // Picks the best recorded place by ScoreJtPlace against up to 16 STEP objects (CID 0x33).
-extern "C" void ChooseJtSafePlace(JTPLACES *p, PLACE *pe)
+extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
 {
     LO2 *apv[16];
     int c, i;
@@ -304,10 +304,10 @@ extern "C" void ChooseJtSafePlace(JTPLACES *p, PLACE *pe)
     PLACE *e;
     c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x33, 0, 0x10, apv);
     best = D_002A66A0;
-    for (i = 0; i < p->c; i++) {
+    for (i = 0; i < places->c; i++) {
         float g;
-        e = &p->ae[i];
-        g = ScoreJtPlace(p, e, c, apv);
+        e = &places->ae[i];
+        g = ScoreJtPlace(places, e, c, apv);
         if (g < best) {
             best = g;
             *pe = *e;
@@ -318,7 +318,7 @@ extern "C" void ChooseJtSafePlace(JTPLACES *p, PLACE *pe)
     if (best == D_002A66A0) {
         qword r;
         func_002333B4(pe, 0, 0x20);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(p->pjt)), "j"(p->pjt->x240));
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(places->pjt)), "j"(places->pjt->x240));
         pe->v.q = r;
     }
 }
@@ -332,30 +332,30 @@ extern "C" void ChooseJtSafePlace(JTPLACES *p, PLACE *pe)
  * @end-sly2-annot */
 // Per frame: when standing on stable ground (a ground state, floor normal z > 0.7, floor not flagged) records the floor
 // object and position; the grab and pipe states record their own spot (RecordJtGrabPlace, RecordJtPipePlace).
-extern "C" void UpdateJtPlaces(JT *p)
+extern "C" void UpdateJtPlaces(JT *jt)
 {
     VECTOR v = D_002A2DD0;
-    switch (p->x18c8) {
+    switch (jt->x18c8) {
     case 0: case 1: case 5: case 6: case 9: case 10: case 11: case 12:
     case 15: case 16: case 17: case 20: case 23: case 24:
     {
-        GROUND *pa = p->x208;
-        if (pa && pa->x88 > 0.7f && !(pa->x4c->fl & 0x20000000) && !p->x108c)
-            AddJtPlaceAtPosition(&p->places, pa->pspot, pa->pos);
+        GROUND *pa = jt->x208;
+        if (pa && pa->x88 > 0.7f && !(pa->x4c->fl & 0x20000000) && !jt->x108c)
+            AddJtPlaceAtPosition(&jt->places, pa->pspot, pa->pos);
         break;
     }
     case 3: case 22:
     {
-        B *pb = p->x18c4;
+        B *pb = jt->x18c4;
         if (!pb->x10c)
-            AddJtPlaceOnCurve(&p->places, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
+            AddJtPlaceOnCurve(&jt->places, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
         break;
     }
     case 7:
-        RecordJtGrabPlace(p->x4c0);
+        RecordJtGrabPlace(jt->x4c0);
         break;
     case 8:
-        RecordJtPipePlace(p->xf50);
+        RecordJtPipePlace(jt->xf50);
         break;
     }
 }
@@ -369,33 +369,33 @@ extern "C" void UpdateJtPlaces(JT *p)
  *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
 // Inserts (object, curve distance) at the front of the place table, merging an entry on the same object within 50.
-extern "C" void AddJtPlaceOnCurve(JTPLACES *p, PLACESO *s, float g)
+extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
 {
     int i;
     PLACE *e;
-    for (i = 1; i < p->c; i++) {
-        e = &p->ae[i];
+    for (i = 1; i < places->c; i++) {
+        e = &places->ae[i];
         if (s == e->pso && __builtin_fabsf(g - e->v.f[0]) < 50.0f) {
             if (i != 1) {
                 PLACE t = *e;
-                memmove(&p->ae[2], &p->ae[1], (i - 1) * sizeof(PLACE));
-                p->ae[1] = t;
+                memmove(&places->ae[2], &places->ae[1], (i - 1) * sizeof(PLACE));
+                places->ae[1] = t;
             }
             break;
         }
     }
-    if (i >= p->c) {
-        if ((unsigned int)p->c < 32)
-            p->c++;
-        memmove(&p->ae[1], &p->ae[0], p->c * sizeof(PLACE) - sizeof(PLACE));
+    if (i >= places->c) {
+        if ((unsigned int)places->c < 32)
+            places->c++;
+        memmove(&places->ae[1], &places->ae[0], places->c * sizeof(PLACE) - sizeof(PLACE));
     }
-    e = &p->ae[0];
+    e = &places->ae[0];
     func_002333B4(e, 0, sizeof(PLACE));
-    p->ae[0].plo = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
+    places->ae[0].plo = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
     e->pso = s;
     e->v.f[0] = g;
     e->t = D_002DDED0.t;
-    p->ae[0].plo->fl |= 1L << 59;
+    places->ae[0].plo->fl |= 1L << 59;
 }
 
 static __inline__ float Dist(qword a, qword b)
@@ -417,34 +417,34 @@ static __inline__ float Dist(qword a, qword b)
  *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
 // Inserts (object, position) at the front of the place table, merging an entry within 50 units.
-extern "C" void AddJtPlaceAtPosition(JTPLACES *p, PLACESPOT *s, qword q)
+extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
 {
     int i;
     PLACE *e;
-    for (i = 1; i < p->c; i++) {
-        e = &p->ae[i];
+    for (i = 1; i < places->c; i++) {
+        e = &places->ae[i];
         if (s == e->pspot && Dist(q, e->v.q) < 50.0f) {
             if (i != 1) {
                 PLACE t = *e;
-                memmove(&p->ae[2], &p->ae[1], (i - 1) * sizeof(PLACE));
-                p->ae[1] = t;
+                memmove(&places->ae[2], &places->ae[1], (i - 1) * sizeof(PLACE));
+                places->ae[1] = t;
             }
             break;
         }
     }
-    if (i >= p->c) {
-        if ((unsigned int)p->c < 32)
-            p->c++;
-        memmove(&p->ae[1], &p->ae[0], p->c * sizeof(PLACE) - sizeof(PLACE));
+    if (i >= places->c) {
+        if ((unsigned int)places->c < 32)
+            places->c++;
+        memmove(&places->ae[1], &places->ae[0], places->c * sizeof(PLACE) - sizeof(PLACE));
     }
-    e = &p->ae[0];
+    e = &places->ae[0];
     func_002333B4(e, 0, sizeof(PLACE));
     if (s) {
-        p->ae[0].plo = s->plo;
+        places->ae[0].plo = s->plo;
         e->pspot = s;
         s->grf |= 1L << 51;
     }
-    p->ae[0].v.q = q;
+    places->ae[0].v.q = q;
     e->t = D_002DDED0.t;
 }
 
