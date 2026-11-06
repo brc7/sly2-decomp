@@ -97,6 +97,13 @@ enum EMIT_NORMAL {
     EMIT_NORMAL_SCREEN = 4,         /* the vector in camera space */
     EMIT_NORMAL_MESH_NORMAL = 5,
 };
+/* how particle velocities follow the origin's reference object (EMITB+0x18; Sly 1's EMITVK) */
+enum EMIT_VELOCITY {
+    EMIT_VELOCITY_RELATIVE = 0,         /* rotated, plus the object's velocity at the origin */
+    EMIT_VELOCITY_RELATIVE_SPIN = 1,    /* rotated, plus the object's velocity at the particle's position */
+    EMIT_VELOCITY_NO_RELATIVE = 2,      /* rotated only */
+    EMIT_VELOCITY_WORLD = 3,            /* not transformed */
+};
 /* EMITB and EMITTER (CID 0x1D : XFM, cb 0x160): sly2/emitter.h. The V names data/vtables gave the file-scope views
    (classes.h is included) stay as aliases of the real types, so the mangled names do not change. */
 typedef EMITB EMITBV;
@@ -1248,8 +1255,8 @@ struct R { char pad[0x40]; struct M4 m; };
 struct BUF { qword a[4]; };
 struct VTE { short d; short pad; struct R *(*pfn)(void *, struct BUF *); };
 struct SO { char pad[0xC]; struct VTE *vt; };
-struct Y { int x0, x4, k; };
-struct E { int x0, x4; struct SO **ppso; int xC; struct Y y; };
+struct Y { int pad0, pad4, velocityKind; };   /* Sly 1's EMITVK: 0 relative, 1 relative + spin, 2 no relative velocity, 3 world */
+struct E { int pad0, pad4; struct SO **ppso; int padC; struct Y y; };   /* EMITB (ppso: the resolved objects, [0] the reference) */
 void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
 qword func_001A72D0(struct M4 *pm, int z, qword v);
 qword func_001A7348(struct M4 *pm, int z, qword v);
@@ -1269,10 +1276,10 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
     r = pso->vt[32].pfn((char *)pso + pso->vt[32].d, &buf);
     __ml__FRC7MATRIX4T0(&m, &r->m, &buf);
     *pv = func_001A72D0(&m, 0, *pv);
-    if (py->k != 3) {
+    if (py->velocityKind != EMIT_VELOCITY_WORLD) {
         *pw = func_001A7348(&m, 0, *pw);
-        if (py->k != 2)
-            *pw = Add(*pw, GetXfVelocity(r, 0, py->k == 1 ? *pv : r->m.r[3]));
+        if (py->velocityKind != EMIT_VELOCITY_NO_RELATIVE)
+            *pw = Add(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3]));
     }
 }
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
@@ -1627,8 +1634,9 @@ struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 mat; qword v; qword w; };
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int x84; char pad2[0x90 - 0x88]; char x90[1]; };
-struct BUF { qword *apos; qword *av; float *ag; float *an; int f10; };
+/* EMITB: the origin's local transform, and EMITV's ring count and tilt range */
+struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int particlesPerRing; char pad2[0x90 - 0x88]; char tilt[1]; };
+struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
 extern "C" {
 void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
@@ -1652,34 +1660,35 @@ static inline qword Cross(qword a, qword b)
     __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
     return d;
 }
-// Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge,
-// ConvertEmitoPosVec) (inferred)
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb)
+// Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
+// (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
+// the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
 {
-    pb->apos = (qword *)PvAlloc(c * 16, 16);
-    pb->av = (qword *)PvAlloc(c * 16, 16);
-    pb->ag = (float *)PvAlloc(c * 4, 16);
-    pb->an = (float *)PvAlloc(c * 4, 16);
+    gen->apos = (qword *)PvAlloc(c * 16, 16);
+    gen->av = (qword *)PvAlloc(c * 16, 16);
+    gen->atBirth = (float *)PvAlloc(c * 4, 16);
+    gen->atDeath = (float *)PvAlloc(c * 4, 16);
     EMITVX vx;
-    CalculateEmitvx__FiP2LMiP6EMITVX(pemit->x84, pemit->x90, c, &vx);
+    CalculateEmitvx__FiP2LMiP6EMITVX(emitb->particlesPerRing, emitb->tilt, c, &vx);
     for (int i = 0; i < c; i++) {
         union { qword q; float f[4]; } normal;
-        ChooseEmitoPos__FP5EMITOiiP6VECTORT3(pemit, i, c, &pb->apos[i], &normal.q);
-        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7((char *)pemit + 0x50, &vx, (char *)pemit + 0x10, i, &pb->apos[i], &normal.q, &pb->av[i], &pb->ag[i], &pb->an[i]);
-        XF *pxf = pemit->pxf;
+        ChooseEmitoPos__FP5EMITOiiP6VECTORT3(emitb, i, c, &gen->apos[i], &normal.q);
+        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7((char *)emitb + 0x50, &vx, (char *)emitb + 0x10, i, &gen->apos[i], &normal.q, &gen->av[i], &gen->atBirth[i], &gen->atDeath[i]);
+        XF *pxf = emitb->pxf;
         if (pxf) {
             {
-                register qword *ppos __asm__("$2"); // register pin (target loads pb->apos into v0 and forms &apos[i] there)
-                ppos = pb->apos;
+                register qword *ppos __asm__("$2"); // register pin (target loads gen->apos into v0 and forms &apos[i] there)
+                ppos = gen->apos;
                 ppos[i] = Add(MulRow(pxf->mat, ppos[i]), pxf->pos);
             }
-            qword d = Sub(pb->apos[i], pxf->pos);
+            qword d = Sub(gen->apos[i], pxf->pos);
             qword x = Cross(pxf->w, d);
-            qword t = Add(MulRow(pxf->mat, pb->av[i]), pxf->v);
-            pb->av[i] = Add(t, x);
+            qword t = Add(MulRow(pxf->mat, gen->av[i]), pxf->v);
+            gen->av[i] = Add(t, x);
         }
-        if (pb->f10)
-            ConvertEmitoPosVec__FP5EMITOP6VECTORT1(pemit, &pb->apos[i], &pb->av[i]);
+        if (gen->convertToWorld)
+            ConvertEmitoPosVec__FP5EMITOP6VECTORT1(emitb, &gen->apos[i], &gen->av[i]);
     }
 }
 } // namespace M_OriginateParticles__FiP5EMITBP7EMITGEN
@@ -1689,15 +1698,15 @@ namespace M_OriginateSplineSinkParticles {
 // the ptimes->at[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
-struct BUF { qword *apos; qword *av; float *ag; float *an; int f10; };
-struct SAV { int x0; };
-struct EMITBV { char pad[8]; SAV *psav; char pad2[0x18 - 0xC]; int k18; int f1C; };
+struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
+struct SAV { int reference; };   /* EMITB+0x08's resolved objects: [0] */
+struct EMITBV { char pad[8]; SAV *psav; char pad2[0x18 - 0xC]; int velocityKind; int localXf; };   /* velocityKind: Sly 1's EMITVK (2: positions only, 3: world) */
 class ALO;
 struct VT { char pad[0x100]; short d; short pad2; void *(*pfn)(ALO *, M4 *); };
-class ALO { public: char pad[0xC]; VT *pvt; int x10; char pad2[0xE4 - 0x14]; EMITBV *pemitb; };
-struct EO { char pad[8]; ALO *palo; };
+class ALO { public: char pad[0xC]; VT *pvt; int psoParent; char pad2[0xE4 - 0x14]; EMITBV *pemitb; };   /* the spline target (an EXPLO) */
+struct EO { char pad[8]; ALO *splineTarget; };
 struct EMITTERV { char pad[8]; EO *peo; };
-struct TIMES { char pad[0xC]; float *at; };
+struct TIMES { char pad[0xC]; float *atDeath; };   /* the EMITGEN being emitted */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
@@ -1725,12 +1734,14 @@ static inline qword MulRot(const M4 &m, qword v)
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(v), "j"(s.q)); return d; }
 
-// For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to EmitBlips. (inferred)
-void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb)
+// For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
+// whose reference object defaults to the target's parent), each moved by the target's motion at the particle's
+// death time (LoadIdentityMatrix4 extrapolation) and with its velocity reversed, so blips fly into the target (inferred).
+void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *gen)
 {
-    ALO *palo = pemit->peo->palo;
-    SAV *psav = palo->pemitb->psav;
-    int saved = psav->x0;
+    ALO *target = emitb->peo->splineTarget;
+    SAV *refs = target->pemitb->psav;
+    int saved = refs->reference;
     int i;
     float tPrev;
     void *pv;
@@ -1740,24 +1751,24 @@ void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb
     M4 mBase;
     M4 mWorld;
     if (!saved)
-        psav->x0 = palo->x10;
-    pb->f10 = 0;
-    OriginateParticles__FiP5EMITBP7EMITGEN(c, palo->pemitb, pb);
-    palo->pemitb->f1C = 0;
+        refs->reference = target->psoParent;
+    gen->convertToWorld = 0;
+    OriginateParticles__FiP5EMITBP7EMITGEN(c, target->pemitb, gen);
+    target->pemitb->localXf = 0;
     tPrev = D_002A5150;
-    pv = palo->pvt->pfn((ALO *)((char *)palo + palo->pvt->d), &mWorld);
+    pv = target->pvt->pfn((ALO *)((char *)target + target->pvt->d), &mWorld);
     mBase = mWorld;
     for (i = 0; i < c; i++) {
         float tNow = D_002DDED0.t;
-        float t = ptimes->at[i] - tNow;
-        int k = palo->pemitb->k18;
+        float t = ptimes->atDeath[i] - tNow;
+        int velocityKind = target->pemitb->velocityKind;
         if (!FFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
             tPrev = t;
             LoadIdentityMatrix4(pv, 0, &m, t, 0);
             __ml__FRC7MATRIX4T0(&mT, &m, &mBase);
             m = mT;
-            if (k != 3) {
+            if (velocityKind != EMIT_VELOCITY_WORLD) {
                 LoadIdentityMatrix4(pv, 0, &mA, t, &mB);
                 __ml__FRC7MATRIX4T0(&mT, &mA, &mWorld);
                 mA = mT;
@@ -1765,55 +1776,55 @@ void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb
                 mB = mT;
             }
         }
-        pb->apos[i] = MulAffine(m, pb->apos[i]);
-        if (k != 3) {
+        gen->apos[i] = MulAffine(m, gen->apos[i]);
+        if (velocityKind != EMIT_VELOCITY_WORLD) {
             M4 *pmA = &mA;
-            pb->av[i] = MulRot(*pmA, pb->av[i]);
-            if (k != 2) {
+            gen->av[i] = MulRot(*pmA, gen->av[i]);
+            if (velocityKind != EMIT_VELOCITY_NO_RELATIVE) {
                 qword v[1];
-                if (k == 1)
-                    v[0] = pb->apos[i];
+                if (velocityKind == EMIT_VELOCITY_RELATIVE_SPIN)
+                    v[0] = gen->apos[i];
                 else
                     v[0] = mA.r[3];
-                pb->av[i] = Add(pb->av[i], MulAffine(mB, v[0]));
+                gen->av[i] = Add(gen->av[i], MulAffine(mB, v[0]));
             }
         }
-        qword vv = pb->av[i];
-        pb->av[i] = Scale(vv, VU_FLOAT(-1.0f));
+        qword vv = gen->av[i];
+        gen->av[i] = Scale(vv, VU_FLOAT(-1.0f));
     }
-    palo->pemitb->psav->x0 = saved;
+    target->pemitb->psav->reference = saved;
 }
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-struct LOC { int q0, q1, q2, q3; int f; int pad[3]; };
-struct L2 { int a; int b; int pad[6]; };
-struct B { int pad; int k4; char pad2[0xC4 - 8]; int kC4; };
+struct LOC { int positions, velocities, birthTimes, deathTimes; int convertToWorld; int pad[3]; };   /* EMITGEN */
+struct L2 { int splineStarts; int splineEnds; int pad[6]; };
+struct B { int pad; int particleKind; char pad2[0xC4 - 8]; int blipMotionKind; };   /* EMITB: 1 rips; 2 spline motion */
 extern "C" {
 void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, B *b, LOC *ploc);
 void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(B *b, void *c, void *a, int q0, int q1, int q2, int q3);
 void OriginateSplineSinkParticles(void *a, B *b, LOC *ploc, L2 *pl2);
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(B *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
-// Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips.
-// (inferred)
-void EmitParticles__FiP5EMITBP5EMITG(void *a, B *b, void *c)
+// Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
+// EmitRips or EmitBlips (spline-motion blips also get their spline end points).
+void EmitParticles__FiP5EMITBP5EMITG(void *count, B *emitb, void *emitg)
 {
-    if (a) {
-        LOC loc;
+    if (count) {
+        LOC gen;
         STACKSCOPE frame;
-        loc.f = 1;
-        OriginateParticles__FiP5EMITBP7EMITGEN(a, b, &loc);
-        if (b->k4 == 1) {
-            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(b, c, a, loc.q0, loc.q1, loc.q2, loc.q3);
+        gen.convertToWorld = 1;
+        OriginateParticles__FiP5EMITBP7EMITGEN(count, emitb, &gen);
+        if (emitb->particleKind == 1) {
+            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes);
         } else {
-            L2 l2;
-            if (b->kC4 == 2) {
-                OriginateSplineSinkParticles(a, b, &loc, &l2);
+            L2 spline;
+            if (emitb->blipMotionKind == 2) {
+                OriginateSplineSinkParticles(count, emitb, &gen, &spline);
             } else {
-                l2.a = 0;
-                l2.b = 0;
+                spline.splineStarts = 0;
+                spline.splineEnds = 0;
             }
-            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(b, c, a, loc.q0, loc.q1, loc.q2, loc.q3, l2.a, l2.b);
+            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes, spline.splineStarts, spline.splineEnds);
         }
     }
 }
