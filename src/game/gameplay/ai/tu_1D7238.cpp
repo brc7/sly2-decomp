@@ -1,5 +1,9 @@
-// tu_1D7238.cpp -- the safehouse character-select object (HYPOTHESIS from AddSafehouseEntry and the joystick
-// selection): a PO whose state machine cycles through the allowed characters. TU 0x1D7238..0x1D7A30 (10 functions).
+// tu_1D7238.cpp -- the safehouse character-select object (a PO, inferred from AddSafehouseEntry and the joystick
+// selection): while active it reads the joystick selection and steps a state machine through the characters the
+// player may choose, and binds buttons to relays (e.g. the ThiefNet tab). Entry points: SAFEHOUSE::Init,
+// UpdateSafehouse, HandleSafehouseMessage / SetCharSelectState, StepCharSelect, Splice options AddSafehouseEntry
+// and SetPoChoices.
+// TU 0x1D7238..0x1D7A30 (10 functions).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1D7238
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D7A10
 #include "sly2/basic.h"
@@ -19,11 +23,11 @@ struct VTE { short d; short pad; void *pfn; };
     ((void (*)(void *, int, int, int, int, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1, a2, a3, a4, a5)
 
 struct SOV { char pad0[0xC]; VTE *vt; };
-struct SMV { char pad[0x50]; int c; };      /* state machine: c states */
+struct SMV { char pad[0x50]; int stateCount; };      /* state machine: c states */
 struct SMA;
 
 /* One joystick binding: in state psm-state pvState, button grfBtn fires relay oid (0x378: open the ThiefNet tab). */
-struct SHENTRY { void *pvState; int grfBtn; int oid; };
+struct SHENTRY { void *state; int buttonMask; int oid; };
 
 /* The safehouse object: a PO (InitPo) with a state machine of selectable characters. */
 struct SAFEHOUSEV
@@ -32,16 +36,16 @@ struct SAFEHOUSEV
     VTE *vt;                /* +0xC */
     char pad10[0x180 - 0x10];
     int state;              /* +0x180 0 idle, 1 selecting */
-    SMV *psm;               /* +0x184 */
-    SMA *psma;              /* +0x188 */
-    unsigned int centry;    /* +0x18C */
-    SHENTRY aentry[12];     /* +0x190 */
-    int cchoice;            /* +0x220 allowed states */
-    void *achoice[8];       /* +0x224 */
+    SMV *stateMachine;               /* +0x184 */
+    SMA *stateMachineAnim;              /* +0x188 */
+    unsigned int bindingCount;    /* +0x18C */
+    SHENTRY bindings[12];     /* +0x190 */
+    int choiceCount;            /* +0x220 allowed states */
+    void *choices[8];       /* +0x224 */
 };
 
-struct SUBV { char pad[0x74]; int x74; };
-struct GS { char pad[0x3B0C]; SUBV *x3B0C; };   /* g_sw; +0x3B0C is SW::ploJobCur */
+struct SUBV { char pad[0x74]; int unknown74; };
+struct GS { char pad[0x3B0C]; SUBV *currentJob; };   /* g_sw; +0x3B0C is SW::ploJobCur */
 
 extern void *D_003D4A54;
 extern GS D_003DD490;
@@ -71,243 +75,189 @@ void StartJoySelection__FP3JOY(void *pjoy);
 CRef func_002013D8(void *pv, int a, int b, int *pc, void **apv);
 int func_001F0438(SMV *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
-void SetCharSelectState(SAFEHOUSEV *psh, int state);
-void StepCharSelect(SAFEHOUSEV *psh, int d);
+void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
+void StepCharSelect(SAFEHOUSEV *safehouse, int d);
 }
 int FActiveCplcy(CPLCY *pcplcy);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 int IsmsFindSmOptional(SM *psm, OID oid);
 
-/** @sly2-annot addr=0x1D7238
- * Purpose: PO subclass Init: InitPo then store self in global D_003D4A54
- * Info: proposed name InitSafehouse (T2); class SAFEHOUSE slot7; TU tu_1D7238
- * Notes: class identity from whole_game WE names/object strings: InitCharSelectPo -> InitSafehouse
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150+whole_game(class
- *   identity)
- * See: docs/engine/physics-collision.md#6-source-files,
- *   docs/engine/player.md#8-look-mode-recon-mode-and-the-ai-partner, docs/engine/player.md#10-source-files
- * @end-sly2-annot */
+// 0x1D7238: SAFEHOUSE vtable slot 7 (Init): PO Init, then registers itself as the world's safehouse (D_003D4A54).
 void SAFEHOUSE::Init()
 {
-    SAFEHOUSEV *psh = (SAFEHOUSEV *)this;
-    InitPo(psh);
-    D_003D4A54 = psh;
+    SAFEHOUSEV *safehouse = (SAFEHOUSEV *)this;
+    InitPo(safehouse);
+    D_003D4A54 = safehouse;
 }
 
-/** @sly2-annot addr=0x1D7268
- * Purpose: PostSoLoad then vt79(0)
- * Info: proposed name PostSafehouseLoad (T2); class SAFEHOUSE slot15; TU tu_1D7238
- * Notes: class identity from whole_game WE names/object strings: PostCharSelectPoLoad -> PostSafehouseLoad
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150+whole_game(class
- *   identity)
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void PostSafehouseLoad(SAFEHOUSEV *psh)
+// 0x1D7268: SAFEHOUSE post-load: SO post-load, then calls its vtable slot 79 with 0.
+extern "C" void PostSafehouseLoad(SAFEHOUSEV *safehouse)
 {
     VTE *e;
-    PostSoLoad(psh);
-    e = &psh->vt[79];
-    ((void (*)(void *, int))e->pfn)((char *)psh + e->d, 0);
+    PostSoLoad(safehouse);
+    e = &safehouse->vt[79];
+    ((void (*)(void *, int))e->pfn)((char *)safehouse + e->d, 0);
 }
 
-/** @sly2-annot addr=0x1D72A8
- * Purpose: UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0
- * Info: proposed name UpdateSafehouse (T2); class SAFEHOUSE slot16; TU tu_1D7238
- * Notes: names_v2 C proposed OnStepguardExitingSgs__FP9STEPGUARD3SGS (0.438) | class identity from whole_game
- *   WE names/object strings: UpdateCharSelectPo -> UpdateSafehouse
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150+whole_game(class
- *   identity)
- * See: docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
- *   docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void UpdateSafehouse(SAFEHOUSEV *psh)
+// 0x1D72A8: SAFEHOUSE update: SO update; while selecting (state 1), reads the joystick selection, steps the
+// character choice left/right and fires the relay bound to a pressed button in the current state.
+extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
 {
-    char *pjoy;
-    int n;
+    char *joystick;
+    int selectionDelta;
     int i;
-    SHENTRY *pe;
-    UpdateSo(psh);
-    if (psh->state == 0)
+    SHENTRY *binding;
+    UpdateSo(safehouse);
+    if (safehouse->state == 0)
         return;
-    if (psh->state != 1)
+    if (safehouse->state != 1)
         return;
-    if (psh->psma == 0)
+    if (safehouse->stateMachineAnim == 0)
         return;
     if (FActiveCplcy((CPLCY *)(*(char (*)[])&g_cm.part3a0)))
         return;
     if (D_002DFBC0 & 2)
-        pjoy = D_002DFC00;
+        joystick = D_002DFC00;
     else
-        pjoy = D_002E0D00;
-    n = DxSelectionJoy(pjoy);
-    if (n == 0) {
+        joystick = D_002E0D00;
+    selectionDelta = DxSelectionJoy(joystick);
+    if (selectionDelta == 0) {
         for (i = 0; ; i++) {
-            SAFEHOUSEV *prelay;
-            pe = &psh->aentry[i];
-            if (i >= (int)psh->centry)
+            SAFEHOUSEV *relay;
+            binding = &safehouse->bindings[i];
+            if (i >= (int)safehouse->bindingCount)
                 return;
-            if (pe->pvState != func_001F07E8(psh->psma))
+            if (binding->state != func_001F07E8(safehouse->stateMachineAnim))
                 continue;
-            if (!GrfHandleJoyBtn(pjoy, pe->grfBtn))
+            if (!GrfHandleJoyBtn(joystick, binding->buttonMask))
                 continue;
-            if (pe->oid == -1)
+            if (binding->oid == -1)
                 continue;
-            if (pe->oid == 0x378) {
+            if (binding->oid == 0x378) {
                 SetThiefnetTab(D_003DA150, 0);
                 break;
             }
-            prelay = (SAFEHOUSEV *)PloFindSwObject((SW *)&D_003DD490, 4, (OID)pe->oid, (LO *)psh);
-            if (prelay) {
-                FireRelay(prelay, 0);
+            relay = (SAFEHOUSEV *)PloFindSwObject((SW *)&D_003DD490, 4, (OID)binding->oid, (LO *)safehouse);
+            if (relay) {
+                FireRelay(relay, 0);
                 return;
             }
         }
     } else {
-        StepCharSelect(psh, n);
+        StepCharSelect(safehouse, selectionDelta);
     }
 }
 
-/** @sly2-annot addr=0x1D7418
- * Purpose: Calls PO base 0x1C3ED8 then switch on arg -> SetCharSelectState(0/1)
- * Info: proposed name HandleSafehouseMessage (T2); class SAFEHOUSE slot79; TU tu_1D7238
- * Notes: names_v2 C proposed PasegFindStepguard__FP9STEPGUARD3OID (0.438) | agent qualifier: | class identity
- *   from whole_game WE names/object strings: HandleCharSelectPoMessage -> HandleSafehouseMessage
- * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r6_1D5150+whole_game(class
- *   identity)
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void HandleSafehouseMessage(SAFEHOUSEV *psh, int n)
+// 0x1D7418: SAFEHOUSE control-state handler: PO base, then enters (1) or leaves (0) character selection.
+extern "C" void HandleSafehouseMessage(SAFEHOUSEV *safehouse, int controlState)
 {
-    SetPoCtlState(psh, n);
-    switch (n) {
+    SetPoCtlState(safehouse, controlState);
+    switch (controlState) {
     case 0:
-        SetCharSelectState(psh, 0);
+        SetCharSelectState(safehouse, 0);
         return;
     case 1:
-        SetCharSelectState(psh, 1);
+        SetCharSelectState(safehouse, 1);
         break;
     }
 }
 
-/** @sly2-annot addr=0x1D7480
- * Purpose: Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection
- * Info: proposed name SetCharSelectState (T2); TU tu_1D7238
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void SetCharSelectState(SAFEHOUSEV *psh, int state)
+// 0x1D7480: Enters or leaves character selection: swaps the state machine animation, reads the current character
+// from the save variables ('oidPoCurrent') and starts or stops the joystick selection.
+extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
 {
-    if (psh->state == state)
+    if (safehouse->state == state)
         return;
-    if (psh->state == 1) {
-        ReplaceSma(0, psh, -1, 0, &psh->psma);
-        VCALL5(psh, 3, 6, 0, 0, 0, 0);
+    if (safehouse->state == 1) {
+        ReplaceSma(0, safehouse, -1, 0, &safehouse->stateMachineAnim);
+        VCALL5(safehouse, 3, 6, 0, 0, 0, 0);
     }
-    psh->state = state;
+    safehouse->state = state;
     if (state == 1) {
-        SOV *aso0[4];
-        SOV *aso1[32];
-        SOV *aso2[32];
-        int n;
-        int idx;
-        if (D_003DD490.x3B0C && !D_003DD490.x3B0C->x74)
-            func_00162E38(D_003DD490.x3B0C);
-        n = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, aso0);
-        for (int i0 = 0; i0 < n; i0++) {
-            SOV *pso = aso0[i0];
-            func_001433C8(pso);
-            BindStepplayerHpMp(pso, 1);
+        SOV *players[4];
+        SOV *objects64[32];
+        SOV *objects4F[32];
+        int count;
+        int initialState;
+        if (D_003DD490.currentJob && !D_003DD490.currentJob->unknown74)
+            func_00162E38(D_003DD490.currentJob);
+        count = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
+        for (int i0 = 0; i0 < count; i0++) {
+            SOV *player = players[i0];
+            func_001433C8(player);
+            BindStepplayerHpMp(player, 1);
         }
-        n = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, aso1);
-        for (int i1 = 0; i1 < n; i1++)
-            VCALL1(aso1[i1], 76, 4);
-        n = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x4F, 0, 0x20, aso2);
-        for (int i2 = 0; i2 < n; i2++)
-            VCALL(aso2[i2], 9);
-        if (psh->psm) {
-            int v = RefGetSaveVarV(D_002A7878, 0).u.n;
-            if (IsmsFindSmOptional((SM *)psh->psm, (OID)v) == -1)
-                idx = OidFromSmIsms(psh->psm, 0);
+        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, objects64);
+        for (int i1 = 0; i1 < count; i1++)
+            VCALL1(objects64[i1], 76, 4);
+        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x4F, 0, 0x20, objects4F);
+        for (int i2 = 0; i2 < count; i2++)
+            VCALL(objects4F[i2], 9);
+        if (safehouse->stateMachine) {
+            int savedOid = RefGetSaveVarV(D_002A7878, 0).u.n;
+            if (IsmsFindSmOptional((SM *)safehouse->stateMachine, (OID)savedOid) == -1)
+                initialState = OidFromSmIsms(safehouse->stateMachine, 0);
             else
-                idx = v;
+                initialState = savedOid;
         } else {
-            idx = -1;
+            initialState = -1;
         }
-        ReplaceSma(psh->psm, psh, idx, 0, &psh->psma);
-        StepCharSelect(psh, 0);
+        ReplaceSma(safehouse->stateMachine, safehouse, initialState, 0, &safehouse->stateMachineAnim);
+        StepCharSelect(safehouse, 0);
         StartJoySelection__FP3JOY((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
-        VCALL5(psh, 3, 5, 0, 0, 0, 0);
+        VCALL5(safehouse, 3, 5, 0, 0, 0, 0);
     }
 }
 
-/** @sly2-annot addr=0x1D7748
- * Purpose: Append (a,b,c) triple to list at +0x18C (max 12)
- * Info: proposed name AddSafehouseEntry (EXISTING); TU tu_1D7238
- * Notes: agent/verifier proposes AddCharSelectEntry for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> AddSafehouseEntry (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.45] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+arbitration
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void AddSafehouseEntry(SAFEHOUSEV *psh, void *pvState, int grfBtn, int oid)
+// 0x1D7748: Splice option: appends a button binding {state, button mask, relay oid} (at most 12).
+extern "C" void AddSafehouseEntry(SAFEHOUSEV *safehouse, void *state, int buttonMask, int oid)
 {
-    if (psh->centry < 12) {
-        SHENTRY *pe = &psh->aentry[psh->centry++];
-        pe->pvState = pvState;
-        pe->grfBtn = grfBtn;
+    if (safehouse->bindingCount < 12) {
+        SHENTRY *pe = &safehouse->bindings[safehouse->bindingCount++];
+        pe->state = state;
+        pe->buttonMask = buttonMask;
         pe->oid = oid;
     }
 }
 
-/** @sly2-annot addr=0x1D7780
- * Purpose: Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect
- * Info: proposed name SetPoChoices (T1); TU tu_1D7238
- * Notes: verifier PLAUSIBLE: SetCharSelectChoices -> SetPoChoices / set allowed-selection list
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void SetPoChoices(SAFEHOUSEV *psh, void *pv)
+// 0x1D7780: Splice option: sets the list of selectable characters, then re-selects.
+extern "C" void SetPoChoices(SAFEHOUSEV *safehouse, void *choiceList)
 {
-    func_002013D8(pv, 6, 6, &psh->cchoice, psh->achoice);
-    StepCharSelect(psh, 0);
+    func_002013D8(choiceList, 6, 6, &safehouse->choiceCount, safehouse->choices);
+    StepCharSelect(safehouse, 0);
 }
 
-/** @sly2-annot addr=0x1D77D0
- * Purpose: Move SMA goal by d through SM states skipping disallowed ones (wrap)
- * Info: proposed name StepCharSelect (T2); TU tu_1D7238
- * Notes: names_v2 C proposed BindSgg__FP3SGG (0.638)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
-extern "C" void StepCharSelect(SAFEHOUSEV *psh, int d)
+// 0x1D77D0: Moves the selection `delta` states through the state machine, wrapping and skipping states whose
+// character is not allowed.
+extern "C" void StepCharSelect(SAFEHOUSEV *safehouse, int delta)
 {
-    int i0;
-    int i;
-    if (psh->psma == 0)
+    int startIndex;
+    int index;
+    if (safehouse->stateMachineAnim == 0)
         return;
-    i = func_001F0438(psh->psm, func_001F07E8(psh->psma));
-    i0 = i;
+    index = func_001F0438(safehouse->stateMachine, func_001F07E8(safehouse->stateMachineAnim));
+    startIndex = index;
     for (;;) {
-        void *pv;
-        int j;
-        i += d;
-        if (i < 0)
-            i = psh->psm->c - 1;
-        else if (i >= psh->psm->c)
-            i = 0;
-        pv = (void *)OidFromSmIsms(psh->psm, i);
-        for (j = 0; j < psh->cchoice; j++) {
-            if (psh->achoice[j] == pv) {
-                SetSmaGoal(psh->psma, pv);
+        void *stateOid;
+        int choiceIndex;
+        index += delta;
+        if (index < 0)
+            index = safehouse->stateMachine->stateCount - 1;
+        else if (index >= safehouse->stateMachine->stateCount)
+            index = 0;
+        stateOid = (void *)OidFromSmIsms(safehouse->stateMachine, index);
+        for (choiceIndex = 0; choiceIndex < safehouse->choiceCount; choiceIndex++) {
+            if (safehouse->choices[choiceIndex] == stateOid) {
+                SetSmaGoal(safehouse->stateMachineAnim, stateOid);
                 return;
             }
         }
-        if (d == 0)
-            d = 1;
-        else if (i == i0)
+        if (delta == 0)
+            delta = 1;
+        else if (index == startIndex)
             break;
     }
-    ReplaceSma(0, psh, -1, 0, &psh->psma);
+    ReplaceSma(0, safehouse, -1, 0, &safehouse->stateMachineAnim);
 }
 
 // ---- .bss (tu-merging.md "Data": .bss gaps): the object the PO subclass Init above stores itself in (0x3D4A54,
