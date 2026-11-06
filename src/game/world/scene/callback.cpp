@@ -86,6 +86,8 @@ void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg);
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
+// Queues a deferred callback {object, member function, argument} on the world (node from the world's pool); it runs
+// once in ProcessSwCallbacks.
 extern "C" void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
 {
     CALLBACK *pcb = (CALLBACK *)PvAllocSlotheapClear(&psw->slotheapCb);
@@ -103,6 +105,7 @@ extern "C" void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
+// Queues the callback unless an identical {object, member function, argument} is already queued.
 extern "C" void EnsureSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
 {
     CALLBACK *pcb;
@@ -121,6 +124,7 @@ extern "C" void EnsureSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
  * See: docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
  * @end-sly2-annot */
+// Removes the queued callbacks that match the selected fields (flag 1 object, 2 member function, 4 argument).
 extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pmf, int arg)
 {
     CALLBACK **ppcb = (CALLBACK **)&psw->slCb.pvFirst;
@@ -153,6 +157,8 @@ extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pm
  *   docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule
  * @end-sly2-annot */
+// Runs the queued callbacks (again while running them queues new ones), then every scheduled Splice callback whose time
+// has come (EvalSpliceEventCallback), freeing each. Called once per frame by the world update.
 extern "C" void ProcessSwCallbacks(SW *psw)
 {
     while (!FIsSlEmpty(&psw->slCb))

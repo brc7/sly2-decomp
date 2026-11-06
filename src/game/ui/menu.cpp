@@ -186,6 +186,7 @@ void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar
  * See: docs/engine/hud-ui.md#4-source-files, docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void func_001AE928(PMENU *p) {
     p->x20 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
     p->pending = -1;
@@ -198,6 +199,7 @@ extern "C" void func_001AE928(PMENU *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Resets the pause menu: pops to the root page, state 0, drops the widget.
 extern "C" void func_001AE970(PMENU *p) {
     func_001AF660(p);
     SetPauseMenuState(p, 0);
@@ -210,6 +212,7 @@ extern "C" void func_001AE970(PMENU *p) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// PAUSEMENU's vtable slot 9: the screen base version, then resets the joystick repeat when the flag is set. (inferred)
 extern "C" void func_001AE9A8(PMENU *p, int f) {
     func_001D98A8(p, f);
     if (f != 0) {
@@ -224,6 +227,7 @@ extern "C" void func_001AE9A8(PMENU *p, int f) {
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Shows the pause menu (slot 10): screen base show, game clock stopped, hands-off, game event 0x28.
 void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
 {
     func_001D98B0();
@@ -238,6 +242,7 @@ void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here *
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Hides the pause menu: screen base hide, game clock running again, hands-off released, game event 0x2C.
 extern "C" void HidePausemenu(PMENU *p)
 {
     func_001D9910(p);
@@ -257,6 +262,8 @@ extern "C" void HidePausemenu(PMENU *p)
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r5b_rest+top50_round
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// The pause menu state machine (states 0..11): exit actions of the old state (moving the selection in 5/6, closing in
+// 0), then entry actions that play the current page's widget animations (texts 0x331..0x335, the volume slider 0x315).
 void SetPauseMenuState(PMENU *s, int st)
 {
     PAGE *pe;
@@ -369,6 +376,8 @@ static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((c
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Per-frame pause menu update (screen slot 7): joystick navigation, item activation callbacks, the volume and video
+// items and the save-slot pages.
 extern "C" void UpdatePauseMenu(PMENU*p){
  int direction;
  func_001D9870();
@@ -471,6 +480,7 @@ func_001AF660(p);break;}
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// PAUSEMENU's vtable slot 8: empty.
 extern "C" void func_001AF388(void) {
 }
 
@@ -480,6 +490,7 @@ extern "C" void func_001AF388(void) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Replaces the top page with count items (running their init callbacks) and enters state 3.
 void func_001AF390(PMENU *s, int n, ITEM *af)
 {
     int x18, x8;
@@ -514,6 +525,7 @@ void func_001AF390(PMENU *s, int n, ITEM *af)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// In the idle state (7): goes back to the previous page (state 3).
 void func_001AF490(PMENU *p)
 {
     if (p->state == 7) {
@@ -528,6 +540,7 @@ void func_001AF490(PMENU *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Pushes a page (items, count, widget pool, title) on the menu stack, runs the items' init callbacks and enters state 1.
 void func_001AF4D8(PMENU *s, int n, ITEM *af, POOL *x8, META *x18)
 {
     PAGE *e;
@@ -561,6 +574,7 @@ void func_001AF4D8(PMENU *s, int n, ITEM *af, POOL *x8, META *x18)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// In the idle state (7): pops the top page (state 2), the save page included.
 void func_001AF608(PMENU *p)
 {
     if (p->state == 7) {
@@ -575,6 +589,7 @@ void func_001AF608(PMENU *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// In the idle state (7): drops every page but the root (state 8).
 void func_001AF660(PMENU *p) {
     if (p->state == 7) {
         if (p->depth >= 2) {
@@ -590,6 +605,7 @@ void func_001AF660(PMENU *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// In the idle state (7): enters state 11. (inferred: what state 11 does is not identified)
 void func_001AF6A0(PMENU *p) {
     if (p->state == 7) {
         SetPauseMenuState(p, 0xB);
@@ -604,6 +620,8 @@ static __inline__ float GClampM(float g, float lo, float hi) { float r; if (g < 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Music/sound volume items (0x67/0x68): left/right changes the value, applies it to the sound channel and updates
+// the meter.
 void func_001AF6D0(PMENU *s, PAGE *p, ITEM *pk)
 {
     switch (pk->kind) {
@@ -654,6 +672,7 @@ static inline int GetTag(int id) { return Eval(id, D_003D4A60).n; }
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item text callback for the video items (76..78): picks the string from the current option values.
 extern "C" void func_001AF9C8(int *s)
 {
     int t;
@@ -722,6 +741,7 @@ static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Applies an option item (kinds 103 and up): sets the option values and re-applies the GS settings.
 void func_001AFB88(PMENU*owner,ITEM*msg){
  switch(msg->kind){
  case 103:
@@ -762,6 +782,7 @@ void func_001AFB88(PMENU*owner,ITEM*msg){
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Resets the video options to their defaults and enters state 9.
 void func_001AFF88(PMENU *p, ITEM *item) {
     ApplyGsSettings(D_003D4A60);
     SetPauseMenuState(p, 9);
@@ -774,6 +795,7 @@ void func_001AFF88(PMENU *p, ITEM *item) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: cycles the item's value through its list and applies it.
 extern "C" void func_001AFFC0(ITEM *s)
 {
     int i;int *a=s->a;
@@ -791,6 +813,7 @@ extern "C" void func_001AFFC0(ITEM *s)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5b_rest+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Returns the id of the top page (0x1E/0x1F/0x19 for the three save/load pages) or -1.
 int IdPauseTopPage(PMENU *p)
 {
     int n;
@@ -811,6 +834,7 @@ int IdPauseTopPage(PMENU *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// True when the top page is one of the save/load pages.
 int func_001B0108(PMENU *p)
 {
     switch (IdPauseTopPage(p)) {
@@ -827,6 +851,7 @@ int func_001B0108(PMENU *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// True when the top (or pending) page is the first load page (D_002BFDA8).
 extern "C" int func_001B0160(PMENU *p)
 {
     int n;
@@ -846,6 +871,7 @@ extern "C" int func_001B0160(PMENU *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// True when the top (or pending) page is the second load page (D_002BFE08).
 extern "C" int func_001B01E8(PMENU *p)
 {
     int n;
@@ -865,6 +891,7 @@ extern "C" int func_001B01E8(PMENU *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: PopPauseMenuToRoot.
 extern "C" void func_001B0270(void) {
     func_001AF660(&D_003D9ED0);
 }
@@ -876,6 +903,8 @@ extern "C" void func_001B0270(void) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Opens the pause menu when allowed (no transition, no dialog): builds the root page from the seven items that are
+// available and pushes it. Returns whether it opened.
 extern "C" int func_001B0290(ITEM *px)
 {
     char *pl;
@@ -938,6 +967,7 @@ extern "C" int func_001B0290(ITEM *px)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Builds the options page (up to 11 available items) and pushes it (or replaces the top page).
 extern "C" void func_001B04E0(ITEM *p)
 {
     ITEM *src = D_002BFEC8;
@@ -967,6 +997,7 @@ extern "C" void func_001B04E0(ITEM *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: GoBackPauseMenuPage.
 extern "C" void func_001B0668(void) {
     func_001AF490(&D_003D9ED0);
 }
@@ -977,6 +1008,7 @@ extern "C" void func_001B0668(void) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: PushPauseMenuPage with the item's page.
 extern "C" void func_001B0688(ITEM *p)
 {
     func_001AF4D8(&D_003D9ED0, p->c, (ITEM *)p->a, 0, (META *)p->x18);
@@ -989,6 +1021,7 @@ extern "C" void func_001B0688(ITEM *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: ReplacePauseMenuPage with the item's page.
 extern "C" void func_001B06D8(ITEM *p) {
     func_001AF390(&D_003D9ED0, p->c, (ITEM *)p->a);
     if (p != 0) {
@@ -1002,6 +1035,7 @@ extern "C" void func_001B06D8(ITEM *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: EnterPauseMenuState11.
 extern "C" void func_001B0720(void) {
     func_001AF6A0(&D_003D9ED0);
 }
@@ -1013,6 +1047,7 @@ extern "C" void func_001B0720(void) {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Opens the page of the current character (Sly 0x35, Bentley 0x37, Murray 0x36) after game event 0x29.
 extern "C" void func_001B0740(ITEM *p)
 {
     char *s;
@@ -1033,6 +1068,7 @@ extern "C" void func_001B0740(ITEM *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item callback: game event 0x2B, then opens the map screen (0x1DD300). (inferred)
 extern "C" void func_001B0808(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2B, 0);
@@ -1046,6 +1082,7 @@ extern "C" void func_001B0808(void)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// Item text callback for the quit item: string 0x47 or 0x46 by a flag.
 extern "C" void func_001B0848(int *p)
 {
     if (D_002E65E0.f) { *p = 0x47; return; }
@@ -1059,6 +1096,8 @@ extern "C" void func_001B0848(int *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// "Save and quit" item: game events 0x2D/0x2E, then saves through the memory card dialog (states 0x22/0x1A) or resets
+// the game sequence.
 extern "C" void func_001B0878(ITEM *p)
 {
     BroadcastGameEvent(D_002DEB30, 0x2D, 0);
@@ -1089,6 +1128,7 @@ extern "C" void func_001B0878(ITEM *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// "Restart job" item: game event 0x2A, then fails the current job (it restarts).
 extern "C" void func_001B0970(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2A, 0);
@@ -1102,6 +1142,7 @@ extern "C" void func_001B0970(void)
  * See: docs/engine/hud-ui.md#5-key-functions, docs/formats/disc-records.md#3-static-records-in-the-elf,
  *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
+// "Return to hideout" item: wipes to the hideout warp (0x189) and fails the current job.
 extern "C" void PauseItemReturnToHideout(ITEM *p)
 {
     SWM *pg = &D_003DD490;

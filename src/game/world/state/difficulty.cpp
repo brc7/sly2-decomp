@@ -78,6 +78,7 @@ static inline float GGet(SVKEY *pkey) { CRef ref = RefGetGlobalSaveVar(pkey, &D_
  * See: docs/engine/game-progression.md#7-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
+// Zeroes the difficulty object.
 extern "C" void InitDifficulty(DIFFICULTY *pdifficulty)
 {
     memset(pdifficulty, 0, sizeof(DIFFICULTY));
@@ -89,6 +90,7 @@ extern "C" void InitDifficulty(DIFFICULTY *pdifficulty)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
+// Clears the three difficulty sample references.
 extern "C" void func_00154A80(DIFFICULTY *pdifficulty)
 {
     pdifficulty->pkey8 = 0;
@@ -105,6 +107,8 @@ extern "C" void func_00154A80(DIFFICULTY *pdifficulty)
  *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
+// The difficulty's game-event handler: event 3 binds the three saved sample slots, 34 shifts the samples (a rolling
+// window of the last three jobs), 37/16/29 apply the deltas from the D_002BDC00 table.
 extern "C" void HandleDifficultyMessage(DIFFICULTY *pdifficulty, int msgk, TASKV *ptask)
 {
     switch (msgk) {
@@ -137,6 +141,7 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *pdifficulty, int msgk, TASKV
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
+// Returns the current difficulty: the override when set, else the average of the last three samples.
 extern "C" float GGetDifficulty(DIFFICULTY *pdifficulty)
 {
     float g;
@@ -160,6 +165,7 @@ extern "C" float GGetDifficulty(DIFFICULTY *pdifficulty)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
+// Adds a delta to the current difficulty.
 extern "C" void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg)
 {
     SetDifficulty(pdifficulty, GGetDifficulty(pdifficulty) + dg);
@@ -171,6 +177,7 @@ extern "C" void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
+// Stores the difficulty, clamped to the object's range, into the current sample.
 extern "C" void SetDifficulty(DIFFICULTY *pdifficulty, float g)
 {
     SW *psw = &D_003DD490;
@@ -186,6 +193,9 @@ extern "C" void SetDifficulty(DIFFICULTY *pdifficulty, float g)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
+// Sprays prizes from a destroyed or searched object with difficulty-scaled counts: two countdowns are refilled with
+// random values interpolated by the difficulty; when one runs out it adds bonus prizes (types 0x5B and 0x5D).
+// (inferred)
 extern "C" void func_00154E10(DIFFICULTY *pdifficulty, qword posMat, int c, int dn, void *plo)
 {
     if (pdifficulty->cCountdownA <= 0) {
@@ -221,6 +231,7 @@ extern "C" void func_00154E10(DIFFICULTY *pdifficulty, qword posMat, int c, int 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
+// Scales n by a factor interpolated between two range ends by the current difficulty.
 extern "C" int func_00155228(DIFFICULTY *pdifficulty, int n)
 {
     float g = GGetDifficulty(pdifficulty);

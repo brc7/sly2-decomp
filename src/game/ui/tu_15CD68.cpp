@@ -133,6 +133,7 @@ static inline void PlaySound(int n)
  * See: docs/engine/hud-ui.md#4-source-files, docs/engine/particles-effects.md#5-source-files,
  *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Episode menu initialization (slot 7): LO init, four ids cleared, registers itself as the world's episode menu.
 void WIDGET131::Init()
 {
     EPMENU *p = (EPMENU *)this;
@@ -152,6 +153,7 @@ void WIDGET131::Init()
  * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
  *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// After the level load (slot 15): widget post-load, then picks the first empty slot index from the world arrays.
 extern "C" void func_0015CDA8(EPMENU *p)
 {
     PostWidgetLoad(p);
@@ -196,6 +198,8 @@ extern "C" void func_0015CDA8(EPMENU *p)
  * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
  *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Per-frame update of the episode menu (slot 16): state machine, joystick navigation and actions (save variables,
+// movie replay, warps).
 extern "C" void func_0015CF30(EPMENU *p)
 {
     int r;
@@ -361,6 +365,7 @@ extern "C" void func_0015CF30(EPMENU *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Returns the label oid of the current mode/sub-mode from the label tables, or -1.
 extern "C" int func_0015D5C8(EPMENU *p)
 {
     int k = p->state;
@@ -378,6 +383,8 @@ extern "C" int func_0015D5C8(EPMENU *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Switches the menu mode: autosaves when leaving mode 0, restores the selection in modes 4 and 6, resets the labels
+// and shows the new one (slot 49).
 extern "C" void func_0015D648(EPMENU *p, int state, int sub)
 {
     if (p->state != state || p->sub != sub) {
@@ -422,6 +429,8 @@ extern "C" void func_0015D648(EPMENU *p, int state, int sub)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Number of menu items for the selected episode: the table value, minus 2 when it was never played, minus 1 when it is
+// under 100%.
 extern "C" int func_0015D798(EPMENU *p)
 {
     void *pkeyG, *pkeyN;
@@ -450,6 +459,7 @@ extern "C" int func_0015D798(EPMENU *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Plays label 0x5BD or 0x5BE when the highlight flag changes.
 extern "C" void func_0015D880(EPMENU *p, int f)
 {
     if (p->fPrompt != f) {
@@ -473,6 +483,7 @@ extern "C" void func_0015D880(EPMENU *p, int f)
  * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
  *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Text callback: "<n>%" for the selected episode (95% scale, +5 when its bonus flag is set).
 extern "C" void FormatEpisodePercent(char *pch)
 {
     SWV *psw = &D_003DD490;
@@ -492,6 +503,7 @@ extern "C" void FormatEpisodePercent(char *pch)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Text callback: the selected episode's play time as h:mm.
 extern "C" void FormatEpisodePlayTime(char *pch)
 {
     SWV *psw = &D_003DD490;
@@ -512,6 +524,7 @@ extern "C" void FormatEpisodePlayTime(char *pch)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
+// Text callback: string 0x77 or 0x78 by the parity of the menu page.
 extern "C" void func_0015DA88(char *pch, int f)
 {
     EPMENU *pepmenu = D_003DD490.pepmenu;

@@ -166,6 +166,8 @@ static inline int NFindSymbol(SVSTORE *psvstore, const char *pchz) { return NFin
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/engine/save-memcard.md#4-source-files, docs/engine/save-memcard.md#5-key-functions
  * @end-sly2-annot */
+// Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
+// the save blob when the schema changed.
 extern "C" void LoadSaveSchemaFromBrx(SVSTORE *psvstore, CBinaryInputStream *pbis)
 {
     MEMREQ memreq;
@@ -198,6 +200,8 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *psvstore, CBinaryInputStream *pbi
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/engine/save-memcard.md#5-key-functions, docs/engine/save-memcard.md#open-questions
  * @end-sly2-annot */
+// Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
+// ones.
 extern "C" void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset)
 {
     int sum = SumAb((unsigned char *)psvstore->aent, psvstore->cent * 10);
@@ -216,6 +220,7 @@ extern "C" void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// True when the save blob's stored schema version and checksum match the loaded schema.
 extern "C" int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset)
 {
     int sum = SumAb((unsigned char *)psvstore->aent, psvstore->cent * 10);
@@ -231,6 +236,8 @@ extern "C" int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
+// false when the key does not name a variable.
 extern "C" int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
 {
     SVENT *aent = psvstore->aent;
@@ -279,6 +286,7 @@ extern "C" int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
 extern "C" void *PvFromSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
 {
     SVFIND find;
@@ -296,6 +304,7 @@ struct SMPV { int a[3]; };
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
 CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
 {
     CRef ref;
@@ -358,6 +367,7 @@ CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
+// Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
 CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &refVal, SVSET *psvset)
 {
     CRef ref(0x24);
@@ -435,6 +445,8 @@ static inline int NClamp(int n, int nMin, int nMax)
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
+// clamped to 1..99.
 extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
 {
     int sum = 0;
@@ -492,6 +504,8 @@ extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
  * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
+// "from_memcard". (inferred)
 extern "C" void func_001D84B0(SVSTORE *psvstore, SVSET *psvset)
 {
     int symid;
@@ -514,6 +528,7 @@ extern "C" void func_001D84B0(SVSTORE *psvstore, SVSET *psvset)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Allocates the save symbol table's entries.
 extern "C" void InitSaveSymbolTable(SVSYMTAB *psymtab, int csym)
 {
     MEMREQ memreq;
@@ -532,6 +547,7 @@ static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Case-insensitive string hash (h = h * 33 + toupper(c)).
 extern "C" unsigned int UHashPchzCi(const char *pchz)
 {
     const unsigned char *pch = (const unsigned char *)pchz;
@@ -552,6 +568,7 @@ extern "C" unsigned int UHashPchzCi(const char *pchz)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
 extern "C" void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid)
 {
     unsigned int hash = UHashPchzCi(pchz);
@@ -572,6 +589,7 @@ extern "C" void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Returns the symbol id of a name in the save symbol table, or -1.
 extern "C" int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
 {
     unsigned int hash = UHashPchzCi(pchz);
@@ -592,6 +610,7 @@ extern "C" int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Turns a null-terminated list of strings into a key: symbol names become their ids, numbers become array indices.
 extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
 {
     VA_LIST apSave = ap;
@@ -626,6 +645,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Builds a key from a varargs list of strings on the heap.
 extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
 {
     STACKSCOPE stackscope;
@@ -653,6 +673,7 @@ extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Builds a key from a varargs list of strings in a slot-heap allocation.
 extern "C" SVKEY *PkeyAllocSaveKey(const char *pchz, ...)
 {
     MEMREQ memreq;
@@ -683,6 +704,7 @@ static inline CRef RefSetSaveVarGlobal(SVKEY *pkey, const CRef &ref, SVSET *psvs
  *   docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Reads the named save variable (varargs path) from the global save blob as a Splice value.
 extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
 {
     CRef ref;
@@ -703,6 +725,7 @@ extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
  *   docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Writes a Splice value into the named save variable (varargs path) of the global save blob.
 extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
 {
     CRef ref;
@@ -722,6 +745,7 @@ extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Returns the address of the named save variable (varargs path) in the global save blob.
 extern "C" void *PvSaveVarV(const char *pchz, ...)
 {
     CRef ref;
@@ -739,6 +763,7 @@ extern "C" void *PvSaveVarV(const char *pchz, ...)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Returns a new key: the concatenation of two keys.
 extern "C" SVKEY *PkeyConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 {
     MEMREQ memreq;
@@ -769,6 +794,8 @@ static inline CRef RefSetGlobal(SVKEY *pkey, CRef *pref, SVSET *psvset) { return
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
+// settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
 extern "C" void func_001D8D80(SVSET *psvset, int fKeepSettings)
 {
@@ -810,6 +837,7 @@ static inline float GGetGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetGlobal
  *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
 extern "C" void ApplyGsSettings(SVSET *psvset)
 {
     if ((SVKEY *)g_sw.psvpLang && CLanguagesRegion() >= 2)

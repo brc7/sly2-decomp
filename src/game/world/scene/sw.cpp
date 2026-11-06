@@ -221,6 +221,8 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
  * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#3-world--level-lifecycle,
  *   docs/engine/world-sw.md#1-sw-the-world-singleton
  * @end-sly2-annot */
+// SW constructor (the global g_sw): vtable, about 30 slot-heap pools, about 60 lists, the oid/class/proxy hash buckets,
+// the default illumination (HSV 180/255/255), fog and field-of-view defaults.
 extern "C" SW *SW_ctor(SW *p)
 {
     p->a=0;p->b=0;p->vt=D_002DC018;
@@ -348,6 +350,7 @@ void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk) __asm__("SetSwTrans
  * See: docs/engine/world-sw.md#world-sw-level-loading-transitions-hands-off-callbacks,
  *   docs/engine/world-sw.md#2-loading-a-level, docs/engine/world-sw.md#7-checkpoints-refuted
  * @end-sly2-annot */
+// Restores the checkpoint manager from a checkpoint record and marks it restored.
 void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk)
 {
     pchkmgr->fRestored = 1;
@@ -363,6 +366,7 @@ extern int D_00443740;
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// True while a level transition is pending or the wipe is wiping out (D_00443740 state 1).
 int func_0020E040(void) { if (g_sw.fTransitionPending != 0) return 1; return D_00443740 == 1; }
 } } // namespace M_func_0020E040
 
@@ -392,6 +396,8 @@ void FreeSw__Fv(void);
  * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
+// Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
+// manager, clears about 15 global object pointers and frees the world's memory.
 void DeleteSw(struct S *p)
 {
     void *pv = D_002DEB30;
@@ -452,6 +458,8 @@ void BroadcastGameEvent(void *p, int a, int b);
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Sets up a fresh world for loading: the work buffers (3 x 0x4800 and 0x8000 bytes), a list header, two ZPR inits,
+// game callback 2.
 void func_0020E180(struct S *p)
 {
     struct MSG msg;
@@ -493,6 +501,8 @@ void func_001A6D28(struct O *o, int n);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its +0xC8 and makes
+// it visible to every camera mask. (inferred)
 void func_0020E2B0(struct S *p)
 {
     struct O *apo[16];
@@ -525,6 +535,8 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Creates the world's class-0x74 object (parameters 0.1 and 0.25, flags 0x80200000), adds it and stores it at
+// SW+0x3E60. (inferred: the class is not identified)
 extern "C" void func_0020E338(S *p)
 {
     p->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
@@ -663,6 +675,8 @@ void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
+// Looks up the save variables the game reads (language, sound flags, job and world, per-world play time and percent
+// complete), stores the current language, job and world, raises episodeBest and notifies the game (event 3).
 void ResolveSwSaveVars(SW *psw)
 {
     psw->psvpDt = PkeyNewSaveKey("dt", 0);
@@ -728,6 +742,8 @@ void BroadcastGameEvent(void *p, int a, int b);
  * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level
  * @end-sly2-annot */
+// After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
+// until the queue is empty, resets the camera and runs game callback 4.
 void PostSwLoad(struct S *p)
 {
     struct O **ppo;
@@ -842,6 +858,9 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
  * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
+// Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
+// the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
+// callback 5. Called once per frame by the main loop.
 extern "C" void ExecuteSwTransition(SW *p)
 {
     if(!p->pending)return;
@@ -938,6 +957,8 @@ void func_0020F198(struct S *p);
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
+// Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
+// flag 2 also locks input.
 void IncrementSwHandsOff(struct S *p, int fl)
 {
     if (++p->c == 1) AddGrfusr__Fi(2);
@@ -963,6 +984,7 @@ void func_0020F1A8(struct S *p);
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
+// Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
 void DecrementSwHandsOff(struct S *p, int grf)
 {
     if (--p->n == 0) {
@@ -982,6 +1004,7 @@ void DecrementSwHandsOff(struct S *p, int grf)
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// True while the player has no control (hands-off count > 0).
 extern "C" int FSwHandsOff(SW *psw)
 {
     return psw->cHandsOff > 0;
@@ -998,6 +1021,7 @@ extern "C" int FSwHandsOff(SW *psw)
  * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
  *   docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
+// Disables pausing (counted; used by cutscene hands-off and the recon mode).
 extern "C" void func_0020F0C0(SW *psw)
 {
     if (++psw->cNoPause == 1) {
@@ -1016,6 +1040,7 @@ extern "C" void func_0020F0C0(SW *psw)
  *   docs/guides/naming-workflow.md#1-where-things-stand-master_names_v2,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
+// Re-enables pausing (counted).
 extern "C" void func_0020F0F0(SW *psw)
 {
     if (--psw->cNoPause == 0) {
@@ -1033,6 +1058,7 @@ SLY2_SCRAP("slt $2, $zero, $2");
  * See: docs/engine/world-sw.md#5-hands-off-and-locks,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Shows the letterbox bars (counted; the first call hides the subtitles and shows the letterbox object).
 extern "C" void AcquireSwLetterbox(SW *psw)
 {
     if (++psw->cUnk3d80 == 1) {
@@ -1047,6 +1073,7 @@ extern "C" void AcquireSwLetterbox(SW *psw)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Hides the letterbox bars when the last user releases them.
 extern "C" void ReleaseSwLetterbox(SW *psw)
 {
     if (--psw->cUnk3d80 == 0) {
@@ -1063,6 +1090,7 @@ SLY2_SCRAP("slt $2, $zero, $2");
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Locks player input (counted). (inferred)
 extern "C" void func_0020F198(SW *psw)
 {
     psw->cUnk3d84++;
@@ -1074,6 +1102,7 @@ extern "C" void func_0020F198(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Unlocks player input (counted). (inferred)
 extern "C" void func_0020F1A8(SW *psw)
 {
     psw->cUnk3d84--;
@@ -1085,6 +1114,7 @@ extern "C" void func_0020F1A8(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// True while player input is locked. (inferred)
 extern "C" int func_0020F1B8(SW *psw)
 {
     return psw->cUnk3d84 > 0;
@@ -1108,6 +1138,8 @@ float GLimitLm__FP2LMf(void *p, float g);
  * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
+// the illumination change counter.
 void UpdateSwIllum(struct S *p)
 {
     float k = 1.0f / 255.0f;
@@ -1141,6 +1173,7 @@ void UpdateSwIllum(struct S *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Sets the world's illumination HSV colour and recomputes the ambient light.
 extern "C" void func_0020F2B8(SW *psw, qword hsv)
 {
     *(qword *)&psw->hsvLight = hsv;
@@ -1154,6 +1187,7 @@ extern "C" void func_0020F2B8(SW *psw, qword hsv)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Sets the illumination shadow level and recomputes the ambient light.
 extern "C" void SetSwIllumShadow(SW *psw, float g)
 {
     psw->gMidtone = g;
@@ -1167,6 +1201,7 @@ extern "C" void SetSwIllumShadow(SW *psw, float g)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8+verify_side
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Sets the illumination midtone (default 90) and recomputes the ambient light.
 extern "C" void SetSwIllum(SW *psw, float g)
 {
     psw->gLightScale = g;
@@ -1261,6 +1296,8 @@ extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#3-level-table-and-world-identity, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
+// Reads the level table: per level its file record, world, episode, entry flag and level numbers (fills the level
+// list, the world and episode of each level and the world entry records).
 extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
 {
     D_003E1C38 = pbis->U32Read();
@@ -1300,6 +1337,8 @@ int S32Read__18CBinaryInputStream(void *pbis);
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Reads the header (size, id) of the data block shared across levels and flags a reload when the id changed or when
+// forced.
 void LoadSwSharedHeaderFromBrx(int a, void *pbis)
 {
     int x = S32Read__18CBinaryInputStream(pbis);
@@ -1335,6 +1374,7 @@ void func_00170828(void *p);
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
  *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
  * @end-sly2-annot */
+// Reads the shared data block when it changed (and rebuilds from it), otherwise skips it and reuses the loaded copy.
 void LoadSwSharedDataFromBrx(void *p, void *q)
 {
     Align__18CBinaryInputStreami(q, 0x10);
@@ -1376,6 +1416,8 @@ int func_001C7D00(void);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
+// (inferred)
 void func_0020F710(struct S *p)
 {
     struct L l;
@@ -1418,6 +1460,8 @@ void SetSndSourceLo(void *p, void *source);
  *   docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
+// (0x30/0x31) once a second. (inferred)
 void func_0020F7E0(struct S *p)
 {
     float z;
@@ -1469,6 +1513,8 @@ int func_00134310(int a, int b);
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/player.md#throw-0x21f2e0-0x220d40,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
+// or 3.
 int FFilterSoPair(struct S *p, struct E *e)
 {
     struct S *ps = e->pb->ps;
@@ -1495,6 +1541,7 @@ struct S { int a; struct P *pp; char pad[8]; long fl; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Intersection filter: keeps objects that are not the context object and do not have flag 4.
 int func_0020FA10(struct O *po, struct S *p) {
     int r = 0;
     if (!(p->fl & 0x1000000000000L)) {
@@ -1516,6 +1563,7 @@ int func_0020FA10(void *pv, struct S *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Intersection filter: ShouldKeepSoNotSelf and the object's vtable slot 62 predicate.
 int func_0020FA50(void *pv, struct S *p) { struct O *o; struct VTE *e; if (!func_0020FA10(pv, p)) return 0; o = p->po; e = &o->vt[62]; return e->pfn((char *)o + e->d); }
 } } // namespace M_func_0020FA50
 
@@ -1538,6 +1586,8 @@ void UpdateSwAaox(struct S *p);
  * See: docs/engine/game-progression.md#8-key-functions, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
+// Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
+// result is a slot-allocated array.
 void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     U mn, mx;
@@ -1599,6 +1649,7 @@ void UpdateSwAaox(struct S *p);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
 void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct MSG msg;
@@ -1647,6 +1698,7 @@ void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Builds the list of distinct SOs referenced by an array of entries (marking them while collecting).
 void func_0020FDC8(int n, struct A **apa, int *pc, struct O ***pppo)
 {
     struct M m;
@@ -1683,6 +1735,7 @@ int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID
  *   r7_1F8DD8+verdicts_tu_r7r8+arbitration
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Adds or updates a rsmg record ((root, state machine) -> goal on trigger or untrigger) in a bounded array.
 int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;
@@ -1721,6 +1774,7 @@ void func_0020FFF0(void *p, QW *pq, int a, int b, int c, int d);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Applies every rsmg record of an array (TriggerOneRsmg on each).
 void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 {
     int i;
@@ -1749,6 +1803,8 @@ void SetSmaGoal(struct Y *y, int id);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
+// untrigger goal; optionally returns the state machine.
 void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
 {
     void *o;
@@ -1787,6 +1843,7 @@ void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the next free 12-byte record of the world's deferred-callback array (AddLoDeferredCallback uses it).
 /* The next 12-byte record of the array at +0x39D0. */
 extern "C" void *func_00210100(SW *psw)
 {
@@ -1801,6 +1858,7 @@ extern "C" void *func_00210100(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
 extern "C" void *func_00210120(SW *psw)
 {
@@ -1823,6 +1881,8 @@ struct G { char pad[0x3F14]; int count; int dead; int *index; struct E *array; }
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
+// when it is full or more than 10% holes.
 void func_00210140(struct G *g, struct O *o)
 {
     struct E *e;
@@ -1867,6 +1927,7 @@ void func_00210140(struct G *g, struct O *o)
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Takes an object off the update array: restores its +0x40 word, clears the entry and counts the hole.
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
 extern "C" void func_00210268(SW *psw, LO *plo)
 {
@@ -1901,6 +1962,8 @@ extern "C" void func_001C4A60(S *p, int k);
  *   r7_1F8DD8+runtime-corrected
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
+// meaning is not known; PROXY uses it to release its spares)
 extern "C" void func_002102A0(S *p)
 {
     int i;
@@ -1919,6 +1982,7 @@ extern "C" void func_002102A0(S *p)
  * Notes: junk/padding (not a function)
  * Confidence: mid (draft) [T1 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * @end-sly2-annot */
+// LO's default for vtable slot 24: empty.
 extern "C" void func_00210330()
 {
 }
@@ -1939,6 +2003,8 @@ extern "C" void FadeSoOut(X *p, float f);
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 7/8: shows or hides an object, fading SOs in or out over dt when dt is non-zero, else adding or
+// removing it.
 extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 {
     X *p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id);
@@ -1971,6 +2037,7 @@ void HideSoGlobsById(void *p, void *q);
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 13/14: enables or disables a feature of the target SO (0x1F6978 / 0x1F69F8). (inferred)
 void func_00210408(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
@@ -1998,6 +2065,7 @@ void func_001F6B48(void *p, void *q);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 15/16: enables or disables a second feature of the target SO (0x1F6AC8 / 0x1F6B48). (inferred)
 void func_002104A0(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
@@ -2026,6 +2094,7 @@ struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 17: finds the object and up to two others and sends them a message.
 void func_00210538(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
 {
     struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid, ctx);
@@ -2075,6 +2144,7 @@ void SetEyesClosed(void *p, float f);
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 20: passes a value to the target SO (0x1F80D0) or to an EYES object (0x1EE3B0). (inferred)
 void func_00210678(void *pv, int id1, int id2, float f)
 {
     void *p1 = 0;
@@ -2124,6 +2194,8 @@ static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("dadd
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
+// looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
 void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
 {
     struct O *o;
@@ -2162,6 +2234,7 @@ void RcPtr_Assign(struct O **pp, int a);
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8+verify_side
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 1: stops the stored looping sound (optionally only with a matching id) and releases it.
 void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 {
     struct O *p = *pp;
@@ -2180,6 +2253,7 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Stores the object with oid 0x620 at SW+0x4638. (inferred: its role is not identified)
 extern "C" void func_00210940(SW *psw)
 {
     psw->ploUnk4638 = PloFindSwObject(psw, 5, (OID)0x620, 0);
@@ -2191,6 +2265,7 @@ extern "C" void func_00210940(SW *psw)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Stores n in the world's unnamed word +0x3EA8 when n is 1; returns the world. (inferred)
 extern "C" SW *func_00210978(SW *psw, int n)
 {
     if (n == 1) {
@@ -2208,6 +2283,7 @@ extern struct E *D_003E1C40;
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the file record of level index levelIndex, or null for -1.
 struct E *func_00210990(int i)
 {
     if (i == -1)
@@ -2222,6 +2298,7 @@ struct E *func_00210990(int i)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the level-list entry of level index levelIndex.
 extern "C" LEVELLIST8 *func_002109B8(int ilevel)
 {
     return &D_003E1C4C[ilevel];
@@ -2246,6 +2323,7 @@ static inline int FEqual(struct X *a, struct X *b)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the index of the level whose file record equals the given one, or -1.
 int func_002109D0(struct X *px)
 {
     int i;
@@ -2268,6 +2346,7 @@ int func_002109D0(struct X *px)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the current level index.
 int IlevelCur()
 {
     return g_sw.nLoadFilter;
@@ -2283,6 +2362,7 @@ int IlevelCur__Fv(void);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the episode of the current level, or -1.
 int NEpisodeCur(void)
 {
     int i = IlevelCur__Fv();
@@ -2303,6 +2383,7 @@ int IlevelCur__Fv(void);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the world of the current level, or -1.
 int NWorldCur(void)
 {
     int i = IlevelCur__Fv();
@@ -2324,6 +2405,7 @@ void Decref__4CRef(struct CRef *r);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the best episode reached (save variable "episodeBest").
 int NEpisodeBest(void)
 {
     struct CRef r;
@@ -2342,6 +2424,7 @@ int NEpisodeBest(void)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Always returns 0 (a stub). (inferred)
 extern "C" int func_00210B68()
 {
     return 0;
@@ -2354,6 +2437,7 @@ extern "C" int func_00210B68()
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the entry record of the current world (PrecWorldEntry(NWorldCur())).
 extern "C" void func_00210B70()
 {
     PrecWorldEntry(NWorldCur());
@@ -2367,6 +2451,7 @@ extern "C" void func_00210B70()
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns a world's entry record, or null when there is none (or it is empty).
 /* The world's entry record, or 0 when there is none (or it is empty: its words 1 and 15 equal). */
 extern "C" FILEREC *PrecWorldEntry(int nWorld)
 {
@@ -2399,6 +2484,7 @@ extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
 void func_00210BE0(TBL *p)
 {
     ALLOC al;
@@ -2423,6 +2509,7 @@ void func_00210BE0(TBL *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the value stored under key in a {key, value} table, or "" when absent.
 /* The value stored under key in a {key, value} table, or the empty default. */
 extern "C" void *func_00210CA8(KVT *pkvt, int key)
 {
