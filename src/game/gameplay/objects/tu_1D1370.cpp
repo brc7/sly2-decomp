@@ -2421,20 +2421,20 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { int a, b; } S8;
 typedef struct {
     char pad0[0x10];
-    void *x10;
+    void *owner;
     char pad14[0x40 - 0x14];
-    S8 x40;
-    S8 x48;
-    qword x50;
-    S8 x60;
-    float x68;
+    S8 aimAngleRange;
+    S8 distanceRange;
+    qword unknown50;
+    S8 unknown60;
+    float unknown68;
     char pad6c[0x88 - 0x6C];
-    float x88;
-    float x8C;
-    int x90;
-    float x94;
-    float x98;
-    float x9C;
+    float unknown88;
+    float unknown8C;
+    int unknown90;
+    float unknown94;
+    float unknown98;
+    float unknown9C;
 } OBJ;
 // float pairs read as their bits: {-1.57f, 1.57f}, {250.0f, 2500.0f}, {0.5f, 1.5f}
 extern S8 D_002C2218;
@@ -2442,20 +2442,20 @@ extern S8 D_002C2220;
 extern S8 D_002C2240;
 extern qword D_002C2230;
 // Weapon record defaults (owner, default vectors D_002C2218..) (inferred)
-void InitRobottankWeapon(OBJ *tank, void *q)
+void InitRobottankWeapon(OBJ *weapon, void *owner)
 {
-    tank->x10 = q;
-    tank->x40 = D_002C2218;
-    tank->x48 = D_002C2220;
-    tank->x50 = D_002C2230;
-    tank->x60 = D_002C2240;
-    tank->x68 = -1750.0f;
-    tank->x88 = 200.0f;
-    tank->x8C = 400.0f;
-    tank->x90 = 0;
-    tank->x94 = 500.0f;
-    tank->x98 = 1.0f;
-    tank->x9C = 1.5f;
+    weapon->owner = owner;
+    weapon->aimAngleRange = D_002C2218;
+    weapon->distanceRange = D_002C2220;
+    weapon->unknown50 = D_002C2230;
+    weapon->unknown60 = D_002C2240;
+    weapon->unknown68 = -1750.0f;
+    weapon->unknown88 = 200.0f;
+    weapon->unknown8C = 400.0f;
+    weapon->unknown90 = 0;
+    weapon->unknown94 = 500.0f;
+    weapon->unknown98 = 1.0f;
+    weapon->unknown9C = 1.5f;
 }
 } } // namespace M_func_001D4D30
 
@@ -2468,55 +2468,55 @@ extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E08 { extern "C" {
-struct E { int n; int a; int b; };
-struct O { char pad[0x574]; struct E ae[1]; };
-struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
+struct E { int count; int a; int b; };
+struct O { char pad[0x574]; struct E ammoSlots[1]; };
+struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
 // ammo of the weapon's slot >= its cost. (inferred)
-int HasRobottankWeaponAmmo(struct S *tank) {
-    return tank->po->ae[tank->i].n >= tank->n;
+int HasRobottankWeaponAmmo(struct S *weapon) {
+    return weapon->owner->ammoSlots[weapon->ammoSlot].count >= weapon->ammoCost;
 }
 } } // namespace M_func_001D4E08
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E30 { extern "C" {
-struct E { int n; int a; int b; };
-struct O { char pad[0x574]; struct E ae[1]; };
-struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
+struct E { int count; int a; int b; };
+struct O { char pad[0x574]; struct E ammoSlots[1]; };
+struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
 // Subtract weapon cost from its slot, clamp 0. (inferred)
-void UseRobottankWeaponAmmo(struct S *tank) {
-    struct E *pe = &tank->po->ae[tank->i];
-    int n = pe->n - tank->n;
-    if (n < 0) n = 0;
-    pe->n = n;
+void UseRobottankWeaponAmmo(struct S *weapon) {
+    struct E *slot = &weapon->owner->ammoSlots[weapon->ammoSlot];
+    int count = slot->count - weapon->ammoCost;
+    if (count < 0) count = 0;
+    slot->count = count;
 }
 } } // namespace M_func_001D4E30
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitRcPickup { extern "C" {
-struct S { char p0[0x40]; int x40; char p1[0x150-0x44]; int n150; int a[2]; int n15C; };
+struct S { char p0[0x40]; int taggedFlags; char p1[0x150-0x44]; int state; int a[2]; int ammoAmount; };
 void InitSo(struct S *p);
-// CID 108 vtable slot 7 Init: InitSo, amount 30 (x15C), state -1. (inferred)
+// CID 108 vtable slot 7 Init: InitSo, ammo amount 30, state -1. (inferred)
 void InitRcPickup(struct S *pickup) {
     int v;
     InitSo(pickup);
-    pickup->n15C = 0x1E;
-    pickup->n150 = -1;
-    v = pickup->x40;
+    pickup->ammoAmount = 0x1E;
+    pickup->state = -1;
+    v = pickup->taggedFlags;
     if ((v ^ 1) & 1) *(int *)v |= 2;
-    else pickup->x40 = v | 2;
+    else pickup->taggedFlags = v | 2;
 }
 } } // namespace M_InitRcPickup
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostRcPickupLoad { extern "C" {
-struct S { char p0[0x160]; void *p160; int a164; };
+struct S { char p0[0x160]; void *smaSource; int sma; };
 void PostSoLoad(struct S *p);
 void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
 void SetRcPickupState(struct S *p, int n);
 // CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
 void PostRcPickupLoad(struct S *pickup) {
     PostSoLoad(pickup);
-    ReplaceSma(pickup->p160, pickup, -1, 0, &pickup->a164);
+    ReplaceSma(pickup->smaSource, pickup, -1, 0, &pickup->sma);
     SetRcPickupState(pickup, 0);
 }
 } } // namespace M_PostRcPickupLoad
