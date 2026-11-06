@@ -1,7 +1,9 @@
 // rhythm.cpp -- the rhythm (dance) minigame: the dancers (a step object playing the move clip for each key, D_002DE570's cues
 // telling them when) and the rhythm manager (cue timing, button presses, the score window, the note track it draws with
 // rich text, the score-driven SMA crowd). TU 0x1520C8..0x153850 (30 functions, address order), then the five inline
-// CTextBox setters behind the linkonce copies 0x258438..0x258480 (used by DrawRhythmMgr).
+// CTextBox setters behind the linkonce copies 0x258438..0x258480 (used by DrawRhythmMgr). Entry points: the DANCER
+// and CID121 (rhythm manager) vtables, the Splice setters (AddDancerMove, SetRhythmManagerPrompts...) and the manager's
+// world callback BindRhythmManagerGrades.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rhythm
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00153988
 #include "sly2/slotheap.h"
@@ -146,9 +148,9 @@ float GetAverageRhythmScore(RHYTHMMGR *p);
 }
 
 // cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)). (inferred)
-extern "C" void RemoveDancerHierarchy(DANCERV *p) {
-    RemoveSoHierarchy(p);
-    ApplyDancerAseg(p, 0, 0);
+extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
+    RemoveSoHierarchy(dancer);
+    ApplyDancerAseg(dancer, 0, 0);
 }
 
 // cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0). (inferred)
@@ -162,6 +164,7 @@ void DANCER::VUnk14()
     ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
 }
 
+// Vector scaled by a float.
 static inline qwordV VecMul(qwordV v, float g)
 {
     qwordV r;
@@ -174,40 +177,40 @@ static inline qwordV VecMul(qwordV v, float g)
 }
 // cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state
 // (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg. (inferred)
-extern "C" void UpdateDancer(DANCERV *p)
+extern "C" void UpdateDancer(DANCERV *dancer)
 {
     int k;
-    UpdateStep(p);
-    if (!p->pa408 || FAsegaRetracted(p->pa408)) {
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
-        p->f40C = 0;
-        ApplyDancerAseg(p, p->pasegIdle, 8);
+    UpdateStep(dancer);
+    if (!dancer->pa408 || FAsegaRetracted(dancer->pa408)) {
+        func_002303A0(dancer, dancer->p58, 1);
+        func_002303A0(dancer, dancer->p5C, 1);
+        dancer->f40C = 0;
+        ApplyDancerAseg(dancer, dancer->pasegIdle, 8);
     }
     k = D_002DE570 ? D_002DE570->state : 0;
     switch (k) {
     case 0:
-        if (!p->f40C)
-            PlayDancerMove(p, -1, -1, 0);
+        if (!dancer->f40C)
+            PlayDancerMove(dancer, -1, -1, 0);
         break;
     case 2:
-        JudgeRhythmPress(D_002DE570, p);
+        JudgeRhythmPress(D_002DE570, dancer);
         break;
     }
-    if (p->pa408)
-        p->v190 = VecMul(func_00204E38(p, p->pa408, p->pa408->tLocal), -1.0f);
+    if (dancer->pa408)
+        dancer->v190 = VecMul(func_00204E38(dancer, dancer->pa408, dancer->pa408->tLocal), -1.0f);
 }
 
 struct SOM { char pad[0x18]; DANCERV *p18; };
 struct MSGD { SOM *pso; float g; int k; };
 // cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived
 // velocity via vt35. (inferred)
-extern "C" void HandleDancerMessage(DANCERV *p, int msgk, MSGD *pmsg)
+extern "C" void HandleDancerMessage(DANCERV *dancer, int msgk, MSGD *pmsg)
 {
-    HandlePoMessage(p, msgk, pmsg);
+    HandlePoMessage(dancer, msgk, pmsg);
     if (msgk == 9) {
         DANCERV *pp = pmsg->pso->p18;
-        if (pp == p) {
+        if (pp == dancer) {
             switch (pmsg->k) {
             case 0x27:
                 pp->f40C = 1;
@@ -232,43 +235,43 @@ extern "C" void HandleDancerMessage(DANCERV *p, int msgk, MSGD *pmsg)
 
 struct CPDEFIV { char pad[0x30]; float radHome; };
 // cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees). (inferred)
-extern "C" void GetDancerCpdefi(DANCERV *p, CPDEFIV *pc) {
-    GetSoCpdefi(p, pc);
+extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFIV *pc) {
+    GetSoCpdefi(dancer, pc);
     pc->radHome = pc->radHome - 2.3561945f;
 }
 
 // Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result,
 // stop asegs (0x2303A0 x2) and apply entry's aseg j. (inferred)
-void PlayDancerMove(DANCERV *p, int id, int idNew, int j)
+void PlayDancerMove(DANCERV *dancer, int id, int idNew, int j)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        DMOVE *pe = &p->a[i];
-        if ((id == -1 && POCTL_FConsumePressed(p->ppoctl, pe->a)) || pe->a == id) {
+    for (i = 0; i < dancer->c; i++) {
+        DMOVE *pe = &dancer->a[i];
+        if ((id == -1 && POCTL_FConsumePressed(dancer->ppoctl, pe->a)) || pe->a == id) {
             if (idNew != -1) {
-                void *r = FindDancerMoveObject(p, idNew);
+                void *r = FindDancerMoveObject(dancer, idNew);
                 if (r)
                     pe->ar[0].res = r;
             }
-            func_002303A0(p, p->p58, 2);
-            func_002303A0(p, p->p5C, 2);
-            ApplyDancerAseg(p, pe->ar[j].res, pe->ar[j].x);
+            func_002303A0(dancer, dancer->p58, 2);
+            func_002303A0(dancer, dancer->p5C, 2);
+            ApplyDancerAseg(dancer, pe->ar[j].res, pe->ar[j].x);
             return;
         }
     }
 }
 
 // ApplyAsegCur(paseg, this, 0, 1, grf|1, &this->pasega408). (inferred)
-void ApplyDancerAseg(DANCERV *p, void *paseg, int n)
+void ApplyDancerAseg(DANCERV *dancer, void *paseg, int n)
 {
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(paseg, p, 0.0f, 1.0f, n | 1, &p->pa408);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(paseg, dancer, 0.0f, 1.0f, n | 1, &dancer->pa408);
 }
 
 // Append move entry {a,b,c,d,e} (max 8) at +0x2C4. (inferred)
-extern "C" void AddDancerMove(DANCERV *p, int a, int b, int c, int d, int e)
+extern "C" void AddDancerMove(DANCERV *dancer, int a, int b, int c, int d, int e)
 {
-    if (p->uc < 8) {
-        DMOVE *pe = &p->a[p->uc++];
+    if (dancer->uc < 8) {
+        DMOVE *pe = &dancer->a[dancer->uc++];
         pe->a = a;
         pe->ar[0].id = b;
         pe->ar[0].x = c;
@@ -280,8 +283,8 @@ extern "C" void AddDancerMove(DANCERV *p, int a, int b, int c, int d, int e)
 }
 
 // PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9. (inferred)
-void *FindDancerMoveObject(DANCERV *p, int id) {
-    void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p);
+void *FindDancerMoveObject(DANCERV *dancer, int id) {
+    void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, dancer);
     if (po != 0) {
         VTE *pvt = *(VTE **)((char *)po + 0xC);
         ((void (*)(void *))pvt[9].pfn)((char *)po + pvt[9].d);
@@ -290,14 +293,14 @@ void *FindDancerMoveObject(DANCERV *p, int id) {
 }
 
 // Resolve every move entry's 3 oids to objects via 0x152520. (inferred)
-void BindDancerMoves(DANCERV *p)
+void BindDancerMoves(DANCERV *dancer)
 {
     int i, j;
-    for (i = 0; i < p->c; i++) {
-        DMOVE *pe = &p->a[i];
+    for (i = 0; i < dancer->c; i++) {
+        DMOVE *pe = &dancer->a[i];
         for (j = 0; j < 3; j++) {
             if (pe->ar[j].id != -1)
-                pe->ar[j].res = FindDancerMoveObject(p, pe->ar[j].id);
+                pe->ar[j].res = FindDancerMoveObject(dancer, pe->ar[j].id);
         }
     }
 }
@@ -328,53 +331,53 @@ int OidFromGradeIndex(int k)
 // gMax - gMin, like the target (no asm, no volatile).
 // cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
 // 0.4/0.4, 8-sample average, grade thresholds. (inferred)
-extern "C" void InitRhythmMgr(RHYTHMMGR *p)
+extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
 {
     unsigned int v;
-    InitLo(p);
-    D_002DE570 = p;
+    InitLo(manager);
+    D_002DE570 = manager;
     {
-        LMV *plm = &p->lm;
+        LMV *plm = &manager->lm;
         plm->gMin = -1.5f;
         plm->gMax = 1.0f;
     }
-    p->g58 = 0.4f;
-    p->g5C = 0.4f;
-    p->c280 = 8;
+    manager->g58 = 0.4f;
+    manager->g5C = 0.4f;
+    manager->c280 = 8;
     {
-        struct R { float g; int n; float g8; } *pr = (struct R *)&p->r;
-        pr->g = __builtin_fabsf(p->lm.gMax - p->lm.gMin) * 0.33333334f;
+        struct R { float g; int n; float g8; } *pr = (struct R *)&manager->r;
+        pr->g = __builtin_fabsf(manager->lm.gMax - manager->lm.gMin) * 0.33333334f;
         pr->g8 = 5.0f;
         pr->n = 0;
     }
-    p->g29C = -0.8f;
-    p->g2A0 = -0.2f;
-    p->g298 = -1.5f;
-    p->g2A4 = -1.5f;
-    SetLoBusyk(p, 1);
-    v = p->fl;
+    manager->g29C = -0.8f;
+    manager->g2A0 = -0.2f;
+    manager->g298 = -1.5f;
+    manager->g2A4 = -1.5f;
+    SetLoBusyk(manager, 1);
+    v = manager->fl;
     if ((v ^ 1) & 1) *(int *)v |= 0xA;
-    else p->fl = v | 0xA;
+    else manager->fl = v | 0xA;
 }
 
 // cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50. (inferred)
 void CID121::VUnk14()
 {
-    RHYTHMMGR *p = (RHYTHMMGR *)this;
-    PostLoLoad(p);
-    PostSwCallback(&D_003DD490, p, D_002A5010.l, 0);
+    RHYTHMMGR *manager = (RHYTHMMGR *)this;
+    PostLoLoad(manager);
+    PostSwCallback(&D_003DD490, manager, D_002A5010.l, 0);
 }
 
 // Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds
 // across the score range. (inferred)
-extern "C" void BindRhythmManagerGrades(RHYTHMMGR *p)
+extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
-    float d = __builtin_fabsf(p->lm.gMax - p->lm.gMin) / 3.0f;
+    float d = __builtin_fabsf(manager->lm.gMax - manager->lm.gMin) / 3.0f;
     float h = d * 0.5f;
-    for (i = 0; i < p->cSma; i++) {
-        SMAE *pe = &p->aeSma[i];
-        void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->oid, p);
+    for (i = 0; i < manager->cSma; i++) {
+        SMAE *pe = &manager->aeSma[i];
+        void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->oid, manager);
         void *o2;
         float g;
         if (!o)
@@ -384,28 +387,28 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *p)
             continue;
         ReplaceSma(o2, o, pe->k, 0, &pe->o);
         pe->kk = GradeIndexFromOid(pe->k);
-        g = p->lm.gMax;
+        g = manager->lm.gMax;
         for (j = 0; j < 2; j++) {
             g -= d;
             pe->ag[j] = GRandInRange__Fff(g - h, g + h);
         }
-        pe->ag[2] = p->lm.gMin;
+        pe->ag[2] = manager->lm.gMin;
     }
 }
 
 // cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg
 // 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades. (inferred)
-extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
+extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
 {
     float t;
     int i, j;
     CUE *pe;
-    UpdateLo(p);
+    UpdateLo(manager);
     t = TMusicCur(D_003DD040);
-    switch (p->state) {
+    switch (manager->state) {
     case 1:
-        for (j = 0; j < p->c1C0; j++) {
-            pe = &p->a1C4[j];
+        for (j = 0; j < manager->c1C0; j++) {
+            pe = &manager->a1C4[j];
             if (pe->n14)
                 continue;
             if (pe->gC < t) {
@@ -416,36 +419,36 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
         }
         break;
     case 2:
-        for (i = 0; i < p->c1C0; i++) {
-            pe = &p->a1C4[i];
+        for (i = 0; i < manager->c1C0; i++) {
+            pe = &manager->a1C4[i];
             if (pe->n20)
                 continue;
             if (!pe->n18 && pe->gC < t) {
-                p->n230 = pe->n4;
-                BroadcastGameEvent(D_002DEB30, 0x34, p);
+                manager->n230 = pe->n4;
+                BroadcastGameEvent(D_002DEB30, 0x34, manager);
                 pe->n18 = 1;
             }
-            if (pe->gC + p->g5C < t) {
+            if (pe->gC + manager->g5C < t) {
                 pe->n20 = 1;
                 if (!pe->n1C) {
                     PlayDancerMove(pe->po, pe->n4, pe->n8, 2);
-                    AddRhythmScore(p, p->g2A4);
+                    AddRhythmScore(manager, manager->g2A4);
                 }
                 break;
             }
         }
         break;
     }
-    { float dt = D_002DDED0.dt; p->g288 = GSmooth__FfffP3SMPPf(p->x28C, p->g288, p->g284, dt, 0); }
-    UpdateRhythmManagerGrades(p);
+    { float dt = D_002DDED0.dt; manager->g288 = GSmooth__FfffP3SMPPf(manager->x28C, manager->g288, manager->g284, dt, 0); }
+    UpdateRhythmManagerGrades(manager);
 }
 
 // Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score. (inferred)
-void UpdateRhythmManagerGrades(RHYTHMMGR *p)
+void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
-    for (i = 0; i < p->cSma; i++) {
-        SMAE *pe = &p->aeSma[i];
+    for (i = 0; i < manager->cSma; i++) {
+        SMAE *pe = &manager->aeSma[i];
         if (!pe->o)
             continue;
         if (FSmaRetracted(pe->o)) {
@@ -453,7 +456,7 @@ void UpdateRhythmManagerGrades(RHYTHMMGR *p)
             pe->kk = -1;
         } else {
             for (j = 0; j < 3; j++) {
-                if (pe->ag[j] <= p->g288) {
+                if (pe->ag[j] <= manager->g288) {
                     SetSmaGoal(pe->o, OidFromGradeIndex(j));
                     pe->kk = j;
                     break;
@@ -523,11 +526,11 @@ void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, q
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 // Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions,
 // highlights the expected one, animates a hint marker. (inferred)
-extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
+extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
 {
-    RenderLoSelf(p);
+    RenderLoSelf(manager);
     float t = TMusicCur(D_003DD040);
-    if (p->state < 3) if (p->state > 0) if (p->c != 0) {
+    if (manager->state < 3) if (manager->state > 0) if (manager->c != 0) {
         FONT fontA;
         CRichText_ctor(&fontA, D_002BDB60, D_002BDB58);
         FONT fontB;
@@ -550,9 +553,9 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
         float dxB = CRichText_Dx(&fontB);
         float dyB = fontB.dy;
         int i;
-        for (i = 0; i < p->c; i++) {
-            ENT *pe = &p->ae[i];
-            if (p->state == 1 || pe->fDone || pe->t + p->g5C < t) {
+        for (i = 0; i < manager->c; i++) {
+            ENT *pe = &manager->ae[i];
+            if (manager->state == 1 || pe->fDone || pe->t + manager->g5C < t) {
                 unsigned int j;
                 for (j = 0; j < 4; j++) {
                     KEYV *pk = &D_002BDB70[j];
@@ -583,28 +586,28 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
                 func_002163B0(&fontA, &tb, 0xC);
             }
         }
-        if (p->iHint < p->c) {
-            ENT *pe = &p->ae[p->iHint];
-            switch (p->stateHint) {
+        if (manager->iHint < manager->c) {
+            ENT *pe = &manager->ae[manager->iHint];
+            switch (manager->stateHint) {
             case 0:
                 if (pe->t - t < D_002BDBB0) {
-                    p->vel = D_002BDBC0.q;
-                    p->stateHint = 1;
+                    manager->vel = D_002BDBC0.q;
+                    manager->stateHint = 1;
                 }
                 break;
             case 1:
                 if (pe->t < t) {
-                    p->stateHint = 0;
-                    p->iHint = p->iHint + 1;
+                    manager->stateHint = 0;
+                    manager->iHint = manager->iHint + 1;
                 }
                 break;
             }
-            if (p->stateHint == 1) {
-                EvaluateBezierPos(GMaxR(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->pos, p->vel, pe->pos, D_002BDBD0.q, &p->pos, &p->vel, 0);
+            if (manager->stateHint == 1) {
+                EvaluateBezierPos(GMaxR(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, manager->pos, manager->vel, pe->pos, D_002BDBD0.q, &manager->pos, &manager->vel, 0);
             }
         }
-        tb.x = ((float *)&p->pos)[0] - dxB * 0.5f;
-        tb.y = ((float *)&p->pos)[1] - dySmall * 3.0f - dyB - 7.0f;
+        tb.x = ((float *)&manager->pos)[0] - dxB * 0.5f;
+        tb.y = ((float *)&manager->pos)[1] - dySmall * 3.0f - dyB - 7.0f;
         func_002163B0(&fontB, &tb, 0xC);
         }
     }
@@ -612,21 +615,22 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
 
 // Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time,
 // resets cue index. (inferred)
-void SetRhythmMgrState(RHYTHMMGR *p, int s) {
-    int sCur = p->state;
+void SetRhythmMgrState(RHYTHMMGR *manager, int s) {
+    int sCur = manager->state;
     if (sCur != s) {
         if (sCur == 1) {
             DecrementSwHandsOff(&D_003DD490, 3);
         }
-        p->state = s;
-        p->tState = D_002DDED0.t;
-        p->c1C0 = 0;
+        manager->state = s;
+        manager->tState = D_002DDED0.t;
+        manager->c1C0 = 0;
         if (s == 1) {
             IncrementSwHandsOff(&D_003DD490, 3);
         }
     }
 }
 
+// Packs x, y, z into a vector.
 static inline void SetVector(VECTORV *pv, float x, float y, float z)
 {
     pv->x = x;
@@ -635,38 +639,38 @@ static inline void SetVector(VECTORV *pv, float x, float y, float z)
 }
 // Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then
 // SetRhythmMgrState(q). (inferred)
-extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *p, int q, int c, void *pv)
+extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int q, int c, void *pv)
 {
-    p->c = c;
+    manager->c = c;
     if (c) {
         float x0, r;
         int i;
-        CopyAb__FPvT0Ui(p->ae, pv, c * sizeof(ENT));
-        x0 = p->ae[0].t;
-        r = 440.0f / (p->ae[p->c - 1].t - x0);
-        SetVector(&p->v1A0, 100.0f, 468.80002f, 0.0f);
-        for (i = 0; i < p->c; i++) {
-            ENT *pe = &p->ae[i];
-            pe->v = p->v1A0;
+        CopyAb__FPvT0Ui(manager->ae, pv, c * sizeof(ENT));
+        x0 = manager->ae[0].t;
+        r = 440.0f / (manager->ae[manager->c - 1].t - x0);
+        SetVector(&manager->v1A0, 100.0f, 468.80002f, 0.0f);
+        for (i = 0; i < manager->c; i++) {
+            ENT *pe = &manager->ae[i];
+            pe->v = manager->v1A0;
             pe->fDone = 0;
             pe->v.x += r * (pe->t - x0);
         }
-        SetVector(&p->v1A0, 10.0f, 468.80002f, 0.0f);
-        p->stateHint = 0;
-        p->iHint = 0;
+        SetVector(&manager->v1A0, 10.0f, 468.80002f, 0.0f);
+        manager->stateHint = 0;
+        manager->iHint = 0;
     }
-    SetRhythmMgrState(p, q);
+    SetRhythmMgrState(manager, q);
 }
 
 // Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0. (inferred)
-extern "C" void PushRhythmManagerCue(RHYTHMMGR *p, DANCERV *a, int b, int c, float g)
+extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *a, int b, int c, float g)
 {
     CUE *pe;
-    if (p->c1C0 == 3) {
-        memmove(&p->a1C4[0], &p->a1C4[1], (p->c1C0 - 1) * sizeof(CUE));
-        pe = &p->a1C4[p->c1C0 - 1];
+    if (manager->c1C0 == 3) {
+        memmove(&manager->a1C4[0], &manager->a1C4[1], (manager->c1C0 - 1) * sizeof(CUE));
+        pe = &manager->a1C4[manager->c1C0 - 1];
     } else {
-        pe = &p->a1C4[p->c1C0++];
+        pe = &manager->a1C4[manager->c1C0++];
     }
     pe->po = a;
     pe->n4 = b;
@@ -681,37 +685,37 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *p, DANCERV *a, int b, int c, flo
 
 // Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button
 // (0x1C4700) -> success move + timing score; wrong -> g29C. (inferred)
-void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
+void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *po)
 {
     void *pv = po->ppoctl;
     int i, j;
     CUE *pe;
-    p->n230 = GrfPressedWithin__5POCTLUif(pv, 0xF0, 0.0f);
-    if (!p->n230)
+    manager->n230 = GrfPressedWithin__5POCTLUif(pv, 0xF0, 0.0f);
+    if (!manager->n230)
         return;
-    for (i = 0; i < p->c1C0; i++) {
-        pe = &p->a1C4[i];
+    for (i = 0; i < manager->c1C0; i++) {
+        pe = &manager->a1C4[i];
         if (pe->po != po)
             continue;
         if (pe->n20)
             continue;
-        BroadcastGameEvent(D_002DEB30, 0x35, p);
-        if (TMusicCur(D_003DD040) < pe->gC - p->g58) {
+        BroadcastGameEvent(D_002DEB30, 0x35, manager);
+        if (TMusicCur(D_003DD040) < pe->gC - manager->g58) {
             PlayDancerMove(po, -1, -1, 1);
-            AddRhythmScore(p, p->g298);
+            AddRhythmScore(manager, manager->g298);
             return;
         }
         if (pe->n1C) {
             PlayDancerMove(po, -1, -1, 1);
-            AddRhythmScore(p, p->g2A0);
+            AddRhythmScore(manager, manager->g2A0);
             return;
         }
         pe->n1C = 1;
         if (POCTL_FConsumePressed(pv, pe->n4)) {
             PlayDancerMove(po, pe->n4, pe->n8, 0);
-            AddRhythmScore(p, PassThroughFloat(p, GetRhythmTimingScore(p, pe)));
-            for (j = 0; j < p->c; j++) {
-                ENT *pq = &p->ae[j];
+            AddRhythmScore(manager, PassThroughFloat(manager, GetRhythmTimingScore(manager, pe)));
+            for (j = 0; j < manager->c; j++) {
+                ENT *pq = &manager->ae[j];
                 if (FFloatsNear__Ffff(pq->t, pe->gC, 0.1f)) {
                     pq->fDone = 1;
                     break;
@@ -719,7 +723,7 @@ void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
             }
         } else {
             PlayDancerMove(po, -1, -1, 1);
-            AddRhythmScore(p, p->g29C);
+            AddRhythmScore(manager, manager->g29C);
         }
         return;
     }
@@ -727,66 +731,66 @@ void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
 
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Score = lerp(D_002BBB60 range, 1 - |t - tCue| / window), window = early(+0x58) or late(+0x5C).
-float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q)
+float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *q)
 { float g = TMusicCur(D_003DD040); float d;
-  if (g < q->gC) { d = (q->gC - g) / p->g58; } else { d = (g - q->gC) / p->g5C; }
+  if (g < q->gC) { d = (q->gC - g) / manager->g58; } else { d = (g - q->gC) / manager->g5C; }
   return GLerp(D_002BBB60.gMin, D_002BBB60.gMax, 1.0f - d); }
 
 // Returns its float argument (8 bytes). (inferred)
-float PassThroughFloat(RHYTHMMGR *p, float g) {
+float PassThroughFloat(RHYTHMMGR *manager, float g) {
     return g;
 }
 
 // Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284);
 // post msg 0x36. (inferred)
-void AddRhythmScore(RHYTHMMGR *p, float g)
+void AddRhythmScore(RHYTHMMGR *manager, float g)
 {
     float *pg;
     if (g < 0.0f) {
         float t = GGetDifficulty(D_002DE578);
         g *= GClamp(D_002BDBE0[0] + t * (D_002BDBE0[1] + t * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
     }
-    if (p->cScore == 16) {
-        memmove(&p->ag[0], &p->ag[1], 15 * sizeof(float));
-        pg = &p->ag[p->cScore - 1];
+    if (manager->cScore == 16) {
+        memmove(&manager->ag[0], &manager->ag[1], 15 * sizeof(float));
+        pg = &manager->ag[manager->cScore - 1];
     } else {
-        pg = &p->ag[p->cScore++];
+        pg = &manager->ag[manager->cScore++];
     }
-    *pg = GLimitLm__FP2LMf(&p->lm, g);
-    p->g284 = GetAverageRhythmScore(p);
-    BroadcastGameEvent(D_002DEB30, 0x36, p);
+    *pg = GLimitLm__FP2LMf(&manager->lm, g);
+    manager->g284 = GetAverageRhythmScore(manager);
+    BroadcastGameEvent(D_002DEB30, 0x36, manager);
 }
 
 static inline int Max(int a, int b) { return a < b ? b : a; }
 // Average of the last n (+0x280) scores clamped to lm.
-float GetAverageRhythmScore(RHYTHMMGR *p)
+float GetAverageRhythmScore(RHYTHMMGR *manager)
 {
     float sum;
     int i, iMin;
-    if (p->c280 <= 0)
+    if (manager->c280 <= 0)
         return 0.0f;
     sum = 0.0f;
-    iMin = Max(p->cScore - p->c280, 0);
-    for (i = p->cScore - 1; i >= iMin; i--)
-        sum += p->ag[i];
-    return GLimitLm__FP2LMf(&p->lm, sum / p->c280);
+    iMin = Max(manager->cScore - manager->c280, 0);
+    for (i = manager->cScore - 1; i >= iMin; i--)
+        sum += manager->ag[i];
+    return GLimitLm__FP2LMf(&manager->lm, sum / manager->c280);
 }
 
 // Zero score count/average/smoothed (+0x23C,+0x284,+0x288).
-extern "C" void ResetRhythmScore(RHYTHMMGR *p)
+extern "C" void ResetRhythmScore(RHYTHMMGR *manager)
 {
-    p->cScore = 0;
-    *(int *)&p->g284 = 0;
-    *(int *)&p->g288 = 0;
+    manager->cScore = 0;
+    *(int *)&manager->g284 = 0;
+    *(int *)&manager->g288 = 0;
 }
 
 // Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8. (inferred)
-extern "C" void AddRhythmManagerGrade(RHYTHMMGR *p, int oid, int k) {
-    unsigned int c = p->ucSma;
+extern "C" void AddRhythmManagerGrade(RHYTHMMGR *manager, int oid, int k) {
+    unsigned int c = manager->ucSma;
     if (c < 0x80U) {
         SMAE *pe;
-        p->ucSma = c + 1;
-        pe = (SMAE *)((char *)p + (c * 0x1C + 0x2AC));
+        manager->ucSma = c + 1;
+        pe = (SMAE *)((char *)manager + (c * 0x1C + 0x2AC));
         pe->oid = oid;
         pe->k = k;
         pe->kk = -1;
