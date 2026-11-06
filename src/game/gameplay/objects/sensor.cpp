@@ -292,7 +292,7 @@ void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
 void MoveLasenEndpoints(LASENV *plasen);
 }
 
-// SENSOR::Init (vt7): InitSo; set SO grf bit 34. (inferred)
+// SENSOR::Init (vtable slot 7): InitSo; set SO grf bit 34. (inferred)
 void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 {
     SENSORV *sensor = (SENSORV *)this;
@@ -300,7 +300,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
     sensor->grfSo |= 0x400000000UL;
 }
 
-// SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7,
+// SENSOR vtable slot 61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7,
 // FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore. (inferred)
 extern "C" int FIgnoreSensorIntersection(SENSORV *sensor, SOV *pso)
 {
@@ -333,7 +333,7 @@ extern "C" void AddSensorNoTriggerObject(SENSORV *sensor, OID oid)
     }
 }
 
-// LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8. (inferred)
+// LASEN::Init (vtable slot 7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8. (inferred)
 extern "C" void InitLasen(LASENV *laser)
 {
     int v;
@@ -350,7 +350,7 @@ static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb =
 // Shrinks or grows a world-heap block.
 static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE238(preq, pv); }
 
-// LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to
+// LASEN::LoadFromBrx (vtable slot 14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to
 // count. (inferred)
 extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 {
@@ -361,7 +361,7 @@ extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
     laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
 }
 
-// LASEN::Clone (vt41): Clone__2SO then private copy of the beam array. (inferred)
+// LASEN::Clone (vtable slot 41): Clone__2SO then private copy of the beam array. (inferred)
 extern "C" void CloneLasen(LASENV *laser)
 {
     ALLOCREQ req;
@@ -369,7 +369,7 @@ extern "C" void CloneLasen(LASENV *laser)
     laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
 }
 
-// LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
+// LASEN::PostLoad (vtable slot 15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
 // initial zap pass (0x1DF260). (inferred)
 void LASEN::VUnk14()
 {
@@ -380,7 +380,7 @@ void LASEN::VUnk14()
     laser->ZapBeams(0);
 }
 
-// LASEN vt53: SO::PtreeNew then set tree flag 0x20. (inferred)
+// LASEN vtable slot 53: SO::PtreeNew then set tree flag 0x20. (inferred)
 extern "C" SOTREEV *NewLasenTree(LASENV *laser)
 {
     SOTREEV *ptree = func_001F56F8(laser);
@@ -634,7 +634,7 @@ extern "C" void BindLasenAnimations(LASENV *laser)
 }
 
 /* Remove the beams' contacts with pso. */
-// LASEN vt54: drop beam contact links that reference object x and free them. (inferred)
+// LASEN vtable slot 54: drop beam contact links that reference object x and free them. (inferred)
 extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
 {
     XP *list = 0;
@@ -727,7 +727,7 @@ static inline float Scalar(VU_VECTOR v)
     return f;
 }
 
-// LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap. (inferred)
+// LASEN vtable slot 60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap. (inferred)
 extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
@@ -794,7 +794,7 @@ void LASENV::ZapBeams(int)
     }
 }
 
-// LASEN::Update (vt16): UpdateSo then move path endpoints. (inferred)
+// LASEN::Update (vtable slot 16): UpdateSo then move path endpoints. (inferred)
 extern "C" void UpdateLasen(LASENV *laser, float dt)
 {
     UpdateSo(laser, dt);
@@ -906,7 +906,7 @@ static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &dista
     GetLasenBeamEnds(owner, beam->aend, &points[0].q, &distance);
 }
 
-// LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
+// LASEN::RenderSelf (vtable slot 19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
 extern "C" void RenderLasenSelf(LASENV *laser)
 {
     RenderSoSelf(laser);

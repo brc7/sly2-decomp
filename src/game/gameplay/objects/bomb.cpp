@@ -162,7 +162,7 @@ void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 }
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
-// BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
+// BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
 extern "C" void InitBomb(BOMBV *bomb) {
     int x;
     InitSo(bomb);
@@ -179,20 +179,20 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->owner = bomb;
 }
 
-// BOMB vt76: SO Clone then reset owner to self (0x13BC60). (inferred)
+// BOMB vtable slot 76: SO Clone then reset owner to self (0x13BC60). (inferred)
 extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 {
     CloneSo(bomb, source);
     SetBombOwner(bomb, bomb);
 }
 
-// BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0).
+// BOMB vtable slot 15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0).
 extern "C" void PostBombLoad(BOMBV *bomb) {
     PostSoLoad(bomb);
     if (bomb->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; bomb->axp = (CXP *)func_001AE1D0(&k); }
 }
 
-// BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0).
+// BOMB vtable slot 5: base handler; on msg 4 about itself while not primed, PrimeBomb(0).
 void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *bomb = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
     HandleBasicMessage(bomb, msg, pm);
     if (msg == 4 && (BOMBV *)pm->po == bomb && bomb->k == 0) PrimeBomb(bomb, 0.0f);
@@ -359,7 +359,7 @@ static inline qword NormalizeSafe(qword v, qword def)
 // D_002A4B10: a virtual pointer-to-member constant, 8 bytes {delta 0, vtable index, vptr offset 0xC} (tu-merging.md "Data").
 namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B10") = {0x4E0000, 0xC}; }
 namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
-// BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
+// BOMB vtable slot 58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
 // 0/1/2). (inferred)
 extern "C" void HandleBombContact(BOMBV *bomb)
 {
@@ -712,7 +712,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
 }
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
-// BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
+// BOMB vtable slot 26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
 extern "C" void ResetBomb(BOMBV *bomb) {
     func_001CB518(bomb);
     bomb->isDetonationPrepared = 0;
@@ -725,7 +725,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
     SetLoParent_1A58D0(bomb, 0, 0xf);
 }
 
-// BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
+// BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
 extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = FIgnoreSoIntersection(bomb, pso);

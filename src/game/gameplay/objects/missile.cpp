@@ -147,7 +147,7 @@ extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-// MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1.
+// MISSILE::Init (vtable slot 7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1.
 void InitMissile(MISSILE *missile);
 void MISSILE::Init()
 {
@@ -158,14 +158,14 @@ void MISSILE::Init()
     missile->gAct = 1.0f;
 }
 
-// MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1, s_asnipMissile).
+// MISSILE::LoadFromBrx (vtable slot 14): base load (0x1F31E0) + SnipLoObjects(this,1, s_asnipMissile).
 void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 {
     LoadSoFromBrx(missile, stream);
     BindLoOidTable(missile, 1, s_asnipMissile);
 }
 
-// MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega.
+// MISSILE::OnRemove (vtable slot 12): OnSoRemove (0x1F2D48) then retract current asega.
 void OnMissileRemove(MISSILE *missile)
 {
     RemoveSoHierarchy(missile);
@@ -192,7 +192,7 @@ extern "C" void ApplyMissileThrow(MISSILE *missile)
     ReleaseAct(&missile->pact);
 }
 
-// MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list
+// MISSILE vtable slot 61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list
 // +0x250.
 int FIgnoreMissileIntersection(MISSILE *missile, SO *pso)
 {
@@ -389,7 +389,7 @@ static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*dest
  __asm__("lq %0,%2\n\tmtc1 %0,%1":"=r"(zero),"=f"(zeroX):"m"(*origin));
  return FFloatsNear(zeroX,targetX,epsilon)&&FFloatsNear(Y(zero),Y(target),0.0001f)&&FFloatsNear(Z(zero),Z(target),0.0001f);
 }
-// CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278). (inferred)
+// CID-82 vtable slot 70: steer velocity toward predicted target position until deadline (+0x278). (inferred)
 extern "C" void PresetSplmissAccel(CID82*missile){
  if(missile->nUnk1e8)return;
  WORKA w;

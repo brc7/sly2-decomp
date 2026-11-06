@@ -369,7 +369,7 @@ extern "C" void AddBtnEventListener(BTN *btn, int d, int e)
     func_00161F10(D_002DEB30, btn->ataskstate, 4, &btn->ctaskstate, d, e);
 }
 
-// cid 0x53 vt7: InitSo, InitBtn(+0x150), flag.
+// cid 0x53 vtable slot 7: InitSo, InitBtn(+0x150), flag.
 extern "C" void InitButton(BUTTONV *button)
 {
     unsigned int grf;
@@ -382,14 +382,14 @@ extern "C" void InitButton(BUTTONV *button)
         button->grf40 = grf | 2;
 }
 
-// vt14: LoadSoFromBrx then LoadBtn(+0x150, this).
+// vtable slot 14: LoadSoFromBrx then LoadBtn(+0x150, this).
 extern "C" void LoadButtonFromBrx(BUTTONV *button, void *stream)
 {
     LoadSoFromBrx(button, stream);
     LoadBtn(&button->btn, (LOV *)button);
 }
 
-// vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0). (inferred)
+// vtable slot 15: PostSoLoad, PostBtnLoad, SetButtonButtons(0). (inferred)
 extern "C" void PostButtonLoad(BUTTONV *button)
 {
     PostSoLoad(button);
@@ -397,7 +397,7 @@ extern "C" void PostButtonLoad(BUTTONV *button)
     SetButtonButtons(button, 0);
 }
 
-// vt41: SO Clone then btn owner = self. (inferred)
+// vtable slot 41: SO Clone then btn owner = self. (inferred)
 void BUTTON::Clone(LO *pbuttonBase_m)
 {
     BUTTONV *button = (BUTTONV *)this;
@@ -419,7 +419,7 @@ namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_func_00149010() __asm__("UpdateButtonPlayerPush");
 extern const unsigned int r_D_002A4E80[2] __asm__("D_002A4E80") = {0xFFFF0000, (unsigned int)p_func_00149010};
 }
-// vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.) (inferred)
+// vtable slot 16: UpdateSo then press/repush state machine against pushing objects (current player etc.) (inferred)
 extern "C" void UpdateButton(BUTTONV *button, float dt)
 {
     UpdateSo(button, dt);
@@ -506,7 +506,7 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
     }
 }
 
-// vt75: zap/hit by an allowed object presses the button (by btnt mode). (inferred)
+// vtable slot 75: zap/hit by an allowed object presses the button (by btnt mode). (inferred)
 extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *pwkr)
 {
     void *pv = func_001F7588(button, pwkr);
@@ -628,7 +628,7 @@ extern "C" void AddButtonEventListener(BUTTONV *button, int d, int e)
     AddBtnEventListener(&button->btn, d, e);
 }
 
-// cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
+// cid 0x53 vtable slot 12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
 extern "C" void RemoveButtonHierarchy(BUTTONV *button)
 {
     RemoveSoHierarchy(button);
@@ -636,7 +636,7 @@ extern "C" void RemoveButtonHierarchy(BUTTONV *button)
         SetButtonButtons(button, 0);
 }
 
-// cid 0x18/0x19 vt7: base init, InitBtn. (inferred)
+// cid 0x18/0x19 vtable slot 7: base init, InitBtn. (inferred)
 extern "C" void InitVolbtn(VOLBTNV *volumeButton)
 {
     unsigned int grf;
@@ -661,7 +661,7 @@ extern "C" void LoadVolbtnFromBrx(VOLBTNV *volumeButton, void *stream)
         volumeButton->btn.fStayTriggered = 1;
 }
 
-// vt15: base, PostBtnLoad. (inferred)
+// vtable slot 15: base, PostBtnLoad. (inferred)
 extern "C" void PostVolbtnLoad(VOLBTNV *volumeButton)
 {
     PostLoLoad(volumeButton);
@@ -676,7 +676,7 @@ extern "C" void PostVolbtnLoad(VOLBTNV *volumeButton)
     }
 }
 
-// vt41. (inferred)
+// vtable slot 41. (inferred)
 void VOLBTN::Clone(LO *pvolbtnBase_m)
 {
     VOLBTNV *volumeButton = (VOLBTNV *)this;
@@ -692,7 +692,7 @@ extern "C" int CompareVolbtnObjects(LOV **pplo1, LOV **pplo2)
     return *pplo1 - *pplo2;
 }
 
-// vt16: volume button - objects inside the volume trigger/untrigger. (inferred)
+// vtable slot 16: volume button - objects inside the volume trigger/untrigger. (inferred)
 extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
 {
     int state;
@@ -850,7 +850,7 @@ extern "C" CRef GetVolbtnPushStateRef(VOLBTNV *volumeButton)
     return func_00200F58(volumeButton->cploInside, 0x2002, volumeButton->aploInside);
 }
 
-// vt12: base, untrigger if pressed. (inferred)
+// vtable slot 12: base, untrigger if pressed. (inferred)
 extern "C" void RemoveVolbtnHierarchy(VOLBTNV *volumeButton)
 {
     RemoveLoHierarchy(volumeButton);

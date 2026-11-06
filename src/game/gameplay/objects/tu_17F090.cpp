@@ -118,7 +118,7 @@ extern qword D_002BE7D0;
 extern struct K D_002BE7E0;
 struct S { char pad[0x40]; int fl40; char pad2[0x13C]; int n180; char pad3[0x1C]; qword q1A0; struct K k1B0; };
 void InitSo(struct S *p);
-// CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf. (inferred)
+// CID 0x47 vtable slot 7: InitSo, max health x180=10, two default vectors, grf. (inferred)
 void InitHack(struct S *p) {
     int v;
     InitSo(p);
@@ -130,7 +130,7 @@ void InitHack(struct S *p) {
 }
 } } // namespace M_func_0017F090
 
-// vt12: RemoveSoHierarchy then clear dying flag x18C. (inferred)
+// vtable slot 12: RemoveSoHierarchy then clear dying flag x18C. (inferred)
 /* HACK slot 12. */
 void HACK::RemoveHierarchy()
 {
@@ -143,11 +143,11 @@ namespace M_func_0017F138 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct S { char pad[0xC]; struct VTE *vt; };
 void PostSoLoad(struct S *p);
-// vt15: PostSoLoad then own vt83. (inferred)
+// vtable slot 15: PostSoLoad then own vtable slot 83. (inferred)
 void PostHackLoad(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]; e->pfn((char *)p + e->d); }
 } } // namespace M_func_0017F138
 
-// vt26: SO base then health x184 = max x180 (reset). (inferred)
+// vtable slot 26: SO base then health x184 = max x180 (reset). (inferred)
 /* HACK slot 26: reset the health. */
 extern "C" int ResetHackHealth(HACKV *hack, int n)
 {
@@ -158,7 +158,7 @@ extern "C" int ResetHackHealth(HACKV *hack, int n)
     return c;
 }
 
-// vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust). (inferred)
+// vtable slot 55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust). (inferred)
 /* HACK slot 55: clear the contact's adjustment (as pipe.cpp's ResetJtPipeAdjust). */
 extern "C" void AdjustHackNewXp(HACKV *hack, XP *pxp)
 {
@@ -286,8 +286,8 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword func_001A62E8(void *p);
 void func_001F7598(struct F *pf);
 void func_0015C150(void *p);
-// vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190,
-// then vt9 Remove. (inferred)
+// vtable slot 82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190,
+// then vtable slot 9 Remove. (inferred)
 void KillHack(struct S *p, int n) {
     if (n && p->n188) {
         struct F f;
@@ -318,7 +318,7 @@ void ClearSwCallbacks(void *g, int a, void *p, long k, int n);
 void ResetHack(struct S *p) { p->n184 = p->n180; if (p->n18C) ClearSwCallbacks(D_003DD490, 1, p, D_002A5638.l, 0); }
 } } // namespace M_func_0017F6B0
 
-// CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1. (inferred)
+// CID 0x48 vtable slot 7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1. (inferred)
 extern "C" void InitHackship(HACKSHIPV *ship)
 {
     InitHack((HACKV *)ship);
@@ -328,7 +328,7 @@ extern "C" void InitHackship(HACKSHIPV *ship)
     ship->nSound = -1;
 }
 
-// vt12: base then state change via SetCid48State. (inferred)
+// vtable slot 12: base then state change via SetCid48State. (inferred)
 /* HACKSHIP slot 12. */
 void HACKSHIP::RemoveHierarchy()
 {
@@ -368,7 +368,7 @@ void PostHackLoad(struct S *p);
 void func_002303A0(struct S *p, int a, int b);
 void BindHackshipParts(struct S *p);
 void BindHackAnimEntries(struct S *p, int n, void *pv);
-// vt15: PostCid47Load, bind entries and parts. (inferred)
+// vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
 void PostHackshipLoad(struct S *p) { struct VTE *e; PostHackLoad(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); func_002303A0(p, p->n58, 2); func_002303A0(p, p->n5C, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->a1C8); }
 } } // namespace M_func_0017F850
 
@@ -376,7 +376,7 @@ namespace M_func_0017F8C8 { extern "C" {
 struct S { char pad[0x28]; unsigned long fl; };
 void OnPoActive(struct S *p, int f);
 void SetHackshipState(struct S *p, int f);
-// vt78: base then SetCid48State. (inferred)
+// vtable slot 78: base then SetCid48State. (inferred)
 void OnHackshipActive(struct S *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
 } } // namespace M_func_0017F8C8
 
@@ -415,7 +415,7 @@ struct V3 { float x, y, z; };
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
-// vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
+// vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
 void UpdateHackship(struct S *p) {
     int s;
     UpdateSo(p);
@@ -471,7 +471,7 @@ void func_001F59A0(S *p, MATRIX3 *pm, void *pv);
 void AccelSoTowardPosSpring(S *p, qword a, int b, qword c, void *pv);
 void PresetHackshipAccel(S *p);
 }
-// vt70 override. (inferred)
+// vtable slot 70 override. (inferred)
 void PresetHackshipAccel(S *p) {
     if (p->n1C0 == 3) return;
     MATRIX3 m; m = func_0011B500(D_002A2DC0, p->g218);
@@ -491,7 +491,7 @@ int TakeHackDamage(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
 void BroadcastGameEvent(void *g, int n, int m);
 void SetHackshipState(struct S *p, int n);
-// vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and
+// vtable slot 75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and
 // state 2 (hit) or 4 (defeated). (inferred)
 int TakeHackshipDamage(struct S *p, int *pn) {
     if (p->n1C0 < 5) { if (p->n1C0 >= 2) return 0; }
@@ -683,7 +683,7 @@ void UpdateHackshipHealthBar(struct S *p)
 namespace M_func_00180188 { extern "C" {
 struct S { char pad[0x188]; int n; };
 void InitHack(struct S *p);
-// CID 0x4A vt7: InitCid47, field = 10. (inferred)
+// CID 0x4A vtable slot 7: InitCid47, field = 10. (inferred)
 } } // namespace M_func_00180188
 void HACKBULLET::Init()
 {
@@ -750,7 +750,7 @@ namespace M_func_001803A8 { extern "C" {
 struct T { char pad[0xEC]; int n; };
 struct S { char pad[0x1C8]; struct T *pt; };
 int FIgnoreSoIntersection(struct S *p, struct T *q);
-// vt61 override. (inferred)
+// vtable slot 61 override. (inferred)
 int FIgnoreHackbulletIntersection(struct S *p, struct T *q)
 {
     if (p->pt && q->n == p->pt->n)
@@ -765,7 +765,7 @@ struct S { char pad[0x1CC]; int x1cc; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
-// vt55: CID47::AdjustXp then start dying on contact. (inferred)
+// vtable slot 55: CID47::AdjustXp then start dying on contact. (inferred)
 void AdjustHackbulletNewXp(struct S *p, struct E *ae, int i)
 {
     struct E *pe;
@@ -802,7 +802,7 @@ void InitHack(struct S *p);
 void SetHackenemyScale(struct S *p, float g);
 void SetHackenemyRange(struct S *p, float g);
 void InitHackAnimEntries(struct S *p, int n, void *pv);
-// CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
+// CID 0x49 vtable slot 7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
 void InitHackenemy(struct S *p)
 {
     InitHack(p);
@@ -819,7 +819,7 @@ void InitHackenemy(struct S *p)
 }
 } } // namespace M_InitHackenemy
 
-// vt12: CID47 RemoveHierarchy + SetCid49State. (inferred)
+// vtable slot 12: CID47 RemoveHierarchy + SetCid49State. (inferred)
 /* HACKENEMY slot 12. */
 extern "C" void RemoveHackenemyHierarchy(HACKENEMYV *enemy)
 {
@@ -833,7 +833,7 @@ void PostHackLoad(struct S *p);
 int func_001E94B0(int a, int b);
 void func_002303A0(struct S *p, int a, int b);
 void BindHackAnimEntries(struct S *p, int n, void *pv);
-// vt15: PostCid47Load + bind entries. (inferred)
+// vtable slot 15: PostCid47Load + bind entries. (inferred)
 void PostHackenemyLoad(struct S *p)
 {
     PostHackLoad(p);
@@ -844,7 +844,7 @@ void PostHackenemyLoad(struct S *p)
 }
 } } // namespace M_func_001805C8
 
-// vt26: base + SetCid49State. (inferred)
+// vtable slot 26: base + SetCid49State. (inferred)
 /* HACKENEMY slot 26. */
 extern "C" void ResetHackenemyState(HACKENEMYV *enemy, int n)
 {
@@ -930,7 +930,7 @@ static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
 static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f=low;else if(high<f)f=high;return f;}
 
-// vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
+// vtable slot 16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
 extern "C" void UpdateHackenemy(P*p){
  U nearest,direction,unit;
  UpdateSo(p);
@@ -1036,7 +1036,7 @@ extern "C" void AddSoAcceleration(struct O *p, qword v);
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 extern "C" void PresetHackenemyAccel(struct O *p);
-// vt70 override. (inferred)
+// vtable slot 70 override. (inferred)
 void PresetHackenemyAccel(struct O *p)
 {
     if (p->n1C0 != 4) {
@@ -1068,7 +1068,7 @@ struct S { char pad[0x188]; int n; };
 extern int D_002DFB80;
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 void StartHackDying(struct S *p, int n);
-// vt55: base then start dying. (inferred)
+// vtable slot 55: base then start dying. (inferred)
 void AdjustHackenemyNewXp(struct S *p, struct E *ae, int i)
 {
     AdjustHackNewXp(p, ae, i);
@@ -1094,7 +1094,7 @@ extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" qword func_00204E38(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
 extern "C" void HandleHackenemyMessage(struct O *p, int msg, struct MSG *pm);
-// vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step. (inferred)
+// vtable slot 5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step. (inferred)
 void HandleHackenemyMessage(struct O *p, int msg, struct MSG *pm)
 {
     HandlePoMessage(p, msg, pm);
@@ -1155,7 +1155,7 @@ extern char D_002DEB30[];
 int TakeHackDamage(struct S *p, void *message);
 void BroadcastGameEvent(void *g, int n, struct S *p);
 void SetHackenemyState(struct S *p, int n);
-// vt75: CID47::TakeDamage + state change. (inferred)
+// vtable slot 75: CID47::TakeDamage + state change. (inferred)
 int TakeHackenemyDamage(struct S *p, void *message)
 {
     register int four __asm__("$2") = 4; if (p->x1c0 == four) return 0;
@@ -1260,7 +1260,7 @@ extern "C" void SetHackenemyRange(HACKENEMYV *enemy, float g)
     enemy->sRange = g * D_002BE87C;
 }
 
-// CID 0x4B vt7: InitCid47 + 3 entries. (inferred)
+// CID 0x4B vtable slot 7: InitCid47 + 3 entries. (inferred)
 void HACKLOCK::Init()
 {
     HACKLOCKV *lock = (HACKLOCKV *)this;
@@ -1268,7 +1268,7 @@ void HACKLOCK::Init()
     InitHackAnimEntries((HACKV *)lock, 3, lock->ahacke);
 }
 
-// vt15: PostCid47Load + bind entries. (inferred)
+// vtable slot 15: PostCid47Load + bind entries. (inferred)
 /* HACKLOCK slot 15. */
 extern "C" void PostHacklockLoad(HACKLOCKV *lock)
 {
@@ -1304,7 +1304,7 @@ static __inline__ int FClose(float g)
     if (g < D_002BE880) {} else f = 0;
     return f;
 }
-// vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression. (inferred)
+// vtable slot 16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression. (inferred)
 void UpdateHacklock(struct O *p)
 {
     int s;
@@ -1432,7 +1432,7 @@ namespace M_InitHackwall { extern "C" {
 struct S { char pad[0x40]; int fl; char p2[0x248]; char dl[0xC]; };
 void InitHack(struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
-// CID 0x4C vt7: InitCid47, grf. (inferred)
+// CID 0x4C vtable slot 7: InitCid47, grf. (inferred)
 } } // namespace M_InitHackwall
 void HACKWALL::Init()
 {
@@ -1459,7 +1459,7 @@ void *func_001AE2A0(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void PostHackLoad(struct S *p);
 void AddSoParts(struct S *p);
-// vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load. (inferred)
+// vtable slot 15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load. (inferred)
 void PostHackwallLoad(struct S *p)
 {
     int i, j;
@@ -1701,7 +1701,7 @@ static __inline__ void Integrate(float *px, float *pv, float a, float dt)
 // 0x181F58: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("daddu $2, $4, $0");
 
-// vt16: UpdateSo, per-segment shape tracking and random effects. (inferred)
+// vtable slot 16: UpdateSo, per-segment shape tracking and random effects. (inferred)
 void UpdateHackwall(struct S *p)
 {
     int i;
@@ -1769,7 +1769,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 
-// vt19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
+// vtable slot 19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
 extern "C" void RenderHackwallSelf(P*p){
  int i,count;M3 m;M4 mm;qword pos;
  RenderSoSelf(p);
@@ -1876,7 +1876,7 @@ static inline float Distance(U*dot,U*one,qword plane,qword point){
  __asm__("vmul.xyz %0,%2,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w":"+j"(d),"=&j"(o):"j"(plane));
  one->q=o;dot->q=d;return GX(d);
 }
-// vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49. (inferred)
+// vtable slot 60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49. (inferred)
 void AddHackwallXps(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
  func_001F5990(p,q,unused2,unused3,unused4,pout);
@@ -1960,7 +1960,7 @@ struct S { char pad[0x188]; int n; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
-// vt55: base then start dying. (inferred)
+// vtable slot 55: base then start dying. (inferred)
 void AdjustHackwallNewXp(struct S *p, struct E *ae, int i)
 {
     AdjustHackNewXp(p, ae, i);
@@ -1973,7 +1973,7 @@ void AdjustHackwallNewXp(struct S *p, struct E *ae, int i)
 }
 } } // namespace M_func_00182700
 
-// vt63: 8-byte override. (inferred)
+// vtable slot 63: 8-byte override. (inferred)
 /* HACKWALL slot 63. */
 extern "C" int GetHackwallExtraPartCount()
 {
@@ -1987,7 +1987,7 @@ struct S { char pad[0x1C8]; int c; struct E ae[4]; };
 void UpdateSoTreeBounds(struct S *p);
 void func_001E7BB8(int n, qword *pa, qword *pb);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-// vt49 override. (inferred)
+// vtable slot 49 override. (inferred)
 void HackwallSlot49(struct S *p)
 {
     int i;
@@ -2049,7 +2049,7 @@ extern void ExplodeExplParams(void *p, int k, int n, qword a, qword b, float g, 
 extern float D_002BE8A8;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-// vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state
+// vtable slot 75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state
 // change. (inferred)
 int TakeHackwallDamage(struct O *po, struct M *pm)
 {
@@ -2090,7 +2090,7 @@ void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int func_001F7598(struct CTX *pctx);
 void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
 void SetHackwallSegmentState(struct S *p, struct Q *q, int n);
-// vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change. (inferred)
+// vtable slot 82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change. (inferred)
 void KillHackwall(struct S *p, void *pv)
 {
     struct Q *q;

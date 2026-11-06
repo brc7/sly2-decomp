@@ -64,7 +64,7 @@ struct S { char p0[0x180]; int n180; char p1[0x51C-0x184]; float g51C; struct V 
     char p2[0x55C-0x540]; int n55C; char p3[0x578-0x560]; int n578; char p4[8]; int n584; char p5[8]; int n590; char p6[8]; int n59C; };
 void InitPo(struct S *p);
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-// CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
+// CID 77 vtable slot 7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
 void InitRobottank(struct S *p) {
     InitPo(p);
     p->g51C = 500.0f; //P
@@ -108,7 +108,7 @@ struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
 extern "C" {
 void ClonePo(OBJ *);
 void CopyRobottankWeapon(X *, X *);
-// CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
+// CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred)
 void CloneRobottank(OBJ *p)
 {
@@ -184,7 +184,7 @@ void ResetRobottankHealth(P *);
 }
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(result):"j"(value));return result;}
-// CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
+// CID 77 vtable slot 15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
 // layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop
 // unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth. (inferred)
 extern "C" void PostRobottankLoad(P *p){
@@ -367,14 +367,14 @@ typedef char native_layout_57[(OFF(P,binding)==0x570)?1:-1];
 typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
 } // namespace M_PostRobottankLoad
 
-// CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred)
+// CID 77 vtable slot 26: SO vtable slot 26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred)
 extern "C" void ResetRobottank(ROBOTTANKV *tank)
 {
     func_001CB518(tank);
     ResetRobottankHealth(tank);
 }
 
-// CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2.
+// CID 77 vtable slot 78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2.
 void ROBOTTANK::OnActive(int fActive)
 {
     ROBOTTANKV *tank = (ROBOTTANKV *)this;
@@ -1321,7 +1321,7 @@ static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l
 static inline float Min(float a, float b) { return b < a ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
-// CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive
+// CID 77 vtable slot 70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive
 // within traction budget. (inferred)
 extern "C" void PresetRobottankAccel(P *p)
 {
@@ -1787,7 +1787,7 @@ struct E { int a[2]; char b[0x58]; };
 struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void func_001F5988(struct S *p, void *q);
 void func_001F4DA8(struct S *p, void *q, void *pe);
-// CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
+// CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
 void RemoveRobottankContactsWith(struct S *p, void *q) {
     int i;
     func_001F5988(p, q);
@@ -1884,7 +1884,7 @@ struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void UpdateSoTreeBounds(struct S *p);
 qword ConvertAloPos(struct S *p, int n, qword q);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-// CID 77 vt49: SO tree bounds then extend by each wheel sphere. (inferred)
+// CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
 void UpdateRobottankBounds(struct S *p) {
     int i;
     UpdateSoTreeBounds(p);
@@ -1935,7 +1935,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(x),"j"(y),"j"(z),"j"(b.r[1].q));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(x),"j"(y),"j"(z),"j"(b.r[2].q));
 }
-// CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then
+// CID 77 vtable slot 19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then
 // RenderSoSelf. (inferred)
 extern "C" void RenderRobottankSelf(P*p){
  V velocity,point;M3 basis;
@@ -2073,7 +2073,7 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
     ((void (*)(void *, qword))pset->fn)(receiver, Add(original, delta.q));
 }
 
-// CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
+// CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
 // sender-relative knock-back impulse. (inferred)
 int TakeRobottankDamage(P *p, EVENT *event)
 {
@@ -2152,7 +2152,7 @@ void PauseSnd(void *);
 void StopSnd(void *, float);
 void SetRobottankTactic(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
-// Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA
+// Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vtable slot 3 msg 5); drives body SMA
 // goal from D_002C2208[state]. (inferred)
 void SetRobottankState(OBJ *p, int n)
 {
@@ -2439,7 +2439,7 @@ void UseRobottankWeaponAmmo(struct S *p) {
 namespace M_InitRcPickup { extern "C" {
 struct S { char p0[0x40]; int x40; char p1[0x150-0x44]; int n150; int a[2]; int n15C; };
 void InitSo(struct S *p);
-// CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1. (inferred)
+// CID 108 vtable slot 7 Init: InitSo, amount 30 (x15C), state -1. (inferred)
 void InitRcPickup(struct S *p) {
     int v;
     InitSo(p);
@@ -2457,7 +2457,7 @@ struct S { char p0[0x160]; void *p160; int a164; };
 void PostSoLoad(struct S *p);
 void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
 void SetRcPickupState(struct S *p, int n);
-// CID 108 vt15: PostSoLoad, SMA binding, state 0. (inferred)
+// CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
 void PostRcPickupLoad(struct S *p) {
     PostSoLoad(p);
     ReplaceSma(p->p160, p, -1, 0, &p->a164);
@@ -2465,7 +2465,7 @@ void PostRcPickupLoad(struct S *p) {
 }
 } } // namespace M_PostRcPickupLoad
 
-// CID 108 vt26: proxy base then state -1 -> 0 (respawn). (inferred)
+// CID 108 vtable slot 26: proxy base then state -1 -> 0 (respawn). (inferred)
 extern "C" void ResetRobottankPickup(RCPICKUP *pickup)
 {
     func_001CB518(pickup);
@@ -2479,7 +2479,7 @@ struct O { char pad[0x98]; short h98; };
 struct S { char p0[0x58]; struct O *po; char p1[0x150-0x5C]; int n150; };
 void UpdateSo(struct S *p);
 void SetRcPickupState(struct S *p, int n);
-// CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
+// CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
 } } // namespace M_UpdateRcPickup
 void CID108::VUnk15() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p = (M_UpdateRcPickup::S *)this;
     UpdateSo(p);

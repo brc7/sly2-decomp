@@ -85,7 +85,7 @@ extern float D_002A7710;
 void InitSo(struct S *p);
 void func_001F7918(struct S *p, int a, int b);
 static inline int FPtr(int v) { return !(v & 1); }
-// DPRIZE::Init (vt7): InitSo + 0x1F7918 setup.
+// DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
 void InitDprize(struct S *p)
 {
     int v;
@@ -109,7 +109,7 @@ void InitDprize(struct S *p)
 }
 } } // namespace M_InitDprize
 
-// DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8).
+// DPRIZE::LoadFromBrx (vtable slot 14): LoadSoFromBrx + snip objects (0x1A64E8).
 extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(prize, pbis);
@@ -133,7 +133,7 @@ extern char D_003DD490[];
 void PostSoLoad(struct S *p);
 struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
-// DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup.
+// DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
 void PostDprizeLoad(struct S *p)
 {
     struct LO *plo;
@@ -159,7 +159,7 @@ struct A { int c; void *pv; int pad[14]; };
 struct M { int x0; int x4; int x8; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x168 - 0x10]; int x168; char p2[0x218 - 0x16C]; struct LO *x218; };
 void HandleBasicMessage(struct S *p, int n, struct M *pm);
-// DPRIZE vt5 HandleMessage: base 0x133590 + prize-specific msgs. (inferred)
+// DPRIZE vtable slot 5 HandleMessage: base 0x133590 + prize-specific msgs. (inferred)
 void HandleDprizeMessage(struct S *p, int n, struct M *pm)
 {
     struct A a;
@@ -295,7 +295,7 @@ static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, q
     ((void (*)(MOTION *, float, float, qword *, qword *))e.fn)((MOTION *)((char *)motion + e.delta), animation->time, animation->duration, value, velocity);
 }
 
-// DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
+// DPRIZE vtable slot 17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
 extern "C" void ProjectDprizeTransform(P *prize)
 {
     if (prize->state == 6) { func_001F3980(prize); return; }
@@ -733,7 +733,7 @@ static inline float LenSq(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(t));
     return r;
 }
-// DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect.
+// DPRIZE vtable slot 16 Update: base update, sparkle (0x1C6308), bounce, collect.
 void UpdateDprize(P *prize)
 {
     UpdateSo(prize);
@@ -787,7 +787,7 @@ void RenderDprizeSelf(LO *p);
 }
 extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
 extern "C" { void func_001A5EE8(LO *plo, M4 m, float a, float b); }
-// DPRIZE vt19 RenderSelf (bob/spin then SO render).
+// DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
 void RenderDprizeSelf(LO *p)
 {
     Q *q;
@@ -1982,7 +1982,7 @@ namespace M_func_001C7E68 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void func_001CB518(struct O *p);
-// CID 95 vt26: SO::VUnk26Proxy base + extra. (inferred)
+// CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
 void ResetClue(struct O *p)
 {
     func_001CB518(p);
@@ -1994,7 +1994,7 @@ namespace M_func_001C7EA8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void func_001CB5D0(struct O *p);
-// CID 95 vt27. (inferred)
+// CID 95 vtable slot 27. (inferred)
 void ClearClueState(struct O *p)
 {
     func_001CB5D0(p);
@@ -2064,7 +2064,7 @@ struct G { char pad[0x4760]; int n; };
 extern struct G D_003DD490;
 void PostLoLoad(struct O *p);
 int IsClueCollected(int n);
-// CID 7 (PROXY child) vt15: base + hide if clue already collected. (inferred)
+// CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
 void CLUEPROXY::VUnk14() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
     PostLoLoad(p);
@@ -2190,7 +2190,7 @@ void InitVault(struct S *p)
 }
 } } // namespace M_InitVault
 
-// CID 78 vt15. (inferred)
+// CID 78 vtable slot 15. (inferred)
 /* VAULT::PostLoad (slot 15). */
 void VAULT::VUnk14()
 {
@@ -2208,7 +2208,7 @@ int IsRelayFiring(void *p);
 void SetVaultState(struct S *p, int n);
 void UpdateVaultInput(struct S *p);
 void SetVaultOpened(int f);
-// CID 78 vt16: per-state update (input / open). (inferred)
+// CID 78 vtable slot 16: per-state update (input / open). (inferred)
 void UpdateVault(struct S *p)
 {
     int s;

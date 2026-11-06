@@ -113,7 +113,7 @@ int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
-// CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
+// CID 98 vtable slot 7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
 extern "C" void InitBreakable(TRIG *breakable) {
     InitSo(breakable);
     func_001F7918(breakable, 0x03FFFFFF, 8);
@@ -123,7 +123,7 @@ extern "C" void InitBreakable(TRIG *breakable) {
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
 static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }
-// CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to
+// CID 98 vtable slot 14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to
 // counts. (inferred)
 extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
 {
@@ -151,13 +151,13 @@ extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
     }
 }
 
-// CID 98 vt22: FreezeSo then RemoveDlEntry from class list (*(char (*)[])&g_sw.dlCid98). (inferred)
+// CID 98 vtable slot 22: FreezeSo then RemoveDlEntry from class list (*(char (*)[])&g_sw.dlCid98). (inferred)
 extern "C" void OnBreakableRemove(TRIG *breakable) {
     OnSoRemove(breakable);
     RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), breakable);
 }
 
-// CID 98 vt23: UnfreezeSo then AppendDlEntry to (*(char (*)[])&g_sw.dlCid98). (inferred)
+// CID 98 vtable slot 23: UnfreezeSo then AppendDlEntry to (*(char (*)[])&g_sw.dlCid98). (inferred)
 extern "C" void OnBreakableAdd(TRIG *breakable) {
     OnSoAdd(breakable);
     AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), breakable);
@@ -625,7 +625,7 @@ E *GetCurrentBreakableStage(TRIG *breakable) {
     return (E *)((char *)breakable->ae + breakable->i * 0x10);
 }
 
-// CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
+// CID 98 vtable slot 26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
 extern "C" void ResetBreakable(TRIG *breakable)
 {
     func_001CB518(breakable);

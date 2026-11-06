@@ -227,7 +227,7 @@ extern "C" void AddTossableHierarchy(CID100V *gadget)
     if (gadget->psm) ReplaceSma(gadget->psm, gadget, -1, 0, &gadget->psma);
 }
 
-// SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8. (inferred)
+// SO slot12, SetState(-1) via vtable slot 76, release SM handle 0x1F15B8. (inferred)
 void CID100::RemoveHierarchy()
 {
     CID100V *gadget = (CID100V *)this;
@@ -237,7 +237,7 @@ void CID100::RemoveHierarchy()
 }
 
 // CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the owner +0x16C is
-// farther than +0x170 (3000) -> vt75 -> state 3 (auto-fire). (inferred)
+// farther than +0x170 (3000) -> vtable slot 75 -> state 3 (auto-fire). (inferred)
 void UpdateTossable(CID100V *gadget)
 {
     UpdateSo(gadget);

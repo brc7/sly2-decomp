@@ -176,7 +176,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* FIsBasicDerivedFrom__FP5B
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
 int IlevelCur();                                    /* IlevelCur__Fv */
 
-// cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
+// cid 0x67 vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
 extern "C" void InitBooty(BOOTYV *booty) {
     int x;
     InitSo(booty);
@@ -199,18 +199,18 @@ extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 
-// cid 0x67 vt15: PostSoLoad then SetBootyState(0). (inferred)
+// cid 0x67 vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
 void BOOTY::VUnk14() { BOOTYV *booty = (BOOTYV *)this;
     PostSoLoad(booty);
     SetBootyState(booty, 0);
 }
 
-// cid 0x67 vt27: SetBootyState(0). (inferred)
+// cid 0x67 vtable slot 27: SetBootyState(0). (inferred)
 extern "C" void ClearBootyState(BOOTYV *booty) {
     SetBootyState(booty, 0);
 }
 
-// cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop
+// cid 0x67 vtable slot 16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop
 // (DropStepplayerBooty) once the level timer D_003E1BFC passes. (inferred)
 extern "C" void UpdateBooty(BOOTYV *booty) {
     int st;
@@ -243,7 +243,7 @@ static inline float GClampE(float g, float gMin, float gMax)
         r = g;
     return r;
 }
-// cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw
+// cid 0x67 vtable slot 19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw
 // normally. (inferred)
 extern "C" void RenderBootySelf(BOOTYV *booty)
 {
@@ -276,7 +276,7 @@ extern "C" void RenderBootySelf(BOOTYV *booty)
     }
 }
 
-// cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3).
+// cid 0x67 vtable slot 5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3).
 // (inferred)
 extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
     HandleBasicMessage(booty, msg, a);
@@ -297,20 +297,20 @@ extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
 
 struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
-// cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
+// cid 0x67 vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
 extern "C" int FIgnoreBootyIntersection(BOOTYV *booty, XPM *pm) {
     if (booty->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
     return FIgnoreSoIntersection(booty, pm);
 }
 
 struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
-// cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
+// cid 0x67 vtable slot 55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
 extern "C" void AdjustBootyNewXp(BOOTYV *booty, XPE *ae, int i) {
     func_001F4FB0(booty, ae, i);
     if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
 }
 
-// cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
+// cid 0x67 vtable slot 75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
 extern "C" int TakeBootyDamage(BOOTYV *booty, void *pv) {
     if ((func_001F7588(booty, pv) == 0) || (booty->st != 5)) {
         return 0;
@@ -645,7 +645,7 @@ void SetBootyState(BOOTYV *booty, int st)
     }
 }
 
-// cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0. (inferred)
+// cid 0x25 vtable slot 7: base init 0x183F08, default kind 0x2BC, -1, 15.0. (inferred)
 extern "C" void InitBootyContainer(CID37V *container) {
     func_00183F08(container);
     container->kind = 0x2BC;
@@ -653,7 +653,7 @@ extern "C" void InitBootyContainer(CID37V *container) {
     container->g18C = 15.0f;
 }
 
-// cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter. (inferred)
+// cid 0x25 vtable slot 15: base 0x183F50, unique id from a g_sw counter. (inferred)
 void CID37::VUnk14() { CID37V *container = (CID37V *)this; func_00183F50(container); container->id = g_sw.cCid37++; }
 
 // If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
@@ -676,10 +676,10 @@ void SpawnBootyInContainer(CID37V *container, int) {
     }
 }
 
-// cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0). (inferred)
+// cid 0x25 vtable slot 23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0). (inferred)
 extern "C" void OnBootyContainerAdd(CID37V *container) { func_00183FB8(container); EnsureSwCallback(&g_sw, container, D_002A4BB0.l, 0); }
 
-// cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on
+// cid 0x25 vtable slot 51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on
 // mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27.
 // (inferred)
 extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)

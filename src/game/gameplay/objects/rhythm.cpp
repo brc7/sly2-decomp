@@ -147,13 +147,13 @@ void AddRhythmScore(RHYTHMMGR *p, float g);
 float GetAverageRhythmScore(RHYTHMMGR *p);
 }
 
-// cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)). (inferred)
+// cid 0x44 vtable slot 12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)). (inferred)
 extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
     RemoveSoHierarchy(dancer);
     ApplyDancerAseg(dancer, 0, 0);
 }
 
-// cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0). (inferred)
+// cid 0x44 vtable slot 15: base 0x203A38, BindDancerMoves (resolve aseg oids), vtable slot 79(0). (inferred)
 void DANCER::VUnk14()
 {
     DANCERV *o = (DANCERV *)this;
@@ -204,7 +204,7 @@ extern "C" void UpdateDancer(DANCERV *dancer)
 struct SOM { char pad[0x18]; DANCERV *p18; };
 struct MSGD { SOM *pso; float g; int k; };
 // cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived
-// velocity via vt35. (inferred)
+// velocity via vtable slot 35. (inferred)
 extern "C" void HandleDancerMessage(DANCERV *dancer, int msgk, MSGD *pmsg)
 {
     HandlePoMessage(dancer, msgk, pmsg);
@@ -234,7 +234,7 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int msgk, MSGD *pmsg)
 }
 
 struct CPDEFIV { char pad[0x30]; float radHome; };
-// cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees). (inferred)
+// cid 0x44 vtable slot 50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees). (inferred)
 extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFIV *pc) {
     GetSoCpdefi(dancer, pc);
     pc->radHome = pc->radHome - 2.3561945f;
@@ -282,7 +282,7 @@ extern "C" void AddDancerMove(DANCERV *dancer, int a, int b, int c, int d, int e
     }
 }
 
-// PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9. (inferred)
+// PloFindSwObject(&g_sw, 4, oid, this) then call result's vtable slot 9. (inferred)
 void *FindDancerMoveObject(DANCERV *dancer, int id) {
     void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, dancer);
     if (po != 0) {
@@ -329,7 +329,7 @@ int OidFromGradeIndex(int k)
 
 // Claude agent (lane D37): writing the range through a pointer to the 0x234 pair keeps cse from folding
 // gMax - gMin, like the target (no asm, no volatile).
-// cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
+// cid 0x79 vtable slot 7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
 // 0.4/0.4, 8-sample average, grade thresholds. (inferred)
 extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
 {
@@ -396,7 +396,7 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
     }
 }
 
-// cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg
+// cid 0x79 vtable slot 16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg
 // 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades. (inferred)
 extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
 {

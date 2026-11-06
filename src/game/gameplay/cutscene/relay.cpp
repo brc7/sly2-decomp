@@ -1252,7 +1252,7 @@ struct DL { void *a, *b; int ib; };
 struct S { char pad[0x58]; int n58; struct DL dl; };
 void InitLo(struct S *p);
 void InitDl__FP2DLi(struct DL *pdl, int ib);
-// RELAY::Init (vt7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4).
+// RELAY::Init (vtable slot 7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4).
 } } // namespace M_InitRelay
 void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRelay::S *)this;
     InitLo(p);
@@ -1312,7 +1312,7 @@ struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *func_001AE238(struct MSG *pmsg, void *pv);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
-// RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the
+// RELAY::Clone (vtable slot 41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the
 // command array. (inferred)
 void CloneRelay(struct S *p) {
     struct MSG msg;
@@ -5331,7 +5331,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-// Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vt83(a,b). (inferred)
+// Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
 void AddJsgStepHold(struct P *p, struct O *po, int a, int b)
 {
     int i;
@@ -5356,7 +5356,7 @@ struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
-// Remove a held STEP and call its vt84(a,b). (inferred)
+// Remove a held STEP and call its vtable slot 84(a,b). (inferred)
 void RemoveJsgStepHold(struct P *p, struct O *po, int a, int b)
 {
     int i;
@@ -5448,7 +5448,7 @@ struct VTE; struct O; struct S;
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x64]; struct O *po; };
-// Call vt50 on ploWidget (+0x64) and clear it. (inferred)
+// Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
 void ClearJsgWidget(struct S *p)
 {
     struct O *po = p->po;

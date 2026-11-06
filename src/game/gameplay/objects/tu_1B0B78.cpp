@@ -141,7 +141,7 @@ float RadNormalize(float r);                                                    
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
-// CID 96 vt7 Init: InitSo + defaults. (inferred)
+// CID 96 vtable slot 7 Init: InitSo + defaults. (inferred)
 extern "C" void InitCritter(CID96V *critter)
 {
     int i;
@@ -170,14 +170,14 @@ extern "C" void InitCritter(CID96V *critter)
     else critter->x40 |= 2;
 }
 
-// CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null). (inferred)
+// CID 96 vtable slot 12: RemoveSoHierarchy then stop animation (ApplyAsegCur null). (inferred)
 extern "C" void RemoveCritterHierarchy(CID96V *critter)
 {
     RemoveSoHierarchy(critter);
     ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &critter->pasega);
 }
 
-// CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects. (inferred)
+// CID 96 vtable slot 14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects. (inferred)
 extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *pbis)
 {
     XFV *pxf;
@@ -193,7 +193,7 @@ extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *pbis)
     ResolveCritterLinks(critter);
 }
 
-// CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset. (inferred)
+// CID 96 vtable slot 15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset. (inferred)
 extern "C" void PostCritterLoad(CID96V *critter)
 {
     PostSoLoad(critter);
@@ -203,14 +203,14 @@ extern "C" void PostCritterLoad(CID96V *critter)
     ResetCritter(critter);
 }
 
-// CID 96 vt26: proxy base then reset. (inferred)
+// CID 96 vtable slot 26: proxy base then reset. (inferred)
 extern "C" void ResetCritterFromProxy(CID96V *critter)
 {
     func_001CB518(critter);
     ResetCritter(critter);
 }
 
-// Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle. (inferred)
+// Squash ratio 1, if on a path go to state 1 at path start (vtable slot 29 TranslateToPos), else idle. (inferred)
 void ResetCritter(CID96V *critter)
 {
     qwordV v;
@@ -230,7 +230,7 @@ void ResetCritter(CID96V *critter)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.40282347e+38f; }
-// CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following.
+// CID 96 vtable slot 16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following.
 // (inferred)
 extern "C" void UpdateCritter(CID96V *critter)
 {
@@ -287,7 +287,7 @@ extern "C" int TakeCritterDamage(CID96V *critter, A96 *pa)
 }
 
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
-// CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17. (inferred)
+// CID 96 vtable slot 17: in states 2-3 clear child velocities and call vtable slot 70, then SO vtable slot 17. (inferred)
 extern "C" void UpdateCritterXfWorld(CID96V *critter)
 {
     int n = critter->state;
@@ -301,21 +301,21 @@ extern "C" void UpdateCritterXfWorld(CID96V *critter)
     func_001F3980(critter);
 }
 
-// CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position. (inferred)
+// CID 96 vtable slot 70: AccelSoTowardMatBounded toward stored matrix/position. (inferred)
 extern "C" void PresetCritterAccel(CID96V *critter)
 {
     func_001F59A0(critter, &critter->basis, &critter->spin);
 }
 
 struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */
-// CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4. (inferred)
+// CID 96 vtable slot 5: base handler; msg 2 from its own SMA with matching id -> state 4. (inferred)
 extern "C" void HandleCritterMessage(CID96V *critter, int msg, ASEGA *pm)
 {
     HandleBasicMessage(critter, msg, pm);
     if (msg == 2 && pm == critter->pasega && ((MSG *)pm)->paseg == critter->ae[3].paseg) SetCritterState(critter, 4);
 }
 
-// CID 96 vt19: RenderSoSelf. (inferred)
+// CID 96 vtable slot 19: RenderSoSelf. (inferred)
 void CID96::RenderSelf()
 {
     CID96V *critter = (CID96V *)this;
