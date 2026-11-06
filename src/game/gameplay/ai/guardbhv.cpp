@@ -4109,10 +4109,16 @@ struct T { char pad[0x2CC]; float walkTimeMin; float walkTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float walkEndTime; };
 float GRandInRange__Fff(float a, float b);
 // 0x179E80: Arms the patrol walk timer from the guard's walk-time range (FLT_MAX = forever).
-void ArmBhvpatrolWalkTimer(struct S *behavior) {
-    if (behavior->walkEndTime < 3.40282346638528859812e+38f) return;
-    if (behavior->guard->walkTimeMin == 3.40282346638528859812e+38f) behavior->walkEndTime = 3.40282346638528859812e+38f;
-    else { float t = D_002DDED0.t; behavior->walkEndTime = t + GRandInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax); }
+void ArmBhvpatrolWalkTimer(struct S *behavior)
+{
+    if (behavior->walkEndTime < 3.40282346638528859812e+38f)
+        return;
+    if (behavior->guard->walkTimeMin == 3.40282346638528859812e+38f)
+        behavior->walkEndTime = 3.40282346638528859812e+38f;
+    else {
+        float t = D_002DDED0.t;
+        behavior->walkEndTime = t + GRandInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax);
+    }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
 
@@ -4125,10 +4131,16 @@ struct T { char pad[0x2D4]; float pauseTimeMin; float pauseTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float pauseEndTime; };
 float GRandInRange__Fff(float a, float b);
 // 0x179EF8: Arms the patrol pause timer from the guard's pause-time range.
-void ArmBhvpatrolPauseTimer(struct S *behavior) {
-    if (behavior->pauseEndTime < 3.40282346638528859812e+38f) return;
-    if (behavior->guard->pauseTimeMin == 3.40282346638528859812e+38f) behavior->pauseEndTime = 3.40282346638528859812e+38f;
-    else { float t = D_002DDED0.t; behavior->pauseEndTime = t + GRandInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax); }
+void ArmBhvpatrolPauseTimer(struct S *behavior)
+{
+    if (behavior->pauseEndTime < 3.40282346638528859812e+38f)
+        return;
+    if (behavior->guard->pauseTimeMin == 3.40282346638528859812e+38f)
+        behavior->pauseEndTime = 3.40282346638528859812e+38f;
+    else {
+        float t = D_002DDED0.t;
+        behavior->pauseEndTime = t + GRandInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax);
+    }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
 
@@ -5438,22 +5450,36 @@ struct O *func_00205438(void *p, int n);
 void SetStepguardTarget(void *p, int n);
 // 0x17B8B0: Targets behaviour state change: 0 idle without a target, 1 combat (BHVCOMBAT) on the chosen target, 2
 // hands-off idle.
-void SetBhvTargetsState(struct S *behavior, int n) {
-    if (n == behavior->state) return;
+void SetBhvTargetsState(struct S *behavior, int n)
+{
+    if (n == behavior->state)
+        return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
-    case 0:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVIDLE); struct VTE *entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
+    case 0: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVIDLE);
+        struct VTE *entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    }
         SetStepguardTarget(behavior->guard, 0);
         break;
-    case 1:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVCOMBAT); struct VTE *entry; o->n30 = behavior->chosenTarget; o->n40 = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
-    case 2:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVIDLE); struct VTE *entry; o->n3C = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
+    case 1: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVCOMBAT);
+        struct VTE *entry;
+        o->n30 = behavior->chosenTarget;
+        o->n40 = 1;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
+    case 2: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVIDLE);
+        struct VTE *entry;
+        o->n3C = 1;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
     }
 }
 } } // namespace M_func_0017B8B0
@@ -5956,17 +5982,29 @@ void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
 // 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
-void SetBhvCircleState(struct S *behavior, int n) {
-    if (n == behavior->state) return;
+void SetBhvCircleState(struct S *behavior, int n)
+{
+    if (n == behavior->state)
+        return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
     switch (n) {
-    case 0:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVIDLE); struct VTE *entry; o->n38 = behavior->guard->px->nC; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
-    case 1:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVWALKPATH); struct VTE *entry; SetBhvpathShape(o, behavior->guard->path, 0); o->nC0 = 8; o->nC8 = behavior->guard->px->nC; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
+    case 0: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVIDLE);
+        struct VTE *entry;
+        o->n38 = behavior->guard->px->nC;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
+    case 1: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVWALKPATH);
+        struct VTE *entry;
+        SetBhvpathShape(o, behavior->guard->path, 0);
+        o->nC0 = 8;
+        o->nC8 = behavior->guard->px->nC;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
     }
 }
 } } // namespace M_func_0017C550
@@ -6290,8 +6328,13 @@ float SMaxShape(void *p);
 float SMinShape(void *p);
 void SetBhvrailState(struct S *p, int n);
 // 0x17CDB8: Sets the rail goal to the rail's maximum or minimum parameter, the direction, and starts walking.
-void SetBhvrailGoal(struct S *behavior, int f) {
-    void *pv = behavior->guard->attachObject; if (f) behavior->goalParam = SMaxShape(pv); else behavior->goalParam = SMinShape(pv);
+void SetBhvrailGoal(struct S *behavior, int f)
+{
+    void *pv = behavior->guard->attachObject;
+    if (f)
+        behavior->goalParam = SMaxShape(pv);
+    else
+        behavior->goalParam = SMinShape(pv);
     behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
     SetBhvrailState(behavior, 0);
 }
@@ -6419,8 +6462,13 @@ float SMaxShape(void *p);
 float SMinShape(void *p);
 void SetBhvpipeState(struct S *p, int n);
 // 0x17D110: Sets the pipe goal to the pipe's maximum or minimum parameter.
-void SetBhvpipeGoal(struct S *behavior, int f) {
-    void *pv = behavior->guard->attachObject; if (f) behavior->goalParam = SMaxShape(pv); else behavior->goalParam = SMinShape(pv);
+void SetBhvpipeGoal(struct S *behavior, int f)
+{
+    void *pv = behavior->guard->attachObject;
+    if (f)
+        behavior->goalParam = SMaxShape(pv);
+    else
+        behavior->goalParam = SMinShape(pv);
     behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
     SetBhvpipeState(behavior, 0);
 }
@@ -7216,21 +7264,38 @@ struct O *func_00205438(void *p, int n);
 void RegoalBhvStalk(struct S *p);
 // 0x17E278: Stalk behaviour state change: 0 alert animation (flag 0xB) at the target, 1 run (BHVGOTO with flag
 // 0x1C), 2 hands-off idle.
-void SetBhvStalkState(struct S *behavior, int n) {
-    if (n == behavior->state) return;
+void SetBhvStalkState(struct S *behavior, int n)
+{
+    if (n == behavior->state)
+        return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
-    case 0:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVANIM); struct VTE *entry; o->n3C = 0xB; o->n38 = behavior->n38; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
-    case 1:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVGOTO); struct VTE *entry; o->nC0 = 1; o->n38 = 0x1C; RegoalBhvStalk(behavior); entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
-    case 2:
-        { struct O *o = func_00205438(behavior->guard, CID_BHVIDLE); struct VTE *entry; o->n3C = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
-        break;
+    case 0: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVANIM);
+        struct VTE *entry;
+        o->n3C = 0xB;
+        o->n38 = behavior->n38;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
+    case 1: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVGOTO);
+        struct VTE *entry;
+        o->nC0 = 1;
+        o->n38 = 0x1C;
+        RegoalBhvStalk(behavior);
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
+    case 2: {
+        struct O *o = func_00205438(behavior->guard, CID_BHVIDLE);
+        struct VTE *entry;
+        o->n3C = 1;
+        entry = &o->vt[8];
+        entry->pfn((char *)o + entry->d);
+    } break;
     }
 }
 } } // namespace M_func_0017E278
