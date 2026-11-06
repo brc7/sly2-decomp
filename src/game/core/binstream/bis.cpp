@@ -2,6 +2,11 @@
 // trees and collision geometry, and CMemInputStream (a stream over one memory buffer).
 // TU 0x1177A8..0x118668 (33 functions, address order). Its former linkonce copy 0x2566B0 is CDynArrayV<char *>::ReadElement
 // (sly2/arrayv.h, emitted by tu_119BC8.cpp).
+// Level and asset loading read through this class: a subclass's Fill() supplies raw blocks (CD sectors, a host file,
+// a memory buffer), Refill() turns them into the current window, optionally LZSS-decompressing 0x2000-byte chunks,
+// and the typed readers (U8Read .. ReadMatrix4, strings, geometry, BSP trees) consume it. A read past the end leaves
+// the stream in an error state (m_cb = -1) instead of faulting. Entry points: the constructor, Read/CbRead, the typed
+// readers, Align/Skip, SetDecompress, ReadGeom, CBinaryInputStream_ReadBspc / ReadStringSw, CMemInputStream.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bis
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00118648
 #include "bis.h"
@@ -18,34 +23,34 @@ typedef int qword __attribute__((mode(TI)));
 /* Allocation request for the SW allocators (0x1AE1D0 level heap, 0x1AE2A0 temporary). */
 struct MSG
 {
-    int cb;
-    int nKind;
+    int size;
+    int alignment;
 };
 
 /* Collision geometry as ReadGeom fills it (TU-private view; sly2/xfm.h has another GEOM over the sly2/basic.h
    VECTOR, which collides with the vec.h VECTOR that bis.h uses). */
 struct EDGE
 {
-    unsigned short ipos0, ipos1, iface, ifaceOther;
-    EDGE *pedgeNext;
-    EDGE *pedgeOther;
+    unsigned short pos0Index, pos1Index, faceIndex, otherFaceIndex;
+    EDGE *next;                 /* next edge of the same face */
+    EDGE *nextNeighborEdge;     /* next edge in otherFace's neighborEdges list */
 };
 struct FACE
 {
     qword plane;
-    EDGE *pedgeFirst;
-    EDGE *pedgeOther;
+    EDGE *firstEdge;            /* this face's own edges */
+    EDGE *neighborEdges;        /* edges of other faces that border this one */
     int pad;
-    int ipos;
+    int posIndex;               /* a vertex on the face */
 };
 struct GEOM
 {
-    int cpos;
-    qword *apos;
-    int cface;
-    FACE *aface;
-    int cedge;
-    EDGE *aedge;
+    int posCount;
+    qword *positions;
+    int faceCount;
+    FACE *faces;
+    int edgeCount;
+    EDGE *edges;
 };
 
 /* BSP tree as CBinaryInputStream_ReadBspc fills it. */
@@ -56,20 +61,20 @@ struct ITEM
 struct OWNER
 {
     char pad[0xC];
-    ITEM *aitem;
+    ITEM *items;
 };
 struct NODE
 {
-    NODE *pnodeLeft;
-    NODE *pnodeRight;
-    void *pv;
+    NODE *left;
+    NODE *right;
+    void *item;                 /* leaf: the owner's ITEM (or D_002BBAF0) */
 };
 struct TREE
 {
-    int cnode;
-    int n4;
-    int n8;
-    NODE *anode;
+    int nodeCount;
+    int unknown4;
+    int unknown8;
+    NODE *nodes;
 };
 
 /* CMemInputStream: a CBinaryInputStream over one memory buffer (vtable 0x2CA5A0, emitted here; CBinaryInputStream's is
@@ -84,14 +89,14 @@ public:
 };
 struct CMemInputStreamV
 {
-    /* 0x00 */ int grfbis;
+    /* 0x00 */ int flags;
     /* 0x04 */ byte *apad04[3];
-    /* 0x10 */ byte *pbRaw;
-    /* 0x14 */ int cbRaw;
+    /* 0x10 */ byte *rawData;
+    /* 0x14 */ int rawSize;
     /* 0x18 */ int apad18[6];
-    /* 0x30 */ void *pvtbl;
-    /* 0x34 */ int cbMem;
-    /* 0x38 */ byte *pbMem;
+    /* 0x30 */ void *vtable;
+    /* 0x34 */ int memSize;
+    /* 0x38 */ byte *memData;
 };
 typedef char assert_CMemInputStream_size[sizeof(CMemInputStreamV) == 0x3C ? 1 : -1];
 
@@ -107,16 +112,16 @@ extern char D_002CA5A0[] __asm__("_vt$15CMemInputStream");   /* CMemInputStream 
 static inline void *PvAllocGeom(int cb)
 {
     MSG msg;
-    msg.nKind = 0x10;
-    msg.cb = cb;
+    msg.alignment = 0x10;
+    msg.size = cb;
     return AllocFromWorldHeap(&msg);
 }
 
 static inline void *PvAllocGeomTemp(int cb)
 {
     MSG msg;
-    msg.nKind = 0x10;
-    msg.cb = cb;
+    msg.alignment = 0x10;
+    msg.size = cb;
     return AllocClearedFromWorldHeap(&msg);
 }
 
@@ -127,6 +132,7 @@ static inline void *PvAllocGeomTemp(int cb)
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Constructs an empty, closed stream (no flags, no data).
 CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
 {
     m_pbRaw = NULL;
@@ -147,6 +153,7 @@ CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Closes the stream: drops the raw and current windows and any pending decompression state.
 void CBinaryInputStream::Close()
 {
     m_pbRaw = NULL;
@@ -165,6 +172,8 @@ void CBinaryInputStream::Close()
  *   in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Makes new data current when the window is empty: decompresses the next chunk, or takes the next raw block from
+// Fill(). Counts the bytes made available.
 void CBinaryInputStream::Refill()
 {
     if (m_cb != 0)
@@ -190,15 +199,17 @@ void CBinaryInputStream::Refill()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-int CBinaryInputStream::CbRead(int cb, void *pv)
+// Copies up to `size` bytes into dest (null dest: skips them), refilling as needed; on running out of data marks the
+// stream exhausted. Returns the bytes actually read (0 once exhausted).
+int CBinaryInputStream::CbRead(int size, void *dest)
 {
-    int cbLeft = cb;
-    byte *pb = (byte *)pv;
+    int remaining = size;
+    byte *out = (byte *)dest;
 
     if (m_cb < 0)
         return 0;
 
-    while (cbLeft > 0)
+    while (remaining > 0)
     {
         Refill();
         if (m_cb == 0)
@@ -207,20 +218,20 @@ int CBinaryInputStream::CbRead(int cb, void *pv)
             break;
         }
 
-        int cbCopy = (cbLeft < m_cb) ? cbLeft : m_cb;
+        int chunk = (remaining < m_cb) ? remaining : m_cb;
 
-        if (pb)
+        if (out)
         {
-            CopyAb(pb, m_pb, cbCopy);
-            pb += cbCopy;
+            CopyAb(out, m_pb, chunk);
+            out += chunk;
         }
 
-        m_pb += cbCopy;
-        m_cb -= cbCopy;
-        cbLeft -= cbCopy;
+        m_pb += chunk;
+        m_cb -= chunk;
+        remaining -= chunk;
     }
 
-    return cb - cbLeft;
+    return size - remaining;
 }
 
 /** @sly2-annot addr=0x117968
@@ -230,9 +241,10 @@ int CBinaryInputStream::CbRead(int cb, void *pv)
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
  *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void CBinaryInputStream::Read(int cb, void *pv)
+// Reads exactly `size` bytes into dest (CbRead ignoring the count).
+void CBinaryInputStream::Read(int size, void *dest)
 {
-    CbRead(cb, pv);
+    CbRead(size, dest);
 }
 
 /** @sly2-annot addr=0x117988
@@ -245,11 +257,12 @@ void CBinaryInputStream::Read(int cb, void *pv)
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
  *   docs/formats/world-file.md#3-head-layout-loadswfrombrx-func_0013da18
  * @end-sly2-annot */
-void CBinaryInputStream::Align(int n)
+// Advances the read position to the next multiple of `alignment` bytes (a power of two).
+void CBinaryInputStream::Align(int alignment)
 {
-    int pbAligned = ((int)m_pb + (n - 1)) & -n;
-    m_cb -= (pbAligned - (int)m_pb);
-    m_pb = (byte *)pbAligned;
+    int aligned = ((int)m_pb + (alignment - 1)) & -alignment;
+    m_cb -= (aligned - (int)m_pb);
+    m_pb = (byte *)aligned;
 }
 
 /** @sly2-annot addr=0x1179B8
@@ -257,9 +270,10 @@ void CBinaryInputStream::Align(int n)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::Skip(int cb)
+// Skips `size` bytes.
+void CBinaryInputStream::Skip(int size)
 {
-    Read(cb, NULL);
+    Read(size, NULL);
 }
 
 /** @sly2-annot addr=0x1179D8
@@ -269,11 +283,12 @@ void CBinaryInputStream::Skip(int cb)
  *   docs/engine/overview.md#3-world--level-lifecycle,
  *   docs/formats/compression-lzss.md#compression-whole-file-lzss
  * @end-sly2-annot */
-void CBinaryInputStream::SetDecompress(int n, byte *pb)
+// Turns on LZSS decompression of the following data, using `buffer` (0x2000 bytes plus look-back) for output.
+void CBinaryInputStream::SetDecompress(int unknown, byte *buffer)
 {
     m_grfbis |= 2;
-    m_unk20 = n;
-    m_pbDecomp = pb;
+    m_unk20 = unknown;
+    m_pbDecomp = buffer;
 }
 
 /* LZSS: 8K window, flag byte per 8 tokens (bit set = literal), references are
@@ -285,83 +300,87 @@ void CBinaryInputStream::SetDecompress(int n, byte *pb)
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
  *   docs/formats/compression-lzss.md#compression-whole-file-lzss, docs/formats/world-file.md#1-container
  * @end-sly2-annot */
+// Decompresses the next 0x2000-byte chunk of LZSS data from the raw blocks into the decompression buffer and makes it
+// current. A flag byte announces eight items (bit set: a literal byte; clear: a 16-bit reference whose low 13 bits
+// are a position in the 8 KB output window and whose top 3 bits plus 3 are the length). Output past 0x2000 bytes is
+// carried over to the start of the next chunk.
 void CBinaryInputStream::Decompress()
 {
-    int cbOut = 0;
-    byte *pbOut = m_pbDecomp;
-    int cbIn = m_cbRaw;
-    byte *pbIn = m_pbRaw;
-    int grf = m_grfDecomp;
+    int outCount = 0;
+    byte *out = m_pbDecomp;
+    int inLeft = m_cbRaw;
+    byte *in = m_pbRaw;
+    int flagBits = m_grfDecomp;
 
     if (m_cbPending > 0)
     {
-        memcpy(pbOut, pbOut + 0x2000, m_cbPending);
-        cbOut = m_cbPending;
+        memcpy(out, out + 0x2000, m_cbPending);
+        outCount = m_cbPending;
     }
 
-    int grfMark = 0xFF00;   /* loop-hoisted constant in the original */
-    while (cbOut < 0x2000)
+    int flagSentinel = 0xFF00;   /* loop-hoisted constant in the original */
+    while (outCount < 0x2000)
     {
-        grf >>= 1;
-        if (!(grf & 0x100))
+        flagBits >>= 1;
+        if (!(flagBits & 0x100))
         {
-            if (--cbIn < 0)
+            if (--inLeft < 0)
             {
                 Fill();
                 if (m_cbRaw <= 0)
                     break;
-                pbIn = m_pbRaw;
-                cbIn = m_cbRaw - 1;
+                in = m_pbRaw;
+                inLeft = m_cbRaw - 1;
             }
-            grf = *pbIn++ + grfMark;
+            flagBits = *in++ + flagSentinel;
         }
 
-        if (--cbIn < 0)
+        if (--inLeft < 0)
         {
             Fill();
             if (m_cbRaw <= 0)
                 break;
-            pbIn = m_pbRaw;
-            cbIn = m_cbRaw - 1;
+            in = m_pbRaw;
+            inLeft = m_cbRaw - 1;
         }
-        int b = *pbIn++;
+        int inByte = *in++;
 
-        if (grf & 1)
+        if (flagBits & 1)
         {
-            pbOut[cbOut++] = b;
+            out[outCount++] = inByte;
         }
         else
         {
-            if (--cbIn < 0)
+            if (--inLeft < 0)
             {
                 Fill();
-                pbIn = m_pbRaw;
-                cbIn = m_cbRaw - 1;
+                in = m_pbRaw;
+                inLeft = m_cbRaw - 1;
             }
-            int v = b + (*pbIn++ << 8);
-            int cb = (v >> 13) + 2;
-            int ib = v & 0x1FFF;
-            for (; cb >= 0; cb--)
+            int reference = inByte + (*in++ << 8);
+            int length = (reference >> 13) + 2;
+            int windowPos = reference & 0x1FFF;
+            for (; length >= 0; length--)
             {
-                pbOut[cbOut++] = pbOut[ib++ & 0x1FFF];
+                out[outCount++] = out[windowPos++ & 0x1FFF];
             }
         }
     }
 
-    m_pb = pbOut;
-    if (cbOut >= 0x2000)
+    m_pb = out;
+    if (outCount >= 0x2000)
     {
         m_cb = 0x2000;
-        m_cbPending = cbOut - 0x2000;
+        m_cbPending = outCount - 0x2000;
     }
     else
     {
-        m_cb = cbOut;
+        m_cb = outCount;
         m_cbPending = 0;
     }
-    m_pbRaw = pbIn;
-    m_cbRaw = cbIn;
-    m_grfDecomp = grf;
+    m_pbRaw = in;
+    m_cbRaw = inLeft;
+    m_grfDecomp = flagBits;
 }
 
 // 0x117BC8: dead-code scrap (sly2/scrap.h)
@@ -372,6 +391,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads an unsigned byte.
 uchar CBinaryInputStream::U8Read()
 {
     if (m_cb >= 1)
@@ -392,6 +412,7 @@ uchar CBinaryInputStream::U8Read()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a little-endian unsigned 16-bit value.
 ushort CBinaryInputStream::U16Read()
 {
     if (m_cb >= 2)
@@ -413,6 +434,7 @@ ushort CBinaryInputStream::U16Read()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a little-endian unsigned 32-bit value.
 uint CBinaryInputStream::U32Read()
 {
     if (m_cb >= 4)
@@ -436,6 +458,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a signed byte.
 char CBinaryInputStream::S8Read()
 {
     if (m_cb >= 1)
@@ -456,6 +479,7 @@ char CBinaryInputStream::S8Read()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a little-endian signed 16-bit value.
 short CBinaryInputStream::S16Read()
 {
     if (m_cb >= 2)
@@ -477,6 +501,7 @@ short CBinaryInputStream::S16Read()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a little-endian signed 32-bit value.
 int CBinaryInputStream::S32Read()
 {
     if (m_cb >= 4)
@@ -500,6 +525,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// Reads a 32-bit float.
 float CBinaryInputStream::F32Read()
 {
     if (m_cb >= 4)
@@ -519,9 +545,10 @@ float CBinaryInputStream::F32Read()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadVector(VECTOR *pvec)
+// Reads a 3-float vector (12 bytes).
+void CBinaryInputStream::ReadVector(VECTOR *outVector)
 {
-    Read(sizeof(float) * 3, pvec);
+    Read(sizeof(float) * 3, outVector);
 }
 
 /** @sly2-annot addr=0x117ED0
@@ -529,11 +556,12 @@ void CBinaryInputStream::ReadVector(VECTOR *pvec)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadMatrix(MATRIX3 *pmat)
+// Reads a 3x3 matrix (nine floats, row by row).
+void CBinaryInputStream::ReadMatrix(MATRIX3 *outMatrix)
 {
-    ReadVector((VECTOR *)pmat->mat[0]);
-    ReadVector((VECTOR *)pmat->mat[1]);
-    ReadVector((VECTOR *)pmat->mat[2]);
+    ReadVector((VECTOR *)outMatrix->mat[0]);
+    ReadVector((VECTOR *)outMatrix->mat[1]);
+    ReadVector((VECTOR *)outMatrix->mat[2]);
 }
 
 /** @sly2-annot addr=0x117F18
@@ -542,14 +570,15 @@ void CBinaryInputStream::ReadMatrix(MATRIX3 *pmat)
  * See: docs/formats/level-objects.md#world-file-part-2-world-entries-and-object-records-all-classes,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadMatrix4(MATRIX4 *pmat)
+// Reads a 4x4 matrix (sixteen floats).
+void CBinaryInputStream::ReadMatrix4(MATRIX4 *outMatrix)
 {
-    ReadMatrix((MATRIX3 *)pmat);
-    ReadVector((VECTOR *)pmat->mat[3]);
-    pmat->mat[0][3] = 0.0f;
-    pmat->mat[1][3] = 0.0f;
-    pmat->mat[2][3] = 0.0f;
-    pmat->mat[3][3] = 1.0f;
+    ReadMatrix((MATRIX3 *)outMatrix);
+    ReadVector((VECTOR *)outMatrix->mat[3]);
+    outMatrix->mat[0][3] = 0.0f;
+    outMatrix->mat[1][3] = 0.0f;
+    outMatrix->mat[2][3] = 0.0f;
+    outMatrix->mat[3][3] = 1.0f;
 }
 
 /** @sly2-annot addr=0x117F70
@@ -557,9 +586,10 @@ void CBinaryInputStream::ReadMatrix4(MATRIX4 *pmat)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadVector4(VECTOR4 *pvec)
+// Reads a 4-float vector (16 bytes).
+void CBinaryInputStream::ReadVector4(VECTOR4 *outVector)
 {
-    Read(sizeof(VECTOR4), pvec);
+    Read(sizeof(VECTOR4), outVector);
 }
 
 /** @sly2-annot addr=0x117F90
@@ -567,9 +597,10 @@ void CBinaryInputStream::ReadVector4(VECTOR4 *pvec)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadCb12(void *pv)
+// Reads 12 raw bytes.
+void CBinaryInputStream::ReadCb12(void *dest)
 {
-    Read(12, pv);
+    Read(12, dest);
 }
 
 /** @sly2-annot addr=0x117FB0
@@ -577,9 +608,10 @@ void CBinaryInputStream::ReadCb12(void *pv)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadCb8(void *pv)
+// Reads 8 raw bytes.
+void CBinaryInputStream::ReadCb8(void *dest)
 {
-    Read(8, pv);
+    Read(8, dest);
 }
 
 /** @sly2-annot addr=0x117FD0
@@ -592,44 +624,46 @@ void CBinaryInputStream::ReadCb8(void *pv)
  *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void CBinaryInputStream::ReadGeom(GEOM *pg)
+// Reads a collision GEOM: positions, surfaces (with their planes) and edges with their twin links, allocating the
+// arrays from the level heap.
+void CBinaryInputStream::ReadGeom(GEOM *geom)
 {
     int i;
-    pg->cpos = U16Read();
-    pg->apos = (qword *)PvAllocGeom(pg->cpos * 16);
-    for (i = 0; i < pg->cpos; i++)
-        ReadVector((VECTOR *)&pg->apos[i]);
-    pg->cface = U16Read();
-    pg->aface = (FACE *)PvAllocGeomTemp(pg->cface * 32);
-    pg->cedge = U16Read();
-    pg->aedge = (EDGE *)PvAllocGeomTemp(pg->cedge * 16);
-    EDGE *pedge = pg->aedge;
-    for (int iface = 0; iface < pg->cface; iface++)
+    geom->posCount = U16Read();
+    geom->positions = (qword *)PvAllocGeom(geom->posCount * 16);
+    for (i = 0; i < geom->posCount; i++)
+        ReadVector((VECTOR *)&geom->positions[i]);
+    geom->faceCount = U16Read();
+    geom->faces = (FACE *)PvAllocGeomTemp(geom->faceCount * 32);
+    geom->edgeCount = U16Read();
+    geom->edges = (EDGE *)PvAllocGeomTemp(geom->edgeCount * 16);
+    EDGE *nextEdge = geom->edges;
+    for (int faceIndex = 0; faceIndex < geom->faceCount; faceIndex++)
     {
-        FACE *pf = &pg->aface[iface];
-        int ai[3];
-        ai[0] = U16Read();
-        ai[1] = U16Read();
-        ai[2] = U16Read();
-        InitPlaneFromPositions(pf, pg->apos[ai[0]], pg->apos[ai[1]], pg->apos[ai[2]]);
-        pf->ipos = ai[0];
+        FACE *face = &geom->faces[faceIndex];
+        int posIndices[3];
+        posIndices[0] = U16Read();
+        posIndices[1] = U16Read();
+        posIndices[2] = U16Read();
+        InitPlaneFromPositions(face, geom->positions[posIndices[0]], geom->positions[posIndices[1]], geom->positions[posIndices[2]]);
+        face->posIndex = posIndices[0];
         for (int j = 0; j < 4; j++)
             F32Read();
-        int cedge = U8Read();
-        for (int k = 0; k < cedge; k++)
+        int faceEdgeCount = U8Read();
+        for (int k = 0; k < faceEdgeCount; k++)
         {
-            EDGE *pe = pedge++;
-            pe->ipos0 = U16Read();
-            pe->ipos1 = U16Read();
-            pe->iface = iface;
-            pe->ifaceOther = U16Read();
+            EDGE *edge = nextEdge++;
+            edge->pos0Index = U16Read();
+            edge->pos1Index = U16Read();
+            edge->faceIndex = faceIndex;
+            edge->otherFaceIndex = U16Read();
             if (k == 0)
-                pf->pedgeFirst = pe;
+                face->firstEdge = edge;
             else
-                pe[-1].pedgeNext = pe;
-            FACE *pfOther = &pg->aface[pe->ifaceOther];
-            pe->pedgeOther = pfOther->pedgeOther;
-            pfOther->pedgeOther = pe;
+                edge[-1].next = edge;
+            FACE *otherFace = &geom->faces[edge->otherFaceIndex];
+            edge->nextNeighborEdge = otherFace->neighborEdges;
+            otherFace->neighborEdges = edge;
         }
     }
 }
@@ -647,34 +681,36 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
  *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void CBinaryInputStream_ReadBspc(CBinaryInputStream *pbis, OWNER *powner, TREE *ptree)
+// Reads a BSP collision tree for `owner`: the node count, then per node 16-bit plane and child indexes that are
+// turned into pointers into the freshly allocated (zeroed) node array.
+extern "C" void CBinaryInputStream_ReadBspc(CBinaryInputStream *stream, OWNER *owner, TREE *tree)
 {
     int i;
     MSG msg;
-    ptree->cnode = pbis->U32Read();
-    ptree->n4 = pbis->U32Read();
-    ptree->n8 = pbis->U32Read();
-    msg.cb = ptree->cnode * sizeof(NODE);
-    msg.nKind = 0x10;
-    ptree->anode = (NODE *)AllocClearedFromWorldHeap(&msg);
-    for (i = 0; i < ptree->cnode; i++)
+    tree->nodeCount = stream->U32Read();
+    tree->unknown4 = stream->U32Read();
+    tree->unknown8 = stream->U32Read();
+    msg.size = tree->nodeCount * sizeof(NODE);
+    msg.alignment = 0x10;
+    tree->nodes = (NODE *)AllocClearedFromWorldHeap(&msg);
+    for (i = 0; i < tree->nodeCount; i++)
     {
-        NODE *pnode = &ptree->anode[i];
-        unsigned int iitem = pbis->U16Read();
-        if (iitem == 0xFFFF)
+        NODE *node = &tree->nodes[i];
+        unsigned int itemIndex = stream->U16Read();
+        if (itemIndex == 0xFFFF)
         {
-            pnode->pv = D_002BBAF0;
+            node->item = D_002BBAF0;
         }
         else
         {
             unsigned int inode;
-            pnode->pv = &powner->aitem[iitem];
-            inode = pbis->U32Read();
+            node->item = &owner->items[itemIndex];
+            inode = stream->U32Read();
             if (inode != 0xFFFFFFFF)
-                pnode->pnodeLeft = &ptree->anode[inode];
-            inode = pbis->U32Read();
+                node->left = &tree->nodes[inode];
+            inode = stream->U32Read();
             if (inode != 0xFFFFFFFF)
-                pnode->pnodeRight = &ptree->anode[inode];
+                node->right = &tree->nodes[inode];
         }
     }
 }
@@ -691,19 +727,20 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, HEAP *pheap, int n)
+// Reads a 16-bit-length-prefixed string into a NUL-terminated buffer allocated from `heap` (kind/alignment n).
+extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char **outString, HEAP *heap, int alignment)
 {
-    int cch = pbis->U16Read();
+    int cch = stream->U16Read();
     char *pchz;
     if (cch == 0)
     {
-        *ppchz = 0;
+        *outString = 0;
         return;
     }
-    pchz = (char *)pheap->PvAlloc(cch + 1, n);
-    pbis->Read(cch, pchz);
+    pchz = (char *)heap->PvAlloc(cch + 1, alignment);
+    stream->Read(cch, pchz);
     pchz[cch] = 0;
-    *ppchz = pchz;
+    *outString = pchz;
 }
 
 /** @sly2-annot addr=0x118420
@@ -715,9 +752,10 @@ extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char *
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/player.md#11-key-functions,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis)
+// Skips a 16-bit-length-prefixed string.
+extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream)
 {
-    pbis->Read(pbis->U16Read(), 0);
+    stream->Read(stream->U16Read(), 0);
 }
 
 /** @sly2-annot addr=0x118458
@@ -728,9 +766,10 @@ extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *pbis, void *pv)
+// Reads 64 raw bytes.
+extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *stream, void *dest)
 {
-    pbis->Read(0x40, pv);
+    stream->Read(0x40, dest);
 }
 
 // 0x118478: dead-code scrap (sly2/scrap.h)
@@ -744,11 +783,12 @@ SLY2_SCRAP("sw $0, 0x28($4)");
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" CMemInputStreamV *func_00118480(CMemInputStreamV *pmis)
+// CMemInputStream constructor: base constructor, then this class's vtable.
+extern "C" CMemInputStreamV *func_00118480(CMemInputStreamV *stream)
 {
-    __18CBinaryInputStream(pmis);
-    pmis->pvtbl = D_002CA5A0;
-    return pmis;
+    __18CBinaryInputStream(stream);
+    stream->vtable = D_002CA5A0;
+    return stream;
 }
 
 /** @sly2-annot addr=0x1184B8
@@ -757,11 +797,12 @@ extern "C" CMemInputStreamV *func_00118480(CMemInputStreamV *pmis)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void CMemInputStream_dtor(CMemInputStreamV *pmis, int grf)
+// CMemInputStream deleting destructor: restores the vtable and frees the object when asked to (flag bit 0).
+extern "C" void CMemInputStream_dtor(CMemInputStreamV *stream, int flags)
 {
-    pmis->pvtbl = D_002CA5A0;
-    if (grf & 1)
-        operator delete(pmis);
+    stream->vtable = D_002CA5A0;
+    if (flags & 1)
+        operator delete(stream);
 }
 
 /** @sly2-annot addr=0x1184E8
@@ -771,12 +812,13 @@ extern "C" void CMemInputStream_dtor(CMemInputStreamV *pmis, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
+// CMemInputStream::Fill: hands the whole memory buffer over as one raw block, then has nothing more.
 void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes out here */
 {
     CMemInputStreamV *pmis = (CMemInputStreamV *)this;
-    pmis->cbRaw = pmis->cbMem;
-    pmis->pbRaw = pmis->pbMem;
-    pmis->cbMem = 0;
+    pmis->rawSize = pmis->memSize;
+    pmis->rawData = pmis->memData;
+    pmis->memSize = 0;
 }
 
 /** @sly2-annot addr=0x118500
@@ -785,9 +827,10 @@ void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes o
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void SetMemInputStreamBuffer(CMemInputStreamV *pmis, int cb, byte *pb, int grfbis)
+// Points a memory stream at `size` bytes at `data`, with stream flags `flags` (e.g. compressed).
+extern "C" void SetMemInputStreamBuffer(CMemInputStreamV *stream, int size, byte *data, int flags)
 {
-    pmis->cbMem = cb;
-    pmis->pbMem = pb;
-    pmis->grfbis = grfbis;
+    stream->memSize = size;
+    stream->memData = data;
+    stream->flags = flags;
 }
