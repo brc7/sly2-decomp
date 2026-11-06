@@ -3,10 +3,10 @@
 // SLY2_CFLAGS: -O2 -G0
 // SLY2_ASM: gnu-reorder-db
 extern volatile int D_002C4A98;
-extern char D_00443268[];
+extern char D_0044C268[];
 void *func_002333B4(void *, int, int);
 int sceSifLoadFileReset(void)
 {
-    D_002C4A98 = -1; func_002333B4(D_00443268, 0, 4);
+    D_002C4A98 = -1; func_002333B4(D_0044C268, 0, 4);
     return 0;
 }
