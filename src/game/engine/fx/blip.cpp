@@ -869,7 +869,7 @@ struct VU_FLOATR {
 };
 struct DMA { int x0; int x4; int x8; int xC; };
 extern "C" {
-void *func_001AE318(const AL &al);
+void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
 int func_001A61A0(LOV *plo);
 qwordV func_001A62E8(LOV *plo);
 M3 *func_001A6318(LOV *plo);
@@ -877,7 +877,7 @@ int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
 DMA *PrplAllocRpl(void);
 }
-static inline void *PvAllocStack(int cb) { return func_001AE318(AL(cb, 0x10)); }
+static inline void *PvAllocStack(int cb) { return PvAllocSlot__FP8ALLOCREQ(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
 static inline qwordV SubE(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=&j"(r) : "j"(a), "j"(b), "j"(b)); return r; }
 /* "r"(z) inputs below are allocation-only: they only add scheduler dependences (see the comment in the gather loop) */

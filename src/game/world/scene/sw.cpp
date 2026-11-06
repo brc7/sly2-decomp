@@ -1318,7 +1318,7 @@ struct L { int a[4]; };
 struct M { int a; int b; int c[2]; };
 void Align__18CBinaryInputStreami(void *q, int n);
 void STACKSCOPE_ctor(struct L *pl);
-void *func_001AE318(struct M *pm);
+void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
 void Read__18CBinaryInputStreamiPv(void *q, int a, void *x);
 void RelocateSharedColorTables(void *x);
 void UploadBitmaps__FP3GSB(void *p);
@@ -1346,7 +1346,7 @@ void LoadSwSharedDataFromBrx(void *p, void *q)
         { struct M *pm = &m;
         pm->a = D_003E1C30;
         pm->b = 0x10;
-        x = func_001AE318(pm); }
+        x = PvAllocSlot__FP8ALLOCREQ(pm); }
         Read__18CBinaryInputStreamiPv(q, D_003E1C30, x);
         RelocateSharedColorTables(x);
         UploadBitmaps__FP3GSB(p);
@@ -1526,7 +1526,7 @@ struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 struct S { char pad[0x3D1C]; struct G *first; };
-void *func_001AE318(struct MSG *pmsg);
+void *PvAllocSlot__FP8ALLOCREQ(struct MSG *pmsg);
 void FlushSwBoundsUpdates(struct S *p);
 void UpdateSwAaox(struct S *p);
 
@@ -1560,7 +1560,7 @@ void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, st
         pm->nKind = 0x10;
     }
     c = 0;
-    ap = (__typeof__(ap))func_001AE318(&msg);
+    ap = (__typeof__(ap))PvAllocSlot__FP8ALLOCREQ(&msg);
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
     for (g = p->first; g; g = g->next) {
@@ -1587,7 +1587,7 @@ struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 struct S { char pad[0x3D1C]; struct G *first; };
-void *func_001AE318(struct MSG *pmsg);
+void *PvAllocSlot__FP8ALLOCREQ(struct MSG *pmsg);
 void FlushSwBoundsUpdates(struct S *p);
 void UpdateSwAaox(struct S *p);
 
@@ -1607,7 +1607,7 @@ void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void 
     int c;
     msg.cb = 0x400;
     msg.nKind = 0x10;
-    ap = (__typeof__(ap))func_001AE318(&msg);
+    ap = (__typeof__(ap))PvAllocSlot__FP8ALLOCREQ(&msg);
     c = 0;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
@@ -1639,7 +1639,7 @@ namespace M_func_0020FDC8 { extern "C" {
 struct O { char pad[0x148]; long fl; };
 struct A { int pad; struct O *po; };
 struct M { int cb; int align; int pad[2]; };
-void *func_001AE318(struct M *pm);
+void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
 /** @sly2-annot addr=0x20FDC8
  * Purpose: Deduplicate the SOs referenced by an array (mark 0x40000000), output count + slot array
  * Info: proposed name UniqueSwSoList (T2); TU sw
@@ -1655,7 +1655,7 @@ void func_0020FDC8(int n, struct A **apa, int *pc, struct O ***pppo)
     int i;
     m.cb = n * 4;
     m.align = 0x10;
-    apo = (struct O **)func_001AE318(&m);
+    apo = (struct O **)PvAllocSlot__FP8ALLOCREQ(&m);
     for (i = 0; i < n; i++) {
         struct O *po = apa[i]->po;
         if (!(po->fl & 0x40000000)) {

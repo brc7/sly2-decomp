@@ -31,7 +31,7 @@ extern "C" {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 void *func_001AE1D0(AREQ *preq);
 void *func_001AE2A0(AREQ *preq);
-void *func_001AE318(AREQ *preq);
+void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
 }
 void InitCritSect(CRITSECT *pcritsect);
 void EnterCritSect(CRITSECT *pcritsect);
@@ -156,7 +156,7 @@ void FreeSw()
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#7-key-functions,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void *func_001AE318(AREQ *preq)
+extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq)
 {
     int cb = preq->cb;
     uint pv = 0;
@@ -178,7 +178,7 @@ extern "C" void *func_001AE318(AREQ *preq)
 extern "C" void *func_001AE378(AREQ *preq)
 {
     AREQ m = *preq;
-    void *p = func_001AE318(&m);
+    void *p = PvAllocSlot__FP8ALLOCREQ(&m);
     if (p) func_002333B4(p, 0, preq->cb);
     return p;
 }

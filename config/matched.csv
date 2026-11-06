@@ -3480,7 +3480,7 @@ func_001AE1D0,0x1AE1D0,26,match,src/game/platform/memory/memory.cpp
 func_001AE238,0x1AE238,26,match,src/game/platform/memory/memory.cpp
 func_001AE2A0,0x1AE2A0,23,match,src/game/platform/memory/memory.cpp
 FreeSw__Fv,0x1AE300,5,match,src/game/platform/memory/memory.cpp
-func_001AE318,0x1AE318,24,match,src/game/platform/memory/memory.cpp
+PvAllocSlot__FP8ALLOCREQ,0x1AE318,24,match,src/game/platform/memory/memory.cpp
 func_001AE378,0x1AE378,23,match,src/game/platform/memory/memory.cpp
 InitStackImpl__Fv,0x1AE3D8,19,match,src/game/platform/memory/memory.cpp
 FreeStackImpl__Fv,0x1AE428,19,match,src/game/platform/memory/memory.cpp

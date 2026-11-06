@@ -119,7 +119,7 @@ void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 int func_00234820(ThreadParam *ptp);
 int func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
-char *func_001AE318(const AREQ &r);
+char *PvAllocSlot__FP8ALLOCREQ(const AREQ &r);
 void *func_001AE378(const AREQ &r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
@@ -298,7 +298,7 @@ void CQueueOutputIop::Reset()
     m_x2c = 0;
 }
 
-static inline char *Alloc(int cb, int align) { return func_001AE318(AREQ(cb, align)); }
+static inline char *Alloc(int cb, int align) { return PvAllocSlot__FP8ALLOCREQ(AREQ(cb, align)); }
 /** @sly2-annot addr=0x1B2AA0
  * Purpose: Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb)
  *   before send

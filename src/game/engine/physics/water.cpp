@@ -133,7 +133,7 @@ void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
 qwordV func_0011BFB8(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
-void *func_001AE318(const REQ *);
+void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int func_00229D60(void *, COLL *);
 int func_001F7E08(SOW *, int (*)(void *, COLL *), void *, COLL **);
 int func_001F6838(SOW *);
@@ -313,7 +313,7 @@ extern "C" void UpdateWater(SOW *p){
  for(n=*work.head;n;n=n->next)n->object->flags|=0x80000000L;
  STACKSCOPE_ctor(&work.mark);
  {register int size __asm__("$3")=p->count;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
- objects=(COLL **)func_001AE318(req);}
+ objects=(COLL **)PvAllocSlot__FP8ALLOCREQ(req);}
  work.count=func_001F7E08(p,func_00229D60,0,objects);
  for(link=p->state->first;link;link=link->next){
   SOW *o=link->object;
@@ -470,7 +470,7 @@ extern "C" float func_00229468(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
         REQ *pm = &work.msg;
         pm->size = p->count * 4;
         pm->alignment = 0x10;
-        apv = (void **)func_001AE318(pm);
+        apv = (void **)PvAllocSlot__FP8ALLOCREQ(pm);
     }
     c = func_001F7E08(p, func_00229D60, 0, (COLL **)apv);
     if (!ClsgClipEdgeToObjects(work.a.q, work.b.q, c, (COLL **)apv, 0x10, work.alsg)) {

@@ -1362,7 +1362,7 @@ struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
 int sprintf(char *buf, const char *fmt, ...);
 int McOpen(void *p, char *name, int mode, int *ph);
-void *func_001AE318(REQUEST *pmsg);
+void *PvAllocSlot__FP8ALLOCREQ(REQUEST *pmsg);
 int func_00184D60(Y *py, X *px);
 int McWrite(void *p, int h, char *buf, int n, int *pn);
 int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf);
@@ -1448,7 +1448,7 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
         REQUEST *pmsg = &msg;
         pmsg->bytes = 0x403F;
         pmsg->alignment = 0x10;
-        void *pv = func_001AE318(pmsg);
+        void *pv = PvAllocSlot__FP8ALLOCREQ(pmsg);
         Y y(0x403F, pv, 0);
         if (!SetKey(&x, k) || !func_00184D60(&y, &x))
             ret = 0x27;

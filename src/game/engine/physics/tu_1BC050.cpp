@@ -90,7 +90,7 @@ void InitDl__FP2DLi(DLV *pdl, int ib);
 void LoadShapeFromBrx(CID14V *p);
 void *func_001AE2A0(MSG *pmsg);
 void *func_001AE1D0(AREQC *preq);
-void *func_001AE318(const AREQV &r);
+void *PvAllocSlot__FP8ALLOCREQ(const AREQV &r);
 void CloneShape(CID14V *p, int a);
 void AddLoHierarchy(CID14V *p);
 void RemoveLoHierarchy(CID14V *p);
@@ -146,7 +146,7 @@ int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("f
 int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("func_001BD560");
 
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
-static inline void *Alloc(int cb) { return func_001AE318(AREQV(cb, 0x10)); }
+static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /* The world matrix: virtual slot 31. */

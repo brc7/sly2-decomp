@@ -2668,14 +2668,14 @@ extern char D_002A4DA0[];
 short NFindSaveSymbol(void *, char *);
 int FFindSaveVar(TRIE *, KEY *, OUT *);
 CRef RefGetSaveVar(TRIE *p, KEY *key, char *pb);
-void *func_001AE318(const AREQ &);
+void *PvAllocSlot__FP8ALLOCREQ(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
 static inline CRef Lookup(KEY &k) { return RefGetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
 static inline void *Alloc(int cb)
 {
     AREQ req(cb, 0x10);
-    return func_001AE318(req);
+    return PvAllocSlot__FP8ALLOCREQ(req);
 }
 /** @sly2-annot addr=0x143410
  * Purpose: Search save trie episode.level.booty.aoidAssembly[0..14] for an entry equal to oid; return an

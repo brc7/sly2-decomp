@@ -30,7 +30,7 @@ unsigned int ArrayV_HashPchz(int pchz) __asm__("HashPchzCaseless");
 void *ArrayV_Memset(void *pv, int b, int cb) __asm__("memset");
 void *ArrayV_StackScopeCtor(void *pscope) __asm__("STACKSCOPE_ctor");
 void ArrayV_StackScopeDtor(void *pscope, int n) __asm__("_$_10STACKSCOPE");
-void *ArrayV_ScratchAlloc(void *pdesc) __asm__("func_001AE318");
+void *ArrayV_ScratchAlloc(void *pdesc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 int ArrayV_S32Read(void *pbis) __asm__("S32Read__18CBinaryInputStream");
 void ArrayV_Read(CBinaryInputStream *pbis, int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
 void ArrayV_Reserve(void *pary, int c) __asm__("Reserve__9CDynArrayi");

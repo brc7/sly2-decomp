@@ -109,7 +109,7 @@ void Read__18CBinaryInputStreamiPv(CBinaryInputStream *pbis, int cb, void *pv);
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, void *pheap, int n);
 void *func_001AE1D0(MEMREQ *pmemreq);
 void *func_001AE238(MEMREQ *pmemreq, void *pv);
-void *func_001AE318(MEMREQ *pmemreq);
+void *PvAllocSlot__FP8ALLOCREQ(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
@@ -606,7 +606,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
         MEMREQ memreq;
         memreq.cb = pkey->c * 2;
         memreq.cbAlign = 0x10;
-        pkey->ash = (short *)func_001AE318(&memreq);
+        pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
@@ -661,7 +661,7 @@ extern "C" SVKEY *PkeyAllocSaveKey(const char *pchz, ...)
     VA_START(ap, pchz);
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)func_001AE318(&memreq);
+    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
     BuildSaveKeyV(pchz, ap, pkey);
     return pkey;
 }
@@ -746,12 +746,12 @@ extern "C" SVKEY *PkeyConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     int c;
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)func_001AE318(&memreq);
+    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
     c = pkey1->c + pkey2->c;
     pkey->c = c;
     memreq.cb = c * 2;
     memreq.cbAlign = 0x10;
-    pkey->ash = (short *)func_001AE318(&memreq);
+    pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
     CopyAb(pkey->ash, pkey1->ash, pkey1->c * 2);
     CopyAb(pkey->ash + pkey1->c, pkey2->ash, pkey2->c * 2);
     return pkey;

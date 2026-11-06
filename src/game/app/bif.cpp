@@ -4814,7 +4814,7 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct NODE { int pad[2]; CRef ref; struct NODE *pnext; } NODE;
 typedef struct ARR { int c; short *a; } ARR;
-short *func_001AE318(AREQ *preq);
+short *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
 /** @sly2-annot addr=0x1252D0
  * Purpose: Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements
  *   (save-var path)
@@ -4837,7 +4837,7 @@ void FillAsFromPair(NODE *pnode, ARR *parr)
         AREQ req;
         req.cb = parr->c * 2;
         req.cbAlign = 0x10;
-        parr->a = func_001AE318(&req);
+        parr->a = PvAllocSlot__FP8ALLOCREQ(&req);
         for (p = pnode, i = 0; p; p = p->pnext, i++) {
             if (p->ref.m_tagk == 0x15 || p->ref.m_tagk == 0x18)
                 { int n = p->ref.u.n; parr->a[i] = n; }

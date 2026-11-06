@@ -127,7 +127,7 @@ extern "C" {
 extern int D_00452108, D_004520B8, D_00452130;
 void STACKSCOPE_ctor(STACKSCOPE *pss);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
-void *func_001AE318(MSG *pmsg);
+void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 void func_001285D8(CGc *pgc, CRef *pref);
 void CGc_UpdateRecyclable();
 }
@@ -303,7 +303,7 @@ static inline void *PvAllocMarkStack(int c)
     MSG msg;
     msg.cb = c * 4;
     msg.nKind = 0x10;
-    return func_001AE318(&msg);
+    return PvAllocSlot__FP8ALLOCREQ(&msg);
 }
 
 /* Through pointers, as in the original: stored as members directly, the count is cleared before the array pointer is

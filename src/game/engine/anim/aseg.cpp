@@ -73,7 +73,7 @@ void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 void *func_001AE1D0(AREQV *preq);
 void *func_001AE2A0(AREQV *preq);
 void *func_001AE238(AREQV *preq, void *pv);
-void *func_001AE318(const AREQV &req);
+void *PvAllocSlot__FP8ALLOCREQ(const AREQV &req);
 AC *PacNewKind(int id);
 AC *PacNewKind2(int id);
 void InitLo(ASEG *paseg);
@@ -505,7 +505,7 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
         func_002333B4(pg, 0, sizeof(M4));
         pg[15] = 1.0f; pg[10] = 1.0f; pg[5] = 1.0f; pg[0] = 1.0f;
     }
-    apy = (XFV **)func_001AE318(AREQT(px->cchn * 4, 0x10));
+    apy = (XFV **)PvAllocSlot__FP8ALLOCREQ(AREQT(px->cchn * 4, 0x10));
     for (i = 0; i < px->cchn; i++) {
         pe = &px->achn[i];
         if (pe->u.f30) {

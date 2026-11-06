@@ -1263,7 +1263,7 @@ struct OBJ {
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-extern "C" { void *func_001AE318(MSG *); }
+extern "C" { void *PvAllocSlot__FP8ALLOCREQ(MSG *); }
 extern "C" { void *func_001AE1D0(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
@@ -1288,7 +1288,7 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
     MSG *pmsg = &msg;
     pmsg->cb = 0xA000;
     pmsg->nKind = 0x10;
-    p->ae = (ENT *)func_001AE318(pmsg);
+    p->ae = (ENT *)PvAllocSlot__FP8ALLOCREQ(pmsg);
     AddRelayBlockBegin(p, -1);
     p->f7C = 1;
     LoadLoFromBrx(p, x);

@@ -51,7 +51,7 @@ float GSmooth__FfffP3SMPPf(float g, float gGoal, float dt, SMP *psmp, float *pdv
 float atan2f(float y, float x);
 float acosf(float g);
 float asinf(float g);
-void *func_001AE318(MSG *pmsg);
+void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 
 int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst);
@@ -968,7 +968,7 @@ void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOff
 SLY2_SCRAP("nop");
 
 // Gauss-Jordan inverse with column pivoting. Sly 2 takes (stride c, size n, src, dst); the symbol name comes from Sly 1.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return PvAllocSlot__FP8ALLOCREQ(pmsg); }
 static inline float GAbs(float g) { return __builtin_fabsf(g); }
 /** @sly2-annot addr=0x11C500
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.

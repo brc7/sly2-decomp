@@ -42,7 +42,6 @@ void InitSo(SO *pso);
 void func_001D57A8(INTSTACK *pis);                                     /* InitIntStack (HYPOTHESIS) */
 void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
-void *func_001AE318(ALLOCREQ *preq);                                   /* stack-heap allocator */
 }
 
 /** @sly2-annot addr=0x1B4438
@@ -96,7 +95,7 @@ extern "C" void func_001B44D8(int *pc, GLOBREF ***papglobref)
             c += powner->cglobref;
       req.cb = c * 4;
       req.cbAlign = 0x10;
-      apglobref = (GLOBREF **)func_001AE318(&req);
+      apglobref = (GLOBREF **)PvAllocSlot(&req);   /* dmas.h */
       ppglobref = apglobref;
       for (powner = (*(GLOBOWNER * *)&g_sw.aslCid[49]); powner; powner = powner->pownerNext) {
             for (i = 0; i < powner->cglobref; i++) {

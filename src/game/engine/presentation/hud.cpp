@@ -999,7 +999,7 @@ extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *func_001848A8(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void func_00258248(KEY *);
-extern "C" void *func_001AE318(MSG *);
+extern "C" void *PvAllocSlot__FP8ALLOCREQ(MSG *);
 extern "C" int func_00184D60(BIS *,KEY *);
 extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
@@ -1057,7 +1057,7 @@ extern "C" void LoadWidgetSprites(S *p) {
     MSG *msg=&work.tmp.msg;
 
     msg->cb=0x10000;msg->alignment=0x40;
-    func_001848A8(bs,0x10000,func_001AE318(msg),0);
+    func_001848A8(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
     pk->kind=2;
     func_00258248(pk);
     if(!SetKey(&work.key,p->file)||!func_00184D60(bs,pk))goto fail;

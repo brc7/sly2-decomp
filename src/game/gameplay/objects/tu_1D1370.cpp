@@ -1568,7 +1568,7 @@ qword *VECTOR_opAssign(qword *, qword);
 M4 InvertMatrix4Rigid(const M4 *);
 void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
 void *func_002333B4(void *, int, uint) __asm__("memset");
-void *func_001AE318(SWALLOC *);
+void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);
 int func_00118A88(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
 qword func_001193D8(M4 *, qword);
@@ -1576,7 +1576,7 @@ void PxpAdd(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, 
 }
 
 static inline M4 *GetMatrix(OWNER *p) { return p->vt[31].pfn((char *)p + p->vt[31].delta); }
-static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return func_001AE318(&swalloc); }
+static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return PvAllocSlot__FP8ALLOCREQ(&swalloc); }
 static inline void ClearAb(void *pv, int cb) { func_002333B4(pv, 0, cb); }
 static inline float Sqrt(float f) { float r; __asm__ __volatile__("sqrt.s %0,%1" : "=&f"(r) : "f"(f)); return r; }
 

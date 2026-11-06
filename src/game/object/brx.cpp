@@ -157,7 +157,7 @@ int func_001A61A0(LO *plo);
 void CRef_ctor_CLQ(CRef *pref, float *ag);
 void CRef_ctor_LM(CRef *pref, float *ag);
 void CRef_ctor_VECTOR(CRef *pref, float *ag);
-void *func_001AE318(SWALLOC *pswalloc);
+void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *pswalloc);
 void SetLoParent_1A58D0(LO *plo, SO *psoParent, int grf);
 void func_0013F990(LO *plo, int n);
 int FIsCidDerivedFrom(CID cid, CID cidBase);
@@ -782,7 +782,7 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
         } while (cMaxNew < c + cAdd);
         swalloc.cb = cMaxNew * 4;
         swalloc.cbAlign = 0x10;
-        aploNew = (LO **)func_001AE318(&swalloc);
+        aploNew = (LO **)PvAllocSlot__FP8ALLOCREQ(&swalloc);
         CopyAb(aploNew, aplo, c * 4);
         cMax = cMaxNew;
         aplo = aploNew;

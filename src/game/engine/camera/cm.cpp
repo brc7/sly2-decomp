@@ -1162,7 +1162,7 @@ struct AL { int cb; int cbAlign; };
 extern float D_002BD8D4;
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void *func_001AE318(struct AL *pal);
+void *PvAllocSlot__FP8ALLOCREQ(struct AL *pal);
 int CsbiIntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
 qword LimitVectorLength(qword v, float g);
@@ -1184,7 +1184,7 @@ static inline void *PvAlloc(int cb, int cbAlign)
     struct AL al;
     al.cb = cb;
     al.cbAlign = cbAlign;
-    return func_001AE318(&al);
+    return PvAllocSlot__FP8ALLOCREQ(&al);
 }
 
 /** @sly2-annot addr=0x14EDA0

@@ -434,7 +434,7 @@ extern DLI *D_002DD2FC; /* innermost active list iterator */
 extern CLOCK D_002DDED0;
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *func_001AE318(const REQ *);
+void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
 int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -480,7 +480,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                         remaining = Min(0x1555, shape->capacity);
                         phase.request.cb = remaining * 12;
                         SetAlign(&phase.request, 16);
-                        entries = (ENTRY *)func_001AE318(&phase.request);
+                        entries = (ENTRY *)PvAllocSlot__FP8ALLOCREQ(&phase.request);
                         if (func_00118A88(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
                             STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
