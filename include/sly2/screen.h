@@ -32,15 +32,16 @@ struct HUDMETER : SCREENBASE
     virtual void Update() __asm__("UpdateHudMeter");   /* slot 7; key function (screen.cpp) */
 };
 
+/* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
 {
     char pad10[0x18 - 0x10];
-    int idText;             /* +0x18 */
+    int idText;             /* +0x18 id of the text shown */
     char pad1C[4];
-    int idTextQueued;       /* +0x20; for widget screens the widget oid */
+    int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
     void *pchild;           /* +0x24 the widget object */
-    int nMode;              /* +0x28 */
-    float tMode;            /* +0x2C */
+    int nMode;              /* +0x28 screen mode (-1 after ResetMode) */
+    float tMode;            /* +0x2C time the mode was entered */
     SCREEN() __asm__("func_001DA728");        /* out of line: screen.cpp */
     void ResetMode() __asm__("func_001DA7D0");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
     virtual void PostLoad() __asm__("func_001DA770");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */

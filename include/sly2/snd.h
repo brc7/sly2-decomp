@@ -8,6 +8,7 @@
 #define SLY2_SND_H
 #include "sly2/basic.h"
 
+/* CID151: a sound instance (the registry's SND class; placeholder name): base of bank and stream sounds. */
 struct CID151 : BASIC
 {
     char pad10[0x60 - 0x10];
@@ -25,6 +26,7 @@ struct CID151 : BASIC
 };
 typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
 
+/* BANKSND: a sound played from a loaded sound bank (DRAFT name). */
 struct BANKSND : CID151
 {
     virtual void VUnk00() __asm__("IncrefBanksnd");   /* slot 1; key function (sound.cpp) */
@@ -39,6 +41,7 @@ struct BANKSND : CID151
     virtual void VSlot15() __asm__("func_001FC018");   /* slot 15 */
 };
 
+/* STREAMSND: a sound streamed from disc (DRAFT name). */
 struct STREAMSND : CID151
 {
     virtual void VUnk00() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */

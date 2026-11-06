@@ -9,6 +9,7 @@
 
 struct TASK;
 
+/* JOB: a job (mission) of the episode graph: its first and final task, timer, counter and save-variable name. */
 struct JOB : public LO
 {
       int fDisabled;        /* +0x50 [R] */
@@ -35,6 +36,8 @@ typedef char assert_JOB_size[sizeof(JOB) == 0x100 ? 1 : -1];   /* class descript
 typedef char assert_JOB_ptaskStart[SLY2_OFFSETOF(JOB, ptaskStart) == 0x64 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_JOB_nPhase[SLY2_OFFSETOF(JOB, nPhase) == 0xC4 ? 1 : -1];   /* CONFIRMED runtime */
 
+/* TASK: a task (step of a job): its state, owning job, prerequisite and successor tasks and the character it is
+   played with. */
 struct TASK : public LO
 {
       undefined4 unk_0x50;
