@@ -137,8 +137,9 @@ extern "C" SAAV *func_001ED850(SAAV *p) {
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
  * @end-sly2-annot */
-void func_001ED8E0(SAAV *p, SAAF *q)
+void SAA::VSlot7(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
+    SAAV *p = (SAAV *)this;
     p->id = q->a;
     p->n18 = q->b;
     p->n20 = q->c;

@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
 #include "sly2/cm.h"
+#include "sly2/snd.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -91,7 +92,7 @@ struct SNDMGRV
 struct STREAMREC { char pad0[0x50]; float g50; };
 
 extern "C" {
-extern void *D_002D9C70[];  /* BANKSND vtable */
+extern void *D_002D9C70[] __asm__("_vt$7BANKSND");  /* BANKSND vtable */
 void SetSndFlags(SNDV *psnd, int grfMask, int grf);
 SNDV *SND_ctor(SNDV *psnd);
 SNDV *BANKSND_ctor(SNDV *psnd, int sfxid);
@@ -135,7 +136,7 @@ struct E *NewSfx(void)
 } } // namespace M_NewSfx
 
 namespace M_SND_ctor { extern "C" {
-extern char D_002D9D00[];
+extern char D_002D9D00[] __asm__("_vt$6CID151");
 struct S { int a; int b; int c; void *vt; float g10; char pad[0x1C]; float g30; float g34; char pad2[0xC]; float g44; };
 /** @sly2-annot addr=0x1FAFD0
  * Purpose: Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000
@@ -212,8 +213,11 @@ static inline int FNear(qword a, qword b)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-void StartSnd(struct P *p)
+} } // namespace M_StartSnd
+void CID151::Start()   /* key function: CID151's vtable comes out here (the namespace's views) */
 {
+    using namespace M_StartSnd;
+    struct P *p = (struct P *)this;
     int f = 0;
     int k;
     if (!p->n40) {
@@ -226,7 +230,6 @@ void StartSnd(struct P *p)
         k |= 0x200;
     SetSndFlags(p, k, k);
 }
-} } // namespace M_StartSnd
 
 namespace M_func_001FB1F8 { extern "C" {
 struct P { char pad[0x10]; float g; };
@@ -836,8 +839,9 @@ void func_001FC018(struct P *p, int f)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-extern "C" void IncrefBanksnd(SNDV *psnd)
+void BANKSND::VUnk00()   /* key function: BANKSND's vtable comes out here */
 {
+    SNDV *psnd = (SNDV *)this;
     psnd->cref++;
 }
 
@@ -904,7 +908,7 @@ namespace M_STREAMSND_ctor { extern "C" {
 struct P { char pad[0xC]; void *pvt; char pad2[0x60 - 0x10]; int n60; char pad3[0x70 - 0x64]; float a[6]; char pad4[0x3B8 - 0x88]; int n3B8; };
 struct G { char pad[0x58]; int n58; char pad2[0x15C - 0x5C]; float a[1]; };
 extern struct G D_003DD040;
-extern char D_002D9BE0[];
+extern char D_002D9BE0[] __asm__("_vt$9STREAMSND");
 void SND_ctor(struct P *);
 void SetSndFlags(struct P *, int, int);
 int func_001FD080(struct G *, int);
@@ -1334,8 +1338,9 @@ void OnStreamsndStatus(int f, long l)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-extern "C" void IncrefStreamsnd(SNDV *psnd)
+void STREAMSND::VUnk00()   /* key function: STREAMSND's vtable comes out here */
 {
+    SNDV *psnd = (SNDV *)this;
     psnd->cref++;
 }
 

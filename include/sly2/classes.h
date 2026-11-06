@@ -163,8 +163,8 @@ struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP
 struct SAA : BASIC
 {
     char pad10[0x50 - 0x10];
+    virtual void VSlot7(SAAF *psaaf) __asm__("func_001ED8E0");   /* slot 7 (its first new virtual); key function (shdanim.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSaaClassDesc");   /* slot 6 */
-    virtual void VSlot7(SAAF *psaaf) __asm__("func_001ED8E0");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateSaa");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompleteSaa__FP3SAA");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001EDB80");   /* slot 10 */
@@ -181,13 +181,9 @@ struct CID147 : BASIC
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 
-/* 151 CID151 (0x60): SND (sound instance); vtable not known */
-struct CID151 : BASIC
-{
-    char pad10[0x60 - 0x10];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid151ClassDesc");   /* slot 6 (vtable not known) */
-};
-typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
+/* 151 CID151 (0x60): SND (sound instance) and its kinds BANKSND / STREAMSND; vtable 0x2D9D00, 16 slots (sly2/snd.h,
+   key TU sound.cpp) */
+#include "sly2/snd.h"
 
 /* 58 GUARD (0x1010): plain guard; vtable 0x2C9DC0, 89 slots */
 struct GUARD : STEPGUARD

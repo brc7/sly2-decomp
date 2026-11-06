@@ -4330,3 +4330,7 @@ _vt$4LEAP = 0x2DAA10; // type:data size:0x40
 _vt$6DPRIZE = 0x2D6B98; // type:data size:0x270
 _vt$6WIDGET = 0x2DAF30; // type:data size:0x1A0
 _vt$10STEPPLAYER = 0x2CBE68; // type:data size:0x358
+_vt$3SAA = 0x2D9420; // type:data size:0x60
+_vt$9STREAMSND = 0x2D9BE0; // type:data size:0x90
+_vt$7BANKSND = 0x2D9C70; // type:data size:0x90
+_vt$6CID151 = 0x2D9D00; // type:data size:0x90
