@@ -1952,18 +1952,43 @@ static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 // For a rail target at parameter t: the landing position offset and a velocity along the rail tangent.
-void GetJtRailLanding(struct P*p,struct CURVE*curve,qword*outPos,qword*outVel,float t){
- U pos,dir,dead;struct SMP smp;float low,high;qword v;float dot,current;
- struct T*shape=p->o->controller;
- EvaluateShapeU(curve,t,&pos.q,&dir.q);
- dir.q=Normal(Reject(dir.q,D_002A2DC0),D_002A2DD0);
- {register float width __asm__("$f0")=shape->x1C;register float factor __asm__("$f13")=p->x2A0;v=SetVectorCylind(p->o->controller->x18,factor*width,0.0f);}
- dot=Dot(v,dir.q);dead.q=v;
- current=SFromShapeU(curve,t);
- smp.g1=p->x260;smp.g0=p->x2A0;smp.g2=D_002BF668;
- (void)GSmooth__FfffP3SMPPf(current,50.0f,D_002DDED0.dt,&smp,&low);
- (void)GSmooth__FfffP3SMPPf(current,SMaxShape(curve)-50.0f,D_002DDED0.dt,&smp,&high);
- {float hi=high;*outPos=Sub(pos.q,p->o->pos);{float g;if(dot<low)g=low;else if(hi<dot)g=hi;else g=dot;*outVel=Scale(dir.q,g);}}
+void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *outVel, float t)
+{
+    U pos, dir, dead;
+    struct SMP smp;
+    float low, high;
+    qword v;
+    float dot, current;
+    struct T *shape = p->o->controller;
+    EvaluateShapeU(curve, t, &pos.q, &dir.q);
+    dir.q = Normal(Reject(dir.q, D_002A2DC0), D_002A2DD0);
+    {
+        register float width __asm__("$f0") = shape->x1C;
+        register float factor __asm__("$f13") = p->x2A0;
+        v = SetVectorCylind(p->o->controller->x18, factor * width, 0.0f);
+    }
+    dot = Dot(v, dir.q);
+    dead.q = v;
+    current = SFromShapeU(curve, t);
+    smp.g1 = p->x260;
+    smp.g0 = p->x2A0;
+    smp.g2 = D_002BF668;
+    (void)GSmooth__FfffP3SMPPf(current, 50.0f, D_002DDED0.dt, &smp, &low);
+    (void)GSmooth__FfffP3SMPPf(current, SMaxShape(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
+    {
+        float hi = high;
+        *outPos = Sub(pos.q, p->o->pos);
+        {
+            float g;
+            if (dot < low)
+                g = low;
+            else if (hi < dot)
+                g = hi;
+            else
+                g = dot;
+            *outVel = Scale(dir.q, g);
+        }
+    }
 }
 } } // namespace M_GetJtRailLanding
 
