@@ -481,28 +481,27 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     p->cb = p->c - p->b;
     p->ca = p->c - p->a;
     c = func_0012FF10(p->paseg, arg, 1, 1);
-    if (!c)
-        goto initialized;
-    CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
-    CURVECALL((CV *)c->pkey, &v1.q, 0, p->c, 1.0f);
-    __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
-    h = p->c;
-    __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
-            "%1,%z3,$zero\n\tsub.s %2,%2,%4"
-            : "+j"(d), "=r"(derivative), "+f"(h)
-            : "rJ"((qword *)0), "f"(start));
-    h *= 0.5f;
-    __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
-            : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
-            : "j"(d), "m"(c->pkey));
-    CURVECALL(thirdCurve, &v2.q, derivative, start + h, 1.0f);
-    {
-        V3 *pv = &p->v;
-        pv->x = 0;
-        pv->y = 0;
-        pv->z = (-v2.f[2] + v0.f[2]) / (h * h * 0.5f);
+    if (c) {
+        CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
+        CURVECALL((CV *)c->pkey, &v1.q, 0, p->c, 1.0f);
+        __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
+        h = p->c;
+        __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
+                "%1,%z3,$zero\n\tsub.s %2,%2,%4"
+                : "+j"(d), "=r"(derivative), "+f"(h)
+                : "rJ"((qword *)0), "f"(start));
+        h *= 0.5f;
+        __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
+                : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
+                : "j"(d), "m"(c->pkey));
+        CURVECALL(thirdCurve, &v2.q, derivative, start + h, 1.0f);
+        {
+            V3 *pv = &p->v;
+            pv->x = 0;
+            pv->y = 0;
+            pv->z = (-v2.f[2] + v0.f[2]) / (h * h * 0.5f);
+        }
     }
-initialized:
     p->fInit = 1;
 }
 
