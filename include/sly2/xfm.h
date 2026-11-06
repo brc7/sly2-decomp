@@ -170,12 +170,12 @@ struct TN : public XFM
       CLQ clqPull;
       LM lmPull;
       undefined4 unk_0x1b8[(0x1c0 - 0x1b8) / 4];
+    virtual void Freeze() __asm__("OnTnRemove");   /* slot 22 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTn");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveTnHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTnFromBrx");   /* slot 14 */
     virtual void VUnk15() __asm__("UpdateTn");   /* slot 16 */
-    virtual void Freeze() __asm__("OnTnRemove");   /* slot 22 */
     virtual int CploChildren(LO ***paplo) __asm__("func_00221120");   /* slot 28 */
     virtual void Clone(LO *ploBase) __asm__("CloneTn");   /* slot 41 */
 };
