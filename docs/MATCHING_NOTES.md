@@ -536,5 +536,19 @@ Measured while cleaning src/game/gameplay/ai/ (object compared byte-for-byte bef
   plain ifs (`if (n > 0) {...}  if (n > 0) A; else B;`) for free (GenerateStepguardLoot). `} else { if` -> `} else if`
   is free. m2c's `if (n > 0) do {...} while (j < n);` cannot always become a `for` (GenerateStepguardLoot's coin
   split: no match), and a hand-rotated goto loop (test at the bottom, pinned registers) stayed as is.
+- **Loops.** m2c's `i = 0; if (n > 0) { p = base; do { f(p); i++; p++; } while (i < n); }` -> `for (i = 0; i < n; i++)
+  f(&base[i]);` is free (loop.c re-derives the pointer), but a for loop that carries the hand-held pointer is not
+  (ResolveStepguardAnimBindings). Cursor/countdown do-whiles became `for (int i...)` only with a block-local index
+  (ChooseBhvSearchPoints). A backward `goto loop` became `for (;;)` with breaks when the original outer `if` and
+  the bottom test were kept (UpdateBhvScript); a `goto test; top: ...; test: if (c) goto top;` loop is NOT a
+  `while`: it has no loop notes, so loop.c does not hoist (UpdateBhvEscort keeps it).
+- **Early returns:** a void function whose whole body is `if (c) {...}` becomes `if (!c) return; ...` for free
+  (14 functions). But shared exits are not free: `goto ret0/ret1` labels (IsStepguardTargetValid), `goto fail`
+  (DoesTargetRecordAllowGuard) and a single-exit result variable (ChooseStepguardTarget) all reorder blocks when
+  turned into direct returns. A float `if (a > b) goto L;` cannot be inverted into an if-block either: with
+  -ffast-math `!(a > b)` folds to `a <= b` (c.le/bc1f instead of c.lt/bc1t; UpdateBhvCircle).
+- Branch order matters even without gotos: ReleaseAnimBinding matches only as `if (kind != 2) { if (kind == 3)
+  ... } else ...`, not as a switch or an `== 2 / == 3` chain. A small goto into a shared tail (`goto fill`,
+  `goto take`, `goto spawn`) could be removed by duplicating the tail in every case tried (gcc cross-jumps it back).
 - `*(i + array)` and `array[i]` can differ (operand order of the address add): keep the index-first form where the
   match needs it and comment it.
