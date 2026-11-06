@@ -6089,7 +6089,7 @@ _lf_bind,0x238D70,64,match,src/sdk/libkernel/_lf_bind.c
 func_00238E70,0x238E70,35,match,src/sdk/libkernel/func_00238E70.c
 sceSifLoadFileReset,0x238F00,14,match,src/sdk/libkernel/sceSifLoadFileReset.c
 _sceSifLoadModuleBuffer,0x238F38,130,match,src/sdk/libkernel/_sceSifLoadModuleBuffer.c
-s1_sceSifLoadModule,0x239140,7,match,src/sdk/libkernel/s1_sceSifLoadModule.c
+sceSifLoadModuleBuffer,0x239140,7,match,src/sdk/libkernel/s1_sceSifLoadModule.c
 sceSifResetIop,0x239198,85,match,src/sdk/libkernel/sceSifResetIop.c
 sceSifSyncIop,0x2392F0,20,match,src/sdk/libkernel/sceSifSyncIop.c
 sceSifRebootIop,0x239340,68,match,src/sdk/libkernel/sceSifRebootIop.c
