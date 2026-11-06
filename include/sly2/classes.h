@@ -1655,8 +1655,8 @@ typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
 struct SAFEHOUSE : PO
 {
     char pad180[0x240 - 0x180];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSafehouseClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001D7238");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSafehouseClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_001D7268");   /* slot 15 */
     virtual void VUnk15() __asm__("func_001D72A8");   /* slot 16 */
     virtual void SetCtlState(int nState) __asm__("func_001D7418");   /* slot 79 */
