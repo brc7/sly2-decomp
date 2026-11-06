@@ -179,7 +179,7 @@ struct S {
     float unknown370; float unknown374; float closeRange; int canInteract; float unknown380; float unknown384; float interactRange;
     char pad6[0x3D8 - 0x38C]; int coinCountOverride; char pad7[0x3F0 - 0x3DC]; int unknown3F0; char pad8[0x3FC - 0x3F4]; int unknown3FC;
     char pad9[0x4A0 - 0x400]; int unknown4A0; char padA[0xE64 - 0x4A4]; int sensesEnabled; int minStimulusLevel; float unknownE6C; float unknownE70;
-    char padB[0xE78 - 0xE74]; int searchMode; float sleepTimeMin; float sleepTimeMax; int unknownE84; char padC[0xF40 - 0xE88]; int unknownF40; int padF44;
+    char padB[0xE78 - 0xE74]; int searchMode; float sleepTimeMin; float sleepTimeMax; int sleepDartCapacity; char padC[0xF40 - 0xE88]; int unknownF40; int padF44;
     float shootRangeMin; float shootRangeMax; float shootPanMin; float shootPanMax; float shootTiltMin; float shootTiltMax; char padD[0xF64 - 0xF60]; struct F64 *detector;
     char padE[0xF80 - 0xF68]; int attachKind; char padF[0xFBC - 0xF84]; int specialState; char padG[0xFD0 - 0xFC0]; struct BLOCK block;
     float unknownFF4; char padH[0x1000 - 0xFF8]; int removalMode;
@@ -237,7 +237,7 @@ void InitStepguard(struct S *guard)
     guard->interactRange = 3000.0f;
     guard->sleepTimeMin = 16.0f;
     guard->sleepTimeMax = 20.0f;
-    guard->unknownE84 = 50;
+    guard->sleepDartCapacity = 50;
     guard->unknownE6C = 5.5f;
     guard->unknownE70 = 6.5f;
     guard->knockdownZapMask = 0x29FF7E;
@@ -457,17 +457,17 @@ void STEPGUARD::RemoveHierarchy()
 
 // 0x206518 ResetStepguardToHome
 namespace M_ResetStepguardToHome { extern "C" {
-struct VE; struct O; struct P2F0; struct F64; struct S;
+struct VE; struct O; struct HOMEREC; struct F64; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
-struct P2F0 { char pad[8]; qword *pq; float f; };
-struct F64 { char pad[0xE0]; void *pE0; void *pE4; };
+struct HOMEREC { char pad[8]; qword *position; float f; };
+struct F64 { char pad[0xE0]; void *owner; void *unknownE4; };
 struct S {
-    char pad0[0xEC]; void *pEC; char pad1[0x26C - 0xF0]; char a26C[0x2F0 - 0x26C]; struct P2F0 *p2F0;
-    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int n340; int n344;
-    char pad4[0x494 - 0x348]; int n494; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
-    int nE84; int nE88; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char aFD0[0xFE8 - 0xFD0];
+    char pad0[0xEC]; void *unknownEC; char pad1[0x26C - 0xF0]; char bhvstk[0x2F0 - 0x26C]; struct HOMEREC *homeRecord;
+    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int staggerCapacity; int staggerProgress;
+    char pad4[0x494 - 0x348]; int lootEnabled; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
+    int sleepDartCapacity; int sleepDartProgress; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char mover[0xFE8 - 0xFD0];
     int capabilities; struct O *knockdownHelper;
 };
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
@@ -495,22 +495,22 @@ void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 void ResetStepguardToHome(struct S *guard)
 {
     struct O *o;
-    qword *pq;
+    qword *position;
     func_001CB518(guard);
-    pq = &guard->homePosition;
+    position = &guard->homePosition;
     guard->hp = guard->hpMax;
-    guard->nE88 = guard->nE84;
-    guard->n344 = guard->n340;
-    ClearBhvstk__FP6BHVSTK(guard->a26C);
-    ClearStepguardMover(guard->aFD0);
+    guard->sleepDartProgress = guard->sleepDartCapacity;
+    guard->staggerProgress = guard->staggerCapacity;
+    ClearBhvstk__FP6BHVSTK(guard->bhvstk);
+    ClearStepguardMover(guard->mover);
     SetStepguardGrfsgf(guard, 0);
     ResetStuckWatch(guard->stuckWatch);
     ResetHazardWatch(guard->hazardWatch);
     EnableStuckWatch(guard->stuckWatch);
     guard->homePosition = func_001A62E8(guard);
     guard->homeHeading = RadStepHeading(guard);
-    guard->p2F0->pq = pq;
-    guard->p2F0->f = guard->homeHeading;
+    guard->homeRecord->position = position;
+    guard->homeRecord->f = guard->homeHeading;
     func_00204660(guard, guard->homeHeading);
     guard->capabilities = 0;
     if (FindBestAnimBinding(guard, GetSgfMask(SGF_MOVING)))
@@ -527,7 +527,7 @@ void ResetStepguardToHome(struct S *guard)
     UpdateDetectorTrackedObject(guard->detector, guard, D_002F7900);
     UpdateDetectorTrackedObject(guard->detector, guard, D_002DD5BC);
     UpdateDetectorTrackedObject(guard->detector, guard, D_002DD648);
-    if (guard->n494) {
+    if (guard->lootEnabled) {
         GenerateStepguardLoot(guard);
         StageStepguardLoot(guard);
     }
@@ -536,8 +536,8 @@ void ResetStepguardToHome(struct S *guard)
     o = PushStepBhv(guard, CID_BHVGUARD);
     o->vt[8].pf((char *)o + o->vt[8].d);
     SetLoParent_1A58D0(guard->detector, guard, 0xF);
-    guard->detector->pE0 = guard;
-    guard->detector->pE4 = guard->pEC;
+    guard->detector->owner = guard;
+    guard->detector->unknownE4 = guard->unknownEC;
 }
 } } // namespace M_ResetStepguardToHome
 
@@ -546,11 +546,11 @@ namespace M_ClearStepguardState { extern "C" {
 struct F; struct S;
 extern float D_002A8610;
 extern int D_002C3CF0;
-struct F { char pad[0xF0]; int a; int b; };
+struct F { char pad[0xF0]; int unknownF0; int unknownF4; };
 struct S {
-    char p0[0x2DC]; int unknown2DC[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
-    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int n484, n488, isLootStaged, n490; char p5[0x4A0 - 0x494]; int unknown4A0;
-    char p6[0xE94 - 0x4A4]; int nE94; char p7[0xF64 - 0xE98]; struct F *pf; int nF68; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
+    char p0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
+    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char p5[0x4A0 - 0x494]; int unknown4A0;
+    char p6[0xE94 - 0x4A4]; int unknownE94; char p7[0xF64 - 0xE98]; struct F *detector; int escortObject; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
     char p9[0xFA8 - 0xF98]; int avoidObjectCount; char p10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char p11[0xFF4 - 0xFD0]; float unknownFF4;
     char p12[0x1000 - 0xFF8]; int removalMode;
 };
@@ -569,14 +569,14 @@ void ClearStepguardState(struct S *guard)
     func_001CB5D0(guard);
     DetachStepguard(guard);
     guard->patrolScript = 0;
-    func_002333B4(guard->unknown2DC, 0, 0xC);
-    guard->nE94 = 0;
-    guard->pf->a = 0;
-    guard->pf->b = 0;
-    guard->n484 = 0;
-    guard->n488 = 0;
+    func_002333B4(guard->scriptResumePoint, 0, 0xC);
+    guard->unknownE94 = 0;
+    guard->detector->unknownF0 = 0;
+    guard->detector->unknownF4 = 0;
+    guard->numLoot = 0;
+    guard->firstLoot = 0;
     guard->isLootStaged = 0;
-    guard->n490 = 0;
+    guard->unknown490 = 0;
     guard->designatedTargetCount = 0;
     guard->avoidObjectCount = 0;
     guard->forcedTarget = 0;
@@ -584,7 +584,7 @@ void ClearStepguardState(struct S *guard)
     ClearStepguardTargetLists(guard);
     one = 1;
     guard->isKnockedOut = 0;
-    guard->nF68 = 0;
+    guard->escortObject = 0;
     guard->isHandsOff = 0;
     guard->unknownFCC = 0;
     guard->pulseStartTime = -10.0f;
