@@ -1260,8 +1260,8 @@ typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
 struct CID8 : XFM
 {
     char padE0[0x100 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid8ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00185130");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid8ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_00185150");   /* slot 14 */
 };
 typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
@@ -1270,8 +1270,8 @@ typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
 struct CID9 : CID8
 {
     char pad100[0x120 - 0x100];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00185BF8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("func_00185C28");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("func_00185C60");   /* slot 12 */
     virtual void VUnk14() __asm__("func_00185CE0");   /* slot 15 */
