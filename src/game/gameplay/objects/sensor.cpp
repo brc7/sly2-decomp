@@ -291,14 +291,7 @@ void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
 void MoveLasenEndpoints(LASENV *plasen);
 }
 
-/** @sly2-annot addr=0x1DE2A0
- * Purpose: SENSOR::Init (vt7): InitSo; set SO grf bit 34
- * Info: proposed name InitSensor (T1); class SENSOR slot7; TU sensor
- * Notes: superseded r6_1D5150 proposal: InitSensor? (0.3)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/hud-ui.md#4-source-files
- * @end-sly2-annot */
+// SENSOR::Init (vt7): InitSo; set SO grf bit 34. (inferred)
 void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 {
     SENSORV *psensor = (SENSORV *)this;
@@ -306,14 +299,8 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
     psensor->grfSo |= 0x400000000UL;
 }
 
-/** @sly2-annot addr=0x1DE2D8
- * Purpose: SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list
- *   (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with
- *   NMaxIgnore
- * Info: proposed name FIgnoreSensorIntersection (T1); class SENSOR slot61; TU sensor
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7,
+// FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore. (inferred)
 extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
 {
     int i, j;
@@ -329,13 +316,7 @@ extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
     return r;
 }
 
-/** @sly2-annot addr=0x1DE3B0
- * Purpose: Append a cid to the no-trigger class list (+0x170, max 7)
- * Info: proposed name AddSensorNoTriggerClass (T1); TU sensor
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest+verdicts_B
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// Append a cid to the no-trigger class list (+0x170, max 7). (inferred)
 extern "C" void AddSensorNoTriggerClass(SENSORV *psensor, CID cid)
 {
     if ((uint)psensor->ccidNoTrigger < 7) {
@@ -343,13 +324,7 @@ extern "C" void AddSensorNoTriggerClass(SENSORV *psensor, CID cid)
     }
 }
 
-/** @sly2-annot addr=0x1DE3D8
- * Purpose: Append an oid to the no-trigger object list (+0x150, max 7)
- * Info: proposed name AddSensorNoTriggerObject (T1); TU sensor
- * Notes: names_v2 B proposed AddSensorTriggerClass__FP6SENSOR3CID (0.872)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// Append an oid to the no-trigger object list (+0x150, max 7). (inferred)
 extern "C" void AddSensorNoTriggerObject(SENSORV *psensor, OID oid)
 {
     if ((uint)psensor->coidNoTrigger < 7) {
@@ -357,14 +332,7 @@ extern "C" void AddSensorNoTriggerObject(SENSORV *psensor, OID oid)
     }
 }
 
-/** @sly2-annot addr=0x1DE400
- * Purpose: LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8
- * Info: proposed name InitLasen (T2); class LASEN slot7; TU sensor
- * Notes: superseded r6_1D5150 proposal: InitLasen? (0.25) | names_v2 C proposed SetLightKind__FP5LIGHT6LIGHTK
- *   (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8. (inferred)
 extern "C" void InitLasen(LASENV *plasen)
 {
     int v;
@@ -379,17 +347,8 @@ extern "C" void InitLasen(LASENV *plasen)
 static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE378(preq); }
 static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE238(preq, pv); }
 
-/** @sly2-annot addr=0x1DE478
- * Purpose: LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds
- *   beams), shrink to count
- * Info: proposed name LoadLasenFromBrx (T1); class LASEN slot14; TU sensor
- * Notes: superseded r6_1D5150 proposal: LoadLasenFromBrx? (0.3) | names_v2 C proposed
- *   SetLightDirection__FP5LIGHTP6VECTOR (0.638) | level_parser CONFIRMED-parse: payload layout followed by
- *   the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r6b_rest+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/guards-ai.md#5-perception,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
- * @end-sly2-annot */
+// LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to
+// count. (inferred)
 extern "C" void LoadLasenFromBrx(LASENV *plasen, CBinaryInputStream *pbis)
 {
     STACKSCOPE scope;
@@ -399,13 +358,7 @@ extern "C" void LoadLasenFromBrx(LASENV *plasen, CBinaryInputStream *pbis)
     plasen->abeam = (BEAM *)PvReallocMsg(&req, plasen->cbeam * sizeof(BEAM), 0x10, plasen->abeam);
 }
 
-/** @sly2-annot addr=0x1DE518
- * Purpose: LASEN::Clone (vt41): Clone__2SO then private copy of the beam array
- * Info: proposed name CloneLasen (T1); class LASEN slot41; TU sensor
- * Notes: superseded r6_1D5150 proposal: CloneLasen? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::Clone (vt41): Clone__2SO then private copy of the beam array. (inferred)
 extern "C" void CloneLasen(LASENV *plasen)
 {
     ALLOCREQ req;
@@ -413,14 +366,8 @@ extern "C" void CloneLasen(LASENV *plasen)
     plasen->abeam = (BEAM *)PvReallocMsg(&req, plasen->cbeam * sizeof(BEAM), 0x10, plasen->abeam);
 }
 
-/** @sly2-annot addr=0x1DE568
- * Purpose: LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations
- *   (0x1DEDB0), initial zap pass (0x1DF260)
- * Info: proposed name PostLasenLoad (T1); class LASEN slot15; TU sensor
- * Notes: superseded r6_1D5150 proposal: PostLasenLoad? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
+// initial zap pass (0x1DF260). (inferred)
 void LASEN::VUnk14()
 {
     LASENV *plasen = (LASENV *)this;
@@ -430,13 +377,7 @@ void LASEN::VUnk14()
     plasen->ZapBeams(0);
 }
 
-/** @sly2-annot addr=0x1DE5A8
- * Purpose: LASEN vt53: SO::PtreeNew then set tree flag 0x20
- * Info: proposed name LASEN_PtreeNew (T2); class LASEN slot53; TU sensor
- * Notes: names_v2 C proposed SetLightFrustrumUp__FP5LIGHTP6VECTOR (0.167)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN vt53: SO::PtreeNew then set tree flag 0x20. (inferred)
 extern "C" SOTREEV *NewLasenTree(LASENV *plasen)
 {
     SOTREEV *ptree = func_001F56F8(plasen);
@@ -471,14 +412,8 @@ static inline float Clamp(float f, float low, float high) { if (f < low) return 
 static inline M4 *PmatWorld(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
 static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
 
-/** @sly2-annot addr=0x1DE5D8
- * Purpose: (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a
- *   1/2/6-segment motion profile) and the beams' bounding box as the SO's single part
- * Info: proposed name BuildLasenBeams (T2); TU sensor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion
+// profile) and the beams' bounding box as the SO's single part. (inferred)
 extern "C" void BuildLasenBeams(LASENV *p)
 {
     int i;
@@ -662,13 +597,7 @@ extern "C" void BuildLasenBeams(LASENV *p)
     if ((int)(p->grfLo >> 60) & 1) AddSoParts(p);
 }
 
-/** @sly2-annot addr=0x1DEDB0
- * Purpose: For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key
- * Info: proposed name BindLasenAnims (T2); TU sensor
- * Notes: names_v2 C proposed RebuildLightFrustrum__FP5LIGHT (0.167)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key. (inferred)
 extern "C" void BindLasenAnimations(LASENV *plasen)
 {
     uint i;
@@ -696,13 +625,7 @@ extern "C" void BindLasenAnimations(LASENV *plasen)
 }
 
 /* Remove the beams' contacts with pso. */
-/** @sly2-annot addr=0x1DEEA8
- * Purpose: LASEN vt54: drop beam contact links that reference object x and free them
- * Info: proposed name RemoveLasenContacts (T2); class LASEN slot54; TU sensor
- * Notes: agent qualifier: (vt54)
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN vt54: drop beam contact links that reference object x and free them. (inferred)
 extern "C" void RemoveLasenContactsWith(LASENV *plasen, SOV *pso)
 {
     XP *list = 0;
@@ -726,13 +649,8 @@ extern "C" void RemoveLasenContactsWith(LASENV *plasen, SOV *pso)
     EnsureSwCallback(&D_003DD490, plasen, &LASENV::ZapBeams, 0);
 }
 
-/** @sly2-annot addr=0x1DEF98
- * Purpose: World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and
- *   optionally their distance
- * Info: proposed name GetLasenBeamEnds (T1); TU sensor
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their
+// distance. (inferred)
 extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps)
 {
     uint i;
@@ -795,13 +713,7 @@ static inline float Scalar(VU_VECTOR v)
     return f;
 }
 
-/** @sly2-annot addr=0x1DF0A0
- * Purpose: LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap
- * Info: proposed name UpdateLasenContacts (T2); class LASEN slot60; TU sensor
- * Notes: names_v2 C proposed SetLasenSensors__FP5LASEN7SENSORS (0.438) | agent qualifier: (vt60)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap. (inferred)
 extern "C" void AddLasenBeamXps(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
@@ -831,14 +743,8 @@ extern "C" void AddLasenBeamXps(LASENV *p, REQUEST *q, int a2, int a3, int a4, X
     }
 }
 
-/** @sly2-annot addr=0x1DF260
- * Purpose: For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped
- *   (InflictZap kind 0x1000, -10) and the visible length is cut to it
- * Info: proposed name ZapLasenBeams (T1); TU sensor
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind
+// 0x1000, -10) and the visible length is cut to it. (inferred)
 void LASENV::ZapBeams(int)
 {
     LASENV *p = this;
@@ -874,27 +780,15 @@ void LASENV::ZapBeams(int)
     }
 }
 
-/** @sly2-annot addr=0x1DF3A0
- * Purpose: LASEN::Update (vt16): UpdateSo then move path endpoints
- * Info: proposed name UpdateLasen (T1); class LASEN slot16; TU sensor
- * Notes: superseded r6_1D5150 proposal: UpdateLasen? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::Update (vt16): UpdateSo then move path endpoints. (inferred)
 extern "C" void UpdateLasen(LASENV *plasen, float dt)
 {
     UpdateSo(plasen, dt);
     MoveLasenEndpoints(plasen);
 }
 
-/** @sly2-annot addr=0x1DF3D0
- * Purpose: Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark
- *   the tree dirty, recompute length
- * Info: proposed name MoveLasenEndpoints (T2); TU sensor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty,
+// recompute length. (inferred)
 extern "C" void MoveLasenEndpoints(LASENV *p)
 {
     int i;
@@ -993,14 +887,7 @@ static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &dista
     GetLasenBeamEnds(owner, beam->aend, &points[0].q, &distance);
 }
 
-/** @sly2-annot addr=0x1DF5B0
- * Purpose: LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix)
- * Info: proposed name RenderLasenSelf (T1); class LASEN slot19; TU sensor
- * Notes: superseded r6_1D5150 proposal: RenderLasenSelf? (0.3) | names_v2 B proposed
- *   RenderCamsenSelf__FP6CAMSENP2CMP2RO (0.901)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
 extern "C" void RenderLasenSelf(LASENV *p)
 {
     RenderSoSelf(p);
@@ -1071,13 +958,7 @@ static inline void SetParams(BEAMPARAMS *pparams, float fraction, float speed, f
     pparams->duration = duration;
     pparams->mode = mode;
 }
-/** @sly2-annot addr=0x1DF908
- * Purpose: Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40)
- * Info: proposed name AddLasenBeam (T1); TU sensor
- * Notes: names_v2 C proposed FFilterCamsen__FPvP2SO (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40). (inferred)
 extern "C" void AddLasenBeam(LASENV *plasen, OID oid0, float fraction0, float speed0, float duration0, int mode0,
                              OID oid1, float fraction1, float speed1, float duration1, int mode1)
 {

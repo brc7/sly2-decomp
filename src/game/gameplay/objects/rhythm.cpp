@@ -145,27 +145,13 @@ void AddRhythmScore(RHYTHMMGR *p, float g);
 float GetAverageRhythmScore(RHYTHMMGR *p);
 }
 
-/** @sly2-annot addr=0x1520C8
- * Purpose: cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0))
- * Info: proposed name RemoveHierarchyDancer (T2); class DANCER slot12; TU rhythm
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#4-source-files, docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#source-files
- * @end-sly2-annot */
+// cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)). (inferred)
 extern "C" void RemoveDancerHierarchy(DANCERV *p) {
     RemoveSoHierarchy(p);
     ApplyDancerAseg(p, 0, 0);
 }
 
-/** @sly2-annot addr=0x152100
- * Purpose: cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0)
- * Info: proposed name PostLoadDancer (T2); class DANCER slot15; TU rhythm
- * Notes: verifier: purpose partly wrong: CID 0x44 vtable 0x2CD748 slot 15 (ref 0x2CD7C4); base 0x203A38,
- *   0x152578, vt79(0). 0x152578 resolves up to 8x3 oids via 0x152520 = PloFindSwObject(4) then calls
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0). (inferred)
 void DANCER::VUnk14()
 {
     DANCERV *o = (DANCERV *)this;
@@ -186,14 +172,8 @@ static inline qwordV VecMul(qwordV v, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
     return r;
 }
-/** @sly2-annot addr=0x152148
- * Purpose: cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the
- *   rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from
- *   aseg
- * Info: proposed name UpdateDancer (T2); class DANCER slot16; TU rhythm
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state
+// (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg. (inferred)
 extern "C" void UpdateDancer(DANCERV *p)
 {
     int k;
@@ -220,14 +200,8 @@ extern "C" void UpdateDancer(DANCERV *p)
 
 struct SOM { char pad[0x18]; DANCERV *p18; };
 struct MSGD { SOM *pso; float g; int k; };
-/** @sly2-annot addr=0x152250
- * Purpose: cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E
- *   apply aseg-derived velocity via vt35
- * Info: proposed name HandleDancerMessage (T2); class DANCER slot5; TU rhythm
- * Notes: names_v2 C proposed UploadBitmaps__FiP3GSB (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived
+// velocity via vt35. (inferred)
 extern "C" void HandleDancerMessage(DANCERV *p, int msgk, MSGD *pmsg)
 {
     HandlePoMessage(p, msgk, pmsg);
@@ -257,25 +231,14 @@ extern "C" void HandleDancerMessage(DANCERV *p, int msgk, MSGD *pmsg)
 }
 
 struct CPDEFIV { char pad[0x30]; float radHome; };
-/** @sly2-annot addr=0x152350
- * Purpose: cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135
- *   degrees)
- * Info: proposed name GetDancerCpdefi (T1); class DANCER slot50; TU rhythm
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees). (inferred)
 extern "C" void GetDancerCpdefi(DANCERV *p, CPDEFIV *pc) {
     GetSoCpdefi(p, pc);
     pc->radHome = pc->radHome - 2.3561945f;
 }
 
-/** @sly2-annot addr=0x152390
- * Purpose: Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally
- *   rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j
- * Info: proposed name PlayDancerMove (T2); TU rhythm
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result,
+// stop asegs (0x2303A0 x2) and apply entry's aseg j. (inferred)
 void PlayDancerMove(DANCERV *p, int id, int idNew, int j)
 {
     int i;
@@ -295,23 +258,13 @@ void PlayDancerMove(DANCERV *p, int id, int idNew, int j)
     }
 }
 
-/** @sly2-annot addr=0x1524A0
- * Purpose: ApplyAsegCur(paseg, this, 0, 1, grf|1, &this->pasega408)
- * Info: proposed name ApplyDancerAseg (T1); TU rhythm
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// ApplyAsegCur(paseg, this, 0, 1, grf|1, &this->pasega408). (inferred)
 void ApplyDancerAseg(DANCERV *p, void *paseg, int n)
 {
     ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(paseg, p, 0.0f, 1.0f, n | 1, &p->pa408);
 }
 
-/** @sly2-annot addr=0x1524D8
- * Purpose: Append move entry {a,b,c,d,e} (max 8) at +0x2C4
- * Info: proposed name AddDancerMove (T1); TU rhythm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Append move entry {a,b,c,d,e} (max 8) at +0x2C4. (inferred)
 extern "C" void AddDancerMove(DANCERV *p, int a, int b, int c, int d, int e)
 {
     if (p->uc < 8) {
@@ -326,12 +279,7 @@ extern "C" void AddDancerMove(DANCERV *p, int a, int b, int c, int d, int e)
     }
 }
 
-/** @sly2-annot addr=0x152520
- * Purpose: PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9
- * Info: proposed name PloFindDancerMoveObject (T2); TU rhythm
- * Confidence: low (draft) [T2 0.30] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9. (inferred)
 void *FindDancerMoveObject(DANCERV *p, int id) {
     void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p);
     if (po != 0) {
@@ -341,12 +289,7 @@ void *FindDancerMoveObject(DANCERV *p, int id) {
     return po;
 }
 
-/** @sly2-annot addr=0x152578
- * Purpose: Resolve every move entry's 3 oids to objects via 0x152520
- * Info: proposed name BindDancerMoves (T2); TU rhythm
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Resolve every move entry's 3 oids to objects via 0x152520. (inferred)
 void BindDancerMoves(DANCERV *p)
 {
     int i, j;
@@ -359,12 +302,7 @@ void BindDancerMoves(DANCERV *p)
     }
 }
 
-/** @sly2-annot addr=0x152628
- * Purpose: Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1)
- * Info: proposed name IGradeFromOid (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1). (inferred)
 int GradeIndexFromOid(int k)
 {
     switch (k) {
@@ -375,12 +313,7 @@ int GradeIndexFromOid(int k)
     return -1;
 }
 
-/** @sly2-annot addr=0x152680
- * Purpose: Map 0/1/2 -> oid 0x626/0x627/0x628
- * Info: proposed name OidFromIGrade (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Map 0/1/2 -> oid 0x626/0x627/0x628. (inferred)
 int OidFromGradeIndex(int k)
 {
     switch (k) {
@@ -393,13 +326,8 @@ int OidFromGradeIndex(int k)
 
 // Claude agent (lane D37): writing the range through a pointer to the 0x234 pair keeps cse from folding
 // gMax - gMin, like the target (no asm, no volatile).
-/** @sly2-annot addr=0x1526D8
- * Purpose: cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range
- *   lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds
- * Info: proposed name InitRhythmMgr (T1); class CID121 slot7; TU rhythm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
+// 0.4/0.4, 8-sample average, grade thresholds. (inferred)
 extern "C" void InitRhythmMgr(RHYTHMMGR *p)
 {
     unsigned int v;
@@ -429,13 +357,7 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *p)
     else p->fl = v | 0xA;
 }
 
-/** @sly2-annot addr=0x1527C8
- * Purpose: cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with
- *   0x149A50
- * Info: proposed name PostLoadRhythmMgr (T2); class CID121 slot15; TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50. (inferred)
 void CID121::VUnk14()
 {
     RHYTHMMGR *p = (RHYTHMMGR *)this;
@@ -443,14 +365,8 @@ void CID121::VUnk14()
     PostSwCallback(&D_003DD490, p, D_002A5010.l, 0);
 }
 
-/** @sly2-annot addr=0x152810
- * Purpose: Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random
- *   grade thresholds across the score range
- * Info: proposed name BindRhythmMgrGrades (T2); TU rhythm
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds
+// across the score range. (inferred)
 extern "C" void BindRhythmManagerGrades(RHYTHMMGR *p)
 {
     int i, j;
@@ -477,15 +393,8 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *p)
     }
 }
 
-/** @sly2-annot addr=0x152970
- * Purpose: cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due,
- *   state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score;
- *   UpdateRhythmMgrGrades
- * Info: proposed name UpdateRhythmMgr (T1); class CID121 slot16; TU rhythm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg
+// 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades. (inferred)
 extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
 {
     float t;
@@ -531,12 +440,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
     UpdateRhythmManagerGrades(p);
 }
 
-/** @sly2-annot addr=0x152B58
- * Purpose: Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score
- * Info: proposed name UpdateRhythmMgrGrades (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score. (inferred)
 void UpdateRhythmManagerGrades(RHYTHMMGR *p)
 {
     int i, j;
@@ -617,14 +521,8 @@ void func_002163B0(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
 }
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
-/** @sly2-annot addr=0x152C58
- * Purpose: Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline
- *   positions, highlights the expected one, animates a hint marker
- * Info: proposed name DrawRhythmMgr (T1); class CID121 slot19; TU rhythm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions,
+// highlights the expected one, animates a hint marker. (inferred)
 extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
 {
     RenderLoSelf(p);
@@ -712,13 +610,8 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
     }
 }
 
-/** @sly2-annot addr=0x153128
- * Purpose: Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 =
- *   Decrement; stamps time, resets cue index
- * Info: proposed name SetRhythmMgrState (T1); TU rhythm
- * Confidence: mid (draft) [T1 0.55] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time,
+// resets cue index. (inferred)
 void SetRhythmMgrState(RHYTHMMGR *p, int s) {
     int sCur = p->state;
     if (sCur != s) {
@@ -740,14 +633,8 @@ static inline void SetVector(VECTORV *pv, float x, float y, float z)
     pv->y = y;
     pv->z = z;
 }
-/** @sly2-annot addr=0x1531A8
- * Purpose: Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at
- *   y=468.8; then SetRhythmMgrState(q)
- * Info: proposed name SetRhythmMgrPrompts (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then
+// SetRhythmMgrState(q). (inferred)
 extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *p, int q, int c, void *pv)
 {
     p->c = c;
@@ -771,12 +658,7 @@ extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *p, int q, int c, void *pv)
     SetRhythmMgrState(p, q);
 }
 
-/** @sly2-annot addr=0x1532D8
- * Purpose: Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0
- * Info: proposed name PushRhythmMgrCue (T2); TU rhythm
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0. (inferred)
 extern "C" void PushRhythmManagerCue(RHYTHMMGR *p, DANCERV *a, int b, int c, float g)
 {
     CUE *pe;
@@ -797,14 +679,8 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *p, DANCERV *a, int b, int c, flo
     pe->n20 = 0;
 }
 
-/** @sly2-annot addr=0x1533B0
- * Purpose: Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat ->
- *   g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C
- * Info: proposed name JudgeRhythmPress (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button
+// (0x1C4700) -> success move + timing score; wrong -> g29C. (inferred)
 void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
 {
     void *pv = po->ppoctl;
@@ -850,36 +726,19 @@ void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
 }
 
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
-/** @sly2-annot addr=0x1535A0
- * Purpose: Score = lerp(D_002BBB60 range, 1 - |t - tCue| / window), window = early(+0x58) or late(+0x5C)
- * Info: proposed name GetRhythmTimingScore (T1); TU rhythm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Score = lerp(D_002BBB60 range, 1 - |t - tCue| / window), window = early(+0x58) or late(+0x5C).
 float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q)
 { float g = TMusicCur(D_003DD040); float d;
   if (g < q->gC) { d = (q->gC - g) / p->g58; } else { d = (g - q->gC) / p->g5C; }
   return GLerp(D_002BBB60.gMin, D_002BBB60.gMax, 1.0f - d); }
 
-/** @sly2-annot addr=0x153638
- * Purpose: Returns its float argument (8 bytes)
- * Info: TU rhythm
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.20] - evidence: semantic review; sources: r2_131F70
- * @end-sly2-annot */
+// Returns its float argument (8 bytes). (inferred)
 float PassThroughFloat(RHYTHMMGR *p, float g) {
     return g;
 }
 
-/** @sly2-annot addr=0x153640
- * Purpose: Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute
- *   average (+0x284); post msg 0x36
- * Info: proposed name AddRhythmScore (T1); TU rhythm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284);
+// post msg 0x36. (inferred)
 void AddRhythmScore(RHYTHMMGR *p, float g)
 {
     float *pg;
@@ -899,13 +758,7 @@ void AddRhythmScore(RHYTHMMGR *p, float g)
 }
 
 static inline int Max(int a, int b) { return a < b ? b : a; }
-/** @sly2-annot addr=0x153760
- * Purpose: Average of the last n (+0x280) scores clamped to lm
- * Info: proposed name GetAverageRhythmScore (T1); TU rhythm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Average of the last n (+0x280) scores clamped to lm.
 float GetAverageRhythmScore(RHYTHMMGR *p)
 {
     float sum;
@@ -919,13 +772,7 @@ float GetAverageRhythmScore(RHYTHMMGR *p)
     return GLimitLm__FP2LMf(&p->lm, sum / p->c280);
 }
 
-/** @sly2-annot addr=0x153800
- * Purpose: Zero score count/average/smoothed (+0x23C,+0x284,+0x288)
- * Info: proposed name ResetRhythmScore (T1); TU rhythm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Zero score count/average/smoothed (+0x23C,+0x284,+0x288).
 extern "C" void ResetRhythmScore(RHYTHMMGR *p)
 {
     p->cScore = 0;
@@ -933,12 +780,7 @@ extern "C" void ResetRhythmScore(RHYTHMMGR *p)
     *(int *)&p->g288 = 0;
 }
 
-/** @sly2-annot addr=0x153810
- * Purpose: Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8
- * Info: proposed name AddRhythmMgrGrade (T2); TU rhythm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
- * @end-sly2-annot */
+// Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8. (inferred)
 extern "C" void AddRhythmManagerGrade(RHYTHMMGR *p, int oid, int k) {
     unsigned int c = p->ucSma;
     if (c < 0x80U) {
@@ -955,46 +797,21 @@ extern "C" void AddRhythmManagerGrade(RHYTHMMGR *p, int oid, int k) {
    out-of-line copies (linkonce), as the original did. Symbols: the asm labels on the declarations (screen, mpeg and
    render call them by those names; HYPOTHESIS: Sly 1's CTextBox::SetPos/SetSize/SetTextColor/SetHorizontalJust/
    SetVerticalJust, whose mangled names would need their parameter types). */
-/** @sly2-annot addr=0x258438
- * Purpose: p->x=x; p->y=y [game linkonce (inline/template)]
- * Info: proposed name CTextBox_SetPos (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// p->x=x; p->y=y [game linkonce (inline/template)]. (inferred)
 inline void TB::SetPos(float x, float y) { this->x = x; this->y = y; }
 
-/** @sly2-annot addr=0x258448
- * Purpose: p->dx=dx; p->dy=dy [game linkonce (inline/template)]
- * Info: proposed name CTextBox_SetSize (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// p->dx=dx; p->dy=dy [game linkonce (inline/template)]. (inferred)
 inline void TB::SetSize(float x, float y) { this->dx = x; this->dy = y; }
 
-/** @sly2-annot addr=0x258458
- * Purpose: p->rgba = *c [game linkonce (inline/template)]
- * Info: proposed name CTextBox_SetTextColor (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// p->rgba = *c [game linkonce (inline/template)]. (inferred)
 inline void TB::SetColor(RGBAV *c) { *(RGBAB *)&this->color = *(RGBAB *)c; }
 
-/** @sly2-annot addr=0x258470
- * Purpose: p->x14 = jh [game linkonce (inline/template)]
- * Info: proposed name CTextBox_SetHorizontalJust (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// p->x14 = jh [game linkonce (inline/template)]. (inferred)
 inline void TB::SetHorizontalJust(int j) {
     jh = j;
 }
 
-/** @sly2-annot addr=0x258478
- * Purpose: p->x18 = jv [game linkonce (inline/template)]
- * Info: proposed name CTextBox_SetVerticalJust (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// p->x18 = jv [game linkonce (inline/template)]. (inferred)
 inline void TB::SetVerticalJust(int j) {
     jv = j;
 }

@@ -81,13 +81,7 @@ JTV *PpoHero(SW *psw);
 int FIsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
 }
 
-/** @sly2-annot addr=0x229EF0
- * Purpose: InitSo; 50, 300.0, ...
- * Info: proposed name InitWaypt (T1); class WAYPT slot7; TU waypoint
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/game-progression.md#7-source-files, docs/engine/physics-collision.md#6-source-files,
- *   docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
- * @end-sly2-annot */
+// InitSo; 50, 300.0, ... (inferred)
 extern "C" void InitWaypt(WAYPTV *p)
 {
     int f;
@@ -112,12 +106,7 @@ static __inline__ void ClearBit(SOV *po)
         po->grfLo = f & ~8;
     }
 }
-/** @sly2-annot addr=0x229F88
- * Purpose: SO PostLoad then clears grf bit 8 on child markers
- * Info: proposed name PostWayptLoad (T1); class WAYPT slot15; TU waypoint
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
- * @end-sly2-annot */
+// SO PostLoad then clears grf bit 8 on child markers. (inferred)
 void WAYPT::VUnk14()
 {
     WAYPTV *p = (WAYPTV *)this;
@@ -139,12 +128,7 @@ static __inline__ float GDist(qwordV a, qwordV b)
     g = VuToFloat(d);
     return g;
 }
-/** @sly2-annot addr=0x22A060
- * Purpose: SO update, distance to player/visibility
- * Info: proposed name UpdateWaypt (T1); class WAYPT slot16; TU waypoint
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
- * @end-sly2-annot */
+// SO update, distance to player/visibility. (inferred)
 extern "C" void UpdateWaypt(WAYPTV *p)
 {
     JTV *pj;
@@ -289,12 +273,7 @@ static inline float LenXYFN(qwordV v, int n)
     return f;
 }
 
-/** @sly2-annot addr=0x22A220
- * Purpose: camera->source curtain query vs BSPs, stores max slope dz
- * Info: proposed name CalculateWayptCurtainDz (T2); TU waypoint
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
- * @end-sly2-annot */
+// camera->source curtain query vs BSPs, stores max slope dz. (inferred)
 extern "C" void CalculateWayptCurtainDz(O *po)
 {
     UQ corner[4];
@@ -510,13 +489,7 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
     matRes = matT;
 }
 
-/** @sly2-annot addr=0x22A908
- * Purpose: fades the job marker, draws 3 child SOs scaled by distance, job name plate
- * Info: proposed name RenderWaypt (T1); class WAYPT slot19; TU waypoint
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
- * @end-sly2-annot */
+// fades the job marker, draws 3 child SOs scaled by distance, job name plate.
 extern "C" void RenderWaypt(WAYPTV *pwaypt)
 {
     RenderSoSelf(pwaypt);

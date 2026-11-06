@@ -104,14 +104,7 @@ void PackUV__4GIFSii(GIFS *pgifs, int a, int b);
 void PackXYZ__4GIFSiii(GIFS *pgifs, int x, int y, int z);
 }
 
-/** @sly2-annot addr=0x1471C0
- * Purpose: cid 0x68 (SO, 0x180) vt7: InitSo, state -1, flags
- * Info: proposed name InitCid104 (T2); class CID104 slot7; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/cutscenes.md#4-source-files,
- *   docs/engine/player.md#10-source-files
- * @end-sly2-annot */
+// cid 0x68 (SO, 0x180) vt7: InitSo, state -1, flags. (inferred)
 extern "C" void InitFrameCapture(P *p)
 {
     unsigned int v;
@@ -123,13 +116,7 @@ extern "C" void InitFrameCapture(P *p)
     else p->nTagged = v | 0x102;
 }
 
-/** @sly2-annot addr=0x147220
- * Purpose: vt15: PostSoLoad, load class table, state -1, vt9
- * Info: proposed name PostCid104Load (T2); class CID104 slot15; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// vt15: PostSoLoad, load class table, state -1, vt9. (inferred)
 void CID104::VUnk14()
 {
     P *p = (P *)this;
@@ -141,13 +128,7 @@ void CID104::VUnk14()
     e->pfn((char *)p + e->d);
 }
 
-/** @sly2-annot addr=0x147278
- * Purpose: vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2
- * Info: proposed name UpdateCid104 (T2); class CID104 slot16; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2. (inferred)
 extern "C" void UpdateFrameCapture(P *p)
 {
     switch (p->state) {
@@ -170,13 +151,7 @@ extern "C" void UpdateFrameCapture(P *p)
     }
 }
 
-/** @sly2-annot addr=0x147338
- * Purpose: vt5: msg 9 kinds 0x5FB..0x601 toggle three flags or start (state 3)
- * Info: proposed name HandleCid104Message (T2); class CID104 slot5; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// vt5: msg 9 kinds 0x5FB..0x601 toggle three flags or start (state 3). (inferred)
 extern "C" void HandleFrameCaptureMessage(P *p, int kind, MSG *pmsg)
 {
     HandleBasicMessage(p, kind, pmsg);
@@ -195,16 +170,8 @@ extern "C" void HandleFrameCaptureMessage(P *p, int kind, MSG *pmsg)
     }
 }
 
-/** @sly2-annot addr=0x147410
- * Purpose: state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate
- *   change (0x14D1D0 on g_clock), IncrementSwHandsOff, vt8
- * Info: proposed name SetDancerState (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: SetCid68State -> SetDancerState
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate change (0x14D1D0 on
+// g_clock), IncrementSwHandsOff, vt8. (inferred)
 extern "C" void SetFrameCaptureState(P *p, int state)
 {
     if (state == p->state) return;
@@ -242,12 +209,7 @@ extern "C" void SetFrameCaptureState(P *p, int state)
     }
 }
 
-/** @sly2-annot addr=0x1475C0
- * Purpose: GIF/DMA packet copying the frame buffer into a texture (D_002DECD0)
- * Info: proposed name CaptureFramebufferToTexture (T2); TU tu_1471C0
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// GIF/DMA packet copying the frame buffer into a texture (D_002DECD0). (inferred)
 extern "C" void CaptureFramebufferToTexture(P *p)
 {
     GIFS *g = &D_002DEA00;
@@ -279,15 +241,7 @@ extern "C" void CaptureFramebufferToTexture(P *p)
     PackXYZ__4GIFSiii(g, 0x9000, 0x8700, 0);
 }
 
-/** @sly2-annot addr=0x1477B0
- * Purpose: 0 in states 2/3 else 1
- * Info: proposed name FDancerScreenInactive (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: FCid68ScreenInactive ->
- *   FDancerScreenInactive
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// 0 in states 2/3 else 1. (inferred)
 extern "C" int IsFrameCaptureInactive(P *p)
 {
     switch (p->state) {
@@ -318,15 +272,8 @@ static inline float Screen(const float &g, const float &s) { return (g + 0.5f) *
 // laneL2v1 (Claude agent, 2026-10-24): aligned 82 (fresh1 90). C++ VU_VECTOR/VU_FLOAT class helpers in the j loop: pass-1 loop 128 / pass-2 101 insns, so 1.0/512/224 and HIGH(D_002BD410) stay in the loop and only f20 is saved. Left: extra dead VU temp stores at 0xC0, D_002BD3B0[j] still strength-reduced, &rw spilled instead of fp.
 // fresh1 (Claude agent, 2026-10-23): aligned 90 (old 98): unsigned loop counters stop gcc reversing both loops (target uses sltiu). Left: p in s1 vs s3; the target's inner loop does not hoist 1.0/512/224/&D_002BD410 or strength-reduce D_002BD3B0[j]; ours hoists them all (f21-f23).
 // DRAFT (Claude agent): HUD 2-matrix GIF sprite draw (state loop 0..2 over x164/x168/x16C; logic complete, regalloc/frame not yet: extra f21-f23, p in s1 vs s3).
-/** @sly2-annot addr=0x1477D8
- * Purpose: From main loop: draw the captured frame as two textured quads transformed by two child matrices
- *   (screen split/flip transition)
- * Info: proposed name DrawDancerScreen (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: DrawCid68Screen -> DrawDancerScreen
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// From main loop: draw the captured frame as two textured quads transformed by two child matrices (screen split/flip
+// transition). (inferred)
 extern "C" void DrawFrameCaptureScreen(P *p)
 {
     M4 am[2];
@@ -411,13 +358,7 @@ extern "C" void DrawFrameCaptureScreen(P *p)
     } while (state < 3);
 }
 
-/** @sly2-annot addr=0x147C20
- * Purpose: set params and find the aseg object to play
- * Info: proposed name StartDancer (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: StartCid68 -> StartDancer
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// set params and find the aseg object to play. (inferred)
 extern "C" void StartFrameCapture(P *p, int oid, int n)
 {
     char *aseg;

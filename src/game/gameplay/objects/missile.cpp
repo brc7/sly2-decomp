@@ -2,6 +2,8 @@
 // its two kinds ACCMISS (accelerates to a cruise speed, vtable slot 69) and SPLMISS (flies a Bezier path to arrive at
 // the target in a given time). VU0 macro-mode asm; FireSplmiss and PresetSplmissAccel are hand-scheduled (register pins
 // and fused asm blocks, from their per-function files).
+// Entry points: the MISSILE/ACCMISS/CID82 vtables (Init, LoadFromBrx, OnRemove, FireMissile/FireSplmiss, the acceleration
+// presets) and the Splice setters AddMissileSpecialObject / AddMissileSpecialClass.
 // TU 0x1B1DB8..0x1B2820 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_missile
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B2800
@@ -145,163 +147,104 @@ extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-/** @sly2-annot addr=0x1B1DB8
- * Purpose: MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1
- * Info: proposed name InitMissile (T1); class MISSILE slot7; TU missile
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/gameplay-objects.md#key-functions
- * @end-sly2-annot */
-void InitMissile(MISSILE *pmissile);
+// MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1.
+void InitMissile(MISSILE *missile);
 void MISSILE::Init()
 {
-    MISSILE *pmissile = this;
-    InitBomb(pmissile);
-    pmissile->fAct = 1;
-    pmissile->svLaunch = 800.0f;
-    pmissile->gAct = 1.0f;
+    MISSILE *missile = this;
+    InitBomb(missile);
+    missile->fAct = 1;
+    missile->svLaunch = 800.0f;
+    missile->gAct = 1.0f;
 }
 
-/** @sly2-annot addr=0x1B1E00
- * Purpose: MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,
- *   s_asnipMissile)
- * Info: proposed name LoadMissileFromBrx (T1); class MISSILE slot14; TU missile
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-void LoadMissileFromBrx(MISSILE *pmissile, CBinaryInputStream *pbis)
+// MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1, s_asnipMissile).
+void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 {
-    LoadSoFromBrx(pmissile, pbis);
-    BindLoOidTable(pmissile, 1, s_asnipMissile);
+    LoadSoFromBrx(missile, stream);
+    BindLoOidTable(missile, 1, s_asnipMissile);
 }
 
-/** @sly2-annot addr=0x1B1E38
- * Purpose: MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega
- * Info: proposed name OnMissileRemove (T1); class MISSILE slot12; TU missile
- * Notes: slot 12 is RemoveHierarchy by position, but the body matches Sly 1 OnMissileRemove; Sly 1 name kept
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r5_1AE130
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-void OnMissileRemove(MISSILE *pmissile)
+// MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega.
+void OnMissileRemove(MISSILE *missile)
 {
-    RemoveSoHierarchy(pmissile);
-    ApplyAsegCur(0, (ALO *)pmissile, 0.0f, 1.0f, 0, &pmissile->pasega);
-    ReleaseAct(&pmissile->pact);
+    RemoveSoHierarchy(missile);
+    ApplyAsegCur(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->pasega);
+    ReleaseAct(&missile->pact);
 }
 
-/** @sly2-annot addr=0x1B1E88
- * Purpose: MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg,
- *   optionally start action
- * Info: proposed name FireMissile (T1); class MISSILE slot78; TU missile
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos)
+// MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action.
+extern "C" void FireMissile(MISSILE *missile, LO *ploTarget, V *targetPos)
 {
     V v;
-    v = *ppos;
-    pmissile->ploTarget = ploTarget;
-    *(V *)&pmissile->qwTarget = v;
-    ApplyAsegCur(pmissile->paseg, (ALO *)pmissile, 0.0f, 1.0f, 8, &pmissile->pasega);
-    if (pmissile->fAct)
-        pmissile->pact = func_0012DCA0(pmissile, pmissile->pxfUnk5c, 0, 5, pmissile->gAct, 0.0f);
+    v = *targetPos;
+    missile->ploTarget = ploTarget;
+    *(V *)&missile->qwTarget = v;
+    ApplyAsegCur(missile->paseg, (ALO *)missile, 0.0f, 1.0f, 8, &missile->pasega);
+    if (missile->fAct)
+        missile->pact = func_0012DCA0(missile, missile->pxfUnk5c, 0, 5, missile->gAct, 0.0f);
 }
 
-/** @sly2-annot addr=0x1B1F10
- * Purpose: MISSILE vt77: BOMB base (0x13B250) then retract asega at +0x268
- * Info: proposed name ExplodeMissile (T2); class MISSILE slot77; TU missile
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void ApplyMissileThrow(MISSILE *pmissile)
+// MISSILE vtable slot 77 (thrown/launched): the BOMB behaviour, then stops the flight action. (inferred)
+extern "C" void ApplyMissileThrow(MISSILE *missile)
 {
-    ApplyBombThrow(pmissile);
-    ReleaseAct(&pmissile->pact);
+    ApplyBombThrow(missile);
+    ReleaseAct(&missile->pact);
 }
 
-/** @sly2-annot addr=0x1B1F40
- * Purpose: MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a
- *   cid in list +0x250
- * Info: proposed name FIgnoreMissileIntersection (T1); class MISSILE slot61; TU missile
- * Notes: MISSILE vtable slot 61, missile TU (verifier better name; r5 placeholder MissileVt61CollideFilter)
- *   (was MissileVt61CollideFilter)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: verify_A2+verdicts_A2
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-int FIgnoreMissileIntersection(MISSILE *pmissile, SO *pso)
+// MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list
+// +0x250.
+int FIgnoreMissileIntersection(MISSILE *missile, SO *pso)
 {
     int i, j;
-    int r = FIgnoreBombIntersection(pmissile, pso);
-    for (i = 0; i < pmissile->coidIgnore; i++)
-        if (pmissile->aoidIgnore[i] == pso->oid) r = func_00134310(r, 1);
-    for (j = 0; j < pmissile->ccidIgnore; j++)
-        if (FIsBasicDerivedFrom(pso, pmissile->acidIgnore[j])) r = func_00134310(r, 1);
+    int r = FIgnoreBombIntersection(missile, pso);
+    for (i = 0; i < missile->coidIgnore; i++)
+        if (missile->aoidIgnore[i] == pso->oid) r = func_00134310(r, 1);
+    for (j = 0; j < missile->ccidIgnore; j++)
+        if (FIsBasicDerivedFrom(pso, missile->acidIgnore[j])) r = func_00134310(r, 1);
     return r;
 }
 
-/** @sly2-annot addr=0x1B2020
- * Purpose: Append OID to MISSILE list +0x23C (max 4, count +0x238)
- * Info: proposed name AddMissileSpecialObject (T2); TU missile
- * Notes: names_v2 C proposed AddSensorTriggerObject__FP6SENSOR3OID (0.638)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void AddMissileSpecialObject(MISSILE *pmissile, OID oid)
+// Splice setter: adds an object name to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
+extern "C" void AddMissileSpecialObject(MISSILE *missile, OID oid)
 {
-    if ((unsigned int)pmissile->coidIgnore < 4) pmissile->aoidIgnore[pmissile->coidIgnore++] = oid;
+    if ((unsigned int)missile->coidIgnore < 4) missile->aoidIgnore[missile->coidIgnore++] = oid;
 }
 
-/** @sly2-annot addr=0x1B2048
- * Purpose: Append CID to MISSILE list +0x250 (max 4, count +0x24C)
- * Info: proposed name AddMissileSpecialClass (T2); TU missile
- * Notes: names_v2 C proposed AddSensorNoTriggerClass__FP6SENSOR3CID (0.638)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void AddMissileSpecialClass(MISSILE *pmissile, CID cid)
+// Splice setter: adds a class to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
+extern "C" void AddMissileSpecialClass(MISSILE *missile, CID cid)
 {
-    if ((unsigned int)pmissile->ccidIgnore < 4) pmissile->acidIgnore[pmissile->ccidIgnore++] = cid;
+    if ((unsigned int)missile->ccidIgnore < 4) missile->acidIgnore[missile->ccidIgnore++] = cid;
 }
 
-/** @sly2-annot addr=0x1B2070
- * Purpose: ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0
- * Info: proposed name InitAccmiss (T1); class ACCMISS slot7; TU missile
- * Notes: names_v2 v1 proposed FUN_0018e480__Fi (0.000)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-void InitAccmiss(ACCMISS *paccmiss)
+// ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0.
+void InitAccmiss(ACCMISS *missile)
 {
-    InitMissile(paccmiss);
-    paccmiss->svTarget = 2000.0f;
-    paccmiss->svFast = 5000.0f;
-    paccmiss->fAct = 0;
+    InitMissile(missile);
+    missile->svTarget = 2000.0f;
+    missile->svFast = 5000.0f;
+    missile->fAct = 0;
 }
 
 struct VU_FLOAT
 {
     qword qw;
 };
+// Wraps a float as a VU_FLOAT (in a VU register).
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Lane x of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// Length of a vector, in lane x.
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -309,6 +252,7 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Length of a vector as a float.
 static inline float GLength(qword v)
 {
     return GFromVf(QwLength(v));
@@ -318,6 +262,7 @@ qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+// Vector divided by a float.
 static inline qword QwDivFloat(qword qw, float g)
 {
     VU_FLOAT vuf;
@@ -326,6 +271,7 @@ static inline qword QwDivFloat(qword qw, float g)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwRet) : "j"(vuf.qw), "j"(qw));
     return qwRet;
 }
+// Vector divided by a float passed as its raw bits (keeps the original register usage).
 static inline qword QwDivBits(qword qw, int nBits)
 {
     VU_FLOAT vuf;
@@ -334,6 +280,7 @@ static inline qword QwDivBits(qword qw, int nBits)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwRet) : "j"(vuf.qw), "j"(qw));
     return qwRet;
 }
+// Vector scaled by lane x of a VU_FLOAT.
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
@@ -341,6 +288,8 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
     return qw;
 }
 
+// ACCMISS vtable slot 70 (PresetAccel): smooths the speed toward svTarget along the current direction and applies the
+// change as a constrained acceleration (no-op while nUnk1e8 is set).
 /* 0x1B20B8 PresetAccmissAccel (ACCMISS vtable slot 69): ported from Lilly's personal Sly 2 decomp (src/P2/accmiss.c).
    Steers the velocity towards svTarget along the current direction (GSmooth), constrained by the physics. */
 void ACCMISS::VUnk69()
@@ -357,13 +306,7 @@ void ACCMISS::VUnk69()
     }
 }
 
-/** @sly2-annot addr=0x1B21F0
- * Purpose: CID-82 missile Init: InitMissile; +0x274=1500
- * Info: proposed name InitSplmiss (T1); class CID82 slot7; TU missile
- * Notes: names_v2 v1 proposed FUN_0018e4c0__Fi (0.000)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
+// CID-82 missile Init: InitMissile; +0x274=1500. (inferred)
 void CID82::Init()
 {
     CID82 *psplmiss = this;
@@ -372,34 +315,29 @@ void CID82::Init()
 }
 
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
-/** @sly2-annot addr=0x1B2228
- * Purpose: CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and
- *   set clamped launch velocity
- * Info: proposed name FireSplmiss (T1); class CID82 slot78; TU missile
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
+// CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch
+// velocity. (inferred)
+extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
- FireMissile(p,source,(V*)&w.pos);
- if(p->dtFlight>0.0f)p->tArrive=D_002DDED0.t+p->dtFlight;
+ FireMissile(missile,source,(V*)&w.pos);
+ if(missile->dtFlight>0.0f)missile->tArrive=D_002DDED0.t+missile->dtFlight;
  else{
-  func_001B2398Ret((V*)&w.velocity,p,0.5f);
+  func_001B2398Ret((V*)&w.velocity,missile,0.5f);
   register qword copied __asm__("$2");register VE*table __asm__("$3");register float negative __asm__("$f0");
-  __asm__("lq %0,%4\n\tlw %1,%5\n\tli.s %2,%6\n\tsq %0,%3":"=&r"(copied),"=r"(table),"=f"(negative),"=m"(w.dir):"m"(w.velocity.q),"m"(PVT(p)),"F"(-0.5f));
+  __asm__("lq %0,%4\n\tlw %1,%5\n\tli.s %2,%6\n\tsq %0,%3":"=&r"(copied),"=r"(table),"=f"(negative),"=m"(w.dir):"m"(w.velocity.q),"m"(PVT(missile)),"F"(-0.5f));
   register qword k __asm__("vf1");register qword(*method)(void*) __asm__("$2");register void*receiver __asm__("$4");
-  __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tqmtc2.ni %0,%2\n\tlw %0,%6\n\tsqc2 %2,%3\n\taddu %1,%7,%1":"=&r"(method),"=&r"(receiver),"=j"(k),"=m"(w.tmp.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(p));
+  __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tqmtc2.ni %0,%2\n\tlw %0,%6\n\tsqc2 %2,%3\n\taddu %1,%7,%1":"=&r"(method),"=&r"(receiver),"=j"(k),"=m"(w.tmp.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(missile));
   w.spill.q=k;
   qword raw=method(receiver);
   w.velocity.q=Scale(raw,w.spill.q);
-  qword clamped=LimitVectorLength(w.velocity.q,0.75f*p->svMax);
+  qword clamped=LimitVectorLength(w.velocity.q,0.75f*missile->svMax);
   register qword velocity __asm__("vf1");
   __asm__("qmtc2.ni %1,%0":"=j"(velocity):"r"(clamped));
   register qword scalarWord __asm__("$2");
   __asm__("mfc1 %0,%3\n\tsqc2 %4,%1\n\tsq %0,%2":"=&r"(scalarWord),"=m"(w.velocity.q),"=m"(w.scalar):"f"(1.5f),"j"(velocity));
   register CID82*owner __asm__("$4");
-  __asm__("daddu %0,%4,$zero\n\tlq %1,%5\n\tsqc2 %6,%2\n\tsq %1,%3\n\tlq %1,%7":"=r"(owner),"=&r"(scalarWord),"=m"(w.spill.q),"=m"(w.direction.q):"r"(p),"m"(w.dir),"j"(velocity),"m"(w.scalar));
+  __asm__("daddu %0,%4,$zero\n\tlq %1,%5\n\tsqc2 %6,%2\n\tsq %1,%3\n\tlq %1,%7":"=r"(owner),"=&r"(scalarWord),"=m"(w.spill.q),"=m"(w.direction.q):"r"(missile),"m"(w.dir),"j"(velocity),"m"(w.scalar));
   *(qword*)&w.factor=scalarWord;
   qword fresh=func_001A62E8(owner);
   register qword direction __asm__("vf3"),position __asm__("vf4");register qword*zero __asm__("$3");
@@ -408,7 +346,7 @@ extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
   __asm__("vsub.xyzw %0,%4,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\taddiu %3,$zero,%8\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %1,%0,%2x":"=j"(d),"=j"(acc),"=j"(amount),"=r"(count):"j"(direction),"j"(position),"m"(w.spill.q),"m"(w.scalar),"I"(1));
   register qword originArgument __asm__("$4"),endpointArgument __asm__("$6"),velocityArgument __asm__("$5");
   register float radius __asm__("$f12");register HIT*output __asm__("$8");
-  __asm__("lq %0,%5\n\tlwc1 %1,%6\n\tqmfc2.ni %2,%7\n\tlq %3,%8\n\tla %4,%a9":"=&r"(originArgument),"=f"(radius),"=&r"(endpointArgument),"=&r"(velocityArgument),"=r"(output):"m"(*zero),"m"(p->svMax),"j"(acc),"m"(w.velocity.q),"p"(&w.hit));
+  __asm__("lq %0,%5\n\tlwc1 %1,%6\n\tqmfc2.ni %2,%7\n\tlq %3,%8\n\tla %4,%a9":"=&r"(originArgument),"=f"(radius),"=&r"(endpointArgument),"=&r"(velocityArgument),"=r"(output):"m"(*zero),"m"(missile->svMax),"j"(acc),"m"(w.velocity.q),"p"(&w.hit));
   w.tmp.q=acc;
   func_0014C748(originArgument,velocityArgument,endpointArgument,count,output,radius);
   register float max __asm__("$f1");
@@ -416,86 +354,79 @@ extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
   register float hi __asm__("$f3")=w.hit.t1;
   __asm__("max.s %0,%1,%2":"=f"(max):"f"(lo),"f"(hi));
   register float duration __asm__("$f2")=1.0f/max;
-  p->tArrive=D_002DDED0.t+duration;
+  missile->tArrive=D_002DDED0.t+duration;
  }
 }
 
+// 4x4 matrix times point.
 static inline qword MulPt(M4 *m, qword v) { qword r; r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v); return r; }
-/** @sly2-annot addr=0x1B2398
- * Purpose: Target position in world: transform stored target pos by source LO's world matrix (predicted dt),
- *   or raw pos if no source
- * Info: proposed name PosMissileTarget (T2); TU missile
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" V GetMissileTargetPosition(MISSILE *pmissile, float g)
+// Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no
+// source. (inferred)
+extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 {
     V r;
-    if (pmissile->ploTarget) {
+    if (missile->ploTarget) {
         M4 m;
         M4 m2;
-        LoadIdentityMatrix4(pmissile->ploTarget->PxfLocal((MATRIX4 *)&m), 0, &m2, 0, g);
-        *(qword *)&r = MulPt(&m2, MulPt(&m, pmissile->qwTarget));
+        LoadIdentityMatrix4(missile->ploTarget->PxfLocal((MATRIX4 *)&m), 0, &m2, 0, g);
+        *(qword *)&r = MulPt(&m2, MulPt(&m, missile->qwTarget));
     } else {
-        *(qword *)&r = pmissile->qwTarget;
+        *(qword *)&r = missile->qwTarget;
     }
     return r;
 }
 
+// Lanes y and z of a 128-bit EE register as floats; vtable slot 33 (GetVelocity).
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
-static inline qword Velocity(CID82*p){VE*vt=PVT(p);return ((qword(*)(void*))vt[33].pfn)((char*)p+vt[33].d);}
-static inline int CaptureDestinationAndEqual(CID82*p,const V*output,V*destination){
+static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
+// Stores the output vector as the destination and reports whether it equals the previous one (part of
+// PresetSplmissAccel).
+static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
  register qword copied __asm__("$3"),target __asm__("$17"),zero __asm__("$16");register qword*origin __asm__("$2");
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
- __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(p->qwVelTarget),"i"(&D_002A2DD0),"F"(0.0001f));
+ __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(missile->qwVelTarget),"i"(&D_002A2DD0),"F"(0.0001f));
  __asm__("lq %0,%2\n\tmtc1 %0,%1":"=r"(zero),"=f"(zeroX):"m"(*origin));
  return FFloatsNear(zeroX,targetX,epsilon)&&FFloatsNear(Y(zero),Y(target),0.0001f)&&FFloatsNear(Z(zero),Z(target),0.0001f);
 }
-/** @sly2-annot addr=0x1B2468
- * Purpose: CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278)
- * Info: proposed name PresetSplmissAccel (T2); class CID82 slot70; TU missile
- * Notes: names_v2 C proposed UpdatePrsenLoopShader__FP5PRSEN (0.653)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void PresetSplmissAccel(CID82*p){
- if(p->nUnk1e8)return;
+// CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278). (inferred)
+extern "C" void PresetSplmissAccel(CID82*missile){
+ if(missile->nUnk1e8)return;
  WORKA w;
  float remaining;
- {register float deadline __asm__("$f1")=p->tArrive;register float now __asm__("$f2")=D_002DDED0.t;
+ {register float deadline __asm__("$f1")=missile->tArrive;register float now __asm__("$f2")=D_002DDED0.t;
  deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=GMax(deadline,0.0f)+frameStep;}
- func_001B2398Ret(&w.output,p,GMin(remaining,0.5f));
- int stationary=CaptureDestinationAndEqual(p,&w.output,&w.destination);
+ func_001B2398Ret(&w.output,missile,GMin(remaining,0.5f));
+ int stationary=CaptureDestinationAndEqual(missile,&w.output,&w.destination);
  if(stationary){
   register qword scaleWord __asm__("$2");
   __asm__("mfc1 %0,%2\n\tsq %0,%1":"=r"(scaleWord),"=m"(w.scale.q):"f"(1.5f/remaining));
   w.integrated.q=scaleWord;
-  qword position=func_001A62E8(p);
+  qword position=func_001A62E8(missile);
   register qword destination __asm__("vf1"),delta __asm__("vf2");register VE*table __asm__("$3");register float negative __asm__("$f0");
-  __asm__("lqc2 %0,%5\n\tqmtc2.ni %6,%1\n\tlw %2,%7\n\tvsub.xyzw %1,%0,%1\n\tli.s %3,%8\n\tsqc2 %1,%4":"=j"(destination),"=j"(delta),"=r"(table),"=f"(negative),"=m"(w.delta.q):"m"(w.destination),"r"(position),"m"(PVT(p)),"F"(-0.5f));
+  __asm__("lqc2 %0,%5\n\tqmtc2.ni %6,%1\n\tlw %2,%7\n\tvsub.xyzw %1,%0,%1\n\tli.s %3,%8\n\tsqc2 %1,%4":"=j"(destination),"=j"(delta),"=r"(table),"=f"(negative),"=m"(w.delta.q):"m"(w.destination),"r"(position),"m"(PVT(missile)),"F"(-0.5f));
   register qword(*method)(void*) __asm__("$2");register void*receiver __asm__("$4");register qword copiedNegative __asm__("$3");
-  __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tsq %0,%3\n\tlw %0,%6\n\taddu %1,%7,%1\n\tlq %2,%3":"=&r"(method),"=&r"(receiver),"=r"(copiedNegative),"=m"(w.negative.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(p));
+  __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tsq %0,%3\n\tlw %0,%6\n\taddu %1,%7,%1\n\tlq %2,%3":"=&r"(method),"=&r"(receiver),"=r"(copiedNegative),"=m"(w.negative.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(missile));
   w.integrated.q=copiedNegative;
   qword velocity=method(receiver);
   register qword factor __asm__("vf2"),difference __asm__("vf3"),minus __asm__("vf4"),value __asm__("vf5"),result __asm__("vf1");
   __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tqmtc2.ni %8,%3\n\tvmulax.xyzw ACC,%1,%0x\n\tvmaddx.xyzw %4,%3,%2x":"=j"(factor),"=j"(difference),"=j"(minus),"=j"(value),"=j"(result):"m"(w.scale.q),"m"(w.delta.q),"m"(w.negative.q),"r"(velocity));
   *(qword*)&w.output=result;
- }else *(qword*)&w.output=p->qwVelTarget;
+ }else *(qword*)&w.output=missile->qwVelTarget;
  register CLOCK*clock __asm__("$17")=&D_002DDED0;
  float frameDt=clock->dt;
- qword position=func_001A62E8(p);
- qword velocity=Velocity(p);
+ qword position=func_001A62E8(missile);
+ qword velocity=Velocity(missile);
  register float tension __asm__("$f14");
  register qword startPosition __asm__("$4"),startVelocity __asm__("$5"),endPosition __asm__("$6"),endVelocity __asm__("$7");
  __asm__("lq %2,%5\n\tpor %1,$zero,%6\n\tlq %3,%7\n\tpor %0,$zero,%8\n\tli.s %4,%9":"=r"(startPosition),"=&r"(startVelocity),"=&r"(endPosition),"=&r"(endVelocity),"=f"(tension):"m"(w.destination),"r"(velocity),"m"(w.output),"r"(position),"F"(1.0f));
  EvaluateBezierPos(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
  w.copy=w.integrated;
- VE*table=PVT(p);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
+ VE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
- qword current=method((char*)p+displacement);
+ qword current=method((char*)missile+displacement);
  register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
- __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(p),"r"(current),"m"(clock->dt));
+ __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->dt));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
  __asm__("vsub.xyzw %0,%3,%4\n\tqmtc2.ni %5,%1\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %2,%0,Q":"=j"(difference),"=j"(dt),"=j"(acceleration):"j"(copied),"j"(actualCurrent),"r"(dtWord));
  w.step.q=dt;

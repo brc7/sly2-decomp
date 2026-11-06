@@ -82,15 +82,8 @@ void _ResetCodes(CODES *pcodes);
 int AddCode(CODES *pcodes, CODE *pcode);
 }
 
-/** @sly2-annot addr=0x14BEA8
- * Purpose: If not already in the list (0x11A1B8 ? FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur
- *   = (current buttons (*(int *)&g_joy.grfbtn) == ajbc[0])
- * Info: proposed name AddCode (T1); TU cheat
- * Notes: names_v2 C proposed PvAllocUnsafe__10CSplotheap (0.438)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/cheat
- * See: docs/engine/core-library.md#6-source-files, docs/engine/main-loop-startup.md#7-source-files,
- *   docs/engine/main-loop-startup.md#8-key-functions
- * @end-sly2-annot */
+// If not already in the list (0x11A1B8 ? FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur = (current
+// buttons (*(int *)&g_joy.grfbtn) == ajbc[0]).
 extern "C" int AddCode(CODES *pcodes, CODE *pcode)
 {
     int r = FFindSlEntry(pcodes, pcode);
@@ -103,32 +96,16 @@ extern "C" int AddCode(CODES *pcodes, CODE *pcode)
 // 0x14BF10: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sw $2, 0x14($5)");
 
-/** @sly2-annot addr=0x14BF18
- * Purpose: Sets ijbcCur = 0 on every code
- * Info: proposed name _ResetCodes (EXISTING); TU cheat
- * Notes: agent/verifier proposes _ResetCodes for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> _ResetCodes (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.80] - evidence: semantic review; arbitration; pre-existing symbol in
- *   symbol_addrs.txt; sources: semantic_tu_docs/cheat+arbitration
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// Sets ijbcCur = 0 on every code.
 extern "C" void _ResetCodes(CODES *pcodes)
 {
     for (CODE *pcode = (CODE *)pcodes->sl.head; pcode; pcode = pcode->pcodeNext)
         pcode->ibtn = 0;
 }
 
-/** @sly2-annot addr=0x14BF48
- * Purpose: Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is
- *   set: for each unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then
- *   tCheck = g_clock.tUnpaused + 1.0
- * Info: proposed name _MatchCodes (T1); TU cheat
- * Notes: names_v2 v1 proposed FreeGarbage__10CSplotheap (0.013)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is set: for each
+// unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then tCheck =
+// g_clock.tUnpaused + 1.0.
 extern "C" void _MatchCodes(CODES *pcodes, JOYV *pjoy, unsigned short btnPrev)
 {
     CODE *pcode;
@@ -146,14 +123,8 @@ extern "C" void _MatchCodes(CODES *pcodes, JOYV *pjoy, unsigned short btnPrev)
     pcodes->tMatch = D_002DDED0.tReal + 1.0f;
 }
 
-/** @sly2-annot addr=0x14BFF8
- * Purpose: When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc;
- *   StartSound(0x34) via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0
- * Info: proposed name UpdateCodes (T1); TU cheat
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc; StartSound(0x34)
+// via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0.
 extern "C" void UpdateCodes(CODES *pcodes)
 {
     SLI sli;
@@ -184,24 +155,14 @@ extern "C" void UpdateCodes(CODES *pcodes)
     }
 }
 
-/** @sly2-annot addr=0x14C140
- * Purpose: 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1)
- * Info: proposed name CheatResetEpisode (T2); TU cheat
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1). (inferred)
 extern "C" void CheatWipeToWarp(void *p)
 {
     SetSndmgrMasterVolume(D_003DD040, 0.0f);
     WipeToWorldWarp(D_003DD490, 0, 0x189, -1, p, -1);
 }
 
-/** @sly2-annot addr=0x14C190
- * Purpose: v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1)
- * Info: proposed name CheatWarpEpisode (T2); TU cheat
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1). (inferred)
 extern "C" void CheatWarpToEpisode(void *p)
 {
     void *prec = PrecWorldEntry(p);
@@ -213,23 +174,10 @@ extern "C" void CheatWarpToEpisode(void *p)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x14C1F0
- * Purpose: *pf = 1
- * Info: proposed name CheatSetFlag (T1); TU cheat
- * Notes: names_v2 v1 proposed PvFromPsplot__FP5SPLOT (0.027)
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources:
- *   semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// *pf = 1. (inferred)
 extern "C" void CheatSetFlag(int *pf) { *pf = 1; }
 
-/** @sly2-annot addr=0x14C200
- * Purpose: If 0x1D82B8(&(*(char (*)[])&g_sw.savevars), ...) ? 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E
- * Info: proposed name CheatBuyItem1F (T2); TU cheat
- * Confidence: low (draft) [T2 0.65] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// If 0x1D82B8(&(*(char (*)[])&g_sw.savevars), ...) ? 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E. (inferred)
 extern "C" void CheatUnlockCompletionReward(void)
 {
     if (NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
@@ -239,13 +187,7 @@ extern "C" void CheatUnlockCompletionReward(void)
     SetSndSourceLo(PsndStartSound(0x3E), 0);
 }
 
-/** @sly2-annot addr=0x14C258
- * Purpose: If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0)
- * Info: proposed name ClearCheatItems (T1); TU cheat
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0). (inferred)
 extern "C" void ClearCheatItems(void)
 {
     if (D_002E1E40) {
@@ -256,29 +198,14 @@ extern "C" void ClearCheatItems(void)
     }
 }
 
-/** @sly2-annot addr=0x14C2B0
- * Purpose: 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh)
- * Info: proposed name CheatGiveGadget (T1); TU cheat
- * Notes: names_v2 v1 proposed FIsPvGarbage__FPv (0.015)
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; static naming pass; sources:
- *   semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh). (inferred)
 extern "C" void CheatGiveGadget(int id)
 {
     SetPowerupAcquired(id, 1);
     func_0019F0A8(D_003DD490);
 }
 
-/** @sly2-annot addr=0x14C2D8
- * Purpose: InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0
- * Info: proposed name StartupCodes (T1); TU cheat
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
+// InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0.
 extern "C" void StartupCodes(CODES *pcodes)
 {
     func_0011A050(pcodes, 0x18);
