@@ -2216,22 +2216,20 @@ int IsStepguardHandsOff(struct S *guard) { if (guard->n != 0) return 1; return f
 // 0x2090D0 ReleaseAnimBinding
 // 0x2090D0: Releases an animation binding: frees its kind-2/3 payload and marks it empty (-1).
 /* Releases the binding's handle by kind (2 or 3) and marks the binding empty. */
-extern "C" void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard)
+extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
 {
-    int kind;
-    kind = pbinding->kind;
-    if (kind != 2) {
+    int kind = binding->kind;
+    if (kind != 2) {   // (tested in this order for the match)
         if (kind == 3) {
-            func_0020CA20(pbinding->h);
-            goto LCleared;
+            func_0020CA20(binding->h);
+            binding->h = 0;
         }
     } else {
-        func_0020C030(pbinding->h);
-LCleared:
-        pbinding->h = 0;
+        func_0020C030(binding->h);
+        binding->h = 0;
     }
-    pbinding->h = -1;
-    pbinding->kind = -1;
+    binding->h = -1;
+    binding->kind = -1;
 }
 
 // 0x209130 ResolveAnimBinding
