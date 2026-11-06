@@ -12,33 +12,33 @@
 /* A constraint (0x28): kind (1: always active), bounds, current value and residual, its row of the matrix. */
 struct DZ
 {
-      int nKind;            /* +0x00 */
-      float gMin;           /* +0x04 */
-      float gMax;           /* +0x08 */
+      int nKind;            /* +0x00 constraint kind (1: always active) */
+      float gMin;           /* +0x04 lower bound of the solution */
+      float gMax;           /* +0x08 upper bound of the solution */
       float gC;             /* +0x0C solution */
       float g10;            /* +0x10 residual */
       float g14;            /* +0x14 residual change per unit step */
       float *ag;            /* +0x18 row (0 until the row is filled) */
       DZ *pdzOther;         /* +0x1C the friction row paired with a contact row, and back (SolveDzgFric) */
-      DLE dle;              /* +0x20 */
+      DLE dle;              /* +0x20 link in one of the solver's four lists */
 };
 typedef char assert_DZ_size[sizeof(DZ) == 0x28 ? 1 : -1];
 
 /* The solver: constraints, the four lists, the active count and the Crout work arrays. */
 struct DZG
 {
-      int cdzMax;           /* +0x00 */
-      int cdz;              /* +0x04 */
-      DZ *adz;              /* +0x08 */
+      int cdzMax;           /* +0x00 capacity of adz */
+      int cdz;              /* +0x04 number of constraints */
+      DZ *adz;              /* +0x08 the constraints */
       DL dlA;               /* +0x0C active */
       DL dlB;               /* +0x18 at the lower bound */
       DL dlC;               /* +0x24 at the upper bound */
       DL dlD;               /* +0x30 free */
       int cdzA;             /* +0x3C size of dlA */
-      float *agMat;         /* +0x40 */
-      float *agLu;          /* +0x44 */
-      float *agB;           /* +0x48 */
-      float *agX;           /* +0x4C */
+      float *agMat;         /* +0x40 constraint matrix */
+      float *agLu;          /* +0x44 its LU (Crout) factorisation */
+      float *agB;           /* +0x48 right-hand side */
+      float *agX;           /* +0x4C solution vector */
 };
 typedef char assert_DZG_size[sizeof(DZG) == 0x50 ? 1 : -1];   /* SolveInequalities' stack frame (match) */
 
@@ -47,8 +47,8 @@ typedef char assert_DZG_size[sizeof(DZG) == 0x50 ? 1 : -1];   /* SolveInequaliti
  * qword, VECTOR4 *)), applied by ApplyDzg. HYPOTHESIS: Sly 1's name for it is FX (so.h's slot 68 takes an FX *). */
 struct FX
 {
-      qword qwDv;
-      qword qwDw;
+      qword qwDv;   /* change of linear velocity per unit impulse */
+      qword qwDw;   /* change of angular velocity per unit impulse */
 };
 
 /* The contact data of one constraint row (0x60; DZGXP::adzx, parallel to DZG::adz). */
@@ -65,11 +65,11 @@ typedef char assert_DZX_size[sizeof(DZX) == 0x60 ? 1 : -1];   /* InitDzgXp alloc
 /* The solver over a group of contacts (Sly 1 passed these to SolveDzg as arguments). */
 struct DZGXP : public DZG
 {
-      int cpxp;             /* +0x50 */
-      XP **apxp;            /* +0x54 */
-      int cpso;             /* +0x58 */
-      SO **apso;            /* +0x5C */
-      DZX *adzx;            /* +0x60 */
+      int cpxp;             /* +0x50 number of contacts */
+      XP **apxp;            /* +0x54 the contacts of the group */
+      int cpso;             /* +0x58 number of objects */
+      SO **apso;            /* +0x5C the objects of the group */
+      DZX *adzx;            /* +0x60 contact data per constraint (parallel to adz) */
 };
 typedef char assert_DZGXP_size[sizeof(DZGXP) == 0x64 ? 1 : -1];
 
