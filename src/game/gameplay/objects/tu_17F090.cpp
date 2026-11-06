@@ -1160,7 +1160,7 @@ qword ConvertAloVec(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
 float RadNormalize__Ff(float);
-int FCheckLm__FP2LMf(LM*,float);
+int IsWithinLimits__FP2LMf(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
@@ -1229,19 +1229,19 @@ extern "C" void func_00180668(P*p){
   float distance=Length(delta);
   float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
   int accept;
-  if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->stayDistance,distance);
+  if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->stayDistance,distance);
   if(accept){
    if(!rule->angleEnabled)goto dispatch;
-   if(FCheckLm__FP2LMf(&rule->stayAngle,heading))goto dispatch;
+   if(IsWithinLimits__FP2LMf(&rule->stayAngle,heading))goto dispatch;
   }
   {
    int state;
    for(state=4;state>0;state--){
     rule=&p->rules[state];
-    if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->enterDistance,distance);
+    if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->enterDistance,distance);
     if(!accept)continue;
     if(!rule->angleEnabled)break;
-    if(FCheckLm__FP2LMf(&rule->enterAngle,heading))break;
+    if(IsWithinLimits__FP2LMf(&rule->enterAngle,heading))break;
    }
    func_00181268(p,state);
   }

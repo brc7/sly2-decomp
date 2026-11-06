@@ -406,11 +406,11 @@ void FitClq(float g0, float g1, float u, float g3, CLQ *pclq)
 }
 
 /** @sly2-annot addr=0x11D910
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * Purpose: True (1) if g lies strictly inside the open range (plm->gMin, plm->gMax); Sly 1 name FCheckLm.
+ * Confidence: high - evidence: the body is the whole definition (two strict compares)
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-int FCheckLm(LM *plm, float g)
+int IsWithinLimits(LM *plm, float g)
 {
     int f;
     f = 0;

@@ -1021,7 +1021,7 @@ namespace M_UpdateRobottankAi {
 // UpdateRobottank): pick a ready attachment (func_001D2240) or a target object (func_001D22D0), run the state machine
 // (0 approach/orbit the target, 1 attack in place, 2 pursue the object, 3 back away) until the state is stable, steer
 // for the current state, then let every ready attachment fire once its aim error is small enough.
-// Callees: 0x2456F0 acosf, 0x2458F0 atan2f, 0x11D910 FCheckLm, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
+// Callees: 0x2456F0 acosf, 0x2458F0 atan2f, 0x11D910 IsWithinLimits, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
 // 0x11B500 rotation matrix about an axis.
 // How it matches (fresh rewrite; notes in build/lane_notes/w4lane7.md):
 // - position/target/delta/goal/offset are VU-class pseudos that live across calls, so reload spills them to
@@ -1063,7 +1063,7 @@ extern "C" {
 qword func_001A62E8(P *);
 ATTACH *func_001D2240(P *);
 P *func_001D22D0(P *);
-int FCheckLm__FP2LMf(LM *, float);
+int IsWithinLimits__FP2LMf(LM *, float);
 void func_001D4B28(P *, int);
 float acosf(float);
 M3 func_0011B500(qword, float);
@@ -1151,7 +1151,7 @@ extern "C" void UpdateRobottankAi(P *p)
         switch (state) {
         case 0:
             if (p->selectedAttach) {
-                if (FCheckLm__FP2LMf(&p->selectedAttach->enterRange, distance))
+                if (IsWithinLimits__FP2LMf(&p->selectedAttach->enterRange, distance))
                     func_001D4B28(p, 1);
             } else if (p->selectedObject) {
                 func_001D4B28(p, 2);
@@ -1160,7 +1160,7 @@ extern "C" void UpdateRobottankAi(P *p)
             }
             break;
         case 1:
-            if (!p->selectedAttach || !FCheckLm__FP2LMf(&p->selectedAttach->exitRange, distance))
+            if (!p->selectedAttach || !IsWithinLimits__FP2LMf(&p->selectedAttach->exitRange, distance))
                 func_001D4B28(p, 0);
             break;
         case 2:

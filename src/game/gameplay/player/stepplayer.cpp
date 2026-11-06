@@ -2375,7 +2375,7 @@ extern GS D_003DD490;
 void ScheduleIdleTimer(P *p);
 void SetStepplayerLeanTarget(P *p, int n, S *ps);
 void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
-int FCheckLm__FP2LMf(void *p, float g);
+int IsWithinLimits__FP2LMf(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
@@ -2460,7 +2460,7 @@ void PickHeroInteractTarget(P *p)
                 GetHeroInteractDistance(p, ps, &p->leanTarget, &g1, &g2);
                 if (g1 > ps->gE8)
                     continue;
-                if (!FCheckLm__FP2LMf(ps->rng, g2))
+                if (!IsWithinLimits__FP2LMf(ps->rng, g2))
                     continue;
                 if (nBest < ps->nF4 || (ps->nF4 == nBest && g1 < bestScore)) {
                     psBest = ps;

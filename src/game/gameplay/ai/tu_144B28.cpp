@@ -533,7 +533,7 @@ int FBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
-int FCheckLm__FP2LMf(struct LM *plm, float g);
+int IsWithinLimits__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
 int CidBasic(void *p);
 int func_00145DA0(struct X *px);
@@ -604,7 +604,7 @@ void UpdateBhvfollow(struct P *p)
             f = func_001459C0(p) != 0;
             if (f)
                 SetBhvfollowState(p, 1);
-            else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
+            else if (IsWithinLimits__FP2LMf(&D_002BD330, g)) {
                 p->p90 = pso;
                 SetBhvfollowState(p, 2);
             }
@@ -617,7 +617,7 @@ void UpdateBhvfollow(struct P *p)
             f = func_001459C0(p) != 0;
             if (f)
                 SetBhvfollowState(p, 1);
-            else if (!FCheckLm__FP2LMf(&D_002BD338, g))
+            else if (!IsWithinLimits__FP2LMf(&D_002BD338, g))
                 SetBhvfollowState(p, 0);
             else {
                 switch (CidBasic(p->p10)) {

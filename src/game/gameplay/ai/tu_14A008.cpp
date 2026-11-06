@@ -172,7 +172,7 @@ void func_0014AE38(BHVRT *p, int n);
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
-int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file's view of LM */
+int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 LOV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
 static inline void InitS(ALLOCREQ *ps, int a, int b)
@@ -543,21 +543,21 @@ extern "C" int func_0014AA30(BHVRT *p)
         g = ag[0] - p->proute->pshape->mpicvs[i];
         if (p->proute->fReverse == 1)
             g = -g;
-        if (FCheckLm(&D_002BD480, g))
+        if (IsWithinLimits(&D_002BD480, g))
             u1 = GRemap(&D_002BD480, g);
-        else if (FCheckLm(&D_002BD488, g))
+        else if (IsWithinLimits(&D_002BD488, g))
             u1 = 1.0f - GRemap(&D_002BD488, g);
         else
             u1 = 0.0f;
         v.q = ConvertCmWorldToScreen(D_002DDF40, p->proute->pshape->mpicvpos[i]);
-        if (FCheckLm(&D_002BD490, v.f[2]))
+        if (IsWithinLimits(&D_002BD490, v.f[2]))
             u2 = GRemap(&D_002BD490, v.f[2]);
-        else if (FCheckLm(&D_002BD498, v.f[2]))
+        else if (IsWithinLimits(&D_002BD498, v.f[2]))
             u2 = 1.0f - GRemap(&D_002BD498, v.f[2]);
         else
             u2 = 0.0f;
         { float l2 = v.f[0] * v.f[0] + v.f[1] * v.f[1]; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(g) : "f"(l2)); }
-        if (FCheckLm(&D_002BD4A0, g))
+        if (IsWithinLimits(&D_002BD4A0, g))
             u3 = 1.0f - GRemap(&D_002BD4A0, g);
         else
             u3 = 0.0f;

@@ -1003,7 +1003,7 @@ GTrunc__Fd,0x11D740,44,match,src/game/core/math/util.cpp
 GTrunc__Ff,0x11D7F0,42,match,src/game/core/math/util.cpp
 GModPositive__Fff,0x11D898,15,match,src/game/core/math/util.cpp
 FitClq__FffffP3CLQ,0x11D8D8,13,match,src/game/core/math/util.cpp
-FCheckLm__FP2LMf,0x11D910,12,match,src/game/core/math/util.cpp
+IsWithinLimits__FP2LMf,0x11D910,12,match,src/game/core/math/util.cpp
 GLimitLm__FP2LMf,0x11D948,12,match,src/game/core/math/util.cpp
 RadLimitLm,0x11D978,24,match,src/game/core/math/util.cpp
 Force__FPv,0x11D9D8,2,match,src/game/core/math/util.cpp

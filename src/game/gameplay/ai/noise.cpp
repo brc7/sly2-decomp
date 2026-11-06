@@ -87,7 +87,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *pv, int n);
 void UnsubscribeLoAll(NOISE *pnoise);
-int FCheckLm__FP2LMf(void *p, float z);
+int IsWithinLimits__FP2LMf(void *p, float z);
 NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitXfm(LISTENER *p);
 void SetLoBusyk(LISTENER *p, int n);
@@ -300,7 +300,7 @@ extern "C" int func_00156918(NOISE *p, qword pos)
     qword d, l;
     float dist;
     d = VuSub(pos, p->pos);
-    if (!FCheckLm__FP2LMf(&p->ptype->lm, GetZ(d)))
+    if (!IsWithinLimits__FP2LMf(&p->ptype->lm, GetZ(d)))
         return 0;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
@@ -579,7 +579,7 @@ extern "C" int func_00156FE8(LISTENER *plo, NOISE *p)
         if (!pq->n50) {
             pos = func_001A62E8(plo);
             d = VuSub(pos, p->pos);
-            if (FCheckLm__FP2LMf(&pq->lm, GetZ(d)) && FIn(d, pq->g54))
+            if (IsWithinLimits__FP2LMf(&pq->lm, GetZ(d)) && FIn(d, pq->g54))
                 return 1;
         }
     }

@@ -125,7 +125,7 @@ qword ConvertAloPos(void *, void *, qword);
 float atan2f(float, float);
 float RadNormalize__Ff(float);
 void UpdateJtHands(void *);
-int FCheckLm__FP2LMf(void *, float);
+int IsWithinLimits__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int kind; char pad54[8]; void *subject; };
 BHV *PbhvFindBhvstk(void *, int);
 void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
@@ -699,7 +699,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         g = VuToFloat(l);
         f = 0;
         if (g < D_002BF4AC)
-            f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
+            f = IsWithinLimits__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
             BHV *pt = PbhvFindBhvstk(jt->interactTarget + 0x26C, 0xB1);
             if (pt && pt->subject == jt) {
