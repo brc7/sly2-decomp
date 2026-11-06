@@ -1491,9 +1491,9 @@ typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
 struct COIN : DPRIZE
 {
     char pad230[0x240 - 0x230];
+    virtual void VUnk15() __asm__("func_001C6588");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCoinClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001C6508");   /* slot 7 */
-    virtual void VUnk15() __asm__("func_001C6588");   /* slot 16 */
     virtual void VSlot76() __asm__("func_001C65F8");   /* slot 76 */
 };
 typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
@@ -1502,9 +1502,9 @@ typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
 struct MEDICINE : DPRIZE
 {
     char pad230[0x250 - 0x230];
+    virtual void VUnk15() __asm__("func_001C6880");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMedicineClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001C67D8");   /* slot 7 */
-    virtual void VUnk15() __asm__("func_001C6880");   /* slot 16 */
     virtual void VSlot76() __asm__("func_001C68F0");   /* slot 76 */
 };
 typedef char assert_MEDICINE_size[sizeof(MEDICINE) == 0x250 ? 1 : -1];
@@ -1513,8 +1513,8 @@ typedef char assert_MEDICINE_size[sizeof(MEDICINE) == 0x250 ? 1 : -1];
 struct KEY : DPRIZE
 {
     char pad230[0x240 - 0x230];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetKeyClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001C6AB8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetKeyClassDesc");   /* slot 6 */
     virtual void VSlot76() __asm__("func_001C6B28");   /* slot 76 */
 };
 typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
@@ -1523,10 +1523,10 @@ typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
 struct LOOT : DPRIZE
 {
     char pad230[0x250 - 0x230];
+    virtual void VUnk15() __asm__("func_001C7778");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLootClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLoot");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLootFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("func_001C7778");   /* slot 16 */
     virtual void VSlot76() __asm__("SetLootDprizes");   /* slot 76 */
 };
 typedef char assert_LOOT_size[sizeof(LOOT) == 0x250 ? 1 : -1];
@@ -1534,8 +1534,8 @@ typedef char assert_LOOT_size[sizeof(LOOT) == 0x250 ? 1 : -1];
 /* 95 CLUE (0x230): clue bottle; vtable 0x2D5F68, 76 slots */
 struct CLUE : DPRIZE
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetClueClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitClue");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetClueClassDesc");   /* slot 6 */
     virtual void VUnk25(LO *plo) __asm__("func_001C7E68");   /* slot 26 */
     virtual void VUnk26(LO *plo) __asm__("func_001C7EA8");   /* slot 27 */
     virtual void VSlot76() __asm__("SetClueDprizes");   /* slot 76 */
@@ -1546,8 +1546,8 @@ typedef char assert_CLUE_size[sizeof(CLUE) == 0x230 ? 1 : -1];
 struct CLUEPROXY : PROXY
 {
     char pad100[0x110 - 0x100];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetClueproxyClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_001C8030");   /* slot 15 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetClueproxyClassDesc");   /* slot 6 */
 };
 typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
 
@@ -1555,9 +1555,9 @@ typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
 struct VAULT : PO
 {
     char pad180[0x230 - 0x180];
+    virtual void VUnk14() __asm__("func_001C82F0");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetVaultClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVault");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_001C82F0");   /* slot 15 */
     virtual void VUnk15() __asm__("func_001C8350");   /* slot 16 */
 };
 typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
