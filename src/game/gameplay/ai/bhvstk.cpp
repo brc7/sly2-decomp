@@ -297,30 +297,30 @@ extern "C" void UpdateBhvMotion(BHVV *behavior)
 // and every behaviour below gets its busy-above count incremented. Runtime-confirmed busy protocol.
 extern "C" void SetBhvBusy(BHVV *behavior)
 {
-    if (!behavior->isBusy) {
-        BHVV *lower;
-        behavior->isBusy = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
-            IncrementStepguardBusy(behavior->owner);
-        }
-        for (lower = behavior->below; lower; lower = lower->below)
-            lower->numBusyAbove++;
+    if (behavior->isBusy)
+        return;
+    BHVV *lower;
+    behavior->isBusy = 1;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+        IncrementStepguardBusy(behavior->owner);
     }
+    for (lower = behavior->below; lower; lower = lower->below)
+        lower->numBusyAbove++;
 }
 
 // 0x1EF038: Inverse of SetBhvBusy: clears the busy flag, decrements the owning STEPGUARD's busy count and the
 // busy-above count of every behaviour below.
 extern "C" void ClearBhvBusy(BHVV *behavior)
 {
-    if (behavior->isBusy) {
-        BHVV *lower;
-        behavior->isBusy = 0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
-            DecrementStepguardBusy(behavior->owner);
-        }
-        for (lower = behavior->below; lower; lower = lower->below)
-            lower->numBusyAbove--;
+    if (!behavior->isBusy)
+        return;
+    BHVV *lower;
+    behavior->isBusy = 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+        DecrementStepguardBusy(behavior->owner);
     }
+    for (lower = behavior->below; lower; lower = lower->below)
+        lower->numBusyAbove--;
 }
 
 // 0x1EF0A8: True if a behaviour higher on the stack is busy.
