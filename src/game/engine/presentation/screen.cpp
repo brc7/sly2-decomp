@@ -1127,7 +1127,7 @@ void SetNoticeState(OBJ *p, int n)
 
 namespace M_func_001DA728 { extern "C" {
 extern char D_002D85E8[] __asm__("_vt$6SCREEN");
-struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
+struct S { int frame, sidebag, unknown8; void *vt; char pad[0x10]; int widgetOid; };
 void ResetScreenMode(struct S *p);
 /** @sly2-annot addr=0x1DA728
  * Purpose: Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset
@@ -1138,10 +1138,10 @@ void ResetScreenMode(struct S *p);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 struct S *ConstructScreen(struct S *p) {
-    p->a = 0;
-    p->b = 0;
+    p->frame = 0;
+    p->sidebag = 0;
     p->vt = D_002D85E8;
-    p->n20 = -1;
+    p->widgetOid = -1;
     ResetScreenMode(p);
     return p;
 }
@@ -1193,8 +1193,8 @@ extern "C" void ResetScreenMode(SCREENV *screen)
 }
 
 namespace M_func_001DA808 { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
-struct S { char p0[0x34]; float g34; };
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+struct S { char p0[0x34]; float closeTime; };
 void UpdateScreenDefault(struct S *p);
 void SetScreenMode(struct S *p, int a, int b);
 /** @sly2-annot addr=0x1DA808
@@ -1207,20 +1207,20 @@ void SetScreenMode(struct S *p, int a, int b);
 // Screen update that closes the screen when its mode timer expires. (inferred)
 void UpdateTimedScreen(struct S *p) {
     UpdateScreenDefault(p);
-    if (p->g34 <= D_002DDED0.a[15]) SetScreenMode(p, -1, -1);
+    if (p->closeTime <= D_002DDED0.tReal) SetScreenMode(p, -1, -1);
 }
 } } // namespace M_func_001DA808
 
 namespace M_UpdateScreenStickDir { extern "C" {
 typedef struct OBJ OBJ;
 typedef struct { short d; short pad; void (*pfn)(void *, int); } VTE;
-typedef struct { char pad[0x103C]; float x; float y; float g; } Q;
+typedef struct { char pad[0x103C]; float stickX; float stickY; float stickMagnitude; } Q;
 struct OBJ {
     char pad[0xC];
     VTE *vt;
-    Q *q;
+    Q *joy;
     char pad14[0x28 - 0x14];
-    int n;
+    int mode;
 };
 float atan2f(float, float);
 /** @sly2-annot addr=0x1DA858
@@ -1235,51 +1235,51 @@ float atan2f(float, float);
 // stick is pushed past 0.8, and with -1 when it returns under 0.5.
 void UpdateScreenStickDir(OBJ *p)
 {
-    Q *q = p->q;
-    int n;
-    float g;
-    if (q == 0)
+    Q *joy = p->joy;
+    int mode;
+    float stickMagnitude;
+    if (joy == 0)
         return;
-    n = p->n;
-    g = q->g;
-    if (n == -1) {
-        if (0.8f < g) {
-            int k = (int)(atan2f(q->y, q->x) * 1.2732395f + 8.5f);
+    mode = p->mode;
+    stickMagnitude = joy->stickMagnitude;
+    if (mode == -1) {
+        if (0.8f < stickMagnitude) {
+            int k = (int)(atan2f(joy->stickY, joy->stickX) * 1.2732395f + 8.5f);   /* 4/pi: eighths of a turn, rounded */
             p->vt[14].pfn((char *)p + p->vt[14].d, k % 8);
         }
-    } else if (g < 0.5f) {
+    } else if (stickMagnitude < 0.5f) {
         p->vt[14].pfn((char *)p + p->vt[14].d, -1);
     }
 }
 } } // namespace M_UpdateScreenStickDir
 
 namespace M_func_001DA950 { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
-struct S { char p0[0x30]; int n30; float g34; int n38; };
-void *PsndStartSound(int n);
-void SetSndSourceLo(void *p, int n);
+struct S { char p0[0x30]; int timerKind; float closeTime; int modeArg; };
+void *PsndStartSound(int timerKind);
+void SetSndSourceLo(void *p, int timerKind);
 /** @sly2-annot addr=0x1DA950
- * Purpose: Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
+ * Purpose: Set mode timerKind (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
  * Info: proposed name SetScreenMode (T2); TU screen
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Sets a screen's mode and argument; mode 0 plays the menu sound and starts the timeout. (inferred)
-void SetScreenMode(struct S *p, int n, int m) {
-    p->n38 = m;
-    p->n30 = n;
-    switch (n) {
+void SetScreenMode(struct S *p, int timerKind, int modeArg) {
+    p->modeArg = modeArg;
+    p->timerKind = timerKind;
+    switch (timerKind) {
     case -1:
-        p->g34 = -10.0f;
+        p->closeTime = -10.0f;
         break;
     case 0:
-        p->g34 = D_002A7984;
+        p->closeTime = D_002A7984;
         SetSndSourceLo(PsndStartSound(0x29), 0);
         break;
     case 1:
     default:
-        p->g34 = D_002DDED0.a[15] + D_002C3254;
+        p->closeTime = D_002DDED0.tReal + D_002C3254;
         SetSndSourceLo(PsndStartSound(0x36), 0);
         break;
     }
@@ -1341,19 +1341,22 @@ extern "C" void ClearGadgetMenu(GADGETMENUV *gadgetMenu)
     gadgetMenu->tState = D_002DDED0.tReal;
 }
 
+/* Gadget menu pages (SetGadgetMenuState): closed, or the page of Sly, Bentley or Murray. */
+enum GadgetMenuPage { GADGETMENU_CLOSED = -1, GADGETMENU_SLY, GADGETMENU_BENTLEY, GADGETMENU_MURRAY };
+
 namespace M_UpdateGadgetMenu { extern "C" {
-typedef struct { char pad[0x1C]; int fl; } R;
+typedef struct { char pad[0x1C]; int flags; } R;
 typedef struct {
     char pad[0x10];
-    void *x10;
+    void *joy;
     char pad14[0x24 - 0x14];
-    void *x24;
+    void *widget;
     char pad28[0x30 - 0x28];
-    int x30;
+    int timerKind;
     char pad34[0x40 - 0x34];
-    int x40;
+    int state;
     char pad44[4];
-    int x48;
+    int selectedGadget;
 } OBJ;
 extern struct G D_003DD490;
 extern int D_002C3258[];
@@ -1381,44 +1384,44 @@ void SetStepplayerGadget(void *, int, int);
 // power-up (if owned) to that slot.
 void UpdateGadgetMenu(OBJ *p)
 {
-    void *pv;
+    void *hero;
     R *r;
     int i;
     UpdateTimedScreen(p);
-    if (p->x24 == 0)
+    if (p->widget == 0)
         return;
-    if (p->x40 == -1)
+    if (p->state == -1)
         return;
-    if (p->x10 == 0)
+    if (p->joy == 0)
         return;
-    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
-        SetGadgetMenuState(p, -1);
+    if (p->timerKind && GrfHandleJoyBtn(p->joy, 0x10)) {
+        SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
     }
-    pv = PpoHero(&D_003DD490);
-    if (pv == 0 || !FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x34)) {
-        SetGadgetMenuState(p, -1);
+    hero = PpoHero(&D_003DD490);
+    if (hero == 0 || !FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34)) {
+        SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
     }
     UpdateScreenStickDir(p);
-    if (GrfHandleJoyBtn(p->x10, 0x7E8)) {
-        r = FindScreenEntry(p, p->x48);
-        if (r == 0 || ((r->fl & 1) == 0))
+    if (GrfHandleJoyBtn(p->joy, 0x7E8)) {
+        r = FindScreenEntry(p, p->selectedGadget);
+        if (r == 0 || ((r->flags & 1) == 0))
             SetScreenMode(p, 1, 0xE2);
         else
             SetScreenMode(p, 1, 0x31);
     }
     for (i = 0; i < 3; i++) {
-        if (!GrfHandleJoyBtn(p->x10, D_002C3258[i]))
+        if (!GrfHandleJoyBtn(p->joy, D_002C3258[i]))
             continue;
-        r = FindScreenEntry(p, p->x48);
-        if (r == 0 || !(r->fl & 4)) {
+        r = FindScreenEntry(p, p->selectedGadget);
+        if (r == 0 || !(r->flags & 4)) {
             SetScreenMode(p, 1, 0x32);
-        } else if (((r->fl & 1) == 0)) {
+        } else if (((r->flags & 1) == 0)) {
             SetScreenMode(p, 1, 0x33);
         } else {
             SetSndSourceLo(PsndStartSound(0x34), 0);
-            SetStepplayerGadget(pv, i, p->x48);
+            SetStepplayerGadget(hero, i, p->selectedGadget);
         }
     }
 }
@@ -1428,14 +1431,14 @@ namespace M_func_001DAC58 { extern "C" {
 typedef struct { float x, y, dx, dy; char pad[0x10]; } TXT;
 typedef struct { char ab[0xA0]; } FONT;
 typedef struct { int n; int a; int b; } SLOT;
-typedef struct { char pad[0x1180]; SLOT aslot[3]; } Q;
+typedef struct { char pad[0x1180]; SLOT gadgetSlots[3]; } Q;
 typedef struct { int n; char pad[0x10]; float x; float y; char pad1c[4]; } ENT;
 typedef struct {
     char pad[0x24];
-    void *x24;
+    void *widget;
     char pad28[0x4C - 0x28];
-    int c;
-    ENT *ae;
+    int itemCount;
+    ENT *items;
 } OBJ;
 extern struct G D_003DD490;
 extern float D_002C3264;
@@ -1462,22 +1465,22 @@ static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z))
 // (inferred)
 void DrawGadgetMenuSlotLabels(OBJ *p)
 {
-    Q *q;
+    Q *hero;
     int i;
-    if (p->x24 == 0)
+    if (p->widget == 0)
         return;
-    if (!FWidgetVisible(p->x24))
+    if (!FWidgetVisible(p->widget))
         return;
-    q = PpoHero(&D_003DD490);
-    if (q == 0)
+    hero = PpoHero(&D_003DD490);
+    if (hero == 0)
         return;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
         return;
-    for (i = 0; i < p->c; i++) {
-        ENT *pe = &p->ae[i];
+    for (i = 0; i < p->itemCount; i++) {
+        ENT *pe = &p->items[i];
         int j;
         for (j = 0; j < 3; j++) {
-            if (pe->n == q->aslot[j].n) {
+            if (pe->n == hero->gadgetSlots[j].n) {
                 TXT txt;
                 unsigned int rgba[2];
                 FONT font;
@@ -1500,26 +1503,26 @@ void DrawGadgetMenuSlotLabels(OBJ *p)
 } } // namespace M_func_001DAC58
 
 namespace M_func_001DAE20 { extern "C" {
-struct E { int id; int a[7]; };
-struct S { char pad[0x4C]; int c; struct E *ae; };
+struct E { int gadgetId; int a[7]; };
+struct S { char pad[0x4C]; int itemCount; struct E *items; };
 /** @sly2-annot addr=0x1DAE20
- * Purpose: Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50)
+ * Purpose: Find an entry (0x20 bytes) by gadgetId in the screen's item list (+0x4C/+0x50)
  * Info: proposed name PentryFindScreen (T2); TU screen
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-struct E *FindScreenEntry(struct S *p, int id) {
+struct E *FindScreenEntry(struct S *p, int gadgetId) {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        if (pe->id == id) return pe;
+    for (i = 0; i < p->itemCount; i++) {
+        struct E *pe = &p->items[i];
+        if (pe->gadgetId == gadgetId) return pe;
     }
     return 0;
 }
 } } // namespace M_func_001DAE20
 
 namespace M_func_001DAE58 { extern "C" {
-struct E { int a[4]; int n; int b[3]; };
+struct E { int a[4]; int unlockEpisode; int b[3]; };
 extern struct E D_002BCD00[];
 int NEpisodeBest(void);
 /** @sly2-annot addr=0x1DAE58
@@ -1532,8 +1535,8 @@ int NEpisodeBest(void);
 // True when power-up item i is unlocked by the story progress (its episode threshold). (inferred)
 int IsScreenItemUnlocked(int i) {
     struct E *pe = &D_002BCD00[i];
-    if (pe->n == -1) return 0;
-    return NEpisodeBest() >= pe->n;
+    if (pe->unlockEpisode == -1) return 0;
+    return NEpisodeBest() >= pe->unlockEpisode;
 }
 } } // namespace M_func_001DAE58
 
@@ -1580,7 +1583,7 @@ struct CRef {
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
 };
-struct G { char pad[0xC]; int n; };
+struct G { char pad[0xC]; int powerupId; };   /* the game-event record (BroadcastGameEvent) */
 extern "C" { extern G D_002DEB30; }
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79A8[]; }
@@ -1603,7 +1606,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
     sprintf(buf, D_002A79A0, n);
     ref = RefSetSaveVarV(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
-        D_002DEB30.n = n;
+        D_002DEB30.powerupId = n;
         BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
     }
 }
@@ -1657,7 +1660,7 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
-struct CLOCK { char pad[0x3C]; float t3C; };
+struct CLOCK { char pad[0x3C]; float tReal; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
@@ -1720,7 +1723,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
     if (mode == sel->mode)
         return;
     sel->mode = mode;
-    sel->tChanged = D_002DDED0.t3C;
+    sel->tChanged = D_002DDED0.tReal;
     if (mode == -1 || sel->selected == -1)
         return;
     ITEM *current = FindScreenEntry(sel, sel->selected);
@@ -1770,21 +1773,21 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
 
 namespace M_SelectGadgetMenuItem { extern "C" {
 typedef struct {
-    int key;
-    int a;
-    int b;
-    int c;
-    int cur;
+    int gadgetId;
+    int unlockedAnim;
+    int acquiredAnim;
+    int selectedAnim;
+    int currentAnim;
     int pad[2];
     int flags;
 } E;
 typedef struct {
     char pad0[0x24];
-    void *x24;
+    void *widget;
     char pad28[0x48 - 0x28];
-    int key;
-    int n;
-    E *ae;
+    int selectedGadget;
+    int itemCount;
+    E *items;
 } OBJ;
 void StopWidgetAnim(void *, int);
 void PlayWidgetAnim(void *, int);
@@ -1795,27 +1798,27 @@ void PlayWidgetAnim(void *, int);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Selects an item and sets every item's highlight animation (selected / acquired / unlocked).
-void SelectGadgetMenuItem(OBJ *p, int key)
+void SelectGadgetMenuItem(OBJ *p, int gadgetId)
 {
     int i;
-    p->key = key;
-    for (i = 0; i < p->n; i++) {
-        E *e = &p->ae[i];
+    p->selectedGadget = gadgetId;
+    for (i = 0; i < p->itemCount; i++) {
+        E *e = &p->items[i];
         int v;
-        if (e->key == key)
-            v = e->c;
+        if (e->gadgetId == gadgetId)
+            v = e->selectedAnim;
         else if (e->flags & 4)
-            v = e->b;
+            v = e->acquiredAnim;
         else if (e->flags & 2)
-            v = e->a;
+            v = e->unlockedAnim;
         else
             v = -1;
-        if (v != e->cur) {
-            if (p->x24 && e->cur != -1)
-                StopWidgetAnim(p->x24, e->cur);
-            e->cur = v;
-            if (p->x24 && v != -1)
-                PlayWidgetAnim(p->x24, v);
+        if (v != e->currentAnim) {
+            if (p->widget && e->currentAnim != -1)
+                StopWidgetAnim(p->widget, e->currentAnim);
+            e->currentAnim = v;
+            if (p->widget && v != -1)
+                PlayWidgetAnim(p->widget, v);
         }
     }
 }
@@ -1834,15 +1837,15 @@ extern "C" void OpenGadgetMenuForHero(GADGETMENUV *gadgetMenu)
     LO *ploHero = PpoHero(&D_003DD490);
     if (ploHero != 0) {
         if (ploHero == D_002E1E40) {
-            SetGadgetMenuState(gadgetMenu, 0);
+            SetGadgetMenuState(gadgetMenu, GADGETMENU_SLY);
             return;
         }
         if (ploHero == D_002DD5BC) {
-            SetGadgetMenuState(gadgetMenu, 1);
+            SetGadgetMenuState(gadgetMenu, GADGETMENU_BENTLEY);
             return;
         }
         if (ploHero == D_002F7900) {
-            SetGadgetMenuState(gadgetMenu, 2);
+            SetGadgetMenuState(gadgetMenu, GADGETMENU_MURRAY);
         }
     }
 }
@@ -1851,29 +1854,29 @@ namespace M_SetGadgetMenuState { extern "C" {
 typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct { char pad0[0xC]; VTE *vt; } SUB;
 typedef struct {
-    int key;
-    int a;
-    int b;
-    int c;
-    int cur;
-    float x14;
-    float x18;
+    int gadgetId;
+    int unlockedAnim;
+    int acquiredAnim;
+    int selectedAnim;
+    int currentAnim;
+    float x;
+    float y;
     int flags;
 } E;
 typedef struct OBJ {
     char pad0[0xC];
     VTE *vt;
     char pad10[0x20 - 0x10];
-    int x20;
-    SUB *x24;
+    int widgetOid;
+    SUB *widget;
     char pad28[0x40 - 0x28];
-    int x40;
-    float x44;
-    int x48;
-    int n;
-    E *ae;
+    int state;
+    float stateTime;
+    int selectedGadget;
+    int itemCount;
+    E *items;
 } OBJ;
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
@@ -1885,7 +1888,7 @@ void SetScreenMode(OBJ *, int, int);
 void RefreshGadgetMenuItems(OBJ *);
 SUB *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void SetGadgetMenuState(OBJ *p, int s);
-#define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+#define VCALL(o, itemCount) ((void (*)(void *))(o)->vt[itemCount].pfn)((char *)(o) + (o)->vt[itemCount].d)
 /** @sly2-annot addr=0x1DB520
  * Purpose: Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 =
  *   Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock
@@ -1897,74 +1900,74 @@ void SetGadgetMenuState(OBJ *p, int s);
 // restores them.
 void SetGadgetMenuState(OBJ *p, int s)
 {
-    if (s == p->x40)
+    if (s == p->state)
         return;
-    if (p->x40 == -1) {
+    if (p->state == GADGETMENU_CLOSED) {
         func_0014D1D0(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
     }
     SelectGadgetMenuItem(p, -1);
-    p->x40 = s;
-    p->x44 = D_002DDED0.a[15];
+    p->state = s;
+    p->stateTime = D_002DDED0.tReal;
     switch (s) {
-    case -1: {
+    case GADGETMENU_CLOSED: {
         int i;
-        if (p->x24)
-            VCALL(p->x24, 50);
-        for (i = 0; i < p->n; i++)
-            p->ae[i].cur = -1;
-        p->n = 0;
-        p->ae = 0;
+        if (p->widget)
+            VCALL(p->widget, 50);
+        for (i = 0; i < p->itemCount; i++)
+            p->items[i].currentAnim = -1;
+        p->itemCount = 0;
+        p->items = 0;
         func_0014D1D0(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         SetScreenMode(p, -1, -1);
-        p->x24 = 0;
-        p->x20 = -1;
+        p->widget = 0;
+        p->widgetOid = -1;
         break;
     }
-    case 0:
-        p->x20 = 0x375;
-        p->n = 0x12;
-        p->ae = D_002C2DE8;
+    case GADGETMENU_SLY:
+        p->widgetOid = 0x375;
+        p->itemCount = 0x12;
+        p->items = D_002C2DE8;
         break;
-    case 1:
-        p->x20 = 0x376;
-        p->n = 9;
-        p->ae = D_002C3028;
+    case GADGETMENU_BENTLEY:
+        p->widgetOid = 0x376;
+        p->itemCount = 9;
+        p->items = D_002C3028;
         break;
-    case 2:
-        p->x20 = 0x377;
-        p->n = 8;
-        p->ae = D_002C3148;
+    case GADGETMENU_MURRAY:
+        p->widgetOid = 0x377;
+        p->itemCount = 8;
+        p->items = D_002C3148;
         break;
     }
-    if (p->x40 != -1) {
+    if (p->state != GADGETMENU_CLOSED) {
         SUB *e;
         RefreshGadgetMenuItems(p);
-        e = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->x20, 0);
-        p->x24 = e;
+        e = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->widgetOid, 0);
+        p->widget = e;
         if (!e) {
-            SetGadgetMenuState(p, -1);
+            SetGadgetMenuState(p, GADGETMENU_CLOSED);
         } else {
             float best;
-            int key;
+            int gadgetId;
             int i;
             ((void (*)(void *, int))e->vt[49].pfn)((char *)e + e->vt[49].d, 0x318);
             best = D_002A79CC;
-            key = -1;
-            for (i = 0; i < p->n; i++) {
-                E *pe = &p->ae[i];
+            gadgetId = -1;
+            for (i = 0; i < p->itemCount; i++) {
+                E *pe = &p->items[i];
                 if (pe->flags & 4) {
-                    float f = pe->x14 + pe->x18;
+                    float f = pe->x + pe->y;
                     if (f < best) {
-                        key = pe->key;
+                        gadgetId = pe->gadgetId;
                         best = f;
                     }
                 }
             }
-            SelectGadgetMenuItem(p, key);
+            SelectGadgetMenuItem(p, gadgetId);
         }
     }
 }
@@ -2007,7 +2010,7 @@ void THIEFNET::VSlot13()   /* key function */
 }
 
 namespace M_ClearThiefnet { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 struct P { int a, b; };
 struct S { char p0[0x40]; int n40; float g44; int pad; struct P ap[64]; char p1[0x25C-0x24C]; int n25C, n260, n264; };
 /** @sly2-annot addr=0x1DB820
@@ -2020,7 +2023,7 @@ struct S { char p0[0x40]; int n40; float g44; int pad; struct P ap[64]; char p1[
 void ClearThiefnet(struct S *p) {
     unsigned int i;
     p->n40 = -1;
-    p->g44 = D_002DDED0.a[15];
+    p->g44 = D_002DDED0.tReal;
     p->n25C = -1;
     p->n260 = -1;
     p->n264 = -1;
@@ -2463,7 +2466,7 @@ typedef struct OBJ {
     int x260;
     int x264;
 } OBJ;
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void func_0014D1D0(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
@@ -2500,7 +2503,7 @@ void SetThiefnetTab(OBJ *p, int s)
     }
     old = p->x40;
     p->x40 = s;
-    p->x44 = D_002DDED0.a[15];
+    p->x44 = D_002DDED0.tReal;
     switch (s) {
     case -1:
         VCALL(p->x24, 50);
@@ -2561,7 +2564,7 @@ namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.4
 namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -2590,7 +2593,7 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     if (n == p->state)
         return;
     p->state = n;
-    p->t = D_002DDED0.a[15];
+    p->t = D_002DDED0.tReal;
     switch (n) {
     case 0:
         SetThiefnetTab(p, 1);
@@ -2964,7 +2967,7 @@ extern "C" void ResetJobList(SCREENV *screen)
 }
 
 namespace M_ClearJobList { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 struct S { char p0[0x40]; int n40; float g44; char p1[0x11C-0x48]; int n11C, n120, n124; };
 /** @sly2-annot addr=0x1DCD08
  * Purpose: Job list: state -1, timestamp, anim handles -1
@@ -2975,7 +2978,7 @@ struct S { char p0[0x40]; int n40; float g44; char p1[0x11C-0x48]; int n11C, n12
 // Job list: state -1, time stamp, no animation handles.
 void ClearJobList(struct S *p) {
     p->n40 = -1; //P
-    p->g44 = D_002DDED0.a[15]; //P
+    p->g44 = D_002DDED0.tReal; //P
     p->n11C = -1; //P
     p->n120 = -1; //P
     p->n124 = -1; //P
@@ -3280,7 +3283,7 @@ typedef struct OBJ {
     int x120;
     int x124;
 } OBJ;
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
@@ -3310,7 +3313,7 @@ void SetJobListPage(OBJ *p, int s)
     }
     old = p->x40;
     p->x40 = s;
-    p->x44 = D_002DDED0.a[15];
+    p->x44 = D_002DDED0.tReal;
     switch (s) {
     case -1:
         DecrementSwHandsOff(D_003DD490, 0);
@@ -3369,7 +3372,7 @@ namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ":
 namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
-extern struct CLOCK { float a[16]; } D_002DDED0;
+extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -3395,7 +3398,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     if (n == p->state)
         return;
     p->state = n;
-    p->t = D_002DDED0.a[15];
+    p->t = D_002DDED0.tReal;
     switch (n) {
     case 0:
         if (p->c)
