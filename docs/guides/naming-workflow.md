@@ -172,3 +172,26 @@ data symbol stays byte-identical (matchtool), and every file is re-checked after
   the whole file after any edit; keep existing `#line` pins correct.
 - After renames compare each touched object's `nm` symbol set (only the intended renames may differ) — matchtool alone
   does not see a renamed callee.
+
+**Progress metric: `tools/readability.py`**
+- `python3 tools/readability.py [PATH ...] [--csv FILE] [--top N]` (default paths `src/game include/sly2`; standard
+  library only; reads files, builds nothing). Prints one row per path and a TOTAL row; `--csv` writes one row per
+  file, `--top N` lists the files with the most open items. Columns: `files`/`hdr` (files / with a header comment),
+  `funcs` (definitions with a body, inline struct members included), `doc` (prose comment block directly above),
+  `annot` (only a generated `@sly2-annot` draft above), `undoc`, `func_` (still `func_XXXXXXXX`), `func_refs`
+  (placeholder tokens in code), `hung` (Hungarian return-type prefixes: `FCheckLm`, `PloFind`, `GGetX`...), `short`
+  (single-letter params/locals other than i/j), `m2c` (`temp_`, `var_`, `sp10`, `arg0`), `offs` (`x4C8`, `unk_..`,
+  `_pad_..`, `pad14` occurrences), `inferred` (markers).
+- It is regex/brace based, not a parser: its docstring lists the heuristics and their limits (macro-generated code
+  is invisible; `funcs` counts the many per-file inline view helpers, so it exceeds the 6662 linked functions;
+  `m2c`/`offs` count occurrences, not distinct names; the Hungarian test misses suffix tags and unlisted prefixes).
+  Use it for trends, not as an exact census. verify.sh does not run it (verify.sh is about correctness).
+- Baseline (names/base 7da894e7, 2026-11-06):
+
+      scope            files  hdr  funcs  doc  annot  undoc  func_  func_refs  hung  short    m2c   offs  inferred
+      src/game           211  211   8795  732   4386   3677   1955      11291  1217  13442      6   9833         0
+      include/sly2        37   37    138   57     10     71     56         93    13    106      0    456         0
+      TOTAL              248  248   8933  789   4396   3748   2011      11384  1230  13548      6  10289         0
+
+  i.e. 8.8% of definitions documented in prose (49% carry only an `@sly2-annot` draft), 22.5% still `func_XXXXXXXX`,
+  13.8% Hungarian; every file already has a header comment.
