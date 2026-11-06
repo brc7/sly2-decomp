@@ -272,51 +272,51 @@ static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__
  * @end-sly2-annot */
 // Swing physics while hanging from a hook: pendulum motion around the hand-hold, smoothed swing angle, then
 // AnticipateJtForce for the resulting acceleration.
-extern "C" void CalculateJtHangAccel__FP2JT(JT*p){
+extern "C" void CalculateJtHangAccel__FP2JT(JT*jt){
  U anchor,displacement,anchorVelocity,axis;
- anchor.q=func_001A62E8(p->target);
- M3 anchorBasis=*(M3*)func_001A6318(p->target);
- anchorVelocity.q=GetXfVelocity(Space(p->target),0,anchor.q);
- axis.q=VuSubRef(func_001A62E8(p),anchor.q);
+ anchor.q=func_001A62E8(jt->target);
+ M3 anchorBasis=*(M3*)func_001A6318(jt->target);
+ anchorVelocity.q=GetXfVelocity(Space(jt->target),0,anchor.q);
+ axis.q=VuSubRef(func_001A62E8(jt),anchor.q);
  displacement=axis;
  qword length=NormalizeAt(&axis,&D_002A2DC0);
  float distance=GXOfVf(length);
  U relative,perpendicular,parallel;
- relative.q=VuSubRef(QwVelocity(p),anchorVelocity.q);
+ relative.q=VuSubRef(QwVelocity(jt),anchorVelocity.q);
  float radial=func_0011E290(relative.q,axis.q,&parallel.q,&perpendicular.q);
  U firstAxis,angularFirst;
  firstAxis.q=QwNormalize(QwCross(axis.q,perpendicular.q),D_002A2DA0.q);
  float ratio=GLength(perpendicular.q)/distance;
  angularFirst.q=QwScaleX(firstAxis.q,VuFloat(ratio));
  U projected;
- projected.q=QwProjectOut(p->accel->value.q,axis.q);
+ projected.q=QwProjectOut(jt->accel->value.q,axis.q);
  U secondAxis,angularSecond;
  secondAxis.q=QwNormalize(QwCross(axis.q,projected.q),D_002A2DB0.q);
  angularSecond.q=QwScaleX(secondAxis.q,VuFloat(GLength(projected.q)/distance));
  float drag=GClamp(GEvaluateClq(&D_002BF4F0,ratio),D_002BF500.gMin,D_002BF500.gMax);
  float bias;
- if(p->state==0||p->state==2)bias=D_002BF508;else bias=D_002BF50C;
+ if(jt->state==0||jt->state==2)bias=D_002BF508;else bias=D_002BF50C;
  U angular,parallelAngular,perpendicularAngular;
  angular.q=QwAddScaled(angularFirst.q,angularSecond.q,VufFromMemWord(*(int*)&Addr(&D_002DDED0)->dt));
  func_0011E290(angular.q,anchorBasis.r[1].q,&parallelAngular.q,&perpendicularAngular.q);
  angular.q=QwCombo(parallelAngular.q,perpendicularAngular.q,VuFloat(drag*Addr(&D_002DDED0)->dt+1.0f),VuFloat(bias*Addr(&D_002DDED0)->dt+1.0f));
- if((p->state==0||p->state==2)&&D_002DDED0.t-p->changed<D_002BF510){
+ if((jt->state==0||jt->state==2)&&D_002DDED0.t-jt->changed<D_002BF510){
   float amount=Addr(&D_002DDED0)->dt*D_002BF514;
-  if(p->state==0)amount=-amount;
-  if(p->flipped)amount=-amount;
-  float down=-p->accel->value.f[2];
+  if(jt->state==0)amount=-amount;
+  if(jt->flipped)amount=-amount;
+  float down=-jt->accel->value.f[2];
   float speed=GLength(perpendicular.q);
   float t=(down*displacement.f[2]+speed*0.5f*speed)/down;
   float g=D_002BF520.g0;g+=t*(D_002BF520.g1+t*D_002BF520.g2);float lo=D_002BBB60.gMin,hi=D_002BBB60.gMax;if(g<lo)g=lo;else if(hi<g)g=hi;amount*=g;
   angular.q=QwAddScaled(angular.q,anchorBasis.r[1].q,VuFloat(amount));
  }
  float speedOut;
- float next=GSmoothA__FffffP4SMPAPf(distance,radial,D_002BF544-p->target->property,Addr(&D_002DDED0)->dt,&D_002BF530,&speedOut);
+ float next=GSmoothA__FffffP4SMPAPf(distance,radial,D_002BF544-jt->target->property,Addr(&D_002DDED0)->dt,&D_002BF530,&speedOut);
  angular.q=QwScaleX(angular.q,VuFloat(GMinOf(D_002BF544,distance)/GMaxOf(D_002BF540,next)));
  U velocity;
  STATE state;
- if(p->link){
-  NODE*object=p->link->object;
+ if(jt->link){
+  NODE*object=jt->link->object;
   qword base;
   qword dt;__asm__("":"=r"(dt):"0V"(*(int*)&D_002DDED0.dt):"memory"); /* empty asm, see below: the "memory" clobber keeps the point/spin/base loads after the dt store (target order) */
   base=anchorVelocity.q; /* empty asm: the dt bits as a GPR qword (target lw; sq, no qmtc2). The "V" alternative is allocation-only (never chosen: the operand is offsettable), it keeps the MEM in the asm so reload loads it straight into the output reg */
@@ -331,10 +331,10 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT*p){
  state.position.q=VuAdd(anchor.q,radius);
  qword final=VuAdd(VuAdd(velocity.q,QwCross(angular.q,radius)),QwScaleX(state.direction.q,VufFromMemWord(*(int*)&speedOut)));
  state.velocity.q=final;
- qword current=QwVelocity(p);
- projected.q=VuSubRef(QwDivideBy(VuSubRef(final,current),VufFromMemWord(*(int*)&Addr(&D_002DDED0)->dt).qw),p->accel->value.q);
- if(p->link)AnticipateJtForce((NODE*)p,p->link->object,&anchor.q,(float*)&projected.q,p->response);
- else p->response[0].first=projected;
+ qword current=QwVelocity(jt);
+ projected.q=VuSubRef(QwDivideBy(VuSubRef(final,current),VufFromMemWord(*(int*)&Addr(&D_002DDED0)->dt).qw),jt->accel->value.q);
+ if(jt->link)AnticipateJtForce((NODE*)jt,jt->link->object,&anchor.q,(float*)&projected.q,jt->response);
+ else jt->response[0].first=projected;
 }
 
 static inline M3P Mul(const M3P &a, const M3P &b) return r
@@ -356,20 +356,20 @@ static inline M3P Mul(const M3P &a, const M3P &b) return r
  * @end-sly2-annot */
 // Physics preset while hanging: applies the hang force, then turns Sly toward the tilt (toward the hook) times the
 // target spin (radTarget).
-extern "C" void PresetJtAccelHang__FP2JT(JT *p)
+extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
 {
     U v, d;
     M3P m1, m2, m;
-    AddSoAcceleration(p, p->response[0].first.q);
+    AddSoAcceleration(jt, jt->response[0].first.q);
     qword a;
-    __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(p->target)));
+    __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(jt->target)));
     v.q = a;
-    a = VuSub(a, func_001A62E8(p));
+    a = VuSub(a, func_001A62E8(jt));
     d.q = a;
     m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
-    m2 = func_0011B500(D_002A2DC0.q, p->angle);
+    m2 = func_0011B500(D_002A2DC0.q, jt->angle);
     m = Mul(m1, m2);
-    func_001F59A0(p, &m, D_002BF548);
+    func_001F59A0(jt, &m, D_002BF548);
 }
 
 /** @sly2-annot addr=0x1904E0
@@ -387,8 +387,8 @@ extern "C" float fabsf(float);
 static inline float Abs(float a){return fabsf(a);}
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
 static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
-static inline qword Velocity(JT*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
-static inline int Can(JT*p,int mode){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,mode);}
+static inline qword Velocity(JT*jt){return ((qword(*)(void*))jt->vt[33].fn)((char*)jt+jt->vt[33].delta);}
+static inline int Can(JT*jt,int mode){return ((int(*)(void*,int))jt->vt[99].fn)((char*)jt+jt->vt[99].delta,mode);}
 static inline float Clamp(float f,float low,float high){if(f<low)return low;else if(f>high)return high;return f;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];
@@ -442,16 +442,16 @@ typedef char WORK_target_Offset[FIELD_OFFSET(WORK,target)==160?1:-1];
  * @end-sly2-annot */
 // Per-frame hang update (a close port of Sly 1's UpdateJtActiveHang): heading from the hook, stick forward/back
 // detection (60/120 degree cones), swing animation weights, jump-off/drop via SetJtState, then CalculateJtHangAccel.
-extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
+extern "C" void UpdateJtActiveHang__FP2JT(JT*jt){
  WORK w;int near=0,far=0;
- GetJtHangHeading__FP2JTPf(p,&w.heading);
- if(p->flipped)w.heading=RadNormalize__Ff(w.heading+3.1415927410125732421875f);
- func_00204660(p,w.heading);
- float inputDifference=RadNormalize__Ff(p->input->angle-p->angle);
- if(p->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;p->farTime=D_002DDED0.t;}else if(d>2.094395160675048828125f){far=1;p->farTime=D_002DDED0.t;}}
- else p->previous=-1;
- w.reference.q=func_001A62E8(p->target);register JT*receiver __asm__("$4");
- __asm__("sq %2,%1\n\tdaddu %0,%3,$zero" : "=r"(receiver),"=m"(w.target.q) : "r"(w.reference.q),"r"(p));
+ GetJtHangHeading__FP2JTPf(jt,&w.heading);
+ if(jt->flipped)w.heading=RadNormalize__Ff(w.heading+3.1415927410125732421875f);
+ func_00204660(jt,w.heading);
+ float inputDifference=RadNormalize__Ff(jt->input->angle-jt->angle);
+ if(jt->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;jt->farTime=D_002DDED0.t;}else if(d>2.094395160675048828125f){far=1;jt->farTime=D_002DDED0.t;}}
+ else jt->previous=-1;
+ w.reference.q=func_001A62E8(jt->target);register JT*receiver __asm__("$4");
+ __asm__("sq %2,%1\n\tdaddu %0,%3,$zero" : "=r"(receiver),"=m"(w.target.q) : "r"(w.reference.q),"r"(jt));
  register qword positionBits __asm__("$2")=func_001A62E8(receiver);
  register qword position __asm__("vf2"),targetVector __asm__("vf1");
  register float epsilon __asm__("$f1");const uint epsilonBits=0x38D1B717;
@@ -473,51 +473,51 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
  register qword axis __asm__("$5");register float yaw __asm__("$f12");
  __asm__("addiu %0,%1,%%lo(%2)" : "=r"(axisPointer) : "r"(savedPage),"i"(&D_002A2DC0));
  register M3*rotationOutput __asm__("$4");
- __asm__("lwc1 %0,%3\n\tlq %1,%4\n\tla %2,%a5" : "=f"(yaw),"=r"(axis),"=r"(rotationOutput) : "m"(p->angle),"m"(*axisPointer),"p"(&w.returned));
+ __asm__("lwc1 %0,%3\n\tlq %1,%4\n\tla %2,%a5" : "=f"(yaw),"=r"(axis),"=r"(rotationOutput) : "m"(jt->angle),"m"(*axisPointer),"p"(&w.returned));
  w.direction.q=normal;
  (void)func_0011B500_out(rotationOutput,axis,yaw);w.matrix=w.returned;w.local.q=Local(w.matrix,w.direction.q);
  float angle=RadNormalize__Ff(atan2f(w.local.f[2],w.local.f[0])-1.57079637050628662109375f);
- int next=p->state;
+ int next=jt->state;
  switch(next){
  case 0:
   if(far)next=2;
-  else if(near){if(D_002DDED0.t-p->changed>D_002BF554){p->previous=0;next=1;}}
-  else if(D_002DDED0.t-p->farTime>D_002BF55C)next=1;
+  else if(near){if(D_002DDED0.t-jt->changed>D_002BF554){jt->previous=0;next=1;}}
+  else if(D_002DDED0.t-jt->farTime>D_002BF55C)next=1;
   break;
  case 2:
   if(near)next=0;
-  else if(far){if(D_002DDED0.t-p->changed>D_002BF558){p->previous=2;next=1;}}
-  else if(D_002DDED0.t-p->farTime>D_002BF55C)next=1;
+  else if(far){if(D_002DDED0.t-jt->changed>D_002BF558){jt->previous=2;next=1;}}
+  else if(D_002DDED0.t-jt->farTime>D_002BF55C)next=1;
   break;
  case 1:
-  if(near&&p->previous!=0){next=0;p->previous=-1;}
-  else if(far&&p->previous!=2){next=2;p->previous=-1;}
-  else if(Abs(angle)<D_002BF560){qword magnitude=LengthSquared(Velocity(p));register float limit __asm__("$f1");
+  if(near&&jt->previous!=0){next=0;jt->previous=-1;}
+  else if(far&&jt->previous!=2){next=2;jt->previous=-1;}
+  else if(Abs(angle)<D_002BF560){qword magnitude=LengthSquared(Velocity(jt));register float limit __asm__("$f1");
    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2" : "+j"(magnitude),"=f"(limit) : "m"(D_002BF568));
    bool slow=VuToFloat(magnitude)<limit;if(slow)next=3;}
   break;
  case 3:
-  if(near&&p->previous!=0){next=0;p->previous=-1;}
-  else if(far&&p->previous!=2){next=2;p->previous=-1;}
-  else if(Abs(angle)>D_002BF564){qword magnitude=LengthSquared(Velocity(p));register float limit __asm__("$f1");
+  if(near&&jt->previous!=0){next=0;jt->previous=-1;}
+  else if(far&&jt->previous!=2){next=2;jt->previous=-1;}
+  else if(Abs(angle)>D_002BF564){qword magnitude=LengthSquared(Velocity(jt));register float limit __asm__("$f1");
    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2" : "+j"(magnitude),"=f"(limit) : "m"(D_002BF56C));
    bool fast=VuToFloat(magnitude)>limit;if(fast)next=1;}
   break;
  }
- SetJtState__FP2JT3JTS4JTBS(p,3,next);CalculateJtHangAccel__FP2JT(p);
- if(p->link)func_001F5078(p->link->object);
- if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){ClearPoctlJoyPressed(p->input,0x400);StartJtMode(p->action,0,0,0);}
- if(p->state==3)return;
+ SetJtState__FP2JT3JTS4JTBS(jt,3,next);CalculateJtHangAccel__FP2JT(jt);
+ if(jt->link)func_001F5078(jt->link->object);
+ if(GrfPressedWithin__5POCTLUif(jt->input,0x400,0.15f)&&Can(jt,3)){ClearPoctlJoyPressed(jt->input,0x400);StartJtMode(jt->action,0,0,0);}
+ if(jt->state==3)return;
  float activeTarget,speedTarget;
- switch(p->state){case 0:activeTarget=1.0f;speedTarget=1.0f;break;case 2:activeTarget=1.0f;speedTarget=0.0f;break;case 1:{register float half __asm__("$f0"),zero __asm__("$f20");const uint halfBits=0x3F000000;const int zeroBits=0;
+ switch(jt->state){case 0:activeTarget=1.0f;speedTarget=1.0f;break;case 2:activeTarget=1.0f;speedTarget=0.0f;break;case 1:{register float half __asm__("$f0"),zero __asm__("$f20");const uint halfBits=0x3F000000;const int zeroBits=0;
  __asm__(".set noat\n\tlui $1,%2\n\tmtc1 $1,%0\n\tmtc1 %z3,%1\n\t.set at" : "=f"(half),"=f"(zero) : "i"(halfBits>>16),"rJ"(zeroBits) : "$1");
- activeTarget=zero;speedTarget=activeTarget;if(p->speedBlend>half)speedTarget=1.0f;break;}}
- p->activeBlend=GSmooth__FfffP3SMPPf(p->activeBlend,activeTarget,D_002DDED0.dt,&D_002BF570,0);
- p->speedBlend=GSmooth__FfffP3SMPPf(p->speedBlend,speedTarget,D_002DDED0.dt,&D_002BF580,0);
- float active=p->activeBlend,speed=p->speedBlend;float idle=1.0f-active;float combined=active*speed;float activeOnly=active*(1.0f-speed);p->combined=combined;p->idle=idle;p->activeOnly=activeOnly;func_001384C0(p->animation);
+ activeTarget=zero;speedTarget=activeTarget;if(jt->speedBlend>half)speedTarget=1.0f;break;}}
+ jt->activeBlend=GSmooth__FfffP3SMPPf(jt->activeBlend,activeTarget,D_002DDED0.dt,&D_002BF570,0);
+ jt->speedBlend=GSmooth__FfffP3SMPPf(jt->speedBlend,speedTarget,D_002DDED0.dt,&D_002BF580,0);
+ float active=jt->activeBlend,speed=jt->speedBlend;float idle=1.0f-active;float combined=active*speed;float activeOnly=active*(1.0f-speed);jt->combined=combined;jt->idle=idle;jt->activeOnly=activeOnly;func_001384C0(jt->animation);
  float steering=Clamp(angle/D_002BF58C,-1.0f,1.0f);
- float target=p->animation->gain*(steering+1.0f);target*=0.5f;
- p->curve->slope=GLimitAbs__Fff((target-p->curve->value)/D_002DDED0.dt,D_002BF590);
+ float target=jt->animation->gain*(steering+1.0f);target*=0.5f;
+ jt->curve->slope=GLimitAbs__Fff((target-jt->curve->value)/D_002DDED0.dt,D_002BF590);
 }
 
 typedef char final_offset_0_0[FIELD_OFFSET(VTE,delta)==0?1:-1];
@@ -558,10 +558,10 @@ typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
 // Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.
-extern "C" void GetJtHangHeading__FP2JTPf(JT *p, float *pg) {
+extern "C" void GetJtHangHeading__FP2JTPf(JT *jt, float *pg) {
     float *a, *b;
-    { NODE *o = p->target; VTE *e = &o->vt[31]; a = ((float *(*)(void *))e->fn)((char *)o + e->delta); }
-    { NODE *o = p->target; VTE *e = &o->vt[31]; b = ((float *(*)(void *))e->fn)((char *)o + e->delta); }
+    { NODE *o = jt->target; VTE *e = &o->vt[31]; a = ((float *(*)(void *))e->fn)((char *)o + e->delta); }
+    { NODE *o = jt->target; VTE *e = &o->vt[31]; b = ((float *(*)(void *))e->fn)((char *)o + e->delta); }
     *pg = atan2f(a[1], b[0]);
 }
 
@@ -582,7 +582,7 @@ typedef char DataPointer_Size[sizeof(NODE*)==4?1:-1];
  * @end-sly2-annot */
 // The point on the hook's surface nearest the hand: hook position plus the normalized hook-to-hand direction times
 // the hook radius.
-extern "C" qword GetJtHangHandlePosition(JT *p)
+extern "C" qword GetJtHangHandlePosition(JT *jt)
 {
     qword q, d, dir, r;
     register qword fallback __asm__("$2");
@@ -591,8 +591,8 @@ extern "C" qword GetJtHangHandlePosition(JT *p)
     register int lengthBits __asm__("$3");
     UF s;
     float g;
-    q = func_001A62E8(p->target);
-    d = VuSub(q, p->x19cc->m40.r[3].q);
+    q = func_001A62E8(jt->target);
+    d = VuSub(q, jt->x19cc->m40.r[3].q);
     {
         register const qword *address __asm__("$2") = &D_002A2DC0.q;
         __asm__("lq %0,%1" : "=r"(fallback) : "m"(*address));
@@ -605,7 +605,7 @@ extern "C" qword GetJtHangHandlePosition(JT *p)
     else
         __asm__ __volatile__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(dir) : "j"(l), "j"(d));
     {
-        register NODE *object __asm__("$2") = p->target;
+        register NODE *object __asm__("$2") = jt->target;
         register int bits __asm__("$2") = object->propertyBits;
         qword sq;
         __asm__("qmtc2.ni %1,%0" : "=j"(sq) : "r"(bits));   /* C++: asm output into a scalar, then stored (see the mismatch table) */
@@ -626,29 +626,29 @@ extern "C" qword GetJtHangHandlePosition(JT *p)
  * @end-sly2-annot */
 // Render-time fix-up while hanging: moves the hand child transform so the hand reaches GetJtHangHandlePosition (plus
 // the smoothed hand offset), refreshes its matrix, then renders.
-extern "C" void RenderJtHangIk(JT *p)
+extern "C" void RenderJtHangIk(JT *jt)
 {
     IKJ *t;
     qword a, b, d;
     M4 m;
     int n;
 
-    a = VuAdd(GetJtHangHandlePosition(p), p->x1960);
-    b = func_001A62E8(p->x19a4);
+    a = VuAdd(GetJtHangHandlePosition(jt), jt->x1960);
+    b = func_001A62E8(jt->x19a4);
     d = VuSub(a, b);
-    a = ConvertXfVec(0, p->x19c4->xa0, d);
-    t = p->x19c4;
+    a = ConvertXfVec(0, jt->x19c4->xa0, d);
+    t = jt->x19c4;
     VECTOR_opAssign(&t->x30, VuAdd(t->x30, a));
     ((float *)&t->x30)[3] = 1.0f;
     n = ++D_003DD490.x3d58;
-    p->x19c4->xa4 = n;
+    jt->x19c4->xa4 = n;
     {
-        IKJ *t2 = p->x19c4;
+        IKJ *t2 = jt->x19c4;
         __ml__FRC7MATRIX4T0(&m, t2->xa0 + 0x40, t2);
         t2->m40 = m;
     }
-    SolveIk(p, p->x19cc->xa8);
-    ((void (*)(void *))p->vt[18].fn)((char *)p + p->vt[18].delta);
+    SolveIk(jt, jt->x19cc->xa8);
+    ((void (*)(void *))jt->vt[18].fn)((char *)jt + jt->vt[18].delta);
 }
 
 /** @sly2-annot addr=0x190E18
@@ -661,14 +661,14 @@ extern "C" void RenderJtHangIk(JT *p)
  * @end-sly2-annot */
 // Orients the hand toward the hook (fixed wrist angle D_002BF594), sets the wrist actuator from the Euler angles and
 // smooths the hand offset toward zero.
-extern "C" void UpdateJtHangIkGoals__FP2JT(JT *p)
+extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 {
     M3P m;
-    qword d = VuSub(func_001A62E8(p->target), p->x19cc->m40.r[3].q);
-    qword q = ConvertXfVec(0, p->x19c0->xa0, d);
+    qword d = VuSub(func_001A62E8(jt->target), jt->x19cc->m40.r[3].q);
+    qword q = ConvertXfVec(0, jt->x19c0->xa0, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), func_0011B500(D_002A2DA0.q, D_002BF594));
-    SetActPositionGoal(p->x1a00, func_0011BFF0(&m));
-    p->x1960 = PosSmooth(p->x1960, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
+    SetActPositionGoal(jt->x1a00, func_0011BFF0(&m));
+    jt->x1960 = PosSmooth(jt->x1960, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
 }
 
 // ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
