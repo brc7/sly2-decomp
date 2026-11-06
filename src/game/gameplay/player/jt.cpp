@@ -908,12 +908,12 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
     AdjustStepXpVelocity(p, ae, i);
     pe = &ae[i];
     object = pe->po;
-    if (object == p) {
-        qword v = pe->v30;
-        qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
-        qword x = pe->v10;
-        pe->v30 = VSub(v, VCross(w, VSub(x, func_001A62E8(object))));
-    }
+    if (object != p)
+        return;
+    qword v = pe->v30;
+    qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
+    qword x = pe->v10;
+    pe->v30 = VSub(v, VCross(w, VSub(x, func_001A62E8(object))));
 }
 } } // namespace M_func_00188E78
 
@@ -1648,37 +1648,36 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
         else
             asega = jt->pasegaUnk1030;
     }
-    if (asega->paseg != pxmg->paseg)
+    if (asega->paseg == pxmg->paseg)
+        return;
+    pxmg->paseg = asega->paseg;
+    float tLocal = 0.0f;
+    EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
+    if (pea != 0)
     {
-        pxmg->paseg = asega->paseg;
-        float tLocal = 0.0f;
-        EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
-        if (pea != 0)
-        {
-            tLocal = pea->tLocal;
-        }
-        MATRIX4 matExtrem;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
-        qword posExtrem = QwAddScaled(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
-        MATRIX4 matHip;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
-        MATRIX4 matIkh;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
-        qword posIkh = QwTransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
-        qword posSphereCenter = QwAdd(*(qword *)matHip.mat[3], QwSub(posExtrem, posIkh));
-        pxmg->posSphere = posSphereCenter;
-        pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
-        VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
-        VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
-        LSG lsgClip;
-        qword posLineUp = QwAddScaled(posExtrem, D_002A2DC0, vfUp);
-        qword posLineDown = QwAddScaled(posExtrem, D_002A2DC0, vfDown);
-        pxmg->fValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sSphere, posLineUp, posLineDown, 1, &lsgClip) > 0;
-        pxmg->posExtrem = posExtrem;
-        pxmg->posUp = lsgClip.apos[0];
-        pxmg->posDown = lsgClip.apos[1];
-        pxmg->posSphereLow = QwAddScaled(pxmg->posSphere, D_002A2DC0, VuFloat(-pxmg->sSphere));
+        tLocal = pea->tLocal;
     }
+    MATRIX4 matExtrem;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
+    qword posExtrem = QwAddScaled(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
+    MATRIX4 matHip;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
+    MATRIX4 matIkh;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
+    qword posIkh = QwTransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
+    qword posSphereCenter = QwAdd(*(qword *)matHip.mat[3], QwSub(posExtrem, posIkh));
+    pxmg->posSphere = posSphereCenter;
+    pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
+    VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
+    VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
+    LSG lsgClip;
+    qword posLineUp = QwAddScaled(posExtrem, D_002A2DC0, vfUp);
+    qword posLineDown = QwAddScaled(posExtrem, D_002A2DC0, vfDown);
+    pxmg->fValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sSphere, posLineUp, posLineDown, 1, &lsgClip) > 0;
+    pxmg->posExtrem = posExtrem;
+    pxmg->posUp = lsgClip.apos[0];
+    pxmg->posDown = lsgClip.apos[1];
+    pxmg->posSphereLow = QwAddScaled(pxmg->posSphere, D_002A2DC0, VuFloat(-pxmg->sSphere));
 }
 } // namespace M_RebuildJtXmg
 
@@ -1788,14 +1787,14 @@ void UpdateJtStand(struct S *jt)
         u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
         func_00204660(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
     }
-    if (jt->x19f0) {
-        RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
-        RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
-        if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
-            !jt->x1514 && jt->x1028) {
-            if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
-            jt->x1514 = 1;
-        }
+    if (!jt->x19f0)
+        return;
+    RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
+    RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
+    if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
+        !jt->x1514 && jt->x1028) {
+        if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
+        jt->x1514 = 1;
     }
 }
 } } // namespace M_UpdateJtStand
@@ -2635,12 +2634,12 @@ void UpdateJtMode(void *p);
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
 void UpdateJtModeInput(struct S *p)
 {
-    if (IsStepplayerInJtMode(p)) {
-        if (p->jtModeState == 1 && !p->jtModeKind &&
-            GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
-            EndJtMode(&p->xf00);
-        UpdateJtMode(&p->xf00);
-    }
+    if (!IsStepplayerInJtMode(p))
+        return;
+    if (p->jtModeState == 1 && !p->jtModeKind &&
+        GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        EndJtMode(&p->xf00);
+    UpdateJtMode(&p->xf00);
 }
 } } // namespace M_func_0018B2C0
 
@@ -2676,19 +2675,19 @@ void CacheJtRestPose(struct O *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (jt->p1BC8) {
-        z = 0.0f;
-        jt->g1BD8 = func_0012F990(jt->p1BC8, 0x167);
-        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
-        jt->v1BE0 = m0.r[3];
-        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
-        jt->v1BF0 = m1.r[3];
-        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
-        jt->v1C00 = m2.r[3];
-        jt->v1C10 = func_0011BFF0(&m2);
-        InvertMatrix4Rigid(&mi, &m2);
-        jt->v1C20 = Mul(&mi, jt->v1BE0);
-    }
+    if (!jt->p1BC8)
+        return;
+    z = 0.0f;
+    jt->g1BD8 = func_0012F990(jt->p1BC8, 0x167);
+    func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
+    jt->v1BE0 = m0.r[3];
+    func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
+    jt->v1BF0 = m1.r[3];
+    func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
+    jt->v1C00 = m2.r[3];
+    jt->v1C10 = func_0011BFF0(&m2);
+    InvertMatrix4Rigid(&mi, &m2);
+    jt->v1C20 = Mul(&mi, jt->v1BE0);
 }
 } } // namespace M_func_0018B348
 
@@ -3270,37 +3269,37 @@ void ApplyJtStateStepParams(struct S *jt)
 // Enables or disables the five lean actuators (x19E4..x19F4).
 extern "C" void EnableJtLeanActs(JT *jt, int grf)
 {
-    if (jt->pact5Unk19e4 != 0) {
-        if (grf & 1)
-            func_0012CFE0(jt->pact5Unk19e4);
-        else
-            func_0012D020(jt->pact5Unk19e4);
-        if (grf & 2)
-            func_0012CFE0(jt->pact5Unk19e8);
-        else
-            func_0012D020(jt->pact5Unk19e8);
-        if (grf & 4)
-            func_0012CFE0(jt->pact5Unk19ec);
-        else
-            func_0012D020(jt->pact5Unk19ec);
-        if (grf & 8)
-            func_0012CFE0(jt->pact5Unk19f0);
-        else
-            func_0012D020(jt->pact5Unk19f0);
-        if (grf & 0x10)
-            func_0012CFE0(jt->pact5Unk19f4);
-        else
-            func_0012D020(jt->pact5Unk19f4);
-        if (grf & 0x20)
-            func_0012CFE0(jt->pact5Unk19fc);
-        else
-            func_0012D020(jt->pact5Unk19fc);
-        if (grf & 0x40) {
-            func_0012CFE0(jt->pact5Unk19f8);
-            return;
-        }
-        func_0012D020(jt->pact5Unk19f8);
+    if (jt->pact5Unk19e4 == 0)
+        return;
+    if (grf & 1)
+        func_0012CFE0(jt->pact5Unk19e4);
+    else
+        func_0012D020(jt->pact5Unk19e4);
+    if (grf & 2)
+        func_0012CFE0(jt->pact5Unk19e8);
+    else
+        func_0012D020(jt->pact5Unk19e8);
+    if (grf & 4)
+        func_0012CFE0(jt->pact5Unk19ec);
+    else
+        func_0012D020(jt->pact5Unk19ec);
+    if (grf & 8)
+        func_0012CFE0(jt->pact5Unk19f0);
+    else
+        func_0012D020(jt->pact5Unk19f0);
+    if (grf & 0x10)
+        func_0012CFE0(jt->pact5Unk19f4);
+    else
+        func_0012D020(jt->pact5Unk19f4);
+    if (grf & 0x20)
+        func_0012CFE0(jt->pact5Unk19fc);
+    else
+        func_0012D020(jt->pact5Unk19fc);
+    if (grf & 0x40) {
+        func_0012CFE0(jt->pact5Unk19f8);
+        return;
     }
+    func_0012D020(jt->pact5Unk19f8);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -4057,30 +4056,29 @@ void SetJtJts(JT *jt, JTS jts, JTBS jtbs)
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, PosLoWorld(jt));
     }
-    if (!fKeep)
+    if (fKeep)
+        return;
+    if (jt->pasegaUnk1030 != 0)
     {
-        if (jt->pasegaUnk1030 != 0)
-        {
-            RetractAsega(jt->pasegaUnk1030);
-            jt->pasegaUnk1030->VUnk01();
-            jt->pasegaUnk1030 = 0;
-        }
-        else if (jt->psmaUnk1034 != 0)
-        {
-            RetractSma(jt->psmaUnk1034);
-            jt->psmaUnk1034->VUnk01();
-            jt->psmaUnk1034 = 0;
-        }
-        if (aseg != 0)
-        {
-            ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
-            jt->pasegaUnk1030->VUnk00();
-        }
-        else if (stateMachine != 0)
-        {
-            jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
-            jt->psmaUnk1034->VUnk00();
-        }
+        RetractAsega(jt->pasegaUnk1030);
+        jt->pasegaUnk1030->VUnk01();
+        jt->pasegaUnk1030 = 0;
+    }
+    else if (jt->psmaUnk1034 != 0)
+    {
+        RetractSma(jt->psmaUnk1034);
+        jt->psmaUnk1034->VUnk01();
+        jt->psmaUnk1034 = 0;
+    }
+    if (aseg != 0)
+    {
+        ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
+        jt->pasegaUnk1030->VUnk00();
+    }
+    else if (stateMachine != 0)
+    {
+        jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
+        jt->psmaUnk1034->VUnk00();
     }
 }
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
