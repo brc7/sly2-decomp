@@ -242,7 +242,7 @@ extern "C" BHVV *PushBhvstk(BHVSTKV *stack, int cid)
 // 0x1EEED0: Decrements the stack depth (called by PopBhv once a behaviour has been closed).
 extern "C" void DecrementBhvstk(BHVSTKV *stack)
 {
-    stack->depth = stack->depth - 1;
+    stack->depth--;
 }
 
 // 0x1EEEE0: Returns the first stacked behaviour (searching bottom up) whose class derives from `cid`, or NULL.
