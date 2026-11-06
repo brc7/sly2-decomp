@@ -526,8 +526,8 @@ typedef char assert_CID116_size[sizeof(CID116) == 0x70 ? 1 : -1];
 /* 57 GOMER (0x1010): instances are swarmers; vtable 0x2CF520, 89 slots */
 struct GOMER : STEPGUARD
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetGomerClassDesc");   /* slot 6 */
     virtual void Init() __asm__("RenderGomerSelf__FP5GOMERP2CMP2RO");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetGomerClassDesc");   /* slot 6 */
 };
 typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 
