@@ -576,6 +576,9 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   choice changes); RenderBlipgSelf's `top:/next:` list walk as a `for`/`do-while` (frame size changes). Such a rotated loop
   is not a `while` either: it has no loop notes, so loop.c does not hoist (UpdateBhvEscort); hand-rotated loops with pinned
   registers stay as they are.
+- A top-tested `for (;;) { if (!p) return; ...; p = p->next; }` list walk -> `while (p)` / `for (; p; )` (loop.c rotates those
+  to a bottom test; DetachXfActById); a loop entered at its test via `goto test` -> a `for (;;)` with the test first (block
+  order changes; ChooseSmaTransition).
 - A `for` loop that carries m2c's hand-held pointer (ResolveStepguardAnimBindings); m2c's `if (n > 0) do {...} while (j < n);`
   as a `for` (GenerateStepguardLoot's coin split).
 - A named `int` temporary for a flag or float compare (`int isClose = a < b; if (isClose)`, `int isInWorld =

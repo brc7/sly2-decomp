@@ -625,8 +625,8 @@ void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *p 
 namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
-struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; char pad60[0xB0]; int x110; int x114; };
-extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
+struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int unknown110; int keepsGamePaused; };
+extern struct G { char pad[0x3B0C]; void *unknown3B0C; } D_003DD490;
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int IsWidgetIdle(struct S *p);
@@ -651,16 +651,16 @@ void UpdateModalBoxWidget(struct S *p)
     if (r)
         return;
     UpdateWidget(p);
-    if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
+    if (p->state == 2 && 0.5f < g_clock.tReal - p->stateTime && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (p->x114 == 0 && D_003DD490.x3B0C) {
+        if (p->keepsGamePaused == 0 && D_003DD490.unknown3B0C) {
             D_002DD318++;
-            RestartJob(D_003DD490.x3B0C);
+            RestartJob(D_003DD490.unknown3B0C);
         }
         p->pvt->pf((char *)p + p->pvt->d);
     }
-    p->x110 = 1;
+    p->unknown110 = 1;
     return;
 }
 } } // namespace M_func_00211D38
@@ -912,10 +912,10 @@ int FWidgetAnimPlaying(struct S *p, int k)
 // 0x212298 LoadWidgetFromBrx
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
-struct O { char pad[0x40]; void *x40; };
+struct O { char pad[0x40]; void *owner; };
 struct S {
-    char pad[0x50]; int x50; int x54; int x58; char pad5c[0x14]; int x70; int x74; int x78; int x7C;
-    char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
+    char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
+    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteOps;
 };
 extern char D_003E1C70[], D_003E1C80[];
 
@@ -944,32 +944,32 @@ void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
 void LoadWidgetFromBrx(struct S *p, void *pbis)
 {
     int f;
-    p->x70 = 0x310;
-    p->x74 = 0x30F;
-    p->x78 = 0x311;
+    p->loopAnimId = 0x310;
+    p->showAnimId = 0x30F;
+    p->hideAnimId = 0x311;
     LoadLoFromBrx(p, pbis);
     f = S8Read__18CBinaryInputStream(pbis);
-    p->x90 = F32Read__18CBinaryInputStream(pbis);
-    p->x94 = U32Read__18CBinaryInputStream(pbis);
-    p->x98 = U32Read__18CBinaryInputStream(pbis);
-    p->xBC = U32Read__18CBinaryInputStream(pbis);
+    p->duration = F32Read__18CBinaryInputStream(pbis);
+    p->width = U32Read__18CBinaryInputStream(pbis);
+    p->height = U32Read__18CBinaryInputStream(pbis);
+    p->hasFont = U32Read__18CBinaryInputStream(pbis);
     if (f) {
         AREQ req;
-        p->x58 = 0;
+        p->state = 0;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        p->xC4 = D_003E1C70;
-        p->xC0 = AllocClearedFromWorldHeap(&req);
-        p->xC0->x40 = p;
-        CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
+        p->spriteOps = D_003E1C70;
+        p->deferredLoad = AllocClearedFromWorldHeap(&req);
+        p->deferredLoad->owner = p;
+        CBinaryInputStream_ReadCb64(pbis, p->deferredLoad);
+        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), p->deferredLoad);
     } else {
-        p->x58 = 1;
-        p->xC4 = D_003E1C80;
-        LoadSpriteTable(p, pbis, p, &p->x50, &p->x54);
+        p->state = 1;
+        p->spriteOps = D_003E1C80;
+        LoadSpriteTable(p, pbis, p, &p->spriteCount, &p->sprites);
         LoadSpriteGroups(p, pbis, p);
     }
-    p->x7C = -1;
+    p->mainAnimId = -1;
 }
 } } // namespace M_LoadWidgetFromBrx
 
@@ -1236,7 +1236,7 @@ struct B { char pad[0xC];
   virtual void v11(); virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
   virtual void v16(); };
 struct S : B {
-  char pad10[0x48]; int x58; char pad5c[0x14]; int x70; int x74; int x78; char pad7c[8]; void *x84;
+  char pad10[0x48]; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; char pad7c[8]; void *mainSprite;
   void A(int) __asm__("SetWidgetState");
   void Bf(int) __asm__("SetWidgetRequest");
   int F(void *, int) __asm__("FSpriteHasAnim");
@@ -1246,25 +1246,25 @@ struct S : B {
 // argument (-1 = default).
 void S::M(int k)
 {
-    if (!x58)
+    if (!state)
         A(1);
     Bf(2);
-    x70 = k;
-    x74 = -1;
-    x78 = -1;
+    loopAnimId = k;
+    showAnimId = -1;
+    hideAnimId = -1;
     if (k != -1) {
         A(1);
         A(2);
         return;
     }
-    x70 = 0x314;
-    if (F(x84, 0x30F))
-        x74 = 0x30F;
-    if (F(x84, 0x310))
-        x70 = 0x310;
-    if (F(x84, 0x311))
-        x78 = 0x311;
-    if (x58 == 1)
+    loopAnimId = 0x314;
+    if (F(mainSprite, 0x30F))
+        showAnimId = 0x30F;
+    if (F(mainSprite, 0x310))
+        loopAnimId = 0x310;
+    if (F(mainSprite, 0x311))
+        hideAnimId = 0x311;
+    if (state == 1)
         v16();
 }
 } // namespace M_ShowWidget
@@ -1981,7 +1981,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; };
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *pz; char pad34[0x24]; int x58; char pad5c[0x14]; };
+struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
 struct H { int c; struct Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; struct H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; struct A *aa; };
@@ -2014,7 +2014,7 @@ int FindSpriteItemPose(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, stru
             *pc1 = y->c1;
             return 1;
         }
-        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->x58].c, p->aa[z->id].ah[y->x58].ay))
+        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->spriteSlot].c, p->aa[z->id].ah[y->spriteSlot].ay))
             return 1;
     }
     return 0;
@@ -2027,7 +2027,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58; char pad5c[0xC]; int x68; int x6C; };
+struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int x68; int x6C; };
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
@@ -2058,12 +2058,12 @@ extern "C" int RestartNestedSprite(S *p, int k, int z, int c, Y *ay)
         pz = y->pz;
         if (!pz || pz->k != 4)
             continue;
-        int oldframe=y->x58;
+        int oldframe=y->spriteSlot;
         if (pz->id == k) {
             StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
-            y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
+            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
@@ -2082,7 +2082,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58; char pad5c[8]; int x64; int x68; int x6C; };
+struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[8]; int x64; int x68; int x6C; };
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
@@ -2113,13 +2113,13 @@ extern "C" int RestartNestedSpriteWithArg(S *p, int k, int z, int x, int c, Y *a
         pz = y->pz;
         if (!pz || pz->k != 4)
             continue;
-        int oldframe=y->x58;
+        int oldframe=y->spriteSlot;
         if (pz->id == k) {
             if(x != y->x64) continue;
             StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
-            y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
+            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
@@ -2618,7 +2618,7 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
-struct T { char pad[0x30]; S *x30; char pad34[0x24]; int x58; };
+struct T { char pad[0x30]; S *x30; char pad34[0x24]; int spriteSlot; };
 extern "C" int IFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *FindObjectForRenderTarget(int);
@@ -2636,8 +2636,8 @@ extern "C" void SetSpriteItemSource(S *p, T *t, void *q, RGBA c0, RGBA c1)
     t->x30 = p;
     switch (p->k) {
     case 4:
-        t->x58 = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
-        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->x58, q, c0, c1);
+        t->spriteSlot = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
+        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->spriteSlot, q, c0, c1);
         break;
     case 6:
         if (p->i != -1) {
@@ -2660,7 +2660,7 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; };
-struct T { char pad[0x58]; int x58; };
+struct T { char pad[0x58]; int spriteSlot; };
 extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x215850
  * Purpose: forward frame update (time, M23, colours) to nested sprite
@@ -2673,7 +2673,7 @@ extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA
 extern "C" void UpdateSpriteItem(float g, S *p, T *t, void *b, RGBA c0, RGBA c1)
 {
     if (p->k == 4)
-        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, b, g, c0, c1);
+        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, b, g, c0, c1);
 }
 } // namespace M_func_00215850
 
@@ -2682,7 +2682,7 @@ namespace M_func_002158C0 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct Q { char pad[0x20]; void *x20; };
 struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
-struct T { char pad[0x58]; int x58; };
+struct T { char pad[0x58]; int spriteSlot; };
 void StopSpriteSlot(void *p, int a);
 void ReleaseRenderTarget(void *p);
 void InitSpriteItem(struct T *t);
@@ -2697,7 +2697,7 @@ void ReleaseSpriteItem(struct S *p, struct T *t)
 {
     switch (p->k) {
     case 4:
-        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->x58);
+        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot);
         break;
     case 6:
         if (p->x14) {
@@ -2715,7 +2715,7 @@ void ReleaseSpriteItem(struct S *p, struct T *t)
 namespace M_func_00215960 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; struct L *pl; int xc; int i; };
-struct T { char pad[0x58]; int x58; char pad5c[5]; unsigned char b61; };
+struct T { char pad[0x58]; int spriteSlot; char pad5c[5]; unsigned char drawFlags; };
 void DrawSpriteSlot(void *p, int a, int b);
 void PrependSlEntry(void *p, struct T *t);
 /** @sly2-annot addr=0x215960
@@ -2729,13 +2729,13 @@ void QueueSpriteItem(struct S *p, struct T *t, int b)
 {
     switch (p->k) {
     case 4:
-        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, t->b61);
+        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, t->drawFlags);
         break;
     case 1:
     case 3:
     case 6:
     case 7:
-        t->b61 = b;
+        t->drawFlags = b;
         PrependSlEntry((char *)p->pl + 0xFC, t);
         break;
     case 2:

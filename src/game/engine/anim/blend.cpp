@@ -27,31 +27,31 @@ struct BLMRSG { int ib; int syncCount; MRSG *syncTable; };
 struct ELEM { union { float w; int iw; }; ASEG *paseg; };
 /* Entry of a segment's channel table (EnsureAsegBlendDynamic). */
 struct OBJ;
-struct ENT { unsigned n : 20; unsigned k : 10; unsigned f30 : 1; signed f31 : 1; OBJ *pobj; };
-struct OBJ { int x0; ASEG *px; BLMRSG *syncTables; OBJ **apobj; qword q10; };
+struct ENT { unsigned n : 20; unsigned k : 10; unsigned skipStandalone : 1; signed isRotationCurve : 1; OBJ *pobj; };
+struct OBJ { int vtableWord; ASEG *px; BLMRSG *syncTables; OBJ **apobj; qword restValue; };
 /* The value a channel is evaluated into (0x100 bytes). */
 struct CHN
 {
     char pad[0x80];
-    float x80;
-    float x84;
-    float *x88;
-    float *x8C;
+    float segmentStartTime;
+    float segmentEndTime;
+    float *currentTimePtr;
+    float *curveScalePtr;
     char pad90[0x9A - 0x90];
-    short x9A;
+    short segmentKind;
     char pad9C[0xC0 - 0x9C];
-    VU xC0;
-    VU xD0;
-    VU xE0;
-    VU xF0;
+    VU segmentStart;
+    VU segmentStartTangent;
+    VU segmentEnd;
+    VU segmentEndTangent;
 };
 /* A segment's channel chain entry and the chain list (SetAsegblDominantBl, RecalculateAsegBlend). */
-struct CHNE { int f0; int f4; CHN *px; char pad[0x1c - 0xc]; int f1c; char pad2[0x28 - 0x20]; CHNE *next; };
-struct LINK { char pad[0x1C]; float relativeTime; char pad20[0xC]; LINK *next; int f30; CHNE *firstChannel; };
-struct KEY { float t; int x4; int x8; int xC; };
+struct CHNE { int kind; int object; CHN *xf; char pad[0x1c - 0xc]; int unknown1C; char pad2[0x28 - 0x20]; CHNE *next; };
+struct LINK { char pad[0x1C]; float relativeTime; char pad20[0xC]; LINK *next; int prevLink; CHNE *firstChannel; };
+struct KEY { float t; int kind; int arg8; int argC; };
 struct XB {
-    int x0; int pad4[2];
-    virtual void f1(); virtual void f2(); virtual void f3(); virtual void f4(); virtual void f5();
+    int frame; int pad4[2];
+    virtual void f1(); virtual void f2(); virtual void f3(); virtual void object(); virtual void f5();
     virtual void f6(); virtual void f7(); virtual void f8(); virtual void Init();
 };
 /* View of an animation segment (ASEG; the fields from +0xC0 on are those of a blend, ASEGBL). */
@@ -62,14 +62,14 @@ struct ASEG : XB {
     int c;                  /* +0x5C */
     ENT *entries;              /* +0x60 */
     char pad64[0x6C - 0x64];
-    int x6C;
-    int x70;
+    int priority;
+    int worldHold;
     float tMax;             /* +0x74 duration */
-    float g78;
+    float masterSpeed;
     char pad7C[0x98 - 0x7C];
-    int x98, x9C, keyCount;      /* xA0: number of keys */
-    KEY *keys;               /* +0xA4 keys */
-    int xA8, xAC;
+    int startEventCount, startEvents, frameEventCount;      /* +0x98..: start / per-frame / end event tables (EA), +0xA0 the frame event count */
+    KEY *frameEvents;               /* +0xA4 frameEvents */
+    int endEventCount, endEvents;
     char padB0[0xC0 - 0xB0];
     int cb;                 /* +0xC0 element size */
     int elementCount;              /* +0xC4 */
@@ -115,7 +115,7 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU
 int ImrsgLookUp(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
 
 // EnsureAsegBlendDynamic (Claude agent laneBE2, 2026-10-23): MATCH. Built from build/hand_wip/EnsureAsegBlendDynamic.fresh14.cpp:
-// the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (mF31 in s5),
+// the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (rotationCurveBit in s5),
 // and the not-found slot written as `pentNew = &pxNew->aent[pxNew->c++];`.
 #define PELEM(i) ((ELEM *)((char *)elements + (i) * cb))
 /** @sly2-annot addr=0x137A30
@@ -143,8 +143,8 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         pe = PELEM(i);
         if (pe->paseg) {
             if (!pxFirst) pxFirst = pe->paseg;
-            if (!pxCopy && (pe->paseg->x98 || pe->paseg->xA8 || pe->paseg->keyCount)) pxCopy = pe->paseg;
-            if (!pxName) pxName = pe->paseg->x0 ? pe->paseg : 0;
+            if (!pxCopy && (pe->paseg->startEventCount || pe->paseg->endEventCount || pe->paseg->frameEventCount)) pxCopy = pe->paseg;
+            if (!pxName) pxName = pe->paseg->frame ? pe->paseg : 0;
         }
     }
     if (!pxFirst) { *ppx = 0; return; }
@@ -167,12 +167,12 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         
         if (pxCopy) {
             pxNew->linkedBlend = pxCopy;
-            pxNew->x98 = pxCopy->x98;
-            pxNew->x9C = pxCopy->x9C;
-            pxNew->keyCount = pxCopy->keyCount;
-            { void *pvOld = pxCopy->keys; pxNew->keys = (KEY *)AllocCopyFromWorldHeap(AREQ(pxCopy->keyCount << 4), pvOld); }
-            pxNew->xA8 = pxCopy->xA8;
-            pxNew->xAC = pxCopy->xAC;
+            pxNew->startEventCount = pxCopy->startEventCount;
+            pxNew->startEvents = pxCopy->startEvents;
+            pxNew->frameEventCount = pxCopy->frameEventCount;
+            { void *pvOld = pxCopy->frameEvents; pxNew->frameEvents = (KEY *)AllocCopyFromWorldHeap(AREQ(pxCopy->frameEventCount << 4), pvOld); }
+            pxNew->endEventCount = pxCopy->endEventCount;
+            pxNew->endEvents = pxCopy->endEvents;
         }
         {
             int cTotal = 0;
@@ -190,7 +190,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 ENT *pentNew;
                 OBJ *pobj;
                 int k;
-                if (pent->f30) continue;
+                if (pent->skipStandalone) continue;
                 k = 0;
                 ENT *entries = pxNew->entries;
                 for (; k < pxNew->c; k++) {
@@ -202,13 +202,13 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 pentNew->n = (*(unsigned *)pent << 12) >> 12;
                 pentNew->k = pent->k;
             found:
-                register unsigned mF31 asm("$21") = 0x80000000;  /* register pin: mF31 in s5 like the target (global alloc otherwise gives s5 to &req) */
-                if (pent->f31 >= 0) {
+                register unsigned rotationCurveBit asm("$21") = 0x80000000;  /* register pin: rotationCurveBit in s5 like the target (global alloc otherwise gives s5 to &req) */
+                if (pent->isRotationCurve >= 0) {
             if (!pentNew->pobj) {
             int a; void *pv;
             pobj = PacNewKind(5);
             ResolveAsegChannelTarget(pxNew, p, pentNew, &a, &pv);
-            pobj->q10 = GetXfValueFromMatrix(pv, pv);
+            pobj->restValue = GetXfValueFromMatrix(pv, pv);
             pobj->px = pxNew;
             pobj->syncTables = pxNew->syncTables;
             pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
@@ -221,7 +221,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj->syncTables = pxNew->syncTables;
             pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
             pentNew->pobj = pobj;
-            *(unsigned *)pentNew |= mF31;
+            *(unsigned *)pentNew |= rotationCurveBit;
             } else pobj = pentNew->pobj;
                 }
                 pobj->apobj[i] = pent->pobj;
@@ -229,10 +229,10 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             }
         }
         { ENT *aentOld = pxNew->entries; pxNew->entries = (ENT *)AllocCopyFromWorldHeap(AREQ(pxNew->c * 8), aentOld); }
-        pxNew->x6C = pxFirst->x6C;
-        pxNew->g78 = pxFirst->g78;
+        pxNew->priority = pxFirst->priority;
+        pxNew->masterSpeed = pxFirst->masterSpeed;
         pxNew->dominantElement = -1;
-        if (pxName) FramePtr_Assign(pxNew, pxName->x0);
+        if (pxName) FramePtr_Assign(pxNew, pxName->frame);
         pe = elements;
         for (i = 0; i < c; i++) {
             pe->w = (pe->paseg == pxFirst) ? 1.0f : 0.0f;
@@ -387,9 +387,9 @@ extern "C" void SetAsegblDominantBl(ASEG *blend, int dominant) {
     blend->dominantElement = dominant;
     for (link = blend->links; link; link = link->next) {
         for (channelEntry = link->firstChannel; channelEntry; channelEntry = channelEntry->next) {
-            if (channelEntry->f1c && IsActCurrent(channelEntry)) {
-                CHN *channel = channelEntry->px;
-                channel->x80 = channel->x84 = D_002A4AF0; channel->x88 = channel->x8C = (float *)D_002C44E0; channel->x9A = 0;
+            if (channelEntry->unknown1C && IsActCurrent(channelEntry)) {
+                CHN *channel = channelEntry->xf;
+                channel->segmentStartTime = channel->segmentEndTime = D_002A4AF0; channel->currentTimePtr = channel->curveScalePtr = (float *)D_002C44E0; channel->segmentKind = 0;
             }
         }
     }
@@ -436,8 +436,8 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
     if (blend->linkedBlend) {
         float ratio = blend->tMax / blend->linkedBlend->tMax;
         int k;
-        for (k = 0; k < blend->keyCount; k++)
-            blend->keys[k].t = ratio * blend->linkedBlend->keys[k].t;
+        for (k = 0; k < blend->frameEventCount; k++)
+            blend->frameEvents[k].t = ratio * blend->linkedBlend->frameEvents[k].t;
     }
 }
 
@@ -487,28 +487,28 @@ void AC5::VSlot2(CHN *pq)
             ((void (*)(void *, CHN *))e->pfn)((char *)po + e->d, pq);
         } else {
             qword v = p->q;
-            float *pv = pq->xD0.f;
-            float *pw = pq->xF0.f;
-            float *p80;
-            pq->x9A = 2;
-            pq->xE0.q = v;
-            pq->xC0.q = v;
+            float *pv = pq->segmentStartTangent.f;
+            float *pw = pq->segmentEndTangent.f;
+            float *startTimePtr;
+            pq->segmentKind = 2;
+            pq->segmentEnd.q = v;
+            pq->segmentStart.q = v;
             pv[2] = 0;
             pv[1] = 0;
             pv[0] = 0;
             pw[2] = 0;
             pw[1] = 0;
-            p80 = &pq->x80;
-            pq->x8C = &pq->x84;
-            pq->x84 = 1.0f;
-            pq->x88 = p80;
-            pq->x80 = 0.0f;
+            startTimePtr = &pq->segmentStartTime;
+            pq->curveScalePtr = &pq->segmentEndTime;
+            pq->segmentEndTime = 1.0f;
+            pq->currentTimePtr = startTimePtr;
+            pq->segmentStartTime = 0.0f;
             pw[0] = 0;
         }
         return;
     }
     {
-        float tCur = *pq->x88;
+        float tCur = *pq->currentTimePtr;
         if (!p->pblmrsg) {
             u = tCur / pa->tMax;
         } else {
@@ -546,12 +546,12 @@ void AC5::VSlot2(CHN *pq)
                 ratio = g4 / pb->syncTable[iSeg].dt;
             }
             func_002333B4(&q, 0, 0x100);
-            q.x88 = &t[1];
+            q.currentTimePtr = &t[1];
             {
                 VTE *e = &po->vt[2];
                 ((void (*)(void *, CHN *))e->pfn)((char *)po + e->d, &q);
             }
-            EvaluateBezierPos(q.x84 - q.x80, t[1] - q.x80, ratio, q.xC0.q, q.xD0.q, q.xE0.q, q.xF0.q, &c, &d, 0);
+            EvaluateBezierPos(q.segmentEndTime - q.segmentStartTime, t[1] - q.segmentStartTime, ratio, q.segmentStart.q, q.segmentStartTangent.q, q.segmentEnd.q, q.segmentEndTangent.q, &c, &d, 0);
         }
         {
             qword s;
@@ -566,9 +566,9 @@ void AC5::VSlot2(CHN *pq)
             }
         }
     }
-    pq->x9A = 4;
-    pq->xC0.q = a;
-    pq->xD0.q = b;
+    pq->segmentKind = 4;
+    pq->segmentStart.q = a;
+    pq->segmentStartTangent.q = b;
     __asm__ __volatile__("" : : "r"(pq)); /* empty asm (Claude agent): one more use of pq for global-alloc priority (pq s2, pe s3 like the target) */
 }
 
@@ -577,7 +577,7 @@ void AC5::VSlot2(CHN *pq)
 static __inline__ qword Madd2(qword a, qword v, qword s)
 {
     qword r;
-    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(v), "j"(s), "j"(v), "j"(v), "j"(a), "j"(a)); /* allocation-only (Claude agent): the 2nd "j"(v) pair and the "j"(a) pair are unused, they only raise v30's and b's VF allocation priority */
+    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(v), "j"(s), "j"(v), "j"(v), "j"(a), "j"(a)); /* allocation-only (Claude agent): the 2nd "j"(v) pair and the "j"(a) pair are unused, they only raise segmentVelocity's and b's VF allocation priority */
     return r;
 }
 static __inline__ qword Madd(qword a, qword v, qword s)
@@ -606,7 +606,7 @@ void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
     int iSeg;
     MRSG *pseg;
     VU a, b;
-    VU v20, v30, w;
+    VU segmentValue, segmentVelocity, w;
     int i;
     ASEG *pa;
     if (p->pblmrsg == 0) {
@@ -657,16 +657,16 @@ top:
             }
             {
                 VTE *e = &po->vt[3];
-                ((void (*)(void *, float, float, VU *, VU *))e->pfn)((char *)po + e->d, g0, g1, &v20, &v30);
+                ((void (*)(void *, float, float, VU *, VU *))e->pfn)((char *)po + e->d, g0, g1, &segmentValue, &segmentVelocity);
             }
         }
         {
             qword s1, s2;
             s1 = VuFromFloat<qword>(pe->iw);
-            a.q = Madd(a.q, v20.q, s1);
+            a.q = Madd(a.q, segmentValue.q, s1);
             { register int wb asm("$16") = pe->iw; /* register pin (Claude agent): target reloads pe->w into pe's dying register s0 */ __asm__("qmtc2.ni %1, %0" : "=&j"(s2) : "r"(wb), "r"(i), "r"(i), "r"(i), "j"(a.q)); /* the three "r"(i) operands are allocation-only (Claude agent): they stand in for the loop weighting of i's refs, so i gets s1 before p; the "&" earlyclobber and the unused "j"(a.q) input are allocation-only too (they keep s2 out of a's VF register) */ }
             w.q = s1;
-            b.q = Madd2(b.q, v30.q, s2);
+            b.q = Madd2(b.q, segmentVelocity.q, s2);
             w.q = s2;
         }
     }

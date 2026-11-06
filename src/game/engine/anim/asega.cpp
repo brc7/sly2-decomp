@@ -19,7 +19,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 
 /* The XF an ACTSEGV drives and the SO that owns XFs, as far as this TU reads them (sly2/so.h has the full XF; it reads
    +0xA8 as a float here and as the reference XF elsewhere, so a private view). */
-struct ACTV { int x0; int pad4[2]; int nPriority; ACTV *pactNext; int pad14[4]; void *pvId; };
+struct ACTV { int kind; int pad4[2]; int nPriority; ACTV *pactNext; int pad14[4]; void *pvId; };
 struct XF
 {
     char pad0[0x88];
@@ -31,10 +31,10 @@ struct XF
     short nPhase;           /* 0x9A */
     int oid;                /* 0x9C */
     char padA0[8];
-    union { XF *pxfRef; float gA8; };   /* 0xA8 */
+    union { XF *pxfRef; float blendWeight; };   /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
-    int nD0;                /* 0xD0 */
-    float *pgD4;            /* 0xD4 */
+    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::VSlot1) */
+    float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
@@ -49,13 +49,13 @@ struct ACV
     virtual void VUnk2();
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
-struct ACTSEGV { int x0; LO *plo; XF *pxf; int nPriority; int pad10; int x14; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };
-struct OVRA { ACV *pac; int x4; LO *plo; int xC; OVRA *povraNext; };
+struct ACTSEGV { int kind; LO *plo; XF *pxf; int nPriority; int pad10; int role; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };
+struct OVRA { ACV *pac; int targetIndex; LO *plo; int slot; OVRA *povraNext; };
 
 /* The event payloads (EA::pesnd, pea17, pea20). */
-struct EASND { int x0; int x4; int x8; int xC; float g10; float g14; float g18; };
-struct EA17 { int x0; int x4; int x8; float gC; };
-struct EA20 { int x0; int x4; float g8; };
+struct EASND { int sfxId; int oid; int rangeNear; int rangeFar; float pitch; float doppler; float volume; };   /* StartSwAsegSound (sw.cpp) */
+struct EA17 { int oid; int oid1; int oid2; float value; };   /* func_00210538 (sw.cpp) */
+struct EA20 { int id0; int id1; float value; };   /* func_00210678 (sw.cpp) */
 
 struct G { ASEGA *p; };
 
@@ -203,7 +203,7 @@ extern "C" void UpdateAsega(ASEGA *player)
         if (f && !(player->grfapl & 0x38))
             RetractAsega(player);
         for (pl = player->povraFirst; pl; pl = pl->povraNext)
-            ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->x4, 0, player->tLocal, player->svt);
+            ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->targetIndex, 0, player->tLocal, player->svt);
         End(&g);
     }
 }
@@ -247,7 +247,7 @@ void RetractAsega(ASEGA *player)
         for (pl2 = player->povraFirst; pl2; pl2 = pl2Next) {
             LO *po = pl2->plo;
             pl2Next = pl2->povraNext;
-            ((void (*)(void *, int))PVT(po)[45].pfn)((char *)po + PVT(po)[45].d, pl2->xC);
+            ((void (*)(void *, int))PVT(po)[45].pfn)((char *)po + PVT(po)[45].d, pl2->slot);
             FreeOvra(pl2);
         }
         player->povraFirst = 0;
@@ -449,7 +449,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     case 0: {
         LO *v = GetAsegaEventTarget(player);
         EASND *pa = event->pesnd;
-        StartSwAsegSound(&D_003DD490, pa->x0, pa->x4, pa->x8, pa->xC, player->paloRoot, v, pq, &player->psnd, pa->g10, pa->g14, pa->g18);
+        StartSwAsegSound(&D_003DD490, pa->sfxId, pa->oid, pa->rangeNear, pa->rangeFar, player->paloRoot, v, pq, &player->psnd, pa->pitch, pa->doppler, pa->volume);
         break;
     }
     case 1:
@@ -509,7 +509,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     }
     case 17: {
         EA17 *pa = event->pea17;
-        SendSwAsegMessage(&D_003DD490, pa->x0, pa->x4, pa->x8, GetAsegaEventTarget(player), pq, pa->gC);
+        SendSwAsegMessage(&D_003DD490, pa->oid, pa->oid1, pa->oid2, GetAsegaEventTarget(player), pq, pa->value);
         break;
     }
     case 13:
@@ -534,7 +534,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         break;
     case 20: {
         EA20 *pa = event->pea20;
-        SetSwAsegEyesClosed(&D_003DD490, pa->x0, pa->x4, GetAsegaEventTarget(player), pq, pa->g8);
+        SetSwAsegEyesClosed(&D_003DD490, pa->id0, pa->id1, GetAsegaEventTarget(player), pq, pa->value);
         break;
     }
     case 21:
@@ -724,7 +724,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
     for (pn = (ACTSEGV *)player->pactsegFirst; pn; pn = pn->pactsegNext) {
         if (IsActCurrent(pn) && pn->pxf->nRole == 7) {
             SetXfRole(pn->plo, pn->pxf, 9);
-            pn->pxf->gA8 = weight;
+            pn->pxf->blendWeight = weight;
         }
     }
 }
@@ -737,11 +737,16 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
  * @end-sly2-annot */
 // Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
-    ACTV *pn = pxf->pactFirst;
-    for (;;) {
-        if (!pn) return;
-        if (pn->x0 == 0 && pn->pvId == pvId) { pn->nPriority = -1; SortXfActs(pso, pxf); return; }
-        pn = pn->pactNext;
+    ACTV *act = pxf->pactFirst;
+    for (;;) {   /* top-tested on purpose: a while / for loop is rotated to a bottom test and no longer matches */
+        if (!act)
+            return;
+        if (act->kind == 0 && act->pvId == pvId) {
+            act->nPriority = -1;
+            SortXfActs(pso, pxf);
+            return;
+        }
+        act = act->pactNext;
     }
 }
 
@@ -783,8 +788,8 @@ void ACTSEG::VSlot1() {
     ACV *pac;
     pac = p->pacRot;
     if (pac != 0) {
-        p->pxf->pxfRef->nD0 = (int)pac;
-        p->pxf->pxfRef->pgD4 = &p->pasega->tLocal;
+        p->pxf->pxfRef->rotationCurve = (int)pac;
+        p->pxf->pxfRef->rotationTimePtr = &p->pasega->tLocal;
         return;
     }
     AttachActBase(p, p);
@@ -799,8 +804,8 @@ void ACTSEG::VSlot1() {
 // Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
 extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
-        p->pxf->pxfRef->nD0 = 0;
-        p->pxf->pxfRef->pgD4 = 0;
+        p->pxf->pxfRef->rotationCurve = 0;
+        p->pxf->pxfRef->rotationTimePtr = 0;
         return;
     }
     DetachActBase(p);
@@ -855,8 +860,8 @@ extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
 
 /* 0x2580A8: linkonce copy of the sidebag counted-pointer assignment (CRefPtr<CSidebag>), homed in this TU; it
    releases the sidebag (pool 4) and its binding (pool 1) when their counts drop to 0. */
-typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
-typedef struct R4 { int cref; int x4; R1 *p8; } R4;
+typedef struct R1 { int cref; int unknown4; int unknown8; int ref[2]; int varbRef[1]; } R1;   /* the binding (pool 1): a CRef at +0xC, a CRefPtr<CVarb> at +0x14 */
+typedef struct R4 { int cref; int unknown4; R1 *binding; } R4;   /* the sidebag (pool 4) */
 extern "C" {
 void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Unlink__t6CGcObj1Z5CVarb(void *);
@@ -867,8 +872,8 @@ static inline void Release1(R1 *r)
 {
     if (r) {
         if (--r->cref == 0) {
-            func_00257250(r->x14, 2);
-            Decref__4CRef(r->xC);
+            func_00257250(r->varbRef, 2);
+            Decref__4CRef(r->ref);
             Unlink__t6CGcObj1Z5CVarb(r);
             FreeSlotheapSlot(&CSlotPool<0x18, 0x800>::s_pool.slotheap, r);
         }
@@ -878,7 +883,7 @@ static inline void Release4(R4 *r)
 {
     if (r) {
         if (--r->cref == 0) {
-            Release1(r->p8);
+            Release1(r->binding);
             Unlink__t6CGcObj1Z8CSidebag(r);
             FreeSlotheapSlot(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, r);
         }

@@ -37,23 +37,23 @@ struct CHN
 {
     union
     {
-        struct { unsigned n : 20; unsigned k : 10; unsigned f30 : 1; unsigned f31 : 1; } u;
-        struct { int id : 20; int sub : 10; unsigned f30 : 1; unsigned f31 : 1; } s;  /* signed reads */
+        struct { unsigned n : 20; unsigned k : 10; unsigned skipStandalone : 1; unsigned isRotationCurve : 1; } u;
+        struct { int id : 20; int sub : 10; unsigned skipStandalone : 1; unsigned isRotationCurve : 1; } s;  /* signed reads */
         unsigned int grf;
     };
     union { AC *pac; int n4; };
 };
 
 /* ASEG::aovr entry: value, target OID, curve. */
-struct OVR { int x0; int oid; union { AC *pac; int x8; }; };
+struct OVR { int slot; int oid; union { AC *pac; int curveBits; }; };
 
 /* What ASEGA::pactsegFirst / povraFirst link (built by ApplyAsegCore). */
-struct ACTSEG { int x0; LO *plo; void *pv; int xC; int pad10; int x14; VTE *pvt; int x1C; int x20; ASEGA *pasega; ACTSEG *pactsegNext; };
-struct OVRA { int x0; int x4; LO *plo; int xC; OVRA *povraNext; };
+struct ACTSEG { int kind; LO *plo; void *pv; int priority; int pad10; int role; VTE *pvt; int curve; int rotationCurve; ASEGA *pasega; ACTSEG *pactsegNext; };
+struct OVRA { int curve; int targetIndex; LO *plo; int slot; OVRA *povraNext; };
 
 /* The XF a channel animates, as PredictAsegTransform reads it. */
 struct M4 { qword a[4]; };
-struct XFV { M4 m; char pad[0x94 - 0x40]; int x94; int pad98[2]; XFV *pxfNext; };
+struct XFV { M4 m; char pad[0x94 - 0x40]; int valueKind; int pad98[2]; XFV *pxfNext; };
 
 struct R94 { char pad[0x94]; void *pv; };
 
@@ -162,17 +162,17 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
    pe->u.n = S32Read__18CBinaryInputStream(stream);
    pe->u.k = S16Read__18CBinaryInputStream(stream);
    int id = S8Read__18CBinaryInputStream(stream);
-   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(stream); pe->u.f31 = 0; }
+   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(stream); pe->u.isRotationCurve = 0; }
    id = S8Read__18CBinaryInputStream(stream);
-   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(stream); pe->u.f31 = 1; }
-   pe->u.f30 = U8Read__18CBinaryInputStream(stream) != 0;
+   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(stream); pe->u.isRotationCurve = 1; }
+   pe->u.skipStandalone = U8Read__18CBinaryInputStream(stream) != 0;
  }
  px->covr = U8Read__18CBinaryInputStream(stream);
  req.cbAlign = 0x10; req.cb = px->covr * 12;
  px->aovr = (OVR *)AllocClearedFromWorldHeap(&req);
  for (i = 0; i < px->covr; i++) {
    OVR *pe = &px->aovr[i];
-   pe->x0 = U8Read__18CBinaryInputStream(stream);
+   pe->slot = U8Read__18CBinaryInputStream(stream);
    pe->oid = S32Read__18CBinaryInputStream(stream);
    pe->pac = PacNewKind2(S8Read__18CBinaryInputStream(stream));
    pe->pac->Load(stream);
@@ -295,7 +295,7 @@ extern "C" float GetAsegLabelTime(ASEG *segment, int n)
     return g;
 }
 
-// MATCH (Claude agent, laneB6, 2026-10-23), from the 116/aligned-25 draft: (1) no f4/f2 locals (`(grf >> 2) & 1` and `grf & 2` at their uses), so the vtable address is hoisted into fp; (2) AddXfAct takes pn as a 3rd argument; (3) pn->xC before pn->x14; (4) floats before pp in the prototype (prologue copy order).
+// MATCH (Claude agent, laneB6, 2026-10-23), from the 116/aligned-25 draft: (1) no f4/f2 locals (`(grf >> 2) & 1` and `grf & 2` at their uses), so the vtable address is hoisted into fp; (2) AddXfAct takes pn as a 3rd argument; (3) pn->priority before pn->role; (4) floats before pp in the prototype (prologue copy order).
 /* The new ASEGA is built by hand (memset, vtable store), so its slots are called through PVT. */
 struct G { ASEGA *p; G(ASEGA *pp) : p(pp) { ((void (*)(ASEGA *))PVT(p)[1].pfn)((ASEGA *)((char *)p + PVT(p)[1].d)); }
     ~G() { ((void (*)(ASEGA *))PVT(p)[2].pfn)((ASEGA *)((char *)p + PVT(p)[2].d)); } };
@@ -350,15 +350,15 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
                 SetSoBit35Hierarchy(a, 0);
                 ACTSEG *pn = (ACTSEG *)AllocAct(0x2C);
                 pn->pvt = D_002CAF08;
-                pn->x0 = 0;
+                pn->kind = 0;
                 if (pe->grf & 0x80000000)
-                    pn->x20 = pe->n4;
+                    pn->rotationCurve = pe->n4;
                 else
-                    pn->x1C = pe->n4;
+                    pn->curve = pe->n4;
                 pn->plo = a;
                 pn->pv = b;
-                pn->xC = pt->nPriority;
-                pn->x14 = (grf & 1) ? 7 : 5;
+                pn->priority = pt->nPriority;
+                pn->role = (grf & 1) ? 7 : 5;
                 pn->pasega = p;
                 pn->pactsegNext = p->pactsegFirst;
                 p->pactsegFirst = pn;
@@ -373,14 +373,14 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
             OVRA *pn = (OVRA *)AllocOvra(0x14);
-            pn->x0 = pe->x8;
-            pn->x4 = b;
+            pn->curve = pe->curveBits;
+            pn->targetIndex = b;
             pn->plo = a;
-            pn->xC = pe->x0;
+            pn->slot = pe->slot;
             pn->povraNext = p->povraFirst;
             p->povraFirst = pn;
             LO *po = a;
-            ((void (*)(LO *, int))PVT(po)[44].pfn)((LO *)((char *)po + PVT(po)[44].d), pe->x0);
+            ((void (*)(LO *, int))PVT(po)[44].pfn)((LO *)((char *)po + PVT(po)[44].d), pe->slot);
         }
     }
     SetAsegaHandsOff(p, pt->nWorldHold);
@@ -461,11 +461,11 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
     int i;
     for (i = 0; i < t->cchn; i++) {
         CHN *pe = &t->achn[i];
-        if (fCheck && !pe->s.f30)
+        if (fCheck && !pe->s.skipStandalone)
             continue;
         if (pe->s.id != po->oid)
             continue;
-        if (pe->s.f31)
+        if (pe->s.isRotationCurve)
             continue;
         if (((R94 *(*)(LO *, int))PVT(po)[51].pfn)((LO *)((char *)po + PVT(po)[51].d), pe->s.sub)->pv == pv)
             return pe;
@@ -487,7 +487,7 @@ void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
     if (q) *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
     else *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
-    else { LO *po = *ppo; *pn = ((int (*)(void *, int))PVT(po)[43].pfn)((char *)po + PVT(po)[43].d, pa->x0); }
+    else { LO *po = *ppo; *pn = ((int (*)(void *, int))PVT(po)[43].pfn)((char *)po + PVT(po)[43].d, pa->slot); }
 }
 
 // (Claude agent, laneB10) memsets through an inline ClearM4 helper keep &m2/&mB out of gcse; pe at function scope.
@@ -532,7 +532,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
     apy = (XFV **)AllocFromStack(AREQT(px->cchn * 4, 0x10));
     for (i = 0; i < px->cchn; i++) {
         pe = &px->achn[i];
-        if (pe->u.f30) {
+        if (pe->u.skipStandalone) {
             apy[i] = 0;
         } else {
             LO *n;
@@ -542,10 +542,10 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
     for (py = pyFirst; py != pyLast; py = py->pxfNext) {
         for (i = 0; i < px->cchn; i++) {
             pe = &px->achn[i];
-            if (py == apy[i] && !pe->u.f31) {
+            if (py == apy[i] && !pe->u.isRotationCurve) {
                 pe->pac->Eval(f, g, &aq[0], &aq[1]);
                 mA = BuildXfValueMatrix(py, aq[0]);
-                switch (py->x94) {
+                switch (py->valueKind) {
                 case 6: case 7:
                     mB = BuildEulerDerivativeMatrix(py, &mA, aq[0], aq[1]);
                     break;

@@ -140,7 +140,7 @@ struct E *NewSfx(void)
 
 namespace M_SND_ctor { extern "C" {
 extern char D_002D9D00[] __asm__("_vt$6CID151");
-struct S { int a; int b; int c; void *vt; float g10; char pad[0x1C]; float g30; float g34; char pad2[0xC]; float g44; };
+struct S { int a; int b; int c; void *vt; float volume; char pad[0x1C]; float rangeNear; float rangeFar; char pad2[0xC]; float effectiveVolume; };
 /** @sly2-annot addr=0x1FAFD0
  * Purpose: Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000
  * Info: proposed name SND_ctor (T1); class SND; TU sound
@@ -152,16 +152,16 @@ struct S *SND_ctor(struct S *p)
     p->vt = D_002D9D00;
     p->a = 0; //P
     p->b = 0; //P
-    p->g10 = 1.0f; //P
-    p->g44 = 1.0f; //P
-    p->g30 = 300.0f; //P
-    p->g34 = 3000.0f; //P
+    p->volume = 1.0f; //P
+    p->effectiveVolume = 1.0f; //P
+    p->rangeNear = 300.0f; //P
+    p->rangeFar = 3000.0f; //P
     return p;
 }
 } } // namespace M_SND_ctor
 
 namespace M_PauseSnd { extern "C" {
-struct S { char pad[0x4E]; short c; };
+struct S { char pad[0x4E]; short pauseCount; };
 void SetSndFlags(struct S *, int, int);
 /** @sly2-annot addr=0x1FB018
  * Purpose: Refcounted pause: ++cPause==1 -> SetSndFlags(6,2) (request pause)
@@ -170,11 +170,11 @@ void SetSndFlags(struct S *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Pauses a sound (counted: nested pauses need as many resumes); the first pause requests "pause" on the next flush.
-void PauseSnd(struct S *p) { if (++p->c == 1) SetSndFlags(p, 6, 2); }
+void PauseSnd(struct S *p) { if (++p->pauseCount == 1) SetSndFlags(p, 6, 2); }
 } } // namespace M_PauseSnd
 
 namespace M_ResumeSnd { extern "C" {
-struct S { char pad[0x4E]; short c; };
+struct S { char pad[0x4E]; short pauseCount; };
 void SetSndFlags(struct S *, int, int);
 /** @sly2-annot addr=0x1FB060
  * Purpose: --cPause==0 -> SetSndFlags(6,4) (request continue)
@@ -183,7 +183,7 @@ void SetSndFlags(struct S *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Undoes one PauseSnd; the last one requests "continue" on the next flush.
-void ResumeSnd(struct S *p) { if (--p->c == 0) SetSndFlags(p, 6, 4); }
+void ResumeSnd(struct S *p) { if (--p->pauseCount == 0) SetSndFlags(p, 6, 4); }
 } } // namespace M_ResumeSnd
 
 /** @sly2-annot addr=0x1FB098
@@ -201,7 +201,7 @@ extern "C" void StopSnd(SNDV *sound, float fadeTime)
 
 namespace M_StartSnd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1C]; void *p1C; qword v20; char pad2[0x40 - 0x30]; int n40; char pad3[0x4E - 0x44]; short n4E; unsigned short f50; unsigned short n52; };
+struct P { char pad[0x1C]; void *source; qword position; char pad2[0x40 - 0x30]; int voiceHandle; char pad3[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; };
 extern qword D_002A2DD0;
 int FFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
@@ -228,13 +228,13 @@ void CID151::Start()   /* key function: CID151's vtable comes out here (the name
     struct P *p = (struct P *)this;
     int f = 0;
     int k;
-    if (!p->n40) {
-        f = p->n52 || (p->f50 & 1);
+    if (!p->voiceHandle) {
+        f = p->playState || (p->flags & 1);
         f ^= 1;
     }
     if (!f) return;
-    { int fA = p->n4E > 0; k = 0x1F1; if (fA) k = 0x1F3; }
-    if (p->p1C || !FNear(D_002A2DD0, p->v20))
+    { int fA = p->pauseCount > 0; k = 0x1F1; if (fA) k = 0x1F3; }
+    if (p->source || !FNear(D_002A2DD0, p->position))
         k |= 0x200;
     SetSndFlags(p, k, k);
 }
@@ -383,7 +383,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0x28]; ulong fl; };
-struct P { char pad[0xC]; struct VTE *vtable; float f10; char pad1[0x1C - 0x14]; struct O *po; qword v20; char x30[0x14]; float f44; };
+struct P { char pad[0xC]; struct VTE *vtable; float volume; char pad1[0x1C - 0x14]; struct O *po; qword position; char range[0x14]; float effectiveVolume; };
 void StopSnd(struct P *, float);
 qword ConvertAloPos(struct O *, int, qword);
 void CalculateSndVolPan(struct P *, qword, void *, float *, int *);
@@ -407,12 +407,12 @@ void UpdateSndPositional(struct P *p)
         StopSnd(p, 0.0f);
         return;
     }
-    CalculateSndVolPan(p, ConvertAloPos(p->po, 0, p->v20), p->x30, &f, &n);
-    r = p->f10 * f;
-    if ((int)(r * 1024.0f) != (int)(p->f44 * 1024.0f)) {
-        if (p->f44 == 0.0f) p->vtable[15].pfn((char *)p + p->vtable[15].d, 0);
+    CalculateSndVolPan(p, ConvertAloPos(p->po, 0, p->position), p->range, &f, &n);
+    r = p->volume * f;
+    if ((int)(r * 1024.0f) != (int)(p->effectiveVolume * 1024.0f)) {
+        if (p->effectiveVolume == 0.0f) p->vtable[15].pfn((char *)p + p->vtable[15].d, 0);
         else if (r == 0.0f) p->vtable[15].pfn((char *)p + p->vtable[15].d, 1);
-        p->f44 = r;
+        p->effectiveVolume = r;
         SetSndFlags(p, 0x10, 0x10);
     }
     SetSndPan(p, n);
@@ -541,7 +541,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
 
 namespace M_UpdateSnd {
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; VTE *vtable; float f10; char pad2[0x40 - 0x14]; int n40; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; };
+struct P { char pad[0xC]; VTE *vtable; float volume; char pad2[0x40 - 0x14]; int voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; unsigned short playState; };
 extern "C" void SetSndFlags(P *, int, int);
 #define VCALL(p, n) ((p)->vtable[n].pfn((char *)(p) + (p)->vtable[n].d))
 #define ICALL(p, n) (((int (*)(void *))(p)->vtable[n].pfn)((char *)(p) + (p)->vtable[n].d))
@@ -563,25 +563,25 @@ extern "C" void UpdateSnd(P *p)
 {
     Lock l(p);
     unsigned short fl;
-    if (p->f50 & 0x200) VCALL(p, 16);
-    else p->f44 = p->f10;
-    fl = p->f50;
+    if (p->flags & 0x200) VCALL(p, 16);
+    else p->effectiveVolume = p->volume;
+    fl = p->flags;
     if (fl & 1) {
         VCALL(p, 9);
         if (ICALL(p, 8) == 1) SetSndFlags(p, 0x400, 0x400);
-    } else if (p->n40) {
+    } else if (p->voiceHandle) {
         if (fl & 8) {
             VCALL(p, 10);
-            p->n40 = 0;
+            p->voiceHandle = 0;
             SetSndFlags(p, 0x1DFF, 0);
         } else {
             if (fl & 0x1C00) VCALL(p, 14);
-            if (p->n52) return;
-            if (p->f50 & 0x1F0) {
+            if (p->playState) return;
+            if (p->flags & 0x1F0) {
                 VCALL(p, 13);
                 SetSndFlags(p, 0x1F0, 0);
             }
-            fl = p->f50;
+            fl = p->flags;
             if (fl & 2) {
                 VCALL(p, 11);
                 SetSndFlags(p, 2, 0);
@@ -590,7 +590,7 @@ extern "C" void UpdateSnd(P *p)
                 SetSndFlags(p, 4, 0);
             }
         }
-    } else if (!p->n52 && !(fl & 0x200)) {
+    } else if (!p->playState && !(fl & 0x200)) {
         SetSndFlags(p, 0x1FFF, 0);
     }
 }
@@ -600,7 +600,7 @@ extern "C" void UpdateSnd(P *p)
 
 namespace M_func_001FBAF8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct S { int a[3]; struct VTE *vt; char pad[0x30]; int x40; char pad2[0xE]; short x52; };
+struct S { int a[3]; struct VTE *vt; char pad[0x30]; int voiceHandle; char pad2[0xE]; short playState; };
 /** @sly2-annot addr=0x1FBAF8
  * Purpose: 989snd async callback: store voice handle (+0x40), clear busy (+0x52), Decref
  * Info: proposed name OnBanksndPlayStarted (T2); TU sound
@@ -609,7 +609,7 @@ struct S { int a[3]; struct VTE *vt; char pad[0x30]; int x40; char pad2[0xE]; sh
  * @end-sly2-annot */
 // Async callback when a looping bank sound started: stores its voice handle, clears "starting", drops the callback's
 // reference. (inferred)
-void OnBankSoundStarted(int x, long l) { struct S *p = (struct S *)(int)l; p->x40 = x; p->x52 = 0; p->vt[2].pfn((char *)p + p->vt[2].d); }
+void OnBankSoundStarted(int x, long l) { struct S *p = (struct S *)(int)l; p->voiceHandle = x; p->playState = 0; p->vt[2].pfn((char *)p + p->vt[2].d); }
 } } // namespace M_func_001FBAF8
 
 namespace M_func_001FBB30 { extern "C" {
@@ -686,7 +686,7 @@ extern "C" int GetBanksndKind(SNDV *sound)
 
 namespace M_PlayBanksnd { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int n14; float f18; char pad2[0x44 - 0x1C]; float f44; char pad3[0x50 - 0x48]; unsigned short f50; unsigned short n52; char pad4[0x60 - 0x54]; int n60; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int panAngle; float pitchRatio; char pad2[0x44 - 0x1C]; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; unsigned short playState; char pad4[0x60 - 0x54]; int sfxId; };
 struct G { char pad[0xE8]; int nE8; };
 struct S { int n0; };
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
@@ -715,14 +715,14 @@ void StepRandomSfxVariation(struct G *);
 void PlayBanksnd(struct P *p)
 {
     struct G *pg = &D_003DD040;
-    struct S *ps = PsndFromSfxid(pg, p->n60);
+    struct S *ps = PsndFromSfxid(pg, p->sfxId);
     struct M m;
     int id;
     if (!ps || !pg->nE8) {
         SetSndFlags(p, 0x1FFF, 0);
         return;
     }
-    if (p->f50 & 2) {
+    if (p->flags & 2) {
         RemoveSndFromDirtyList(p);
         return;
     }
@@ -730,20 +730,20 @@ void PlayBanksnd(struct P *p)
     m.n28 = 3;
     m.n0 = pg->nE8;
     m.h10 = IsndFromPsnd(pg, ps);
-    if (p->f50 & 0x10) {
+    if (p->flags & 0x10) {
         m.n28 |= 4;
-        m.n8 = (int)(p->f44 * 1024.0f);
+        m.n8 = (int)(p->effectiveVolume * 1024.0f);
     }
-    if (p->f50 & 0x20) {
+    if (p->flags & 0x20) {
         m.n28 |= 8;
-        m.nC = p->n14;
+        m.nC = p->panAngle;
     }
-    if (p->f50 & 0x40) {
+    if (p->flags & 0x40) {
         m.n28 |= 0x10;
-        m.h20 = (int)(p->f18 * 1524.0f);
+        m.h20 = (int)(p->pitchRatio * 1524.0f);
     }
     if (ps->n0 == 2) {
-        p->n52 = 1;
+        p->playState = 1;
         p->vtable[1].pfn((char *)p + p->vtable[1].d);
         func_00232320(&m, OnBankSoundStarted, p);
         SetSndFlags(p, 0x7F, 0);
@@ -752,7 +752,7 @@ void PlayBanksnd(struct P *p)
     id = 0;
     func_002322F0(&m);
     SetSndFlags(p, 0x1FFF, 0);
-    switch (p->n60) {
+    switch (p->sfxId) {
     case 0x6F: id = D_002E1E40; break;
     case 0x73: id = D_002DD5BC; break;
     case 0x15: id = D_002F7900; break;
@@ -762,11 +762,11 @@ void PlayBanksnd(struct P *p)
 } } // namespace M_PlayBanksnd
 
 namespace M_StopBanksnd { extern "C" {
-struct A { char pad[0x40]; int h; char pad2[4]; float g; };
-void snd_AutoVol(int h, int a, int b, int c);
-void snd_StopSound(int h);
+struct A { char pad[0x40]; int voiceHandle; char pad2[4]; float fadeTime; };
+void snd_AutoVol(int voiceHandle, int a, int b, int c);
+void snd_StopSound(int voiceHandle);
 /** @sly2-annot addr=0x1FBE80
- * Purpose: vt10: fade-out via snd_AutoVol(h,-4,dt*240,2) if dt>0 else snd_StopSound(h)
+ * Purpose: vt10: fade-out via snd_AutoVol(voiceHandle,-4,dt*240,2) if dt>0 else snd_StopSound(voiceHandle)
  * Info: proposed name StopBanksnd (T1); class BANKSND; TU sound
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
@@ -774,10 +774,10 @@ void snd_StopSound(int h);
 // Stops a bank sound (slot 10): a fade-out when a fade time was requested, else immediately.
 void StopBanksnd(struct A *p)
 {
-    if (p->g > 0.0f)
-        snd_AutoVol(p->h, -4, (int)(p->g * 240.0f), 2);
+    if (p->fadeTime > 0.0f)
+        snd_AutoVol(p->voiceHandle, -4, (int)(p->fadeTime * 240.0f), 2);
     else
-        snd_StopSound(p->h);
+        snd_StopSound(p->voiceHandle);
 }
 } } // namespace M_StopBanksnd
 
@@ -806,7 +806,7 @@ extern "C" void ContinueBanksnd(SNDV *sound)
 }
 
 namespace M_ApplyBanksndParams { extern "C" {
-struct X { char pad[0x14]; int n14; float g18; char pad2[0x40 - 0x1C]; void *p40; float g44; char pad3[0x50 - 0x48]; unsigned short fl; };
+struct X { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; void *voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short fl; };
 void func_00232500(void *, int, int, int, int, int);
 /** @sly2-annot addr=0x1FBF20
  * Purpose: vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40
@@ -821,17 +821,17 @@ void ApplyBanksndParams(struct X *px)
     if (fl & 0x70) {
         int m = 0;
         int a, b;
-        if (fl & 0x10) { m = 1; a = (int)(px->g44 * 1024.0f); }
+        if (fl & 0x10) { m = 1; a = (int)(px->effectiveVolume * 1024.0f); }
         if (fl & 0x20) m |= 4;
-        if (fl & 0x40) { m |= 8; b = (int)(px->g18 * 12.0f); }
-        func_00232500(px->p40, m, a, px->n14, b, 0);
+        if (fl & 0x40) { m |= 8; b = (int)(px->pitchRatio * 12.0f); }
+        func_00232500(px->voiceHandle, m, a, px->panAngle, b, 0);
     }
 }
 } } // namespace M_ApplyBanksndParams
 
 namespace M_BANKSND_QueryStatus { extern "C" {
 struct VT { int pad[2]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *p40; char pad3[0x50 - 0x44]; unsigned short fl; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *voiceHandle; char pad3[0x50 - 0x44]; unsigned short fl; };
 void OnBankSoundStatus(void);
 void snd_SoundIsStillPlaying_CB(void *, void (*)(void), void *);
 void SetSndFlags(struct X *, int, int);
@@ -846,7 +846,7 @@ void BANKSND_QueryStatus(struct X *px)
 {
     if (px->fl & 0x400) {
         px->vtable->pfn((char *)px + px->vtable->d);
-        snd_SoundIsStillPlaying_CB(px->p40, OnBankSoundStatus, px);
+        snd_SoundIsStillPlaying_CB(px->voiceHandle, OnBankSoundStatus, px);
         SetSndFlags(px, 0x400, 0);
     }
 }
@@ -889,7 +889,7 @@ void BANKSND::VUnk00()   /* key function: BANKSND's vtable comes out here */
 }
 
 namespace M_DecrefBanksnd { extern "C" {
-struct S { char pad[0x4C]; short c; };
+struct S { char pad[0x4C]; short refCount; };
 void DestroyBasic(struct S *, int);
 void FreeBanksnd(struct S *);
 /** @sly2-annot addr=0x1FC0A0
@@ -899,7 +899,7 @@ void FreeBanksnd(struct S *);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefBanksnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeBanksnd(p); } }
+void DecrefBanksnd(struct S *p) { if (--p->refCount == 0 && p) { DestroyBasic(p, 0); FreeBanksnd(p); } }
 } } // namespace M_DecrefBanksnd
 
 /** @sly2-annot addr=0x1FC0F0

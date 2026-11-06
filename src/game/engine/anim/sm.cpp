@@ -956,7 +956,7 @@ extern "C" void SnapSma(P *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseWeighted { extern "C" {
-struct E { int pad[5]; float g; };
+struct E { int pad[5]; float weight; };
 float GRandInRange__Fff(float, float);
 /** @sly2-annot addr=0x1F0AD0
  * Purpose: Weighted random pick: GRandInRange(0, ? gProbability) then cumulative walk
@@ -969,10 +969,10 @@ struct E *PsmtChooseWeighted(void *p, int n, struct E **ape)
     float sum = 0.0f;
 
     int i;
-    for (i = 0; i < n; i++) sum += ape[i]->g;
+    for (i = 0; i < n; i++) sum += ape[i]->weight;
     sum = GRandInRange__Fff(0.0f, sum);
     for (i = 0; i < n; i++) {
-        sum -= ape[i]->g;
+        sum -= ape[i]->weight;
         if (sum <= 0.0f) return ape[i];
     }
     return 0;
@@ -981,8 +981,8 @@ struct E *PsmtChooseWeighted(void *p, int n, struct E **ape)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseTowardGoal { extern "C" {
-struct E { int n0; int n4; int n8; int nC; int n10; int n14; };
-struct P { char pad[0x58]; int n58; struct E *ae; };
+struct E { int aseg; int fromState; int toState; int flags; int unknown10; int weight; };
+struct P { char pad[0x58]; int transitionCount; struct E *transitions; };
 int CsmtDistanceSm(struct P *, int, int, int);
 int PsmtChooseWeighted(struct P *, int, struct E **);
 /** @sly2-annot addr=0x1F0B80
@@ -1003,14 +1003,14 @@ int PsmtChooseTowardGoal(struct P *p, int mask, int a, int b)
     if (a == b) n = 1;
     else n = CsmtDistanceSm(p, mask, a, b);
     c = 0;
-    for (i = 0; i < p->n58; i++) {
-        struct E *pe = &p->ae[i];
-        if (!(pe->nC & mask)) continue;
-        if (pe->n4 == a && CsmtDistanceSm(p, mask, pe->n8, b) == n - 1) {
+    for (i = 0; i < p->transitionCount; i++) {
+        struct E *pe = &p->transitions[i];
+        if (!(pe->flags & mask)) continue;
+        if (pe->fromState == a && CsmtDistanceSm(p, mask, pe->toState, b) == n - 1) {
             ap[c++] = pe;
             continue;
         }
-        if ((pe->nC & 1) && pe->n8 == a && CsmtDistanceSm(p, mask, pe->n4, b) == n - 1)
+        if ((pe->flags & 1) && pe->toState == a && CsmtDistanceSm(p, mask, pe->fromState, b) == n - 1)
             ap[c++] = pe;
     }
     if (c == 0) return 0;
@@ -1050,10 +1050,10 @@ int PsmtChooseFrom(struct P *p, int mask, int k)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ChooseSmaTransition { extern "C" {
 struct ANIMATION;
-struct T { char pad[0x74]; float f74; };
-struct A { struct T *pt; int n4; int n8; };
-struct E8 { int n0; int n4; };
-struct G { char pad[0x54]; struct E8 *a54; };
+struct T { char pad[0x74]; float duration; };
+struct A { struct T *aseg; int fromState; int toState; };
+struct E8 { int unknown0; int nextGoal; };   /* SM state (SMS): the goal it moves on to by itself (-1 stay, -2 random) */
+struct G { char pad[0x54]; struct E8 *states; };
 struct P { char pad[0x24]; struct G *pg; int rootObject; int applyFlags; struct ANIMATION *currentAsega; int currentState; int nextState; int goalState; struct A *currentTransition; float speed; int routeMask; };
 int FSmaRetracted(struct P *);
 struct A *PsmtChooseFrom(struct G *, int, int, int);
@@ -1081,11 +1081,13 @@ void ChooseSmaTransition(struct P *p, int k)
     if (FSmaRetracted(p)) return;
     {int finished=-1;
     int random=-2;
+    /* A loop entered at its test (the target's block order): test -> choose (select) -> apply -> test. A for(;;) with
+       the test first reorders the blocks (118/134 differ), so the labels stay. */
     goto test;
 select:
     if(nx==random){
         pa=PsmtChooseFrom(p->pg,p->routeMask,p->currentState,0);
-        if(pa)p->goalState=(pa->n4!=p->currentState)?pa->n4:pa->n8;
+        if(pa)p->goalState=(pa->fromState!=p->currentState)?pa->fromState:pa->toState;
     }else{
         p->goalState=nx;
         pa=PsmtChooseTowardGoal(p->pg,p->routeMask,p->currentState,nx,1);
@@ -1095,36 +1097,36 @@ apply:
         p->currentTransition = pa;
         if (!pa) return;
         fl = 0;
-        if (pa->pt) {
+        if (pa->aseg) {
             float a, b;
             int f;
-            if (pa->n4 == p->currentState) {
-                p->nextState = pa->n8;
+            if (pa->fromState == p->currentState) {
+                p->nextState = pa->toState;
                 a = 0.0f;
                 b = p->speed;
             } else {
-                p->nextState = pa->n4;
+                p->nextState = pa->fromState;
                 b = -p->speed;
-                a = pa->pt->f74;
+                a = pa->aseg->duration;
             }
             f = p->applyFlags;
             if (k == 1) {
                 f |= 2;
                 f &= random;
                 fl = 1;
-                a = pa->pt->f74 - a;
-            } else if (pa->pt->f74 == 0.0f) {
+                a = pa->aseg->duration - a;
+            } else if (pa->aseg->duration == 0.0f) {
                 fl = 1;
             }
-            ApplyAsegCore(pa->pt, p->rootObject, a, b, f, &p->currentAsega);
+            ApplyAsegCore(pa->aseg, p->rootObject, a, b, f, &p->currentAsega);
         }
         {
             int oldArgument,newArgument;
             struct P *pArgument;
             if(!p->currentAsega){
                 int old=p->currentState;
-                int nw=pa->n4;
-                if(nw==old)nw=pa->n8;
+                int nw=pa->fromState;
+                if(nw==old)nw=pa->toState;
                 p->currentState=nw;
                 oldArgument=old;
                 newArgument=nw;
@@ -1151,7 +1153,7 @@ test:
         pa=PsmtChooseTowardGoal(p->pg,p->routeMask,p->currentState,p->goalState,1);
         goto apply;
     }
-    nx=((struct E8*)((unsigned)p->pg->a54+EntryOffset(p->currentState)))->n4;
+    nx=((struct E8*)((unsigned)p->pg->states+EntryOffset(p->currentState)))->nextGoal;
     if(nx!=finished)goto select;
 }
 }
@@ -1165,13 +1167,13 @@ typedef char A_Prefix_Size[sizeof(struct A)==0xC?1:-1];
 typedef char E8_Size[sizeof(struct E8)==8?1:-1];
 typedef char G_Prefix_Size[sizeof(struct G)==0x58?1:-1];
 typedef char P_Prefix_Size[sizeof(struct P)==0x4C?1:-1];
-typedef char T_f74_Offset[FIELD_OFFSET(T,f74)==0x74?1:-1];
-typedef char A_pt_Offset[FIELD_OFFSET(A,pt)==0?1:-1];
-typedef char A_n4_Offset[FIELD_OFFSET(A,n4)==4?1:-1];
-typedef char A_n8_Offset[FIELD_OFFSET(A,n8)==8?1:-1];
-typedef char E8_n0_Offset[FIELD_OFFSET(E8,n0)==0?1:-1];
-typedef char E8_n4_Offset[FIELD_OFFSET(E8,n4)==4?1:-1];
-typedef char G_a54_Offset[FIELD_OFFSET(G,a54)==0x54?1:-1];
+typedef char T_f74_Offset[FIELD_OFFSET(T,duration)==0x74?1:-1];
+typedef char A_pt_Offset[FIELD_OFFSET(A,aseg)==0?1:-1];
+typedef char A_n4_Offset[FIELD_OFFSET(A,fromState)==4?1:-1];
+typedef char A_n8_Offset[FIELD_OFFSET(A,toState)==8?1:-1];
+typedef char E8_n0_Offset[FIELD_OFFSET(E8,unknown0)==0?1:-1];
+typedef char E8_n4_Offset[FIELD_OFFSET(E8,nextGoal)==4?1:-1];
+typedef char G_a54_Offset[FIELD_OFFSET(G,states)==0x54?1:-1];
 typedef char P_pg_Offset[FIELD_OFFSET(P,pg)==0x24?1:-1];
 typedef char P_n28_Offset[FIELD_OFFSET(P,rootObject)==0x28?1:-1];
 typedef char P_n2C_Offset[FIELD_OFFSET(P,applyFlags)==0x2C?1:-1];
@@ -1270,9 +1272,9 @@ extern "C" void HandleSmaMessage(P *p, int k, int n)
 namespace M_SkipSma {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
-struct A { char pad[0x74]; float g74; };
-struct Q { char pad[0x14]; A *pa; int pad2; float g1C; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; Q *pq; };
+struct A { char pad[0x74]; float duration; };
+struct Q { char pad[0x14]; A *aseg; int pad2; float localTime; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; Q *asega; };
 extern "C" int FSmaRetracted(P *);
 extern "C" void RetractAsega(Q *);
 extern "C" void SeekAsega(Q *, int, float, float);
@@ -1293,8 +1295,8 @@ extern "C" void SkipSma(P *p, float t)
     if (!FSmaRetracted(p)) {
         Lock l(p);
         Q *q;
-        while ((q = p->pq) != 0) {
-            float d = q->pa->g74 - q->g1C;
+        while ((q = p->asega) != 0) {
+            float d = q->aseg->duration - q->localTime;
             if (t < d) {
                 SeekAsega(q, 1, t, 1.0f);
                 break;
@@ -1309,9 +1311,9 @@ extern "C" void SkipSma(P *p, float t)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_DtSmaToState { extern "C" {
 struct V3 { float x, y, z; float w; };
-struct T { char pad[0x74]; float f74; float f78; char pad2[0x80 - 0x7C]; struct V3 v80; float f90; float f94; };
-struct A { struct T *pt; int n4; int n8; int nC; };
-struct Q { char pad[0x14]; struct T *pt; char pad2[0x1C - 0x18]; float f1C; char pad3[0x40 - 0x20]; float f40; };
+struct T { char pad[0x74]; float duration; float masterSpeed; char pad2[0x80 - 0x7C]; struct V3 speedCurve; float speedMin; float speedMax; };
+struct A { struct T *aseg; int fromState; int toState; int flags; };
+struct Q { char pad[0x14]; struct T *aseg; char pad2[0x1C - 0x18]; float localTime; char pad3[0x40 - 0x20]; float speed; };
 struct P { char pad[0x24]; void *sm; char pad2[0x30 - 0x28]; struct Q *pq; int currentState; char pad3[0x40 - 0x38]; struct A *pa; char pad4[0x48 - 0x44]; int routeMask; };
 extern char D_002DE578[];
 int FSmaRetracted(struct P *);
@@ -1342,28 +1344,28 @@ float DtSmaToState(struct P *p, int k)
         cur = p->currentState;
     } else {
         struct Q *pq = p->pq;
-        if (!(p->pa->nC & 2)) {
-            float d = pq->f40;
+        if (!(p->pa->flags & 2)) {
+            float d = pq->speed;
             float x;
-            if (d < 0.0f) x = -pq->f1C;
-            else if (0.0f < d) x = pq->pt->f74 - pq->f1C;
+            if (d < 0.0f) x = -pq->localTime;
+            else if (0.0f < d) x = pq->aseg->duration - pq->localTime;
             else return r;
             r = x / d;
         }
-        if (p->pa->n4 != p->currentState) cur = p->pa->n4; else cur = p->pa->n8;
+        if (p->pa->fromState != p->currentState) cur = p->pa->fromState; else cur = p->pa->toState;
     }
     while (cur != end && (pa = PsmtChooseTowardGoal(p->sm, p->routeMask, cur, end, 1)) != 0) {
-        if (pa->pt) {
+        if (pa->aseg) {
             float t = GetDifficulty(D_002DE578);
-            float v = Eval(&pa->pt->v80, t);
-            float mn = pa->pt->f90;
-            float mx = pa->pt->f94;
+            float v = Eval(&pa->aseg->speedCurve, t);
+            float mn = pa->aseg->speedMin;
+            float mx = pa->aseg->speedMax;
             if (v < mn) v = mn;
             else if (mx < v) v = mx;
-            r += pa->pt->f74 / (pa->pt->f78 * v);
+            r += pa->aseg->duration / (pa->aseg->masterSpeed * v);
         }
-        if (pa->n4 != cur) cur = pa->n4;
-        else cur = pa->n8;
+        if (pa->fromState != cur) cur = pa->fromState;
+        else cur = pa->toState;
     }
     return r;
 }
