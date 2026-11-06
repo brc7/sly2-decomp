@@ -74,6 +74,7 @@ struct STEP : public PO
       int nUnk298;
       undefined4 unk_0x29c;
       int acUnk2a0[6];
+      virtual int VUnk84() __asm__("func_002040F8");
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitStep");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
@@ -94,7 +95,6 @@ struct STEP : public PO
       virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
       virtual void VUnk82(uint grf, int fCount) __asm__("func_00205478");
       virtual void VUnk83(uint grf, int fCount) __asm__("func_00205588");
-      virtual int VUnk84() __asm__("func_002040F8");
       virtual int VUnk85(ZPR *pzpr) __asm__("func_00205D08");
       virtual void VUnk86(int fOn) __asm__("func_00205D10");
 };
