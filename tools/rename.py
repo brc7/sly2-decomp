@@ -201,6 +201,7 @@ class _MP:
         if c == 'O': self.eat(); self.cls(); self.eat('_'); return self.type_(nparams)
         if c == 'G': self.eat(); return self.cls()
         if c and (c.isdigit() or c in 'Qt'): return self.cls()
+        if c == 'X' and self.peek(1).isdigit() and self.peek(2).isdigit(): self.i += 3; return 'X'      # template parameter reference X<idx><level>
         if c and c in 'vcsilxfdrbwe': self.eat(); return c
         raise ValueError(f'type expected at {self.i} ({c!r})')
     def params(self, stop='', base=0):
@@ -246,6 +247,18 @@ def parse_mangled(s):
         elif not re.fullmatch(r'[A-Za-z_$][%s]*' % IDC, base) or base.endswith('_'): continue
         p = _MP(sig)
         try:
+            if p.peek() == 'H':                # template function: H<n>{Z<type> | <type><value>}_<params>_<return>
+                if kind == 'ctor': raise ValueError('constructor cannot be a template function')
+                p.eat(); n = p.count()
+                for _ in range(n):
+                    if p.peek() == 'Z': p.eat(); p.type_()
+                    else:
+                        p.type_()
+                        if p.peek() == 'm': p.eat()
+                        p.digits()
+                p.eat('_'); p.params(stop='_'); p.eat('_'); p.type_()
+                if p.i != len(sig): raise ValueError('trailing characters')
+                return dict(base=base, cls=None, kind=kind, split=pos)
             if p.peek() == 'F':
                 if kind == 'ctor': raise ValueError('constructor cannot be a free function')
                 p.eat()
@@ -255,7 +268,7 @@ def parse_mangled(s):
                 if p.peek() in ('C', 'S') and (p.peek(1).isdigit() or p.peek(1) in 'Qt'): p.eat()
                 cls = p.cls(); p.params(base=1)
             if p.i != len(sig): raise ValueError('trailing characters')
-            return dict(base=base if kind != 'ctor' else cls.split('::')[-1], cls=cls, kind=kind)
+            return dict(base=base if kind != 'ctor' else cls.split('::')[-1], cls=cls, kind=kind, split=pos)
         except ValueError as e:
             errs.append(f'split@{pos}: {e}')
     raise ValueError('; '.join(errs) or 'no "__" signature separator')
@@ -306,6 +319,7 @@ class Repo:
             m = SA_RE.match(line)
             if m:
                 a = int(m.group(4), 16); self.sa.setdefault(a, m.group(2)); self.sa_by_name[m.group(2)] = a
+        self.__dict__.pop('_bases', None)
         self.fc = {}; self.fc_by_name = {}
         for line in self.cfg['functions.csv'].splitlines()[1:]:
             p = line.split(',')
@@ -324,6 +338,19 @@ class Repo:
         m = re.fullmatch(r'(?:func|D)_([0-9A-Fa-f]{8})', name)
         if m: return int(m.group(1), 16)
         return None
+
+    def base_owners(self, base):
+        """Addresses of functions whose name (plain) or demangled base (mangled) is `base`."""
+        if not hasattr(self, '_bases'):
+            self._bases = {}
+            for n, a in list(self.sa_by_name.items()) + list(self.fc_by_name.items()):
+                if self.kind_of(a) != 'func': continue
+                b = n
+                if '__' in n or n.startswith('_$_'):
+                    try: b = parse_mangled(n)['base']
+                    except ValueError: pass
+                self._bases.setdefault(b, set()).add(a)
+        return self._bases.get(base, set())
 
     def kind_of(self, addr):
         return 'func' if addr in self.fc else 'data'
@@ -355,9 +382,15 @@ class Rename:
         self.near = {}; self.external = []; self.config = []; self.dups = []; self.existing_uses = []
         self.final_paths = {}    # rel -> path at the end of the run (another rename may have renamed the file)
         self.verification = {}
+        # C++-linkage renames (policy 'cxx'): the symbol is a g++ 2.95 mangled name, the source spells the base name
+        self.cxx = None          # dict(old_base, new_base, cls, member, ambiguous) or None
+        self.sites = {}          # rel -> [(start, end, replacement)] base-name edits, offsets into the ORIGINAL text
+        self.guided = {}         # rel -> [line numbers] call sites found by compiling (ambiguous members)
 
     def mapping(self):
         stem = self.symbol
+        if self.cxx:                         # symbol mentions in comments stay symbols (they name the mangled form)
+            return {a: (self.symbol, self.symbol, stem) for a in self.aliases}
         return {a: (self.symbol, self.plain, stem) for a in self.aliases}
 
     def to_json(self):
@@ -369,7 +402,10 @@ class Rename:
                     config_edits=self.config, verified_files=self.verify, unverifiable_files=self.unverifiable,
                     near_miss_identifiers=self.near, external_mentions_not_edited=self.external,
                     duplicate_definitions=self.dups, existing_uses_of_new_name=self.existing_uses,
-                    verification=self.verification)
+                    cxx=self.cxx, base_name_edits={p: len(v) for p, v in sorted(self.sites.items())},
+                    compiler_guided_lines=self.guided,
+                    verification={p: {k: {f: v for f, v in res.items() if f != 'syms'} for k, res in d.items()}
+                                  for p, d in self.verification.items()})
 
 def read_requests(path):
     reqs = []
@@ -382,8 +418,10 @@ def read_requests(path):
     return reqs
 
 class Engine:
-    def __init__(self, root, verifier=None, jobs=8, allow_unverifiable=False, allow_existing_uses=False, out=sys.stdout):
+    def __init__(self, root, verifier=None, jobs=8, allow_unverifiable=False, allow_existing_uses=False, out=sys.stdout,
+                 force_plain=False):
         self.repo = Repo(root)
+        self.force_plain = force_plain
         self.verifier = verifier if verifier is not None else MatchtoolVerifier(self.repo.root, jobs)
         self.allow_unverifiable = allow_unverifiable
         self.allow_existing_uses = allow_existing_uses
@@ -405,6 +443,10 @@ class Engine:
                 'func_%08X' % addr, 'D_%08X' % addr):
             return self._refuse(r, f'{r.key} is not the current name at 0x{addr:06X} ({r.old})')
         nn, nm = r.new_name, r.new_mangled
+        if r.kind == 'func' and not self.force_plain and ('__' in r.old or r.old.startswith(('_$_', '_._'))):
+            try: info = parse_mangled(r.old)
+            except ValueError: info = None
+            if info: return self.resolve_cxx(r, info)
         if not nm and nn and ('__' in nn or nn.startswith('_$_')) and looks_mangled(nn):
             nm = nn; nn = ''                              # a mangled name passed as new_name
         if nm:
@@ -425,6 +467,44 @@ class Engine:
         if r.kind == 'func' and not (0x100000 <= addr < 0x100000 + 0x159df0):
             return self._refuse(r, 'function address outside .text')
         ph = ('func_%08X' if r.kind == 'func' else 'D_%08X') % addr
+        r.aliases = [a for a in dict.fromkeys([r.old, ph]) if a != r.symbol]
+        return r
+
+    def resolve_cxx(self, r, info):
+        """OLD is a g++ 2.95 mangled name: keep C++ linkage, change only the base name. In gcc 2.95's encoding the base
+        name is the prefix before the first valid "__" split and nothing after it depends on the base (class names,
+        Q-qualifiers, const 'C', template 'H'/'t' arguments and T/N back-references only encode types), so the new
+        symbol is NEW + OLD[split:]. This is a pre-check only: verification compiles the renamed source and requires
+        the object's symbol table to equal the old one with exactly OLD -> NEW renamed."""
+        addr = r.addr
+        if info['kind'] != 'func':
+            return self._refuse(r, f'{r.old} is a {info["kind"]}; constructors, destructors and operators keep their names')
+        if 'split' not in info or (info['cls'] and '<>' in info['cls']) or r.old[info['split'] + 2:].startswith('H'):
+            return self._refuse(r, f'{r.old} belongs to a template (class or function template); rename the template '
+                                   'by hand: every instantiation changes')
+        suffix = r.old[info['split']:]                          # "__F...", "__8STEPGUARD...", "__C5CLASS..."
+        cand = r.new_mangled or r.new_name
+        if not cand: return self._refuse(r, 'no new name')
+        if '__' in cand and looks_mangled(cand):
+            if not cand.endswith(suffix) or parse_mangled(cand).get('split') != len(cand) - len(suffix):
+                return self._refuse(r, f'{cand} changes the signature or class of {r.old} (only the base name can change '
+                                       'in a rename; a signature change is a source edit)')
+            nb = cand[:-len(suffix)]
+        else:
+            nb = cand
+        err = check_plain(nb) or ('ends with "_" (ambiguous "__" split in the mangled name)' if nb.endswith('_') else None)
+        if err: return self._refuse(r, f'new base name {nb!r} {err}')
+        sym = nb + suffix
+        try: chk = parse_mangled(sym)
+        except ValueError as e: return self._refuse(r, f'computed symbol {sym} does not parse ({e})')
+        if chk['base'] != nb or chk.get('split') != len(nb) or chk['cls'] != info['cls']:
+            return self._refuse(r, f'computed symbol {sym} does not demangle back to base {nb!r}')
+        if not (0x100000 <= addr < 0x100000 + 0x159df0): return self._refuse(r, 'function address outside .text')
+        r.symbol, r.plain, r.policy = sym, nb, 'cxx'
+        others = [a for a in self.repo.base_owners(info['base']) if a != addr]
+        r.cxx = dict(old_base=info['base'], new_base=nb, cls=info['cls'], member=bool(info['cls']),
+                     ambiguous=bool(others), same_base_addrs=['0x%06X' % a for a in sorted(others)])
+        ph = 'func_%08X' % addr
         r.aliases = [a for a in dict.fromkeys([r.old, ph]) if a != r.symbol]
         return r
 
@@ -486,12 +566,20 @@ class Engine:
             if r.kind == 'data' and not r.files and r.addr not in R.sa:
                 self._refuse(r, f'no source references {"/".join(r.aliases)} and 0x{r.addr:X} is not a known function; '
                                 'check the address'); continue
+            if r.cxx:
+                why = self.plan_cxx(r)
+                if why: self._refuse(r, why); continue
             # count planned edits per file
             for p in list(r.files):
-                _, counts = rewrite(R.files[p], r.mapping())
+                _, counts = rewrite(apply_sites(R.files[p], r.sites.get(p, [])), r.mapping())
                 c = {}
                 for o, kc in counts.items():
                     for k, v in kc.items(): c[k] = c.get(k, 0) + v
+                if r.sites.get(p):
+                    com = [(a, b) for kind, a, b in segments(R.files[p]) if kind == 'comment']
+                    for a, b, _ in r.sites[p]:
+                        k = 'base-comment' if any(x <= a < y for x, y in com) else 'base'
+                        c[k] = c.get(k, 0) + 1
                 r.files[p] = c
             # the file that matches this address (matched.csv source) must hold a definition spelled with one of the
             # swept names, or the rename would leave it emitting the old symbol (round 2: DMAS::AllocSw in dmas.cpp)
@@ -499,7 +587,8 @@ class Engine:
             if r.kind == 'func':
                 if not defsrc:
                     self._refuse(r, f'no config/matched.csv source for 0x{r.addr:06X}; cannot locate the definition'); continue
-                bad = [p for p in defsrc if p not in R.files or not self._defines_any(R.files[p], r.aliases)]
+                bad = [p for p in defsrc if p not in R.files or not (self._defines_any(R.files[p], r.aliases) or
+                                                                       (r.cxx and self._defines_cxx(R.files[p], r)))]
                 if bad:
                     self._refuse(r, f'the definition in {bad[0]} is not spelled {" or ".join(r.aliases)} (e.g. a C++ '
                                     'member or s1_ label); rename it by hand'); continue
@@ -507,7 +596,7 @@ class Engine:
             # always the defining file (a whole merged TU: every function of it is compared by address)
             ver = set(defsrc)
             for p, c in r.files.items():
-                if c.get('code') or c.get('string') or p in r.defining: ver.add(p)
+                if c.get('code') or c.get('string') or c.get('base') or p in r.defining: ver.add(p)
             for h in [p for p in ver if not p.endswith(('.c', '.cpp'))]:
                 ver.discard(h); ver |= self.includers(h)
             # comment-only edits cannot reach the compiler, but rebuilding them is cheap where possible
@@ -526,6 +615,85 @@ class Engine:
             if not r.files and not r.config:
                 r.status = 'already-applied'; r.reason = 'nothing left to change'
         return renames
+
+    # ---- C++-linkage renames -----------------------------------------------------------------------------------
+    def plan_cxx(self, r):
+        """Find the base-name edits of a 'cxx' rename (r.sites) and check the new base name. Returns a refusal reason."""
+        R = self.repo; x = r.cxx; ob, nb = x['old_base'], x['new_base']
+        if ob == nb: return None
+        owners = R.base_owners(nb) - {r.addr}
+        if owners:
+            return f'base name {nb} already names 0x{min(owners):06X} in config (C++ overloads are not created by renames)'
+        cls_last = x['cls'].split('::')[-1] if x['cls'] else None
+        if x['ambiguous'] and not x['member']:
+            return (f'base name {ob} is shared with ' + ', '.join(x['same_base_addrs'][:3]) + ' (overloads or a C function '
+                    'of the same name); call sites cannot be told apart by name. Rename by hand')
+        for p, text in R.files.items():
+            if nb in text and token_kinds(text, nb) - {'comment', 'string'}:
+                if not self.allow_existing_uses:
+                    return f'{nb} already used in code: {p} (re-run with --allow-existing-uses if intended)'
+                r.existing_uses.append(dict(path=p, kind='base name already used (accepted by --allow-existing-uses)'))
+            if ob not in text: continue
+            code = blank_non_code(text)
+            if x['member'] and re.search(r'(?<![%s])virtual\b[^;{}]*(?<![%s])%s\s*\(' % (IDC, IDC, re.escape(ob)), code):
+                return (f'{ob} is declared virtual ({p}): every override shares the vtable slot name; renaming one class\'s '
+                        'member would break overriding. Rename the whole hierarchy by hand')
+            sites = self.base_sites(text, code, ob, nb, cls_last if x['ambiguous'] else None)
+            if sites: r.sites[p] = sites; r.files.setdefault(p, {})
+        return None
+
+    def base_sites(self, text, code, ob, nb, cls):
+        """(start, end, nb) for each occurrence of the base name `ob` to rename. cls=None: every code/comment token (the
+        base names only this function in config; nm verification catches any other function that shares it). cls=C:
+        the base is shared with other functions, so only spellings that name C's member: `C::ob` (code and comments),
+        declarations directly inside `struct/class C { ... }`, and unqualified or `this->` calls inside `C::` member
+        function bodies. Other call sites (`p->ob(...)`) are found by compiling (Engine.guide_ambiguous)."""
+        tok = re.compile(r'(?<![%s])%s(?![%s])' % (IDC, re.escape(ob), IDC))
+        out = []
+        if cls is None:
+            for kind, a, b in segments(text):
+                if kind in ('code', 'comment'):
+                    out += [(m.start(), m.end(), nb) for m in tok.finditer(text, a, b)]
+            return sorted(set(out))
+        q = re.compile(r'(?<![%s])%s\s*::\s*$' % (IDC, re.escape(cls)))
+        for kind, a, b in segments(text):
+            if kind not in ('code', 'comment'): continue
+            for m in tok.finditer(text, a, b):
+                if q.search(text, max(a, m.start() - len(cls) - 8), m.start()): out.append((m.start(), m.end(), nb))
+        depth = _depths(code)
+        for m in re.finditer(r'(?<![%s])(?:struct|class)\s+%s\b[^;{()]*\{' % (IDC, re.escape(cls)), code):
+            o = m.end() - 1; e = _match_brace(code, o)
+            for t in tok.finditer(code, o, e):
+                if depth[t.start()] == depth[o] + 1 and re.match(r'\s*\(', code[t.end():]): out.append((t.start(), t.end(), nb))
+        for m in re.finditer(r'(?<![%s])%s\s*::\s*~?[A-Za-z_]\w*\s*\(' % (IDC, re.escape(cls)), code):
+            i = m.end(); n = 1
+            while i < len(code) and n: n += {'(': 1, ')': -1}.get(code[i], 0); i += 1
+            mb = re.match(r'\s*(?:const\s*)?(?::[^{;]*)?\{', code[i:i + 400])
+            if not mb: continue
+            o = i + mb.end() - 1; e = _match_brace(code, o)
+            for t in tok.finditer(code, o, e):
+                pre = code[max(0, t.start() - 8):t.start()]
+                if re.match(r'\s*\(', code[t.end():]) and (re.search(r'this\s*->\s*$', pre) or not re.search(r'(->|\.|::)\s*$', pre)):
+                    out.append((t.start(), t.end(), nb))
+        return sorted(set(out))
+
+    def _defines_cxx(self, text, r):
+        """A natural C++ definition of the function: `[C::]base(...) {` at file scope (namespaces allowed), qualified by
+        the class for members; or a member defined inside its class body."""
+        x = r.cxx; ob = x['old_base']
+        if ob not in text: return False
+        code = blank_non_code(text); depth = _depths(code)
+        nsd = _transparent_depth(text, code)
+        cls = x['cls'].split('::')[-1] if x['cls'] else None
+        pat = (r'(?<![%s])%s\s*::\s*%s\s*\(' % (IDC, re.escape(cls), re.escape(ob)) if cls else
+               r'(?<![%s:])(?<!::)%s\s*\(' % (IDC, re.escape(ob)))
+        for m in re.finditer(pat, code):
+            if depth[m.start()] - nsd[m.start()] != 0: continue
+            i = m.end(); n = 1
+            while i < len(code) and n: n += {'(': 1, ')': -1}.get(code[i], 0); i += 1
+            if re.match(r'\s*(?:const\s*)?((__attribute__|__asm__|__asm|asm)\s*\((?:[^()]|\([^()]*\))*\)\s*)*\{', code[i:i + 300]):
+                return True
+        return False
 
     def _asm_alias_of(self, text, name, aliases):
         """True if every code use of `name` in text is a local alias bound by __asm__("<alias>") to this function."""
@@ -684,12 +852,25 @@ class Engine:
         for p, rs in by_file.items():
             mp = {}
             for r in rs: mp.update(r.mapping())
-            text, _ = rewrite(self.orig_files[p], mp)
+            text, _ = rewrite(apply_sites(self.orig_files[p], [x for r in rs for x in self.sites_of(r, p)]), mp)
             np_ = p
             for r in rs:
                 if p in r.defining: np_ = r.defining[p]
             want[p] = (np_, text)
         return want
+
+    def sites_of(self, r, p):
+        """Base-name edits of r in p: planned sites plus compiler-guided lines (every base token on those lines)."""
+        out = list(r.sites.get(p, []))
+        if r.guided.get(p):
+            text = self.orig_files[p]; ob, nb = r.cxx['old_base'], r.cxx['new_base']
+            starts = [0] + [m.end() for m in re.finditer('\n', text)]
+            tok = re.compile(r'(?<![%s])%s(?![%s])' % (IDC, re.escape(ob), IDC))
+            code = blank_non_code(text)
+            for ln in r.guided[p]:
+                a = starts[ln - 1]; b = starts[ln] if ln < len(starts) else len(text)
+                out += [(m.start(), m.end(), nb) for m in tok.finditer(code, a, b)]
+        return sorted(set(out))
 
     def materialize(self, active, all_renames):
         """Make the tree equal to original + `active` renames (only files any rename touches are considered)."""
@@ -751,7 +932,8 @@ class Engine:
             self.log(f'verify: building {len(allf)} files after {len(accepted)} renames ...')
             after = self.verifier(self.cur(allf), self.repo, self.name_map(accepted))
             after = {p: after[self.state.get(p, p)] for p in allf}
-            failed = {p for p in allf if not same_result(baseline[p], after[p])}
+            nmap = self.name_map(accepted)
+            failed = {p for p in allf if not same_result(baseline[p], after[p], nmap)}
             for r in accepted: r.verification = {p: dict(before=baseline[p], after=after[p]) for p in r.verify}
             if failed:
                 suspects = [r for r in accepted if failed & set(r.verify)]
@@ -769,10 +951,14 @@ class Engine:
                     self.materialize(trial, renames)
                     res = self.verifier(self.cur(r.verify), self.repo, self.name_map(trial))
                     res = {p: res[self.state.get(p, p)] for p in r.verify}
-                    bad = [p for p in r.verify if not same_result(baseline[p], res[p])]
+                    bad = [p for p in r.verify if not same_result(baseline[p], res[p], self.name_map(trial))]
                     r.verification = {p: dict(before=baseline[p], after=res[p]) for p in r.verify}
                     if bad:
-                        r.status = 'reverted'; r.reason = 'match changed in ' + ', '.join(bad[:4])
+                        r.status = 'reverted'; r.reason = 'match or symbol table changed in ' + ', '.join(bad[:4])
+                        sd = {p: symbol_diff(baseline[p], res[p], self.name_map(trial)) for p in bad}
+                        sd = {p: d for p, d in sd.items() if d[0] or d[1]}
+                        if sd: r.reason += '; symbols (missing, unexpected): ' + '; '.join(
+                            f'{p}: {[n for _, n in d[0]][:4]} / {[n for _, n in d[1]][:4]}' for p, d in sd.items())
                         self.materialize(keep, renames)
                     else:
                         keep.append(r)
@@ -803,9 +989,57 @@ class Engine:
             sys.stdout.writelines(difflib.unified_diff(self.orig_cfg[k].splitlines(True), v.splitlines(True),
                                                        'a/config/' + k, 'b/config/' + k))
 
-def same_result(before, after):
+def apply_sites(text, sites):
+    """Apply (start, end, replacement) edits given in offsets of `text`."""
+    for a, b, rep_ in sorted(sites, reverse=True): text = text[:a] + rep_ + text[b:]
+    return text
+
+def _depths(code):
+    out = []; d = 0
+    for ch in code:
+        if ch == '}': d = max(0, d - 1)
+        out.append(d)
+        if ch == '{': d += 1
+    return out
+
+def _match_brace(code, o):
+    n = 0
+    for i in range(o, len(code)):
+        if code[i] == '{': n += 1
+        elif code[i] == '}':
+            n -= 1
+            if not n: return i
+    return len(code)
+
+def _transparent_depth(text, code):
+    """Per position: how many enclosing braces are extern "C" { or namespace N { blocks."""
+    ext = {m.end() - 1 for m in re.finditer(r'extern\s*"C"\s*\{', text)}
+    ext |= {m.end() - 1 for m in re.finditer(r'(?<![%s])namespace(?:\s+[A-Za-z_]\w*)?\s*\{' % IDC, code)}
+    out = [0] * len(code); stack = []; k = 0
+    for i, ch in enumerate(code):
+        if ch == '{': t = i in ext; stack.append(t); k += t
+        out[i] = k
+        if ch == '}' and stack: k -= stack.pop()
+    return out
+
+def map_symbol(name, name_map):
+    if name in name_map: return name_map[name]
+    m = re.match(r'(_GLOBAL_\$[ID]\$)(.+)$', name)     # gcc names a TU's ctor/dtor stub after its first global symbol
+    if m and m.group(2) in name_map: return m.group(1) + name_map[m.group(2)]
+    return name
+
+def symbol_diff(before, after, name_map):
+    """(missing, unexpected): symbols of the old object (renamed through name_map) absent from the new one, and new
+    symbols not explained by the renames. Both empty = the symbol tables differ exactly by the intended renames."""
+    b = {(k, map_symbol(n, name_map)) for k, n in before.get('syms', ())}
+    a = {tuple(x) for x in after.get('syms', ())}
+    return sorted(b - a), sorted(a - b)
+
+def same_result(before, after, name_map=None):
     if before['build'] != after['build']: return False
-    return before['funcs'] == after['funcs']
+    if before['funcs'] != after['funcs']: return False
+    missing, extra = symbol_diff(before, after, name_map or {})
+    return not missing and not extra
 
 def _atomic_write(path, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -818,17 +1052,38 @@ def _atomic_write(path, text):
 # --------------------------------------------------------------------------------------------------------------------
 LINE_RE = re.compile(r'^(\S+) @0x([0-9A-Fa-f]+): (.*)$')
 
+# `matchtool.py check FILE`, plus the object's symbol table (nm): one compile serves both
+_CHECK_WITH_NM = r'''
+import sys
+sys.path.insert(0, 'tools')
+import matchtool as M
+_compile = M.compile_src
+def compile_and_list(src):
+    obj = _compile(src)
+    for s in M.read_obj(obj)[2]:
+        if s['name'] and s['type'] not in (3, 4):          # skip section and file symbols
+            print('@@SYM %s %s' % ('U' if s['shndx'] == 0 else 'D', s['name']))
+    return obj
+M.compile_src = compile_and_list
+sys.argv = ['matchtool.py', 'check'] + sys.argv[1:]
+M.main()
+'''
+
 class MatchtoolVerifier:
-    """Runs `matchtool.py check FILE` and returns {path: {build, funcs{addr|noaddr:name: status}, log}}.
-    Keys are addresses so the result is comparable across a rename; statuses are MATCH / MATCH* / 'k/n differ'."""
+    """Runs `matchtool.py check FILE` and returns {path: {build, funcs{addr|noaddr:name: status}, syms, log}}.
+    Keys are addresses so the result is comparable across a rename; statuses are MATCH / MATCH* / 'k/n differ'.
+    syms = the object's symbol table as (D|U, name) pairs: defined and undefined (referenced) symbols. matchtool
+    alone does not see a renamed callee or a call that now binds to another overload; the symbol table does."""
     def __init__(self, root, jobs=8):
         self.root = root; self.jobs = jobs
 
     def one(self, rel, name_map):
-        p = subprocess.run([sys.executable, os.path.join(self.root, 'tools', 'matchtool.py'), 'check', rel],
+        p = subprocess.run([sys.executable, '-c', _CHECK_WITH_NM, rel],
                            cwd=self.root, capture_output=True, text=True, timeout=600)
-        funcs = {}; other = []
+        funcs = {}; other = []; syms = set()
         for line in p.stdout.splitlines():
+            if line.startswith('@@SYM '):
+                k, n = line[6:].split(' ', 1); syms.add((k, n)); continue
             m = LINE_RE.match(line)
             if m:
                 st = m.group(3)
@@ -840,7 +1095,8 @@ class MatchtoolVerifier:
                 funcs['noaddr:' + inv.get(n, n)] = 'NOADDR'
             elif not line.startswith(('!!', '  ')): other.append(line)
         build = 'ok' if p.returncode == 0 and (funcs or not other) else 'failed'
-        return dict(build=build, funcs=funcs, log=(p.stdout + p.stderr)[-2000:] if build != 'ok' else '')
+        return dict(build=build, funcs=funcs, syms=sorted(syms),
+                    log=(p.stdout + p.stderr)[-2000:] if build != 'ok' else '')
 
     def __call__(self, paths, repo, name_map):
         with ThreadPoolExecutor(self.jobs) as ex:
@@ -866,6 +1122,7 @@ def main(argv=None):
     ap.add_argument('--on-fail', choices=('revert', 'stop'), default='revert')
     ap.add_argument('--no-verify', action='store_true'); ap.add_argument('--allow-unverifiable', action='store_true')
     ap.add_argument('--allow-existing-uses', action='store_true')
+    ap.add_argument('--plain', action='store_true')
     ap.add_argument('--log'); ap.add_argument('--commit-msg'); ap.add_argument('--jobs', type=int, default=8)
     ap.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     a = ap.parse_args(argv)
@@ -873,6 +1130,7 @@ def main(argv=None):
     elif a.old and a.new: reqs = [Rename(0, a.old, a.new, a.mangled)]
     else: ap.error('give OLD NEW or --csv FILE')
     eng = Engine(a.root, jobs=a.jobs, allow_unverifiable=a.allow_unverifiable, allow_existing_uses=a.allow_existing_uses,
+                 force_plain=a.plain,
                  verifier=(lambda paths, repo, nm: {}) if a.no_verify else None)
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     head = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=a.root, capture_output=True, text=True).stdout.strip()
