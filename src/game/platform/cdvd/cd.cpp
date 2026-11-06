@@ -20,7 +20,7 @@ extern char D_003DA4F0[];
 int D_002BD4C0 = 0;                 /* disc-poll state (1 read, 2 wait, 3 idle) */
 int D_002BD4C4 = -1;                /* last disc type */
 /* cd's .bss. */
-unsigned char D_002DD680[0x800];    /* sector buffer */
+unsigned char D_002DD680[0x800] __attribute__((aligned(64)));    /* sector buffer (64-aligned by layout: 0x2DD680 after tu_14A008's word at 0x2DD648; sceCdRead DMAs into it) */
 int D_002DDE80, D_002DDE84;
 #undef D_003DD0E4
 #define D_003DD0E4 (*(int *)((char *)base_D_003DD040 + 0xA4))   /* the sound manager (SNDMGRG)+0xA4 */

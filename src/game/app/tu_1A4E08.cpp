@@ -207,3 +207,8 @@ extern "C" void func_001A50F8(STEPQ *pq)
 {
     func_001A4FB0(pq, 5);
 }
+
+// ---- .bss (tu-merging.md "Data": .bss gaps): the step queue itself (STEPQ, 0x1C8 bytes from 0x2E1E88 up to main's
+// .bss), after the overflow step D_002E1E68 (first declaration order); game.cpp runs it through the functions above.
+// Defined after the functions, so none sees it.
+STEPQ D_002E1E88;

@@ -298,3 +298,12 @@ extern "C" void StartupCodes(CODES *pcodes)
     AddCode(pcodes, &D_002BD7B8);
     AddCode(pcodes, &D_002BD7F0);
 }
+
+// ---- cheat's .bss (tu-merging.md "Data": .bss gaps): 0x2DDE88..0x2DDED0, between cd's .bss and clock's in TU order.
+// One CODE no code names (0x38 bytes, exactly the gap after cd's words), then the code list g_codes D_002DDEC0
+// (joy's StartupCodes/_MatchCodes and screen's UpdateCodes take its address). Asm-labelled, so the declarations
+// other files see stay as they are; emitted in this order (first declaration).
+namespace BSS_cheat {
+CODE b_002DDE88 __asm__("D_002DDE88");
+CODES b_002DDEC0 __asm__("D_002DDEC0");
+}

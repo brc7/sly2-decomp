@@ -20,7 +20,7 @@ struct RGBA
     RGBA(unsigned char r_, unsigned char g_, unsigned char b_, unsigned char a_) { r = r_; g = g_; b = b_; a = a_; }
 };
 
-/* HYPOTHESIS: the CLUT and BMP descriptors, constructed by copying a header (0x20 apart in .bss; layout unknown). */
+/* HYPOTHESIS: the CLUT and BMP descriptors, constructed by copying a header (the CLUT 0x20, the BMP 0x28 bytes by the .bss layout; fields unknown). */
 struct CLUT
 {
     int a[8];
@@ -28,7 +28,7 @@ struct CLUT
 };
 struct BMP
 {
-    int a[8];
+    int a[10];
     BMP(void *pbmpSrc) { func_001EB050(this, pbmpSrc); }
 };
 

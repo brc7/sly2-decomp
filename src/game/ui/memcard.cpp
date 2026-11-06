@@ -50,7 +50,7 @@ struct MCSTATUSG
    constructor (no code) to keep them ahead of the dialogs. Asm labels: the view declarations need not agree. */
 namespace BSS_memcard {
 template <int N> struct BUF { char ab[N]; BUF() {} };
-BUF<0x4000> d_002E2080 __asm__("D_002E2080");   /* the memcard thread's stack (stackSize 0x4000) */
+BUF<0x4000> d_002E2080 __asm__("D_002E2080") __attribute__((aligned(64)));   /* the memcard thread's stack (stackSize 0x4000; 64-aligned by layout: 0x2E2080 after main's words at 0x2E2050..0x2E205C) */
 BUF<0x480> d_002E6080 __asm__("D_002E6080");    /* sceMcGetDir table (ENTs), cleared as 0x480 bytes */
 BUF<0x50> d_002E6500 __asm__("D_002E6500");     /* directory path */
 }
