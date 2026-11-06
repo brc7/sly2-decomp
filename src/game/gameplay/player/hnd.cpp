@@ -1,4 +1,6 @@
-// hnd.cpp -- HND, a grabbable target. TU 0x184F50..0x185130 (4 functions, address order).
+// hnd.cpp -- HND (CID 0x19), a hand-hold: a TARGET with a GRABSPOT part the player can grab and hang from.
+// Entry points: HND::Init (class vtable slot 7), GetHndGrabPosition (GRABSPOT slot 0xC: where the hands go).
+// TU 0x184F50..0x185130 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hnd
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00185110
 #include "sly2/xfm.h"
@@ -12,13 +14,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct HNDV : public TARGET
 {
       byte grabspot[0x2C];      /* +0x100 GRABSPOT part (InitGrabspot); layout not modelled yet */
-      int n12C;                 /* +0x12C */
-      int n130;                 /* +0x130 */
+      int grabAnimA;            /* +0x12C set to 8 by Init (inferred: grab animation/kind index) */
+      int grabAnimB;            /* +0x130 set to 9 by Init (inferred) */
 };
 
 extern "C" {
-void InitTarget(TARGET *ptarget);
-void InitGrabspot(GRABSPOT *pgrabspot);
+void InitTarget(TARGET *target);
+void InitGrabspot(GRABSPOT *grabspot);
 }
 
 /** @sly2-annot addr=0x184F50
@@ -28,28 +30,32 @@ void InitGrabspot(GRABSPOT *pgrabspot);
  * See: docs/engine/core-library.md#6-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/player.md#hnd-0x184f50-0x185130
  * @end-sly2-annot */
+// Initializes a hand-hold: target init, then its grab-spot part; marks it grabbable (grftak = 1) and sets its two
+// grab parameters (8 and 9; meaning inferred to be animation/kind indices).
 void HND::Init()
 {
-    HNDV *phnd = (HNDV *)this;
-      InitTarget(phnd);
-      InitGrabspot((GRABSPOT *)phnd->grabspot);
-      phnd->grftak = 1;
-      phnd->n12C = 8;
-      phnd->n130 = 9;
+    HNDV *hand = (HNDV *)this;
+      InitTarget(hand);
+      InitGrabspot((GRABSPOT *)hand->grabspot);
+      hand->grftak = 1;
+      hand->grabAnimA = 8;
+      hand->grabAnimB = 9;
 }
 
 struct VEC { float x, y, z, w; };
 float D_002BE910 = -150.0f;   /* hnd's .data (0x2BE910; the next 4 bytes are 0): z offset of the grab position */
-extern "C" qword func_001A62E8(void *a, void *b);
+extern "C" qword func_001A62E8(void *object, void *unused);
 /** @sly2-annot addr=0x184F98
  * Purpose: GRABSPOT slot C: owner position + D_002BE910 in z
  * Info: proposed name GetHndGrabPos (T2); class HND; TU hnd
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hnd-0x184f50-0x185130
  * @end-sly2-annot */
-extern "C" void GetHndGrabPosition(void *a, void *b, VEC *p)
+// Writes the grab point: the hand-hold's world position lowered by 150 units (D_002BE910) in z, so the player's hands
+// meet the hold.
+extern "C" void GetHndGrabPosition(void *hand, void *unused, VEC *position)
 {
-    *(qword *)p = func_001A62E8(a, b);
-    p->z += D_002BE910;
+    *(qword *)position = func_001A62E8(hand, unused);
+    position->z += D_002BE910;
 }
 
