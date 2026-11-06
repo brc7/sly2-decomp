@@ -123,7 +123,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
 qword func_001A62E8(POV *);
-int PbhvFindBhvstk(void *p, int n);
+int FindBhvInBhvstk(void *p, int n);
 
 int GetPoCtlState(POV *p);
 POCTLV *POCTL_ctor(POCTLV *p, POV *q);
@@ -819,7 +819,7 @@ extern "C" int func_001C4BD8(SWP *p, int cMax, void **ap)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {
         for (j = 0; j < sizeof(D_002C0D28) / sizeof(D_002C0D28[0]) && c < cMax; j++) {
             plo2 = *D_002C0D28[j];
-            if (!plo2 || plo2 == plo || !PbhvFindBhvstk(plo2->x26C, 0xC2)) continue;
+            if (!plo2 || plo2 == plo || !FindBhvInBhvstk(plo2->x26C, 0xC2)) continue;
             if ((int)(plo2->flags >> 60) & 1) ap[c++] = &plo2->n15c;
         }
     }

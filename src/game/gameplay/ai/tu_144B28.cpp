@@ -146,7 +146,7 @@ extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
@@ -200,7 +200,7 @@ static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g *
  * @end-sly2-annot */
 void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
 {
-    func_001EF0C0(p, q);
+    ResetBhvSteering(p, q);
     if (p->x4C < 2) if (p->x4C >= 0) {
         qword pos;
         qword d, v, t, axis;
@@ -529,7 +529,7 @@ struct LM D_002BD330 = {0.0f, 600.0f};
 struct LM D_002BD338 = {0.0f, 1200.0f};
 float D_002BD340 = 200.0f;
 void UpdateBhv(struct P *p);
-int FBhvBusyAbove(struct P *p);
+int IsBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
@@ -596,7 +596,7 @@ void UpdateBhvfollow(struct P *p)
     } else {
         g = D_002A4E34;
     }
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         int state = p->x60;
         int f;
         switch (state) {
@@ -1080,7 +1080,7 @@ typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
@@ -1094,7 +1094,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  * @end-sly2-annot */
 void func_00146068(struct P *p, struct Q *q)
 {
-    func_001EF0C0(p, q);
+    ResetBhvSteering(p, q);
     if (p->x30 < 3) if (p->x30 >= 0) {
         qword a, b, d;
         float g;
@@ -1306,7 +1306,7 @@ typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
@@ -1320,7 +1320,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  * @end-sly2-annot */
 void func_00146560(struct P *p, struct Q *q)
 {
-    func_001EF0C0(p, q);
+    ResetBhvSteering(p, q);
     if (p->x30 < 3) if (p->x30 >= 0) {
         qword a, b, d;
         float g;
@@ -1567,7 +1567,7 @@ struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; floa
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
@@ -1610,7 +1610,7 @@ static __inline__ float GAtanR(qword d)
  * @end-sly2-annot */
 void func_00146B18(struct P *p, struct Q *q)
 {
-    func_001EF0C0(p, q);
+    ResetBhvSteering(p, q);
     switch (p->x30) {
     case 1: {
         qword d = Sub(func_001A62E8(p->p38), func_001A62E8(p->p10));

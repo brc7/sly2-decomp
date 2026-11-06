@@ -38,8 +38,8 @@ void func_00204660(STEP *pstep, float rad);
 float RadStepHeading(STEP *pstep);
 float atan2f(float y, float x);
 void func_001F5988(SO *pso, SO *psoOther);
-BHV *PbhvPushBhvstk(BHVSTK *pbhvstk);
-BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, CID cid);
+BHV *PushBhvstk(BHVSTK *pbhvstk);
+BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, CID cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1526,7 +1526,7 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
  * @end-sly2-annot */
 extern "C" BHV *func_00205438(STEP *pstep)
 {
-    return PbhvPushBhvstk(&pstep->bhvstk);
+    return PushBhvstk(&pstep->bhvstk);
 }
 
 /** @sly2-annot addr=0x205458
@@ -1538,7 +1538,7 @@ extern "C" BHV *func_00205438(STEP *pstep)
  * @end-sly2-annot */
 extern "C" BHV *func_00205458(STEP *pstep, CID cid)
 {
-    return PbhvFindBhvstk(&pstep->bhvstk, cid);
+    return FindBhvInBhvstk(&pstep->bhvstk, cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

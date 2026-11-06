@@ -85,7 +85,7 @@ void InitBhv(BHV171V *pbhv);
 void StartBhv(BHV171V *pbhv);
 void CloseBhv(BHV171V *pbhv);
 void UpdateBhv(BHV171V *pbhv);
-int FBhvBusyAbove(BHV171V *pbhv);
+int IsBhvBusyAbove(BHV171V *pbhv);
 void PopBhv(void *pbhvstk);
 void AddStepguardSgf(GUARDV *pguard, int sgf);
 void RemoveStepguardSgf(GUARDV *pguard, int sgf);
@@ -176,7 +176,7 @@ extern "C" void func_00171FD0(BHV171V *pbhv)
 extern "C" void func_00172018(BHV171V *p) {
     int s;
     UpdateBhv(p);
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         s = p->state;
         switch (s) {
         case 0:

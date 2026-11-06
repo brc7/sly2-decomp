@@ -124,7 +124,7 @@ float RadNormalize__Ff(float);
 void UpdateJtHands(void *);
 int FCheckLm__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int n50; char pad54[8]; void *p5C; };
-BHV *PbhvFindBhvstk(void *, int);
+BHV *FindBhvInBhvstk(void *, int);
 void SetJtJts__FP2JT3JTS4JTBS(JT *, int, int);
 int FJtSweepBack(JT *);
 int func_0018F050(JT *);
@@ -458,7 +458,7 @@ extern "C" int func_0018EE38(JT *p)
         if (g < D_002BF4AC)
             f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
-            BHV *pt = PbhvFindBhvstk(p->p10dc + 0x26C, 0xB1);
+            BHV *pt = FindBhvInBhvstk(p->p10dc + 0x26C, 0xB1);
             if (pt && pt->p5C == p) {
                 int k = pt->n50;
                 if (k < 2) {

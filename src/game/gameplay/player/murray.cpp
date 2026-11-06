@@ -1865,7 +1865,7 @@ extern char D_002C09B0[], D_002C09C0[];
 int FStepguardHasSgf(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
-struct S *PbhvFindBhvstk(void *p, int n);
+struct S *FindBhvInBhvstk(void *p, int n);
 qword func_001A62E8(void *p);
 int FCheckLm__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
@@ -1900,7 +1900,7 @@ int FTryMurrayTakedown(struct P *p)
         return 0;
     if (!FStepguardHasSgf(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
         goto ret0;
-    ps = PbhvFindBhvstk(p->p10DC->x26C, 0xB1);
+    ps = FindBhvInBhvstk(p->p10DC->x26C, 0xB1);
     if (ps->x50 >= 3)
         return 0;
     if (ps->x5C != p) {

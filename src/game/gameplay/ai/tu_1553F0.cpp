@@ -116,7 +116,7 @@ void InitBhv(void *pbhv);
 void StartBhv(void *pbhv);
 void CloseBhv(void *pbhv);
 void UpdateBhv(void *pbhv);
-int FBhvBusyAbove(void *pbhv);
+int IsBhvBusyAbove(void *pbhv);
 void PopBhv(void *pbhvstk);
 void AddStepguardSgf(DIMITRIV *pguard, int sgf);
 void RemoveStepguardSgf(DIMITRIV *pguard, int sgf);
@@ -289,7 +289,7 @@ static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : 
 extern "C" void func_00155660(BHVESC *p)
 {
     UpdateBhv(p);
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         int s = p->state;
         switch (s) {
         case 0: {
@@ -579,7 +579,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
 extern "C" void func_00155D90(BHVATK *p)
 {
     UpdateBhv(p);
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         int s = p->state;
         switch (s) {
         case 0:

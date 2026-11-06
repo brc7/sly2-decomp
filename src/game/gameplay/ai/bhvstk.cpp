@@ -1,6 +1,9 @@
-// bhvstk.cpp -- behaviours (BHV) and the per-object behaviour stack (BHVSTK, eight preallocated 0xF0-byte slots):
-// push (constructing the behaviour of a kind in its slot: PbhvNew), pop, update and message dispatch from the top,
-// busy propagation to the behaviours below, and the empty BHV base methods.
+// bhvstk.cpp -- behaviours (BHV) and the per-object behaviour stack (BHVSTK). A guard (STEPGUARD) owns one stack of
+// up to eight behaviours in preallocated 0xF0-byte slots; the top behaviour is the active one. Entry points:
+// PushBhvstk (construct a behaviour of a given class in the next slot via PbhvNew and start it), PopBhv /
+// ClearBhvstk (close a behaviour and everything above it), UpdateBhvstk and HandleBhvstkMessage (per-frame update
+// and message dispatch, top first), SetBhvBusy / ClearBhvBusy (busy state propagated to the behaviours below and
+// the owning guard), and the empty BHV base methods that subclasses override.
 // TU 0x1EEC60..0x1EF850 (25 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bhvstk
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001EF830
@@ -18,26 +21,26 @@ struct OWNERV;
 /* A behaviour (BHV base: kinds 0x9C..0xC6 derive from it). */
 struct BHVV
 {
-    int pframe;
-    int psidebag;
-    int x8;
-    VTE *vt;                 /* +0xC slot 7 start, 9 close, 10 update, 13 handle message */
-    OWNERV *powner;          /* +0x10 */
-    BHVV *pbhvPrev;           /* +0x14 the behaviour below on the stack */
-    BHVV *pbhvNext;           /* +0x18 the behaviour above (CloseBhv pops it) */
-    int fBusy;               /* +0x1C */
-    int cBusyAbove;          /* +0x20 busy behaviours above this one */
+    int frame;               /* +0x0 BASIC header */
+    int sidebag;             /* +0x4 */
+    int unknown8;
+    VTE *vt;                 /* +0xC slot 7 OnPush, 8 Start, 9 Close, 10 Update, 13 HandleMessage */
+    OWNERV *owner;           /* +0x10 the guard step whose stack holds this behaviour */
+    BHVV *below;             /* +0x14 the behaviour below on the stack */
+    BHVV *above;             /* +0x18 the behaviour above (CloseBhv pops it) */
+    int isBusy;              /* +0x1C */
+    int numBusyAbove;        /* +0x20 busy behaviours above this one */
 };
 /* The stack: its owner, depth and the eight slots. */
-struct BHVSTKV { OWNERV *powner; int c; BHVV *apbhv[8]; };
-struct OWNERV { char pad[0x1A8]; float g1A8; char pad1AC[0x204 - 0x1AC]; int x204; char pad208[0x26C - 0x208]; BHVSTKV bhvstk; };
+struct BHVSTKV { OWNERV *owner; int depth; BHVV *slots[8]; };
+struct OWNERV { char pad[0x1A8]; float targetHeading; char pad1AC[0x204 - 0x1AC]; int groundProbeOverride; char pad208[0x26C - 0x208]; BHVSTKV bhvstk; };
 typedef char assert_OWNERV_bhvstk[(unsigned int)&((OWNERV *)0)->bhvstk == 0x26C ? 1 : -1];
 /* PbhvNew's view of a new behaviour (the vtable at +0xC) and of an embedded goal record. */
 struct BHVP { int tag, value, word8; void *vtable; };
 struct REFV { int tag, value; };
 struct AREQV { int cb; int nKind; };
-/* func_001EF0C0's argument. */
-struct BHVTIMER { char pad[0x18]; float g18; int x1C; };
+/* ResetBhvSteering's argument. */
+struct BHVTIMER { char pad[0x18]; float heading; int unknown1C; };
 
 extern char D_002D04A0[] __asm__("_vt$8BHVGUARD");
 extern char D_002D0AB0[] __asm__("_vt$7BHVANIM");
@@ -80,111 +83,77 @@ extern char D_002CFCA0[] __asm__("_vt$11BHVPATHLINK");
 extern char D_002CFC20[] __asm__("_vt$6BHV191");
 extern char D_002CFDA0[] __asm__("_vt$13BHVPATROLPATH");
 extern "C" {
-int CbBhvMax();
-void *func_001AE1D0(AREQV *pmsg);
+int GetBhvSlotSize();
+void *func_001AE1D0(AREQV *request);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void func_002562A8(REFV *);
 BHVV *PbhvNew(int kind, void *memory);
-void PopBhv(BHVV **ppbhv);
-void DecrementBhvstk(BHVSTKV *pbhvstk);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void func_0020B438(OWNERV *powner);
-void func_0020B478(OWNERV *powner);
+void PopBhv(BHVV **slot);
+void DecrementBhvstk(BHVSTKV *stack);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+void IncrementStepguardBusy(OWNERV *owner);
+void DecrementStepguardBusy(OWNERV *owner);
 }
 
-/** @sly2-annot addr=0x1EEC60
- * Purpose: BHVSTK init: pbhvstk->pstep = pstep
- * Info: proposed name InitBhvstk (T1); TU bhvstk
- * Notes: runtime: BHVSTK at STEP+0x26C {pstep,cpbhv,apbhv[8]} confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/guards-ai.md#9-key-functions,
- *   docs/engine/hud-ui.md#4-source-files
- * @end-sly2-annot */
-extern "C" void InitBhvstk(BHVSTKV *pbhvstk, OWNERV *powner)
+// 0x1EEC60: Initializes a behaviour stack by binding it to its owner (the guard step that holds it at +0x26C).
+// Runtime-confirmed layout {owner, count, slots[8]}.
+extern "C" void InitBhvstk(BHVSTKV *stack, OWNERV *owner)
 {
-    pbhvstk->powner = powner;
+    stack->owner = owner;
 }
 
-/** @sly2-annot addr=0x1EEC68
- * Purpose: BHVSTK clone fix-up: re-point pstep at the new step after the object copy
- * Info: proposed name CloneBhvstk (T1); TU bhvstk
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void CloneBhvstk(BHVSTKV *pbhvstk, OWNERV *powner)
+// 0x1EEC68: Clone fix-up: after an object copy, re-points the stack at its new owner.
+extern "C" void CloneBhvstk(BHVSTKV *stack, OWNERV *owner)
 {
-    pbhvstk->powner = powner;
+    stack->owner = owner;
 }
 
-/** @sly2-annot addr=0x1EEC70
- * Purpose: Allocate the 8 BHV slots (CbBhvMax()=0xF0 bytes each, align 0x10) from the world heap into
- *   apbhv[0..7]
- * Info: proposed name PostBhvstkLoad (T1); TU bhvstk
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void PostBhvstkLoad(BHVSTKV *p)
+// 0x1EEC70: Allocates the eight behaviour slots (GetBhvSlotSize() bytes each, 16-byte aligned) from the world heap
+// after load.
+extern "C" void PostBhvstkLoad(BHVSTKV *stack)
 {
     unsigned int i;
-    AREQV msg;
+    AREQV request;
     for (i = 0; i < 8; i++) {
-        msg.cb = CbBhvMax();
-        msg.nKind = 0x10;
-        p->apbhv[i] = (BHVV *)func_001AE1D0(&msg);
+        request.cb = GetBhvSlotSize();
+        request.nKind = 0x10;
+        stack->slots[i] = (BHVV *)func_001AE1D0(&request);
     }
 }
 
-/** @sly2-annot addr=0x1EECD0
- * Purpose: Pop every behaviour: if cpbhv>0 pop apbhv[0] (which pops everything stacked above it), then
- *   cpbhv=0
- * Info: proposed name ClearBhvstk (T1); TU bhvstk
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
+// 0x1EECD0: Pops every behaviour: popping the bottom slot closes everything stacked above it; then resets the depth
+// to 0.
 void ClearBhvstk(BHVSTKV *p) __asm__("ClearBhvstk__FP6BHVSTK");
-void ClearBhvstk(BHVSTKV *p)
+void ClearBhvstk(BHVSTKV *stack)
 {
-    struct { BHVV *pbhv; int pad[3]; } l;
-    if (p->c > 0) {
-        l.pbhv = p->apbhv[0];
-        PopBhv(&l.pbhv);
+    struct { BHVV *pbhv; int pad[3]; } bottom;
+    if (stack->depth > 0) {
+        bottom.pbhv = stack->slots[0];
+        PopBhv(&bottom.pbhv);
     }
-    p->c = 0;
+    stack->depth = 0;
 }
 
-/** @sly2-annot addr=0x1EED10
- * Purpose: Call BHV vt10 (Update) on every stacked behaviour, top (last pushed) first
- * Info: proposed name UpdateBhvstk (T1); TU bhvstk
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void UpdateBhvstk(BHVSTKV *p)
+// 0x1EED10: Per-frame update: calls each stacked behaviour's Update (vtable slot 10), top (most recently pushed)
+// first.
+extern "C" void UpdateBhvstk(BHVSTKV *stack)
 {
     int i;
-    for (i = p->c; --i >= 0;) {
-        BHVV *po = p->apbhv[i];
-        ((void (*)(void *))po->vt[10].pfn)((char *)po + po->vt[10].d);
+    for (i = stack->depth; --i >= 0;) {
+        BHVV *behavior = stack->slots[i];
+        ((void (*)(void *))behavior->vt[10].pfn)((char *)behavior + behavior->vt[10].d);
     }
 }
 
-/** @sly2-annot addr=0x1EED78
- * Purpose: Offer a step message (msgid,pv) to the behaviours, top first, until one's vt13 returns nonzero
- *   (consumed)
- * Info: proposed name HandleBhvstkMessage (T1); TU bhvstk
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void HandleBhvstkMessage(BHVSTKV *pl, int a, int b)
+// 0x1EED78: Offers a step message (id, payload) to the stacked behaviours, top first, stopping at the first whose
+// HandleMessage (vtable slot 13) returns nonzero (consumed).
+extern "C" void HandleBhvstkMessage(BHVSTKV *stack, int messageId, int payload)
 {
-    int i = pl->c;
+    int i = stack->depth;
     while (--i >= 0) {
-        BHVV *po = pl->apbhv[i];
-        VTE *e = &po->vt[13];
-        if (((int (*)(void *, int, int))e->pfn)((char *)po + e->d, a, b))
+        BHVV *behavior = stack->slots[i];
+        VTE *entry = &behavior->vt[13];
+        if (((int (*)(void *, int, int))entry->pfn)((char *)behavior + entry->d, messageId, payload))
             break;
     }
 }
@@ -194,435 +163,336 @@ static inline int Count(const int*p){
     __asm__("lw %0,%1":"=r"(value):"m"(*p));
     return value;
 }
-/** @sly2-annot addr=0x1EEE00
- * Purpose: Push a new behaviour of class cid: take slot apbhv[cpbhv++], memset CbBhvMax, construct via
- *   PbhvNew, set pstep and pbhvPrev (prev->pbhvNext=new), call vt7 (Init); returns it
- * Info: proposed name PbhvPushBhvstk (T1); TU bhvstk
- * Notes: names_v2 C proposed SetTnTns__FP2TN3TNS (0.438)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
- * @end-sly2-annot */
-extern "C" BHVV *PbhvPushBhvstk(BHVSTKV *stack,int selector){
-    BHVV *previous,*object;
+// 0x1EEE00: Pushes a new behaviour of class `cid`: takes the next free slot, clears it, constructs the behaviour
+// there (PbhvNew), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
+// the new behaviour.
+extern "C" BHVV *PushBhvstk(BHVSTKV *stack,int cid){
+    BHVV *below,*behavior;
     void *memory;
-    if(stack->c==0)previous=0;
-    else previous=stack->apbhv[stack->c-1];
+    if(stack->depth==0)below=0;
+    else below=stack->slots[stack->depth-1];
     {
-        int index=Count(&stack->c);
-        memory=stack->apbhv[index];
-        stack->c=index+1;
+        int index=Count(&stack->depth);
+        memory=stack->slots[index];
+        stack->depth=index+1;
     }
-    func_002333B4(memory,0,CbBhvMax());
-    object=PbhvNew(selector,memory);
+    func_002333B4(memory,0,GetBhvSlotSize());
+    behavior=PbhvNew(cid,memory);
     {
-        register OWNERV *tag __asm__("$3")=stack->powner;
-        object->powner=tag;
-        object->pbhvPrev=previous;
+        register OWNERV *owner __asm__("$3")=stack->owner;
+        behavior->owner=owner;
+        behavior->below=below;
     }
-    if(previous)previous->pbhvNext=object;
-    ((void (*)(void *))object->vt[7].pfn)((char *)object+object->vt[7].d);
-    return object;
+    if(below)below->above=behavior;
+    ((void (*)(void *))behavior->vt[7].pfn)((char *)behavior+behavior->vt[7].d);
+    return behavior;
 }
 
-/** @sly2-annot addr=0x1EEED0
- * Purpose: --pbhvstk->cpbhv
- * Info: proposed name DecrementBhvstk (T1); TU bhvstk
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void DecrementBhvstk(BHVSTKV *pbhvstk)
+// 0x1EEED0: Decrements the stack depth (called by PopBhv once a behaviour has been closed).
+extern "C" void DecrementBhvstk(BHVSTKV *stack)
 {
-    pbhvstk->c = pbhvstk->c - 1;
+    stack->depth = stack->depth - 1;
 }
 
-/** @sly2-annot addr=0x1EEEE0
- * Purpose: Return the first stacked behaviour (bottom first) derived from cid, else NULL
- * Info: proposed name PbhvFindBhvstk (T1); TU bhvstk
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
- * @end-sly2-annot */
-extern "C" BHVV *PbhvFindBhvstk(BHVSTKV *pl, int cid)
+// 0x1EEEE0: Returns the first stacked behaviour (searching bottom up) whose class derives from `cid`, or NULL.
+extern "C" BHVV *FindBhvInBhvstk(BHVSTKV *stack, int cid)
 {
     int i;
-    for (i = 0; i < pl->c; i++) {
-        BHVV *p = pl->apbhv[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p, cid)) return p;
+    for (i = 0; i < stack->depth; i++) {
+        BHVV *behavior = stack->slots[i];
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior, cid)) return behavior;
     }
     return 0;
 }
 
-/** @sly2-annot addr=0x1EEF68
- * Purpose: BHV vt7 base: empty. Called by PbhvPushBhvstk right after construction
- * Info: proposed name InitBhv (T1); class BHV slot7; TU bhvstk
- * Notes: superseded r6_1D5150 proposal: InitBhv (0.45) | agent qualifier: (InitBhv)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
+// 0x1EEF68: BHV vtable slot 7 (OnPush), base version: does nothing. Called by PushBhvstk right after construction.
 void BHV::OnPush()
 {
-    BHVV *pbhv = (BHVV *)this;
+    BHVV *behavior = (BHVV *)this;
 }
 
-/** @sly2-annot addr=0x1EEF70
- * Purpose: BHV vt8 base: empty. Start/activate the behaviour with default parameters (callers that push
- *   without a specific setter call it)
- * Info: proposed name StartBhv (T1); class BHV slot8; TU bhvstk
- * Notes: agent qualifier: (StartBhv)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+r9_bhv_screen(slot meaning)
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void StartBhv(BHVV *pbhv)
+// 0x1EEF70: BHV vtable slot 8 (Start), base version: does nothing. Starts the behaviour with default parameters;
+// callers that push without a specific setter call it.
+extern "C" void StartBhv(BHVV *behavior)
 {
 }
 
-/** @sly2-annot addr=0x1EEF78
- * Purpose: BHV vt9 base: pop whatever is stacked above (PopBhv(&this->pbhvNext))
- * Info: proposed name CloseBhv (T1); class BHV slot9; TU bhvstk
- * Notes: agent qualifier: (CloseBhv)
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void CloseBhv(BHVV *pbhv)
+// 0x1EEF78: BHV vtable slot 9 (Close), base version: pops whatever is stacked above this behaviour.
+extern "C" void CloseBhv(BHVV *behavior)
 {
-    PopBhv(&pbhv->pbhvNext);
+    PopBhv(&behavior->above);
 }
 
-/** @sly2-annot addr=0x1EEF98
- * Purpose: BHV vt10 base: empty per-frame update
- * Info: proposed name UpdateBhv (T1); class BHV slot10; TU bhvstk
- * Notes: agent qualifier: (UpdateBhv)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void UpdateBhv(BHVV *pbhv)
+// 0x1EEF98: BHV vtable slot 10 (Update), base version: empty per-frame update.
+extern "C" void UpdateBhv(BHVV *behavior)
 {
 }
 
-/** @sly2-annot addr=0x1EEFA0
- * Purpose: BHV vt12 base: return pstep->+0x204 ? 0 : 7 -- the step's ground/collision flag mask (bit0 snap to
- *   ground, bit1 alt probe point, bit2 count in solver contacts)
- * Info: proposed name BHV_GrfGroundProbe (T2); class BHV slot12; TU bhvstk
- * Notes: agent qualifier:
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" int func_001EEFA0(BHVV *pbhv)
+// 0x1EEFA0: BHV vtable slot 12, base version: returns the owner step's ground-probe flag mask, 0 when the step's
+// +0x204 override is set, else 7 (bit 0 snap to ground, bit 1 alternate probe point, bit 2 count in solver
+// contacts) (inferred).
+extern "C" int GetBhvGroundProbeFlags(BHVV *behavior)
 {
-    return (pbhv->powner->x204 != 0) ? 0 : 7;
+    return (behavior->owner->groundProbeOverride != 0) ? 0 : 7;
 }
 
-/** @sly2-annot addr=0x1EEFB8
- * Purpose: BHV vt11 base: empty. Per-frame motion update for the behaviour that currently owns the step's
- *   motion controller (STEPGUARD +0xFD0)
- * Info: proposed name UpdateBhvMotion (T1); class BHV slot11; TU bhvstk
- * Notes: agent qualifier:
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest+r9_bhv_screen(slot
- *   meaning)
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void UpdateBhvMotion(BHVV *pbhv)
+// 0x1EEFB8: BHV vtable slot 11 (UpdateMotion), base version: empty. Per-frame motion update for the behaviour that
+// owns the step's motion controller (STEPGUARD +0xFD0).
+extern "C" void UpdateBhvMotion(BHVV *behavior)
 {
 }
 
-/** @sly2-annot addr=0x1EEFC0
- * Purpose: If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b
- *   IncrementStepguardBusy); increment cBusyAbove on every pbhvPrev below
- * Info: proposed name SetBhvBusy (T1); TU bhvstk
- * Notes: runtime: busy protocol (fBusy +0x1C, cBusyAbove +0x20, guard +0xFFC) confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void SetBhvBusy(BHVV *pbhv)
+// 0x1EEFC0: Marks a behaviour busy (once): if the owner is a STEPGUARD (cid 0x38) its busy count is incremented,
+// and every behaviour below gets its busy-above count incremented. Runtime-confirmed busy protocol.
+extern "C" void SetBhvBusy(BHVV *behavior)
 {
-    if (pbhv->fBusy == 0) {
-        BHVV *p;
-        pbhv->fBusy = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pbhv->powner, 0x38) != 0) {
-            func_0020B438(pbhv->powner);
+    if (behavior->isBusy == 0) {
+        BHVV *lower;
+        behavior->isBusy = 1;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, 0x38) != 0) {
+            IncrementStepguardBusy(behavior->owner);
         }
-        p = pbhv->pbhvPrev;
-        if (p != 0) {
+        lower = behavior->below;
+        if (lower != 0) {
             do {
-                p->cBusyAbove = p->cBusyAbove + 1;
-                p = p->pbhvPrev;
-            } while (p != 0);
+                lower->numBusyAbove = lower->numBusyAbove + 1;
+                lower = lower->below;
+            } while (lower != 0);
         }
     }
 }
 
-/** @sly2-annot addr=0x1EF038
- * Purpose: Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below)
- * Info: proposed name ClearBhvBusy (T1); TU bhvstk
- * Notes: runtime: busy protocol confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void ClearBhvBusy(BHVV *pbhv)
+// 0x1EF038: Inverse of SetBhvBusy: clears the busy flag, decrements the owning STEPGUARD's busy count and the
+// busy-above count of every behaviour below.
+extern "C" void ClearBhvBusy(BHVV *behavior)
 {
-    if (pbhv->fBusy != 0) {
-        BHVV *p;
-        pbhv->fBusy = 0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pbhv->powner, 0x38) != 0) {
-            func_0020B478(pbhv->powner);
+    if (behavior->isBusy != 0) {
+        BHVV *lower;
+        behavior->isBusy = 0;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, 0x38) != 0) {
+            DecrementStepguardBusy(behavior->owner);
         }
-        p = pbhv->pbhvPrev;
-        if (p != 0) {
+        lower = behavior->below;
+        if (lower != 0) {
             do {
-                p->cBusyAbove = p->cBusyAbove - 1;
-                p = p->pbhvPrev;
-            } while (p != 0);
+                lower->numBusyAbove = lower->numBusyAbove - 1;
+                lower = lower->below;
+            } while (lower != 0);
         }
     }
 }
 
-/** @sly2-annot addr=0x1EF0A8
- * Purpose: Return cBusyAbove>0 (a behaviour higher on the stack is busy)
- * Info: proposed name FBhvBusyAbove (T1); TU bhvstk
- * Notes: names_v2 C proposed IsSwHandsOff__FP2SW (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" int FBhvBusyAbove(BHVV *pbhv)
+// 0x1EF0A8: True if a behaviour higher on the stack is busy.
+extern "C" int IsBhvBusyAbove(BHVV *behavior)
 {
-    return pbhv->cBusyAbove > 0;
+    return behavior->numBusyAbove > 0;
 }
 
-/** @sly2-annot addr=0x1EF0B8
- * Purpose: BHV vt13 base: return 0 (message not consumed)
- * Info: proposed name BHV_FHandleMessage (T1); class BHV slot13; TU bhvstk
- * Notes: agent qualifier: (FHandleBhvMessage)
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" int BHV_FHandleMessage(BHVV *pbhv, int a, int b)
+// 0x1EF0B8: BHV vtable slot 13 (HandleMessage), base version: returns 0 (message not consumed).
+extern "C" int HandleBhvMessage(BHVV *behavior, int messageId, int payload)
 {
     return 0;
 }
 
-/** @sly2-annot addr=0x1EF0C0
- * Purpose: BHV vt14 base: on the record passed (JT/STEPPLAYER +0x150 input/joy record): +0x1C=0,
- *   +0x18=pstep->+0x1A8
- * Info: proposed name UpdateBhvInput (T2); class BHV slot14; TU bhvstk
- * Notes: agent qualifier:
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" void func_001EF0C0(BHVV *pbhv, BHVTIMER *p)
+// 0x1EF0C0: BHV vtable slot 14, base version: resets a steering record (clears its +0x1C word and sets its +0x18
+// heading to the owner step's target heading, STEP::radTarget at +0x1A8) (inferred).
+extern "C" void ResetBhvSteering(BHVV *behavior, BHVTIMER *steering)
 {
-    p->x1C = 0;
-    p->g18 = pbhv->powner->g1A8;
+    steering->unknown1C = 0;
+    steering->heading = behavior->owner->targetHeading;
 }
 
-/** @sly2-annot addr=0x1EF0D8
- * Purpose: Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot
- * Info: proposed name PopBhv (T1); TU bhvstk
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" void PopBhv(BHVV **p)
+// 0x1EF0D8: Pops the behaviour in a slot: if non-null, calls its Close (vtable slot 9, which pops everything above
+// it), decrements the owner's stack depth and clears the slot.
+extern "C" void PopBhv(BHVV **slot)
 {
-    BHVV *po = *p;
-    if (po) {
-        BHVSTKV *px = &po->powner->bhvstk;
-        ((void (*)(void *))po->vt[9].pfn)((char *)po + po->vt[9].d);
-        DecrementBhvstk(px);
-        *p = 0;
+    BHVV *behavior = *slot;
+    if (behavior) {
+        BHVSTKV *stack = &behavior->owner->bhvstk;
+        ((void (*)(void *))behavior->vt[9].pfn)((char *)behavior + behavior->vt[9].d);
+        DecrementBhvstk(stack);
+        *slot = 0;
     }
 }
 
-/** @sly2-annot addr=0x1EF138
- * Purpose: Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV
- *   subclass
- * Info: proposed name PbhvNew (T1); TU bhvstk
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" BHVV *PbhvNew(int kind,void *memory){
- BHVV *result;
- switch(kind){
+// 0x1EF138: Placement factory: constructs the behaviour of class `cid` (0x9C..0xC6) in `memory` by clearing the
+// class's size and installing its BASIC header and vtable; some classes also initialize embedded reference fields.
+extern "C" BHVV *PbhvNew(int cid,void *memory){
+ BHVV *behavior;
+ switch(cid){
  case 0x9C:
   func_002333B4(memory,0,0xB0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D04A0;
   func_002333B4((char*)memory+0x30,0,0x70);
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0x9D:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0AB0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0x9E:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0A30;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0x9F:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D07B0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA1:
   func_002333B4(memory,0,0xC0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0930;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA2:
   func_002333B4(memory,0,0xC0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0830;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA3:
   func_002333B4(memory,0,0xC0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D08B0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA4:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0620;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA5:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D05A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA7:
   func_002333B4(memory,0,0xF0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D06A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA9:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CF7F8;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAA:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0520;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAB:
   func_002333B4(memory,0,0xE0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFA10;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAE:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D4AF8;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAC:
   func_002333B4(memory,0,0xA0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0320;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAF:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D02A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB0:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0420;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB1:
   func_002333B4(memory,0,0x70);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D03A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xAD:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0220;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB2:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D01A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB3:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0120;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB4:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CDDC0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB5:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CDD40;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xA8:
   func_002333B4(memory,0,0xE0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC4C0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC1:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC440;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC2:
   func_002333B4(memory,0,0xA0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC3C0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC3:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC340;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC4:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC2C0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC5:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC240;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB6:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CCE90;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC6:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC1C0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB7:
   func_002333B4(memory,0,0x70);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D00A0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB8:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0020;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xB9:
   func_002333B4(memory,0,0x40);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFFA0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xBB:
   func_002333B4(memory,0,0x30);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFF20;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xBA:
   func_002333B4(memory,0,0xD0);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFE20;
   func_002562A8((REFV*)((char*)memory+0x40));
   func_002562A8((REFV*)((char*)memory+0x60));
   func_002562A8((REFV*)((char*)memory+0x80));
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xBD:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFD20;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xBE:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFCA0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xBF:
   func_002333B4(memory,0,0x50);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFC20;
   func_002562A8((REFV*)((char*)memory+0x30));
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  case 0xC0:
   func_002333B4(memory,0,0x60);
   ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFDA0;
-  result=(BHVV*)memory;break;
+  behavior=(BHVV*)memory;break;
  default:break;
  }
- return result;
+ return behavior;
 }
 
-/** @sly2-annot addr=0x1EF6F0
- * Purpose: return 0xF0: slot size for any BHV (largest subclass, BHV167 = 0xF0)
- * Info: proposed name CbBhvMax (T1); TU bhvstk
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
- * @end-sly2-annot */
-extern "C" int CbBhvMax()
+// 0x1EF6F0: Returns the slot size every behaviour must fit in: 0xF0 bytes (the largest subclass, the walk-path
+// behaviour 0xA7).
+extern "C" int GetBhvSlotSize()
 {
     return 0xF0;
 }

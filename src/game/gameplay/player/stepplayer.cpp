@@ -54,7 +54,7 @@ void func_00195A00(JTAIR *pjtair, int jtas, int n, LO *plo);
 void func_001CD098(JTHANDS *pjthands, LO *plo);
 void func_001CD2C0(JTHANDS *pjthands);
 void func_001CD308(JTHANDS *pjthands, LO *plo);
-BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int n);
+BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, int n);
 void UpdateStepplayerBootySave(STEPPLAYER *pstepplayer, int n0, int n1);
 void SetBootyState(LO *pbooty, int nState);
 void TranslateStepToPos(STEP *pstep, qword pos);
@@ -2530,7 +2530,7 @@ extern "C" void func_001431D0(STEPPLAYER *pstepplayer)
 {
     BHV *pbhv;
     if (pstepplayer->ploInteract != 0) {
-        pbhv = PbhvFindBhvstk((BHVSTK *)((char *)pstepplayer->ploInteract + 0x26C), 0xB1);
+        pbhv = FindBhvInBhvstk((BHVSTK *)((char *)pstepplayer->ploInteract + 0x26C), 0xB1);
         if (pbhv != 0 && *(STEPPLAYER **)((char *)pbhv + 0x5C) == pstepplayer) {
             *(int *)((char *)pbhv + 0x60) = 0;
         }

@@ -79,7 +79,7 @@ void UpdateStepguardPickpocket(STEPGUARD *pstepguard);
 int FAddStepguardDetectTarget(STEPGUARD *pstepguard, LO *plo, int n);
 void *func_00205458(STEPGUARD *pstepguard, int cid);
 void func_0017A8C8(void *pbhv, int n);
-BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int cid);
+BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, int cid);
 int func_0020A298(LO *plo, LO *ploOther, int n);
 int func_0020A658(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
 void func_0020A9A8(TARGETREC *ptargetrec, int n);
@@ -370,7 +370,7 @@ struct O { char pad[0x50]; int k; char pad2[8]; struct T *pt; };
 struct S { char pad[0x26C]; char x26C[4]; };
 int FIgnoreSoIntersection(struct S *p, struct Q *q);
 int FStepguardHasSgf(struct S *p, int n);
-struct O *PbhvFindBhvstk(void *p, int n);
+struct O *FindBhvInBhvstk(void *p, int n);
 int func_00134310(int a, int b);
 /** @sly2-annot addr=0x206380
  * Purpose: STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177
@@ -386,7 +386,7 @@ int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
         if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
             r = func_00134310(r, 1);
     } else if (FStepguardHasSgf(p, 0x17)) {
-        struct O *o = PbhvFindBhvstk(p->x26C, 0xB1);
+        struct O *o = FindBhvInBhvstk(p->x26C, 0xB1);
         if (q->pEC == o->pt->pEC) {
             switch (o->k) {
             case 0:
@@ -3456,7 +3456,7 @@ extern "C" void func_0020A100(STEPGUARD *pstepguard, int n, qword qw)
     BHVARG *pbhvSub;
     pstepguard->nUnkF68 = n;
     pstepguard->qwUnkF70 = qw;
-    pbhv = (BHV156 *)PbhvFindBhvstk(&pstepguard->bhvstk, 0x9C);
+    pbhv = (BHV156 *)FindBhvInBhvstk(&pstepguard->bhvstk, 0x9C);
     if (pbhv != 0) {
         nCur = pstepguard->nUnkF68;
         if ((nCur != 0) && (pbhv->nMode == 0x10)) {
@@ -3643,7 +3643,7 @@ struct O { char pad[0x30]; int n30; };
 struct L { int k; int rest[27]; };
 struct S { char pad[0x26C]; char x26C[0x2DC - 0x26C]; int a2DC[3]; int n2E8; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct O *PbhvFindBhvstk(void *p, int n);
+struct O *FindBhvInBhvstk(void *p, int n);
 void SetBhvguardMode(struct O *po, struct L *pl);
 /** @sly2-annot addr=0x20A540
  * Purpose: Set +0x2E8; restart BHV156 when it is in sub-state 1
@@ -3657,7 +3657,7 @@ void func_0020A540(struct S *p, int n)
         struct O *po;
         p->n2E8 = n;
         func_002333B4(p->a2DC, 0, 0xC);
-        po = PbhvFindBhvstk(p->x26C, 0x9C);
+        po = FindBhvInBhvstk(p->x26C, 0x9C);
         if (po) {
             int k = po->n30;
             if (k == 1) {
@@ -4423,7 +4423,7 @@ struct S { char pad[0x2C0]; unsigned long m; };
 int JthsCurrentStepguard(struct S *p) { if (p->m & GrfFromSgf(7)) return 2; if (p->m & (GrfFromSgf(5) | GrfFromSgf(6))) return 1; return 0; }
 } } // namespace M_JthsCurrentStepguard
 
-// 0x20B438 func_0020B438
+// 0x20B438 IncrementStepguardBusy
 /** @sly2-annot addr=0x20B438
  * Purpose: ++ +0xFFC; first makes it busy (SetLoBusyk 1)
  * Info: proposed name IncrementStepguardBusy (T2); TU stepguard
@@ -4433,7 +4433,7 @@ int JthsCurrentStepguard(struct S *p) { if (p->m & GrfFromSgf(7)) return 2; if (
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 /* Busy count up; the first marks the guard busy. */
-extern "C" int func_0020B438(STEPGUARD *pstepguard)
+extern "C" int IncrementStepguardBusy(STEPGUARD *pstepguard)
 {
     int c;
     if (pstepguard->cBusy == 0) {
@@ -4444,7 +4444,7 @@ extern "C" int func_0020B438(STEPGUARD *pstepguard)
     return c;
 }
 
-// 0x20B478 func_0020B478
+// 0x20B478 DecrementStepguardBusy
 /** @sly2-annot addr=0x20B478
  * Purpose: -- +0xFFC; at 0 SetLoBusyk 0
  * Info: proposed name DecrementStepguardBusy (T2); TU stepguard
@@ -4453,7 +4453,7 @@ extern "C" int func_0020B438(STEPGUARD *pstepguard)
  *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_0020B478(STEPGUARD *pstepguard)
+extern "C" void DecrementStepguardBusy(STEPGUARD *pstepguard)
 {
     int c;
     c = pstepguard->cBusy - 1;

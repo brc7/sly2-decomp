@@ -21,9 +21,9 @@ struct BHV : public BASIC
     virtual void VSlot9() __asm__("CloseBhv");   /* slot 9: not yet identified */
     virtual void VSlot10() __asm__("UpdateBhv");   /* slot 10: not yet identified */
     virtual void VSlot11() __asm__("UpdateBhvMotion");   /* slot 11: not yet identified */
-    virtual void VSlot12() __asm__("func_001EEFA0");   /* slot 12: not yet identified */
-    virtual void VSlot13() __asm__("BHV_FHandleMessage");   /* slot 13: not yet identified */
-    virtual void VSlot14() __asm__("func_001EF0C0");   /* slot 14: not yet identified */
+    virtual void VSlot12() __asm__("GetBhvGroundProbeFlags");   /* slot 12: not yet identified */
+    virtual void VSlot13() __asm__("HandleBhvMessage");   /* slot 13: not yet identified */
+    virtual void VSlot14() __asm__("ResetBhvSteering");   /* slot 14: not yet identified */
 };
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

@@ -89,7 +89,7 @@ void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
 void CloseBhv(NBHV *p);
 void UpdateBhv(NBHV *p);
-int FBhvBusyAbove(NBHV *p);
+int IsBhvBusyAbove(NBHV *p);
 void AddStepguardSgf(NEELAV *p, int n);
 void RemoveStepguardSgf(NEELAV *p, int n);
 void func_001BA828(NBHV *p, int n);
@@ -367,7 +367,7 @@ extern "C" void func_001BA608(NBHV *p)
     int s;
     UpdateBhv(p);
     for (;;) {
-        if (FBhvBusyAbove(p))
+        if (IsBhvBusyAbove(p))
             break;
         s = p->state;
         switch (s) {

@@ -106,10 +106,10 @@ void InitBhv(BHV *pbhv);
 void StartBhv(BHV *pbhv);
 void CloseBhv(BHV *pbhv);
 void UpdateBhv(BHV *pbhv);
-int BHV_FHandleMessage(BHV *pbhv, int msgid, void *pv);
+int HandleBhvMessage(BHV *pbhv, int msgid, void *pv);
 void SetBhvBusy(BHV *pbhv);
 void ClearBhvBusy(BHV *pbhv);
-int FBhvBusyAbove(BHV *pbhv);
+int IsBhvBusyAbove(BHV *pbhv);
 void AddStepguardSgf(STEPGUARD *pstepguard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *pstepguard, int sgf);
 void SetStepguardTarget(STEPGUARD *pstepguard, LO *plo);
@@ -452,7 +452,7 @@ struct U; struct T; struct S;
 struct U { char pad[0x10]; int n10; };
 struct T { int n0; int b; struct U *p8; };
 struct S { char pad[0x40]; struct T *p40; };
-int func_001EEFA0(struct S *p);
+int GetBhvGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x174EA0
  * Purpose: BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes
  *   0/3/4 else 1), else base
@@ -468,7 +468,7 @@ int BHVANIM_GrfGroundProbe(struct S *p) {
     if (p->p40->n0 == 2) {
         switch (p->p40->p8->n10) { case 0: case 3: case 4: return 7; default: return 1; }
     }
-    return func_001EEFA0(p);
+    return GetBhvGroundProbeFlags(p);
 }
 } } // namespace M_BHVANIM_GrfGroundProbe
 
@@ -862,7 +862,7 @@ namespace M_UpdateBhvattack { extern "C" {
 struct S;
 struct S { char pad[0x18]; void *p18; char pad2[0x18]; int n34; char pad3[8]; int n40; };
 void UpdateBhv(struct S *p);
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 int FBhvanimDone(void *p);
 void SetBhvattackState(struct S *p, int n);
 /** @sly2-annot addr=0x175600
@@ -878,7 +878,7 @@ void UpdateBhvattack(struct S *p) {
     int s;
     UpdateBhv(p);
     do {
-        if (FBhvBusyAbove(p)) return;
+        if (IsBhvBusyAbove(p)) return;
         s = p->n34;
         switch (s) {
         case 0:
@@ -914,7 +914,7 @@ extern "C" int BHVATTACK_FHandleMessage(BHVATTACKV *pbhv, int msgid, MSGLO *pmsg
             }
         }
     }
-    return BHV_FHandleMessage(pbhv, msgid, pmsg);
+    return HandleBhvMessage(pbhv, msgid, pmsg);
 }
 
 // 0x175748 FBhvattackDone
@@ -1437,7 +1437,7 @@ extern CLOCK D_002DDED0;
 extern float D_002BE614;
 
 void UpdateBhv(C*);
-int FBhvBusyAbove(C*);
+int IsBhvBusyAbove(C*);
 int func_00209098(P*);
 int FBhvcombatLostTarget(C*);
 int FBhvcombatChooseAttack(C*);
@@ -1523,7 +1523,7 @@ void UpdateBhvcombat(C*p){
   switch(old){
   case 0:case 3:{
    float distance;void*region;qword current;P*actor;int mode;
-   if(FBhvBusyAbove(p))break;
+   if(IsBhvBusyAbove(p))break;
    if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
    if(FBhvcombatLostTarget(p)){SetBhvcombatState(p,4);break;}
    if(FBhvcombatChooseAttack(p)){SetBhvcombatState(p,1);break;}
@@ -1550,17 +1550,17 @@ void UpdateBhvcombat(C*p){
   }
   case 1:
    if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
-   if(!FBhvBusyAbove(p)&&FBhvattackDone(p->sub))SetBhvcombatState(p,0);
+   if(!IsBhvBusyAbove(p)&&FBhvattackDone(p->sub))SetBhvcombatState(p,0);
    break;
   case 2:
    if(func_00209098(p->actor)){SetBhvcombatState(p,5);break;}
-   if(!FBhvBusyAbove(p)&&FBhvshootDone(p->sub))SetBhvcombatState(p,0);
+   if(!IsBhvBusyAbove(p)&&FBhvshootDone(p->sub))SetBhvcombatState(p,0);
    break;
   case 4:
-   if(!FBhvBusyAbove(p)&&FBhvanimDone(p->sub))SetBhvcombatState(p,-1);
+   if(!IsBhvBusyAbove(p)&&FBhvanimDone(p->sub))SetBhvcombatState(p,-1);
    break;
   case 5:
-   if(!FBhvBusyAbove(p)&&!func_00209098(p->actor))SetBhvcombatState(p,3);
+   if(!IsBhvBusyAbove(p)&&!func_00209098(p->actor))SetBhvcombatState(p,3);
    break;
   }
  }while(old!=p->state);
@@ -1896,7 +1896,7 @@ unsigned long GrfFromSgf(int);
 int func_0020A378(OBJECT*,OBJECT*,unsigned long);
 int func_0020A298(OBJECT*,OBJECT*,unsigned long);
 void*PanimbindBest(OBJECT*,unsigned long);
-int BHV_FHandleMessage(S*,int,MSG*);
+int HandleBhvMessage(S*,int,MSG*);
 }
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
 static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
@@ -2048,7 +2048,7 @@ finish:
  if(D_002F7900&&selected->data.kind==0x20000)func_001B9D28(D_002F7900,func_001A62E8(p->actor));
  return 1;
  }
- return BHV_FHandleMessage(p,event,msg);
+ return HandleBhvMessage(p,event,msg);
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -2136,7 +2136,7 @@ extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_003DD490[];
  void UpdateBhv(C*);
- int FBhvBusyAbove(C*);
+ int IsBhvBusyAbove(C*);
  int FBhvguardHasTargetList(C*);
  int FBhvguardEscortActive(C*);
  int FBhvguardModeSame(const STATE*,const STATE*);
@@ -2204,7 +2204,7 @@ typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
  * @end-sly2-annot */
 extern "C" void UpdateBhvguard(C*p){
  UpdateBhv(p);
- while(!FBhvBusyAbove(p)){
+ while(!IsBhvBusyAbove(p)){
   STATE previous=p->state;
   STATE*current=&p->state;
   switch(p->state.kind){
@@ -3997,7 +3997,7 @@ extern struct CLOCK D_002DDED0;
 struct S { char pad[0x10]; void *p10; int pad2; void *p18; char pad3[0x14]; float f30; float f34; int n38; char pad4[4]; int n40; };
 void UpdateBhv(struct S *p);
 int func_00209098(void *p);
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 void SetBhvpatrolState(struct S *p, int n);
 int func_00171458(void *p);
 /** @sly2-annot addr=0x179BA0
@@ -4013,7 +4013,7 @@ void UpdateBhvpatrol(struct S *p) {
     int f, s;
     UpdateBhv(p);
     f = func_00209098(p->p10);
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         s = p->n38;
         switch (s) {
         case 1:
@@ -5370,7 +5370,7 @@ extern "C" void UpdateBhvshoot(BHVSTATE *pbhv)
 {
     int nState;
     UpdateBhv(pbhv);
-    while (FBhvBusyAbove(pbhv) == 0) {
+    while (IsBhvBusyAbove(pbhv) == 0) {
         nState = pbhv->nState;
         if ((nState == 0) && (FBhvanimDone((BHVANIMV *)pbhv->pbhvNext) != 0)) {
             SetBhvshootState(pbhv, -1);
@@ -5389,7 +5389,7 @@ struct U { char pad[0x40]; void *p40; };
 struct T { char pad[0xF60]; int nF60; };
 struct S { char pad[0x10]; struct T *pt; int pad2; struct U *p18; char pad3[0x14]; int n30; };
 int func_00209518(void *p);
-int BHV_FHandleMessage(struct S *p, int msg, struct M *pm);
+int HandleBhvMessage(struct S *p, int msg, struct M *pm);
 /** @sly2-annot addr=0x17B690
  * Purpose: BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60)
  * Info: proposed name BHVSHOOT_FHandleMessage (T1); class BHVSHOOT slot13; TU guardbhv
@@ -5407,7 +5407,7 @@ int BHVSHOOT_FHandleMessage(struct S *p, int msg, struct M *pm) {
         case 0x32: p->pt->nF60 = 0; return 1;
         }
     }
-    return BHV_FHandleMessage(p, msg, pm);
+    return HandleBhvMessage(p, msg, pm);
 }
 } } // namespace M_BHVSHOOT_FHandleMessage
 
@@ -5699,7 +5699,7 @@ struct S { char pad[0x10]; void *p10; int pad2; struct T *p18; char pad3[0x14]; 
 void UpdateBhv(struct S *p);
 int func_00209098(void *p);
 void func_0017B9C0(struct S *p);
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 void func_0017B8B0(struct S *p, int n);
 int FBhvcombatDone(struct T *p);
 /** @sly2-annot addr=0x17BD78
@@ -5714,7 +5714,7 @@ void func_0017BD78(struct S *p) {
     UpdateBhv(p);
     f = func_00209098(p->p10);
     func_0017B9C0(p);
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 0:
@@ -6054,7 +6054,7 @@ typedef union {qword q;float f[4];} U;
 struct X {qword header,v;};
 struct P {char pad10[0x10];void*p10;int pad14;void*p18;char pad1C[4];int pending;char pad24[12];void*p30;char pad34[0x40-0x34];qword v40;int state;float time;int pad58[2];qword v60;};
 void UpdateBhv(struct P*);
-int FBhvBusyAbove(struct P*);
+int IsBhvBusyAbove(struct P*);
 qword func_001A62E8(void*);
 qword ConvertAloPos(void*,void*,qword);
 int func_00209098(void*);
@@ -6101,7 +6101,7 @@ void func_0017C6D0(struct P*p){
   if(state==p->state)return;
  }
  test:
- if(!FBhvBusyAbove(p))goto top;
+ if(!IsBhvBusyAbove(p))goto top;
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -6882,7 +6882,7 @@ struct S {
     char pad4[0x80 - 0x34]; int n80; int n84; char pad5[8]; float a90[4]; float fA0; int nA4;
 };
 void UpdateBhv(struct S *p);
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 int FBhvpathAtEnd(struct T *t);
 void SetBhvgotoState(struct S *p, int n);
 int FBhvwalkpathStuck(struct T *t);
@@ -6904,7 +6904,7 @@ void UpdateBhvgoto(struct S *p) {
     int s;
     UpdateBhv(p);
     if (!(p->p10->nFE8 & 2)) return;
-    while (!FBhvBusyAbove(p)) {
+    while (!IsBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 1:
@@ -7039,7 +7039,7 @@ struct S {
     char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; char pad3[0x2C]; struct X x60; struct X x80;
     float fA0; int nA4; char pad4[0xC]; int nB4; struct Q *pB8; int nBC;
 };
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 void SetBhvgotoState(struct S *p, int n);
 void FindBhvgotoRoute(struct S *p);
 void func_002562A8(struct X *x);
@@ -7063,7 +7063,7 @@ void PlanBhvgoto(struct S *p) {
     int k;
     if (p->n30 == -1) return;
     if (!(p->p10->nFE8 & 2)) return;
-    if (FBhvBusyAbove(p)) return;
+    if (IsBhvBusyAbove(p)) return;
     SetBhvgotoState(p, 0);
     FindBhvgotoRoute(p);
     func_002562A8(&x);
@@ -7269,7 +7269,7 @@ struct T { char pad[0x40]; struct X x40; };
 struct A { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; int pad4; void *p38; float f3C; float f40; };
 void UpdateBhv(struct S *p);
-int FBhvBusyAbove(struct S *p);
+int IsBhvBusyAbove(struct S *p);
 int FBhvanimDone(void *p);
 int func_00209098(void *p);
 void func_0017E278(struct S *p, int n);
@@ -7298,7 +7298,7 @@ static __inline__ float Dist(qword a, qword b) {
 void func_0017DE50(struct S *p) {
     int s;
     UpdateBhv(p);
-    while (s = p->n30, !FBhvBusyAbove(p)) {
+    while (s = p->n30, !IsBhvBusyAbove(p)) {
         switch (p->n30) {
         case 0:
             if (FBhvanimDone(p->p18)) func_0017E278(p, 1);

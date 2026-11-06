@@ -125,7 +125,7 @@ void InitBhv(BHVRT *p);
 void StartBhv(BHVRT *p);
 void CloseBhv(BHVRT *p);
 void UpdateBhv(BHVRT *p);
-int FBhvBusyAbove(BHVRT *p);
+int IsBhvBusyAbove(BHVRT *p);
 void PopBhv(void *pbhvstk);
 void func_001FEE90(void *p);
 void func_001FEEA0(void *p);
@@ -310,7 +310,7 @@ extern "C" void func_0014A2A0(BHVRT *p)
     UpdateBhv(p);
     func_0014A4D0(p);
     for (;;) {
-        if (FBhvBusyAbove(p))
+        if (IsBhvBusyAbove(p))
             break;
         s = p->state;
         switch (s) {
