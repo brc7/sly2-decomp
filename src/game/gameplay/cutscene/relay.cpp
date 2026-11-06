@@ -369,7 +369,7 @@ struct CID100V : public SO
       undefined4 unk_0x170[16];
 };
 
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs);
+void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 
 struct JSGV : public BASIC
 {
@@ -4071,10 +4071,10 @@ void NextJsgCommand(JSGV *pjsg)
                 SetJtAnimState(pjt, 3);
                 break;
             case 4:
-                SetJtJts(pjt, (JTS)0xD, (JTBS)-1);
+                SetJtState(pjt, (JTS)0xD, (JTBS)-1);
                 break;
             case 8:
-                SetJtJts(pjt, (JTS)9, (JTBS)-1);
+                SetJtState(pjt, (JTS)9, (JTBS)-1);
                 break;
             }
         }

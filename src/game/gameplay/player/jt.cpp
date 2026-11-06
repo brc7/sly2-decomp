@@ -1,5 +1,5 @@
 // jt.cpp -- Sly (JT : STEPPLAYER, jt.h): init/load, messages, lean, the XMG rebuild, standing and ground states,
-// the per-frame update, the JT state machine (SetJtJts), player states, gadgets and pockets.
+// the per-frame update, the JT state machine (SetJtState), player states, gadgets and pockets.
 // TU 0x188488..0x18E540 (51 functions, address order).
 // Entry points: InitJt/LoadJtFromBrx/PostJtLoad, UpdateJt (per frame), SetJtState (the state switch),
 // ChooseJtGroundState, HandleJtMessage, UseJtGadget and the STEPPLAYER virtual overrides.
@@ -56,7 +56,7 @@ void SubscribeLoObject(LO *plo, LO *ploSubscriber);
 void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, int n);
 void FaceStepToward(STEP *pstep, LO *plo);
 }
-void SetJtJtcs(JT *pjt, int jtcs);
+void SetJtCaneState(JT *pjt, int jtcs);
 
 struct SUBGLOBX
 {
@@ -319,7 +319,7 @@ struct CID19 : public TARGET, public GRABSPOT
       undefined4 unk_0x13c;
 };
 
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs);
+void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 
 int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
 
@@ -933,7 +933,7 @@ static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
 
 /** @sly2-annot addr=0x188F20
  * Purpose: JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for
- *   x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...)
+ *   x18E0/x1030 -> SetJtState or 0x18E540; 9, ...)
  * Info: proposed name HandleJtMessage (T1); class JT slot5; TU jt
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
@@ -2240,7 +2240,7 @@ static inline qword QwRotateVecAt(MATRIX3 *matrix, qword *pqwVec)
 }
 extern "C" void ChooseJtGroundState(JT *pjt) __asm__("ChooseJtGroundState");
 /** @sly2-annot addr=0x18A8C8
- * Purpose: Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor
+ * Purpose: Each frame pick the grounded state (stand/run/... via SetJtState) from input and floor
  * Info: proposed name ChooseJtGroundState (T1); TU jt
  * Notes: runtime2: run(1) with grfbtn 0x8 / walk(12) / fight stance(5) choices observed
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
@@ -2294,15 +2294,15 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     UpdateJtAirInput(&jt->jtair);
                     if (jt->nUnk1d30)
                     {
-                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
                     if (!jt->FCanUseGadget(2))
                         break;
                     if (jt->pctl->GrfConsumePressed(0x80, 0.0f))
-                        SetJtJts(jt, JTS_Unk0D, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk0D, JTBS_Nil);
                     else if (jt->pctl->GrfConsumePressed(0x10, 0.0f))
-                        SetJtJts(jt, JTS_Unk0E, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
                     UpdateJtGrabInput(&jt->jtgrab);
@@ -2325,7 +2325,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Gait2:
                     if (jt->nUnk1d30)
                     {
-                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
                     if (jt->jtas == 8 || jt->jtas == 9)
@@ -2342,7 +2342,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     {
                         if (FFightStanceInRange(jt, 0))
                         {
-                            SetJtJts(jt, JTS_Unk05, JTBS_4);
+                            SetJtState(jt, JTS_Unk05, JTBS_4);
                             break;
                         }
                     }
@@ -2356,7 +2356,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     {
                         if (jt->pctl->GrfConsumePressed(0x20, 0.15f))
                         {
-                            SetJtJts(jt, JTS_Pickpocket, JTBS_Nil);
+                            SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
                             break;
                         }
                     }
@@ -2370,25 +2370,25 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (jt->jts == 0 ? sLeft > 0.1f : sLeft > 0.0f)
                         {
                             if (jt->pctl->grfbtn & 8)
-                                SetJtJts(jt, JTS_Run, JTBS_Nil);
+                                SetJtState(jt, JTS_Run, JTBS_Nil);
                             else if (jt->nUnk10e4 == 3)
-                                SetJtJts(jt, JTS_Unk0A, JTBS_Nil);
+                                SetJtState(jt, JTS_Unk0A, JTBS_Nil);
                             else
-                                SetJtJts(jt, JTS_Gait2, JTBS_Nil);
+                                SetJtState(jt, JTS_Gait2, JTBS_Nil);
                         }
                         else
-                            SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                            SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk18:
                     if (jt->nUnk1d30)
                     {
-                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
                     if (!(0.0f < GetHeroMp(jt)))
                     {
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
                     if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
@@ -2398,7 +2398,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (!(jt->pctl->grfbtn & GrfMatchingSlots(jt, 0x19)))
                     {
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
                     if (jt->jtbs == JTBS_13)
@@ -2406,25 +2406,25 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         qword velocity = jt->GetVelocity();
                         int fStill = GXOfQw(QwDot(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
                         if (fStill)
-                            SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                            SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk05:
                     if (jt->nUnk1d30)
                     {
-                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
+                        SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
                     if ((uint)(jt->jtbs - 6) < 4)
                         break;
                     if (jt->pctl->grfbtn & 8)
                     {
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
                     if (!FFightStanceInRange(jt, 1))
                     {
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
                     if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
@@ -2444,9 +2444,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         break;
                     }
                     if (0.0f < jt->pctl->sLeft)
-                        SetJtJts(jt, JTS_Unk05, JTBS_5);
+                        SetJtState(jt, JTS_Unk05, JTBS_5);
                     else
-                        SetJtJts(jt, JTS_Unk05, JTBS_4);
+                        SetJtState(jt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
                     if (D_002DDED0.t - jt->tJts > 0.25f)
@@ -2466,14 +2466,14 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (0.7f < jt->pxpFloor->normal.z)
                         {
                             if (D_002DDED0.t - jt->tJts > 0.4f)
-                                SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                                SetJtState(jt, JTS_Stand, JTBS_Nil);
                         }
                     }
                     break;
                 case JTS_Unk0E:
                     if (FAsegaStopped(jt->pasegaUnk1030))
                     {
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
                     if (jt->pxpFloor)
@@ -2492,7 +2492,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     break;
                 case JTS_Pounce:
                     if (!jt->pasegaUnk1030 || FAsegaStopped(jt->pasegaUnk1030))
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_Unk13:
                 {
@@ -2503,12 +2503,12 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (!FIsSmaRetracted(jt->psmaUnk1034))
                             break;
                     }
-                    SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                    SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 }
                 case JTS_Unk11:
                     if (!jt->nUnk1d30 || D_002DDED0.t - jt->tJts > D_002BF360)
-                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
+                        SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
                     if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
@@ -3029,7 +3029,7 @@ static __inline__ qword VMulX(qword a, qword s) { qword r; __asm__("vmulx.xyzw %
 
 /** @sly2-annot addr=0x18BCE0
  * Purpose: JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand,
- *   feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last
+ *   feet, rope/curve checks (SetJtState 0x16/3/8), UpdateJtLean last
  * Info: proposed name UpdateJt (T1); class JT slot16; TU jt
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
@@ -3237,7 +3237,7 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
-// 0x0018C250 SetJtJts
+// 0x0018C250 SetJtState
 extern "C" { extern GAME D_002DEB30; }
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -3416,10 +3416,10 @@ static inline qword QwRotateVecV(qword vec, MATRIX3 *matrix)
 void ChooseJtRushTarget(JT *pjt) __asm__("ChooseJtRushTarget__FP2JT");
 void ChooseJtSmashTarget(JT *pjt) __asm__("ChooseJtSmashTarget__FP2JT");
 void SetJtChannelMask(JT *pjt, uint grf) __asm__("EnableJtLeanActs");
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
+void SetJtState(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
 /** @sly2-annot addr=0x18C250
  * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
- * Info: proposed name SetJtJts (T1); TU jt
+ * Info: proposed name SetJtState (T1); TU jt
  * Notes: names_v2 C proposed UpdateCplook__FP6CPLOOKP6CPDEFIP3JOYf (0.200) | runtime2: jts values
  *   0/1/2/5/7/8/11/12 and runtime3 jts 4 observed
  * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); static naming pass; sources:
@@ -3429,7 +3429,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS")
  * @end-sly2-annot */
 // Sets Sly's state (jts, x18C8) and sub-state (jtbs, x18D0): exit and enter logic for every state (clips, physics
 // flags, components). The central state switch of the player.
-void SetJtJts(JT *jt, JTS jts, JTBS jtbs)
+void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 {
     ASEG *aseg = 0;
     uint grf = 0;
@@ -4044,14 +4044,14 @@ int JtVirtual106(struct S *jt)
 void JT::VUnk90()
 {
     JT *jt = (JT *)this;
-    SetJtJtcs(jt, -1);
+    SetJtCaneState(jt, -1);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtPlayerState { extern "C" {
 void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
 /** @sly2-annot addr=0x18D568
- * Purpose: JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8)
+ * Purpose: JT vt88: map generic player state 0..8 -> SetJtState(0,2,7,4,0x12,0x13,0x14,0x17,8)
  * Info: proposed name SetJtPlayerState (T1); class JT slot88; TU jt
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
@@ -4332,7 +4332,7 @@ extern void StartStepplayerGadget(void *p, int n);
 
 /** @sly2-annot addr=0x18DA48
  * Purpose: JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66),
- *   states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records
+ *   states via SetJtState (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records
  * Info: proposed name UseJtGadget (T1); class JT slot100; TU jt
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
