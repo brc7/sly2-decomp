@@ -296,22 +296,22 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 void SetBhvWalkToGoal(struct P *behavior, qword v)
 {
     behavior->v = v;
-    if (behavior->child) {
-        struct A *pa = behavior->pa;
-        struct B *pb = pa->pb;
-        struct D *pd = pa->pc ? pa->pc->pd : 0;
-        struct E *pe = pd ? pd->pe : 0;
-        qword r = func_001A62E8(pa);
-        if (!pe || behavior->f30) {
-            pb->k = 2;
-            pb->pq[0] = r;
-            pb->pq[1] = behavior->v;
-            MeasureShape(pb);
-        } else {
-            func_001C02D0(pe, r, behavior->v, pb);
-        }
-        SetBhvpathShape(behavior->child, pb, 0);
+    if (!behavior->child)
+        return;
+    struct A *pa = behavior->pa;
+    struct B *pb = pa->pb;
+    struct D *pd = pa->pc ? pa->pc->pd : 0;
+    struct E *pe = pd ? pd->pe : 0;
+    qword r = func_001A62E8(pa);
+    if (!pe || behavior->f30) {
+        pb->k = 2;
+        pb->pq[0] = r;
+        pb->pq[1] = behavior->v;
+        MeasureShape(pb);
+    } else {
+        func_001C02D0(pe, r, behavior->v, pb);
     }
+    SetBhvpathShape(behavior->child, pb, 0);
 }
 } } // namespace M_func_00144F48
 
@@ -994,15 +994,15 @@ extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
     nStatePrev = behavior->state;
-    if (state != nStatePrev) {
-        if (nStatePrev == 2) {
-            ClearBhvBusy(behavior);
-        }
-        behavior->state = state;
-        behavior->stateTime = D_002DDED0.t;
-        if (state == 2) {
-            SetBhvBusy(behavior);
-        }
+    if (state == nStatePrev)
+        return;
+    if (nStatePrev == 2) {
+        ClearBhvBusy(behavior);
+    }
+    behavior->state = state;
+    behavior->stateTime = D_002DDED0.t;
+    if (state == 2) {
+        SetBhvBusy(behavior);
     }
 }
 
@@ -1182,15 +1182,15 @@ extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
     nStatePrev = behavior->state;
-    if (state != nStatePrev) {
-        if (nStatePrev == 2) {
-            ClearBhvBusy(behavior);
-        }
-        behavior->state = state;
-        behavior->stateTime = D_002DDED0.t;
-        if (state == 2) {
-            SetBhvBusy(behavior);
-        }
+    if (state == nStatePrev)
+        return;
+    if (nStatePrev == 2) {
+        ClearBhvBusy(behavior);
+    }
+    behavior->state = state;
+    behavior->stateTime = D_002DDED0.t;
+    if (state == 2) {
+        SetBhvBusy(behavior);
     }
 }
 
