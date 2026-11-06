@@ -20,8 +20,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* The game state block at D_002DDF40 (a menu/script check of ReadJoy), and the event timer at D_002DEB30. */
-struct GSTATE { char pad[0x30C]; int x30c; int x310; void *x314; char pad318[0x3A0 - 0x318]; int x3a0; };
+/* g_cm (D_002DDF40, the camera manager; docs/engine/camera.md section 2) as ReadJoy reads it: the policy-stack depth and
+   its first entry {priority, policy}, and the embedded default follow policy (CMPART1); and the event timer at D_002DEB30. */
+struct CMV { char pad[0x30C]; int policyCount; int firstPolicyPriority; void *firstPolicy; char pad318[0x3A0 - 0x318]; int followPolicy; };
 struct SNDV { float t; };
 
 extern CLOCK D_002DDED0;
@@ -31,7 +32,7 @@ extern JOY D_002DFC00;     /* g_joy (declared after the two words: .bss is emitt
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 unsigned short D_002BE970[12] = {0x2000, 0x8000, 0x1000, 0x4000, 0x10, 0x20, 0x40, 0x80, 0x4, 0x8, 0x1, 0x2};   /* pad button bits (d-pad, then the shape buttons, then L/R), named by no code (joy's .data) */
-extern GSTATE D_002DDF40;
+extern CMV D_002DDF40;
 extern SNDV D_002DEB30;
 extern char D_003DD490[];
 extern "C" {
@@ -423,7 +424,7 @@ extern "C" int ReadJoy(JOY *joy)
     int result = 1;
     unsigned int prevButtons;
     unsigned int buttons;
-    float x, y, x2, y2;
+    float prevLeftX, prevLeftY, prevRightX, prevRightY;
 
     func_002333B4(padData, 0, 0x40);
     if (scePadRead(joy->nPort, joy->nSlot, padData) > 0) {
@@ -437,10 +438,10 @@ extern "C" int ReadJoy(JOY *joy)
         joy->term = padData[1];
         if (joy->joyk == 4)
             CopyAb(joy->mpbtnpb, &padData[8], 0xC);
-        x = joy->dxLeft;
-        y = joy->dyLeft;
-        x2 = joy->dxRight;
-        y2 = joy->dyRight;
+        prevLeftX = joy->dxLeft;
+        prevLeftY = joy->dyLeft;
+        prevRightX = joy->dxRight;
+        prevRightY = joy->dyRight;
         if (joy->joyk >= 2) {
             GetJoyXYDeflection(joy, padData[6], padData[7], &joy->dxLeft, &joy->dyLeft, &joy->uDeflectLeft, &joy->bXLeft, &joy->bYLeft, &joy->fStickMovedLeft, joy->almDeflect);
             GetJoyXYDeflection(joy, padData[4], padData[5], &joy->dxRight, &joy->dyRight, &joy->sRight, &joy->bXRight, &joy->bYRight, &joy->fStickMovedRight, joy->almDeflect2);
@@ -453,7 +454,7 @@ extern "C" int ReadJoy(JOY *joy)
 
 
         }
-        if (D_002DDF40.x30c == 0 || D_002DDF40.x314 != &D_002DDF40.x3a0) {
+        if (D_002DDF40.policyCount == 0 || D_002DDF40.firstPolicy != &D_002DDF40.followPolicy) {   /* the d-pad steers like the left stick except under the default follow camera (inferred) */
             if (joy->grfbtn & 0xF000) {
 
                 joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
@@ -475,10 +476,10 @@ extern "C" int ReadJoy(JOY *joy)
                 joy->uDeflectLeft = 1.0f;
             }
         }
-        joy->dxdtLeft = (joy->dxLeft - x) / D_002DDED0.dtReal;
-        joy->dydtLeft = (joy->dyLeft - y) / D_002DDED0.dtReal;
-        joy->dxdtRight = (joy->dxRight - x2) / D_002DDED0.dtReal;
-        joy->dydtRight = (joy->dyRight - y2) / D_002DDED0.dtReal;
+        joy->dxdtLeft = (joy->dxLeft - prevLeftX) / D_002DDED0.dtReal;
+        joy->dydtLeft = (joy->dyLeft - prevLeftY) / D_002DDED0.dtReal;
+        joy->dxdtRight = (joy->dxRight - prevRightX) / D_002DDED0.dtReal;
+        joy->dydtRight = (joy->dyRight - prevRightY) / D_002DDED0.dtReal;
         _MatchCodes(D_002DDEC0, joy, prevButtons & 0xFFFF);
         joy->tRead = D_002DDED0.tReal;
         if (joy->grfbtn != 0 || joy->uDeflectLeft != 0.0f || joy->sRight != 0.0f) {
