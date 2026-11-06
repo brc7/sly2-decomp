@@ -24,7 +24,7 @@ struct REFNODE;
 struct CFrame;
 /* A sidebag (pool 4): count, then the GC link word (index/page bit-fields, bit 15 a GC mark). */
 struct SIDEBAG { int cref; int grfGc; };
-struct BASICV { CFrame *pframe; SIDEBAG *psidebag; REFNODE *prefnodeFirst; VTE *pvt; };
+struct BASICV { CFrame *frame; SIDEBAG *psidebag; REFNODE *prefnodeFirst; VTE *vtable; };
 struct LO : BASICV { };
 /* A subscription: the subscriber and its count. */
 struct REFNODE { LO *plo; int cref; REFNODE *pnext; };
@@ -43,7 +43,7 @@ struct CPAIR { int cref; int x4; CREFV ref; SPAIR sp; };
 
 /* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::cEventWorld). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
-struct SWCB { float t; BASICV *pbasic; CPAIR *ppair; int id; SWCB *pnext; };
+struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 
 extern "C" {
 extern CIDDESC D_002BAAE8[];
@@ -68,15 +68,15 @@ CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *ppair, CFrame *pframe);
+void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
 void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
 CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
 
-void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref);
-SWCB *ScheduleSwSpliceCallback(SW *psw, BASICV *p, CPAIR *ppair, float t);
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref);
+SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
 SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
 }
 int FIsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
@@ -114,7 +114,7 @@ extern "C" void BASIC_Slot2Default(void) {
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
 int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
-    CLASSINFO *pr = ((CLASSINFO *(*)(void *))po->pvt[6].pfn)((char *)po + po->pvt[6].d);
+    CLASSINFO *pr = ((CLASSINFO *(*)(void *))po->vtable[6].pfn)((char *)po + po->vtable[6].d);
     int x = pr->cid;
     int f = 0;
     if (x >= n) { CIDDESC *pt = &D_002BAAE8[n]; f = x < pt->cidLast; }
@@ -290,9 +290,9 @@ extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 // Returns the object's class id (from its class info, vtable slot 6).
 extern "C" int GetBasicCid(BASICV *p)
 {
-    VTE *pvt = p->pvt;
-    short d = pvt[6].d;
-    return ((CLASSINFO *(*)(void *, int))pvt[6].pfn)((char *)p + d, d)->cid;
+    VTE *vtable = p->vtable;
+    short d = vtable[6].d;
+    return ((CLASSINFO *(*)(void *, int))vtable[6].pfn)((char *)p + d, d)->cid;
 }
 
 /** @sly2-annot addr=0x132ED0
@@ -355,10 +355,10 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Evaluates a Splice event call in the object's frame and copies the result to *pref when given.
-void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref)
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
 {
     CREFV ref;
-    RefEval__FP5CPairP6CFrame(&ref, ppair, pframe);
+    RefEval__FP5CPairP6CFrame(&ref, pair, frame);
     if (pref != 0) {
         __as__4CRefRC4CRef(pref, &ref);
     }
@@ -385,7 +385,7 @@ SWCB *ScheduleSwSpliceCallback(SW *p, BASICV *a, CPAIR *pc, float t) {
     pn->pbasic = a;
     if (!a) pn->id = ++g_sw.cEventWorld;
     else pn->id = -1;
-    pn->ppair = pc;
+    pn->pair = pc;
     pn->t = t;
     pn->pnext = 0;
     pnPrev = 0;
@@ -413,7 +413,7 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
         if (pn->id == id) {
             CPAIR *pr;
             RemoveSlEntry((DLV *)&p->slEvent, pn);
-            pr = pn->ppair;
+            pr = pn->pair;
             if (--pr->cref == 0 && pr) {
                 PairPtr_Release(&pr->sp, 2);
                 Decref__4CRef(&pr->ref);
@@ -442,7 +442,7 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CREFV *z)
 {
-    if (p->pframe && PrefFindBinding__6CFrameUii(p->pframe, k, 1)) {
+    if (p->frame && PrefFindBinding__6CFrameUii(p->frame, k, 1)) {
         CREFV ref;
         SPAIR sp;
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
@@ -450,7 +450,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
         if (f)
             ScheduleSwSpliceCallback(&g_sw, p, sp.p, D_002DDED0.t);
         else
-            EvalSpliceEventCallback(p, sp.p, p->pframe, z);
+            EvalSpliceEventCallback(p, sp.p, p->frame, z);
         {
             CPAIR *pt = sp.p;
             if (pt && --pt->cref == 0) {
@@ -472,7 +472,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
  * @end-sly2-annot */
 // Sends Splice event 5 to the object (vtable slot 3, not posted). BASIC option 12; exits and warps send the same event
 // when they trigger. (inferred: the event's name is not known.)
-extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
+extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x133380
  * Purpose: vt3 HandleSpliceEvent(6) on the object
@@ -482,7 +482,7 @@ extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void 
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Sends Splice event 6 to the object (vtable slot 3, not posted). BASIC option 13. (inferred)
-extern "C" void SendSpliceEvent6(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
+extern "C" void SendSpliceEvent6(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x1333C0
  * Purpose: Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted
@@ -547,11 +547,11 @@ extern "C" void UnsubscribeLoAll(LO *p) {
 // BASIC's SendMessage (vtable slot 4): the object handles the message itself (slot 5), then every subscriber does.
 extern "C" void SendLoMessage(LO *p, int a, int b) {
     REFNODE *pn;
-    ((void (*)(void *, int, int))p->pvt[5].pfn)((char *)p + p->pvt[5].d, a, b);
+    ((void (*)(void *, int, int))p->vtable[5].pfn)((char *)p + p->vtable[5].d, a, b);
     for (pn = p->prefnodeFirst; pn; ) {
         LO *po = pn->plo;
         pn = pn->pnext;
-        ((void (*)(void *, int, int))po->pvt[5].pfn)((char *)po + po->pvt[5].d, a, b);
+        ((void (*)(void *, int, int))po->vtable[5].pfn)((char *)po + po->vtable[5].d, a, b);
     }
 }
 

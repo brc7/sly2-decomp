@@ -73,18 +73,18 @@ extern const char D_002A5160[] = "%d%%", D_002A5168[] = "%01d:%02d";
 extern "C" {
 CRef RefGetGlobalSaveVar(void *pkey, void *psvset);
 void InitLo(EPMENU *plo);
-void PostWidgetLoad(EPMENU *pwidget);
-void UpdateWidget(EPMENU *pwidget);
-void SetWidgetRequest(EPMENU *pwidget, int n);
-void SetWidgetState(EPMENU *pwidget, int n);
-void PlayWidgetAnim(EPMENU *pwidget, int n);
-int FWidgetAnimPlaying(EPMENU *pwidget, int n);
+void PostWidgetLoad(EPMENU *widget);
+void UpdateWidget(EPMENU *widget);
+void SetWidgetRequest(EPMENU *widget, int n);
+void SetWidgetState(EPMENU *widget, int n);
+void PlayWidgetAnim(EPMENU *widget, int n);
+int FWidgetAnimPlaying(EPMENU *widget, int n);
 int FScreenShown(void *pscreen);
 int DySelectionJoy(void *pjoy);
 int DxSelectionJoy(void *pjoy);
 int GrfHandleJoyBtn(void *pjoy, int grf);
 void CMpeg_QueueMovie(void *pmpeg, int n);
-void WipeToWorldWarp(SWV *psw, int a, int b, int c, int d, int e);
+void WipeToWorldWarp(SWV *world, int a, int b, int c, int d, int e);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetExitExits(void *pexit, int n);
@@ -100,8 +100,8 @@ void SetEpisodeMenuMode(EPMENU *p, int state, int sub);
 int GetEpisodeMenuItemCount(EPMENU *p);
 void SetEpisodeMenuHighlight(EPMENU *p, int f);
 }
-void *PloFindSwObject(struct SW *psw, int grffso, int oid, struct LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
-char *PchzFindSwLangstr(struct SW *psw, int n);
+void *PloFindSwObject(struct SW *world, int grffso, int oid, struct LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
+char *PchzFindSwLangstr(struct SW *world, int n);
 void StartJoySelection(struct JOY *pjoy);
 
 static inline float GFromP(void *pkey)
@@ -488,12 +488,12 @@ extern "C" void SetEpisodeMenuHighlight(EPMENU *p, int f)
 // Text callback: "<n>%" for the selected episode (95% scale, +5 when its bonus flag is set).
 extern "C" void FormatEpisodePercent(char *pch)
 {
-    SWV *psw = &D_003DD490;
+    SWV *world = &D_003DD490;
     void *pkey;
-    if (psw->pepmenu && (pkey = psw->apkeyN[psw->pepmenu->iep]) != 0) {
+    if (world->pepmenu && (pkey = world->apkeyN[world->pepmenu->iep]) != 0) {
         int n = NFromP(pkey);
         n = n * 95 / 100;
-        if (FPowerupAcquired(D_002BE2F8[psw->pepmenu->iep]))
+        if (FPowerupAcquired(D_002BE2F8[world->pepmenu->iep]))
             n += 5;
         sprintf(pch, D_002A5160, n);
     }
@@ -508,9 +508,9 @@ extern "C" void FormatEpisodePercent(char *pch)
 // Text callback: the selected episode's play time as h:mm.
 extern "C" void FormatEpisodePlayTime(char *pch)
 {
-    SWV *psw = &D_003DD490;
+    SWV *world = &D_003DD490;
     void *pkey;
-    if (psw->pepmenu && (pkey = psw->apkeyG[psw->pepmenu->iep]) != 0) {
+    if (world->pepmenu && (pkey = world->apkeyG[world->pepmenu->iep]) != 0) {
         float g;
         int h, m;
         g = GFromP(pkey);

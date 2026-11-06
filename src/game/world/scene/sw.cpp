@@ -36,8 +36,8 @@ extern int *D_003E1C44, *D_003E1C48;
 extern LEVELLIST8 *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern int D_003E1C54, D_003E1C58;
-SW *SW_ctor(SW *psw);
-void func_00258348(SWG *psw, int grfDelete);
+SW *SW_ctor(SW *world);
+void func_00258348(SWG *world, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
 }
 struct SWG
@@ -62,7 +62,7 @@ O1C20 D_003E1C20;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* An SW word sw.h leaves unnamed (+0x3EA8, in the padding before slPoctl): set by SetSwUnknown3EA8. */
-#define F3EA8(psw) (*(int *)((char *)(psw) + 0x3EA8))
+#define F3EA8(world) (*(int *)((char *)(world) + 0x3EA8))
 /* A level-list entry (8 bytes) and a {key, value} table. */
 struct LEVELLIST8 { int n0; int n4; };
 struct KVE { int key; void *pv; };
@@ -73,13 +73,13 @@ extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
-void UpdateSwIllum(SW *psw);
+void UpdateSwIllum(SW *world);
 int NWorldCur();
 FILEREC *PrecWorldEntry(int nWorld);
 }
 void AddGrfusr(int grf);
 void RemoveGrfusr(int grf);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
+LO *PloFindSwObject(SW *world, int grffso, OID oid, LO *plo);
 
 namespace M_SW_ctor {
 struct DL {void *first,*last;int offset;};
@@ -656,7 +656,7 @@ extern int D_002E1E54;
 extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
 extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
-extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *psave);
+extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
 inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { RefSetGlobalSaveVar(psvp, ref, &D_003D4A60); }
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
@@ -666,7 +666,7 @@ inline void SetSaveVarInt(SVPATH *psvp, int n)
 extern "C" CRef RefSetSaveVarV(const CRef &ref, const char *pchz, ...);
 extern "C" int NWorldCur();
 extern "C" int NEpisodeBest();
-void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
+void ResolveSwSaveVars(SW *world) __asm__("ResolveSwSaveVars__FP2SW");
 /** @sly2-annot addr=0x20E3C0
  * Purpose: Look up save-variable paths the game reads (language, sound flags, job/world, per-world
  *   dt/percent_complete), store current language/job/world, raise episodeBest, notify game (event 3)
@@ -679,31 +679,31 @@ void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
  * @end-sly2-annot */
 // Looks up the save variables the game reads (language, sound flags, job and world, per-world play time and percent
 // complete), stores the current language, job and world, raises episodeBest and notifies the game (event 3).
-void ResolveSwSaveVars(SW *psw)
+void ResolveSwSaveVars(SW *world)
 {
-    psw->psvpDt = NewSaveKey("dt", 0);
-    psw->psvpWidCurrent = NewSaveKey("widCurrent", 0);
-    psw->psvpEpisodeCurrent = NewSaveKey("episodeCurrent", 0);
-    psw->psvpCcoin = NewSaveKey("loot", "ccoin", 0);
-    psw->psvpLang = NewSaveKey("flags", "lang", 0);
-    psw->psvpMixerMode = NewSaveKey("flags", "nMixerMode", 0);
-    psw->psvpMusicVolume = NewSaveKey("flags", "uMusicVolume", 0);
-    psw->psvpEffectsVolume = NewSaveKey("flags", "uEffectsVolume", 0);
-    psw->psvpUseHeadset = NewSaveKey("flags", "fUseHeadset", 0);
-    psw->psvpScreenCenterX = NewSaveKey("flags", "dxScreenCenter", 0);
-    psw->psvpScreenCenterY = NewSaveKey("flags", "dyScreenCenter", 0);
-    psw->psvpNoVibration = NewSaveKey("flags", "fNoVibration", 0);
-    psw->psvpReverseLookAround = NewSaveKey("flags", "fReverseLookAround", 0);
-    psw->psvpReverseAim = NewSaveKey("flags", "fReverseAim", 0);
-    psw->psvpAutosaveWarned = NewSaveKey("flags", "fAutosaveWarned", 0);
+    world->psvpDt = NewSaveKey("dt", 0);
+    world->psvpWidCurrent = NewSaveKey("widCurrent", 0);
+    world->psvpEpisodeCurrent = NewSaveKey("episodeCurrent", 0);
+    world->psvpCcoin = NewSaveKey("loot", "ccoin", 0);
+    world->psvpLang = NewSaveKey("flags", "lang", 0);
+    world->psvpMixerMode = NewSaveKey("flags", "nMixerMode", 0);
+    world->psvpMusicVolume = NewSaveKey("flags", "uMusicVolume", 0);
+    world->psvpEffectsVolume = NewSaveKey("flags", "uEffectsVolume", 0);
+    world->psvpUseHeadset = NewSaveKey("flags", "fUseHeadset", 0);
+    world->psvpScreenCenterX = NewSaveKey("flags", "dxScreenCenter", 0);
+    world->psvpScreenCenterY = NewSaveKey("flags", "dyScreenCenter", 0);
+    world->psvpNoVibration = NewSaveKey("flags", "fNoVibration", 0);
+    world->psvpReverseLookAround = NewSaveKey("flags", "fReverseLookAround", 0);
+    world->psvpReverseAim = NewSaveKey("flags", "fReverseAim", 0);
+    world->psvpAutosaveWarned = NewSaveKey("flags", "fAutosaveWarned", 0);
     for (int iworld = 0; iworld < 9; iworld++)
     {
-        psw->apsvpEpisodeDt[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "dt", 0);
-        psw->apsvpEpisodePercent[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
+        world->apsvpEpisodeDt[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "dt", 0);
+        world->apsvpEpisodePercent[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
     }
-    SetSaveVarInt(psw->psvpLang, D_002E1E54);
-    SetSaveVarInt(psw->psvpWidCurrent, IlevelCur());
-    SetSaveVarInt(psw->psvpEpisodeCurrent, NWorldCur());
+    SetSaveVarInt(world->psvpLang, D_002E1E54);
+    SetSaveVarInt(world->psvpWidCurrent, IlevelCur());
+    SetSaveVarInt(world->psvpEpisodeCurrent, NWorldCur());
     if (NWorldCur() > NEpisodeBest())
         RefSetSaveVarV(CRef((TAGK)0x15, NWorldCur()), "episodeBest", 0);
     BroadcastGameEvent(&D_002DEB30, 3, 0);
@@ -1007,9 +1007,9 @@ void DecrementSwHandsOff(struct S *p, int grf)
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // True while the player has no control (hands-off count > 0).
-extern "C" int IsSwHandsOff(SW *psw)
+extern "C" int IsSwHandsOff(SW *world)
 {
-    return psw->cHandsOff > 0;
+    return world->cHandsOff > 0;
 }
 
 /** @sly2-annot addr=0x20F0C0
@@ -1024,9 +1024,9 @@ extern "C" int IsSwHandsOff(SW *psw)
  *   docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
 // Disables pausing (counted; used by cutscene hands-off and the recon mode).
-extern "C" void IncrementSwNoPause(SW *psw)
+extern "C" void IncrementSwNoPause(SW *world)
 {
-    if (++psw->cNoPause == 1) {
+    if (++world->cNoPause == 1) {
         AddGrfusr(4);
     }
 }
@@ -1043,9 +1043,9 @@ extern "C" void IncrementSwNoPause(SW *psw)
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
 // Re-enables pausing (counted).
-extern "C" void DecrementSwNoPause(SW *psw)
+extern "C" void DecrementSwNoPause(SW *world)
 {
-    if (--psw->cNoPause == 0) {
+    if (--world->cNoPause == 0) {
         RemoveGrfusr(4);
     }
 }
@@ -1061,9 +1061,9 @@ SLY2_SCRAP("slt $2, $zero, $2");
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Shows the letterbox bars (counted; the first call hides the subtitles and shows the letterbox object).
-extern "C" void AcquireSwLetterbox(SW *psw)
+extern "C" void AcquireSwLetterbox(SW *world)
 {
-    if (++psw->cUnk3d80 == 1) {
+    if (++world->cUnk3d80 == 1) {
         ShowLetterbox(D_002E1E60);
     }
 }
@@ -1076,9 +1076,9 @@ extern "C" void AcquireSwLetterbox(SW *psw)
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Hides the letterbox bars when the last user releases them.
-extern "C" void ReleaseSwLetterbox(SW *psw)
+extern "C" void ReleaseSwLetterbox(SW *world)
 {
-    if (--psw->cUnk3d80 == 0) {
+    if (--world->cUnk3d80 == 0) {
         HideLetterbox(D_002E1E60);
     }
 }
@@ -1093,9 +1093,9 @@ SLY2_SCRAP("slt $2, $zero, $2");
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Locks player input (counted). (inferred)
-extern "C" void IncrementSwInputLock(SW *psw)
+extern "C" void IncrementSwInputLock(SW *world)
 {
-    psw->cUnk3d84++;
+    world->cUnk3d84++;
 }
 
 /** @sly2-annot addr=0x20F1A8
@@ -1105,9 +1105,9 @@ extern "C" void IncrementSwInputLock(SW *psw)
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Unlocks player input (counted). (inferred)
-extern "C" void DecrementSwInputLock(SW *psw)
+extern "C" void DecrementSwInputLock(SW *world)
 {
-    psw->cUnk3d84--;
+    world->cUnk3d84--;
 }
 
 /** @sly2-annot addr=0x20F1B8
@@ -1117,9 +1117,9 @@ extern "C" void DecrementSwInputLock(SW *psw)
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // True while player input is locked. (inferred)
-extern "C" int IsSwInputLocked(SW *psw)
+extern "C" int IsSwInputLocked(SW *world)
 {
-    return psw->cUnk3d84 > 0;
+    return world->cUnk3d84 > 0;
 }
 
 namespace M_UpdateSwIllum { extern "C" {
@@ -1176,10 +1176,10 @@ void UpdateSwIllum(struct S *p)
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Sets the world's illumination HSV colour and recomputes the ambient light.
-extern "C" void SetSwIllumHsv(SW *psw, qword hsv)
+extern "C" void SetSwIllumHsv(SW *world, qword hsv)
 {
-    *(qword *)&psw->hsvLight = hsv;
-    UpdateSwIllum(psw);
+    *(qword *)&world->hsvLight = hsv;
+    UpdateSwIllum(world);
 }
 
 /** @sly2-annot addr=0x20F2D8
@@ -1190,10 +1190,10 @@ extern "C" void SetSwIllumHsv(SW *psw, qword hsv)
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Sets the illumination shadow level and recomputes the ambient light.
-extern "C" void SetSwIllumShadow(SW *psw, float g)
+extern "C" void SetSwIllumShadow(SW *world, float g)
 {
-    psw->gMidtone = g;
-    UpdateSwIllum(psw);
+    world->gMidtone = g;
+    UpdateSwIllum(world);
 }
 
 /** @sly2-annot addr=0x20F2F8
@@ -1204,10 +1204,10 @@ extern "C" void SetSwIllumShadow(SW *psw, float g)
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Sets the illumination midtone (default 90) and recomputes the ambient light.
-extern "C" void SetSwIllum(SW *psw, float g)
+extern "C" void SetSwIllum(SW *world, float g)
 {
-    psw->gLightScale = g;
-    UpdateSwIllum(psw);
+    world->gLightScale = g;
+    UpdateSwIllum(world);
 }
 
 namespace M_LoadLevelTableFromBrx {
@@ -1289,7 +1289,7 @@ extern "C" { extern int *D_003E1C44; }
 extern "C" { extern int *D_003E1C48; }
 extern "C" { extern LEVELLIST *D_003E1C4C; }
 extern "C" { extern FILEREC *D_003E1C50; }
-extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__("LoadLevelTableFromBrx");
+extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream) __asm__("LoadLevelTableFromBrx");
 /** @sly2-annot addr=0x20F318
  * Purpose: Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills
  *   g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry records
@@ -1300,10 +1300,10 @@ extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__
  * @end-sly2-annot */
 // Reads the level table: per level its file record, world, episode, entry flag and level numbers (fills the level
 // list, the world and episode of each level and the world entry records).
-extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
+extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
 {
-    D_003E1C38 = pbis->U32Read();
-    D_003E1C3C = pbis->U32Read();
+    D_003E1C38 = stream->U32Read();
+    D_003E1C3C = stream->U32Read();
     D_003E1C40 = (FILEREC *)PvAllocSwLoad(D_003E1C38 * sizeof(FILEREC), 0x10);
     D_003E1C44 = (int *)PvAllocSwLoad(D_003E1C38 * sizeof(int), 0x10);
     D_003E1C48 = (int *)PvAllocSwLoad(D_003E1C38 * sizeof(int), 0x10);
@@ -1311,16 +1311,16 @@ extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
     D_003E1C50 = (FILEREC *)PvAllocSwClearLoad(9 * sizeof(FILEREC), 0x10);
     for (int ilevel = 0; ilevel < D_003E1C38; ilevel++)
     {
-        pbis->ReadFileRecord(&D_003E1C40[ilevel]);
-        D_003E1C44[ilevel] = pbis->U8Read();
-        D_003E1C48[ilevel] = pbis->U8Read();
-        if (pbis->U8Read())
+        stream->ReadFileRecord(&D_003E1C40[ilevel]);
+        D_003E1C44[ilevel] = stream->U8Read();
+        D_003E1C48[ilevel] = stream->U8Read();
+        if (stream->U8Read())
             D_003E1C50[D_003E1C44[ilevel]] = D_003E1C40[ilevel];
         LEVELLIST *plevellist = &D_003E1C4C[ilevel];
-        plevellist->c = pbis->U8Read();
+        plevellist->c = stream->U8Read();
         plevellist->a = (short *)PvAllocSwLoad(plevellist->c * sizeof(short), 0x10);
         for (int i = 0; i < plevellist->c; i++)
-            plevellist->a[i] = pbis->U16Read();
+            plevellist->a[i] = stream->U16Read();
     }
 }
 } // namespace M_LoadLevelTableFromBrx
@@ -1329,7 +1329,7 @@ namespace M_LoadSwSharedHeaderFromBrx { extern "C" {
 extern int D_003E1C30;
 extern int D_003E1C54;
 extern int D_003E1C58;
-int S32Read__18CBinaryInputStream(void *pbis);
+int S32Read__18CBinaryInputStream(void *stream);
 /** @sly2-annot addr=0x20F5D0
  * Purpose: Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced
  * Info: proposed name LoadSwSharedHeaderFromBrx (T1); TU sw
@@ -1341,10 +1341,10 @@ int S32Read__18CBinaryInputStream(void *pbis);
  * @end-sly2-annot */
 // Reads the header (size, id) of the data block shared across levels and flags a reload when the id changed or when
 // forced.
-void LoadSwSharedHeaderFromBrx(int a, void *pbis)
+void LoadSwSharedHeaderFromBrx(int a, void *stream)
 {
-    int x = S32Read__18CBinaryInputStream(pbis);
-    int y = S32Read__18CBinaryInputStream(pbis);
+    int x = S32Read__18CBinaryInputStream(stream);
+    int y = S32Read__18CBinaryInputStream(stream);
     D_003E1C30 = x;
     if (y != D_003E1C58) a = 1;
     D_003E1C54 = a;
@@ -1847,11 +1847,11 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
  * @end-sly2-annot */
 // Returns the next free 12-byte record of the world's deferred-callback array (AddLoDeferredCallback uses it).
 /* The next 12-byte record of the array at +0x39D0. */
-extern "C" void *AllocSwLoCallbackRecord(SW *psw)
+extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
-    int i = psw->cUnk39d4;
-    psw->cUnk39d4 = i + 1;
-    return (char *)psw->aUnk39d0 + i * 0xC;
+    int i = world->cUnk39d4;
+    world->cUnk39d4 = i + 1;
+    return (char *)world->aUnk39d0 + i * 0xC;
 }
 
 /** @sly2-annot addr=0x210120
@@ -1862,11 +1862,11 @@ extern "C" void *AllocSwLoCallbackRecord(SW *psw)
  * @end-sly2-annot */
 // Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
-extern "C" void *AllocSwPostLoadRecord(SW *psw)
+extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
-    int i = psw->cUnk39dc;
-    psw->cUnk39dc = i + 1;
-    return (char *)psw->aUnk39d8 + i * 0xC;
+    int i = world->cUnk39dc;
+    world->cUnk39dc = i + 1;
+    return (char *)world->aUnk39d8 + i * 0xC;
 }
 
 namespace M_func_00210140 { extern "C" {
@@ -1931,7 +1931,7 @@ void AddLoToSwUpdateList(struct G *g, struct O *o)
  * @end-sly2-annot */
 // Takes an object off the update array: restores its +0x40 word, clears the entry and counts the hole.
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
-extern "C" void RemoveLoFromSwUpdateList(SW *psw, LO *plo)
+extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
     int n = plo->grfUnk40;
     if (((n ^ 1) & 1) != 0) {
@@ -1939,7 +1939,7 @@ extern "C" void RemoveLoFromSwUpdateList(SW *psw, LO *plo)
         plo->grfUnk40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
-        psw->cloupdHole++;
+        world->cloupdHole++;
     }
 }
 
@@ -2086,7 +2086,7 @@ void HandleSwAsegEvent15(void *pv, int f, int id, void *q, void *pdef, void *ctx
 
 namespace M_func_00210538 { extern "C" {
 struct VT { char pad[0x198]; short d; short pd; void (*pf)(void *, void *); };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
 struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
 /** @sly2-annot addr=0x210538
@@ -2129,7 +2129,7 @@ void SendSwAsegMessage(void *pg, int oid, int oid1, int oid2, float g, void *ctx
         msg.g8 = g;
         msg.grf |= 0x18;
     }
-    x->pvt->pf((char *)x + x->pvt->d, &msg);
+    x->vtable->pf((char *)x + x->vtable->d, &msg);
 }
 } } // namespace M_func_00210538
 
@@ -2256,9 +2256,9 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Stores the object with oid 0x620 at SW+0x4638. (inferred: its role is not identified)
-extern "C" void BindSwObject620(SW *psw)
+extern "C" void BindSwObject620(SW *world)
 {
-    psw->ploUnk4638 = PloFindSwObject(psw, 5, (OID)0x620, 0);
+    world->ploUnk4638 = PloFindSwObject(world, 5, (OID)0x620, 0);
 }
 
 /** @sly2-annot addr=0x210978
@@ -2268,12 +2268,12 @@ extern "C" void BindSwObject620(SW *psw)
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Stores n in the world's unnamed word +0x3EA8 when n is 1; returns the world. (inferred)
-extern "C" SW *SetSwUnknown3EA8(SW *psw, int n)
+extern "C" SW *SetSwUnknown3EA8(SW *world, int n)
 {
     if (n == 1) {
-        F3EA8(psw) = n;
+        F3EA8(world) = n;
     }
-    return psw;
+    return world;
 }
 
 namespace M_func_00210990 { extern "C" {

@@ -94,12 +94,12 @@ extern "C" {
 void *PtNew__t6CGcObj1Z6CFrame(void);
 void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
-int U32Read__18CBinaryInputStream(void *pbis);
+int U32Read__18CBinaryInputStream(void *stream);
 SPLCS *func_001AE2A0(SZ *psz);
 SPLCE *func_001AE1D0(SZ *psz);
-SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *pbis);
-void CBinaryInputStream_SkipStringSw(void *pbis);
-CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i);
+SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *stream);
+void CBinaryInputStream_SkipStringSw(void *stream);
+CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i);
 void CGc_UpdateRecyclable(void *pgc);
 SPFRAME Attach__t7CRefPtr1Z6CFrameP6CFrame(void *pv);
 void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
@@ -115,11 +115,11 @@ extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
  * @end-sly2-annot */
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
-extern "C" void InitSwSpliceFrame(SW *psw)
+extern "C" void InitSwSpliceFrame(SW *world)
 {
-    psw->fUnk3a14 = 1;
-    FramePtr_Assign(psw, PtNew__t6CGcObj1Z6CFrame());
-    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)psw->pframe.m_p);
+    world->fUnk3a14 = 1;
+    FramePtr_Assign(world, PtNew__t6CGcObj1Z6CFrame());
+    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->pframe.m_p);
 }
 
 /** @sly2-annot addr=0x1FF828
@@ -129,9 +129,9 @@ extern "C" void InitSwSpliceFrame(SW *psw)
  * See: docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
 // Clears the world's Splice table pointer before a level load. (inferred)
-extern "C" void ClearSwSpliceTable(SW *psw)
+extern "C" void ClearSwSpliceTable(SW *world)
 {
-    psw->fUnk3a14 = 0;
+    world->fUnk3a14 = 0;
 }
 
 /** @sly2-annot addr=0x1FF830
@@ -142,9 +142,9 @@ extern "C" void ClearSwSpliceTable(SW *psw)
  *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.
-extern "C" void DeleteSwSplice(SW *psw)
+extern "C" void DeleteSwSplice(SW *world)
 {
-    FramePtr_Assign(psw, 0);
+    FramePtr_Assign(world, 0);
     ShutdownSplice();
 }
 
@@ -161,9 +161,9 @@ extern "C" void DeleteSwSplice(SW *psw)
  * @end-sly2-annot */
 // Reads the level's Splice section: the entry count, then each entry's frame and value (LoadSpliceEntryFromBrx), into
 // a table on the world heap.
-extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
+extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
 {
-    int c = U32Read__18CBinaryInputStream(pbis);
+    int c = U32Read__18CBinaryInputStream(stream);
     int i;
     SPLCS *psplcs;
     if (!c) return;
@@ -180,23 +180,23 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
     }
     for (i = 0; i < c; i++) {
         SPLCE *pe = &psplcs->ae[i];
-        SPPAIR sp = PpairSerializeIn__FP18CBinaryInputStream(pbis);
+        SPPAIR sp = PpairSerializeIn__FP18CBinaryInputStream(stream);
         PAIRV *q = sp.p;
         if (q) q->cref++;
         pe->ppair = sp.p;
         pe->pframe = 0;
         if (D_003E1C34) {
-            CBinaryInputStream_SkipStringSw(pbis);
-            CBinaryInputStream_SkipStringSw(pbis);
-            CBinaryInputStream_SkipStringSw(pbis);
+            CBinaryInputStream_SkipStringSw(stream);
+            CBinaryInputStream_SkipStringSw(stream);
+            CBinaryInputStream_SkipStringSw(stream);
         }
     }
     for (i = 0; i < c; i++) {
-        LoadSpliceEntryFromBrx(psw, psplcs, i);
+        LoadSpliceEntryFromBrx(world, psplcs, i);
     }
-    psw->psplcs = psplcs;
-    psplcs->psplcsNext = psw->psplcsHead;
-    psw->psplcsHead = psplcs;
+    world->psplcs = psplcs;
+    psplcs->psplcsNext = world->psplcsHead;
+    world->psplcsHead = psplcs;
     CGc_UpdateRecyclable(g_gc);
 }
 
@@ -210,10 +210,10 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
  *   docs/formats/world-file.md#4-per-world-entry-data-after-the-head
  * @end-sly2-annot */
 // Returns the Splice frame of table entry index (null for -1); objects get their frame from it at creation.
-extern "C" FRAMEV *GetSpliceFrame(SW *psw, int i)
+extern "C" FRAMEV *GetSpliceFrame(SW *world, int i)
 {
     if (i == -1) return 0;
-    return psw->psplcs->ae[i].pframe;
+    return world->psplcs->ae[i].pframe;
 }
 
 // 0x1FFA68: dead-code scrap (sly2/scrap.h)
@@ -229,7 +229,7 @@ SLY2_SCRAP("daddu $2, $0, $0");
  * @end-sly2-annot */
 // Builds one Splice table entry: a new frame under the root frame, the expression read from the stream evaluated
 // once in it.
-extern "C" CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i)
+extern "C" CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i)
 {
     CRef r;
     if (psplcs->ae[i].ppair && !psplcs->ae[i].pframe) {

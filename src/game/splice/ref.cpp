@@ -79,7 +79,7 @@ public:
    linkonce 0x257148, defined (inline) at the end of the file, after its callers, which therefore call it. */
 struct CProc : CGcObj<CProc>
 {
-    SPREL<CFrame> pframe;
+    SPREL<CFrame> frame;
     int cargMin;
     int fRest;
     SPREL<CPair> pparams;

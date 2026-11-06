@@ -48,13 +48,13 @@ struct JOBV : public LO
 struct TASKV : public LO
 {
     char pad50[0x7C - 0x50];
-    JOBV *pjob;              /* +0x7C */
+    JOBV *job;              /* +0x7C */
     char pad80[0xB8 - 0x80];
     int nNext;              /* +0xB8 */
 };
 /* A HUD widget's slot 49 (Show) through its hand-made vtable. */
 struct VTEW { short d; short pad; void (*pfn)(...); };
-struct WIDGETV { char pad0[0xC]; VTEW *pvt; };
+struct WIDGETV { char pad0[0xC]; VTEW *vtable; };
 
 extern SW D_003DD490;
 extern "C" {
@@ -74,28 +74,28 @@ int sceScfGetLanguage();
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 void func_001A4E08(void *pq);
 void ClearDifficulty(void *pdifficulty);
-void func_00212A30(WIDGETV *pwidget);
+void func_00212A30(WIDGETV *widget);
 void InitLo(LO *plo);
 void func_0011A050(DL *pdl, int ibDle);
-void EndCurrentJob(JOBV *pjob);
-void BeginJob(JOBV *pjob);
-int IsCurrentJob(JOBV *pjob);
-void EndJob(JOBV *pjob);
-int IsJobLive(JOBV *pjob);
-void ActivateJob(JOBV *pjob);
-void CompleteJob(JOBV *pjob, TASKV *ptask);
-void CompleteJob1(JOBV *pjob) __asm__("CompleteJob");   /* OnJobTaskComplete passes only the job (a1 is left as is) */
-void SetSwTaskPending(SW *psw, LO *plo);
-LO *PpoHero(SW *psw);
+void EndCurrentJob(JOBV *job);
+void BeginJob(JOBV *job);
+int IsCurrentJob(JOBV *job);
+void EndJob(JOBV *job);
+int IsJobLive(JOBV *job);
+void ActivateJob(JOBV *job);
+void CompleteJob(JOBV *job, TASKV *task);
+void CompleteJob1(JOBV *job) __asm__("CompleteJob");   /* OnJobTaskComplete passes only the job (a1 is left as is) */
+void SetSwTaskPending(SW *world, LO *plo);
+LO *PpoHero(SW *world);
 void func_00143380(LO *pstepplayer);
-void SetCurrentJob(JOBV *pjob);
-void GoToTask(TASKV *ptask);
-void SetJobCompletionPhase(JOBV *pjob, int nPhase);
-void FinishJob(JOBV *pjob, TASKV *ptask);
-void ContinueAfterJob(JOBV *pjob);
-int IsTaskComplete(TASKV *ptask);
-void EndTask(TASKV *ptask);
-int IsCurrentTask(TASKV *ptask);
+void SetCurrentJob(JOBV *job);
+void GoToTask(TASKV *task);
+void SetJobCompletionPhase(JOBV *job, int nPhase);
+void FinishJob(JOBV *job, TASKV *task);
+void ContinueAfterJob(JOBV *job);
+int IsTaskComplete(TASKV *task);
+void EndTask(TASKV *task);
+int IsCurrentTask(TASKV *task);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
@@ -371,13 +371,13 @@ extern "C" void SetCollectibleCount(void *pv, int n)
  * @end-sly2-annot */
 // Restarts the HUD widget of ahudstack[1]: shows it (slot 49) and restarts its timer.
 /* Restarts the HUD widget of ahudstack[1]: Show(-1) (slot 49) and its timer. */
-extern "C" void RestartHudWidget1(SW *psw)
+extern "C" void RestartHudWidget1(SW *world)
 {
-    WIDGETV *pwidget = (WIDGETV *)psw->ahudstack[1].pwidget;
-    if (pwidget != 0) {
-        VTEW *pvt = pwidget->pvt;
-        pvt[49].pfn((char *)pwidget + pvt[49].d, -1);
-        func_00212A30(pwidget);
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[1].pwidget;
+    if (widget != 0) {
+        VTEW *vtable = widget->vtable;
+        vtable[49].pfn((char *)widget + vtable[49].d, -1);
+        func_00212A30(widget);
     }
 }
 
@@ -390,13 +390,13 @@ extern "C" void RestartHudWidget1(SW *psw)
  * @end-sly2-annot */
 // Restarts the HUD widget of ahudstack[2].
 /* Restarts the HUD widget of ahudstack[2]: Show(-1) (slot 49) and its timer. */
-extern "C" void RestartHudWidget2(SW *psw)
+extern "C" void RestartHudWidget2(SW *world)
 {
-    WIDGETV *pwidget = (WIDGETV *)psw->ahudstack[2].pwidget;
-    if (pwidget != 0) {
-        VTEW *pvt = pwidget->pvt;
-        pvt[49].pfn((char *)pwidget + pvt[49].d, -1);
-        func_00212A30(pwidget);
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[2].pwidget;
+    if (widget != 0) {
+        VTEW *vtable = widget->vtable;
+        vtable[49].pfn((char *)widget + vtable[49].d, -1);
+        func_00212A30(widget);
     }
 }
 
@@ -887,16 +887,16 @@ void TriggerStateRsmgs(void *p, void *q, int c, struct E *ae, int n)
 // JOB initialization (slot 7): LO init, difficulty-ease thresholds 480/720 s, no ids, its task list.
 void JOB::Init()
 {
-    JOBV *pjob = (JOBV *)this;
-    InitLo(pjob);
-    pjob->tEase1 = 480.0f;
-    pjob->tEase2 = 720.0f;
-    pjob->id6C = -1;
-    pjob->id70 = -1;
-    pjob->nAC = -1;
-    pjob->nB0 = -1;
-    pjob->nB4 = -1;
-    func_0011A050(&pjob->dl, 0x84);
+    JOBV *job = (JOBV *)this;
+    InitLo(job);
+    job->tEase1 = 480.0f;
+    job->tEase2 = 720.0f;
+    job->id6C = -1;
+    job->id70 = -1;
+    job->nAC = -1;
+    job->nB0 = -1;
+    job->nB4 = -1;
+    func_0011A050(&job->dl, 0x84);
 }
 
 namespace M_LoadJobFromBrx {
@@ -905,8 +905,8 @@ class CBinaryInputStream;
 struct S { char pad[0x54]; int c54; void *a58; int c5C; void *a60; char pad2[0x8C - 0x64]; int c8C; void *a90; int c94; void *a98; };
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
 extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
-extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *pbis);
-extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
+extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
+extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -933,7 +933,7 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
  * @end-sly2-annot */
 // Loads a JOB from the BRX: preallocates its visibility, rsmg and two event-id lists, loads the LO part, then shrinks
 // them to the counts read.
-extern "C" void LoadJobFromBrx(S *p, CBinaryInputStream *pbis)
+extern "C" void LoadJobFromBrx(S *p, CBinaryInputStream *stream)
 {
     STACKSCOPE fr;
     ALLOCREQ req;
@@ -941,12 +941,12 @@ extern "C" void LoadJobFromBrx(S *p, CBinaryInputStream *pbis)
     p->a98 = PvAllocReq(&req, 0x300, 0x10);
     p->a58 = PvAllocReq(&req, 0x80, 0x10);
     p->a60 = PvAllocReq(&req, 0x80, 0x10);
-    LoadLoFromBrx(p, pbis);
+    LoadLoFromBrx(p, stream);
     p->a90 = PvShrinkReq(&req, p->c8C * 16, 0x10, p->a90);
     p->a98 = PvShrinkReq(&req, p->c94 * 0x18, 0x10, p->a98);
     p->a58 = PvShrinkReq(&req, p->c54 * 4, 0x10, p->a58);
     p->a60 = PvShrinkReq(&req, p->c5C * 4, 0x10, p->a60);
-    CBinaryInputStream_SkipStringSw(pbis);
+    CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadJobFromBrx
 
@@ -1157,13 +1157,13 @@ extern "C" void JobOptionNoOp()
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Makes the job current, ending the previous current job first.
-extern "C" void SetCurrentJob(JOBV *pjob)
+extern "C" void SetCurrentJob(JOBV *job)
 {
-    if (IsCurrentJob(pjob) == 0) {
+    if (IsCurrentJob(job) == 0) {
         if (D_003DD490.ploJobCur != 0) {
             EndCurrentJob((JOBV *)D_003DD490.ploJobCur);
         }
-        BeginJob(pjob);
+        BeginJob(job);
     }
 }
 
@@ -1175,10 +1175,10 @@ extern "C" void SetCurrentJob(JOBV *pjob)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Ends the job if it is the current one.
-extern "C" void EndCurrentJob(JOBV *pjob)
+extern "C" void EndCurrentJob(JOBV *job)
 {
-    if (IsCurrentJob(pjob) != 0) {
-        EndJob(pjob);
+    if (IsCurrentJob(job) != 0) {
+        EndJob(job);
     }
 }
 
@@ -1391,17 +1391,17 @@ extern "C" void HandleJobGameEvent(O *p, int n, int m)
  * @end-sly2-annot */
 // Called when a task of the job is complete: the start task activates the job, the end task completes it, a task
 // with a pending warp becomes the pending task.
-extern "C" void OnJobTaskComplete(JOBV *pjob, TASKV *ptask)
+extern "C" void OnJobTaskComplete(JOBV *job, TASKV *task)
 {
-    if (IsJobLive(pjob) != 0) {
-        if (ptask == pjob->ptaskStart) {
-            ActivateJob(pjob);
+    if (IsJobLive(job) != 0) {
+        if (task == job->ptaskStart) {
+            ActivateJob(job);
         }
-        if (ptask == pjob->ptaskComplete) {
-            CompleteJob1(pjob);
+        if (task == job->ptaskComplete) {
+            CompleteJob1(job);
         }
-        if (ptask->nNext != -1) {
-            SetSwTaskPending(&D_003DD490, ptask);
+        if (task->nNext != -1) {
+            SetSwTaskPending(&D_003DD490, task);
         }
     }
 }
@@ -1414,16 +1414,16 @@ extern "C" void OnJobTaskComplete(JOBV *pjob, TASKV *ptask)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Activates the job unless current: event 0x1C, refreshes the current player, SetCurrentJob.
-extern "C" void ActivateJob(JOBV *pjob)
+extern "C" void ActivateJob(JOBV *job)
 {
     LO *ploHero;
-    if (IsCurrentJob(pjob) == 0) {
-        BroadcastGameEvent(D_002DEB30, 0x1C, pjob);
+    if (IsCurrentJob(job) == 0) {
+        BroadcastGameEvent(D_002DEB30, 0x1C, job);
         ploHero = PpoHero(&D_003DD490);
         if (ploHero != 0 && FIsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
             func_00143380(ploHero);
         }
-        SetCurrentJob(pjob);
+        SetCurrentJob(job);
     }
 }
 
@@ -1435,9 +1435,9 @@ extern "C" void ActivateJob(JOBV *pjob)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Broadcasts game event 0x1D (job complete) for the job.
-extern "C" void SignalJobComplete(JOBV *pjob)
+extern "C" void SignalJobComplete(JOBV *job)
 {
-    BroadcastGameEvent(D_002DEB30, 0x1D, pjob);
+    BroadcastGameEvent(D_002DEB30, 0x1D, job);
 }
 
 /** @sly2-annot addr=0x162DF8
@@ -1448,13 +1448,13 @@ extern "C" void SignalJobComplete(JOBV *pjob)
  * @end-sly2-annot */
 // Restarts the job: goes to the pending task, or else to the job's start task.
 /* Go to the pending task, else to the job's start task. */
-extern "C" void RestartJob(JOBV *pjob)
+extern "C" void RestartJob(JOBV *job)
 {
     if (D_003DD490.ploTaskPending != 0) {
         GoToTask((TASKV *)D_003DD490.ploTaskPending);
         return;
     }
-    GoToTask(pjob->ptaskStart);
+    GoToTask(job->ptaskStart);
 }
 
 namespace M_func_00162E38 { extern "C" {
@@ -1520,14 +1520,14 @@ void AbortJob(struct S *p)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Completes the job: runs the completion sequence when it has a widget, else finishes it and continues.
-extern "C" void CompleteJob(JOBV *pjob, TASKV *ptask)
+extern "C" void CompleteJob(JOBV *job, TASKV *task)
 {
-    if (pjob->fPhased != 0) {
-        SetJobCompletionPhase(pjob, 1);
+    if (job->fPhased != 0) {
+        SetJobCompletionPhase(job, 1);
         return;
     }
-    FinishJob(pjob, ptask);
-    ContinueAfterJob(pjob);
+    FinishJob(job, task);
+    ContinueAfterJob(job);
 }
 
 namespace M_FinishJob { extern "C" {
@@ -1747,9 +1747,9 @@ void SetJobCompletionPhase(struct X *p, int n)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the job is the current job.
-extern "C" int IsCurrentJob(JOBV *pjob)
+extern "C" int IsCurrentJob(JOBV *job)
 {
-    return D_003DD490.ploJobCur == pjob;
+    return D_003DD490.ploJobCur == job;
 }
 
 /** @sly2-annot addr=0x163400
@@ -1759,12 +1759,12 @@ extern "C" int IsCurrentJob(JOBV *pjob)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the job's end task is complete.
-extern "C" int IsJobComplete(JOBV *pjob)
+extern "C" int IsJobComplete(JOBV *job)
 {
-    TASKV *ptask = pjob->ptaskComplete;
+    TASKV *task = job->ptaskComplete;
     int f = 0;
-    if (ptask != 0) {
-        f = IsTaskComplete(ptask) != 0;
+    if (task != 0) {
+        f = IsTaskComplete(task) != 0;
     }
     return f;
 }
@@ -1863,8 +1863,8 @@ extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
 extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
 extern "C" void *func_001AE2A0(ALLOCREQ *preq);
 extern "C" void *func_001AE1D0(ALLOCREQ *preq);
-extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *pbis);
-extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
+extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
+extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -1901,27 +1901,27 @@ static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Loads a TASK from the BRX: visibility and rsmg arrays, then its prerequisite and successor oid lists.
-extern "C" void LoadTaskFromBrx(S *p, CBinaryInputStream *pbis)
+extern "C" void LoadTaskFromBrx(S *p, CBinaryInputStream *stream)
 {
     int i = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
     p->aAC = PvAllocReq(&req, 0x200, 0x10);
     p->aB4 = PvAllocReq(&req, 0x300, 0x10);
-    LoadLoFromBrx(p, pbis);
+    LoadLoFromBrx(p, stream);
     p->aAC = PvShrinkReq(&req, p->cA8 * 16, 0x10, p->aAC);
     p->aB4 = PvShrinkReq(&req, p->cB0 * 0x18, 0x10, p->aB4);
-    p->c94 = pbis->U8Read();
+    p->c94 = stream->U8Read();
     p->a98 = PvAllocA(&req, p->c94 * 4, 0x10);
     p->a90 = (int *)PvAllocB(&req, p->c94 * 4, 0x10);
     for (; i < p->c94; i++)
-        p->a90[i] = pbis->S32Read();
-    p->cA0 = pbis->U8Read();
+        p->a90[i] = stream->S32Read();
+    p->cA0 = stream->U8Read();
     p->aA4 = PvAllocA(&req, p->cA0 * 4, 0x10);
     p->a9C = (int *)PvAllocB(&req, p->cA0 * 4, 0x10);
     for (int j = 0; j < p->cA0; j++)
-        p->a9C[j] = pbis->S32Read();
-    CBinaryInputStream_SkipStringSw(pbis);
+        p->a9C[j] = stream->S32Read();
+    CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadTaskFromBrx
 
@@ -2217,10 +2217,10 @@ extern "C" void ActivateTask(X *px)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Ends the task if it is the current one.
-extern "C" void DeactivateTask(TASKV *ptask)
+extern "C" void DeactivateTask(TASKV *task)
 {
-    if (IsCurrentTask(ptask) != 0) {
-        EndTask(ptask);
+    if (IsCurrentTask(task) != 0) {
+        EndTask(task);
     }
 }
 
@@ -2399,9 +2399,9 @@ extern "C" void EndTask(O *p)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the task is the current task.
-extern "C" int IsCurrentTask(TASKV *ptask)
+extern "C" int IsCurrentTask(TASKV *task)
 {
-    return D_003DD490.ploTaskCur == ptask;
+    return D_003DD490.ploTaskCur == task;
 }
 
 namespace M_FTaskComplete { extern "C" {
@@ -3515,9 +3515,9 @@ extern "C" void GoToTask(X *p)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Broadcasts event 0x1E with the task's job.
-extern "C" void AnnounceTaskJob(TASKV *ptask)
+extern "C" void AnnounceTaskJob(TASKV *task)
 {
-    BroadcastGameEvent(D_002DEB30, 0x1E, ptask->pjob);
+    BroadcastGameEvent(D_002DEB30, 0x1E, task->job);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -3814,9 +3814,9 @@ extern "C" void SortTasksTopologically(int *pc, void **ppv)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Stores the current job in the world and its oid in g_game.
-extern "C" void SetSwJobCur(SW *psw, LO *plo)
+extern "C" void SetSwJobCur(SW *world, LO *plo)
 {
-    psw->ploJobCur = plo;
+    world->ploJobCur = plo;
     if (plo != 0) {
         D_002DEB40 = plo->oid;
         return;
@@ -3831,9 +3831,9 @@ extern "C" void SetSwJobCur(SW *psw, LO *plo)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Stores the current task in the world and its oid in g_game.
-extern "C" void SetSwTaskCur(SW *psw, LO *plo)
+extern "C" void SetSwTaskCur(SW *world, LO *plo)
 {
-    psw->ploTaskCur = plo;
+    world->ploTaskCur = plo;
     if (plo != 0) {
         D_002DEB44 = plo->oid;
         return;
@@ -3848,9 +3848,9 @@ extern "C" void SetSwTaskCur(SW *psw, LO *plo)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Stores the pending task in the world and its oid in g_game.
-extern "C" void SetSwTaskPending(SW *psw, LO *plo)
+extern "C" void SetSwTaskPending(SW *world, LO *plo)
 {
-    psw->ploTaskPending = plo;
+    world->ploTaskPending = plo;
     if (plo != 0) {
         D_002DEB48 = plo->oid;
         return;

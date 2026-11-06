@@ -28,7 +28,7 @@ extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the addres
 struct MCDLGG;
 struct MCDLG;
 extern "C" {
-MCDLG *CMemcardDialog_ctor(MCDLG *pdlg);
+MCDLG *CMemcardDialog_ctor(MCDLG *dialog);
 void *CMcStatus_ctor(void *pv);        /* CMcStatus constructor */
 void func_00258348(MCDLGG *pv, int grfDelete);
 }
@@ -125,7 +125,7 @@ struct MCCHILD { char pad0[0x58]; int n58; float t5C; char pad60[4]; int n64; ch
 struct MCDLG
 {
     char pad0[0xC];
-    void *pvt;              /* +0x0C */
+    void *vtable;              /* +0x0C */
     char pad10[0x20 - 0x10];
     int id;                 /* +0x20 */
     MCCHILD *pchild;        /* +0x24 */
@@ -162,33 +162,33 @@ char *strcpy(char *pchDst, const char *pchSrc);
 void SignalSema(int sema);
 void WaitSema(int sema);
 void func_002348B0(int tid, int prio);
-int McSyncResult(MEMCARD *pmemcard, int nResult, int nJob, int n);
+int McSyncResult(MEMCARD *worker, int nResult, int nJob, int n);
 int sceMcFormat(int port, int slot);
 int sceMcMkdir(int port, int slot, const char *pchz);
 int sceMcOpen(int port, int slot, const char *pchz, int mode);
 int sceMcClose(int fd);
 int sceMcDelete(int port, int slot, const char *pchz);
-void SetSaveState(SAVE *psave, int nState);
-int ResetSaveSlot(SAVE *psave, void *pslot);
-void SetMcDialogPhase(void *pdlg, int n);
-int McJobGetInfo(SAVE *psave);
-int WriteSaveSlotFile(SAVE *psave, int islot);
-void SetMcDialogState(void *pdlg, int nState);
-void HideMcDialogWidget(void *pdlg);
+void SetSaveState(SAVE *saveManager, int nState);
+int ResetSaveSlot(SAVE *saveManager, void *pslot);
+void SetMcDialogPhase(void *dialog, int n);
+int McJobGetInfo(SAVE *saveManager);
+int WriteSaveSlotFile(SAVE *saveManager, int islot);
+void SetMcDialogState(void *dialog, int nState);
+void HideMcDialogWidget(void *dialog);
 void load_file_from_disc(int n0, int n1, char *pchzFile, char *pchzCard);
 void ResetGsIfSchemaChanged(int *pn);
-MCDLG *func_001DA728(MCDLG *pdlg);   /* the widget base constructor (returns the widget) */
-int func_001DA7D0(MCDLG *pdlg);
-void func_001DA770(MCDLG *pdlg);
-void func_001DA7B0(MCDLG *pdlg);
-void func_001DA808(MCDLG *pdlg);
+MCDLG *func_001DA728(MCDLG *dialog);   /* the widget base constructor (returns the widget) */
+int func_001DA7D0(MCDLG *dialog);
+void func_001DA770(MCDLG *dialog);
+void func_001DA7B0(MCDLG *dialog);
+void func_001DA808(MCDLG *dialog);
 int GetPauseMenuTopPageId(void *pmenu);
 }
-void InitSave(SAVE *psave, int n0, int n1);
+void InitSave(SAVE *saveManager, int n0, int n1);
 int SemaCreate(int cInit, int cMax);
-int FMemcardThreadValid(MEMCARD *pmemcard);
-void SetMemcardThreadHighPrio(MEMCARD *pmemcard);
-char *PchzFindSwLangstr(SW *psw, int id);
+int FMemcardThreadValid(MEMCARD *worker);
+void SetMemcardThreadHighPrio(MEMCARD *worker);
+char *PchzFindSwLangstr(SW *world, int id);
 
 /* libc functions the per-function files declared: at file scope, so that g++ treats them as its builtins
    (declared inside a namespace they are ordinary functions: a strcpy of a constant or fabsf becomes a call). */
@@ -439,11 +439,11 @@ done:
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Initializes the memory card worker: semaphore (1, 1), no thread yet, priority 0x20.
-void InitMemcard(MEMCARD *pmemcard)
+void InitMemcard(MEMCARD *worker)
 {
-    pmemcard->sema = SemaCreate(1, 1);
-    pmemcard->tid = -1;
-    pmemcard->prio = 0x20;
+    worker->sema = SemaCreate(1, 1);
+    worker->tid = -1;
+    worker->prio = 0x20;
 }
 
 namespace M_MemcardThreadMain { extern "C" {
@@ -527,13 +527,13 @@ void CreateMemcardThread(struct S *s, struct PMF pmf)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Raises the worker thread's priority when it is running, then blocks until its job has finished.
-void SetMemcardThreadHighPrio(MEMCARD *pmemcard)
+void SetMemcardThreadHighPrio(MEMCARD *worker)
 {
-    if (FMemcardThreadValid(pmemcard) != 0) {
-        func_002348B0(pmemcard->tid, 1);
+    if (FMemcardThreadValid(worker) != 0) {
+        func_002348B0(worker->tid, 1);
     }
-    WaitSema(pmemcard->sema);
-    SignalSema(pmemcard->sema);
+    WaitSema(worker->sema);
+    SignalSema(worker->sema);
 }
 
 /** @sly2-annot addr=0x1AB088
@@ -545,9 +545,9 @@ void SetMemcardThreadHighPrio(MEMCARD *pmemcard)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // True when the worker thread exists (thread id != -1).
-int FMemcardThreadValid(MEMCARD *pmemcard)
+int FMemcardThreadValid(MEMCARD *worker)
 {
-    return ~pmemcard->tid != 0;
+    return ~worker->tid != 0;
 }
 
 namespace M_McSyncResult { extern "C" {
@@ -603,18 +603,18 @@ extern "C" void InitMemcard__FP7MEMCARD(void *);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Initializes the save manager: sceMcInit, the worker (MEMCARD) and the SAVE header.
-extern "C" void InitSave__FP4SAVEii(SAVE *psave, int a, int b)
+extern "C" void InitSave__FP4SAVEii(SAVE *saveManager, int a, int b)
 {
     sceMcInit();
-    InitMemcard__FP7MEMCARD((char *)psave + 0xFD5C);
-    psave->a = a;
-    psave->b = b;
-    psave->n8 = -1;
-    psave->nC = 0;
-    psave->g10 = psave->g14 = 0.0f;
-    psave->n18 = 0;
-    psave->n1C = 0;
-    psave->n20 = 0;
+    InitMemcard__FP7MEMCARD((char *)saveManager + 0xFD5C);
+    saveManager->a = a;
+    saveManager->b = b;
+    saveManager->n8 = -1;
+    saveManager->nC = 0;
+    saveManager->g10 = saveManager->g14 = 0.0f;
+    saveManager->n18 = 0;
+    saveManager->n1C = 0;
+    saveManager->n20 = 0;
 }
 } // namespace M_InitSave__FP4SAVEii
 
@@ -829,21 +829,21 @@ void SetSaveState(MC *p, int state)
  * @end-sly2-annot */
 // Once the worker is idle in state 5 with save variables present, re-initializes the three slots and goes to state 6.
 /* Reloads the three slots once the worker is idle (state 5 and (*(int *)&g_sw.savevars) set). */
-extern "C" void ReloadSaveSlots(SAVE *psave)
+extern "C" void ReloadSaveSlots(SAVE *saveManager)
 {
     int i;
     char *pslot;
-    if (psave->nState == 5 && (*(int *)&g_sw.savevars) != 0) {
-        pslot = psave->aslot[0];
+    if (saveManager->nState == 5 && (*(int *)&g_sw.savevars) != 0) {
+        pslot = saveManager->aslot[0];
         i = 2;
-        SetMemcardThreadHighPrio(&psave->memcard);
+        SetMemcardThreadHighPrio(&saveManager->memcard);
         do {
-            ResetSaveSlot(psave, pslot);
+            ResetSaveSlot(saveManager, pslot);
             i--;
             pslot += 0x5464;
         } while (i >= 0);
-        psave->nStateNext = 6;
-        SetSaveState(psave, 6);
+        saveManager->nStateNext = 6;
+        SetSaveState(saveManager, 6);
     }
 }
 
@@ -856,14 +856,14 @@ extern "C" void ReloadSaveSlots(SAVE *psave)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: formats the card (sceMcFormat) and sets the next save state and UI state from the result.
-extern "C" int McJobFormat(SAVE *psave)
+extern "C" int McJobFormat(SAVE *saveManager)
 {
-    int nResult = McSyncResult(&psave->memcard, sceMcFormat(psave->port, psave->slot), 0x10, 0);
+    int nResult = McSyncResult(&saveManager->memcard, sceMcFormat(saveManager->port, saveManager->slot), 0x10, 0);
     if (nResult != 0) {
-        psave->nStateNext = 2;
+        saveManager->nStateNext = 2;
         SetMcDialogPhase(&D_002E6550, 3);
     } else {
-        psave->nStateNext = 3;
+        saveManager->nStateNext = 3;
     }
     return nResult;
 }
@@ -1084,10 +1084,10 @@ void *McJobSaveSlot(struct S *s)
 // Worker job of the autosave: checks the card and rewrites the current slot; on failure shows the dialog's error
 // state (0x23) and hides the status widget.
 /* Thread job: check the card, then write the current slot. */
-extern "C" int McJobAutosave(SAVE *psave)
+extern "C" int McJobAutosave(SAVE *saveManager)
 {
-    int nResult = McJobGetInfo(psave);
-    if (nResult != 0 || (nResult = WriteSaveSlotFile(psave, psave->islotCur)) != 0) {
+    int nResult = McJobGetInfo(saveManager);
+    if (nResult != 0 || (nResult = WriteSaveSlotFile(saveManager, saveManager->islotCur)) != 0) {
         SetMcDialogPhase(&D_002E6550, 3);
         SetMcDialogState(&D_002E6550, 0x23);
         HideMcDialogWidget(&D_002E65A0);
@@ -1621,7 +1621,7 @@ int ReadSaveSlotHeaders(void *s, struct B *b)
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Resets a slot when its schema changed (ResetGsIfSchemaChanged).
-extern "C" int ResetSaveSlot(SAVE *psave, void *pslot)
+extern "C" int ResetSaveSlot(SAVE *saveManager, void *pslot)
 {
     ResetGsIfSchemaChanged(&(*(int *)&g_sw.savevars));
     return 0;
@@ -1715,9 +1715,9 @@ int McGetInfoSync(struct S *s, int *out)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // sceMcMkdir and wait for the result.
-extern "C" int McMkdir(SAVE *psave, const char *pchz)
+extern "C" int McMkdir(SAVE *saveManager, const char *pchz)
 {
-    int nResult = McSyncResult(&psave->memcard, sceMcMkdir(psave->port, psave->slot, pchz), 0xB, 0);
+    int nResult = McSyncResult(&saveManager->memcard, sceMcMkdir(saveManager->port, saveManager->slot, pchz), 0xB, 0);
     return ((nResult ^ 0x18) == 0) ? 0 : nResult;
 }
 
@@ -1729,9 +1729,9 @@ extern "C" int McMkdir(SAVE *psave, const char *pchz)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // sceMcOpen and wait for the result.
-extern "C" void McOpen(SAVE *psave, const char *pchz, int mode, int n)
+extern "C" void McOpen(SAVE *saveManager, const char *pchz, int mode, int n)
 {
-    McSyncResult(&psave->memcard, sceMcOpen(psave->port, psave->slot, pchz, mode), 2, n);
+    McSyncResult(&saveManager->memcard, sceMcOpen(saveManager->port, saveManager->slot, pchz, mode), 2, n);
 }
 
 /** @sly2-annot addr=0x1AC808
@@ -1742,9 +1742,9 @@ extern "C" void McOpen(SAVE *psave, const char *pchz, int mode, int n)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // sceMcClose and wait for the result.
-extern "C" void McClose(SAVE *psave, int fd)
+extern "C" void McClose(SAVE *saveManager, int fd)
 {
-    McSyncResult(&psave->memcard, sceMcClose(fd), 3, 0);
+    McSyncResult(&saveManager->memcard, sceMcClose(fd), 3, 0);
 }
 
 // 0x1AC848: dead-code scrap (sly2/scrap.h)
@@ -1850,9 +1850,9 @@ int McReadFile(void *s, void *a, void *b, int c)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // sceMcDelete and wait for the result.
-extern "C" int McDelete(SAVE *psave, const char *pchz)
+extern "C" int McDelete(SAVE *saveManager, const char *pchz)
 {
-    int nResult = McSyncResult(&psave->memcard, sceMcDelete(psave->port, psave->slot, pchz), 0xF, 0);
+    int nResult = McSyncResult(&saveManager->memcard, sceMcDelete(saveManager->port, saveManager->slot, pchz), 0xF, 0);
     return ((nResult ^ 0xE) == 0) ? 0 : nResult;
 }
 
@@ -1863,14 +1863,14 @@ extern "C" int McDelete(SAVE *psave, const char *pchz)
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // CMemcardDialog constructor: UI base, vtable, text id 0x52C, no state.
-extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *pdlg)
+extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
 {
-    func_001DA728(pdlg);
-    pdlg->pvt = D_002D3750;
-    pdlg->id = 0x52C;
-    pdlg->nState = -1;
-    func_001DA7D0(pdlg);
-    return pdlg;
+    func_001DA728(dialog);
+    dialog->vtable = D_002D3750;
+    dialog->id = 0x52C;
+    dialog->nState = -1;
+    func_001DA7D0(dialog);
+    return dialog;
 }
 
 /** @sly2-annot addr=0x1ACAE8
@@ -1883,14 +1883,14 @@ extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *pdlg)
 /* CMemcardDialog slot 12. */
 void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes out here */
 {
-    MCDLG *pdlg = (MCDLG *)this;
+    MCDLG *dialog = (MCDLG *)this;
     MCCHILD *pchild;
-    func_001DA770(pdlg);
-    pchild = pdlg->pchild;
+    func_001DA770(dialog);
+    pchild = dialog->pchild;
     if (pchild != 0) {
         pchild->fB0 = 1;
-        if (pdlg->nState != -1) {
-            SetMcDialogState(pdlg, pdlg->nState);
+        if (dialog->nState != -1) {
+            SetMcDialogState(dialog, dialog->nState);
         }
     }
 }
@@ -1903,9 +1903,9 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
  * @end-sly2-annot */
 // CMemcardDialog slot 13: forwards to the UI base (0x1DA7B0).
 /* CMemcardDialog slot 13. */
-extern "C" void CMemcardDialog_Slot13(MCDLG *pdlg)
+extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
 {
-    func_001DA7B0(pdlg);
+    func_001DA7B0(dialog);
 }
 
 namespace M_SetMcDialogState { extern "C" {
@@ -1959,11 +1959,11 @@ void ClearMcDialogState(struct O *p)
  * @end-sly2-annot */
 // CMemcardDialog slot 14: sets the mode, stamping the real time when it changes.
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void CMemcardDialog_SetMode(MCDLG *pdlg, int nMode)
+extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 {
-    if (nMode != pdlg->nMode) {
-        pdlg->nMode = nMode;
-        pdlg->tMode = D_002DDED0.tReal;
+    if (nMode != dialog->nMode) {
+        dialog->nMode = nMode;
+        dialog->tMode = D_002DDED0.tReal;
     }
 }
 
@@ -2859,15 +2859,15 @@ extern "C" int IsMcStatusVisible(S *p)
 // CMcStatus's per-frame update (slot 7): hides the status once it has been shown for over a second and the worker
 // is idle.
 /* CMcStatus slot 7: hide once shown for over a second and the worker is idle. */
-extern "C" void CMcStatus_Update(MCDLG *pdlg)
+extern "C" void CMcStatus_Update(MCDLG *dialog)
 {
     MCCHILD *pchild;
-    func_001DA808(pdlg);
-    pchild = pdlg->pchild;
+    func_001DA808(dialog);
+    pchild = dialog->pchild;
     if (pchild != 0) {
         if (pchild->n58 == 2 && pchild->n64 == pchild->n58 && D_002DDED0.tReal - pchild->t5C > 1.0f &&
             FMemcardThreadValid(&D_002F633C) == 0) {
-            HideMcDialogWidget(pdlg);
+            HideMcDialogWidget(dialog);
         }
     }
 }
@@ -2885,10 +2885,10 @@ extern "C" void CMcStatus_Update(MCDLG *pdlg)
 /* slot 14: set the mode (stamping the real time). */
 void CMcStatus::SetMode(int nMode)
 {
-    MCDLG *pdlg = (MCDLG *)this;
-    if (nMode != pdlg->nMode) {
-        pdlg->nMode = nMode;
-        pdlg->tMode = D_002DDED0.tReal;
+    MCDLG *dialog = (MCDLG *)this;
+    if (nMode != dialog->nMode) {
+        dialog->nMode = nMode;
+        dialog->tMode = D_002DDED0.tReal;
     }
 }
 

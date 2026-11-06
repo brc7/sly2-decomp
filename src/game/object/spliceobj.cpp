@@ -41,10 +41,10 @@ struct CSidebag
     CRef RefSetBinding(int sym, CRef *pref);
 };
 extern "C" CRef CSidebag_RefAddBinding(CSidebag *psidebag, int sym, CRef *pref);
-void EnsureBasicSidebag(BASIC *pbasic);
+void EnsureBasicSidebag(BASIC *object);
 
 /* Per-class option tables: g_mpcidarysplopt (D_00279AD0, one {count, sorted array} per CID). */
-struct SPLOPT { int opid; PVREC *ppvrec; };
+struct SPLOPT { int optionId; PVREC *record; };
 struct SPLOPTS { int csplopt; SPLOPT *asplopt; };
 extern SPLOPTS D_00279AD0[];
 
@@ -55,16 +55,16 @@ CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
 CRef *CRef_SetClq(CRef *pref, const CLQ *pclq);
 CRef *CRef_SetLm(CRef *pref, const LM *plm);
 CRef *CRef_SetSmp(CRef *pref, const SMP *psmp);
-CRef *CRef_SetBasic(CRef *pref, BASIC *pbasic);
+CRef *CRef_SetBasic(CRef *pref, BASIC *object);
 CRef *CRef_SetMethod(CRef *pref, CMethod *pmethod);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
-PVREC *FindOptionRecord(BASIC *pbasic, int opid);
+PVREC *FindOptionRecord(BASIC *object, int optionId);
 }
 /* CRef_RefCoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
 CRef RefCoerceS32(const CRef *pref) __asm__("CRef_RefCoerceS32");
 CRef RefCoerceF32(const CRef *pref) __asm__("CRef_RefCoerceF32");
-CRef RefGetPeopid(void *pv, PVREC *ppvrec) __asm__("RefGetPeopid");
-CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref) __asm__("RefSetPeopid");
+CRef RefGetPeopid(void *pv, PVREC *record) __asm__("RefGetPeopid");
+CRef RefSetPeopid(void *pv, PVREC *record, CRef *pref) __asm__("RefSetPeopid");
 CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
 
 /** @sly2-annot addr=0x1FFCF8
@@ -78,16 +78,16 @@ CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__(
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Finds the option record for option id opid in the object's class option table (binary search); null when absent.
-extern "C" PVREC *FindOptionRecord(BASIC *pbasic, int opid)
+extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
 {
-    CLASSINFO *pclassinfo = pbasic->Pclassinfo();
+    CLASSINFO *pclassinfo = object->Pclassinfo();
     SPLOPTS *psplopts = &D_00279AD0[pclassinfo->cid];
     int lo = 0, hi = psplopts->csplopt - 1;
     SPLOPT *asplopt = psplopts->asplopt;
     while (lo <= hi) {
         int mid = (lo + hi) >> 1;
-        if (asplopt[mid].opid == opid) return asplopt[mid].ppvrec;
-        if (opid < asplopt[mid].opid) hi = mid - 1;
+        if (asplopt[mid].optionId == optionId) return asplopt[mid].record;
+        if (optionId < asplopt[mid].optionId) hi = mid - 1;
         else lo = mid + 1;
     }
     return 0;
@@ -108,27 +108,27 @@ extern "C" PVREC *FindOptionRecord(BASIC *pbasic, int opid)
  * @end-sly2-annot */
 // Returns an object option as a Splice value: calls the getter method, reads the member directly or calls the
 // getter, converting by type (bool, float, vector, matrix, int, clq, lm, smp, object).
-CRef RefGetPeopid(void *pv, PVREC *ppvrec)
+CRef RefGetPeopid(void *pv, PVREC *record)
 {
     CRef ref;
-    uint grf = ppvrec->grfeopid;
+    uint grf = record->grfeopid;
     if (grf & 1)
     {
         CMethod *pmethodNew = CGcObj<CMethod>::PtNew();
         CRefPtr<CMethod> pmethod(pmethodNew);
         pmethod->m_pbasic = (BASIC *)pv;
-        pmethod->m_pfnthunk = ppvrec->pfnthunk;
-        pmethod->m_crefReq = ppvrec->crefReq;
+        pmethod->m_pfnthunk = record->pfnthunk;
+        pmethod->m_crefReq = record->crefReq;
         CRef_SetMethod(&ref, pmethod);
     }
     else if (grf & 2)
     {
         if (grf & 0x2000)
         {
-            pv = (((BASIC *)pv)->*ppvrec->pmfObj)(1);
+            pv = (((BASIC *)pv)->*record->pmfObj)(1);
         }
-        void *pf = (char *)pv + ppvrec->ib;
-        switch (ppvrec->otyp)
+        void *pf = (char *)pv + record->ib;
+        switch (record->otyp)
         {
         case 5: case 6: case 7: case 8:
         case 14: case 15: case 16: case 17: case 19: case 20: case 23:
@@ -147,11 +147,11 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
         {
             ref.Decref();
             ref.SetTag((TAGK)0x1b);
-            MATRIX4 *pmat = ref.u.pmat;
-            *(MATRIX3 *)pmat = *(MATRIX3 *)pf;
-            pmat->mat[0][3] = 0.0f;
-            pmat->mat[1][3] = 0.0f;
-            pmat->mat[2][3] = 0.0f;
+            MATRIX4 *matrix = ref.u.pmat;
+            *(MATRIX3 *)matrix = *(MATRIX3 *)pf;
+            matrix->mat[0][3] = 0.0f;
+            matrix->mat[1][3] = 0.0f;
+            matrix->mat[2][3] = 0.0f;
             break;
         }
         case 9:
@@ -166,11 +166,11 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
         case 13:
             break;
         default:
-            if (ppvrec->otyp & 0x1000)
+            if (record->otyp & 0x1000)
             {
                 ref.SetS32(*(int *)pf);
             }
-            else if (ppvrec->otyp & 0x2000)
+            else if (record->otyp & 0x2000)
             {
                 CRef_SetBasic(&ref, *(BASIC **)pf);
             }
@@ -181,64 +181,64 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
     {
         if (grf & 0x2000)
         {
-            pv = (((BASIC *)pv)->*ppvrec->pmfObj)(1);
+            pv = (((BASIC *)pv)->*record->pmfObj)(1);
         }
         BASIC *pobj = (BASIC *)pv;
-        switch (ppvrec->otyp)
+        switch (record->otyp)
         {
         case 5: case 6: case 7: case 8: case 13:
         case 14: case 15: case 16: case 17: case 19: case 20: case 23:
-            ref.SetS32((pobj->*ppvrec->pmfGetN)());
+            ref.SetS32((pobj->*record->pmfGetN)());
             break;
         case 1:
-            ref.SetF32((pobj->*ppvrec->pmfGetF)());
+            ref.SetF32((pobj->*record->pmfGetF)());
             break;
         case 0:
-            CRef_SetBool(&ref, (pobj->*ppvrec->pmfGetB)() != 0);
+            CRef_SetBool(&ref, (pobj->*record->pmfGetB)() != 0);
             break;
         case 2:
-            CRef_SetVector_VU_VECTOR(&ref, (pobj->*ppvrec->pmfGetQ)());
+            CRef_SetVector_VU_VECTOR(&ref, (pobj->*record->pmfGetQ)());
             break;
         case 4:
         {
             ref.Decref();
             ref.SetTag((TAGK)0x1b);
-            MATRIX4 *pmat = ref.u.pmat;
-            MATRIX3 *pmatGot = (pobj->*ppvrec->pmfGetM)();
-            *(MATRIX3 *)pmat = *pmatGot;
-            pmat->mat[0][3] = 0.0f;
-            pmat->mat[1][3] = 0.0f;
-            pmat->mat[2][3] = 0.0f;
+            MATRIX4 *matrix = ref.u.pmat;
+            MATRIX3 *pmatGot = (pobj->*record->pmfGetM)();
+            *(MATRIX3 *)matrix = *pmatGot;
+            matrix->mat[0][3] = 0.0f;
+            matrix->mat[1][3] = 0.0f;
+            matrix->mat[2][3] = 0.0f;
             break;
         }
         case 9:
             ref.Decref();
             ref.SetTag((TAGK)0x1c);
-            (pobj->*ppvrec->pmfGetClq)(ref.u.pclq);
+            (pobj->*record->pmfGetClq)(ref.u.pclq);
             break;
         case 10:
             ref.Decref();
             ref.SetTag((TAGK)0x1c);   /* tag 0x1C (clq) for an lm, as the game does */
-            (pobj->*ppvrec->pmfGetLm)(ref.u.plm);
+            (pobj->*record->pmfGetLm)(ref.u.plm);
             break;
         case 11:
             ref.Decref();
             ref.SetTag((TAGK)0x1e);
-            (pobj->*ppvrec->pmfGetSmp)(ref.u.psmp);
+            (pobj->*record->pmfGetSmp)(ref.u.psmp);
             break;
         default:
-            if (ppvrec->otyp & 0x8000)
+            if (record->otyp & 0x8000)
             {
-                CRef refGot = (pobj->*ppvrec->pmfGetRef)();
+                CRef refGot = (pobj->*record->pmfGetRef)();
                 ref = refGot;
             }
-            else if (ppvrec->otyp & 0x1000)
+            else if (record->otyp & 0x1000)
             {
-                ref.SetS32((pobj->*ppvrec->pmfGetN)());
+                ref.SetS32((pobj->*record->pmfGetN)());
             }
-            else if (ppvrec->otyp & 0x2000)
+            else if (record->otyp & 0x2000)
             {
-                CRef_SetBasic(&ref, (pobj->*ppvrec->pmfGetPo)());
+                CRef_SetBasic(&ref, (pobj->*record->pmfGetPo)());
             }
             break;
         }
@@ -258,29 +258,29 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Writes a Splice value into an object option (method, direct member or setter, converting by type).
-CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
+CRef RefSetPeopid(void *pv, PVREC *record, CRef *pref)
 {
     CRef ref;
     ref.Decref();
     ref.SetTag((TAGK)0x24);
-    uint grf = ppvrec->grfeopid;
+    uint grf = record->grfeopid;
     if (grf & 0x10)
     {
         if (grf & 0x2000)
         {
-            pv = (((BASIC *)pv)->*ppvrec->pmfObj)(1);
+            pv = (((BASIC *)pv)->*record->pmfObj)(1);
         }
-        void *pvTarget = (char *)pv + ppvrec->ibSet;
-        ref = RefSetPvsFromSplice(1, pref, (OTYP *)ppvrec, &pvTarget);
+        void *pvTarget = (char *)pv + record->ibSet;
+        ref = RefSetPvsFromSplice(1, pref, (OTYP *)record, &pvTarget);
     }
     else
     {
         if (grf & 0x2000)
         {
-            pv = (((BASIC *)pv)->*ppvrec->pmfObj)(1);
+            pv = (((BASIC *)pv)->*record->pmfObj)(1);
         }
         BASIC *pobj = (BASIC *)pv;
-        switch (ppvrec->otyp)
+        switch (record->otyp)
         {
         case 5: case 6: case 7: case 8: case 13:
         case 14: case 15: case 16: case 17: case 19: case 20: case 23:
@@ -296,7 +296,7 @@ CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
                 refInt = RefCoerceS32(pref);
                 n = refInt.u.n;
             }
-            (pobj->*ppvrec->pmfSetN)(n);
+            (pobj->*record->pmfSetN)(n);
             break;
         }
         case 1:
@@ -312,35 +312,35 @@ CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
                 refF = RefCoerceF32(pref);
                 g = refF.u.g;
             }
-            (pobj->*ppvrec->pmfSetF)(g);
+            (pobj->*record->pmfSetF)(g);
             break;
         }
         case 0:
-            (pobj->*ppvrec->pmfSetB)(pref->u.n);
+            (pobj->*record->pmfSetB)(pref->u.n);
             break;
         case 2:
-            (pobj->*ppvrec->pmfSetQ)(*(qword *)pref->u.pvec);
+            (pobj->*record->pmfSetQ)(*(qword *)pref->u.pvec);
             break;
         case 4:
-            (pobj->*ppvrec->pmfSetM)((MATRIX3 *)pref->u.pmat);
+            (pobj->*record->pmfSetM)((MATRIX3 *)pref->u.pmat);
             break;
         case 9:
-            (pobj->*ppvrec->pmfSetClq)(pref->u.pclq);
+            (pobj->*record->pmfSetClq)(pref->u.pclq);
             break;
         case 10:
-            (pobj->*ppvrec->pmfSetLm)(pref->u.plm);
+            (pobj->*record->pmfSetLm)(pref->u.plm);
             break;
         case 11:
-            (pobj->*ppvrec->pmfSetSmp)(pref->u.psmp);
+            (pobj->*record->pmfSetSmp)(pref->u.psmp);
             break;
         default:
-            if (ppvrec->otyp & 0x1000)
+            if (record->otyp & 0x1000)
             {
-                (pobj->*ppvrec->pmfSetN)(pref->u.n);
+                (pobj->*record->pmfSetN)(pref->u.n);
             }
-            else if (ppvrec->otyp & 0x2000)
+            else if (record->otyp & 0x2000)
             {
-                (pobj->*ppvrec->pmfSetPo)(pref->u.pbasic);
+                (pobj->*record->pmfSetPo)(pref->u.pbasic);
             }
             break;
         }
@@ -357,13 +357,13 @@ CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Splice option get: built-in options (id <= 0x4D0) through their option record, others from the object's sidebag.
-CRef RefGetOption(BASIC *pbasic, int opid)
+CRef RefGetOption(BASIC *object, int optionId)
 {
-    if (opid <= 0x4D0) {
-        return RefGetPeopid(pbasic, FindOptionRecord(pbasic, opid));
+    if (optionId <= 0x4D0) {
+        return RefGetPeopid(object, FindOptionRecord(object, optionId));
     }
     CRef ref;
-    pbasic->psidebag->FFindBinding(opid, &ref);
+    object->psidebag->FFindBinding(optionId, &ref);
     return ref;
 }
 
@@ -373,11 +373,11 @@ CRef RefGetOption(BASIC *pbasic, int opid)
  * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Splice option set: built-in options through their record, others into the sidebag binding.
-CRef RefSetOption(BASIC *pbasic, int opid, CRef *pref)
+CRef RefSetOption(BASIC *object, int optionId, CRef *pref)
 {
-    if (opid < 0x4D1)
-        return RefSetPeopid(pbasic, FindOptionRecord(pbasic, opid), pref);
-    return pbasic->psidebag->RefSetBinding(opid, pref);
+    if (optionId < 0x4D1)
+        return RefSetPeopid(object, FindOptionRecord(object, optionId), pref);
+    return object->psidebag->RefSetBinding(optionId, pref);
 }
 
 /** @sly2-annot addr=0x200CA8
@@ -386,10 +386,10 @@ CRef RefSetOption(BASIC *pbasic, int opid, CRef *pref)
  * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Adds an option value: for built-in options a call of the record's add form, else a new sidebag binding.
-CRef RefAddOption(BASIC *pbasic, int opid, CRef *pref)
+CRef RefAddOption(BASIC *object, int optionId, CRef *pref)
 {
-    EnsureBasicSidebag(pbasic);
-    return CSidebag_RefAddBinding(pbasic->psidebag, opid, pref);
+    EnsureBasicSidebag(object);
+    return CSidebag_RefAddBinding(object->psidebag, optionId, pref);
 }
 
 /** @sly2-annot addr=0x200D10
@@ -398,12 +398,12 @@ CRef RefAddOption(BASIC *pbasic, int opid, CRef *pref)
  * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Sets an option only when it has no value yet (built-in or sidebag); the EnsureLoSidebag* helpers use it.
-CRef RefEnsureOption(BASIC *pbasic, int opid, CRef *pref)
+CRef RefEnsureOption(BASIC *object, int optionId, CRef *pref)
 {
-    EnsureBasicSidebag(pbasic);
-    if (pbasic->psidebag->FFindBinding(opid, 0))
-        return pbasic->psidebag->RefSetBinding(opid, pref);
-    return CSidebag_RefAddBinding(pbasic->psidebag, opid, pref);
+    EnsureBasicSidebag(object);
+    if (object->psidebag->FFindBinding(optionId, 0))
+        return object->psidebag->RefSetBinding(optionId, pref);
+    return CSidebag_RefAddBinding(object->psidebag, optionId, pref);
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
@@ -422,11 +422,11 @@ public:
 } __attribute__((aligned(16)));
 struct CPair { int cref; int link; CRef ref; SPPAIR next; };
 extern "C" {
-void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *ppair);
-void PairPtr_Assign(SPPAIR *psp, CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *pair);
+void PairPtr_Assign(SPPAIR *psp, CPair *pair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_t7CRefPtr1Z5CPair");
 CPair *PtNew__t6CGcObj1Z5CPair(void);
-void Unlink__t6CGcObj1Z5CPair(CPair *ppair);
+void Unlink__t6CGcObj1Z5CPair(CPair *pair);
 }
 inline SPPAIR::SPPAIR(CPair *q) { Attach__t7CRefPtr1Z5CPairP5CPair(this, q); }
 inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
@@ -625,9 +625,9 @@ CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, v
         return CRef(0x24);
     }
     *pc = 0;
-    for (CPair *ppair = plist->ppairFirst; ppair; ppair = ppair->next.p) {
+    for (CPair *pair = plist->ppairFirst; pair; pair = pair->next.p) {
         CRef ref;
-        ref = RefSetArgsFromSplice(1, &ppair->ref, &otyp, &apv[*pc]);
+        ref = RefSetArgsFromSplice(1, &pair->ref, &otyp, &apv[*pc]);
         ++*pc;
     }
     return CRef(0x24);

@@ -32,9 +32,9 @@ struct CBinaryInputStream
 {
     short S16Read();
     uint U32Read();
-    void ReadMatrix4(MATRIX4 *pmat);
+    void ReadMatrix4(MATRIX4 *matrix);
 };
-struct CLoadCollector { VE *pvt; };
+struct CLoadCollector { VE *vtable; };
 struct CLoadCollectorArray : CLoadCollector { int cMax; int c; LO **aplo; };
 
 extern SW D_003DD490;
@@ -44,26 +44,26 @@ extern "C" {
 void InitLo(LO *plo);
 void CloneLo(LO *plo, LO *ploBase);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void ResortSwBusyEntry(SW *psw, LOROOT *ploroot);
+void ResortSwBusyEntry(SW *world, LOROOT *ploroot);
 qword func_0022FC48(int a, XF *pxf, qword pos);
 void VECTOR_opAssign(void *pv, qword q);
-M3 ConvertXfMat(int a, XF *pxf, MATRIX4 *pmat);
+M3 ConvertXfMat(int a, XF *pxf, MATRIX4 *matrix);
 qword GetXfVelocity(XF *pxf, int a, qword pos);
 M4 func_0022D148(XF *pxf, int a);
 void LO_SetParent(LO *plo, SO *psoParent, XF *pxfParent, int grf);
 void SetLoVisMask(LO *plo, uint grf);
 void func_0022D670(XF *pxf);
 void func_0022D698(XF *pxf);
-void LoadXfmXfFromBrx(XFM *pxfm, CBinaryInputStream *pbis);
+void LoadXfmXfFromBrx(XFM *pxfm, CBinaryInputStream *stream);
 void UpdateXfmMatWorld(XFM *pxfm);
 void InvalidateXfm(XFM *pxfm);
 }
-void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
+void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
 /* The same operator called with the result pointer passed by hand, on quadword-row matrices (XFM_ApplyTransform: with the
    operator form the temporary is copied once more and the frame is 0x40 bytes bigger). */
 extern "C" void MulMatrix4Ret(M4 *pmatResult, M4 *pmatL, M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
-void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbis, CLoadCollector *plc);
+void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollector *plc);
 
 /* 0x231100 InitXfm */
 // XFM initialization (vtable slot 7): LO init, then identity local matrix and a stale world matrix.
@@ -81,10 +81,10 @@ extern "C" void InitXfm(XFM *p)
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
 // Loads an XFM from the BRX (vtable slot 14): its parent XF reference and local matrix, then its options.
-extern "C" void LoadXfmFromBrx(XFM *pxfm, CBinaryInputStream *pbis)
+extern "C" void LoadXfmFromBrx(XFM *pxfm, CBinaryInputStream *stream)
 {
-    LoadXfmXfFromBrx(pxfm, pbis);
-    LoadOptionsFromBrx(pxfm, pbis);
+    LoadXfmXfFromBrx(pxfm, stream);
+    LoadOptionsFromBrx(pxfm, stream);
 }
 
 /** @sly2-annot addr=0x2311B0
@@ -159,9 +159,9 @@ static inline void SetM(M3 *pm, M3 m)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's RotateToMat (vtable slot 30): stores the rotation rows (w = 0) and invalidates the world matrix.
-extern "C" void RotateXfmToMat(XFM *p, MATRIX4 *pmat)
+extern "C" void RotateXfmToMat(XFM *p, MATRIX4 *matrix)
 {
-    SetM((M3 *)&p->mat, ConvertXfMat(0, p->pxfParent, pmat));
+    SetM((M3 *)&p->mat, ConvertXfMat(0, p->pxfParent, matrix));
     InvalidateXfm(p);
 }
 
@@ -273,14 +273,14 @@ extern "C" qword GetXfmAngularVelocity(XFM *p)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's local transform (vtable slot 32): copies the local matrix out and returns the parent XF (or a default).
-extern "C" XF *XFM_GetLocalTransform(XFM *p, MATRIX4 *pmat)
+extern "C" XF *XFM_GetLocalTransform(XFM *p, MATRIX4 *matrix)
 {
     XF *pxf;
-    if (pmat != 0) {
-        ((qword *)pmat)[0] = ((qword *)&p->mat)[0];
-        ((qword *)pmat)[1] = ((qword *)&p->mat)[1];
-        ((qword *)pmat)[2] = ((qword *)&p->mat)[2];
-        ((qword *)pmat)[3] = ((qword *)&p->mat)[3];
+    if (matrix != 0) {
+        ((qword *)matrix)[0] = ((qword *)&p->mat)[0];
+        ((qword *)matrix)[1] = ((qword *)&p->mat)[1];
+        ((qword *)matrix)[2] = ((qword *)&p->mat)[2];
+        ((qword *)matrix)[3] = ((qword *)&p->mat)[3];
     }
     pxf = p->pxfParent;
     if (pxf == 0) {
@@ -292,7 +292,7 @@ extern "C" XF *XFM_GetLocalTransform(XFM *p, MATRIX4 *pmat)
 /* 0x231598 XFM_ApplyTransform */
 // XFM's ApplyTransform (vtable slot 37): premultiplies the local matrix by the given matrix and invalidates the world
 // matrix.
-extern "C" void XFM_ApplyTransform(XFM *p, M4 *pmat) { M4 t; MulMatrix4Ret(&t, pmat, (M4 *)&p->mat); *(M4 *)&p->mat = t; InvalidateXfm(p); }
+extern "C" void XFM_ApplyTransform(XFM *p, M4 *matrix) { M4 t; MulMatrix4Ret(&t, matrix, (M4 *)&p->mat); *(M4 *)&p->mat = t; InvalidateXfm(p); }
 
 /** @sly2-annot addr=0x2315F0
  * Purpose: re-parent keeping world matrix (0x1A5900)
@@ -353,11 +353,11 @@ extern "C" void LoadXfmXfFromBrx(XFM *p, CBinaryInputStream *q)
  * @end-sly2-annot */
 // Loads the child objects listed under an XFM: pushes the XF context, reads the object list, pops it and applies the
 // XFM's matrix to each loaded object (slot 37).
-extern "C" void LoadXfmChildObjectsFromBrx(XFM *p, CBinaryInputStream *pbis, CLoadCollectorArray *pl)
+extern "C" void LoadXfmChildObjectsFromBrx(XFM *p, CBinaryInputStream *stream, CLoadCollectorArray *pl)
 {
     int i;
     func_0022D670(p->pxfParent);
-    LoadSwObjectsFromBrx(p->psoParent, pbis, pl);
+    LoadSwObjectsFromBrx(p->psoParent, stream, pl);
     func_0022D698(p->pxfParent);
     for (i = 0; i < pl->c; i++) {
         LO *lo = pl->aplo[i];

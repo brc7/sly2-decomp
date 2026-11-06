@@ -29,13 +29,13 @@ void FreeLoroot(LO *plo);
 void GetLoChildDl(SO *psoParent, DL **ppdl, LO **pploFirst);
 LORUN *AddLoDeferredCallback(LO *plo);
 void DeferLoRemoveCallback(LO *plo, void *pv);
-void *AllocSwLoCallbackRecord(SW *psw);
-void RemoveLoFromSwUpdateList(SW *psw, LO *plo);
-void AddLoToSwUpdateList(SW *psw, LO *plo);
-void SetLoXfFromMat(LO *plo, MATRIX4 *pmat);
+void *AllocSwLoCallbackRecord(SW *world);
+void RemoveLoFromSwUpdateList(SW *world, LO *plo);
+void AddLoToSwUpdateList(SW *world, LO *plo);
+void SetLoXfFromMat(LO *plo, MATRIX4 *matrix);
 }
 void RemoveDlEntry(DL *pdl, void *pv);
-void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
+void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
 namespace M_InitLo { extern "C" {
 struct S {
@@ -514,9 +514,9 @@ struct S *GetSoFromLo(struct S *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
 // Loads an LO from the BRX (vtable slot 14): reads its option records until the end marker.
-extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *pbis)
+extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *stream)
 {
-    LoadOptionsFromBrx(plo, pbis);
+    LoadOptionsFromBrx(plo, stream);
 }
 
 namespace M_PostLoLoad { extern "C" {
@@ -1488,10 +1488,10 @@ extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Moves the object to a world matrix: TranslateToPos (slot 29) to its position, then RotateToMat (slot 30).
-extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *pmat)
+extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
 {
-    plo->TranslateToPos(((qword *)pmat)[3]);
-    plo->RotateToMat(pmat);
+    plo->TranslateToPos(((qword *)matrix)[3]);
+    plo->RotateToMat(matrix);
 }
 
 namespace M_func_001A6C48 { extern "C" {
@@ -1577,7 +1577,7 @@ struct O {
     char pad[0xC];
     struct VTE *vt;
     struct O *pNext;
-    struct SW *psw;
+    struct SW *world;
     char pad2[0x15];
     unsigned char b2D;
 };
@@ -1594,8 +1594,8 @@ void ResortSwBusyEntry(void *, void *);
 void SetLoVisMask(struct O *p, int b)
 {
     struct O *q;
-    if ((unsigned char)p->psw->palo->f60)
-        ResortSwBusyEntry(D_003DD490, p->psw);
+    if ((unsigned char)p->world->palo->f60)
+        ResortSwBusyEntry(D_003DD490, p->world);
     {
         struct VTE *e = &p->vt[46];
         ((void (*)(void *, int))e->pfn)((char *)p + e->d, b);

@@ -30,18 +30,18 @@ typedef unsigned size_t;
 extern "C" {
 void InitXfm(XFM *pxfm);
 void SetLoBusyk(LO *plo, int busyk);
-void *ChooseProxySpare(PROXY *pproxy, int nMin);
-LO *GetProxyCurrentObject(PROXY *pproxy);
-PROXYSPARE *FindProxySpareByObject(PROXY *pproxy, LO *plo);
-LO *AcquireProxyObject(PROXY *pproxy, int fForce);
+void *ChooseProxySpare(PROXY *proxy, int nMin);
+LO *GetProxyCurrentObject(PROXY *proxy);
+PROXYSPARE *FindProxySpareByObject(PROXY *proxy, LO *plo);
+LO *AcquireProxyObject(PROXY *proxy, int fForce);
 void func_00257078(CFrame *pframe, int grf) __asm__("_$_6CFrame");   /* ~CFrame */
-PROXYSPARE *AcquireProxySpare(PROXY *pproxy, int cspareMin);
-PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *pproxy, int icopy);
+PROXYSPARE *AcquireProxySpare(PROXY *proxy, int cspareMin);
+PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *proxy, int icopy);
 short GetCopyIndexFromProxyId(int id);
 int IsLoInWorld(LO *plo);
 }
 int IsrcFromIdProxy(int id);
-int IcopyFromPspare(PROXY *pproxy, PROXYSPARE *pspare);
+int IcopyFromPspare(PROXY *proxy, PROXYSPARE *spare);
 extern SW D_003DD490;
 
 struct SUBGLOBX
@@ -54,7 +54,7 @@ struct SUBGLOBX
 
 struct PROXYSPARE
 {
-      struct PROXY *pproxy;
+      struct PROXY *proxy;
       PROXYSPARE *pspareNext;
       int fLocked;
       undefined4 unk_0xc;
@@ -190,7 +190,7 @@ public:
     char S8Read();
     short S16Read();
     int S32Read();
-    void ReadMatrix4(MATRIX4 *pmat);
+    void ReadMatrix4(MATRIX4 *matrix);
 };
 
 class CLoadCollector
@@ -352,25 +352,25 @@ void InvalidateXfmWorld(XFM *pxfm) __asm__("InvalidateXfm");
 
 
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
-void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *pbis);
+void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *stream);
 
 
-void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbis, CLoadCollector *pcollector);
+void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollector *pcollector);
 
 
 
 
 int IdProxy(int isrc, int icopy);
-int FindProxysrc(SW *psw, int idSource);
+int FindProxysrc(SW *world, int idSource);
 PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
-void AddProxyCopy(SW *psw, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("AddProxyCopy");
-int CploFindSwObjects(SW *psw, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
+void AddProxyCopy(SW *world, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("AddProxyCopy");
+int CploFindSwObjects(SW *world, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
 
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
 void InitStackImpl();
 void FreeStackImpl();
-CFrame *PframeFromIsplice(SW *psw, int isplice, LO *plo) __asm__("GetSpliceFrame");
+CFrame *PframeFromIsplice(SW *world, int isplice, LO *plo) __asm__("GetSpliceFrame");
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -387,7 +387,7 @@ inline void *PvAllocSw(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
-void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *pbis, CLoadCollector *pcollector) __asm__("LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector");
+void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream, CLoadCollector *pcollector) __asm__("LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector");
 /** @sly2-annot addr=0x1C9B08
  * Purpose: read one proxy record (source id/mode/placement) and instantiate copy or PROXY object
  * Info: proposed name LoadProxyFromBrx (T1); TU proxy
@@ -399,72 +399,72 @@ void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBi
  * @end-sly2-annot */
 // Loads one proxy record from the level stream (source id, mode, placement) and instantiates the next copy of the
 // source at it, or creates a PROXY object that acquires spare copies at run time.
-void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *pbis, CLoadCollector *pcollector)
+void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream, CLoadCollector *pcollector)
 {
-    int idSource = pbis->S32Read();
-    int mode = pbis->S8Read();
-    int ixf = pbis->S16Read();
+    int idSource = stream->S32Read();
+    int mode = stream->S8Read();
+    int ixf = stream->S16Read();
     XF *pxf = PxfFromIxf(ixf, psoParent, 0);
     MATRIX4 mat;
-    pbis->ReadMatrix4(&mat);
-    uint grfvis = pbis->U32Read();
-    int isrc = FindProxysrc(psw, idSource);
-    int idProxy = IdProxy(isrc, psw->aproxysrc[isrc].icopyNext);
+    stream->ReadMatrix4(&mat);
+    uint grfvis = stream->U32Read();
+    int isrc = FindProxysrc(world, idSource);
+    int idProxy = IdProxy(isrc, world->aproxysrc[isrc].icopyNext);
     int fOne = 0;
-    if (mode == 1 || (mode == -1 && psw->aproxysrc[isrc].fUnk60))
+    if (mode == 1 || (mode == -1 && world->aproxysrc[isrc].fUnk60))
     {
         fOne = 1;
     }
     if (fOne)
     {
-        PROXY *pproxy = (PROXY *)PloNew(cid, psoParent, oid, -1);
-        pproxy->pxfParent = pxf;
-        pproxy->mat = mat;
-        InvalidateXfmWorld(pproxy);
-        SetLoVisMask(pproxy, grfvis);
-        pproxy->psrc = &psw->aproxysrc[isrc];
-        if (pproxy->psrc->cplo > 0)
+        PROXY *proxy = (PROXY *)PloNew(cid, psoParent, oid, -1);
+        proxy->pxfParent = pxf;
+        proxy->mat = mat;
+        InvalidateXfmWorld(proxy);
+        SetLoVisMask(proxy, grfvis);
+        proxy->psrc = &world->aproxysrc[isrc];
+        if (proxy->psrc->cplo > 0)
         {
-            pproxy->sBusy = pproxy->psrc->aplo[pproxy->psrc->cplo * pproxy->psrc->ccopy - 1]->sBusy;
+            proxy->sBusy = proxy->psrc->aplo[proxy->psrc->cplo * proxy->psrc->ccopy - 1]->sBusy;
         }
-        pproxy->cinit = pbis->U8Read();
-        pproxy->ainit = (PROXYINIT *)PvAllocSwClear(pproxy->cinit * sizeof(PROXYINIT), 0x10);
-        for (int iinit = 0; iinit < pproxy->cinit; iinit++)
+        proxy->cinit = stream->U8Read();
+        proxy->ainit = (PROXYINIT *)PvAllocSwClear(proxy->cinit * sizeof(PROXYINIT), 0x10);
+        for (int iinit = 0; iinit < proxy->cinit; iinit++)
         {
-            PROXYINIT *pinit = &pproxy->ainit[iinit];
-            pinit->kind = pbis->S32Read();
-            pinit->cid = (CID)pbis->S16Read();
-            int isplice = pbis->S16Read();
+            PROXYINIT *pinit = &proxy->ainit[iinit];
+            pinit->kind = stream->S32Read();
+            pinit->cid = (CID)stream->S16Read();
+            int isplice = stream->S16Read();
             if (isplice != -1)
             {
-                pinit->pframe = PframeFromIsplice(psw, isplice, 0);
+                pinit->pframe = PframeFromIsplice(world, isplice, 0);
             }
             if (pinit->kind == 5)
             {
-                pproxy->pframe = pinit->pframe;
-                int cb = pbis->U16Read();
-                if (!FIsBasicDerivedFrom(pproxy, pinit->cid))
+                proxy->pframe = pinit->pframe;
+                int cb = stream->U16Read();
+                if (!FIsBasicDerivedFrom(proxy, pinit->cid))
                 {
-                    pbis->Skip(cb);
+                    stream->Skip(cb);
                 }
                 else
                 {
-                    LoadOptionsFromBrx(pproxy, pbis);
+                    LoadOptionsFromBrx(proxy, stream);
                 }
             }
             else
             {
-                pinit->cb = pbis->U16Read();
+                pinit->cb = stream->U16Read();
                 pinit->pvOptions = PvAllocSw(pinit->cb, 0x10);
-                pbis->Read(pinit->cb, pinit->pvOptions);
+                stream->Read(pinit->cb, pinit->pvOptions);
             }
         }
-        int cbList = pbis->S32Read();
-        pbis->S16Read();
-        pbis->Skip(cbList - 2);
+        int cbList = stream->S32Read();
+        stream->S16Read();
+        stream->Skip(cbList - 2);
         if (pcollector)
         {
-            pcollector->Add(1, (LO **)&pproxy);
+            pcollector->Add(1, (LO **)&proxy);
         }
     }
     else
@@ -474,7 +474,7 @@ void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBi
             InitStackImpl();
         }
         CLoadCollectorArray listCopy;
-        AddProxyCopy(psw, isrc, psoParent, pxf, oid, &mat, &listCopy);
+        AddProxyCopy(world, isrc, psoParent, pxf, oid, &mat, &listCopy);
         for (int iplo = 0; iplo < listCopy.m_cplo; iplo++)
         {
             LO *plo = listCopy.m_aplo[iplo];
@@ -483,13 +483,13 @@ void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBi
                 SetLoVisMask(plo, grfvis);
             }
         }
-        PXR *ppxr = FindPxr(psw->ppxrRoot, 1, &idProxy);
-        int cinit = pbis->U8Read();
+        PXR *ppxr = FindPxr(world->ppxrRoot, 1, &idProxy);
+        int cinit = stream->U8Read();
         for (int iinit = 0; iinit < cinit; iinit++)
         {
             LO *plo = 0;
-            int kind = pbis->S32Read();
-            CID cidTarget = (CID)pbis->S16Read();
+            int kind = stream->S32Read();
+            CID cidTarget = (CID)stream->S16Read();
             if ((uint)(kind - 5) < 2)
             {
                 if (listCopy.m_cplo > 0)
@@ -499,36 +499,36 @@ void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBi
             }
             else
             {
-                CploFindSwObjects(psw, (GRFFSO)0xA05, (OID)kind, 0, ppxr, 1, &plo);
+                CploFindSwObjects(world, (GRFFSO)0xA05, (OID)kind, 0, ppxr, 1, &plo);
             }
             if (plo && !FIsBasicDerivedFrom(plo, cidTarget))
             {
                 plo = 0;
             }
-            int isplice = pbis->S16Read();
+            int isplice = stream->S16Read();
             if (plo && isplice != -1)
             {
-                CFrame *pframe = PframeFromIsplice(psw, isplice, plo);
+                CFrame *pframe = PframeFromIsplice(world, isplice, plo);
                 if (plo->pframe)
                 {
                     pframe->AddParent(plo->pframe);
                 }
                 plo->pframe = pframe;
             }
-            int cb = pbis->U16Read();
+            int cb = stream->U16Read();
             if (plo)
             {
-                LoadOptionsFromBrx(plo, pbis);
+                LoadOptionsFromBrx(plo, stream);
             }
             else
             {
-                pbis->Skip(cb);
+                stream->Skip(cb);
             }
         }
         CLoadCollectorArray listNested;
-        pbis->S32Read();
+        stream->S32Read();
         PushXf(pxf);
-        LoadSwObjectsFromBrx(psoParent, pbis, &listNested);
+        LoadSwObjectsFromBrx(psoParent, stream, &listNested);
         PopXf(pxf);
         for (int iplo = 0; iplo < listNested.m_cplo; iplo++)
         {
@@ -770,9 +770,9 @@ void InitSwProxySpares(struct G *pg)
 // PROXY initialization (vtable slot 7): XFM init plus the proxy flag.
 void PROXY::Init()
 {
-    PROXY *pproxy = (PROXY *)this;
-    InitXfm(pproxy);
-    SetLoBusyk(pproxy, 0);
+    PROXY *proxy = (PROXY *)this;
+    InitXfm(proxy);
+    SetLoBusyk(proxy, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -825,9 +825,9 @@ void CloneProxy(struct S *p, struct S *q)
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Acquires a spare copy for the proxy with the normal minimum rating 2 (AcquireProxySpare). Splice-callable.
-extern "C" void AcquireProxy(PROXY *pproxy)
+extern "C" void AcquireProxy(PROXY *proxy)
 {
-    AcquireProxySpare(pproxy, 2);
+    AcquireProxySpare(proxy, 2);
 }
 
 /** @sly2-annot addr=0x1CA8E0
@@ -845,12 +845,12 @@ struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern const LONGU D_002A77C0;
 void OnLoAdd(LO *plo);
-void EnsureSwCallback(SW *psw, LO *plo, long cb, int n);
+void EnsureSwCallback(SW *world, LO *plo, long cb, int n);
 }
-extern "C" void OnProxyAdd(PROXY *pproxy)
+extern "C" void OnProxyAdd(PROXY *proxy)
 {
-    OnLoAdd(pproxy);
-    if (!pproxy->nUnkE4) EnsureSwCallback(&D_003DD490, pproxy, D_002A77C0.l, 0);
+    OnLoAdd(proxy);
+    if (!proxy->nUnkE4) EnsureSwCallback(&D_003DD490, proxy, D_002A77C0.l, 0);
 }
 
 /** @sly2-annot addr=0x1CA930
@@ -862,9 +862,9 @@ extern "C" void OnProxyAdd(PROXY *pproxy)
  * @end-sly2-annot */
 // Returns the copy index of a spare: its index in the source's spare array past the source's placed copies.
 /* The copy index of a spare: its index in the source's spare array, past the source's copies. */
-int IcopyFromPspare(PROXY *pproxy, PROXYSPARE *pspare)
+int IcopyFromPspare(PROXY *proxy, PROXYSPARE *spare)
 {
-    return (pspare - pproxy->psrc->aspare) + pproxy->psrc->icopyNext;
+    return (spare - proxy->psrc->aspare) + proxy->psrc->icopyNext;
 }
 
 /** @sly2-annot addr=0x1CA958
@@ -874,9 +874,9 @@ int IcopyFromPspare(PROXY *pproxy, PROXYSPARE *pspare)
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Returns the spare of a copy index (the inverse of IcopyFromPspare).
-extern "C" PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *pproxy, int icopy)
+extern "C" PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *proxy, int icopy)
 {
-    return &pproxy->psrc->aspare[icopy - pproxy->psrc->icopyNext];
+    return &proxy->psrc->aspare[icopy - proxy->psrc->icopyNext];
 }
 
 /** @sly2-annot addr=0x1CA978
@@ -890,15 +890,15 @@ extern "C" PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *pproxy, int icopy)
 // world, 1 when one is in the world now).
 /* How usable a spare is: 0 locked, 4 free, else the worst of its objects (3 not in the world, 2 in the world,
    1 at once if one passes IsLoInWorld). */
-extern "C" int RateProxySpare(PROXY *pproxy, PROXYSPARE *pspare)
+extern "C" int RateProxySpare(PROXY *proxy, PROXYSPARE *spare)
 {
     int n, icopy, iplo, nPlo;
-    if (pspare->fLocked) return 0;
-    if (!pspare->pproxy) return 4;
+    if (spare->fLocked) return 0;
+    if (!spare->proxy) return 4;
     n = 5;
-    icopy = IcopyFromPspare(pproxy, pspare);
-    for (iplo = 0; iplo < pproxy->psrc->cplo; iplo++) {
-        LO *plo = pproxy->psrc->aplo[icopy * pproxy->psrc->cplo + iplo];
+    icopy = IcopyFromPspare(proxy, spare);
+    for (iplo = 0; iplo < proxy->psrc->cplo; iplo++) {
+        LO *plo = proxy->psrc->aplo[icopy * proxy->psrc->cplo + iplo];
         if ((uchar)plo->fInWorld == 0) nPlo = 3;
         else if (IsLoInWorld(plo)) { n = 1; goto out; }
         else nPlo = 2;
@@ -919,15 +919,15 @@ out:
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-inline void SetMatrix4Identity(MATRIX4 *pmat)
+inline void SetMatrix4Identity(MATRIX4 *matrix)
 {
-    memset(pmat, 0, sizeof(MATRIX4));
-    pmat->mat[3][3] = 1.0f;
-    pmat->mat[2][2] = 1.0f;
-    pmat->mat[1][1] = 1.0f;
-    pmat->mat[0][0] = 1.0f;
+    memset(matrix, 0, sizeof(MATRIX4));
+    matrix->mat[3][3] = 1.0f;
+    matrix->mat[2][2] = 1.0f;
+    matrix->mat[1][1] = 1.0f;
+    matrix->mat[0][0] = 1.0f;
 }
-extern "C" MATRIX4 InvertMatrix4Rigid(MATRIX4 *pmat);
+extern "C" MATRIX4 InvertMatrix4Rigid(MATRIX4 *matrix);
 extern qword D_002A2DD0;
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void SetLoParent(LO *plo, SO *psoParent, int grf) __asm__("SetLoParent");
@@ -936,8 +936,8 @@ void SetLoParent(LO *plo, SO *psoParent, int grf) __asm__("SetLoParent");
 
 
 
-int IcopyFromPspare(PROXY *pproxy, PROXYSPARE *pspare);
-void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare) __asm__("ReleasePspare__FP5PROXYP10PROXYSPARE");
+int IcopyFromPspare(PROXY *proxy, PROXYSPARE *spare);
+void ReleasePspare(PROXY *proxy, PROXYSPARE *spare) __asm__("ReleasePspare__FP5PROXYP10PROXYSPARE");
 /** @sly2-annot addr=0x1CAA60
  * Purpose: return a copy to the spare pool and restore its objects
  * Info: proposed name ReleasePspare (T1); TU proxy
@@ -946,16 +946,16 @@ void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare) __asm__("ReleasePspare__FP
  *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Returns a copy to the spare pool: detaches it from its owner and restores its objects to the rest pose.
-void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
+void ReleasePspare(PROXY *proxy, PROXYSPARE *spare)
 {
     int iplo;
-    PROXYSPARE *psparecur = pproxy->pspareFirst;
+    PROXYSPARE *psparecur = proxy->pspareFirst;
     if (psparecur)
     {
-        if (psparecur == pspare)
+        if (psparecur == spare)
         {
-            pproxy->pspareFirst = pspare->pspareNext;
-            pspare->pspareNext = 0;
+            proxy->pspareFirst = spare->pspareNext;
+            spare->pspareNext = 0;
         }
         else
         {
@@ -967,33 +967,33 @@ void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
                 {
                     break;
                 }
-                if (psparecur == pspare)
+                if (psparecur == spare)
                 {
-                    *ppspare = pspare->pspareNext;
-                    pspare->pspareNext = 0;
+                    *ppspare = spare->pspareNext;
+                    spare->pspareNext = 0;
                     break;
                 }
             }
         }
     }
-    pspare->pproxy = 0;
-    LO *ploProxy = pproxy;
+    spare->proxy = 0;
+    LO *ploProxy = proxy;
     MATRIX4 matInverse;
-    matInverse = InvertMatrix4Rigid(&pspare->mat);
-    SetMatrix4Identity(&pspare->mat);
-    int icopy = IcopyFromPspare(pproxy, pspare);
-    for (iplo = 0; iplo < pproxy->psrc->cplo; iplo++)
+    matInverse = InvertMatrix4Rigid(&spare->mat);
+    SetMatrix4Identity(&spare->mat);
+    int icopy = IcopyFromPspare(proxy, spare);
+    for (iplo = 0; iplo < proxy->psrc->cplo; iplo++)
     {
-        LO *plo = pproxy->psrc->aplo[icopy * pproxy->psrc->cplo + iplo];
-        for (int iinit = 0; iinit < pproxy->cinit; iinit++)
+        LO *plo = proxy->psrc->aplo[icopy * proxy->psrc->cplo + iplo];
+        for (int iinit = 0; iinit < proxy->cinit; iinit++)
         {
-            PROXYINIT *pinit = &pproxy->ainit[iinit];
+            PROXYINIT *pinit = &proxy->ainit[iinit];
             if (pinit->kind == 5)
             {
                 continue;
             }
             CFrame *pframe = pinit->pframe;
-            if (pframe && !pproxy->nUnkE4)
+            if (pframe && !proxy->nUnkE4)
             {
                 LO *ploInit = pinit->plo;
                 if (pframe->m_cpframeParent)
@@ -1008,10 +1008,10 @@ void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
             }
             pinit->plo = 0;
         }
-        plo->VUnk26(pproxy);
+        plo->VUnk26(proxy);
         void *apvArgs[1];
         apvArgs[0] = &plo;
-        pproxy->HandleSpliceEvent(0xF, 0, 1, apvArgs, 0);
+        proxy->HandleSpliceEvent(0xF, 0, 1, apvArgs, 0);
         apvArgs[0] = &ploProxy;
         plo->HandleSpliceEvent(0xF, 0, 1, apvArgs, 0);
         plo->Remove();
@@ -1019,7 +1019,7 @@ void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
         SetLoParent(plo, 0, 0);
         if (FIsBasicDerivedFrom(plo, (CID)0x30))
         {
-            PROXYREST *pposrest = &pproxy->psrc->aposRest[iplo];
+            PROXYREST *pposrest = &proxy->psrc->aposRest[iplo];
             SO *pso = (SO *)plo;
             if (pso->pxfUnk58)
             {
@@ -1180,9 +1180,9 @@ typedef char attach_layout[(sizeof(void*)==4 && sizeof(qword)==16 && sizeof(VTE)
  * @end-sly2-annot */
 // For a single-object proxy, acquires a spare (rating 1 when forced, else 2) and returns its object, or null.
 /* The object of an acquired spare copy (single-object sources only). */
-extern "C" LO *AcquireProxyObject(PROXY *pproxy, int fForce)
+extern "C" LO *AcquireProxyObject(PROXY *proxy, int fForce)
 {
-    PROXYSPARE *pspare; if (pproxy->psrc->cplo != 1) return 0; pspare = AcquireProxySpare(pproxy, fForce ? 1 : 2); if (!pspare) return 0; return pproxy->psrc->aplo[IcopyFromPspare(pproxy, pspare)];
+    PROXYSPARE *spare; if (proxy->psrc->cplo != 1) return 0; spare = AcquireProxySpare(proxy, fForce ? 1 : 2); if (!spare) return 0; return proxy->psrc->aplo[IcopyFromPspare(proxy, spare)];
 }
 
 /** @sly2-annot addr=0x1CB2C0
@@ -1195,9 +1195,9 @@ extern "C" LO *AcquireProxyObject(PROXY *pproxy, int fForce)
  * @end-sly2-annot */
 // True when a spare rated at least 2 is available.
 /* Whether a spare rated at least 2 is available. */
-extern "C" int CanAcquireProxy(PROXY *pproxy)
+extern "C" int CanAcquireProxy(PROXY *proxy)
 {
-    return ChooseProxySpare(pproxy, 2) != 0;
+    return ChooseProxySpare(proxy, 2) != 0;
 }
 
 /** @sly2-annot addr=0x1CB2E0
@@ -1209,9 +1209,9 @@ extern "C" int CanAcquireProxy(PROXY *pproxy)
  * @end-sly2-annot */
 // Returns the object of the proxy's current spare, or null.
 /* The object of the proxy's current spare, or 0. */
-extern "C" LO *GetProxyCurrentObject(PROXY *pproxy)
+extern "C" LO *GetProxyCurrentObject(PROXY *proxy)
 {
-    int icopy; if (!pproxy->pspareFirst) return 0; icopy = IcopyFromPspare(pproxy, pproxy->pspareFirst); return pproxy->psrc->aplo[icopy];
+    int icopy; if (!proxy->pspareFirst) return 0; icopy = IcopyFromPspare(proxy, proxy->pspareFirst); return proxy->psrc->aplo[icopy];
 }
 
 /** @sly2-annot addr=0x1CB328
@@ -1223,10 +1223,10 @@ extern "C" LO *GetProxyCurrentObject(PROXY *pproxy)
  * @end-sly2-annot */
 // Acquires a copy unless the proxy already has a current one.
 /* Acquires a copy unless the proxy already has a current one. */
-extern "C" void EnsureProxyCopy(PROXY *pproxy)
+extern "C" void EnsureProxyCopy(PROXY *proxy)
 {
-    if (GetProxyCurrentObject(pproxy) == 0) {
-        AcquireProxyObject(pproxy, 1);
+    if (GetProxyCurrentObject(proxy) == 0) {
+        AcquireProxyObject(proxy, 1);
     }
 }
 
@@ -1269,9 +1269,9 @@ R GetProxyCopyObjects(S *p)
  * @end-sly2-annot */
 // Returns the spare whose object is plo (single-object sources), or null.
 /* The spare whose object is plo (single-object sources only), or 0. */
-extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *pproxy, LO *plo)
+extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *proxy, LO *plo)
 {
-    int icopy; PROXYSPARE *pspare; if (pproxy->psrc->cplo != 1) return 0; pspare = 0; for (icopy = pproxy->psrc->icopyNext; icopy < pproxy->psrc->ccopy; icopy++) { if (plo == pproxy->psrc->aplo[icopy]) { pspare = GetProxySpareFromCopyIndex(pproxy, icopy); break; } } return pspare;
+    int icopy; PROXYSPARE *spare; if (proxy->psrc->cplo != 1) return 0; spare = 0; for (icopy = proxy->psrc->icopyNext; icopy < proxy->psrc->ccopy; icopy++) { if (plo == proxy->psrc->aplo[icopy]) { spare = GetProxySpareFromCopyIndex(proxy, icopy); break; } } return spare;
 }
 
 /** @sly2-annot addr=0x1CB488
@@ -1281,11 +1281,11 @@ extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *pproxy, LO *plo)
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Locks the spare holding plo so it cannot be taken by another proxy.
-extern "C" void LockProxyObject(PROXY *pproxy, LO *plo)
+extern "C" void LockProxyObject(PROXY *proxy, LO *plo)
 {
-    PROXYSPARE *pspare = FindProxySpareByObject(pproxy, plo);
-    if (pspare != 0) {
-        pspare->fLocked = 1;
+    PROXYSPARE *spare = FindProxySpareByObject(proxy, plo);
+    if (spare != 0) {
+        spare->fLocked = 1;
     }
 }
 
@@ -1296,11 +1296,11 @@ extern "C" void LockProxyObject(PROXY *pproxy, LO *plo)
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Unlocks the spare holding plo.
-extern "C" void UnlockProxyObject(PROXY *pproxy, LO *plo)
+extern "C" void UnlockProxyObject(PROXY *proxy, LO *plo)
 {
-    PROXYSPARE *pspare = FindProxySpareByObject(pproxy, plo);
-    if (pspare != 0) {
-        pspare->fLocked = 0;
+    PROXYSPARE *spare = FindProxySpareByObject(proxy, plo);
+    if (spare != 0) {
+        spare->fLocked = 0;
     }
 }
 
@@ -1495,11 +1495,11 @@ void PROXY_ReleaseSpares(struct S *p)
  *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Returns the index of the proxy source with the given id, or -1.
-int FindProxysrc(SW *psw, int id)
+int FindProxysrc(SW *world, int id)
 {
     int i;
-    for (i = 0; i < psw->cproxysrc; i++)
-        if (psw->aproxysrc[i].id == id) return i;
+    for (i = 0; i < world->cproxysrc; i++)
+        if (world->aproxysrc[i].id == id) return i;
     return -1;
 }
 

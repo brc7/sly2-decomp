@@ -127,7 +127,7 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *psw, int a, int b, int c);
+POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
 void func_001D98A8(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void func_001D98B0(void);
