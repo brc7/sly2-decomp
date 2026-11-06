@@ -39,9 +39,9 @@ struct JOBV : public LO
     float tEase1;           /* +0x9C */
     float tEase2;           /* +0xA0 */
     char padA4[0xAC - 0xA4];
-    int nAC;                /* +0xAC */
-    int nB0;                /* +0xB0 */
-    int nB4;                /* +0xB4 */
+    int completionWidgetOid;    /* +0xAC (SetJobCompletionWidget) */
+    int introLabel;             /* +0xB0 */
+    int outroLabel;             /* +0xB4 */
     int fPhased;            /* +0xB8 completes in phases */
 };
 /* TASK (: LO): its job (+0x7C) and, if not -1, the task that becomes pending when it completes (+0xB8). */
@@ -117,7 +117,7 @@ extern "C" void StartupGame()
 }
 
 namespace M_InitGame { extern "C" {
-struct S { int a, b, c, d; int f10, f14, f18; };
+struct S { int unknown0, unknown4, unknown8, unknownC; int currentJob, currentTask, pendingTask; };   /* g_game */
 extern char D_003D4A60[];
 extern char D_002DE578[];
 extern int D_002E1E00;
@@ -135,12 +135,12 @@ void InitDifficulty(void *p);
  * @end-sly2-annot */
 // Resets the game record g_game: zeroed, no current job, task or pending task; resets the save blob and the
 // difficulty.
-void InitGame(struct S *p)
+void InitGame(struct S *game)
 {
-    func_002333B4(p, 0, sizeof(*p));
-    p->f10 = -1;
-    p->f14 = -1;
-    p->f18 = -1;
+    func_002333B4(game, 0, sizeof(*game));
+    game->currentJob = -1;
+    game->currentTask = -1;
+    game->pendingTask = -1;
     ResetSaveGs(D_003D4A60, 0);
     InitDifficulty(D_002DE578);
     D_002E1E00 = 0;
@@ -894,9 +894,9 @@ void JOB::Init()
     job->tEase2 = 720.0f;
     job->id6C = -1;
     job->id70 = -1;
-    job->nAC = -1;
-    job->nB0 = -1;
-    job->nB4 = -1;
+    job->completionWidgetOid = -1;
+    job->introLabel = -1;
+    job->outroLabel = -1;
     InitSl(&job->dl, 0x84);
 }
 
@@ -992,7 +992,7 @@ void AddJobFailEvent(struct S *job, int n)
 } } // namespace M_func_00162630
 
 namespace M_func_00162660 { extern "C" {
-struct S { char pad[0xAC]; int a; int b; int c; };
+struct S { char pad[0xAC]; int completionWidgetOid; int introLabel; int outroLabel; };
 /** @sly2-annot addr=0x162660
  * Purpose: Splice: sets job +0xAC widget oid, +0xB0 intro label, +0xB4 outro label used by the completion
  *   sequence
@@ -1001,16 +1001,16 @@ struct S { char pad[0xAC]; int a; int b; int c; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: sets the job's completion widget oid and its intro and outro labels.
-void SetJobCompletionWidget(struct S *job, int a, int b, int c)
+void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int outroLabel)
 {
-    job->a = a;
-    job->b = b;
-    job->c = c;
+    job->completionWidgetOid = widgetOid;
+    job->introLabel = introLabel;
+    job->outroLabel = outroLabel;
 }
 } } // namespace M_func_00162660
 
 namespace M_FJobLive { extern "C" {
-struct S { char pad[0x50]; int f50; char pad2[0xF0 - 0x54]; int n; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xF0 - 0x54]; int mode; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 /** @sly2-annot addr=0x162670
@@ -1024,15 +1024,15 @@ int IsSwTransitionBusy(void *p);
 // True when the job is enabled, not in mode 2/3 and no world transition is in progress.
 int IsJobLive(struct S *job)
 {
-    if (job->f50 == 0 && job->n != 2 && job->n != 3)
+    if (job->isDisabled == 0 && job->mode != 2 && job->mode != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FJobLive
 
 namespace M_func_001626C0 { extern "C" {
-struct E { int a, b, c, d; };
-struct S { char pad[0x50]; int f50; char pad2[0x8C - 0x54]; int c; struct E *ae; };
+struct E { int object, context, stateMask, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0x8C - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateBit(int i);
 /** @sly2-annot addr=0x1626C0
  * Purpose: Splice: appends a {oidLo, oidContext, GetStateBit(state), level} visibility record to the job
@@ -1041,21 +1041,21 @@ int GetStateBit(int i);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
-void AddJobStateVisibility(struct S *job, int a, int i, int b, int d)
+void AddJobStateVisibility(struct S *job, int object, int state, int context, int level)
 {
-    if (job->f50 == 0 && job->c < 32) {
-        struct E *pe = &job->ae[job->c++];
-        pe->a = a;
-        pe->b = b;
-        pe->c = GetStateBit(i);
-        pe->d = d;
+    if (job->isDisabled == 0 && job->numVisibility < 32) {
+        struct E *pe = &job->visibility[job->numVisibility++];
+        pe->object = object;
+        pe->context = context;
+        pe->stateMask = GetStateBit(state);
+        pe->level = level;
     }
 }
 } } // namespace M_func_001626C0
 
 namespace M_func_00162728 { extern "C" {
-struct E { int a, b, c, d, e, f; };
-struct S { char pad[0x50]; int f50; char pad2[0x94 - 0x54]; int c; struct E *ae; };
+struct E { int state, root, stateMachine, goal, unknown10, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0x94 - 0x54]; int numRsmgs; struct E *rsmgs; };
 /** @sly2-annot addr=0x162728
  * Purpose: Splice: appends a 24-byte {state, oidRoot, oidSm, oidGoal, 0, level} RSMG record to the job
  * Info: proposed name AddJobStateRsmg (T2); TU game
@@ -1063,11 +1063,11 @@ struct S { char pad[0x50]; int f50; char pad2[0x94 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
-void AddJobStateRsmg(struct S *job, int a, int b, int c, int d, int f)
+void AddJobStateRsmg(struct S *job, int state, int root, int stateMachine, int goal, int level)
 {
-    if (job->f50 == 0 && job->c < 32) {
-        struct E *pe = &job->ae[job->c++];
-        pe->f = f; pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = 0;
+    if (job->isDisabled == 0 && job->numRsmgs < 32) {
+        struct E *pe = &job->rsmgs[job->numRsmgs++];
+        pe->level = level; pe->state = state; pe->root = root; pe->stateMachine = stateMachine; pe->goal = goal; pe->unknown10 = 0;
     }
 }
 } } // namespace M_func_00162728
@@ -1075,16 +1075,16 @@ void AddJobStateRsmg(struct S *job, int a, int b, int c, int d, int f)
 namespace M_PostJobLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct S {
-    char pad[0x7C]; int f7c;
-    char pad1[0x8C - 0x80]; int f8c, f90, f94, f98;
-    char pad2[0xA4 - 0x9C]; float fa4; void *fa8; int fac;
-    char pad3[0xB8 - 0xB0]; void *fb8; void *fbc;
-    char pad4[0xD0 - 0xC0]; int fd0;
-    char pad5[0xE0 - 0xD4]; int fe0;
-    char pad6[0xE8 - 0xE4]; int fe8;
+    char pad[0x7C]; int startCount;
+    char pad1[0x8C - 0x80]; int numVisibility, visibility, numRsmgs, rsmgs;
+    char pad2[0xA4 - 0x9C]; float savedTime; void *stateSaveVar; int completionWidgetOid;
+    char pad3[0xB8 - 0xB0]; void *completionWidget; void *widget379;
+    char pad4[0xD0 - 0xC0]; int startCountKey;
+    char pad5[0xE0 - 0xD4]; int savedTimeKey;
+    char pad6[0xE8 - 0xE4]; int stateKey;
 };
 extern char D_003D4A60[];
-struct G { char pad[0x3A18]; char m3a18[0x10]; };
+struct G { char pad[0x3A18]; char saveVars[0x10]; };
 extern struct G D_003DD490;
 void PostLoLoad(struct S *p);
 int IsCurrentJob(struct S *p);
@@ -1112,29 +1112,29 @@ void PostJobLoad(struct S *job)
     int *pn;
     PostLoLoad(job);
     if (!IsCurrentJob(job) && IsJobLive(job)) {
-        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 5, job->f94, job->f98, 1);
+        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, 1);
     }
-    pn = &job->fd0;
+    pn = &job->startCountKey;
     if (*pn) {
         int n;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        job->f7c = n;
+        job->startCount = n;
     }
-    pn = &job->fe0;
+    pn = &job->savedTimeKey;
     if (*pn) {
         float g;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         g = *(float *)&ref.m_tag;
         Decref__4CRef(&ref);
-        job->fa4 = g;
+        job->savedTime = g;
     }
-    job->fa8 = GetSaveVarAddress(D_003DD490.m3a18, &job->fe8, D_003D4A60);
-    if (job->fac != -1)
-        job->fb8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->fac, 0);
-    job->fbc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+    job->stateSaveVar = GetSaveVarAddress(D_003DD490.saveVars, &job->stateKey, D_003D4A60);
+    if (job->completionWidgetOid != -1)
+        job->completionWidget = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
+    job->widget379 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -1184,8 +1184,8 @@ extern "C" void EndCurrentJob(JOBV *job)
 }
 
 namespace M_ResetJobTasks { extern "C" {
-struct X { char pad[0x64]; int f64; char pad2[0x84 - 0x68]; struct X *pNext; };
-struct S { char pad[0x7C]; int f7c; struct X *pFirst; };
+struct X { char pad[0x64]; int startCount; char pad2[0x84 - 0x68]; struct X *pNext; };
+struct S { char pad[0x7C]; int startCount; struct X *pFirst; };
 void UpdateTaskSaveVars(struct X *p);
 void UpdateJobSaveVars(struct S *p);
 /** @sly2-annot addr=0x162940
@@ -1198,12 +1198,12 @@ void UpdateJobSaveVars(struct S *p);
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
 void ResetJobTasks(struct S *job)
 {
-    struct X *px;
-    for (px = job->pFirst; px; px = px->pNext) {
-        px->f64 = 0;
-        UpdateTaskSaveVars(px);
+    struct X *task;
+    for (task = job->pFirst; task; task = task->pNext) {
+        task->startCount = 0;
+        UpdateTaskSaveVars(task);
     }
-    job->f7c = 0;
+    job->startCount = 0;
     UpdateJobSaveVars(job);
 }
 } } // namespace M_ResetJobTasks
@@ -1211,7 +1211,7 @@ void ResetJobTasks(struct S *job)
 namespace M_BeginJob {
 class OBase {
 public:
-    int a, b, c;
+    int frame, sidebag, firstRefNode;
     virtual void V1();
     virtual void V2();
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
@@ -1219,11 +1219,11 @@ public:
 class O : public OBase {
 public:
     char pad[0x7C - 0x10];
-    int f7c;
+    int startCount;
     int pad80, pad84, pad88;
-    int f8c, f90, f94, f98;
+    int numVisibility, visibility, numRsmgs, rsmgs;
     char pad2[0xF0 - 0x9C];
-    int ff0;
+    int mode;
 };
 struct G;
 extern "C" { extern G D_003DD490; }
@@ -1247,11 +1247,11 @@ extern "C" void BeginJob(O *job)
 {
     SetSwJobCur(&D_003DD490, job);
     if (IsJobLive(job)) {
-        job->f7c++;
+        job->startCount++;
         UpdateJobSaveVars(job);
         BroadcastGameEvent(D_002DEB30, 0x21, job);
-        ApplyStateLoVisibility(job, 4, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 4, job->f94, job->f98, job->ff0);
+        ApplyStateLoVisibility(job, 4, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 4, job->numRsmgs, job->rsmgs, job->mode);
         job->Msg(0x13, 0, 0, 0, 0);
     }
 }
@@ -1260,7 +1260,7 @@ extern "C" void BeginJob(O *job)
 namespace M_EndJob {
 class OBase {
 public:
-    int a, b, c;
+    int frame, sidebag, firstRefNode;
     virtual void V1();
     virtual void V2();
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
@@ -1268,14 +1268,14 @@ public:
 class O : public OBase {
 public:
     char pad[0x7C - 0x10];
-    O *f7c;
+    O *job;   /* (as a task) its job */
     char pad2[0x8C - 0x80];
-    int f8c, f90, f94, f98;
+    int numVisibility, visibility, numRsmgs, rsmgs;
     char pad3[0xF0 - 0x9C];
-    int ff0;
+    int mode;
 };
-struct W { int a, b, f8; char pad[0x38 - 0xC]; int f38; };
-struct G { char pad[0x3B14]; O *f3b14; char pad2[0x3C88 - 0x3B18]; int f3c88; int f3c8c; };
+struct W { int unknown0, unknown4, sectorKey; char pad[0x38 - 0xC]; int sectorXor; };   /* a file record */
+struct G { char pad[0x3B14]; O *pendingTask; char pad2[0x3C88 - 0x3B18]; int unknown3C88; int unknown3C8C; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
 extern "C" void SetSwJobCur(G *pg, O *p);
@@ -1291,7 +1291,7 @@ static inline int FSame(W *pw1, W *pw2)
 {
     if (pw1 == pw2) return 1;
     if (!pw1 || !pw2) return 0;
-    return (pw1->f8 ^ pw1->f38) == (pw2->f8 ^ pw2->f38);
+    return (pw1->sectorKey ^ pw1->sectorXor) == (pw2->sectorKey ^ pw2->sectorXor);
 }
 /** @sly2-annot addr=0x162A60
  * Purpose: Clears current job (and pending task if it belonged to p); resets the warp target when in the
@@ -1305,18 +1305,18 @@ static inline int FSame(W *pw1, W *pw2)
 extern "C" void EndJob(O *job)
 {
     SetSwJobCur(&D_003DD490, 0);
-    if (D_003DD490.f3b14 && D_003DD490.f3b14->f7c && D_003DD490.f3b14->f7c == job)
+    if (D_003DD490.pendingTask && D_003DD490.pendingTask->job && D_003DD490.pendingTask->job == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *pw1 = GetCurrentWorldEntry();
     W *pw2 = GetLevelFileRecord(IlevelCur__Fv());
     if (FSame(pw1, pw2)) {
-        D_003DD490.f3c88 = 0x189;
-        D_003DD490.f3c8c = -1;
+        D_003DD490.unknown3C88 = 0x189;
+        D_003DD490.unknown3C8C = -1;
     }
     if (IsJobLive(job)) {
         BroadcastGameEvent(D_002DEB30, 0x22, job);
-        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 5, job->f94, job->f98, job->ff0);
+        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, job->mode);
         job->Msg(0x14, 0, 0, 0, 0);
     }
 }
@@ -1333,7 +1333,7 @@ public:
 class O : public OBase {
 public:
     char pad[0x50 - 0x10];
-    int f50;
+    int isDisabled;
     int c54;
     int *a58;
     int c5C;
@@ -1376,7 +1376,7 @@ extern "C" void HandleJobGameEvent(O *job, int n, int m)
                 break;
             }
         }
-    } else if (n == 0x10 && job->f50 && !IsSwTransitionBusy(&D_003DD490)) {
+    } else if (n == 0x10 && job->isDisabled && !IsSwTransitionBusy(&D_003DD490)) {
         RestartJob(job);
     }
 }
@@ -1459,7 +1459,7 @@ extern "C" void RestartJob(JOBV *job)
 }
 
 namespace M_func_00162E38 { extern "C" {
-struct G { char pad[0x3B18]; int f3b18; char pad2[0x3C84 - 0x3B1C]; int f3c84; };
+struct G { char pad[0x3B18]; int jobToAbort; char pad2[0x3C84 - 0x3B1C]; int unknown3C84; };
 extern struct G D_003DD490;
 int IsSwTransitionBusy(struct G *p);
 int GetCurrentWorldEntry(void);
@@ -1474,11 +1474,11 @@ void WipeToWorldWarp(struct G *p, int n, int a, int b, int c, int d);
  * @end-sly2-annot */
 // Fails the current job: records it for abort and, unless a transition is busy, wipes back to the current world's
 // entry warp (0x189).
-void FailJob(int n)
+void FailJob(int job)
 {
     struct G *pg = &D_003DD490;
-    pg->f3b18 = n;
-    if (!IsSwTransitionBusy(pg) && !pg->f3c84)
+    pg->jobToAbort = job;
+    if (!IsSwTransitionBusy(pg) && !pg->unknown3C84)
         WipeToWorldWarp(pg, GetCurrentWorldEntry(), 0x189, -1, 0, -1);
 }
 } } // namespace M_func_00162E38
@@ -1532,7 +1532,7 @@ extern "C" void CompleteJob(JOBV *job, TASKV *task)
 }
 
 namespace M_FinishJob { extern "C" {
-struct S { char pad[0x68]; void *f68; char pad2[0x78 - 0x6C]; int f78; };
+struct S { char pad[0x68]; void *completeTask; char pad2[0x78 - 0x6C]; int isReplay; };   /* isReplay (inferred): skip completion and autosave */
 extern char D_002DEB30[];
 extern char D_002E65E0[];
 void SetTaskStateCascade(void *p, int n);
@@ -1549,18 +1549,18 @@ void AutosaveGame(void *p, int n);
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
 void FinishJob(struct S *job)
 {
-    if (!job->f78)
-        SetTaskStateCascade(job->f68, 3);
+    if (!job->isReplay)
+        SetTaskStateCascade(job->completeTask, 3);
     BroadcastGameEvent(D_002DEB30, 0x20, job);
     EndCurrentJob(job);
-    if (!job->f78)
+    if (!job->isReplay)
         AutosaveGame(D_002E65E0, 0);
 }
 } } // namespace M_FinishJob
 
 namespace M_func_00162FD0 { extern "C" {
-struct LO { char pad[0x40]; int fl; };
-struct S { char pad[0xC0]; void *pc0; char pad2[0xCC - 0xC4]; struct LO *pcc; };
+struct LO { char pad[0x40]; int flags; };
+struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
 int HasPendingStartupSteps(void *p);
 void RunNextStartupStep(void *p);
@@ -1580,22 +1580,22 @@ void ContinueAfterJob(struct S *job)
     char *pv = D_002E1E88;
     if (HasPendingStartupSteps(pv)) {
         RunNextStartupStep(pv);
-    } else if (job->pc0) {
-        RequestTaskState(job->pc0, 4, job);
-    } else if (job->pcc) {
-        struct LO *plo = job->pcc;
-        int v = plo->fl;
+    } else if (job->nextTask) {
+        RequestTaskState(job->nextTask, 4, job);
+    } else if (job->exitObject) {
+        struct LO *plo = job->exitObject;
+        int v = plo->flags;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x100;
         else
-            plo->fl = v | 0x100;
-        TakeExit(job->pcc);
+            plo->flags = v | 0x100;
+        TakeExit(job->exitObject);
     }
 }
 } } // namespace M_func_00162FD0
 
 namespace M_UpdateJob { extern "C" {
-struct S { char pad[0xB0]; int fb0; int fb4; void *fb8; void *fbc; void *fc0; int fc4; char pad2[0xCC - 0xC8]; void *fcc; };
+struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
 void UpdateLo(struct S *p);
 int FWidgetAnimPlaying(void *p, int n);
 void FinishJob(struct S *p);
@@ -1615,24 +1615,24 @@ void SetJobCompletionPhase(struct S *p, int n);
 void UpdateJob(struct S *job)
 {
     UpdateLo(job);
-    switch (job->fc4) {
+    switch (job->completionPhase) {
     case 1:
-        if (!FWidgetAnimPlaying(job->fb8, job->fb0)) {
+        if (!FWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
             FinishJob(job);
-            if (job->fc0 || job->fcc)
+            if (job->nextTask || job->exitObject)
                 SetJobCompletionPhase(job, 3);
             else
                 SetJobCompletionPhase(job, 2);
         }
         break;
     case 2:
-        if (!FWidgetAnimPlaying(job->fb8, job->fb4)) {
+        if (!FWidgetAnimPlaying(job->completionWidget, job->outroLabel)) {
             ContinueAfterJob(job);
             SetJobCompletionPhase(job, 0);
         }
         break;
     case 3:
-        if (!FWidgetAnimPlaying(job->fbc, 0x30F))
+        if (!FWidgetAnimPlaying(job->widget379, 0x30F))
             ContinueAfterJob(job);
         break;
     }
@@ -1644,11 +1644,11 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct X;
 struct X {
-    char pad[0x40]; int fl;
-    char pad1[0x68 - 0x44]; struct X *f68;
-    char pad2[0x94 - 0x6C]; int c94; struct X **a98;
-    char pad3[0xA0 - 0x9C]; int cA0; struct X **aA4;
-    char pad4[0xB0 - 0xA8]; int fB0; int fB4; struct O *pB8; struct O *pBC; struct X *fC0; int fC4; float fC8;
+    char pad[0x40]; int flags;
+    char pad1[0x68 - 0x44]; struct X *completeTask;
+    char pad2[0x94 - 0x6C]; int numPrerequisites; struct X **prerequisites;
+    char pad3[0xA0 - 0x9C]; int numFollowers; struct X **followers;
+    char pad4[0xB0 - 0xA8]; int introLabel; int outroLabel; struct O *completionWidget; struct O *widget379; struct X *nextTask; int completionPhase; float tCompletionPhase;   /* on a task, completionPhase != 0 marks it as the next task (inferred) */
 };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -1680,60 +1680,60 @@ static __inline__ void VCall49(struct O *po, int n)
 void SetJobCompletionPhase(struct X *job, int n)
 {
     int i;
-    if (job->fC4 == n) return;
-    if (job->fC4 == 0) {
+    if (job->completionPhase == n) return;
+    if (job->completionPhase == 0) {
         int v;
-        job->fC0 = 0;
-        for (i = 0; i < job->f68->cA0; i++) {
-            struct X *px = job->f68->aA4[i];
-            if (px->fC4) {
-                job->fC0 = px;
+        job->nextTask = 0;
+        for (i = 0; i < job->completeTask->numFollowers; i++) {
+            struct X *px = job->completeTask->followers[i];
+            if (px->completionPhase) {
+                job->nextTask = px;
                 break;
             }
         }
-        if (job->fC0) {
+        if (job->nextTask) {
             int j;
-            for (j = 0; j < job->fC0->c94; j++) {
-                struct X *px = job->fC0->a98[j];
-                if (px != job->f68 && !IsTaskComplete(px)) {
-                    job->fC0 = 0;
+            for (j = 0; j < job->nextTask->numPrerequisites; j++) {
+                struct X *px = job->nextTask->prerequisites[j];
+                if (px != job->completeTask && !IsTaskComplete(px)) {
+                    job->nextTask = 0;
                     break;
                 }
             }
         }
         SetLoBusyk(job, 1);
-        v = job->fl;
+        v = job->flags;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x102;
         else
-            job->fl = v | 0x102;
+            job->flags = v | 0x102;
         IncrementSwHandsOff(D_003DD490, 2);
     }
-    job->fC4 = n;
-    job->fC8 = D_002DDED0.t;
+    job->completionPhase = n;
+    job->tCompletionPhase = D_002DDED0.t;
     switch (n) {
     case 0: {
         int v;
-        if (job->pBC) VCall50(job->pBC);
-        if (job->pB8) VCall50(job->pB8);
+        if (job->widget379) VCall50(job->widget379);
+        if (job->completionWidget) VCall50(job->completionWidget);
         SetLoBusyk(job, 2);
-        v = job->fl;
+        v = job->flags;
         if ((v ^ 1) & 1)
             *(int *)v &= ~0x102;
         else
-            job->fl = v & ~0x102;
+            job->flags = v & ~0x102;
         DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
     case 1:
-        VCall49(job->pB8, -1);
-        PlayWidgetAnim(job->pB8, job->fB0);
+        VCall49(job->completionWidget, -1);
+        PlayWidgetAnim(job->completionWidget, job->introLabel);
         break;
     case 3:
-        VCall49(job->pBC, -1);
+        VCall49(job->widget379, -1);
         break;
     case 2:
-        PlayWidgetAnim(job->pB8, job->fB4);
+        PlayWidgetAnim(job->completionWidget, job->outroLabel);
         break;
     }
 }
@@ -1771,8 +1771,8 @@ extern "C" int IsJobComplete(JOBV *job)
 }
 
 namespace M_func_00163430 { extern "C" {
-struct X { char pad[0x54]; int n; };
-struct S { char pad[0x64]; struct X *a; struct X *b; };
+struct X { char pad[0x54]; int state; };   /* a task */
+struct S { char pad[0x64]; struct X *startTask; struct X *completeTask; };
 static inline int Max(int a, int b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x163430
  * Purpose: Job state from its tasks: start-task state if <2, else max(end-task state,1)
@@ -1783,8 +1783,8 @@ static inline int Max(int a, int b) { return a > b ? a : b; }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
 int GetJobState(struct S *job)
 {
-    int n = job->a->n;
-    return n < 2 ? n : Max(job->b->n, 1);
+    int state = job->startTask->state;
+    return state < 2 ? state : Max(job->completeTask->state, 1);
 }
 } } // namespace M_func_00163430
 
@@ -1800,7 +1800,7 @@ struct CRef{
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
-struct S{char pad[0x7C];int n;char pad80[0x24];float g;char padA8[0x28];OPT a,b,c;};
+struct S{char pad[0x7C];int startCount;char pad80[0x24];float savedTime;char padA8[0x28];OPT startCountVar,completeVar,savedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
@@ -1819,15 +1819,15 @@ static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,cont
  * @end-sly2-annot */
 // Writes the job's count, complete flag and elapsed time into its save variables.
 extern "C" void UpdateJobSaveVars(S*job){
- {OPT*opt=&job->a;if(opt->kind){SetInt(opt,job->n);}}
- {OPT*opt=&job->b;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
- {OPT*opt=&job->c;if(opt->kind){CRef r(job->g);SetPv(opt,r);}}
+ {OPT*opt=&job->startCountVar;if(opt->kind){SetInt(opt,job->startCount);}}
+ {OPT*opt=&job->completeVar;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
+ {OPT*opt=&job->savedTimeVar;if(opt->kind){CRef r(job->savedTime);SetPv(opt,r);}}
 }
 } // namespace M_UpdateJobSaveVars
 
 namespace M_InitTask { extern "C" {
-struct S { char pad[0x54]; int f54; int f58; int f5c; char p2[0xB8-0x60]; int fb8; int fbc; int fc0; char p3[0xF0-0xC4]; int ff0; int ff4; };
-struct G { char pad[0x3AFC]; int c; };
+struct S { char pad[0x54]; int state; int unknown58; int unknown5C; char p2[0xB8-0x60]; int nextTaskId; int unknownBC; int unknownC0; char p3[0xF0-0xC4]; int unknownF0; int unknownF4; };
+struct G { char pad[0x3AFC]; int numTasks; };
 extern struct G D_003DD490;
 void InitLo(struct S *p);
 /** @sly2-annot addr=0x1635A0
@@ -1842,14 +1842,14 @@ void InitLo(struct S *p);
 } } // namespace M_InitTask
 void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_InitTask::S *p = (M_InitTask::S *)this;
     InitLo(p);
-    p->f54 = -1;
-    p->ff0 = -1;
-    p->f5c = -1;
-    p->fb8 = -1;
-    p->fbc = -1;
-    p->fc0 = -1;
-    p->ff4 = 0;
-    D_003DD490.c++;
+    p->state = -1;
+    p->unknownF0 = -1;
+    p->unknown5C = -1;
+    p->nextTaskId = -1;
+    p->unknownBC = -1;
+    p->unknownC0 = -1;
+    p->unknownF4 = 0;
+    D_003DD490.numTasks++;
 }
 
 namespace M_LoadTaskFromBrx {
@@ -1859,7 +1859,7 @@ public:
     int U8Read() __asm__("U8Read__18CBinaryInputStream");
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
-struct S { char pad[0x90]; int *a90; int c94; void *a98; int *a9C; int cA0; void *aA4; int cA8; void *aAC; int cB0; void *aB4; };
+struct S { char pad[0x90]; int *prerequisiteOids; int numPrerequisites; void *prerequisites; int *followerOids; int numFollowers; void *followers; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
@@ -1907,27 +1907,27 @@ extern "C" void LoadTaskFromBrx(S *task, CBinaryInputStream *stream)
     int i = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
-    task->aAC = PvAllocReq(&req, 0x200, 0x10);
-    task->aB4 = PvAllocReq(&req, 0x300, 0x10);
+    task->visibility = PvAllocReq(&req, 0x200, 0x10);
+    task->rsmgs = PvAllocReq(&req, 0x300, 0x10);
     LoadLoFromBrx(task, stream);
-    task->aAC = PvShrinkReq(&req, task->cA8 * 16, 0x10, task->aAC);
-    task->aB4 = PvShrinkReq(&req, task->cB0 * 0x18, 0x10, task->aB4);
-    task->c94 = stream->U8Read();
-    task->a98 = PvAllocA(&req, task->c94 * 4, 0x10);
-    task->a90 = (int *)PvAllocB(&req, task->c94 * 4, 0x10);
-    for (; i < task->c94; i++)
-        task->a90[i] = stream->S32Read();
-    task->cA0 = stream->U8Read();
-    task->aA4 = PvAllocA(&req, task->cA0 * 4, 0x10);
-    task->a9C = (int *)PvAllocB(&req, task->cA0 * 4, 0x10);
-    for (int j = 0; j < task->cA0; j++)
-        task->a9C[j] = stream->S32Read();
+    task->visibility = PvShrinkReq(&req, task->numVisibility * 16, 0x10, task->visibility);
+    task->rsmgs = PvShrinkReq(&req, task->numRsmgs * 0x18, 0x10, task->rsmgs);
+    task->numPrerequisites = stream->U8Read();
+    task->prerequisites = PvAllocA(&req, task->numPrerequisites * 4, 0x10);
+    task->prerequisiteOids = (int *)PvAllocB(&req, task->numPrerequisites * 4, 0x10);
+    for (; i < task->numPrerequisites; i++)
+        task->prerequisiteOids[i] = stream->S32Read();
+    task->numFollowers = stream->U8Read();
+    task->followers = PvAllocA(&req, task->numFollowers * 4, 0x10);
+    task->followerOids = (int *)PvAllocB(&req, task->numFollowers * 4, 0x10);
+    for (int j = 0; j < task->numFollowers; j++)
+        task->followerOids[j] = stream->S32Read();
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadTaskFromBrx
 
 namespace M_FTaskLive { extern "C" {
-struct S { char pad[0x50]; int f50; char pad2[0xF4 - 0x54]; int n; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xF4 - 0x54]; int mode; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 /** @sly2-annot addr=0x1637E8
@@ -1939,15 +1939,15 @@ int IsSwTransitionBusy(void *p);
 // True when the task is enabled, not in mode 2/3 and no world transition is in progress.
 int IsTaskLive(struct S *task)
 {
-    if (task->f50 == 0 && task->n != 2 && task->n != 3)
+    if (task->isDisabled == 0 && task->mode != 2 && task->mode != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FTaskLive
 
 namespace M_func_00163838 { extern "C" {
-struct E { int a, b, c, d; };
-struct S { char pad[0x50]; int f50; char pad2[0xA8 - 0x54]; int c; struct E *ae; };
+struct E { int object, context, stateMask, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xA8 - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateMaskFromSplice(void *p);
 /** @sly2-annot addr=0x163838
  * Purpose: Splice: appends a visibility record (state mask from a Splice list) to the task
@@ -1956,21 +1956,21 @@ int GetStateMaskFromSplice(void *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
-void AddTaskStateVisibility(struct S *task, int a, void *pv, int b, int d)
+void AddTaskStateVisibility(struct S *task, int object, void *states, int context, int level)
 {
-    if (task->f50 == 0 && task->c < 32) {
-        struct E *pe = &task->ae[task->c++];
-        pe->a = a;
-        pe->b = b;
-        pe->c = GetStateMaskFromSplice(pv);
-        pe->d = d;
+    if (task->isDisabled == 0 && task->numVisibility < 32) {
+        struct E *pe = &task->visibility[task->numVisibility++];
+        pe->object = object;
+        pe->context = context;
+        pe->stateMask = GetStateMaskFromSplice(states);
+        pe->level = level;
     }
 }
 } } // namespace M_func_00163838
 
 namespace M_func_001638A0 { extern "C" {
-struct E { int a, b, c, d, e, f; };
-struct S { char pad[0x50]; int f50; char pad2[0xB0 - 0x54]; int c; struct E *ae; };
+struct E { int state, oid, index, id, enabled, level; };   /* as PostTaskLoad's E24 */
+struct S { char pad[0x50]; int isDisabled; char pad2[0xB0 - 0x54]; int numRsmgs; struct E *rsmgs; };
 /** @sly2-annot addr=0x1638A0
  * Purpose: Splice: appends an RSMG record to the task
  * Info: proposed name AddTaskStateRsmg (T2); TU game
@@ -1978,11 +1978,11 @@ struct S { char pad[0x50]; int f50; char pad2[0xB0 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record to the task.
-void AddTaskStateRsmg(struct S *task, int a, int b, int c, int d, int e, int f)
+void AddTaskStateRsmg(struct S *task, int state, int oid, int index, int id, int enabled, int level)
 {
-    if (task->f50 == 0 && task->c < 32) {
-        struct E *pe = &task->ae[task->c++];
-        pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = e; pe->f = f;
+    if (task->isDisabled == 0 && task->numRsmgs < 32) {
+        struct E *pe = &task->rsmgs[task->numRsmgs++];
+        pe->state = state; pe->oid = oid; pe->index = index; pe->id = id; pe->enabled = enabled; pe->level = level;
     }
 }
 } } // namespace M_func_001638A0
@@ -1992,14 +1992,14 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct E16 {int oidA,oidB,flags,level;};
 struct E24 {int state,oid,index,id,enabled,level;};
 struct SL {void*first;void*last;int nextOffset;};
-struct BF { unsigned long pad:52; long k:4; unsigned long pad2:8; };
+struct BF { unsigned long pad:52; long busyk:4; unsigned long pad2:8; };
 struct S {
     char pad[0x28]; struct BF bf;
-    char pad0[0x40 - 0x30]; int fl;
-    char pad1[0x64 - 0x44]; int f64; int f68;
-    char pad2[0x78 - 0x6C]; float f78; struct S *f7c; struct SL children;
-    char pad3[0x90 - 0x8C]; int *a90; int c94; void **a98; int *a9C; int cA0; void **aA4; int fa8;struct E16*fac;int fb0;struct E24*fb4;
-    char pad4[0xC8 - 0xB8]; int fc8; int pad5; int fd0;
+    char pad0[0x40 - 0x30]; int flags;
+    char pad1[0x64 - 0x44]; int startCount; int savedValue68;
+    char pad2[0x78 - 0x6C]; float timeLimit; struct S *job; struct SL children;
+    char pad3[0x90 - 0x8C]; int *prerequisiteOids; int numPrerequisites; void **prerequisites; int *followerOids; int numFollowers; void **followers; int numVisibility;struct E16*visibility;int numRsmgs;struct E24*rsmgs;
+    char pad4[0xC8 - 0xB8]; int startCountKey; int pad5; int savedValue68Key;
 };
 extern char D_003D4A60[];
 extern char D_003DD490[];
@@ -2031,57 +2031,57 @@ void PostTaskLoad(struct S *task)
     CRef ref;
     int i;
     register int j asm("$16"); /* allocation: i/j tie in global alloc */
-    int *pnC8;
-    int *pnD0;
+    int *startCountKeyPtr;
+    int *savedValue68KeyPtr;
     PostLoLoad(task);
-    if (task->f7c)
-        AppendSlEntry(&task->f7c->children, task);
+    if (task->job)
+        AppendSlEntry(&task->job->children, task);
     i = 0;
     j = 0;
-    pnC8 = &task->fc8;
-    pnD0 = &task->fd0;
-    if (task->c94 > 0) {
+    startCountKeyPtr = &task->startCountKey;
+    savedValue68KeyPtr = &task->savedValue68Key;
+    if (task->numPrerequisites > 0) {
         do {
-            void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->a90[i], 0);
+            void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->prerequisiteOids[i], 0);
             if (pv)
-                task->a98[j++] = pv;
-        } while (++i < task->c94);
+                task->prerequisites[j++] = pv;
+        } while (++i < task->numPrerequisites);
     }
-    task->c94 = j;
+    task->numPrerequisites = j;
     j = 0;
-    for (i = 0; i < task->cA0; i++) {
-        void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->a9C[i], 0);
+    for (i = 0; i < task->numFollowers; i++) {
+        void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->followerOids[i], 0);
         if (pv)
-            task->aA4[j++] = pv;
+            task->followers[j++] = pv;
     }
-    task->cA0 = j;
+    task->numFollowers = j;
     if (IsCurrentTask(task) == 0 && IsTaskLive(task)) {
-        ApplyStateLoVisibility(task, 5, task->fa8, task->fac);
-        TriggerStateRsmgs(task, 5, task->fb0, task->fb4, 1);
+        ApplyStateLoVisibility(task, 5, task->numVisibility, task->visibility);
+        TriggerStateRsmgs(task, 5, task->numRsmgs, task->rsmgs, 1);
     }
-    if (task->fc8) {
+    if (task->startCountKey) {
         int n;
-        RefGetGlobalSaveVar(&ref, pnC8, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, startCountKeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        task->f64 = n;
+        task->startCount = n;
     }
-    if (task->fd0) {
+    if (task->savedValue68Key) {
         int n;
-        RefGetGlobalSaveVar(&ref, pnD0, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, savedValue68KeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        task->f68 = n;
+        task->savedValue68 = n;
     }
-    if (task->f78 != 0.0f || task->children.first) {
+    if (task->timeLimit != 0.0f || task->children.first) {
         int v;
-        if ((int)task->bf.k == 2)
+        if ((int)task->bf.busyk == 2)
             SetLoBusyk(task, 0);
-        v = task->fl;
+        v = task->flags;
         if ((v ^ 1) & 1)
             *(int *)v |= 2;
         else
-            task->fl = v | 2;
+            task->flags = v | 2;
     }
 }
 
@@ -2095,24 +2095,24 @@ typedef char layout_E16[(sizeof(struct E16)==16)?1:-1];
 typedef char layout_E24[(sizeof(struct E24)==24)?1:-1];
 typedef char layout_S_prefix[(sizeof(struct S)==0xD8)?1:-1];
 typedef char layout_S_bf[(((unsigned)&((struct S*)0)->bf==0x28))?1:-1];
-typedef char layout_S_fl[(((unsigned)&((struct S*)0)->fl==0x40))?1:-1];
-typedef char layout_S_f64[(((unsigned)&((struct S*)0)->f64==0x64))?1:-1];
-typedef char layout_S_f68[(((unsigned)&((struct S*)0)->f68==0x68))?1:-1];
-typedef char layout_S_f78[(((unsigned)&((struct S*)0)->f78==0x78))?1:-1];
-typedef char layout_S_f7c[(((unsigned)&((struct S*)0)->f7c==0x7c))?1:-1];
+typedef char layout_S_fl[(((unsigned)&((struct S*)0)->flags==0x40))?1:-1];
+typedef char layout_S_f64[(((unsigned)&((struct S*)0)->startCount==0x64))?1:-1];
+typedef char layout_S_f68[(((unsigned)&((struct S*)0)->savedValue68==0x68))?1:-1];
+typedef char layout_S_f78[(((unsigned)&((struct S*)0)->timeLimit==0x78))?1:-1];
+typedef char layout_S_f7c[(((unsigned)&((struct S*)0)->job==0x7c))?1:-1];
 typedef char layout_S_children[(((unsigned)&((struct S*)0)->children==0x80))?1:-1];
-typedef char layout_S_a90[(((unsigned)&((struct S*)0)->a90==0x90))?1:-1];
-typedef char layout_S_c94[(((unsigned)&((struct S*)0)->c94==0x94))?1:-1];
-typedef char layout_S_a98[(((unsigned)&((struct S*)0)->a98==0x98))?1:-1];
-typedef char layout_S_a9C[(((unsigned)&((struct S*)0)->a9C==0x9c))?1:-1];
-typedef char layout_S_cA0[(((unsigned)&((struct S*)0)->cA0==0xa0))?1:-1];
-typedef char layout_S_aA4[(((unsigned)&((struct S*)0)->aA4==0xa4))?1:-1];
-typedef char layout_S_fa8[(((unsigned)&((struct S*)0)->fa8==0xa8))?1:-1];
-typedef char layout_S_fac[(((unsigned)&((struct S*)0)->fac==0xac))?1:-1];
-typedef char layout_S_fb0[(((unsigned)&((struct S*)0)->fb0==0xb0))?1:-1];
-typedef char layout_S_fb4[(((unsigned)&((struct S*)0)->fb4==0xb4))?1:-1];
-typedef char layout_S_fc8[(((unsigned)&((struct S*)0)->fc8==0xc8))?1:-1];
-typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->fd0==0xd0))?1:-1];
+typedef char layout_S_a90[(((unsigned)&((struct S*)0)->prerequisiteOids==0x90))?1:-1];
+typedef char layout_S_c94[(((unsigned)&((struct S*)0)->numPrerequisites==0x94))?1:-1];
+typedef char layout_S_a98[(((unsigned)&((struct S*)0)->prerequisites==0x98))?1:-1];
+typedef char layout_S_a9C[(((unsigned)&((struct S*)0)->followerOids==0x9c))?1:-1];
+typedef char layout_S_cA0[(((unsigned)&((struct S*)0)->numFollowers==0xa0))?1:-1];
+typedef char layout_S_aA4[(((unsigned)&((struct S*)0)->followers==0xa4))?1:-1];
+typedef char layout_S_fa8[(((unsigned)&((struct S*)0)->numVisibility==0xa8))?1:-1];
+typedef char layout_S_fac[(((unsigned)&((struct S*)0)->visibility==0xac))?1:-1];
+typedef char layout_S_fb0[(((unsigned)&((struct S*)0)->numRsmgs==0xb0))?1:-1];
+typedef char layout_S_fb4[(((unsigned)&((struct S*)0)->rsmgs==0xb4))?1:-1];
+typedef char layout_S_fc8[(((unsigned)&((struct S*)0)->startCountKey==0xc8))?1:-1];
+typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->savedValue68Key==0xd0))?1:-1];
 typedef char layout_SL_first[(((unsigned)&((struct SL*)0)->first==0))?1:-1];
 typedef char layout_SL_last[(((unsigned)&((struct SL*)0)->last==4))?1:-1];
 typedef char layout_SL_nextOffset[(((unsigned)&((struct SL*)0)->nextOffset==8))?1:-1];

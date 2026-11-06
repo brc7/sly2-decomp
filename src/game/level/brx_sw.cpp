@@ -69,7 +69,7 @@ void LoadSwSpliceFromBrx(void *world, int n, BIS *stream);
 void LoadShadersFromBrx(void *pa, void *pb, BIS *stream);
 void LoadSwZoneBspFromBrx(void *world, BIS *stream);
 struct LO;
-struct LOL { void *vtable; int x4; int c; LO **apo; };
+struct LOL { void *vtable; int unknown4; int c; LO **apo; };
 LOL *CLoadCollectorArray_ctor(LOL *p);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(int n, BIS *stream, LOL *p);
 void ResetShaders(void);
@@ -84,12 +84,12 @@ extern int D_003E1C34;
 struct VTE { short d; short pad; void (*pfn)(); };
 struct LO { int pad[3]; VTE *vtable; };
 struct WE {
-    int c0; LO **apo; int c8; int cC; int x10; int x14; void *pv18; char ab1C[0x40]; int x5C; int x60; int pad64[2];
+    int c0; LO **apo; int c8; int cC; int spliceId; int unknown14; void *pv18; char ab1C[0x40]; int isProxySource; int unknown60; int pad64[2];   /* (inferred) isProxySource: its copies stay out of the world */
 };
 struct RGBAPOD { unsigned char r, g, b, a; };   /* basic.h RGBA has a ctor, which a union member cannot have */
 struct SW {
-    char pad0[0x39D0]; void *p39D0; int x39D4; void *p39D8; int x39DC; void *p39E0; void *p39E4; int x39E8;
-    char pad39EC[0x3E00 - 0x39EC]; RGBAPOD rgba; char pad3E04[0x3E38 - 0x3E04]; int x3E38;
+    char pad0[0x39D0]; void *loadBuffer0; int loadBuffer0Used; void *loadBuffer1; int loadBuffer1Used; void *ppoFirst; void *ppoLast; int unknown39E8;
+    char pad39EC[0x3E00 - 0x39EC]; RGBAPOD rgba; char pad3E04[0x3E38 - 0x3E04]; int unknown3E38;
     char pad3E3C[0x3F04 - 0x3E3C]; int cwe; WE *awe; int pad3F0C; int iwe;
 };
 struct ZPR { char ab[0x630]; };
@@ -128,10 +128,10 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     for (i = 0; i < world->cwe; i++) {
         WE *pwe = &world->awe[i];
         Read__18CBinaryInputStreamiPv(stream, 0x40, pwe->ab1C);
-        pwe->x5C = S32Read__18CBinaryInputStream(stream);
-        pwe->x60 = S32Read__18CBinaryInputStream(stream);
-        pwe->x10 = S32Read__18CBinaryInputStream(stream);
-        pwe->x14 = S32Read__18CBinaryInputStream(stream);
+        pwe->isProxySource = S32Read__18CBinaryInputStream(stream);
+        pwe->unknown60 = S32Read__18CBinaryInputStream(stream);
+        pwe->spliceId = S32Read__18CBinaryInputStream(stream);
+        pwe->unknown14 = S32Read__18CBinaryInputStream(stream);
         pwe->c8 = S32Read__18CBinaryInputStream(stream);
         pwe->pv18 = Alloc(&u.req, pwe->c8 * 4, 0x10);
         func_002333B4(pwe->pv18, -1, pwe->c8 * 4);
@@ -163,15 +163,15 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     InitSwSpliceFrame(world);
     ResolveSwSaveVars__FP2SW(world);
     UpdateSwIllum(world);
-    if (world->x3E38)
+    if (world->unknown3E38)
         *(unsigned int *)&world->rgba = 0x80000000;
     u.rgba = world->rgba;
     BuildClearGifs__FP2QWG4RGBAi(D_002DEDC0, &u.rgba, 3);
-    world->p39E4 = world->p39E0 = AllocS(&u.req, 0x10000, 0x10);
-    world->p39D0 = AllocS(&u.req, 0x6000, 0x10);
-    world->x39D4 = 0;
-    world->p39D8 = AllocS(&u.req, 0x3000, 0x10);
-    world->x39DC = 0;
+    world->ppoLast = world->ppoFirst = AllocS(&u.req, 0x10000, 0x10);
+    world->loadBuffer0 = AllocS(&u.req, 0x6000, 0x10);
+    world->loadBuffer0Used = 0;
+    world->loadBuffer1 = AllocS(&u.req, 0x3000, 0x10);
+    world->loadBuffer1Used = 0;
     STACKSCOPE frame;
     ZPR zpr0;
     ZPR zpr1;
@@ -186,11 +186,11 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         char ab[0x4040];
         InitFileKey(&odd);
         UpdateLoadingScreen(&h, GetFileIdName(pwe->ab1C));
-        world->iwe = pwe->x5C ? -1 : i;
+        world->iwe = pwe->isProxySource ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
         LoadSwSharedHeaderFromBrx(1, stream);
         D_003E1C34 = S32Read__18CBinaryInputStream(stream);
-        LoadSwSpliceFromBrx(world, pwe->x10, stream);
+        LoadSwSpliceFromBrx(world, pwe->spliceId, stream);
         LoadShadersFromBrx(&zpr0, &zpr1, stream);
         LoadSwZoneBspFromBrx(world, stream);
         {
@@ -203,7 +203,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
             Align__18CBinaryInputStreami(stream, 0x10);
             GetFileIdName(pwe->ab1C);
             ResetShaders();
-            world->x39E8 = 0;
+            world->unknown39E8 = 0;
             pwe->c0 = u.lol.c;
             pwe->apo = (LO **)AllocZ(&req2, pwe->c0 * pwe->c8 * 4, 0x10);
             CopyAb__FPvT0Ui(pwe->apo, u.lol.apo, pwe->c0 * 4);
@@ -211,7 +211,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
             for (j = 1; j < pwe->c8; j++)
                 for (k = 0; k < pwe->c0; k++)
                     *ppo++ = PloCloneLo__FP2LOP2SO(pwe->apo[k], 0);
-            if (pwe->x5C) {
+            if (pwe->isProxySource) {
                 pwe->cC++;
             } else {
                 for (k = 0; k < pwe->c8 * pwe->c0; k++) {
@@ -230,7 +230,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
 }
 
 /* Language strings as LoadSwLangstrsFromBrx sees the SW (offsets only). */
-struct LANGSTR { int x0; int x4; };
+struct LANGSTR { int id; int text; };
 struct SWLANG { char pad[0x4640]; int c; LANGSTR *ae; };
 extern int D_002E1E54;
 extern char D_002DD590[];
@@ -267,10 +267,10 @@ extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, B
     for (; i < p->c; i++) {
         LANGSTR *pe = &p->ae[i];
         int j;
-        pe->x0 = S16Read__18CBinaryInputStream(pbs);
+        pe->id = S16Read__18CBinaryInputStream(pbs);
         for (j = 0; j < c; j++) {
             if (j == iMatch)
-                CBinaryInputStream_ReadStringSw(pbs, &pe->x4, D_002DD590, 0x2E);
+                CBinaryInputStream_ReadStringSw(pbs, &pe->text, D_002DD590, 0x2E);
             else
                 CBinaryInputStream_SkipStringSw(pbs);
         }
@@ -279,8 +279,8 @@ extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, B
 }
 
 /* Cells as LoadSwCellsFromBrx sees the SW (offsets only). */
-struct CELL { char pad[0x10]; CELL *p10; CELL *p14; int x18; int x1C; };
-struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *p4564; };
+struct CELL { char pad[0x10]; CELL *front; CELL *back; int frontLeaf; int backLeaf; };   /* a BSP node: plane, then children or leaf indices */
+struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *leaves; };
 /** @sly2-annot addr=0x13E0E0
  * Purpose: Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index;
  *   allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (cleaf x 0x20)
@@ -308,17 +308,17 @@ extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS 
         ReadVector4__18CBinaryInputStreamP7VECTOR4(pbs, pe);
         j = S16Read__18CBinaryInputStream(pbs);
         if (j >= 0)
-            pe->p10 = &p->ae[j];
+            pe->front = &p->ae[j];
         else
-            pe->x18 = p->n++;
+            pe->frontLeaf = p->n++;
         j = S16Read__18CBinaryInputStream(pbs);
         if (j >= 0)
-            pe->p14 = &p->ae[j];
+            pe->back = &p->ae[j];
         else
-            pe->x1C = p->n++;
+            pe->backLeaf = p->n++;
     }
     req.cbAlign = 0x10;
     req.cb = p->n * sizeof(CELL);
-    p->p4564 = AllocClearedFromWorldHeap(&req);
+    p->leaves = AllocClearedFromWorldHeap(&req);
 }
 

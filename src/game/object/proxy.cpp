@@ -272,7 +272,7 @@ extern "C" OID GetOidFromProxyId(int id)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C99D8 { extern "C" {
 struct DL { void *head; void *tail; int ibDle; };
-struct N { int id; struct N *pnParent; int x8; int xC; int x10; struct N *pnNext; struct DL dl; int pad; };
+struct N { int id; struct N *pnParent; int oid; int unknownC; int unknown10; struct N *pnNext; struct DL dl; int pad; };
 struct AL { int cb; int cbAlign; };
 extern char D_003DD490[];
 void *AllocClearedFromWorldHeap(const struct AL *pal);
@@ -312,8 +312,8 @@ again:
         pn = &pnNew[i];
         InitSl(&pn->dl, 0x14);
         pn->id = aid[i];
-        pn->x8 = GetOidFromProxyId(pn->id);
-        AppendSlEntry(GetSwProxyRefBucket(D_003DD490, pn->x8), pn);
+        pn->oid = GetOidFromProxyId(pn->id);
+        AppendSlEntry(GetSwProxyRefBucket(D_003DD490, pn->oid), pn);
         pn->pnParent = pnParent;
         AppendSlEntry(&pnParent->dl, pn);
         pnParent = pn;
@@ -698,13 +698,13 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct MAT3 { qword a[3]; };
 struct MAT4 { float m[4][4]; };
-struct Y { char pad[0x24]; int x24; };
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x3C - 0x10]; struct Y *x3C; };
+struct Y { char pad[0x24]; int isSpare; };   /* the object's proxy-ref node (inferred flag) */
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x3C - 0x10]; struct Y *proxy; };
 struct X { qword q; struct MAT3 mat; };
 struct Z { qword q; struct MAT4 mat; };
 struct A { int cb; int align; };
-struct R { int n; struct LO **ap; int x8; int c; int x10; void *x14; void **ap18; char pad[0x64 - 0x1C]; struct X *x64; struct Z *x68; };
-struct G { char pad[0x3F04]; int c3F04; struct R *ar; };
+struct R { int n; struct LO **ap; int numCopies; int c; int unknown10; void *spareTag; void **ap18; char pad[0x64 - 0x1C]; struct X *restPoses; struct Z *spareMatrices; };   /* a proxy source: n objects per copy, c copies in use */
+struct G { char pad[0x3F04]; int numProxySources; struct R *ar; };
 void *IdProxy__Fii(int i, int c);
 void *AllocClearedFromWorldHeap(struct A *pa);
 qword GetLoWorldPos(struct LO *p);
@@ -728,33 +728,33 @@ void InitSwProxySpares(struct G *world)
     struct LO *plo;
     struct X *px;
     struct A a;
-    for (i = 0; i < world->c3F04; i++) {
+    for (i = 0; i < world->numProxySources; i++) {
         struct R *pr = &world->ar[i];
-        if (pr->c >= pr->x8) continue;
-        for (j = pr->c; j < pr->x8; j++) {
+        if (pr->c >= pr->numCopies) continue;
+        for (j = pr->c; j < pr->numCopies; j++) {
             void *v = IdProxy__Fii(i, j);
-            pr->ap18[j] = pr->x14;
+            pr->ap18[j] = pr->spareTag;
             for (k = 0; k < pr->n; k++) {
                 plo = pr->ap[j * pr->n + k];
                 ((void (*)(void *, void *, int))plo->vt[25].pf)((char *)plo + plo->vt[25].d, v, 1);
-                plo->x3C->x24 = 1;
+                plo->proxy->isSpare = 1;
             }
         }
         a.cb = pr->n * 64;
         a.align = 0x10;
-        pr->x64 = (struct X *)AllocClearedFromWorldHeap(&a);
+        pr->restPoses = (struct X *)AllocClearedFromWorldHeap(&a);
         for (k = 0; k < pr->n; k++) {
-            px = &pr->x64[k];
+            px = &pr->restPoses[k];
             plo = pr->ap[pr->c * pr->n + k];
             px->q = GetLoWorldPos(plo);
             px->mat = *GetLoWorldMatrix(plo);
             NormalizeRotateMatrix3__FP7MATRIX3(&px->mat);
         }
-        a.cb = (pr->x8 - pr->c) * 0x50;
+        a.cb = (pr->numCopies - pr->c) * 0x50;
         a.align = 0x10;
-        pr->x68 = (struct Z *)AllocClearedFromWorldHeap(&a);
-        for (j = pr->c; j < pr->x8; j++)
-            SetIdent(&pr->x68[j - pr->c].mat);
+        pr->spareMatrices = (struct Z *)AllocClearedFromWorldHeap(&a);
+        for (j = pr->c; j < pr->numCopies; j++)
+            SetIdent(&pr->spareMatrices[j - pr->c].mat);
     }
 }
 } } // namespace M_InitSwProxySpares
@@ -778,7 +778,7 @@ void PROXY::Init()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneProxy { extern "C" {
 struct RC { int cRef; };
-struct E { int x0; int x4; struct RC *x8; int pad[3]; };
+struct E { int unknown0; int unknown4; struct RC *frame; int pad[3]; };   /* a PROXYINIT record; frame: its Splice frame */
 struct S { char pad[0xEC]; int c; struct E *ae; };
 struct AL { int cb; int cbAlign; };
 struct SP { struct RC *p; };
@@ -802,18 +802,18 @@ void CloneProxy(struct S *proxy, struct S *source)
     for (i = 0; i < proxy->c; i++) {
         struct E *pe = &proxy->ae[i];
         struct RC *prc;
-        if (!pe->x8) continue;
+        if (!pe->frame) continue;
         if (proxy->ae == source->ae) {
             u.al.cb = proxy->c * sizeof(struct E);
             u.al.cbAlign = 0x10;
             proxy->ae = AllocCopyFromWorldHeap(&u.al, proxy->ae);
             pe = &proxy->ae[i];
         }
-        CFrame_CloneTo(&u.sp, pe->x8, proxy);
-        pe->x8 = u.sp.p;
+        CFrame_CloneTo(&u.sp, pe->frame, proxy);
+        pe->frame = u.sp.p;
         prc = u.sp.p;
         if (prc && --prc->cRef == 0) func_00257078(prc, 3);
-        MakeRoot__t6CGcObj1Z6CFrame(pe->x8);
+        MakeRoot__t6CGcObj1Z6CFrame(pe->frame);
     }
 }
 } } // namespace M_CloneProxy
@@ -1037,8 +1037,8 @@ void ReleasePspare(PROXY *proxy, PROXYSPARE *spare)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CADE0 { extern "C" {
-struct T { int x0; int x4; int c; int i0; };
-struct S { char pad[0xE0]; struct T *pt; int xE4; void *xE8; };
+struct T { int unknown0; int unknown4; int c; int i0; };   /* the proxy source: copy count and first spare index */
+struct S { char pad[0xE0]; struct T *pt; int isPlaced; void *currentSpare; };   /* PROXY; isPlaced (inferred) */
 int RateProxySpare(struct S *p, void *pa);
 void *GetProxySpareFromCopyIndex(struct S *p, int i);
 /** @sly2-annot addr=0x1CADE0
@@ -1049,15 +1049,15 @@ void *GetProxySpareFromCopyIndex(struct S *p, int i);
  * @end-sly2-annot */
 // Picks the best-rated spare with a rating of at least minRating (keeping the current one when it qualifies); null
 // when none does.
-void *ChooseProxySpare(struct S *proxy, int vMin)
+void *ChooseProxySpare(struct S *proxy, int minRating)
 {
     int i, v, vBest;
     void *pv, *pvBest;
-    if (proxy->xE4 == 0 && proxy->xE8) {
-        if (RateProxySpare(proxy, proxy->xE8) < 3) return 0;
-        pvBest = proxy->xE8;
+    if (proxy->isPlaced == 0 && proxy->currentSpare) {
+        if (RateProxySpare(proxy, proxy->currentSpare) < 3) return 0;
+        pvBest = proxy->currentSpare;
     } else {
-        vBest = vMin;
+        vBest = minRating;
         pvBest = 0;
         for (i = proxy->pt->i0; i < proxy->pt->c; i++) {
             pv = GetProxySpareFromCopyIndex(proxy, i);
@@ -1233,9 +1233,9 @@ extern "C" void EnsureProxyCopy(PROXY *proxy)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB360 {
 struct R { int a[4]; R(int c, int f, void **ap) __asm__("BuildSpliceListFromUniformValues"); };
-struct N { int x0; N *pnext; };
-struct T { int x0; void **ap; };
-struct S { char pad[0xE0]; T *xE0; int pad2; N *xE8; };
+struct N { int unknown0; N *pnext; };   /* a held spare */
+struct T { int unknown0; void **ap; };   /* the proxy source: its copies' objects */
+struct S { char pad[0xE0]; T *source; int pad2; N *firstSpare; };
 extern "C" {
 int IcopyFromPspare__FP5PROXYP10PROXYSPARE(S *p, N *pn);
 R GetProxyCopyObjects(S *p);
@@ -1253,9 +1253,9 @@ R GetProxyCopyObjects(S *proxy)
     void *ap[0x20];
     unsigned int c = 0;
     N *pn;
-    for (pn = proxy->xE8; pn && c < 0x20; pn = pn->pnext) {
+    for (pn = proxy->firstSpare; pn && c < 0x20; pn = pn->pnext) {
         int i = IcopyFromPspare__FP5PROXYP10PROXYSPARE(proxy, pn);
-        ap[c++] = proxy->xE0->ap[i];
+        ap[c++] = proxy->source->ap[i];
     }
     return R(c, 0x2002, ap);
 }
@@ -1329,9 +1329,9 @@ void LO_ResetForProxy(struct S *object, struct A *pa)
 namespace M_func_001CB518 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x24 - 0x10]; struct LO *x24; };
-struct Q { char pad[0xDC]; int xDC; };
-struct S { char pad[0x64]; struct LO *x64; char p1[0xCC - 0x68]; int xCC; char p2[0xE8 - 0xD0]; struct Q *xE8; };
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x24 - 0x10]; struct LO *nextSibling; };
+struct Q { char pad[0xDC]; int needsPathzone; };   /* (inferred) */
+struct S { char pad[0x64]; struct LO *firstChild; char p1[0xCC - 0x68]; int unknownCC; char p2[0xE8 - 0xD0]; struct Q *physics; };
 void LO_ResetForProxy(struct S *p, int n);
 void SetSoZapMode(struct S *p, int n);
 qword GetLoWorldPos(void *p);
@@ -1355,16 +1355,16 @@ void SetSoPhysRegion(struct S *p, void *pv);
 void SO_ResetForProxy(struct S *object, int n)
 {
     struct LO *plo;
-    int f;
+    int needsPathzone;
     LO_ResetForProxy(object, n);
     SetSoZapMode(object, 0);
-    object->xCC = -1;
-    f = 0;
-    if (object->xE8) f = object->xE8->xDC;
-    if (f) {
+    object->unknownCC = -1;
+    needsPathzone = 0;
+    if (object->physics) needsPathzone = object->physics->needsPathzone;
+    if (needsPathzone) {
         SetSoPhysRegion(object, FindPathzoneAtPos(GetLoWorldPos(object), 1));
     }
-    for (plo = object->x64; plo; plo = plo->x24)
+    for (plo = object->firstChild; plo; plo = plo->nextSibling)
         ((void (*)(void *, int))plo->vt[26].pf)((char *)plo + plo->vt[26].d, n);
 }
 } } // namespace M_func_001CB518

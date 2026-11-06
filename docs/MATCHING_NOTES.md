@@ -521,14 +521,23 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
 
-## 2026-11 readability pass 2 (core / platform / app): what the compiler does not let go
+## 2026-11 readability pass 2: what the compiler does not let go
+Patterns from the second readability pass over each subsystem. Free everywhere: enum constants for magic numbers (Splice tags,
+parser states, buffer sizes, slot and bit constants, result codes), whitespace/layout (clang-format on a function range),
+renaming locals/fields of TU-private views, and switching a type name of a view used only under C linkage or by a global
+variable.
+
 - **Single-exit gotos often stay.** Replacing `goto done;` with an early `return` changed codegen in FInvertMatrix (the
   return duplicates STACKSCOPE's cleanup), func_0011F198, OSTRM::CbWrite and RefOpFindBindingOrNoop (a second copy of the
-  return expression changes allocation/layout). A goto *back* to a loop head (FindBspLeafContainingPointFast) and a goto
-  *into* a case (RefOpMult's int/float multiply) did become a `for (;;)` and two plain cases.
+  return expression changes allocation/layout). Goto layouts that share tails across switch cases or jump into a common
+  cleanup/`done` label (MsgFromMcError, McJobCreateSave, load_file_from_disc) do not survive a structured rewrite either:
+  `break` + a re-test of the result, or per-case `return`s, reorder blocks (40-90% differ). A goto *back* to a loop head
+  (FindBspLeafContainingPointFast) and a goto *into* a case (RefOpMult's int/float multiply) did become a `for (;;)` and two
+  plain cases.
+- **`again: ... goto again` search loops keep their shape** (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)`
+  or a reset of the iterator moves the loop test.
+- **A `goto skip` around one call becomes an `if` only with the assignment in the condition**
+  (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
 - **`*(*pp)++ = x` is not `T **slot = (*pp)++; *slot = x;`** (CollectBspSurfacesTouchingPolygon): the temp form fixes the
   evaluation order the target has; keep it.
 - **Register-pinned constants** (Startup's colours) do not survive as plain stores.
-- Free: enum constants for magic numbers (Splice tags, parser states, buffer sizes), whitespace/layout (clang-format on a
-  function range), renaming locals/fields of TU-private views, and switching a type name of a view used only under C
-  linkage or by a global variable.

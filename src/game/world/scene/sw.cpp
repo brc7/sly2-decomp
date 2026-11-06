@@ -50,11 +50,11 @@ SWG D_003DD490;
 /* D_003E1C20: four words built at startup (a table header {0, D_002C3EB8, 0, D_003E1C60}). */
 struct O1C20
 {
-    int x0;
-    void *x4;
-    int x8;
-    void *xC;
-    O1C20() { x0 = 0; x4 = D_002C3EB8; x8 = 0; xC = D_003E1C60; }
+    int unknown0;
+    void *table0;
+    int unknown8;
+    void *table1;
+    O1C20() { unknown0 = 0; table0 = D_002C3EB8; unknown8 = 0; table1 = D_003E1C60; }
 };
 O1C20 D_003E1C20;
 
@@ -82,39 +82,39 @@ void RemoveGrfusr(int grf);
 LO *PloFindSwObject(SW *world, int grffso, OID oid, LO *plo);
 
 namespace M_SW_ctor {
-struct DL {void *first,*last;int offset;};
-struct POOL {int bytes,count,alignment;void *first;int extra[2];};
+struct DL {void *oidBuckets,*last;int offset;};
+struct POOL {int bytes,count,alignment;void *oidBuckets;int extra[2];};
 struct F2 {float x,y;};struct F3 {float x,y,z;};
 struct SW {
-    void * a;
-    void * b;
+    void * frame;
+    void * sidebag;
     char unknown8[0x4];
     void * vt;
-    DL list10;
+    DL childList;
     char unknown1C[0x4];
-    DL list20;
-    DL list2C;
-    DL first[512];
-    DL third[512];
-    DL second[199];
-    POOL pool398C;
+    DL busyRootList;
+    DL inWorldRootList;
+    DL oidBuckets[512];
+    DL proxyBuckets[512];
+    DL classBuckets[199];
+    POOL lorootPool;
     char unknown39A4[0x4C];
     DL list39F0;
     POOL pool39FC;
     char unknown3A14[0xEC];
-    DL list3B00;
+    DL activeTaskList;
     char unknown3B0C[0xC4];
-    DL list3BD0;
-    DL list3BDC;
+    DL exclusiveWidgetList;
+    DL deferredWidgetList;
     char unknown3BE8[0x98];
-    int n3C80;
+    int unknown3C80;
     char unknown3C84[0x4];
-    int n3C88;
-    int n3C8C;
+    int unknown3C88;
+    int unknown3C8C;
     POOL pool3C90;
     DL list3CA8;
     POOL pool3CB4;
-    int n3CCC;
+    int unknown3CCC;
     char unknown3CD0[0x10];
     POOL pool3CE0;
     POOL pool3CF8;
@@ -130,22 +130,22 @@ struct SW {
     POOL pool3DC4;
     DL list3DDC;
     POOL pool3DE8;
-    int n3E00;
+    int unknown3E00;
     char unknown3E04[0xC];
-    F3 triple;
+    F3 illumHsv;
     char unknown3E1C[0x4];
-    float f3E20;
-    int n3E24;
+    float fieldOfView;
+    int unknown3E24;
     char unknown3E28[0x1C];
     POOL pool3E44;
     char unknown3E5C[0x8];
-    float f3E64;
-    float f3E68;
-    float f3E6C;
+    float shadowLight0;
+    float shadowLight1;
+    float shadowLight2;
     char unknown3E70[0x3C];
-    DL list3EAC;
+    DL poctlList;
     char unknown3EB8[0x58];
-    int n3F10;
+    int unknown3F10;
     char unknown3F14[0x10];
     DL list3F24;
     DL list3F30;
@@ -160,12 +160,12 @@ struct SW {
     DL list3F9C;
     DL list3FA8;
     DL list3FB4;
-    DL list3FC0;
-    DL list3FCC;
+    DL cid98List;
+    DL targetrecList;
     DL list3FD8;
-    DL list3FE4;
-    DL list3FF0;
-    DL list3FFC;
+    DL cid21List;
+    DL cid23List;
+    DL stimulusList;
     POOL pool4008;
     char unknown4020[0x1C];
     POOL pool403C;
@@ -175,31 +175,31 @@ struct SW {
     POOL pool4088;
     POOL pool40A0;
     POOL pool40B8;
-    POOL pool40D0;
+    POOL jsgPool;
     POOL pool40E8;
-    DL list4100;
-    DL list410C;
+    DL shadowList;
+    DL saaList;
     POOL pool4118;
     DL list4130;
-    POOL pool413C;
+    POOL xfhPool;
     char unknown4154[0x400];
-    int n4554;
+    int unknown4554;
     char unknown4558[0x38];
-    char tags[0x20];
-    DL list45B0;
-    DL list45BC;
+    char unknown45A0[0x20];
+    DL freeCid14List;
+    DL pendingCid14List;
     char unknown45C8[0x8];
-    F3 coefficients;
+    F3 fogCoefficients;
     char unknown45DC[0x4];
-    F2 range;
+    F2 fogRange;
     char unknown45E8[0x60];
-    POOL pool4648;
-    POOL pool4660;
+    POOL leapPool;
+    POOL diractPool;
     char unknown4678[0xC8];
-    int n4740;
+    int unknown4740;
     char unknown4744[0xC];
-    float f4750;
-    float f4754;
+    float unknown4750;
+    float unknown4754;
 };
 extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sly2/sw.h) */
 extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
@@ -208,8 +208,8 @@ extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void InitSl(DL *,int);
 extern "C" int GetMaxRipSize(void);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
-/* The world names (g_apchzWorld, the save-variable key of each world's progress), defined first: the strings are
-   the first of sw's .rodata (a definition's literals are emitted with it) and the table lies in the first part of
+/* The world names (g_apchzWorld, the save-variable key of each world's progress), defined oidBuckets: the strings are
+   the oidBuckets of sw's .rodata (a definition's literals are emitted with it) and the table lies in the oidBuckets part of
    .rodata, with the objects' named constants in TU order (.rodata.early, tu-merging.md "Phase 6"). Asm-labelled:
    the declaration below (non-const pointers) is what the functions see. */
 namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39E8") __attribute__((section(".rodata.early"))) =
@@ -225,115 +225,115 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
  * @end-sly2-annot */
 // SW constructor (the global g_sw): vtable, about 30 slot-heap pools, about 60 lists, the oid/class/proxy hash buckets,
 // the default illumination (HSV 180/255/255), fog and field-of-view defaults.
-extern "C" SW *SW_ctor(SW *p)
+extern "C" SW *SW_ctor(SW *world)
 {
-    p->a=0;p->b=0;p->vt=D_002DC018;
-    InitSlotheap(&p->pool398C,0x14,0x100,0x10);
-    InitSlotheap(&p->pool39FC,0x14,0x100,0x10);
-    InitSlotheap(&p->pool3C90,0x14,0x100,0x10);
-    InitSlotheap(&p->pool3CB4,0xc,0x200,0x10);
-    InitSlotheap(&p->pool3CE0,0x80,0x300,0x10);
-    InitSlotheap(&p->pool3CF8,0x14,0x400,0x10);
-    InitSlotheap(&p->pool3D40,0xc0,0x100,0x10);
-    InitSlotheap(&p->pool3D94,0x60,0x100,0x10);
-    InitSlotheap(&p->pool3DAC,0x80,0x400,0x10);
-    InitSlotheap(&p->pool3DC4,0x14,0x8,0x10);
-    InitSlotheap(&p->pool3DE8,0x50,0x80,0x10);
-    p->n3E00=0x80000000;
-    InitSlotheap(&p->pool3E44,0x30,0x40,0x10);
-    InitSlotheap(&p->pool4008,0x60,0x40,0x10);
-    InitSlotheap(&p->pool403C,0x1b0,0x10,0x10);
+    world->frame=0;world->sidebag=0;world->vt=D_002DC018;
+    InitSlotheap(&world->lorootPool,0x14,0x100,0x10);
+    InitSlotheap(&world->pool39FC,0x14,0x100,0x10);
+    InitSlotheap(&world->pool3C90,0x14,0x100,0x10);
+    InitSlotheap(&world->pool3CB4,0xc,0x200,0x10);
+    InitSlotheap(&world->pool3CE0,0x80,0x300,0x10);
+    InitSlotheap(&world->pool3CF8,0x14,0x400,0x10);
+    InitSlotheap(&world->pool3D40,0xc0,0x100,0x10);
+    InitSlotheap(&world->pool3D94,0x60,0x100,0x10);
+    InitSlotheap(&world->pool3DAC,0x80,0x400,0x10);
+    InitSlotheap(&world->pool3DC4,0x14,0x8,0x10);
+    InitSlotheap(&world->pool3DE8,0x50,0x80,0x10);
+    world->unknown3E00=0x80000000;
+    InitSlotheap(&world->pool3E44,0x30,0x40,0x10);
+    InitSlotheap(&world->pool4008,0x60,0x40,0x10);
+    InitSlotheap(&world->pool403C,0x1b0,0x10,0x10);
     int chosen=GetMaxRipSize();
     chosen=chosen?chosen:0xF0;
-    InitSlotheap(&p->pool4054,chosen,0x80,0x10);
-    InitSlotheap(&p->pool4070,0x460,0x28,0x10);
-    InitSlotheap(&p->pool4088,0x10c0,0x80,0x40);
-    InitSlotheap(&p->pool40A0,0x560,0x8,0x10);
-    InitSlotheap(&p->pool40B8,0x1c,0x200,0x10);
-    InitSlotheap(&p->pool40D0,0xf0,0x20,0x10);
-    InitSlotheap(&p->pool40E8,0x10,0x10,0x10);
-    InitSlotheap(&p->pool4118,0x60,0x20,0x10);
-    InitSlotheap(&p->pool413C,0x30,0x10,0x10);
-    InitSlotheap(&p->pool4648,0x40,0x10,0x10);
-    InitSlotheap(&p->pool4660,0xd0,0x10,0x10);
-    InitDl__FP2DLi(&p->list10,0x24);
-    InitDl__FP2DLi(&p->list20,0x4);
-    InitDl__FP2DLi(&p->list2C,0xC);
-    InitDl__FP2DLi(&p->list3D10,0x48);
-    InitDl__FP2DLi(&p->list3D1C,0x40);
-    InitDl__FP2DLi(&p->list3D28,0x50);
-    InitDl__FP2DLi(&p->list3D34,0x58);
-    InitDl__FP2DLi(&p->list3D88,0x24);
-    InitSl(&p->list39F0,0x10);
-    InitSl(&p->list3CA8,0x10);
-    InitDl__FP2DLi(&p->list3F24,0xE0);
-    InitDl__FP2DLi(&p->list3F30,0x1B4);
-    InitDl__FP2DLi(&p->list3F3C,0x1B4);
-    InitDl__FP2DLi(&p->list3F48,0x104);
-    InitDl__FP2DLi(&p->list3F54,0x174);
-    InitDl__FP2DLi(&p->list3F60,0x1B4);
-    InitDl__FP2DLi(&p->list3F6C,0x104);
-    InitDl__FP2DLi(&p->list3F78,0x104);
-    InitDl__FP2DLi(&p->list3F84,0x104);
-    InitDl__FP2DLi(&p->list3F90,0xE0);
-    InitDl__FP2DLi(&p->list3FA8,0x154);
-    InitDl__FP2DLi(&p->list3F9C,0x100);
-    InitDl__FP2DLi(&p->list3DDC,0x1C);
-    InitDl__FP2DLi(&p->list3FFC,0x58);
-    InitDl__FP2DLi(&p->list3FB4,0xFE0);
-    InitDl__FP2DLi(&p->list3FC0,0x174);
-    InitSl(&p->list3EAC,0x84);
-    InitSl(&p->list4100,0x18);
-    InitSl(&p->list410C,0x40);
-    InitDl__FP2DLi(&p->list4130,0x50);
-    InitDl__FP2DLi(&p->list3FCC,0x20);
-    InitDl__FP2DLi(&p->list3FD8,0x104);
-    InitDl__FP2DLi(&p->list45B0,0x1D0);
-    InitDl__FP2DLi(&p->list45BC,0x1E0);
-    InitDl__FP2DLi(&p->list3B00,0x88);
-    InitDl__FP2DLi(&p->list3FE4,0xE0);
-    InitDl__FP2DLi(&p->list3FF0,0x130);
-    InitDl__FP2DLi(&p->list3BD0,0xB4);
-    InitSl(&p->list3BDC,0x4C);
+    InitSlotheap(&world->pool4054,chosen,0x80,0x10);
+    InitSlotheap(&world->pool4070,0x460,0x28,0x10);
+    InitSlotheap(&world->pool4088,0x10c0,0x80,0x40);
+    InitSlotheap(&world->pool40A0,0x560,0x8,0x10);
+    InitSlotheap(&world->pool40B8,0x1c,0x200,0x10);
+    InitSlotheap(&world->jsgPool,0xf0,0x20,0x10);
+    InitSlotheap(&world->pool40E8,0x10,0x10,0x10);
+    InitSlotheap(&world->pool4118,0x60,0x20,0x10);
+    InitSlotheap(&world->xfhPool,0x30,0x10,0x10);
+    InitSlotheap(&world->leapPool,0x40,0x10,0x10);
+    InitSlotheap(&world->diractPool,0xd0,0x10,0x10);
+    InitDl__FP2DLi(&world->childList,0x24);
+    InitDl__FP2DLi(&world->busyRootList,0x4);
+    InitDl__FP2DLi(&world->inWorldRootList,0xC);
+    InitDl__FP2DLi(&world->list3D10,0x48);
+    InitDl__FP2DLi(&world->list3D1C,0x40);
+    InitDl__FP2DLi(&world->list3D28,0x50);
+    InitDl__FP2DLi(&world->list3D34,0x58);
+    InitDl__FP2DLi(&world->list3D88,0x24);
+    InitSl(&world->list39F0,0x10);
+    InitSl(&world->list3CA8,0x10);
+    InitDl__FP2DLi(&world->list3F24,0xE0);
+    InitDl__FP2DLi(&world->list3F30,0x1B4);
+    InitDl__FP2DLi(&world->list3F3C,0x1B4);
+    InitDl__FP2DLi(&world->list3F48,0x104);
+    InitDl__FP2DLi(&world->list3F54,0x174);
+    InitDl__FP2DLi(&world->list3F60,0x1B4);
+    InitDl__FP2DLi(&world->list3F6C,0x104);
+    InitDl__FP2DLi(&world->list3F78,0x104);
+    InitDl__FP2DLi(&world->list3F84,0x104);
+    InitDl__FP2DLi(&world->list3F90,0xE0);
+    InitDl__FP2DLi(&world->list3FA8,0x154);
+    InitDl__FP2DLi(&world->list3F9C,0x100);
+    InitDl__FP2DLi(&world->list3DDC,0x1C);
+    InitDl__FP2DLi(&world->stimulusList,0x58);
+    InitDl__FP2DLi(&world->list3FB4,0xFE0);
+    InitDl__FP2DLi(&world->cid98List,0x174);
+    InitSl(&world->poctlList,0x84);
+    InitSl(&world->shadowList,0x18);
+    InitSl(&world->saaList,0x40);
+    InitDl__FP2DLi(&world->list4130,0x50);
+    InitDl__FP2DLi(&world->targetrecList,0x20);
+    InitDl__FP2DLi(&world->list3FD8,0x104);
+    InitDl__FP2DLi(&world->freeCid14List,0x1D0);
+    InitDl__FP2DLi(&world->pendingCid14List,0x1E0);
+    InitDl__FP2DLi(&world->activeTaskList,0x88);
+    InitDl__FP2DLi(&world->cid21List,0xE0);
+    InitDl__FP2DLi(&world->cid23List,0x130);
+    InitDl__FP2DLi(&world->exclusiveWidgetList,0xB4);
+    InitSl(&world->deferredWidgetList,0x4C);
     unsigned int i=0;
-    for(;i<512;i++)InitSl(&p->first[i],0x1C);
-    F3 *triple=&p->triple;
-    F2 *range=&p->range;
-    F3 *coefficients=&p->coefficients;
-    char *tags=p->tags;
-    DL *list=p->second;
+    for(;i<512;i++)InitSl(&world->oidBuckets[i],0x1C);
+    F3 *hsv=&world->illumHsv;
+    F2 *range=&world->fogRange;
+    F3 *coefficients=&world->fogCoefficients;
+    char *unknownBytes=world->unknown45A0;
+    DL *list=world->classBuckets;
     for(int n=198;n>=0;n--,list++)InitSl(list,0x20);
     i=0;
-    for(;i<512;i++)InitSl(&p->third[i],12);
+    for(;i<512;i++)InitSl(&world->proxyBuckets[i],12);
     float upper=D_002C3E6C;
     float lower=D_002C3E68;
     float end=D_002C3E64,start=D_002C3E60;
-    p->triple.x=180.0f;
-    triple->y=255.0f;
-    triple->z=255.0f;
-    p->n3C80=-1;
-    p->f3E20=90.0f;
-    p->f3E64=128.0f;
-    p->f3E68=96.0f;
-    p->f3E6C=160.0f;
-    p->n3C88=393;
-    p->n3C8C=-1;
-    p->n3CCC=1;
-    p->range.x=upper;
-    p->n3F10=-2;
-    p->n3E24=0;
+    world->illumHsv.x=180.0f;
+    hsv->y=255.0f;
+    hsv->z=255.0f;
+    world->unknown3C80=-1;
+    world->fieldOfView=90.0f;
+    world->shadowLight0=128.0f;
+    world->shadowLight1=96.0f;
+    world->shadowLight2=160.0f;
+    world->unknown3C88=393;
+    world->unknown3C8C=-1;
+    world->unknown3CCC=1;
+    world->fogRange.x=upper;
+    world->unknown3F10=-2;
+    world->unknown3E24=0;
     range->y=lower;
     float slope=(upper-lower)/(end-start);
     float intercept=(end*lower-start*upper)/(end-start);
-    p->coefficients.x=intercept;
+    world->fogCoefficients.x=intercept;
     coefficients->y=slope;
     coefficients->z=0.0f;
-    p->n4740=-1;
-    p->f4750=-60.0f;
-    p->f4754=-60.0f;
-    p->n4554=1;
-    func_002333B4(tags,-1,0x20);
-    return p;
+    world->unknown4740=-1;
+    world->unknown4750=-60.0f;
+    world->unknown4754=-60.0f;
+    world->unknown4554=1;
+    func_002333B4(unknownBytes,-1,0x20);
+    return world;
 }
 } // namespace M_SW_ctor
 
@@ -373,7 +373,7 @@ int IsSwTransitionBusy(void) { if (g_sw.fTransitionPending != 0) return 1; retur
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
-struct S { char pad[0x3B18]; int h3B18; };
+struct S { char pad[0x3B18]; int jobHandle; };   /* the level's running job (AbortJob) (inferred) */
 extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
@@ -404,9 +404,9 @@ void DeleteSw(struct S *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (world->h3B18) {
-        AbortJob(world->h3B18);
-        world->h3B18 = 0;
+    if (world->jobHandle) {
+        AbortJob(world->jobHandle);
+        world->jobHandle = 0;
     }
     ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
@@ -435,13 +435,13 @@ void DeleteSw(struct S *world)
 
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };
-struct H { int a; int b; int c; int d; int e; int f; char dl[0x10]; };
+struct H { int unknown0; int unknown4; int unknown8; int unknownC; int unknown10; int unknown14; char dl[0x10]; };
 struct S {
-    char pad0[0x3BF4]; int fl3BF4;
-    char pad1[0x3CD4 - 0x3BF8]; void *a3CD4[3];
-    char pad2[0x3E38 - 0x3CE0]; int n3E38;
-    char pad3[0x3F0C - 0x3E3C]; struct H *ph; char pad4[0x3F20 - 0x3F10]; void *p3F20;
-    char pad5[0x45E8 - 0x3F24]; char a45E8[2][0x28];
+    char pad0[0x3BF4]; int levelFlags;
+    char pad1[0x3CD4 - 0x3BF8]; void *workBuffers[3];
+    char pad2[0x3E38 - 0x3CE0]; int unknown3E38;
+    char pad3[0x3F0C - 0x3E3C]; struct H *loadHeader; char pad4[0x3F20 - 0x3F10]; void *largeWorkBuffer;
+    char pad5[0x45E8 - 0x3F24]; char renderTargets[2][0x28];   /* sw.h artgt */
 };
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
@@ -471,29 +471,29 @@ void InitSwLoadBuffers(struct S *world)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        world->a3CD4[i] = AllocFromWorldHeap(&msg);
+        world->workBuffers[i] = AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    world->p3F20 = AllocClearedFromWorldHeap(&msg);
+    world->largeWorkBuffer = AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    world->ph = (__typeof__(world->ph))AllocClearedFromWorldHeap(&msg);
-    world->ph->a = -1;
-    world->ph->c = -1;
-    InitSl(world->ph->dl, 0x14);
+    world->loadHeader = (__typeof__(world->loadHeader))AllocClearedFromWorldHeap(&msg);
+    world->loadHeader->unknown0 = -1;
+    world->loadHeader->unknown8 = -1;
+    InitSl(world->loadHeader->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        InitRenderTargets(world->a45E8[j], &zpr);
-    if (world->fl3BF4 & 0x20)
-        world->n3E38 = 1;
+        InitRenderTargets(world->renderTargets[j], &zpr);
+    if (world->levelFlags & 0x20)
+        world->unknown3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
 } } // namespace M_func_0020E180
 
 namespace M_func_0020E2B0 { extern "C" {
-struct O { char pad[0xB8]; int nB8; char p2[0xC]; int nC8; };
-struct S { char pad[0x3E5C]; int n; };
+struct O { char pad[0xB8]; int priority; char p2[0xC]; int unknownC8; };   /* an MS object; priority (inferred): the largest wins */
+struct S { char pad[0x3E5C]; int mainMsUnknownC8; };
 int CploFindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
 void SetLoVisMask(struct O *o, int n);
 /** @sly2-annot addr=0x20E2B0
@@ -507,20 +507,20 @@ void SetLoVisMask(struct O *o, int n);
 // it visible to every camera mask. (inferred)
 void SelectSwMainMs(struct S *world)
 {
-    struct O *apo[16];
-    int c = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, apo);
-    int nMax = 0;
-    struct O *poBest = 0;
+    struct O *found[16];
+    int numFound = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
+    int maxPriority = 0;
+    struct O *best = 0;
     int i;
-    for (i = 0; i < c; i++) {
-        if (apo[i]->nB8 > nMax) {
-            nMax = apo[i]->nB8;
-            poBest = apo[i];
+    for (i = 0; i < numFound; i++) {
+        if (found[i]->priority > maxPriority) {
+            maxPriority = found[i]->priority;
+            best = found[i];
         }
     }
-    if (poBest) {
-        world->n = poBest->nC8;
-        SetLoVisMask(poBest, 0xFF);
+    if (best) {
+        world->mainMsUnknownC8 = best->unknownC8;
+        SetLoVisMask(best, 0xFF);
     }
 }
 } } // namespace M_func_0020E2B0
@@ -528,8 +528,8 @@ void SelectSwMainMs(struct S *world)
 namespace M_func_0020E338 {
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
  virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
-class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int x54; char p2[8]; float g60; float g64; int p68; int n6C; };
-struct S { char pad[0x3E60]; O *o; };
+class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
+struct S { char pad[0x3E60]; O *screenTint; };
 extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 /** @sly2-annot addr=0x20E338
  * Purpose: PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60
@@ -541,12 +541,12 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
 extern "C" void CreateSwScreenTint(S *world)
 {
-    world->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    world->o->g60 = 0.1f;
-    world->o->g64 = 0.25f;
-    world->o->x54 = 0x80200000;
-    world->o->n6C = 1;
-    world->o->V9();
+    world->screenTint = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->screenTint->param60 = 0.1f;
+    world->screenTint->param64 = 0.25f;
+    world->screenTint->flags = 0x80200000;
+    world->screenTint->unknown6C = 1;
+    world->screenTint->V9();
 }
 } // namespace M_func_0020E338
 
@@ -713,9 +713,9 @@ namespace M_PostSwLoad { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
 struct S {
-    char pad0[0x39D0]; int n39D0; int pad39D4; int n39D8; int pad39DC; struct O **ppoFirst; struct O **ppoLast;
-    char pad1[0x403C - 0x39E8]; char a403C[0x18]; char a4054[0x1C]; char a4070[0x18]; char a4088[4];
-    char pad2[0x45CC - 0x408C]; void *p45CC;
+    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
+    char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
+    char pad2[0x45CC - 0x408C]; void *unknown45CC;
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void PrimeSlotheap(void *p);
@@ -749,10 +749,10 @@ void BroadcastGameEvent(void *p, int a, int b);
 void PostSwLoad(struct S *world)
 {
     struct O **ppo;
-    PrimeSlotheap(world->a403C);
-    PrimeSlotheap(world->a4054);
-    PrimeSlotheap(world->a4070);
-    PrimeSlotheap(world->a4088);
+    PrimeSlotheap(world->pool403C);
+    PrimeSlotheap(world->pool4054);
+    PrimeSlotheap(world->pool4070);
+    PrimeSlotheap(world->pool4088);
     CreateSwScreenTint(world);
     SelectSwMainMs(world);
     ClearSwSpliceTable(world);
@@ -771,9 +771,9 @@ void PostSwLoad(struct S *world)
     }
     world->ppoLast = 0;
     world->ppoFirst = 0;
-    world->n39D8 = 0;
-    world->n39D0 = 0;
-    BuildPathzoneLinkLists(world->p45CC);
+    world->loadBuffer1 = 0;
+    world->loadBuffer0 = 0;
+    BuildPathzoneLinkLists(world->unknown45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -1128,7 +1128,7 @@ typedef union { qword q; float f; } U;
 typedef struct { float x, y, z; } V3;
 typedef union { qword q; V3 v; } UV;
 extern char D_002BBB60[];
-struct S { char pad[0x3D5C]; int n3D5C; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float f3E20; float f3E24; V3 rgb; float f3E34; int f3E38; };
+struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
 void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
 void func_001ED2D8(UV *pv);
 float GLimitLm__FP2LMf(void *p, float g);
@@ -1155,17 +1155,17 @@ void UpdateSwIllum(struct S *world)
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
-        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->f3E20 * k));
+        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->midtone * k));
         u.q = qwuqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     func_001ED2D8(&out);
     world->rgb = out.v;
-    world->f3E34 = world->f3E24 * k;
-    if (world->f3E38)
-        world->f3E34 = GLimitLm__FP2LMf(D_002BBB60, world->f3E34 + 0.3f);
-    world->n3D5C++;
+    world->shadowScale = world->shadow * k;
+    if (world->isShadowLimited)
+        world->shadowScale = GLimitLm__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
+    world->illumChangeCount++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -1404,8 +1404,8 @@ namespace M_func_0020F710 { extern "C" {
 extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
-struct E { int x; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n4764; int n4768; };
+struct E { int widget; int pad[2]; };
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int unknown4768; };   /* sw.h cClue */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
@@ -1429,22 +1429,22 @@ void BindSwTimerHud(struct S *world)
     l.d = 1.0f;
     l.a = 1.0f;
     for (i = 0; i < 4; i++) {
-        int x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
-        if (x) {
-            SetWidgetXf(x, &l);
-            world->ae[i].x = x;
+        int widget = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
+        if (widget) {
+            SetWidgetXf(widget, &l);
+            world->ae[i].widget = widget;
         }
     }
-    world->n4764 = CountCollectedClues();
-    world->n4768 = GetMaxClueCount();
+    world->clueCount = CountCollectedClues();
+    world->unknown4768 = GetMaxClueCount();
 }
 } } // namespace M_func_0020F710
 
 namespace M_func_0020F7E0 { extern "C" {
-struct F8 { char pad[0x14]; float v; };
-struct O { char pad[0xF8]; struct F8 *pf8; };
-struct E { struct O *po; float v; int f; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float t476C; int n4770; };
+struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
+struct O { char pad[0xF8]; struct F8 *anim; };
+struct E { struct O *widget; float velocity; int isHidden; };
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float tCountdownEnd; int lastSecond; };
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
@@ -1472,27 +1472,27 @@ void UpdateSwTimerHud(struct S *world)
     z = t;
     for (i = 0; i < 4; i++) {
         struct E *e = &world->ae[i];
-        struct O *o = e->po;
+        struct O *o = e->widget;
         if (!o || !FWidgetVisible(o)) {
-            e->f = 1;
+            e->isHidden = 1;
             continue;
         }
-        if (e->f) {
-            o->pf8->v = t;
-            e->v = 0.0f;
-            e->f = 0;
+        if (e->isHidden) {
+            o->anim->value = t;
+            e->velocity = 0.0f;
+            e->isHidden = 0;
         } else {
-            o->pf8->v = GSmoothA__FffffP4SMPAPf(o->pf8->v, e->v, t, D_002C3E88, &e->v, D_002DDED0.dt);
+            o->anim->value = GSmoothA__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.dt);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float d = -D_002DDED0.t + world->t476C;
+            float remaining = -D_002DDED0.t + world->tCountdownEnd;
             int n;
-            d = (0.0f > d) ? 0.0f : d;
-            n = (int)d;
-            if (n != world->n4770) {
+            remaining = (0.0f > remaining) ? 0.0f : remaining;
+            n = (int)remaining;
+            if (n != world->lastSecond) {
                 SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
-                world->n4770 = n;
+                world->lastSecond = n;
             }
         }
     }
@@ -2309,7 +2309,7 @@ extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
 }
 
 namespace M_func_002109D0 { extern "C" {
-struct X { char pad[8]; int x8; char padc[0x2C]; int x38; };
+struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. FOpenSaveIconFile) */
 extern int D_003E1C38;
 struct X *GetLevelFileRecord(int i);
 static inline int FEqual(struct X *a, struct X *b)
@@ -2318,7 +2318,7 @@ static inline int FEqual(struct X *a, struct X *b)
         return 1;
     if (!a || !b)
         return 0;
-    return (a->x8 ^ a->x38) == (b->x8 ^ b->x38);
+    return (a->sectorKey ^ a->sectorXor) == (b->sectorKey ^ b->sectorXor);
 }
 /** @sly2-annot addr=0x2109D0
  * Purpose: Index of level whose file record equals arg, else -1
@@ -2474,12 +2474,12 @@ extern "C" FILEREC *PrecWorldEntry(int nWorld)
 
 namespace M_func_00210BE0 { extern "C" {
 typedef struct { char *pch; char *pchOut; } ENT;
-typedef struct { int c; ENT *a; int x8; int xC; } TBL;
+typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
-extern struct G { char pad[0x4640]; int f; } D_003DD490;
+extern struct G { char pad[0x4640]; int isLocalized; } D_003DD490;   /* (inferred) nonzero when a language table is loaded */
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
 extern char *PchzFindSwLangstr__FP2SWi(struct G *, char *);
-extern int func_0021ED28(char *) __asm__("strlen");
+extern int strlen_(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
 /** @sly2-annot addr=0x210BE0
@@ -2491,16 +2491,16 @@ extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 // Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
 void LocalizeSwStringTable(TBL *table)
 {
-    ALLOC al;
+    ALLOC heap;
     int i;
-    if (D_003DD490.f == 0)
+    if (D_003DD490.isLocalized == 0)
         return;
-    __11CLinearHeapiPUc(&al, table->x8, table->xC);
+    __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
         ENT *e = &table->a[i];
         e->pchOut = PchzFindSwLangstr__FP2SWi(&D_003DD490, e->pch);
-        if (func_0021ED28(e->pchOut))
-            e->pchOut = PchzAllocCopy__FP4HEAPPci(&al, e->pchOut, 4);
+        if (strlen_(e->pchOut))
+            e->pchOut = PchzAllocCopy__FP4HEAPPci(&heap, e->pchOut, 4);
         else
             e->pchOut = 0;
     }
