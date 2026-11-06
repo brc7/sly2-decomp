@@ -1278,6 +1278,8 @@ extern "C" { void *func_001AE1D0(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
+// Inline helper Max: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
@@ -1311,6 +1313,8 @@ struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *func_001AE238(struct MSG *pmsg, void *pv);
+// Inline helper PvReallocMsg: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
@@ -2365,6 +2369,8 @@ struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -2389,6 +2395,8 @@ struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -2460,6 +2468,8 @@ struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -2897,6 +2907,8 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP
 extern "C" {
 /* memset: sly2/classes.h's declaration */
 }
+// Inline helper GrfUpdateLo: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -4843,6 +4855,8 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
 float func_001FCFD0(struct G *pg, int n);
+// Inline helper GClamp: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
@@ -4921,6 +4935,9 @@ qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
 }
+// Inline helpers Sub, ToVU, X, Y, Z, Root, LengthXY: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
@@ -5355,6 +5372,8 @@ struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
+// Inline helper ByteOffset: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
 void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
@@ -5601,6 +5620,8 @@ qword func_0011BFF0(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
+// Inline helpers X, Y, Z: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
+// compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }

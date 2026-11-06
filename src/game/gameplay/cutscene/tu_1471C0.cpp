@@ -265,10 +265,15 @@ union VECTOR4V;
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } VU_VECTOR(const VECTOR4V &v); };
 struct VU_VECTOR4 { qwordV q; VU_VECTOR4() {} VU_VECTOR4(qwordV a) { q = a; } VU_VECTOR4(const VECTOR4F &v) { q = *(qwordV *)&v; } };
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Inline helper VU_VECTOR: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 inline VU_VECTOR::VU_VECTOR(const VECTOR4V &v) { q = v.q; }
 VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
 static inline qwordV operator*(VU_FLOAT f, VU_VECTOR v)
 { qwordV r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
+// Inline helpers SetStq, SetRgba, SetXyz, IFix, Screen: small vector/scalar wrappers (a few VU0/EE instructions in asm,
+// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
 static inline void SetRgba(GIFS *pgifs, const int &rgba) { PackRGBA__4GIFSUi(pgifs, rgba); }
 static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { PackXYZ__4GIFSiii(pgifs, x, y, z); }

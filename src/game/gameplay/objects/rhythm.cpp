@@ -523,6 +523,8 @@ float CRichText_Dx(FONT *pf);
 void func_002163B0(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
 }
+// Inline helper GMaxR: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 // Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions,
 // highlights the expected one, animates a hint marker. (inferred)
@@ -729,6 +731,8 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *po)
     }
 }
 
+// Inline helper GLerp: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Score = lerp(D_002BBB60 range, 1 - |t - tCue| / window), window = early(+0x58) or late(+0x5C).
 float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *q)
@@ -761,6 +765,8 @@ void AddRhythmScore(RHYTHMMGR *manager, float g)
     BroadcastGameEvent(D_002DEB30, 0x36, manager);
 }
 
+// Inline helper Max: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int Max(int a, int b) { return a < b ? b : a; }
 // Average of the last n (+0x280) scores clamped to lm.
 float GetAverageRhythmScore(RHYTHMMGR *manager)

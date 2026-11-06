@@ -208,6 +208,9 @@ extern "C" void UpdateTurretAim(TURRETV *turret){
 // VU helpers of UpdateTurretZoom: load/move into a VU register, difference, length (as float or as raw bits),
 // transpose-rotate by a 3x3 matrix, and the position of a value inside an LM range (Fraction) and back (Blend).
 static inline qword LoadVF(const qword &value){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(value));return r;}
+// Inline helpers ToVF, Difference, Length, OffsetLength, InverseRotate, Fraction, Blend: small vector/scalar wrappers
+// (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice matches
+// the original; the names say what they compute.
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
 static inline float Length(qword d){qword r;float f;

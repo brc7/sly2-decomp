@@ -314,6 +314,8 @@ void CID82::Init()
     psplmiss->svMax = 1500.0f;
 }
 
+// Inline helper Scale: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
 // CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch
 // velocity. (inferred)
@@ -378,6 +380,8 @@ extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 
 // Lanes y and z of a 128-bit EE register as floats; vtable slot 33 (GetVelocity).
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
+// Inline helpers Z, Velocity: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of

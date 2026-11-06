@@ -309,6 +309,9 @@ struct SIDE { struct { int x0; SOV *p; } *po; int x4; SOV *x8; SOV *pOther; char
 struct EDGE { SIDE as[2]; qwordV v80; char pad[0xC]; int k9C; char pad2[0xC]; EDGE *pNext; };
 struct LN { EDGE *pe; LN *pNext; };
 struct SCALAR {qwordV q;};
+// Inline helpers InitScalar, ScaleS, Neighbor, SideAt, CoefficientAt: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
@@ -398,6 +401,8 @@ int IsHealthExtractor(CID100V *gadget) {
 // Orient an active linked object toward its target in the horizontal plane.
 // VU helpers of the probes: move/load into VU registers, difference, horizontal projection, length, lane x.
 static inline qwordV ToVF(qwordV a) { qwordV r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
+// Inline helpers Read, Sub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qwordV Read(const qwordV &a) { qwordV r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
 static inline qwordV Sub(qwordV a,qwordV b) { qwordV r;__asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 // Removes the component of d along the up axis (projects d onto the horizontal plane).
@@ -407,11 +412,15 @@ static inline qwordV Flatten(qwordV d,qwordV up) {
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(t) : "j"(up),"j"(t));
     return Sub(d,t);
 }
+// Inline helper DotSelf: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qwordV DotSelf(qwordV d) { qwordV len,one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(len),"=&j"(one) : "j"(d));return len; }
 // Square root of lane x.
 static inline qwordV Sqrt(qwordV len) {
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(len));return len; }
+// Inline helpers X, ScaleQ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float X(qwordV v) { float f;__asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(v));return f; }
 static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
@@ -453,15 +462,22 @@ extern "C" void OrientTossableToTarget(CID100V *gadget) {
 // - MkVuk*/ScaleK/AddScaledK take their scalar as a by-value struct TEMPORARY: that temp is the shared 0x60($sp)
 //   home of the original (sqc2 vf,0x60 / qmfc2+sq 0x60), so there is no separate `scalar` local.
 static inline qwordV SubP(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Inline helpers AddP, CrossXYZ, QwDot: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qwordV AddP(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qwordV CrossXYZ(qwordV a,qwordV b){__asm__("vopmula.xyz ACC,%1,%0\n\tvopmsub.xyz %0,%0,%1":"+j"(b):"j"(a));return b;}
 static inline qwordV QwDot(qwordV a, qwordV b){qwordV qw;qwordV vfOne;
  __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));return qw;}
 // the extra "j"(qw) is allocation-only: it makes qw a VU-class pseudo, so the compiler's qmfc2 comes from the dot result (vf1)
 static inline float GXOfQw(qwordV qw){float x;__asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));return x;}
+// Inline helpers DotP, BitsOfFloat: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float DotP(qwordV a,qwordV b){return GXOfQw(QwDot(a,b));}
 static inline int BitsOfFloat(float f){int n;__asm__("mfc1 %0,%1":"=r"(n):"f"(f));return n;}
 struct VUK{qwordV q;};
+// Inline helpers MkVukBits, MkVuk, ScaleK, AddScaledK, Clamp, Get, Set, Pin: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline VUK MkVukBits(int n){VUK r;__asm__("qmtc2.ni %1,%0":"=j"(r.q):"r"(n));return r;}
 static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));return r;}
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
@@ -519,6 +535,8 @@ void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV en
  }
 }
 
+// Inline helpers VAdd, VSub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 struct COLLA { XFV *pb; };
@@ -560,6 +578,9 @@ extern "C" void DropTossable(CID100V *gadget, float f)
 // Transition actor controller state.
 /* not volatile, unlike OrientTossableToTarget's ToVF */
 static inline qwordV ToVFN(qwordV v){qwordV r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
+// Inline helpers SubT, Normalize, LengthT: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qwordV SubT(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 static inline qwordV Normalize(qwordV v){qwordV len,one,result;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
@@ -585,6 +606,8 @@ static inline SOV *FindNearest(CID100V *gadget,int count,SOV **objects,SOV *near
    if(distance<best){best=distance;nearest=object;}
   }
 return nearest;}
+// Inline helper MakeBasis: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
  qwordV v=rawUp,len,one,normalized;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));

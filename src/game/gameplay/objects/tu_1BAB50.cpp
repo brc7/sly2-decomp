@@ -111,6 +111,8 @@ void *func_001AE318M(MSG *pmsg) __asm__("PvAllocSlot__FP8ALLOCREQ");
 struct XPC;
 int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
+// Inline helper PvAllocMsg: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
 // CID 98 vtable slot 7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
@@ -120,6 +122,8 @@ extern "C" void InitBreakable(TRIG *breakable) {
     func_001F7918(breakable, 0x80001, 0);
 }
 
+// Inline helpers Alloc, AllocB, Realloc: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
 static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }

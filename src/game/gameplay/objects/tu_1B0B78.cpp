@@ -286,6 +286,8 @@ extern "C" int TakeCritterDamage(CID96V *critter, A96 *pa)
     return r;
 }
 
+// Inline helper ClearV: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
 // CID 96 vtable slot 17: in states 2-3 clear child velocities and call vtable slot 70, then SO vtable slot 17. (inferred)
 extern "C" void UpdateCritterXfWorld(CID96V *critter)
@@ -394,19 +396,31 @@ void UpdateCritterPathFollow(CID96V *critter)
 // Leaving states -1/0/2/3 restores the group's default action; entering a state sets up its velocity, mode, timers or
 // effect; afterwards the new state, its time stamp and (except for state 2) the state's animation entry are recorded.
 struct WORK{U first,second,direction,velocity,scalar;float angle,parameter;};
+// Inline helpers SetVelocity, SetZeroVelocity: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline void SetVelocity(CID96V*critter,qwordV q){VTE&v=critter->pvt[35];((void(*)(void*,qwordV))v.pfn)((char*)critter+v.d,q);}
 static inline void SetZeroVelocity(CID96V*critter){SetVelocity(critter,D_002A2DD0.q);}
 // broadcast a float into a VU register and keep the scratch store the original left in `home`
 static inline qwordV SplatInto(float f,U*home){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));home->q=q;return q;}
+// Inline helper ScaleX: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qwordV ScaleX(qwordV a,qwordV s){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
 // length of a vector, in two steps (sum of squares, then sqrt) so the stores/loads of the callers can sit between them
 static inline qwordV LengthV(qwordV v){qwordV d,one;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));return d;}
+// Inline helper FloatOf: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline float FloatOf(qwordV a){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
 // v * (1/n.x); the "memory" clobbers (here and on LEN1M/LEN2M) keep the surrounding loads/stores in source order
 static inline qwordV DivBy(qwordV v,qwordV n){qwordV r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(n),"j"(v):"memory");return r;}
+// Inline helper SplatBits: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 #define LEN1M(d,one,v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v):"memory")
 #define LEN2M(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d): :"memory")
+// Inline helpers Call, SetMode, GetMatrix: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline void Call(CID96V*critter,int index){VTE&v=critter->pvt[index];((void(*)(void*))v.pfn)((char*)critter+v.d);}
 static inline void SetMode(CID96V*critter){VTE&v=critter->pvt[47];((void(*)(void*,int))v.pfn)((char*)critter+v.d,4);}
 static inline M4*GetMatrix(CID96V*critter){VTE&v=critter->pvt[31];return ((M4*(*)(void*))v.pfn)((char*)critter+v.d);}
