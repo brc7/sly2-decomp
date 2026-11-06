@@ -1068,8 +1068,9 @@ Known limits: the ELF has no symbol table, so a definition that is too short pas
 checked (only named symbols). Our compiler puts a const object with a dynamic initializer in .bss, where the original
 has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` carry
 `__attribute__((section(".rodata")))` for it (see "Resolved decisions" under Data). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
-by any TU, and the end of .bss from about 0x4421A0 is not in TU order (hud, frm, memcard, mpeg, thread mixed, likely
-common symbols): do not define data there by layout (phase 3 defines them as commons, "Phase 3: address names").
+by any TU. The end of .bss from 0x4421A0 was taken for commons (phase 3); it is in TU order up to 0x452098 and is
+defined by layout since phase 7 ("Phase 7: .bss and data gaps"); only the class and template statics after it and
+in `.sbss` are commons.
 
 Phase 1 over the merged TUs (branch data/phase-2, 2026-11-05): 96 files, 660 data symbols newly defined (survey kinds:
 192 floats, 109 16-byte vectors, 76 float pairs, 115 int/float tables and records, 105 .bss objects, 25 strings, 20
@@ -1079,8 +1080,8 @@ it adds the symbol_addrs.txt line; add `size:` by hand). Most other clear names 
 directories also declare, so naming waits for the merges (survey phase 5). Refinements of the steps above:
 
 - **What to leave out.** `.bss` addresses inside g_sw (0x3DD490..0x3E1C20) are SW fields, not objects (ms's "first
-  glob owner", the slot heaps of tu_1709A8/tu_20B840/noise/frm, light's lists). End of `.bss` from 0x4421A0, the
-  splice pool words in `.sbss`/0x4520xx and the `.bss` around 0x3DD0E4..0x3DD190 (cd, menu entries between sound and
+  glob owner", the slot heaps of tu_1709A8/tu_20B840/noise/frm, light's lists). End of `.bss` from 0x4421A0 (in TU order after
+  all: phase 7), the splice pool words in `.sbss`/0x4520xx and the `.bss` around 0x3DD0E4..0x3DD190 (cd, menu entries between sound and
   sprbuf) are not in TU order: not defined. Also left: vtables, class rows, engine tables, PMF constants (literal
   phase), records and tables holding function pointers (pointer phase: cheat's CODEs, menu's items, tu_15CD68's label
   tables, draw's pass hooks), the shared constant block 0x2A2D00..0x2A2E10 (identity matrices, unit/zero vectors right
@@ -1393,8 +1394,8 @@ Rules found:
 
 - **Commons.** g++ 2.95 emits an uninitialized class static data member or template static data member as COMMON
   (`C` in nm), and C tentative definitions are commons; GNU ld allocates commons at the end of `.bss` (small ones in
-  `.sbss`). That is why `.bss` from 0x4421A0 mixes hud, prog, frm, memcard, mpeg, thread, xf, 989snd and libkernel,
-  and why the splice pool words 0x2DD280.. / 0x4520xx are not in TU order. Defined as commons with the address name:
+  `.sbss`). That is why the splice pool words 0x2DD280.. / 0x4520xx are not in TU order. (The `.bss` from 0x4421A0
+  to 0x452098, taken here for commons too, is in TU order: corrected in phase 7.) Defined as commons with the address name:
   `struct COMMONS_<tu> { static T c_X __asm__("D_X"); }; T COMMONS_<tu>::c_X;` at the end of one referencing TU (C:
   `T c_X[n] __asm__("D_X");`), sized by the gap to the next name; a common takes its type's alignment (int/char
   arrays 8, `qword` 16, `__attribute__((aligned))` is ignored), so 16-aligned starts with a 16-multiple size are
@@ -1640,6 +1641,88 @@ Nothing was reverted for changing codegen. Left then: class_registry (its litera
 objects' in the ELF: 112 `.text` bytes of %hi/%lo) and 3 bytes of a jump-table word in serialize's PpairSerializeIn;
 both fixed on link/crt0-block ("class_registry" below; the jump table had its case labels rotated). throw keeps its private
 3-float CLQ view (`CLQV`, types/views-3); D_002C40F0 is defined as the 16-byte record under its asm label.
+
+### Phase 7: .bss and data gaps (branch data/bss-gaps, 2026-11-06)
+
+Goal: no `.bss`/`.sbss` byte the real link leaves to an address assignment, and fewer `.data`/`.rodata` bytes cut
+from the ELF (full-link.md, "Data no object defines"). Measured with tools/link.py: `.bss` gap bytes 487,824 (20
+assignments) -> 60,772 (6); "data no object defines" 437,056 -> 432,760; 0 differing bytes; config names at their
+address 7,402 -> 7,561, all right. 31 game sources touched, every function and data symbol MATCH; nm: only the
+data symbols below changed (defined, or common -> `.bss`, or a common dropped where the owner now defines it);
+relocations 29,704 OK / 0 mismatched; symcheck: 41 unresolved as before, 0 duplicate strong definitions.
+
+**The end of `.bss` is in TU order (a correction of phase 3).** GNU ld puts commons of 8 bytes or less in `.sbss`
+(`-G 8`, its default for MIPS), so the 4-byte words at 0x4425D0.. (prog's, frm's, memcard's thread ids) cannot be
+commons. Read as `.bss` in TU order the range fits: hud (0x3E1C70..0x4425D0), thread (0x4425D0..0x4435F0),
+tu_2275B8 (g_subtitle, ..0x443740), wipe (..0x4437A0), xf (..0x443800), then the SDK libraries' `.bss` in library
+order (989snd 0x443800, libkernel, libgcc, libdma, libcdvd, libpad, libmc, libmpeg, collect2 0x452080). The commons
+are the class and template statics only: `.sbss` and 0x452098.. (`s_aptPage`, `s_pool`). Every `COMMONS_<tu>` entry
+for 0x4421A0..0x443800 is now a `.bss` definition in the owning TU; the `.sbss` and 0x4520xx commons stay.
+
+Rules found:
+
+- **Spelling.** Definitions under their asm label in a `BSS_<tu>` namespace at the end of the file (or at the
+  declaration where the file already defines its `.bss` there): the names are declared nowhere else, so g++'s
+  first-declaration order for uninitialized objects ("Phase 5") is the block's order, and the declarations the
+  functions see stay as they are (no codegen change in any file). Where a hand-written StaticInit constructs the
+  object (hud's CLinearHeap, level heap and STRINGGEN table) or the type has a constructor g++ would add to the
+  generated initializer (tu_2275B8's RGBA), the definition is constructor-less storage of the layout (the file's
+  POD view, or a TU-local struct): a constructor would make g++ generate initialization code.
+- **Words other TUs name inside one object.** thread's id table (main, render, memcard, mpeg, 4 spare) is spelled
+  as separate words because frm, memcard and mpeg name its elements and an array element at 4 mod 8 cannot be a
+  separate array (arrays and records are 8-aligned); hud's `D_004435F4` (g_subtitle's colour) is an interior
+  (`base_D_004435F0 + 4`, phase 3 form), which kept hud's code. A later views pass can make the words interiors.
+- **Alignment shows in the section size.** GNU as rounds a section's size up to its alignment, so one
+  `aligned(128)` on phasemem's first heap places it at 0x2F7980 and also fills phasemem's tail up to prog's `.bss`
+  (0x3D3988..0x3D3A00): both gaps, one attribute. Also: cd's sector buffer `aligned(64)` (sceCdRead DMAs into it),
+  memcard's thread stack `aligned(64)`, g_gs (save) and screen's list head `aligned(16)`. Each is a choice that
+  fits the layout, noted at the definition (as in phase 5).
+- **Sizes from the layout and the code.** The palette TUs' BMP descriptor is 0x28 bytes (both TUs show the same 8
+  bytes after it); cheat's spare record 0x38 = one CODE; tu_1A4E08's STEPQ 0x1C8 = the gap exactly; g_gs is 0x5408
+  (the copies in save.cpp move that many bytes), so screen's 16-byte alignment, not a bigger SVSET, closes the gap.
+
+`.bss` defined (owner by layout; the users in brackets where the owner does not name it):
+
+| TU | objects |
+|---|---|
+| hud | D_003E1C70 (CLinearHeap, LINEAR view), D_003E1C80 (level heap, HEAP view), D_003E1C88 (STRINGGEN[108]), D_003E21A0 (the heap's 0x60000-byte buffer, qword array), D_004421A0..D_004425A0 (10 buffers only hud names; former commons) |
+| thread | D_004425D0/D4/D8/DC (thread ids: main [prog], render [frm], memcard, mpeg), D_004425E0 (4 spare), D_004425F0 (render stack 0x1000; D_00443268, which libkernel's sceSifLoadFileReset named, is D_0044C268: %lo is negative; fixed there) |
+| tu_2275B8 | D_004435F0 (g_subtitle 0x150: the SPEAKERLABEL, then 0x144 bytes no code names) [relay, sound, hud, mpeg, mode, letterbox] |
+| xf | D_004437A0 (transform stack depth), D_004437A8 (stack, 22 words) |
+| joy | D_002E0D00 (the second JOY, joy.h) |
+| jt | D_002E1E00 (the invulnerability word, 0x40 by layout: between joy's two JOYs and g_pjt; owner a choice) [po, hurt, tu_17F090, game] |
+| render, tu_1D7238, save | D_003D4A50 (RPL cursor), D_003D4A54 (the PO subclass's self pointer), D_003D4A60 (g_gs, SVSET) |
+| cheat | D_002DDE88 (a CODE no code names), D_002DDEC0 (the code list) [joy, screen] |
+| difficulty, letterbox, tu_1A4E08 | D_002DE578 (DIFFICULTY), D_002E1E60 (LETTERBOX), D_002E1E88 (STEPQ) |
+
+`.data`/`.rodata` defined: emitter's shared defaults D_002BDDF0..D_002BDE70 (the head of its `.data`; the two
+0x40-byte records and the EMITV2 as words, their payloads do not fit emitter.h's EMITV field names); cheat's 15
+codes (each a 6-button sequence and a 0x20-byte record: in `.data` the record is 0x20, not CODE's 0x38); language's
+25 name strings and their table D_002BFC08 (no code reads them); tu_15CD68's label rows, their pointer tables and
+the movie key tables (D_002BE200 by chapter, D_002BE248 by episode, whose last word was the gap word D_002BE268)
+with the 22 FILEREC keys they point at (0x2A3268.., `.rodata.early`); game's keys D_002A37E8/D_002A3828 and
+memcard's icon key D_002A38E8 (`.rodata.early`); sw's world-name table D_002A39E8 (`.rodata.early`, its strings
+first in sw's `.rodata`); font's font table D_002BE320; frm's frame count D_002BE538 (frm or game by layout: frm
+chosen); tu_185130's D_002BE918 (asm-labelled, the extern const declaration is a codegen device); render's two
+vectors D_002C1F00/D_002C1F10; vifs's `s_mpupkcb` D_002C4430; joy's button-bit table D_002BE970 and tu_1BC050's
+24 words D_002C0AC8 (no code names either; by layout).
+
+Left (full-link.md, "Data no object defines"):
+
+- `.bss` 60,772: the SDK libraries' `.bss` and the commons after it (0x443800..0x452200, 59,904: the SDK objects
+  build on the Mac only; 989snd's commons in the sources that build here interleave across sources, so 989snd's
+  `.bss` needs its one-TU form first), `.sbss` commons 148 (ld allocates them; no section), 384 before tu_1147D8
+  (_start's or the crt0_splicewrap TU's: class_registry, left to data/crt0-tables), 256 after emitter (0xC0
+  unnamed bytes and D_002DE720/D_002DE750: the defaults emitter.h's inline accessors fall back on, likely guarded
+  local statics; layout unknown), 80 between sound and sprbuf (not in TU order, phase 1).
+- data: the palette block 0x29A800..0x2A2900 (33,024: tu_1147D8's tail glyph table, tu_114AE0's CLUT header, a
+  32 KB bitmap and its BMP header; game artwork like the built-in font: same decision); the shared constant block
+  0x2A2D00 (336, owner undecided); crt0_splicewrap's `.data`/`.rodata` and the vtables (data/crt0-tables,
+  data/vtables); SDK `.rodata` 0x2AA100 (10,084) and 989snd's `.data` 0x2C4640 (128): Mac; dynarray's records
+  0x2BBA78 (248, function pointers into dynarray: with the vtables); small ones: 0x2A3A10 (32, after sw's world
+  table), 0x2A40F8 (40, FLT_MAX/"Nil"/"<unknown>" after class_registry's `.rodata`), 0x2A43A0 ("#DBG"/"%4d"),
+  0x2A76D8 and 0x2A8140 (-FLT_MAX/FLT_MAX literals no function of ours emits), 0x2A81B0 (".Kanji"), 0x2BFC98 (8
+  zero bytes after light).
 
 ## Linkage of namespace-scoped declarations
 

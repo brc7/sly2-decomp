@@ -19,6 +19,7 @@
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
 struct WIDGETV : public LO
@@ -3430,7 +3431,7 @@ extern "C" { extern WORLD D_003DD490; }
 extern "C" { extern STRINGGEN D_003E1C88[]; }
 extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
 extern "C" { extern char D_004435F0[]; }
-extern "C" { extern RGBA D_004435F4; }
+#define D_004435F4 (*(RGBA *)((char *)base_D_004435F0 + 4))   /* g_subtitle's colour (tu_2275B8's SPEAKERLABEL +0x4) */
 extern "C" { extern SCROLL D_003DA0C0; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const float D_002C40B8; }
@@ -5308,18 +5309,6 @@ struct COMMONS_hud {
     static int c_002DD2F0 __asm__("D_002DD2F0");   /* .sbss 0x4 */
     static int c_002DD2F4 __asm__("D_002DD2F4");   /* .sbss 0x4 */
     static int c_002DD318 __asm__("D_002DD318");   /* .sbss 0x4 */
-    static qword c_004421A0 __asm__("D_004421A0");   /* .bss 0x10 */
-    static qword c_004421B0[6] __asm__("D_004421B0");   /* .bss 0x60 */
-    static qword c_00442210[3] __asm__("D_00442210");   /* .bss 0x30 */
-    static qword c_00442240[39] __asm__("D_00442240");   /* .bss 0x270 */
-    static qword c_004424B0[2] __asm__("D_004424B0");   /* .bss 0x20 */
-    static qword c_004424D0[2] __asm__("D_004424D0");   /* .bss 0x20 */
-    static qword c_004424F0[3] __asm__("D_004424F0");   /* .bss 0x30 */
-    static qword c_00442520[4] __asm__("D_00442520");   /* .bss 0x40 */
-    static qword c_00442560[4] __asm__("D_00442560");   /* .bss 0x40 */
-    static qword c_004425A0[3] __asm__("D_004425A0");   /* .bss 0x30 */
-    static int c_004435F0 __asm__("D_004435F0");   /* .bss 0x4 */
-    static int c_004435F4[83] __asm__("D_004435F4");   /* .bss 0x14C */
     static int c_004520D0[6] __asm__("D_004520D0");   /* .bss 0x18 */
     static int c_004520F8[4] __asm__("D_004520F8");   /* .bss 0x10 */
     static qword c_00452120 __asm__("D_00452120");   /* .bss 0x10 */
@@ -5333,18 +5322,6 @@ int COMMONS_hud::c_002DD2EC;
 int COMMONS_hud::c_002DD2F0;
 int COMMONS_hud::c_002DD2F4;
 int COMMONS_hud::c_002DD318;
-qword COMMONS_hud::c_004421A0;
-qword COMMONS_hud::c_004421B0[6];
-qword COMMONS_hud::c_00442210[3];
-qword COMMONS_hud::c_00442240[39];
-qword COMMONS_hud::c_004424B0[2];
-qword COMMONS_hud::c_004424D0[2];
-qword COMMONS_hud::c_004424F0[3];
-qword COMMONS_hud::c_00442520[4];
-qword COMMONS_hud::c_00442560[4];
-qword COMMONS_hud::c_004425A0[3];
-int COMMONS_hud::c_004435F0;
-int COMMONS_hud::c_004435F4[83];
 int COMMONS_hud::c_004520D0[6];
 int COMMONS_hud::c_004520F8[4];
 qword COMMONS_hud::c_00452120;
@@ -5517,3 +5494,30 @@ float D_002C40AC = 788864.0f;
 float D_002C40B0 = 788240.0f;
 float D_002C40B4 = 788720.0f;
 float D_002C40B8 = 0.25f;
+
+// ---- hud's .bss in address order (tu-merging.md "Data": .bss gaps): 0x3E1C70..0x4425D0, the first .bss after sw's
+// in TU order. StaticInit_hud keeps its hand-written form and constructs the first three objects at run time, so
+// they are defined here as constructor-less storage of their layout (a constructor would make g++ generate an
+// initializer of its own): the CLinearHeap (LINEAR view, 0x10), the level-heap object (HEAP view, 8) and the
+// 108-entry STRINGGEN table (12-byte records). The heap's 0x60000-byte buffer is a qword array (16-aligned, as
+// 0x3E21A0 after the table's end 0x3E2198 shows), then the buffers only hud names (former commons; sizes are the
+// gaps to the next name, 16-aligned qword arrays). Uninitialized objects without a constructor are emitted at the
+// end of the file in first-declaration order: the asm-labelled names below are declared nowhere else, so their
+// order is this block's; what the functions see are the extern declarations above.
+namespace BSS_hud {
+struct STRINGGENREC { int id; void (*get)(char *, void *, void *); void *context; };
+M_StaticInit_hud::LINEAR b_003E1C70 __asm__("D_003E1C70");
+M_StaticInit_hud::HEAP b_003E1C80 __asm__("D_003E1C80");
+STRINGGENREC b_003E1C88[108] __asm__("D_003E1C88");
+qword b_003E21A0[0x60000 / 16] __asm__("D_003E21A0");
+qword b_004421A0 __asm__("D_004421A0");
+qword b_004421B0[6] __asm__("D_004421B0");
+qword b_00442210[3] __asm__("D_00442210");
+qword b_00442240[39] __asm__("D_00442240");
+qword b_004424B0[2] __asm__("D_004424B0");
+qword b_004424D0[2] __asm__("D_004424D0");
+qword b_004424F0[3] __asm__("D_004424F0");
+qword b_00442520[4] __asm__("D_00442520");
+qword b_00442560[4] __asm__("D_00442560");
+qword b_004425A0[3] __asm__("D_004425A0");
+}

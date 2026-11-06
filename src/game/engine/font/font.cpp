@@ -118,6 +118,11 @@ struct FRM;
 
 extern "C" {
 extern FD *D_002BE320[];
+/* The two registered fonts (font's .data, first): their descriptors in the palette TUs' blocks (tu_1147D8's at
+   0x29A7A8, tu_114AE0's at 0x2A28E8; those blocks are still blobs). Asm-labelled, so the declaration above is what
+   the functions see. */
+namespace FONT_DATA { extern "C" char d_0029A7A8[] __asm__("D_0029A7A8"), d_002A28E8[] __asm__("D_002A28E8");
+FD *r_D_002BE320[2] __asm__("D_002BE320") = {(FD *)d_0029A7A8, (FD *)d_002A28E8}; }
 unsigned char D_002BE328[2] = {'0', '2'};   /* the font-escape characters of the two fonts (font's .data) */
 int D_002BE32C = -8, D_002BE330 = -8;   /* gap words before the glyph-key table: no code reads them by these addresses */
 /* Character code to glyph key (font's .data): identity for 0..0x7F, Windows-1252 to Unicode for 0x80..0xFF (65533 =

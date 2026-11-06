@@ -50,7 +50,7 @@ struct MCSTATUSG
    constructor (no code) to keep them ahead of the dialogs. Asm labels: the view declarations need not agree. */
 namespace BSS_memcard {
 template <int N> struct BUF { char ab[N]; BUF() {} };
-BUF<0x4000> d_002E2080 __asm__("D_002E2080");   /* the memcard thread's stack (stackSize 0x4000) */
+BUF<0x4000> d_002E2080 __asm__("D_002E2080") __attribute__((aligned(64)));   /* the memcard thread's stack (stackSize 0x4000; 64-aligned by layout: 0x2E2080 after main's words at 0x2E2050..0x2E205C) */
 BUF<0x480> d_002E6080 __asm__("D_002E6080");    /* sceMcGetDir table (ENTs), cleared as 0x480 bytes */
 BUF<0x50> d_002E6500 __asm__("D_002E6500");     /* directory path */
 }
@@ -2813,11 +2813,8 @@ extern "C" inline void func_00258248(FILEKEY *pfk)
 // functions' own literals, pooled per TU, so they are spelled as literals where they are used (tu-merging.md
 // "Phase 6: one link mode"); the pointer-to-member records are defined among the functions (RO_ORDER).
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_memcard {
-    static int c_004425D8 __asm__("D_004425D8");   /* .bss 0x4 */
-};
-int COMMONS_memcard::c_004425D8;
+// ---- memcard's .rodata.early (tu-merging.md "Phase 6"): the FILEREC key of the save icon file (FOpenSaveIconFile,
+// load_file_from_disc), between tu_1A4E08's keys and menu's in TU order. Asm-labelled: the declarations above stay.
+namespace MEMCARD_KEYS {
+extern const unsigned int r_D_002A38E8[16] __asm__("D_002A38E8") __attribute__((section(".rodata.early"))) = {0xBD87DF12, 0xE9F4E46C, 0x0E45625C, 0x8F049FCC, 0x478171EA, 0x9B7A071D, 0x844C0FEE, 0x53E2403F, 0xC179D2D6, 0xD52DEF52, 0x5842CD0B, 0x2190978E, 0xC22AC32F, 0xBD961318, 0x0E456593, 0xE9F48034};
+}

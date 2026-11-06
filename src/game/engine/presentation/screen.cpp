@@ -53,7 +53,7 @@ template <int CB> struct SCRCTOR
     SCRCTOR(void *(*pfnCtor)(void *)) { pfnCtor(this); }
     ~SCRCTOR() { func_00258348(this, 2); }
 };
-SCRLIST D_003D9E70;
+SCRLIST D_003D9E70 __attribute__((aligned(16)));   /* 16-aligned by layout: 0x3D9E70 after g_gs (save, 0x5408 bytes from 0x3D4A60) */
 SCRINL<0x50> D_003D9E80(D_002D8668);    /* HUD meter */
 SCRINL<0x1F0> D_003D9ED0(D_002D37D0);   /* pause menu */
 SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */

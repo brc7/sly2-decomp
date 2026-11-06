@@ -55,7 +55,8 @@ extern char D_002F66B0[];
 extern CLOCK D_002DDED0;
 extern int D_002BE248[];
 /* tu_15CD68's .data after its pointer tables (address order; the per-episode tables have 9 entries, the zero word
- * after each is alignment). The four pointer tables D_002BE080/D_002BE1B8/D_002BE200/D_002BE248 stay extern. */
+ * after each is alignment). The four pointer tables D_002BE080/D_002BE1B8/D_002BE200/D_002BE248 are defined with the
+ * .data block at the end. */
 extern int D_002BE26C;
 extern int D_002BE270;
 extern int D_002BE278[11];
@@ -532,9 +533,65 @@ extern "C" void func_0015DA88(char *pch, int f)
 }
 
 // ---- tu_15CD68's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-/* Gap word before D_002BE26C: a pointer to the 64-byte key at 0x2A37A8 (no code reads it by this address; whether
- * it starts tu_15CD68's .data or ends a table of the TU before is not known: the section has to start 8-aligned). */
-namespace TU_15CD68_DATA { extern char k_D_002A37A8[] __asm__("D_002A37A8"); char *r_D_002BE268 __asm__("D_002BE268") = k_D_002A37A8; }
+/* The file keys of the chapter and episode movies (22 FILEREC keys of 16 hashed words, .rodata.early: the first part
+ * of .rodata holds the objects' named constants in TU order, tu-merging.md "Phase 6"), then the head of the .data:
+ * the label-id rows of each episode's chapter list (0x30F, then the chapter labels, -1 / 0x539 ends) and of each
+ * chapter's sub-modes, their pointer tables (null-ended) and the movie key tables by chapter (D_002BE200) and by
+ * episode (D_002BE248; its last word, once the gap word D_002BE268, is the key at 0x2A37A8). */
+namespace TU_15CD68_DATA {
+extern const unsigned int k_D_002A3268[16] __asm__("D_002A3268") __attribute__((section(".rodata.early"))) = {0xDF6B2483, 0x6B9F9ABB, 0x08FD69ED, 0x95A4F717, 0xF0E7781D, 0x6257859D, 0x56747545, 0xDD3A6D77, 0xE648C499, 0x4C2A3B1F, 0x0396E8A0, 0xB8818BB9, 0x4F9E0A15, 0xDF6B2483, 0x08FD61EB, 0x68A25ABF};
+extern const unsigned int k_D_002A32A8[16] __asm__("D_002A32A8") __attribute__((section(".rodata.early"))) = {0x52EFBAFA, 0x07C8C7BC, 0x252D82F1, 0xC0739D99, 0x35F2B6A5, 0x15D2A742, 0x88D5AA9C, 0x80FF61D4, 0xFB3F6DC7, 0x5C02AB86, 0x9BECB23B, 0x49965DCA, 0x45952119, 0x52FC799E, 0x252D8528, 0x05A187B8};
+extern const unsigned int k_D_002A32E8[16] __asm__("D_002A32E8") __attribute__((section(".rodata.early"))) = {0x68D10E05, 0xE584F7AD, 0xA13C5077, 0xBDDD2C43, 0x56019216, 0x95FBEDFD, 0x2690D7E1, 0x3F47C14D, 0x6F5C5F18, 0x272ACA7A, 0x811E401B, 0x5B3E7C4E, 0x98ABEC42, 0x68D1D969, 0xA13C57AD, 0xE4C2B7A9};
+extern const unsigned int k_D_002A3328[16] __asm__("D_002A3328") __attribute__((section(".rodata.early"))) = {0x7B8C5103, 0xB9261EA3, 0xBA9C1A3C, 0x81A62285, 0x4990EB0D, 0x45EA5805, 0xACE4742F, 0xE78F2D97, 0xFA276B86, 0x1F022454, 0xA877DC63, 0x20B337FB, 0xFD231EDA, 0x7B987EDD, 0xBA9C1DE2, 0xBBA09EA7};
+extern const unsigned int k_D_002A3368[16] __asm__("D_002A3368") __attribute__((section(".rodata.early"))) = {0x8393AE47, 0xAE08DBC0, 0x5A66154F, 0xE5B3494B, 0x203D6BD0, 0x9DA6A460, 0x44812469, 0xE621F340, 0x3146C245, 0x516F8795, 0xBB9AB808, 0xC5D3E071, 0xBACA3C30, 0x8392F250, 0x5A661290, 0xAF3A1BC4};
+extern const unsigned int k_D_002A33A8[16] __asm__("D_002A33A8") __attribute__((section(".rodata.early"))) = {0xB35E7954, 0x9D016560, 0x991E2FC6, 0xE2944E62, 0x5AD1A916, 0xEB39EA26, 0x18B73CC6, 0xFE13916D, 0xC30EBB02, 0xEEA7471F, 0x00B6C2D4, 0x01856C51, 0x6BFF2993, 0xB35FA11D, 0x991E2825, 0x9F50A564};
+extern const unsigned int k_D_002A33E8[16] __asm__("D_002A33E8") __attribute__((section(".rodata.early"))) = {0xF6E586FB, 0xABC44DC6, 0x97996ED3, 0xBC42DDD6, 0x3DA121D3, 0x5E114891, 0xAF1B15A0, 0x4BD74DAC, 0x9FB1AAE4, 0x063AFBEB, 0x232B897C, 0xDFD96B62, 0x27CFDCF3, 0xF6E6C9DA, 0x97996937, 0xA9C08DC2};
+extern const unsigned int k_D_002A3428[16] __asm__("D_002A3428") __attribute__((section(".rodata.early"))) = {0x1BD0854D, 0x58004A04, 0x9BA3886D, 0xC2A02174, 0x18F7B0ED, 0xEE7A2748, 0x0A837715, 0x6DEAAAFB, 0xC380D4A1, 0xD59CFA19, 0xB6D724EB, 0xDC75F484, 0xD12070C5, 0x1BD36829, 0x9BA38F8A, 0x5AC44A00};
+extern const unsigned int k_D_002A3468[16] __asm__("D_002A3468") __attribute__((section(".rodata.early"))) = {0xDAE4E768, 0x59F7AA7A, 0xA20211C9, 0x77F7BD10, 0x89A7FBE1, 0xFD2ABB54, 0xB4B069C0, 0x1486F037, 0x0188AE1E, 0xBFAD6F6B, 0x751F506E, 0x9D36D03D, 0xD4FA7F2E, 0xDAE4665A, 0xA2021621, 0x58726A7E};
+extern const unsigned int k_D_002A34A8[16] __asm__("D_002A34A8") __attribute__((section(".rodata.early"))) = {0xD0594F27, 0x83CD72C7, 0x76031EB4, 0x52057BDD, 0x5CCAF729, 0x6ED913E5, 0x3ED2E6B7, 0x9D43386B, 0x1C62EAC6, 0x2EA59F06, 0x8E20CD7F, 0x1404D539, 0x2172DF26, 0xD04A01B5, 0x76031958, 0x81D732C3};
+extern const unsigned int k_D_002A34E8[16] __asm__("D_002A34E8") __attribute__((section(".rodata.early"))) = {0xE7950308, 0xB961FA2E, 0x94C97AC1, 0x4BE0E903, 0xC5DDC3EC, 0xBDB98D9F, 0xCF73B562, 0x96EAB42F, 0xC43AA178, 0x5631A449, 0xAE44388E, 0x8219E25E, 0x103307FE, 0xE78692D3, 0x94C97D2C, 0xB8EDBA2A};
+extern const unsigned int k_D_002A3528[16] __asm__("D_002A3528") __attribute__((section(".rodata.early"))) = {0xFEAD5571, 0x30C88360, 0x6FA0CE7D, 0x5ECEE233, 0xDB721C19, 0x92CC60A8, 0x38F28D26, 0x98E66A0D, 0x05F3911B, 0x5BCF1446, 0x8B5C4A8A, 0x0477CAC6, 0x3F11ADFF, 0xFEACD701, 0x6FA0C98C, 0x32664364};
+extern const unsigned int k_D_002A3568[16] __asm__("D_002A3568") __attribute__((section(".rodata.early"))) = {0xE19927BA, 0xBFDE4064, 0xB29CD3EB, 0xA90FBB92, 0x80E822F3, 0x49BCADC1, 0x5DA23E2E, 0x318886E3, 0x33DC53DD, 0x83BDE22B, 0x02A86DCF, 0x100B0E87, 0x70DEC7FE, 0xE197B985, 0xB29CD419, 0xBEAC4060};
+extern const unsigned int k_D_002A35A8[16] __asm__("D_002A35A8") __attribute__((section(".rodata.early"))) = {0x262AE876, 0xB321C3FC, 0xCF74FA83, 0xDE12E4ED, 0x18E62C4F, 0xA8D4A1BE, 0x39218BF1, 0xEC7AD5A0, 0x144A8898, 0x851F34CC, 0xF2077F54, 0x3AD90655, 0x420EE829, 0x2627B447, 0xCF74FD75, 0xB11EC3F8};
+extern const unsigned int k_D_002A35E8[16] __asm__("D_002A35E8") __attribute__((section(".rodata.early"))) = {0x9FCF580A, 0x5637293F, 0xAE85BBE1, 0x8F42A811, 0x4C132B88, 0x2D6125B6, 0x24C6B83E, 0x91FD238B, 0xEF7F0319, 0xE568EBCB, 0x1D62C0E7, 0x2620D12E, 0x00347DD9, 0x9FCCD7B0, 0xAE85BC16, 0x5782A93B};
+extern const unsigned int k_D_002A3628[16] __asm__("D_002A3628") __attribute__((section(".rodata.early"))) = {0xE754D2BB, 0x64308F29, 0x20410A13, 0x50E4DE2E, 0x5595DA6E, 0x6748A6D1, 0xEB7F2227, 0x0AE21F12, 0xBB5C692B, 0xDF23A8AB, 0x180C014F, 0x7D343070, 0x1C6C764A, 0xE756B240, 0x20410DE9, 0x6617CF2D};
+extern const unsigned int k_D_002A3668[16] __asm__("D_002A3668") __attribute__((section(".rodata.early"))) = {0xF34300CD, 0x62C8B72A, 0xCD3155A3, 0xE2407843, 0x42391232, 0xCB4CF85B, 0xA23C360D, 0x3D109399, 0x8BB813E1, 0xE7175EA9, 0x014ADF11, 0x4D2572B7, 0x8687081A, 0xF3578062, 0xCD315258, 0x67D5772E};
+extern const unsigned int k_D_002A36A8[16] __asm__("D_002A36A8") __attribute__((section(".rodata.early"))) = {0xF9357B52, 0x74E45683, 0x167D7C27, 0xCD6CBEBC, 0x6AF3AEA4, 0x3E7EFE73, 0xED6B2DDB, 0x1C849E78, 0x082AE65F, 0x7FA32252, 0x465194AC, 0xEB5095D6, 0x0626F862, 0xF938DF40, 0x167D742C, 0x77439687};
+extern const unsigned int k_D_002A36E8[16] __asm__("D_002A36E8") __attribute__((section(".rodata.early"))) = {0xE22832AA, 0x28311A97, 0x51A6328D, 0xBEF4BA15, 0xCEF9C58C, 0xE9777806, 0xB281D8B6, 0x6C43973F, 0x378BD5EA, 0x10425B16, 0x89679259, 0xB4332594, 0xBB664CAE, 0xE22B205D, 0x51A63A8F, 0x28A29A93};
+extern const unsigned int k_D_002A3728[16] __asm__("D_002A3728") __attribute__((section(".rodata.early"))) = {0x046F91DD, 0x02DF2856, 0x6D8C5949, 0x1A7B92F5, 0x79A9FF69, 0xD637157E, 0xFBF25B11, 0x452F908D, 0x2B945F2E, 0xC670BEBA, 0xB29AEB2C, 0x5A4256B0, 0xE2A509A6, 0x046FF664, 0x6D8C5E9D, 0x0214E852};
+extern const unsigned int k_D_002A3768[16] __asm__("D_002A3768") __attribute__((section(".rodata.early"))) = {0xA2288D31, 0x67790F0B, 0xBFA197FF, 0x01D92A1C, 0xC7AD5F4B, 0x42C1B029, 0x7D8D52CD, 0x8A437485, 0x777EFA2F, 0xF78C347B, 0xE03F9B2B, 0x45C4C88E, 0x20277FED, 0xA22641B1, 0xBFA19FFE, 0x73EECF0F};
+extern const unsigned int k_D_002A37A8[16] __asm__("D_002A37A8") __attribute__((section(".rodata.early"))) = {0x33196D54, 0x974DF04F, 0x863FD8FE, 0x5A59D97B, 0x1190E4E7, 0x1E2E1A9D, 0x80A3AF0D, 0xF8DAF931, 0xFCB26ACB, 0x9EE64849, 0x9C3C6526, 0xB9CA03F3, 0x89DCD288, 0x3308322D, 0x863FDF2B, 0x9429704B};
+}
+int D_002BDED0[12] = {0x30F, 0x582, 0x583, 0x584, 0x585, 0x586, 0x587, 0x588, -1, 0x589, -1, 0};
+int D_002BDF00[12] = {0x30F, 0x53A, 0x53B, 0x53C, 0x53D, 0x53E, 0x53F, 0x540, 0x541, 0x542, 0x539, 0};
+int D_002BDF30[12] = {0x30F, 0x543, 0x544, 0x545, 0x546, 0x547, 0x548, 0x549, 0x54A, 0x54B, 0x539, 0};
+int D_002BDF60[12] = {0x30F, 0x54C, 0x54D, 0x54E, 0x54F, 0x550, 0x551, 0x552, 0x553, 0x554, 0x539, 0};
+int D_002BDF90[12] = {0x30F, 0x555, 0x556, 0x557, 0x558, 0x559, 0x55A, 0x55B, 0x55C, 0x55D, 0x539, 0};
+int D_002BDFC0[12] = {0x30F, 0x55E, 0x55F, 0x560, 0x561, 0x562, 0x563, 0x564, 0x565, 0x566, 0x539, 0};
+int D_002BDFF0[12] = {0x30F, 0x567, 0x568, 0x569, 0x56A, 0x56B, 0x56C, 0x56D, 0x56E, 0x56F, 0x539, 0};
+int D_002BE020[12] = {0x30F, 0x570, 0x571, 0x572, 0x573, 0x574, 0x575, 0x576, 0x577, 0x578, 0x539, 0};
+int D_002BE050[12] = {0x30F, 0x579, 0x57A, 0x57B, 0x57C, 0x57D, 0x57E, 0x57F, 0x580, 0x581, 0x539, 0};
+int *D_002BE080[10] = {D_002BDED0, D_002BDF00, D_002BDF30, D_002BDF60, D_002BDF90, D_002BDFC0, D_002BDFF0, D_002BE020, D_002BE050, 0};
+int D_002BE0A8[4] = {0x58B, 0x58C, -1, 0};
+int D_002BE0B8[4] = {0x58D, 0x58E, 0x58F, 0};
+int D_002BE0C8[4] = {0x590, 0x591, 0x592, 0};
+int D_002BE0D8[4] = {0x593, 0x594, 0x595, 0};
+int D_002BE0E8[4] = {0x596, 0x597, 0x598, 0};
+int D_002BE0F8[4] = {0x599, 0x59A, 0x59B, 0};
+int D_002BE108[4] = {0x59C, 0x59D, 0x59E, 0};
+int D_002BE118[4] = {0x59F, 0x5A0, 0x5A1, 0};
+int D_002BE128[4] = {0x5A2, 0x5A3, 0x5A4, 0};
+int D_002BE138[4] = {0x5A5, 0x5A6, 0x5A7, 0};
+int D_002BE148[4] = {0x5A8, 0x5A9, 0x5AA, 0};
+int D_002BE158[4] = {0x5AB, 0x5AC, 0x5AD, 0};
+int D_002BE168[4] = {0x5AE, 0x5AF, 0x5B0, 0};
+int D_002BE178[4] = {0x5B1, 0x5B2, 0x5B3, 0};
+int D_002BE188[4] = {0x5B4, 0x5B5, 0x5B6, 0};
+int D_002BE198[4] = {0x5B7, 0x5B8, 0x5B9, 0};
+int D_002BE1A8[4] = {0x5BA, -1, 0x5BB, 0};
+int *D_002BE1B8[18] = {D_002BE0A8, D_002BE0B8, D_002BE0C8, D_002BE0D8, D_002BE0E8, D_002BE0F8, D_002BE108, D_002BE118, D_002BE128, D_002BE138, D_002BE148, D_002BE158, D_002BE168, D_002BE178, D_002BE188, D_002BE198, D_002BE1A8, 0};
+int D_002BE200[18] = {(int)TU_15CD68_DATA::k_D_002A3268, (int)TU_15CD68_DATA::k_D_002A32A8, (int)TU_15CD68_DATA::k_D_002A32E8, (int)TU_15CD68_DATA::k_D_002A3328, (int)TU_15CD68_DATA::k_D_002A3368, (int)TU_15CD68_DATA::k_D_002A33A8, (int)TU_15CD68_DATA::k_D_002A33E8, (int)TU_15CD68_DATA::k_D_002A3428, (int)TU_15CD68_DATA::k_D_002A3468, (int)TU_15CD68_DATA::k_D_002A34A8, (int)TU_15CD68_DATA::k_D_002A34E8, (int)TU_15CD68_DATA::k_D_002A3528, (int)TU_15CD68_DATA::k_D_002A3568, (int)TU_15CD68_DATA::k_D_002A35A8, (int)TU_15CD68_DATA::k_D_002A35E8, (int)TU_15CD68_DATA::k_D_002A3628, (int)TU_15CD68_DATA::k_D_002A3668, 0};
+int D_002BE248[9] = {0, (int)TU_15CD68_DATA::k_D_002A36A8, 0, (int)TU_15CD68_DATA::k_D_002A36E8, 0, (int)TU_15CD68_DATA::k_D_002A3728, 0, (int)TU_15CD68_DATA::k_D_002A3768, (int)TU_15CD68_DATA::k_D_002A37A8};
 int D_002BE26C = 0;
 int D_002BE270 = -1;
 int D_002BE278[11] __attribute__((aligned(8))) = {1, 2, -1, 2, 3, 2, 5, 8, -1, 2, -1};

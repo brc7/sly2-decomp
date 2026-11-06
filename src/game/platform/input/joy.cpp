@@ -25,6 +25,7 @@ extern int D_002DFBC4;     /* the users' grf */
 extern JOY D_002DFC00;     /* g_joy (declared after the two words: .bss is emitted in first-declaration order) */
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
+unsigned short D_002BE970[12] = {0x2000, 0x8000, 0x1000, 0x4000, 0x10, 0x20, 0x40, 0x80, 0x4, 0x8, 0x1, 0x2};   /* pad button bits (d-pad, then the shape buttons, then L/R), named by no code (joy's .data) */
 extern GSTATE D_002DDF40;
 extern SNDV D_002DEB30;
 extern char D_003DD490[];
@@ -664,3 +665,4 @@ SLY2_SCRAP("nop");
 int D_002DFBC0;   /* g_grfjoyt */
 int D_002DFBC4;   /* the users' grf */
 JOY D_002DFC00 __attribute__((aligned(64)));   /* g_joy (64-aligned by layout: 0x2DFC00 after the words at 0x2DFBC0) */
+JOY D_002E0D00;   /* the second JOY (joy.h), right after g_joy: read when g_grfjoyt bit 1 is clear */

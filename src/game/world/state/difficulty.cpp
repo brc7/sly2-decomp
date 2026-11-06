@@ -226,3 +226,7 @@ extern "C" int func_00155228(DIFFICULTY *pdifficulty, int n)
     float g = GGetDifficulty(pdifficulty);
     return (int)(((1.0f - g) * pdifficulty->pdp->g20 + g * pdifficulty->pdp->g24) * (float)n);
 }
+
+// ---- difficulty's .bss (tu-merging.md "Data": .bss gaps): the global difficulty object (0x2DE578, after rhythm's
+// word in TU order; InitGame and the anim/AI TUs pass its address). Defined after the functions, so none sees it.
+DIFFICULTY D_002DE578;

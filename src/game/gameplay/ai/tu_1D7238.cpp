@@ -309,3 +309,7 @@ extern "C" void func_001D77D0(SAFEHOUSEV *psh, int d)
     }
     ReplaceSma(0, psh, -1, 0, &psh->psma);
 }
+
+// ---- .bss (tu-merging.md "Data": .bss gaps): the object the PO subclass Init above stores itself in (0x3D4A54,
+// after render's cursor in TU order; stepplayer and sw read it). Defined after the functions, so none sees it.
+void *D_003D4A54;

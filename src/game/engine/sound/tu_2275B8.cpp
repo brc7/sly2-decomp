@@ -170,3 +170,13 @@ extern const char D_002A97F0[] = "|";
 extern const FLAGCHTABLE D_002A97F8 = {{{0x40, 'X'}, {0x20, 'O'}, {0x10, 'T'}, {0x80, 'S'}, {0x800, '!'}, {0x100, '_'}, {0x1000, '^'},
     {0x4000, 'v'}, {0x8000, '<'}, {0x2000, '>'}, {0x4, 'L'}, {0x1, 'l'}, {0x200, '('}, {0x8, 'R'}, {0x2, 'r'}, {0x400, ')'}}};
 extern const char D_002A9878[] = "&2%c&.";
+
+// ---- .bss (tu-merging.md "Data": .bss gaps): 0x4435F0..0x443740, after thread's .bss in TU order, before wipe's.
+// g_subtitle, the SPEAKERLABEL the functions above take (relay, sound, hud, mpeg, mode and letterbox pass
+// &D_004435F0; hud reads its colour as D_004435F4), then 0x144 bytes no code names, up to wipe's object. Spelled as
+// constructor-less storage of that layout (RGBA's empty constructor would make g++ add it to the generated
+// initializer) under its asm label, so the declarations above stay as the functions see them.
+namespace BSS_tu_2275B8 {
+struct SUBTITLESTORAGE { int k; unsigned char rgba[4]; int grf; char ab[0x144]; };
+SUBTITLESTORAGE b_004435F0 __asm__("D_004435F0");
+}

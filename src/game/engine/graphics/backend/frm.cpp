@@ -397,11 +397,8 @@ void BlendPrevFrame()
     SendDmaSyncGsFinish(D_002DE598, aqw);
 }
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_frm {
-    static int c_004425D4 __asm__("D_004425D4");   /* .bss 0x4 */
-};
-int COMMONS_frm::c_004425D4;
+
+// ---- frm's .data (tu-merging.md "Data"): the frame count (main, prog and hud read it; prog increments it after
+// CloseFrame), starting at 1. Its place (0x2BE538, after font's .data, before glob's) lies in frm's or game's; frm,
+// the frame TU, is the choice. Defined after the functions, so none sees a definition.
+int D_002BE538 = 1;

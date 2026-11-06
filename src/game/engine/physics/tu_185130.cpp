@@ -69,6 +69,9 @@ extern "C" {
 extern const float D_002BE918;
 extern U D_002A2DC0;
 extern CLOCKV D_002DDED0;
+/* tu_185130's first .data word, -300 (the code reads it through the extern const declaration above, a codegen
+   device: defined here under its asm label, as a plain float, so no function sees a definition). */
+namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
 /* tu_185130's .data after D_002BE918: the smoothing parameters of the orientation, the position and the mesh fit. */
 SMPV D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
 void InitXfm(MESH *pmesh);

@@ -2420,6 +2420,24 @@ template CLASSINFO *GetEmitterClassDesc_linkonce(EXPLO *);                  /* 0
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+/* The shared defaults emitter.h's accessors reset a slot from (0x2BDDF0..0x2BDEB0, the head of emitter's .data; the
+   payload shapes as emitter.h declares them). The two 0x40-byte records and the EMITV2 (whose first word is all
+   ones, not a float literal) are given as words under their asm labels: record 0 and record 1 lay their payloads out
+   differently from emitter.h's EMITV view (floats in the OID and pad fields), so the view's field names do not fit. */
+EMITV4 D_002BDDF0 = {{0.0f, 0.0f, 0.0f, 0.0f}};
+float D_002BDE00 = 1.0f;
+namespace EMIT_DEFAULTS {
+extern "C" unsigned int r_D_002BDE10[16] __asm__("D_002BDE10") __attribute__((aligned(16))) = {   /* record 0 */
+    0, 0, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 0x41C80000 /* 25.0f */, 0, 0, 0, 0, 0, 0, 0};
+extern "C" unsigned int r_D_002BDE50[2] __asm__("D_002BDE50") = {0xFFFFFFFF, 0x41200000 /* 10.0f */};
+}
+int D_002BDE58 = 0;
+EMITV3 D_002BDE60 = {{25.0f, 0.8f, 0.8f}};
+namespace EMIT_DEFAULTS {
+extern "C" unsigned int r_D_002BDE70[16] __asm__("D_002BDE70") __attribute__((aligned(16))) = {   /* record 1 */
+    0xFFFFFFFF, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x41C80000 /* 25.0f */, 0x3F800000 /* 1.0f */,
+    0x3F800000 /* 1.0f */, 0x3F800000 /* 1.0f */, 0, 0, 0, 0, 0, 0, 0};
+}
 int D_002BDEB0[4] = {75, 77, 78, 76};
 LM D_002BDEC0 = {0.5f, 2.0f};
 

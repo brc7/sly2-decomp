@@ -43,6 +43,25 @@ specialization with the same attributes. Merging with data/vtables: tu_1553F0 (b
 VecCombo's definition) and class_registry (only the three constructors and the comment above them here); once
 data/vtables gives STEPGUARD/JT/MURRAY key TUs, their constructors can become inline members emitted there.
 
+### Status (data/bss-gaps on integrate/round8 e344ef63, 2026-11-06; superseded above)
+
+The `.bss` gaps and part of the data work list ("Data no object defines" below; tu-merging.md "Phase 7: .bss and
+data gaps"). Values of `python3 tools/link.py` from freshly built objects; integrate/round8's (below) in brackets.
+
+| measure | value | tool |
+|---|---|---|
+| address assignments in the script | 6 [20]: `.bss`/`.sbss` gaps no object defines, 60,772 bytes [487,824]: the SDK libraries' `.bss` and the commons after it 59,904, `.sbss` commons 148, before tu_1147D8 384, after emitter 256, between sound and sprbuf 80 | `tools/link.py` |
+| blob bytes | 1,061,960 [1,066,256]; data no object defines 432,760 [437,056]; the other reasons unchanged | `tools/link.py` |
+| object sections placed | 2,036 [2,019]; `.data` from objects 40,220 [37,936], `.rodata` 30,176 [28,184] | `tools/link.py` |
+| differing bytes | 0 | `tools/link.py` |
+| config names at their config address | 7,561 / 7,561 [7,402 / 7,402] | `tools/link.py` |
+| functions matching | 6,662 / 6,662 (cache deleted first; 329 SDK sources carried over) | `tools/progress.py` |
+| files touched | 31 game sources (and libkernel's sceSifLoadFileReset.c: a symbol name, Mac): every function and data symbol MATCH | `tools/matchtool.py check` |
+| nm symbol sets | only the data symbols the branch defines changed (U/C -> B/D/R; common dropped where the owner now defines it; tu_15CD68's D_002BE268 merged into D_002BE248) | scratch nmcmp.py |
+| undefined references not in config, duplicate strong definitions | 41, 0 (as before) | scratch symcheck.py |
+| relocations checked against the ELF | 29,704 OK, 0 mismatched | scratch relverify.py |
+
+
 ### Status (integrate/round8 with link/eopid-real-refs, 2026-11-06; superseded above)
 
 Authoritative numbers for integrate/round8: main f674c97e + link/real-link (with link/crt0-block: the crt0_splicewrap
@@ -761,8 +780,8 @@ to the tool. Check per branch: fallback count, still 0 differing bytes and 0 ld 
 ### 2. Data no object defines (the data work list)
 
 437,056 blob bytes in `.rodata`/`.data` at link/real-link (281,096 after data/crt0-tables, 216,056 on integrate/round8
-with data/vtables) and 487,824 bytes of
-`.bss`/`.sbss` gaps. Owner = the TU whose place in the
+with data/vtables, 211,760 on integrate/round9 with data/bss-gaps) and 487,824 bytes of `.bss`/`.sbss` gaps (60,772 after
+data/bss-gaps: tu-merging.md "Phase 7", which lists what is left). Owner = the TU whose place in the
 layout the gap takes: the original link put every object's sections in one command-line order (the order check in
 Status: all but 7 sections follow `.text` order), so a gap between objects P and N belongs to P's tail, N's head or a
 TU between them in `.text` order that places nothing in that section. Measured with a scratch script over
@@ -778,7 +797,8 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
 | small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
 
-`.bss` (no bytes, but an address assignment each): 400,080 from 0x3E1C70 (hud.cpp's buffers, D_003E1C70..D_003E21A0
+`.bss` (no bytes, but an address assignment each; all but the SDK tail, the `.sbss` commons and three small gaps
+defined on data/bss-gaps): 400,080 from 0x3E1C70 (hud.cpp's buffers, D_003E1C70..D_003E21A0
 only hud references, then the `.bss` of the TUs after it up to 0x4421A0); 60,000 at the end from 0x4437A0 (989snd
 D_00443800.., libkernel's `_sif_*`, libgcc's `objects`, then the template statics of CSlotPool/CSpliceHeap at
 0x4520A8.., which the original emitted as commons); 21,536 at 0x3D4A50 (D_003D4A50/54/60, the record many TUs
