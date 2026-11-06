@@ -12,6 +12,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 struct VTE { short d; short pad; void *pfn; };
 struct V3 { float x, y, z; };
@@ -25,12 +26,12 @@ struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]
 struct LIGHTO { char pad[0xA4]; int xA4; };
 
 /* LIGHT (0x170) as this TU reads it. */
-struct LIGHT
+struct LIGHTV
 {
     int x0, x4, x8;
     VTE *vt;                    /* 0x0C */
     char pad10[0x20 - 0x10];
-    LIGHT *pnext;               /* 0x20: next in D_003E04F8's list */
+    LIGHTV *pnext;               /* 0x20: next in D_003E04F8's list */
     char pad24[0x40 - 0x24];
     int grf40;                  /* 0x40: pointer or tagged flags */
     char pad44[0x50 - 0x44];
@@ -63,7 +64,7 @@ struct LIGHT
     union { LMK lmk; struct { float sNear, sFar; }; };   /* 0x164 */
     int pad16C;
 };
-typedef char assert_LIGHT_size[sizeof(LIGHT) == 0x170 ? 1 : -1];
+typedef char assert_LIGHT_size[sizeof(LIGHTV) == 0x170 ? 1 : -1];
 
 /* The plane tree's node (32 bytes) and a 256-bit light mask. */
 struct NODE { qword plane; NODE *left, *right; int leftLeaf, rightLeaf; };
@@ -74,7 +75,7 @@ struct SWL
     char pad0[0x3D5C];
     int x3d5c;                  /* 0x3D5C: light changes */
     char pad3D60[0x4154 - 0x3D60];
-    LIGHT *objects[0x100];      /* 0x4154 */
+    LIGHTV *objects[0x100];      /* 0x4154 */
     int disabled;               /* 0x4554: rebuild the masks */
     int pad4558;
     NODE *tree;                 /* 0x455C */
@@ -118,32 +119,32 @@ BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 
 float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
 extern CAMERA D_002DDF40;
 
-LIGHT *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+LIGHTV *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void BuildOrthonormalMatrixZ(M3R *pm, qword v, qword w);     /* the hidden result pointer passed by hand */
-void InitXfm(LIGHT *p);
-void SetLoBusyk(LIGHT *p, int n);
-void PostLoLoad(LIGHT *p);
-void AddLoHierarchy(LIGHT *p);
-void RemoveLoHierarchy(LIGHT *p);
-void OnLoRemove(LIGHT *p);
-void OnLoAdd(LIGHT *p);
-void TranslateXfmToPos(LIGHT *p);
-void RotateXfmToMat(LIGHT *p);
-void func_001A5E80(LIGHT *p);
+void InitXfm(LIGHTV *p);
+void SetLoBusyk(LIGHTV *p, int n);
+void PostLoLoad(LIGHTV *p);
+void AddLoHierarchy(LIGHTV *p);
+void RemoveLoHierarchy(LIGHTV *p);
+void OnLoRemove(LIGHTV *p);
+void OnLoAdd(LIGHTV *p);
+void TranslateXfmToPos(LIGHTV *p);
+void RotateXfmToMat(LIGHTV *p);
+void func_001A5E80(LIGHTV *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
 void func_001ED2D8(V3 *pv);
-qword func_001A62E8(LIGHT *p);
+qword func_001A62E8(LIGHTV *p);
 void *func_002333B4(void *, int, uint) __asm__("memset");                     /* memset */
 void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
 qword *VECTOR_opAssign(qword *p, qword v);
 
-void RebuildLight(LIGHT *p);
-void func_001A3610(LIGHT *p, float f);
-void func_001A3630(LIGHT *p, float f);
-void func_001A3B38(LIGHT *p);
+void RebuildLight(LIGHTV *p);
+void func_001A3610(LIGHTV *p, float f);
+void func_001A3630(LIGHTV *p, float f);
+void func_001A3B38(LIGHTV *p);
 void func_001A3B80(SWL *s, NODE *n, qword pos, float r, int bit);
-void AddLightToSw(SWL *s, LIGHT *o);
-void RemoveLightFromSw(SWL *p, LIGHT *q);
+void AddLightToSw(SWL *s, LIGHTV *o);
+void RemoveLightFromSw(SWL *p, LIGHTV *q);
 struct RESULT;
 void func_001A3F78(SWL *p, qword pos, int capacity, RESULT *results);
 int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
@@ -170,11 +171,11 @@ static __inline__ qword Make(float x, float y, float z)
  * @end-sly2-annot */
 extern "C" void EnsureSwDefaultLight(void)
 {
-    LIGHT *p;
+    LIGHTV *p;
     M3R c;
     union { qword q; float f; } r;
     M3R m;
-    for (p = (*(LIGHT * *)&g_sw.aslCid[4]); p; p = p->pnext) {
+    for (p = (*(LIGHTV * *)&g_sw.aslCid[4]); p; p = p->pnext) {
         if (p->x160 == 0) break;
     }
     if (p) return;
@@ -182,7 +183,7 @@ extern "C" void EnsureSwDefaultLight(void)
     r.q = Make(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
-    ((void (*)(LIGHT *, M3R *))p->vt[30].pfn)((LIGHT *)((char *)p + p->vt[30].d), &c);
+    ((void (*)(LIGHTV *, M3R *))p->vt[30].pfn)((LIGHTV *)((char *)p + p->vt[30].d), &c);
     func_001A3610(p, 255.0f);
     func_001A3630(p, 240.0f);
 }
@@ -194,8 +195,9 @@ extern "C" void EnsureSwDefaultLight(void)
  * See: docs/engine/rendering.md#13-key-functions,
  *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void InitLight(LIGHT *s)
+void LIGHT::Init()
 {
+    LIGHTV *s = (LIGHTV *)this;
     int v;
     InitXfm(s);
     s->kind = 0;
@@ -217,7 +219,7 @@ extern "C" void InitLight(LIGHT *s)
  * See: docs/engine/rendering.md#13-key-functions,
  *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void PostLightLoad(LIGHT *p) {
+extern "C" void PostLightLoad(LIGHTV *p) {
     PostLoLoad(p);
     RebuildLight(p);
 }
@@ -228,7 +230,7 @@ extern "C" void PostLightLoad(LIGHT *p) {
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void AddLightHierarchy(LIGHT *p) {
+extern "C" void AddLightHierarchy(LIGHTV *p) {
     AddLoHierarchy(p);
     RebuildLight(p);
 }
@@ -239,7 +241,7 @@ extern "C" void AddLightHierarchy(LIGHT *p) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A3460(LIGHT *p) {
+extern "C" void func_001A3460(LIGHTV *p) {
     int k;
     LIGHTO *po;
     func_001A5E80(p);
@@ -260,7 +262,7 @@ extern "C" void func_001A3460(LIGHT *p) {
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void RemoveLightHierarchy(LIGHT *p) {
+extern "C" void RemoveLightHierarchy(LIGHTV *p) {
     RemoveLoHierarchy(p);
     func_001A3B38(p);
 }
@@ -275,7 +277,7 @@ extern "C" void RemoveLightHierarchy(LIGHT *p) {
  * See: docs/engine/rendering.md#13-key-functions,
  *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void OnLightRemove(LIGHT *p) {
+extern "C" void OnLightRemove(LIGHTV *p) {
     OnLoRemove(p);
     RemoveLightFromSw(&D_003DD490, p);
 }
@@ -289,7 +291,7 @@ extern "C" void OnLightRemove(LIGHT *p) {
  * See: docs/engine/rendering.md#13-key-functions,
  *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void OnLightAdd(LIGHT *p) {
+extern "C" void OnLightAdd(LIGHTV *p) {
     OnLoAdd(p);
     AddLightToSw(&D_003DD490, p);
 }
@@ -301,7 +303,7 @@ extern "C" void OnLightAdd(LIGHT *p) {
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void TranslateLightToPos(LIGHT *p) {
+extern "C" void TranslateLightToPos(LIGHTV *p) {
     TranslateXfmToPos(p);
     RebuildLight(p);
 }
@@ -313,7 +315,7 @@ extern "C" void TranslateLightToPos(LIGHT *p) {
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void RotateLightToMat(LIGHT *p) {
+extern "C" void RotateLightToMat(LIGHTV *p) {
     RotateXfmToMat(p);
     RebuildLight(p);
 }
@@ -324,7 +326,7 @@ extern "C" void RotateLightToMat(LIGHT *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void SetLightKind(LIGHT *p, int a) { func_001A3B38(p); p->kind = a; RebuildLight(p); }
+extern "C" void SetLightKind(LIGHTV *p, int a) { func_001A3B38(p); p->kind = a; RebuildLight(p); }
 
 /** @sly2-annot addr=0x1A35F0
  * Purpose: Store color vector xF0 (HSV, converted with ConvertUserHsvToUserRgb in RebuildLight) and rebuild
@@ -332,7 +334,7 @@ extern "C" void SetLightKind(LIGHT *p, int a) { func_001A3B38(p); p->kind = a; R
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A35F0(LIGHT *p, qword hsv) {
+extern "C" void func_001A35F0(LIGHTV *p, qword hsv) {
     p->qwHsv = hsv;
     RebuildLight(p);
 }
@@ -343,7 +345,7 @@ extern "C" void func_001A35F0(LIGHT *p, qword hsv) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void func_001A3610(LIGHT *p, float f) {
+void func_001A3610(LIGHTV *p, float f) {
     p->gStrength = f;
     RebuildLight(p);
 }
@@ -354,7 +356,7 @@ void func_001A3610(LIGHT *p, float f) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void func_001A3630(LIGHT *p, float f) {
+void func_001A3630(LIGHTV *p, float f) {
     p->degCone = f;
     RebuildLight(p);
 }
@@ -366,7 +368,7 @@ void func_001A3630(LIGHT *p, float f) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A3650(LIGHT *p, LMK *pk) { p->lmk = *pk; RebuildLight(p); }
+extern "C" void func_001A3650(LIGHTV *p, LMK *pk) { p->lmk = *pk; RebuildLight(p); }
 
 /** @sly2-annot addr=0x1A3680
  * Purpose: Toggle flag x15C (clears x160 when set), invalidating before/after
@@ -374,7 +376,7 @@ extern "C" void func_001A3650(LIGHT *p, LMK *pk) { p->lmk = *pk; RebuildLight(p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A3680(LIGHT *p, int f) {
+extern "C" void func_001A3680(LIGHTV *p, int f) {
     if (f != p->x15C) {
         func_001A3B38(p);
         p->x15C = f;
@@ -391,7 +393,7 @@ extern "C" void func_001A3680(LIGHT *p, int f) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A36D8(LIGHT *p, int f) {
+extern "C" void func_001A36D8(LIGHTV *p, int f) {
     if (f != p->x160) {
         func_001A3B38(p);
         p->x160 = f;
@@ -467,7 +469,7 @@ static inline float Max1(float a, float b) { return (a > b) ? a : b; }
  * See: docs/engine/rendering.md#13-key-functions,
  *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void RebuildLight(LIGHT *p)
+void RebuildLight(LIGHTV *p)
 {
     V3 v;
     float g;
@@ -498,7 +500,7 @@ void RebuildLight(LIGHT *p)
         }
         p->bias = 1.0f;
         p->weight = 0.0f;
-        p->vec = *((V3 *(*)(LIGHT *))p->vt[31].pfn)((LIGHT *)((char *)p + p->vt[31].d));
+        p->vec = *((V3 *(*)(LIGHTV *))p->vt[31].pfn)((LIGHTV *)((char *)p + p->vt[31].d));
         break;
     case 1:
         p->position.q = func_001A62E8(p);
@@ -522,7 +524,7 @@ void RebuildLight(LIGHT *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void func_001A3B38(LIGHT *p)
+void func_001A3B38(LIGHTV *p)
 {
     if (!p->x160) D_003DD490.x3d5c++;
     if (!p->x15C && p->kind) g_sw.fUnk4554 = 1;
@@ -578,7 +580,7 @@ static __inline__ void SetBitM(int *a, int bit)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void AddLightToSw(SWL *s, LIGHT *o)
+void AddLightToSw(SWL *s, LIGHTV *o)
 {
     if (o->slot < 0) {
         unsigned int i;
@@ -623,7 +625,7 @@ void AddLightToSw(SWL *s, LIGHT *o)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-void RemoveLightFromSw(SWL *p, LIGHT *q)
+void RemoveLightFromSw(SWL *p, LIGHTV *q)
 {
     int n = q->slot;
     p->free[n / 32] |= 1 << (n % 32);
@@ -678,7 +680,7 @@ struct LSPHERE {                                    /* the bounding sphere at LI
     float bias, weight;
     float Score(const qword &pos);
 };
-struct RESULT { float score; LIGHT *object; };
+struct RESULT { float score; LIGHTV *object; };
 typedef char Size_RESULT[sizeof(RESULT) == 8 ? 1 : -1];
 /* dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
 static inline float PlaneDistance(HOME *first, HOME *second, qword plane, qword pos)
@@ -754,7 +756,7 @@ void func_001A3F78(SWL *p, qword pos, int capacity, RESULT *results)
             do {
                 uint remaining = word & (word - 1);
                 uint isolated = word & ~remaining;
-                LIGHT *o = p->objects[BitIndex(isolated, i * 32)];
+                LIGHTV *o = p->objects[BitIndex(isolated, i * 32)];
                 score = ((LSPHERE *)&o->position)->Score(pos);
                 int j = capacity;
                 while (j > 0) {
@@ -940,7 +942,7 @@ extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
         uint slot;
         p->pbPacket = D_002DEA28.m_pb;
         for (slot = 0; slot < 4; slot++) {
-            LIGHT *o = results[slot].object;
+            LIGHTV *o = results[slot].object;
             if (!o)
                 break;
             {
@@ -967,7 +969,7 @@ extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
         qword sum = Zero();
         uint slot;
         for (slot = 0; slot < 4; slot++) {
-            LIGHT *o = results[slot].object;
+            LIGHTV *o = results[slot].object;
             if (!o)
                 break;
             if (o->enabled) {
@@ -1073,7 +1075,7 @@ extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
 //    out in the original order (D_002DEA28, D_002BFC60, tag constant).
 typedef char BLOCK_words_Offset[FIELD_OFFSET(BLOCK,words)==0?1:-1];
 typedef char BLOCK_values_Offset[FIELD_OFFSET(BLOCK,values)==0?1:-1];
-typedef char P_payload_Offset[FIELD_OFFSET(LIGHT,payload)==288?1:-1];
+typedef char P_payload_Offset[FIELD_OFFSET(LIGHTV,payload)==288?1:-1];
 typedef char VIFS_m_pb_Offset[FIELD_OFFSET(VIFS,m_pb)==12?1:-1];
 typedef char BLOCK_PrefixSize[sizeof(BLOCK)==48?1:-1];
 typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
@@ -1083,12 +1085,12 @@ typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
  * @end-sly2-annot */
-extern "C" void func_001A4AD8(void *a0, int n, LIGHT **ap, LIGHTQ *o)
+extern "C" void func_001A4AD8(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
 {
     int i;
     o->pbPacket = D_002DEA28.m_pb;
     for (i = 0; i < n; i++) {
-        LIGHT *p = ap[i];
+        LIGHTV *p = ap[i];
         RebuildLight(p);
         uint tag=0x6C03C000 | (i*3+0x15);
         uint*d=Write(&D_002DEA28,tag);

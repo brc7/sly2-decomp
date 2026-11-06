@@ -8,12 +8,13 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/cm.h"
+#include "sly2/classes.h"
 union V { qword q; float f[4]; };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void (*pf)(void *, qword); };
 
 /* SKY : SO (a view of the fields used here). */
-struct SKY
+struct SKYV
 {
     char pad0[0xC];
     VTE *vt;                /* +0xC */
@@ -26,10 +27,10 @@ struct SKY
 struct CMV { char pad[0x30]; qword pos; };
 
 extern "C" {
-void PostSoLoad(SKY *pso);
-void SetLoBusyk(SKY *plo, int busyk);
-void UpdateSo(SKY *pso);
-qword func_001A62E8(SKY *pso);
+void PostSoLoad(SKYV *pso);
+void SetLoBusyk(SKYV *plo, int busyk);
+void UpdateSo(SKYV *pso);
+qword func_001A62E8(SKYV *pso);
 }
 
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -41,8 +42,9 @@ static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(
  * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/guards-ai.md#8-source-files,
  *   docs/engine/rendering.md#12-source-files
  * @end-sly2-annot */
-extern "C" void PostSkyLoad(SKY *psky)
+void SKY::VUnk14()
 {
+    SKYV *psky = (SKYV *)this;
     int x;
     PostSoLoad(psky);
     SetLoBusyk(psky, 1);
@@ -59,7 +61,7 @@ extern "C" void PostSkyLoad(SKY *psky)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#sky-0x1ef850-0x1efa90
  * @end-sly2-annot */
-extern "C" void UpdateSky(SKY *psky)
+extern "C" void UpdateSky(SKYV *psky)
 {
     union V v;
     UpdateSo(psky);

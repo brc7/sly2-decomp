@@ -92,9 +92,9 @@ struct EMITTER : public XFM
     RIPG *pripg;            /* +0x14C */
     BLIPG *pblipg;          /* +0x150 */
     char pad154[0x160 - 0x154];
+    virtual void Init() __asm__("InitEmitter");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleEmitterMessage__FP7EMITTER5MSGIDPv");   /* slot 5 */
-    virtual void Init() __asm__("InitEmitter");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z7EMITTER_PX01P18CBinaryInputStream_v");   /* slot 14 */
     virtual void VUnk14() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
@@ -139,21 +139,24 @@ extern char D_002CE4B8[];   /* EXPLO's */
 #define SLY2_STRUCT_AREQ
 struct AREQ { int cb; int cbAlign; };
 #endif
-extern "C" void *func_001AE2A0(AREQ *preq);   /* allocate from the level heap */
-extern "C" void *func_001AE1D0(AREQ *preq);   /* allocate (uncleared) */
-extern "C" void *func_001AE238(AREQ *preq, void *pv);   /* allocate a copy of pv */
+/* allocate from the level heap (func_001AE2A0); a C++ name bound by label, so that the merged files' own extern "C"
+   declarations of func_001AE2A0 (on their AREQ copies) do not conflict with it where classes.h is included */
+void *PvAllocLevelHeap(AREQ *preq) __asm__("func_001AE2A0");
+void *PvAllocLevelHeapUncleared(AREQ *preq) __asm__("func_001AE1D0");   /* allocate (uncleared); labelled as above */
+void *PvAllocLevelHeapCopy(AREQ *preq, void *pv) __asm__("func_001AE238");   /* allocate a copy of pv */
 extern "C" void func_00159118(EMITB *pemitb); /* InitEmitb: zero the block, install the EMITO/EMITV defaults */
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 /* CBinaryInputStream's readers by their symbols (the class is only forward-declared in the sly2 headers: bis.h's
-   definition clashes with basic.h's VECTOR/MATRIX types) */
-extern "C" int U8Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-extern "C" int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-extern "C" int U32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
+   definition clashes with basic.h's VECTOR/MATRIX types); C++ names bound by label, as PvAllocLevelHeap */
+int BisU8Read(CBinaryInputStream *pbis) __asm__("U8Read__18CBinaryInputStream");
+int BisU16Read(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream");
+int BisU32Read(CBinaryInputStream *pbis) __asm__("U32Read__18CBinaryInputStream");
 extern "C" void *memset(void *pv, int b, unsigned int cb);
 extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
 struct EMITMESH;
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
+/* PloFindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
+LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
 extern SW g_sw __asm__("D_003DD490");
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descriptor table (0x14-byte rows) */
 
@@ -182,7 +185,7 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
             p->pemitb->cref--;
             req.cb = 0x100;
             req.cbAlign = 0x10;
-            p->pemitb = (EMITB *)func_001AE238(&req, p->pemitb);
+            p->pemitb = (EMITB *)PvAllocLevelHeapCopy(&req, p->pemitb);
             p->pemitb->cref = ensk;
         }
     }
@@ -209,7 +212,7 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
 template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis)
 {
     struct RGBAW { unsigned char r, g, b, a; };   /* basic.h's RGBA cannot be a union member (operator=) */
-    int n = U16Read__18CBinaryInputStream(pbis);
+    int n = BisU16Read(pbis);
     int i;
     EMITV *pv;
     EMITBLIPCLRS *pclrs;
@@ -219,13 +222,13 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     pv = &p->pemitb->v;
     u.req.cb = n * 4 + 4;
     u.req.cbAlign = 0x10;
-    pclrs = (EMITBLIPCLRS *)func_001AE1D0(&u.req);
+    pclrs = (EMITBLIPCLRS *)PvAllocLevelHeapUncleared(&u.req);
     pv->pblipclrs = pclrs;
-    pv->n0C = U8Read__18CBinaryInputStream(pbis);
+    pv->n0C = BisU8Read(pbis);
     pclrs->c = NMin(n, 32);
     for (i = 0; i < n; i++)
     {
-        *(int *)&u.rgba = U32Read__18CBinaryInputStream(pbis);
+        *(int *)&u.rgba = BisU32Read(pbis);
         ColorCorrectRgba((RGBA *)&u.rgba);
         if (i < pclrs->c)
             *(RGBAW *)&pclrs->argba[i] = u.rgba;
@@ -238,7 +241,7 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
     AREQ req;
     req.cb = 0x100;
     req.cbAlign = 0x10;
-    func_00159118(p->pemitb = (EMITB *)func_001AE1D0(&req));
+    func_00159118(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
     p->XFM::LoadFromBrx(pbis);
     if (p->pemitb->kEmito == 3)
         LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->pvEmito, pbis);
@@ -296,10 +299,10 @@ template <class T> void func_002586D8(T *p)
     }
     memset(aplo, 0, 0x14);
     if (oid1 != -1)
-        aplo[0] = PloFindSwObject(&g_sw, 4, (OID)oid1, p);
+        aplo[0] = PloFindSwObjectE(&g_sw, 4, (OID)oid1, p);
     if (oid2 != -1)
     {
-        LO *plo = PloFindSwObject(&g_sw, 4, (OID)oid2, p);
+        LO *plo = PloFindSwObjectE(&g_sw, 4, (OID)oid2, p);
         aplo[0] = 0;
         aplo[1] = plo;
     }
@@ -312,16 +315,16 @@ template <class T> void func_002586D8(T *p)
         int oid0C = pemitb->v.n0C;
         int oid10 = pemitb->v.oid10;
         if (oid08 != -1)
-            aplo[2] = PloFindSwObject(&g_sw, 4, (OID)oid08, p);
+            aplo[2] = PloFindSwObjectE(&g_sw, 4, (OID)oid08, p);
         if (oid0C != -1)
-            aplo[3] = PloFindSwObject(&g_sw, 4, (OID)oid0C, p);
+            aplo[3] = PloFindSwObjectE(&g_sw, 4, (OID)oid0C, p);
         if (oid10 != -1)
-            aplo[4] = PloFindSwObject(&g_sw, 4, (OID)oid10, p);
+            aplo[4] = PloFindSwObjectE(&g_sw, 4, (OID)oid10, p);
         break;
     }
     case 0:
         if (pemitb->v.oid14 != -1)
-            aplo[2] = PloFindSwObject(&g_sw, 4, (OID)pemitb->v.oid14, p);
+            aplo[2] = PloFindSwObjectE(&g_sw, 4, (OID)pemitb->v.oid14, p);
         break;
     }
     if (p->pemitb->aploRef == 0)
@@ -332,7 +335,7 @@ template <class T> void func_002586D8(T *p)
         preq = &req;
         req.cb = 0x14;
         preq->cbAlign = 0x10;
-        p->pemitb->aploRef = (LO **)func_001AE238(preq, aplo);
+        p->pemitb->aploRef = (LO **)PvAllocLevelHeapCopy(preq, aplo);
     }
 }
 
@@ -416,9 +419,9 @@ template <class T> void func_00258A00(T *p, int k)
     pemitb->kEmito = k;
     switch (k)
     {
-    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)func_001AE2A0(&req); } break;
+    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
     case 2: pemitb->pvEmito = -1; break;
-    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)func_001AE2A0(&req); } break;
+    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
     }
 }
 

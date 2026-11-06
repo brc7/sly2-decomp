@@ -25,9 +25,9 @@ struct DETECTOR : public XFM
       undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
       int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp func_002087C8) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
+    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitDetector");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_DETECTOR_cUnkFC[SLY2_OFFSETOF(DETECTOR, cUnkFC) == 0xFC ? 1 : -1];
@@ -48,6 +48,19 @@ struct ANIMBINDINGREC
       ANIMBINDING binding;  /* +0x0 [S] */
       undefined4 unk_0x10[4];
 };
+
+/* CID120 (classes.h's family, defined here): its vtable follows _vt$9STEPGUARD in stepguard.cpp's run, and g++
+   emits a TU's vtables in the reverse order of their classes' definitions. */
+/* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
+struct CID120 : LO
+{
+    char pad50[0xD0 - 0x50];
+    virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
+    virtual void VUnk14() __asm__("func_0020AE18");   /* slot 15 */
+    virtual void Clone(LO *ploBase) __asm__("func_0020ADE8");   /* slot 41 */
+};
+typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
 
 /* STEPGUARD: class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
 struct STEPGUARD : public STEP
@@ -103,10 +116,10 @@ struct STEPGUARD : public STEP
       int cBusy;            /* +0xFFC [R] busy count */
       undefined4 unk_0x1000[4];
     STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
+    virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostStepguardLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateStepguard");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepguardSelf");   /* slot 19 */

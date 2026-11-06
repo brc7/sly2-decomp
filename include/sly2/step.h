@@ -15,8 +15,8 @@ struct BHV : public BASIC
       int fBusy;            /* +0x1C [R] behaviour busy (shown with '*' in ram_inspector stacks) */
       int cBusyAbove;       /* +0x20 [R] number of busy behaviours above this one in the stack */
       undefined4 unk_0x24[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvClassDesc");   /* slot 6 */
       virtual void OnPush() __asm__("InitBhv");
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvClassDesc");   /* slot 6 */
       virtual void Start() __asm__("StartBhv");
     virtual void VSlot9() __asm__("CloseBhv");   /* slot 9: not yet identified */
     virtual void VSlot10() __asm__("UpdateBhv");   /* slot 10: not yet identified */
@@ -74,8 +74,8 @@ struct STEP : public PO
       int nUnk298;
       undefined4 unk_0x29c;
       int acUnk2a0[6];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitStep");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostStepLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateStep");   /* slot 16 */

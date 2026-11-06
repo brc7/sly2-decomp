@@ -19,6 +19,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
+#include "sly2/classes.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -73,9 +74,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct RIPG;
 struct BLIPG;
 struct SFX;
-/* EMITB and EMITTER (CID 0x1D : XFM, cb 0x160): sly2/emitter.h. */
+/* EMITB and EMITTER (CID 0x1D : XFM, cb 0x160): sly2/emitter.h. The V names data/vtables gave the file-scope views
+   (classes.h is included) stay as aliases of the real types, so the mangled names do not change. */
+typedef EMITB EMITBV;
+typedef EMITTER EMITTERV;
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
-struct EXPLG : public XFM
+struct EXPLGV : public XFM
 {
     int cplo;               /* +0xE0 */
     LO **aplo;              /* +0xE4 */
@@ -91,14 +95,14 @@ extern SW D_003DD490;       /* g_sw */
 extern "C" {
 extern const float D_002A514C;    /* "indefinitely": a time far in the future */
 extern CLOCK D_002DDED0;    /* g_clock */
-void func_001C4848(SW *psw, EMITTER *pemitter);
+void func_001C4848(SW *psw, EMITTERV *pemitter);
 void SetLoParent_1A58D0(LO *plo, SO *psoParent, int n);
 SO *PsoFromLo(int oid);
-void SetBlipgEmitb(BLIPG *pblipg, EMITB *pemitb);
+void SetBlipgEmitb(BLIPG *pblipg, EMITBV *pemitb);
 SFX *NewSfx();
 void CloneXfm(XFM *pxfm, XFM *pxfmBase);
 }
-void SetRipgEmitb(RIPG *pripg, EMITB *pemitb);
+void SetRipgEmitb(RIPG *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
 float GRandInRange(float gMin, float gMax);
 
 namespace M_func_00159118 { extern "C" {
@@ -140,8 +144,8 @@ void SetLoBusyk(void *p, int n);
  *   docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void InitEmitter(struct S *p)
-{
+} } // namespace M_InitEmitter
+void EMITTER::Init() { using namespace M_InitEmitter; M_InitEmitter::S *p = (M_InitEmitter::S *)this;
     unsigned int v;
     InitXfm(p);
     p->nF4 = -1;
@@ -156,7 +160,6 @@ void InitEmitter(struct S *p)
     if ((v ^ 1) & 1) *(int *)v |= 2;
     else p->fl = v | 2;
 }
-} } // namespace M_InitEmitter
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
 typedef int qword __attribute__((mode(TI)));
@@ -254,7 +257,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
  * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void func_001594D8(EMITTER *pemitter)
+extern "C" void func_001594D8(EMITTERV *pemitter)
 {
     func_001C4848(&D_003DD490, pemitter);
 }
@@ -264,11 +267,11 @@ struct K { short a; short b; int c; };
 struct LM { float gMin; float gMax; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct EMITO { void *palo; };
-struct EMITB { int n0; int pad4; struct EMITO *pemito; int padC; int kind; char pad14[0x20 - 0x14]; int n20; char pad24[0x30 - 0x24]; struct BOX *pbox; };
+struct EMITBV { int n0; int pad4; struct EMITO *pemito; int padC; int kind; char pad14[0x20 - 0x14]; int n20; char pad24[0x30 - 0x24]; struct BOX *pbox; };
 struct VTE { short delta; short pad; void (*pfn)(void *, void *); };
-struct EMITTER {
+struct EMITTERV {
     char pad0[0xC]; struct VTE *pvt; char pad10[0x40 - 0x10]; int grf40; char pad44[0xE0 - 0x44];
-    int nE0; struct EMITB *pemitb; char padE8[0xF0 - 0xE8];
+    int nE0; struct EMITBV *pemitb; char padE8[0xF0 - 0xE8];
     int kind; int nF4; struct LM lmF8; int n100; float g104; struct LM lm108; float g110; int n114; int oid118;
     char pad11C[0x130 - 0x11C]; float g130; float g134; float g138; float g13C; float g140;
 };
@@ -277,16 +280,16 @@ extern char D_003DD490[];
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
-void PostSwCallback(void *pg, struct EMITTER *p, long k, int n);
+void PostSwCallback(void *pg, struct EMITTERV *p, long k, int n);
 float GRandInRange__Fff(float gMin, float gMax);
-void PauseEmitterIndefinite__FP7EMITTER(struct EMITTER *p);
-void PauseEmitter__FP7EMITTERf(struct EMITTER *p, float g);
-struct EMITTER *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
-struct EMITTER *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
+void PauseEmitterIndefinite__FP7EMITTER(struct EMITTERV *p);
+void PauseEmitter__FP7EMITTERf(struct EMITTERV *p, float g);
+struct EMITTERV *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
+struct EMITTERV *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *func_001AE238(struct ALLOCREQ *preq, void *pv);
-void SetLoBusyk(struct EMITTER *p, int n);
-void *func_001A6318(struct EMITTER *p);
-void AppendDlEntry__FP2DLPv(void *pv, struct EMITTER *p);
+void SetLoBusyk(struct EMITTERV *p, int n);
+void *func_001A6318(struct EMITTERV *p);
+void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
 
 static __inline__ void *PvAllocCopy(int cb, void *pv)
 {
@@ -304,7 +307,7 @@ static __inline__ int FPtr(int n) { return !(n & 1); }
  * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
+void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->pemito->palo)
@@ -364,7 +367,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
         }
     }
     if (pemitter->oid118 != -1) {
-        struct EMITTER *pemitterNew = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pemitter->oid118, 0);
+        struct EMITTERV *pemitterNew = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pemitter->oid118, 0);
         if (!pemitterNew) {
             struct VTE *pvte;
             void *pthis;
@@ -405,13 +408,13 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8
  * @end-sly2-annot */
-extern "C" void func_00159968(EMITTER *pemitter)
+extern "C" void func_00159968(EMITTERV *pemitter)
 {
     SetLoParent_1A58D0(pemitter, PsoFromLo((int)*pemitter->pemitb->aploRef), 0);
 }
 
 namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
-struct EMITTER { char pad[0x14C]; void *p14C; void *p150; };
+struct EMITTERV { char pad[0x14C]; void *p14C; void *p150; };
 enum MSGID { MSGID_0, MSGID_1 };
 extern "C" { void UnsubscribeLoObject(void *pv, void *po); }
 /** @sly2-annot addr=0x1599A8
@@ -420,7 +423,7 @@ extern "C" { void UnsubscribeLoObject(void *pv, void *po); }
  * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTER *pemitter, MSGID msgid, void *pv)
+extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSGID msgid, void *pv)
 {
     if (msgid == 1) {
         if (pv == pemitter->p14C) {
@@ -443,7 +446,8 @@ extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTER *pemitter, MSGI
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 #endif
-EMITTER *PemitterEnsureEmitter(EMITTER *pemitter, ENSK ensk)
+EMITTERV * PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
+EMITTERV *PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 {
     if (ensk == ENSK_Set) {
         pemitter->fDirty = ensk;
@@ -458,8 +462,8 @@ struct BLK { qword apos[2][0x84]; int ibuf; int cpart; int pad[2]; BLK *pblkNext
 struct PRG { char pad[0x448]; BLK *pblkFirst; };
 struct ALO;
 struct EMITO { ALO *palo; };
-struct EMITB { int pad0; int f4; EMITO *pemito; };
-struct EMITTER { char pad[0xE4]; EMITB *pemitb; char pad1[0x140 - 0xE8]; float sBox; char pad2[0x150 - 0x144]; PRG *pprg; };
+struct EMITBV { int pad0; int f4; EMITO *pemito; };
+struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; char pad1[0x140 - 0xE8]; float sBox; char pad2[0x150 - 0x144]; PRG *pprg; };
 extern "C" {
 qword func_001A62E8(ALO *palo);
 float GModPositive__Fff(float g, float gMod);
@@ -478,7 +482,7 @@ static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float 
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
+extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
 {
     float sBox = pemitter->sBox;
     if (sBox > 0.0001f) {
@@ -520,33 +524,33 @@ extern "C" { extern CLOCK D_002DDED0; }
 struct CM { char pad[0x1C]; float g1C; char pad2[0x90 - 0x20]; qword pos; };
 extern "C" { extern CM D_002DDF40; }
 struct EMITO { void *palo; int f4; };
-struct EMITB { int pad0; int f4; EMITO *pemito; };
+struct EMITBV { int pad0; int f4; EMITO *pemito; };
 struct RIPG { char pad[0x15C]; int dl; };
 struct PRG { char pad[0x444]; int cpart; };
-struct EMITTER {
+struct EMITTERV {
     char pad0[0x10]; int x10; char pad1[0x38 - 0x14]; float g38;
-    char pad2[0xE0 - 0x3C]; int fChanged; EMITB *pemitb; char padE8[8]; int k; int c;
+    char pad2[0xE0 - 0x3C]; int fChanged; EMITBV *pemitb; char padE8[8]; int k; int c;
     float gF8, gFC; char pad3[0x104 - 0x100]; float g104, g108, g10C, g110; int f114; int x118;
-    int dl11C; char pad4[0x128 - 0x120]; EMITTER *pNext;
+    int dl11C; char pad4[0x128 - 0x120]; EMITTERV *pNext;
     char pad5[0x130 - 0x12C]; float g130, g134, g138, g13C; char pad6[0x144 - 0x140]; float g144;
     char pad7[0x14C - 0x148]; RIPG *pripg; PRG *pprg;
 };
-struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTER *pemitter; };
+struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTERV *pemitter; };
 extern "C" {
-void UpdateLo(EMITTER *p);
+void UpdateLo(EMITTERV *p);
 int FIsDlEmpty__FP2DL(int *pdl);
-int func_001A61A0(EMITTER *p);
+int func_001A61A0(EMITTERV *p);
 qword func_001A62E8(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
 int CPvDl__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
-void OnEmitterValuesChanged(EMITTER *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
-int FPausedEmitter(EMITTER *p) __asm__("FPausedEmitter__FP7EMITTER");
-void PauseEmitter(EMITTER *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
-void PauseEmitterIndefinite(EMITTER *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
-void ModifyEmitterParticles(EMITTER *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
+void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
+int FPausedEmitter(EMITTERV *p) __asm__("FPausedEmitter__FP7EMITTER");
+void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
+void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
 
 static inline float Dist2(qword a, qword b)
 {
@@ -565,7 +569,7 @@ static inline int FLess(float a, float b) { return a < b; }
  * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void UpdateEmitter__FP7EMITTERf(EMITTER *p, float dt)
+extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
 {
     if (p->fChanged)
         OnEmitterValuesChanged(p);
@@ -573,8 +577,8 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTER *p, float dt)
     if (p->x118 != -1)
         return;
     if (!FIsDlEmpty__FP2DL(&p->dl11C)) {
-        EMITTER *pe;
-        for (pe = (EMITTER *)p->dl11C; pe; pe = pe->pNext) {
+        EMITTERV *pe;
+        for (pe = (EMITTERV *)p->dl11C; pe; pe = pe->pNext) {
             if (!func_001A61A0(pe))
                 continue;
             if (!pe->x10)
@@ -693,7 +697,8 @@ LActive:
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void PauseEmitter(EMITTER *pemitter, float dt)
+void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTERf");
+void PauseEmitter(EMITTERV *pemitter, float dt)
 {
     pemitter->tUnpause = D_002DDED0.t + dt;
 }
@@ -703,7 +708,8 @@ void PauseEmitter(EMITTER *pemitter, float dt)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void PauseEmitterIndefinite(EMITTER *pemitter)
+void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void PauseEmitterIndefinite(EMITTERV *pemitter)
 {
     pemitter->tUnpause = D_002A514C;
 }
@@ -713,20 +719,21 @@ void PauseEmitterIndefinite(EMITTER *pemitter)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void UnpauseEmitter(EMITTER *pemitter)
+void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
+void UnpauseEmitter(EMITTERV *pemitter)
 {
     pemitter->tUnpause = -1.0f;
 }
 
 namespace M_FPausedEmitter__FP7EMITTER {
 extern "C" { extern CLOCK D_002DDED0; }
-struct EMITTER { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
+struct EMITTERV { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
 /** @sly2-annot addr=0x15A170
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *pemitter)
+extern "C" int FPausedEmitter__FP7EMITTER(EMITTERV *pemitter)
 {
     if (D_002DDED0.t < pemitter->tUnpause)
         return 1;
@@ -745,7 +752,8 @@ extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *pemitter)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void OnEmitterValuesChanged(EMITTER *pemitter)
+void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
+void OnEmitterValuesChanged(EMITTERV *pemitter)
 {
     pemitter->fDirty = 0;
     if (pemitter->pblipg != 0) {
@@ -762,15 +770,15 @@ void OnEmitterValuesChanged(EMITTER *pemitter)
 }
 
 namespace M_SetEmitterParticleCount__FP7EMITTERi {
-struct EMITTER { char pad[0xE0]; int fDirty; char pad2[0xC]; int k; int c; };
-void PauseEmitterIndefinite(EMITTER *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
-void UnpauseEmitter(EMITTER *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
+struct EMITTERV { char pad[0xE0]; int fDirty; char pad2[0xC]; int k; int c; };
+void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
 /** @sly2-annot addr=0x15A240
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTER *pemitter, int c)
+extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
 {
     switch (pemitter->k) {
     case 0:
@@ -794,7 +802,8 @@ extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTER *pemitter, int c)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void SetEmitterAutoPause(EMITTER *pemitter, int fAutoPause)
+void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitterAutoPause__FP7EMITTERi");
+void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause)
 {
     pemitter->fAutoPause = fAutoPause;
     pemitter->fDirty = 1;
@@ -1020,7 +1029,7 @@ struct EP {
     int pad34[3];
     qword v40;
 };
-struct EMITB {
+struct EMITBV {
     int pad0, pad4;
     EMITO *pemito;
     int padC;
@@ -1100,7 +1109,7 @@ static inline VU_VECTOR Normalize(qword d)
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *p, int i, int c, qword *ppos, qword *pv)
+extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *p, int i, int c, qword *ppos, qword *pv)
 {
     EP *pep = &p->ep;
     LM *plm;
@@ -1367,9 +1376,9 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *p
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-struct EMITTER;
+struct EMITTERV;
 struct SHD { void *p0; int x4; int x8; int pad; int x10; };
-struct EMITTER {
+struct EMITTERV {
     char pad0[8];
     SHD *pshd;
     char pad1[0xB0 - 0xC];
@@ -1396,7 +1405,7 @@ public:
     qword x90;
     char abA0[0xEC - 0xA0];
     virtual void Set(qword pos, float g, int n);
-    virtual void Init(EMITTER *pemit);
+    virtual void Init(EMITTERV *pemit);
 };
 class SO {
 public:
@@ -1415,11 +1424,11 @@ struct EMITX { int x0; SO **ppso; void *p8; };
 extern "C" {
 extern char D_003DD490[];
 SO *PripgNew(void *p, int n);
-void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITTER *pemit);
+void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITTERV *pemit);
 void SubscribeLoObject(SO *pso, void *p);
 PART *PripNewRipg(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTER *pemit);
+void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTERV *pemit);
 MATRIX3 *func_001A6318(void *p);
 int FIsDlEmpty__FP2DL(void *p);
 }
@@ -1431,7 +1440,7 @@ int FIsDlEmpty__FP2DL(void *p);
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTER *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
+extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTERV *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
 {
     SO *pso = 0;
     int i;
@@ -1475,7 +1484,7 @@ namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3 {
 // MATCH (Claude agent, lane E21), from fresh3 (56). Fixes: (1) for-increment written `k++, i++` (loop.c prepends each biv to loop_iv_list, so the LAST-incremented biv's giv inits are emitted first in the preheader; the target computes i*16 before k*16/k*4, which clobbers v1 and stops reload inheriting k from the k<c test); (2) Dot's d output `=j` (not earlyclobber) so it shares a's vf2.
 // DRAFT (Claude agent, lane E5): fresh rewrite, aligned 49 (old 80). Outer while(k<c && (pblk || (pblk=alloc))) gives the target loop shape; GRand(&p->lm) inline gives the hoisted plm slot; unsigned n0 &= ~1u gives lui/ori. Left: giv bases (target base = &apd[i] for a-side, separate &afr[1].apos[i] giv for the copy).
 typedef int qword __attribute__((mode(TI)));
-struct EMITTER;
+struct EMITTERV;
 struct PD { unsigned int n0; int n4; float g8; float gC; };
 struct PAIR { qword a; qword b; };
 struct FR { qword apos[43]; qword av[43]; qword apd[43]; qword pad[3]; };
@@ -1484,26 +1493,26 @@ struct BLK {
     int c; PAIR *apair; int pad108C; BLK *pblkNext;
 };
 struct PRG;
-struct PRGVT { char pad[0x198]; short d; short pad2; void (*pfn)(PRG *, EMITTER *); };
+struct PRGVT { char pad[0x198]; short d; short pad2; void (*pfn)(PRG *, EMITTERV *); };
 struct PRG {
     char pad0[0xC]; PRGVT *pvt; char pad10[0x160 - 0x10]; int k160; char pad164[0x1A0 - 0x164]; int c1A0;
     char pad1A4[0x3B0 - 0x1A4]; int c3B0; char pad3B4[0x434 - 0x3B4]; int f434; int pad438; int k43C; int pad440;
     int c444; BLK *pblkFirst;
 };
 struct LM { float gMin, gMax; };
-struct EMITTER { char pad[0xC8]; int fC8; char padCC[0xF0 - 0xCC]; int kF0; int fF4; LM lm; };
-struct EMITX { PRG **ppprg; void *ppripg; EMITTER *pemitter; };
+struct EMITTERV { char pad[0xC8]; int fC8; char padCC[0xF0 - 0xCC]; int kF0; int fF4; LM lm; };
+struct EMITX { PRG **ppprg; void *ppripg; EMITTERV *pemitter; };
 struct CM { char pad[0x70]; qword dir; };
 extern "C" {
 extern CM D_002DDF40;
 extern char D_003DD490[];
 PRG *PblipgNew(void *pv);
-void SetBlipgEmitb(PRG *pprg, EMITTER *p);
+void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
 BLK *PblipNew(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int NRandInRange__Fii(int nMin, int nMax);
 float GRandInRange__Fff(float gMin, float gMax);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
 static inline float Dot(qword a, qword b)
@@ -1525,7 +1534,7 @@ static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gM
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
     if (px && px->ppprg)
@@ -1591,15 +1600,15 @@ struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 mat; qword v; qword w; };
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-struct EMITTER { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int x84; char pad2[0x90 - 0x88]; char x90[1]; };
+struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int x84; char pad2[0x90 - 0x88]; char x90[1]; };
 struct BUF { qword *apos; qword *av; float *ag; float *an; int f10; };
 extern "C" {
 void *func_001AE318(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
-void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITTER *pemit, int i, int c, qword *ppos, qword *pnormal);
+void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITTERV *pemit, int i, int c, qword *ppos, qword *pnormal);
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
-void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITTER *pemit, qword *ppos, qword *pvel);
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTER *pemit, BUF *pb);
+void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITTERV *pemit, qword *ppos, qword *pvel);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb);
 }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return func_001AE318(&al); }
 static inline qword MulRow(const MATRIX3 &m, qword v)
@@ -1625,7 +1634,7 @@ static inline qword Cross(qword a, qword b)
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTER *pemit, BUF *pb)
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb)
 {
     pb->apos = (qword *)PvAlloc(c * 16, 16);
     pb->av = (qword *)PvAlloc(c * 16, 16);
@@ -1662,21 +1671,21 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
 struct BUF { qword *apos; qword *av; float *ag; float *an; int f10; };
 struct SAV { int x0; };
-struct EMITB { char pad[8]; SAV *psav; char pad2[0x18 - 0xC]; int k18; int f1C; };
+struct EMITBV { char pad[8]; SAV *psav; char pad2[0x18 - 0xC]; int k18; int f1C; };
 class ALO;
 struct VT { char pad[0x100]; short d; short pad2; void *(*pfn)(ALO *, M4 *); };
-class ALO { public: char pad[0xC]; VT *pvt; int x10; char pad2[0xE4 - 0x14]; EMITB *pemitb; };
+class ALO { public: char pad[0xC]; VT *pvt; int x10; char pad2[0xE4 - 0x14]; EMITBV *pemitb; };
 struct EO { char pad[8]; ALO *palo; };
-struct EMITTER { char pad[8]; EO *peo; };
+struct EMITTERV { char pad[8]; EO *peo; };
 struct TIMES { char pad[0xC]; float *at; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITBV *pemitb, BUF *pb);
 int FFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
-void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb);
+void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 static inline qword MulAffine(const M4 &m, qword v)
@@ -1703,7 +1712,7 @@ static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
+void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb)
 {
     ALO *palo = pemit->peo->palo;
     SAV *psav = palo->pemitb->psav;
@@ -2053,8 +2062,9 @@ void LoadExplgFromBrx(struct S *p, void *q)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" int CploExplgChildren(EXPLG *pexplg, LO ***paplo)
+int EXPLG::CploChildren(LO ***paplo)
 {
+    EXPLGV *pexplg = (EXPLGV *)this;
     *paplo = pexplg->aplo;
     return pexplg->cplo;
 }
@@ -2176,8 +2186,12 @@ void UnsubscribeLoObject(void *pv, void *po);
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void HandleExplsMessage(struct O *o, int msgid, void *pv)
+} } // namespace M_HandleExplsMessage
+void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
+    using namespace M_HandleExplsMessage;
+    M_HandleExplsMessage::O *o = (M_HandleExplsMessage::O *)this;
+    int msgid = (int)msgid_m;
     if (msgid == 1) {
         if (pv == o->p100) {
             UnsubscribeLoObject(pv, o);
@@ -2188,7 +2202,6 @@ void HandleExplsMessage(struct O *o, int msgid, void *pv)
         }
     }
 }
-} } // namespace M_HandleExplsMessage
 
 namespace M_ExplodeExplsExplso { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
@@ -2228,7 +2241,7 @@ typedef struct EMITP { int x0; int x4; int x8; int xC; int x10; } EMITP;
 typedef struct XF4 { qword v; } XF4;
 typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;
 typedef struct FRM { qword pos; qword m[3]; } FRM;
-typedef struct EMITB {
+typedef struct EMITBV {
     int x0; int x4; EMITP *pemitp; int xC; int x10; int x14; int x18; FRM *pfrm; int pad20[4];
     union { qword v; qword *pm; EMITP *pemitp; struct { char pad[0x20]; qword v; } *pq; } u30;
     qword v40;
@@ -2236,11 +2249,11 @@ typedef struct EMITB {
     char pad58[0xD8 - 0x58];
     float gD8, gDC;
     qword vE0[2];
-} EMITB;
+} EMITBV;
 typedef struct SND { int id; float g4, g8, gC, g10; } SND;
-typedef struct EMITTER { char pad[0xE4]; EMITB *pemitb; int xE8, xEC; SND *psnd; float gF4, gF8; int xFC; int x100; int x104; } EMITTER;
+typedef struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; int xE8, xEC; SND *psnd; float gF4, gF8; int xFC; int x100; int x104; } EMITTERV;
 typedef struct EMITO { int grf; int x4; float g8; float gC; qword v10; qword v20; int x30; int x34; int x38; } EMITO;
-typedef struct EMITR { int *p104; int *p100; EMITTER *p; } EMITR;
+typedef struct EMITR { int *p104; int *p100; EMITTERV *p; } EMITR;
 
 extern char D_002BDEC0[];
 extern float GRandInRange__Fff(float lo, float hi);
@@ -2250,7 +2263,7 @@ extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
-extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
+extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pb, EMITR *pr);
 extern qword ConvertAloPos(int x, int y, qword v);
 extern void *PsndStartSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
@@ -2266,10 +2279,10 @@ extern void SetSndPitch(void *p, float g);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void FireExplsExplso(EMITTER *p, EMITO *po)
+void FireExplsExplso(EMITTERV *p, EMITO *po)
 {
     EMITP emitp;
-    EMITB b;
+    EMITBV b;
     EMITR r;
     EMITR *pr;
     int c;

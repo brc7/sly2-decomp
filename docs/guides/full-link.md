@@ -70,6 +70,23 @@ crt0_splicewrap tables (data/crt0-tables)"). Values of `python3 tools/link.py`; 
 The rest of the old "crt0_splicewrap `.rodata`" gap, 0x27A250..0x29A7C0 (132,464 bytes), is not crt0_splicewrap's:
 it is tu_1147D8's built-in font (data work list below).
 
+### Status (data/vtables on link/real-link, 2026-11-06; superseded above)
+
+data/vtables (from link/real-link 1a662931): the registry classes' vtables are emitted by their key TUs
+([tu-merging.md, "Vtables emitted (data/vtables)"](tu-merging.md#vtables-emitted-datavtables)). link/real-link's
+table below holds, with these changes:
+
+| measure | value | tool |
+|---|---|---|
+| vtables from objects | 182 (`.gnu.linkonce.d._vt$*`): 174 new in 81 key TUs (65,040 bytes; 10 secondary grab-spot tables among them), 8 before (heap, bis, bq x2, dmas, gifs, missile's ACCMISS, tn's CMPART2, the last unplaced as before) | `tools/link.py`, scratch vtcheck.py |
+| ld.lld | 0 errors; 4,847 sections placed (4,673 + 174), 6 unplaced (544 bytes, unchanged) | `tools/link.py` |
+| differing bytes | 0; `.data` from objects 102,976 (37,936 before) | `tools/link.py` |
+| blob bytes | 1,002,040 (1,067,080): data no object defines 372,016 (437,056) | `tools/link.py` |
+| config names at their config address | 7,621 / 7,621 | `tools/link.py` |
+| registry vtables not emitted | 17 config names: the 13 whose key TU is class_registry (0x2C8940..0x2CA4D0), GOMER, exit_warp's WARP/EXIT/CID41 | tu-merging.md |
+| symcheck / relverify | unchanged against the branch start (35 unresolved, 0 duplicate strong globals) / 37,168 relocations OK, 0 mismatched | scratch symcheck.py, relverify.py |
+| config/link_aliases.txt | 42 lines, unchanged (the 21 vtable lines: act.cpp's curve classes, hud's and memcard's local classes) | — |
+
 ### Status (link/real-link, 2026-11-06; superseded above)
 
 link/real-link (from link/crt0-block adaf9219; no source changed): tools/link.py links as the original build did —
@@ -684,7 +701,7 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 | ~~crt0_splicewrap `.rodata`~~ | ~~98,000~~ | 0x262380..0x27A250 | class_registry.cpp | done (data/crt0-tables): the 199 class option arrays, g_mpcidarysplopt, HandleBasicSpliceEvent's event parameter types |
 | ~~crt0_splicewrap `.data`~~ | ~~57,960~~ | 0x2AC880..0x2BAAE8 | class_registry.cpp | done (data/crt0-tables): g_aeopid, the 1,449 option records |
 | tu_1147D8's built-in font | 132,464 | 0x27A250..0x29A7C0 | tu_1147D8 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
-| registry vtables | 100,312 | six gaps: 0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520 | the classes' key TUs (the TUs between the objects around each gap) | the `_vt$<len><NAME>` tables class_registry's factories reference (absolute addresses today); a TU emits a vtable where it defines the class's first non-inline virtual, as missile.cpp does for `_vt$7ACCMISS` |
+| registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: class_registry (13 vtables at 0x2C8940..0x2CA4D0), gomer.cpp, exit_warp.cpp, act.cpp's curve classes and the other unnamed vtables (GRABSPOT's at 0x2D28D8, grabspot.cpp) | class_registry defines one getter of each of its 13 classes as the member; GOMER's slot 7 signature; exit_warp's bis.h/vec.h clash with basic.h; names for the unnamed classes |
 | palette TUs' tables | 33,024 | 0x29A800 | tail of tu_1147D8 / head of tu_114AE0 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
 | small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
@@ -696,7 +713,7 @@ D_00443800.., libkernel's `_sif_*`, libgcc's `objects`, then the template static
 reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gaps.
 
 Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
-needs the key TUs' first virtuals), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
+needs the key TUs' first virtuals; done but for 17 in data/vtables), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
 of tools/linkaliases.py.
 
 ### 3. SDK objects instead of blobs

@@ -1670,8 +1670,9 @@ void OnSoAdd(struct L *p)
  * See: docs/formats/meshes-scene.md#3-transforms-cstatic,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" MATRIX4 *SO_PmatWorld(SO *pso)
+MATRIX4 * SO::PmatWorld()
 {
+    SO *pso = (SO *)this;
     return &pso->pxfRoot->matWorld;
 }
 

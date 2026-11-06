@@ -752,8 +752,9 @@ void InitSwProxySpares(struct G *pg)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
-extern "C" void InitProxy(PROXY *pproxy)
+void PROXY::Init()
 {
+    PROXY *pproxy = (PROXY *)this;
     InitXfm(pproxy);
     SetLoBusyk(pproxy, 0);
 }

@@ -37,13 +37,13 @@ struct XFM : public LO
                                3504 instances / 73 states: w = 1; rows 0-2 unit length in 3492, 12 scaled). Plain XFM/PROXY/TARGET instances are
                                mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
                                SO+0x60 pxfRoot is an XF whose world position is at XF+0x70. */
+    virtual MATRIX4 *PmatWorld() __asm__("XFM_PmatWorld");   /* slot 31 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetXfmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitXfm");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetXfmParent");   /* slot 10 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadXfmFromBrx");   /* slot 14 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateXfmToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateXfmToMat");   /* slot 30 */
-    virtual MATRIX4 *PmatWorld() __asm__("XFM_PmatWorld");   /* slot 31 */
     virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("func_00231550");   /* slot 32 */
     virtual qword GetVelocity() __asm__("func_00231468");   /* slot 33 */
     virtual qword GetAngularVelocity() __asm__("func_002314D0");   /* slot 34 */
@@ -74,8 +74,8 @@ struct SHAPE : public XFM
       void *pvUnk17c;
       struct SHAPERANGES *pranges;
       undefined4 unk_0x184[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetShapeClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitShape");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetShapeClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadShapeFromBrx");   /* slot 14 */
     virtual void VUnk16() __asm__("func_001E6340");   /* slot 17 */
     virtual void Clone(LO *ploBase) __asm__("CloneShape");   /* slot 41 */
@@ -91,11 +91,11 @@ struct TARGET : public XFM
       int fHitTest;
       int nUnkF4;
       uint32_t   _pad_22    [ 2 ] ;
+    virtual void Unfreeze() __asm__("OnTargetAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTargetClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTarget");   /* slot 7 */
     virtual void VUnk14() __asm__("PostTargetLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnTargetRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnTargetAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("CloneTarget");   /* slot 41 */
 };
 typedef char assert_TARGET_size[sizeof(TARGET) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
@@ -109,8 +109,8 @@ struct VOL : public XFM
       qword posCenter;
       float sRadius2;
       undefined4 unk_0x124[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetVolClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolFromBrx");   /* slot 14 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetVolClassDesc");   /* slot 6 */
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -123,8 +123,8 @@ struct PROXY : public XFM
       int cinit;
       PROXYINIT *ainit;
       undefined4 unk_0xf4[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitProxy");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void Unfreeze() __asm__("OnProxyAdd");   /* slot 23 */
     virtual void VUnk23() __asm__("func_001CB6D8");   /* slot 24 */
     virtual void Clone(LO *ploBase) __asm__("CloneProxy");   /* slot 41 */
@@ -170,12 +170,12 @@ struct TN : public XFM
       CLQ clqPull;
       LM lmPull;
       undefined4 unk_0x1b8[(0x1c0 - 0x1b8) / 4];
+    virtual void Freeze() __asm__("OnTnRemove");   /* slot 22 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTn");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveTnHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTnFromBrx");   /* slot 14 */
     virtual void VUnk15() __asm__("UpdateTn");   /* slot 16 */
-    virtual void Freeze() __asm__("OnTnRemove");   /* slot 22 */
     virtual int CploChildren(LO ***paplo) __asm__("func_00221120");   /* slot 28 */
     virtual void Clone(LO *ploBase) __asm__("CloneTn");   /* slot 41 */
 };

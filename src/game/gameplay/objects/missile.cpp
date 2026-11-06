@@ -64,8 +64,8 @@ struct MISSILE : public BOMB
       int fAct;              /* +0x264 run the flight action */
       ACT *pact;             /* +0x268 */
       float gAct;            /* +0x26C the action's parameter (1.0) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
@@ -84,15 +84,22 @@ struct ACCMISS : public MISSILE
     virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
 };
-struct SPLMISS : public MISSILE
+/* CID82: the class-registry name of Sly 1's SPLMISS (its vtable is _vt$5CID82). This TU is the key TU of MISSILE,
+   ACCMISS and CID82: the three views carry the classes' virtual layouts (sly2/classes.h) and define their first
+   virtuals as members. */
+struct CID82 : public MISSILE
 {
       float dtFlight;        /* +0x270 > 0: arrive after this time; else from the launch velocity (FireSplmiss) */
       float svMax;           /* +0x274 1500 */
       float tArrive;         /* +0x278 */
       undefined4 unk_0x27C;
       qword qwVelTarget;     /* +0x280 velocity at the target */
+    virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
+    virtual void VUnk69() __asm__("func_001B2468");   /* slot 70 */
+    virtual void VSlot78() __asm__("FireSplmiss");   /* slot 78 */
 };
-typedef char assert_SPLMISS_size[sizeof(SPLMISS) == 0x290 ? 1 : -1];
+typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 
 /* FireSplmiss's collision result (func_0014C748). */
 struct HIT { qword q[4]; float t0, t1; int count; void *owner0, *owner1; };
@@ -145,8 +152,10 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
  * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
  *   docs/engine/gameplay-objects.md#key-functions
  * @end-sly2-annot */
-void InitMissile(MISSILE *pmissile)
+void InitMissile(MISSILE *pmissile);
+void MISSILE::Init()
 {
+    MISSILE *pmissile = this;
     InitBomb(pmissile);
     pmissile->fAct = 1;
     pmissile->svLaunch = 800.0f;
@@ -355,8 +364,9 @@ void ACCMISS::VUnk69()
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void InitSplmiss(SPLMISS *psplmiss)
+void CID82::Init()
 {
+    CID82 *psplmiss = this;
     InitMissile(psplmiss);
     psplmiss->svMax = 1500.0f;
 }
@@ -369,7 +379,7 @@ inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void FireSplmiss(SPLMISS*p,LO*source,V*point){
+extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
  FireMissile(p,source,(V*)&w.pos);
@@ -388,7 +398,7 @@ extern "C" void FireSplmiss(SPLMISS*p,LO*source,V*point){
   __asm__("qmtc2.ni %1,%0":"=j"(velocity):"r"(clamped));
   register qword scalarWord __asm__("$2");
   __asm__("mfc1 %0,%3\n\tsqc2 %4,%1\n\tsq %0,%2":"=&r"(scalarWord),"=m"(w.velocity.q),"=m"(w.scalar):"f"(1.5f),"j"(velocity));
-  register SPLMISS*owner __asm__("$4");
+  register CID82*owner __asm__("$4");
   __asm__("daddu %0,%4,$zero\n\tlq %1,%5\n\tsqc2 %6,%2\n\tsq %1,%3\n\tlq %1,%7":"=r"(owner),"=&r"(scalarWord),"=m"(w.spill.q),"=m"(w.direction.q):"r"(p),"m"(w.dir),"j"(velocity),"m"(w.scalar));
   *(qword*)&w.factor=scalarWord;
   qword fresh=func_001A62E8(owner);
@@ -434,8 +444,8 @@ extern "C" V func_001B2398(MISSILE *pmissile, float g)
 
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
-static inline qword Velocity(SPLMISS*p){VE*vt=PVT(p);return ((qword(*)(void*))vt[33].pfn)((char*)p+vt[33].d);}
-static inline int CaptureDestinationAndEqual(SPLMISS*p,const V*output,V*destination){
+static inline qword Velocity(CID82*p){VE*vt=PVT(p);return ((qword(*)(void*))vt[33].pfn)((char*)p+vt[33].d);}
+static inline int CaptureDestinationAndEqual(CID82*p,const V*output,V*destination){
  register qword copied __asm__("$3"),target __asm__("$17"),zero __asm__("$16");register qword*origin __asm__("$2");
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
  __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(p->qwVelTarget),"i"(&D_002A2DD0),"F"(0.0001f));
@@ -449,7 +459,7 @@ static inline int CaptureDestinationAndEqual(SPLMISS*p,const V*output,V*destinat
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void func_001B2468(SPLMISS*p){
+extern "C" void func_001B2468(CID82*p){
  if(p->nUnk1e8)return;
  WORKA w;
  float remaining;
@@ -484,7 +494,7 @@ extern "C" void func_001B2468(SPLMISS*p){
  VE*table=PVT(p);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)p+displacement);
- register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register SPLMISS*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
+ register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
  __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(p),"r"(current),"m"(clock->dt));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
  __asm__("vsub.xyzw %0,%3,%4\n\tqmtc2.ni %5,%1\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %2,%0,Q":"=j"(difference),"=j"(dt),"=j"(acceleration):"j"(copied),"j"(actualCurrent),"r"(dtWord));

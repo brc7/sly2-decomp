@@ -61,8 +61,11 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
  * See: docs/engine/animation.md#7-key-functions, docs/engine/object-model.md#2-the-lo-virtual-interface,
  *   docs/engine/object-model.md#8-source-files
  * @end-sly2-annot */
-void InitLo(struct S *s)
+} } // namespace M_InitLo
+void LO::Init()
 {
+    using namespace M_InitLo;
+    M_InitLo::S *s = (M_InitLo::S *)this;
     void *a;
     void **b;
     s->x28.b.f48 = 0xF;
@@ -81,7 +84,6 @@ void InitLo(struct S *s)
     GetLoChildDl(s->x10, &a, &b);
     InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
 }
-} } // namespace M_InitLo
 
 /** @sly2-annot addr=0x1A53A0
  * Purpose: If plo->ploroot(x14)==0 alloc a LOROOT from pool g_sw+0x398C (g_sw.slotheapLoroot) and set root->plo=plo

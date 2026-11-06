@@ -185,6 +185,7 @@ struct SO : public LO
                 ulong fTreeRoot : 1;
                 ulong fUnk35 : 1;
                 ulong fHasIkLimbs : 1;
+    virtual MATRIX4 *PmatWorld() __asm__("SO_PmatWorld");   /* slot 31 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetSoParent");   /* slot 10 */
@@ -206,7 +207,6 @@ struct SO : public LO
     virtual void VUnk26(LO *plo) __asm__("func_001CB5D0");   /* slot 27 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateSoToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
-    virtual MATRIX4 *PmatWorld() __asm__("SO_PmatWorld");   /* slot 31 */
     virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("func_001F3FB0");   /* slot 32 */
     virtual qword GetVelocity() __asm__("GetSoVelocity");   /* slot 33 */
     virtual void SetVelocity(qword qwVel) __asm__("SetSoVelocity");   /* slot 35 */
