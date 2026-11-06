@@ -500,38 +500,39 @@ extern "C" void SetBreakableStageParam(TRIG *breakable, int x)
     }
 }
 
-// Record action kind 6 with arg. (inferred)
-extern "C" void AddBreakableAction6(TRIG *breakable, int v) {
+// Splice builder, action 6: makes the named object the source for the following actions (message sender, sound
+// position).
+extern "C" void AddBreakableSetSource(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 6)->b = v;
 }
 
-// Record action kind 7. (inferred)
-extern "C" void AddBreakableAction7(TRIG *breakable, int v) {
+// Splice builder, action 7: sends message 1 (about the source object) to the named object, if it is a cid 0x1E object.
+extern "C" void AddBreakableSendMessage(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 7)->b = v;
 }
 
-// Record action kind 8. (inferred)
-extern "C" void AddBreakableAction8(TRIG *breakable, int v) {
+// Splice builder, action 8: jolts the camera (kind v) if the breakable allows camera effects (flag 2).
+extern "C" void AddBreakableJoltCamera(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 8)->b = v;
 }
 
-// Record action kind 9. (inferred)
-extern "C" void AddBreakableAction9(TRIG *breakable, int v) {
+// Splice builder, action 9: rumbles the pad (kind v) if allowed (flag 4).
+extern "C" void AddBreakableRumble(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 9)->b = v;
 }
 
-// Record action kind 10. (inferred)
-extern "C" void AddBreakableAction10(TRIG *breakable, int v) {
+// Splice builder, action 10: plays sound v at the source object (or the breakable) if allowed (flag 8).
+extern "C" void AddBreakableSound(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 0xA)->b = v;
 }
 
-// Record action kind 11. (inferred)
-extern "C" void AddBreakableAction11(TRIG *breakable, int v) {
+// Splice builder, action 11: fires the breakable's Splice event 4 with argument v.
+extern "C" void AddBreakableSpliceEvent(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 0xB)->b = v;
 }
 
-// Record action kind 0. (inferred)
-extern "C" void AddBreakableAction0(TRIG *breakable, int v) {
+// Splice builder, action 0: adds the named object to the world (vtable slot 8).
+extern "C" void AddBreakableAddObject(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 0)->b = v;
 }
 
@@ -553,8 +554,8 @@ extern "C" void AddBreakableShowParts(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 4)->b = v;
 }
 
-// Record action 1 (default arg = own id). (inferred)
-extern "C" void AddBreakableAction1(TRIG *breakable, int v) {
+// Splice builder, action 1: removes the named object (default: the breakable itself) from the world (vtable slot 9).
+extern "C" void AddBreakableRemoveObject(TRIG *breakable, int v) {
     int oid = v;
     if (oid == -1) {
         oid = breakable->oid;
@@ -580,8 +581,8 @@ extern "C" void AddBreakableHideParts(TRIG *breakable, int v) {
     AddBreakableAction(breakable, 5)->b = v;
 }
 
-// Record action 12 with a two-int payload. (inferred)
-extern "C" void AddBreakableAction12(TRIG *breakable, int a, int b)
+// Splice builder, action 12: applies task states (ApplyTaskStates) when the stage runs.
+extern "C" void AddBreakableTaskStates(TRIG *breakable, int a, int b)
 {
     MSG msg;
     I *pi = AddBreakableAction(breakable, 0xC);

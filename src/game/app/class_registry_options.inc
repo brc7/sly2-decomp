@@ -593,10 +593,10 @@ void func_001A6C90() __asm__("func_001A6C90");
 void func_001A6E38() __asm__("func_001A6E38");
 void func_001A6E70() __asm__("func_001A6E70");
 void SetCritterState() __asm__("SetCritterState");
-void AddBreakableAction6() __asm__("AddBreakableAction6");
-void AddBreakableAction7() __asm__("AddBreakableAction7");
-void AddBreakableAction11() __asm__("AddBreakableAction11");
-void AddBreakableAction0() __asm__("AddBreakableAction0");
+void AddBreakableSetSource() __asm__("AddBreakableSetSource");
+void AddBreakableSendMessage() __asm__("AddBreakableSendMessage");
+void AddBreakableSpliceEvent() __asm__("AddBreakableSpliceEvent");
+void AddBreakableAddObject() __asm__("AddBreakableAddObject");
 void func_001BEAA8() __asm__("func_001BEAA8");
 void func_001BEAD0() __asm__("func_001BEAD0");
 void func_001C20E8() __asm__("func_001C20E8");
@@ -1763,13 +1763,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(func_0010C8C8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1030] opt 342, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010C950), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1031] opt 931, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010C9C8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1032] opt 932, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAction6), EOPID_NONE}, /* [1033] opt 933, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAction7), EOPID_NONE}, /* [1034] opt 244, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSetSource), EOPID_NONE}, /* [1033] opt 933, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSendMessage), EOPID_NONE}, /* [1034] opt 244, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CA50), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1035] opt 233, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CAD8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1036] opt 234, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CB60), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1037] opt 934, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAction11), EOPID_NONE}, /* [1038] opt 243, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAction0), EOPID_NONE}, /* [1039] opt 238, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSpliceEvent), EOPID_NONE}, /* [1038] opt 243, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAddObject), EOPID_NONE}, /* [1039] opt 238, CID98 */
     {0x12, 0x401, EOPID_FN(func_0010CBE8), EOPID_FN(func_0010CC70), EOPID_INT(1), EOPID_NONE}, /* [1040] opt 110, CID98 */
     {0x12, 0x401, EOPID_FN(func_0010CCF8), EOPID_FN(func_0010CD80), EOPID_INT(1), EOPID_NONE}, /* [1041] opt 112, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CE08), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1042] opt 239, CID98 */
