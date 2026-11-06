@@ -75,6 +75,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0x60");
    branch gets the other one (2 of 78 instructions off); a specialization is compiled where it is defined, like a
    plain function, and MATCHes. Being a specialization it would be a strong .text function, so the declaration gives
    it what an instance gets: a weak symbol in .gnu.linkonce.t.<symbol>. */
+/** @sly2-annot addr=0x2568C0
+ * Purpose: rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)]
+ * Info: proposed name CHash_Resize (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 template <> void CHash<char *, int>::Resize(int n)
     __attribute__((weak, section(".gnu.linkonce.t.Resize__t5CHash2ZPcZii")));
 template <> void CHash<char *, int>::Resize(int n)
