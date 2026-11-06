@@ -1,8 +1,8 @@
-// tu_144B28.cpp -- guard behaviours: walk to a goal (BHVWALKGOAL, a path behaviour), follow an object (BHVFOLLOW,
-// with its state machine and path zones), three behaviours of the same shape (init, start, close, done, update,
-// set state: 0x145CD0.., 0x146158.., 0x146650..) and one of Murray's.
+// tu_144B28.cpp -- more step behaviours: walk to a goal (BHVWALKGOAL, BHV168, a path behaviour steering along a
+// jt-goal), walk-to with path planning (BHV193), follow an object (BHVFOLLOW, BHV194, with its distance-band state
+// machine and path zones), three approach-and-interact behaviours of the same shape (BHV195/196/197: approach a
+// target, then interact through SetPlayerInteractMode) and one of Murray's (BHV198).
 // TU 0x144B28..0x1471C0 (43 functions, address order).
-//
 // Types: guard.h STEPGUARD, players.h MURRAY, so.h SO/SOPHYS/REGENT; BHVB and its derived views (BHVSTATE,
 // BHVWALKGOAL, BHV144E20, BHVFOLLOWV) are TU-private, written for the 18 m2c bodies; the other functions keep the
 // per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do).
@@ -79,17 +79,7 @@ void SetMurrayState(MURRAY *pmurray, int nState);
 void func_001B8D30(MURRAY *pmurray, int n);
 }
 
-/** @sly2-annot addr=0x144B28
- * Purpose: BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1
- * Info: proposed name InitBhvwalkgoal (T1); class BHVWALKGOAL slot7; TU tu_144B28
- * Notes: superseded: OnBhv168Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv168Push | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): InitBhv168
- *   -> InitBhvwalkgoal | runtime6 P2: class role confirmed (walk-to-goal child)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// 0x144B28: Walk-goal behaviour (BHVWALKGOAL, BHV168) vtable slot 7 (OnPush): path behaviour base, speed scale 1.
 void BHVWALKGOAL::OnPush()
 {
     BHVWALKGOALV *pbhv = (BHVWALKGOALV *)this;
@@ -97,32 +87,14 @@ void BHVWALKGOAL::OnPush()
     pbhv->gD0 = 1.0f;
 }
 
-/** @sly2-annot addr=0x144B58
- * Purpose: BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80)
- * Info: proposed name StartBhvwalkgoal (T1); class BHVWALKGOAL slot8; TU tu_144B28
- * Notes: superseded: OnBhv168Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv168Resume | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   StartBhv168 -> StartBhvwalkgoal | runtime6 P2: goal +0x80 = (13803,-6465) passed to SetJtgoal (S62)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144B58: Walk-goal behaviour vtable slot 8 (Start): base, then sets the mover's jt-goal to the behaviour's goal.
 extern "C" void StartBhvwalkgoal(BHVWALKGOALV *pbhv)
 {
     StartBhvpath(pbhv);
     SetJtgoal(PJTGOAL(pbhv->pstepguard), pbhv->qwGoal);
 }
 
-/** @sly2-annot addr=0x144B90
- * Purpose: BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal
- * Info: proposed name UpdateBhvwalkgoal (T1); class BHVWALKGOAL slot10; TU tu_144B28
- * Notes: BHV slot 10 (Update): canonical form would be UpdateBhv168 | v3 BHV class word (runtime6 P2: BHV194
- *   = follow, BHV168 = walk-to-goal child): UpdateBhv168Goal -> UpdateBhvwalkgoal | runtime6 P2: walk-to-goal
- *   update; state +0x4C = 2 (arrived) in S62
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144B90: Walk-goal behaviour vtable slot 10 (Update): path behaviour update, then refreshes the jt-goal.
 extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *pbhv)
 {
     UpdateBhvpath(pbhv);
@@ -187,17 +159,8 @@ static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
         __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
-/** @sly2-annot addr=0x144BC8
- * Purpose: BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ
- *   of xy distance, scaled by +0xD0) and heading toward the goal
- * Info: proposed name UpdateBhvwalkgoalPoctl (T1); class BHVWALKGOAL slot14; TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): Bhv168_VUnk14 ->
- *   UpdateBhvwalkgoalPoctl | runtime6 P1: slot 14 called by UpdateStepplayer 0x1403D0 with the POCTL; writes
- *   POCTL +0x18 heading = atan2 to goal, +0x1C speed 0 when arrived
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
+// (states 0/1) sets the speed from the horizontal distance to the goal (scaled) and the heading toward it.
 void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
 {
     ResetBhvSteering(p, q);
@@ -237,14 +200,8 @@ void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
 }
 } } // namespace M_UpdateBhvwalkgoalPoctl
 
-/** @sly2-annot addr=0x144E20
- * Purpose: BHV193 slot 7: base, defaults 40.0 / 1 / 1.0
- * Info: proposed name InitBhv193 (T2); class BHV193 slot7; TU tu_144B28
- * Notes: superseded: OnBhv193Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv193Push
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144E20: Walk-to behaviour (BHV193) vtable slot 7 (OnPush): base, defaults (arrival radius 40, flags 1, speed
+// scale 1).
 void BHV193::OnPush()
 {
     BHV144E20 *pbhv = (BHV144E20 *)this;
@@ -263,14 +220,8 @@ struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34
 void StartBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void SetBhvWalkToGoal(struct P *p, qword q);
-/** @sly2-annot addr=0x144E68
- * Purpose: BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it
- * Info: proposed name StartBhv193 (T2); class BHV193 slot8; TU tu_144B28
- * Notes: superseded: OnBhv193Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv193Resume
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
+// goal and starts it.
 void StartBhvWalkTo(struct P *p)
 {
     struct O *o;
@@ -290,13 +241,7 @@ void StartBhvWalkTo(struct P *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144EE8 { extern "C" {
 int IsBhvpathAtEnd(void *p);
-/** @sly2-annot addr=0x144EE8
- * Purpose: true if the child behaviour finished (0x178D00) or its state == 2
- * Info: proposed name FBhv193Done (T2); TU tu_144B28
- * Notes: names_v2 C proposed EnsureAloFader__FP3ALO (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144EE8: True if the walk-to child has reached the end of its path or its state is 2.
 int IsBhvWalkToDone(char *p)
 {
     char *q = *(char **)(p + 0x18);
@@ -322,12 +267,8 @@ void SetBhvpathShape(void *p, struct B *pb, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x144F48
- * Purpose: store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route
- * Info: proposed name SetBhv193Goal (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144F48: Stores the goal and builds the child's route to it: a straight line, or a path through the navigation
+// graph.
 void SetBhvWalkToGoal(struct P *p, qword v)
 {
     p->v = v;
@@ -354,17 +295,8 @@ void SetBhvWalkToGoal(struct P *p, qword v)
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
 struct X { char pad[0x60]; int n; int pad2; float a, b, c, d, e; };
-/** @sly2-annot addr=0x145010
- * Purpose: BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2
- * Info: proposed name InitBhvfollow (T1); class BHVFOLLOW slot7; TU tu_144B28
- * Notes: superseded: OnBhv194Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv194Push | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): InitBhv194
- *   -> InitBhvfollow | runtime6 P2: InitBhv194 defaults 0.25/250/350/1.0/1.2 seen at +0x68 on live Murray
- *   (S62)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
+// factors (0.25/250/350/1.0/1.2).
 void InitBhvfollow(struct X *p)
 {
     InitBhv(p);
@@ -377,16 +309,7 @@ void InitBhvfollow(struct X *p)
 }
 } } // namespace M_InitBhvfollow
 
-/** @sly2-annot addr=0x145080
- * Purpose: BHV194 slot 8: SetBhv194State(0)
- * Info: proposed name StartBhvfollow (T1); class BHVFOLLOW slot8; TU tu_144B28
- * Notes: superseded: OnBhv194Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv194Resume | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   StartBhv194 -> StartBhvfollow | runtime6 P2: state +0x60 = 0 after Start (S62)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145080: Follow behaviour vtable slot 8 (Start): state 0.
 void BHVFOLLOW::Start()
 {
     BHVB *pbhv = (BHVB *)this;
@@ -394,16 +317,7 @@ void BHVFOLLOW::Start()
     SetBhvfollowState(pbhv, 0);
 }
 
-/** @sly2-annot addr=0x1450B0
- * Purpose: BHV194 slot 9: SetBhv194State(-1)
- * Info: proposed name CloseBhvfollow (T1); class BHVFOLLOW slot9; TU tu_144B28
- * Notes: superseded: OnBhv194Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv194Pop
- *   | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): CloseBhv194 ->
- *   CloseBhvfollow | runtime6 P2: class role confirmed (follow)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1450B0: Follow behaviour vtable slot 9 (Close): state -1.
 extern "C" void CloseBhvfollow(BHVB *pbhv)
 {
     CloseBhv(pbhv);
@@ -449,15 +363,8 @@ static __inline__ float GDist(qword a, qword b)
 }
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 
-/** @sly2-annot addr=0x1450E0
- * Purpose: Pick the nearest SO of several guard-state classes around the followed object
- * Info: proposed name PsoBhvfollowPickTarget (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): PsoBhv194PickTarget
- *   -> PsoBhvfollowPickTarget | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1450E0: Picks the nearest object of several guard-state classes around the followed object (its current threat,
+// inferred).
 struct SO *PickBhvfollowTarget(struct P *p)
 {
     struct SO *psoBest = 0;
@@ -564,16 +471,8 @@ static __inline__ float Len(qword d)
 static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
-/** @sly2-annot addr=0x1453F0
- * Purpose: BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when
- *   far
- * Info: proposed name UpdateBhvfollow (T1); class BHVFOLLOW slot10; TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194 ->
- *   UpdateBhvfollow | runtime6 P2: distance bands/leader +0x30 = JT confirmed (S62)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
+// standing, walking and running, re-pathing when far.
 void UpdateBhvfollow(struct P *p)
 {
     struct PO *po;
@@ -723,15 +622,7 @@ static inline qword Add(qword a, qword b)
     return r;
 }
 
-/** @sly2-annot addr=0x1457A8
- * Purpose: compute follow target position behind the leader (uses its facing if STEP)
- * Info: proposed name UpdateBhvfollowPos (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194FollowPos
- *   -> UpdateBhvfollowPos | runtime6 P2: follow point +0x50
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1457A8: Computes the follow position behind the leader (using its facing when it is a step).
 void UpdateBhvfollowPosition(P *p)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
@@ -783,15 +674,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
 int func_001C09A0(struct SO *pso, qword pos, int n);
 int SnapToGround(qword *ppos, float a, float b, int c, int d);
-/** @sly2-annot addr=0x1459C0
- * Purpose: checks the leader's ground object vs own
- * Info: proposed name FBhvfollowLeaderOnNewGround (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   FBhv194LeaderOnNewGround -> FBhvfollowLeaderOnNewGround | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2b_rest+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1459C0: True if the leader stands on a different ground object than the follower.
 int IsBhvfollowLeaderOnNewGround(struct P *p)
 {
     struct SO *pso = GetBhvfollowLeaderGround(p);
@@ -812,15 +695,7 @@ int IsBhvfollowLeaderOnNewGround(struct P *p)
 }
 } } // namespace M_func_001459C0
 
-/** @sly2-annot addr=0x145AA8
- * Purpose: leader's ground/standing object if any
- * Info: proposed name PsoBhvfollowLeaderGround (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): PsoBhv194LeaderGround
- *   -> PsoBhvfollowLeaderGround | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2b_rest+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145AA8: Returns the object the leader is standing on, if any.
 /* The path zone of the followed object: a CID 0x30 object's region (SO::psophys->pregent->pcid17), else the zone
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *pbhv)
@@ -868,16 +743,7 @@ static __inline__ void Activate(struct P *p, int oid)
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
-/** @sly2-annot addr=0x145B18
- * Purpose: state change; state 0 pushes a BHV168 walk-to-goal child
- * Info: proposed name SetBhvfollowState (T1); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): SetBhv194State ->
- *   SetBhvfollowState | runtime6 P2: state 0 pushes the BHV168 walk-to-goal child (live stack [BHV194,
- *   BHV168], child +0x18)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position.
 void SetBhvfollowState(struct P *p, int state)
 {
     if (state == p->state) return;
@@ -913,14 +779,7 @@ void SetBhvfollowState(struct P *p, int state)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145CD0 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x145CD0
- * Purpose: BHV195 slot 7: base, state -1
- * Info: proposed name InitBhv195 (T2); class BHV195 slot7; TU tu_144B28
- * Notes: names_v2 C proposed InitCamsen__FP6CAMSEN (0.438) | superseded: OnBhv195Push (r2b_rest) | BHV vtable
- *   slot 7 role per r9 (CONFLICTS #15); was OnBhv195Push
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145CD0: Interact behaviour (BHV195) vtable slot 7 (OnPush): base, state -1.
 void InitBhvInteract(char *p)
 {
     InitBhv(p);
@@ -934,14 +793,8 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
 void SetBhvInteractState(void *p, int n);
-/** @sly2-annot addr=0x145D00
- * Purpose: BHV195 slot 8: state 0, SetPlayerInteractMode(4, target, 4, target), set owner +0x10E0 bit 1
- * Info: proposed name StartBhv195 (T2); class BHV195 slot8; TU tu_144B28
- * Notes: superseded: OnBhv195Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv195Resume
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
+// (SetPlayerInteractMode) and sets the owner's +0x10E0 bit 1.
 void StartBhvInteract(char *p)
 {
     struct O *o;
@@ -955,13 +808,7 @@ void StartBhvInteract(char *p)
 }
 } } // namespace M_func_00145D00
 
-/** @sly2-annot addr=0x145D68
- * Purpose: BHV195 slot 9: clear owner +0x10E0 bit 1
- * Info: proposed name CloseBhv195 (T2); class BHV195 slot9; TU tu_144B28
- * Notes: superseded: OnBhv195Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv195Pop
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145D68: Interact behaviour vtable slot 9 (Close): clears the owner's +0x10E0 bit 1.
 void BHV195::VSlot9()
 {
     BHVB *pbhv = (BHVB *)this;
@@ -969,12 +816,7 @@ void BHV195::VSlot9()
     GRFSG(pbhv->pstepguard) &= ~1;
 }
 
-/** @sly2-annot addr=0x145DA0
- * Purpose: state == -1
- * Info: proposed name FBhv195Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145DA0: True if the interact behaviour is idle (state -1).
 extern "C" int IsBhvInteractIdle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
@@ -997,12 +839,8 @@ qword func_001A62E8(void *);
 qword *func_001A6318(void *);
 void SetBhvInteractState(struct P *, int);
 
-/** @sly2-annot addr=0x145DB0
- * Purpose: BHV195 slot 10: approach target (+0x38) and interact; abort when hurt or target gone
- * Info: proposed name UpdateBhv195 (T2); class BHV195 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38) and interacts; aborts when
+// hurt or the target is gone.
 void UpdateBhvInteract(struct P *p)
 {
     VU d;
@@ -1086,12 +924,7 @@ float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146068
- * Purpose: BHV195 slot 14: drive toward target (slow in state 0)
- * Info: proposed name Bhv195_VUnk14 (T2); class BHV195 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
 void SteerBhvInteract(struct P *p, struct Q *q)
 {
     ResetBhvSteering(p, q);
@@ -1113,12 +946,7 @@ void SteerBhvInteract(struct P *p, struct Q *q)
 }
 } } // namespace M_func_00146068
 
-/** @sly2-annot addr=0x146158
- * Purpose: state change with busy push/pop on state 2
- * Info: proposed name SetBhv195State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146158: Interact behaviour state change; state 2 is busy.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteractState(BHVSTATE *pbhv, int nState)
 {
@@ -1139,14 +967,7 @@ extern "C" void SetBhvInteractState(BHVSTATE *pbhv, int nState)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461C8 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x1461C8
- * Purpose: BHV196 slot 7 (same shape as BHV195)
- * Info: proposed name InitBhv196 (T2); class BHV196 slot7; TU tu_144B28
- * Notes: superseded: OnBhv196Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv196Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1461C8: Second interact behaviour (BHV196, the same shape as BHV195) vtable slot 7 (OnPush).
 void InitBhvInteract2(char *p)
 {
     InitBhv(p);
@@ -1160,14 +981,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
 void SetBhvInteract2State(void *p, int n);
-/** @sly2-annot addr=0x1461F8
- * Purpose: BHV196 slot 8
- * Info: proposed name StartBhv196 (T2); class BHV196 slot8; TU tu_144B28
- * Notes: superseded: OnBhv196Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv196Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1461F8: Second interact behaviour vtable slot 8 (Start).
 void StartBhvInteract2(char *p)
 {
     struct O *o;
@@ -1181,13 +995,7 @@ void StartBhvInteract2(char *p)
 }
 } } // namespace M_func_001461F8
 
-/** @sly2-annot addr=0x146260
- * Purpose: BHV196 slot 9
- * Info: proposed name CloseBhv196 (T2); class BHV196 slot9; TU tu_144B28
- * Notes: superseded: OnBhv196Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv196Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146260: Second interact behaviour vtable slot 9 (Close).
 void BHV196::VSlot9()
 {
     BHVB *pbhv = (BHVB *)this;
@@ -1195,12 +1003,7 @@ void BHV196::VSlot9()
     GRFSG(pbhv->pstepguard) &= ~1;
 }
 
-/** @sly2-annot addr=0x146298
- * Purpose: state == -1
- * Info: proposed name FBhv196Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146298: True if the second interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract2Idle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
@@ -1223,12 +1026,7 @@ qword func_001A62E8(void *);
 qword *func_001A6318(void *);
 void SetBhvInteract2State(struct P *, int);
 
-/** @sly2-annot addr=0x1462A8
- * Purpose: BHV196 slot 10 (BHV195 variant)
- * Info: proposed name UpdateBhv196 (T2); class BHV196 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions.
 void UpdateBhvInteract2(struct P *p)
 {
     VU d;
@@ -1312,12 +1110,7 @@ float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146560
- * Purpose: BHV196 slot 14
- * Info: proposed name Bhv196_VUnk14 (T2); class BHV196 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146560: Second interact behaviour vtable slot 14 (steering).
 void SteerBhvInteract2(struct P *p, struct Q *q)
 {
     ResetBhvSteering(p, q);
@@ -1339,12 +1132,7 @@ void SteerBhvInteract2(struct P *p, struct Q *q)
 }
 } } // namespace M_func_00146560
 
-/** @sly2-annot addr=0x146650
- * Purpose: state setter
- * Info: proposed name SetBhv196State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146650: Second interact behaviour state change.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteract2State(BHVSTATE *pbhv, int nState)
 {
@@ -1365,14 +1153,7 @@ extern "C" void SetBhvInteract2State(BHVSTATE *pbhv, int nState)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466C0 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x1466C0
- * Purpose: BHV197 slot 7
- * Info: proposed name InitBhv197 (T2); class BHV197 slot7; TU tu_144B28
- * Notes: superseded: OnBhv197Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv197Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1466C0: Third interact behaviour (BHV197) vtable slot 7 (OnPush).
 void InitBhvInteract3(char *p)
 {
     InitBhv(p);
@@ -1386,14 +1167,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
 void SetBhvInteract3State(void *p, int n);
-/** @sly2-annot addr=0x1466F0
- * Purpose: BHV197 slot 8
- * Info: proposed name StartBhv197 (T2); class BHV197 slot8; TU tu_144B28
- * Notes: superseded: OnBhv197Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv197Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1466F0: Third interact behaviour vtable slot 8 (Start).
 void StartBhvInteract3(char *p)
 {
     struct O *o;
@@ -1407,13 +1181,7 @@ void StartBhvInteract3(char *p)
 }
 } } // namespace M_func_001466F0
 
-/** @sly2-annot addr=0x146758
- * Purpose: BHV197 slot 9
- * Info: proposed name CloseBhv197 (T2); class BHV197 slot9; TU tu_144B28
- * Notes: superseded: OnBhv197Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv197Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146758: Third interact behaviour vtable slot 9 (Close).
 void BHV197::VSlot9()
 {
     BHVB *pbhv = (BHVB *)this;
@@ -1421,12 +1189,7 @@ void BHV197::VSlot9()
     GRFSG(pbhv->pstepguard) &= ~1;
 }
 
-/** @sly2-annot addr=0x146790
- * Purpose: state == -1
- * Info: proposed name FBhv197Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146790: True if the third interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract3Idle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
@@ -1483,12 +1246,7 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     return g;
 }
 
-/** @sly2-annot addr=0x1467A0
- * Purpose: BHV197 slot 10: approach target with extra states 3/4
- * Info: proposed name UpdateBhv197 (T2); class BHV197 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states (3/4).
 void UpdateBhvInteract3(struct P *p)
 {
     union { qword q; float f[4]; } d;
@@ -1602,12 +1360,8 @@ static __inline__ float GAtanR(qword d)
     __asm__("mtc1 %1,%0" : "=f"(fy) : "r"(y));
     return atan2f(fy, GetX(d));
 }
-/** @sly2-annot addr=0x146B18
- * Purpose: BHV197 slot 14: speed GLimitLm(CLQ(|d.xy|)), heading atan2 toward target
- * Info: proposed name Bhv197_VUnk14 (T2); class BHV197 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
+// toward the target.
 void SteerBhvInteract3(struct P *p, struct Q *q)
 {
     ResetBhvSteering(p, q);
@@ -1672,12 +1426,7 @@ extern struct CLOCK D_002DDED0;
 struct P { char pad[0x30]; int state; float tState; };
 void ClearBhvBusy(struct P *p);
 void SetBhvBusy(struct P *p);
-/** @sly2-annot addr=0x146E18
- * Purpose: state setter (busy in 2..4)
- * Info: proposed name SetBhv197State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146E18: Third interact behaviour state change (busy in states 2..4).
 void SetBhvInteract3State(struct P *p, int state)
 {
     if (state == p->state) return;
@@ -1694,14 +1443,7 @@ void SetBhvInteract3State(struct P *p, int state)
 }
 } } // namespace M_func_00146E18
 
-/** @sly2-annot addr=0x146E98
- * Purpose: BHV198 slot 8: MURRAY flag +0x1AC0=1, Murray state 0xC (0x1B6078), 0x1B8D30(0)
- * Info: proposed name StartBhv198 (T2); class BHV198 slot8; TU tu_144B28
- * Notes: superseded: OnBhv198Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv198Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146E98: Murray behaviour (BHV198) vtable slot 8 (Start): sets MURRAY +0x1AC0, Murray state 0xC.
 void BHV198::Start()
 {
     BHVB *pbhv = (BHVB *)this;
@@ -1715,13 +1457,7 @@ void BHV198::Start()
 namespace M_func_00146EE0 { extern "C" {
 void CloseBhv(void *p);
 void SetMurrayState(void *p, int n);
-/** @sly2-annot addr=0x146EE0
- * Purpose: BHV198 slot 9: clear +0x1AC0, Murray state 0
- * Info: proposed name CloseBhv198 (T2); class BHV198 slot9; TU tu_144B28
- * Notes: superseded: OnBhv198Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv198Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
 void CloseBhvMurray(char *p)
 {
     CloseBhv(p);
@@ -1748,13 +1484,8 @@ float GLimitAbs__Fff(float g, float dg);
 void func_00204660(struct X *px, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146F18
- * Purpose: BHV198 slot 10: Murray sub-state machine (+0x1840) relative to the current player D_002E1E40
- * Info: proposed name UpdateBhv198 (T2); class BHV198 slot10; TU tu_144B28
- * Notes: names_v2 C proposed SetAloPoseCombo__FP3ALO3OID (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840) relative to the current
+// player.
 void UpdateBhvMurray(struct P *p)
 {
     UpdateBhv(p);
