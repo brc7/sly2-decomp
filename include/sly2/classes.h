@@ -534,9 +534,9 @@ typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 struct CID113 : LO
 {
     char pad50[0x60 - 0x50];
+    virtual void VUnk14() __asm__("func_00170A28");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid113ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001709F8");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_00170A28");   /* slot 15 */
 };
 typedef char assert_CID113_size[sizeof(CID113) == 0x60 ? 1 : -1];
 
@@ -544,8 +544,8 @@ typedef char assert_CID113_size[sizeof(CID113) == 0x60 ? 1 : -1];
 struct BHV169 : BHV
 {
     char pad30[0x60 - 0x30];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv169ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_00171228");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv169ClassDesc");   /* slot 6 */
     virtual void VSlot9() __asm__("func_00171398");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001713E8");   /* slot 10 */
     virtual void VSlot15() __asm__("func_001715F0");   /* slot 15 */
