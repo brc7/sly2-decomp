@@ -38,7 +38,7 @@ struct O {
  char pad160[0x30];V target;             /* +0x190 */
  char pad1A0[4];int movement;            /* +0x1A4 */
  char pad1A8[0x38];V direction;          /* +0x1E0 */
- char pad1F0[0xEC];int x2DC;             /* +0x2DC */
+ char pad1F0[0xEC];int airState;         /* +0x2DC the air component state (inferred; 0x12 tested) */
  char pad2E0[0x620];CTRLSEL controller;  /* +0x900 */
  char pad9A4[0x68C];ASEGAV *animation;HANDLE extra;   /* +0x1030 */
  char pad1038[0x398];int mode;           /* +0x13D0 */
@@ -652,7 +652,7 @@ extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, O *object, int n)
     if (object == thrower->selected) {
         int k = thrower->state;
         if (k != -1) {
-            if (k >= 3 || (object == D_002DD5BC && object->x2DC == 0x12))
+            if (k >= 3 || (object == D_002DD5BC && object->airState == 0x12))
                 return func_00134310(n, 3);
             return n;
         }
