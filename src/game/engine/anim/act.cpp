@@ -30,11 +30,11 @@ struct CBinaryInputStream
 /* An act: the object (+0x4) and the transform it drives (+0x8). */
 struct ACTV
 {
-    int n0;
+    int kind;
     ALO *object;              /* +0x04 */
     XF *xf;                /* +0x08 */
     char padC[0x14 - 0xC];
-    int n14;                /* +0x14 */
+    int role;                /* +0x14 */
     char pad18[0x1C - 0x18];
 };
 /* The act of vtable 0x2CA830: a phase and a rest position. */
@@ -44,16 +44,16 @@ struct ACTPHASE : public ACTV
     char pad1E[0x20 - 0x1E];
     qword pos;              /* +0x20 */
 };
-/* The act of vtable 0x2CA6F0: a scale, a rest position and a second vector. */
+/* The act of vtable 0x2CA6F0: an arrival time, a rest pose and a velocity (a Bezier toward the pose). */
 struct ACTREST : public ACTV
 {
-    float g1C;              /* +0x1C */
+    float arrivalTime;      /* +0x1C: absolute time (copied to XF +0xA8 by ACT8::Update) */
     qword pos;              /* +0x20 */
     qword v;                /* +0x30 */
 };
-/* Constant curves: a vector or a float after one word. */
-struct ACVEC { int n0; VECTOR vec; };
-struct ACFLOAT { int n0; float g; };
+/* Constant curves: a vector or a float after the vtable pointer. */
+struct ACVEC { void *vtable; VECTOR vec; };
+struct ACFLOAT { void *vtable; float g; };
 /* The curve object of NewActFromParams: hand-made vtable at +0x18 ({delta, pfn} entries). */
 struct VTEAC { short d; short pad; void (*pfn)(...); };
 struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
@@ -146,20 +146,20 @@ void AC0::LoadFromBrx(CBinaryInputStream *stream)
 namespace M_func_0012B520 { extern "C" {
 typedef struct VEC3 { float x, y, z; } VEC3;
 typedef struct VECTOR { float x, y, z; } __attribute__((aligned(16))) VECTOR;
-typedef struct S { int pad; VEC3 pos; } S;
-typedef struct T {
+typedef struct S { void *vtable; VEC3 pos; } S;
+typedef struct T {   /* the transform slot (XF) */
     char pad[0x80];
-    int n;          /* 0x80 */
-    float g;        /* 0x84 */
-    int *pn;        /* 0x88 */
-    float *pg;      /* 0x8C */
+    int segmentStartTime;  /* 0x80 (the int 0 = 0.0f) */
+    float segmentEndTime;  /* 0x84 */
+    int *currentTimePtr;   /* 0x88 */
+    float *curveScalePtr;  /* 0x8C */
     char pad2[0x9A - 0x90];
-    short s;        /* 0x9A */
+    short segmentKind;     /* 0x9A: 2 = still */
     char pad3[0xC0 - 0x9C];
-    VECTOR v0;      /* 0xC0 */
-    VECTOR v1;      /* 0xD0 */
-    VECTOR v2;      /* 0xE0 */
-    VECTOR v3;      /* 0xF0 */
+    VECTOR segmentStart;          /* 0xC0 */
+    VECTOR segmentStartTangent;   /* 0xD0 */
+    VECTOR segmentEnd;            /* 0xE0 */
+    VECTOR segmentEndTangent;     /* 0xF0 */
 } T;
 static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
 /** @sly2-annot addr=0x12B520
@@ -170,17 +170,17 @@ static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
  * @end-sly2-annot */
 // Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
 // velocities zero, motion kind "still" (2). (inferred)
-void PrepareConstCurveSegment(S *s, T *t)
+void PrepareConstCurveSegment(S *curve, T *xf)
 {
-    t->s = 2;
-    t->g = 1.0f;
-    t->pn = &t->n;
-    t->pg = &t->g;
-    t->n = 0;
-    *(VEC3 *)&t->v0 = s->pos;
-    t->v2 = t->v0;
-    ClearVec(&t->v1);
-    ClearVec(&t->v3);
+    xf->segmentKind = 2;
+    xf->segmentEndTime = 1.0f;
+    xf->currentTimePtr = &xf->segmentStartTime;
+    xf->curveScalePtr = &xf->segmentEndTime;
+    xf->segmentStartTime = 0;
+    *(VEC3 *)&xf->segmentStart = curve->pos;
+    xf->segmentEnd = xf->segmentStart;
+    ClearVec(&xf->segmentStartTangent);
+    ClearVec(&xf->segmentEndTangent);
 }
 } } // namespace M_func_0012B520
 
@@ -291,7 +291,7 @@ typedef struct OBJ {
     float t1;
     float *pt;
     char pad8C[0x9A - 0x8C];
-    short s9A;
+    short segmentKind;
     char pad9C[0xC0 - 0x9C];
     V3Q pos0;
     qword dpos0;
@@ -319,7 +319,7 @@ void PrepareVecCurveASegment(T *t, OBJ *po)
     po->dpos1 = t->a[i].dposIn;
     f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0) &&
             FVecsNear(D_002A2DD0, po->dpos1);
-    po->s9A = f ? 2 : 1;
+    po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012B738
 
@@ -437,7 +437,7 @@ typedef struct OBJ {
     float t1;
     float *pt;
     char pad8C[0x9A - 0x8C];
-    short s9A;
+    short segmentKind;
     char pad9C[0xC0 - 0x9C];
     V3Q pos0;
     qword dpos0;
@@ -464,7 +464,7 @@ void PrepareVecCurveBSegment(T *t, OBJ *po)
     po->dpos1 = t->a[i].dpos;
     f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0) &&
             FVecsNear(D_002A2DD0, po->dpos1);
-    po->s9A = f ? 2 : 1;
+    po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012BBD0
 
@@ -593,7 +593,7 @@ typedef struct OBJ {
     float *pt0;
     float *pt1;
     char pad90[0x9A - 0x90];
-    short s9A;
+    short segmentKind;
     char pad9C[0xC0 - 0x9C];
     VQ pos0;
     VQ dpos0;
@@ -641,7 +641,7 @@ void PrepareFloatCurveASegment(T *t, OBJ *po)
     }
     f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0.q) &&
         FVecsNear(D_002A2DD0, po->dpos1.q);
-    po->s9A = f ? 2 : 1;
+    po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012C140
 
@@ -789,7 +789,7 @@ typedef struct OBJ {
     float *pt0;
     float *pt1;
     char pad90[0x9A - 0x90];
-    short s9A;
+    short segmentKind;
     char pad9C[0xC0 - 0x9C];
     VQ pos0;
     VQ dpos0;
@@ -837,7 +837,7 @@ void PrepareFloatCurveBSegment(T *t, OBJ *po)
     }
     f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0.q) &&
         FVecsNear(D_002A2DD0, po->dpos1.q);
-    po->s9A = f ? 2 : 1;
+    po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012C768
 
@@ -1068,7 +1068,7 @@ extern "C" void FreeOvra(void *pv)
 void ACT::VSlot1()
 {
     ACTV *act = (ACTV *)this;
-    SetXfRole(act->object, act->xf, act->n14);
+    SetXfRole(act->object, act->xf, act->role);
     WakeXfOwner(act->object, act->xf);
 }
 
@@ -1266,8 +1266,8 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 void SlotUnsettle(void *pv, void *px);
-struct X { char pad[0x90]; void *p90; char pad2[0xC0 - 0x94]; qword vC0; };
-struct P { int x0; void *x4; struct X *x8; int xC; int pad[4]; qword v20; };
+struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
+struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
 extern qword D_002A2DD0;
 static __inline__ int FVecsNear(qword a, qword b)
 {
@@ -1291,11 +1291,11 @@ static __inline__ int FVecsNear(qword a, qword b)
 void SetActPositionGoal(struct P *p, qword v)
 {
     qword dv;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->v20));
-    p->v20 = v;
-    if (p->x8->p90 == p && !FVecsNear(D_002A2DD0, dv)) {
-        p->x8->vC0 = v;
-        SlotUnsettle(p->x4, p->x8);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->positionGoal));
+    p->positionGoal = v;
+    if (p->xf->activeAct == p && !FVecsNear(D_002A2DD0, dv)) {
+        p->xf->goalValue = v;
+        SlotUnsettle(p->object, p->xf);
     }
 }
 } } // namespace M_SetActPositionGoal
@@ -1322,20 +1322,20 @@ namespace M_UpdateActLookAt { extern "C" {
 /* v7 (Claude agent laneB19, 2026-10-23): aligned 8 -> 7. Allocation-only "r"(p->x8) on the 2nd-block vsub/qmtc2 asm gives x8 $v1. Left: posT lq v0+por (target lq a1), lw dt scheduled before the lqc2s and dt in $a0 (target: reload-style lw v0,lo(v0) right before the vsub). */
 /* v6 (Claude agent laneB15, 2026-10-23): aligned 9 -> 8. dv is a plain qword (spilled across the calls, so the dot reads its reload: lqc2 vf3) kept apart from d by a commented empty asm on d; posT a plain qword too (spill slots dv 0x40 / posT 0x50 in pseudo order). Left: posT load lq v0 + por a1 (target lq a1 directly), second block lw x8/dt regs. */
 /* v5 (Claude agent laneB11, 2026-10-23): aligned 11 -> 9. One commented pin: d (second-block vsub output) to vf2. Left: first block dot VF numbers (dv reload vf3 / one vf2 swapped; output-order swap 16, =&j same), second block lw x8 -> v1 and lw dt scheduled before the lqc2s (target after). */
-/* v4 (Claude agent laneB8, 2026-10-23): aligned 12 -> 11. Second block: vsub and the dt qmtc2 fused in ONE asm (vC0 as first input), plus a "memory" clobber on the vdiv asm (keeps the dt sqc2 before it, out of the b delay slot). Left: pos/vC0 VF regs swapped and lw dt scheduled early; first block unchanged. */
+/* v4 (Claude agent laneB8, 2026-10-23): aligned 12 -> 11. Second block: vsub and the dt qmtc2 fused in ONE asm (goalValue (+0xC0) as first input), plus a "memory" clobber on the vdiv asm (keeps the dt sqc2 before it, out of the b delay slot). Left: pos/goalValue (+0xC0) VF regs swapped and lw dt scheduled early; first block unchanged. */
 /* v3 (Claude agent laneB7, 2026-10-23): aligned 13 -> 12. PpoClosestSw takes a 2nd qword arg (posT; it sq a1 to its stack); posT as a U memory local so the load goes straight into a1. */
-/* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, vC0 (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/vC0 vf1, output vf2. */
+/* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, goalValue (+0xC0) (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/goalValue (+0xC0) vf1, output vf2. */
 // WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.dt after the lqc2s and vsub in vf2; posT lq via $a1.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct POLY { float a, b, c; };
 struct O { int pad[6]; struct VTE *pvt; };
-struct X { char pad[0x70]; qword v70; char pad80[0x90 - 0x80]; struct P *p90; short pad94[3]; short s9A; int pad9C; int xA0;
-    char padA4[0xC0 - 0xA4]; qword vC0; qword vD0; };
+struct X { char pad[0x70]; qword localPosition; char pad80[0x90 - 0x80]; struct P *activeAct; short pad94[3]; short segmentKind; int pad9C; int parent;
+    char padA4[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
 struct P {
-    int x0; void *x4; struct X *x8; int xC; int pad10[4]; qword v20; struct POLY poly30; int pad3C; struct POLY poly40; int pad4C;
-    float g50; float g54; float g58; float g5C; float g60; int x64; int x68; int x6C; void *x70; int x74;
+    int kind; void *object; struct X *xf; int priority; int pad10[4]; qword restAim; struct POLY panCurve; int pad3C; struct POLY tiltCurve; int pad4C;
+    float panMin; float panMax; float tiltMin; float tiltMax; float maxDistance; int nearPriority; int farPriority; int targetOid; void *target; int hasPreviousAim;
 };
 extern char D_003DD490[];
 extern qword D_002A2DD0;
@@ -1380,15 +1380,15 @@ void UpdateActLookAt(struct P *p)
     int k;
     qword vel;
 
-    if (p->x70 == 0 && p->x6C != -1)
-        p->x70 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->x6C, p->x4);
+    if (p->target == 0 && p->targetOid != -1)
+        p->target = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->targetOid, p->object);
     {
-        struct X *x8 = p->x8;
+        struct X *xf = p->xf;
         int z;
         __asm__("" : "=r"(z));  /* empty asm, allocation only: z occupies $v1 across the posT load */
-        posT = x8->v70;
-        po = p->x70;
-        __asm__("" : "+r"(po) : "r"(x8), "r"(z));  /* empty asm, allocation only: x8 ($v0) and z ($v1) stay live past the posT load, so reload picks $a1 for it (non-volatile: has an output, so reload_cse can drop the later a1 reload) */
+        posT = xf->localPosition;
+        po = p->target;
+        __asm__("" : "+r"(po) : "r"(xf), "r"(z));  /* empty asm, allocation only: xf ($v0) and z ($v1) stay live past the posT load, so reload picks $a1 for it (non-volatile: has an output, so reload_cse can drop the later a1 reload) */
     }
     if (!po)
         po = PpoClosestSw(D_003DD490, posT);
@@ -1404,34 +1404,34 @@ void UpdateActLookAt(struct P *p)
     } else {
         g = D_002A45A8;
     }
-    k = (p->g60 < g) ? p->x68 : p->x64;
-    if (k != p->xC) {
-        struct P *p90;
-        p->xC = k;
-        SortXfActs(p->x4, p->x8);
-        p90 = p->x8->p90;
-        if (p90 != p) {
-            struct O *po2 = (struct O *)p90;
+    k = (p->maxDistance < g) ? p->farPriority : p->nearPriority;
+    if (k != p->priority) {
+        struct P *activeAct;
+        p->priority = k;
+        SortXfActs(p->object, p->xf);
+        activeAct = p->xf->activeAct;
+        if (activeAct != p) {
+            struct O *po2 = (struct O *)activeAct;
             ((void (*)(struct O *))po2->pvt[4].pfn)((struct O *)((char *)po2 + po2->pvt[4].d));
             return;
         }
     }
-    if (p->g60 < g) {
-        s.pos = p->v20;
+    if (p->maxDistance < g) {
+        s.pos = p->restAim;
         s.vel = D_002A2DD0;
-        p->x74 = 0;
+        p->hasPreviousAim = 0;
     } else {
-        CalculateVectorPanTilt(ConvertXfVec(0, p->x8->xA0, dv), &ag[0], &ag[1]);
-        ag[0] = GClamp(GEval(&p->poly30, ag[0]), p->g50, p->g54);
-        ag[1] = GClamp(GEval(&p->poly40, ag[1]), p->g58, p->g5C);
+        CalculateVectorPanTilt(ConvertXfVec(0, p->xf->parent, dv), &ag[0], &ag[1]);
+        ag[0] = GClamp(GEval(&p->panCurve, ag[0]), p->panMin, p->panMax);
+        ag[1] = GClamp(GEval(&p->tiltCurve, ag[1]), p->tiltMin, p->tiltMax);
         ((float *)&s.pos)[2] = ag[0];
         ((float *)&s.pos)[1] = -ag[1];
         ((int *)&s.pos)[0] = 0;
-        if (p->x74) {
+        if (p->hasPreviousAim) {
             qword d = s.pos;
             {
                 qword qwdtqOut;
-                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(p->x8->vC0), "rV"((*(int *)&g_clock.dt)));
+                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(p->xf->goalValue), "rV"((*(int *)&g_clock.dt)));
                 dt.q = qwdtqOut;
             }  /* "rV": MEM kept to reload, which loads it into the dying %hi reg */
             __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(vel) : "j"(dt.q), "j"(d) : "memory");
@@ -1439,11 +1439,11 @@ void UpdateActLookAt(struct P *p)
             vel = D_002A2DD0;
         }
         s.vel = vel;
-        p->x74 = 1;
+        p->hasPreviousAim = 1;
     }
-    p->x8->vC0 = s.pos;
-    p->x8->vD0 = s.vel;
-    p->x8->s9A = 3;
+    p->xf->goalValue = s.pos;
+    p->xf->goalVelocity = s.vel;
+    p->xf->segmentKind = 3;
 }
 } } // namespace M_UpdateActLookAt
 
@@ -1509,26 +1509,26 @@ static inline float GetX(qword q)
 }
 
 struct VTE { short d; short pad; void (*pfn)(void *, int, qword *, float); };
-struct O { int x0; void *x4; int pad[4]; VTE *pvt; };
+struct O { int kind; void *object; int pad[4]; VTE *pvt; };
 struct X {
-    M3 m0;
-    qword v30;
-    M3 m40;
-    qword v70;
-    float g80, g84;
-    float *pg88, *pg8C;
-    O *po90;
-    int x94;
-    unsigned short u98;
-    short s9A;
-    int x9C;
-    X *pxA0;
+    M3 localMatrix;
+    qword localPosition;
+    M3 worldMatrix;
+    qword worldPosition;
+    float segmentStartTime, segmentEndTime;
+    float *currentTimePtr, *curveScalePtr;
+    O *activeAct;
+    int valueKind;
+    unsigned short role;
+    short segmentKind;
+    int oid;
+    X *parent;
     int padA4[3];
-    qword vB0;
-    M3 mC0;
-    qword vF0;
+    qword velocity;
+    M3 segment;
+    qword segmentLast;
 };
-struct P { int x0; void *x4; X *px8; int xC; int pad10[3]; float g1C; float g20; X *px24; };
+struct P { int kind; void *object; X *xf; int priority; int pad10[3]; float lookAheadWeight; float lookAheadTime; X *pathXf; };
 
 extern "C" {
 extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
@@ -1540,18 +1540,18 @@ void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
 
 static inline void SetMat(X *px, const M3 &m)
 {
-    px->mC0 = m;
-    px->s9A = 5;
+    px->segment = m;
+    px->segmentKind = 5;
 }
 
 static inline void Fin(P *p, M3 &mT, M3 m)
 {
     mT = m;
-    X *px = p->px8;
-    M3 *pm = &px->mC0;
-    ConvertXfMat(&m, 0, px->pxA0, &mT);
+    X *px = p->xf;
+    M3 *pm = &px->segment;
+    ConvertXfMat(&m, 0, px->parent, &mT);
     *pm = m;
-    p->px8->s9A = 5;
+    p->xf->segmentKind = 5;
 }
 
 
@@ -1587,36 +1587,36 @@ void ACT4::Update()
     X *py;
     union { qword q; } vT;
     M3 mT;
-    if (p->px24 == 0) {
-        X *px = p->px8;
+    if (p->pathXf == 0) {
+        X *px = p->xf;
         X *pz;
-        for (pz = px->pxA0; pz != 0 && pz->x94 != 1; pz = pz->pxA0)
+        for (pz = px->parent; pz != 0 && pz->valueKind != 1; pz = pz->parent)
             ;
         if (pz == 0) {
-            M3 *pm = &p->px8->mC0;
-            *pm = p->px8->m0;
-            p->px8->s9A = 5;
+            M3 *pm = &p->xf->segment;
+            *pm = p->xf->localMatrix;
+            p->xf->segmentKind = 5;
             return;
         }
-        p->px24 = pz;
+        p->pathXf = pz;
     }
-    py = p->px24;
-    if (py->po90)
-        UpdateXfJobRange(py->po90->x4, py);
+    py = p->pathXf;
+    if (py->activeAct)
+        UpdateXfJobRange(py->activeAct->object, py);
     qword v;
-    switch ((short)(p->px24->u98 - 1)) {
+    switch ((short)(p->pathXf->role - 1)) {
     case 0: case 1: case 6: case 7: case 8: case 10: case 16: case 17: case 19: case 20:
-        v = py->vB0;
+        v = py->velocity;
         break;
     case 4: case 5: {
         qword w;
-        switch (py->s9A) {
+        switch (py->segmentKind) {
         case 3: case 4:
-            w = py->mC0.r[1];
+            w = py->segment.r[1];
             break;
         case 1:
-            EvaluateBezierPos(py->mC0.r[0], py->mC0.r[1], py->mC0.r[2], py->vF0,
-                py->g84 - py->g80, *py->pg88 - py->g80, *py->pg8C, 0, &vT.q, 0);
+            EvaluateBezierPos(py->segment.r[0], py->segment.r[1], py->segment.r[2], py->segmentLast,
+                py->segmentEndTime - py->segmentStartTime, *py->currentTimePtr - py->segmentStartTime, *py->curveScalePtr, 0, &vT.q, 0);
             w = vT.q;
             break;
         case 0: case 2: case 5:
@@ -1631,19 +1631,19 @@ void ACT4::Update()
         __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(v));
         break;
     }
-    if (py->pxA0)
-        v = MulM3(py->pxA0->m40, v);
+    if (py->parent)
+        v = MulM3(py->parent->worldMatrix, v);
     if (GetX(VLen(v)) < 100.0f) {
-        Fin(p, mT, BuildOrthonormalMatrixZ(p->px8->m40.r[0], D_002A2DC0));
+        Fin(p, mT, BuildOrthonormalMatrixZ(p->xf->worldMatrix.r[0], D_002A2DC0));
     } else {
         qword u = D_002BC380;
-        if (0.0f < p->g20 && 0.0f < p->g1C && py->po90) {
-            O *po = py->po90;
+        if (0.0f < p->lookAheadTime && 0.0f < p->lookAheadWeight && py->activeAct) {
+            O *po = py->activeAct;
             VTE *pe = &po->pvt[5];
-            pe->pfn((char *)po + pe->d, 0, &vT.q, p->g20);
-            if (py->pxA0)
-                vT.q = MulM3(py->pxA0->m40, vT.q);
-            u = AddScaledDiff(u, vT.q, v, VU_FLOAT(p->g1C / p->g20));
+            pe->pfn((char *)po + pe->d, 0, &vT.q, p->lookAheadTime);
+            if (py->parent)
+                vT.q = MulM3(py->parent->worldMatrix, vT.q);
+            u = AddScaledDiff(u, vT.q, v, VU_FLOAT(p->lookAheadWeight / p->lookAheadTime));
         }
         Fin(p, mT, BuildOrthonormalMatrixZ(v, u));
     }
@@ -1795,8 +1795,8 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 void SlotUnsettle(void *pv, void *px);
-struct X { char pad[0x90]; void *p90; char pad2[0xC0 - 0x94]; qword vC0; qword vD0; qword vE0; };
-struct P { int x0; void *x4; struct X *x8; int xC; int pad[4]; qword v20; };
+struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
+struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
 extern qword D_002A2DD0;
 static __inline__ int FVecsNear(qword a, qword b)
 {
@@ -1814,20 +1814,20 @@ static __inline__ int FVecsNear(qword a, qword b)
 void SetActRotationGoal(struct P *p, qword v)
 {
     qword dv;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->v20));
-    p->v20 = v;
-    if (p->x8->p90 == p && !FVecsNear(D_002A2DD0, dv)) {
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->rotationGoal));
+    p->rotationGoal = v;
+    if (p->xf->activeAct == p && !FVecsNear(D_002A2DD0, dv)) {
         {
-            qword qwpx8vC0Out;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(qwpx8vC0Out) : "j"(p->x8->vC0), "j"(dv), "j"(dv));
-            p->x8->vC0 = qwpx8vC0Out;
+            qword shiftedStart;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(p->xf->segmentStart), "j"(dv), "j"(dv));
+            p->xf->segmentStart = shiftedStart;
         }
         {
-            qword qwpx8vE0Out;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(qwpx8vE0Out) : "j"(p->x8->vE0), "j"(dv));
-            p->x8->vE0 = qwpx8vE0Out;
+            qword shiftedEnd;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->xf->segmentEnd), "j"(dv));
+            p->xf->segmentEnd = shiftedEnd;
         }
-        SlotUnsettle(p->x4, p->x8);
+        SlotUnsettle(p->object, p->xf);
     }
 }
 } } // namespace M_func_0012DA30
@@ -1873,7 +1873,7 @@ void *NewOffsetAct(void *a, void *b, void *c)
 
 namespace M_func_0012DC18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct R { char pad[0x1C]; int x1C; qword v; } R;
+typedef struct R { char pad[0x1C]; int phase; qword positionGoal; } R;
 R *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 /** @sly2-annot addr=0x12DC18
@@ -1889,11 +1889,11 @@ void AddXfAct(void *a, void *b, void *p);
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
 // Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
-R *NewPositionAct(void *a, void *b, void *c, int d, int e, qword v)
+R *NewPositionAct(void *a, void *b, void *c, int d, int e, qword positionGoal)
 {
     R *p = NewActOfKind(1, a, b, c, d);
-    p->x1C = e;
-    p->v = v;
+    p->phase = e;
+    p->positionGoal = positionGoal;
     AddXfAct(a, b, p);
     return p;
 }
@@ -1992,13 +1992,13 @@ namespace M_func_0012DEF0 {
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float mat[4][4]; } __attribute__((aligned(16)));
 struct BONE { char pad[0x40]; MATRIX4 mat; };
-struct Y { char pad[0x9A]; short s9A; char pad2[0xA0 - 0x9C]; BONE *pA0; char pad3[0xC0 - 0xA4]; qword qC0; qword qD0; };
-struct XX { char pad[8]; Y *py; char pad2[0x1C - 0xC]; BONE *p1C; MATRIX4 mat; };
+struct Y { char pad[0x9A]; short segmentKind; char pad2[0xA0 - 0x9C]; BONE *parent; char pad3[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
+struct XX { char pad[8]; Y *xf; char pad2[0x1C - 0xC]; BONE *bone; MATRIX4 mat; };   /* the act: its transform, a bone and an offset matrix */
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
-qword GetXfValueFromMatrix(Y *py, MATRIX4 mat);
+qword GetXfValueFromMatrix(Y *xf, MATRIX4 mat);
 void UpdateMatrixAct(XX *x);
 }
 /** @sly2-annot addr=0x12DEF0
@@ -2008,7 +2008,18 @@ void UpdateMatrixAct(XX *x);
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Matrix act update: the transform's local matrix from a world matrix relative to its parent. (inferred)
-void UpdateMatrixAct(XX *x) { MATRIX4 m; if (x->py->pA0) m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->py->pA0->mat), x->p1C->mat), x->mat); else m = __ml__FRC7MATRIX4T0(x->p1C->mat, x->mat); Y *py = x->py; py->qC0 = GetXfValueFromMatrix(py, m); x->py->qD0 = D_002A2DD0; x->py->s9A = 3; }
+void UpdateMatrixAct(XX *x)
+{
+    MATRIX4 m;
+    if (x->xf->parent)
+        m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->xf->parent->mat), x->bone->mat), x->mat);
+    else
+        m = __ml__FRC7MATRIX4T0(x->bone->mat, x->mat);
+    Y *xf = x->xf;
+    xf->goalValue = GetXfValueFromMatrix(xf, m);
+    x->xf->goalVelocity = D_002A2DD0;
+    x->xf->segmentKind = 3;
+}
 } // namespace M_func_0012DEF0
 
 /** @sly2-annot addr=0x12DFE0
@@ -2040,7 +2051,7 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 void ACT8::Update()
 {
     ACTREST *act = (ACTREST *)this;
-    *(float *)&act->xf->pxfRef = act->g1C;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
+    *(float *)&act->xf->pxfRef = act->arrivalTime;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
     act->xf->qwRest = act->pos;
     act->xf->qwUnkD0 = act->v;
     act->xf->nPhase = 2;
@@ -2051,8 +2062,8 @@ namespace M_func_0012E060 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct CLOCK { float t; float dt; } CLOCK;
 extern CLOCK D_002DDED0;
-typedef struct Q { char pad[0x30]; qword a; char pad2[0x68]; float t; char pad3[4]; qword b; } Q;
-typedef struct P { char pad[8]; Q *pq; char pad2[0x14]; qword v20; qword v30; } P;
+typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
+typedef struct P { char pad[8]; Q *xf; char pad2[0x14]; qword pos; qword vel; } P;
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, int n);
 /** @sly2-annot addr=0x12E060
  * Purpose: vtable 0x2CA6F0 slot 5: EvaluateBezierPos
@@ -2061,15 +2072,15 @@ void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b,
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
-void GetBezierActGoal(P *p, qword *pa, qword *pb, float t)
+void GetBezierActGoal(P *p, qword *ppos, qword *pvel, float dt)
 {
-    float g = D_002DDED0.t;
-    Q *pq = p->pq;
-    if (pq->t <= g + t) {
-        if (pa) *pa = p->v20;
-        if (pb) *pb = p->v30;
+    float now = D_002DDED0.t;
+    Q *xf = p->xf;
+    if (xf->endTime <= now + dt) {
+        if (ppos) *ppos = p->pos;
+        if (pvel) *pvel = p->vel;
     } else {
-        EvaluateBezierPos(pq->t - g, t, 1.0f, pq->a, pq->b, p->v20, p->v30, pa, pb, 0);
+        EvaluateBezierPos(xf->endTime - now, dt, 1.0f, xf->startPos, xf->startVelocity, p->pos, p->vel, ppos, pvel, 0);
     }
 }
 } } // namespace M_func_0012E060
@@ -2095,8 +2106,8 @@ extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
 namespace M_func_0012E120 { extern "C" {
 /* VU normalize + length; register vars pin the dead qmfc2 output and the py reloads */
 typedef int qword __attribute__((mode(TI)));
-typedef struct Y { char pad[0xB0]; qword vB0; qword vC0; int nD0; char pad2[0xE0 - 0xD4]; int nE0; } Y;
-typedef struct X { char pad[8]; Y *py; char pad2[0x20 - 0xC]; qword v20; } X;
+typedef struct Y { char pad[0xB0]; qword baseValue; qword direction; int length; char pad2[0xE0 - 0xD4]; int unknownE0; } Y;
+typedef struct X { char pad[8]; Y *xf; char pad2[0x20 - 0xC]; qword vector; } X;
 extern qword D_002A2DA0;
 void AttachActBase(X *x);
 static __inline__ qword VLen(qword c)
@@ -2143,15 +2154,15 @@ void ACT9::VSlot1()
     X *x = (X *)this;
     qword l;
     AttachActBase(x);
-    x->py->vB0 = x->v20;
-    x->py->vC0 = x->v20;
-    l = Normalize1(&x->py->vC0, &D_002A2DA0);
+    x->xf->baseValue = x->vector;
+    x->xf->direction = x->vector;
+    l = Normalize1(&x->xf->direction, &D_002A2DA0);
     {
         register int n __asm__("$3");
-        register Y *py __asm__("$2") = x->py;
-        __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(py->nD0) : "j"(l));
+        register Y *xf __asm__("$2") = x->xf;
+        __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(xf->length) : "j"(l));
     }
-    { register Y *py __asm__("$3") = x->py; py->nE0 = 0; }
+    { register Y *xf __asm__("$3") = x->xf; xf->unknownE0 = 0; }
 }
 
 /** @sly2-annot addr=0x12E1F0
