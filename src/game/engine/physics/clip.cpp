@@ -17,10 +17,10 @@ typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 
 /* A clipped segment (0x60): end points, the planes there, the parameters along the edge, its kind and two per-end
-   words (MergeSegmentLists copies at[0]/apos[0]/anormal[0]/x4C for an entry and the [1] fields/x50 for an exit). */
+   words (MergeSegmentLists copies params[0]/points[0]/planes[0]/entryData for an entry and the [1] fields/exitData for an exit). */
 struct LSG { qword points[2]; qword planes[2]; float params[2]; int kind; int entryData; int exitData; int pad[3]; };
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
-/* View of the object a segment is clipped against: its bounding-sphere centre (pa->q70) and radius (+0x8), the
+/* View of the object a segment is clipped against: its bounding-sphere centre (sphere->center) and radius (+0x8), the
    flags (bit 49 of +0x10: has a sphere) and its BSP (+0x74). */
 struct SPHEREV { char pad[0x70]; qword center; };
 struct SOCLIP { SPHEREV *sphere; int pad; float radius; int pad2; unsigned long flags; char pad18[0x74 - 0x18]; int bsp; };
