@@ -4357,3 +4357,6 @@ _vt$8SHRAPNEL = 0x2D7698; // type:data size:0x50
 _vt$5STUCK = 0x2D76E8; // type:data size:0x50
 _vt$6FLYING = 0x2D7738; // type:data size:0x50
 _vt$3RIP = 0x2D7788; // type:data size:0x50
+// load collectors (brx.cpp)
+_vt$19CLoadCollectorProxy = 0x2CBE38; // type:data size:0x18
+_vt$19CLoadCollectorArray = 0x2CBE50; // type:data size:0x18

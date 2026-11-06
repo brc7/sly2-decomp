@@ -111,18 +111,19 @@ struct VE { short d; short pad; void *pfn; };
    array collector (vtable D_002CBE50) keeps them; the proxy collector (vtable D_002CBE38) reparents and tags them. */
 struct CLoadCollector
 {
-    VE *pvt;
+    virtual void Add(int cAdd, LO **aploAdd);   /* slot 1 (no vtable of its own in the ELF: nothing defines it) */
 };
 struct CLoadCollectorArray : CLoadCollector
 {
     int cMax;
     int c;
     LO **aplo;
-    void Add(int cAdd, LO **aploAdd);
+    virtual void Add(int cAdd, LO **aploAdd);   /* key function: CLoadCollectorArray's vtable comes out here */
 };
 typedef char assert_CLoadCollectorArray_size[sizeof(CLoadCollectorArray) == 0x10 ? 1 : -1];
 struct CLoadCollectorProxy : CLoadCollector
 {
+    virtual void Add(int cAdd, LO **aploAdd) __asm__("CLoadCollectorProxy_Add");   /* key function */
     int nUnk48;    /* stored into each object's LO::nUnk48 (and its children's) */
     int idProxy;   /* -1, or set on each object with LO::SetIdProxy(idProxy, 1) */
 };
@@ -145,8 +146,7 @@ struct LANGSTR
 extern CLSNEW D_002BAAE8[];
 extern EOPID D_002AC880[];   /* g_aeopid */
 extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodata row) */
-extern VE D_002CBE38[];      /* CLoadCollectorProxy vtable */
-extern VE D_002CBE50[];      /* CLoadCollectorArray vtable */
+extern VE D_002CBE50[] __asm__("_vt$19CLoadCollectorArray");      /* CLoadCollectorArray vtable (emitted here) */
 extern "C" {
 void FramePtr_Assign(void *pspframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void *func_001FFA40(SW *psw, int isplice, LO *plo);
@@ -757,7 +757,7 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis)
 extern "C" CLoadCollectorArray *CLoadCollectorArray_ctor(CLoadCollectorArray *plca)
 {
     plca->cMax = 0;
-    plca->pvt = D_002CBE50;
+    *(VE **)plca = D_002CBE50;
     plca->c = 0;
     plca->aplo = 0;
     return plca;
@@ -817,8 +817,9 @@ extern "C" void func_0013F990(LO *plo, int n)
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
  * @end-sly2-annot */
-extern "C" void CLoadCollectorProxy_Add(CLoadCollectorProxy *plcp, int c, LO **aplo)
+void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollectorProxy's vtable comes out here */
 {
+    CLoadCollectorProxy *plcp = this;
     int i;
     for (i = 0; i < c; i++)
     {
@@ -852,7 +853,7 @@ int FMatchLoadFilter(int c, short *aid)
 }
 
 /* Collector call through vtable slot 1 (Add), spelled as the per-function file did. */
-#define LC_ADD(plc, c, pplo) ((void (*)(void *, int, LO **))(plc)->pvt[1].pfn)((char *)(plc) + (plc)->pvt[1].d, c, pplo)
+#define LC_ADD(plc, c, pplo) ((plc)->Add(c, pplo))
 
 /* LoadSwObjectsFromBrx (Claude agent, laneC11 2026-10-23): matched from wip v3. One commented register pin (pbis in
    s5). The plo1->unk50 = 1 store is written in both arms of `if (cid == 0x84)`: gcc cross-jumps them and leaves the
@@ -878,7 +879,6 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
     LO *plo2;
     int c;
     int i;
-    lcp.pvt = D_002CBE38;
     lcp.nUnk48 = -1;
     lcp.idProxy = -1;
     c = pbis->S16Read();
