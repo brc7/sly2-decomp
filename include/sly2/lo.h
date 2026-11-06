@@ -45,6 +45,7 @@ struct LO : public BASIC
       PXR *ppxr;
       int grfUnk40;
       undefined4 unk_0x44[3];
+      virtual void Freeze() __asm__("OnLoRemove");
     virtual CLASSINFO *Pclassinfo() __asm__("GetLoClassDesc");   /* slot 6 */
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleLoSpliceEvent");
       virtual void Init() __asm__("InitLo");
@@ -62,7 +63,6 @@ struct LO : public BASIC
       virtual void RenderSelf() __asm__("RenderLoSelf");
       virtual void VUnk19() __asm__("func_001A5EE0");
       virtual void VUnk20(int fOn) __asm__("func_001A6E80");
-      virtual void Freeze() __asm__("OnLoRemove");
       virtual void Unfreeze() __asm__("OnLoAdd");
       virtual void VUnk23() __asm__("func_00210330");
       virtual void SetIdProxy(int idProxy, int fChildren) __asm__("SetLoIdProxy")   /* symbol from SetLoIdProxy.cpp */;
