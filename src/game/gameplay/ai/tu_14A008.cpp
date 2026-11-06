@@ -435,7 +435,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                 if (GetZ(pos) < GetZ(ppath->av[i]))
                     pos = ppath->av[i];
             }
-            goto done;
+            goto moveMarker;
         }
         SetStepguardTarget(behavior->guard, hero);
         return;
@@ -469,12 +469,12 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                 posT = q;
                 if (FLess(Len2(entry), Len2(d))) {
                     pos = posT;
-                    goto done;
+                    goto moveMarker;
                 }
                 float g = RadBetweenVectors(d, entry, 0);
                 if (!(__builtin_fabsf(g) * 57.295776f <= D_002BD47C)) {
                     pos = posT;
-                    goto done;
+                    goto moveMarker;
                 }
             }
         }
@@ -487,7 +487,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
     }
-done:
+moveMarker:   // (a shared tail: each search above jumps here with its pick)
     {
         LOV *plo = behavior->guard->marker;
         VTE *entry = &plo->vt[29];
