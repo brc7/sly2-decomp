@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prototype full link of SCUS_973.16 from the matched sources (docs/guides/full-link.md).
 
-usage: python3 tools/link.py [--no-compile]
+usage: python3 tools/link.py [--no-compile | --check-tools]
 
   1. compile every source of config/matched.csv that builds here (matchtool's compile_src, plus -ffunction-sections;
      no -fdata-sections: each object's data stays in its .data/.rodata in source order, as in a real link) into
@@ -33,8 +33,9 @@ def llvm_tool(name):
             return os.path.join(d, name)
     if found:
         return found
-    sys.exit(f'link.py: {name} not found. Install LLVM (macOS: `brew install llvm`; Debian/Ubuntu: `apt install lld llvm`) '
-             f'or set LLVM_BIN to the directory that contains it.')
+    sys.exit(f'link.py: {name} not found. Install LLVM (macOS: `brew install llvm lld` -- Homebrew ships ld.lld in its own '
+             f'`lld` formula since LLVM 20; Debian/Ubuntu: `apt install lld llvm`) or set LLVM_BIN to the directory that '
+             f'contains it.')
 
 OUT = os.path.join(ROOT, 'build', 'link')
 ELF = matchtool.ELF
@@ -582,6 +583,10 @@ def tu_text_check(objs, base, split):
 
 
 def main():
+    if '--check-tools' in sys.argv:          # quick preflight (tools/verify.sh): exits non-zero if a tool is missing
+        for t in ('ld.lld', 'llvm-objcopy'):
+            print(f'{t}: {llvm_tool(t)}')
+        return
     os.chdir(ROOT)
     ok, skip = sources()
     if '--no-compile' not in sys.argv:

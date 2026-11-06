@@ -29,6 +29,10 @@ run() {  # run LOGNAME CMD...  (output to the log and the terminal; returns the 
   "$@" 2>&1 | tee "$log"; return "${PIPESTATUS[0]}"
 }
 
+if [ $LINK -eq 1 ]; then   # fail fast, before the long runs, if the link tools are missing
+  python3 tools/link.py --check-tools || { echo "verify.sh: fix the LLVM tools first, or run with --no-link"; exit 1; }
+fi
+
 echo "== 1/5 progress (native)"
 rm -f build/progress_cache.json
 run progress-native python3 tools/progress.py
