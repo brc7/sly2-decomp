@@ -504,8 +504,8 @@ typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 struct WIDGET131 : WIDGET
 {
     char pad110[0x140 - 0x110];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0015CD68");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_0015CDA8");   /* slot 15 */
     virtual void VUnk15() __asm__("func_0015CF30");   /* slot 16 */
 };
