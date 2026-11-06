@@ -520,3 +520,10 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+
+## 2026-11-06 (readability pass r2, physics/actor): what a cleaner form changes
+- **`goto` past a loop is not `break`.** Replacing `goto out;` (label right after the loop) with `break` changed codegen in
+  FindPathzoneSegmentBlocker, BuildConvexHull (inner `while`) and FindPathzoneAtPos (early `return` instead of `goto leaf`
+  moves the leaf block). Keep such gotos, give the label a meaning, and note why. A `goto test;` into a `for (;;)` (rotated
+  loop) did become a plain `for` without change (RemoveObstacleEvents).
+- **Redundant tests stay.** `if (r == 3) return; if (r != 4) return;` cannot drop the first test (PostCid14Load).
