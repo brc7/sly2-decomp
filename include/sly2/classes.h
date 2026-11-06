@@ -1319,6 +1319,7 @@ typedef char assert_LIGHT_size[sizeof(LIGHT) == 0x170 ? 1 : -1];
 struct CID96 : SO
 {
     char pad150[0x250 - 0x150];
+    virtual void RenderSelf() __asm__("func_001B1140");   /* slot 19 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid96ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_001B10D0");   /* slot 5 */
     virtual void Init() __asm__("func_001B0B78");   /* slot 7 */
@@ -1327,7 +1328,6 @@ struct CID96 : SO
     virtual void VUnk14() __asm__("func_001B0D08");   /* slot 15 */
     virtual void VUnk15() __asm__("func_001B0E28");   /* slot 16 */
     virtual void VUnk16() __asm__("func_001B1030");   /* slot 17 */
-    virtual void RenderSelf() __asm__("func_001B1140");   /* slot 19 */
     virtual void VUnk25(LO *plo) __asm__("func_001B0D60");   /* slot 26 */
     virtual void VUnk69() __asm__("func_001B10B0");   /* slot 70 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001B0F88");   /* slot 75 */
