@@ -223,7 +223,7 @@ void CID123::VUnk14()
         void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
         e->object = o;
         if (o) {
-            qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);
+            qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);   // (byte arithmetic: an indexed store does not match)
             *pq = func_001A62E8(o);
         }
     }
