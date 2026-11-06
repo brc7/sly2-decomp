@@ -87,7 +87,7 @@ extern "C" void GcSidebag_PushFront(struct NSB *p, struct NSB **phead);
  * See: docs/engine/core-library.md#6-source-files, docs/engine/object-model.md#8-source-files,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void func_00132B00(void) {
+void BASIC::VUnk00() {
 }
 
 /** @sly2-annot addr=0x132B08

@@ -135,11 +135,12 @@ struct WIDGET130 : WIDGET
 typedef char assert_WIDGET130_size[sizeof(WIDGET130) == 0x130 ? 1 : -1];
 
 /* 138 SAA (0x50); vtable 0x2D9420, 10 slots */
+struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP7SHUFFLEP4SAAF...) */
 struct SAA : BASIC
 {
     char pad10[0x50 - 0x10];
     virtual CLASSINFO *Pclassinfo() __asm__("GetSaaClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("func_001ED8E0");   /* slot 7 */
+    virtual void VSlot7(SAAF *psaaf) __asm__("func_001ED8E0");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateSaa");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompleteSaa__FP3SAA");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001EDB80");   /* slot 10 */
@@ -1595,6 +1596,7 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 struct RIPG : SO
 {
     char pad150[0x1B0 - 0x150];
+    virtual int VUnk61() __asm__("func_001CE6C0");   /* slot 62 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRipg__FP4RIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnRipgRemove__FP4RIPG");   /* slot 12 */
@@ -1602,7 +1604,6 @@ struct RIPG : SO
     virtual void VUnk16() __asm__("ProjectRipgTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderRipgSelf__FP4RIPGP2CMP2RO");   /* slot 19 */
     virtual void VUnk48() __asm__("UpdateRipgBounds");   /* slot 49 */
-    virtual int VUnk61() __asm__("func_001CE6C0");   /* slot 62 */
 };
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
@@ -1706,8 +1707,8 @@ typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
 struct LOOP : SAA
 {
     char pad50[0x70 - 0x50];
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitLoop");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLoopClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitLoop");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateLoop__FP4LOOPf");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompleteLoop__FP4LOOP");   /* slot 9 */
 };
@@ -1717,8 +1718,8 @@ typedef char assert_LOOP_size[sizeof(LOOP) == 0x70 ? 1 : -1];
 struct PINGPONG : SAA
 {
     char pad50[0x70 - 0x50];
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitPingpong");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPingpongClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitPingpong");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdatePingpong__FP8PINGPONGf");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompletePingpong__FP8PINGPONG");   /* slot 9 */
 };
@@ -1728,8 +1729,8 @@ typedef char assert_PINGPONG_size[sizeof(PINGPONG) == 0x70 ? 1 : -1];
 struct SHUFFLE : SAA
 {
     char pad50[0x60 - 0x50];
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitShuffle__FP7SHUFFLEP4SAAF");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetShuffleClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitShuffle__FP7SHUFFLEP4SAAF");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateShuffle__FP7SHUFFLEf");   /* slot 8 */
 };
 typedef char assert_SHUFFLE_size[sizeof(SHUFFLE) == 0x60 ? 1 : -1];
@@ -1738,9 +1739,9 @@ typedef char assert_SHUFFLE_size[sizeof(SHUFFLE) == 0x60 ? 1 : -1];
 struct EYES : SAA
 {
     char pad50[0x80 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetEyesClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitEyes");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateEyes");   /* slot 8 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetEyesClassDesc");   /* slot 6 */
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitEyes");   /* slot 7 */
     virtual void VSlot10() __asm__("func_001EE420");   /* slot 10 */
 };
 typedef char assert_EYES_size[sizeof(EYES) == 0x80 ? 1 : -1];
@@ -1749,9 +1750,9 @@ typedef char assert_EYES_size[sizeof(EYES) == 0x80 ? 1 : -1];
 struct SCROLLER : SAA
 {
     char pad50[0x70 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetScrollerClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitScroller__FP8SCROLLERP4SAAF");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateScroller");   /* slot 8 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetScrollerClassDesc");   /* slot 6 */
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");   /* slot 7 */
     virtual void VSlot9() __asm__("UCompleteScroller__FP8SCROLLER");   /* slot 9 */
 };
 typedef char assert_SCROLLER_size[sizeof(SCROLLER) == 0x70 ? 1 : -1];
@@ -1760,8 +1761,8 @@ typedef char assert_SCROLLER_size[sizeof(SCROLLER) == 0x70 ? 1 : -1];
 struct CIRCLER : SAA
 {
     char pad50[0x60 - 0x50];
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitCircler");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCirclerClassDesc");   /* slot 6 */
-    virtual void VSlot7() __asm__("InitCircler");   /* slot 7 */
     virtual void VSlot8() __asm__("UpdateCircler__FP7CIRCLERf");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompleteCircler__FP7CIRCLER");   /* slot 9 */
 };

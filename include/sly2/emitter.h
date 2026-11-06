@@ -60,9 +60,9 @@ struct EMITTER : public XFM
     int fDirty;             /* +0xE0 set by an ensure for writing */
     EMITB *pemitb;          /* +0xE4 */
     char padE8[0x160 - 0xE8];
+    virtual void Init() __asm__("InitEmitter");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleEmitterMessage__FP7EMITTER5MSGIDPv");   /* slot 5 */
-    virtual void Init() __asm__("InitEmitter");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
