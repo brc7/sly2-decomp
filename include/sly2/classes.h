@@ -1696,9 +1696,9 @@ typedef char assert_RELAY_size[sizeof(RELAY) == 0xB0 ? 1 : -1];
 struct CID106 : SO
 {
     char pad150[0x160 - 0x150];
+    virtual void RenderSelf() __asm__("func_001E9AC0");   /* slot 19 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid106ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_001E9858");   /* slot 15 */
-    virtual void RenderSelf() __asm__("func_001E9AC0");   /* slot 19 */
 };
 typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
 
