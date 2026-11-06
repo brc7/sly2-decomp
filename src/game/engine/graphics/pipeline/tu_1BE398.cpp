@@ -110,8 +110,8 @@ static inline int PackNext(GIFS &g, int x, int y)
     g.PackXYZ(x << 4, y << 4, 0);
     return x;
 }
-// Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots (D_003E1A78,
-// D_003E1AA0) (inferred)
+// Level setup of the two render targets (D_003E1A78, D_003E1AA0): allocates each one's 128x128 texture from GS memory
+// and builds its packets (clear the target, bind it as a texture with TEX0/CLUT). (inferred)
 extern "C" void InitRenderTargets(RT *pt, GSB *px)
 {
     register int cbBlock __asm__("$17") = 0x40;
@@ -169,7 +169,8 @@ extern "C" void InitRenderTargets(RT *pt, GSB *px)
 static inline qword Bcast(float f){register qword q __asm__("vf2");q = VuFromFloat<qword>(f);return q;}
 static inline qword Scale0(qword v,qword k){register qword q __asm__("vf4");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
 static inline qword Scale2(qword v,qword k){register qword q __asm__("vf1");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
-// Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset, unpack) (inferred)
+// Starts rendering into a target: builds the look-at and projection of the target's camera object (RTCAM) and emits
+// the VIF setup (BASE/OFFSET, the camera constants for VU1). Called by the BeginRpRenderTarget0/1 pass hooks. (inferred)
 extern "C" void SetupRenderTargetView(RT*p,VIFS*v){
  U axis0,axis1,axis2,minus2,minus0,copy1;
  M4 view;
@@ -244,7 +245,8 @@ extern "C" void BeginRpRenderTarget1(VIFS *pvifs, int a1, int a2)
     BeginRpGlob(pvifs, a1, a2);
 }
 
-// CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000. (inferred)
+// Initializes a render-target camera (RTCAM, class cid 0x2D, vtable slot 7): XFM init, field of view 1 rad, near 4,
+// far 1000. (inferred)
 void CID45::Init()
 {
     RTCAM *pcam = (RTCAM *)this;
@@ -254,19 +256,20 @@ void CID45::Init()
     pcam->clipNear = 1000.0f;
 }
 
-// CID 45 vt14: LoadXfmFromBrx. (inferred)
+// Loads an RTCAM from the level file (vtable slot 14): just its transform.
 extern "C" void LoadRtcamFromBrx(RTCAM *pcam, void *pbis)
 {
     LoadXfmFromBrx(pcam, pbis);
 }
 
-// Append object to list. (inferred)
+// Adds an object to the set the camera renders into its target. (inferred)
 extern "C" void AddRtcamObject(RTCAM *p, LOV *x)
 {
     if (x) p->ap[p->c++] = x;
 }
 
-// Append object, set flags, call its vt9. (inferred)
+// Adds an object to the camera's set and records how to restore it after the render (flags), calling its vtable slot 9
+// (inferred: hides it from the normal scene while it is shown in the target).
 extern "C" void AddRtcamObjectShown(RTCAM *p, RTO *po)
 {
     if (po) {
@@ -279,7 +282,8 @@ extern "C" void AddRtcamObjectShown(RTCAM *p, RTO *po)
     }
 }
 
-// Grab a free render slot for this holder, prepare objects (in-world check, DL append) (inferred)
+// Claims a free render target for the camera (returns it, or 0 if both are taken) and prepares the camera's objects
+// for it. The HUD calls this to show a 3D object (found with FindObjectForRenderTarget) as a texture. (inferred)
 extern "C" RT *AcquireRenderTarget(RTCAM *p)
 {
     unsigned int i;
@@ -321,7 +325,7 @@ extern "C" RT *AcquireRenderTarget(RTCAM *p)
     return p->prt;
 }
 
-// Wrapper. (inferred)
+// AcquireRenderTarget without the result (the form used as a callback). (inferred)
 extern "C" void AcquireRenderTargetNoResult(RTCAM *pcam)
 {
     AcquireRenderTarget(pcam);
@@ -329,7 +333,8 @@ extern "C" void AcquireRenderTargetNoResult(RTCAM *pcam)
 
 #define VCALL(o, n, args...) ((void (*)(...))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, args)
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
-// Release slot, restore objects (vt9 / vt21(1)), self vt21(0), vt3 msg 3. (inferred)
+// Gives the camera's render target back: restores its objects (vtable slots 9 / 21 by the recorded flags), then
+// notifies itself (slot 21 with 0, message 3). (inferred)
 extern "C" void ReleaseRenderTarget(RTCAM *p)
 {
     int i;
@@ -347,14 +352,15 @@ extern "C" void ReleaseRenderTarget(RTCAM *p)
 #undef VCALL
 #undef VCALL0
 
-// Table lookup D_002C0BF8[slot][n] or -1. (inferred)
+// Returns texture n of the camera's render target (table D_002C0BF8[target][n]), or -1 when it holds none; used by
+// the glob renderer to bind the target texture. (inferred)
 extern "C" int GetRenderTargetTexture(RTCAM *p, int n)
 {
     if (!p->prt) return -1;
     return D_002C0BF8[p->prt - (RT *)g_sw.artgt][n];
 }
 
-// CID 45 vt19: if it owns a slot, draw each held object's globset (0x169198) (inferred)
+// Renders the camera (vtable slot 19): when it holds a target, draws each of its objects' globsets into it. (inferred)
 extern "C" void RenderRtcam(RTCAM *p)
 {
     int i;
@@ -364,7 +370,8 @@ extern "C" void RenderRtcam(RTCAM *p)
 }
 
 static __inline__ POV *Get(POV *po) { return (po && FIsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->xF40 : po; }
-// Find preview object by id (0x2AE/0x2AF relative to current player) (inferred)
+// Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
+// player object, or what it controls), others in the whole world. (inferred)
 extern "C" void FindObjectForRenderTarget(int id)
 {
     switch (id) {
