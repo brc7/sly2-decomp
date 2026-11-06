@@ -1,7 +1,9 @@
-// tu_1553F0.cpp -- Dimitri (a STEPGUARD with a table of escape routes, DIMITRI) and his two behaviours: escaping
-// along the route whose near end is farthest from his target (flag 0x22), and an attack/hide cycle that walks a
-// two-point path between the route's volumes (flag 0x23); plus the flee-position search ChooseEscapePosition and the
-// linkonce VecCombo (a VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; FindDimitriFarthestRoute and ChooseEscapePosition are hand-tuned.
+// tu_1553F0.cpp -- DIMITRI (cid 0x3B, a STEPGUARD with a table of escape routes) and his two behaviours: the root
+// (BHV180, flag 0x22) that, after a few frames, picks the route whose near end is farthest from the hero and flees
+// along it, or watches until the hero comes close; and the run/hide cycle (BHV181, flag 0x23) that runs to a route
+// end, follows the route's path and hides. Plus the escape-position search ChooseEscapePosition and the linkonce
+// VecCombo (a VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; FindDimitriFarthestRoute and ChooseEscapePosition are
+// hand-tuned.
 // TU 0x1553F0..0x1564E8 (18 functions, address order) and the linkonce instance 0x258480.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1553F0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001564C8
@@ -165,18 +167,8 @@ float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
 
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
-/** @sly2-annot addr=0x1553F0
- * Purpose: cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD
- *   load, sets +0x1018 = INT_MAX
- * Info: proposed name LoadDimitriFromBrx (T1); class DIMITRI slot14; TU tu_1553F0
- * Notes: Cid3B->Cid59 (CID 0x3B=59, hex-literal) | level_parser CONFIRMED-parse: payload layout followed by
- *   the parser, 100%% of bytes in 4 levels | class identity from whole_game WE names/object strings:
- *   LoadCid59FromBrx -> LoadDimitriFromBrx
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
- *   r3b_rest+verdicts_tu_r3r5+parse-verified+whole_game(class identity)
- * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
- *   docs/engine/game-progression.md#7-source-files, docs/engine/guards-ai.md#8-source-files
- * @end-sly2-annot */
+// 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
+// +0x1018 to INT_MAX.
 extern "C" void LoadDimitriFromBrx(DIMITRIV *p, void *pbis)
 {
     MSG msg;
@@ -185,16 +177,8 @@ extern "C" void LoadDimitriFromBrx(DIMITRIV *p, void *pbis)
     p->hpLast = 0x7FFFFFFF;
 }
 
-/** @sly2-annot addr=0x155450
- * Purpose: STEPGUARD PostLoad then resolves the 4 oids of each route record
- * Info: proposed name PostDimitriLoad (T1); class DIMITRI slot15; TU tu_1553F0
- * Notes: names_v2 C proposed UpdateAloHierarchy__FP3ALOf (0.438) | Cid3B->Cid59 (CID 0x3B=59, hex-literal) |
- *   class identity from whole_game WE names/object strings: PostCid59Load -> PostDimitriLoad
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
- *   r3b_rest+verdicts_tu_r3r5+whole_game(class identity)
- * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
- *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155450: DIMITRI vtable slot 15 (PostLoad): STEPGUARD post-load, then resolves the four oids of each route
+// record.
 void DIMITRI::VUnk14()
 {
     DIMITRIV *p = (DIMITRIV *)this;
@@ -209,15 +193,7 @@ void DIMITRI::VUnk14()
     }
 }
 
-/** @sly2-annot addr=0x155530
- * Purpose: Appends a route record of 4 oids
- * Info: proposed name AddDimitriRoute (T2); class DIMITRI; TU tu_1553F0
- * Notes: Cid3B->Cid59 (CID 0x3B=59, hex-literal) | class identity from whole_game WE names/object strings:
- *   AddCid59Route -> AddDimitriRoute
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+whole_game(class identity)
- * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
- *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155530: Splice option: appends a route record of four oids.
 extern "C" void AddDimitriRoute(DIMITRIV *p, int a, int b, int c, int d)
 {
     ESC *pe = &p->aesc[p->cesc++];
@@ -227,14 +203,7 @@ extern "C" void AddDimitriRoute(DIMITRIV *p, int a, int b, int c, int d)
     pe->oidD = d;
 }
 
-/** @sly2-annot addr=0x155560
- * Purpose: BHV180 slot 7: base, guard flag 0x22, state -1
- * Info: proposed name InitBhv180 (T2); class BHV180 slot7; TU tu_1553F0
- * Notes: superseded: OnBhv180Push (r3b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv180Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155560: Dimitri root behaviour (BHV180) vtable slot 7 (OnPush): base, raises guard flag 0x22, state -1.
 void BHV180::OnPush()
 {
     BHVESC *p = (BHVESC *)this;
@@ -243,13 +212,7 @@ void BHV180::OnPush()
     p->state = -1;
 }
 
-/** @sly2-annot addr=0x155598
- * Purpose: BHV180 slot 9: state -1, clear flag 0x22, 0x208540(guard,0)
- * Info: proposed name CloseBhv180 (T2); class BHV180 slot9; TU tu_1553F0
- * Notes: superseded: OnBhv180Pop (r3b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv180Pop
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155598: Dimitri root behaviour vtable slot 9 (Close): state -1, lowers flag 0x22, clears the guard's target.
 extern "C" void CloseBhvDimitriRoot(BHVESC *p)
 {
     CloseBhv(p);
@@ -258,15 +221,8 @@ extern "C" void CloseBhvDimitriRoot(BHVESC *p)
     SetStepguardTarget(p->pguard, 0);
 }
 
-/** @sly2-annot addr=0x1555E0
- * Purpose: BHV180 slot 8: picks a route after enough frames and starts fleeing (state 0) or watching (state
- *   1)
- * Info: proposed name StartBhv180 (T2); class BHV180 slot8; TU tu_1553F0
- * Notes: superseded: OnBhv180Resume (r3b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv180Resume
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x1555E0: Dimitri root behaviour vtable slot 8 (Start): once enough frames have passed, picks a route and starts
+// fleeing (state 0) or watching (state 1).
 extern "C" void StartBhvDimitriRoot(BHVESC *p)
 {
     StartBhv(p);
@@ -280,12 +236,8 @@ extern "C" void StartBhvDimitriRoot(BHVESC *p)
 }
 
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x155660
- * Purpose: While watching: switches to state 1 when the player is within 850 xy and 400 z
- * Info: proposed name UpdateBhv180 (T2); class BHV180 slot10; TU tu_1553F0
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155660: Dimitri root behaviour update: while watching, switches state when the player comes within 850
+// horizontally and 400 vertically.
 extern "C" void UpdateBhvDimitriRoot(BHVESC *p)
 {
     UpdateBhv(p);
@@ -312,12 +264,8 @@ extern "C" void UpdateBhvDimitriRoot(BHVESC *p)
     }
 }
 
-/** @sly2-annot addr=0x155788
- * Purpose: State 0 runs BHV181 along the chosen route; state 1 runs BHV165
- * Info: proposed name SetBhv180State (T2); TU tu_1553F0
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155788: Dimitri root behaviour state change: state 0 runs the run/hide behaviour (BHV181) on the chosen route;
+// state 1 runs BHV165.
 extern "C" void SetBhvDimitriRootState(BHVESC *p, int k)
 {
     if (k == p->state)
@@ -363,15 +311,7 @@ static inline float GFromQ(qwordV v) { float g; __asm__ __volatile__("qmfc2.ni %
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5130 __asm__("D_002A5130") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x155868
- * Purpose: Chooses the route whose nearer end is farthest from the player
- * Info: proposed name PrteDimitriFarthest (T2); class DIMITRI; TU tu_1553F0
- * Notes: Cid3B->Cid59 (CID 0x3B=59, hex-literal) | class identity from whole_game WE names/object strings:
- *   PrteCid59Farthest -> PrteDimitriFarthest
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest+whole_game(class identity)
- * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
- *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155868: Returns the route whose nearer end is farthest from the player.
 extern "C" ESC *FindDimitriFarthestRoute(BHVESC *p)
 {
     ESC *peBest = 0;
@@ -408,14 +348,7 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *p)
 }
 
 namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1559B0
- * Purpose: BHV181 slot 7: base, flag 0x23, state -1
- * Info: proposed name InitBhv181 (T2); class BHV181 slot7; TU tu_1553F0
- * Notes: superseded: OnBhv181Push (r3b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv181Push
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x1559B0: Run/hide behaviour (BHV181) vtable slot 7 (OnPush): base, raises guard flag 0x23, state -1.
 extern "C" void InitBhvFlee(BHVATK *p)
 {
     InitBhv(p);
@@ -424,16 +357,7 @@ extern "C" void InitBhvFlee(BHVATK *p)
     p->g3C = D_002A5134;
 }
 
-/** @sly2-annot addr=0x1559F8
- * Purpose: BHV181 slot 9
- * Info: proposed name CloseBhv181 (T2); class BHV181 slot9; TU tu_1553F0
- * Notes: superseded: OnBhv181Pop (verdicts_followups) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was
- *   OnBhv181Pop
- * Confidence: low (draft) [T2 0.80] - evidence: static analysis; sources:
- *   r3b_rest+verdicts_followups+bhv-slot-canon(r9)
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x1559F8: Run/hide behaviour vtable slot 9 (Close): state -1, lowers flag 0x23.
 extern "C" void CloseBhvFlee(BHVATK *p)
 {
     CloseBhv(p);
@@ -441,14 +365,7 @@ extern "C" void CloseBhvFlee(BHVATK *p)
     RemoveStepguardSgf(p->pguard, 0x23);
 }
 
-/** @sly2-annot addr=0x155A38
- * Purpose: BHV181 slot 8: state 0
- * Info: proposed name StartBhv181 (T2); class BHV181 slot8; TU tu_1553F0
- * Notes: superseded: OnBhv181Resume (r3b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv181Resume
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155A38: Run/hide behaviour vtable slot 8 (Start): state 0.
 void BHV181::Start()
 {
     BHVATK *p = (BHVATK *)this;
@@ -456,15 +373,7 @@ void BHV181::Start()
     SetBhvFleeState(p, 0);
 }
 
-/** @sly2-annot addr=0x155A68
- * Purpose: Picks which end of the route to run to (volume test 0x227C90)
- * Info: proposed name PloBhv181RouteEnd (T2); TU tu_1553F0
- * Notes: verifier PLAUSIBLE: Returns end-A object (+4) if FCheckVolPoint(volA, pos of +0x4C) else end-B
- *   (+0x14) if in volB, default A: it selects the end whose volume CONTAINS the tracked object, not obviously
- *   the one to run to. | T2 forced: verifier: role word not supported by the code
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155A68: Picks which end of the route to run to (the one whose volume does not contain the player, inferred).
 extern "C" void *ChooseBhvFleeRouteEnd(BHVATK *p)
 {
     if (FCheckVolPoint(p->pesc->ploB, func_001A62E8(p->ploTarget)))
@@ -487,13 +396,7 @@ static __inline__ float GetY(qwordV q)
     return y;
 }
 namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x155AE0
- * Purpose: States: 0 face away and run, 1 wait, 2 path-follow (BHV167), 3 hide (BHV164)
- * Info: proposed name SetBhv181State (T2); TU tu_1553F0
- * Notes: runtime2 REFUTED: BHV164 is the attack behaviour, not hide
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155AE0: Run/hide state change: 0 face away and run, 1 wait, 2 follow the route path (BHV167), 3 hide (BHV164).
 extern "C" void SetBhvFleeState(BHVATK *p, int k)
 {
     if (k == p->state) return;
@@ -570,12 +473,8 @@ extern "C" void SetBhvFleeState(BHVATK *p, int k)
     }
 }
 
-/** @sly2-annot addr=0x155D90
- * Purpose: Run/hide state machine for the fleeing guard
- * Info: proposed name UpdateBhv181 (T2); class BHV181 slot10; TU tu_1553F0
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155D90: Run/hide behaviour update: the state machine above, driven by the hero's distance and the child
+// behaviours finishing.
 extern "C" void UpdateBhvFlee(BHVATK *p)
 {
     UpdateBhv(p);
@@ -647,13 +546,8 @@ static inline float GClampR(float g, LMV *plm) { if (g < plm->gMin) return plm->
 static inline int FFast(qwordV v) { return D_002BDC98 < Len(v); }
 
 namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x155FB0
- * Purpose: Escape target: projects the player's motion by a difficulty-scaled time and finds the clearest of
- *   11 directions
- * Info: proposed name PosChooseEscape (T2); TU tu_1553F0
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
- * @end-sly2-annot */
+// 0x155FB0: Chooses an escape position: projects the player's motion ahead by a difficulty-scaled time and picks
+// the clearest of 11 directions away from it.
 extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
 {
     HERO *pso = PpoHero(D_003DD490);
@@ -728,11 +622,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
    caller reaches it only through VecComboQ (a differently typed, asm-labelled declaration), which does not mark the
    inline used; calling VecCombo itself would change ChooseEscapePosition's code. The attributes give it what g++ gives an
    inline function's out-of-line copy (link/linkonce-rest): a weak symbol in .gnu.linkonce.t.<symbol>. */
-/** @sly2-annot addr=0x258480
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// 0x258480: Linkonce VecCombo: weighted sum of vectors (VU_FLOAT/VU_VECTOR), emitted here.
 __attribute__((weak, section(".gnu.linkonce.t.VecCombo__FG8VU_FLOATG9VU_VECTORT0T1")))
 qwordV VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
