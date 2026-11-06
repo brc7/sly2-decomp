@@ -305,13 +305,13 @@ namespace M_PostStepguardLoad { extern "C" {
 struct VE; struct O; struct C3; struct K; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int n50; };
-struct C3 { char pad[0x24]; int n24; };
+struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int unknown50; };
+struct C3 { char pad[0x24]; int unknown24; };
 struct K { long l; } __attribute__((packed));
 struct S {
-    char pad0[0x18]; int n18; char pad1[0x3C - 0x1C]; struct C3 *p3C; char pad2[0x58 - 0x40]; int n58; int n5C;
-    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int n2F0;
-    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *helperComponent; void *attachComponent;
+    char pad0[0x18]; int oid; char pad1[0x3C - 0x1C]; struct C3 *unknown3C; char pad2[0x58 - 0x40]; int xfRolesIdle; int xfRolesUngrounded;
+    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int unknown2F0;
+    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *stuckWatch; void *hazardWatch;
     char pad7[0xFC4 - 0x4A0]; void *unknownFC4;
 };
 extern char D_002C3CF8[];
@@ -334,32 +334,32 @@ void *PxfFindSo(struct S *p, int n, int m);
 void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
 
 // 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
-// children, resolves animation bindings and attack oids, and creates its two helper components (+0x498/+0x49C).
+// children, resolves animation bindings and attack oids, and creates its stuck and hazard watches (+0x498/+0x49C).
 void PostStepguardLoad(struct S *guard)
 {
     void *x;
     PostStepLoad(guard);
     BindLoOidTable(guard, 1, D_002C3CF8);
     func_00204DA8(guard, guard->gravityRatio);
-    func_002303A0(guard, guard->n58, 2);
-    func_002303A0(guard, guard->n5C, 2);
+    func_002303A0(guard, guard->xfRolesIdle, 2);
+    func_002303A0(guard, guard->xfRolesUngrounded, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
-    guard->helperComponent = func_001AE4F8(0x10);
-    InitStuckWatch(guard->helperComponent, guard);
-    guard->attachComponent = func_001AE4F8(0x14);
-    InitHazardWatch(guard->attachComponent, guard);
-    if (!guard->p3C->n24)
+    guard->stuckWatch = func_001AE4F8(0x10);
+    InitStuckWatch(guard->stuckWatch, guard);
+    guard->hazardWatch = func_001AE4F8(0x14);
+    InitHazardWatch(guard->hazardWatch, guard);
+    if (!guard->unknown3C->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
     guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
     AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
-    guard->n2F0 = guard->alternatePatrolScript->n50;
+    guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
     guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
     if (guard->pickpocketIndicator0)
         guard->pickpocketIndicator0->vt[9].pf((char *)guard->pickpocketIndicator0 + guard->pickpocketIndicator0->vt[9].d);
     if (guard->pickpocketIndicator1)
         guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
-    x = PxfFindSo(guard, guard->n18, 0xC);
+    x = PxfFindSo(guard, guard->oid, 0xC);
     if (x)
         guard->unknownFC4 = func_0012DC18(guard, x, 0, 7, 2, D_002A2DE0);
 }
@@ -466,7 +466,7 @@ struct F64 { char pad[0xE0]; void *pE0; void *pE4; };
 struct S {
     char pad0[0xEC]; void *pEC; char pad1[0x26C - 0xF0]; char a26C[0x2F0 - 0x26C]; struct P2F0 *p2F0;
     char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int n340; int n344;
-    char pad4[0x494 - 0x348]; int n494; void *helperComponent; void *attachComponent; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
+    char pad4[0x494 - 0x348]; int n494; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
     int nE84; int nE88; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char aFD0[0xFE8 - 0xFD0];
     int capabilities; struct O *knockdownHelper;
 };
@@ -504,9 +504,9 @@ void ResetStepguardToHome(struct S *guard)
     ClearBhvstk__FP6BHVSTK(guard->a26C);
     ClearStepguardMover(guard->aFD0);
     SetStepguardGrfsgf(guard, 0);
-    ResetStuckWatch(guard->helperComponent);
-    ResetHazardWatch(guard->attachComponent);
-    EnableStuckWatch(guard->helperComponent);
+    ResetStuckWatch(guard->stuckWatch);
+    ResetHazardWatch(guard->hazardWatch);
+    EnableStuckWatch(guard->stuckWatch);
     guard->homePosition = func_001A62E8(guard);
     guard->homeHeading = RadStepHeading(guard);
     guard->p2F0->pq = pq;
@@ -1037,7 +1037,7 @@ struct S {
     char pad0[0x28]; unsigned long fl28;
     char pad1[0x208 - 0x30]; int n208; char pad1b[0x218 - 0x20C]; qword *pq218;
     char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
-    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *helperComponent; void *attachComponent;
+    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *stuckWatch; void *hazardWatch;
     char pad5[0x4A4 - 0x4A0]; int n4A4; char pad6[0x4B0 - 0x4A8]; qword q4B0;
     char pad7[0xF00 - 0x4C0]; struct O *po; char pad8[0xF0C - 0xF04]; int hF0C;
     char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
@@ -1075,8 +1075,8 @@ void UpdateStepguard(struct S *guard)
         UpdateStepguardAim(guard);
     if (guard->isLootStaged)
         StageStepguardLoot(guard);
-    UpdateStuckWatch(guard->helperComponent);
-    UpdateHazardWatch(guard->attachComponent);
+    UpdateStuckWatch(guard->stuckWatch);
+    UpdateHazardWatch(guard->hazardWatch);
     UpdateBhvstk(guard->behaviorStack);
     UpdateStepguardMover(guard->xFD0);
     if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
