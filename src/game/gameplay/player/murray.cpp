@@ -1,6 +1,9 @@
 // murray.cpp -- Murray (MURRAY : STEPPLAYER, players.h): init and load, the state machine (SetMurrayState), carrying
 // and throwing, attacks, the per-frame update and the Splice-callable state setters. TU 0x1B4728..0x1B9F80
 // (66 functions, address order).
+// Entry points: InitMurray/LoadMurrayFromBrx/PostMurrayLoad, UpdateMurray (per frame), SetMurrayState,
+// HandleMurrayMessage, the attack combo (SetMurrayAttack, UpdateMurrayAttack), lift/carry/throw (UpdateMurrayLift,
+// ThrowMurrayCarried), the Splice setters and the STEPPLAYER virtual overrides.
 //
 // Types: sly2/players.h's MURRAY for the m2c bodies (one unnamed word, +0x1820, through a macro as tu_144B28.cpp
 // does). The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp
@@ -52,6 +55,8 @@ static inline void Init(struct SUB *ps, float f, float g) { ps->f2 = g; ps->f1 =
  * See: docs/engine/player.md#10-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY Init (vtable slot 7): STEPPLAYER init, then Murray's defaults (state fields -1, throw range 1500/3500) and his
+// four locomotion blends.
 void InitMurray(struct S *p)
 {
     InitStepplayer(p);
@@ -182,6 +187,8 @@ static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.alig
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY LoadFromBrx (slot 14): STEP base, binds his object table (0x89 entries) and allocates the two hand/grip
+// records.
 void LoadMurrayFromBrx(struct P *p)
 {
     LoadStepFromBrx(p);
@@ -224,6 +231,8 @@ void SetMurrayState(struct S *p, int n);
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY post-load (slot 15): STEPPLAYER post-load, the four locomotion blends and the strafe directional blends
+// (InitDirectionalBlend).
 void PostMurrayLoad(struct S *p)
 {
     char *b = (char *)p;
@@ -327,6 +336,8 @@ static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((ch
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Per-frame input-driven state machine (loops until the state is stable): idle/move, jump, attacks, lift/carry/throw,
+// flop, strafe.
 extern "C" void UpdateMurrayStateMachine(P*p){
  int state;
  do{
@@ -424,6 +435,7 @@ void UpdateJtMode(void *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// While a look mode is active: in mode 1 any face button (mask 0x4F0) cancels it; then updates the mode.
 void UpdateMurrayJtModeInput(struct S *p)
 {
     if (IsStepplayerInJtMode(p)) {
@@ -551,6 +563,7 @@ typedef char Size_10[sizeof(void*)==4?1:-1];
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY Update (slot 16): STEPPLAYER update, grab candidates, the state machine, then per-state updates.
 void UpdateMurray(struct P *p)
 {
     UpdateStepplayer(p);
@@ -661,6 +674,8 @@ static inline struct PL*CopyPL(struct PL*p){register struct PL*source __asm__("$
  *   r5b_rest+runtime+runtime-corrected
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 5 (carrying x13F0): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
+// locomotion.
 void UpdateMurrayCarry(struct P *p)
 {
     int s;
@@ -780,6 +795,7 @@ void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Carry sub-state (x1458): 0 stand, 1 walk (blend x1460), 2 run (clip x151C); restarts the animation.
 void SetMurrayCarrySubstate(P *p, int k)
 {
     R *pr;
@@ -853,6 +869,8 @@ void SetSmaGoal(int a, int b);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 6 (scripted struggle with a partner state machine): only while Murray is the current player and not hands-off;
+// face-button mashing advances it.
 void UpdateMurrayStruggle(struct P *p)
 {
     int a;
@@ -965,6 +983,8 @@ typedef char Axis1Direction_Offset[(FIELD_OFFSET(P,axes)+sizeof(ENTRY)+FIELD_OFF
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 9 (locked onto the nearby target x10DC): exits when the lock button is released or the target is lost; allows
+// jump and takedown.
 extern "C" void UpdateMurrayStrafe(P*p){
  int before;
  for(;;){
@@ -1023,6 +1043,7 @@ void ReplaceSma(int a, struct P *p, int b, int n, void *q);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Strafe sub-state (x17F4): 0 stand, 1 blend x1630, 2 clip x17F0; restarts the animation.
 void SetMurrayStrafeSubstate(struct P *p, int st)
 {
     void *o;
@@ -1096,21 +1117,22 @@ static inline float LenXY(qword v) {
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Picks the throw goal: the nearest object with flag 0x10000 (not the carried one) within range and view cone.
 void ChooseMurrayThrowTarget(struct P *p)
 {
     struct { int a[4]; } unused;
-    struct O *po, *poBest = 0;
-    float gMax = p->g1410 * D_002C0984;
-    for (po = (*(struct G *)&g_sw.aslPxrOid[410]).pFirst; po; po = po->pnext) {
+    struct O *object, *poBest = 0;
+    float maxValue = p->g1410 * D_002C0984;
+    for (object = (*(struct G *)&g_sw.aslPxrOid[410]).pFirst; object; object = object->pnext) {
         qword d;
         float dist, g;
-        if (!(po->xE8 & 0x10000))
+        if (!(object->xE8 & 0x10000))
             continue;
-        if (ShouldTriggerGrabspotSkipTarget(p->p13F0, po))
+        if (ShouldTriggerGrabspotSkipTarget(p->p13F0, object))
             continue;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(po)), "j"(func_001A62E8(p)));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(object)), "j"(func_001A62E8(p)));
         dist = LenXY(d);
-        if (gMax < dist)
+        if (maxValue < dist)
             continue;
         if (dist < 150.0f)
             continue;
@@ -1119,8 +1141,8 @@ void ChooseMurrayThrowTarget(struct P *p)
         { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(GetX(t), x); }
         if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - RadStepHeading(p))))
             continue;
-        poBest = po;
-        gMax = dist;
+        poBest = object;
+        maxValue = dist;
         p->v1420 = func_001A62E8(poBest);
     }
     if (!poBest) {
@@ -1252,6 +1274,8 @@ static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(vo
  * See: docs/engine/player.md#11-key-functions, docs/open-questions.md#top-5-highest-leverage,
  *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
  * @end-sly2-annot */
+// Murray state switch (x13D0, 0..21): exit work for the old state, entry work (clip selection, velocity reset,
+// component states) for the new one.
 extern "C" void SetMurrayState(P *p, int next)
 {
     if (next == p->state)
@@ -1364,6 +1388,7 @@ void GetJtPipeVelocity(void *p, int *pf);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
 void GetMurrayCpdefi(struct S *p, int *pf)
 {
     if (p->k != 0 && p->k != 16 && p->x4CC) p->t1080 = D_002DDED0.t;
@@ -1396,6 +1421,7 @@ void PresetJtAccelPipe(void *p);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY physics preset (slot 70): the base preset, then the per-state component presets.
 void PresetMurrayAccel(struct S *p)
 {
     char *b = (char *)p;
@@ -1459,6 +1485,7 @@ void SetMurrayState(P *p, int s);
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY message handler (slot 5): base, then animation events from his own animations (0x1A4 flop dive, ...).
 void HandleMurrayMessage(P *p, int msg, MSG *pm)
 {
     HandleStepplayerMessage(p, msg, pm);
@@ -1552,6 +1579,8 @@ qword SetVectorCylind(float a, float b, float c);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 3 (air slam): ends when the animation is done; sub-state 1 waits for landing then the impact sub-state 2;
+// steering.
 void UpdateMurrayFlop(struct P *p)
 {
     int s;
@@ -1622,6 +1651,8 @@ typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 3 physics helper: sub-state 0 cancels ground velocity, sub-state 1 adds horizontal correction toward the
+// desired point.
 extern "C" void PresetMurrayFlopAccel(struct P *p)
 {
     switch (p->x13D8) {
@@ -1727,6 +1758,7 @@ typedef char P_plink_Offset[FIELD_OFFSET(P,plink)==5092?1:-1];
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Flop sub-states: 1 dive (sets downward velocity), 2 impact (zaps every contact and shakes the camera).
 void SetMurrayFlopSubstate(struct P *p, int s)
 {
     if (p->x13D8 == s)
@@ -1765,19 +1797,19 @@ void SetMurrayFlopSubstate(struct P *p, int s)
         Zero(&p->v190);
         for (pl = p->plink; pl; pl = pl->pnext) {
             int i = pl->as[0].x8 != p;
-            struct SIDE *pso = &pl->as[1 - i];
-            struct SIDE *psm = &pl->as[i];
-            void *po = func_001F7530(pso->xC, 4);
-            if (po) {
+            struct SIDE *so = &pl->as[1 - i];
+            struct SIDE *stateMachine = &pl->as[i];
+            void *object = func_001F7530(so->xC, 4);
+            if (object) {
                 struct MSG msg;
                 func_002333B4(&msg, 0, sizeof(msg));
                 msg.x0 = p;
-                msg.x4 = psm->x0;
-                msg.x8 = po;
+                msg.x4 = stateMachine->x0;
+                msg.x8 = object;
                 msg.xC = 4;
                 msg.x10 = -20;
-                msg.v20 = pso->v10;
-                msg.v30 = psm->v30;
+                msg.v20 = so->v10;
+                msg.v30 = stateMachine->v30;
                 (void)func_001F7598(&msg);
             }
         }
@@ -1819,6 +1851,7 @@ void FaceStepToward(struct S *p, int n);
  * See: docs/engine/player.md#9-grabbable-world-objects, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
+// If lifting is allowed (x13EC): the grab spot becomes the carried target, lift clip 0, state 4, face it.
 void StartMurrayLiftGrabspot(struct S *p, struct T *pt)
 {
     if (p->f) {
@@ -1843,6 +1876,7 @@ void FaceStepToward(struct S *p, int n);
  *   r5b_rest+runtime+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
 void StartMurrayLiftGuard(struct S *p, struct T *pt)
 {
     if (p->f) {
@@ -1892,6 +1926,8 @@ static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// If the target (x10DC) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
+// nonzero if it did.
 int TryMurrayTakedown(struct P *p)
 {
     union { qword q; float f[4]; } u;
@@ -1982,6 +2018,7 @@ extern "C" M4 __ml__FRC7MATRIX4T0(const M4 &, const M4 &);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Rotation and position of the carried object relative to Murray's two grip nodes (with an optional pose change).
 extern "C" void GetMurrayGripFrame(P *const p, NODE *stop, const M4 *input, VU_VECTOR *outRotation, VU_VECTOR *outPosition)
 {
     if (!p->link->pose) {
@@ -2015,10 +2052,10 @@ extern "C" void GetMurrayGripFrame(P *const p, NODE *stop, const M4 *input, VU_V
         rotation.q = func_0011BFF0(&replace.basis);
         LoadRotateMatrixEuler(&result.basis, rotation.q);
         VECTOR_opAssign(&replace.position.q, chain[right]->local.position.q);
-        M4 *pmat = &replace;
-        pmat->basis = result.basis;
+        M4 *matrix = &replace;
+        matrix->basis = result.basis;
         replace.basis.row[0].i[3] = replace.basis.row[1].i[3] = replace.basis.row[2].i[3] = 0;
-        pmat->position.f[3] = 1.0f;
+        matrix->position.f[3] = 1.0f;
         result = D_002A2D30;
         M4 upper = D_002A2D30;
         for (int i = count - 1; i > left; i--) {
@@ -2092,6 +2129,7 @@ typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
 void ComputeMurrayLiftLaunch(struct P*p,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
  struct P*owner=CaptureActor(p);
  U roots;U u;U start;
@@ -2211,21 +2249,23 @@ static inline float Dist(qword a, qword b) {
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Release on animation event 0x1EB in state 7: detaches the carried object and gives it the velocity to reach the
+// throw goal.
 void ThrowMurrayCarried(struct P *p)
 {
-    struct LO *po;
+    struct LO *object;
     DetachMurrayCarried(p);
-    po = p->p13F0->po;
+    object = p->p13F0->po;
     p->p13F0 = 0;
-    if ((int)(po->x28 >> 60) & 1) {
+    if ((int)(object->x28 >> 60) & 1) {
         float t;
         qword v;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
-            func_00209FB8(po);
-        t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
-        v = func_001D69F0(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
-        ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
-        func_001F7A68(po, 2);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
+            func_00209FB8(object);
+        t = Dist(func_001A62E8(object), p->v1420) / p->g1414;
+        v = func_001D69F0(func_001A62E8(object), p->v1420, GetSoDvGravity(object), t);
+        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, v);
+        func_001F7A68(object, 2);
     }
 }
 } } // namespace M_ThrowMurrayCarried
@@ -2243,6 +2283,7 @@ void SetStepRadTargetVec(struct P *p, qword q);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Splice-callable: state 7 with the throw goal overridden by the given object's position, facing it.
 void ThrowMurrayCarriedAt(struct P *p, void *pv)
 {
     qword a, b, d;
@@ -2276,19 +2317,20 @@ void func_001F7A68(struct O *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Release in state 8: detaches, fixed local velocity D_002C09D0, no angular velocity, zap mode 3.
 void TossMurrayCarried(struct S *p)
 {
-    struct O *po;
+    struct O *object;
     qword q;
     DetachMurrayCarried(p);
-    po = p->pt->po;
+    object = p->pt->po;
     p->pt = 0;
-    if ((int)(po->f28 >> 60) & 1) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38)) func_00209FB8(po);
+    if ((int)(object->f28 >> 60) & 1) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) func_00209FB8(object);
         q = ConvertAloVec(p, 0, D_002C09D0);
-        ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, q);
-        ((void (*)(void *, qword))po->vt[36].pfn)((char *)po + po->vt[36].d, D_002A2DD0);
-        func_001F7A68(po, 3);
+        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
+        ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+        func_001F7A68(object, 3);
     }
 }
 } } // namespace M_func_001B7AE8
@@ -2313,6 +2355,8 @@ qword ConvertAloVec(struct P *p, int n, qword q);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Aborts carrying on a forced state change: detaches the carried/lifted object and sets its velocity for the current
+// state.
 void DropMurrayCarried(struct P *p)
 {
     struct O *o;
@@ -2368,6 +2412,7 @@ void RecalcSwOxfFilterForObject(void *g, struct P *p);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Frees the 12 grip constraints, notifies the object (message 6), restores its transform roles and tree flags.
 void DetachMurrayCarried(struct P *p)
 {
     struct O *o;
@@ -2409,6 +2454,7 @@ void DropMurrayCarried(struct P *p);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 88: maps a generic player state 0..8 to Murray states (0 -> carry 5 or idle 0, 1 -> jump 2, ...).
 void SetMurrayPlayerState(struct P *p, unsigned int k)
 {
     switch (k) {
@@ -2440,6 +2486,7 @@ struct S { char pad[0x13D0]; int n; };
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 89: Murray state -> generic player state 0..8 or -1.
 int GetMurrayPlayerState(struct S *p)
 {
     switch (p->n) {
@@ -2470,6 +2517,7 @@ void SetStepPhys(struct P *p, int v, int k);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 90: chooses the per-state STEP parameter block (component-supplied for 2/13/14, carry table ...).
 void ApplyMurrayStateStepParams(struct P *p)
 {
     int k = 0;
@@ -2497,6 +2545,7 @@ void ApplyMurrayStateStepParams(struct P *p)
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* MURRAY slot 91 (empty). */
+// MURRAY slot 91 (end the melee attack, see JT): empty.
 extern "C" void EndMurrayMeleeAttack()
 {
 }
@@ -2509,6 +2558,7 @@ extern "C" void EndMurrayMeleeAttack()
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* MURRAY slot 92. */
+// MURRAY slot 92 (face the attached object, see JT): returns 0.
 extern "C" int TryFaceMurrayAttachedObject()
 {
     return 0;
@@ -2523,6 +2573,8 @@ int StepplayerVirtual98(struct S *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 98: the STEPPLAYER base result; when 0, 1 for states 1/12 or strafing with a sub-state (meaning of the
+// slot not identified).
 int MurrayVirtual98(struct S *p)
 {
     int v = StepplayerVirtual98(p);
@@ -2546,6 +2598,7 @@ struct S { char pad[0x13D0]; int n; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 94: 1 for the free-movement states 0/1/9/10. (inferred)
 } } // namespace M_func_001B8180
 int MURRAY::VUnk93() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
     switch (p->n) {
@@ -2570,6 +2623,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object.
 void SetMurrayPlayable(struct P *p, int b)
 {
     struct O *o;
@@ -2607,6 +2661,7 @@ void RecordJtPipePlace(void *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Per frame: on flat ground (normal z > 0.7, material flag clear) records a safe place; component hooks otherwise.
 void UpdateMurrayPlaces(struct S *p)
 {
     struct Q *pq;
@@ -2631,6 +2686,7 @@ int GetStepplayerModeCode(struct S *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 85: 0 if x204 is set, in mode 1 or in state 20, else the STEPPLAYER base.
 int GetMurrayModeCode(struct S *p)
 {
     if (p->f204) return 0;
@@ -2649,6 +2705,7 @@ int IsStepplayerInvulnerable(struct P *p, int k);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 76 (zap kind): true in state 15, in state 20 for kind 0x4000, the component check, else the base.
 int IsMurrayInvulnerable(struct P *p, int k)
 {
     switch (p->n13D0) {
@@ -2683,6 +2740,7 @@ int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 61: base flags, plus bit 3 for an object that is (part of) the carried object.
 int ShouldMurrayIgnoreIntersection(struct P *p, void *pv)
 {
     int n = FIgnoreIntersection__10STEPPLAYERP2SO(p, pv);
@@ -2701,10 +2759,11 @@ int ShouldMurrayIgnoreIntersection(struct P *p, void *pv)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" int CanMurrayAttack(MURRAY *pmurray)
+// True if no attack overlay is running and no attack sub-state, else the combo-window flag (x1820).
+extern "C" int CanMurrayAttack(MURRAY *murray)
 {
-    if (pmurray->pasegaUnk190c != 0 || pmurray->nUnk1810 != -1) {
-        return FCANATTACKBUSY(pmurray);
+    if (murray->pasegaUnk190c != 0 || murray->nUnk1810 != -1) {
+        return FCANATTACKBUSY(murray);
     }
     return 1;
 }
@@ -2726,6 +2785,7 @@ static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, 
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Square attack: state 11 with attack kind 0/1 (alternating hand, chosen by the target's side).
 void StartMurrayPunch(struct P *p)
 {
     int k;
@@ -2761,6 +2821,7 @@ static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, 
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// The 0x10-button attack (needs clips x1804/x1808): state 11 with kind 2/3.
 void StartMurrayAltAttack(struct P *p)
 {
     int k;
@@ -2824,6 +2885,8 @@ static inline qword MulM3(qword *m, qword v)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Attack sub-state (x1810, clip table x17FC[kind]): resets event flags, auto-faces a target within the cone, starts the
+// clip and predicts its end point.
 void SetMurrayAttack(struct P *p, int k)
 {
     void *q;
@@ -2890,6 +2953,7 @@ void SetMurrayState(struct S *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Fades the attack overlay, clears it and returns to idle.
 void CancelMurrayAttack(struct S *p)
 {
     func_00131B60(p->p, p, 5, D_002C09F8);
@@ -2929,6 +2993,7 @@ void CancelMurrayAttack(P *p);
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 11 combo: chains square (0 <-> 1) or 0x10 (2 <-> 3) within the combo window; takedown check; movement cancel.
 void UpdateMurrayAttack(P *p)
 {
     int s;
@@ -3036,6 +3101,7 @@ static inline qword OrbitVector(struct P*p){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 11 velocity: animation root motion, blended toward the stick direction between two animation parameters.
 void UpdateMurrayAttackVelocity(struct P*p){
     U scalar;
     if(p->source){
@@ -3121,6 +3187,7 @@ typedef char V3_Size[sizeof(union V3)==16?1:-1];
  * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 12 (gadget 20 power move) sub-states: 0 wind-up clip, 1 clip, 2 spawn/launch a script object.
 void SetMurrayPowerSubstate(struct P *p, int st)
 {
     struct CLIP *o;
@@ -3216,6 +3283,8 @@ void UpdateLeap(void *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 12 update: advances sub-states on animation end, the contact trigger x1908 (set in AdjustMurrayNewXp) or a
+// timeout.
 void UpdateMurrayPower(P *p)
 {
     int s;
@@ -3266,6 +3335,7 @@ qword func_00204E38(struct P *p, struct Q *pq, float g);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 12 sub-states 1/3: velocity from the animation root motion.
 void UpdateMurrayPowerVelocity(struct P *p)
 {
     if (p->n == 1 || p->n == 3) {
@@ -3330,6 +3400,7 @@ extern "C" void func_001A9FE0(void *g, int r, void *p);
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY contact adjust (slot 55): STEP base, then per-state contact handling (power-move trigger, flop impact).
 extern "C" void AdjustMurrayNewXp(P *p, X *px, int i)
 {
     int n;
@@ -3383,6 +3454,8 @@ int FAsegaRetracted(int n);
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// State 4: waits for the grab event (x1448), aborts if the object is gone; after attaching goes to carry (state 5)
+// when the animation ends.
 void UpdateMurrayLift(struct P *p)
 {
     int s;
@@ -3515,6 +3588,7 @@ static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Lift sub-states: 1 launches the object toward the hands (constraints, velocity), 2 attaches it.
 extern "C" void SetMurrayLiftSubstate(P*p,int state) {
  if(p->state==state)return;
  if(p->state==1){ReleaseAct(&p->m13FC);ReleaseAct(&p->m1400);}
@@ -3606,9 +3680,10 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void EnterMurrayThrowAim(MURRAY *pmurray, int n, void *pv)
+// State 15: aim/throw mode controlled by the throw controller (JTTHROW).
+extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 {
-    SetMurrayState(pmurray, 0xF, pv);
+    SetMurrayState(murray, 0xF, pv);
 }
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
@@ -3629,6 +3704,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
 int FCanUseGadget__6MURRAYi(struct P *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
@@ -3691,6 +3767,8 @@ void SetJtGrabState(void *p, int a, int b, int c);
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 100: broadcasts game event 0x3C, then per power: 20 power move (state 12), 19 alternate toss (state 8),
+// ...
 void UseMurrayGadget(struct P *p, int k)
 {
     D_002DEB30.xC = k;
@@ -3737,6 +3815,7 @@ void UseMurrayGadget(struct P *p, int k)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// MURRAY slot 103: returns "murray", the save-variable namespace for his hp/mp/gadgets.
 extern "C" char *GetMurraySaveVarRoot()
 {
     return (char *)D_002A75E0;
@@ -3759,23 +3838,24 @@ void GetStepplayerStunHold(struct P *p, struct O *po);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void GetMurrayStunHold(struct P *p, struct O *po)
+// MURRAY slot 96: STEPPLAYER base; during an attack the target point is the predicted attack end.
+void GetMurrayStunHold(struct P *p, struct O *object)
 {
-    GetStepplayerStunHold(p, po);
+    GetStepplayerStunHold(p, object);
     switch (p->n13D0) {
     case 11:
-        po->n = 1;
-        po->q10 = p->q1830;
-        po->q20 = D_002A2DD0;
+        object->n = 1;
+        object->q10 = p->q1830;
+        object->q20 = D_002A2DD0;
         break;
     case 0:
     case 1:
     case 9:
     case 10:
-        po->n = 1;
+        object->n = 1;
         break;
     }
-    po->g = 200.0f;
+    object->g = 200.0f;
 }
 } } // namespace M_func_001B9B70
 
@@ -3790,6 +3870,7 @@ void SetSmaGoal(void *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Enters state 6 with a partner state machine and table index; optionally sets or skips both machines to a state.
 void StartMurrayStruggle(struct S *p, void *pv, int n, int m, int f)
 {
     p->p1530 = pv;
@@ -3822,13 +3903,14 @@ struct O *func_00205438(struct S *p, int oid);
  * Notes: agent qualifier: splice: Murray SM op
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r5b_rest
  * @end-sly2-annot */
+// Splice-callable: clears Murray's behaviour stack; with the flag set also triggers child object 0xC6 (slot 8).
 void ClearMurrayBehaviors(struct S *p, int f)
 {
     ClearBhvstk__FP6BHVSTK(p->x26c);
     if (f) {
-        struct O *po = func_00205438(p, 0xC6);
-        struct VTE *e = &po->vt[8];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        struct O *object = func_00205438(p, 0xC6);
+        struct VTE *e = &object->vt[8];
+        ((void (*)(void *))e->pfn)((char *)object + e->d);
     }
 }
 } } // namespace M_func_001B9CA0
@@ -3840,10 +3922,11 @@ void ClearMurrayBehaviors(struct S *p, int f)
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* Splice-callable: clear the alternate flag and enter state 3. */
-extern "C" void StartMurrayFlop(MURRAY *pmurray, int n, void *pv)
+// Splice-callable: clears the alternate flag and enters state 3 (flop).
+extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 {
-    pmurray->nUnk13e8 = 0;
-    SetMurrayState(pmurray, 3, pv);
+    murray->nUnk13e8 = 0;
+    SetMurrayState(murray, 3, pv);
 }
 
 namespace M_func_001B9D28 { extern "C" {
@@ -3859,13 +3942,14 @@ void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
 void SpawnMurrayHitEffect(struct P *p, qword q)
 {
     if (FPowerupAcquired(0x11)) {
-        struct O *po = p->po;
-        if ((((po->f28 >> 60) & 1) == 0)) {
-            struct VTE *e = &po->vt[29];
-            ((void (*)(void *, qword))e->pfn)((char *)po + e->d, q);
+        struct O *object = p->po;
+        if ((((object->f28 >> 60) & 1) == 0)) {
+            struct VTE *e = &object->vt[29];
+            ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
             func_0012F9B8(p->n1AD4, p->po, 0, 0, 0.0f, 1.0f);
         }
     }
@@ -3883,6 +3967,7 @@ void func_0012F9B8(void *a, struct O *po, int c, int d, float f, float g);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
 void SpawnMurrayHitEffectUnchecked(struct S *p, int x)
 {
     if ((((int)(p->po->fl >> 60) & 1) == 0)) {
