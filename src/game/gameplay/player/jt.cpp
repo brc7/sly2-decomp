@@ -909,7 +909,7 @@ extern void *PickpocketStepguard(void *a, qword q);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
 extern void func_001424E0(void *p, int oid, void *pv, int n);
-extern void *func_00205458(void *p, int n);
+extern void *FindStepBhv(void *p, int n);
 extern void SetBhvjuggledState(void *p, int n);
 extern void EmitSwNoise(void *p, int a, qword q, void *c);
 extern void func_00195A00(void *p, int a, int b, int c);
@@ -1006,13 +1006,13 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 ClearX((CLR *)A(0x190));
 
                 { struct VTE *e = &F(struct VTE *, 0xC)[35]; ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190)); }
-                px = func_00205458(F(void *, 0x10DC), 0xB1);
+                px = FindStepBhv(F(void *, 0x10DC), 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 4);
                 break;
             }
             case 0x174: {
-                void *px = func_00205458(F(void *, 0x10DC), 0xB1);
+                void *px = FindStepBhv(F(void *, 0x10DC), 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 6);
                 break;

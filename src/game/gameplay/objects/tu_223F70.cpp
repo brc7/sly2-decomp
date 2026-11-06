@@ -166,7 +166,7 @@ int CploFindSwObjectsByClass(SW *, int, int, int, int, SOV **);
 void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
-R30 *func_00205458(ACTOR *, int);
+R30 *FindStepBhv(ACTOR *, int);
 int IsBhvThrownDone(R30 *);
 void SetStepguardMoverTargetMatrix(CONTROL *, const M3 *);
 void SetBhvThrownState(R30 *, int);
@@ -828,7 +828,7 @@ extern "C" void func_00225300(CID100V *p) {
             R30 *r;
             if(!p->actor) {
                 VCALL(p, 76),3);
-            } else if(!(r=func_00205458(p->actor,0xB0)) || IsBhvThrownDone(r)) {
+            } else if(!(r=FindStepBhv(p->actor,0xB0)) || IsBhvThrownDone(r)) {
                 VCALL(p, 76),2);
             } else {
                 M3 m((p->source?func_001A6318(p->source):func_001A6318(p))->basis);
@@ -921,7 +921,7 @@ extern "C" void func_00225660(CID100V *p, int k)
     if (p->state == 5 && p->actor) {
         R30 *pv;
         func_00229738(p->actor, &p->hook);
-        pv = func_00205458(p->actor, 0xB0);
+        pv = FindStepBhv(p->actor, 0xB0);
         if (pv)
             SetBhvThrownState(pv, 2);
         if (p->actor->color)

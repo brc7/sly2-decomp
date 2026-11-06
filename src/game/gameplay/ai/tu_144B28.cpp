@@ -249,7 +249,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
 struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
 void StartBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBhv(void *p, int n);
 void SetBhvWalkToGoal(struct P *p, qword q);
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
@@ -258,7 +258,7 @@ void StartBhvWalkTo(struct P *behavior)
     struct O *o;
     struct VTE *entry;
     StartBhv(behavior);
-    o = func_00205438(behavior->o10, CID_BHV168);
+    o = PushStepBhv(behavior->o10, CID_BHV168);
     o->n40 = behavior->n30;
     o->g64 = behavior->g34;
     o->nCC = behavior->n38;
@@ -777,7 +777,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int oid);
+struct O *PushStepBhv(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void UpdateBhvfollowPosition(struct P *p);
@@ -786,7 +786,7 @@ int CidBasic(void *p);
 // Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
 static __inline__ void Activate(struct P *p, int oid)
 {
-    struct O *po = func_00205438(p->guard, oid);
+    struct O *po = PushStepBhv(p->guard, oid);
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
@@ -799,7 +799,7 @@ void SetBhvfollowState(struct P *behavior, int state)
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = func_00205438(behavior->guard, CID_BHV168);
+        struct O *po = PushStepBhv(behavior->guard, CID_BHV168);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
             po->xC0 = behavior->leader->x150;
             po->xC4 = 8;

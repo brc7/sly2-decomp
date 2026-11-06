@@ -5087,8 +5087,8 @@ func_00204ED8,0x204ED8,40,match,src/game/actor/step.cpp
 func_00204F78,0x204F78,36,match,src/game/actor/step.cpp
 AddStepAxisXps,0x205008,182,match,src/game/actor/step.cpp
 MatchStepXf,0x2052E0,85,match,src/game/actor/step.cpp
-func_00205438,0x205438,7,match,src/game/actor/step.cpp
-func_00205458,0x205458,7,match,src/game/actor/step.cpp
+PushStepBhv,0x205438,7,match,src/game/actor/step.cpp
+FindStepBhv,0x205458,7,match,src/game/actor/step.cpp
 func_00205478,0x205478,67,match,src/game/actor/step.cpp
 func_00205588,0x205588,58,match,src/game/actor/step.cpp
 func_00205670,0x205670,93,match,src/game/actor/step.cpp

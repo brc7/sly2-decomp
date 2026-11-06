@@ -164,7 +164,7 @@ void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 func_0011B500(float, qwordV);
 GUARDV *PloAcquireProxy(void *p, int n);
-void *func_00205458(GUARDV *r, int n);
+void *FindStepBhv(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
 void AddSpawnerOffset(CID119V *p, qwordV q);
 int IsInScreenRect(qwordV v, float r);
@@ -877,7 +877,7 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV
             void *bhvguard;
             selector->scriptCommand->isReversed = isFlipped;
             guard->script = selector->script;
-            bhvguard = func_00205458(guard, CID_BHVGUARD);
+            bhvguard = FindStepBhv(guard, CID_BHVGUARD);
             F mode;
             mode.a = -1;
             SetBhvguardMode(bhvguard, &mode);

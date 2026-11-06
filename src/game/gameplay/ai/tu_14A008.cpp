@@ -171,7 +171,7 @@ qword ConvertCmWorldToScreen(void *, qword);
 void SetStepguardAimAct(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
-void *func_00205438(GUARDV *, int);
+void *PushStepBhv(GUARDV *, int);
 void SetBhvpathShape(OA7 *, SHAPEV *, int);
 void InitStepguard(GUARDV *p);
 void PostStepguardLoad(GUARDV *p);
@@ -180,7 +180,7 @@ int StepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *object, int k);
 LOV *ChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
-void *func_00205458(GUARDV *p, int n);
+void *FindStepBhv(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
 void UpdateBhvRouteChase(BHVRT *p);
 int IsBhvRouteOffGround(BHVRT *p);
@@ -605,7 +605,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, CID_BHVIDLE);
+        struct O9E *po = (struct O9E *)PushStepBhv(behavior->guard, CID_BHVIDLE);
         po->x38 = PpoHero(&D_003DD490);
         VCALL0(po, 8);
         {
@@ -635,7 +635,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
             pq[1] = func_001A62E8(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
-        po = (struct OA7 *)func_00205438(behavior->guard, CID_BHVWALKPATH);
+        po = (struct OA7 *)PushStepBhv(behavior->guard, CID_BHVWALKPATH);
         SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
@@ -648,14 +648,14 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 2: {
-        struct OAC *po = (struct OAC *)func_00205438(behavior->guard, CID_BHVLEAP);
+        struct OAC *po = (struct OAC *)PushStepBhv(behavior->guard, CID_BHVLEAP);
         po->x50 = func_001A62E8(GetBhvRouteStationKind(behavior));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
-        struct OA4 *po = (struct OA4 *)func_00205438(behavior->guard, CID_BHVATTACK);
+        struct OA4 *po = (struct OA4 *)PushStepBhv(behavior->guard, CID_BHVATTACK);
         po->x30 = behavior->guard->target;
         po->attack = behavior->attack;
         VCALL0(po, 8);
@@ -663,7 +663,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 4: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, CID_BHVIDLE);
+        struct O9E *po = (struct O9E *)PushStepBhv(behavior->guard, CID_BHVIDLE);
         po->x38 = PpoHero(&D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
@@ -781,12 +781,12 @@ extern "C" void SendCarmelitaRootBhvValue(GUARDV *guard, int val)
     MSG m;
     void *o;
     memset(&m, 0, sizeof(m));
-    o = func_00205458(guard, CID_BHVGUARD);
+    o = FindStepBhv(guard, CID_BHVGUARD);
     if (val) {
         m.val = val;
         m.kind = 0xE;
         SetBhvguardMode(o, &m);
-    } else if (func_00205458(guard, CID_BHV182)) {
+    } else if (FindStepBhv(guard, CID_BHV182)) {
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }

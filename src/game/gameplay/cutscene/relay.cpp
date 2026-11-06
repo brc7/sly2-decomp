@@ -3607,7 +3607,7 @@ extern "C" { extern SUBTITLE D_004435F0; }
 
 
 extern "C" void RelayFire(RELAYV *prelay, LO *ploFirer) __asm__("FireRelay");
-extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("func_00205438");
+extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("PushStepBhv");
 extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
 extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
 extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("func_00141968");
@@ -4865,7 +4865,7 @@ static inline float GXOfQwAct(qword qw)
 }
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
-extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
+extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBhv");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);

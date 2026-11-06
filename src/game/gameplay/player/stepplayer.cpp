@@ -1855,7 +1855,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBhv(void *p, int n);
 /** @sly2-annot addr=0x142540
  * Purpose: Splice optid 446 on STEPPLAYER: clear the BHV stack and, if a leader is given, push BHVFOLLOW (cid
  *   194) with leader +0x30 and params +0x40/+0x44, then Start (AI partner follow)
@@ -1873,7 +1873,7 @@ void StartStepplayerFollow(char *p, int a, qword q)
     struct VTE *e;
     ClearBhvstk__FP6BHVSTK(p + 0x26C);
     if (a) {
-        o = func_00205438(p, 0xC2);
+        o = PushStepBhv(p, 0xC2);
         o->n30 = a;
         o->q40 = q;
         e = &o->vt[8];

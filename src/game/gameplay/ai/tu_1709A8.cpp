@@ -103,7 +103,7 @@ void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
 void SetBhvScriptScript(BHVSSG *behavior, SSG *script, int n, void *pv);
 int IsBhvScriptCommandBusy(BHVSSG *behavior);
 SSGE *FindGuardScriptLabel(SSG *script, int id);
-void *func_00205458(LO *object, int cid);
+void *FindStepBhv(LO *object, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -638,7 +638,7 @@ extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" { void *FindBhvScriptTarget(struct S *p, int oid); }
 extern "C" { void GetBhvScriptTargetPose(struct S *p, void *o, qword *pq, float *pg); }
 extern "C" { void TeleportBhvScriptGuard(struct S *p, qword q, float g); }
-extern "C" { void *func_00205438(struct A *a, int k); }
+extern "C" { void *PushStepBhv(struct A *a, int k); }
 extern "C" { void func_001E9C30(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
@@ -694,13 +694,13 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         struct A *a = behavior->guard;
         switch (a->nF80) {
         case 2:
-            ((struct O *)func_00205438(a, CID_BHV187))->V8();
+            ((struct O *)PushStepBhv(a, CID_BHV187))->V8();
             break;
         case 3:
-            ((struct O *)func_00205438(a, CID_BHV188))->V8();
+            ((struct O *)PushStepBhv(a, CID_BHV188))->V8();
             break;
         case -1:
-            ((struct O *)func_00205438(a, CID_BHVIDLE))->V8();
+            ((struct O *)PushStepBhv(a, CID_BHVIDLE))->V8();
             break;
         }
         behavior->isCommandBusy = 1;
@@ -714,7 +714,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         n = a->nF80;
         switch (n) {
         case -1: {
-            struct O2 *o2 = (struct O2 *)func_00205438(a, CID_BHVPATROLPATH);
+            struct O2 *o2 = (struct O2 *)PushStepBhv(a, CID_BHVPATROLPATH);
             o2->p30 = o;
             o2->n34 = c->u.s.n8;
             o2->n58 = behavior->unknown4C;
@@ -725,13 +725,13 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
             break;
         }
         case 0: {
-            struct O *o2 = (struct O *)func_00205438(a, CID_BHVRAIL);
+            struct O *o2 = (struct O *)PushStepBhv(a, CID_BHVRAIL);
             SetBhvrailGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
         }
         case 1: {
-            struct O *o2 = (struct O *)func_00205438(a, CID_BHVPIPE);
+            struct O *o2 = (struct O *)PushStepBhv(a, CID_BHVPIPE);
             SetBhvpipeGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
@@ -759,7 +759,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         a = behavior->guard;
         n = a->nF80;
         if (n == -1) {
-            struct O3 *o3 = (struct O3 *)func_00205438(a, CID_BHVGOTO);
+            struct O3 *o3 = (struct O3 *)PushStepBhv(a, CID_BHVGOTO);
             SetBhvgotoGoal(o3, &x);
             if (c->n10 != -1) o3->nA8 = FindBhvScriptTarget(behavior, c->n10);
             o3->gB0 = c->g14;
@@ -788,7 +788,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         break;
     case 13: {
         void *o = FindBhvScriptTarget(behavior, behavior->currentCommand->n4);
-        struct O4 *o4 = (struct O4 *)func_00205438(behavior->guard, CID_BHVLEAP);
+        struct O4 *o4 = (struct O4 *)PushStepBhv(behavior->guard, CID_BHVLEAP);
         o4->p60 = o;
         o4->n68 = 1;
         o4->n64 = c->u.s.n8;
@@ -802,7 +802,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         behavior->x50.n5C = c->u.s.n8;
         ResolveAnimBinding(&behavior->x50, behavior->guard);
         if (behavior->guard->nF80 == -1) {
-            struct O5 *o5 = (struct O5 *)func_00205438(behavior->guard, CID_BHVANIM);
+            struct O5 *o5 = (struct O5 *)PushStepBhv(behavior->guard, CID_BHVANIM);
             o5->p40 = &behavior->x50;
             VCALL8(o5);
             behavior->isCommandBusy = 1;
@@ -890,14 +890,14 @@ extern "C" void JumpBhvScriptToLabel(BHVSSG *behavior, int id)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171CF8 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBhv(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
 void StartGuardScript(void *p, int n)
 {
     struct F f;
-    void *o = func_00205458(p, CID_BHVGUARD);
+    void *o = FindStepBhv(p, CID_BHVGUARD);
     if (o) {
         func_002333B4(&f, 0, sizeof(f));
         f.a[4] = n;
@@ -910,14 +910,14 @@ void StartGuardScript(void *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171D58 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBhv(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
 void SetGuardRoutineMode(void *p)
 {
     struct F f;
-    void *o = func_00205458(p, CID_BHVGUARD);
+    void *o = FindStepBhv(p, CID_BHVGUARD);
     if (o) {
         func_002333B4(&f, 0, sizeof(f));
         f.a[0] = 1;
@@ -932,7 +932,7 @@ extern "C" int IsGuardRunningScript(LO *object, int id)
 {
     BHVGUARDV *pbhvguard;
     int f;
-    pbhvguard = (BHVGUARDV *)func_00205458(object, CID_BHVGUARD);
+    pbhvguard = (BHVGUARDV *)FindStepBhv(object, CID_BHVGUARD);
     f = 0;
     if ((pbhvguard != 0) && (pbhvguard->mode == 5)) {
         f = pbhvguard->argument == id;

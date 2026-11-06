@@ -121,7 +121,7 @@ void SetLoBusyk(STEPGUARD *guard, int busyk);
 int MaskHasSgf(unsigned long grfsg, int sgf);
 void UpdateStepguardPickpocket(STEPGUARD *guard);
 int TryAddStepguardDetectTarget(STEPGUARD *guard, LO *object, int n);
-void *func_00205458(STEPGUARD *guard, int cid);
+void *FindStepBhv(STEPGUARD *guard, int cid);
 void SetBhvThrownState(void *behavior, int n);
 BHV *FindBhvInBhvstk(BHVSTK *stack, int cid);
 int IsStepguardTargetValid(LO *object, LO *ploOther, int n);
@@ -481,7 +481,7 @@ void *FindBestAnimBinding(struct S *p, unsigned long m);
 void UpdateDetectorTrackedObject(struct F64 *pf, struct S *p, int n);
 void GenerateStepguardLoot(struct S *p);
 void StageStepguardLoot(struct S *p);
-struct O *func_00205438(struct S *p, int n);
+struct O *PushStepBhv(struct S *p, int n);
 void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 
 // 0x206518: STEPGUARD vtable slot 26 (reset to home, used by proxies and spawners): restores maximum values (hit
@@ -528,7 +528,7 @@ void ResetStepguardToHome(struct S *guard)
     }
     if (guard->knockdownHelper)
         guard->knockdownHelper->vt[9].pf((char *)guard->knockdownHelper + guard->knockdownHelper->vt[9].d);
-    o = func_00205438(guard, CID_BHVGUARD);
+    o = PushStepBhv(guard, CID_BHVGUARD);
     o->vt[8].pf((char *)o + o->vt[8].d);
     SetLoParent_1A58D0(guard->detector, guard, 0xF);
     guard->detector->pE0 = guard;
@@ -850,7 +850,7 @@ namespace M_func_00206EB0 { extern "C" {
 struct X;
 struct X { char pad[0x4C]; int n4C; };
 int StepguardHasSgf(void *p, int n);
-struct X *func_00205458(void *p, int n);
+struct X *FindStepBhv(void *p, int n);
 int IsStepguardRageImmune(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
@@ -863,7 +863,7 @@ int CanSetStepguardSpecial(void *p, int k)
         return 1;
     if (StepguardHasSgf(p, SGF_KO))
         return 0;
-    x = func_00205458(p, CID_BHV169);
+    x = FindStepBhv(p, CID_BHV169);
     if (x && x->n4C)
         return 0;
     switch (k) {
@@ -907,7 +907,7 @@ void RemoveStepguardPreferClass(struct S *p, int n);
 void RemoveStepguardRageIgnoreClasses(struct S *p);
 void AddStepguardPreferClass(struct S *p, int n);
 void AddStepguardRageIgnoreClasses(struct S *p);
-void *func_00205458(struct S *p, int n);
+void *FindStepBhv(struct S *p, int n);
 struct Y *GetAnimBindingInstance(void *p);
 void SetAsegaMasterSpeed(struct Y *y, float f);
 int PpoHero(void *p);
@@ -937,7 +937,7 @@ void SetStepguardSpecial(struct S *guard, int k)
         RemoveStepguardRageIgnoreClasses(guard);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(guard, CID_BHVANIM);
+        struct X *x = (__typeof__(x))FindStepBhv(guard, CID_BHVANIM);
         if (x) {
             struct Y *y = GetAnimBindingInstance(x->p40);
             if (y)
@@ -946,7 +946,7 @@ void SetStepguardSpecial(struct S *guard, int k)
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(guard, CID_BHVGUARD);
+        struct Z *z = (__typeof__(z))FindStepBhv(guard, CID_BHVGUARD);
         if (z && z->k30 == 0x12 && z->n40 == PpoHero(D_003DD490) && z->f44 == D_002A8698)
             ResumeBhvguard(z);
         break;
@@ -964,7 +964,7 @@ void SetStepguardSpecial(struct S *guard, int k)
         AddStepguardRageIgnoreClasses(guard);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(guard, CID_BHVANIM);
+        struct X *x = (__typeof__(x))FindStepBhv(guard, CID_BHVANIM);
         if (x) {
             struct Y *y = GetAnimBindingInstance(x->p40);
             if (y)
@@ -979,7 +979,7 @@ void SetStepguardSpecial(struct S *guard, int k)
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(guard, CID_BHVGUARD);
+        struct Z *z = (__typeof__(z))FindStepBhv(guard, CID_BHVGUARD);
         if (z) {
             switch (z->k30) {
             case 1: case 2: case 3: case 4:
@@ -2148,7 +2148,7 @@ extern float D_002C3D94;
 void HeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
 unsigned long GetSgfMask(int n);
 int StepguardHasSgf(struct S *p, int n);
-struct Y *func_00205458(struct S *p, int n);
+struct Y *FindStepBhv(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
@@ -2171,11 +2171,11 @@ int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
             if (StepguardHasSgf(guard, SGF_COMBAT))
                 o = guard->target;
             else if (StepguardHasSgf(guard, 5))
-                o = func_00205458(guard, CID_BHV161)->p50;
+                o = FindStepBhv(guard, CID_BHV161)->p50;
             else if (StepguardHasSgf(guard, 6))
-                o = func_00205458(guard, CID_BHV162)->p50;
+                o = FindStepBhv(guard, CID_BHV162)->p50;
             else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-                o = func_00205458(guard, CID_BHVJUGGLED)->p5C;
+                o = FindStepBhv(guard, CID_BHVJUGGLED)->p5C;
                 if (o == x)
                     *pout += D_002C3D90;
             } else
@@ -2884,13 +2884,13 @@ void AddStepguardAttachContacts(struct S *guard)
 namespace M_func_00209E28 { extern "C" {
 struct F;
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int oid);
+void *FindStepBhv(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
 void SendStepguardRootBhvMode6(void *p, int n)
 {
-    void *o = func_00205458(p, CID_BHVGUARD);
+    void *o = FindStepBhv(p, CID_BHVGUARD);
     struct F f;
     func_002333B4(&f, 0, sizeof f);
     f.a[0] = 6;
@@ -2904,7 +2904,7 @@ void SendStepguardRootBhvMode6(void *p, int n)
 extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 {
     if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x12) != 0)) {
-        SetBhvThrownState(func_00205458(guard, CID_BHV176), 1);
+        SetBhvThrownState(FindStepBhv(guard, CID_BHV176), 1);
     }
 }
 
@@ -2917,7 +2917,7 @@ extern float D_002C3DA8;
 struct O { char pad[0x50]; int k; };
 struct S { char pad[0xC]; VTE *vt; };
 int StepguardHasSgf(struct S *p, int n);
-struct O *func_00205458(struct S *p, int n);
+struct O *FindStepBhv(struct S *p, int n);
 void SetBhvThrownState(struct O *o, int n);
 void SetBhvjuggledState(struct O *o, int n);
 qword LimitVectorLength(qword v, float g);
@@ -2926,12 +2926,12 @@ qword LimitVectorLength(qword v, float g);
 void StunStepguardThrownOp2(struct S *guard)
 {
     if (StepguardHasSgf(guard, 0x12) || StepguardHasSgf(guard, 0x13)) {
-        SetBhvThrownState(func_00205458(guard, CID_BHV176), 2);
+        SetBhvThrownState(FindStepBhv(guard, CID_BHV176), 2);
     } else {
         struct O *o;
         if (!StepguardHasSgf(guard, SGF_JUGGLED))
             return;
-        o = func_00205458(guard, CID_BHVJUGGLED);
+        o = FindStepBhv(guard, CID_BHVJUGGLED);
         if (o->k != 3 && o->k != 6)
             SetBhvjuggledState(o, 2);
     }
@@ -2948,7 +2948,7 @@ void StunStepguardThrownOp2(struct S *guard)
 extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 {
     if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x13) != 0)) {
-        SetBhvThrownState(func_00205458(guard, CID_BHV176), 3);
+        SetBhvThrownState(FindStepBhv(guard, CID_BHV176), 3);
     }
 }
 
@@ -2957,9 +2957,9 @@ namespace M_func_0020A010 { extern "C" {
 struct O;
 struct O { char pad[0x58]; int n; };
 int StepguardHasSgf(void *p, int n);
-struct O *func_00205458(void *p, int oid);
+struct O *FindStepBhv(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, SGF_JUGGLED)) return func_00205458(p, CID_BHVJUGGLED)->n; return 0; }
+int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBhv(p, CID_BHVJUGGLED)->n; return 0; }
 } } // namespace M_func_0020A010
 
 // 0x20A058 SetStepguardTargetLists
@@ -3890,7 +3890,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
 void UpdateLo(struct S *p);
-void *func_00205458(struct O *po, int n);
+void *FindStepBhv(struct O *po, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct L *pl);
 void ResetDetectorTargets(void *p);
@@ -3914,7 +3914,7 @@ void UpdateGuardManager(struct S *guard)
                 o->vt[9].pf((char *)o + o->vt[9].d);
                 break;
             case 2: {
-                void *x = func_00205458(o, CID_BHVGUARD);
+                void *x = FindStepBhv(o, CID_BHVGUARD);
                 if (x) {
                     struct L l;
                     func_002333B4(&l, 0, sizeof(l));
