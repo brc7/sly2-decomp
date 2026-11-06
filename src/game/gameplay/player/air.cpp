@@ -4947,68 +4947,67 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
                 register qword value __asm__("$3") = position.q;
                 *point = value;
             }
-            goto done;
-        }
-        delta.a[2] = 0.0f;
-        register qword length __asm__("vf2");
-        {
-            register unsigned zeroAddress __asm__("$2");
-            __asm__("lui %0,%%hi(%1)" : "=r"(zeroAddress) : "i"(&D_002A2DD0));
-            register qword direction __asm__("vf3");
-            __asm__("addiu %0,%0,%%lo(%4)\n\tlqc2 %1,%3\n\tvmul.xyz $vf1,%1,%1\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x "
-                    "$ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,%2,$vf1z\n\tvsqrt $Q,$vf1x\n\tvwaitq\n\tvaddq.x %2,$vf0,$Q"
-                    : "+&r"(zeroAddress), "=j"(direction), "=&j"(length)
-                    : "m"(delta.q), "i"(&D_002A2DD0)
-                    : "vf1");
-            register float magnitude __asm__("$f0");
-            __asm__("qmfc2.ni $3,%1\n\tmtc1 $3,%0" : "=f"(magnitude) : "j"(length) : "$3");
-            if (magnitude < 0.0001f) {
-                register qword value __asm__("$2");
-                __asm__("lq %0,%1" : "=r"(value) : "m"(*(const qword *)zeroAddress));
-                delta.q = value;
-            } else {
-                register qword normalized __asm__("vf1");
-                __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q"
-                        : "=j"(normalized)
-                        : "j"(direction), "j"(length));
-                delta.q = normalized;
+        } else {
+            delta.a[2] = 0.0f;
+            register qword length __asm__("vf2");
+            {
+                register unsigned zeroAddress __asm__("$2");
+                __asm__("lui %0,%%hi(%1)" : "=r"(zeroAddress) : "i"(&D_002A2DD0));
+                register qword direction __asm__("vf3");
+                __asm__("addiu %0,%0,%%lo(%4)\n\tlqc2 %1,%3\n\tvmul.xyz $vf1,%1,%1\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x "
+                        "$ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,%2,$vf1z\n\tvsqrt $Q,$vf1x\n\tvwaitq\n\tvaddq.x %2,$vf0,$Q"
+                        : "+&r"(zeroAddress), "=j"(direction), "=&j"(length)
+                        : "m"(delta.q), "i"(&D_002A2DD0)
+                        : "vf1");
+                register float magnitude __asm__("$f0");
+                __asm__("qmfc2.ni $3,%1\n\tmtc1 $3,%0" : "=f"(magnitude) : "j"(length) : "$3");
+                if (magnitude < 0.0001f) {
+                    register qword value __asm__("$2");
+                    __asm__("lq %0,%1" : "=r"(value) : "m"(*(const qword *)zeroAddress));
+                    delta.q = value;
+                } else {
+                    register qword normalized __asm__("vf1");
+                    __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q"
+                            : "=j"(normalized)
+                            : "j"(direction), "j"(length));
+                    delta.q = normalized;
+                }
+            }
+            register OBJECT *forceOwner __asm__("$2") = context->owner;
+            register float deficit __asm__("$f2") = vertical;
+            __asm__("mul.s %0,%0,%0\n\tqmfc2.ni $3,%2\n\tlwc1 $f0,%1\n\tmtc1 $3,$f3\n\tmul.s $f0,$f0,$f0\n\tsub.s "
+                    "$f0,$f0,%0\n\tsqrt.s $f1,$f0\n\tsub.s %0,$f3,$f1"
+                    : "+f"(deficit)
+                    : "m"(forceOwner->radius), "j"(length)
+                    : "$3", "$f0", "$f1", "$f3");
+            register qword corrected __asm__("vf2");
+            {
+                register unsigned scratch __asm__("$2") = (unsigned)forceOwner;
+                __asm__("lqc2 %0,%5\n\tmul.s $f1,%3,%3\n\tlqc2 $vf4,%6\n\tmfc1 $3,%3\n\tadd.s $f0,%4,%4\n\tqmtc2.ni "
+                        "$3,$vf3\n\tlw $3,0xe8(%2)\n\tdiv.s $f0,$f0,$f1\n\tmfc1 %2,$f0\n\tqmtc2.ni %2,$vf1\n\tsqc2 "
+                        "$vf1,%1\n\tsqc2 $vf3,%1\n\tvmulx.xyzw $vf1,%0,$vf1x\n\tlqc2 %0,0x80($3)\n\tvadda.xyzw "
+                        "$ACC,$vf4,$vf0\n\tvmaddax.xyzw $ACC,%0,$vf3x\n\tvmaddx.xyzw %0,$vf1,$vf3x"
+                        : "=&j"(corrected), "=m"(scalar.q), "+r"(scratch)
+                        : "f"(duration), "f"(deficit), "m"(delta.q), "m"(oldVelocity.q)
+                        : "$3", "$f0", "$f1", "vf1", "vf3", "vf4", "memory");
+            }
+            future.q = corrected;
+            if (score)
+                *score = Min((D_002BF910 + D_002BF910) * deficit / duration, 1000000.0f);
+            if (point) {
+                register qword origin __asm__("vf3") = position.q, initial __asm__("vf4") = oldVelocity.q, k __asm__("vf1");
+                float half = duration * 0.5f;
+                register int bits __asm__("$2");
+                __asm__("mfc1 %0,%1" : "=r"(bits) : "f"(half));
+                __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(bits));
+                __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%3x\n\tvmaddx.xyzw %0,%0,%3x"
+                        : "+j"(corrected)
+                        : "j"(origin), "j"(initial), "j"(k));
+                scalar.q = k;
+                *point = corrected;
             }
         }
-        register OBJECT *forceOwner __asm__("$2") = context->owner;
-        register float deficit __asm__("$f2") = vertical;
-        __asm__("mul.s %0,%0,%0\n\tqmfc2.ni $3,%2\n\tlwc1 $f0,%1\n\tmtc1 $3,$f3\n\tmul.s $f0,$f0,$f0\n\tsub.s "
-                "$f0,$f0,%0\n\tsqrt.s $f1,$f0\n\tsub.s %0,$f3,$f1"
-                : "+f"(deficit)
-                : "m"(forceOwner->radius), "j"(length)
-                : "$3", "$f0", "$f1", "$f3");
-        register qword corrected __asm__("vf2");
-        {
-            register unsigned scratch __asm__("$2") = (unsigned)forceOwner;
-            __asm__("lqc2 %0,%5\n\tmul.s $f1,%3,%3\n\tlqc2 $vf4,%6\n\tmfc1 $3,%3\n\tadd.s $f0,%4,%4\n\tqmtc2.ni "
-                    "$3,$vf3\n\tlw $3,0xe8(%2)\n\tdiv.s $f0,$f0,$f1\n\tmfc1 %2,$f0\n\tqmtc2.ni %2,$vf1\n\tsqc2 "
-                    "$vf1,%1\n\tsqc2 $vf3,%1\n\tvmulx.xyzw $vf1,%0,$vf1x\n\tlqc2 %0,0x80($3)\n\tvadda.xyzw "
-                    "$ACC,$vf4,$vf0\n\tvmaddax.xyzw $ACC,%0,$vf3x\n\tvmaddx.xyzw %0,$vf1,$vf3x"
-                    : "=&j"(corrected), "=m"(scalar.q), "+r"(scratch)
-                    : "f"(duration), "f"(deficit), "m"(delta.q), "m"(oldVelocity.q)
-                    : "$3", "$f0", "$f1", "vf1", "vf3", "vf4", "memory");
-        }
-        future.q = corrected;
-        if (score)
-            *score = Min((D_002BF910 + D_002BF910) * deficit / duration, 1000000.0f);
-        if (point) {
-            register qword origin __asm__("vf3") = position.q, initial __asm__("vf4") = oldVelocity.q, k __asm__("vf1");
-            float half = duration * 0.5f;
-            register int bits __asm__("$2");
-            __asm__("mfc1 %0,%1" : "=r"(bits) : "f"(half));
-            __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(bits));
-            __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%3x\n\tvmaddx.xyzw %0,%0,%3x"
-                    : "+j"(corrected)
-                    : "j"(origin), "j"(initial), "j"(k));
-            scalar.q = k;
-            *point = corrected;
-        }
     }
-done:
     if (velocity)
         *velocity = future.q;
 }
