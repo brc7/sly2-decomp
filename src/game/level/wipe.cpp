@@ -9,22 +9,28 @@
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void (*pfn)(...); };
 /* The wipe widget (found as oid 0x405); only its vtable pointer is used here. */
-struct WIDGETV { int x0, x4, x8; VTE *vtable; };
+struct WIDGETV { int unknown0, unknown4, unknown8; VTE *vtable; };   /* slot 49 shows a label, slot 50 hides */
 
 /* A world transition request handed to SetSwTransition. */
 struct TRANS
 {
-    int flags;            /* +0x0 bit 1: destination is the current level */
-    FILEREC fileRecord;    /* +0x4 destination level */
-    int warpOid;              /* +0x44 */
-    int unknown48;              /* +0x48 */
+    int flags;              /* +0x0 TRANS_SAME_LEVEL, or the caller's request flags (SW grfTransition) */
+    FILEREC fileRecord;     /* +0x4 destination level */
+    int warpOid;            /* +0x44 -> SW oidWarpDest */
+    int warpContextOid;     /* +0x48 -> SW oidWarpContext */
 };
+enum { TRANS_SAME_LEVEL = 2 };
 typedef char assert_TRANS_size[sizeof(TRANS) == 0x4C ? 1 : -1];
 
 struct WIPE;
 extern "C" WIPE *InitWipe(WIPE *wipe);
 
-/* The wipe state (one global, D_00443740). k: 0 idle, 1 wiping out, 2 wiping in, 3 transition pending. */
+/* Wipe states (WIPE::state). */
+enum { WIPE_IDLE = 0, WIPE_OUT = 1, WIPE_IN = 2, WIPE_TRANSITION = 3 };
+/* Wipe widget labels: the wipe-out and wipe-in animations, and the one FWidgetAnimPlaying waits on. */
+enum { LABEL_WIPE_OUT = 0x311, LABEL_WIPE_IN = 0x30F, LABEL_WIPE_PLAYING = 0x314 };
+
+/* The wipe state (one global, D_00443740). */
 struct WIPE
 {
     int state;              /* +0x0 */
@@ -54,7 +60,7 @@ LO *PloFindSwObject(SW *world, int findFlags, OID oid, LO *context);
 WIPE D_00443740;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-static inline int FSameFilerec(FILEREC *first, FILEREC *second)
+static inline int IsSameFileRecord(FILEREC *first, FILEREC *second)
 {
     if (first == second) return 1;
     if (!first || !second) return 0;
@@ -74,7 +80,7 @@ extern "C" WIPE *InitWipe(WIPE *wipe)
     wipe->widget = 0;
     wipe->state = -1;
     wipe->widgetOid = -1;
-    SetWipeWipes(wipe, 0);
+    SetWipeWipes(wipe, WIPE_IDLE);
     return wipe;
 }
 
@@ -93,22 +99,22 @@ extern "C" void SetWipeWipes(WIPE *wipe, int newState)
     if (wipe->state == newState) return;
     wipe->state = newState;
     switch (newState) {
-    case 0:
+    case WIPE_IDLE:
         wipe->hasTransition = 0;
-        func_002333B4(&wipe->transition, 0, 0x4C);
+        func_002333B4(&wipe->transition, 0, sizeof(TRANS));
         widget = wipe->widget;
         if (widget) widget->vtable[50].pfn((char *)widget + widget->vtable[50].d);
         break;
-    case 1:
-        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, 0x311);
+    case WIPE_OUT:
+        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, LABEL_WIPE_OUT);
         break;
-    case 2:
-        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, 0x30F);
+    case WIPE_IN:
+        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, LABEL_WIPE_IN);
         break;
-    case 3:
+    case WIPE_TRANSITION:
         SetSwTransition(&D_003DD490, &wipe->transition);
         wipe->hasTransition = 0;
-        func_002333B4(&wipe->transition, 0, 0x4C);
+        func_002333B4(&wipe->transition, 0, sizeof(TRANS));
         break;
     }
 }
@@ -126,9 +132,16 @@ extern "C" void UpdateWipe(WIPE *wipe)
 {
     int newState = wipe->state;
     switch (newState) {
-    case 0: break;
-    case 1: if (!FWidgetAnimPlaying(wipe->widget, 0x314)) newState = 3; break;
-    case 2: if (!FWidgetAnimPlaying(wipe->widget, 0x314)) newState = 0; break;
+    case WIPE_IDLE:
+        break;
+    case WIPE_OUT:
+        if (!FWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
+            newState = WIPE_TRANSITION;
+        break;
+    case WIPE_IN:
+        if (!FWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
+            newState = WIPE_IDLE;
+        break;
     }
     SetWipeWipes(wipe, newState);
 }
@@ -145,20 +158,20 @@ extern "C" void UpdateWipe(WIPE *wipe)
 extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newState)
 {
     switch (wipe->state) {
-    case 0:
+    case WIPE_IDLE:
         break;
-    case 1:
+    case WIPE_OUT:
         return;
-    case 2:
-        SetWipeWipes(wipe, 0);
+    case WIPE_IN:
+        SetWipeWipes(wipe, WIPE_IDLE);
         break;
-    case 3:
+    case WIPE_TRANSITION:
         return;
     }
-    if (FSameFilerec(&D_003DD490.filerecCur, &transition->fileRecord))
-        transition->flags |= 2;
+    if (IsSameFileRecord(&D_003DD490.filerecCur, &transition->fileRecord))
+        transition->flags |= TRANS_SAME_LEVEL;
     else
-        transition->flags &= ~2;
+        transition->flags &= ~TRANS_SAME_LEVEL;
     wipe->widget = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)oid, 0);
     if (!wipe->widget) {
         SetSwTransition(&D_003DD490, transition);
@@ -182,11 +195,11 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
 extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 {
     wipe->widget = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)wipe->widgetOid, 0);
-    if (!wipe->widget || wipe->state != 3) {
-        SetWipeWipes(wipe, 0);
+    if (!wipe->widget || wipe->state != WIPE_TRANSITION) {
+        SetWipeWipes(wipe, WIPE_IDLE);
         return;
     }
-    SetWipeWipes(wipe, 2);
+    SetWipeWipes(wipe, WIPE_IN);
 }
 
 /** @sly2-annot addr=0x22B490
@@ -206,18 +219,18 @@ extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 // Requests a level transition: builds a TRANS for the target level (the current one when filerec is null) with the
 // warp arguments, marks "same level", then starts a wipe (when a wipe widget oid is given) or the transition directly.
 // The common entry point for warps, exits, cheats, job failure and the boot queue.
-extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int unknownArg, int flags, int wipeWidgetOid)
+extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int warpContextOid, int flags, int wipeWidgetOid)
 {
     TRANS trans;
     FILEREC *currentRecord = &world->filerecCur;
     FILEREC *targetRecord = &trans.fileRecord;
     *targetRecord = *(fileRecord ? fileRecord : currentRecord);
     trans.warpOid = warpOid;
-    trans.unknown48 = unknownArg;
+    trans.warpContextOid = warpContextOid;
     trans.flags = flags;
-    if (FSameFilerec(targetRecord, currentRecord)) trans.flags |= 2;
+    if (IsSameFileRecord(targetRecord, currentRecord)) trans.flags |= TRANS_SAME_LEVEL;
     if (wipeWidgetOid != -1)
-        ActivateWipe(&D_00443740, &trans, wipeWidgetOid, 1);
+        ActivateWipe(&D_00443740, &trans, wipeWidgetOid, WIPE_OUT);
     else
         SetSwTransition(world, &trans);
 }
