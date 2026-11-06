@@ -515,15 +515,15 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
  * @end-sly2-annot */
 // Constructs a leap object (CID 0x91) in place and enters state 0.
 extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
-    if (ptune->animation != 0) {
-        memset(p, 0, 0x70);
-        memset(p, 0, 0x70);
-        ConstructLeap(p);
-        p->tuning = ptune;
-        p->subject = psubject;
-        p->index = index;
-        SetLeapState(p, 0);
-    }
+    if (ptune->animation == 0)
+        return;
+    memset(p, 0, 0x70);
+    memset(p, 0, 0x70);
+    ConstructLeap(p);
+    p->tuning = ptune;
+    p->subject = psubject;
+    p->index = index;
+    SetLeapState(p, 0);
 }
 
 /** @sly2-annot addr=0x20C010
@@ -782,15 +782,15 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 // Drops the leap constraint and clears LO flag bit 26.
 void ReleaseLeapConstraint(LEAPV *leap)
 {
-    if (leap->ballistic) {
-        leap->ballistic = 0;
-        if (leap->constraint) {
-            ReleaseAct(&leap->constraint);
-            func_002303A0(leap->subject, leap->subject->space, 2);
-            leap->subject->flags &= ~(1L << 26);
-            RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
-        }
-    }
+    if (!leap->ballistic)
+        return;
+    leap->ballistic = 0;
+    if (!leap->constraint)
+        return;
+    ReleaseAct(&leap->constraint);
+    func_002303A0(leap->subject, leap->subject->space, 2);
+    leap->subject->flags &= ~(1L << 26);
+    RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
 }
 
 /** @sly2-annot addr=0x20C7D8
