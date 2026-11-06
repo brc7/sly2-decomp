@@ -937,21 +937,21 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
             SetReconSelState(reconSel, 2);
         break;
     }
-    if (reconSel->model->state != 1) {
-        switch (reconSel->state) {
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-            if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
-                SetReconSelState(reconSel, 8);
-            break;
-        case 7:
-            if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
-                SetReconSelState(reconSel, 8);
-            break;
-        }
+    if (reconSel->model->state == 1)
+        return;
+    switch (reconSel->state) {
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+        if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
+            SetReconSelState(reconSel, 8);
+        break;
+    case 7:
+        if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
+            SetReconSelState(reconSel, 8);
+        break;
     }
 }
 
