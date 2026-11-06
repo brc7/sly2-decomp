@@ -238,7 +238,7 @@ extern "C" void AddRoutePoint(ROUTE *route, int k, int oid)
         RTE *prte = &route->stations[c];
         prte->k = k;
         prte->oid = oid;
-        route->stationCount = route->stationCount + 1;
+        route->stationCount++;
     }
 }
 
