@@ -2518,13 +2518,13 @@ extern "C" int IsJtGrabBusy(JTGRAB *grab)
     switch (grab->nState) {
     case 8:
         if (FGrabFlipping(grab))
-            goto one;
+            return 1;
         break;
     case 0xC:
-    one:
         return 1;
     }
     return 0;
+
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
