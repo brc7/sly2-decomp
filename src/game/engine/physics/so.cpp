@@ -244,17 +244,17 @@ void InitDl__FP2DLi(void *, int);
  * @end-sly2-annot */
 // Slot 7 (Init): InitLo, not busy, empty child list, hit damages 10/20, alpha 1, the default bounds scale, and the
 // bit-35 flag inherited from the parent.
-void InitSo(struct P *p)
+void InitSo(struct P *so)
 {
-    InitLo(p);
-    SetLoBusyk(p, 0);
-    InitDl__FP2DLi((char *)p + 0x64, 0x24);
-    p->u.c.a = -10;
-    p->u.c.b = -20;
-    p->g12C = 1.0f;
-    p->g13C = D_002C3B90;
-    p->u.f.b35 = (uchar)(p->parent ? p->parent->u.f.b35 : 1);
-    p->n140 = -1;
+    InitLo(so);
+    SetLoBusyk(so, 0);
+    InitDl__FP2DLi((char *)so + 0x64, 0x24);
+    so->u.c.a = -10;
+    so->u.c.b = -20;
+    so->g12C = 1.0f;
+    so->g13C = D_002C3B90;
+    so->u.f.b35 = (uchar)(so->parent ? so->parent->u.f.b35 : 1);
+    so->n140 = -1;
 }
 } } // namespace M_InitSo
 
@@ -296,14 +296,14 @@ void SetSoBit35Hierarchy(struct LO *, int);
  * @end-sly2-annot */
 // Slot 10 (SetParent): remembers the world matrix and velocities, re-parents the LO, re-points the XFs into the new
 // parent, then rebinds contacts and bounds so the object keeps its world pose and motion.
-extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int grf)
+extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int flags)
 {
     struct MAT mat;
     qword q1, q2;
     struct E *pv;
     int c, i;
     struct E *aeBase;
-    if (grf & 3) {
+    if (flags & 3) {
         bool f = plo->b60; if (f) {
             mat = plo->palo->mat;
         } else {
@@ -317,8 +317,8 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int gr
             }
         }
     }
-    if (grf & 4) q1 = VCALL(plo, 33, qword (*)(void *)));
-    if (grf & 8) q2 = VCALL(plo, 34, qword (*)(void *)));
+    if (flags & 4) q1 = VCALL(plo, 33, qword (*)(void *)));
+    if (flags & 8) q2 = VCALL(plo, 34, qword (*)(void *)));
     if (plo->p10) {
         c = plo->p10->c;
         aeBase = plo->p10->ae;
@@ -332,12 +332,12 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int gr
         int d = pe->pe - aeBase;
         if (d >= 0 && d < c) pe->pe = pv;
     }
-    func_001A5900(plo, pa, pb, grf);
+    func_001A5900(plo, pa, pb, flags);
     UpdateSoXfWorldMatrices(plo);
-    if (grf & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
-    if (grf & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
-    if (grf & 4) VCALL(plo, 35, void (*)(void *, qword)), q1);
-    if (grf & 8) VCALL(plo, 36, void (*)(void *, qword)), q2);
+    if (flags & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
+    if (flags & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
+    if (flags & 4) VCALL(plo, 35, void (*)(void *, qword)), q1);
+    if (flags & 8) VCALL(plo, 36, void (*)(void *, qword)), q2);
     ReleaseSoBoundsHierarchy(plo);
     EnsureSoBoundsHierarchy(plo);
     if (plo->p10 && !(plo->p10->fl & (1L << 35))) SetSoBit35Hierarchy(plo, 0);
@@ -359,15 +359,15 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Drops this object's (and its SO children's) reference to the shared bounds record (+0x134, refcounted pool).
-void ReleaseSoBoundsHierarchy(struct L *p)
+void ReleaseSoBoundsHierarchy(struct L *so)
 {
     struct L *q;
-    struct R *pr = p->pr;
+    struct R *pr = so->pr;
     if (pr) {
         if (--pr->c == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
-        p->pr = 0;
+        so->pr = 0;
     }
-    for (q = p->first; q != p->end; q = q->next) {
+    for (q = so->first; q != so->end; q = q->next) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy(q);
     }
 }
@@ -416,12 +416,12 @@ static inline ulong LoadState(struct Node *p)
  * @end-sly2-annot */
 // Attaches the object to its root's bounds record (allocating one if needed) and grows the record's radii to cover
 // the object's radius plus its distance from the root's origin.
-void EnsureSoBounds(struct Node *p) {
+void EnsureSoBounds(struct Node *so) {
  struct Node *top;
  struct Stats *attached;
- if (!(p->flags & (3UL<<32))) return;
- top=p;
- attached=p->stats;
+ if (!(so->flags & (3UL<<32))) return;
+ top=so;
+ attached=so->stats;
  if(!attached) {
   do {
    register struct Node *next __asm__("$4")=top->parent;
@@ -432,32 +432,32 @@ void EnsureSoBounds(struct Node *p) {
      __asm__("lui %0,0x3e":"=r"(pool));
      s=PvAllocSlotheapClear(pool+0x12D4);
      top->stats=s;
-     p->stats=s;
+     so->stats=s;
      s->origin=&top->reference->pos;
-     ++p->stats->count;
-     p->stats->scale=p->scale;
-     p->stats->owner=p;
-     if(top==p)goto position;
-     attached=p->stats;
+     ++so->stats->count;
+     so->stats->scale=so->scale;
+     so->stats->owner=so;
+     if(top==so)goto position;
+     attached=so->stats;
      goto count;
    }
    top=next;
    attached=top->stats;
   } while(!attached);
-  p->stats=attached;
+  so->stats=attached;
  }
 count:
  ++attached->count;
 position:
 
  {
-   qword position=func_001A62E8(p);
-   float radius=p->radius+Distance(position,*p->stats->origin);
-   if(p->flags&(1UL<<32)) {
-     if(p->stats->low<radius) p->stats->low=radius;
+   qword position=func_001A62E8(so);
+   float radius=so->radius+Distance(position,*so->stats->origin);
+   if(so->flags&(1UL<<32)) {
+     if(so->stats->low<radius) so->stats->low=radius;
    }
-   if(p->flags&(1UL<<33)) {
-     if(p->stats->high<radius) p->stats->high=radius;
+   if(so->flags&(1UL<<33)) {
+     if(so->stats->high<radius) so->stats->high=radius;
    }
  }
 }
@@ -476,12 +476,12 @@ typedef char ancestor_layout[(sizeof(qword)==16 && __alignof__(qword)==16 && siz
 /* Sets gUnk13c, and the bounds record's copy when the record is this object's. */
 // Stores the bounds scale (+0x13C, 400 by default) and mirrors it into the shared bounds record when this object
 // owns it (inferred meaning).
-extern "C" void SetSoBoundsScale(SO *pso, float g)
+extern "C" void SetSoBoundsScale(SO *so, float g)
 {
     SOBOUNDS *psobounds;
-    psobounds = pso->psobounds;
-    pso->gUnk13c = g;
-    if ((psobounds != 0) && (psobounds->pso == pso)) {
+    psobounds = so->psobounds;
+    so->gUnk13c = g;
+    if ((psobounds != 0) && (psobounds->pso == so)) {
         psobounds->g20 = g;
     }
 }
@@ -499,11 +499,11 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // EnsureSoBounds on this object and recursively on its SO children.
-void EnsureSoBoundsHierarchy(struct L *p)
+void EnsureSoBoundsHierarchy(struct L *so)
 {
     struct L *q;
-    EnsureSoBounds(p);
-    for (q = p->first; q != p->end; q = q->next) {
+    EnsureSoBounds(so);
+    for (q = so->first; q != so->end; q = q->next) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) EnsureSoBoundsHierarchy(q);
     }
 }
@@ -581,16 +581,16 @@ struct A { char pad[0x10]; struct A *next; char pad2[0xD4]; struct Q *pq; char p
  * @end-sly2-annot */
 // Walks up the parent chain to the first SO whose physics is not fixed (SOPHYS modes != 3) or that is marked as a
 // tree root (+0x148 bit 34); returns the last object visited. That object owns the contact tree.
-struct A *FindSoPhysRoot(struct A *p)
+struct A *FindSoPhysRoot(struct A *so)
 {
     struct A *r = 0;
-    while (p) {
-        r = p;
-        if (p->pq && (p->pq->c0 != 3 || p->pq->a0 != 3))
+    while (so) {
+        r = so;
+        if (so->pq && (so->pq->c0 != 3 || so->pq->a0 != 3))
             break;
-        if (p->fl & (1L << 34))
+        if (so->fl & (1L << 34))
             break;
-        p = p->next;
+        so = so->next;
     }
     return r;
 }
@@ -607,16 +607,16 @@ struct A *FindSoPhysRoot(struct A *p)
 /* Makes sure the object has a tree record: its physics root's (created by SO slot 53 when missing). */
 // Gives the object a contact-tree record (+0xEC): shares its physics root's, creating it (slot 53) and registering
 // it with the broad phase when needed.
-extern "C" void EnsureSoTree(SO *pso)
+extern "C" void EnsureSoTree(SO *so)
 {
     SO *psoRoot;
-    if (pso->ptree == 0) {
-        psoRoot = FindSoPhysRoot(pso);
+    if (so->ptree == 0) {
+        psoRoot = FindSoPhysRoot(so);
         if (psoRoot->ptree == 0) {
             psoRoot->ptree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
             RecalcSwOxfFilterForObject(&D_003DD490, psoRoot);
         }
-        pso->ptree = psoRoot->ptree;
+        so->ptree = psoRoot->ptree;
     }
 }
 
@@ -646,19 +646,19 @@ void WakeSo(struct P *);
  * @end-sly2-annot */
 // Adds one part to the tree's part list: copies the XF matrix and stamp, marks the tree dirty, transforms the
 // part's geometry to world space and wakes the tree if the object is not fixed.
-void AddSoPartToTree(struct P *p, struct E *pe)
+void AddSoPartToTree(struct P *so, struct E *pe)
 {
     struct O *po;
-    EnsureSoTree(p);
-    if (FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
-    AppendDlEntry__FP2DLPv(p->pq->dl, pe);
+    EnsureSoTree(so);
+    if (FFindDlEntry__FP2DLPv(so->pq->dl, pe)) return;
+    AppendDlEntry__FP2DLPv(so->pq->dl, pe);
     po = pe->po;
     pe->nA8 = -1;
     pe->m = po->m;
     pe->nAC = po->nA4;
-    InvalidateSoAaox(p);
+    InvalidateSoAaox(so);
     UpdateSoPartGeom(pe);
-    if (!p->pvt->a[62].pfn((char *)p + p->pvt->a[62].d)) WakeSo(p);
+    if (!so->pvt->a[62].pfn((char *)so + so->pvt->a[62].d)) WakeSo(so);
 }
 } } // namespace M_AddSoPartToTree
 
@@ -690,28 +690,28 @@ void WakeSo(struct P *);
  * @end-sly2-annot */
 // Removes a part from the tree's part list and frees its contacts; drops the tree when it becomes empty, or detaches
 // the object when none of its own parts remain.
-void RemoveSoPartFromTree(struct P *p, struct E *pe)
+void RemoveSoPartFromTree(struct P *so, struct E *pe)
 {
     int i;
-    if (!p->pq) return;
-    if (!FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
-    RemoveDlEntry__FP2DLPv(p->pq->dl, pe);
+    if (!so->pq) return;
+    if (!FFindDlEntry__FP2DLPv(so->pq->dl, pe)) return;
+    RemoveDlEntry__FP2DLPv(so->pq->dl, pe);
     if (pe->fl & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
-    FreeSoContacts(p);
-    if (FIsDlEmpty__FP2DL(p->pq->dl)) {
-        struct Q *pq = p->pq;
+    FreeSoContacts(so);
+    if (FIsDlEmpty__FP2DL(so->pq->dl)) {
+        struct Q *pq = so->pq;
         ((struct Q2 *)pq->p60)->pq = 0;
-        p->pq = 0;
+        so->pq = 0;
         RemoveSwAaobrObject(&D_003DD490, pq);
-    } else if (p->pq->p60 != p) {
-        i = p->nE0;
+    } else if (so->pq->p60 != so) {
+        i = so->nE0;
         while (--i >= 0) {
-            if (FFindDlEntry__FP2DLPv(p->pq->dl, (struct E *)(i * 0xB0 + (int)p->aE4))) break;
+            if (FFindDlEntry__FP2DLPv(so->pq->dl, (struct E *)(i * 0xB0 + (int)so->aE4))) break;
         }
-        if (i < 0) p->pq = 0;
+        if (i < 0) so->pq = 0;
     }
 done:
-    if (!p->pvt[62].pfn((char *)p + p->pvt[62].d)) WakeSo(p);
+    if (!so->pvt[62].pfn((char *)so + so->pvt[62].d)) WakeSo(so);
 }
 } } // namespace M_RemoveSoPartFromTree
 
@@ -750,11 +750,11 @@ void RemoveSoPartFromTree(struct S *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Hides a part (sets flag bit 50) and, when the object is in the world, removes it from the tree.
-void HideSoPart(struct S *p, struct T *pt)
+void HideSoPart(struct S *so, struct T *pt)
 {
     if (!(pt->fl & (1UL << 50))) {
         pt->fl |= 1UL << 50;
-        if ((int)(p->fl >> 60) & 1) RemoveSoPartFromTree(p, pt);
+        if ((int)(so->fl >> 60) & 1) RemoveSoPartFromTree(so, pt);
     }
 }
 } } // namespace M_HideSoPart
@@ -775,12 +775,12 @@ void AddSoPartToTree(struct P *, struct E *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Adds every visible part to the object's tree.
-void AddSoParts(struct P *p)
+void AddSoParts(struct P *so)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        if (!(pe->fl & (1L << 50))) AddSoPartToTree(p, pe);
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
+        if (!(pe->fl & (1L << 50))) AddSoPartToTree(so, pe);
     }
 }
 } } // namespace M_AddSoParts
@@ -799,12 +799,12 @@ void RemoveSoPartFromTree(struct P *, struct E *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Removes every visible part from the object's tree.
-void RemoveSoParts(struct P *p)
+void RemoveSoParts(struct P *so)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        if (!(pe->fl & (1L << 50))) RemoveSoPartFromTree(p, pe);
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
+        if (!(pe->fl & (1L << 50))) RemoveSoPartFromTree(so, pe);
     }
 }
 } } // namespace M_RemoveSoParts
@@ -839,26 +839,26 @@ void PostSwCallback(struct G *, struct L *, long, int);
  * @end-sly2-annot */
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
-void AddSoHierarchy(struct L *p)
+void AddSoHierarchy(struct L *so)
 {
     struct L *q;
     void *pv;
     int unused[4];
     int v;
-    AddLoHierarchy(p);
-    UpdateSoXfWorldMatrices(p);
-    AddSoParts(p);
-    v = p->v40;
+    AddLoHierarchy(so);
+    UpdateSoXfWorldMatrices(so);
+    AddSoParts(so);
+    v = so->v40;
     if ((v ^ 1) & 1) *(int *)v |= 0x14;
-    else p->v40 = v | 0x14;
-    pv = p->pe ? p->pe->pDC : 0;
+    else so->v40 = v | 0x14;
+    pv = so->pe ? so->pe->pDC : 0;
     if (pv) {
         if (D_003DD490.ph && D_003DD490.ph->n2C)
-            SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
+            SetSoPhysRegion(so, FindPathzoneAtPos(func_001A62E8(so), 1));
         else
-            PostSwCallback(&D_003DD490, p, D_002A8270.l, 0);
+            PostSwCallback(&D_003DD490, so, D_002A8270.l, 0);
     }
-    for (q = p->first; q != p->end; q = q->next)
+    for (q = so->first; q != so->end; q = q->next)
         q->pvt->a[11].pfn((char *)q + q->pvt->a[11].d);
 }
 } } // namespace M_AddSoHierarchy
@@ -907,22 +907,22 @@ static inline void *PvNextDli(DLI *pdli)
  * @end-sly2-annot */
 // Slot 12 (RemoveHierarchy): RemoveLoHierarchy, removes the parts, resets the fade, unregisters the region callback
 // and recurses into the children.
-void RemoveSoHierarchy(struct P *p)
+void RemoveSoHierarchy(struct P *so)
 {
     DLI dli;
     struct O *po;
     int n;
-    RemoveLoHierarchy(p);
-    RemoveSoParts(p);
-    p->n130 = 0;
-    p->f12C = 1.0f;
+    RemoveLoHierarchy(so);
+    RemoveSoParts(so);
+    so->n130 = 0;
+    so->f12C = 1.0f;
     n = 0;
-    if (p->pe) n = p->pe->nDC;
+    if (so->pe) n = so->pe->nDC;
     if (n) {
-        ClearSwCallbacks(&D_003DD490, 3, p, D_002A8270.l, 0);
-        SetSoPhysRegion(p, 0);
+        ClearSwCallbacks(&D_003DD490, 3, so, D_002A8270.l, 0);
+        SetSoPhysRegion(so, 0);
     }
-    InitDli(&dli, &p->dl);
+    InitDli(&dli, &so->dl);
     while ((po = (__typeof__(po))PvNextDli(&dli)) != 0 && !(po->fl & (1L << 56)))
         po->pvt[12].pfn((char *)po + po->pvt[12].d);
     D_002DD2FC = dli.m_pdliNext;
@@ -952,24 +952,24 @@ static inline struct O *Find(struct O *x)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 13: UpdateLoroot recursively; when the object has parts and its root changed, re-adds them to the new tree.
-void UpdateSoLoroot(struct O *p, struct O *pNew, struct O *pOld)
+void UpdateSoLoroot(struct O *so, struct O *pNew, struct O *pOld)
 {
     struct O *po;
     int unused[4];
-    func_001A5B80(p, pNew, pOld);
-    for (po = p->pFirst; po; po = po->pNext)
+    func_001A5B80(so, pNew, pOld);
+    for (po = so->pFirst; po; po = po->pNext)
         po->pvt[13].pfn((char *)po + po->pvt[13].d, pNew, pOld);
-    if (!p->nE0) return;
-    for (po = p; ; po = po->p10) {
+    if (!so->nE0) return;
+    for (po = so; ; po = po->p10) {
         if (po->fl & (1L << 56)) return;
         if (po == pNew) break;
     }
     {
     struct O *a = Find(pOld);
-    struct O *b = Find(p->p10);
+    struct O *b = Find(so->p10);
     if (!a && !b) {
-        RemoveSoParts(p);
-        AddSoParts(p);
+        RemoveSoParts(so);
+        AddSoParts(so);
     }
     }
 }
@@ -988,14 +988,14 @@ struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 47: sets flags in the LO flag word (+0x40) on this object and all children.
-void SetSoGrf(struct L *p, int f)
+void SetSoGrf(struct L *so, int f)
 {
     struct L *q;
     int unused[4];
-    int v = p->v40;
+    int v = so->v40;
     if ((v ^ 1) & 1) *(int *)v |= f;
-    else p->v40 = v | f;
-    for (q = p->first; q != p->end; q = q->next)
+    else so->v40 = v | f;
+    for (q = so->first; q != so->end; q = q->next)
         q->pvt->a[47].pfn((char *)q + q->pvt->a[47].d, f);
 }
 } } // namespace M_SetSoGrf
@@ -1013,14 +1013,14 @@ struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 48: clears flags in the LO flag word on this object and all children.
-void ClearSoGrf(struct L *p, int f)
+void ClearSoGrf(struct L *so, int f)
 {
     struct L *q;
     int unused[4];
-    int v = p->v40;
+    int v = so->v40;
     if ((v ^ 1) & 1) *(int *)v &= ~f;
-    else p->v40 = v & ~f;
-    for (q = p->first; q != p->end; q = q->next)
+    else so->v40 = v & ~f;
+    for (q = so->first; q != so->end; q = q->next)
         q->pvt->a[48].pfn((char *)q + q->pvt->a[48].d, f);
 }
 } } // namespace M_ClearSoGrf
@@ -1047,20 +1047,20 @@ extern "C" void func_00147E88(G *, int);
  * @end-sly2-annot */
 // Slot 42: stores the busy distance (+0x38), refreshes the object's registration, re-sorts its root in the world
 // and pushes the smaller value to the children (inferred).
-extern "C" void SetSoBusyDistance(L *p, float t)
+extern "C" void SetSoBusyDistance(L *so, float t)
 {
     L *q;
     int unused[4];
-    p->g38 = t;
-    if (p->n140 != -1) {
-        func_001D6310(p);
-        func_001D6378(p);
+    so->g38 = t;
+    if (so->n140 != -1) {
+        func_001D6310(so);
+        func_001D6378(so);
     }
-    if (!p->parent) {
-        bool f = p->b60;
-        if (f) func_00147E88(&D_003DD490, p->n14);
+    if (!so->parent) {
+        bool f = so->b60;
+        if (f) func_00147E88(&D_003DD490, so->n14);
     }
-    for (q = p->first; q; q = q->next) {
+    for (q = so->first; q; q = q->next) {
         if (t < q->g38) q->pvt->a[42].pfn((char *)q + q->pvt->a[42].d, t);
     }
 }
@@ -1120,22 +1120,22 @@ static inline void SetActive(P *p){uint f=p->flags;if((f^1)&1)*(uint *)f|=8;else
  * @end-sly2-annot */
 // Slot 14 (LoadFromBrx): the LO base, the model and glob set, the part array (XF id, flags, radius, local
 // geometry, BSP...), the physics block (matrix, mass), options and bounds.
-extern "C" void LoadSoFromBrx(P *p,void *stream)
+extern "C" void LoadSoFromBrx(P *so,void *stream)
 {
     int i=0;E *e;
-    LoadSoXfsFromBrx(p,stream);
+    LoadSoXfsFromBrx(so,stream);
     int metadata=U32Read__18CBinaryInputStream(stream);
-    LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&p->data,p,stream);
-    int extra=Extra(p);
-    p->count=S16Read__18CBinaryInputStream(stream);
+    LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&so->data,so,stream);
+    int extra=Extra(so);
+    so->count=S16Read__18CBinaryInputStream(stream);
     MSG request;
-    request.bytes=(p->count+extra)*sizeof(E);request.alignment=16;
-    p->entries=(E *)func_001AE2A0(&request);
-    for(;i<p->count;i++){
-        e=&p->entries[i];
+    request.bytes=(so->count+extra)*sizeof(E);request.alignment=16;
+    so->entries=(E *)func_001AE2A0(&request);
+    for(;i<so->count;i++){
+        e=&so->entries[i];
         GEO *local=&e->local;
-        e->owner=p;
-        e->object=Lookup(p,S16Read__18CBinaryInputStream(stream));
+        e->owner=so;
+        e->object=Lookup(so,S16Read__18CBinaryInputStream(stream));
         e->tag=S32Read__18CBinaryInputStream(stream);
         int f=S8Read__18CBinaryInputStream(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<48))|((ulong)(f&1)<<48);
@@ -1152,22 +1152,22 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
         f=S8Read__18CBinaryInputStream(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<50))|((ulong)(f&1)<<50);
     }
-    for(i=p->count;i<p->count+extra;i++){e=&p->entries[i];e->flags.fields.state=-10;}
-    AddSoParts(p);
-    if(p->count>0){
+    for(i=so->count;i<so->count+extra;i++){e=&so->entries[i];e->flags.fields.state=-10;}
+    AddSoParts(so);
+    if(so->count>0){
         request.bytes=sizeof(STATE);request.alignment=16;
         STATE *state=(STATE *)func_001AE2A0(&request);
-        p->state=state;
+        so->state=state;
         state->mass=F32Read__18CBinaryInputStream(stream);
         ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,state);
-        AdjustSoMomint(p,1.0f);
-        Post(p);
+        AdjustSoMomint(so,1.0f);
+        Post(so);
     }
-    LoadOptionsFromBrx__FPvP18CBinaryInputStream(p,stream);
-    if(p->data.guard)SetActive(p);
-    EnsureSoBounds(p);
-    LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(p,stream,0);
-    func_001A6D28(p,metadata);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(so,stream);
+    if(so->data.guard)SetActive(so);
+    EnsureSoBounds(so);
+    LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(so,stream,0);
+    func_001A6D28(so,metadata);
 }
 } // namespace M_LoadSoFromBrx
 
@@ -1181,17 +1181,17 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
  * @end-sly2-annot */
 /* Default physics: gravity -1750 down z, both constraints of kind 3. */
 // Slot 64: physics defaults: gravity (0, 0, -1750) and both position and rotation XFs fixed (mode 3).
-extern "C" void InitSoPhysics(SO *pso)
+extern "C" void InitSoPhysics(SO *so)
 {
     SOPHYS *psophys;
     VECTOR *pdv;
-    psophys = pso->psophys;
+    psophys = so->psophys;
     pdv = &psophys->dvGravity;
     psophys->dvGravity.x = 0.0f;
     pdv->z = -1750.0f;
     pdv->y = 0.0f;
-    pso->psophys->constrForce.nKind = 3;
-    pso->psophys->constrTorque.nKind = 3;
+    so->psophys->constrForce.nKind = 3;
+    so->psophys->constrTorque.nKind = 3;
 }
 
 // 0x1F35C8 SetSoMass
@@ -1203,16 +1203,16 @@ extern "C" void InitSoPhysics(SO *pso)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the mass, scaling the inertia by the same ratio (AdjustSoMomint).
-extern "C" void SetSoMass(SO *pso, float m)
+extern "C" void SetSoMass(SO *so, float m)
 {
     SOPHYS *psophys;
     float mOld;
     float r;
-    psophys = pso->psophys;
+    psophys = so->psophys;
     mOld = psophys->m;
     r = m / mOld;
     psophys->m = mOld * r;
-    AdjustSoMomint(pso, r);
+    AdjustSoMomint(so, r);
 }
 
 // 0x1F35F8 AdjustSoMomint
@@ -1234,9 +1234,9 @@ int FInvertMatrix3(struct T *pt, qword *pv);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Scales the inertia matrix by r and recomputes its inverse (zero when singular).
-void AdjustSoMomint(struct X *p, float s)
+void AdjustSoMomint(struct X *so, float s)
 {
-    struct T *pt = p->pt;
+    struct T *pt = so->pt;
     M3 m;
     U u;
     M3 r;
@@ -1254,8 +1254,8 @@ void AdjustSoMomint(struct X *p, float s)
     r.r[2] = r2;
     func_0023320C(&m, &r, sizeof(M3));
     pt->m = m;
-    if (!FInvertMatrix3(p->pt, p->pt->v))
-        func_002333B4(p->pt->v, 0, 0x30);
+    if (!FInvertMatrix3(so->pt, so->pt->v))
+        func_002333B4(so->pt->v, 0, 0x30);
 }
 } } // namespace M_AdjustSoMomint
 
@@ -1268,11 +1268,11 @@ void AdjustSoMomint(struct X *p, float s)
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
 // Slot 15 (PostLoad): PostLoLoad and the glob set's post-load.
-extern "C" void PostSoLoad(SO *pso)
+extern "C" void PostSoLoad(SO *so)
 {
     PostLoLoadV();
-    UpdateSoXfWorldMatrices(pso);
-    BindGlobset(&pso->globset);
+    UpdateSoXfWorldMatrices(so);
+    BindGlobset(&so->globset);
 }
 
 // 0x1F36E0 UpdateSo
@@ -1299,24 +1299,24 @@ void SetSoPhysRegion(struct P *, void *);
  * @end-sly2-annot */
 // Slot 16 (Update): UpdateLo, refreshes the physics region from the position and advances the fade (alpha +=
 // rate * dt), removing the object when it fades to 0.
-void UpdateSo(struct P *p)
+void UpdateSo(struct P *so)
 {
     void *q;
     float d;
-    UpdateLo(p);
-    q = p->pe ? p->pe->pDC : 0;
-    if (q) SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
-    d = p->g130;
+    UpdateLo(so);
+    q = so->pe ? so->pe->pDC : 0;
+    if (q) SetSoPhysRegion(so, FindPathzoneAtPos(func_001A62E8(so), 1));
+    d = so->g130;
     if (d != 0.0f) {
-        float v = p->g12C + D_002DDED0.dt * d;
-        p->g12C = v;
+        float v = so->g12C + D_002DDED0.dt * d;
+        so->g12C = v;
         if (v <= 0.0f) {
-            p->g12C = 0.0f;
-            p->g130 = 0.0f;
-            p->pvt->a[9].pfn((char *)p + p->pvt->a[9].d);
+            so->g12C = 0.0f;
+            so->g130 = 0.0f;
+            so->pvt->a[9].pfn((char *)so + so->pvt->a[9].d);
         } else if (1.0f <= v) {
-            p->g12C = 1.0f;
-            p->g130 = 0.0f;
+            so->g12C = 1.0f;
+            so->g130 = 0.0f;
         }
     }
 }
@@ -1340,9 +1340,9 @@ void InitObstacleQueryCursor(struct Q *, void *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Moves the object's region link from its current region's list to region q.
-void SetSoPhysRegion(struct P *p, struct Q *q)
+void SetSoPhysRegion(struct P *so, struct Q *q)
 {
-    struct O *o = p->pe->po;
+    struct O *o = so->pe->po;
     struct Q *old = o->pq;
     if (old == q) return;
     if (old) {
@@ -1384,14 +1384,14 @@ void UpdateSoPhysRegionCallback(void *p) { SetSoPhysRegion(p, FindPathzoneAtPos(
 /* Recomputes the part's world geometry when its transform changed since the last update. */
 // When a part's stamp differs from its XF's, transforms the part's local geometry to world space, copies the stamp
 // and marks the tree dirty.
-extern "C" void UpdateSoPartGeom(SOPART *ppart)
+extern "C" void UpdateSoPartGeom(SOPART *part)
 {
     XF *pxf;
-    pxf = ppart->pxf;
-    if (ppart->nStampGeom != pxf->nStampWorld) {
-        UpdateGeomWorld(&pxf->matWorld, &ppart->geomLocal, &ppart->geomWorld);
-        ppart->nStampGeom = ppart->pxf->nStampWorld;
-        InvalidateSoAaox(ppart->pso);
+    pxf = part->pxf;
+    if (part->nStampGeom != pxf->nStampWorld) {
+        UpdateGeomWorld(&pxf->matWorld, &part->geomLocal, &part->geomWorld);
+        part->nStampGeom = part->pxf->nStampWorld;
+        InvalidateSoAaox(part->pso);
     }
 }
 
@@ -1411,11 +1411,11 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Copies each visible part's XF world matrix and stamp into the part.
-void UpdateSoPartMatrices(struct P *p)
+void UpdateSoPartMatrices(struct P *so)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (!(pe->fl & (1L << 50))) {
             struct O *po = pe->po;
             pe->m = po->m;
@@ -1458,30 +1458,30 @@ static inline void Clear(int *a)
  * @end-sly2-annot */
 // Slot 17: per-step transform update: part matrices, soft-mesh parts, XF positions into the physics record, the
 // physics preset (slot 70) for dynamic XFs, slots and part geometry.
-void UpdateSoXfWorld(struct P *p)
+void UpdateSoXfWorld(struct P *so)
 {
     int i;
-    UpdateSoPartMatrices(p);
-    for (i = 0; i < p->nE0; i++) {
-        struct E *pe = &p->aE4[i];
+    UpdateSoPartMatrices(so);
+    for (i = 0; i < so->nE0; i++) {
+        struct E *pe = &so->aE4[i];
         if (*(int *)&pe->fl) UpdateSoPartMesh(pe, D_002DDED0.dt);
     }
-    if (p->pE8) {
-        if (p->p58) p->pE8->v60 = p->p58->vB0;
-        if (p->p5C) p->pE8->v70 = p->p5C->vB0;
-        if ((unsigned short)(p->p58->h98 - 1) < 2 || p->p5C->h98 == 1 || p->p5C->h98 == 2) {
-            if (func_00230380(p->p58->h98)) {
-                Clear(p->p58->aF0);
+    if (so->pE8) {
+        if (so->p58) so->pE8->v60 = so->p58->vB0;
+        if (so->p5C) so->pE8->v70 = so->p5C->vB0;
+        if ((unsigned short)(so->p58->h98 - 1) < 2 || so->p5C->h98 == 1 || so->p5C->h98 == 2) {
+            if (func_00230380(so->p58->h98)) {
+                Clear(so->p58->aF0);
             }
-            if (func_00230380(p->p5C->h98)) {
-                Clear(p->p5C->aF0);
+            if (func_00230380(so->p5C->h98)) {
+                Clear(so->p5C->aF0);
             }
-            p->pvt[70].pfn((char *)p + p->pvt[70].d);
+            so->pvt[70].pfn((char *)so + so->pvt[70].d);
         }
     }
-    UpdateSoSlots(p);
-    for (i = 0; i < p->nE0; i++) {
-        struct E *pe = &p->aE4[i];
+    UpdateSoSlots(so);
+    for (i = 0; i < so->nE0; i++) {
+        struct E *pe = &so->aE4[i];
         if (!(pe->fl & (1L << 50))) UpdateSoPartGeom(pe);
     }
 }
@@ -1512,9 +1512,9 @@ void func_001D6310(struct P *);
  * @end-sly2-annot */
 // Slot 21: sets or clears LO flag bit 8; enabling it registers objects marked with bit 35 that are in the world,
 // disabling unregisters them (meaning inferred).
-void SetSoGrfBit8(struct P *p, int enabled)
+void SetSoGrfBit8(struct P *so, int enabled)
 {
-    register int word __asm__("a2") = p->v40;
+    register int word __asm__("a2") = so->v40;
     register int flags __asm__("v1") = word;
     register int firstTest __asm__("v0");
 
@@ -1536,11 +1536,11 @@ void SetSoGrfBit8(struct P *p, int enabled)
                     *(int *)tagged |= 8;
                 else {
                     register int value __asm__("v0") = word | 8;
-                    __asm__("sw %1,%0" : "=m"(p->v40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->v40) : "r"(value));
                 }
             }
-            if ((p->fl & (1L << 35)) && func_001A61A0(p))
-                func_001D6378(p);
+            if ((so->fl & (1L << 35)) && func_001A61A0(so))
+                func_001D6378(so);
         } else {
             if (!has8)
                 return;
@@ -1554,10 +1554,10 @@ void SetSoGrfBit8(struct P *p, int enabled)
                     *destination = value & mask;
                 } else {
                     register int value __asm__("v0") = word & ~8;
-                    __asm__("sw %1,%0" : "=m"(p->v40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->v40) : "r"(value));
                 }
             }
-            func_001D6310(p);
+            func_001D6310(so);
         }
     }
 }
@@ -1580,12 +1580,12 @@ void func_001A4478(struct G *pg, int n, struct Q *pq);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp.
-void RefreshSoBoundsRecord(struct A *p)
+void RefreshSoBoundsRecord(struct A *so)
 {
-    struct Q *pq = p->pq;
+    struct Q *pq = so->pq;
     if (pq && pq->n != D_003DD490.n) {
         func_001A4478(&D_003DD490, 0, pq);
-        p->pq->n = D_003DD490.n;
+        so->pq->n = D_003DD490.n;
     }
 }
 } } // namespace M_func_001F3C10
@@ -1601,13 +1601,13 @@ void RefreshSoBoundsRecord(struct A *p)
  *   docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
  * @end-sly2-annot */
 // Slot 19 (RenderSelf): draws the glob set with the object's alpha when it is visible in the current camera mask.
-extern "C" void RenderSoSelf(SO *pso)
+extern "C" void RenderSoSelf(SO *so)
 {
     float uAlpha;
-    if (pso->grfvis & (*(int *)&g_cm.grfvis)) {
-        RefreshSoBoundsRecord(pso);
-        uAlpha = pso->uAlpha;
-        RenderSoGlobset(&pso->globset, 0, uAlpha, uAlpha, pso->psobounds);
+    if (so->grfvis & (*(int *)&g_cm.grfvis)) {
+        RefreshSoBoundsRecord(so);
+        uAlpha = so->uAlpha;
+        RenderSoGlobset(&so->globset, 0, uAlpha, uAlpha, so->psobounds);
     }
 }
 
@@ -1630,18 +1630,18 @@ void RenderSoGlobset(void *, int, float, float, struct B *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 20: draws the glob set with explicit parameters and recurses into the children.
-void RenderSoAll(struct P *p, int a, struct B *pb, float f1, float f2)
+void RenderSoAll(struct P *so, int a, struct B *pb, float f1, float f2)
 {
     struct B b;
     int unused[4];
     struct O *po;
-    if (!pb && p->pb) {
-        b = *p->pb;
+    if (!pb && so->pb) {
+        b = *so->pb;
         pb = &b;
         func_001A4478(&D_003DD490, a, &b);
     }
-    RenderSoGlobset(p->x80, a, f1, f2, pb);
-    for (po = p->pFirst; po != p->pEnd; po = po->pNext)
+    RenderSoGlobset(so->x80, a, f1, f2, pb);
+    for (po = so->pFirst; po != so->pEnd; po = po->pNext)
         po->pvt[20].pfn((char *)po + po->pvt[20].d, a, f1, f2, pb);
 }
 } } // namespace M_func_001F3CC8
@@ -1672,16 +1672,16 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  * @end-sly2-annot */
 // Slot 22 (OnRemove): the object leaves the active world: base LO freeze, unregister, children, and if it owns its
 // tree, a final bounds update and removal from g_sw.dlSoTree.
-void OnSoRemove(struct L *p)
+void OnSoRemove(struct L *so)
 {
     struct L *q;
     int unused[4];
-    OnLoRemove(p);
-    func_001D6310(p);
-    for (q = p->first; q != p->end; q = q->next) VF(q, 22);
-    if (p->pe && p->pe->p60 == p) {
-        VF(p, 49);
-        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, p->pe);
+    OnLoRemove(so);
+    func_001D6310(so);
+    for (q = so->first; q != so->end; q = q->next) VF(q, 22);
+    if (so->pe && so->pe->p60 == so) {
+        VF(so, 49);
+        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->pe);
     }
 }
 } } // namespace M_OnSoRemove
@@ -1712,20 +1712,20 @@ void AppendDlEntry__FP2DLPv(struct DL *, void *);
  * @end-sly2-annot */
 // Slot 23 (OnAdd): the object enters the active world: base LO unfreeze, re-register, children, and its tree joins
 // g_sw.dlSoTree with fresh bounds.
-void OnSoAdd(struct L *p)
+void OnSoAdd(struct L *so)
 {
     struct L *q;
     int unused[4];
-    OnLoAdd(p);
-    if (p->fl & (1L << 35)) {
-        int v = p->v40;
+    OnLoAdd(so);
+    if (so->fl & (1L << 35)) {
+        int v = so->v40;
         if ((v ^ 1) & 1) v = *(int *)v;
-        if (v & 8) func_001D6378(p);
+        if (v & 8) func_001D6378(so);
     }
-    for (q = p->first; q != p->end; q = q->next) VF(q, 23);
-    if (p->pe && p->pe->p60 == p) {
-        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, p->pe)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, p->pe);
-        VF(p, 49);
+    for (q = so->first; q != so->end; q = q->next) VF(q, 23);
+    if (so->pe && so->pe->p60 == so) {
+        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, so->pe)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->pe);
+        VF(so, 49);
     }
 }
 } } // namespace M_OnSoAdd
@@ -1757,13 +1757,13 @@ void func_002333B4(void *p, int c, int cb) __asm__("memset");
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 32: the root XF, optionally writing an identity matrix to the output.
-int GetSoLocalXf(struct A *p, float *pm)
+int GetSoLocalXf(struct A *so, float *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
         pm[0] = pm[5] = pm[10] = pm[15] = 1.0f;
     }
-    return p->n;
+    return so->n;
 }
 } } // namespace M_func_001F3FB0
 
@@ -1788,13 +1788,13 @@ void func_00186820(struct P *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 37: applies a proxy's matrix to the root XF, bumps the world stamp and updates the transform hierarchy.
-void ApplySoProxy(struct P *p, void *pv)
+void ApplySoProxy(struct P *so, void *pv)
 {
-    struct T *pt = p->pt;
+    struct T *pt = so->pt;
     pt->m = __ml__FRC7MATRIX4T0(pv, pt);
-    { int n = ++D_003DD490.n; p->pt->nA4 = n; }
-    p->pvt->a[18].pfn((char *)p + p->pvt->a[18].d);
-    func_00186820(p);
+    { int n = ++D_003DD490.n; so->pt->nA4 = n; }
+    so->pvt->a[18].pfn((char *)so + so->pvt->a[18].d);
+    func_00186820(so);
 }
 } } // namespace M_func_001F4010
 
@@ -1834,14 +1834,14 @@ void SetSoPhysRegion(struct P *, struct REGION *);
  * @end-sly2-annot */
 // Slot 29: moves the object to a world position (the position XF expressed relative to its parents), frees its
 // contacts and refreshes XF modes, part matrices and region.
-void TranslateSoToPos(struct P *p, qword v)
+void TranslateSoToPos(struct P *so, qword v)
 {
     M4 m0, m40, m80, mC0, m100, m140, m180, m1C0;
     struct LO *plo;
     const M3 *basis;
     register M4 *presult __asm__("$18");
-    if (!p->p58) return;
-    basis = &p->p60->m40.s.m3;
+    if (!so->p58) return;
+    basis = &so->p60->m40.s.m3;
     VECTOR_opAssign(&m0.s.r3, v);
     m0.s.m3 = *basis;
     m0.f[1][3] = 0.0f;
@@ -1849,14 +1849,14 @@ void TranslateSoToPos(struct P *p, qword v)
     m0.f[0][3] = 0.0f;
     m0.f[3][3] = 1.0f;
     presult=&mC0;
-    InvertMatrix4Rigid(&m100,&p->p58->m40);
-    __ml__FRC7MATRIX4T0(presult, &m100, &p->p60->m40);
+    InvertMatrix4Rigid(&m100,&so->p58->m40);
+    __ml__FRC7MATRIX4T0(presult, &m100, &so->p60->m40);
     m40.r[1] = mC0.r[1];
     m40.r[0] = mC0.r[0];
     m40.r[2] = mC0.r[2];
     m40.r[3] = mC0.r[3];
-    if (p->p58->pA0) {
-        m80 = p->p58->pA0->m40;
+    if (so->p58->pA0) {
+        m80 = so->p58->pA0->m40;
     } else {
         M4 *identity = &m80;
         func_002333B4(identity, 0, 0x40);
@@ -1870,19 +1870,19 @@ void TranslateSoToPos(struct P *p, qword v)
     __ml__FRC7MATRIX4T0(world, &m180, &m0);
     InvertMatrix4Rigid(&m1C0,&m40);
     __ml__FRC7MATRIX4T0(&m100, world, &m1C0);
-    plo = p->p58;
+    plo = so->p58;
     mC0 = m100;
     VECTOR_opAssign(&plo->v30.q, mC0.r[3]);
     plo->v30.f[3] = 1.0f;
-    { int stamp=++D_003DD490.n3D58;p->p58->nA4=stamp; }
-    p->pvt[18].pfn((char *)p + p->pvt[18].d);
-    FreeSoContacts(p);
-    SlotUnsettle(p, p->p58);
-    UpdateSoPartMatrices(p);
+    { int stamp=++D_003DD490.n3D58;so->p58->nA4=stamp; }
+    so->pvt[18].pfn((char *)so + so->pvt[18].d);
+    FreeSoContacts(so);
+    SlotUnsettle(so, so->p58);
+    UpdateSoPartMatrices(so);
     {
         struct REGION_LINK *link = 0;
-        if (p->pe) link = p->pe->regionLink;
-        if (link) SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
+        if (so->pe) link = so->pe->regionLink;
+        if (link) SetSoPhysRegion(so, FindPathzoneAtPos(func_001A62E8(so), 1));
     }
 }
 
@@ -1922,9 +1922,9 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 30: sets the rotation from a world matrix (normalised against the parents), frees contacts and refreshes.
-extern "C" void RotateSoToMat(P *p,const M3 *basis)
+extern "C" void RotateSoToMat(P *so,const M3 *basis)
 {
-    LO *object=p->object;
+    LO *object=so->object;
     if(!object)return;
     {
         M3 m;
@@ -1938,17 +1938,17 @@ extern "C" void RotateSoToMat(P *p,const M3 *basis)
             m.r[0].f[0]=1.0f;
         }
         M3 transformed=Mul(InvertMatrix3Cofactor(&m),*basis);
-        M3 *dest=&p->object->matrix;
+        M3 *dest=&so->object->matrix;
         *dest=transformed;
         dest->r[0].i[3]=0;
         dest->r[1].i[3]=0;
         dest->r[2].i[3]=0;
         int stamp=++D_003DD490.stamp;
-        p->object->stamp=stamp;
-        p->vt[18].fn((char *)p+p->vt[18].delta);
-        FreeSoContacts(p);
-        SlotUnsettle(p,p->object);
-        UpdateSoPartMatrices(p);
+        so->object->stamp=stamp;
+        so->vt[18].fn((char *)so+so->vt[18].delta);
+        FreeSoContacts(so);
+        SlotUnsettle(so,so->object);
+        UpdateSoPartMatrices(so);
     }
 }
 } // namespace M_RotateSoToMat
@@ -1994,20 +1994,20 @@ void SetSoBit35Hierarchy(struct P *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 35: sets the position XF's velocity so the world velocity becomes v, then refreshes and marks the physics.
-void SetSoVelocity(struct P *p, qword q)
+void SetSoVelocity(struct P *so, qword q)
 {
-    struct O *po = p->po;
+    struct O *po = so->po;
     qword cur, d;
     if (!po || po->n94 != 1) return;
-    if (!func_00230310(po->k)) func_002303A0(p, po, 1);
+    if (!func_00230310(po->k)) func_002303A0(so, po, 1);
     { float *pv = (float *)&po->v; pv[2] = 0.0f; pv[1] = 0.0f; pv[0] = 0.0f; }
-    cur = ((qword (*)(void *))p->pvt->a[33].pfn)((char *)p + p->pvt->a[33].d);
+    cur = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
     po->v.q = ConvertXfVec(0, po->nA0, d);
-    SlotUnsettle(p, po);
-    InvalidateSoAaox(p);
-    WakeSo(p);
-    SetSoBit35Hierarchy(p, 0);
+    SlotUnsettle(so, po);
+    InvalidateSoAaox(so);
+    WakeSo(so);
+    SetSoBit35Hierarchy(so, 0);
 }
 } } // namespace M_SetSoVelocity
 
@@ -2118,23 +2118,23 @@ static inline void Clear(U *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 36: sets the rotation XF's angular velocity from a world-space w.
-extern "C" void SetSoAngularVelocity(P *p,qword position)
+extern "C" void SetSoAngularVelocity(P *so,qword position)
 {
-    LO *object=p->object;
+    LO *object=so->object;
     if(!object || object->kind!=6)return;
-    if(!func_00230310(object->state))func_002303A0(p,object,1);
+    if(!func_00230310(object->state))func_002303A0(so,object,1);
     const M3 *rotation=&object->rotation;
     Clear(&object->velocity);
     M3 normalized;
-    qword origin=p->vt[34].fn((char *)p+p->vt[34].delta);
+    qword origin=so->vt[34].fn((char *)so+so->vt[34].delta);
     normalized=*rotation;
     NormalizeRotateMatrix3__FP7MATRIX3(&normalized);
     M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
     object->velocity.q=ConvertXfVec(0,object->parent,Transform(relative,Sub(position,&origin)));
-    SlotUnsettle(p,object);
-    InvalidateSoAaox(p);
-    WakeSo(p);
-    SetSoBit35Hierarchy(p,0);
+    SlotUnsettle(so,object);
+    InvalidateSoAaox(so);
+    WakeSo(so);
+    SetSoBit35Hierarchy(so,0);
 }
 } // namespace M_SetSoAngularVelocity
 
@@ -2146,11 +2146,11 @@ extern "C" void SetSoAngularVelocity(P *p,qword position)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // The position XF's velocity converted between XF spaces.
-extern "C" void GetSoPosXfVelocityLocal(SO *pso)
+extern "C" void GetSoPosXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = pso->pxfUnk58;
-    ConvertXfVec(pxf->pxfParent, pso->pxfRoot, *(qword *)&pxf->vUnkB0);
+    pxf = so->pxfUnk58;
+    ConvertXfVec(pxf->pxfParent, so->pxfRoot, *(qword *)&pxf->vUnkB0);
 }
 
 // 0x1F4870 GetSoRotXfVelocityLocal
@@ -2161,11 +2161,11 @@ extern "C" void GetSoPosXfVelocityLocal(SO *pso)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // The rotation XF's angular velocity converted between XF spaces.
-extern "C" void GetSoRotXfVelocityLocal(SO *pso)
+extern "C" void GetSoRotXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = pso->pxfUnk5c;
-    ConvertXfVec(pxf->pxfParent, pso->pxfRoot, *(qword *)&pxf->vUnkB0);
+    pxf = so->pxfUnk5c;
+    ConvertXfVec(pxf->pxfParent, so->pxfRoot, *(qword *)&pxf->vUnkB0);
 }
 
 // 0x1F4898 SetSoPosXfVelocityLocal
@@ -2189,16 +2189,16 @@ void SetSoBit35Hierarchy(void *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the position XF's velocity from a vector in the root XF's space, refreshes and marks the physics.
-void SetSoPosXfVelocityLocal(struct P *p, qword v)
+void SetSoPosXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(p->po->k)) func_002303A0(p, p->po, 1);
-    po = p->po;
-    po->q = ConvertXfVec(((struct Q *)p)->n60, po->nA0, v);
-    SlotUnsettle(p, p->po);
-    InvalidateSoAaox(p);
-    WakeSo(p);
-    SetSoBit35Hierarchy(p, 0);
+    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
+    po = so->po;
+    po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
+    SlotUnsettle(so, so->po);
+    InvalidateSoAaox(so);
+    WakeSo(so);
+    SetSoBit35Hierarchy(so, 0);
 }
 } } // namespace M_func_001F4898
 
@@ -2223,16 +2223,16 @@ void SetSoBit35Hierarchy(void *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the rotation XF's angular velocity from a vector in the root XF's space.
-void SetSoRotXfVelocityLocal(struct P *p, qword v)
+void SetSoRotXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(p->po->k)) func_002303A0(p, p->po, 1);
-    po = p->po;
-    po->q = ConvertXfVec(((struct Q *)p)->n60, po->nA0, v);
-    SlotUnsettle(p, p->po);
-    InvalidateSoAaox(p);
-    WakeSo(p);
-    SetSoBit35Hierarchy(p, 0);
+    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
+    po = so->po;
+    po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
+    SlotUnsettle(so, so->po);
+    InvalidateSoAaox(so);
+    WakeSo(so);
+    SetSoBit35Hierarchy(so, 0);
 }
 } } // namespace M_func_001F4930
 
@@ -2293,12 +2293,12 @@ extern "C" void func_001A6B88(X *, X *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 38: matches another object's transform (MatchLoXf) and copies its velocities when the object has physics.
-extern "C" void MatchSoXf(X *p, X *q)
+extern "C" void MatchSoXf(X *so, X *q)
 {
-    func_001A6B88(p, q);
-    if (p->pE8) {
-        p->Set35(q->Get33());
-        p->Set36(q->Get34());
+    func_001A6B88(so, q);
+    if (so->pE8) {
+        so->Set35(q->Get33());
+        so->Set36(q->Get34());
     }
 }
 } // namespace M_func_001F49C8
@@ -2336,14 +2336,14 @@ static inline SETVECTOR ReadSetter(const VTE &entry){
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 39: sets the transform (SetXf) and derives linear and angular velocity from the XF rate matrix.
-extern "C" void SetSoXf(struct P *p, struct A *pa)
+extern "C" void SetSoXf(struct P *so, struct A *pa)
 {
     M4 m;
     qword q;
-    func_001A6BC8(p, pa);
-    if (!p->pe) return;
+    func_001A6BC8(so, pa);
+    if (!so->pe) return;
     { M4 t = BuildVelocity(pa); m = t; }
-    VTE *vt=p->pvt;
+    VTE *vt=so->pvt;
     int delta=vt[35].d;
     q = Make(m.r[1].f[2],m.r[2].f[0],m.r[0].f[1]);
     SETVECTOR setpos=ReadSetter(vt[35]);
@@ -2352,10 +2352,10 @@ extern "C" void SetSoXf(struct P *p, struct A *pa)
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w" : "+j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(pa->pos));
     U v; v.q = q;
     qword rr;__asm__("qmfc2.ni %0,%1":"=r"(rr):"j"(r));
-    setpos((char*)p+delta,rr);
+    setpos((char*)so+delta,rr);
     }
     {
-        ((void (*)(void *, qword))p->pvt[36].pfn)((char *)p + p->pvt[36].d, q);
+        ((void (*)(void *, qword))so->pvt[36].pfn)((char *)so + so->pvt[36].d, q);
     }
 }
 } // namespace M_func_001F4A80
@@ -2369,14 +2369,14 @@ extern "C" void SetSoXf(struct P *p, struct A *pa)
  * @end-sly2-annot */
 /* Queues the object's tree on list 1 (g_sw.dlSoTreeQueue1) once. */
 // Marks the tree's bounds dirty (flag bit 0) and queues it on g_sw.dlSoTreeQueue1.
-extern "C" void MarkSoTreeBoundsDirty(SO *pso)
+extern "C" void MarkSoTreeBoundsDirty(SO *so)
 {
     SOTREE *ptree;
-    ptree = pso->ptree;
+    ptree = so->ptree;
     if (ptree != 0) {
         if ((uchar)ptree->fQueued1 == 0) {
             ptree->fQueued1 = 1;
-            AppendDlEntry(&g_sw.dlSoTreeQueue1, pso->ptree);
+            AppendDlEntry(&g_sw.dlSoTreeQueue1, so->ptree);
         }
     }
 }
@@ -2397,13 +2397,13 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Clears the tree's bounds-dirty flag and removes it from g_sw.dlSoTreeQueue1.
-void ClearSoTreeBoundsDirty(struct S *p)
+void ClearSoTreeBoundsDirty(struct S *so)
 {
-    struct T *pt = p->pt;
+    struct T *pt = so->pt;
     if (!pt) return;
     if ((pt->fl & 1) == 0) return;
     pt->fl &= ~1;
-    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, p->pt);
+    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->pt);
 }
 } } // namespace M_func_001F4BA8
 
@@ -2424,15 +2424,15 @@ void ClearSoTreeBoundsDirty(struct S *p)
 /* Queues the object's tree on lists 1 and 2 (g_sw.dlSoTreeQueue2) once. */
 // After an object moved or changed its bounds: marks the tree bounds dirty and flags its broad-phase box once,
 // queueing it for the next sweep.
-extern "C" void InvalidateSoAaox(SO *pso)
+extern "C" void InvalidateSoAaox(SO *so)
 {
     SOTREE *ptree;
-    MarkSoTreeBoundsDirty(pso);
-    ptree = pso->ptree;
+    MarkSoTreeBoundsDirty(so);
+    ptree = so->ptree;
     if (ptree != 0) {
         if (ptree->fQueued2 == 0) {
             ptree->fQueued2 = 1;
-            AppendDlEntry(&g_sw.dlSoTreeQueue2, pso->ptree);
+            AppendDlEntry(&g_sw.dlSoTreeQueue2, so->ptree);
         }
     }
 }
@@ -2451,10 +2451,10 @@ struct S { char pad[0x50]; int c; struct E *ae; };
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Finds the object's XF whose ids match the given XF's (Sly 1 PxfFindSo).
-struct E *FindSoXf(struct S *p, int a, int b)
+struct E *FindSoXf(struct S *so, int a, int b)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->a == a && pe->b == b) return pe; }
+    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->a == a && pe->b == b) return pe; }
     return 0;
 }
 } } // namespace M_PxfFindSo
@@ -2501,15 +2501,15 @@ void CloneSoXfRef(struct S *pnew, struct S *pold, struct T **pp)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Clears both tree-dirty flags and removes the tree from both queues.
-extern "C" void ClearSoTreeDirty(SO *pso)
+extern "C" void ClearSoTreeDirty(SO *so)
 {
     SOTREE *ptree;
-    ClearSoTreeBoundsDirty(pso);
-    ptree = pso->ptree;
+    ClearSoTreeBoundsDirty(so);
+    ptree = so->ptree;
     if (ptree != 0) {
         if (ptree->fQueued2) {
             ptree->fQueued2 = 0;
-            RemoveDlEntry(&g_sw.dlSoTreeQueue2, pso->ptree);
+            RemoveDlEntry(&g_sw.dlSoTreeQueue2, so->ptree);
         }
     }
 }
@@ -2574,22 +2574,22 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Frees every contact of the tree, notifying both sides (slot 54) first.
-void FreeSoContacts(struct P *p)
+void FreeSoContacts(struct P *so)
 {
     struct N *pn;
-    if (!p->pe) return;
-    InvalidateSoAaox(p);
-    for (pn = p->pe->pn; pn; pn = pn->next) {
-        struct X *q = p->pe->p60;
+    if (!so->pe) return;
+    InvalidateSoAaox(so);
+    for (pn = so->pe->pn; pn; pn = pn->next) {
+        struct X *q = so->pe->p60;
         q->pvt->a[54].pfn((char *)q + q->pvt->a[54].d, pn->px);
-        pn->px->pvt->a[54].pfn((char *)pn->px + pn->px->pvt->a[54].d, p->pe->p60);
+        pn->px->pvt->a[54].pfn((char *)pn->px + pn->px->pvt->a[54].d, so->pe->p60);
         FreeSwXpList__FP2SWP2XP(&D_003DD490, pn->pv0);
         *pn->pn8 = 0;
         pn->pv0 = 0;
     }
-    p->pvt->a[54].pfn((char *)p + p->pvt->a[54].d, 0);
-    FreeSwXpList__FP2SWP2XP(&D_003DD490, p->pe->p68);
-    p->pe->p68 = 0;
+    so->pvt->a[54].pfn((char *)so + so->pvt->a[54].d, 0);
+    FreeSwXpList__FP2SWP2XP(&D_003DD490, so->pe->p68);
+    so->pe->p68 = 0;
 }
 } } // namespace M_func_001F4E28
 
@@ -2614,16 +2614,16 @@ void EnsureSwCallback(struct G *, struct P *, long, int);
  * @end-sly2-annot */
 // Slot 58 (contact adjustment after marking): when the tree has touch flags, schedules the touch-zap callback
 // (HandleSoTouchZaps).
-void AdjustSoXps(struct P *p)
+void AdjustSoXps(struct P *so)
 {
-    struct E *pe = p->pe;
+    struct E *pe = so->pe;
     struct N *pn;
     if (pe->n6C) {
-        EnsureSwCallback(&D_003DD490, p, D_002A8278.l, 0);
-    } else if (p->fl & 0x3000000) {
+        EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
+    } else if (so->fl & 0x3000000) {
         for (pn = pe->pn; pn; pn = pn->next) {
             if (pn->n0) {
-                EnsureSwCallback(&D_003DD490, p, D_002A8278.l, 0);
+                EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
                 break;
             }
         }
@@ -2716,12 +2716,12 @@ int ShouldSoIgnoreIntersection(struct X *pa, struct X *pb)
  * @end-sly2-annot */
 /* Whether the object is fixed: no physics, or both constraints of kind 3. */
 // Slot 62: returns 1 when the object has no physics record or both its XFs are fixed (mode 3).
-extern "C" int IsSoFixed(SO *pso)
+extern "C" int IsSoFixed(SO *so)
 {
     SOPHYS *psophys;
     int nKind;
     int f;
-    psophys = pso->psophys;
+    psophys = so->psophys;
     f = 0;
     if ((psophys == 0) || ((nKind = psophys->constrForce.nKind, nKind == 3) && (psophys->constrTorque.nKind == nKind))) {
         f = 1;
@@ -2744,13 +2744,13 @@ extern "C" int IsSoFixed(SO *pso)
  * @end-sly2-annot */
 /* Wakes the object (LO slot 47 with 4) and unsettles its two physics transforms. */
 // Wakes an object in the broad phase: sets the awake flag (4) and un-settles its position and rotation slots.
-extern "C" void WakeSo(SO *pso)
+extern "C" void WakeSo(SO *so)
 {
-    if (pso->ptree != 0) {
-        ((void (*)(void *, int))PVTE(pso)[47].pfn)((char *)pso + PVTE(pso)[47].d, 4);
-        if (pso->psophys != 0) {
-            SlotUnsettle(pso, pso->pxfUnk58);
-            SlotUnsettle(pso, pso->pxfUnk5c);
+    if (so->ptree != 0) {
+        ((void (*)(void *, int))PVTE(so)[47].pfn)((char *)so + PVTE(so)[47].d, 4);
+        if (so->psophys != 0) {
+            SlotUnsettle(so, so->pxfUnk58);
+            SlotUnsettle(so, so->pxfUnk5c);
         }
     }
 }
@@ -2898,13 +2898,13 @@ static inline void ExtendBox(qword &qwMin, qword &qwMax, const qword &qwPos)
  * @end-sly2-annot */
 // Slot 49: rebuilds the tree's axis-aligned box and bounding sphere from its visible parts, marks the broad phase
 // dirty and clears the tree's dirty flag.
-extern "C" void UpdateSoTreeBounds(SO *pso)
+extern "C" void UpdateSoTreeBounds(SO *so)
 {
     qword qwMin = D_002A2DF0;
     qword qwMax = D_002A2E00;
     SOPART *ppart;
     int i;
-    for (ppart = pso->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = so->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
     {
         if (ppart->fHidden)
             continue;
@@ -2935,13 +2935,13 @@ extern "C" void UpdateSoTreeBounds(SO *pso)
         }
     }
 
-    pso->ptree->qwMin = qwMin;
-    pso->ptree->qwMax = qwMax;
+    so->ptree->qwMin = qwMin;
+    so->ptree->qwMax = qwMax;
     VU_FLOAT gHalf = VuFloat(0.5f);
     float sRadius = 0.0f;
     qword qwCenter;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwCenter) : "j"(qwMin), "j"(qwMax), "j"(gHalf.qw));
-    for (ppart = pso->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = so->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
     {
         if (ppart->fUnk49)
         {
@@ -2969,10 +2969,10 @@ extern "C" void UpdateSoTreeBounds(SO *pso)
             }
         }
     }
-    pso->ptree->qwCenter = qwCenter;
-    pso->ptree->sRadius = sRadius;
+    so->ptree->qwCenter = qwCenter;
+    so->ptree->sRadius = sRadius;
     D_003DD490.fUnk3CCC = 1;
-    ClearSoTreeBoundsDirty(pso);
+    ClearSoTreeBoundsDirty(so);
 }
 
 typedef char layout_part_size[(sizeof(SOPART)==0xB0)?1:-1];
@@ -2997,23 +2997,23 @@ struct P { char pad[0xEC]; struct B *pb; };
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Grows the tree's box and radius to include a sphere (centre c, radius r).
-void ExtendSoTreeBounds(struct P *p, qword c, float r)
+void ExtendSoTreeBounds(struct P *so, qword c, float r)
 {
     qword rr, lo, hi, d, t, one;
     float dist;
     __asm__("pextlw %0, %1, %1\n\tpextlw %0, %0, %0" : "=r"(rr) : "r"(r));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(lo) : "j"(c), "j"(rr));
     qword mn;
-    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(p->pb->min), "j"(lo));
-    p->pb->min = mn;
+    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->pb->min), "j"(lo));
+    so->pb->min = mn;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(hi) : "j"(c), "j"(rr));
     qword mx;
-    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(p->pb->max), "j"(hi));
-    p->pb->max = mx;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(p->pb->c));
+    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->pb->max), "j"(hi));
+    so->pb->max = mx;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->pb->c));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d), "=&j"(one) : "0"(c));
     __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
-    if (p->pb->r < dist) p->pb->r = dist;
+    if (so->pb->r < dist) so->pb->r = dist;
 }
 } } // namespace M_ExtendSoTreeBounds
 
@@ -3083,14 +3083,14 @@ void WakeSo(struct O *);
  * @end-sly2-annot */
 // After a physics-root change, regroups the contact trees of the objects whose physics root changed and registers
 // them again. Sly 1 name.
-void RebuildSoPhysHook(struct O *p)
+void RebuildSoPhysHook(struct O *so)
 {
     struct O *ap[64];
     int i;
     int n;
-    if (((p->fl >> 60) & 1) == 0) return;
-    if (FindSoPhysRoot(p) != p->pq->p60) {
-        n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, p, 0x40, ap);
+    if (((so->fl >> 60) & 1) == 0) return;
+    if (FindSoPhysRoot(so) != so->pq->p60) {
+        n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, so, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
                 struct O *po = ap[i];
@@ -3109,8 +3109,8 @@ void RebuildSoPhysHook(struct O *p)
             }
         }
     }
-    RecalcSwOxfFilterForObject(&D_003DD490, p);
-    WakeSo(p);
+    RecalcSwOxfFilterForObject(&D_003DD490, so);
+    WakeSo(so);
 }
 } } // namespace M_func_001F55C8
 
@@ -3122,9 +3122,9 @@ void RebuildSoPhysHook(struct O *p)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 53: creates the object's tree record in the broad phase (AddSwAaobrObject).
-extern "C" void NewSoTree(SO *pso)
+extern "C" void NewSoTree(SO *so)
 {
-    AddSwAaobrObject(&D_003DD490, pso);
+    AddSwAaobrObject(&D_003DD490, so);
 }
 
 // 0x1F5720 SetSoCnstrForce
@@ -3137,18 +3137,18 @@ extern "C" void NewSoTree(SO *pso)
  * @end-sly2-annot */
 // Sets the translation constraint from a CNSTR: makes the position XF dynamic if needed, stores axis and mode in the
 // physics record and rebuilds the physics hook.
-extern "C" void SetSoCnstrForce(SO *pso, CONSTR *pconstr)
+extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
-    if (pso->psophys != 0) {
-        pxf = pso->pxfUnk58;
+    if (so->psophys != 0) {
+        pxf = so->pxfUnk58;
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
-            func_002303A0(pso, pxf, 1);
+            func_002303A0(so, pxf, 1);
         }
-        GetSoConstraintAxis(pso, pxf, pconstr, &pso->psophys->constrForce);
-        RebuildSoPhysHook(pso);
-        if (pso->psophys->constrForce.nKind != 3) {
-            SetSoBit35Hierarchy(pso, 0);
+        GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrForce);
+        RebuildSoPhysHook(so);
+        if (so->psophys->constrForce.nKind != 3) {
+            SetSoBit35Hierarchy(so, 0);
         }
     }
 }
@@ -3162,18 +3162,18 @@ extern "C" void SetSoCnstrForce(SO *pso, CONSTR *pconstr)
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the rotation constraint from a CNSTR (the rotational twin of SetSoCnstrForce).
-extern "C" void SetSoCnstrTorque(SO *pso, CONSTR *pconstr)
+extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
-    if (pso->psophys != 0) {
-        pxf = pso->pxfUnk5c;
+    if (so->psophys != 0) {
+        pxf = so->pxfUnk5c;
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
-            func_002303A0(pso, pxf, 1);
+            func_002303A0(so, pxf, 1);
         }
-        GetSoConstraintAxis(pso, pxf, pconstr, &pso->psophys->constrTorque);
-        RebuildSoPhysHook(pso);
-        if (pso->psophys->constrTorque.nKind != 3) {
-            SetSoBit35Hierarchy(pso, 0);
+        GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrTorque);
+        RebuildSoPhysHook(so);
+        if (so->psophys->constrTorque.nKind != 3) {
+            SetSoBit35Hierarchy(so, 0);
         }
     }
 }
@@ -3212,13 +3212,13 @@ void WakeSo(struct P *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
-void SetSoGravity(struct P *p, qword q)
+void SetSoGravity(struct P *so, qword q)
 {
-    if (p->pe) {
-        struct O *po = p->po;
-        if (po->n90 == 0 && po->k != 2) func_002303A0(p, po, 1);
-        p->pe->q = q;
-        WakeSo(p);
+    if (so->pe) {
+        struct O *po = so->po;
+        if (po->n90 == 0 && po->k != 2) func_002303A0(so, po, 1);
+        so->pe->q = q;
+        WakeSo(so);
     }
 }
 } } // namespace M_SetSoDvGravity
@@ -3246,9 +3246,9 @@ float atan2f(float, float);
  * @end-sly2-annot */
 // Slot 50: the camera's default info for this object: base position and velocity, home heading from the upright
 // matrix, adjustment 100, no flags, last-move time now.
-void GetSoCpdefi(struct P *p, struct Out *po)
+void GetSoCpdefi(struct P *so, struct Out *po)
 {
-    struct O *o = p->po;
+    struct O *o = so->po;
     struct V v;
     void *ps;
     qword q = o->q70;
@@ -3345,7 +3345,7 @@ static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,
  * @end-sly2-annot */
 // Accelerates the rotation toward a target orientation with angular braking and a bounded correction (top speed
 // and acceleration from coef). Used for steering (STEP mode 0).
-extern "C" void AccelSoTowardMatBounded(P *p,const M3 *orientation,const COEF *c)
+extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *c)
 {
     M3 frame,relative;
     U axis,wanted,change,predicted;
@@ -3354,7 +3354,7 @@ extern "C" void AccelSoTowardMatBounded(P *p,const M3 *orientation,const COEF *c
     float acceleration=(maximum-c->b)/c->c;
     float square=maximum*maximum;
     float stopAngle;
-    OWNER *owner=p->owner;
+    OWNER *owner=so->owner;
     // one variable for the speed and, later, the speed along the turn axis (target: f4 for both)
     float speed=Length(owner->velocity);
     stopAngle=square/(acceleration+acceleration);
@@ -3428,9 +3428,9 @@ static inline qword AddScaled(qword old,qword v,qword s){__asm__("vadda.xyzw $AC
  * @end-sly2-annot */
 // Spring torque toward a target orientation (quadratic CLQ on the angle) and toward a target angular velocity
 // (clamped to 1/dt).
-extern "C" void AccelSoTowardMatSpring(P*p,const M3*orientation,const COEF*c,qword velocity,const COEF*d)
+extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qword velocity,const COEF*d)
 {
-    OWNER *owner=p->owner;
+    OWNER *owner=so->owner;
     if(c){
         M3 frame,relative;
         U axis;
@@ -3541,10 +3541,10 @@ struct S { char pad[0xB8]; int c; int pad2; struct E *ae; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds a glob in the object's glob set by oid.
-struct E *FindSoGlob(struct S *p, int oid)
+struct E *FindSoGlob(struct S *so, int oid)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_func_001F5FF8
@@ -3563,10 +3563,10 @@ struct S { char pad[0xE0]; int c; struct E *ae; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds a part by oid (Sly 1 PsopartFindSo).
-struct E *FindSoPart(struct S *p, int oid)
+struct E *FindSoPart(struct S *so, int oid)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_PsopartFindSo
@@ -3765,11 +3765,11 @@ void PloCloneLo__FP2LOP2SO(struct L *, struct A *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 40: clones the object (slot 41) and then every child that was not removed.
-void CloneSoHierarchy(struct A *pa, struct L *p)
+void CloneSoHierarchy(struct A *pa, struct L *so)
 {
     struct L *q;
     pa->pvt->a[41].pfn((char *)pa + pa->pvt->a[41].d);
-    for (q = p->first; q != p->end; q = q->next)
+    for (q = so->first; q != so->end; q = q->next)
         if (!(q->fl & (1L << 57))) PloCloneLo__FP2LOP2SO(q, pa);
 }
 } } // namespace M_CloneSoHierarchy
@@ -3849,13 +3849,13 @@ int GetSoTreeFlag2(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->p
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets bit 2 of the tree flags and frees the tree's contacts.
-extern "C" void SetSoTreeFlag2(SO *pso, int f)
+extern "C" void SetSoTreeFlag2(SO *so, int f)
 {
     SOTREE *ptree;
-    ptree = pso->ptree;
+    ptree = so->ptree;
     if (ptree != 0) {
         ptree->fNoUpdate = f;
-        FreeSoContacts(pso);
+        FreeSoContacts(so);
     }
 }
 
@@ -3872,10 +3872,10 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets (f = 1) bit 48 in the flag word of every part.
-void SetSoPartsBit48(struct P *p, int f)
+void SetSoPartsBit48(struct P *so, int f)
 {
     int i;
-    for (i = 0; i < p->c; i++) p->ae[i].b48 = f;
+    for (i = 0; i < so->c; i++) so->ae[i].b48 = f;
 }
 } } // namespace M_func_001F68A8
 
@@ -3927,11 +3927,11 @@ struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Shows every glob with id k and the part linked to it.
-void ShowSoGlobsById(struct P *p, int k)
+void ShowSoGlobsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (pe->k == k) {
             pe->fl &= ~0x800;
             if (pe->pq) pe->pq->fl &= ~(1L << 50);
@@ -3956,11 +3956,11 @@ struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Hides every glob with id k and the part linked to it.
-void HideSoGlobsById(struct P *p, int k)
+void HideSoGlobsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (pe->k == k) {
             pe->fl |= 0x800;
             if (pe->pq) pe->pq->fl |= (1L << 50);
@@ -3987,11 +3987,11 @@ struct A { char pad[0xB8]; int c; int pad2; struct E *ae; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Hides every glob and its linked part.
-void HideSoAllGlobs(struct A *p)
+void HideSoAllGlobs(struct A *so)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         pe->fl |= 0x800;
         if (pe->pc)
             pe->pc->fl |= 1L << 50;
@@ -4014,11 +4014,11 @@ void ShowSoPart(struct P *, struct E *);
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Shows the parts whose id is k.
-void ShowSoPartsById(struct P *p, int k)
+void ShowSoPartsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i]; if (pe->k == k) ShowSoPart(p, pe);
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i]; if (pe->k == k) ShowSoPart(so, pe);
     }
 }
 } } // namespace M_ShowSoPartsById
@@ -4038,11 +4038,11 @@ void HideSoPart(struct P *, struct E *);
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Hides the parts whose id is k.
-void HideSoPartsById(struct P *p, int k)
+void HideSoPartsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i]; if (pe->k == k) HideSoPart(p, pe);
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i]; if (pe->k == k) HideSoPart(so, pe);
     }
 }
 } } // namespace M_func_001F6B48
@@ -4101,9 +4101,9 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Builds a part's soft-mesh record once: per-vertex velocities and accelerations and the oriented triangles.
-extern "C" void EnsureSoPartMesh(P *p)
+extern "C" void EnsureSoPartMesh(P *so)
 {
-    if(p->mesh)return;
+    if(so->mesh)return;
     U first,second,cross;
     FRAME storage;
     MSG request;
@@ -4111,22 +4111,22 @@ extern "C" void EnsureSoPartMesh(P *p)
     STACKSCOPE_ctor(&storage);
     MSG *allocation=&request;
     request.bytes=triBytes;allocation->alignment=alignment;
-    p->mesh=(MESH *)func_001AE1D0(allocation);
-    request.bytes=p->pointCount*16;allocation->alignment=alignment;
-    p->mesh->velocity=(qword *)func_001AE2A0(allocation);
-    request.bytes=p->pointCount*16;allocation->alignment=alignment;
-    p->mesh->acceleration=(qword *)func_001AE2A0(allocation);
-    request.bytes=p->triCount*triBytes;allocation->alignment=alignment;
-    p->mesh->triangles=(TRI *)func_001AE2A0(allocation);
-    request.bytes=p->triCount*4;allocation->alignment=alignment;
+    so->mesh=(MESH *)func_001AE1D0(allocation);
+    request.bytes=so->pointCount*16;allocation->alignment=alignment;
+    so->mesh->velocity=(qword *)func_001AE2A0(allocation);
+    request.bytes=so->pointCount*16;allocation->alignment=alignment;
+    so->mesh->acceleration=(qword *)func_001AE2A0(allocation);
+    request.bytes=so->triCount*triBytes;allocation->alignment=alignment;
+    so->mesh->triangles=(TRI *)func_001AE2A0(allocation);
+    request.bytes=so->triCount*4;allocation->alignment=alignment;
     int *counts=(int *)func_001AE378(allocation);
     int itri;
     TRI *ptri;
-    for(int i=0;i<p->edgeCount;i++) {
-        EDGE *edge=&p->edges[i];
+    for(int i=0;i<so->edgeCount;i++) {
+        EDGE *edge=&so->edges[i];
         for(int side=0;side<2;side++) {
             itri=edge->face[side];
-            ptri=&p->mesh->triangles[itri];
+            ptri=&so->mesh->triangles[itri];
             for(int endpoint=0;endpoint<2;endpoint++) {
                 int vertex=edge->vertex[endpoint];
                 int j;
@@ -4136,10 +4136,10 @@ extern "C" void EnsureSoPartMesh(P *p)
             }
         }
     }
-    U *positions=p->positions;
-    for(itri=0;itri<p->triCount;itri++) {
-        ptri=&p->mesh->triangles[itri];
-        PLANE *plane=&p->planes[itri];
+    U *positions=so->positions;
+    for(itri=0;itri<so->triCount;itri++) {
+        ptri=&so->mesh->triangles[itri];
+        PLANE *plane=&so->planes[itri];
         first.q=Sub(positions[ptri->vertex[1]].q,positions[ptri->vertex[0]].q);
         second.q=Sub(positions[ptri->vertex[2]].q,positions[ptri->vertex[0]].q);
         cross.q=Cross(first.q,second.q);
@@ -4179,16 +4179,16 @@ static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("s
  * @end-sly2-annot */
 // Integrates a soft-mesh part's vertices by dt (semi-implicit), tracks the largest radius and invalidates the part
 // after large moves.
-void UpdateSoPartMesh(struct P*p,float dt)
+void UpdateSoPartMesh(struct P*so,float dt)
 {
  V scalar;
  register int vertexIndex __asm__("a2")=0;
- qword *velocity=p->mesh->velocity;
+ qword *velocity=so->mesh->velocity;
  register int initialCount __asm__("$3");
- register qword *acceleration __asm__("$5")=({register qword *r __asm__("$5");__asm__("lw %0,%2\n\tlw %1,%3":"=&r"(initialCount),"=r"(r):"m"(p->count),"m"(p->mesh->acceleration));r;});
+ register qword *acceleration __asm__("$5")=({register qword *r __asm__("$5");__asm__("lw %0,%2\n\tlw %1,%3":"=&r"(initialCount),"=r"(r):"m"(so->count),"m"(so->mesh->acceleration));r;});
  register qword *positions __asm__("s4");
  float maximum=0.0f;
- positions=p->positions;
+ positions=so->positions;
  if(initialCount>0){
    register qword time __asm__("vf7")=Scalar(dt);
    register int invalid __asm__("$7")=-1;
@@ -4201,28 +4201,28 @@ void UpdateSoPartMesh(struct P*p,float dt)
      int state;
      qword next,newpoint;
      float square;
-     __asm__("sqc2 %4,%2\n\tlqc2 %0,%3\n\tlw %1,%5":"=j"(force),"=r"(state),"=m"(scalar.q):"m"(*acceleration),"j"(time),"m"(p->state));
+     __asm__("sqc2 %4,%2\n\tlqc2 %0,%3\n\tlw %1,%5":"=j"(force),"=r"(state),"=m"(scalar.q):"m"(*acceleration),"j"(time),"m"(so->state));
      next=Step(old,force,time);
      newpoint=Position(point,old,next,half,&scalar);
-     if(state!=invalid && 1.0f<LengthSquared(Sub(point,newpoint)))p->state=invalid;
+     if(state!=invalid && 1.0f<LengthSquared(Sub(point,newpoint)))so->state=invalid;
      square=LengthSquared(newpoint);
      *position=newpoint;
      *velocityCursor=next;
      if(maximum<square)maximum=square;
-     limit=p->count;
+     limit=so->count;
    }while(++velocityCursor,++position,++acceleration,++vertexIndex<limit);
  }
- p->maximum=Root(maximum);
+ so->maximum=Root(maximum);
  {
-   struct TRI*firstTri=p->mesh->triangles;
-   char *firstPlane=(char*)p->planes;
+   struct TRI*firstTri=so->mesh->triangles;
+   char *firstPlane=(char*)so->planes;
    register int planeIndex __asm__("s3")=0;
-   if(p->triCount>0){struct TRI*tri=firstTri;char*plane=firstPlane;do{
+   if(so->triCount>0){struct TRI*tri=firstTri;char*plane=firstPlane;do{
      qword a=positions[tri->index[0]],b=positions[tri->index[1]],c=positions[tri->index[2]];
      __asm__("addiu %0,%0,12":"+r"(tri));
      InitPlaneFromPositions(plane,a,b,c);
      plane+=0x20;
-   }while(PlaneLess(++planeIndex,p->triCount));}
+   }while(PlaneLess(++planeIndex,so->triCount));}
  }
 }
 
@@ -4322,11 +4322,11 @@ int PbspPointInBspQuick(void *, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
-int IsPosInSo(struct P *p, qword pos)
+int IsPosInSo(struct P *so, qword pos)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (pe->fl & (1L << 50)) continue;
         if (pe->fl & (1L << 49)) {
             qword d, one;
@@ -4370,11 +4370,11 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
-void InflictSoContactZaps(struct P *p)
+void InflictSoContactZaps(struct P *so)
 {
     struct N *pn;
-    for (pn = p->pe->pn; pn; pn = pn->next) {
-        int i = pn->h[0].p8 != p;
+    for (pn = so->pe->pn; pn; pn = pn->next) {
+        int i = pn->h[0].p8 != so;
         struct H *ph = (struct H *)((char *)pn + (i << 6));
         if (ph->po->n18) {
             struct H *pot = (struct H *)((char *)pn + ((1 - i) << 6));
@@ -4382,7 +4382,7 @@ void InflictSoContactZaps(struct P *p)
             if (r) {
                 struct M m;
                 func_002333B4(&m, 0, 0x60);
-                m.p0 = p;
+                m.p0 = so;
                 m.p4 = ph->po;
                 m.p8 = r;
                 m.nC = ph->po->n18;
@@ -4390,13 +4390,13 @@ void InflictSoContactZaps(struct P *p)
                 m.q20 = pot->q10;
                 m.q30 = ph->q30;
                 DeliverZapToSo(&m);
-                if (!p->pe) break;
+                if (!so->pe) break;
             }
         }
     }
-    if (p->pe) {
-        FreeSwXpList__FP2SWP2XP(&D_003DD490, p->pe->pn);
-        p->pe->pn = 0;
+    if (so->pe) {
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, so->pe->pn);
+        so->pe->pn = 0;
     }
 }
 } } // namespace M_func_001F7410
@@ -4414,11 +4414,11 @@ struct N { char pad[0x10]; struct N *next; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the first LO in a chain whose zap response to the given kinds is nonzero.
-struct N *FindZapResponder(struct N *p, void *q)
+struct N *FindZapResponder(struct N *so, void *q)
 {
-    for (; p; p = p->next) {
-        if (GetSoZapResponseFlags(p, q))
-            return p;
+    for (; so; so = so->next) {
+        if (GetSoZapResponseFlags(so, q))
+            return so;
     }
     return 0;
 }
@@ -4435,7 +4435,7 @@ struct N *FindZapResponder(struct N *p, void *q)
  * @end-sly2-annot */
 // Slot 75 (so.h FTakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
 // hurts (inferred).
-extern "C" int CanSoTakeDamage(SO *pso, SOWATCH *pwatch)
+extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 {
     return pwatch->n44 != 0;
 }
@@ -4559,15 +4559,15 @@ static inline void *PvNextDli(struct DLI *pdli)
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Drops zap-history entries older than 0.25 s from the world's list.
-void ExpireSwZapRecords(struct P *p)
+void ExpireSwZapRecords(struct P *so)
 {
     struct DLI dli;
     struct E *pe;
-    InitDli(&dli, &p->dl);
+    InitDli(&dli, &so->dl);
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t < pe->t + 0.25f) continue;
-        RemoveDlEntry__FP2DLPv(&p->dl, pe);
-        func_0011CD98(p->pool, pe);
+        RemoveDlEntry__FP2DLPv(&so->dl, pe);
+        func_0011CD98(so->pool, pe);
     }
     D_002DD2FC = dli.pdliNext;
 }
@@ -4603,10 +4603,10 @@ struct S { char pad[0x110]; unsigned char ab[26]; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // OR of the object's per-kind response bytes (+0x110[26]) for the kinds in grfzpk (Sly 1 GrfzpdFromSoGrfzpk).
-int GetSoZapResponseFlags(struct S *p, int f)
+int GetSoZapResponseFlags(struct S *so, int f)
 {
     int r = 0; int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= p->ab[i]; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= so->ab[i]; m <<= 1; }
     return r;
 }
 } } // namespace M_GrfzpdFromSoGrfzpk
@@ -4625,10 +4625,10 @@ struct S { char pad[0x110]; unsigned char ab[26]; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the object's response byte to b for each zap kind in grfzpk.
-void SetSoZapResponse(struct S *p, int f, int b)
+void SetSoZapResponse(struct S *so, int f, int b)
 {
     int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) p->ab[i] = b; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) so->ab[i] = b; m <<= 1; }
 }
 } } // namespace M_func_001F7918
 
@@ -4658,24 +4658,24 @@ void DeliverZapToSo(struct M *);
  * @end-sly2-annot */
 // Deferred touch callback: processes the contacts' zaps (slot 74), then emits the object's own zap according to
 // its zap mode.
-void HandleSoTouchZaps(struct P *p)
+void HandleSoTouchZaps(struct P *so)
 {
     int k;
     struct M m;
-    if (!p->pe) return;
-    if (p->pe->n6C) ((void (*)(void *))p->pvt->a[74].pfn)((char *)p + p->pvt->a[74].d);
-    if (!p->pe) return;
-    k = (int)(p->u.l >> 24) & 3;
+    if (!so->pe) return;
+    if (so->pe->n6C) ((void (*)(void *))so->pvt->a[74].pfn)((char *)so + so->pvt->a[74].d);
+    if (!so->pe) return;
+    k = (int)(so->u.l >> 24) & 3;
     if (!k) return;
-    SetSoZapMode(p, 0);
+    SetSoZapMode(so, 0);
     func_002333B4(&m, 0, 0x60);
-    m.p8 = p;
-    m.q20 = func_001A62E8(p);
-    m.q30 = ((qword (*)(void *))p->pvt->a[33].pfn)((char *)p + p->pvt->a[33].d);
-    if (k == 3 && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x38)) {
+    m.p8 = so;
+    m.q20 = func_001A62E8(so);
+    m.q30 = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
+    if (k == 3 && FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
         m.nC = 0x40000; m.n10 = -50; m.p0 = D_002F7900.p;
     } else {
-        m.p0 = p; m.nC = 0x20000; m.n10 = p->u.c.b1;
+        m.p0 = so; m.nC = 0x20000; m.n10 = so->u.c.b1;
     }
     DeliverZapToSo(&m);
 }
@@ -4700,24 +4700,24 @@ struct P { char pad[0xE0]; int c; struct E *ae; char pad2[0x148 - 0xE8]; union {
  * @end-sly2-annot */
 // Sets the zap mode (+0x148 bits 24-25, 0..3); mode 2 makes the parts with zap kind 0 damaging (0x10000) with the
 // object's hit damage, the other modes make them harmless.
-void SetSoZapMode(struct P *p, int k)
+void SetSoZapMode(struct P *so, int k)
 {
     int from, to, s;
     int i;
-    if (k == ((int)(p->u.l >> 24) & 3)) return;
+    if (k == ((int)(so->u.l >> 24) & 3)) return;
     switch (k) {
     case 0: case 1: case 3:
         from = 0x10000; to = 0; s = -10;
         break;
     case 2:
-        s = p->u.b; from = 0; to = 0x10000;
+        s = so->u.b; from = 0; to = 0x10000;
         break;
     }
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (pe->n18 == from) { pe->n18 = to; pe->s14 = s; }
     }
-    p->u.f.k = (unsigned int)k;
+    so->u.f.k = (unsigned int)k;
 }
 } } // namespace M_func_001F7A68
 
@@ -4743,9 +4743,9 @@ int GetSoZapMode(struct S *p) { return (int)((long)(p->fl << 8) >> 32) & 3; }
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the hit damage (stored negated in the byte at +0x148; default 10).
-extern "C" void SetSoHitDamage(SO *pso, int n)
+extern "C" void SetSoHitDamage(SO *so, int n)
 {
-    pso->bUnk148 = -n;
+    so->bUnk148 = -n;
 }
 
 // 0x1F7B68 GetSoHitDamage
@@ -4756,9 +4756,9 @@ extern "C" void SetSoHitDamage(SO *pso, int n)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the hit damage.
-extern "C" int GetSoHitDamage(SO *pso)
+extern "C" int GetSoHitDamage(SO *so)
 {
-    return -pso->bUnk148;
+    return -so->bUnk148;
 }
 
 // 0x1F7B78 SetSoHitDamage2
@@ -4769,9 +4769,9 @@ extern "C" int GetSoHitDamage(SO *pso)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the second hit damage (byte +0x149, negated; default 20).
-extern "C" void SetSoHitDamage2(SO *pso, int n)
+extern "C" void SetSoHitDamage2(SO *so, int n)
 {
-    pso->bUnk149 = -n;
+    so->bUnk149 = -n;
 }
 
 // 0x1F7B88 GetSoHitDamage2
@@ -4782,9 +4782,9 @@ extern "C" void SetSoHitDamage2(SO *pso, int n)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the second hit damage.
-extern "C" int GetSoHitDamage2(SO *pso)
+extern "C" int GetSoHitDamage2(SO *so)
 {
-    return -pso->bUnk149;
+    return -so->bUnk149;
 }
 
 // 0x1F7B98 EnsureSoInSwList187
@@ -4797,10 +4797,10 @@ extern "C" int GetSoHitDamage2(SO *pso)
  * @end-sly2-annot */
 /* Gives the object a CID 0x12 child with oid 0x187 unless it has one. */
 // Adds the object to world list 0x187 if it is not in it yet (meaning of the list unknown).
-extern "C" void EnsureSoInSwList187(SO *pso)
+extern "C" void EnsureSoInSwList187(SO *so)
 {
-    if (PloFindSwObject(&D_003DD490, 2, (OID)0x187, pso) == 0) {
-        PloNew((CID)0x12, pso, (OID)0x187, -1);
+    if (PloFindSwObject(&D_003DD490, 2, (OID)0x187, so) == 0) {
+        PloNew((CID)0x12, so, (OID)0x187, -1);
     }
 }
 
@@ -4812,9 +4812,9 @@ extern "C" void EnsureSoInSwList187(SO *pso)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // The object's physics record (+0xE8).
-extern "C" SOPHYS *GetSoPhys(SO *pso)
+extern "C" SOPHYS *GetSoPhys(SO *so)
 {
-    return pso->psophys;
+    return so->psophys;
 }
 
 // 0x1F7BF8 FadeSoOut
@@ -4830,13 +4830,13 @@ void SetSoAlpha(void *, float);
  *   docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
  * @end-sly2-annot */
 // Fades the object out over dur seconds (alpha rate -1/dur); dur <= 0 removes it at once.
-void FadeSoOut(void *p, float f)
+void FadeSoOut(void *so, float f)
 {
     if (f <= 0.0f) {
-        SetSoFadeRate(p, 0.0f);
-        SetSoAlpha(p, 0.0f);
+        SetSoFadeRate(so, 0.0f);
+        SetSoAlpha(so, 0.0f);
     } else {
-        SetSoFadeRate(p, -1.0f / f);
+        SetSoFadeRate(so, -1.0f / f);
     }
 }
 } } // namespace M_FadeSoOut
@@ -4859,17 +4859,17 @@ void SetSoAlpha(struct P *, float);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Fades the object in over dur seconds, re-adding it if it was removed; dur <= 0 shows it at once.
-void FadeSoIn(struct P *p, float f)
+void FadeSoIn(struct P *so, float f)
 {
     if (f <= 0.0f) {
-        SetSoFadeRate(p, 0.0f);
-        SetSoAlpha(p, 1.0f);
+        SetSoFadeRate(so, 0.0f);
+        SetSoAlpha(so, 1.0f);
     } else {
-        if (p->fl & (1L << 56)) {
-            p->pvt->a[8].pfn((char *)p + p->pvt->a[8].d);
-            p->g12C = 0.0f;
+        if (so->fl & (1L << 56)) {
+            so->pvt->a[8].pfn((char *)so + so->pvt->a[8].d);
+            so->g12C = 0.0f;
         }
-        SetSoFadeRate(p, 1.0f / f);
+        SetSoFadeRate(so, 1.0f / f);
     }
 }
 } } // namespace M_FadeSoIn
@@ -4883,16 +4883,16 @@ void FadeSoIn(struct P *p, float f)
  * @end-sly2-annot */
 /* Sets the alpha; at 0 the object is removed (LO Remove, unless it is a CID 0x69), above 0 added (LO Add). */
 // Sets the alpha; at 0 or below the object is removed (except class 0x69), otherwise added.
-extern "C" void SetSoAlpha(SO *pso, float uAlpha)
+extern "C" void SetSoAlpha(SO *so, float uAlpha)
 {
     if (uAlpha <= 0.0f) {
-        if (FIsBasicDerivedFrom(pso, (CID)0x69) == 0) {
-            pso->Remove();
+        if (FIsBasicDerivedFrom(so, (CID)0x69) == 0) {
+            so->Remove();
         }
     } else {
-        pso->Add();
+        so->Add();
     }
-    pso->uAlpha = uAlpha;
+    so->uAlpha = uAlpha;
 }
 
 // 0x1F7D90 SetSoFadeRate
@@ -4910,16 +4910,16 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0x40 - 0x10]; int v40; char 
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the fade rate; a nonzero rate adds the object and marks it for updates.
-void SetSoFadeRate(struct P *p, float g)
+void SetSoFadeRate(struct P *so, float g)
 {
     if (g != 0.0f) {
         int v;
-        p->pvt->a[8].pfn((char *)p + p->pvt->a[8].d);
-        v = p->v40;
+        so->pvt->a[8].pfn((char *)so + so->pvt->a[8].d);
+        v = so->v40;
         if ((v ^ 1) & 1) *(int *)v |= 2;
-        else p->v40 = v | 2;
+        else so->v40 = v | 2;
     }
-    p->g = g;
+    so->g = g;
 }
 } } // namespace M_SetSoFadeRate
 
@@ -4936,12 +4936,12 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Collects the parts that pass an optional predicate into an array; returns the count.
-int CollectSoParts(struct P *p, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
+int CollectSoParts(struct P *so, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
 {
     int n = 0;
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (!pfn || pfn(pv, pe)) {
             ape[n++] = pe;
         }
@@ -5021,11 +5021,11 @@ void RebuildSoPhysHook(struct A *p);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the tree-root flag (+0x148 bit 34, so.h fTreeRoot) and rebuilds the physics hook when it changed.
-void SetSoTreeRoot(struct A *p, long f)
+void SetSoTreeRoot(struct A *so, long f)
 {
-    if (f != p->f) {
-        p->f = f;
-        RebuildSoPhysHook(p);
+    if (f != so->f) {
+        so->f = f;
+        RebuildSoPhysHook(so);
     }
 }
 } } // namespace M_func_001F7F48
@@ -5044,11 +5044,11 @@ void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the master speeds of every scroller (CID 0x8F) in the object's animation list.
-void SetSoScrollerSpeeds(struct P *p, float f, float g)
+void SetSoScrollerSpeeds(struct P *so, float f, float g)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        void *q = p->ap[i];
+    for (i = 0; i < so->c; i++) {
+        void *q = so->ap[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }
@@ -5068,11 +5068,11 @@ void SetSaiDuDv(void *, float, float);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Passes two parameters to every CID 0x8F entry of the object's animation list (inferred).
-void SetSoSaaParams(struct P *p, float f, float g)
+void SetSoSaaParams(struct P *so, float f, float g)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        void *q = p->ap[i];
+    for (i = 0; i < so->c; i++) {
+        void *q = so->ap[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }
@@ -5094,15 +5094,15 @@ void SetEyesClosed(void *, float);
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Opens or closes the eyes (CID 0x8E) of the object and its SO children.
-void SetSoEyesClosed(struct L *p, float f)
+void SetSoEyesClosed(struct L *so, float f)
 {
     int i;
     struct L *q;
-    for (i = 0; i < p->c; i++) {
-        void *pv = p->ap[i];
+    for (i = 0; i < so->c; i++) {
+        void *pv = so->ap[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
     }
-    for (q = p->first; q != p->end; q = q->next)
+    for (q = so->first; q != so->end; q = q->next)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
 }
 } } // namespace M_func_001F80D0
@@ -5121,10 +5121,10 @@ struct S { char pad[0xA4]; int c; struct T **apt; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds an entry of the object's animation list by oid (Sly 1 PsaaFindSoOid).
-struct T *FindSoSaa(struct S *p, int n)
+struct T *FindSoSaa(struct S *so, int n)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct T *pt = p->apt[i]; if (pt->n == n) return pt; }
+    for (i = 0; i < so->c; i++) { struct T *pt = so->apt[i]; if (pt->n == n) return pt; }
     return 0;
 }
 } } // namespace M_PsaaFindSoOid
@@ -5140,20 +5140,20 @@ struct A { char pad[0xAC]; int c; int *a; int n; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Selects an animation by oid: +0xB4 = -(index in the list + 3), or 0 when not found.
-void SetSoAnimIndex(struct A *p, int n)
+void SetSoAnimIndex(struct A *so, int n)
 {
     int i;
     if (n == -1) {
-        p->n = 0;
+        so->n = 0;
         return;
     }
-    for (i = 0; i < p->c; i++) {
-        if (n == p->a[i]) {
-            p->n = -(i + 3);
+    for (i = 0; i < so->c; i++) {
+        if (n == so->a[i]) {
+            so->n = -(i + 3);
             return;
         }
     }
-    p->n = 0;
+    so->n = 0;
 }
 } } // namespace M_func_001F81E0
 
@@ -5242,19 +5242,19 @@ static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pc
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
-struct Q *EnsureSoPhysRegionRecord(struct P *p)
+struct Q *EnsureSoPhysRegionRecord(struct P *so)
 {
-    if (!p->pe) return 0;
-    if (!p->pe->pq) {
+    if (!so->pe) return 0;
+    if (!so->pe->pq) {
         struct CB cb;
         struct Q *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
-        q->p0 = p;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34)) q->g8 = 150.0f;
+        q->p0 = so;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->g8 = 150.0f;
         else q->g8 = 75.0f;
         q->gC = 1.0f;
-        p->pe->pq = q;
+        so->pe->pq = q;
     }
-    return p->pe->pq;
+    return so->pe->pq;
 }
 } } // namespace M_func_001F8300
 
@@ -5267,10 +5267,10 @@ struct Q *EnsureSoPhysRegionRecord(struct P *p)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the region record's second float.
-extern "C" void SetSoPhysRecordParam8(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 {
     STEPREC *prec;
-    prec = EnsureSoPhysRegionRecord(pstep);
+    prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
         prec->g8 = g;
     }
@@ -5302,10 +5302,10 @@ float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the region record's third float.
-extern "C" void SetSoPhysRecordParamC(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 {
     STEPREC *prec;
-    prec = EnsureSoPhysRegionRecord(pstep);
+    prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
         prec->gC = g;
     }
@@ -5338,10 +5338,10 @@ float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the region record's first float.
-extern "C" void SetSoPhysRecordParam4(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 {
     STEPREC *prec;
-    prec = EnsureSoPhysRegionRecord(pstep);
+    prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
         prec->g4 = g;
     }
@@ -5407,16 +5407,16 @@ void func_002333B4(void *, int, int) __asm__("memset");
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Creates an XF handle object (CID 149) for the object's XF matching (oid, kind), for scripts.
-struct Q *NewSoXfHandle(struct P *p, int k, int m)
+struct Q *NewSoXfHandle(struct P *so, int k, int m)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    for (i = 0; i < so->c; i++) {
+        struct E *pe = &so->ae[i];
         if (pe->n94 == m && (k == -1 || pe->n9C == k)) {
             struct Q *q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
             q->pvt = D_002CA2C0;
-            q->p20 = p;
+            q->p20 = so;
             q->p24 = pe;
             q->a = 0;
             q->b = 0;
@@ -5478,16 +5478,16 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets bit 35 of +0x148 on the object and its children, registering them when the world requires it.
-void SetSoBit35Hierarchy(struct L *p, long f)
+void SetSoBit35Hierarchy(struct L *so, long f)
 {
     struct L *q;
-    if (f != p->b35) {
-        p->b35 = f;
+    if (f != so->b35) {
+        so->b35 = f;
         if (D_003DD490.f) {
-            if (f) func_001D6378(p);
-            else func_001D6310(p);
+            if (f) func_001D6378(so);
+            else func_001D6310(so);
         }
-        for (q = p->first; q; q = q->next)
+        for (q = so->first; q; q = q->next)
             if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoBit35Hierarchy(q, f);
     }
 }
@@ -5664,23 +5664,23 @@ void SlotUnsettle(void *, struct Q *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds the XF's actuator of kind k; n = -1 removes it, otherwise it is updated and re-prioritised.
-struct E *FindXfHandleActuator(struct P *p, int k, int n, int m)
+struct E *FindXfHandleActuator(struct P *so, int k, int n, int m)
 {
     struct E *pe;
-    for (pe = p->pq->pe; pe; pe = pe->next) {
+    for (pe = so->pq->pe; pe; pe = pe->next) {
         if (pe->k != k) continue;
         if (n == -1) {
-            func_00230100(p->p20, p->pq, pe);
+            func_00230100(so->p20, so->pq, pe);
             func_0012E210(pe);
             return 0;
         }
         if (m != pe->nC) {
             pe->nC = m;
-            func_002301D0(p->p20, p->pq);
+            func_002301D0(so->p20, so->pq);
         }
-        if (pe == p->pq->pe) {
-            func_002303A0(p->p20, p->pq, n);
-            SlotUnsettle(p->p20, p->pq);
+        if (pe == so->pq->pe) {
+            func_002303A0(so->p20, so->pq, n);
+            SlotUnsettle(so->p20, so->pq);
         }
         return pe;
     }
@@ -5704,14 +5704,14 @@ void func_0012DC18(void *, void *, int, int, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Updates or creates the XF's kind-1 actuator (a target vector) with its parameters.
-void SetXfHandleActuator1(struct P *p, int n, int m, qword q)
+void SetXfHandleActuator1(struct P *so, int n, int m, qword q)
 {
-    struct R *r = FindXfHandleActuator(p, 1, n, m);
+    struct R *r = FindXfHandleActuator(so, 1, n, m);
     if (r) {
         r->n14 = n;
         SetActPositionGoal(r, q);
     } else if (n != -1) {
-        func_0012DC18(p->p20, p->p24, m, n, 2, q);
+        func_0012DC18(so->p20, so->p24, m, n, 2, q);
     }
 }
 } } // namespace M_func_001F89E0
@@ -5731,9 +5731,9 @@ void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
-void SetXfHandleActuator1World(struct A *p, int a, int b, qword q)
+void SetXfHandleActuator1World(struct A *so, int a, int b, qword q)
 {
-    SetXfHandleActuator1(p, a, b, func_0022FC48(0, p->pb->n, q));
+    SetXfHandleActuator1(so, a, b, func_0022FC48(0, so->pb->n, q));
 }
 } } // namespace M_func_001F8A78
 
@@ -5754,12 +5754,12 @@ void SetXfHandleActuator1(struct P *, int, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // SetXfHandleActuator1 with the value taken from a matrix.
-void SetXfHandleActuator1Mat(struct P *p, int a, int b)
+void SetXfHandleActuator1Mat(struct P *so, int a, int b)
 {
     struct M3 c, t;
-    ConvertXfMat(&t, 0, p->po->nA0);
+    ConvertXfMat(&t, 0, so->po->nA0);
     c = t;
-    SetXfHandleActuator1(p, a, b, func_0011BFF0(&c));
+    SetXfHandleActuator1(so, a, b, func_0011BFF0(&c));
 }
 } } // namespace M_func_001F8AD8
 
@@ -5778,15 +5778,15 @@ void func_0012DCA0(void *, void *, int, int, float, float);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Updates or creates the XF's kind-4 actuator with two floats.
-void SetXfHandleActuator4(struct P *p, int n, int m, float f, float g)
+void SetXfHandleActuator4(struct P *so, int n, int m, float f, float g)
 {
-    struct R *r = FindXfHandleActuator(p, 4, n, m);
+    struct R *r = FindXfHandleActuator(so, 4, n, m);
     if (r) {
         r->n14 = n;
         r->g1C = f;
         r->g20 = g;
     } else if (n != -1) {
-        func_0012DCA0(p->p20, p->p24, m, n, f, g);
+        func_0012DCA0(so->p20, so->p24, m, n, f, g);
     }
 }
 } } // namespace M_func_001F8B58
@@ -5807,8 +5807,8 @@ struct S { char pad[0x24]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // For a kind-16 XF: sets its count, vector, angle (degrees to radians) and rate.
-void SetXfHandleKind16Params(struct S *p, int n, qword q, float x, float y, float z, float deg)
-{ struct T *pt = p->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
+void SetXfHandleKind16Params(struct S *so, int n, qword q, float x, float y, float z, float deg)
+{ struct T *pt = so->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
 } } // namespace M_func_001F8BF0
 
 
