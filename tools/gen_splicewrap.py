@@ -6,7 +6,12 @@ Shape (C++):  CRef Wrapper(BASIC *pbasic, int cref, CRef *aref)
     CRef ref = RefSetArgsFromSplice(n, aref, aotyp, &a0, &a1, ...);
     <result setup + native call>;  return ref; }
 We emit C with the hidden return pointer and ctor/dtor calls explicit, reusing m2c's draft for the
-native-call part. Every output is compile-verified; matches go to src/generated/splicewrap/NAME.c.
+native-call part. Every output is compile-verified (as a standalone C file); matches go to
+src/generated/splicewrap/NAME.inc. The .inc files are not compiled on their own: they are fragments of the
+crt0_splicewrap TU, src/game/app/class_registry.cpp, which includes each one at its address inside
+SLY2_SPLICEWRAP_BEGIN(NAME) / SLY2_SPLICEWRAP_END (a new wrapper needs that block added by hand). One TU because the
+original is one: its functions and their .rodata literals interleave in address order (docs/guides/tu-merging.md,
+"class_registry"). Needs the matching-era helpers automatch/quickfix/c_rewrites, which are no longer in the repo.
 """
 import os, re, sys, subprocess, csv, struct
 sys.path.insert(0, os.path.dirname(__file__))
@@ -181,7 +186,7 @@ def main():
     os.makedirs(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap'), exist_ok=True)
     stats = {}
     for nm in names:
-        if os.path.exists(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.c')): stats['already'] = stats.get('already', 0) + 1; continue
+        if os.path.exists(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.inc')): stats['already'] = stats.get('already', 0) + 1; continue
         src, why = gen(nm)
         if src is None:
             stats[why] = stats.get(why, 0) + 1; continue
@@ -195,7 +200,7 @@ def main():
         key = 'match' if sc == 0 else ('cc_fail' if sc is None else 'diff')
         stats[key] = stats.get(key, 0) + 1
         if sc == 0:
-            open(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.c'), 'w').write(src)
+            open(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.inc'), 'w').write(src)
         if len(sys.argv) > 1: print(nm, key, sc)
     print(stats)
 
