@@ -1,5 +1,6 @@
 // waypoint.cpp -- WAYPT, the waypoint beacon: a marker/beam/base drawn over a target, shown or hidden by mode,
 // trigger radius and job state, with its height clipped by the scenery between it and the camera (VU0 asm).
+// Entry points: the WAYPT vtable (Init, PostLoad, Update, RenderSelf) and CalculateWayptCurtainDz.
 // TU 0x229EF0..0x22B040 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_waypoint
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0022B020
@@ -82,40 +83,42 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
 }
 
 // InitSo; 50, 300.0, ... (inferred)
-extern "C" void InitWaypt(WAYPTV *p)
+extern "C" void InitWaypt(WAYPTV *waypoint)
 {
     int f;
-    InitSo(p);
-    f = p->grfLo;
-    p->cidTrigger = 50;
-    p->sRadiusOff = 300.0f;
-    p->sRadiusOn = 500.0f;
-    p->frame = -1;
-    p->ipukReq = -1;
+    InitSo(waypoint);
+    f = waypoint->grfLo;
+    waypoint->cidTrigger = 50;
+    waypoint->sRadiusOff = 300.0f;
+    waypoint->sRadiusOn = 500.0f;
+    waypoint->frame = -1;
+    waypoint->ipukReq = -1;
     if (FIsPtr(f)) *(int *)f |= 0xA;
-    else p->grfLo = f | 0xA;
-    p->grfSo &= ~(1L << 35);
+    else waypoint->grfLo = f | 0xA;
+    waypoint->grfSo &= ~(1L << 35);
 }
 
-static __inline__ void ClearBit(SOV *po)
+// Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.
+static __inline__ void ClearBit(SOV *part)
 {
-    int f = po->grfLo;
+    int f = part->grfLo;
     if ((f ^ 1) & 1) {
         *(int *)f &= ~8;
     } else {
-        po->grfLo = f & ~8;
+        part->grfLo = f & ~8;
     }
 }
 // SO PostLoad then clears grf bit 8 on child markers. (inferred)
 void WAYPT::VUnk14()
 {
-    WAYPTV *p = (WAYPTV *)this;
-    PostSoLoad(p);
-    if (p->psoMarker) ClearBit(p->psoMarker);
-    if (p->psoBeam) ClearBit(p->psoBeam);
-    if (p->psoBase) ClearBit(p->psoBase);
+    WAYPTV *waypoint = (WAYPTV *)this;
+    PostSoLoad(waypoint);
+    if (waypoint->psoMarker) ClearBit(waypoint->psoMarker);
+    if (waypoint->psoBeam) ClearBit(waypoint->psoBeam);
+    if (waypoint->psoBase) ClearBit(waypoint->psoBase);
 }
 
+// Distance between two points.
 static __inline__ float GDist(qwordV a, qwordV b)
 {
     qwordV d;
@@ -129,28 +132,28 @@ static __inline__ float GDist(qwordV a, qwordV b)
     return g;
 }
 // SO update, distance to player/visibility. (inferred)
-extern "C" void UpdateWaypt(WAYPTV *p)
+extern "C" void UpdateWaypt(WAYPTV *waypoint)
 {
     JTV *pj;
     int f;
     float r;
-    UpdateSo(p);
+    UpdateSo(waypoint);
     pj = PpoHero(&D_003DD490);
-    if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, p->cidTrigger)) {
-        r = p->fActive ? p->sRadiusOn : p->sRadiusOff;
-        f = GDist(func_001A62E8(pj), func_001A62E8(p)) < r;
+    if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, waypoint->cidTrigger)) {
+        r = waypoint->fActive ? waypoint->sRadiusOn : waypoint->sRadiusOff;
+        f = GDist(func_001A62E8(pj), func_001A62E8(waypoint)) < r;
     } else f = 0;
-    if ((p->nMode == 0 || p->nMode == 2) && D_003DD490.fUnk3B0C)
+    if ((waypoint->nMode == 0 || waypoint->nMode == 2) && D_003DD490.fUnk3B0C)
         f = 0;
     if (f && FIsBasicDerivedFrom__FP5BASIC3CID(pj, 0x34) &&
         (pj->x2DC != -1 || ((int (*)(void *))pj->vt[77].pfn)((char *)pj + pj->vt[77].d) == 2))
-        f = p->fActive;
-    if (f != p->fActive) {
-        p->fActive = f;
+        f = waypoint->fActive;
+    if (f != waypoint->fActive) {
+        waypoint->fActive = f;
         if (f)
-            ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+            ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, 5, 0, 0, 0, 0);
         else
-            ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 6, 0, 0, 0, 0);
+            ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, 6, 0, 0, 0, 0);
     }
 }
 
@@ -186,18 +189,25 @@ int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
+// Moves an int into a VU register.
 static inline qwordV QI(int i)
 { qwordV r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "rV"(i)); return r; }
+// base + up * k.x.
 static inline qwordV AddUp(qwordV base, qwordV up, qwordV k)
 { qwordV r; __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base), "j"(up), "j"(k)); return r; }
+// base + up * k.x (up also listed as an input, register-order variant).
 static inline qwordV AddUpU(qwordV base, qwordV up, qwordV k)
 { qwordV r; __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base), "j"(up), "j"(k), "j"(up)); return r; }
+// Per-lane maximum (xyz).
 static inline qwordV Max(qwordV a, qwordV b)
 { qwordV r; __asm__("vmax.xyz %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Per-lane minimum (xyz).
 static inline qwordV Min(qwordV a, qwordV b)
 { qwordV r; __asm__("vmini.xyz %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Cross product.
 static inline qwordV Cross(qwordV a, qwordV b)
 { qwordV r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Unit vector of v.
 static inline qwordV Normalize(qwordV v)
 {
     qwordV d, one, r;
@@ -205,10 +215,13 @@ static inline qwordV Normalize(qwordV v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=&j"(r), "+j"(d) : "j"(v));
     return r;
 }
+// Lane z of a 128-bit EE register as a float.
 static inline float ZOfP(qwordV v)
 { float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(v)); return z; }
+// Lane x as a float.
 static inline float FQ(qwordV q)
 { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// Length of the xy part of a vector.
 static inline float LenXY(qwordV v)
 {
     qwordV d, l;
@@ -216,6 +229,8 @@ static inline float LenXY(qwordV v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "j"(d));
     return FQ(l);
 }
+// Signed distance of pos from a plane (xyz normal, w offset); also returns the VU temporaries (variant A, register
+// order for the match).
 static inline float PlaneDistA(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
@@ -229,6 +244,7 @@ static inline float PlaneDistA(UQ &r, UQ &one, qwordV plane, qwordV pos)
     return f;
 }
 
+// Same as PlaneDistA with a different register order (variant B).
 static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
@@ -243,6 +259,7 @@ static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
     return f;
 }
 
+// Same as PlaneDistA (variant S).
 static inline float PlaneDistS(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
@@ -259,9 +276,11 @@ static inline float PlaneDistS(UQ &r, UQ &one, qwordV plane, qwordV pos)
 
 // ZOfN/LenXYFN: n (the loaded count) is an allocation-only operand (6 extra reads on the last asm) so its local-alloc priority
 // log2(refs)*refs/life beats the z/len temps (cpso v0, z v1, len a0); t is a TI temp (qty size 2) so z is allocated before len.
+// Lane z as a float (with n as an allocation-only operand).
 static inline float ZOfN(qwordV v, int n)
 { qwordV t; float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(t) : "j"(v));
   __asm__("mtc1 %1,%0" : "=f"(z) : "r"(t)); return z; }
+// Length of the xy part, with the count n as an allocation-only operand (see above).
 static inline float LenXYFN(qwordV v, int n)
 {
     qwordV d, l;
@@ -435,9 +454,12 @@ void func_001A5FB8(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
 void func_001CD780(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
+// Draws the job-name plate text at pos.
 static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { func_001CD780(pos, s, PchzFindSwLangstr__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
+// Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
+// Clamps g to [gMin, gMax].
 static inline float GLimitG(float g, float gMin, float gMax)
 {
     float gRet;
@@ -449,18 +471,21 @@ static inline float GLimitG(float g, float gMin, float gMax)
         gRet = g;
     return gRet;
 }
+// Wraps a float as a VU_FLOAT.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Wraps an int-held float bit pattern as a VU_FLOAT.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// base + vec * g.
 static inline qwordV QwAddScaled(qwordV qwBase, qwordV qwVec, VU_FLOAT g)
 {
     qwordV qw;
@@ -474,6 +499,7 @@ static inline qwordV QwAddScaledG(qwordV qwBase, qwordV qwVec, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC, %2, $vf0\n\tvmaddx.xyzw %0, %3, %1x" : "=j"(qw) : "j"(g.qw), "j"(qwBase), "j"(qwVec));
     return qw;
 }
+// Vector scaled by lane x of g.
 static inline qwordV QwMulX(qwordV qwRow, VU_FLOAT g)
 {
     qwordV qw;
