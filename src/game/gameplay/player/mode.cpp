@@ -257,19 +257,18 @@ extern "C" void PostLoadJtMode(JTMODE *jtMode)
 extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *widget)
 {
     if (jtMode->nState != -1) {
-        if (jtMode->nKind != 1 && kind == 1) {
-            SetJtModeState(jtMode, 2);
-            SetJtModeState(jtMode, -1);
-            goto start;
-        }
-    } else {
-    start:
-        jtMode->nKind = kind;
-        jtMode->pstepOther = otherStep;
-        jtMode->ploHudOverride = widget;
-        SetJtModeState(jtMode, 0);
+        // A running mode only gives way to a recon request: end and reset it first.
+        if (jtMode->nKind == 1 || kind != 1)
+            return;
+        SetJtModeState(jtMode, 2);
+        SetJtModeState(jtMode, -1);
     }
+    jtMode->nKind = kind;
+    jtMode->pstepOther = otherStep;
+    jtMode->ploHudOverride = widget;
+    SetJtModeState(jtMode, 0);
 }
+
 
 /** @sly2-annot addr=0x19CCE8
  * Purpose: Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10
@@ -714,16 +713,15 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
         return;
     if (hud->nState) {
         int previous = hud->pjtmode->pstepplayer->nInteractMode;
+        // Interact mode 4 (engaged with a guard) shows the alert animation 0x353 on the HUD.
         if (previous == 4) {
             if (D_002BF920 != previous)
                 PlayWidgetAnim(hud->pwidgetHud, 0x353);
-            if (hud->pjtmode->pstepplayer->nInteractMode == previous)
-                goto store;
         }
-        if (D_002BF920 == 4)
+        if ((previous != 4 || hud->pjtmode->pstepplayer->nInteractMode != previous) && D_002BF920 == 4)
             StopWidgetAnim(hud->pwidgetHud, 0x353);
-    store:
-        D_002BF920 = hud->pjtmode->pstepplayer->nUnk10e4;
+        D_002BF920
+ = hud->pjtmode->pstepplayer->nUnk10e4;
     }
     SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->pstepplayer->radTarget + 3.14159265f) * 0.15915494f);
     SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
