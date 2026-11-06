@@ -4604,8 +4604,8 @@ UCompleteCircler__FP7CIRCLER,0x1EE768,17,match,src/game/engine/graphics/pipeline
 PropagateSais,0x1EE7B0,28,match,src/game/engine/graphics/pipeline/shdanim.cpp
 StaticInit_shdanim,0x1EE820,77,match,src/game/engine/graphics/pipeline/shdanim.cpp
 func_001EE958,0x1EE958,8,match,src/game/engine/graphics/pipeline/shdanim.cpp
-WSjisFromCh,0x1EE988,58,match,src/game/engine/font/sjis.cpp
-ConvertPchzToSjis,0x1EEA70,38,match,src/game/engine/font/sjis.cpp
+ConvertCharToSjis,0x1EE988,58,match,src/game/engine/font/sjis.cpp
+ConvertStringToSjis,0x1EEA70,38,match,src/game/engine/font/sjis.cpp
 StaticInit_sjis,0x1EEB08,77,match,src/game/engine/font/sjis.cpp
 func_001EEC40,0x1EEC40,8,match,src/game/engine/font/sjis.cpp
 InitBhvstk,0x1EEC60,2,match,src/game/gameplay/ai/bhvstk.cpp
