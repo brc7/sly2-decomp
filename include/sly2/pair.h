@@ -7,8 +7,8 @@
  * CPairPtr is a view of sly2/basic.h's CRefPtr<CPair> (CONFIRMED by match: splice/gc.cpp emits both functions as the
  * instances __as__t7CRefPtr1Z5CPairP5CPair and _$_t7CRefPtr1Z5CPair, linkonce, with the real template). The view
  * stays for its includers: they call both out of line, where the template's inline destructor would be inlined
- * unless instantiated in gc.cpp's order. The assignment is bound by asm label; the destructor cannot be (g++ drops
- * the call), so its includers reference _$_8CPairPtr, which config/link_aliases.txt binds to the instance. Callers
+ * unless instantiated in gc.cpp's order. It is an explicit specialization of the template, so both calls name the
+ * instances' symbols (no asm label: g++ drops a labelled destructor's call; no alias line since data/vtables-2). Callers
  * that release a pair inline (the "SPW"/"SPN" owners of CPair_CloneTo and the list builtins) keep their own views.
  * See docs/guides/tu-merging.md, "Linkonce copies by family" and "Views unified". */
 #ifndef SLY2_PAIR_H
@@ -20,13 +20,19 @@ extern "C" void Unlink__t6CGcObj1Z5CPair(void *pv);
 
 struct CPair;
 
-/* counted link to a pair (out-of-line destructor and assignment) */
-struct CPairPtr
+/* counted link to a pair: the includers' view of CRefPtr<CPair> (sly2/basic.h), an explicit specialization
+   with only what they use, so that its out-of-line destructor and assignment are the template's instances by their
+   own symbols (_$_t7CRefPtr1Z5CPair, __as__t7CRefPtr1Z5CPairP5CPair: splice/gc.cpp emits them from the real template, which it does not see
+   specialized). */
+template <class T> class CRefPtr;
+template <> class CRefPtr<CPair>
 {
+public:
       CPair *p;
-      ~CPairPtr();
-      void operator=(CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+      ~CRefPtr();
+      void operator=(CPair *ppair);
 };
+typedef CRefPtr<CPair> CPairPtr;
 
 struct CPair
 {

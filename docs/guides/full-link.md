@@ -95,6 +95,28 @@ data gaps"). Values of `python3 tools/link.py` from freshly built objects; integ
 | relocations checked against the ELF | 29,704 OK, 0 mismatched | scratch relverify.py |
 
 
+### Status (data/vtables-2 on link/eopid-real-refs 1a7c0130, 2026-11-06; superseded above)
+
+data/vtables-2 (from link/eopid-real-refs 1a7c0130): 44 more vtables emitted by their key TUs and config/link_aliases.txt
+gone ([tu-merging.md, "Vtables emitted, continued (data/vtables-2)"](tu-merging.md#vtables-emitted-continued-datavtables-2)).
+The table below holds for it; the next section's values where not listed. Values of `python3 tools/link.py` from
+freshly built objects (build/link/obj and obj-tu deleted first); link/eopid-real-refs' in brackets.
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (329 SDK sources carried over); config/matched.csv unchanged by the run (the two renamed rows, `__builtin_new` and `_$_10CStreamBis`, set by hand) | `JOBS=3 tools/progress.py`, cache deleted |
+| all game sources (210) | functions 6,017 / 6,017, data symbols 1,976 / 1,976 [1,932] MATCH (bq's `__17CQueueInputMemoryPUci` has no config address, as before) | `tools/matchtool.py check` |
+| vtables from objects | 226 `.gnu.linkonce.d._vt$*` sections [182]: class_registry 19, act 17, exit_warp 3, gomer, memcard, asega, tail, ik; each slot for slot against the ELF (tn's `_vt$7CMPART2` has no config name, as before), each object's in ascending address order, the objects in TU order; not emitted: blend's `_vt$3AC5`/`_vt$4ACG2` and 62 vtables without a config name | scratch vtcheck.py, ordercheck.py, tuorder.py |
+| config/link_aliases.txt | deleted [42 lines, 30 entries]; tools/linkaliases.py reads it only if present (its address-name derivation is still called by link.py) | — |
+| undefined references not in config (209 merged objects) | 5 [39]: tn's `Init__5CPLCY` and four `_gp` | scratch symcheck.py |
+| duplicate strong definitions | 0 | scratch symcheck.py |
+| relocations checked against the ELF | 51,943 [50,740] OK, 0 mismatched, without an alias file | scratch relverify.py |
+| ld.lld | 0 errors; 2,238 [2,194] sections placed, 3 unplaced (172 bytes, unchanged) | `tools/link.py` |
+| differing bytes | 0; `.data` from objects 171,264 [160,936] | `tools/link.py` |
+| blob bytes | 834,928 [845,256]: data no object defines 205,728 [216,056] | `tools/link.py` |
+| config names at their config address | 7,884 / 7,884 [7,824] | `tools/link.py` |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
 ### Status (integrate/round8 with link/eopid-real-refs, 2026-11-06; superseded above)
 
 Authoritative numbers for integrate/round8: main f674c97e + link/real-link (with link/crt0-block: the crt0_splicewrap
@@ -825,7 +847,7 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 | ~~crt0_splicewrap `.rodata`~~ | ~~98,000~~ | 0x262380..0x27A250 | class_registry.cpp | done (data/crt0-tables): the 199 class option arrays, g_mpcidarysplopt, HandleBasicSpliceEvent's event parameter types |
 | ~~crt0_splicewrap `.data`~~ | ~~57,960~~ | 0x2AC880..0x2BAAE8 | class_registry.cpp | done (data/crt0-tables): g_aeopid, the 1,449 option records |
 | tu_1147D8's built-in font | 132,464 | 0x27A250..0x29A7C0 | tu_1147D8 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
-| registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: class_registry (13 vtables at 0x2C8940..0x2CA4D0), gomer.cpp, exit_warp.cpp, act.cpp's curve classes and the other unnamed vtables (GRABSPOT's at 0x2D28D8, grabspot.cpp) | class_registry defines one getter of each of its 13 classes as the member; GOMER's slot 7 signature; exit_warp's bis.h/vec.h clash with basic.h; names for the unnamed classes |
+| registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs), 24,944 after data/vtables-2 (44 more, 10,328 bytes) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: blend.cpp's AC5/ACG2 (config names, not emitted) and 62 vtables without a config name (about 7,950 bytes: STEPPLAYER, the camera policies, the screens, the rips, GRABSPOT at 0x2D28D8, LEAP, WIDGET...) | real classes with the ELF's layout and a key function in each key TU, as data/vtables-2 did (tu-merging.md "Vtables emitted, continued") |
 | palette TUs' tables | 33,024 | 0x29A800 | tail of tu_1147D8 / head of tu_114AE0 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
 | small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
@@ -838,7 +860,7 @@ D_00443800.., libkernel's `_sif_*`, libgcc's `objects`, then the template static
 reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gaps.
 
 Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
-needs the key TUs' first virtuals; done but for 17 in data/vtables), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
+needs the key TUs' first virtuals; done in data/vtables and data/vtables-2 for every vtable with a config name but blend's two), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the absolute-address list
 of tools/linkaliases.py.
 
 ### 3. SDK objects instead of blobs

@@ -308,6 +308,14 @@ struct CID148 : public BASIC
     virtual void VUnk01() __asm__("DecrefXfh");   /* slot 2 */
 };
 typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class descriptor cb */
+/* 149 CID149 (0x30): Splice XF handle; vtable 0x2CA2C0, 6 slots. Moved here from sly2/classes.h: class_registry, its
+   key TU, emits it right after CID150 (g++ 2.95 emits a TU's vtables in the reverse order of their classes). */
+struct CID149 : CID148
+{
+    char pad20[0x30 - 0x20];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
+};
+typedef char assert_CID149_size[sizeof(CID149) == 0x30 ? 1 : -1];
 struct CID150 : public CID148
 {
       SO *pso;              /* +0x20 */

@@ -3,8 +3,10 @@
 #ifndef BIS_H
 #define BIS_H
 #include "common.h"
-#include "mat.h"
 
+/* The readers take these by pointer only: declared, not defined, so that a TU can bring bis.h together with
+   sly2/basic.h (whose VECTOR is not mat.h's 16-byte one). bis.cpp includes mat.h itself. */
+struct VECTOR; struct VECTOR4; struct MATRIX3; struct MATRIX4;
 struct GEOM;
 
 class CBinaryInputStream

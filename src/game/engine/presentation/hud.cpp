@@ -56,7 +56,7 @@ extern CLOCK D_002DDED0;        /* g_clock */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
-extern "C" char D_C0[];         /* VU1 microprogram entry at 0xC0 */
+extern "C" char D_000000C0[];         /* VU1 microprogram entry at 0xC0 */
 char *PchzFindSwLangstr(SW *psw, int id);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 int FFindDlEntry(DL *pdl, void *pv);
@@ -543,17 +543,14 @@ void BeginRpHud(void *p)
 extern "C" void EndRpHud(VIFS *pvifs)
 {
     pvifs->AddDmaCnt();
-    pvifs->AddVifMscal(D_C0);
+    pvifs->AddVifMscal(D_000000C0);
     pvifs->AddVifFlusha();
     pvifs->EndDmaCnt();
 }
 
 // 0x211C58 func_00211C58
-namespace M_func_00211C58 {
-struct B { char pad[0xC]; B() __asm__("WIDGET_ctor"); virtual void f(); };
-struct D : B { char pad2[0x100]; int a[4]; int x120; D() __asm__("func_00211C58"); virtual void f(); };
-D::D() { a[0] = -1; a[1] = -1; a[2] = -1; a[3] = -1; x120 = -1; }
-} // namespace M_func_00211C58
+/* WIDGET130's constructor (sly2/classes.h): WIDGET_ctor, the vptr (_vt$9WIDGET130, class_registry's), the fields. */
+WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; anUnk110[3] = -1; nUnk120 = -1; }
 
 // 0x211CA8 func_00211CA8
 namespace M_func_00211CA8 { extern "C" {

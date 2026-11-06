@@ -262,7 +262,8 @@ extern "C" void free(void *pv)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE4F8(int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; return func_001AE2A0(&m); }
+/* ::operator new (g++ 2.95's symbol for it is __builtin_new). */
+void *operator new(unsigned int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; return func_001AE2A0(&m); }
 
 /* ::operator delete (g++ 2.95's symbol for it is __builtin_delete): nothing to free. */
 /** @sly2-annot addr=0x1AE520

@@ -19,6 +19,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/screen.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -2692,24 +2693,20 @@ extern "C" void func_001ADC40(char*buf,int idx){
 }
 } // namespace M_func_001ADC40
 
-namespace M_func_001ADDF0 {
-extern "C" void func_001DA7D0(void *p);
-struct CBase {
-    int a, b, c;
-    CBase() __asm__("func_001DA728");
-    virtual void f();
-};
-struct CDer : CBase {
-    int x10, x14, x18, x1c, x20;
-    CDer() __asm__("func_001ADDF0");
-    virtual void f();
-};
-CDer::CDer()
+/* CMcStatus (DRAFT name, from the functions' annotations): the memory-card status widget (0x40; vtable 0x2D36D0,
+   memcard's): a SCREEN with its own Update (slot 7) and SetMode (slot 14, the key function). */
+struct CMcStatus : SCREEN
 {
-    x20 = 0x5D4;
-    func_001DA7D0(this);
+    char pad30[0x40 - 0x30];
+    CMcStatus() __asm__("func_001ADDF0");
+    virtual void SetMode(int nMode) __asm__("func_001ADF78");   /* slot 14 */
+    virtual void Update() __asm__("func_001ADEE8");   /* slot 7 */
+};
+CMcStatus::CMcStatus()
+{
+    idTextQueued = 0x5D4;
+    ResetMode();
 }
-} // namespace M_func_001ADDF0
 
 namespace M_func_001ADE38 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
@@ -2786,8 +2783,9 @@ extern "C" void func_001ADEE8(MCDLG *pdlg)
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void func_001ADF78(MCDLG *pdlg, int nMode)
+void CMcStatus::SetMode(int nMode)
 {
+    MCDLG *pdlg = (MCDLG *)this;
     if (nMode != pdlg->nMode) {
         pdlg->nMode = nMode;
         pdlg->tMode = D_002DDED0.tReal;

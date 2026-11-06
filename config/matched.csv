@@ -2951,7 +2951,7 @@ PgrabspotFromLo,0x184670,55,match,src/game/gameplay/player/grabspot.cpp
 StaticInit_grabspot,0x184750,77,match,src/game/gameplay/player/grabspot.cpp
 func_00184888,0x184888,8,match,src/game/gameplay/player/grabspot.cpp
 func_001848A8,0x1848A8,42,match,src/game/core/binstream/tu_1848A8.cpp
-func_00184950,0x184950,20,match,src/game/core/binstream/tu_1848A8.cpp
+_$_10CStreamBis,0x184950,20,match,src/game/core/binstream/tu_1848A8.cpp
 func_001849A0,0x1849A0,176,match,src/game/core/binstream/tu_1848A8.cpp
 func_00184C60,0x184C60,15,match,src/game/core/binstream/tu_1848A8.cpp
 CStreamBis_Refill,0x184CA0,19,match,src/game/core/binstream/tu_1848A8.cpp
@@ -3488,7 +3488,7 @@ STACKSCOPE_ctor,0x1AE478,10,match,src/game/platform/memory/memory.cpp
 _$_10STACKSCOPE,0x1AE4A0,17,match,src/game/platform/memory/memory.cpp
 malloc,0x1AE4E8,2,match,src/game/platform/memory/memory.cpp
 free,0x1AE4F0,2,match,src/game/platform/memory/memory.cpp
-func_001AE4F8,0x1AE4F8,10,match,src/game/platform/memory/memory.cpp
+__builtin_new,0x1AE4F8,10,match,src/game/platform/memory/memory.cpp
 __builtin_delete,0x1AE520,2,match,src/game/platform/memory/memory.cpp
 CopyAqw__FPvT0i,0x1AE528,29,match,src/game/platform/memory/memory.cpp
 CopyAb__FPvT0Ui,0x1AE5A0,54,match,src/game/platform/memory/memory.cpp
