@@ -89,7 +89,14 @@ namespace M_func_001709A8 { extern "C" {
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // 0x1709A8: Classifies a script target for moving along it: 0 for a rail-like object (cid 0xD), 1 for a pipe-like
 // object (cid 0xB), else -1 (inferred nouns).
-int GetShapeMoveKind(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return 0; if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return 1; return -1; }
+int GetShapeMoveKind(void *p)
+{
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD))
+        return 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xB))
+        return 1;
+    return -1;
+}
 } } // namespace M_func_001709A8
 
 // 0x1709F8: Guard script (cid 0x71) vtable slot 7 (Init): LO Init, then an empty command list.
@@ -286,41 +293,94 @@ void FindShapeClosestPointFromS(struct P*,qword,void*,qword*,qword*,float*,float
 // VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector.
-static inline float Length(qword v){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+static inline float Length(qword v)
+{
+    qword d, one;
+    float f;
+    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=j"(d), "=&j"(one)
+            : "0"(v));
+    __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
+    __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
+    return f;
+}
 // Choose the closest eligible point while walking the selector chain.
 // 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
 // commands inside busy-on/off brackets; used to resume a script near the guard.
-void ChooseGuardScriptNearestCommand(struct P*root,qword pos,struct CHOICE*out){
- struct CHOICE choice;
- U hit;
- float value;
- struct P*current=root;
- struct N*node;
- int stopped=0;
- float best=D_002A52B0;
- for(node=current->head;node;node=node->next){
-  switch(node->kind){
-  case 11:stopped=1;break;
-  case 12:stopped=0;break;
-  case 3:case 7:
-   if(stopped)break;
-   if(node->tag!=-1){struct P*object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,4,node->tag,current);GetGuardScriptTargetPose(root,pos,object,&hit.q,0);}
-   else if(node->position)hit.q=*node->position;
-   {float d=Length(Sub(pos,hit.q));if(d<best){best=d;choice.node=node;choice.object=current;}}
-   break;
-  case 6:
-   if(stopped)break;
-   {struct P*object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,4,node->tag,current);
-    if(out && out->node==node)FindShapeClosestPointFromS(object,pos,0,&hit.q,0,0,&value,out->value);
-    else FindShapeClosestPoint(object,pos,0,&hit.q,0,0,&value);
-    {float d=Length(Sub(pos,hit.q));if(d<best){best=d;choice.node=node;choice.value=value;choice.object=current;}}
-   }
-   break;
-  case 0:{int kind=5;if(current)kind=4;current=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,kind,node->tag,current);break;}
-  case 1:case 2:case 4:case 5:case 8:case 9:case 10:break;
-  }
- }
- if(out)*out=choice;
+void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *out)
+{
+    struct CHOICE choice;
+    U hit;
+    float value;
+    struct P *current = root;
+    struct N *node;
+    int stopped = 0;
+    float best = D_002A52B0;
+    for (node = current->head; node; node = node->next) {
+        switch (node->kind) {
+        case 11:
+            stopped = 1;
+            break;
+        case 12:
+            stopped = 0;
+            break;
+        case 3:
+        case 7:
+            if (stopped)
+                break;
+            if (node->tag != -1) {
+                struct P *object = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
+                GetGuardScriptTargetPose(root, pos, object, &hit.q, 0);
+            } else if (node->position)
+                hit.q = *node->position;
+            {
+                float d = Length(Sub(pos, hit.q));
+                if (d < best) {
+                    best = d;
+                    choice.node = node;
+                    choice.object = current;
+                }
+            }
+            break;
+        case 6:
+            if (stopped)
+                break;
+            {
+                struct P *object = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
+                if (out && out->node == node)
+                    FindShapeClosestPointFromS(object, pos, 0, &hit.q, 0, 0, &value, out->value);
+                else
+                    FindShapeClosestPoint(object, pos, 0, &hit.q, 0, 0, &value);
+                {
+                    float d = Length(Sub(pos, hit.q));
+                    if (d < best) {
+                        best = d;
+                        choice.node = node;
+                        choice.value = value;
+                        choice.object = current;
+                    }
+                }
+            }
+            break;
+        case 0: {
+            int kind = 5;
+            if (current)
+                kind = 4;
+            current = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, kind, node->tag, current);
+            break;
+        }
+        case 1:
+        case 2:
+        case 4:
+        case 5:
+        case 8:
+        case 9:
+        case 10:
+            break;
+        }
+    }
+    if (out)
+        *out = choice;
 }
 } } // namespace M_func_00170E90
 
@@ -364,7 +424,15 @@ void GetGuardScriptTargetPose(void *pv, qword pos, struct O *po, qword *ppos, fl
 
 // 0x1711F0: Finds the label command (kind 9) with the given id.
 /* The label command (kind 9) with the given id. The unused array is part of the original frame. */
-extern "C" SSGE *FindGuardScriptLabel(SSG *script, int id) { int unused[4]; SSGE *command; for (command = (SSGE *)script->commands.head; command; command = command->next) if (command->kind == 9 && command->id == id) break; return command; }
+extern "C" SSGE *FindGuardScriptLabel(SSG *script, int id)
+{
+    int unused[4];
+    SSGE *command;
+    for (command = (SSGE *)script->commands.head; command; command = command->next)
+        if (command->kind == 9 && command->id == id)
+            break;
+    return command;
+}
 
 // 0x171228: Script behaviour (BHV169) vtable slot 7 (OnPush): base, then raises guard flag 0x21.
 void BHV169::OnPush()
@@ -518,7 +586,12 @@ struct G { int a; };
 extern struct G D_003DD490;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int owner);
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
-void *FindBhvScriptTarget(struct S *behavior, int oid) { int o = behavior->context; int k = o ? 4 : 5; return PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, k, oid, o); }
+void *FindBhvScriptTarget(struct S *behavior, int oid)
+{
+    int o = behavior->context;
+    int k = o ? 4 : 5;
+    return PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, k, oid, o);
+}
 } } // namespace M_func_001715B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -731,7 +804,10 @@ struct S { char pad[0x10]; void *guard; char pad2[0x1C]; void *script; };
 qword func_001A62E8(void *p);
 void GetGuardScriptTargetPose(void *p, qword q, int a, int b, int c);
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
-void GetBhvScriptTargetPose(struct S *behavior, int a, int b, int c) { GetGuardScriptTargetPose(behavior->script, func_001A62E8(behavior->guard), a, b, c); }
+void GetBhvScriptTargetPose(struct S *behavior, int a, int b, int c)
+{
+    GetGuardScriptTargetPose(behavior->script, func_001A62E8(behavior->guard), a, b, c);
+}
 } } // namespace M_func_00171AF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -799,7 +875,17 @@ void *func_00205458(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
-void StartGuardScript(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
+void StartGuardScript(void *p, int n)
+{
+    struct F f;
+    void *o = func_00205458(p, 0x9C);
+    if (o) {
+        func_002333B4(&f, 0, sizeof(f));
+        f.a[4] = n;
+        f.a[0] = 5;
+        SetBhvguardMode(o, &f);
+    }
+}
 } } // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -809,7 +895,16 @@ void *func_00205458(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
-void SetGuardRoutineMode(void *p) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
+void SetGuardRoutineMode(void *p)
+{
+    struct F f;
+    void *o = func_00205458(p, 0x9C);
+    if (o) {
+        func_002333B4(&f, 0, sizeof(f));
+        f.a[0] = 1;
+        SetBhvguardMode(o, &f);
+    }
+}
 } } // namespace M_func_00171D58
 
 // 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
