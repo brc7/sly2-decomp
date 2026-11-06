@@ -1080,7 +1080,7 @@ qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate) __asm__("func_002
 extern "C" void func_0022FA20(SO *pso);
 extern "C" void SolveIk(SO *pso, void *pv);
 extern "C" void ApplyXfmConstraint(SO *pso, struct XFLOCK *pxflock);
-void UpdateChainLink(SO *pso, struct CHAINLINK *plink) __asm__("func_0021CB18");
+void UpdateChainLink(SO *pso, struct CHAINLINK *plink) __asm__("UpdateChainLink");
 extern "C" float *VECTOR_opAssign(float *pg, qword qw);
 
 // ---- xf's .data, in address order (docs/guides/tu-merging.md "Data"; definition order is emission order, so the

@@ -1,5 +1,7 @@
 // tail.cpp -- chains of transforms that hang off an SO (tails, ropes): the chain actions, loading the chains from
 // the level, and the per-frame chain simulation (VU0 macro-mode asm).
+// Entry points: LoadSoChainsFromBrx (SO loading), UpdateChainLink (per-frame, from UpdateSoSlots' role-0x10 actions),
+// CloneChainAct / ACT3::VSlot1 (the chain action's clone and retract slots).
 // TU 0x21C820..0x21D278 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021D258
@@ -30,7 +32,9 @@ void func_0012CE98(ACTCHAINV *pact);
  * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
  *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
  * @end-sly2-annot */
-extern "C" void func_0021C820(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
+// Clones a chain action onto a new transform (ACT vtable "clone" slot, inferred): runs the generic CloneAct, then
+// remembers the chain link the target transform already pointed at (+0xA8) so Retract can restore it.
+extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 {
     CloneAct(pact, a1, a2, pxf);
     pact->plink = *(void **)(pxf + 0xA8);
@@ -45,6 +49,8 @@ extern "C" void func_0021C820(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
  * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
 /* ACT3's slot 1, its key function (sly2/act.h). */
+// Retracts a chain action (inferred: the inverse of CloneChainAct): runs the base act retract (unlinks it from the
+// transform's action list) and writes the saved chain link back into the transform's +0xA8 back-pointer.
 void ACT3::VSlot1()
 {
     ACTCHAINV *pact = (ACTCHAINV *)this;
@@ -90,6 +96,10 @@ static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; r
  *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse,
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
+// Loads an SO's chains (tails, ropes) from the level stream. Per chain: step count, bend stiffness, damping, relative
+// damping, maximum bend angle, gravity and anchor vectors, then the links; each link resolves its transform through the
+// SO's vtable slot 51, gets a kind-3 chain action registered on that transform (AddXfAct), and finally the rest segments
+// from each link to the next (or the last one's continuation) are computed in link space and in world space.
 extern "C" void LoadSoChainsFromBrx(struct S *p,void *stream) {
     int count=S8Read__18CBinaryInputStream(stream);
     int i,j;
@@ -134,7 +144,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *p,void *stream) {
     }
 }
 
-// func_0021CB18: ported from Lilly's personal Sly 2 decomp (src/P2/chain.c), reduced to the declarations it needs.
+// UpdateChainLink: ported from Lilly's personal Sly 2 decomp (src/P2/chain.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002DDED0 (g_clock), D_003DD490 (g_sw)
 // 0x0021CB18 UpdateChainLink__FP2SOP9CHAINLINK (our name; role 0x10 of UpdateSoSlots 0x22DE88)
@@ -291,7 +301,7 @@ static inline float GMaxOf(float a, float b)
 {
     return (a > b) ? a : b;
 }
-void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("func_0021CB18");
+void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("UpdateChainLink");
 /** @sly2-annot addr=0x21CB18
  * Purpose: per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then
  *   aims the XF at the simulated tip
@@ -299,6 +309,10 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("func_0021CB18");
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
+// Per-frame chain simulation, run for every link of a chain (action role 0x10). The first call in a frame simulates the
+// chain from this link to the tip in cstep substeps (bend limit, damping, bend spring, gravity, rest-length constraint);
+// every call then rotates its own transform so the rest segment points at the simulated tip. See the block comment above
+// for the full algorithm and matching notes.
 void UpdateChainLink(SO *pso, CHAINLINK *plink)
 {
     CHAIN *pchain = plink->pchain;

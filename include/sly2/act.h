@@ -187,7 +187,7 @@ struct ACT3 : ACT
 {
     int n1C;
     virtual void VSlot1() __asm__("func_0021C858");   /* slot 1 */
-    virtual void Clone() __asm__("func_0021C820");   /* slot 6 */
+    virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
 };
 
 /* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): kind 7 */

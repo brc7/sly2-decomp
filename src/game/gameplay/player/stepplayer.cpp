@@ -2283,7 +2283,7 @@ extern "C" void HeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pplo
 
 namespace M_func_00142AF8 {
 // func_00142AF8 (Claude agent, laneC38 2026-10-24): MATCH from fresh5 (aligned 18). Every matrix product is written with Lilly's
-// MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/func_0021CB18.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
+// MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/UpdateChainLink.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
 // result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
