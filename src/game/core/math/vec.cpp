@@ -1050,3 +1050,20 @@ extern "C" qword VecMaxArray(int c, qword *p)
     return m;
 }
 }
+
+// ---- vec's .rodata (0x2A2DA0..0x2A2E50, after mat's matrices in the first part of .rodata): the axis, zero, one and
+// FLT_MAX vectors (VECTOR, then VECTOR4), which many TUs read (Sly 1's g_vecXAxis and kin: names DRAFT). Under asm
+// labels so that no declaration has to agree with the definitions' types.
+namespace RO_VEC {
+extern const float r_D_002A2DA0[4] __asm__("D_002A2DA0") __attribute__((aligned(16))) = {1.0f, 0.0f, 0.0f, 0.0f};   /* x axis */
+extern const float r_D_002A2DB0[4] __asm__("D_002A2DB0") __attribute__((aligned(16))) = {0.0f, 1.0f, 0.0f, 0.0f};   /* y axis */
+extern const float r_D_002A2DC0[4] __asm__("D_002A2DC0") __attribute__((aligned(16))) = {0.0f, 0.0f, 1.0f, 0.0f};   /* z axis */
+extern const float r_D_002A2DD0[4] __asm__("D_002A2DD0") __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 0.0f};   /* zero */
+extern const float r_D_002A2DE0[4] __asm__("D_002A2DE0") __attribute__((aligned(16))) = {1.0f, 1.0f, 1.0f, 0.0f};   /* one */
+extern const float r_D_002A2DF0[4] __asm__("D_002A2DF0") __attribute__((aligned(16))) = {3.40282347e+38f, 3.40282347e+38f, 3.40282347e+38f, 0.0f};    /* FLT_MAX */
+extern const float r_D_002A2E00[4] __asm__("D_002A2E00") __attribute__((aligned(16))) = {-3.40282347e+38f, -3.40282347e+38f, -3.40282347e+38f, 0.0f}; /* -FLT_MAX */
+extern const float r_D_002A2E10[4] __asm__("D_002A2E10") __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 0.0f};   /* VECTOR4 zero */
+extern const float r_D_002A2E20[4] __asm__("D_002A2E20") __attribute__((aligned(16))) = {1.0f, 1.0f, 1.0f, 1.0f};   /* VECTOR4 one */
+extern const float r_D_002A2E30[4] __asm__("D_002A2E30") __attribute__((aligned(16))) = {3.40282347e+38f, 3.40282347e+38f, 3.40282347e+38f, 3.40282347e+38f};
+extern const float r_D_002A2E40[4] __asm__("D_002A2E40") __attribute__((aligned(16))) = {-3.40282347e+38f, -3.40282347e+38f, -3.40282347e+38f, -3.40282347e+38f};
+}
