@@ -709,8 +709,8 @@ void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *wi
 
 // 0x211E70 AddItemCounterOidA
 namespace M_func_00211E70 { extern "C" {
-struct E { int a; int b; };
-struct S { char pad[0x110]; unsigned int c; struct E ae[16]; };
+struct E { int oid; void *object; };
+struct S { char pad[0x110]; unsigned int numEntries; struct E entries[16]; };
 /** @sly2-annot addr=0x211E70
  * Purpose: CID 0x81: append oid to list A (+0x110, max 16)
  * Info: proposed name AddWidget129OidA (T2); TU hud
@@ -720,20 +720,20 @@ struct S { char pad[0x110]; unsigned int c; struct E ae[16]; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Adds an object to the item counter widget's first list (at most 16). (inferred)
-void AddItemCounterOidA(struct S *p, int v)
+void AddItemCounterOidA(struct S *widget, int oid)
 {
-    unsigned int c = p->c;
-    if (c < 16) {
-        p->ae[c].a = v;
-        p->c = c + 1;
+    unsigned int count = widget->numEntries;
+    if (count < 16) {
+        widget->entries[count].oid = oid;
+        widget->numEntries = count + 1;
     }
 }
 } } // namespace M_func_00211E70
 
 // 0x211E98 AddItemCounterOidB
 namespace M_func_00211E98 { extern "C" {
-struct E { int a; int b; };
-struct S { char pad[0x194]; unsigned int c; struct E ae[16]; };
+struct E { int oid; void *object; };
+struct S { char pad[0x194]; unsigned int numEntries; struct E entries[16]; };
 /** @sly2-annot addr=0x211E98
  * Purpose: CID 0x81: append oid to list B (+0x194, max 16)
  * Info: proposed name AddWidget129OidB (T2); TU hud
@@ -743,12 +743,12 @@ struct S { char pad[0x194]; unsigned int c; struct E ae[16]; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Adds an object to the item counter widget's second list (at most 16). (inferred)
-void AddItemCounterOidB(struct S *p, int v)
+void AddItemCounterOidB(struct S *widget, int oid)
 {
-    unsigned int c = p->c;
-    if (c < 16) {
-        p->ae[c].a = v;
-        p->c = c + 1;
+    unsigned int count = widget->numEntries;
+    if (count < 16) {
+        widget->entries[count].oid = oid;
+        widget->numEntries = count + 1;
     }
 }
 } } // namespace M_func_00211E98
@@ -757,8 +757,8 @@ void AddItemCounterOidB(struct S *p, int v)
 namespace M_func_00211EC0 { extern "C" {
 struct G;
 extern struct G D_003DD490;
-struct B { int id; void *p; };
-struct S { char pad[0x110]; int c110; struct B a114[0x10]; int c194; struct B a198[1]; };
+struct B { int oid; void *object; };
+struct S { char pad[0x110]; int numEntriesA; struct B entriesA[0x10]; int numEntriesB; struct B entriesB[1]; };
 void PostWidgetLoad(struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
 /** @sly2-annot addr=0x211EC0
@@ -770,18 +770,18 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
  * @end-sly2-annot */
 } } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
-void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *p = (M_func_00211EC0::S *)this;
+void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
     int i;
-    PostWidgetLoad(p);
-    for (i = 0; i < p->c194; i++) {
-        void *q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, p->a198[i].id, 0);
-        if (q)
-            p->a198[i].p = q;
+    PostWidgetLoad(widget);
+    for (i = 0; i < widget->numEntriesB; i++) {
+        void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesB[i].oid, 0);
+        if (object)
+            widget->entriesB[i].object = object;
     }
-    for (i = 0; i < p->c110; i++) {
-        void *q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, p->a114[i].id, 0);
-        if (q)
-            p->a114[i].p = q;
+    for (i = 0; i < widget->numEntriesA; i++) {
+        void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesA[i].oid, 0);
+        if (object)
+            widget->entriesA[i].object = object;
     }
 }
 
@@ -791,12 +791,14 @@ struct VT {
     char pad[0x188]; short d49; short pd49; void (*f49)(void *,int);
     short d50; short pd50; void (*f50)(void *);
 };
-struct O {char pad[0x54];int state;};
-struct E {struct O *o;int x4;};
+struct O {char pad[0x54];int state;};   /* a task (state 1: active, inferred) */
+/* The lists of AddItemCounterOidA/B read one word late: object of entry i, then oid of entry i + 1. */
+struct E {struct O *object;int nextOid;};
 struct S {
     char pad[0xC];struct VT *vt;char pad10[0x100];
-    int countA;int x114;struct E a[15];int x190;int countB;int x198;struct E b[0];
+    int countA;int firstOidA;struct E a[15];int lastObjectA;int countB;int firstOidB;struct E b[0];
 };
+enum { TASK_STATE_ACTIVE = 1 };   /* (inferred) */
 extern char D_002C3EC0[0x90];
 extern char D_002A8AA0[];
 void UpdateWidget(struct S *);
@@ -815,46 +817,49 @@ int sprintf(char *,char *,...);
  * @end-sly2-annot */
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
 // texts, shows while any is active and hides when all are done. (inferred)
-void UpdateItemCounterWidget(struct S *p)
+void UpdateItemCounterWidget(struct S *widget)
 {
     int i;
-    int ready=0;
-    int readyB=0;
-    int loading=0;
-    UpdateWidget(p);
-    for(i=0;i<p->countB;i++) {
-        struct O *o=p->b[i].o;
-        if(o) {
-            if(o->state==1)loading++;
-            else if(FTaskComplete(o)) {
-                ready++;
-                readyB++;
+    int numComplete = 0;
+    int numCompleteB = 0;
+    int numActive = 0;
+    UpdateWidget(widget);
+    for (i = 0; i < widget->countB; i++) {
+        struct O *task = widget->b[i].object;
+        if (task) {
+            if (task->state == TASK_STATE_ACTIVE)
+                numActive++;
+            else if (FTaskComplete(task)) {
+                numComplete++;
+                numCompleteB++;
             }
         }
     }
-    for(i=0;i<p->countA;i++) {
-        struct O *o=p->a[i].o;
-        if(o) {
-            if(o->state==1)loading++;
-            else if(FTaskComplete(o)) ready++;
+    for (i = 0; i < widget->countA; i++) {
+        struct O *task = widget->a[i].object;
+        if (task) {
+            if (task->state == TASK_STATE_ACTIVE)
+                numActive++;
+            else if (FTaskComplete(task))
+                numComplete++;
         }
     }
-    if(FWidgetAnimPlaying(p,0x314)) {
-        sprintf(D_002C3EC0,D_002A8AA0,readyB);
-        sprintf(D_002C3EC0+0x30,D_002A8AA0,p->countB);
-        sprintf(D_002C3EC0+0x60,D_002A8AA0,p->countB-readyB);
+    /* the three 0x30-byte "Widget Item" text buffers: done, total, remaining */
+    if (FWidgetAnimPlaying(widget, 0x314)) {
+        sprintf(D_002C3EC0, D_002A8AA0, numCompleteB);
+        sprintf(D_002C3EC0 + 0x30, D_002A8AA0, widget->countB);
+        sprintf(D_002C3EC0 + 0x60, D_002A8AA0, widget->countB - numCompleteB);
     }
-    if(ready==p->countB+p->countA || !loading) {
-        p->vt->f50((char*)p+p->vt->d50);
-    } else if(loading>0) {
-        p->vt->f49((char*)p+p->vt->d49,-1);
-    }
+    if (numComplete == widget->countB + widget->countA || !numActive)
+        widget->vt->f50((char *)widget + widget->vt->d50);       /* HideWidget */
+    else if (numActive > 0)
+        widget->vt->f49((char *)widget + widget->vt->d49, -1);   /* ShowWidget */
 }
 } } // namespace M_func_00211F90
 
 // 0x212158 WIDGET_ctor
 namespace M_WIDGET_ctor { extern "C" {
-struct S { int x0; int x4; char pad[4]; void *vt; char pad2[0x6C]; int x7c; char pad3[0x4C]; int a[10]; char pad4[8]; char xfc[4]; };
+struct S { void *frame; void *sidebag; char pad[4]; void *vt; char pad2[0x6C]; int mainAnimId; char pad3[0x4C]; int argTextIds[10]; char pad4[8]; char childList[4]; };
 extern char D_002DAF30[] __asm__("_vt$6WIDGET");
 void func_0011A050(void *p, int n);
 /** @sly2-annot addr=0x212158
@@ -863,17 +868,17 @@ void func_0011A050(void *p, int n);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-struct S *WIDGET_ctor(struct S *p)
+struct S *WIDGET_ctor(struct S *widget)
 {
     unsigned int i;
-    p->vt = D_002DAF30;
-    p->x7c = -1;
-    p->x0 = 0;
-    p->x4 = 0;
+    widget->vt = D_002DAF30;
+    widget->mainAnimId = -1;
+    widget->frame = 0;      /* BASIC's counted pointers */
+    widget->sidebag = 0;
     for (i = 0; i < 10; i++)
-        p->a[i] = -1;
-    func_0011A050(p->xfc, 0x68);
-    return p;
+        widget->argTextIds[i] = -1;
+    func_0011A050(widget->childList, 0x68);   /* InitSl */
+    return widget;
 }
 } } // namespace M_WIDGET_ctor
 
@@ -889,19 +894,17 @@ struct S *WIDGET_ctor(struct S *p)
 // True when the widget is neither shown nor requested to show. (inferred)
 extern "C" int IsWidgetIdle(WIDGETV *widget)
 {
-    int f;
-    f = 0;
-    if (widget->state < 2) {
-        f = widget->request < 2;
-    }
-    return f;
+    int isIdle = 0;
+    if (widget->state < WIDGET_STATE_VISIBLE)
+        isIdle = widget->request < WIDGET_REQUEST_SHOW;
+    return isIdle;
 }
 
 // 0x2121E8 FWidgetAnimPlaying
 namespace M_FWidgetAnimPlaying { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
-struct S { char pad[0x7C]; int x7C; unsigned short c80; short pad82; struct A *aa; };
+struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };   /* a sprite group */
+struct S { char pad[0x7C]; int mainAnimId; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
 int GetSpriteMainState(struct A *a);
 int FSpriteAnimActive(struct A *a);
 /** @sly2-annot addr=0x2121E8
@@ -912,20 +915,20 @@ int FSpriteAnimActive(struct A *a);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // True while the widget animation with the given id (0x314 = main track) is still running.
-int FWidgetAnimPlaying(struct S *p, int k)
+int FWidgetAnimPlaying(struct S *widget, int animId)
 {
-    int j, l;
-    if (k == -1)
+    int groupIndex, i;
+    if (animId == -1)
         return 0;
-    if (p->x7C == -1)
+    if (widget->mainAnimId == -1)
         return 0;
-    if (k == 0x314)
-        return GetSpriteMainState(p->aa) == 0;
-    for (j = 0; j < p->c80; j++) {
-        struct A *a = &p->aa[j];
-        for (l = 0; l < a->c; l++) {
-            if (k == a->ae[l].id)
-                return FSpriteAnimActive(a);
+    if (animId == 0x314)   /* the main track */
+        return GetSpriteMainState(widget->spriteGroups) == 0;
+    for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
+        struct A *group = &widget->spriteGroups[groupIndex];
+        for (i = 0; i < group->numAnims; i++) {
+            if (animId == group->anims[i].id)
+                return FSpriteAnimActive(group);
         }
     }
     return 0;
@@ -964,35 +967,35 @@ void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
  * @end-sly2-annot */
 // Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
 // its sprites load now or later.
-void LoadWidgetFromBrx(struct S *p, void *pbis)
+void LoadWidgetFromBrx(struct S *widget, void *pbis)
 {
-    int f;
-    p->loopAnimId = 0x310;
-    p->showAnimId = 0x30F;
-    p->hideAnimId = 0x311;
-    LoadLoFromBrx(p, pbis);
-    f = S8Read__18CBinaryInputStream(pbis);
-    p->duration = F32Read__18CBinaryInputStream(pbis);
-    p->width = U32Read__18CBinaryInputStream(pbis);
-    p->height = U32Read__18CBinaryInputStream(pbis);
-    p->hasFont = U32Read__18CBinaryInputStream(pbis);
-    if (f) {
+    int isStreamed;
+    widget->loopAnimId = 0x310;
+    widget->showAnimId = 0x30F;
+    widget->hideAnimId = 0x311;
+    LoadLoFromBrx(widget, pbis);
+    isStreamed = S8Read__18CBinaryInputStream(pbis);
+    widget->duration = F32Read__18CBinaryInputStream(pbis);
+    widget->width = U32Read__18CBinaryInputStream(pbis);
+    widget->height = U32Read__18CBinaryInputStream(pbis);
+    widget->hasFont = U32Read__18CBinaryInputStream(pbis);
+    if (isStreamed) {
         AREQ req;
-        p->state = 0;
+        widget->state = WIDGET_STATE_UNLOADED;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        p->spriteOps = D_003E1C70;
-        p->deferredLoad = func_001AE2A0(&req);
-        p->deferredLoad->owner = p;
-        CBinaryInputStream_ReadCb64(pbis, p->deferredLoad);
-        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->deferredLoad);
+        widget->spriteOps = D_003E1C70;
+        widget->deferredLoad = func_001AE2A0(&req);
+        widget->deferredLoad->owner = widget;
+        CBinaryInputStream_ReadCb64(pbis, widget->deferredLoad);
+        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), widget->deferredLoad);
     } else {
-        p->state = 1;
-        p->spriteOps = D_003E1C80;
-        LoadSpriteTable(p, pbis, p, &p->spriteCount, &p->sprites);
-        LoadSpriteGroups(p, pbis, p);
+        widget->state = WIDGET_STATE_HIDDEN;
+        widget->spriteOps = D_003E1C80;
+        LoadSpriteTable(widget, pbis, widget, &widget->spriteCount, &widget->sprites);
+        LoadSpriteGroups(widget, pbis, widget);
     }
-    p->mainAnimId = -1;
+    widget->mainAnimId = -1;
 }
 } } // namespace M_LoadWidgetFromBrx
 
@@ -1000,11 +1003,12 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
 namespace M_PostWidgetLoad { extern "C" {
 struct VT { char pad[0x188]; short d; short pd; void (*pf)(void *, int); };
 struct S {
-    char pad[0xC]; struct VT *pvt; char pad10[0x30]; unsigned int x40; char pad44[0x29]; unsigned char x6D;
-    char pad6e[0x26]; int x94; int x98; float x9C; float xA0; char pada4[4]; int xA8; char padac[0x10];
-    int xBC; char padc0[8]; struct S *xC8;
+    char pad[0xC]; struct VT *pvt; char pad10[0x30]; unsigned int lowFlags; char pad44[0x29]; unsigned char isShownOnLoad;
+    char pad6e[0x26]; int width; int height; float screenX; float screenY; char pada4[4]; int isNonExclusive; char padac[0x10];
+    int hasFont; char padc0[8]; struct S *ownerWidget;
 };
-extern struct G { char pad[0x3BE8]; void *x3BE8; } D_003DD490;
+/* lowFlags: LO grfUnk40, either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
+extern struct G { char pad[0x3BE8]; void *hudFont; } D_003DD490;
 void PostLoLoad(struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
 void SetLoBusyk(struct S *p, int);
@@ -1019,29 +1023,30 @@ void SetLoBusyk(struct S *p, int);
  * @end-sly2-annot */
 // Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
 // busy.
-void PostWidgetLoad(struct S *p)
+void PostWidgetLoad(struct S *widget)
 {
-    unsigned int v;
-    float w;
-    int h;
-    PostLoLoad(p);
-    if (p->xBC) {
-        struct G *pg = &D_003DD490;
-        if (!pg->x3BE8)
-            pg->x3BE8 = PloFindSwObject__FP2SWi3OIDP2LO(pg, 0x405, 0x374, p);
+    unsigned int flags;
+    float scaledHeight;
+    int scaledWidth;
+    PostLoLoad(widget);
+    if (widget->hasFont) {
+        struct G *sw = &D_003DD490;
+        if (!sw->hudFont)
+            sw->hudFont = PloFindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
     }
-    p->xC8 = p;
-    p->xA8 = -1;
-    h = (p->x94 << 9) / 640;
-    w = (float)p->x98 * 0.45454547f;
-    p->xA0 = 2048.0f - w * 0.5f;
-    p->x9C = 2048.0f - (float)h * 0.5f;
-    if (p->x6D)
-        p->pvt->pf((char *)p + p->pvt->d, -1);
-    SetLoBusyk(p, 1);
-    v = p->x40;
-    if ((v ^ 1) & 1) *(int *)v |= 0x102;
-    else p->x40 = v | 0x102;
+    widget->ownerWidget = widget;
+    widget->isNonExclusive = -1;
+    /* centre on the GS drawing area (origin 2048,2048): width from 640 to 512 units, height times 1/2.2 */
+    scaledWidth = (widget->width << 9) / 640;
+    scaledHeight = (float)widget->height * 0.45454547f;
+    widget->screenY = 2048.0f - scaledHeight * 0.5f;
+    widget->screenX = 2048.0f - (float)scaledWidth * 0.5f;
+    if (widget->isShownOnLoad)
+        widget->pvt->pf((char *)widget + widget->pvt->d, -1);   /* ShowWidget */
+    SetLoBusyk(widget, 1);
+    flags = widget->lowFlags;
+    if ((flags ^ 1) & 1) *(int *)flags |= 0x102;
+    else widget->lowFlags = flags | 0x102;
 }
 } } // namespace M_PostWidgetLoad
 
@@ -1050,12 +1055,14 @@ namespace M_LoadWidgetSprites {
 // Load prioritized sprite files.
 struct FRAME {};
 typedef struct {int cb,alignment;} MSG;
-struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int x3c,x40,x44,x48,x4c,x50,x54,x58,x5c,x60;};
-typedef struct {int a,b,kind;char filename[0x104];} KEY;
+struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int unknown3C[10];};
+typedef struct {int keyLo,keyHi,kind;char filename[0x104];} KEY;   /* a file lookup key (inferred) */
 typedef union {MSG msg;char magic[4];} TMP;
 typedef struct S S;
-typedef struct N {int a,b;char pad8[0x2C];int c;int pad38;int d;S *owner;int priority,last;struct N *next;} N;
-struct S {char pad[0x50];int count;void *data;int state;char pad5c[4];int tick;char pad64[0x5C];N *file;};
+/* A deferred load record (0x50 bytes, g_sw.slWidgetDeferred): four key words read from the BRX, the widget, the
+   load priorities. */
+typedef struct N {int key0,key1;char pad8[0x2C];int key2;int pad38;int key3;S *owner;int priority,lastPriority;struct N *next;} N;
+struct S {char pad[0x50];int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -1077,13 +1084,13 @@ extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
 static inline int Max(int a,int b) {return a<b?b:a;}
-static inline int SetKey(KEY *k,N *n) {
-    if(!n)return 0;
-    {int a=n->c,b=n->a,c=n->d,d=n->b;
-    k->kind=2;
-    k->a=(b^a)+0xCA0;
-    k->b=d^c;}
-    return k->b!=0;
+static inline int SetKey(KEY *key,N *load) {
+    if(!load)return 0;
+    {int k2=load->key2,k0=load->key0,k3=load->key3,k1=load->key1;
+    key->kind=2;
+    key->keyLo=(k0^k2)+0xCA0;
+    key->keyHi=k1^k3;}
+    return key->keyHi!=0;
 }
 struct WORK {
  FRAME frame;
@@ -1098,33 +1105,35 @@ struct WORK {
  * See: docs/formats/textures.md#7-open, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Loads a streamed widget's sprite file when the widget first leaves the unloaded state.
-extern "C" void LoadWidgetSprites(S *p) {
+extern "C" void LoadWidgetSprites(S *widget) {
     WORK work;
     register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));
     int priority=0;
-    N *n;
+    N *load;
     S *owner;
     int version;
-    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
-        owner=n->owner;
+    /* the highest priority among widgets that are loaded and shown (or hidden within the last frame) ... */
+    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+        owner=load->owner;
         if(owner->state==0)continue;
-        if(owner->state==1 && D_002BE538-owner->tick>=2)continue;
-        priority=Max(priority,n->last);
+        if(owner->state==1 && D_002BE538-owner->stateFrame>=2)continue;
+        priority=Max(priority,load->lastPriority);
     }
-    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
-        owner=n->owner;
-        if(n->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
+    /* ... evicts every loaded widget loaded at or above it, since the sprite heap is reset to that point */
+    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+        owner=load->owner;
+        if(load->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
     }
     D_003E1C70.priority=priority;
     STACKSCOPE_ctor(&work.frame);
-    KEY *pk=&work.key;
+    KEY *key=&work.key;
     MSG *msg=&work.tmp.msg;
 
     msg->cb=0x10000;msg->alignment=0x40;
     func_001848A8(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
-    pk->kind=2;
-    func_00258248(pk);
-    if(!SetKey(&work.key,p->file)||!func_00184D60(bs,pk))goto fail;
+    key->kind=2;
+    func_00258248(key);
+    if(!SetKey(&work.key,widget->deferredLoad)||!func_00184D60(bs,key))goto fail;
     SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)0x70000000);
     work.tmp.magic[0]=U8Read__18CBinaryInputStream(bs);
     work.tmp.magic[1]=U8Read__18CBinaryInputStream(bs);
@@ -1137,10 +1146,10 @@ fail:
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
     return;
 load:
-    p->file->priority=D_003E1C70.priority;
-    LoadSpriteTable(p,bs,p,&p->count,&p->data);
-    LoadSpriteGroups(p,bs,p);
-    p->file->last=D_003E1C70.priority;
+    widget->deferredLoad->priority=D_003E1C70.priority;
+    LoadSpriteTable(widget,bs,widget,&widget->spriteCount,&widget->sprites);
+    LoadSpriteGroups(widget,bs,widget);
+    widget->deferredLoad->lastPriority=D_003E1C70.priority;
     func_00184950(bs,2);
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
 }
@@ -1148,8 +1157,8 @@ load:
 
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
-struct C { char pad[0x44]; int a; int b; };
-struct S { char pad[0x48]; int x48; int x4c; int x50; int x54; char pad2[0x28]; short x80; short pad3; int x84; char pad4[0x38]; struct C *pc; char pad5[0x34]; int xf8; char xfc[4]; };
+struct C { char pad[0x44]; int priority; int lastPriority; };   /* the deferred load record */
+struct S { char pad[0x48]; int unknown48; int unknown4C; int spriteCount; int sprites; char pad2[0x28]; short numSpriteGroups; short pad3; int spriteGroups; char pad4[0x38]; struct C *deferredLoad; char pad5[0x34]; int unknownF8; char childList[4]; };
 void ClearSl(void *p);
 /** @sly2-annot addr=0x212780
  * Purpose: state 0 entry: drop sprite tables and lists
@@ -1158,25 +1167,25 @@ void ClearSl(void *p);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Drops a widget's sprite tables and lists (on entering the unloaded state).
-void UnloadWidgetSprites(struct S *p)
+void UnloadWidgetSprites(struct S *widget)
 {
-    struct C *pc;
-    p->xf8 = 0;
-    p->x50 = 0;
-    p->x54 = 0;
-    p->x80 = 0;
-    p->x84 = 0;
-    ClearSl(p->xfc);
-    pc = p->pc;
-    pc->a = 0;
-    pc->b = 0;
+    struct C *load;
+    widget->unknownF8 = 0;
+    widget->spriteCount = 0;
+    widget->sprites = 0;
+    widget->numSpriteGroups = 0;
+    widget->spriteGroups = 0;
+    ClearSl(widget->childList);
+    load = widget->deferredLoad;
+    load->priority = 0;
+    load->lastPriority = 0;
 }
 } } // namespace M_UnloadWidgetSprites
 
 // 0x2127C8 AreWidgetLoadsIdle
 namespace M_func_002127C8 { extern "C" {
-struct Q { char pad[0x58]; int k; int pad2; int a; int b; };
-struct S { char pad[0x40]; struct Q *q; char pad2[8]; struct S *next; };
+struct Q { char pad[0x58]; int state; int pad2; int stateFrame; int request; };   /* the widget */
+struct S { char pad[0x40]; struct Q *owner; char pad2[8]; struct S *next; };   /* a deferred load record */
 extern int D_002BE538;
 /** @sly2-annot addr=0x2127C8
  * Purpose: true when no deferred widget load (list (*(struct S * *)&g_sw.slWidgetDeferred)) is younger than 2 frames
@@ -1189,17 +1198,17 @@ extern int D_002BE538;
 // (inferred)
 int AreWidgetLoadsIdle(void)
 {
-    struct S *p;
-    for (p = (*(struct S * *)&g_sw.slWidgetDeferred); p; p = p->next) {
-        struct Q *q = p->q;
-        int v;
-        if (q->k == 0)
+    struct S *load;
+    for (load = (*(struct S * *)&g_sw.slWidgetDeferred); load; load = load->next) {
+        struct Q *widget = load->owner;
+        int value;
+        if (widget->state == WIDGET_STATE_UNLOADED)
             continue;
-        if (q->k == 1)
-            v = D_002BE538 - q->a;
+        if (widget->state == WIDGET_STATE_HIDDEN)
+            value = D_002BE538 - widget->stateFrame;   /* frames since hidden */
         else
-            v = q->b;
-        if (v < 2)
+            value = widget->request;
+        if (value < 2)
             return 0;
     }
     return 1;
@@ -1210,8 +1219,8 @@ int AreWidgetLoadsIdle(void)
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
 struct CRef { int tagk; int tag; };
 struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char xcc[4]; };
-struct L { int a[4]; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char argTextIds[4]; };
+struct L { int words[4]; };
 void func_002013D8(struct CRef *r, void *a, int b, int c, struct L *pl, void *d);
 void Decref__4CRef(struct CRef *r);
 /** @sly2-annot addr=0x212828
@@ -1221,20 +1230,20 @@ void Decref__4CRef(struct CRef *r);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Shows a widget with argument ids taken from a splice list (at most 10).
-void ShowWidgetArgsFromSplice(struct S *p, void *a)
+void ShowWidgetArgsFromSplice(struct S *widget, void *spliceList)
 {
-    struct CRef r;
-    struct L l;
-    func_002013D8(&r, a, 0x10, 0xA, &l, p->xcc);
-    Decref__4CRef(&r);
-    p->vt[49].pf((char *)p + p->vt[49].d, -1);
+    struct CRef ref;
+    struct L scratch;
+    func_002013D8(&ref, spliceList, 0x10, 0xA, &scratch, widget->argTextIds);
+    Decref__4CRef(&ref);
+    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
 }
 } } // namespace M_ShowWidgetArgsFromSplice
 
 // 0x212880 ShowWidgetArgs
 namespace M_ShowWidgetArgs { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int a[10]; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int argTextIds[10]; };
 /** @sly2-annot addr=0x212880
  * Purpose: copy n ids into +0xCC (max 10) then ShowWidget(-1)
  * Info: proposed name ShowWidgetArgs (T1); TU hud
@@ -1242,12 +1251,12 @@ struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int a[10]; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Shows a widget with n argument ids (at most 10), e.g. the text ids it displays.
-void ShowWidgetArgs(struct S *p, int n, int *src)
+void ShowWidgetArgs(struct S *widget, int n, int *src)
 {
     int i;
     for (i = 0; i < n && (unsigned)i < 10; i++)
-        p->a[i] = src[i];
-    p->vt[49].pf((char *)p + p->vt[49].d, -1);
+        widget->argTextIds[i] = src[i];
+    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
 }
 } } // namespace M_ShowWidgetArgs
 
@@ -1260,35 +1269,36 @@ struct B { char pad[0xC];
   virtual void v16(); };
 struct S : B {
   char pad10[0x48]; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; char pad7c[8]; void *mainSprite;
-  void A(int) __asm__("SetWidgetState");
-  void Bf(int) __asm__("SetWidgetRequest");
-  int F(void *, int) __asm__("FSpriteHasAnim");
-  void M(int) __asm__("ShowWidget");
+  void SetState(int) __asm__("SetWidgetState");
+  void SetRequest(int) __asm__("SetWidgetRequest");
+  int HasSpriteAnim(void *, int) __asm__("FSpriteHasAnim");
+  void Show(int) __asm__("ShowWidget");
 };
 // ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; k = the animation
 // argument (-1 = default).
-void S::M(int k)
+void S::Show(int animId)
 {
-    if (!state)
-        A(1);
-    Bf(2);
-    loopAnimId = k;
+    if (state == WIDGET_STATE_UNLOADED)
+        SetState(WIDGET_STATE_HIDDEN);
+    SetRequest(WIDGET_REQUEST_SHOW);
+    loopAnimId = animId;
     showAnimId = -1;
     hideAnimId = -1;
-    if (k != -1) {
-        A(1);
-        A(2);
+    if (animId != -1) {
+        SetState(WIDGET_STATE_HIDDEN);
+        SetState(WIDGET_STATE_VISIBLE);
         return;
     }
+    /* default animations, where the sprite has them; 0x314 is the main track */
     loopAnimId = 0x314;
-    if (F(mainSprite, 0x30F))
+    if (HasSpriteAnim(mainSprite, 0x30F))
         showAnimId = 0x30F;
-    if (F(mainSprite, 0x310))
+    if (HasSpriteAnim(mainSprite, 0x310))
         loopAnimId = 0x310;
-    if (F(mainSprite, 0x311))
+    if (HasSpriteAnim(mainSprite, 0x311))
         hideAnimId = 0x311;
-    if (state == 1)
-        v16();
+    if (state == WIDGET_STATE_HIDDEN)
+        v16();   /* UpdateWidget */
 }
 } // namespace M_ShowWidget
 
@@ -1304,10 +1314,9 @@ void S::M(int k)
 // Requests that a widget hide; without a disappear animation it goes straight to hidden.
 extern "C" void HideWidget(WIDGETV *widget)
 {
-    SetWidgetRequest(widget, 1);
-    if (widget->hideAnimId == -1) {
-        SetWidgetStateW(widget, 1);
-    }
+    SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
+    if (widget->hideAnimId == -1)
+        SetWidgetStateW(widget, WIDGET_STATE_HIDDEN);
 }
 
 // 0x212A30 ResetWidgetVisibleTime
@@ -1323,9 +1332,8 @@ extern "C" void HideWidget(WIDGETV *widget)
 // Restarts a visible widget's display timeout. (inferred)
 extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 {
-    if (widget->state == 2) {
+    if (widget->state == WIDGET_STATE_VISIBLE)
         widget->stateTime = D_002DDED0.tReal;
-    }
 }
 
 // 0x212A50 SetWidgetRequest
@@ -1364,11 +1372,12 @@ namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "Z
 // 0x212A70 SetWidgetState
 namespace M_SetWidgetState { extern "C" {
 struct S {
-    char pad[0x58]; int state; float time; int tick; int mode; float update;
-    char pad1[4]; int id0; int id1; int id2; int selected; int x80; void *sprite; float animtime; float duration;
-    char pad2[0xA4-0x90]; int flag; char pad3[8]; int pauses;
+    char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
+    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
+    float mainAnimTime; float visibleTimeout;   /* +0x8C, read as the visible-duration limit (LoadWidgetFromBrx stores its F32 at +0x90) */
+    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct G { char pad[0x3BEC]; int count; };
+struct G { char pad[0x3BEC]; int numShownWidgets; };
 struct Clock { char pad[0x3C]; float time; float dt; };
 extern struct G D_003DD490;
 extern struct Clock D_002DDED0;
@@ -1388,29 +1397,37 @@ void StartWidgetMainAnim(struct S *,int);
  * @end-sly2-annot */
 // The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
 // widget count and pauses the clock for pausing widgets.
-void SetWidgetState(struct S *p,int state) {
-    if(p->state==state) return;
-    if(p->flag>=16) {
-        if(p->state<2 && state>=2) D_003DD490.count++;
-        else if(state<2 && p->state>=2) D_003DD490.count--;
+void SetWidgetState(struct S *widget, int state)
+{
+    if (widget->state == state)
+        return;
+    /* states >= VISIBLE are on screen */
+    if (widget->priority >= 16) {
+        if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE)
+            D_003DD490.numShownWidgets++;
+        else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE)
+            D_003DD490.numShownWidgets--;
     }
-    if(p->pauses) {
-        if(p->state<2 && state>=2) {
-            if(++D_002DD318==1) func_0014D1D0(&D_002DDED0,7,0.0f);
-        } else if(state<2 && p->state>=2) {
-            if(--D_002DD318==0) func_0014D1D0(&D_002DDED0,7,1.0f);
+    if (widget->pausesGame) {
+        if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE) {
+            if (++D_002DD318 == 1)
+                func_0014D1D0(&D_002DDED0, 7, 0.0f);   /* clock pause slot 7: stop */
+        } else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE) {
+            if (--D_002DD318 == 0)
+                func_0014D1D0(&D_002DDED0, 7, 1.0f);   /* run again */
         }
     }
-    if(p->state==0) LoadWidgetSprites(p);
-    p->state=state;
-    p->time=D_002DDED0.time;
-    p->tick=D_002BE538;
-    switch(state) {
-    case 0: UnloadWidgetSprites(p); break;
-    case 1: StopWidgetMainAnim(p); break;
-    case 2: StartWidgetMainAnim(p,p->id0); break;
-    case 3: StartWidgetMainAnim(p,p->id1); break;
-    case 4: StartWidgetMainAnim(p,p->id2); break;
+    if (widget->state == WIDGET_STATE_UNLOADED)
+        LoadWidgetSprites(widget);
+    widget->state = state;
+    widget->stateTime = D_002DDED0.time;
+    widget->stateFrame = D_002BE538;
+    switch (state) {
+    case WIDGET_STATE_UNLOADED: UnloadWidgetSprites(widget); break;
+    case WIDGET_STATE_HIDDEN: StopWidgetMainAnim(widget); break;
+    case WIDGET_STATE_VISIBLE: StartWidgetMainAnim(widget, widget->loopAnimId); break;
+    case WIDGET_STATE_APPEARING: StartWidgetMainAnim(widget, widget->showAnimId); break;
+    case WIDGET_STATE_DISAPPEARING: StartWidgetMainAnim(widget, widget->hideAnimId); break;
     }
 }
 } } // namespace M_SetWidgetState
@@ -1418,9 +1435,10 @@ void SetWidgetState(struct S *p,int state) {
 // 0x212C50 UpdateWidget
 namespace M_UpdateWidget { extern "C" {
 struct S {
-    char pad[0x58]; int state; float time; int tick; int mode; float update;
-    char pad1[4]; int id0; int id1; int id2; int selected; int x80; void *sprite; float animtime; float duration;
-    char pad2[0xA4-0x90]; int flag; char pad3[8]; int pauses;
+    char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
+    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
+    float mainAnimTime; float visibleTimeout;   /* +0x8C, read as the visible-duration limit (LoadWidgetFromBrx stores its F32 at +0x90) */
+    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
 struct Clock { char pad[0x3C]; float time; float dt; };
 extern struct Clock D_002DDED0;
@@ -1441,42 +1459,47 @@ void AdvanceWidgetSprite(void *,float);
  * @end-sly2-annot */
 // Per-frame widget update: advances the state machine from requests, animation completion and duration, and advances
 // the main sprite.
-void UpdateWidget(struct S *p) {
+void UpdateWidget(struct S *widget)
+{
     int state;
-    UpdateLo(p);
-    state=p->state;
-    if(state==1) {
-        if(p->mode==2) state=p->id1==-1 ? 2:3;
-    } else if(p->update != D_002DDED0.time) {
-        switch(state) {
-        case 2:
-            if(!FWidgetAnimPlaying(p,p->selected)) SetWidgetRequest(p,1);
-            if(p->duration>0.0f && p->duration<D_002DDED0.time-p->time) SetWidgetRequest(p,1);
-            if(p->mode==1) state=p->id2==-1 ? 1:4;
+    UpdateLo(widget);
+    state = widget->state;
+    if (state == WIDGET_STATE_HIDDEN) {
+        if (widget->request == WIDGET_REQUEST_SHOW)
+            state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
+    } else if (widget->requestTime != D_002DDED0.time) {   /* not requested this frame */
+        switch (state) {
+        case WIDGET_STATE_VISIBLE:
+            if (!FWidgetAnimPlaying(widget, widget->mainAnimId))
+                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
+            if (widget->visibleTimeout > 0.0f && widget->visibleTimeout < D_002DDED0.time - widget->stateTime)
+                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
+            if (widget->request == WIDGET_REQUEST_HIDE)
+                state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
             break;
-        case 3:
-            if(!FWidgetAnimPlaying(p,p->id1)) {
-                switch(p->mode) {
-                case 1: state=p->id2==-1 ? 1:4; break;
-                case 2: state=2; break;
+        case WIDGET_STATE_APPEARING:
+            if (!FWidgetAnimPlaying(widget, widget->showAnimId)) {
+                switch (widget->request) {
+                case WIDGET_REQUEST_HIDE: state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING; break;
+                case WIDGET_REQUEST_SHOW: state = WIDGET_STATE_VISIBLE; break;
                 }
             }
             break;
-        case 4:
-            if(!FWidgetAnimPlaying(p,p->id2)) {
-                switch(p->mode) {
-                case 1: state=1; break;
-                case 2: state=p->id1==-1 ? 2:3; break;
+        case WIDGET_STATE_DISAPPEARING:
+            if (!FWidgetAnimPlaying(widget, widget->hideAnimId)) {
+                switch (widget->request) {
+                case WIDGET_REQUEST_HIDE: state = WIDGET_STATE_HIDDEN; break;
+                case WIDGET_REQUEST_SHOW: state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING; break;
                 }
             }
             break;
         }
     }
-    SetWidgetState(p,state);
-    if(p->selected!=-1) {
-        float dt=g_clock.dtReal;
-        p->animtime+=dt;
-        AdvanceWidgetSprite(p->sprite,dt);
+    SetWidgetState(widget, state);
+    if (widget->mainAnimId != -1) {
+        float dt = g_clock.dtReal;
+        widget->mainAnimTime += dt;
+        AdvanceWidgetSprite(widget->spriteGroups, dt);
     }
 }
 } } // namespace M_UpdateWidget
