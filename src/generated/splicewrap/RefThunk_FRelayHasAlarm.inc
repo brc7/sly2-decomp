@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-s32 FWipingAseg__FP4ASEG(s32, s32);                 /* extern */
+s32 IsRelayAlarm(s32, s32);                 /* extern */
 void CRef_SetBool(void *, s32);                 /* extern */
 CRef *RefThunk_FRelayHasAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -8,7 +8,7 @@ CRef *RefThunk_FRelayHasAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 6;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    CRef_SetBool(&ref, FWipingAseg__FP4ASEG(pbasic, arg0_v) != 0);
+    CRef_SetBool(&ref, IsRelayAlarm(pbasic, arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

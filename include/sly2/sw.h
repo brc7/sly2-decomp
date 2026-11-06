@@ -252,7 +252,7 @@ struct SW : public BASIC
       LM lmGuardScale;
       RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (tu_1BE398.cpp); was _pad_338 */
       LO *ploUnk4638;       /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
-      int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp func_0013CEF8 post-increments it) */
+      int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp PostBootyContainerLoad post-increments it) */
       int clangstr;
       LANGSTR *alangstr;
       SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */

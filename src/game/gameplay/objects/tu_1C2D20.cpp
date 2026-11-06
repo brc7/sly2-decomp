@@ -43,7 +43,7 @@ void RenderSoSelf(SPRAYER *p);
 void func_001A5EE8(void *p, void *q, float a, float b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *PloAcquireProxy(void *plo, int n);
-void func_001C7A58(SOV *plo, int id);
+void SelectLootEntry(SOV *plo, int id);
 SOV *PxfFindSo(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
@@ -122,7 +122,7 @@ extern "C" int StageLootPouchLoot(SPRAYER *p, SOV *plo, int id, void *pv)
     } else {
         return 2;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->psoFirst, 0x5E)) func_001C7A58(p->psoFirst, id);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->psoFirst, 0x5E)) SelectLootEntry(p->psoFirst, id);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->psoFirst, 0x5A))
         ((void (*)(void *, int))p->psoFirst->vt[76].fn)((char *)p->psoFirst + p->psoFirst->vt[76].delta, 2);
     else

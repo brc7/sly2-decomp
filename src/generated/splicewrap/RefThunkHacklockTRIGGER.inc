@@ -1,12 +1,12 @@
 #include "splicewrap.h"
-void func_00181780(s32);                         /* extern */
+void TriggerHacklockRsmg(s32);                         /* extern */
 CRef *RefThunkHacklockTRIGGER(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_00181780(pbasic);
+    TriggerHacklockRsmg(pbasic);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

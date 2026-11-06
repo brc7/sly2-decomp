@@ -182,7 +182,7 @@ void Skip__18CBinaryAsyncStreami(CBinaryAsyncStream *t, int r);
 
 void MpegDisplayThread(void);
 int CQueueOutputIop_Init(CQueueOutputIop *p, MPEGAUDIOREC *pa);
-void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb);
+void StageInterleavedIopAudio(CQueueOutputIop *p, int cb, char *pb);
 int CQueueOutputIop_CbSend(CQueueOutputIop *p, int b, char *c);
 void CQueueOutputIop_Update(CQueueOutputIop *p);
 void Init__10CMpegAudio(CMpegAudio *p);
@@ -196,8 +196,8 @@ int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *p);
 int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *p);
 int FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void);
 void BuildMpegGifs(CMPEG *p);
-void func_001B3700(CMPEG *p);
-SUBT *func_001B2820(K *pe);
+void DrawMpegSubtitles(CMPEG *p);
+SUBT *FindMpegSubtitles(K *pe);
 void Execute__5CMpegPv(CMPEG *p, K *k);
 void CMpeg_Start(CMPEG *p, CBinaryAsyncStream *a);
 void Update__5CMpeg(CMPEG *p);
@@ -212,7 +212,7 @@ int CbDemuxed__5CMpegi(CMPEG *p, int wait);
  * See: docs/engine/cutscenes.md#4-source-files, docs/engine/cutscenes.md#open-questions,
  *   docs/engine/gameplay-objects.md#source-files
  * @end-sly2-annot */
-SUBT *func_001B2820(K *pe) {
+SUBT *FindMpegSubtitles(K *pe) {
     return 0;
 }
 
@@ -317,7 +317,7 @@ static inline char *Alloc(int cb, int align) { return PvAllocSlot__FP8ALLOCREQ(A
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
  * @end-sly2-annot */
-void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb)
+void StageInterleavedIopAudio(CQueueOutputIop *p, int cb, char *pb)
 {
     int ch = p->x4;
     if (ch != 0x10) return;
@@ -359,7 +359,7 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *p, int cb, char *pb)
     if (c <= 0 || p->m_x24 < c) c = p->m_x24;
     if (p->x4 == 0x10) {
         c &= -(p->xC << 10);
-        func_001B2AA0(p, c, pb);
+        StageInterleavedIopAudio(p, c, pb);
     } else {
         c &= -0x400;
     }
@@ -765,7 +765,7 @@ typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
  * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
  *   docs/engine/cutscenes.md#open-questions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
  * @end-sly2-annot */
-void func_001B3700(CMPEG *p)
+void DrawMpegSubtitles(CMPEG *p)
 {
     GIFS gifs;
     gifs.AllocStatic(0x200, (QW *)(p->pb + 0x41BC00));
@@ -837,7 +837,7 @@ extern "C" int CMpeg_ExecuteOids(CMPEG *p)
     if (CbFreeMem(1) <= 0x41FC3F) { p->n = 0; return 0; }
     for (i = 0; i < p->n; i++) {
         K *pe = &p->ae[i];
-        p->psubt = func_001B2820(pe);
+        p->psubt = FindMpegSubtitles(pe);
         do { Execute__5CMpegPv(p, pe); } while (p->fRepeat);
         p->psubt = 0;
     }
@@ -966,7 +966,7 @@ void Update__5CMpeg(CMPEG *p)
     if (p->mpeg.frameCount == 0) {
         p->t10C = D_002DDED0.t3c;
         BuildMpegGifs(p);
-        func_001B3700(p);
+        DrawMpegSubtitles(p);
         func_00234CA0(0);
     }
     while (p->stage) CbDemuxed__5CMpegi(p, 0);
@@ -1027,7 +1027,7 @@ int CbDemuxed__5CMpegi(CMPEG *p, int wait)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
  * @end-sly2-annot */
-extern "C" int func_001B42C0(CMPEG *p) {
+extern "C" int IsMpegActive(CMPEG *p) {
     return p->pstrm != 0;
 }
 

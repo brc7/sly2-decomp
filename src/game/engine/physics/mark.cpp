@@ -957,7 +957,7 @@ namespace M_CsbiIntersectSphereBsp {
 // ---- CplaneFromSphere 0x1A93C8 (MATCH, 472 instructions; T1304 draft 48%, T1341 99.4%, T1396 the last mtc1) ----
 // The contacts of a sphere (centre pos, radius sRadius) with the camera hull of a collision part: the first pbspLimit nodes of ppart->bspc.absp. At most
 // ccontactMax CMCONTACTs (bsp.h) go to acontact; returns how many. Callers: SquishCmEye 0x14EDA0 (eye sphere, cbsp 0 / absp NULL / up to 64) and
-// FCheckDprizeCollect 0x1C5B20 (prize sphere, pbspLimit 0x7FFFFFFF, one contact is enough). Steps (all proven by the draft's instruction stream):
+// TryCollectDprize 0x1C5B20 (prize sphere, pbspLimit 0x7FFFFFFF, one contact is enough). Steps (all proven by the draft's instruction stream):
 //  1. absp == NULL: allocate min(cbspFull, 0x1555) nodes on the stack (STACKSCOPE) and PruneBsp 0x118A88 the tree to the sphere. PRUNE_Pos (wholly outside) -> 0;
 //     PRUNE_Neg (wholly inside) -> step 6; else cbsp = nodes written, the last one is the root.
 //  2. Every SURF of the pruned tree gets grf 0x10.

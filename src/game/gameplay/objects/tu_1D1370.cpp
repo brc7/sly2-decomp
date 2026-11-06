@@ -92,7 +92,7 @@ void InitRobottank(struct S *p) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
 extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
-struct OBJ;struct X;extern "C" void func_001D4D30(X*,OBJ*);
+struct OBJ;struct X;extern "C" void InitRobottankWeapon(X*,OBJ*);
 extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; int x4; A() {} };
 struct B : A {
@@ -105,7 +105,7 @@ struct X : B {
  register X *receiver __asm__("$4");
  __asm__("daddu %0,%2,$zero\n\tsw $zero,%1"
          : "=&r"(receiver), "=m"(x0) : "r"(this) : "memory");
- x4=0;vt=D_002C94A0;func_001D4D30(receiver,p);
+ x4=0;vt=D_002C94A0;InitRobottankWeapon(receiver,p);
 }
     void *operator new(unsigned int cb) { return func_001AE4F8(cb); }
 
@@ -114,7 +114,7 @@ struct X : B {
 struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
 extern "C" {
 void ClonePo(OBJ *);
-void func_001D4DE0(X *, X *);
+void CopyRobottankWeapon(X *, X *);
 /** @sly2-annot addr=0x1D1410
  * Purpose: CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0,
  *   init 0x1D4D30, copy 0x9C bytes)
@@ -132,7 +132,7 @@ void CloneRobottank(OBJ *p)
     for (i = 0; i < p->c; i++) {
         X *old = p->a[i];
         X *n = new X(p);
-        func_001D4DE0(n, old);
+        CopyRobottankWeapon(n, old);
         p->a[i] = n;
     }
 }
@@ -407,7 +407,7 @@ typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" void func_001D1910(ROBOTTANKV *ptank)
+extern "C" void ResetRobottank(ROBOTTANKV *ptank)
 {
     func_001CB518(ptank);
     ResetRobottankHealth(ptank);
@@ -466,7 +466,7 @@ extern "C" { extern char D_002C2098[],D_002C20A8[]; }
 extern "C" {
 void UpdateSo(P *);
 float atan2f(float,float);
-int func_001D4E08(ATTACH *);
+int HasRobottankWeaponAmmo(ATTACH *);
 void SetSmaGoal(void *,int);
 void ReadRobottankInput(P *);
 void UpdateRobottankAi(P *);
@@ -527,7 +527,7 @@ extern "C" void UpdateRobottank(P *p)
         ATTACH **current=p->attachments;
         do {
             ATTACH *attach=*current;
-            if(!func_001D4E08(attach))SetSmaGoal(attach->binding,0x65);
+            if(!HasRobottankWeaponAmmo(attach))SetSmaGoal(attach->binding,0x65);
             ++i;++current;
         }while(i<p->attachCount);
     }
@@ -603,7 +603,7 @@ extern "C" void UpdateRobottank(P *p)
             asm("addu %0,%1,%2":"=r"(slotBase):"r"(p),"r"(i<<2));
             ATTACH *attach=slotBase->attachments[0];
             if(!attach->mesh)goto aim_next;
-            if(p->drive!=0.0f || !func_001D4E08(attach)){
+            if(p->drive!=0.0f || !HasRobottankWeaponAmmo(attach)){
                 attach->active=0;attach->speed=attach->speedLimits.low;attach->angle=0.0f;
             }else{
                 float time=Clamp(Evaluate(attach->flightTime,distance),attach->flightLimits.low,attach->flightLimits.high);
@@ -770,7 +770,7 @@ typedef struct {
     float x54C;
     float x550;
 } OBJ;
-int func_001D4E08(ITEM *);
+int HasRobottankWeaponAmmo(ITEM *);
 void SetSmaGoal(void *, int);
 int GrfConsumePressed__5POCTLUif(SUB *, int, float);
 /** @sly2-annot addr=0x1D2150
@@ -799,7 +799,7 @@ void ReadRobottankInput(OBJ *p)
     }
     for (i = 0; i < p->c; i++) {
         ITEM *q = p->a[i];
-        if (func_001D4E08(q)) {
+        if (HasRobottankWeaponAmmo(q)) {
             if (p->psub->fl & q->fl)
                 SetSmaGoal(q->x20, 0x67);
             else if (GrfConsumePressed__5POCTLUif(p->psub, q->x28, 0.0f))
@@ -813,7 +813,7 @@ void ReadRobottankInput(OBJ *p)
 namespace M_func_001D2240 { extern "C" {
 struct O { char pad[0x80]; int n80; };
 struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
-int func_001D4E08(struct O *po);
+int HasRobottankWeaponAmmo(struct O *po);
 /** @sly2-annot addr=0x1D2240
  * Purpose: First weapon with enough ammo whose state is not 4
  * Info: proposed name PweaponReadyRobottank (T2); TU tu_1D1370
@@ -823,11 +823,11 @@ int func_001D4E08(struct O *po);
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-struct O *func_001D2240(struct S *p) {
+struct O *FindReadyRobottankWeapon(struct S *p) {
     int i;
     for (i = 0; i < p->c; i++) {
         struct O *po = p->ap[i];
-        if (func_001D4E08(po) && po->n80 != 4) return po;
+        if (HasRobottankWeaponAmmo(po) && po->n80 != 4) return po;
     }
     return 0;
 }
@@ -860,7 +860,7 @@ int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-SO *func_001D22D0(OBJ *p)
+SO *FindNearestRobottankPickup(OBJ *p)
 {
     SO *best = 0;
     SO *aso[16];
@@ -904,7 +904,7 @@ qword func_001A62E8(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D2420(struct S *p) {
+void ResetRobottankWheelHeights(struct S *p) {
     qword q;
     int i;
     p->n5B0 = 0;
@@ -992,7 +992,7 @@ static inline qword NormalizeOr(qword value,qword fallback)
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D2490(OBJ *p)
+void SteerRobottankAlongPath(OBJ *p)
 {
     VECTOR va, vb;
     qword pos,v,dir,point;
@@ -1018,7 +1018,7 @@ void func_001D2490(OBJ *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankAi {
 // UpdateRobottankAi (Claude agent, wave-4 lane 7): MATCH. Mode-1 update of a vehicle with attached weapons (called from
-// UpdateRobottank): pick a ready attachment (func_001D2240) or a target object (func_001D22D0), run the state machine
+// UpdateRobottank): pick a ready attachment (FindReadyRobottankWeapon) or a target object (FindNearestRobottankPickup), run the state machine
 // (0 approach/orbit the target, 1 attack in place, 2 pursue the object, 3 back away) until the state is stable, steer
 // for the current state, then let every ready attachment fire once its aim error is small enough.
 // Callees: 0x2456F0 acosf, 0x2458F0 atan2f, 0x11D910 FCheckLm, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
@@ -1030,7 +1030,7 @@ namespace M_UpdateRobottankAi {
 //   target's `vmul.xy vf1, vf1, vf3` with delta stored and reloaded. Its two extra "jm" operands are allocation-only:
 //   they tip regclass so that delta (read four times through "r" by GetX/GetY) stays VU-class and is spilled, as in
 //   the target, instead of getting $s1.
-// - GetY returns the prot3w result as a float in a GPR (like func_001D2490): gcc's own mtc1 into $f12 is not an asm,
+// - GetY returns the prot3w result as a float in a GPR (like SteerRobottankAlongPath): gcc's own mtc1 into $f12 is not an asm,
 //   so reorg can still fill the atan2f delay slot with the goalHeading store.
 // - The radius scalar goes through Lilly's VuFloatFromMemWord ("rV": reload makes the lw at the qmtc2), its VU_FLOAT
 //   temporary takes slot 0x00, the case-2 matrix 0x10, the case-3 matrix the coalesced 0x00, and the HIT array
@@ -1061,15 +1061,15 @@ extern "C" float D_002C20F4;
 extern "C" float D_002C20F8;
 extern "C" {
 qword func_001A62E8(P *);
-ATTACH *func_001D2240(P *);
-P *func_001D22D0(P *);
+ATTACH *FindReadyRobottankWeapon(P *);
+P *FindNearestRobottankPickup(P *);
 int FCheckLm__FP2LMf(LM *, float);
-void func_001D4B28(P *, int);
+void SetRobottankTactic(P *, int);
 float acosf(float);
 M3 func_0011B500(qword, float);
 int ClsgClipPathzone(void *, qword, qword, int, HIT *, int);
 void MeasureShape(PATH *);
-void func_001D2420(P *);
+void ResetRobottankWheelHeights(P *);
 void func_001C02D0(void *, qword, qword, PATH *);
 float atan2f(float, float);
 M3 *func_001A6318(P *);
@@ -1077,8 +1077,8 @@ qword func_0022CA18(void *, void *);
 float RadNormalize__Ff(float);
 void SetSmaGoal(void *, int);
 float GRandInRange__Fff(float, float);
-void func_001D2490(P *);
-int func_001D4E08(ATTACH *);
+void SteerRobottankAlongPath(P *);
+int HasRobottankWeaponAmmo(ATTACH *);
 int FCheckVolPoint(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
@@ -1140,9 +1140,9 @@ extern "C" void UpdateRobottankAi(P *p)
     VV target = func_001A62E8(p->target);
     VV delta = Sub(target, position);
     float distance = Length2D(delta);
-    p->selectedAttach = func_001D2240(p);
+    p->selectedAttach = FindReadyRobottankWeapon(p);
     if (!p->selectedAttach)
-        p->selectedObject = func_001D22D0(p);
+        p->selectedObject = FindNearestRobottankPickup(p);
     else
         p->selectedObject = 0;
     int state;
@@ -1152,24 +1152,24 @@ extern "C" void UpdateRobottankAi(P *p)
         case 0:
             if (p->selectedAttach) {
                 if (FCheckLm__FP2LMf(&p->selectedAttach->enterRange, distance))
-                    func_001D4B28(p, 1);
+                    SetRobottankTactic(p, 1);
             } else if (p->selectedObject) {
-                func_001D4B28(p, 2);
+                SetRobottankTactic(p, 2);
             } else {
-                func_001D4B28(p, 3);
+                SetRobottankTactic(p, 3);
             }
             break;
         case 1:
             if (!p->selectedAttach || !FCheckLm__FP2LMf(&p->selectedAttach->exitRange, distance))
-                func_001D4B28(p, 0);
+                SetRobottankTactic(p, 0);
             break;
         case 2:
             if (!p->selectedObject)
-                func_001D4B28(p, 0);
+                SetRobottankTactic(p, 0);
             break;
         case 3:
             if (p->selectedAttach || p->selectedObject)
-                func_001D4B28(p, 0);
+                SetRobottankTactic(p, 0);
             break;
         }
     } while (state != p->state);
@@ -1207,12 +1207,12 @@ extern "C" void UpdateRobottankAi(P *p)
             p->path->points[1].q = goal;
             p->path->count = 2;
             MeasureShape(p->path);
-            func_001D2420(p);
+            ResetRobottankWheelHeights(p);
         } else if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, target)) {
             func_001C02D0(p->navigator, position, target, p->path);
-            func_001D2420(p);
+            ResetRobottankWheelHeights(p);
         }
-        func_001D2490(p);
+        SteerRobottankAlongPath(p);
         p->wheelAngle = p->heading;
         break;
     }
@@ -1222,7 +1222,7 @@ extern "C" void UpdateRobottankAi(P *p)
         p->goalHeading = p->heading;
         p->wheelAngle = atan2f(GetY(delta), GetX(delta));
         if (p->nextAttack < D_002DDED0.t) {
-            ATTACH *attach = func_001D2240(p);
+            ATTACH *attach = FindReadyRobottankWeapon(p);
             if (attach) {
                 if (attach->mesh) {
                     M3 m = *func_001A6318(attach->anchor);
@@ -1246,9 +1246,9 @@ extern "C" void UpdateRobottankAi(P *p)
         VV object = func_001A62E8(p->selectedObject);
         if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, object)) {
             func_001C02D0(p->navigator, position, object, p->path);
-            func_001D2420(p);
+            ResetRobottankWheelHeights(p);
         }
-        func_001D2490(p);
+        SteerRobottankAlongPath(p);
         p->wheelAngle = p->heading;
         break;
     }
@@ -1262,7 +1262,7 @@ extern "C" void UpdateRobottankAi(P *p)
     if (D_002DDED0.t > p->nextAttack) {
         for (int i = 0; i < p->attachCount; i++) {
             ATTACH *attach = p->attachments[i];
-            if (!func_001D4E08(attach))
+            if (!HasRobottankWeaponAmmo(attach))
                 continue;
             if (attach->constraint && !FCheckVolPoint(attach->constraint, target))
                 continue;
@@ -1294,7 +1294,7 @@ extern "C" void UpdateRobottankAi(P *p)
  * @end-sly2-annot */
 /* The contact of the list with the largest separation above D_002A7834, or 0. */
 namespace RO_ORDER { extern const float r_D_002A7834 __asm__("D_002A7834") = -3.40282347e+38f; }
-extern "C" XP *func_001D2DD0(ROBOTTANKV *ptank, XPLISTV *pxplist)
+extern "C" XP *FindDeepestRobottankWheelXp(ROBOTTANKV *ptank, XPLISTV *pxplist)
 {
     float g;
     float gMax;
@@ -1366,7 +1366,7 @@ void func_001F9B20(P *);
 M3 *func_001A6318(P *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(P *, const M3 *, const POLY *, qword, const POLY *);
-CONTACT *func_001D2DD0(P *, ENTRY *);
+CONTACT *FindDeepestRobottankWheelXp(P *, ENTRY *);
 qword GetXfVelocity(MOTION *, MOTION *, qword);
 void func_001FAB78(P *, qword, qword);
 qword ConvertXfVec(MOTION *, MOTION *, qword);
@@ -1444,7 +1444,7 @@ extern "C" void PresetRobottankAccel(P *p)
     if (p->count > 0) {
         do {
             ENTRY *entry = &p->entries[i];
-            CONTACT *hit = func_001D2DD0(p, entry);
+            CONTACT *hit = FindDeepestRobottankWheelXp(p, entry);
             if (hit) {
                 qword point = hit->point.q;
                 VV normal = func_001A6318(p)->rows[2].q;
@@ -1907,7 +1907,7 @@ void func_001F4DA8(struct S *p, void *q, void *pe);
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D3F30(struct S *p, void *q) {
+void RemoveRobottankContactsWith(struct S *p, void *q) {
     int i;
     func_001F5988(p, q);
     for (i = 0; i < p->c; i++) func_001F4DA8(p, q, p->ae[i].b);
@@ -1927,7 +1927,7 @@ struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-struct O *func_001D3FA8(struct S *p, int id) {
+struct O *FindRobottankWeapon(struct S *p, int id) {
     int i;
     for (i = 0; i < p->c; i++) {
         struct O *po = p->ap[i];
@@ -1954,7 +1954,7 @@ static inline int Min(int a, int b) { return a < b ? a : b; }
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D3FF0(struct Q *q, struct S *p) {
+void CollectRobottankPickup(struct Q *q, struct S *p) {
     if (p->n150 != 2) {
         struct E *pe = &q->ae[p->i];
         int n = pe->n + p->d;
@@ -2065,7 +2065,7 @@ extern "C" float D_002C21CC;
 extern "C" {
 qword ConvertAloVec(P*,P*,qword);
 qword func_0022FC48(P*,NODE*,qword);
-CONTACT*func_001D2DD0(P*,ENTRY*);
+CONTACT*FindDeepestRobottankWheelXp(P*,ENTRY*);
 float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
 float RadNormalize__Ff(float);
 M3*func_0011B500(M3*,qword,float);
@@ -2099,7 +2099,7 @@ extern "C" void RenderRobottankSelf(P*p){
   ENTRY*e=&p->entries[i];
   point.q=func_0022FC48(0,(NODE*)p->space,e->node->local.position.q);
   point.f[0]=e->x;point.f[1]=e->y;
-  CONTACT*hit=func_001D2DD0(p,e);
+  CONTACT*hit=FindDeepestRobottankWheelXp(p,e);
   {
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
@@ -2139,7 +2139,7 @@ extern "C" void RenderRobottankSelf(P*p){
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4568 {
-/* func_001D4568 (Claude agent, wave-3 lane 9): hit reaction. After the base handler (func_001F7588) accepts the event, the
+/* TakeRobottankDamage (Claude agent, wave-3 lane 9): hit reaction. After the base handler (func_001F7588) accepts the event, the
  * remaining count is updated (clamped at 0) and, for kind 0x100 (random hit) or 0x1000 (hit from a sender), a random linear
  * and angular impulse is built and added to the object's velocity through its virtual get/set pairs (vtable slots 33/35 and
  * 34/36).
@@ -2177,7 +2177,7 @@ void SetRobottankState(P *, int);
 float GRandInRange__Fff(float, float);
 qword SetVectorCylind(float, float, float);
 qword func_001A62E8(P *);
-int func_001D4568(P *, EVENT *);
+int TakeRobottankDamage(P *, EVENT *);
 }
 static inline VV Zero() { qword r; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r)); return r; }
 static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
@@ -2235,7 +2235,7 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-int func_001D4568(P *p, EVENT *event)
+int TakeRobottankDamage(P *p, EVENT *event)
 {
     if (!func_001F7588(p, event))
         return 0;
@@ -2310,7 +2310,7 @@ void RcPtr_Assign(void **, void *);
 void SetSndRange(void *, float, float);
 void PauseSnd(void *);
 void StopSnd(void *, float);
-void func_001D4B28(OBJ *, int);
+void SetRobottankTactic(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
 /** @sly2-annot addr=0x1D4940
  * Purpose: Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5);
@@ -2344,7 +2344,7 @@ void SetRobottankState(OBJ *p, int n)
         }
         break;
     case 1:
-        func_001D4B28(p, -1);
+        SetRobottankTactic(p, -1);
         break;
     }
     p->state = n;
@@ -2364,7 +2364,7 @@ void SetRobottankState(OBJ *p, int n)
         break;
     }
     case 1:
-        func_001D4B28(p, 0);
+        SetRobottankTactic(p, 0);
         break;
     case 3:
         p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 5, 0, 0, 0, 0);
@@ -2383,7 +2383,7 @@ void SetRobottankState(OBJ *p, int n)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
 /* Sets the second state (+0x188), stamping the time. */
-extern "C" void func_001D4B28(ROBOTTANKV *ptank, int nState)
+extern "C" void SetRobottankTactic(ROBOTTANKV *ptank, int nState)
 {
     if (nState != ptank->nState188) {
         ptank->nState188 = nState;
@@ -2403,7 +2403,7 @@ struct S { char pad[0x190]; unsigned int c; int pad2[3]; struct E ae[8]; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D4B48(struct S *p, int n, struct K *pk, float g) {
+void AddRobottankWheel(struct S *p, int n, struct K *pk, float g) {
     if (p->c < 8) {
         struct E *pe = &p->ae[p->c++];
         pe->n = n;
@@ -2418,7 +2418,7 @@ namespace M_func_001D4B90 {
 extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
 struct OBJ;
 struct X;
-extern "C" void func_001D4D30(X *,OBJ *);
+extern "C" void InitRobottankWeapon(X *,OBJ *);
 extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; };
 struct B : A {
@@ -2447,7 +2447,7 @@ static inline X *CreateItem(OBJ *owner) {
  __asm__("addiu %0,%1,%%lo(%2)":"=r"(vtable):"r"(page),"i"(D_002C94A0));
  item->x0=0;
  __asm__("sw %1,%0":"=m"(item->vt):"r"(vtable):"memory");
- register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));func_001D4D30(receiver,owner);return item;
+ register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));InitRobottankWeapon(receiver,owner);return item;
 }
 /** @sly2-annot addr=0x1D4B90
  * Purpose: Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8
@@ -2458,7 +2458,7 @@ static inline X *CreateItem(OBJ *owner) {
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" void func_001D4B90(OBJ *p, int a, int b, int inputC, int inputD)
+extern "C" void AddRobottankWeapon(OBJ *p, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;
     register int d __asm__("$21")=inputD;
@@ -2507,7 +2507,7 @@ struct S { char pad[0x4A4]; unsigned int c; struct E ae[4]; };
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D4C48(struct S *p, int n, struct K *pk) {
+void AddRobottankAttachment(struct S *p, int n, struct K *pk) {
     if (p->c < 4) {
         struct E *pe = &p->ae[p->c++];
         pe->n = n;
@@ -2549,7 +2549,7 @@ struct S { char pad[0x574]; struct E ae[1]; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D4CE0(struct S *p, int i, float g, int n) {
+void SetRobottankAmmo(struct S *p, int i, float g, int n) {
     struct E *pe = &p->ae[i];
     pe->n = n;
     pe->g = g;
@@ -2565,7 +2565,7 @@ void func_001D4CE0(struct S *p, int i, float g, int n) {
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" int func_001D4D00(ROBOTTANKV *ptank, int i)
+extern "C" int GetRobottankSlotValue(ROBOTTANKV *ptank, int i)
 {
     return ptank->arec[i].n;
 }
@@ -2581,7 +2581,7 @@ extern "C" int func_001D4D00(ROBOTTANKV *ptank, int i)
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" void func_001D4D18(ROBOTTANKV *ptank, int i, int n)
+extern "C" void SetRobottankSlotValue(ROBOTTANKV *ptank, int i, int n)
 {
     ptank->arec[i].n = n;
 }
@@ -2621,7 +2621,7 @@ extern qword D_002C2230;
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D4D30(OBJ *p, void *q)
+void InitRobottankWeapon(OBJ *p, void *q)
 {
     p->x10 = q;
     p->x40 = D_002C2218;
@@ -2651,7 +2651,7 @@ void func_001D4D30(OBJ *p, void *q)
  *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
 /* Copies 0x9C bytes from +0x14 of one object to the other. */
-extern "C" void func_001D4DE0(char *pvDst, char *pvSrc)
+extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 {
     CopyAb__FPvT0Ui(pvDst + 0x14, pvSrc + 0x14, 0x9C);
 }
@@ -2670,7 +2670,7 @@ struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-int func_001D4E08(struct S *p) {
+int HasRobottankWeaponAmmo(struct S *p) {
     return p->po->ae[p->i].n >= p->n;
 }
 } } // namespace M_func_001D4E08
@@ -2689,7 +2689,7 @@ struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-void func_001D4E30(struct S *p) {
+void UseRobottankWeaponAmmo(struct S *p) {
     struct E *pe = &p->po->ae[p->i];
     int n = pe->n - p->n;
     if (n < 0) n = 0;
@@ -2744,7 +2744,7 @@ void PostRcPickupLoad(struct S *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" void func_001D4F10(RCPICKUP *ppickup)
+extern "C" void ResetRobottankPickup(RCPICKUP *ppickup)
 {
     func_001CB518(ppickup);
     SetRcPickupState(ppickup, -1);
@@ -2806,7 +2806,7 @@ void SetRcPickupState(struct S *p, int n) {
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_tu_1D1370 {
-void p_func_001D3FF0() __asm__("func_001D3FF0");
+void p_func_001D3FF0() __asm__("CollectRobottankPickup");
 extern "C" {
 extern const unsigned int D_002A7840[2] = {0xFFFF0000, (unsigned int)p_func_001D3FF0};
 }

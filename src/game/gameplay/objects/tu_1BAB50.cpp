@@ -1,7 +1,7 @@
 // tu_1BAB50.cpp -- a scripted trigger SO (CID 0x62?): a list of trigger classes (0x154) whose contact fires it, and a sequence of
 // events (0x164, entry -1 = the always-run entry), each a list of actions (show / hide objects, globs and parts, messages,
-// camera, rumble, noise, splice events, task states). Firing (func_001BB400, through a world callback) runs the current
-// event's actions and steps to the next; func_001BAF18 replays or rewinds the events up to a given one. TU 0x1BAB50..0x1BC050
+// camera, rumble, noise, splice events, task states). Firing (ReactBreakable, through a world callback) runs the current
+// event's actions and steps to the next; SetBreakableStage replays or rewinds the events up to a given one. TU 0x1BAB50..0x1BC050
 // (34 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1BAB50
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BC030
@@ -42,7 +42,7 @@ struct TRIG
     int x168;                   /* 0x168: what the firing may do (camera 2, rumble 4, noise 8; 1 none) */
     void *x16C;                 /* 0x16C: the object that fired it */
     int x170;                   /* 0x170 */
-    void Action() __asm__("func_001BB400");
+    void Action() __asm__("ReactBreakable");
 };
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char offset_0_marker[FIELD_OFFSET(TRIG,x158)==344?1:-1];
@@ -96,19 +96,19 @@ void func_001CB518(TRIG *p);
 void SetSoCnstrForce(TRIG *p, int n);
 void SetSoCnstrTorque(TRIG *p, int n);
 
-void func_001BAED8(TRIG *p, void *a, int b);
-void func_001BAF18(TRIG *p, int id);
-void func_001BB648(TRIG *p, E *pe);
-I *func_001BBDB0(TRIG *p, int x);
-int func_001BBE18(TRIG *p);
-int func_001BBE48(TRIG *p);
-E *func_001BBE68(TRIG *p);
+void ScheduleBreakableReaction(TRIG *p, void *a, int b);
+void SetBreakableStage(TRIG *p, int id);
+void RunBreakableStageActions(TRIG *p, E *pe);
+I *AddBreakableAction(TRIG *p, int x);
+int IsBreakableStageValid(TRIG *p);
+int IsBreakableDone(TRIG *p);
+E *GetCurrentBreakableStage(TRIG *p);
 }
 /* Callers' views (asm labels): the allocator with a plain request, and calls that pass an extra (unused) argument. */
 void *func_001AE318M(MSG *pmsg) __asm__("PvAllocSlot__FP8ALLOCREQ");
 struct XPC;
-int func_001BBE48X(TRIG *p, XPC *e) __asm__("func_001BBE48");
-E *func_001BBE68K(TRIG *p, const void *k) __asm__("func_001BBE68");
+int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
+E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
 /** @sly2-annot addr=0x1BAB50
@@ -118,7 +118,7 @@ static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BAB50(TRIG *p) {
+extern "C" void InitBreakable(TRIG *p) {
     InitSo(p);
     func_001F7918(p, 0x03FFFFFF, 8);
     func_001F7918(p, 0x80001, 0);
@@ -137,7 +137,7 @@ static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BABA0(TRIG *p, void *a)
+extern "C" void LoadBreakableFromBrx(TRIG *p, void *a)
 {
     STACKSCOPE ctx;
     int i, j;
@@ -172,7 +172,7 @@ extern "C" void func_001BABA0(TRIG *p, void *a)
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BAD80(TRIG *p) {
+extern "C" void OnBreakableRemove(TRIG *p) {
     OnSoRemove(p);
     RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
 }
@@ -186,7 +186,7 @@ extern "C" void func_001BAD80(TRIG *p) {
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BADB8(TRIG *p) {
+extern "C" void OnBreakableAdd(TRIG *p) {
     OnSoAdd(p);
     AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
 }
@@ -199,7 +199,7 @@ struct XPC { TRIG *x0; int x4; int x8; int xC; char pad[0x30]; union { unsigned 
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" int func_001BADF0(TRIG *p, XPC *e)
+extern "C" int AcceptBreakableZap(TRIG *p, XPC *e)
 {
     int i;
     if (func_001BBE48X(p, e)) return 0;
@@ -210,7 +210,7 @@ extern "C" int func_001BADF0(TRIG *p, XPC *e)
             if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, p->a154[i].a)) break;
         if (i >= p->c150) return 0;
     }
-    func_001BAED8(p, e->x0, e->xC);
+    ScheduleBreakableReaction(p, e->x0, e->xC);
     return 1;
 }
 
@@ -220,7 +220,7 @@ extern "C" int func_001BADF0(TRIG *p, XPC *e)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-void func_001BAED8(TRIG *p, void *a, int b)
+void ScheduleBreakableReaction(TRIG *p, void *a, int b)
 {
     p->x170 = b;
     p->x16C = a;
@@ -235,7 +235,7 @@ enum { EVENT_SHIFT = 4 };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-void func_001BAF18(TRIG *p, int id)
+void SetBreakableStage(TRIG *p, int id)
 {
     int iTarget = p->i;
     int cur, j, k;
@@ -358,21 +358,21 @@ void CID98::VUnk57()
     L *pl;
     int i, j;
     func_001F4F10(p);
-    if (func_001BBE48(p)) return;
+    if (IsBreakableDone(p)) return;
     for (pl = p->pxEC->pl; pl; pl = pl->next) {
         if (*pl->px8 == 0) continue;
         for (i = 0; i < p->c150; i++) {
             I *pe = &p->a154[i];
             if (!pe->b) continue;
             if (!FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
-            if (!(p->x148 & 0x3000000)) func_001BAED8(p, pl->po, 0);
+            if (!(p->x148 & 0x3000000)) ScheduleBreakableReaction(p, pl->po, 0);
             if (FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
                 TRIG *q = pl->po;
                 for (j = 0; j < q->c150; j++) {
                     I *pe2 = &q->a154[j];
                     if (!pe2->b) continue;
                     if (!FIsBasicDerivedFrom__FP5BASIC3CID(p, pe2->a)) continue;
-                    func_001BAED8(q, p, 0);
+                    ScheduleBreakableReaction(q, p, 0);
                     break;
                 }
             }
@@ -399,7 +399,7 @@ void TRIG::Action()
     TRIG *p = this;
     E *pe;
     int v;
-    if (func_001BBE48(p)) return;
+    if (IsBreakableDone(p)) return;
     if (p->x16C == PpoHero(&D_003DD490)) {
         p->x168 = 0xE;
     } else {
@@ -412,8 +412,8 @@ void TRIG::Action()
     ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x10, 0, 0, 0, 0);
     if (p->x168 & 1) return;
     pe = &p->ae[p->i];
-    func_001BB648(p, p->ae - 1);
-    func_001BB648(p, pe);
+    RunBreakableStageActions(p, p->ae - 1);
+    RunBreakableStageActions(p, pe);
     if (!p->x16C || !FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x3C)) {
         EmitSwNoise(&D_003DD490, 0, func_001A62E8(p), p->x16C);
     }
@@ -427,7 +427,7 @@ void TRIG::Action()
             }
         }
     }
-    if (func_001BBE18(p)) {
+    if (IsBreakableStageValid(p)) {
         pe = &p->ae[p->i];
         if (pe->n <= 0) {
             int i;
@@ -444,7 +444,7 @@ typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-void func_001BB648(TRIG *p, E *pe)
+void RunBreakableStageActions(TRIG *p, E *pe)
 {
     int i;
     SOX *psPrev = 0;
@@ -520,7 +520,7 @@ void func_001BB648(TRIG *p, E *pe)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" int func_001BB918(TRIG *p, int a, int b) {
+extern "C" int AddBreakableTriggerClass(TRIG *p, int a, int b) {
     int c = p->c150;
     int r = c < 8;
     if (r != 0) {
@@ -539,7 +539,7 @@ extern "C" int func_001BB918(TRIG *p, int a, int b) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BB950(TRIG *p, int id)
+extern "C" void AddBreakableStage(TRIG *p, int id)
 {
     MSG msg;
     if (p->c < 0x20) {
@@ -558,7 +558,7 @@ extern "C" void func_001BB950(TRIG *p, int id)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BB9B8(TRIG *p)
+extern "C" void InitBreakablePreStage(TRIG *p)
 {
     E *pe;
     MSG msg;
@@ -575,7 +575,7 @@ extern "C" void func_001BB9B8(TRIG *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBA18(TRIG *p, int x)
+extern "C" void SetBreakableStageParam(TRIG *p, int x)
 {
     if (p->i != -1) {
         E *r = func_001BBE68K(p, D_002A76B8);
@@ -589,8 +589,8 @@ extern "C" void func_001BBA18(TRIG *p, int x)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBA60(TRIG *p, int v) {
-    func_001BBDB0(p, 6)->b = v;
+extern "C" void AddBreakableAction6(TRIG *p, int v) {
+    AddBreakableAction(p, 6)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBA90
@@ -599,8 +599,8 @@ extern "C" void func_001BBA60(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBA90(TRIG *p, int v) {
-    func_001BBDB0(p, 7)->b = v;
+extern "C" void AddBreakableAction7(TRIG *p, int v) {
+    AddBreakableAction(p, 7)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBAC0
@@ -609,8 +609,8 @@ extern "C" void func_001BBA90(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBAC0(TRIG *p, int v) {
-    func_001BBDB0(p, 8)->b = v;
+extern "C" void AddBreakableAction8(TRIG *p, int v) {
+    AddBreakableAction(p, 8)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBAF0
@@ -619,8 +619,8 @@ extern "C" void func_001BBAC0(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBAF0(TRIG *p, int v) {
-    func_001BBDB0(p, 9)->b = v;
+extern "C" void AddBreakableAction9(TRIG *p, int v) {
+    AddBreakableAction(p, 9)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBB20
@@ -629,8 +629,8 @@ extern "C" void func_001BBAF0(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBB20(TRIG *p, int v) {
-    func_001BBDB0(p, 0xA)->b = v;
+extern "C" void AddBreakableAction10(TRIG *p, int v) {
+    AddBreakableAction(p, 0xA)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBB50
@@ -639,8 +639,8 @@ extern "C" void func_001BBB20(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBB50(TRIG *p, int v) {
-    func_001BBDB0(p, 0xB)->b = v;
+extern "C" void AddBreakableAction11(TRIG *p, int v) {
+    AddBreakableAction(p, 0xB)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBB80
@@ -649,8 +649,8 @@ extern "C" void func_001BBB50(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBB80(TRIG *p, int v) {
-    func_001BBDB0(p, 0)->b = v;
+extern "C" void AddBreakableAction0(TRIG *p, int v) {
+    AddBreakableAction(p, 0)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBBB0
@@ -659,12 +659,12 @@ extern "C" void func_001BBB80(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBBB0(TRIG *p, int v) {
-    if (func_001BBE18(p) == 0) {
+extern "C" void AddBreakableShowGlobs(TRIG *p, int v) {
+    if (IsBreakableStageValid(p) == 0) {
         ShowSoGlobsById(p, v);
         return;
     }
-    func_001BBDB0(p, 2)->b = v;
+    AddBreakableAction(p, 2)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBC08
@@ -673,12 +673,12 @@ extern "C" void func_001BBBB0(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBC08(TRIG *p, int v) {
-    if (func_001BBE18(p) == 0) {
+extern "C" void AddBreakableShowParts(TRIG *p, int v) {
+    if (IsBreakableStageValid(p) == 0) {
         ShowSoPartsById(p, v);
         return;
     }
-    func_001BBDB0(p, 4)->b = v;
+    AddBreakableAction(p, 4)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBC60
@@ -687,12 +687,12 @@ extern "C" void func_001BBC08(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBC60(TRIG *p, int v) {
+extern "C" void AddBreakableAction1(TRIG *p, int v) {
     int oid = v;
     if (oid == -1) {
         oid = p->oid;
     }
-    func_001BBDB0(p, 1)->b = oid;
+    AddBreakableAction(p, 1)->b = oid;
 }
 
 /** @sly2-annot addr=0x1BBC98
@@ -701,12 +701,12 @@ extern "C" void func_001BBC60(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBC98(TRIG *p, int v) {
-    if (func_001BBE18(p) == 0) {
+extern "C" void AddBreakableHideGlobs(TRIG *p, int v) {
+    if (IsBreakableStageValid(p) == 0) {
         HideSoGlobsById(p, v);
         return;
     }
-    func_001BBDB0(p, 3)->b = v;
+    AddBreakableAction(p, 3)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBCF0
@@ -715,12 +715,12 @@ extern "C" void func_001BBC98(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBCF0(TRIG *p, int v) {
-    if (func_001BBE18(p) == 0) {
+extern "C" void AddBreakableHideParts(TRIG *p, int v) {
+    if (IsBreakableStageValid(p) == 0) {
         func_001F6B48(p, v);
         return;
     }
-    func_001BBDB0(p, 5)->b = v;
+    AddBreakableAction(p, 5)->b = v;
 }
 
 /** @sly2-annot addr=0x1BBD48
@@ -729,10 +729,10 @@ extern "C" void func_001BBCF0(TRIG *p, int v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBD48(TRIG *p, int a, int b)
+extern "C" void AddBreakableAction12(TRIG *p, int a, int b)
 {
     MSG msg;
-    I *pi = func_001BBDB0(p, 0xC);
+    I *pi = AddBreakableAction(p, 0xC);
     pi->b = (int)PvAllocMsg(&msg, 8, 0x10);
     ((int *)pi->b)[0] = a;
     ((int *)pi->b)[1] = b;
@@ -748,7 +748,7 @@ extern "C" void func_001BBD48(TRIG *p, int a, int b)
  *   r5b_rest+top50_round
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-I *func_001BBDB0(TRIG *p, int x)
+I *AddBreakableAction(TRIG *p, int x)
 {
     E *pe = func_001BBE68K(p, D_002A76C0);
     I *pi;
@@ -765,7 +765,7 @@ I *func_001BBDB0(TRIG *p, int x)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-int func_001BBE18(TRIG *p) {
+int IsBreakableStageValid(TRIG *p) {
     int i = p->i;
     int f = 0;
     if (((i >= 0) && (i < p->c)) || (i == -1)) {
@@ -780,8 +780,8 @@ int func_001BBE18(TRIG *p) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-int func_001BBE48(TRIG *p) {
-    return func_001BBE18(p) == 0;
+int IsBreakableDone(TRIG *p) {
+    return IsBreakableStageValid(p) == 0;
 }
 
 /** @sly2-annot addr=0x1BBE68
@@ -790,8 +790,8 @@ int func_001BBE48(TRIG *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-E *func_001BBE68(TRIG *p) {
-    if (func_001BBE18(p) == 0) {
+E *GetCurrentBreakableStage(TRIG *p) {
+    if (IsBreakableStageValid(p) == 0) {
         return 0;
     }
     return (E *)((char *)p->ae + p->i * 0x10);
@@ -803,10 +803,10 @@ E *func_001BBE68(TRIG *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BBEA8(TRIG *p)
+extern "C" void ResetBreakable(TRIG *p)
 {
     func_001CB518(p);
-    func_001BAF18(p, 0x609);
+    SetBreakableStage(p, 0x609);
     if (p->fCnstr) {
         SetSoCnstrForce(p, 1);
         SetSoCnstrTorque(p, 1);

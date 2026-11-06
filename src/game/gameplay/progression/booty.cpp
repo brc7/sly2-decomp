@@ -161,14 +161,14 @@ struct SVKEYS;
 void PkeyConcatSaveKeys(void *, SVKEYS *);
 
 void SetBootyState(BOOTYV *p, int st);
-void func_0013C440(BOOTYV *p);
-void func_0013C4E0(BOOTYV *p, int);
+void ClearCurrentBootyEntry(BOOTYV *p);
+void ReturnDroppedBooty(BOOTYV *p, int);
 void SelectBootyEntry(BOOTYV *p, int id);
-void func_0013CF38(CID37V *p, int);
-void func_0013D1A8(CID37V *p);
-/* func_0013D1A8 leaves PkeyConcatSaveKeys's result (the save key) in v0 (the call is its tail); its callers read it. */
-void *PvContSaveKey(CID37V *p) __asm__("func_0013D1A8");
-int NBootyContainerKind(CID37V *p);
+void SpawnBootyInContainer(CID37V *p, int);
+void GetBootyContainerSaveKey(CID37V *p);
+/* GetBootyContainerSaveKey leaves PkeyConcatSaveKeys's result (the save key) in v0 (the call is its tail); its callers read it. */
+void *PvContSaveKey(CID37V *p) __asm__("GetBootyContainerSaveKey");
+int GetSavedBootyContainerKind(CID37V *p);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* FIsBasicDerivedFrom__FP5BASIC3CID */
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
@@ -206,7 +206,7 @@ extern "C" void LoadBootyFromBrx(BOOTYV *p, void *a) {
     STACKSCOPE_ctor(&ctx);
     p->abootye = (BOOTYE *)func_001AE378(SetReq(&req, 0x580, 0x10));
     LoadSoFromBrx(p, a);
-    func_0013C440(p);
+    ClearCurrentBootyEntry(p);
     p->abootye = (BOOTYE *)func_001AE238(SetReq(&req, p->cbootye * 0x2c, 0x10), p->abootye);
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
@@ -230,7 +230,7 @@ void BOOTY::VUnk14() { BOOTYV *p = (BOOTYV *)this;
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" void func_0013BF30(BOOTYV *p) {
+extern "C" void ClearBootyState(BOOTYV *p) {
     SetBootyState(p, 0);
 }
 
@@ -248,7 +248,7 @@ extern "C" void UpdateBooty(BOOTYV *p) {
     switch (st) {
     case 5:
         if ((D_002DDED0.t - p->tState) >= 5.0f) {
-            func_0013C4E0(p, 0);
+            ReturnDroppedBooty(p, 0);
             return;
         }
         return;
@@ -367,7 +367,7 @@ extern "C" void AdjustBootyNewXp(BOOTYV *p, XPE *ae, int i) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" int func_0013C368(BOOTYV *p, void *pv) {
+extern "C" int TakeBootyDamage(BOOTYV *p, void *pv) {
     if ((func_001F7588(p, pv) == 0) || (p->st != 5)) {
         return 0;
     }
@@ -385,7 +385,7 @@ extern "C" int func_0013C368(BOOTYV *p, void *pv) {
 extern "C" void AddBootyEntry(BOOTYV *p, int id, int x4, int x14) {
     int c;
     BOOTYE *pe;
-    func_0013C440(p);
+    ClearCurrentBootyEntry(p);
     c = p->cbootye;
     if (c < 0x20) {
         p->cbootye = c + 1;
@@ -405,7 +405,7 @@ extern "C" void AddBootyEntry(BOOTYV *p, int id, int x4, int x14) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-void func_0013C440(BOOTYV *p) {
+void ClearCurrentBootyEntry(BOOTYV *p) {
     p->pbootyeCur = 0;
 }
 
@@ -427,11 +427,11 @@ void AddAlarmAlbrk(ALARM *palarm, OID oid)
 
 /** @sly2-annot addr=0x13C478
  * Purpose: id of the current entry or -1
- * Info: proposed name IdBootyCur (T1); TU booty
+ * Info: proposed name GetCurrentBootyEntryId (T1); TU booty
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" int IdBootyCur(BOOTYV *p) {
+extern "C" int GetCurrentBootyEntryId(BOOTYV *p) {
     BOOTYE *pe;
     int id;
     pe = p->pbootyeCur;
@@ -462,7 +462,7 @@ void SelectBootyEntry(BOOTYV *p, int id) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" BOOTYE *func_0013C4D8(BOOTYV *p) {
+extern "C" BOOTYE *GetCurrentBootyEntry(BOOTYV *p) {
     return p->pbootyeCur;
 }
 
@@ -473,7 +473,7 @@ extern "C" BOOTYE *func_0013C4D8(BOOTYV *p) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-void func_0013C4E0(BOOTYV *p, int) {
+void ReturnDroppedBooty(BOOTYV *p, int) {
     CID37V *pcont;
     BOOTYE *pe;
     if (p->st == 5) {
@@ -563,7 +563,7 @@ static inline void Notify(RLO *pr, int k)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_0013C4E0() __asm__("func_0013C4E0");
+void p_func_0013C4E0() __asm__("ReturnDroppedBooty");
 extern const unsigned int r_D_002A4B58[2] __asm__("D_002A4B58") = {0xFFFF0000, (unsigned int)p_func_0013C4E0};
 }
 namespace RO_ORDER { extern const VQ r_D_002A4B60 __asm__("D_002A4B60") = {{0.0f, 0.0f, -2500.0f, 0.0f}}; }
@@ -739,7 +739,7 @@ void SetBootyState(BOOTYV *p, int st)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" void func_0013CEB8(CID37V *p) {
+extern "C" void InitBootyContainer(CID37V *p) {
     func_00183F08(p);
     p->kind = 0x2BC;
     p->n188 = -1;
@@ -761,14 +761,14 @@ void CID37::VUnk14() { CID37V *p = (CID37V *)this; func_00183F50(p); p->id = g_s
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-void func_0013CF38(CID37V *p, int) {
+void SpawnBootyInContainer(CID37V *p, int) {
     SW *pg;
     int i;
     BOOTYV *pa;
     if (p->pbooty) return;
     pg = &g_sw;
     if (!pg->ploUnk4638) return;
-    i = NBootyContainerKind(p);
+    i = GetSavedBootyContainerKind(p);
     if (i == -1) return;
     pa = PloAcquireProxy(pg->ploUnk4638, 0);
     p->pbooty = pa;
@@ -788,7 +788,7 @@ void func_0013CF38(CID37V *p, int) {
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" void func_0013CFD8(CID37V *p) { func_00183FB8(p); EnsureSwCallback(&g_sw, p, D_002A4BB0.l, 0); }
+extern "C" void OnBootyContainerAdd(CID37V *p) { func_00183FB8(p); EnsureSwCallback(&g_sw, p, D_002A4BB0.l, 0); }
 
 /** @sly2-annot addr=0x13D020
  * Purpose: cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast
@@ -798,7 +798,7 @@ extern "C" void func_0013CFD8(CID37V *p) { func_00183FB8(p); EnsureSwCallback(&g
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" void func_0013D020(CID37V *p, HERO *q)
+extern "C" void OnBootyContainerTouched(CID37V *p, HERO *q)
 {
     BOOTYV *pqa, *ppa;
     if (!FIsBasicDerivedFrom((BASIC *)q, CID_34))
@@ -841,7 +841,7 @@ struct SVKEYS { int c; short *as; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-void func_0013D1A8(CID37V *p) {
+void GetBootyContainerSaveKey(CID37V *p) {
     short as[3];
     SVKEYS par;
     int i;
@@ -892,14 +892,14 @@ static inline int NFromRef(void *pv)
 /** @sly2-annot addr=0x13D248
  * Purpose: Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 ->
  *   -1
- * Info: proposed name NBootyContainerKind (T1); TU booty
+ * Info: proposed name GetSavedBootyContainerKind (T1); TU booty
  * Notes: verifier better_name (CORRECT row): Reads save-var via PkeyBootyContainerSave key; 0 -> default
  *   +0x184; 7..9 -> -1; 0x2BF-0x2C1 -> 0x2BC-0x2BE; sole caller SpawnBootyInContainer. Drop the trailing
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-int NBootyContainerKind(CID37V *p) {
+int GetSavedBootyContainerKind(CID37V *p) {
     STACKSCOPEC ctx;
     int n;
     STACKSCOPE_ctor(&ctx);
@@ -922,7 +922,7 @@ static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const C
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-extern "C" void func_0013D328(CID37V *p, int n)
+extern "C" void SetBootyContainerKind(CID37V *p, int n)
 {
     if (p->pbooty) SetBootyState(p->pbooty, 0);
     STACKSCOPE frame;
@@ -931,15 +931,15 @@ extern "C" void func_0013D328(CID37V *p, int n)
         CRef ref(0x15, n);
         SetPv(po, ref, D_003D4A60);
     }
-    if (n != -1) func_0013CF38(p, 0);
+    if (n != -1) SpawnBootyInContainer(p, 0);
 }
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_booty {
-void p_func_0013C4E0() __asm__("func_0013C4E0");
-void p_func_0013CF38() __asm__("func_0013CF38");
+void p_func_0013C4E0() __asm__("ReturnDroppedBooty");
+void p_func_0013CF38() __asm__("SpawnBootyInContainer");
 extern "C" {
 extern const unsigned int D_002A4BB0[2] = {0xFFFF0000, (unsigned int)p_func_0013CF38};
 }

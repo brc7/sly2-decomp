@@ -4127,7 +4127,7 @@ extern CM D_002DDF40;
 
 extern float D_002BF3EC;
 extern float D_002BF3F0;
-int FPocketItemCarried(CID100 *pcid100) __asm__("func_00224590");
+int FPocketItemCarried(CID100 *pcid100) __asm__("IsTossableActive");
 extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
  * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
@@ -4274,7 +4274,7 @@ extern REC *PgadrecFromJtGadget(void *p, int n);
 extern void SetJtthrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
 extern OBJ *PloAcquireProxy(int oid, int n);
-extern int func_00224610(OBJ *p);
+extern int IsThrowableGadget(OBJ *p);
 extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
 extern void GrfbtnGadget(void *p, int n);
 extern void func_0015C150(int x);
@@ -4340,7 +4340,7 @@ void UseJtGadget(char *p, int n)
         if (!pobj)
             break;
         pobj->x15C = prec->x0;
-        if (func_00224610(pobj)) {
+        if (IsThrowableGadget(pobj)) {
             pobj->x16C = p;
             func_0018D698(p, prec, pobj);
         }

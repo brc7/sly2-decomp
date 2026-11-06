@@ -757,7 +757,7 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
 /* AddLasenBeamXps (LASEN vt60): for every beam, find where it hits the request's object (first ClsgClipEdgeToObject,
    else the CID 0x33 test func_00205670), add a kind-10 contact there with PxpAdd, and post ZapLasenBeams through
    EnsureSwCallback. What mattered for the match:
-    - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
+    - the same 6-argument virtual signature as AddHackwallXps / AddBombCustomXps, with every argument passed through to
       the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
     - VU helpers taking VU_VECTOR parameters (const qword & conversion): the extra RTL copies keep the loop above
       loop.c's ~95-insn limit, so i * sizeof(BEAM) stays a mult inside the loop as in the target;

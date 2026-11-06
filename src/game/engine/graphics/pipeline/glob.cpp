@@ -1071,7 +1071,7 @@ namespace M_RenderSoGlobset {
 //   because sched1 issues the i+1 PRE addiu at t14, two cycles before the swc1).
 // lilly1 (Claude agent, T1687, 2026-10-25): aligned 14 (728 instructions, frame 0x290; laneH21v2 30). Policy-clean: no register pins, VU helper asms only.
 //   From laneH21v2: (1) cull 2 radius loaded by a `lw` asm straight into the qword (VU_FLOATM, as func_001375D0): real-load timing, target order (30 -> 28).
-//   (2) case-3 SqDist: the compiler moves the length out of vf (qmfc2) and an `mtc1` asm makes the float (GetX idiom, func_001D2490): mtc1 before add.s (28 -> 26).
+//   (2) case-3 SqDist: the compiler moves the length out of vf (qmfc2) and an `mtc1` asm makes the float (GetX idiom, SteerRobottankAlongPath): mtc1 before add.s (28 -> 26).
 //   (3) cull-2 result: qmfc2 asm into an int (dead-$3 clobber kept) + separate `mtc1` asm: c.eq.s/swc1 one cycle earlier, the hazard nop and the 1-insn shift are gone (26 -> 15).
 //   (4) UnpackWords copy as `for (k = 0; k < cw; k++)`: loop.c creates the counter init after gcse's &matModel PRE insn, as func_00169198 (15 -> 14).
 //   Left: cull 1 load/sq order + registers (target: radius lw after gain, regs v1/a0/v0/a2), cull 2 radius/range registers swapped (target radius v1, range a0),

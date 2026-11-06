@@ -645,7 +645,7 @@ static inline float Dot(qword a, qword b)
 static inline void Normal(U *v, qword fallback)
 {
     qword a = v->q;
-    register qword d __asm__("vf1"); /* the one pin: the length/result lives in vf1 (as in func_0017F1D0) */
+    register qword d __asm__("vf1"); /* the one pin: the length/result lives in vf1 (as in TakeHackDamage) */
     qword one;
     float len;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(d), "=&j"(one) : "j"(a));

@@ -141,7 +141,7 @@ int func_00173610(qword *pq, int a, int b, float f, float g);
 int FSwHandsOff(SW *pg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetStepguardTarget(GUARDV *pw, void *p);
-int func_001BBE48(SOV *p);
+int IsBreakableDone(SOV *p);
 int CploFindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
 qword SetVectorSphere(float a, float b, float c);
 float RadBetweenVectors(qword a, qword b, void *p);
@@ -459,7 +459,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
         return;
     }
     for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->pnext) {
-        if (!func_001BBE48(ps)) {
+        if (!IsBreakableDone(ps)) {
             SOV *apso[8];
             qword posT = func_001A62E8(ps);
             float r = D_002BD478;

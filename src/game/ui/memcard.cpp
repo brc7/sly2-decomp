@@ -618,7 +618,7 @@ int FMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *t, long pmf);
 void func_001AB630(struct S *s);
 void SetSaveState(struct S *s, int);
-int func_001B42C0(void *p);
+int IsMpegActive(void *p);
 int func_001B01E8(void *p);
 void SetMcDialogState(struct H *h, int n);
 /** @sly2-annot addr=0x1AB1A0
@@ -649,7 +649,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     }
     if (FMemcardThreadValid__FP7MEMCARD(s->xFD5C))
         return;
-    if (func_001B42C0(D_002F66B0))
+    if (IsMpegActive(D_002F66B0))
         return;
     if (D_002E6550.x44 != 1)
         return;
@@ -2092,7 +2092,7 @@ namespace M_func_001ACFE0 {
 // Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
 // State 34 sends an option message (CRef true) to the global option object D_003E0FE4.
 //
-// Match notes: the three-argument call to RefSetGlobalSaveVar uses the same idiom as func_0013D328 / ResetRumbleSaveVar:
+// Match notes: the three-argument call to RefSetGlobalSaveVar uses the same idiom as SetBootyContainerKind / ResetRumbleSaveVar:
 // SetPv receives the context at the call site (evaluated before the CRef copy) but its body names
 // D_003D4A60 again after the copy. That is what puts `lui a3` after the copy ctor yet keeps a3's low half
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).

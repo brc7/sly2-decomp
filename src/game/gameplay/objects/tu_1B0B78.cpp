@@ -123,16 +123,16 @@ M3 func_0011B500(qwordV v, float g);
 float atan2f(float y, float x);
 E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
 
-void func_001B0D90(CID96V *p);
-void func_001B1160(CID96V *p);
-void func_001B1328(CID96V *p, int next);
-void func_001B1818(CID96V *p, float g);
-int func_001B1868(CID96V *p);
-int func_001B1900(CID96V *p);
-void func_001B1A38(CID96V *p, LOV *plo, float *pf);
-int func_001B1B10(unsigned int n);
-ASEG *func_001B1B98(CID96V *p, OID oid);
-void func_001B1BF0(CID96V *p);
+void ResetCritter(CID96V *p);
+void UpdateCritterPathFollow(CID96V *p);
+void SetCritterState(CID96V *p, int next);
+void SetCritterHeading(CID96V *p, float g);
+int IsCritterFacingHeading(CID96V *p);
+int ChooseCritterStateFromPlayer(CID96V *p);
+void GetAsegSpeedForObject(CID96V *p, LOV *plo, float *pf);
+int IsValidCritterLinkIndex(unsigned int n);
+ASEG *FindCritterLinkObject(CID96V *p, OID oid);
+void ResolveCritterLinks(CID96V *p);
 }
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
 float RadNormalize(float r);                                                                  /* RadNormalize__Ff */
@@ -147,7 +147,7 @@ void SetStepSpinRatio(STEP *pstep, float r);
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/hud-ui.md#4-source-files,
  *   docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0B78(CID96V *p)
+extern "C" void InitCritter(CID96V *p)
 {
     int i;
     E96 *pe;
@@ -183,7 +183,7 @@ extern "C" void func_001B0B78(CID96V *p)
  * Confidence: low (draft) [T2 0.50] - evidence: arbitration; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0C68(CID96V *p)
+extern "C" void RemoveCritterHierarchy(CID96V *p)
 {
     RemoveSoHierarchy(p);
     ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &p->pasega);
@@ -197,7 +197,7 @@ extern "C" void func_001B0C68(CID96V *p)
  * See: docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0CA8(CID96V *p, CBinaryInputStream *pbis)
+extern "C" void LoadCritterFromBrx(CID96V *p, CBinaryInputStream *pbis)
 {
     XFV *pxf;
     V3 *pa;
@@ -209,7 +209,7 @@ extern "C" void func_001B0CA8(CID96V *p, CBinaryInputStream *pbis)
     pa->y = 0;
     pxf->a.x = 0;
     p->oldMode = p->pxf5C->nRole;
-    func_001B1BF0(p);
+    ResolveCritterLinks(p);
 }
 
 /** @sly2-annot addr=0x1B0D08
@@ -219,13 +219,13 @@ extern "C" void func_001B0CA8(CID96V *p, CBinaryInputStream *pbis)
  * Confidence: low (draft) [T2 0.65] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0D08(CID96V *p)
+extern "C" void PostCritterLoad(CID96V *p)
 {
     PostSoLoad(p);
-    func_001B1BF0(p);
-    func_001B1A38(p, (LOV *)p->ae[1].paseg, &p->speedWalk);
-    func_001B1A38(p, (LOV *)p->ae[4].paseg, &p->speed.value);
-    func_001B0D90(p);
+    ResolveCritterLinks(p);
+    GetAsegSpeedForObject(p, (LOV *)p->ae[1].paseg, &p->speedWalk);
+    GetAsegSpeedForObject(p, (LOV *)p->ae[4].paseg, &p->speed.value);
+    ResetCritter(p);
 }
 
 /** @sly2-annot addr=0x1B0D60
@@ -235,10 +235,10 @@ extern "C" void func_001B0D08(CID96V *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0D60(CID96V *p)
+extern "C" void ResetCritterFromProxy(CID96V *p)
 {
     func_001CB518(p);
-    func_001B0D90(p);
+    ResetCritter(p);
 }
 
 /** @sly2-annot addr=0x1B0D90
@@ -248,18 +248,18 @@ extern "C" void func_001B0D60(CID96V *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B0D90(CID96V *p)
+void ResetCritter(CID96V *p)
 {
     qwordV v;
     SetStepSpinRatio((STEP *)p, 1.0f);
     if (p->pshape) {
-        func_001B1328(p, 1);
+        SetCritterState(p, 1);
         p->u = UMinShape(p->pshape);
         p->du = DuGetShapeSearchIncrement(p->pshape);
         EvaluateShapeU(p->pshape, p->u, &v, 0);
         ((void (*)(void *, qwordV))p->pvt[29].pfn)((char *)p + p->pvt[29].d, v);
     } else {
-        func_001B1328(p, 0);
+        SetCritterState(p, 0);
     }
 }
 
@@ -275,28 +275,28 @@ namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.4
  * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B0E28(CID96V *p)
+extern "C" void UpdateCritter(CID96V *p)
 {
     int st;
     UpdateSo(p);
     st = p->state;
     switch (st) {
     case 0:
-        st = func_001B1900(p);
+        st = ChooseCritterStateFromPlayer(p);
         if (st != 3 && p->randomDeadline <= D_002DDED0.t) {
             if (p->pshape) st = 1;
         }
         break;
     case 1:
-        st = func_001B1900(p);
+        st = ChooseCritterStateFromPlayer(p);
         if (st != 3 && p->randomDeadline <= D_002DDED0.t) st = 0;
         break;
     case 2:
-        st = func_001B1900(p);
-        if (st != 3 && func_001B1868(p)) st = 1;
+        st = ChooseCritterStateFromPlayer(p);
+        if (st != 3 && IsCritterFacingHeading(p)) st = 1;
         break;
     case 3:
-        if (!p->pasega && func_001B1868(p)) st = 4;
+        if (!p->pasega && IsCritterFacingHeading(p)) st = 4;
         break;
     case 4:
         if (p->deadline <= D_002DDED0.t) {
@@ -305,8 +305,8 @@ extern "C" void func_001B0E28(CID96V *p)
         }
         break;
     }
-    func_001B1328(p, st);
-    func_001B1160(p);
+    SetCritterState(p, st);
+    UpdateCritterPathFollow(p);
 }
 
 struct M96 { int k; int pad[3]; qwordV a; qwordV b; qwordV c; };
@@ -318,11 +318,11 @@ struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" int func_001B0F88(CID96V *p, A96 *pa)
+extern "C" int TakeCritterDamage(CID96V *p, A96 *pa)
 {
     int r = func_001F7588(p, pa);
     if (r && (pa->n44 & 8) && p->state != 5) {
-        func_001B1328(p, 5);
+        SetCritterState(p, 5);
         if (p->plo1C8) {
             M96 m;
             m.k = 6;
@@ -341,7 +341,7 @@ static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B1030(CID96V *p)
+extern "C" void UpdateCritterXfWorld(CID96V *p)
 {
     int n = p->state;
     if (n < 4) if (n >= 2) {
@@ -360,7 +360,7 @@ extern "C" void func_001B1030(CID96V *p)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B10B0(CID96V *p)
+extern "C" void PresetCritterAccel(CID96V *p)
 {
     func_001F59A0(p, &p->basis, &p->spin);
 }
@@ -372,10 +372,10 @@ struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B10D0(CID96V *p, int msg, ASEGA *pm)
+extern "C" void HandleCritterMessage(CID96V *p, int msg, ASEGA *pm)
 {
     HandleBasicMessage(p, msg, pm);
-    if (msg == 2 && pm == p->pasega && ((MSG *)pm)->paseg == p->ae[3].paseg) func_001B1328(p, 4);
+    if (msg == 2 && pm == p->pasega && ((MSG *)pm)->paseg == p->ae[3].paseg) SetCritterState(p, 4);
 }
 
 /** @sly2-annot addr=0x1B1140
@@ -408,7 +408,7 @@ static __inline__ qwordV VLen(qwordV c)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B1160(CID96V *p)
+void UpdateCritterPathFollow(CID96V *p)
 {
     SHAPE *q;
     float g, t;
@@ -433,7 +433,7 @@ void func_001B1160(CID96V *p)
     t = UWrapShape(q, p->u + p->du);
     if (t < UMinShape(q) || UMaxShape(q) < t) {
         if (p->state == 1)
-            func_001B1328(p, 2);
+            SetCritterState(p, 2);
     } else {
         VU v, uc, ur, ub;
         qwordV d, c, l, n, b, r;
@@ -490,7 +490,7 @@ static inline M4*GetMatrix(CID96V*p){VTE&v=p->pvt[31];return ((M4*(*)(void*))v.p
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B1328(CID96V*p,int next){
+void SetCritterState(CID96V*p,int next){
  int old=p->state;if(old==next)return;WORK w;
  switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->pxf5C,p->oldMode);func_0022C840(p,p->pxf5C);break;}
  switch(next){
@@ -501,7 +501,7 @@ void func_001B1328(CID96V*p,int next){
  case 2:{
   p->du=-p->du;float negative=-1.0f;M4*m=GetMatrix(p);
   qwordV row=m->row[0].q;qwordV factor=SplatInto(negative,&w.first);qwordV scaled=ScaleX(row,factor);
-  GetVectorSphere(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->pxf5C,1);func_0022C840(p,p->pxf5C);break;
+  GetVectorSphere(scaled,&w.angle,0,0);SetCritterHeading(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->pxf5C,1);func_0022C840(p,p->pxf5C);break;
  }
  case 3:
   SetZeroVelocity(p);SetStepSpinRatio((STEP*)p,p->ratio+p->ratio);
@@ -573,7 +573,7 @@ void SetStepSpinRatio(STEP *pstep, float r)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B1818(CID96V *p, float g)
+void SetCritterHeading(CID96V *p, float g)
 {
     p->heading = g;
     p->basis = func_0011B500(D_002A2DC0.q, g);
@@ -585,7 +585,7 @@ void func_001B1818(CID96V *p, float g)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-int func_001B1868(CID96V *p)
+int IsCritterFacingHeading(CID96V *p)
 {
     float *a = ((float *(*)(void *))p->pvt[31].pfn)((char *)p + p->pvt[31].d);
     float *b = ((float *(*)(void *))p->pvt[31].pfn)((char *)p + p->pvt[31].d);
@@ -610,7 +610,7 @@ static inline float Length(qwordV v)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-int func_001B1900(CID96V *p)
+int ChooseCritterStateFromPlayer(CID96V *p)
 {
     int r = p->state;
     qwordV pos = func_001A62E8(p);
@@ -630,7 +630,7 @@ int func_001B1900(CID96V *p)
         if (Length(v) < 150.0f)
             return r;
     }
-    func_001B1818(p, atan2f(d.f[1], d.f[0]));
+    SetCritterHeading(p, atan2f(d.f[1], d.f[0]));
     return 3;
 }
 
@@ -643,7 +643,7 @@ struct Y96 { int x0; C96 *pc; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B1A38(CID96V *p, LOV *px, float *pf)
+void GetAsegSpeedForObject(CID96V *p, LOV *px, float *pf)
 {
     V v0, v1;
     Y96 *py;
@@ -664,7 +664,7 @@ void func_001B1A38(CID96V *p, LOV *px, float *pf)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-int func_001B1B10(unsigned int n)
+int IsValidCritterLinkIndex(unsigned int n)
 {
     return n < 6U;
 }
@@ -675,9 +675,9 @@ int func_001B1B10(unsigned int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-extern "C" void func_001B1B18(CID96V *p, int n, OID oid, int grf)
+extern "C" void SetCritterLink(CID96V *p, int n, OID oid, int grf)
 {
-    if (func_001B1B10(n) && n != 2 && n != 5) {
+    if (IsValidCritterLinkIndex(n) && n != 2 && n != 5) {
         E96 *pe = &p->ae[n];
         pe->oid = oid;
         if (grf != -1)
@@ -691,7 +691,7 @@ extern "C" void func_001B1B18(CID96V *p, int n, OID oid, int grf)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-ASEG *func_001B1B98(CID96V *p, OID oid)
+ASEG *FindCritterLinkObject(CID96V *p, OID oid)
 {
     LOV *plo;
     plo = PloFindSwObject(&D_003DD490, 1, oid, (LOV *)p);
@@ -708,14 +708,14 @@ ASEG *func_001B1B98(CID96V *p, OID oid)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
  * @end-sly2-annot */
-void func_001B1BF0(CID96V *p)
+void ResolveCritterLinks(CID96V *p)
 {
     int i;
     E96 *pe;
     for (i = 0; i < 6; i++) {
         pe = &p->ae[i];
         if (pe->oid != -1) {
-            pe->paseg = func_001B1B98(p, pe->oid);
+            pe->paseg = FindCritterLinkObject(p, pe->oid);
             pe->oid = (OID)-1;
         }
     }

@@ -3638,7 +3638,7 @@ CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
 void func_00165E38(G *);
 }
-/* The unused third parameter is deliberate: it is the same SetPv form as func_0013D328 / func_00143AF0,
+/* The unused third parameter is deliberate: it is the same SetPv form as SetBootyContainerKind / func_00143AF0,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08

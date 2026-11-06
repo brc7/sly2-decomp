@@ -374,7 +374,7 @@ extern "C" void func_00170DD0(SSG *pssg, int id, int n)
  * Info: proposed name PcmdAddCid113 (T2); class CID113; TU tu_1709A8
  * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | v3: superseded PcmdAppendCid113 | top50_round
  *   (0.55): Body. All 16 callers are AddCid113Cmd* builders (Context, Teleport, Message, Wait, Goto, LookAt,
- *   Anim, BusyOn/Off, EnsureRelayAlarm). Sly-style analogue of PrelaycmdAddRelay (relay TU). Class still a
+ *   Anim, BusyOn/Off, EnsureRelayAlarm). Sly-style analogue of AddRelayCommand (relay TU). Class still a
  *   placeholder (CID113 | T2: placeholder token Cid113
  * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
