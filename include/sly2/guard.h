@@ -25,9 +25,9 @@ struct DETECTOR : public XFM
       undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
       int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp func_002087C8) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
+    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitDetector");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_DETECTOR_cUnkFC[SLY2_OFFSETOF(DETECTOR, cUnkFC) == 0xFC ? 1 : -1];
