@@ -44,7 +44,7 @@ void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOLV *p);
 void OnLoRemove(VOLV *p);
-int FCheckVolPoint(VOLV *p, qword q);
+int IsPointInVol(VOLV *p, qword q);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
@@ -92,13 +92,13 @@ void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 
 /** @sly2-annot addr=0x227C90
  * Purpose: reject by bounding sphere then BSP point test (0x118FB0) in local space
- * Info: proposed name FCheckVolPoint (T1); TU vol
+ * Info: proposed name IsPointInVol (T1); TU vol
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60,
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int FCheckVolPoint(VOLV *p, qword q)
+extern "C" int IsPointInVol(VOLV *p, qword q)
 {
     qword a = ConvertAloPos(0, p, q), d, r;
     float f;
@@ -118,10 +118,10 @@ extern "C" int FCheckVolPoint(VOLV *p, qword q)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int func_00227D20(VOLV *p, qword v, float g)
+extern "C" int IsSphereInVol(VOLV *p, qword v, float g)
 {
     if (g <= 1.0f) {
-        return FCheckVolPoint(p, v);
+        return IsPointInVol(p, v);
     } else {
         MARK mark;
         int f = 0;
@@ -172,7 +172,7 @@ void CID23::Unfreeze()
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" void func_00227E58(VOLV *p)
+extern "C" void FreezeVol(VOLV *p)
 {
     OnLoRemove(p);
     RemoveDlEntry(&g_sw.dlCid23, p);

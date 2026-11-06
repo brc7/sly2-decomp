@@ -123,7 +123,7 @@ void RemoveStepguardSgf(DIMITRIV *pguard, int sgf);
 void SetStepguardTarget(DIMITRIV *pguard, void *plo);
 qwordV func_001A62E8(void *p);
 BHVO *func_00205438(DIMITRIV *pguard, int n);
-int FCheckVolPoint(void *p, qwordV q);
+int IsPointInVol(void *p, qwordV q);
 void func_0020AC28(DIMITRIV *pso, int a, int b, qwordV q);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
@@ -459,7 +459,7 @@ void BHV181::Start()
 /** @sly2-annot addr=0x155A68
  * Purpose: Picks which end of the route to run to (volume test 0x227C90)
  * Info: proposed name PloBhv181RouteEnd (T2); TU tu_1553F0
- * Notes: verifier PLAUSIBLE: Returns end-A object (+4) if FCheckVolPoint(volA, pos of +0x4C) else end-B
+ * Notes: verifier PLAUSIBLE: Returns end-A object (+4) if IsPointInVol(volA, pos of +0x4C) else end-B
  *   (+0x14) if in volB, default A: it selects the end whose volume CONTAINS the tracked object, not obviously
  *   the one to run to. | T2 forced: verifier: role word not supported by the code
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+verdicts_followups
@@ -467,9 +467,9 @@ void BHV181::Start()
  * @end-sly2-annot */
 extern "C" void *func_00155A68(BHVATK *p)
 {
-    if (FCheckVolPoint(p->pesc->ploB, func_001A62E8(p->ploTarget)))
+    if (IsPointInVol(p->pesc->ploB, func_001A62E8(p->ploTarget)))
         return p->pesc->ploA;
-    if (FCheckVolPoint(p->pesc->ploD, func_001A62E8(p->ploTarget)))
+    if (IsPointInVol(p->pesc->ploD, func_001A62E8(p->ploTarget)))
         return p->pesc->ploC;
     return p->pesc->ploA;
 }

@@ -103,7 +103,7 @@ extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separat
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
-int FCheckVolPoint(LOV *pvol, qword v);
+int IsPointInVol(LOV *pvol, qword v);
 qword func_001A62E8(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
@@ -235,7 +235,7 @@ void func_00201F00(RECONSEL *p)
 }
 
 /** @sly2-annot addr=0x201F90
- * Purpose: flag +0xB8 = origin inside any class-0x19 VOL (FCheckVolPoint)
+ * Purpose: flag +0xB8 = origin inside any class-0x19 VOL (IsPointInVol)
  * Info: proposed name UpdateReconSelInVolume (T2); TU tu_201D78
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
@@ -247,7 +247,7 @@ void func_00201F90(RECONSEL *p)
     p->visible = 0;
     n = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_19, 0, 16, (RECONTGT **)a);
     for (i = 0; i < n; i++) {
-        if (FCheckVolPoint(a[i], p->position.q)) {
+        if (IsPointInVol(a[i], p->position.q)) {
             p->visible = 1;
             break;
         }

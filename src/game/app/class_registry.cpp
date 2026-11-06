@@ -960,12 +960,12 @@ extern "C" CRef func_00104638(void *p, int c, void *aref)
 namespace T_RefThunkVolCHECK_POINT {
 extern "C" {
 CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0);
-int FCheckVolPoint(void *p, qword q);
+int IsPointInVol(void *p, qword q);
 CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
 }
 /** @sly2-annot addr=0x104718
  * Purpose: Splice option thunk: optid 108 on VOL (g_aeopid[366] thunkFn, returns Bool, crefReq 1); unpacks 1
- *   args (Vector) -> Bool via RefSetArgsFromSplice then calls FCheckVolPoint (0x227C90)
+ *   args (Vector) -> Bool via RefSetArgsFromSplice then calls IsPointInVol (0x227C90)
  * Info: proposed name RefThunkVolCHECK_POINT (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
@@ -976,12 +976,12 @@ CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref)
     int ak[1] = {2};
     union { qword q; } u;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, ak, &u);
-    ref = FCheckVolPoint(p, u.q) != 0;
+    ref = IsPointInVol(p, u.q) != 0;
     return ref;
 }
 } // namespace T_RefThunkVolCHECK_POINT
 
-extern "C" int func_00227D20(void *p, qword q, float g);
+extern "C" int IsSphereInVol(void *p, qword q, float g);
 /** @sly2-annot addr=0x1047A0
  * Purpose: Splice option thunk: optid 474 on VOL (g_aeopid[367] thunkFn, returns Bool, crefReq 2); unpacks 2
  *   args (Vector, Float) -> Bool via RefSetArgsFromSplice then calls FCheckVolSphere (0x227D20)
@@ -997,7 +997,7 @@ extern "C" CRef func_001047A0(void *p, int c, void *aref)
     union { qword q; } u;
     float g;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &u, &g);
-    ref = func_00227D20(p, u.q, g) != 0;
+    ref = IsSphereInVol(p, u.q, g) != 0;
     return ref;
 }
 

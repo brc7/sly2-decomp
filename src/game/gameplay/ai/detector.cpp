@@ -92,7 +92,7 @@ int func_001A61A0(SOV *p);
 int func_0020F1B8(void *p);
 qword ConvertAloPos(void *plo0, void *plo1, qword v);
 int func_00118668(void *p, int mask, qword a, qword b, int n, BUF *pbuf);
-int FCheckVolPoint(void *p, qword v);
+int IsPointInVol(void *p, qword v);
 int func_0020FA10(void *pv, HITV *phit);
 int CidBasic(OV *po);
 void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
@@ -380,18 +380,18 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
                 }
             }
         }
-        if (!FCheckVolPoint(p->pvolNear, v)) { k = 0; goto done; }
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
+        if (!IsPointInVol(p->pvolNear, v)) { k = 0; goto done; }
+        if (p->pvolFar && !IsPointInVol(p->pvolFar, v)) { k = 0; goto done; }
         if ((p->grf & 1) == 0 && func_00154770(p, pso)) { k = 0; goto done; }
         if (p->grf & 2) { k = 1; goto done; }
         { k = !func_001545F0(p, pso); goto done; }
     case 1:
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if (!FCheckVolPoint(p->pvolNear, v)) { k = 2; goto done; }
+        if (p->pvolFar && !IsPointInVol(p->pvolFar, v)) { k = 0; goto done; }
+        if (!IsPointInVol(p->pvolNear, v)) { k = 2; goto done; }
         break;
     case 2:
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if (FCheckVolPoint(p->pvolNear, v)) {
+        if (p->pvolFar && !IsPointInVol(p->pvolFar, v)) { k = 0; goto done; }
+        if (IsPointInVol(p->pvolNear, v)) {
             if (p->grf & 2) { k = 1; goto done; }
             if (func_001545F0(p, pso)) return k;
             k = 1;

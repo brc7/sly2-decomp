@@ -71,7 +71,7 @@ void UpdateStepguard(NEELAV*);
 int FStepguardHasSgf(NEELAV*,int);
 qword func_001A62E8(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
-int FCheckVolPoint(VOLUME*,qword);
+int IsPointInVol(VOLUME*,qword);
 void func_001BA408(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
@@ -241,7 +241,7 @@ extern "C" void UpdateNeela(NEELAV*p){
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(VuSub(origin,func_001A62E8(node)));
    if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
+   if(IsPointInVol(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
   if(!p->target&&!FStepguardHasSgf(p,2)){
    qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
@@ -252,7 +252,7 @@ extern "C" void UpdateNeela(NEELAV*p){
    IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(FCheckVolPoint(volume,func_001A62E8(row->object))){p->target=row->object;break;}
+    if(IsPointInVol(volume,func_001A62E8(row->object))){p->target=row->object;break;}
    }
   }
   if(p->target)func_001BA408(p,1);
@@ -373,13 +373,13 @@ extern "C" void func_001BA608(NBHV *p)
         switch (s) {
         case 0: {
             DETECTORV *ps = p->po->pdetector;
-            if (!FCheckVolPoint(ps->pvolFar, func_001A62E8(D_002E1E40)))
+            if (!IsPointInVol(ps->pvolFar, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 1);
             break;
         }
         case 1: {
             DETECTORV *ps = p->po->pdetector;
-            if (FCheckVolPoint(ps->pvolNear, func_001A62E8(D_002E1E40)))
+            if (IsPointInVol(ps->pvolNear, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->changed)
                 func_001BA828(p, 2);

@@ -2302,7 +2302,7 @@ int FStepguardSensesEnabled(S2 *p);
 void *PdteFindDetectorTarget(F64 *p, void *x);
 qword func_001A62E8(void *p);
 int func_00156918(O *o, qword q);
-int FCheckVolPoint(L *pl, qword q);
+int IsPointInVol(L *pl, qword q);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, void *phit);
 void func_0020FA10();
@@ -2346,7 +2346,7 @@ int FStepguardSenseStimulus(S2 *p, O *o)
         L *pl = p->pF64->pl;
         if (!pl || ((pl->fl28 >> 60) & 1) == 0)
             return 0;
-        if (!FCheckVolPoint(pl, tpos))
+        if (!IsPointInVol(pl, tpos))
             return 0;
         {
             STACKSCOPE frame;
@@ -2404,7 +2404,7 @@ int FStepguardHasSgf(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
-int FCheckVolPoint(struct L *pl, qword q);
+int IsPointInVol(struct L *pl, qword q);
 int FCheckLm__FP2LMf(void *p, float f);
 
 /** @sly2-annot addr=0x208E70
@@ -2452,7 +2452,7 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
             pl = p->p3F8;
         else
             pl = p->p3F4;
-        if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, func_001A62E8(x)))
+        if (pl && !!((pl->fl28 >> 60) & 1) && IsPointInVol(pl, func_001A62E8(x)))
             return 3;
     }
     pv = FStepguardHasSgf(p, 0x17) ? p->a368 : p->a370;

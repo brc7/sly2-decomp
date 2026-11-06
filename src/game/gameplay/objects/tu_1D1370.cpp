@@ -1079,7 +1079,7 @@ void SetSmaGoal(void *, int);
 float GRandInRange__Fff(float, float);
 void func_001D2490(P *);
 int func_001D4E08(ATTACH *);
-int FCheckVolPoint(void *, qword);
+int IsPointInVol(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
@@ -1264,7 +1264,7 @@ extern "C" void UpdateRobottankAi(P *p)
             ATTACH *attach = p->attachments[i];
             if (!func_001D4E08(attach))
                 continue;
-            if (attach->constraint && !FCheckVolPoint(attach->constraint, target))
+            if (attach->constraint && !IsPointInVol(attach->constraint, target))
                 continue;
             if (0.0f < attach->enterRange.max && p->state != 1)
                 continue;
