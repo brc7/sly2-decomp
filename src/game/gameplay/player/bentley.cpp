@@ -77,41 +77,41 @@ void InitGait(void *pv, struct P *p, int n);
  * @end-sly2-annot */
 // BENTLEY Init (vtable slot 7): STEPPLAYER init, then Bentley's defaults: camera offsets 45/125, the two gait records
 // (+0x1320/+0x1600) and his gadget slot kinds (7/9/11 ...).
-void InitBentley(struct P *p)
+void InitBentley(struct P *bentley)
 {
-    InitStepplayer(p);
+    InitStepplayer(bentley);
 //{
-    p->x1040 = 0;
-    p->x13D0 = -1;
-    p->x16B0 = -1;
-    p->x16BC = -1;
-    p->x1800 = -1;
-    p->x103C = 45.0f;
-    p->x1048 = 125.0f;
+    bentley->x1040 = 0;
+    bentley->x13D0 = -1;
+    bentley->x16B0 = -1;
+    bentley->x16BC = -1;
+    bentley->x1800 = -1;
+    bentley->x103C = 45.0f;
+    bentley->x1048 = 125.0f;
 //}
-    InitGait(p->a1320, p, 0x73);
-    InitGait(p->a1600, p, 0x73);
-    p->x3D8 = -70.0f;
-    p->x1098 = -100.0f;
-    p->x109C = 100.0f;
-    p->x10A0 = 50.0f;
-    p->x10A4 = -10.0f;
+    InitGait(bentley->a1320, bentley, 0x73);
+    InitGait(bentley->a1600, bentley, 0x73);
+    bentley->x3D8 = -70.0f;
+    bentley->x1098 = -100.0f;
+    bentley->x109C = 100.0f;
+    bentley->x10A0 = 50.0f;
+    bentley->x10A4 = -10.0f;
     {
-        struct S10A8 *ps = &p->s10A8;
+        struct S10A8 *ps = &bentley->s10A8;
         ps->g0 = 250.0f;
         ps->g8 = 1.0f;
         ps->n4 = 0;
         ps->gC = 4500.0f;
     }
-    p->x1000 = 2;
-    p->x1830 = 7;
-    p->x183C = 9;
-    p->x1848 = 11;
-    p->x1854 = 13;
-    p->x1860 = 4;
-    p->x1824 = 5;
-    p->x1870 = 5;
-    D_002DD5BC = p;
+    bentley->x1000 = 2;
+    bentley->x1830 = 7;
+    bentley->x183C = 9;
+    bentley->x1848 = 11;
+    bentley->x1854 = 13;
+    bentley->x1860 = 4;
+    bentley->x1824 = 5;
+    bentley->x1870 = 5;
+    D_002DD5BC = bentley;
 }
 } } // namespace M_InitBentley
 
@@ -155,16 +155,16 @@ void SetBentleyState(struct S *, int);
  * @end-sly2-annot */
 // BENTLEY post-load (slot 15): STEPPLAYER post-load, finds child SO 0xB, binds the animation blends, initializes the
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
-void PostBentleyLoad(struct S *p) {
-    PostLoadStepplayer(p);
-    p->f10b8 = PxfFindSo(p, 0xb, 1);
-    InitDirectionalBlend(p, p->a13e0, p->a14e0);
-    InitDirectionalBlend(p, p->a14f0, p->a15f0);
-    PostJtLoadGait(p->a1320);
-    PostJtLoadGait(p->a1600);
-    InitBentleyCrosshair(p->a1710, p, D_002BC920.q, -50.0f, 50.0f);
-    AttachStepplayerToStartMarker(p, 0x16);
-    SetBentleyState(p, 0);
+void PostBentleyLoad(struct S *bentley) {
+    PostLoadStepplayer(bentley);
+    bentley->f10b8 = PxfFindSo(bentley, 0xb, 1);
+    InitDirectionalBlend(bentley, bentley->a13e0, bentley->a14e0);
+    InitDirectionalBlend(bentley, bentley->a14f0, bentley->a15f0);
+    PostJtLoadGait(bentley->a1320);
+    PostJtLoadGait(bentley->a1600);
+    InitBentleyCrosshair(bentley->a1710, bentley, D_002BC920.q, -50.0f, 50.0f);
+    AttachStepplayerToStartMarker(bentley, 0x16);
+    SetBentleyState(bentley, 0);
 }
 } } // namespace M_PostBentleyLoad
 
@@ -347,10 +347,10 @@ void UpdateJtMode(void *);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
-void UpdateBentleyJtMode(struct S *p) {
-    if (IsStepplayerInJtMode(p)) {
-        void *pv = &p->ff00;
-        if (p->ff04 == 1 && p->ff20 == 0 && GrfConsumePressed__5POCTLUif(p->f150, 0x4f0, 0.25f)) EndJtMode(pv);
+void UpdateBentleyJtMode(struct S *bentley) {
+    if (IsStepplayerInJtMode(bentley)) {
+        void *pv = &bentley->ff00;
+        if (bentley->ff04 == 1 && bentley->ff20 == 0 && GrfConsumePressed__5POCTLUif(bentley->f150, 0x4f0, 0.25f)) EndJtMode(pv);
         UpdateJtMode(pv);
     }
 }
@@ -485,35 +485,35 @@ static __inline__ void Kick(void *pv, float g)
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY Update (slot 16): UpdateStepplayer, then (if in the world) the state machine and per-state actions.
-void UpdateBentley(struct P *p)
+void UpdateBentley(struct P *bentley)
 {
-    UpdateStepplayer(p);
-    if (((p->ul28 >> 60) & 1) == 0)
+    UpdateStepplayer(bentley);
+    if (((bentley->ul28 >> 60) & 1) == 0)
         return;
-    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, p, 0xF8FE);
-    UpdateBentleyJtMode(p);
-    UpdateBentleyStateMachine(p);
-    switch (p->x13D0) {
+    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, bentley, 0xF8FE);
+    UpdateBentleyJtMode(bentley);
+    UpdateBentleyStateMachine(bentley);
+    switch (bentley->x13D0) {
     case 0:
-        if (p->x181C) {
-            func_00204660(p, D_002BC934);
+        if (bentley->x181C) {
+            func_00204660(bentley, D_002BC934);
             break;
         }
-        SetSmaMask(p->x1034, GetStepplayerLeanFlags(p));
+        SetSmaMask(bentley->x1034, GetStepplayerLeanFlags(bentley));
         break;
     case 1:
-        func_00204660(p, p->p150->g18);
-        Kick(p->x1320, 1.0f);
+        func_00204660(bentley, bentley->p150->g18);
+        Kick(bentley->x1320, 1.0f);
         break;
     case 7:
-        func_00204660(p, p->p150->g18);
-        Kick(p->x1600, p->p150->g1C);
+        func_00204660(bentley, bentley->p150->g18);
+        Kick(bentley->x1600, bentley->p150->g1C);
         break;
     case 2:
-        UpdateJtActiveJump(p->x2C0);
+        UpdateJtActiveJump(bentley->x2C0);
         break;
     case 3:
-        UpdateJtActiveHide(p->x4C0);
+        UpdateJtActiveHide(bentley->x4C0);
         break;
     case 4:
     case 8:
@@ -522,40 +522,40 @@ void UpdateBentley(struct P *p)
     case 13:
         break;
     case 5:
-        FaceStepToward(p, p->x10DC);
+        FaceStepToward(bentley, bentley->x10DC);
         {
-            struct S150 *pa = p->p150;
-            struct S1030 *pb = p->p1030;
-            SetVel(p, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(p->v1410, pa, pb) * pb->g40, 0.0f), p->x13E0, p->x14E0);
+            struct S150 *pa = bentley->p150;
+            struct S1030 *pb = bentley->p1030;
+            SetVel(bentley, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(bentley->v1410, pa, pb) * pb->g40, 0.0f), bentley->x13E0, bentley->x14E0);
         }
         break;
     case 6:
-        if (p->x16B0 == 1) {
-            float g0 = GClamp(GEval(&D_002BC940, p->p150->g1C), &D_002BBB60);
-            float g1 = GClamp(GEval(&D_002BC950, p->p150->g1C), &D_002BBB60);
+        if (bentley->x16B0 == 1) {
+            float g0 = GClamp(GEval(&D_002BC940, bentley->p150->g1C), &D_002BBB60);
+            float g1 = GClamp(GEval(&D_002BC950, bentley->p150->g1C), &D_002BBB60);
             float z = 0.0f;
-            if (z < p->p150->g1C) {
-                float d = RadNormalize__Ff(p->p150->g18 - p->g1A8);
-                func_00204660(p, p->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
+            if (z < bentley->p150->g1C) {
+                float d = RadNormalize__Ff(bentley->p150->g18 - bentley->g1A8);
+                func_00204660(bentley, bentley->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
-            SetVel(p, SetVectorCylind(p->p150->g18 + 3.1415927f, g0 * LenXY(p->v1520) * p->p1030->g40, z), p->x14F0, p->x15F0);
+            SetVel(bentley, SetVectorCylind(bentley->p150->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->p1030->g40, z), bentley->x14F0, bentley->x15F0);
         }
         break;
     case 10:
-        Pull(p);
+        Pull(bentley);
         break;
     case 11:
-        PullB(p);
-        SetAsegaSpeed__FP5ASEGAf(p->p1030, p->p150->g1C);
-        func_00204660(p, p->p150->g18);
+        PullB(bentley);
+        SetAsegaSpeed__FP5ASEGAf(bentley->p1030, bentley->p150->g1C);
+        func_00204660(bentley, bentley->p150->g18);
         break;
     case 14:
-        Pull(p);
-        func_00204660(p, p->p150->g18);
+        Pull(bentley);
+        func_00204660(bentley, bentley->p150->g18);
         break;
     }
-    UpdateBentleyPlaces(p);
-    UpdateJtActiveZap(p->xDF0);
+    UpdateBentleyPlaces(bentley);
+    UpdateJtActiveZap(bentley->xDF0);
 }
 } } // namespace M_UpdateBentley
 
@@ -808,7 +808,7 @@ int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, 
  * @end-sly2-annot */
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
-void UpdateBentleyAimPoint(struct S *p) {
+void UpdateBentleyAimPoint(struct S *bentley) {
     struct C ctx;
     struct LSG lsg;
     int cso;
@@ -816,9 +816,9 @@ void UpdateBentleyAimPoint(struct S *p) {
     ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970.q);
     ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
-    IntersectSwBoundingBox(D_003DD490, v1, v2, func_0020FA10, p->fec, &cso, &aso);
-    if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) p->v16f0 = lsg.pos;
-    else p->v16f0 = v2;
+    IntersectSwBoundingBox(D_003DD490, v1, v2, func_0020FA10, bentley->fec, &cso, &aso);
+    if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) bentley->v16f0 = lsg.pos;
+    else bentley->v16f0 = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 } } // namespace M_func_001356E8
@@ -851,28 +851,28 @@ void SetBentleyAimState(struct S *, int);
  * @end-sly2-annot */
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
 // (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
-void FireBentleyDart(struct S *p, int a) {
+void FireBentleyDart(struct S *bentley, int a) {
     void *pv;
     struct O *object;
     struct Q *pq;
-    UpdateBentleyAimPoint(p);
-    switch (p->f16d8) {
-    case 0: pv = p->f16dc; break;
-    case 1: pv = p->f16e0; break;
+    UpdateBentleyAimPoint(bentley);
+    switch (bentley->f16d8) {
+    case 0: pv = bentley->f16dc; break;
+    case 1: pv = bentley->f16e0; break;
     default: return;
     }
     if (!pv) return;
     object = PloAcquireProxy(pv, 0);
     if (!object) return;
     object->pe->f18 = a;
-    pq = p->pq;
+    pq = bentley->pq;
     pq->f60 = 0;
-    pq->v50 = p->v16f0;
+    pq->v50 = bentley->v16f0;
     LaunchSoFromLauncher(pq, object);
     ((void (*)(void *, ti128))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
     PrimeBomb__FP4BOMBf(object, 4.0f);
-    SetBentleyAimState(p, 1);
-    p->f1700 = D_002DDED0;
+    SetBentleyAimState(bentley, 1);
+    bentley->f1700 = D_002DDED0;
 }
 } } // namespace M_FireBentleyDart
 
@@ -928,20 +928,20 @@ void AddSoAcceleration(struct P *p, qword v);
  * @end-sly2-annot */
 // BENTLEY physics preset (slot 70): per state, the pipe / air / grab / hurt component's preset; state 6 sub-state 2
 // applies drag.
-void PresetBentleyAccel(struct P *p)
+void PresetBentleyAccel(struct P *bentley)
 {
-    if (p->k == 13)
-        func_001F9B20(p);
+    if (bentley->k == 13)
+        func_001F9B20(bentley);
     else
-        PresetStepAccel(p);
-    switch (p->k) {
-    case 2: PresetJtAccelJump(p->a2C0); break;
-    case 3: PresetJtAccelHide(p->a4C0); break;
-    case 4: PresetJtAccelZap(p->aDF0); break;
-    case 13: PresetJtAccelPipe(p->aF50); break;
+        PresetStepAccel(bentley);
+    switch (bentley->k) {
+    case 2: PresetJtAccelJump(bentley->a2C0); break;
+    case 3: PresetJtAccelHide(bentley->a4C0); break;
+    case 4: PresetJtAccelZap(bentley->aDF0); break;
+    case 13: PresetJtAccelPipe(bentley->aF50); break;
     case 6:
-        if (p->x16B0 == 2) {
-            register struct VT *vt __asm__("$3") = p->pvt;
+        if (bentley->x16B0 == 2) {
+            register struct VT *vt __asm__("$3") = bentley->pvt;
             U a, u;
             qword v, r, q;
             qword (*function)(void *) = (qword (*)(void *))vt[33].pfn;
@@ -949,9 +949,9 @@ void PresetBentleyAccel(struct P *p)
             __asm__("mfc1 %0, %1" : "=r"(q) : "f"(-D_002BC990));
             a.q = q;
             u.q = q;
-            v = function((char *)p + d);
+            v = function((char *)bentley + d);
             __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "0"(u.q), "j"(v));
-            AddSoAcceleration(p, r);
+            AddSoAcceleration(bentley, r);
         }
         break;
     }
@@ -973,13 +973,13 @@ void AdjustStepNewXp(struct S *, struct E *, int);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY contact adjust (slot 55): hurt -> AdjustJtHurtXp, pipe -> ResetJtPipeAdjust, else the STEP base.
-void AdjustBentleyXp(struct S *p, struct E *ae, int i) {
+void AdjustBentleyXp(struct S *bentley, struct E *ae, int i) {
     struct E *pe = &ae[i];
     if (pe->po->grf & (0x8000L << 33)) return;
-    switch (p->st) {
-    case 4: AdjustJtHurtXp(&p->fdf0, ae); break;
-    case 13: ResetJtPipeAdjust(&p->ff50, ae); break;
-    default: AdjustStepNewXp(p, ae, i); break;
+    switch (bentley->st) {
+    case 4: AdjustJtHurtXp(&bentley->fdf0, ae); break;
+    case 13: ResetJtPipeAdjust(&bentley->ff50, ae); break;
+    default: AdjustStepNewXp(bentley, ae, i); break;
     }
 }
 } } // namespace M_func_00135A48
@@ -1008,33 +1008,33 @@ void SetGadgetRecordObject(struct P *p, struct E *pe, int n);
  * @end-sly2-annot */
 // BENTLEY message handler (slot 5): HandleStepplayerMessage, then Bentley-specific animation events (message 9 kinds:
 // 0x216 spawns an object from a template, ...).
-void HandleBentleyMessage(struct P *p, int k, struct M *pm)
+void HandleBentleyMessage(struct P *bentley, int k, struct M *pm)
 {
-    HandleStepplayerMessage(p, k, pm);
+    HandleStepplayerMessage(bentley, k, pm);
     switch (k) {
     case 9:
-        if (pm->x0 == p->x1030) {
+        if (pm->x0 == bentley->x1030) {
             if (pm->x8 == 0x216) {
                 struct O *object;
-                p->po = PloAcquireProxy(p->pq->p4, 0);
-                LockProxyPlo(p->pq->p4, p->po);
-                p->po->x15C = p->pq->x0;
-                object = p->po;
+                bentley->po = PloAcquireProxy(bentley->pq->p4, 0);
+                LockProxyPlo(bentley->pq->p4, bentley->po);
+                bentley->po->x15C = bentley->pq->x0;
+                object = bentley->po;
                 ((void (*)(void *, int))object->pvt[76].pfn)((char *)object + object->pvt[76].d, 0);
             }
-        } else if (pm->x0 == p->x16CC) {
+        } else if (pm->x0 == bentley->x16CC) {
             if (pm->x8 == 0x243)
-                FireBentleyDart(p, 0x80000);
+                FireBentleyDart(bentley, 0x80000);
         } else {
-            HandleBentleyCrosshairMessage(p->a1710, 9, pm);
+            HandleBentleyCrosshairMessage(bentley->a1710, 9, pm);
         }
         break;
     case 1: {
-        struct E *pe = p->ae;
+        struct E *pe = bentley->ae;
         int i;
         for (i = 0; i < 6; i++, pe++) {
             if (pe->pm == pm)
-                SetGadgetRecordObject(p, pe, 0);
+                SetGadgetRecordObject(bentley, pe, 0);
         }
         break;
     }
@@ -1053,17 +1053,17 @@ void SetBentleyState(void *, int);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 88: maps a generic player state 0..8 to Bentley states (0, 2, 3, 4, 9, 10, 11, 12, 13).
-void SetBentleyPlayerState(void *p, unsigned int n) {
+void SetBentleyPlayerState(void *bentley, unsigned int n) {
     switch (n) {
-    case 0: SetBentleyState(p, 0); break;
-    case 1: SetBentleyState(p, 2); break;
-    case 2: SetBentleyState(p, 3); break;
-    case 3: SetBentleyState(p, 4); break;
-    case 4: SetBentleyState(p, 9); break;
-    case 5: SetBentleyState(p, 10); break;
-    case 6: SetBentleyState(p, 11); break;
-    case 7: SetBentleyState(p, 12); break;
-    case 8: SetBentleyState(p, 13); break;
+    case 0: SetBentleyState(bentley, 0); break;
+    case 1: SetBentleyState(bentley, 2); break;
+    case 2: SetBentleyState(bentley, 3); break;
+    case 3: SetBentleyState(bentley, 4); break;
+    case 4: SetBentleyState(bentley, 9); break;
+    case 5: SetBentleyState(bentley, 10); break;
+    case 6: SetBentleyState(bentley, 11); break;
+    case 7: SetBentleyState(bentley, 12); break;
+    case 8: SetBentleyState(bentley, 13); break;
     }
 }
 } } // namespace M_SetBentleyPlayerState
@@ -1078,8 +1078,8 @@ struct S { char pad[0x13d0]; int st; };
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
-int GetBentleyPlayerState(struct S *p) {
-    switch (p->st) {
+int GetBentleyPlayerState(struct S *bentley) {
+    switch (bentley->st) {
     case 0: return 0;
     case 2: return 1;
     case 3: return 2;
@@ -1110,17 +1110,17 @@ void SetStepPhys(struct S *, int, int);
  * @end-sly2-annot */
 // BENTLEY slot 90: asks the active component (air/grab/hurt) for the per-state STEP parameter block, default +0x268,
 // then applies it (STEP base).
-void ApplyBentleyStateStepParams(struct S *p) {
+void ApplyBentleyStateStepParams(struct S *bentley) {
     int n = 0;
     int r;
-    switch (p->st) {
-    case 3: r = GetJtGrabAdjustRecord(&p->f4c0, &n); break;
-    case 4: r = GetJtHurtAdjustRecord(&p->fdf0, &n); break;
-    case 2: r = GetJtAirAdjustRecord(&p->f2c0, &n); break;
+    switch (bentley->st) {
+    case 3: r = GetJtGrabAdjustRecord(&bentley->f4c0, &n); break;
+    case 4: r = GetJtHurtAdjustRecord(&bentley->fdf0, &n); break;
+    case 2: r = GetJtAirAdjustRecord(&bentley->f2c0, &n); break;
     default: r = 0; break;
     }
-    if (!r) r = p->f268;
-    SetStepPhys(p, r, n);
+    if (!r) r = bentley->f268;
+    SetStepPhys(bentley, r, n);
 }
 } } // namespace M_func_00135D80
 
@@ -1159,10 +1159,10 @@ int StepplayerVirtual98(struct S *);
  * @end-sly2-annot */
 // BENTLEY slot 98: the STEPPLAYER base result; when that is 0, 1 in states 1/5/14 and -1 otherwise (meaning of the
 // slot not identified).
-int BentleyVirtual98(struct S *p) {
-    int r = StepplayerVirtual98(p);
+int BentleyVirtual98(struct S *bentley) {
+    int r = StepplayerVirtual98(bentley);
     if (r != -1) return r;
-    switch (p->st) {
+    switch (bentley->st) {
     case 1: case 5: case 14: return 1;
     }
     return -1;
@@ -1186,19 +1186,19 @@ void RecordJtPipePlace(void *);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Per state: records standing places when on solid ground (AddJtPlaceAtPosition), or the grab/pipe updates.
-void UpdateBentleyPlaces(struct S *p) {
+void UpdateBentleyPlaces(struct S *bentley) {
     struct A *pa;
-    switch (p->st) {
+    switch (bentley->st) {
     case 0: case 1: case 5: case 6: case 7: case 11: case 12: case 14:
-        pa = p->pa;
-        if (pa && 0.7f < pa->f88 && !(pa->pq->grf & 0x20000000) && !p->f108c)
-            AddJtPlaceAtPosition(&p->f9e0, pa->f40, pa->v60);
+        pa = bentley->pa;
+        if (pa && 0.7f < pa->f88 && !(pa->pq->grf & 0x20000000) && !bentley->f108c)
+            AddJtPlaceAtPosition(&bentley->f9e0, pa->f40, pa->v60);
         break;
     case 3:
-        RecordJtGrabPlace(&p->f4c0);
+        RecordJtGrabPlace(&bentley->f4c0);
         break;
     case 13:
-        RecordJtPipePlace(&p->ff50);
+        RecordJtPipePlace(&bentley->ff50);
         break;
     }
 }
@@ -1216,9 +1216,9 @@ int IsStepplayerInvulnerable(struct S *, int);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 76: on a pipe with zap kind 0x4000, or the grab check, else the STEPPLAYER base.
-int IsBentleyInvulnerable(struct S *p, int msg) {
-    switch (p->st) { case 13: if (msg == 0x4000) return 1; break; case 3: if (IsJtGrabBusy(&p->f4c0, msg)) return 1; break; }
-    return IsStepplayerInvulnerable(p, msg);
+int IsBentleyInvulnerable(struct S *bentley, int msg) {
+    switch (bentley->st) { case 13: if (msg == 0x4000) return 1; break; case 3: if (IsJtGrabBusy(&bentley->f4c0, msg)) return 1; break; }
+    return IsStepplayerInvulnerable(bentley, msg);
 }
 } } // namespace M_BENTLEY_FInvulnerable
 
@@ -1232,8 +1232,8 @@ struct S { char pad[0x13d0]; int st; };
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 94: 1 in states 0/1/5/7 (free movement), else 0. (inferred)
-int IsBentleyFreeMoving(struct S *p) {
-    switch (p->st) {
+int IsBentleyFreeMoving(struct S *bentley) {
+    switch (bentley->st) {
     case 0: case 1: case 5: case 7: return 1;
     }
     return 0;
@@ -1256,36 +1256,36 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, flo
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Sets the +0x16B0 sub-state and plays its animation.
-void SetBentleySubState(struct S *p, int n) {
+void SetBentleySubState(struct S *bentley, int n) {
     struct ASEG *aseg;
     int grfapl;
-    if (n == p->f16b0) return;
-    p->f16b0 = n;
+    if (n == bentley->f16b0) return;
+    bentley->f16b0 = n;
     aseg = 0;
     grfapl = 1;
     switch (n) {
     case 0:
-        aseg = p->f14e4;
+        aseg = bentley->f14e4;
         {
-            float *pv = p->v190;
+            float *pv = bentley->v190;
             pv[2] = 0.0f;
             pv[1] = 0.0f;
             pv[0] = 0.0f;
         }
         break;
     case 1:
-        aseg = p->f15f0;
+        aseg = bentley->f15f0;
         grfapl = 9;
         break;
     case 2:
-        aseg = p->f14e8;
-        if (!aseg) aseg = p->f15d4;
+        aseg = bentley->f14e8;
+        if (!aseg) aseg = bentley->f15d4;
         grfapl = 9;
         break;
     }
-    ReleaseSma(&p->f1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, p, 0.0f, 1.0f, grfapl, &p->pasega1030);
-    ((void (*)(void *))p->vt[90].pfn)((char *)p + p->vt[90].d);
+    ReleaseSma(&bentley->f1034);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->pasega1030);
+    ((void (*)(void *))bentley->vt[90].pfn)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136040
 
@@ -1311,37 +1311,37 @@ void SetJtAirJump(void *pv, int a, int b, int c);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // The +0x16B0 sub-state machine.
-void UpdateBentleySubState(struct P *p)
+void UpdateBentleySubState(struct P *bentley)
 {
     int s;
     for (;;) {
-        s = p->x16B0;
+        s = bentley->x16B0;
         switch (s) {
         case 0:
-            if (FAsegaRetracted(p->p1030))
-                SetBentleySubState(p, 1);
+            if (FAsegaRetracted(bentley->p1030))
+                SetBentleySubState(bentley, 1);
             break;
         case 1:
         case 2: {
-            struct O *object = p->po;
+            struct O *object = bentley->po;
             if (object->x158 == 2) {
                 func_00224258(object, object->x1A0);
                 goto common;
             }
-            if (object->x158 == 4 || !POCTL_FButtonDown(p->p150, GetGadgetButtonMask(p, p->pq->x0) | 0x10)) {
+            if (object->x158 == 4 || !POCTL_FButtonDown(bentley->p150, GetGadgetButtonMask(bentley, bentley->pq->x0) | 0x10)) {
                 ((void (*)(void *, int))object->vt[76].pfn)((char *)object + object->vt[76].d, 1);
             common:
-                ReleaseBentleyHeldObject(p);
-                SetJtAirJump(p->a2C0, 0xB, 0, 0);
-            } else if (0.1f < D_002DDED0.t - p->g20C) {
-                SetBentleySubState(p, 2);
+                ReleaseBentleyHeldObject(bentley);
+                SetJtAirJump(bentley->a2C0, 0xB, 0, 0);
+            } else if (0.1f < D_002DDED0.t - bentley->g20C) {
+                SetBentleySubState(bentley, 2);
             } else {
-                SetBentleySubState(p, 1);
+                SetBentleySubState(bentley, 1);
             }
             break;
         }
         }
-        if (p->x16B0 == s || p->x13D0 != 6)
+        if (bentley->x16B0 == s || bentley->x13D0 != 6)
             break;
     }
 }
@@ -1410,49 +1410,49 @@ void SnapSma(void *pv, int n);
  * @end-sly2-annot */
 // Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; the fire button within
 // 0.25 s while ready fires (FireBentleyDart).
-void UpdateBentleyAim(struct P *p)
+void UpdateBentleyAim(struct P *bentley)
 {
     int s;
     do {
-        s = p->x16BC;
+        s = bentley->x16BC;
         switch (s) {
         case 0:
         case 1:
-            if (!IsStepplayerInJtMode(p)) {
-                SetBentleyAimState(p, -1);
-            } else if (p->x16BC == 1) {
-                if (D_002BC994 < D_002DDED0.t - p->g1700)
-                    SetBentleyAimState(p, 0);
-            } else if (GrfConsumePressed__5POCTLUif(p->p150, 8, 0.25f)) {
-                FireBentleyDart(p, 0x80000);
+            if (!IsStepplayerInJtMode(bentley)) {
+                SetBentleyAimState(bentley, -1);
+            } else if (bentley->x16BC == 1) {
+                if (D_002BC994 < D_002DDED0.t - bentley->g1700)
+                    SetBentleyAimState(bentley, 0);
+            } else if (GrfConsumePressed__5POCTLUif(bentley->p150, 8, 0.25f)) {
+                FireBentleyDart(bentley, 0x80000);
             }
             break;
         case -1:
-            if (IsStepplayerInJtMode(p) && p->xF20 != 2) {
-                if (D_002BC994 < D_002DDED0.t - p->g1700)
-                    SetBentleyAimState(p, 0);
+            if (IsStepplayerInJtMode(bentley) && bentley->xF20 != 2) {
+                if (D_002BC994 < D_002DDED0.t - bentley->g1700)
+                    SetBentleyAimState(bentley, 0);
                 else
-                    SetBentleyAimState(p, 1);
+                    SetBentleyAimState(bentley, 1);
             }
-            switch (p->x13D0) {
+            switch (bentley->x13D0) {
             case 0:
-                UpdateBentleyCrosshair(p->a1710, 0);
-                if (p->x181C && p->x1714 != -1 && p->p1034 && IsmsFindSmOptional__FP2SM3OID(p->p1028, 0x17B) >= 0)
-                    SnapSma(p->p1034, 0x17B);
+                UpdateBentleyCrosshair(bentley->a1710, 0);
+                if (bentley->x181C && bentley->x1714 != -1 && bentley->p1034 && IsmsFindSmOptional__FP2SM3OID(bentley->p1028, 0x17B) >= 0)
+                    SnapSma(bentley->p1034, 0x17B);
                 break;
             case 1: case 2: case 3: case 7:
-                UpdateBentleyCrosshair(p->a1710, 1);
+                UpdateBentleyCrosshair(bentley->a1710, 1);
                 break;
             case 5:
-                UpdateBentleyCrosshair(p->a1710, 2);
+                UpdateBentleyCrosshair(bentley->a1710, 2);
                 break;
             default:
-                UpdateBentleyCrosshair(p->a1710, -1);
+                UpdateBentleyCrosshair(bentley->a1710, -1);
                 break;
             }
             break;
         }
-    } while (s != p->x16BC);
+    } while (s != bentley->x16BC);
 }
 } } // namespace M_UpdateBentleyAim
 
@@ -1494,31 +1494,31 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, floa
  * @end-sly2-annot */
 // State machine on +0x1800 with reparenting and actuator teardown; also called from the throw code. (inferred: hover
 // pack)
-void SetBentleyHoverState(struct P *p, int k)
+void SetBentleyHoverState(struct P *bentley, int k)
 {
     void *pv;
-    if (k == p->k1800)
+    if (k == bentley->k1800)
         return;
-    switch (p->k1800) {
+    switch (bentley->k1800) {
     case 0: {
-        int save = p->x9E4;
-        SetLoParent_1A58D0(p, 0, 0xF);
-        p->x9E4 = save;
-        ReleaseAct(&p->pv1810);
-        ReleaseAct(&p->pv1814);
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        int save = bentley->x9E4;
+        SetLoParent_1A58D0(bentley, 0, 0xF);
+        bentley->x9E4 = save;
+        ReleaseAct(&bentley->pv1810);
+        ReleaseAct(&bentley->pv1814);
+        func_002303A0(bentley, bentley->p58, 2);
+        func_002303A0(bentley, bentley->p5C, 2);
         break;
     }
     case 1:
-        func_00204660(p, RadStepHeading(p));
-        p->x1A4 = 0;
-        FixStepAngularVelocity(p);
+        func_00204660(bentley, RadStepHeading(bentley));
+        bentley->x1A4 = 0;
+        FixStepAngularVelocity(bentley);
         break;
     }
-    p->k1800 = k;
-    p->t1804 = D_002DDED0.t;
-    pv = p->apv[k];
+    bentley->k1800 = k;
+    bentley->t1804 = D_002DDED0.t;
+    pv = bentley->apv[k];
     switch (k) {
     case -1: {
         struct G *pg = D_002F7900;
@@ -1534,25 +1534,25 @@ void SetBentleyHoverState(struct P *p, int k)
         int n;
         struct Q *pq = D_002F7900->pq;
         n = ((int (*)(void *, M4 *))pq->vt[32].f)((char *)pq + pq->vt[32].d, &m);
-        { M4 t = func_0022FF40(p->p54->xA0, p->p58->xA0, &m); m = t; }
+        { M4 t = func_0022FF40(bentley->p54->xA0, bentley->p58->xA0, &m); m = t; }
         {
-            int save = p->x9E4;
-            ((void (*)(void *, struct G *, int, int))p->vt[10].f)((char *)p + p->vt[10].d, D_002F7900, n, 3);
-            p->x9E4 = save;
+            int save = bentley->x9E4;
+            ((void (*)(void *, struct G *, int, int))bentley->vt[10].f)((char *)bentley + bentley->vt[10].d, D_002F7900, n, 3);
+            bentley->x9E4 = save;
         }
-        ((void (*)(void *, qword))p->vt[35].f)((char *)p + p->vt[35].d, D_002A2DD0);
-        ((void (*)(void *, qword))p->vt[36].f)((char *)p + p->vt[36].d, D_002A2DD0);
-        p->pv1810 = func_0012DC18(p, p->p58, 1, 7, 2, m.pos);
-        p->pv1814 = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
+        ((void (*)(void *, qword))bentley->vt[35].f)((char *)bentley + bentley->vt[35].d, D_002A2DD0);
+        ((void (*)(void *, qword))bentley->vt[36].f)((char *)bentley + bentley->vt[36].d, D_002A2DD0);
+        bentley->pv1810 = func_0012DC18(bentley, bentley->p58, 1, 7, 2, m.pos);
+        bentley->pv1814 = func_0012DC18(bentley, bentley->p5C, 1, 7, 2, func_0011BFF0(&m));
         break;
     }
     case 1:
-        p->x1A4 = -1;
+        bentley->x1A4 = -1;
         break;
     }
-    ReleaseSma(&p->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p, 9, &p->x1030, 0.0f, 1.0f);
-    ((void (*)(void *))p->vt[90].f)((char *)p + p->vt[90].d);
+    ReleaseSma(&bentley->x1034);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->x1030, 0.0f, 1.0f);
+    ((void (*)(void *))bentley->vt[90].f)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136530
 
@@ -1568,20 +1568,20 @@ void SetBentleyState(struct S *, int);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Small transition loop: state 1 returns to 0 and makes Bentley the current player object.
-void UpdateBentleyStateMisc(struct S *p) {
+void UpdateBentleyStateMisc(struct S *bentley) {
     int st;
     do {
-        st = p->st;
+        st = bentley->st;
         switch (st) {
         case 0: break;
         case 1:
-            if (p->f208) {
-                SetBentleyState(p, 0);
-                ((void (*)(void *, int))p->vt[79].pfn)((char *)p + p->vt[79].d, 1);
+            if (bentley->f208) {
+                SetBentleyState(bentley, 0);
+                ((void (*)(void *, int))bentley->vt[79].pfn)((char *)bentley + bentley->vt[79].d, 1);
             }
             break;
         }
-    } while (p->st != st && p->st != -1);
+    } while (bentley->st != st && bentley->st != -1);
 }
 } } // namespace M_func_001367D8
 
@@ -1611,35 +1611,35 @@ int FActiveCplcy__FP5CPLCY(void *pv);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 99: per-state checks and the per-gadget record's availability.
-int CanBentleyUseGadget(struct P *p, int k)
+int CanBentleyUseGadget(struct P *bentley, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the func_001CADE0 result in v1 */
     void *pv;
-    if (p->x1818 != 0)
+    if (bentley->x1818 != 0)
         goto fail;
     if (IsStepplayerInJtMode())
         return 0;
-    switch (p->x13D0) {
+    switch (bentley->x13D0) {
     case 2:
-        if (CanJtUseGadgetInAir(p->a2C0, k))
+        if (CanJtUseGadgetInAir(bentley->a2C0, k))
             goto inner;
         goto fail;
     case 3:
-        if (CanJtUseGadgetInGrab(p->a4C0, k))
+        if (CanJtUseGadgetInGrab(bentley->a4C0, k))
             goto inner;
         goto fail;
     case 13:
-        if (CanJtUseGadgetOnPipe(p->aF50, k))
+        if (CanJtUseGadgetOnPipe(bentley->aF50, k))
             goto inner;
     default:
     fail:
         __asm__ __volatile__("");  /* keeps the shared return 0 apart from case 12's */
         return 0;
     case 12:
-        if ((unsigned int)(p->x11B4 - 4) < 3) {
+        if ((unsigned int)(bentley->x11B4 - 4) < 3) {
             switch (k) {
             case 4: case 7: case 9: case 11: case 13:
-                pv = p->pa11C0;
+                pv = bentley->pa11C0;
                 f = ((struct A *)pv)->x15C;
                 if (f == k)
                     goto one;
@@ -1652,7 +1652,7 @@ int CanBentleyUseGadget(struct P *p, int k)
     inner:
         switch (k) {
         case 4: case 5: case 7: case 9: case 11: case 13: {
-            struct E *pe = GetBentleyGadgetFromId(p, k);
+            struct E *pe = GetBentleyGadgetFromId(bentley, k);
             if (pe->p8) {
                 if (func_00224590(pe->p8))
                     return 1;
@@ -1669,7 +1669,7 @@ int CanBentleyUseGadget(struct P *p, int k)
         }
         case 3: {
             int r = 0;
-            if (p->x12F0 && (D_002DFBC0 & 2))
+            if (bentley->x12F0 && (D_002DFBC0 & 2))
                 r = FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) == 0;
             return r;
         }
@@ -1696,15 +1696,15 @@ namespace M_PgadgetBentleyFromId { extern "C" {
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // The gadget record for a gadget id.
-int GetBentleyGadgetFromId(char *p, int saak)
+int GetBentleyGadgetFromId(char *bentley, int saak)
 {
     switch (saak) {
-    case 5: return (int)(p + 0x1824);
-    case 7: return (int)(p + 0x1830);
-    case 9: return (int)(p + 0x183c);
-    case 11: return (int)(p + 0x1848);
-    case 13: return (int)(p + 0x1854);
-    case 4: return (int)(p + 0x1860);
+    case 5: return (int)(bentley + 0x1824);
+    case 7: return (int)(bentley + 0x1830);
+    case 9: return (int)(bentley + 0x183c);
+    case 11: return (int)(bentley + 0x1848);
+    case 13: return (int)(bentley + 0x1854);
+    case 4: return (int)(bentley + 0x1860);
     }
     return 0;
 }
@@ -1739,52 +1739,52 @@ void StartStepplayerGadget(struct P *p, int k);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
-void StartBentleyGadget(struct P *p, int k)
+void StartBentleyGadget(struct P *bentley, int k)
 {
     D_002DEB30.xC = k;
-    BroadcastGameEvent(&D_002DEB30, 0x3C, p);
+    BroadcastGameEvent(&D_002DEB30, 0x3C, bentley);
     switch (k) {
     case 4: case 5: case 7: case 9: case 11: case 13: {
-        struct E *pe = GetBentleyGadgetFromId(p, k);
-        if ((unsigned int)(p->x11B4 - 4) < 3) {
-            SetJtThrowState(p->a11B0, 7);
+        struct E *pe = GetBentleyGadgetFromId(bentley, k);
+        if ((unsigned int)(bentley->x11B4 - 4) < 3) {
+            SetJtThrowState(bentley->a11B0, 7);
             return;
         }
         if (pe->p8) {
-            SetJtGrabState(p->a4C0, 0xB, pe->p8, 0);
+            SetJtGrabState(bentley->a4C0, 0xB, pe->p8, 0);
             return;
         }
-        p->pe16B4 = pe;
+        bentley->pe16B4 = pe;
         if (k == 7 || k == 11) {
             struct O *object = PloAcquireProxy(pe->p4, 0);
             if (!object)
                 return;
             object->x15C = pe->x0;
             if (func_00224610(object)) {
-                object->p16C = p;
-                SetGadgetRecordObject(p, pe, object);
+                object->p16C = bentley;
+                SetGadgetRecordObject(bentley, pe, object);
             }
-            p->po11C0 = object;
-            GetGadgetButtonMask(p, k);
-            SetBentleyState(p, 0xC);
-            SetJtThrowState(p->a11B0, 4);
+            bentley->po11C0 = object;
+            GetGadgetButtonMask(bentley, k);
+            SetBentleyState(bentley, 0xC);
+            SetJtThrowState(bentley->a11B0, 4);
             return;
         }
-        ChargeGadgetMp(p, k);
-        SetBentleyState(p, 6);
+        ChargeGadgetMp(bentley, k);
+        SetBentleyState(bentley, 6);
         return;
     }
     case 10:
-        ChargeGadgetMp(p, k);
-        SetBentleyState(p, 0xE);
+        ChargeGadgetMp(bentley, k);
+        SetBentleyState(bentley, 0xE);
         return;
     case 8:
-        p->x9BC = k;
-        p->x130C = p->x1874;
-        SetJtGrabState(p->a4C0, 0xB, 0, 0);
+        bentley->x9BC = k;
+        bentley->x130C = bentley->x1874;
+        SetJtGrabState(bentley->a4C0, 0xB, 0, 0);
         return;
     default:
-        StartStepplayerGadget(p, k);
+        StartStepplayerGadget(bentley, k);
         return;
     }
 }
@@ -1833,14 +1833,14 @@ int GetStepplayerModeCode(struct S *);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // BENTLEY slot 85: a per-state mode code, else the STEPPLAYER base.
-int GetBentleyModeCode(struct S *p) {
-    if (p->f204) return 0;
-    switch (p->st) {
+int GetBentleyModeCode(struct S *bentley) {
+    if (bentley->f204) return 0;
+    switch (bentley->st) {
     case 13: return 0;
     case 8: return 5;
     case 14: return 0xf;
     }
-    return GetStepplayerModeCode(p);
+    return GetStepplayerModeCode(bentley);
 }
 } } // namespace M_func_00136CC0
 
@@ -1857,13 +1857,13 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, struct E *,
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Initializes the six blended animation slots of the crosshair/aim helper (+0x1710).
-void InitBentleyCrosshair(struct S *p, int a, ti128 v, float g0, float g1) {
+void InitBentleyCrosshair(struct S *bentley, int a, ti128 v, float g0, float g1) {
     unsigned int i;
-    p->f0 = a;
-    p->v20 = v;
-    p->f30 = g1;
-    p->f4 = -1;
-    for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->f0, 0xc, 2, &p->ae[i], 0, 0, 0, &p->ae[i].f18);
+    bentley->f0 = a;
+    bentley->v20 = v;
+    bentley->f30 = g1;
+    bentley->f4 = -1;
+    for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(bentley->f0, 0xc, 2, &bentley->ae[i], 0, 0, 0, &bentley->ae[i].f18);
 }
 } } // namespace M_func_00136D28
 
@@ -1884,24 +1884,24 @@ void ClearPoctlJoyPressed(struct A *pa, int n);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
-void UpdateBentleyCrosshair(struct P *p, int k)
+void UpdateBentleyCrosshair(struct P *bentley, int k)
 {
-    if (p->pE0 && FAsegaRetracted(p->pE0))
-        SetBentleyCrosshairState(p, -1);
-    if (k != p->x4 && p->x4 != -1)
-        SetBentleyCrosshairState(p, k);
-    if (k != -1 && (p->x4 == -1 || p->xC)) {
-        if (GrfPressedWithin__5POCTLUif(p->po->pa, 0.1f, 0x80)) {
-            struct O *object = p->po;
+    if (bentley->pE0 && FAsegaRetracted(bentley->pE0))
+        SetBentleyCrosshairState(bentley, -1);
+    if (k != bentley->x4 && bentley->x4 != -1)
+        SetBentleyCrosshairState(bentley, k);
+    if (k != -1 && (bentley->x4 == -1 || bentley->xC)) {
+        if (GrfPressedWithin__5POCTLUif(bentley->po->pa, 0.1f, 0x80)) {
+            struct O *object = bentley->po;
             if (((int (*)(void *, int))object->pvt[99].pfn)((char *)object + object->pvt[99].d, 2)) {
-                ClearPoctlJoyPressed(p->po->pa, 0x80);
-                SetBentleyCrosshairState(p, -1);
-                SetBentleyCrosshairState(p, k);
+                ClearPoctlJoyPressed(bentley->po->pa, 0x80);
+                SetBentleyCrosshairState(bentley, -1);
+                SetBentleyCrosshairState(bentley, k);
             }
         }
     }
-    if (!(p->po->pa->x30 & 0x80))
-        p->x14 = 1;
+    if (!(bentley->po->pa->x30 & 0x80))
+        bentley->x14 = 1;
 }
 } } // namespace M_func_00136DC0
 
@@ -1918,11 +1918,11 @@ void func_00131B10(int, struct L *, void *);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
 // Crosshair message handler: message 9 kinds 0x16E/0x242.
-void HandleBentleyCrosshairMessage(struct S *p, int msg, struct M *pm) {
-    if (msg == 9 && pm->id == p->fe0) {
+void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
+    if (msg == 9 && pm->id == bentley->fe0) {
         switch (pm->f8) {
-        case 0x16e: func_00131B10(pm->id, p->pl, p->pl->f10b8); p->f10 = 1; break;
-        case 0x242: p->fc = 1; break;
+        case 0x16e: func_00131B10(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
+        case 0x242: bentley->fc = 1; break;
         }
     }
 }
@@ -2029,6 +2029,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
+// Initializes the blend/helper record (players.h BTBLENDS): owner and state -1. (inferred)
 extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 {
     blends->pbentley = bentley;
@@ -2047,9 +2048,10 @@ int FAsegaRetracted(int);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-void EndBentleyHelperWhenRetracted(struct S *p) {
-    if (FAsegaRetracted(p->po->f1030)) {
-        struct O *object = p->po; struct VTE *vt = object->vt;
+// When the owner's current action (+0x1030) has retracted, returns him to generic player state 0 (slot 88).
+void EndBentleyHelperWhenRetracted(struct S *bentley) {
+    if (FAsegaRetracted(bentley->po->f1030)) {
+        struct O *object = bentley->po; struct VTE *vt = object->vt;
         ((void (*)(void *, int))vt[88].pfn)((char *)object + vt[88].d, 0);
     }
 }
@@ -2061,6 +2063,7 @@ void EndBentleyHelperWhenRetracted(struct S *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
+// Turns Bentley toward his interact target, if any.
 extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 {
     BENTLEY *bentley;
@@ -2203,6 +2206,7 @@ void AddSoAcceleration(P *p, qword v);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Corrects Bentley's relative velocity and position against the object he rides. (inferred)
 extern "C" void CorrectBentleyRideVelocity(S *s)
 {
     P *p = s->p;
@@ -2239,6 +2243,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
+// Contact adjust hook: sets the contact's friction to D_002BC9B4.
 extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 {
     xp->gFriction = D_002BC9B4;
@@ -2258,17 +2263,19 @@ qword func_001A62E8(void *p);
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-int IsBentleyHelperTargetBehind(struct P *p)
+// With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns
+// the record's stored flag. (inferred)
+int IsBentleyHelperTargetBehind(struct P *bentley)
 {
     float zero = 0.0f;
-    struct Q *pq = p->po->pq;
-    if (zero < pq->g1C && p->po->p10DC) {
+    struct Q *pq = bentley->po->pq;
+    if (zero < pq->g1C && bentley->po->p10DC) {
         qword v = SetVectorCylind(pq->g18 - 1.5707964f, 1.0f, zero);
-        qword a = func_001A62E8(p->po->p10DC);
+        qword a = func_001A62E8(bentley->po->p10DC);
         qword b, d, t;
         float g;
         __asm__("" : "+j"(a));
-        b = func_001A62E8(p->po);
+        b = func_001A62E8(bentley->po);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         __asm__("vmul.xyz %0, %2, %3\n"
             "vaddw.x %1, $vf0, $vf0w\n"
@@ -2277,7 +2284,7 @@ int IsBentleyHelperTargetBehind(struct P *p)
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
         if (g > zero) return 0; return 1;
     }
-    return p->xC;
+    return bentley->xC;
 }
 } } // namespace M_func_001374F0
 
@@ -2363,6 +2370,7 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
+// Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
 extern "C" void SetBentleyHelperState(S *s, int k)
 {
     X *px;
