@@ -515,7 +515,7 @@ void BroadcastGameEvent(void *pv, int n, void *p)
     struct X *task;
     HandleGameEvent(pv, n, p);
     HandleDifficultyMessage(D_002DE578, n, p);
-    for (task = (*(struct X * *)&g_sw.dlTaskActive); task; task = task->nextActive) {
+    for (task = (struct X *)g_sw.dlTaskActive.head; task; task = task->nextActive) {
         if (task->job == D_003DD490.currentJob)
             SendTaskGameEvent(task, n, p);
     }
@@ -644,7 +644,7 @@ extern "C" void HandleGameEvent(P *game, int action)
 {
     switch (action) {
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
-        if (Same(&(*(CHECK *)&g_sw.filerecDest), &D_002A37E8)) {
+        if (Same((CHECK *)&g_sw.filerecDest, &D_002A37E8)) {
             P *players[3];
             int found = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
             if (found > 0) {
@@ -1596,8 +1596,9 @@ void AbortJob(struct S *job)
 {
     ResetJobTasks(job);
     SetTaskStateCascade(job->startTask, TASK_STATE_AVAILABLE);
-    if ((*(struct T * *)&g_sw.ploTaskCur) && (*(struct T * *)&g_sw.ploTaskCur)->job == job)
-        DeactivateTask((*(struct T * *)&g_sw.ploTaskCur));
+    struct T *currentTask = (struct T *)g_sw.ploTaskCur;
+    if (currentTask && currentTask->job == job)
+        DeactivateTask(currentTask);
     BroadcastGameEvent(D_002DEB30, 0x1F, job);
     EndCurrentJob(job);
 }
@@ -2275,7 +2276,9 @@ void UpdateTask(struct S *task)
     }
     marker = task->marker;
     if (marker) {
-        int isShown = task->state == TASK_STATE_AVAILABLE; if ((*(int *)&g_sw.ploJobCur)) isShown = 0;
+        int isShown = task->state == TASK_STATE_AVAILABLE;
+        if (g_sw.ploJobCur)
+            isShown = 0;
         if (isShown) {
             struct VTE *entry = &marker->vt[8];
             entry->pfn((char *)marker + entry->d);
