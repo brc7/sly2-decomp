@@ -3,7 +3,7 @@
 // (JT) code that keeps him attached: closest point on the mesh, boundary-edge contact planes, a small inequality
 // solve that projects the movement onto the allowed region, and the per-frame attach update.
 // Entry points: LoadCid8FromBrx, FindMeshClosestPoint, CollectMeshContacts, SolveMeshConstraints,
-// PredictMeshContact, SetJtMeshProbePoints, func_00185E40 (per-frame update).
+// PredictMeshContact, SetJtMeshProbePoints, UpdateJtMeshAttachment (per-frame update).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_185130
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001865F0
 #include "sly2/slotheap.h"
@@ -44,7 +44,7 @@ typedef struct TRIREF { int index; float u, v; } TRIREF;
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
 struct SMPV { float svFast, svSlow, dtFast; };
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-/* The player (JT) while attached to a mesh: view of the fields func_00185E40 and SetJtMeshProbePoints use. */
+/* The player (JT) while attached to a mesh: view of the fields UpdateJtMeshAttachment and SetJtMeshProbePoints use. */
 struct CONTROL{char pad0[0x10];float y,z;int pad18;float speed;};
 struct REQUEST{char pad0[0x78];float multiplier;};
 struct AXIS{float weight;int active;char pad8[8];U direction;};
@@ -594,20 +594,20 @@ extern "C" void SetJtMeshProbePoints(JTV *p, qword a, qword b, qword c)
     p->points[2].q = c;
 }
 
-// func_00185E40 laneH20v1 (Claude agent lane H20): MATCH. laneH19v2 + loop 2 through an inline StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q) that rotates inside its body. A nested inline call argument is expanded before the other arguments, so in H19v2 the points address came first in the loop body; now the samples address does, the giv list (prepended) is reversed, and loop.c emits the points init `addiu v1,s1,0x1F30` before `addiu v0,sp,0x160` like the target. One register pin (direction vf2), allocation-only operands commented.
-// func_00185E40 laneH19v2 (Claude agent lane H19): v1 + loop 2 stores through an inline StoreAddM(&samples[i],a,b) (operator=-style, the address is an inline param) with an allocation-only "m"(d->q) input. gcse no longer shares the loop base with the 1856C0 arg, so loop.c builds a fresh `addiu v0,sp,0x160` (no lw 0x250), the loop is still reversed, and the "m" ref keeps samples v0 / points v1. Left: the two giv inits come out samples-then-points (target points first), aligned 1 / 2 lines.
-// func_00185E40 laneH19v1 (Claude agent lane H19): laneH18v3 + MulM3 through QwRotateVecR, a rotate helper with the matrix rows as operands %1..%3 and the vector last (like QwTransformPos). local-alloc ties an asm output to its operand 1 when it dies there, so c1 now reuses inv r0 (vf5) and the movement load schedules before c1 (13 -> 1). Only the loop-2 `lw 0x250` reload is left.
-// func_00185E40 laneH18v3 (Claude agent lane H18): v2 + MulM3 c1 through QwRotateVecJ with allocation-only extra "j"(v),"j"(v),"j"(m->r[1].q) inputs: D1 and inv r1 get more refs, so local-alloc gives inv r0 vf5 / D1 vf4 like the target (14 -> 13; c1 output is now vf4, target vf5).
-// func_00185E40 laneH17v3 (Claude agent lane H17): v2 + BuildM4L(m,pos,d) takes the frame pointer LAST, so pd=&frame is evaluated after the 11B830 call (addiu s0,sp,0x20 after the call like the target) (27 -> 25).
-// func_00185E40 laneH16v5 (Claude agent lane H16): v4 + speed-block fallback as a qword value whose allocation-only "r" operand sits on the else-branch divide (QwDivideR) instead of the compare mtc1, so its lq is no longer forced before the compare (38 -> 36).
-// func_00185E40 laneH16v4 (Claude agent lane H16): v3 + BuildM4 rows written through a caller-side pointer pd=&frame (a pseudo, so rows 1/2 stay s0-based like the target), the .i[3] zeros through frame and f[3]=1 through pd (41 -> 38).
-// func_00185E40 laneH16v3 (Claude agent lane H16): v2 + movement rotated with QwRotateVec(&rotation,..) and a dead `M3 copy=rotation;` after the speed load (the 0x1F0 stores then follow the speed load like the target) (45 -> 41).
-// func_00185E40 laneH16v2 (Claude agent lane H16): v1 + multiplier read as a float struct member through "rV"(float) (VuFloatFromMemF): the load is MEM_IN_STRUCT, so the 0xC0 temp stores no longer alias it and sched delays them like the target (50 -> 45).
-// func_00185E40 laneH16v1 (Claude agent lane H16): laneH15v1 + speed written straight into a VU_FLOAT local through an inline LoadVuFloatFromMemWord(VU_FLOAT&,int) helper (no return temp pseudo, so global alloc gives len/dir vf1 and speed vf2 and the vmove is gone): 59 -> 50.
-// func_00185E40 laneH15v1 (Claude agent lane H15): laneH13v3 with MulM3 in natural c0,c1,c2 order (the g_cm.mat address dies on the r2 load, so sched1 picks r2 first, then r0, r1 like the target): 62 -> 59.
-// func_00185E40 laneH13v3 (Claude agent lane H13): v2 + one pseudo for len/dir in the movement normalize and allocation-only "r"(fallback) on its mtc1 (66 -> 62).
-// func_00185E40 laneH9v1 (Claude agent lane H9): laneH7v5 + const-ref QwAdd and BuildM4 pos (78 -> 75).
-/* laneH7v5 (Claude agent): fresh Lilly-style rewrite of func_00185E40, no pins, VU helper asms only. */
+// UpdateJtMeshAttachment laneH20v1 (Claude agent lane H20): MATCH. laneH19v2 + loop 2 through an inline StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q) that rotates inside its body. A nested inline call argument is expanded before the other arguments, so in H19v2 the points address came first in the loop body; now the samples address does, the giv list (prepended) is reversed, and loop.c emits the points init `addiu v1,s1,0x1F30` before `addiu v0,sp,0x160` like the target. One register pin (direction vf2), allocation-only operands commented.
+// UpdateJtMeshAttachment laneH19v2 (Claude agent lane H19): v1 + loop 2 stores through an inline StoreAddM(&samples[i],a,b) (operator=-style, the address is an inline param) with an allocation-only "m"(d->q) input. gcse no longer shares the loop base with the 1856C0 arg, so loop.c builds a fresh `addiu v0,sp,0x160` (no lw 0x250), the loop is still reversed, and the "m" ref keeps samples v0 / points v1. Left: the two giv inits come out samples-then-points (target points first), aligned 1 / 2 lines.
+// UpdateJtMeshAttachment laneH19v1 (Claude agent lane H19): laneH18v3 + MulM3 through QwRotateVecR, a rotate helper with the matrix rows as operands %1..%3 and the vector last (like QwTransformPos). local-alloc ties an asm output to its operand 1 when it dies there, so c1 now reuses inv r0 (vf5) and the movement load schedules before c1 (13 -> 1). Only the loop-2 `lw 0x250` reload is left.
+// UpdateJtMeshAttachment laneH18v3 (Claude agent lane H18): v2 + MulM3 c1 through QwRotateVecJ with allocation-only extra "j"(v),"j"(v),"j"(m->r[1].q) inputs: D1 and inv r1 get more refs, so local-alloc gives inv r0 vf5 / D1 vf4 like the target (14 -> 13; c1 output is now vf4, target vf5).
+// UpdateJtMeshAttachment laneH17v3 (Claude agent lane H17): v2 + BuildM4L(m,pos,d) takes the frame pointer LAST, so pd=&frame is evaluated after the 11B830 call (addiu s0,sp,0x20 after the call like the target) (27 -> 25).
+// UpdateJtMeshAttachment laneH16v5 (Claude agent lane H16): v4 + speed-block fallback as a qword value whose allocation-only "r" operand sits on the else-branch divide (QwDivideR) instead of the compare mtc1, so its lq is no longer forced before the compare (38 -> 36).
+// UpdateJtMeshAttachment laneH16v4 (Claude agent lane H16): v3 + BuildM4 rows written through a caller-side pointer pd=&frame (a pseudo, so rows 1/2 stay s0-based like the target), the .i[3] zeros through frame and f[3]=1 through pd (41 -> 38).
+// UpdateJtMeshAttachment laneH16v3 (Claude agent lane H16): v2 + movement rotated with QwRotateVec(&rotation,..) and a dead `M3 copy=rotation;` after the speed load (the 0x1F0 stores then follow the speed load like the target) (45 -> 41).
+// UpdateJtMeshAttachment laneH16v2 (Claude agent lane H16): v1 + multiplier read as a float struct member through "rV"(float) (VuFloatFromMemF): the load is MEM_IN_STRUCT, so the 0xC0 temp stores no longer alias it and sched delays them like the target (50 -> 45).
+// UpdateJtMeshAttachment laneH16v1 (Claude agent lane H16): laneH15v1 + speed written straight into a VU_FLOAT local through an inline LoadVuFloatFromMemWord(VU_FLOAT&,int) helper (no return temp pseudo, so global alloc gives len/dir vf1 and speed vf2 and the vmove is gone): 59 -> 50.
+// UpdateJtMeshAttachment laneH15v1 (Claude agent lane H15): laneH13v3 with MulM3 in natural c0,c1,c2 order (the g_cm.mat address dies on the r2 load, so sched1 picks r2 first, then r0, r1 like the target): 62 -> 59.
+// UpdateJtMeshAttachment laneH13v3 (Claude agent lane H13): v2 + one pseudo for len/dir in the movement normalize and allocation-only "r"(fallback) on its mtc1 (66 -> 62).
+// UpdateJtMeshAttachment laneH9v1 (Claude agent lane H9): laneH7v5 + const-ref QwAdd and BuildM4 pos (78 -> 75).
+/* laneH7v5 (Claude agent): fresh Lilly-style rewrite of UpdateJtMeshAttachment, no pins, VU helper asms only. */
 struct VU_FLOAT{qword qw;VU_FLOAT(){}VU_FLOAT(float f){__asm__("mfc1 %0,%1":"=r"(qw):"f"(f));}};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -648,7 +648,7 @@ static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(v
 // the surface under the three probe points (smoothed), turns the stick into a camera-relative acceleration along
 // the surface and projects it against the mesh boundary planes (CollectMeshContacts / SolveMeshConstraints).
 // Called from jt.cpp while attached (inferred).
-extern "C" void func_00185E40(JTV*p){
+extern "C" void UpdateJtMeshAttachment(JTV*p){
  U closest,normal;
  qword position=func_001A62E8(p);
  FindMeshClosestPoint(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);

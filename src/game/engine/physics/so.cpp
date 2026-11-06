@@ -170,7 +170,7 @@ struct SOBOUNDS
     int pad4[7];
     float g20;              /* +0x20 */
 };
-/* Objects only one function reads: HasZapRecordField44's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
+/* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int n44; char pad48[0x6C]; int nB4; };
 /* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
 struct STEPREC { int n0; float g4; float g8; float gC; };
@@ -3284,7 +3284,7 @@ extern "C" void AddSoCustomXps(void)
 {
 }
 
-// 0x1F5998 QuerySoSlot63
+// 0x1F5998 GetSoExtraPartCount
 /** @sly2-annot addr=0x1F5998
  * Purpose: SO vt63 default: return 0
  * Info: proposed name SO_vt63_Ret0 (T2); class SO slot63; TU so
@@ -3293,7 +3293,7 @@ extern "C" void AddSoCustomXps(void)
  * @end-sly2-annot */
 // Slot 63 (so.h CpartExtra): the number of extra parts the class adds; 0 for a plain SO (STEP adds its phys
 // part and answers 1) (inferred from the slot name).
-extern "C" int QuerySoSlot63(void)
+extern "C" int GetSoExtraPartCount(void)
 {
     return 0;
 }
@@ -4424,7 +4424,7 @@ struct N *FindZapResponder(struct N *p, void *q)
 }
 } } // namespace M_func_001F7530
 
-// 0x1F7588 HasZapRecordField44
+// 0x1F7588 CanSoTakeDamage
 /** @sly2-annot addr=0x1F7588
  * Purpose: return arg1->+0x44 != 0
  * Info: proposed name FZprHasField44 (T2); class SO slot75; TU so
@@ -4435,7 +4435,7 @@ struct N *FindZapResponder(struct N *p, void *q)
  * @end-sly2-annot */
 // Slot 75 (so.h FTakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
 // hurts (inferred).
-extern "C" int HasZapRecordField44(SO *pso, SOWATCH *pwatch)
+extern "C" int CanSoTakeDamage(SO *pso, SOWATCH *pwatch)
 {
     return pwatch->n44 != 0;
 }

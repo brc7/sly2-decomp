@@ -2977,7 +2977,7 @@ CloneCid9,0x185C98,18,match,src/game/engine/physics/tu_185130.cpp
 PostCid9Load,0x185CE0,14,match,src/game/engine/physics/tu_185130.cpp
 PredictMeshContact,0x185D18,69,match,src/game/engine/physics/tu_185130.cpp
 SetJtMeshProbePoints,0x185E30,4,match,src/game/engine/physics/tu_185130.cpp
-func_00185E40,0x185E40,413,match,src/game/engine/physics/tu_185130.cpp
+UpdateJtMeshAttachment,0x185E40,413,match,src/game/engine/physics/tu_185130.cpp
 StaticInit_tu_185130,0x1864B8,77,match,src/game/engine/physics/tu_185130.cpp
 func_001865F0,0x1865F0,8,match,src/game/engine/physics/tu_185130.cpp
 func_00186610,0x186610,12,match,src/game/engine/anim/ik.cpp
@@ -4775,7 +4775,7 @@ SetSoGravity,0x1F5880,27,match,src/game/engine/physics/so.cpp
 GetSoCpdefi,0x1F58F0,37,match,src/game/engine/physics/so.cpp
 OnSoContactFreed,0x1F5988,2,match,src/game/engine/physics/so.cpp
 AddSoCustomXps,0x1F5990,2,match,src/game/engine/physics/so.cpp
-QuerySoSlot63,0x1F5998,2,match,src/game/engine/physics/so.cpp
+GetSoExtraPartCount,0x1F5998,2,match,src/game/engine/physics/so.cpp
 AccelSoTowardMatBounded,0x1F59A0,164,match,src/game/engine/physics/so.cpp
 AccelSoTowardMatSpring,0x1F5C30,119,match,src/game/engine/physics/so.cpp
 AccelSoTowardPosSpring,0x1F5E10,121,match,src/game/engine/physics/so.cpp
@@ -4802,7 +4802,7 @@ CloneSoPartGeomInserting,0x1F70C0,142,match,src/game/engine/physics/so.cpp
 IsPosInSo,0x1F72F8,70,match,src/game/engine/physics/so.cpp
 InflictSoContactZaps,0x1F7410,72,match,src/game/engine/physics/so.cpp
 FindZapResponder,0x1F7530,21,match,src/game/engine/physics/so.cpp
-HasZapRecordField44,0x1F7588,3,match,src/game/engine/physics/so.cpp
+CanSoTakeDamage,0x1F7588,3,match,src/game/engine/physics/so.cpp
 DeliverZapToSo,0x1F7598,137,match,src/game/engine/physics/so.cpp
 ExpireSwZapRecords,0x1F77C0,56,match,src/game/engine/physics/so.cpp
 GetZapKindIndex,0x1F78A0,14,match,src/game/engine/physics/so.cpp
@@ -4885,7 +4885,7 @@ CalculateSoPointVelocity,0x1FAB48,11,match,src/game/engine/physics/solve.cpp
 ApplySoImpulse,0x1FAB78,46,match,src/game/engine/physics/solve.cpp
 AddSoAcceleration,0x1FAC30,26,match,src/game/engine/physics/solve.cpp
 AddSoAngularAcceleration,0x1FAC98,26,match,src/game/engine/physics/solve.cpp
-ApplySoContactImpulse,0x1FAD00,52,match,src/game/engine/physics/solve.cpp
+CalculateSoContactResponse,0x1FAD00,52,match,src/game/engine/physics/solve.cpp
 GetSoVelocityAtPos,0x1FADD0,17,match,src/game/engine/physics/solve.cpp
 StaticInit_solve,0x1FAE18,77,match,src/game/engine/physics/solve.cpp
 func_001FAF50,0x1FAF50,8,match,src/game/engine/physics/solve.cpp
@@ -5068,7 +5068,7 @@ GetStepGroundProbeFlags,0x2040F8,4,match,src/game/actor/step.cpp
 PresetStepAccel,0x204108,45,match,src/game/actor/step.cpp
 TranslateStepToPos,0x2041C0,14,match,src/game/actor/step.cpp
 RotateStepToMat,0x2041F8,19,match,src/game/actor/step.cpp
-QueryStepSlot63,0x204248,2,match,src/game/actor/step.cpp
+GetStepExtraPartCount,0x204248,2,match,src/game/actor/step.cpp
 AdjustStepNewXp,0x204250,152,match,src/game/actor/step.cpp
 AdjustStepXpVelocity,0x2044B0,107,match,src/game/actor/step.cpp
 SetStepTargetHeading,0x204660,20,match,src/game/actor/step.cpp

@@ -124,7 +124,7 @@ void HandleBasicMessage(BOOTYV *, int, MATCH *);
 int ShouldSoIgnoreIntersection(BOOTYV *, struct XPM *);
 void AdjustSoNewXp(BOOTYV *, struct XPE *, int);
 void EnsureSwCallback(SW *, void *, long, int);
-int HasZapRecordField44(BOOTYV *, void *);
+int CanSoTakeDamage(BOOTYV *, void *);
 int func_001A61A0(CID37V *);
 void UnlockProxyPlo(void *pv, BOOTYV *p);
 void LockProxyPlo(void *pv, BOOTYV *p);
@@ -368,7 +368,7 @@ extern "C" void AdjustBootyNewXp(BOOTYV *p, XPE *ae, int i) {
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
 extern "C" int func_0013C368(BOOTYV *p, void *pv) {
-    if ((HasZapRecordField44(p, pv) == 0) || (p->st != 5)) {
+    if ((CanSoTakeDamage(p, pv) == 0) || (p->st != 5)) {
         return 0;
     }
     SetBootyState(p, 0);

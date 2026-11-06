@@ -130,7 +130,7 @@ void SetSoPosXfVelocityLocal(BOMBV *, qword);
 void SetSoRotXfVelocityLocal(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
 void SetSoCnstrTorque(BOMBV *, int);
-int HasZapRecordField44(BOMBV *p, WKR *pm);
+int CanSoTakeDamage(BOMBV *p, WKR *pm);
 M3 *func_001A6318(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
@@ -564,7 +564,7 @@ extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
     int r;
     if (p->k == 1)
         return 0;
-    r = HasZapRecordField44(p, pm);
+    r = CanSoTakeDamage(p, pm);
     if (r && (pm->x44 & 8)) {
         U u;
         U *pu;

@@ -2974,7 +2974,7 @@ extern void UpdateGaitFootsteps(void *p);
 extern void func_001A0450(void *p, void *a, void *animation);
 extern void UpdateJtStand(void *p);
 extern void UpdateJtHangIkGoals__FP2JT(void *p);
-extern void func_00185E40(void *p);
+extern void UpdateJtMeshAttachment(void *p);
 extern void func_0018DF60(void *p);
 
 extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *response, void *d);
@@ -3062,7 +3062,7 @@ void UpdateJt(char *p)
         UpdateGaitFootsteps(A(0x1C30));
         break;
     case 0x15:
-        func_00185E40(p);
+        UpdateJtMeshAttachment(p);
         break;
     case 0x16:
         func_0018DF60(p);

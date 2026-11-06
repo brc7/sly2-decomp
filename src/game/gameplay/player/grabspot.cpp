@@ -1020,7 +1020,7 @@ struct Q { char pad[0xC]; char xc[0x38]; int fl; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int x17c; char p2[0x10]; struct O *x190; };
 struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
-int HasZapRecordField44(struct S *p, struct Q *q);
+int CanSoTakeDamage(struct S *p, struct Q *q);
 qword func_001A62E8(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
@@ -1037,7 +1037,7 @@ int func_00183E08(struct S *p, struct Q *q)
 {
     struct M m;
     struct VTE *e;
-    if (!HasZapRecordField44(p, q)) return 0;
+    if (!CanSoTakeDamage(p, q)) return 0;
     if (p->x17c == 3) return 1;
     if (!(q->fl & 8)) return 1;
     EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);

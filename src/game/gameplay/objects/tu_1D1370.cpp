@@ -2139,7 +2139,7 @@ extern "C" void RenderRobottankSelf(P*p){
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4568 {
-/* func_001D4568 (Claude agent, wave-3 lane 9): hit reaction. After the base handler (HasZapRecordField44) accepts the event, the
+/* func_001D4568 (Claude agent, wave-3 lane 9): hit reaction. After the base handler (CanSoTakeDamage) accepts the event, the
  * remaining count is updated (clamped at 0) and, for kind 0x100 (random hit) or 0x1000 (hit from a sender), a random linear
  * and angular impulse is built and added to the object's velocity through its virtual get/set pairs (vtable slots 33/35 and
  * 34/36).
@@ -2171,7 +2171,7 @@ extern "C" float D_002C21F0[2];
 extern "C" float D_002C21F8[2];
 extern "C" float D_002C2200[2];
 extern "C" {
-int HasZapRecordField44(P *, EVENT *);
+int CanSoTakeDamage(P *, EVENT *);
 void UpdateRobottankHealthMeter(P *);
 void SetRobottankState(P *, int);
 float GRandInRange__Fff(float, float);
@@ -2237,7 +2237,7 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
  * @end-sly2-annot */
 int func_001D4568(P *p, EVENT *event)
 {
-    if (!HasZapRecordField44(p, event))
+    if (!CanSoTakeDamage(p, event))
         return 0;
     int remaining = p->remaining + event->change;
     if (remaining < 0)

@@ -1158,7 +1158,7 @@ struct A { char pad[0x200]; struct T *pt; };
 struct Q { struct A *pa; int pad[2]; int nC; };
 struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char x26C[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
-int HasZapRecordField44(struct S *p, struct Q *q);
+int CanSoTakeDamage(struct S *p, struct Q *q);
 void HandleBhvstkMessage(void *p, int k, struct Q *q);
 /** @sly2-annot addr=0x207468
  * Purpose: STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid
@@ -1174,7 +1174,7 @@ int FTakeStepguardDamage(struct S *p, struct Q *q)
             return 1;
         if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, 0x4F) && q->pa->pt->n14 == p->n14)
             return 1;
-        if (!HasZapRecordField44(p, q))
+        if (!CanSoTakeDamage(p, q))
             return 0;
     }
     HandleBhvstkMessage(p->x26C, 0xC, q);

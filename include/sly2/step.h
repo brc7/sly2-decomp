@@ -89,7 +89,7 @@ struct STEP : public PO
     virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
     virtual void VUnk57() __asm__("AdjustStepXps");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
-    virtual int CpartExtra() __asm__("QueryStepSlot63");   /* slot 63 */
+    virtual int CpartExtra() __asm__("GetStepExtraPartCount");   /* slot 63 */
     virtual void VUnk69() __asm__("PresetStepAccel");   /* slot 70 */
       virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
       virtual void VUnk82(uint grf, int fCount) __asm__("AddStepDialogSmRefs");

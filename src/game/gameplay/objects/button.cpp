@@ -160,7 +160,7 @@ void CloneSo(BUTTONV *pbutton, BUTTONV *pbuttonBase);
 void UpdateSo(BUTTONV *pbutton, float dt);
 void RemoveSoHierarchy(BUTTONV *pbutton);
 void EnsureSwCallback(SW *psw, void *pv, long k, int n);
-void *HasZapRecordField44(BUTTONV *pbutton, WKR *pwkr);
+void *CanSoTakeDamage(BUTTONV *pbutton, WKR *pwkr);
 void InitXfm(VOLBTNV *pvolbtn);
 void SetLoBusyk(VOLBTNV *pvolbtn, int busyk);
 void LoadVolFromBrx(VOLBTNV *pvolbtn, void *pbis);
@@ -612,7 +612,7 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
  * @end-sly2-annot */
 extern "C" void *FAbsorbButtonWkr(BUTTONV *pbutton, WKR *pwkr)
 {
-    void *pv = HasZapRecordField44(pbutton, pwkr);
+    void *pv = CanSoTakeDamage(pbutton, pwkr);
     if (pv && !(pwkr->grf & 4) && FCheckButtonObject(pbutton, pwkr->plo))
     {
         switch (pbutton->btnk)

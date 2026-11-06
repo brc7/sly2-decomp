@@ -1010,7 +1010,7 @@ struct Q2 { qword pad; qword v; char pad2[0x20]; };
 struct S2 { struct Pr ap[2]; qword v40; struct Q2 *aq; };
 /** @sly2-annot addr=0x1FAD00
  * Purpose: Applies an impulse derived from a contact record (v40) when SO has dynamics data
- * Info: proposed name ApplySoContactImpulse (T2); class SO slot68; TU solve
+ * Info: proposed name CalculateSoContactResponse (T2); class SO slot68; TU solve
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
@@ -1018,7 +1018,7 @@ struct S2 { struct Pr ap[2]; qword v40; struct Q2 *aq; };
 // Slot 67: fills side k of a constraint row's effect record (FX) with this object's response to a unit impulse
 // along the contact normal (negated for side 1): the linear and angular velocity changes, each skipped when that
 // motion is locked. Called by FillDzgDz for both sides of every contact.
-extern "C" void ApplySoContactImpulse(SO *p, int a1, S2 *ps, int a3, int k)
+extern "C" void CalculateSoContactResponse(SO *p, int a1, S2 *ps, int a3, int k)
 {
     SOPHYS *pe = p->psophys;
     qword v;

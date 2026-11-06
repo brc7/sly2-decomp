@@ -699,7 +699,7 @@ void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here 
 namespace M_func_00140DB0 { extern "C" {
 /* func_00140DB0 (Claude agent for Lilly, T1644): saves s->v, scales it by 0.01 when the
    other entry's k (s->ae[1 - i].k) is one of three known values and p allows it
-   (p->p150->x80 != 1 or func_00144068(p)), calls ApplySoContactImpulse with the same arguments,
+   (p->p150->x80 != 1 or func_00144068(p)), calls CalculateSoContactResponse with the same arguments,
    then restores s->v.
    Matching notes: `save` is a plain qword that is only read by "j" asm operands, so it
    becomes a VU-class pseudo that is spilled across the call (the game's lq/sq v1 + lqc2
@@ -715,7 +715,7 @@ extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
 int func_00144068(struct P *p);
-void ApplySoContactImpulse(struct P *p, void *a, struct S *s, void *b, int i);
+void CalculateSoContactResponse(struct P *p, void *a, struct S *s, void *b, int i);
 /** @sly2-annot addr=0x140DB0
  * Purpose: vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
  *   and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before
@@ -744,7 +744,7 @@ void func_00140DB0(struct P *p, void *a, struct S *s, void *b, int i)
             s->v = vo;
         }
     }
-    ApplySoContactImpulse(p, a, s, b, i);
+    CalculateSoContactResponse(p, a, s, b, i);
     s->v = save;
 }
 } } // namespace M_func_00140DB0

@@ -97,7 +97,7 @@ void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
 void RenderSoSelf(CID96V *p);
 void AccelSoTowardMatBounded(CID96V *p, M3 *pmat, VECTOR3 *pspin);
-int HasZapRecordField44(CID96V *p, struct A96 *pa);
+int CanSoTakeDamage(CID96V *p, struct A96 *pa);
 void UpdateSoXfWorld(CID96V *p);
 void func_002303A0(CID96V *, XFV *, int);
 void func_0022C840(CID96V *, XFV *);
@@ -320,7 +320,7 @@ struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
  * @end-sly2-annot */
 extern "C" int func_001B0F88(CID96V *p, A96 *pa)
 {
-    int r = HasZapRecordField44(p, pa);
+    int r = CanSoTakeDamage(p, pa);
     if (r && (pa->n44 & 8) && p->state != 5) {
         func_001B1328(p, 5);
         if (p->plo1C8) {

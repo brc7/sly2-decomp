@@ -231,19 +231,19 @@ struct SO : public LO
       virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddSoCustomXps");
       virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldSoIgnoreIntersection");
       virtual int VUnk61() __asm__("IsSoFixed");
-      virtual int CpartExtra() __asm__("QuerySoSlot63");
+      virtual int CpartExtra() __asm__("GetSoExtraPartCount");
       virtual void InitPhys() __asm__("InitSoPhysics");
       virtual void VUnk64() __asm__("ApplySoQueuedForces");
       virtual void VUnk65() __asm__("ProjectSoForce");
       virtual void VUnk66() __asm__("ApplySoQueuedMotion");
-      virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("ApplySoContactImpulse");
+      virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("CalculateSoContactResponse");
       virtual void VUnk68(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("GetSoVelocityAtPos");
       virtual void VUnk69() __asm__("PresetSoAccel");
       virtual void VUnk70() __asm__("AddSoExternalAccelerations");
       virtual void VUnk71() __asm__("AddSoWaterAcceleration");
       virtual void VUnk72() __asm__("IsPosInSo");
       virtual void ProcessSoZapContacts() __asm__("InflictSoContactZaps");
-      virtual int FTakeDamage(ZPR *pzpr) __asm__("HasZapRecordField44");
+      virtual int FTakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
     virtual qword GetAngularVelocity() __asm__("GetSoAngularVelocity");   /* override declared in GetSoAngularVelocity.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneSo");   /* override declared in CloneSo.cpp */
 };

@@ -622,8 +622,8 @@ extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Slot 63: a STEP answers 1 where the SO default (QuerySoSlot63) answers 0; meaning unknown (inferred).
-extern "C" int QueryStepSlot63()
+// Slot 63: a STEP answers 1 where the SO default (GetSoExtraPartCount) answers 0; meaning unknown (inferred).
+extern "C" int GetStepExtraPartCount()
 {
     return 1;
 }
