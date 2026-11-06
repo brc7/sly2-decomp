@@ -556,9 +556,9 @@ typedef char assert_BHV169_size[sizeof(BHV169) == 0x60 ? 1 : -1];
 struct BHV171 : BHV
 {
     char pad30[0xE0 - 0x30];
+    virtual void Start() __asm__("func_00171FA0");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv171ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_00171F58");   /* slot 7 */
-    virtual void Start() __asm__("func_00171FA0");   /* slot 8 */
     virtual void VSlot9() __asm__("func_00171FD0");   /* slot 9 */
     virtual void VSlot10() __asm__("func_00172018");   /* slot 10 */
 };
