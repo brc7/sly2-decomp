@@ -6145,27 +6145,27 @@ struct A { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct 
 struct T { char pad[0x70]; float unknown70; };
 struct S { char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state; };
 void UpdateBhv(struct S *p);
-float GetTargetRecordFacing(struct K *k);
+float GetTargetRecordFacing(struct K *engagement);
 qword func_001A62E8(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
 int FCheckLm__FP2LMf(void *p, float f);
-qword ChooseBhvCirclePosition(struct S *p, void *q, float f, qword v);
-void func_001C02D0(void *q, qword a, qword b, struct B *c);
-void SetBhvpathShape(struct T *t, struct B *b, int n);
+qword ChooseBhvCirclePosition(struct S *p, void *pathzone, float f, qword v);
+void func_001C02D0(void *pathzone, qword a, qword b, struct B *c);
+void SetBhvpathShape(struct T *walk, struct B *b, int n);
 // 0x17C3E8: Circle behaviour vtable slot 10 (Update): when out of the distance band or off-heading relative to the
 // target, re-paths to a new spacing point.
 void UpdateBhvCircle(struct S *behavior) {
     struct A *a;
     struct C *c;
     struct D *d;
-    void *q;
+    void *pathzone;
     struct B *b;
-    struct K *k;
-    void *o;
-    float g;
-    struct T *t;
-    float out[2];
+    struct K *engagement;
+    void *targetObject;
+    float targetFacing;
+    struct T *walk;
+    float cylinder[2];
     qword pos;
     UpdateBhv(behavior);
     d = 0;
@@ -6175,26 +6175,26 @@ void UpdateBhvCircle(struct S *behavior) {
     c = a->unknownE8;
     b = a->pathShape;
     if (c) d = c->unknownDC;
-    q = d ? d->pathzone : 0;
-    k = a->engagement;
-    o = k->target;
-    g = GetTargetRecordFacing(k);
-    pos = func_001A62E8(o);
-    t = behavior->child;
-    if (t->unknown70 > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
+    pathzone = d ? d->pathzone : 0;
+    engagement = a->engagement;
+    targetObject = engagement->target;
+    targetFacing = GetTargetRecordFacing(engagement);
+    pos = func_001A62E8(targetObject);
+    walk = behavior->child;
+    if (walk->unknown70 > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
     {
         qword dv;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->points[b->numPoints - 1]), "j"(pos));
-        GetVectorCylind(dv, &out[0], &out[1], 0);
+        GetVectorCylind(dv, &cylinder[0], &cylinder[1], 0);
     }
-    if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->facingTolerance) goto repath;
-    if (FCheckLm__FP2LMf(behavior->guard->circleDistance, out[1])) return;
+    if (__builtin_fabsf(RadNormalize__Ff(cylinder[0] - targetFacing)) > engagement->facingTolerance) goto repath;
+    if (FCheckLm__FP2LMf(behavior->guard->circleDistance, cylinder[1])) return;
 repath:
     {
         qword v = func_001A62E8(behavior->guard);
-        func_001C02D0(q, v, ChooseBhvCirclePosition(behavior, q, g, pos), b);
+        func_001C02D0(pathzone, v, ChooseBhvCirclePosition(behavior, pathzone, targetFacing, pos), b);
     }
-    SetBhvpathShape(t, b, 0);
+    SetBhvpathShape(walk, b, 0);
 }
 } } // namespace M_func_0017C3E8
 
@@ -7052,10 +7052,10 @@ void UpdateBhvgoto(struct S *behavior) {
                     PlanBhvgoto(behavior);
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
-                    float hi = SMaxShape(t->shape);
+                    float maxParam = SMaxShape(t->shape);
                     behavior->relocateRef0 = 0;
                     behavior->relocateRef1 = 0;
-                    EvaluateShapeS(t->shape, f < hi ? f : hi, behavior->relocatePos, 0);
+                    EvaluateShapeS(t->shape, f < maxParam ? f : maxParam, behavior->relocatePos, 0);
                     behavior->relocatePos[2] = behavior->guard->unknown218->z;
                     SetBhvgotoState(behavior, 5);
                 }
@@ -7092,10 +7092,10 @@ struct S {
     char pad3[0xB4 - 0x80]; int numRouteLinks; struct I *route[1]; int isDirect; int allowPartialRoute;
 };
 qword func_001A62E8(struct A *p);
-qword func_001C1EC0(struct V2 *p, qword v);
-void *PpathzoneFromPos(qword v, int n);
-int FindPathlinkRoute(void *a, struct A *b, qword v, int c, int d, struct I **pp);
-void FindPathzoneClosestPoint(void *a, qword v, qword *pv, int n);
+qword func_001C1EC0(struct V2 *p, qword goalPos);
+void *PpathzoneFromPos(qword goalPos, int n);
+int FindPathlinkRoute(void *a, struct A *b, qword goalPos, int c, int d, struct I **pp);
+void FindPathzoneClosestPoint(void *a, qword goalPos, qword *pv, int n);
 // 0x17D8A8: Routes the goal through the path zones: directly within one zone, else through path links (optionally
 // allowing partial routes), else stops at the closest reachable point.
 void FindBhvgotoRoute(struct S *behavior) {
@@ -7104,43 +7104,43 @@ void FindBhvgotoRoute(struct S *behavior) {
     if (behavior->isDirect != 0)
         return;
     qword pos = func_001A62E8(behavior->guard);
-    qword v = func_001C1EC0(&behavior->goal, pos);
+    qword goalPos = func_001C1EC0(&behavior->goal, pos);
     struct C *c = behavior->guard->unknownE8;
     struct D *d = c ? c->unknownDC : 0;
-    void *q = d ? d->pathzone : 0;
-    void *r;
-    int fail;
-    r = PpathzoneFromPos(v, 0);
-    fail = 0;
-    if (r == 0) {
-        fail = 1;
-    } else if (r != q) {
+    void *currentZone = d ? d->pathzone : 0;
+    void *goalZone;
+    int failed;
+    goalZone = PpathzoneFromPos(goalPos, 0);
+    failed = 0;
+    if (goalZone == 0) {
+        failed = 1;
+    } else if (goalZone != currentZone) {
         struct G *g = &D_003DD490;
         int n;
-        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pathGraph, behavior->guard, v, 1, 1, behavior->route)) <= 0) {
+        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pathGraph, behavior->guard, goalPos, 1, 1, behavior->route)) <= 0) {
             if (behavior->allowPartialRoute == 0) {
-                fail = 1;
+                failed = 1;
             } else {
-                n = FindPathlinkRoute(g->pathGraph, behavior->guard, v, 0, 1, behavior->route);
+                n = FindPathlinkRoute(g->pathGraph, behavior->guard, goalPos, 0, 1, behavior->route);
                 behavior->numRouteLinks = n;
                 if (n == 0) {
-                    fail = 1;
+                    failed = 1;
                 } else {
                     void *a;
                     if (behavior->route[0] == 0) {
-                        a = q;
+                        a = currentZone;
                         behavior->numRouteLinks = 0;
                     } else {
                         a = behavior->route[n - 1]->endZone;
                     }
                     behavior->u.s.waypointRef0 = 0;
                     behavior->u.s.waypointRef1 = 0;
-                    FindPathzoneClosestPoint(a, v, &behavior->u.s.waypointPos, 1);
+                    FindPathzoneClosestPoint(a, goalPos, &behavior->u.s.waypointPos, 1);
                 }
             }
         }
     }
-    if (fail) {
+    if (failed) {
         behavior->u.s.waypointRef0 = 0;
         behavior->u.s.waypointRef1 = 0;
         behavior->u.s.waypointPos = pos;
