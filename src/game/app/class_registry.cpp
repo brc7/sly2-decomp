@@ -5018,7 +5018,7 @@ extern "C" CLASSINFO *GetHndClassDesc() { return &D_002BAAE8[19]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid20ClassDesc() { return &D_002BAAE8[20]; }
+CLASSINFO *CID20::Pclassinfo() { return &D_002BAAE8[20]; }
 
 /** @sly2-annot addr=0x113B60
  * Purpose: vtable slot 6 of CID21 (cid 21): returns &D_002BAAE8[21], the class descriptor {pcdParent, cid,
@@ -5069,7 +5069,7 @@ extern "C" CLASSINFO *GetVolbtnClassDesc() { return &D_002BAAE8[24]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid25ClassDesc() { return &D_002BAAE8[25]; }
+CLASSINFO *CID25::Pclassinfo() { return &D_002BAAE8[25]; }
 
 /** @sly2-annot addr=0x113BB0
  * Purpose: vtable slot 6 of EXIT (cid 26): returns &D_002BAAE8[26], the class descriptor {pcdParent, cid,
@@ -5139,7 +5139,7 @@ extern "C" CLASSINFO *GetExplgClassDesc() { return &D_002BAAE8[31]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetExploClassDesc() { return &D_002BAAE8[32]; }
+CLASSINFO *EXPLO::Pclassinfo() { return &D_002BAAE8[32]; }
 
 /** @sly2-annot addr=0x113C20
  * Purpose: vtable slot 6 of EXPLS (cid 33): returns &D_002BAAE8[33], the class descriptor {pcdParent, cid,
@@ -5400,7 +5400,7 @@ extern "C" CLASSINFO *GetGomerClassDesc() { return &D_002BAAE8[57]; }
  *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetGuardClassDesc() { return &D_002BAAE8[58]; }
+CLASSINFO *GUARD::Pclassinfo() { return &D_002BAAE8[58]; }
 
 /** @sly2-annot addr=0x113DC0
  * Purpose: vtable slot 6 of CID59 (cid 59): returns &D_002BAAE8[59], the class descriptor {pcdParent, cid,
@@ -5444,7 +5444,7 @@ extern "C" CLASSINFO *GetRajanClassDesc() { return &D_002BAAE8[61]; }
  *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetJeanbisonClassDesc() { return &D_002BAAE8[62]; }
+CLASSINFO *JEANBISON::Pclassinfo() { return &D_002BAAE8[62]; }
 
 /** @sly2-annot addr=0x113E00
  * Purpose: vtable slot 6 of CID63 (cid 63): returns &D_002BAAE8[63], the class descriptor {pcdParent, cid,
@@ -5477,7 +5477,7 @@ extern "C" CLASSINFO *GetContessaClassDesc() { return &D_002BAAE8[64]; }
  *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetArpeggioClassDesc() { return &D_002BAAE8[65]; }
+CLASSINFO *ARPEGGIO::Pclassinfo() { return &D_002BAAE8[65]; }
 
 /** @sly2-annot addr=0x113E30
  * Purpose: vtable slot 6 of CID66 (cid 66): returns &D_002BAAE8[66], the class descriptor {pcdParent, cid,
@@ -5488,7 +5488,7 @@ extern "C" CLASSINFO *GetArpeggioClassDesc() { return &D_002BAAE8[65]; }
  *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetBearClassDesc() { return &D_002BAAE8[66]; }
+CLASSINFO *BEAR::Pclassinfo() { return &D_002BAAE8[66]; }
 
 /** @sly2-annot addr=0x113E40
  * Purpose: vtable slot 6 of CID67 (cid 67): returns &D_002BAAE8[67], the class descriptor {pcdParent, cid,
@@ -5499,7 +5499,7 @@ extern "C" CLASSINFO *GetBearClassDesc() { return &D_002BAAE8[66]; }
  *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetBearcubClassDesc() { return &D_002BAAE8[67]; }
+CLASSINFO *BEARCUB::Pclassinfo() { return &D_002BAAE8[67]; }
 
 /** @sly2-annot addr=0x113E50
  * Purpose: vtable slot 6 of CID68 (cid 68): returns &D_002BAAE8[68], the class descriptor {pcdParent, cid,
@@ -5856,7 +5856,7 @@ extern "C" CLASSINFO *GetCid100ClassDesc() { return &D_002BAAE8[100]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid101ClassDesc() { return &D_002BAAE8[101]; }
+CLASSINFO *CID101::Pclassinfo() { return &D_002BAAE8[101]; }
 
 /** @sly2-annot addr=0x114070
  * Purpose: vtable slot 6 of CID102 (cid 102): returns &D_002BAAE8[102], the class descriptor {pcdParent, cid,
@@ -5947,7 +5947,7 @@ extern "C" CLASSINFO *GetAsegClassDesc() { return &D_002BAAE8[109]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetAsegblClassDesc() { return &D_002BAAE8[110]; }
+CLASSINFO *ASEGBL::Pclassinfo() { return &D_002BAAE8[110]; }
 
 /** @sly2-annot addr=0x114100
  * Purpose: vtable slot 6 of SM (cid 111): returns &D_002BAAE8[111], the class descriptor {pcdParent, cid,
@@ -6027,7 +6027,7 @@ extern "C" CLASSINFO *GetCid117ClassDesc() { return &D_002BAAE8[117]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid118ClassDesc() { return &D_002BAAE8[118]; }
+CLASSINFO *CID118::Pclassinfo() { return &D_002BAAE8[118]; }
 
 /** @sly2-annot addr=0x114180
  * Purpose: vtable slot 6 of CID119 (cid 119): returns &D_002BAAE8[119], the class descriptor {pcdParent, cid,
@@ -6148,7 +6148,7 @@ extern "C" CLASSINFO *GetWidget129ClassDesc() { return &D_002BAAE8[129]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetWidget130ClassDesc() { return &D_002BAAE8[130]; }
+CLASSINFO *WIDGET130::Pclassinfo() { return &D_002BAAE8[130]; }
 
 /** @sly2-annot addr=0x114240
  * Purpose: vtable slot 6 of WIDGET131 (cid 131): returns &D_002BAAE8[131], the class descriptor {pcdParent,
@@ -6198,7 +6198,7 @@ extern "C" CLASSINFO *GetAsegaClassDesc() { return &D_002BAAE8[134]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCmClassDesc() { return &D_002BAAE8[135]; }
+CLASSINFO *CM::Pclassinfo() { return &D_002BAAE8[135]; }
 
 /** @sly2-annot addr=0x114290
  * Purpose: vtable slot 6 of SMA (cid 136): returns &D_002BAAE8[136], the class descriptor {pcdParent, cid,
@@ -6218,7 +6218,7 @@ extern "C" CLASSINFO *GetSmaClassDesc() { return &D_002BAAE8[136]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetPoctlClassDesc() { return &D_002BAAE8[137]; }
+CLASSINFO *POCTL::Pclassinfo() { return &D_002BAAE8[137]; }
 
 /** @sly2-annot addr=0x1142B0
  * Purpose: vtable slot 6 of SAA (cid 138): returns &D_002BAAE8[138], the class descriptor {pcdParent, cid,
@@ -6338,7 +6338,7 @@ extern "C" CLASSINFO *GetCid148ClassDesc() { return &D_002BAAE8[148]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid149ClassDesc() { return &D_002BAAE8[149]; }
+CLASSINFO *CID149::Pclassinfo() { return &D_002BAAE8[149]; }
 
 /** @sly2-annot addr=0x114370
  * Purpose: vtable slot 6 of CID150 (cid 150): returns &D_002BAAE8[150], the class descriptor {pcdParent, cid,
@@ -6348,7 +6348,7 @@ extern "C" CLASSINFO *GetCid149ClassDesc() { return &D_002BAAE8[149]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid150ClassDesc() { return &D_002BAAE8[150]; }
+CLASSINFO *CID150::Pclassinfo() { return &D_002BAAE8[150]; }
 
 /** @sly2-annot addr=0x114380
  * Purpose: vtable slot 6 of CID151 (cid 151): returns &D_002BAAE8[151], the class descriptor {pcdParent, cid,
@@ -6368,7 +6368,7 @@ extern "C" CLASSINFO *GetCid151ClassDesc() { return &D_002BAAE8[151]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid152ClassDesc() { return &D_002BAAE8[152]; }
+CLASSINFO *CID152::Pclassinfo() { return &D_002BAAE8[152]; }
 
 /** @sly2-annot addr=0x1143A0
  * Purpose: vtable slot 6 of JSG (cid 153): returns &D_002BAAE8[153], the class descriptor {pcdParent, cid,
@@ -6378,7 +6378,7 @@ extern "C" CLASSINFO *GetCid152ClassDesc() { return &D_002BAAE8[152]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetJsgClassDesc() { return &D_002BAAE8[153]; }
+CLASSINFO *JSG::Pclassinfo() { return &D_002BAAE8[153]; }
 
 /** @sly2-annot addr=0x1143B0
  * Purpose: vtable slot 6 of CID154 (cid 154): returns &D_002BAAE8[154], the class descriptor {pcdParent, cid,
@@ -6388,7 +6388,7 @@ extern "C" CLASSINFO *GetJsgClassDesc() { return &D_002BAAE8[153]; }
  *   pfnNew/size 185/185; vt slot6 199/199)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-extern "C" CLASSINFO *GetCid154ClassDesc() { return &D_002BAAE8[154]; }
+CLASSINFO *CID154::Pclassinfo() { return &D_002BAAE8[154]; }
 
 /** @sly2-annot addr=0x1143C0
  * Purpose: vtable slot 6 of BHV (cid 155): returns &D_002BAAE8[155], the class descriptor {pcdParent, cid,
