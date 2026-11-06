@@ -9,6 +9,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 
 /* View of the grab spot (an XFM). */
 struct K { int a, b; };
@@ -47,8 +48,9 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/sound.md#5-source-files,
  *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF3B8(GRABXFM *p)
+void CID39::Init()
 {
+    GRABXFM *p = (GRABXFM *)this;
     InitXfm(p);
     InitGrabspot(p->grabspot);
 }

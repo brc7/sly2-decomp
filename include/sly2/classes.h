@@ -1781,8 +1781,8 @@ typedef char assert_SKY_size[sizeof(SKY) == 0x160 ? 1 : -1];
 struct CID39 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid39ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001FF3B8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid39ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_001FF3E8");   /* slot 15 */
     virtual void Freeze() __asm__("func_001FF470");   /* slot 22 */
     virtual void Unfreeze() __asm__("func_001FF438");   /* slot 23 */
