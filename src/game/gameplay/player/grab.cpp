@@ -463,7 +463,7 @@ struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *apsur
 struct ACTOR {
     char pad0[0xC]; VTE *vt; char pad10[0xEC - 0x10]; void *pvFilter; char padF0[0x150 - 0xF0]; JOY *pjoy;
     char pad154[0x240 - 0x154]; qword posOffset; char pad250[0x268 - 0x250]; SO *pso; char pad26C[0xF5C - 0x26C];
-    ACTOR *ptarget; float gTarget; char padF64[0x1030 - 0xF64]; ASEGA *pasega; char pad1034[0x10EC - 0x1034]; int x10EC;
+    ACTOR *ptarget; float gTarget; char padF64[0x1030 - 0xF64]; ASEGA *pasega; char pad1034[0x10EC - 0x1034]; int interactMode;
 };
 struct ATTACH { char pad0[0x34]; ACTOR *pactor; };
 struct CONTEXT {
@@ -686,7 +686,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
                 SetControl(grab->pactor, 0);
                 break;
             }
-            if (grab->pactor->x10EC == 4) {
+            if (grab->pactor->interactMode == 4) {
                 SetControl(grab->pactor, 0);
                 break;
             }
@@ -724,7 +724,7 @@ typedef char BSP_Size[sizeof(BSP) == 12 ? 1 : -1];
 typedef char SO_absp_Offset[FIELD_OFFSET(SO, absp) == 0x74 ? 1 : -1];
 typedef char SO_geomWorld_Offset[FIELD_OFFSET(SO, geomWorld) == 0x90 ? 1 : -1];
 typedef char ACTOR_pso_Offset[FIELD_OFFSET(ACTOR, pso) == 0x268 ? 1 : -1];
-typedef char ACTOR_x10EC_Offset[FIELD_OFFSET(ACTOR, x10EC) == 0x10EC ? 1 : -1];
+typedef char ACTOR_x10EC_Offset[FIELD_OFFSET(ACTOR, interactMode) == 0x10EC ? 1 : -1];
 typedef char CONTEXT_attach_Offset[FIELD_OFFSET(CONTEXT, attach) == 0x440 ? 1 : -1];
 typedef char CONTEXT_fInhibit_Offset[FIELD_OFFSET(CONTEXT, fInhibit) == 0x500 ? 1 : -1];
 } // namespace M_UpdateJtGrabInput
@@ -1921,7 +1921,7 @@ namespace M_GetJtRailLanding { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} U;
 struct T {char pad[0x18];float x18,x1C;};
-struct O {char pad[0x150];struct T*x150;char pad154[0x240-0x154];qword pos;};
+struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
 struct SMP {float g0,g1,g2;};
@@ -1949,10 +1949,10 @@ static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0
 // For a rail target at parameter t: the landing position offset and a velocity along the rail tangent.
 void GetJtRailLanding(struct P*p,struct CURVE*curve,qword*outPos,qword*outVel,float t){
  U pos,dir,dead;struct SMP smp;float low,high;qword v;float dot,current;
- struct T*shape=p->o->x150;
+ struct T*shape=p->o->controller;
  EvaluateShapeU(curve,t,&pos.q,&dir.q);
  dir.q=Normal(Reject(dir.q,D_002A2DC0),D_002A2DD0);
- {register float width __asm__("$f0")=shape->x1C;register float factor __asm__("$f13")=p->x2A0;v=SetVectorCylind(p->o->x150->x18,factor*width,0.0f);}
+ {register float width __asm__("$f0")=shape->x1C;register float factor __asm__("$f13")=p->x2A0;v=SetVectorCylind(p->o->controller->x18,factor*width,0.0f);}
  dot=Dot(v,dir.q);dead.q=v;
  current=SFromShapeU(curve,t);
  smp.g1=p->x260;smp.g0=p->x2A0;smp.g2=D_002BF668;
@@ -2343,7 +2343,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct S4C { char pad[0x148]; long fl; };
 struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char pad3[0x60-0x50]; qword x60; char pad4[0x88-0x70]; float x88; };
-struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char x9e0[0x108C-0x9E0]; int x108c; };
+struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
 struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
@@ -2367,13 +2367,13 @@ void RecordJtGrabPlace(struct P *grab)
         if (grab->x14->x19c)
             return;
         g = grab->x20;
-        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
+        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
         break;
     case 4:
         if (grab->x14->xec)
             return;
         g = 0.0f;
-        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
+        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
         break;
     case 0:
     case 13:
@@ -2381,14 +2381,14 @@ void RecordJtGrabPlace(struct P *grab)
             if (grab->x14->x19c)
                 return;
             g = grab->x20;
-            AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
+            AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
             break;
         }
         if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x26)) {
             if (grab->x14->xec)
                 return;
             g = 0.0f;
-            AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
+            AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
             break;
         }
         if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x22)) {
@@ -2406,14 +2406,14 @@ void RecordJtGrabPlace(struct P *grab)
             d.q = dq;
             g = atan2f(d.f[1], d.f[0]) * s;
         }
-        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
+        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
         break;
     default:
     {
         struct O *o = grab->x0;
         struct A *pa = o->x208;
         if (pa && pa->x88 > 0.7f && (pa->x4c->fl & 0x20000000) == 0 && !o->x108c)
-            AddJtPlaceAtPosition(o->x9e0, pa->x40, pa->x60);
+            AddJtPlaceAtPosition(o->places, pa->x40, pa->x60);
         return;
     }
     }
