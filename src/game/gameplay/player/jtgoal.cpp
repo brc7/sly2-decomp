@@ -21,7 +21,7 @@ struct E { int pad[2]; void *object; void *otherObject; char pad2[0x30]; };
 struct SO { E ends[2]; char pad[0xAC - 0x80]; SO *next; };
 struct LN { SO *contact; LN *next; };
 struct X { char pad[0x64]; LN *contactList; };
-struct PO { char pad[0xEC]; X *contacts; char pad2[0x2DC - 0xF0]; int unknown2DC; char pad3[0x1084 - 0x2E0]; Q4 *unknown1084; };
+struct PO { char pad[0xEC]; X *contacts; char pad2[0x2DC - 0xF0]; int airState; char pad3[0x1084 - 0x2E0]; Q4 *unknown1084; };
 struct T { char pad[0x130]; float unknown130; };
 struct R { char pad[0x4C]; int value; };
 
@@ -107,7 +107,7 @@ static inline int GetPlayerEndIndex(PO *player, SO *contact)
 extern "C" void UpdateJtgoal(JTGOAL *goal)
 {
     if (goal->isHolding) {
-        if (goal->player->unknown2DC == -1)
+        if (goal->player->airState == -1)
             goal->isHolding = 0;
         return;
     }
