@@ -345,34 +345,34 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 struct G;
 extern struct G D_003DD490;
-struct E { int a; int b; int c; int d; int e; int f; };
-struct S { char pad[0x230]; int c; struct E ae[1]; };
+struct E { int xfOid; int objectOid; int xf; int actuator; int object; int sma; };   /* a ship part, 0x18 bytes */
+struct S { char pad[0x230]; int partCount; struct E parts[1]; };
 int PxfFindSo(struct S *p, int a, int b);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
-int func_0012DC18(struct S *p, int c, int a, int b, int d, qword q);
+int func_0012DC18(struct S *p, int xf, int a, int b, int d, qword q);
 int func_001F0380(int e, struct S *p, int a, int b);
 // Look up child XFs / objects for entries and create vector actuators. (inferred)
 void BindHackshipParts(struct S *ship) {
     int i;
-    for (i = 0; i < ship->c; i++) {
-        struct E *pe = &ship->ae[i];
-        pe->c = PxfFindSo(ship, pe->a, 6);
-        pe->e = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->b, ship);
-        if (pe->c) pe->d = func_0012DC18(ship, pe->c, 0, 7, 2, D_002A2DD0);
-        if (pe->e) pe->f = func_001F0380(pe->e, ship, -1, 0);
+    for (i = 0; i < ship->partCount; i++) {
+        struct E *pe = &ship->parts[i];
+        pe->xf = PxfFindSo(ship, pe->xfOid, 6);
+        pe->object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->objectOid, ship);
+        if (pe->xf) pe->actuator = func_0012DC18(ship, pe->xf, 0, 7, 2, D_002A2DD0);
+        if (pe->object) pe->sma = func_001F0380(pe->object, ship, -1, 0);
     }
 }
 } } // namespace M_func_0017F770
 
 namespace M_func_0017F850 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct S { char pad[0xC]; struct VTE *vt; char pad2[0x48]; int n58; int n5C; char pad3[0x168]; int a1C8[1]; };
+struct S { char pad[0xC]; struct VTE *vt; char pad2[0x48]; int positionChannel; int rotationChannel; char pad3[0x168]; int animEntries[1]; };
 void PostHackLoad(struct S *p);
 void func_002303A0(struct S *p, int a, int b);
 void BindHackshipParts(struct S *p);
 void BindHackAnimEntries(struct S *p, int n, void *pv);
 // vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
-void PostHackshipLoad(struct S *p) { struct VTE *e; PostHackLoad(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); func_002303A0(p, p->n58, 2); func_002303A0(p, p->n5C, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->a1C8); }
+void PostHackshipLoad(struct S *p) { struct VTE *e; PostHackLoad(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); func_002303A0(p, p->positionChannel, 2); func_002303A0(p, p->rotationChannel, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->animEntries); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
@@ -393,16 +393,16 @@ typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
 extern float D_002BE7E8;
 extern char D_002BE7F0[];
-struct T { char pad[0x18]; float g18; float g1C; char pad2[8]; float g28; float g2C; };
-struct E { char pad[0xC]; void *pC; char pad2[4]; void *p14; };
-struct M { char pad[0x4E]; short s4E; };
+struct T { char pad[0x18]; float heading; float speed; char pad2[8]; float height; float unknown2C; };
+struct E { char pad[0xC]; void *actuator; char pad2[4]; void *sma; };
+struct M { char pad[0x4E]; short pauseCount; };
 struct S {
-    char pad[0x150]; struct T *p150;
-    char pad1[0x1C0 - 0x154]; int n1C0;
-    char pad2[0x218 - 0x1C4]; float g218;
-    char pad3[4]; qword v220;
-    int n230; struct E a234[1];
-    char pad4[0x2A4 - 0x234 - 0x18]; struct M *p2A4; int pad5; float g2AC;
+    char pad[0x150]; struct T *params;
+    char pad1[0x1C0 - 0x154]; int state;
+    char pad2[0x218 - 0x1C4]; float heading;
+    char pad3[4]; qword desiredVelocity;
+    int partCount; struct E parts[1];
+    char pad4[0x2A4 - 0x234 - 0x18]; struct M *engineSound; int pad5; float engineVolume;
 };
 void UpdateSo(struct S *p);
 int IsHackAnimDone(struct S *p);
@@ -420,45 +420,49 @@ struct V3 { float x, y, z; };
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
+// Zeroes the x, y, z of a vector (w untouched).
+static __inline__ void ZeroVector(qword *pq) { struct V3 *pv = (struct V3 *)pq; pv->z = 0; pv->y = 0; pv->x = 0; }
 // vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
 void UpdateHackship(struct S *ship) {
     int s;
     UpdateSo(ship);
     do {
-        s = ship->n1C0;
+        s = ship->state;
         if (s == 2 && IsHackAnimDone(ship)) SetHackshipState(ship, 1);
-    } while (ship->n1C0 != s);
-    switch (ship->n1C0) {
-    case 0: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 2: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 3: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 4: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
+    } while (ship->state != s);
+    switch (ship->state) {
+    /* one copy per case: the original's jump table has four separate (identical) targets, so merging the labels
+       changes the code */
+    case 0: ZeroVector(&ship->desiredVelocity); break;
+    case 2: ZeroVector(&ship->desiredVelocity); break;
+    case 3: ZeroVector(&ship->desiredVelocity); break;
+    case 4: ZeroVector(&ship->desiredVelocity); break;
     case 1: {
-        struct T *t = ship->p150;
+        struct T *t = ship->params;
         union { qword q; } u; qword v;
         int i;
-        ship->g218 = t->g18;
-        ship->v220 = SetVectorCylind(t->g18, t->g1C * D_002BE7E8, 0.0f);
-        v = Make(0.0f, 0.0f, ship->p150->g28); u.q = v;
-        for (i = 0; i < ship->n230; i++) {
-            struct E *e = &ship->a234[i];
-            if (e->pC) SetActPositionGoal(e->pC, v);
-            if (e->p14) {
-                if (0.0f < ship->p150->g2C) SetSmaGoal(e->p14, 0x68);
-                else SetSmaGoal(e->p14, 0x66);
+        ship->heading = t->heading;
+        ship->desiredVelocity = SetVectorCylind(t->heading, t->speed * D_002BE7E8, 0.0f);
+        v = Make(0.0f, 0.0f, ship->params->height); u.q = v;
+        for (i = 0; i < ship->partCount; i++) {
+            struct E *e = &ship->parts[i];
+            if (e->actuator) SetActPositionGoal(e->actuator, v);
+            if (e->sma) {
+                if (0.0f < ship->params->unknown2C) SetSmaGoal(e->sma, 0x68);
+                else SetSmaGoal(e->sma, 0x66);
             }
         }
         break;
     }
     }
-    if (ship->p2A4) {
-        float g = (ship->n1C0 == 1) ? ship->p150->g1C : 0.0f;
-        ship->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, ship->g2AC, g, D_002DDED0.dt);
-        func_001FB1F8(ship->p2A4, ship->g2AC);
-        if (0.0f < ship->g2AC) {
-            if (ship->p2A4->s4E > 0) ResumeSnd(ship->p2A4);
+    if (ship->engineSound) {
+        float g = (ship->state == 1) ? ship->params->speed : 0.0f;
+        ship->engineVolume = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.dt);
+        func_001FB1F8(ship->engineSound, ship->engineVolume);
+        if (0.0f < ship->engineVolume) {
+            if (ship->engineSound->pauseCount > 0) ResumeSnd(ship->engineSound);
         } else {
-            if (ship->p2A4->s4E <= 0) PauseSnd(ship->p2A4);
+            if (ship->engineSound->pauseCount <= 0) PauseSnd(ship->engineSound);
         }
     }
 }
@@ -467,7 +471,7 @@ void UpdateHackship(struct S *ship) {
 namespace M_func_0017FB50 {
 #include "mat.h"
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1C0]; int n1C0; char pad2[0x54]; float g218; int pad3; qword q220; };
+struct S { char pad[0x1C0]; int state; char pad2[0x54]; float heading; int pad3; qword desiredVelocity; };
 extern "C" {
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_002BE800[], D_002BE810[];
@@ -478,10 +482,10 @@ void PresetHackshipAccel(S *p);
 }
 // vtable slot 70 override. (inferred)
 void PresetHackshipAccel(S *ship) {
-    if (ship->n1C0 == 3) return;
-    MATRIX3 m; m = func_0011B500(D_002A2DC0, ship->g218);
+    if (ship->state == 3) return;
+    MATRIX3 m; m = func_0011B500(D_002A2DC0, ship->heading);
     func_001F59A0(ship, &m, D_002BE800);
-    AccelSoTowardPosSpring(ship, D_002A2DD0, 0, ship->q220, D_002BE810);
+    AccelSoTowardPosSpring(ship, D_002A2DD0, 0, ship->desiredVelocity, D_002BE810);
 }
 } // namespace M_func_0017FB50
 
@@ -490,7 +494,7 @@ struct G { int a; };
 extern struct G D_003DD490;
 extern int D_002E1E00;
 extern char D_002DEB30[];
-struct S { char pad[0x184]; int n184; char pad2[0x38]; int n1C0; };
+struct S { char pad[0x184]; int health; char pad2[0x38]; int state; };
 int FSwHandsOff(struct G *g);
 int TakeHackDamage(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
@@ -499,12 +503,12 @@ void SetHackshipState(struct S *p, int n);
 // vtable slot 75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and
 // state 2 (hit) or 4 (defeated). (inferred)
 int TakeHackshipDamage(struct S *ship, int *pn) {
-    if (ship->n1C0 < 5) { if (ship->n1C0 >= 2) return 0; }
+    if (ship->state < 5) { if (ship->state >= 2) return 0; }
     if (FSwHandsOff(&D_003DD490)) return 0;
     if (D_002E1E00 & 1) return 0;
     if (!TakeHackDamage(ship, pn)) return 0;
     UpdateHackshipHealthBar(ship);
-    if (ship->n184 > 0) { BroadcastGameEvent(D_002DEB30, 0xF, *pn); SetHackshipState(ship, 2); }
+    if (ship->health > 0) { BroadcastGameEvent(D_002DEB30, 0xF, *pn); SetHackshipState(ship, 2); }
     else SetHackshipState(ship, 4);
     return 1;
 }
@@ -530,14 +534,14 @@ extern "C" qword D_002A2DD0;
 extern "C" char D_002DEB30[];
 struct M4 { qword r[4]; };
 struct VTE { short d; short pad; void *pfn; };
-struct O { char pad[0xC]; struct VTE *vt; int n10; };
-struct N { char pad[0xA0]; int nA0; };
-struct E { void *p0; int pad[5]; };
+struct O { char pad[0xC]; struct VTE *vt; int unknown10; };
+struct N { char pad[0xA0]; int unknownA0; };
+struct E { void *sma; int pad[5]; };
 struct Q { int a[4]; };
 struct S {
-    char pad[0xC]; struct VTE *vt; char pad2[0x44]; struct N *p54; struct N *p58; struct N *p5C;
-    char pad3[0x1C0 - 0x60]; int n1C0; float f1C4; struct Q a1C8[6]; char padq[8]; int n230;
-    char pad4[0x248 - 0x234]; struct E a248[3]; int pade; struct O *p294; int n298; int n29C; struct O *p2A0; void *p2A4; int n2A8;
+    char pad[0xC]; struct VTE *vt; char pad2[0x44]; struct N *unknownChannel54; struct N *positionChannel; struct N *rotationChannel;
+    char pad3[0x1C0 - 0x60]; int state; float stateTime; struct Q animEntries[6]; char padq[8]; int partCount;
+    char pad4[0x248 - 0x234]; struct E partSmas[3]; int pade; struct O *lock; int positionActuator; int rotationActuator; struct O *healthWidget; void *engineSound; int engineSoundId;
 };
 extern "C" {
 void PlayWidgetAnim(struct O *o, int n);
@@ -563,53 +567,53 @@ void SetHackshipState(struct S *p, int n);
 }
 // State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5. (inferred)
 void SetHackshipState(struct S *ship, int n) {
-    int old = ship->n1C0;
+    int old = ship->state;
     if (n == old) return;
     switch (old) {
     case -1:
         {
-            struct O *q = ship->p2A0;
+            struct O *q = ship->healthWidget;
             if (q) {
                 { struct VTE *e = &q->vt[0x31]; ((void (*)(void *, int))e->pfn)((char *)q + e->d, -1); }
-                PlayWidgetAnim(ship->p2A0, 0x34F);
+                PlayWidgetAnim(ship->healthWidget, 0x34F);
                 UpdateHackshipHealthBar(ship);
-                if (ship->n2A8 != old) {
-                    void *r = PsndStartSound(ship->n2A8);
+                if (ship->engineSoundId != old) {
+                    void *r = PsndStartSound(ship->engineSoundId);
                     SetSndSourceLo(r, 0);
-                    RcPtr_Assign(&ship->p2A4, r);
-                    PauseSnd(ship->p2A4);
+                    RcPtr_Assign(&ship->engineSound, r);
+                    PauseSnd(ship->engineSound);
                 }
             }
         }
         break;
     case 3:
-        ReleaseAct(&ship->n298);
-        ReleaseAct(&ship->n29C);
-        func_002303A0(ship, ship->p58, 2);
-        func_002303A0(ship, ship->p5C, 2);
+        ReleaseAct(&ship->positionActuator);
+        ReleaseAct(&ship->rotationActuator);
+        func_002303A0(ship, ship->positionChannel, 2);
+        func_002303A0(ship, ship->rotationChannel, 2);
         SetLoParent_1A58D0(ship, 0, 0xF);
         SetSoCnstrForce(ship, 5);
         SetSoCnstrTorque(ship, 4);
         func_001F68A8(ship, 0);
-        ship->p294 = 0;
+        ship->lock = 0;
         break;
     case 1:
         {
             int i;
-            for (i = 0; i < ship->n230; i++) {
-                if (ship->a248[i].p0) SetSmaGoal(ship->a248[i].p0, 0x66);
+            for (i = 0; i < ship->partCount; i++) {
+                if (ship->partSmas[i].sma) SetSmaGoal(ship->partSmas[i].sma, 0x66);
             }
         }
         break;
     }
-    ship->n1C0 = n;
-    ship->f1C4 = D_002DDED0.t;
+    ship->state = n;
+    ship->stateTime = D_002DDED0.t;
     switch (n) {
     case -1:
         {
-            struct O *q = ship->p2A0;
+            struct O *q = ship->healthWidget;
             if (q) { struct VTE *e = &q->vt[0x32]; ((void (*)(void *))e->pfn)((char *)q + e->d); }
-            void **pp = &ship->p2A4;
+            void **pp = &ship->engineSound;
             if (*pp) {
                 StopSnd(*pp, 0.0f);
                 RcPtr_Assign(pp, 0);
@@ -621,13 +625,13 @@ void SetHackshipState(struct S *ship, int n) {
             struct M4 m;
             int r;
 
-            { struct O *q = ship->p294; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
-            m = func_0022FF40(ship->p54->nA0, ship->p58->nA0, &m);
-            { struct VTE *e = &ship->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)ship + e->d, ship->p294->n10, r, 3); }
+            { struct O *q = ship->lock; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
+            m = func_0022FF40(ship->unknownChannel54->unknownA0, ship->positionChannel->unknownA0, &m);
+            { struct VTE *e = &ship->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)ship + e->d, ship->lock->unknown10, r, 3); }
             { struct VTE *e = &ship->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
             { struct VTE *e = &ship->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
-            ship->n298 = func_0012DC18(ship, ship->p58, 1, 7, 2, m.r[3]);
-            ship->n29C = func_0012DC18(ship, ship->p5C, 1, 7, 2, func_0011BFF0(&m));
+            ship->positionActuator = func_0012DC18(ship, ship->positionChannel, 1, 7, 2, m.r[3]);
+            ship->rotationActuator = func_0012DC18(ship, ship->rotationChannel, 1, 7, 2, func_0011BFF0(&m));
             SetSoCnstrForce(ship, 1);
             SetSoCnstrTorque(ship, 1);
             func_001F68A8(ship, 1);
@@ -637,7 +641,7 @@ void SetHackshipState(struct S *ship, int n) {
         BroadcastGameEvent(D_002DEB30, 0x10, ship);
         break;
     }
-    StartHackAnim(ship, n == -1 ? 0 : &ship->a1C8[n]);
+    StartHackAnim(ship, n == -1 ? 0 : &ship->animEntries[n]);
 }
 } // namespace M_func_0017FD08
 
@@ -1473,14 +1477,14 @@ void HACKWALL::Init()
 namespace M_func_00181840 { extern "C" {
 struct MSG { int cb; int nKind; };
 struct Q { char pad[0x20]; struct E *pr; int n; };
-struct E { int oid; int c; int x8; int xc; char dl[0xC]; int x1c; float g; void *pv; int x28; float h; };
-struct R { int a; void *p; int x8; int n; unsigned long fl; char pad[0x98]; };
-struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int x60; char p1[0x7C]; int ce0; struct R *ar; char p2[0xE0]; int c; struct E ae[4]; };
+struct E { int oid; int pieceCount; int unknown8; int unknownC; char dl[0xC]; int pieceParam; float g; void *shape; int unknown28; float h; };
+struct R { int a; void *p; int unknown8; int n; unsigned long fl; char pad[0x98]; };
+struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int unknown60; char p1[0x7C]; int partCount; struct R *parts; char p2[0xE0]; int segmentCount; struct E segments[4]; };
 extern char D_003DD490[];
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void *func_001AE2A0(struct MSG *pmsg);
-void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
+void AppendDlEntry__FP2DLPv(void *pdl, void *shape);
 void PostHackLoad(struct S *p);
 void AddSoParts(struct S *p);
 // vtable slot 15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load. (inferred)
@@ -1489,16 +1493,16 @@ void PostHackwallLoad(struct S *wall)
     int i, j;
     struct E *pe;
     struct R *pr;
-    for (i = 0; i < wall->c; i++) {
-        pe = &wall->ae[i];
-        pe->pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
-        if (!pe->pv) {
+    for (i = 0; i < wall->segmentCount; i++) {
+        pe = &wall->segments[i];
+        pe->shape = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
+        if (!pe->shape) {
             i--;
-            wall->c--;
+            wall->segmentCount--;
             continue;
         }
         InitDl__FP2DLi(pe->dl, 0x60);
-        for (j = 0; j < pe->c; j++) {
+        for (j = 0; j < pe->pieceCount; j++) {
             struct MSG msg;
             struct Q *q;
             msg.cb = 0x70;
@@ -1510,8 +1514,8 @@ void PostHackwallLoad(struct S *wall)
         }
     }
     PostHackLoad(wall);
-    pr = &wall->ar[wall->ce0++];
-    pr->a = wall->x60;
+    pr = &wall->parts[wall->partCount++];
+    pr->a = wall->unknown60;
     pr->n = -1;
     pr->p = wall;
     pr->fl |= 1UL << 48;
@@ -1524,7 +1528,7 @@ namespace M_func_001819E0 { extern "C" {
 struct DLE { void *next; void *prev; };
 struct R { char pad[0x10]; char dl[0xC]; };
 struct Q { char pad[0x20]; struct R *pr; char p1[0x3C]; struct DLE dle; };
-struct E { int a; int b; int c; int d; char p[0xC]; int x1c; float g; int x24; int x28; float h; };
+struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; char p[0xC]; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S { char pad[0x1C8]; int c; struct E ae[4]; struct Q *pqFirst; };
 void ResetHack(struct S *p);
 void ClearDle__FP3DLE(struct DLE *pdle);
@@ -1547,7 +1551,7 @@ void ResetHackwall(struct S *wall)
     ClearDl__FP2DL(&wall->pqFirst);
     for (i = 0; i < wall->c; i++) {
         struct E *pe = &wall->ae[i];
-        pe->d = pe->b;
+        pe->activePieceCount = pe->pieceCount;
         ResetHackwallSegment(wall, pe);
     }
 }
@@ -1555,7 +1559,7 @@ void ResetHackwall(struct S *wall)
 
 namespace M_func_00181A90 { extern "C" {
 struct Q { char pad[0x24]; int n; char p1[0x14]; float g3c; int x40; char p2[8]; int x4c; char p3[0x10]; struct Q *next; };
-struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
+struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S;
 void LayoutHackwallPieces(struct S *p, struct E *pe);
 float SMaxShape(int n);
@@ -1567,13 +1571,13 @@ void ResetHackwallSegment(struct S *wall, struct E *pe)
     float g;
     struct Q *q;
     LayoutHackwallPieces(wall, pe);
-    g = SMaxShape(pe->x24);
+    g = SMaxShape(pe->shape);
     for (q = pe->pqFirst; q; q = q->next) {
         q->n = -1;
         SetHackwallSegmentState(wall, q, 0);
-        q->g3c = g * ((float)i + 0.5f) / (float)pe->d;
+        q->g3c = g * ((float)i + 0.5f) / (float)pe->activePieceCount;
         q->x40 = 0;
-        q->x4c = pe->x1c;
+        q->x4c = pe->pieceParam;
         i++;
     }
 }
@@ -1582,21 +1586,21 @@ void ResetHackwallSegment(struct S *wall, struct E *pe)
 namespace M_func_00181B60 { extern "C" {
 struct K { float a; float b; };
 struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *next; };
-struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
+struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S;
 float SMaxShape(int n);
 // Distribute pieces along the segment shape length (SMaxShape). (inferred)
 void LayoutHackwallPieces(struct S *wall, struct E *pe)
 {
-    float g = SMaxShape(pe->x24);
-    int c = pe->d;
+    float g = SMaxShape(pe->shape);
+    int c = pe->activePieceCount;
     float r = g * 0.5f / (float)c;
     int m;
     float fm, gap, step;
     struct K k1, k2;
     struct Q *q;
-    r = pe->g < r ? pe->g : r;
-    m = pe->c < c ? pe->c : c;
+    r = pe->maxSpacing < r ? pe->maxSpacing : r;
+    m = pe->maxPieces < c ? pe->maxPieces : c;
     fm = (float)m;
     gap = (g - 2.0f * (float)c * r) / (float)(c - m + 1);
     step = gap + 2.0f * r;
@@ -1617,7 +1621,7 @@ void LayoutHackwallPieces(struct S *wall, struct E *pe)
 
 namespace M_func_00181CB0 { extern "C" {
 struct Q { char pad[0x2C]; float g2c; float g30; float g34; float g38; char p1[8]; float g44; float g48; char p2[0x14]; struct Q *next; };
-struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; float g28; float h; };
+struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
 struct S;
 float SMaxShape(int n);
 // Clamps g to [lo, hi].
@@ -1630,15 +1634,15 @@ static __inline__ float GClamp(float g, float lo, float hi)
 // Per-frame piece placement along shape. (inferred)
 void UpdateHackwallPieces(struct S *wall, struct E *pe)
 {
-    float g = SMaxShape(pe->x24);
-    float r0 = g * 0.5f / (float)pe->d;
+    float g = SMaxShape(pe->shape);
+    float r0 = g * 0.5f / (float)pe->activePieceCount;
     struct Q *q;
     int i;
-    float r = pe->g < r0 ? pe->g : r0;
+    float r = pe->maxSpacing < r0 ? pe->maxSpacing : r0;
     for (i = 0, q = pe->pqFirst; q; q = q->next, i++) {
-        int j = pe->d - i - 1;
+        int j = pe->activePieceCount - i - 1;
         float lo, hi, x;
-        float t = (pe->g28 - q->g34) / (q->g38 - q->g34);
+        float t = (pe->closestS - q->g34) / (q->g38 - q->g34);
         if (t < 0.0f) t = 0.0f;
         else if (t > 1.0f) t = 1.0f;
         lo = (2.0f * (float)i + 1.0f) * r;
@@ -1648,7 +1652,7 @@ void UpdateHackwallPieces(struct S *wall, struct E *pe)
         else if (hi < x) x = hi;
         q->g44 = x;
         x = (q->g2c + q->g30) * 0.5f;
-        q->g48 = -__builtin_fabsf(x - pe->g28);
+        q->g48 = -__builtin_fabsf(x - pe->closestS);
     }
 }
 } } // namespace M_func_00181CB0
@@ -1696,7 +1700,7 @@ void SetHackwallSegmentState(struct S *wall, struct Q *q, int n)
 namespace M_func_00181F60 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x10]; char x10[0x2C]; float g3c; float g40; float g44; char p1[8]; float g50; float g54; float g58; float g5c; struct Q *next; };
-struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int oid; float g28; float g2c; };
+struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
 struct S { char pad[0x1C0]; int x1c0; char p0[4]; int c; struct E ae[4]; };
 struct V { float a[4]; };
 extern struct CLOCK D_002DDED0;
@@ -1734,16 +1738,16 @@ void UpdateHackwall(struct S *wall)
     if (!wall->x1c0) return;
     for (i = 0; i < wall->c; i++) {
         struct E *pe = &wall->ae[i];
-        int oid = pe->oid;
+        int oid = pe->shape;
         struct Q *q;
         SMaxShape(oid);
-        if (!(D_002DDED0.t <= pe->g2c)) {
+        if (!(D_002DDED0.t <= pe->retargetTime)) {
             float t;
-            FindShapeClosestPoint(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28);
+            FindShapeClosestPoint(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->closestS);
             t = D_002DDED0.t;
-            pe->g2c = t + GRandInRange__Fff(0.5f, 0.75f);
+            pe->retargetTime = t + GRandInRange__Fff(0.5f, 0.75f);
         } else {
-            FindShapeClosestPointFromS(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28, pe->g28);
+            FindShapeClosestPointFromS(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
         }
         UpdateHackwallPieces(wall, pe);
         for (q = pe->pqFirst; q; q = q->next) {
