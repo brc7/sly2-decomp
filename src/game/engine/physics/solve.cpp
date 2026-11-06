@@ -1,5 +1,9 @@
-// solve.cpp -- the contact solver: groups touching SOs (BuildContactGroup), collects their contacts (XPs), solves each
-// group through a DZG (SolveSwGroup), applies constraints, impulses and queued velocity changes to the objects' XFs.
+// solve.cpp -- the rigid-body step of the physics: once per frame SolveSw updates the broad phase and contacts,
+// groups solid objects (SO) that touch each other (BuildContactGroup), collects each group's contacts (XPs),
+// solves the group's contact impulses through a DZG (SolveSwGroup, dzg.cpp) and integrates the objects' transforms.
+// Also the per-object helpers the rest of the game uses to push objects around: constraints (ApplyConstr),
+// impulses, accelerations and point velocities. Entry points: SolveSw, SolveSwGroup, ApplySoImpulse,
+// AddSoAcceleration / AddSoAngularAcceleration, GetSoVelocityAtPos, PresetSoAccel.
 // TU 0x1F8DD8..0x1FAF70 (24 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_solve
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001FAF50
@@ -153,6 +157,8 @@ qword CalculateSoPointVelocity(SO *pso, qword *pv, qword q);
  *   docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/engine/physics-collision.md#2-contacts-and-solving
  * @end-sly2-annot */
+// Per-frame physics solve over the world: rebuilds contacts (RecalcSwXpAll), runs slot 17 (transform update) on
+// every awake object that needs it, then solves all contact groups (SolveSwContactGroups).
 extern "C" void SolveSw(SW *p)
 {
     int i;
@@ -175,6 +181,8 @@ extern "C" void SolveSw(SW *p)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Flood fill: marks an object as grouped (flag 0x8000000), appends it to the group array and recurses through the
+// objects it touches, so each group is one connected cluster of touching bodies.
 void BuildContactGroup(SW *pv, SO *px, int *pc, SO **apx)
 {
     TL *pn;
@@ -203,6 +211,8 @@ struct A { SO *objects[0x301]; int n; };
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// For every dynamic root object in the world list not yet grouped: builds its contact group and solves it
+// (SplitSwGroup).
 void SolveSwContactGroups(SW *p, int k)
 {
     struct A a;
@@ -246,6 +256,8 @@ void SolveSwContactGroups(SW *p, int k)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Collects the contacts (XPs) between the objects of one group into an array (at most cMax), marking the objects
+// (flag 0x10000000) so each contact is taken once. Returns the count. Sly 1 name: CpxpBuildXpArray.
 int BuildGroupXpArray(SW *a, int b, int c, SO **apx, int cMax, XP **aps)
 {
     int i;
@@ -289,6 +301,8 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Builds a group's contact array and runs SolveSwGroup once or twice depending on the group's flags (1: resting
+// contacts, 4: an extra position pass). Sly 1 name.
 void SplitSwGroup(SW*p,int flags,int count,SO**objects)
 {
  int i;
@@ -358,6 +372,8 @@ static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;vt[slot].pfn((char *)
  * See: docs/engine/physics-collision.md#2-contacts-and-solving,
  *   docs/engine/physics-collision.md#7-key-functions, docs/engine/physics-collision.md#open-questions
  * @end-sly2-annot */
+// Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
+// and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
 void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCount,XP **contacts)
 {
     STACKSCOPE frame;
@@ -481,6 +497,8 @@ static inline int FNear(qword a, qword b)
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Before solving, applies an object's pending velocity change (constrained by its force constraint) and asks its
+// XA owners (water etc.) for external accelerations. STEP's slot 70 calls it as the base. Sly 1 name.
 extern "C" void PresetSoAccel(SO *p)
 {
     int fUpd = 0;
@@ -513,6 +531,8 @@ static inline M3C MulC(const M3C &a,const M3C &b) return r
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Integrates position and rotation of the objects in a solved group (renormalising the rotation, updating part
+// geometry) and stamps them with the world's frame counter.
 void IntegrateSoGroupTransforms(SO *p)
 {
     U scalar;
@@ -569,6 +589,8 @@ static inline float HalfAndDelta(float dt,float half,const qword&source,qword*de
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Applies the two queued force/torque vectors to an object's transform (rotation built from the torque, then
+// renormalised). Reached through a function pointer (inferred).
 extern "C" void ApplySoQueuedForces(SO *input)
 {
     register SO *p __asm__("$18");
@@ -647,6 +669,8 @@ static __inline__ void AddTo(U *out,qword q)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// If the object has physics data and a nonzero queued force, projects it through the constraint and applies it
+// in the transform's space (inferred).
 extern "C" void ProjectSoForce(SO *p)
 {
     if(p->psophys){
@@ -694,6 +718,7 @@ static inline qword Consume(SO*p,XF*object,U&pending){SlotUnsettle(p,object);qwo
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Applies a queued translation and rotation (shift and turn) to an object, then refreshes the objects that moved.
 extern "C" void ApplySoQueuedMotion(SO*p)
 {
     M3 final;
@@ -763,6 +788,8 @@ static inline qword Rej(qword a, qword n)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Returns v constrained by a CONSTR: locked (3) gives zero, 2 keeps only the part along the (world-transformed)
+// axis, 1 removes the part along it (plane), 0 leaves v unchanged.
 qword ApplyConstr(CONSTR *ps, XF *po, qword v)
 {
     switch (ps->k) {
@@ -794,6 +821,7 @@ static inline qword RejF(qword a, qword n)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// The same constraint switch as ApplyConstr without transforming the axis into world space.
 extern "C" qword ApplyConstrNoTransform(CONSTR *p, qword v)
 {
     switch (p->k) {
@@ -817,6 +845,7 @@ static inline qword Get(qword r){qword a; __asm__("qmfc2.ni %0,%1" : "=r"(a) : "
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Linear velocity change an impulse causes: impulse / mass, constrained by the object's force constraint.
 qword GetSoImpulseLinearDelta(SO *input,qword v) {
     register SO *p __asm__("$2")=input;
     register CONSTR *projection __asm__("$4");
@@ -837,6 +866,7 @@ qword GetSoImpulseLinearDelta(SO *input,qword v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Angular velocity change an impulse at pos causes: (pos - centre) x impulse through the inverse inertia.
 qword GetSoImpulseAngularDelta(SO *p, qword a, qword b)
 {
     qword r, c, d;
@@ -876,6 +906,8 @@ static inline qword MulMVRow(M3 *pm, qword *pv)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Applies the inverse inertia tensor to a torque: into body space, scale, back to world space, constrained by the
+// object's torque constraint.
 qword ApplySoInverseInertia(SO *p, qword v)
 {
     XF *pb = p->pxfRot;
@@ -893,6 +925,7 @@ qword ApplySoInverseInertia(SO *p, qword v)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Velocity of a point of the object for a linear/angular velocity pair (v, w): v + w x (pos - centre).
 qword CalculateSoPointVelocity(SO *p, qword *pv, qword q)
 {
     qword r, c, s;
@@ -917,6 +950,7 @@ static inline void AddAccel(XF *po, qword d)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Applies an impulse at a point: adds the linear and angular velocity changes it causes. Sly 1 name.
 extern "C" void ApplySoImpulse(SO *p, qword a, qword b)
 {
     qword x = GetSoImpulseLinearDelta(p, b);
@@ -938,6 +972,8 @@ extern "C" void ApplySoImpulse(SO *p, qword a, qword b)
  * See: docs/engine/physics-collision.md#7-key-functions, docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Adds a world-space acceleration to the object's position transform (when it is in a velocity role 1-3),
+// converted into the transform's parent space.
 void AddSoAcceleration(SO *p, qword v)
 {
     if (func_00230380(p->pxfPos->nRole)) {
@@ -956,6 +992,7 @@ void AddSoAcceleration(SO *p, qword v)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// The rotational twin of AddSoAcceleration: adds an angular acceleration to the rotation transform.
 extern "C" void AddSoAngularAcceleration(SO *p, qword v)
 {
     if (func_00230380(p->pxfRot->nRole)) {
@@ -978,6 +1015,9 @@ struct S2 { struct Pr ap[2]; qword v40; struct Q2 *aq; };
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 67: fills side k of a constraint row's effect record (FX) with this object's response to a unit impulse
+// along the contact normal (negated for side 1): the linear and angular velocity changes, each skipped when that
+// motion is locked. Called by FillDzgDz for both sides of every contact.
 extern "C" void ApplySoContactImpulse(SO *p, int a1, S2 *ps, int a3, int k)
 {
     SOPHYS *pe = p->psophys;
@@ -1004,6 +1044,8 @@ struct V4 { int x, y, z, w; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Slot 68: writes the velocity change at pos caused by an effect record (dv, dw) to *pv (CalculateSoPointVelocity),
+// or zero when the object has no physics block (+0xE8). Used by FillDzgDz to couple constraint rows.
 extern "C" void GetSoVelocityAtPos(SO *p, qword *a, qword b, V4 *pv)
 {
     if (!p->psophys) { pv->z = 0; pv->y = 0; pv->x = 0; }
