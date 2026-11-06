@@ -218,12 +218,12 @@ extern "C" void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword 
  * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
  * @end-sly2-annot */
 // Returns a whole XP list to the world's contact pool. Sly 1 name.
-void FreeSwXpList(SW *psw, XP *pxp)
+void FreeSwXpList(SW *world, XP *list)
 {
-    while (pxp) {
-        XP *pxpNext = pxp->pxpNext;
-        func_0011CD98(&psw->slotheapXp, pxp);
-        pxp = pxpNext;
+    while (list) {
+        XP *pxpNext = list->pxpNext;
+        func_0011CD98(&world->slotheapXp, list);
+        list = pxpNext;
     }
 }
 
@@ -248,11 +248,11 @@ static inline qword QwAddScaledBits(qword a, qword *pb, int f)
 /* Sphere sides (kinds 4..6 side 0, 7 and 9 side 1) put the point on the sphere: centre + normal * -/+radius; the other
    sides convert the local point back to world space. Then the separation is (pos0 - pos1) . normal. */
 // For each XP in the array recomputes the world positions of its two sides from their local positions.
-extern "C" void RecalcSwXpPos(SW *psw, int cxp, XP **apxp)
+extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
 {
     int i;
-    for (i = 0; i < cxp; i++) {
-        XP *pxp = apxp[i];
+    for (i = 0; i < count; i++) {
+        XP *pxp = contacts[i];
         XPS *pxps;
         int j;
         pxps = pxp->axps;
@@ -305,11 +305,11 @@ extern "C" void RecalcSwXpPos(SW *psw, int cxp, XP **apxp)
  * @end-sly2-annot */
 /* Each side's point velocity (GetXfVelocity), then SO slots 55 and 56 of both objects, then the relative velocity. */
 // For each XP recomputes the relative velocity at the contact from both sides' point velocities.
-extern "C" void RecalcSwXpMovement(SW *psw, int cxp, XP **apxp)
+extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
 {
     int i;
-    for (i = 0; i < cxp; i++) {
-        XP *pxp = apxp[i];
+    for (i = 0; i < count; i++) {
+        XP *pxp = contacts[i];
         XPS *pxps;
         int j;
         pxps = pxp->axps;
@@ -371,17 +371,17 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
 /* Marks the surfaces of the cbsp nodes absp (grf 1), then clips the edges of each marked surface (once per surface:
    grf 2) whose other surface is marked too against ppartBsp's BSP, and clears both marks again. */
 // Like ClipSoAllEdges but only for the edges of surfaces that survive BSP pruning against the other part.
-extern "C" int ClipSoBspEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, int cbsp, BSP *absp, int clsgMax, LSG *alsg)
+extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numNodes, BSP *nodes, int maxSegments, LSG *segments)
 {
     int ilsg = 0;
     int clsg = 0;
-    qword *apos = (qword *)ppart->geomWorld.apos;
-    SURF *asurf = ppart->geomWorld.asurf;
+    qword *apos = (qword *)part->geomWorld.apos;
+    SURF *asurf = part->geomWorld.asurf;
     int i;
-    for (i = cbsp - 1; i >= 0; i--)
-        absp[i].psurf->grf |= 1;
-    for (i = cbsp - 1; i >= 0; i--) {
-        register SURF *psurf __asm__("$5") = absp[i].psurf;
+    for (i = numNodes - 1; i >= 0; i--)
+        nodes[i].psurf->grf |= 1;
+    for (i = numNodes - 1; i >= 0; i--) {
+        register SURF *psurf __asm__("$5") = nodes[i].psurf;
         EDGE *pedge;
         if ((psurf->grf & 1) == 0)
             continue;
@@ -394,13 +394,13 @@ extern "C" int ClipSoBspEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, int cbsp
                 if ((psurfOther->grf ^ 1) & 1)
                     continue;
             }
-            clsg += ClsgClipEdgeToBsp(ppartBsp->bspc.absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], clsgMax - clsg, &alsg[clsg]);
+            clsg += ClsgClipEdgeToBsp(bspPart->bspc.absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], maxSegments - clsg, &segments[clsg]);
             for (; ilsg < clsg; ilsg++)
-                alsg[ilsg].pedge = pedge;
+                segments[ilsg].pedge = pedge;
         }
     }
-    for (i = cbsp; --i >= 0;)
-        {register SURF *psurf __asm__("$5")=absp[i].psurf;psurf->grf &= ~3;}
+    for (i = numNodes; --i >= 0;)
+        {register SURF *psurf __asm__("$5")=nodes[i].psurf;psurf->grf &= ~3;}
     return clsg;
 }
 
@@ -411,7 +411,7 @@ extern "C" int ClipSoBspEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, int cbsp
  * @end-sly2-annot */
 // Sorts clipped spans into categories (inside, touching, crossing) for the BSP/BSP marker. Sly 1 name:
 // CategorizeAlsg.
-void CategorizeAlsg(int clsg, LSG *alsg, int *pcpos, int *aipos, LSG **aplsg, LSG **pplsgBoth)
+void CategorizeAlsg(int count, LSG *segments, int *numPointsOut, int *pointIndices, LSG **categorized, LSG **bothOut)
 {
     LSG *plsgNone = 0;
     int cpos = 0;
@@ -419,12 +419,12 @@ void CategorizeAlsg(int clsg, LSG *alsg, int *pcpos, int *aipos, LSG **aplsg, LS
     int ipos;
     LSG *plsg;
 
-    *pplsgBoth = 0;
-    for (ilsg = 0; ilsg < clsg; ilsg++) {
-        plsg = &alsg[ilsg];
+    *bothOut = 0;
+    for (ilsg = 0; ilsg < count; ilsg++) {
+        plsg = &segments[ilsg];
         if (plsg->apsurf[0] && plsg->apsurf[1]) {
-            plsg->plsgNext = *pplsgBoth;
-            *pplsgBoth = plsg;
+            plsg->plsgNext = *bothOut;
+            *bothOut = plsg;
         } else if (!plsg->apsurf[0] && !plsg->apsurf[1]) {
             plsg->plsgNext = plsgNone;
             plsgNone = plsg;
@@ -442,38 +442,38 @@ void CategorizeAlsg(int clsg, LSG *alsg, int *pcpos, int *aipos, LSG **aplsg, LS
                 plsg->iiposSwap = 1;
             }
             for (ipos = 0; ipos < cpos; ipos++) {
-                if (plsg->pedge->aipos[plsg->iiposSwap] == aipos[ipos])
+                if (plsg->pedge->aipos[plsg->iiposSwap] == pointIndices[ipos])
                     break;
             }
             if (ipos >= cpos) {
-                aipos[ipos] = plsg->pedge->aipos[plsg->iiposSwap];
+                pointIndices[ipos] = plsg->pedge->aipos[plsg->iiposSwap];
                 cpos++;
             } else {
-                plsg->plsgNext = aplsg[ipos];
+                plsg->plsgNext = categorized[ipos];
             }
-            aplsg[ipos] = plsg;
+            categorized[ipos] = plsg;
         }
     }
 
     for (ipos = 0; ipos < cpos; ipos++) {
-        LSG **pplsg = &aplsg[ipos];
+        LSG **pplsg = &categorized[ipos];
         int *pipos;
         if ((*pplsg)->plsgNext)
             continue;
         for (plsg = plsgNone; plsg; plsg = plsg->plsgNext) {
-            if (plsg->pedge->aipos[0] == aipos[ipos] || plsg->pedge->aipos[1] == aipos[ipos])
+            if (plsg->pedge->aipos[0] == pointIndices[ipos] || plsg->pedge->aipos[1] == pointIndices[ipos])
                 goto next;
         }
-        (*pplsg)->plsgNext = *pplsgBoth;
-        *pplsgBoth = *pplsg;
+        (*pplsg)->plsgNext = *bothOut;
+        *bothOut = *pplsg;
         memmove(pplsg, pplsg + 1, (cpos - ipos) * 4 - 4);
-        pipos = &aipos[ipos];
+        pipos = &pointIndices[ipos];
         memmove(pipos, pipos + 1, (cpos - ipos) * 4 - 4);
         ipos--;
         cpos--;
     next:;
     }
-    *pcpos = cpos;
+    *numPointsOut = cpos;
 }
 
 /** @sly2-annot addr=0x1A86B8
@@ -490,7 +490,7 @@ void CategorizeAlsg(int clsg, LSG *alsg, int *pcpos, int *aipos, LSG **aplsg, LS
 struct EDGEPATHNODE { EDGEPATHNODE *pnodeParent; LSG *plsg; int isurf; };
 // Breadth-first search (64 nodes) for a chain of spans connecting two positions along shared edges; used to find
 // edge/edge contacts. Sly 1 name.
-extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *asurf, int isurfStart, int isurfEnd, LSG *plsgFirst, LSG **aplsg)
+extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *surfaces, int startSurface, int endSurface, LSG *first, LSG **pathOut)
 {
     EDGEPATHNODE anode[64];
     int inode;
@@ -498,13 +498,13 @@ extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *asurf, int isurfSta
     int c;
     inode = 0;
     anode[0].pnodeParent = 0;
-    anode[0].isurf = isurfStart;
+    anode[0].isurf = startSurface;
     anode[0].plsg = 0;
     cnode = 1;
     for (; inode < cnode; inode++) {
         EDGEPATHNODE *pnode = &anode[inode];
         LSG *plsg;
-        for (plsg = plsgFirst; plsg; plsg = plsg->plsgNext) {
+        for (plsg = first; plsg; plsg = plsg->plsgNext) {
             EDGE *pedge = plsg->pedge;
             int isurf;
             if (pedge->aisurf[0] == pnode->isurf)
@@ -513,17 +513,17 @@ extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *asurf, int isurfSta
                 isurf = pedge->aisurf[0];
             else
                 continue;
-            if (isurf == isurfEnd) {
+            if (isurf == endSurface) {
                 c = 0;
-                aplsg[c++] = plsg;
+                pathOut[c++] = plsg;
                 while (pnode->plsg) {
-                    aplsg[c++] = pnode->plsg;
+                    pathOut[c++] = pnode->plsg;
                     pnode = pnode->pnodeParent;
                 }
                 goto done;
             }
             {
-            SURF *psurf = asurf + isurf;
+            SURF *psurf = surfaces + isurf;
             if (psurf->grf & 4)
                 continue;
             psurf->grf |= 4;
@@ -539,7 +539,7 @@ extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *asurf, int isurfSta
     c = 0;
 done:
     for (inode = 0; inode < cnode; inode++)
-        asurf[anode[inode].isurf].grf &= ~4;
+        surfaces[anode[inode].isurf].grf &= ~4;
     return c;
 }
 
@@ -1447,16 +1447,16 @@ typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 /* Two sphere parts (centre: the transform's position, radius gUnk08): one kind-7 contact on ppart0's surface along
    the centre line (D_002A2DC0 when the centres coincide), separation |d| - (r0 + r1). */
 // Sphere part against sphere part: if they overlap adds one contact along the line between the centres.
-extern "C" void MarkSoContactsSphereSphere(SW *psw, SOPART *ppart0, SOPART *ppart1, XP **ppxpFirst)
+extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *part1, XP **listOut)
 {
     qword pos1, d, l, one, normal, pos, pos0;
     float rsum, len2, g, r2;
     union { qword q; float f[4]; } u;
-    register XF *pxf1 __asm__("$2") = ppart1->pxf;
-    register XF *pxf0 __asm__("$3") = ppart0->pxf;
+    register XF *pxf1 __asm__("$2") = part1->pxf;
+    register XF *pxf0 __asm__("$3") = part0->pxf;
     pos0 = QW_XF_POS(pxf0);
     pos1 = QW_XF_POS(pxf1);
-    rsum = ppart0->gUnk08 + ppart1->gUnk08;
+    rsum = part0->gUnk08 + part1->gUnk08;
     r2 = rsum * rsum;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos0), "j"(pos1));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(d));
@@ -1477,11 +1477,11 @@ extern "C" void MarkSoContactsSphereSphere(SW *psw, SOPART *ppart0, SOPART *ppar
     }
     {
         qword s;
-        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(-ppart0->gUnk08));
+        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(-part0->gUnk08));
         u.q = s;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(pos) : "j"(pos0), "j"(normal), "j"(u.q));
     }
-    AddXp(psw, ppart0, ppart1, pos, normal, 7, 0, 0, ppxpFirst, g - rsum);
+    AddXp(world, part0, part1, pos, normal, 7, 0, 0, listOut, g - rsum);
 }
 
 // Hand-tuned (gcse table size, register pins, struct copies): keeps the per-function views and helpers it was
@@ -1558,13 +1558,13 @@ extern "C" void MarkSoContactsSweptVertices(W*w,A*a,B*b,C**out){
  * @end-sly2-annot */
 /* Prepends the list pxp..(pxpNext) to *ppxpFirst. */
 // Splices XP list b in front of *ppxp (walks b to its tail and links).
-extern "C" void AppendXpList(SW *psw, XP *pxp, XP **ppxpFirst)
+extern "C" void AppendXpList(SW *world, XP *list, XP **head)
 {
-    if (pxp) {
-        XP *pxpLast = pxp;
+    if (list) {
+        XP *pxpLast = list;
         while (pxpLast->pxpNext) pxpLast = pxpLast->pxpNext;
-        pxpLast->pxpNext = *ppxpFirst;
-        *ppxpFirst = pxp;
+        pxpLast->pxpNext = *head;
+        *head = list;
     }
 }
 
@@ -1576,21 +1576,21 @@ extern "C" void AppendXpList(SW *psw, XP *pxp, XP **ppxpFirst)
  * @end-sly2-annot */
 /* Copies the list pxp..(pxpNext) into new XPs; returns the copy. */
 // Duplicates an XP list into newly allocated contact nodes.
-extern "C" XP *CloneXpList(SW *psw, XP *pxp)
+extern "C" XP *CloneXpList(SW *world, XP *list)
 {
     XP *pxpFirst;
     XP **ppxp;
-    if (!pxp)
+    if (!list)
         return 0;
     pxpFirst = 0;
     ppxp = &pxpFirst;
     do {
-        XP *pxpNew = (XP *)PvAllocSlotheapClear(&psw->slotheapXp);
-        *pxpNew = *pxp;
+        XP *pxpNew = (XP *)PvAllocSlotheapClear(&world->slotheapXp);
+        *pxpNew = *list;
         *ppxp = pxpNew;
-        pxp = pxp->pxpNext;
+        list = list->pxpNext;
         ppxp = &pxpNew->pxpNext;
-    } while (pxp);
+    } while (list);
     return pxpFirst;
 }
 
@@ -1662,24 +1662,24 @@ static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2
    their contacts apart and hand them to the trees' zap lists (copies where both sides keep them). */
 // Builds all contacts between two objects: orders them by radius, then for each pair of parts dispatches to the
 // sphere/sphere, sphere/BSP, BSP/BSP or swept-vertex marker, and adds the zap responders' contacts.
-extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
+extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 {
     XP *pxpFirst = 0;
-    SOTREE *ptreeT = ptreeSmall;
-    if (ptreeSmall->sRadius > ptreeLarge->sRadius) {
-        ptreeSmall = ptreeLarge;
-        ptreeLarge = ptreeT;
+    SOTREE *ptreeT = smallTree;
+    if (smallTree->sRadius > largeTree->sRadius) {
+        smallTree = largeTree;
+        largeTree = ptreeT;
     }
     int cnodeMax = 0;
     SOPART *ppart;
     SOPART *ppartOther;
-    for (ppart = PPART_FIRST(ptreeLarge); ppart; ppart = PPART_NEXT(ppart))
+    for (ppart = PPART_FIRST(largeTree); ppart; ppart = PPART_NEXT(ppart))
         if (cnodeMax < ppart->bspc.cbspFull)
             cnodeMax = ppart->bspc.cbspFull;
     SCOPE2 stackscope;
     cnodeMax = NMin(cnodeMax, 0x1555);
     BSP *absp = (BSP *)PvAllocSlot__FP8ALLOCREQ(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
-    for (ppart = PPART_FIRST(ptreeLarge); ppart; ppart = PPART_NEXT(ppart)) {
+    for (ppart = PPART_FIRST(largeTree); ppart; ppart = PPART_NEXT(ppart)) {
         int fFilter = ppart->grfzpk != 0;
         if (ppart->fUnk48 && !fFilter)
             continue;
@@ -1687,7 +1687,7 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
         int cnode;
         BSP *pbspLast;
         int status = 2;
-        if (ppart->fUnk49 || (GRF_SOTREE(ptreeSmall) & 0x20)) {
+        if (ppart->fUnk49 || (GRF_SOTREE(smallTree) & 0x20)) {
             pbspLast = 0;
             pbspFirst = 0;
             cnode = 0;
@@ -1696,7 +1696,7 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
             query.c = cnodeMax;
             pbspLast = absp;
             pbspFirst = absp;
-            status = PruneBspP(ppart->bspc.absp, (BSP *)0x7FFFFFFF, ptreeSmall->qwCenter, ptreeSmall->sRadius, &query.c, &pbspLast);
+            status = PruneBspP(ppart->bspc.absp, (BSP *)0x7FFFFFFF, smallTree->qwCenter, smallTree->sRadius, &query.c, &pbspLast);
             if (status == 1)
                 continue;
             if (status == 0) {
@@ -1708,7 +1708,7 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
                 pbspLast--;
             }
         }
-        for (ppartOther = PPART_FIRST(ptreeSmall); ppartOther; ppartOther = PPART_NEXT(ppartOther)) {
+        for (ppartOther = PPART_FIRST(smallTree); ppartOther; ppartOther = PPART_NEXT(ppartOther)) {
             int fFilterOther = ppartOther->grfzpk != 0;
             if (ppartOther->fUnk48 && !fFilterOther)
                 continue;
@@ -1740,54 +1740,54 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
             XP *pxpPrev = *ppxp;
             if (ppartOther->nStampWorld != ppartOther->nStampGeom || ppart->nStampWorld != ppart->nStampGeom) {
                 if (ppartOther->nUnk1c < ppartOther->geomLocal.cpos)
-                    MarkSoContactsSweptVertices(psw, ppartOther, ppart, ppxp);
+                    MarkSoContactsSweptVertices(world, ppartOther, ppart, ppxp);
                 if (ppart->nUnk1c < ppart->geomLocal.cpos)
-                    MarkSoContactsSweptVertices(psw, ppart, ppartOther, ppxp);
+                    MarkSoContactsSweptVertices(world, ppart, ppartOther, ppxp);
             }
             if (*ppxp == pxpPrev) {
                 if (ppart->fUnk49) {
                     if (ppartOther->fUnk49)
-                        MarkSoContactsSphereSphere(psw, ppartOther, ppart, ppxp);
+                        MarkSoContactsSphereSphere(world, ppartOther, ppart, ppxp);
                     else
-                        MarkSoContactsSphereBsp(psw, ppart, ppartOther, 0, 0, ppxp);
+                        MarkSoContactsSphereBsp(world, ppart, ppartOther, 0, 0, ppxp);
                 } else if (ppartOther->fUnk49) {
                     int fFar = 0;
-                    if (!status || 1.0f < LengthSq(Sub(QW_XF_POS(ppart->pxf), ptreeSmall->qwCenter)) ||
-                        1.0f < __builtin_fabsf(ppart->gUnk08 - ptreeSmall->sRadius))
+                    if (!status || 1.0f < LengthSq(Sub(QW_XF_POS(ppart->pxf), smallTree->qwCenter)) ||
+                        1.0f < __builtin_fabsf(ppart->gUnk08 - smallTree->sRadius))
                         fFar = 1;
-                    MarkSoContactsSphereBsp(psw, ppartOther, ppart, fFar ? 0 : cnode, fFar ? 0 : pbspFirst, ppxp);
+                    MarkSoContactsSphereBsp(world, ppartOther, ppart, fFar ? 0 : cnode, fFar ? 0 : pbspFirst, ppxp);
                 } else {
-                    MarkSoContactsBspBsp(psw, ppartOther, ppart, cnode, pbspFirst, pbspLast, ppxp);
+                    MarkSoContactsBspBsp(world, ppartOther, ppart, cnode, pbspFirst, pbspLast, ppxp);
                 }
             }
             if (pxpTemp) {
                 int fCopied = 0;
                 if (fFilter) {
                     if (ppart->fUnk48)
-                        AppendXpList(psw, pxpTemp, &ptreeLarge->pxpZap);
+                        AppendXpList(world, pxpTemp, &largeTree->pxpZap);
                     else if (!ppartOther->fUnk48) {
                         fCopied = 1;
-                        AppendXpList(psw, CloneXpList(psw, pxpTemp), &ptreeLarge->pxpZap);
+                        AppendXpList(world, CloneXpList(world, pxpTemp), &largeTree->pxpZap);
                     }
                 }
                 if (fFilterOther) {
                     if (ppartOther->fUnk48)
-                        AppendXpList(psw, pxpTemp, &ptreeSmall->pxpZap);
+                        AppendXpList(world, pxpTemp, &smallTree->pxpZap);
                     else if (!ppart->fUnk48) {
                         fCopied = 1;
-                        AppendXpList(psw, CloneXpList(psw, pxpTemp), &ptreeSmall->pxpZap);
+                        AppendXpList(world, CloneXpList(world, pxpTemp), &smallTree->pxpZap);
                     }
                 }
                 if (fCopied)
-                    AppendXpList(psw, pxpTemp, &pxpFirst);
+                    AppendXpList(world, pxpTemp, &pxpFirst);
             }
         }
         if (!ppart->fUnk48)
-            AddZapResponderXps(psw, ptreeSmall, ptreeLarge, ppart, ppart->bspc.cbspFull, ppart->bspc.absp, ppart->bspc.absp, &pxpFirst);
+            AddZapResponderXps(world, smallTree, largeTree, ppart, ppart->bspc.cbspFull, ppart->bspc.absp, ppart->bspc.absp, &pxpFirst);
     }
-    for (ppartOther = PPART_FIRST(ptreeSmall); ppartOther; ppartOther = PPART_NEXT(ppartOther))
+    for (ppartOther = PPART_FIRST(smallTree); ppartOther; ppartOther = PPART_NEXT(ppartOther))
         if (!ppartOther->fUnk48)
-            AddZapResponderXps(psw, ptreeLarge, ptreeSmall, ppartOther, ppartOther->bspc.cbspFull, ppartOther->bspc.absp, ppartOther->bspc.absp, &pxpFirst);
+            AddZapResponderXps(world, largeTree, smallTree, ppartOther, ppartOther->bspc.cbspFull, ppartOther->bspc.absp, ppartOther->bspc.absp, &pxpFirst);
     return pxpFirst;
 }
 
