@@ -1887,11 +1887,11 @@ typedef char assert_CID21_size[sizeof(CID21) == 0x100 ? 1 : -1];
 struct CID100 : SO
 {
     char pad150[0x1B0 - 0x150];
+    virtual void RemoveHierarchy() __asm__("func_00224068");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid100ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_002241D8");   /* slot 5 */
     virtual void Init() __asm__("func_00223F70");   /* slot 7 */
     virtual void AddHierarchy() __asm__("func_00224028");   /* slot 11 */
-    virtual void RemoveHierarchy() __asm__("func_00224068");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_00223FE0");   /* slot 14 */
     virtual void VUnk15() __asm__("func_002240B0");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_00224350");   /* slot 55 */
@@ -1958,8 +1958,8 @@ typedef char assert_BEARCUB_size[sizeof(BEARCUB) == 0x1010 ? 1 : -1];
 struct CID102 : CID100
 {
     char pad1B0[0x1D0 - 0x1B0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid102ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_002252E0");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid102ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_00225300");   /* slot 16 */
     virtual void VUnk70() __asm__("func_002255C8");   /* slot 71 */
     virtual void VSlot76() __asm__("func_00225660");   /* slot 76 */
