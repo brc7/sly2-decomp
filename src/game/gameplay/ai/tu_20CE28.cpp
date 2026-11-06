@@ -89,7 +89,12 @@ extern "C" void UpdateStuckWatch(STUCKWATCH *watch)
 }
 
 // 0x20CFC0: Line-test filter for the stuck probes: ignores non-blocking hits and, when flagged, cid 0x59 objects.
-extern "C" int FilterStuckProbe(void *context, FPAIR *hit) { if ((hit->flags & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(hit->object, 0x59)) return 1; return func_0020FA50(context, hit); }
+extern "C" int FilterStuckProbe(void *context, FPAIR *hit)
+{
+    if ((hit->flags & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(hit->object, 0x59))
+        return 1;
+    return func_0020FA50(context, hit);
+}
 
 // 0x20D020: True if the line test to each of the five probe offsets around the guard hits something (the guard is
 // boxed in).
