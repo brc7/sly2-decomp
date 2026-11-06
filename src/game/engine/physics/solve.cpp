@@ -532,7 +532,7 @@ static inline M3C MulC(const M3C &a,const M3C &b) return r
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
 // Integrates position and rotation of the objects in a solved group (renormalising the rotation, updating part
-// geometry) and stamps them with the world's frame counter.
+// geometry) and stamps them with the world's frame counter. (inferred)
 void IntegrateSoGroupTransforms(SO *p)
 {
     U scalar;
