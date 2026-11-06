@@ -95,7 +95,7 @@ extern "C" void func_001B44D8(int *pc, GLOBREF ***papglobref)
             c += powner->cglobref;
       req.cb = c * 4;
       req.cbAlign = 0x10;
-      apglobref = (GLOBREF **)PvAllocSlot(&req);   /* dmas.h */
+      apglobref = (GLOBREF **)AllocFromStack(&req);   /* dmas.h */
       ppglobref = apglobref;
       for (powner = (*(GLOBOWNER * *)&g_sw.aslCid[49]); powner; powner = powner->pownerNext) {
             for (i = 0; i < powner->cglobref; i++) {

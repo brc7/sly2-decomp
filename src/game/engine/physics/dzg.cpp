@@ -42,7 +42,7 @@ struct XP
 };
 
 /* Allocation request (cb bytes, cbAlign alignment). 16 bytes: with an 8-byte request ApplyDzg's frame is 0x10 bigger
-   (the temporary bound to PvAllocSlot's reference parameter); the other two users match either way. */
+   (the temporary bound to AllocFromStack's reference parameter); the other two users match either way. */
 struct AL { int cb; int cbAlign; int pad[2]; AL() {} AL(int c, int a) { cb = c; cbAlign = a; } };
 
 
