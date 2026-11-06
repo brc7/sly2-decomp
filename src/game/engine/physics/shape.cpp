@@ -1119,6 +1119,7 @@ float SFromShapeU(struct X *p, float g);
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Picks the vertex whose parameter minimizes a callback and evaluates position, direction and distance there.
+// (inferred)
 void FindShapeBestVertex(struct X *shape, float (*score)(float, void *), void *context, int a, int b, float *paramOut, float *distanceOut)
 {
     int i;
@@ -2669,7 +2670,7 @@ void BuildShapeVolumeSegments(void *pv, struct S *p);
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-// Allocates and builds the shape's volume/segment table once.
+// Allocates and builds the shape's volume/segment table once. (inferred)
 void EnsureShapeVolumeSegments(struct S *shape)
 {
     struct MSG msg;
@@ -2711,7 +2712,7 @@ static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) 
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Samples the shape and records the distinct path zones (FindPathzoneAtPos) it passes through with their parameter
-// ranges.
+// ranges. (inferred)
 void BuildShapeVolumeSegments(struct S *shape, struct O *table)
 {
     struct SEG aseg[64];
@@ -2786,7 +2787,7 @@ int IsPosInCnvo(void *p, qword q);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-// Finds the path zone at pos that passes the obstacle test (IsPosInCnvo), or 0.
+// Finds the path zone at pos that passes the obstacle test (IsPosInCnvo), or 0. (inferred)
 void *FindValidObjectAtPos(qword pos)
 {
     void *ap[0x40];
@@ -2846,7 +2847,7 @@ int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int);
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Samples the shape over [t0, t1], collects the parameter ranges that are valid (walkable, not blocked) and
-// intersects them with the existing ranges.
+// intersects them with the existing ranges. (inferred)
 void BuildShapeValidRanges(struct S *shape)
 {
     struct VEC pos;
