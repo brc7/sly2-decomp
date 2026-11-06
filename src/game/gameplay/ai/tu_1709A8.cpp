@@ -132,7 +132,7 @@ struct N { int k; int b; char pad[0x10]; struct N *next; };
 struct S { char pad[0x50]; struct N *pn; };
 struct S *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int func_001709A8(struct S *p);
-void func_001E9C30(struct S *p);
+void EnsureShapeVolumeSegments(struct S *p);
 /** @sly2-annot addr=0x170A58
  * Purpose: Walks the command list: context commands (kind 0) change the lookup context; for move-along-shape
  *   commands (kind 6) whose target is a plain SHAPE it calls 0x1E9C30 on it
@@ -147,7 +147,7 @@ void func_00170A58(struct S *p) {
         switch (pn->k) {
         case 6: {
             struct S *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pn->b, p);
-            if (o && func_001709A8(o) == -1) func_001E9C30(o);
+            if (o && func_001709A8(o) == -1) EnsureShapeVolumeSegments(o);
             break;
         }
         case 0:
@@ -738,7 +738,7 @@ extern "C" { void *func_001715B8(struct S *p, int oid); }
 extern "C" { void func_00171AF8(struct S *p, void *o, qword *pq, float *pg); }
 extern "C" { void func_00171B60(struct S *p, qword q, float g); }
 extern "C" { void *PushStepBehavior(struct A *a, int k); }
-extern "C" { void func_001E9C30(void *o); }
+extern "C" { void EnsureShapeVolumeSegments(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
 extern "C" { void func_002562A8(struct X *x); }
@@ -825,7 +825,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
             o2->p30 = o;
             o2->n34 = c->u.s.n8;
             o2->n58 = p->n4C;
-            if (!p->n4C) func_001E9C30(o);
+            if (!p->n4C) EnsureShapeVolumeSegments(o);
             if (p->p44) o2->g38 = p->p44->g8;
             if (c->u.s.nC != -1) o2->n50 = func_001715B8(p, c->u.s.nC);
             VCALL8(o2);

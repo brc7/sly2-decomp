@@ -53,8 +53,8 @@ void InitSo(BARRIERV *pso);
 void PostSoLoad(BARRIERV *pso);
 void RecalcSwOxfFilterForObject(void *psw, BARRIERV *pso);
 int FMatchesLoName(void *plo, int oid);
-int FIgnoreSoIntersection(BARRIERV *pso, void *psoOther);
-void func_001F4FB0(BARRIERV *pso);
+int ShouldSoIgnoreIntersection(BARRIERV *pso, void *psoOther);
+void AdjustSoNewXp(BARRIERV *pso);
 void EnsureSwCallback(void *psw, void *pv, long k, int n);
 }
 int FIsBasicDerivedFrom(struct BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
@@ -114,7 +114,7 @@ extern "C" int FIgnoreBarrierIntersection(BARRIERV *pbarrier, void *pso)
         int r;
         if (pbarrier->fThrough) {
             if (f) r = 3;
-            else r = FIgnoreSoIntersection(pbarrier, pso);
+            else r = ShouldSoIgnoreIntersection(pbarrier, pso);
         } else r = f ? 2 : 1;
         return r;
     }
@@ -131,7 +131,7 @@ extern "C" int FIgnoreBarrierIntersection(BARRIERV *pbarrier, void *pso)
  * @end-sly2-annot */
 extern "C" void NotifyBarrierImpact(BARRIERV *pbarrier)
 {
-    func_001F4FB0(pbarrier);
+    AdjustSoNewXp(pbarrier);
     if (pbarrier->pframe && PrefFindBinding__6CFrameUii(pbarrier->pframe, 5, 1))
         EnsureSwCallback(D_003DD490, pbarrier, ((LONGU *)&D_002A4790)->l, 0);
 }

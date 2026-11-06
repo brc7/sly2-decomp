@@ -134,13 +134,13 @@ qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *GetHeroPo(void *g);
 qwordV func_001A62E8(void *p);
 M4 *func_001A6318(void *p);
-EVENT *func_001F8240(LOV *plo);
+EVENT *FindTargetRecordById(LOV *plo);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
 void SetDetectorTargetStateById(DETV *pdet,LOV *plo,int k);
 void func_001B44D8(int *, void ***);
 float SMaxShape(LOV *);
-int func_001EA3B0(void *, float);
+int FindRangeContaining(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 func_0011B500(float, qwordV);
@@ -486,7 +486,7 @@ extern "C" void func_00173A68(CID119V*p){
  event=0;context=GetHeroPo(&D_003DD490);
  {
  if(context){
-  event=func_001F8240(context);
+  event=FindTargetRecordById(context);
   if(event){
    if(!event->kind)event=0;
    else switch(p->mode){
@@ -729,7 +729,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
             {
                 int kNext = k + 1;
                 float u = D_002BE5E8 * ((float)k + GRandInRange(D_002BBB60.gMin, D_002BBB60.gMax));
-                if (func_001EA3B0(plo->pv180, u))
+                if (FindRangeContaining(plo->pv180, u))
                     goto nextSample;
                 {
                     EvaluateShapeS(plo, &posCurve.q, &dirCurve.q, u);

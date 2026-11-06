@@ -77,7 +77,7 @@ struct SHAPE : public XFM
     virtual void Init() __asm__("InitShape");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetShapeClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadShapeFromBrx");   /* slot 14 */
-    virtual void VUnk16() __asm__("func_001E6340");   /* slot 17 */
+    virtual void VUnk16() __asm__("UpdateShapeXfWorld");   /* slot 17 */
     virtual void Clone(LO *ploBase) __asm__("CloneShape");   /* slot 41 */
 };
 typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

@@ -1,7 +1,7 @@
 // tu_185130.cpp -- a mesh surface Sly can stick to (an XFM with its own triangle mesh: vertices, triangles and edge
 // neighbours; DLV g_sw.dlCid9 holds the live ones) and the player code that keeps him attached to it: closest point on
 // the mesh, boundary-edge planes, a small inequality solve that projects the movement, and the per-frame attach
-// update (func_00185E40). VU0 macro-mode asm; func_00185310, func_001856C0, func_00185A80, func_00185D18 and
+// update (func_00185E40). VU0 macro-mode asm; FindMeshClosestPoint, CollectMeshContacts, SolveMeshConstraints, PredictMeshContact and
 // func_00185E40 are hand-tuned (register pins, allocation-only operands; see the notes above each).
 // TU 0x185130..0x186610 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_185130
@@ -40,11 +40,11 @@ typedef struct MESH
 } MESH;
 typedef char assert_MESH_ptn[(unsigned int)&((MESH *)0)->ptn == 0x110 ? 1 : -1];
 typedef struct TRIREF { int index; float u, v; } TRIREF;
-/* Planes gathered by func_001856C0 for the solve in func_00185A80. */
+/* Planes gathered by CollectMeshContacts for the solve in SolveMeshConstraints. */
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
 struct SMPV { float svFast, svSlow, dtFast; };
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-/* The player (JT) while attached to a mesh: view of the fields func_00185E40 and func_00185E30 use. */
+/* The player (JT) while attached to a mesh: view of the fields func_00185E40 and SetJtMeshProbePoints use. */
 struct CONTROL{char pad0[0x10];float y,z;int pad18;float speed;};
 struct REQUEST{char pad0[0x78];float multiplier;};
 struct AXIS{float weight;int active;char pad8[8];U direction;};
@@ -62,7 +62,7 @@ public:
 };
 
 extern const float D_002A5684;   /* defined below where the ELF has it (.rodata order) */
-extern float D_002A5688;   /* declared non-const: read as a const it changes func_001856C0 (see the data guide); defined below */
+extern float D_002A5688;   /* declared non-const: read as a const it changes CollectMeshContacts (see the data guide); defined below */
 extern const float D_002A568C;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5690;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
@@ -91,10 +91,10 @@ void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMPV*,qword*,float);
 void SetJtJts__FP2JT3JTS4JTBS(JTV*,int,int);void func_001A0450(JTV*,AXIS*,REQUEST*);
 void func_00185130(MESH *pmesh);
-void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
-void func_001856B8(MESH *pmesh, LIST *plist);
-void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
-qword func_00185A80(void *unused, LIST *p, qword v);
+void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
+void ClearMeshContactList(MESH *pmesh, LIST *plist);
+void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
+qword SolveMeshConstraints(void *unused, LIST *p, qword v);
 }
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
 float GSmooth(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("GSmooth__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
@@ -129,7 +129,7 @@ static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind =
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185150(MESH *p, CBinaryInputStream *pbis)
+extern "C" void LoadCid8FromBrx(MESH *p, CBinaryInputStream *pbis)
 {
     MSG msg;
     int i, j;
@@ -168,7 +168,7 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
+extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  VTE*entry=&mesh->vt[31];
  w.input.q=point;
@@ -248,12 +248,12 @@ namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.4
  * Notes: descriptive only: (stub: *pn = 0) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * @end-sly2-annot */
-extern "C" void func_001856B8(MESH *pmesh, LIST *plist)
+extern "C" void ClearMeshContactList(MESH *pmesh, LIST *plist)
 {
     plist->count = 0;
 }
 
-// func_001856C0 (Claude agent, lane G17, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// CollectMeshContacts (Claude agent, lane G17, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG16v1 (46). Keys: (1) points loop as `for (n = 0; n < count; n++)` over points[n] (gcc reverses it: bnez),
 // with the edge direction Sub hoisted into the edge body and the edge-plane Cross left inside the loop (loop.c moves it
 // after the count test) (46 -> 38). (2) Append(LIST*, const qword&) helper storing through `&l->planes[l->count++]`:
@@ -312,7 +312,7 @@ static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->co
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
+extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
 {
     M4 mat;
     U v[3];
@@ -362,7 +362,7 @@ extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, S
     }
 }
 
-// func_00185A80 (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// SolveMeshConstraints (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG13v1 (12). Keys: (1) loop 2: the plane.w read before a qmfc2 helper with a "memory" clobber, then an
 // mtc1 helper with allocation-only "f"(w) operands (12 -> 9). (2) loop 3 as a fresh block-scoped `int k`/`int m`
 // with the weights read through Lilly's VuFloatFromMemWord ("rV": reload makes the lw) (9 -> 1). (3) an early
@@ -412,7 +412,7 @@ namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.4
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" qword func_00185A80(void *unused, LIST *p, qword v)
+extern "C" qword SolveMeshConstraints(void *unused, LIST *p, qword v)
 {
     int matrix[36];
     float rhs[8];
@@ -468,7 +468,7 @@ void CID9::Init()
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C28(MESH *pmesh)
+extern "C" void AddCid9Hierarchy(MESH *pmesh)
 {
     AddLoHierarchy(pmesh);
     AppendDlEntry((DLV *)&g_sw.dlCid9, pmesh);
@@ -480,7 +480,7 @@ extern "C" void func_00185C28(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C60(MESH *pmesh)
+extern "C" void RemoveCid9Hierarchy(MESH *pmesh)
 {
     RemoveLoHierarchy(pmesh);
     RemoveDlEntry((DLV *)&g_sw.dlCid9, pmesh);
@@ -493,7 +493,7 @@ extern "C" void func_00185C60(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C98(MESH *p)
+extern "C" void CloneCid9(MESH *p)
 {
     K k = p->k;
     CloneXfm(p);
@@ -507,14 +507,14 @@ extern "C" void func_00185C98(MESH *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185CE0(MESH *pmesh)
+extern "C" void PostCid9Load(MESH *pmesh)
 {
     PostLoLoad(pmesh);
     if (pmesh->ptn != 0)
         SetTnTns(pmesh->ptn, 0);
 }
 
-// func_00185D18 (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// PredictMeshContact (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG15v1 (6). Keys: (1) D_002BE918 is `extern const float` read straight into the qmtc2's "rV" operand
 // (VuFloatFromMem(float)): reload makes the lw, and the unchanging MEM keeps the *ppos/*pvel stores free of
 // anti-dependences on it (3). (2) the last AddScaled2 lists a dead "$2" (v0) clobber: the extra dependence on the lw
@@ -551,11 +551,11 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" int func_00185D18(MESH *p, qword pos, qword vel, qword acc, TRIREF *ptr, qword *ppos, qword *pvel, float offset, float t)
+extern "C" int PredictMeshContact(MESH *p, qword pos, qword vel, qword acc, TRIREF *ptr, qword *ppos, qword *pvel, float offset, float t)
 {
     TRIREF tr;
     union { qword q; } closest, normal;
-    func_00185310(p, AddScaled2(pos, vel, VUFQ(t), acc, VUFQ((t * 0.5f) * t)), 0, &tr, &closest.q, &normal.q);
+    FindMeshClosestPoint(p, AddScaled2(pos, vel, VUFQ(t), acc, VUFQ((t * 0.5f) * t)), 0, &tr, &closest.q, &normal.q);
     *ptr = tr;
     qword rp = AddScaledQ(closest.q, normal.q, VUFQ(offset));
     qword rv = AddScaled2H(vel, acc, VUFQ(t), normal.q, VufqFromMem(D_002BE918), ptr, pvel);
@@ -570,7 +570,7 @@ extern "C" int func_00185D18(MESH *p, qword pos, qword vel, qword acc, TRIREF *p
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185E30(JTV *p, qword a, qword b, qword c)
+extern "C" void SetJtMeshProbePoints(JTV *p, qword a, qword b, qword c)
 {
     p->points[0].q = a;
     p->points[1].q = b;
@@ -630,7 +630,7 @@ static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(v
 extern "C" void func_00185E40(JTV*p){
  U closest,normal;
  qword position=func_001A62E8(p);
- func_00185310(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);
+ FindMeshClosestPoint(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);
  M4 frame;U contacts[3];
  qword difference=VuSub(closest.q,position);
  qword len=QwSqrt(VuDot(difference,difference));
@@ -639,7 +639,7 @@ extern "C" void func_00185E40(JTV*p){
  qword target=QwAddScaled(closest.q,direction,VuFloat(-p->points[0].f[0]));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
- for(i=0;i<3;i++)func_00185310(p->mesh,QwTransformPos(&frame,p->points[i].q),&p->triangle,0,&contacts[i].q,0);
+ for(i=0;i<3;i++)FindMeshClosestPoint(p->mesh,QwTransformPos(&frame,p->points[i].q),&p->triangle,0,&contacts[i].q,0);
  qword surface=QwCross(VuSub(contacts[2].q,contacts[0].q),VuSub(contacts[1].q,contacts[0].q));
  qword unit=QwDivide(surface,QwSqrt(VuDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);p->basis.r[0]=m.r[0];p->basis.r[1]=m.r[1];p->basis.r[2]=m.r[2];}
@@ -649,8 +649,8 @@ extern "C" void func_00185E40(JTV*p){
  PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
  LIST planes;U samples[3];
  for(i=0;i<3;i++)StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q);
- func_001856B8(p->mesh,&planes);
- func_001856C0(p->mesh,&planes,3,(qword*)samples,&D_002BE940,10.0f);
+ ClearMeshContactList(p->mesh,&planes);
+ CollectMeshContacts(p->mesh,&planes,3,(qword*)samples,&D_002BE940,10.0f);
  if(0.0f<p->control->speed){
   U movement;
   {float y=p->control->y,z=p->control->z;movement.f[0]=0.0f;movement.f[1]=-y;movement.f[2]=z;}
@@ -666,7 +666,7 @@ extern "C" void func_00185E40(JTV*p){
   p->acceleration.q=QwScaleX(p->acceleration.q,VuFloatFromMemF(p->request->multiplier));
  }else ClearXyz(&p->acceleration);
  if(planes.count>0){
-  qword projected=func_00185A80(p->mesh,&planes,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VU_FLOAT(-1.0f))));
+  qword projected=SolveMeshConstraints(p->mesh,&planes,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VU_FLOAT(-1.0f))));
   M3 inverse=InvertMatrix3Cofactor(&p->basis);
   p->acceleration.q=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }

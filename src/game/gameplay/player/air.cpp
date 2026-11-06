@@ -582,7 +582,7 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
+void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
 qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
@@ -732,7 +732,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
   if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)func_001CCAC0((SECONDARY*)p->actor->secondary,-1);else SetJtJtcs__FP2JTi(p->actor,-1);}break;
  case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);SetStepplayerTnOverride(p->actor,0);break;
- case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
+ case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);SetSoTreeFlag2(p->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
  __asm__("lui %0,%%hi(%1)":"=r"(clockHigh):"i"(&D_002DDED0));
@@ -824,7 +824,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   register BODY*coordinateBody __asm__("$2");
   __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(p->actor),"j"(fullAfter):"$3","memory");
   qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,p->actor->body->frame,w.endVelocity.q);
-  p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
+  p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);SetSoTreeFlag2(p->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
    __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(p->actor),"m"(w.delta.q));
    ClearVelocity(cleared);SetStepTargetHeadingFromVector(p->actor,directionArg);}clip=p->base[0];break;}
@@ -3411,7 +3411,7 @@ float GMeasureJumpPipe(struct S *s, float parameter) {
 
 //////// 0x19AC88 func_0019AC88
 namespace M_func_0019AC88 { extern "C" {
-// func_0019AC88: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
+// func_0019AC88: speed-limited trajectory time/length helper. Builds a path with PredictMeshContact (3 outputs), integrates
 // the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
@@ -3422,7 +3422,7 @@ struct O { char pad[0xE8]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; }
 struct A { struct O *p; };
 struct P { struct A *a; void *p4; int pad[2]; qword v10; };
 qword func_001A62E8(void *p);
-int func_00185D18(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
+int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
 static inline float Len(qword v) {
  qword l, one; float r;
@@ -3449,7 +3449,7 @@ float func_0019AC88(struct P *p, float t)
  o=p->a->p;
  pos=func_001A62E8(o);
  vel=p->v10;
- func_00185D18(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
+ PredictMeshContact(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
  EvaluateBezierPos(t,0.0f,1.0f,pos,vel,b.q,c.q,0,0,&d.q);
  g=Len(d.q);
  EvaluateBezierPos(t,t,1.0f,pos,vel,b.q,c.q,0,0,&e.q);
@@ -3702,7 +3702,7 @@ int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, 
 void FFilterSoPair();
 void func_0019B0A8();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
-void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
+void FindShapeBestVertex(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
 float DuGetShapeSearchIncrement(CURVE *pcurve);
 float UFromShapeS(CURVE *pcurve, float s);
 float SMaxShape(CURVE *pcurve);
@@ -3716,8 +3716,8 @@ float func_0019AAB8(void *pv, float u);
 float func_0019AB38(void *pv, float u);
 void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u);
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
-void func_00185310(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
-int func_00185D18(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
+void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
+int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
 void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
 float atan2f(float y, float x);                                 // atan2f
@@ -3810,7 +3810,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             ctx.pjtair = pjtair->pstepplayer->jtair;
             ctx.pcurve = pcurve;
             ctx.v = vLaunch.q;
-            func_001E7410(pcurve, GMeasureJumpRail, &ctx, 0, 0, &uStart, 0);
+            FindShapeBestVertex(pcurve, GMeasureJumpRail, &ctx, 0, 0, &uStart, 0);
             MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpRail, &ctx, uStart, DuGetShapeSearchIncrement(pcurve), UFromShapeS(pcurve, 50.0f),
                           UFromShapeS(pcurve, SMaxShape(pcurve) - 50.0f), &u, &g);
             if (pcurve != ploForce) {
@@ -3882,7 +3882,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
         }
 
         for (MESH *pmesh = (*(MESH * *)&g_sw.dlCid9); pmesh; pmesh = pmesh->pmeshNext) {
-            func_00185310(pmesh, pos.q, 0, 0, &posTarget, 0);
+            FindMeshClosestPoint(pmesh, pos.q, 0, 0, &posTarget, 0);
             if (pmesh != ploForce) {
                 if (pmesh->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
@@ -3903,7 +3903,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 if (gBest <= gMesh)
                     continue;
             }
-            func_00185D18(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
+            PredictMeshContact(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
             if (pmesh != ploForce &&
                 FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,

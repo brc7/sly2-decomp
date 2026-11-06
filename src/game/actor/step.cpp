@@ -33,15 +33,15 @@ void ClonePo(PO *ppo, PO *ppoBase);
 void CloneBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 void RenderSoSelf(SO *pso, void *pcm, void *pro);
 qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);
-int func_001F8300(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
-SOPART *PsopartFindSo(SO *pso, OID oid);
+int EnsureSoPhysRegionRecord(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
+SOPART *FindSoPart(SO *pso, OID oid);
 void SetStepPhys(STEP *pstep, SOPART *ppart, int n);
 void TranslateSoToPos(SO *pso, qword pos);
 void RotateSoToMat(SO *pso, MATRIX3 *pmat);
 void SetStepTargetHeading(STEP *pstep, float rad);
 float GetStepHeading(STEP *pstep);
 float atan2f(float y, float x);
-void func_001F5988(SO *pso, SO *psoOther);
+void OnSoContactFreed(SO *pso, SO *psoOther);
 BHV *PbhvPushBhvstk(BHVSTK *pbhvstk);
 BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, CID cid);
 }
@@ -93,7 +93,7 @@ extern "C" void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis)
 {
     LoadPoFromBrx(pstep, pbis);
     pstep->qwUnk240 = ConvertAloPos(pstep->psoParent, pstep, D_002A2DD0);
-    func_001F8300(pstep);
+    EnsureSoPhysRegionRecord(pstep);
 }
 
 /** @sly2-annot addr=0x203A08
@@ -114,9 +114,9 @@ namespace M_PostStepLoad { extern "C" {
 struct S { char pad[0x58]; int n58; int n5C; char pad2[0x294 - 0x60]; int x294; };
 struct O { char pad[0x264]; int oid; void *p268; char x26C[0x28]; int x294; };
 void PostSoLoad(struct O *p);
-int func_001E94B0(int a, int b);
+int NewSampledShape(int a, int b);
 void func_002303A0(struct O *p, int n, int f);
-void *PsopartFindSo(struct O *p, int oid);
+void *FindSoPart(struct O *p, int oid);
 void BuildStepPhysPart(struct O *p, void *pv);
 void HideSoPart(struct O *p, void *pv);
 void PostBhvstkLoad(void *pv);
@@ -134,11 +134,11 @@ void PostBhvstkLoad(void *pv);
 void PostStepLoad(struct O *p)
 {
     PostSoLoad(p);
-    p->x294 = func_001E94B0(0x2C9, 0x10);
+    p->x294 = NewSampledShape(0x2C9, 0x10);
     func_002303A0(p, ((struct S *)p)->n58, 1);
     func_002303A0(p, ((struct S *)p)->n5C, 1);
     if (p->oid != -1) {
-        p->p268 = PsopartFindSo(p, p->oid);
+        p->p268 = FindSoPart(p, p->oid);
         if (p->p268) {
             BuildStepPhysPart(p, p->p268);
             HideSoPart(p, p->p268);
@@ -184,8 +184,8 @@ extern qword D_002A2DD0;
 void RemoveSoParts(struct S *p);
 void AddSoParts(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-void func_001F70C0(struct M *m, void *p, int k, struct Q *q);
-void func_001F6C08(struct Q *q);
+void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q);
+void EnsureSoPartMesh(struct Q *q);
 void UpdateGeomWorld(void *a, void *b, void *c);
 
 /** @sly2-annot addr=0x203AF0
@@ -212,8 +212,8 @@ void BuildStepPhysPart(struct S *p, struct M *m)
     p->pq = (struct Q *)(p->pE4 + n * 0xB0);
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34))
         fl = m->n1C == m->n78;
-    func_001F70C0(m, p->p60, !fl ? 2 : 3, p->pq);
-    func_001F6C08(p->pq);
+    CloneSoPartGeomInserting(m, p->p60, !fl ? 2 : 3, p->pq);
+    EnsureSoPartMesh(p->pq);
     mn = D_002A85F0;
     for (i = 0; i < p->pq->c; i++) {
         float e = ((struct E *)p->pq->p7C)[i].c;
@@ -255,7 +255,7 @@ void BuildStepPhysPart(struct S *p, struct M *m)
 extern "C" void SetStepPhysByOid(STEP *pstep, OID oid, int n)
 {
     SOPART *ppart;
-    ppart = PsopartFindSo(pstep, oid);
+    ppart = FindSoPart(pstep, oid);
     if (ppart != 0) {
         SetStepPhys(pstep, ppart, n);
     }
@@ -274,7 +274,7 @@ struct S { char pad[0x258]; struct M *pm0; struct M *pm1; };
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void func_001F4BF8(struct S *p);
+void InvalidateSoAaox(struct S *p);
 /** @sly2-annot addr=0x203D00
  * Purpose: Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body
  *   part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts)
@@ -310,7 +310,7 @@ void SetStepPhys(struct S *p, struct M *pm, int f)
             pd++;
         }
         func_002333B4(p->pm0->pb->p, 0, p->pm0->c * 16);
-        func_001F4BF8(p);
+        InvalidateSoAaox(p);
     }
 }
 } } // namespace M_SetStepPhys
@@ -528,10 +528,10 @@ union FLOATWORD { float value; int bits; };
 extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
 struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float f1F4, f1F8, f1FC, f200; };
-void func_001F9B20(struct S *p);
+void PresetSoAccel(struct S *p);
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
-void func_001F59A0(struct S *,M3 *,VECTOR3 *);
+void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *);
 static inline void InitScalar(U *value,int bits) {
     register qword scalar __asm__("vf4");
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
@@ -550,7 +550,7 @@ static inline void InitScalar(U *value,int bits) {
 // spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
 void PresetStepAccel(struct S *p)
 {
-    func_001F9B20(p);
+    PresetSoAccel(p);
     switch (p->k) {
     case 0: {
         VECTOR3 v;
@@ -558,7 +558,7 @@ void PresetStepAccel(struct S *p)
         v.z = p->f1FC;
         v.x = p->f1F4 * s;
         v.y = p->f1F8 * s;
-        func_001F59A0(p, &p->desired, &v);
+        AccelSoTowardMatBounded(p, &p->desired, &v);
         break;
     }
     case 1: {
@@ -631,7 +631,7 @@ extern "C" int QueryStepSlot63()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustStepNewXp { extern "C" {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
-   side-facing kinds add a horizontal response contact (kind 10) through PxpAdd. */
+   side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
@@ -642,8 +642,8 @@ extern char D_003DD490[];
 extern qword D_002A2DA0;
 extern float D_002C3C60[];
 extern float D_002C3C90;   /* base contact friction */
-void func_001F4FB0(void);
-void PxpAdd(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
+void AdjustSoNewXp(void);
+void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
@@ -712,7 +712,7 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
     float d;
     float sign;
     int kind;
-    func_001F4FB0();
+    AdjustSoNewXp();
     kind = x->kind;
     x->friction = 0.0f;
     x->response = 0.0f;
@@ -741,7 +741,7 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
         diff.q = Sub(&x->ae[side].pos, &x->ae[1 - side].pos);
         d = Dot(diff.q, dir.q);
         point.q = AddScaled(&x->ae[1 - side].pos, dir.q, d);
-        PxpAdd(D_003DD490, p->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
+        AddXp(D_003DD490, p->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
     }
 }
 } } // namespace M_AdjustStepNewXp
@@ -749,7 +749,7 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustStepXpVelocity {
 // AdjustStepXpVelocity: a STEP's contact-velocity adjustment (vtable slot 56; Sly 1 has AdjustStepXpVelocity(STEP *, XP *, int)).
-// After the base version (func_001F4FC0), for a kind-0xE contact: the closing speed along the contact normal is smoothed
+// After the base version (AdjustSoXpVelocity), for a kind-0xE contact: the closing speed along the contact normal is smoothed
 // with GSmooth (GSmooth) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
 // dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * vUnk190 without its part along the
 // normal) * gUnk180. Finally the contact distance moves by gUnk210 - gUnk248.
@@ -807,7 +807,7 @@ extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
 extern "C" float D_002C3CA8[3];
 
-extern "C" { void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd); }
+extern "C" { void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd); }
 extern "C" { float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
 
 static inline qword QwSub(qword a, qword b)
@@ -882,7 +882,7 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
 // settles onto the floor without bouncing.
 extern "C" void AdjustStepXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd)
 {
-    func_001F4FC0(pstep, pxp, ixpd);
+    AdjustSoXpVelocity(pstep, pxp, ixpd);
     if (pxp->xpk != 0xE)
         return;
 
@@ -1005,7 +1005,7 @@ extern const float D_002A85F4;   /* defined below where the ELF has it (.rodata 
 extern float D_002DDED0;
 struct SW;
 extern struct SW D_003DD490;
-void func_001F4F10(struct P *);
+void AdjustSoXps(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *);
 static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;}
 /** @sly2-annot addr=0x204768
@@ -1022,7 +1022,7 @@ void AdjustStepXps(struct P *p)
 {
     struct N *best;
     struct L *group;
-    func_001F4F10(p);
+    AdjustSoXps(p);
     {
         float value=D_002A85F4;
         group=p->g->groups;
@@ -1134,12 +1134,12 @@ struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; q
 struct HIT { qword pos; qword q10; qword normal; qword q30; float t; int n44; int n48; int n4C; char pad[0x10]; };
 extern qword D_002A2DC0;
 extern char D_003DD490[];
-void func_001F5990(void);
+void AddSoCustomXps(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
 int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
 int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n);
-void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
+void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
 
 /** @sly2-annot addr=0x204AC8
  * Purpose: STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a
@@ -1156,7 +1156,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
     struct HIT hit;
     qword pos, n, d, tmp;
     float f;
-    func_001F5990();
+    AddSoCustomXps();
     fl = p->vt[85].pf((char *)p + p->vt[85].d);
     if ((fl & 1) == 0)
         return;
@@ -1179,7 +1179,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*p->p218), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        PxpAdd(D_003DD490, p->p258, x, *p->p218, n, 0xE, 0, 0, a5, f);
+        AddXp(D_003DD490, p->p258, x, *p->p218, n, 0xE, 0, 0, a5, f);
     }
 }
 } } // namespace M_AddStepCustomXps
@@ -1197,7 +1197,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
 extern "C" void OnStepSoContactFreed(STEP *pstep, SO *pso)
 {
     XP *pxp;
-    func_001F5988(pstep, pso);
+    OnSoContactFreed(pstep, pso);
     pxp = pstep->pxpFloor;
     if ((pxp != 0) && (PSO_XP(pxp) == pso)) {
         pstep->pxpFloor = 0;
@@ -1371,7 +1371,7 @@ extern struct G D_003DD490;
 struct O { char pad[0x10]; struct O *pParent; char p2[0xEC - 0x14]; void *pvEC; };
 void *PsoFromLo(void *pv);
 void UpdateSwPox(struct G *pg, void *a, void *b, int n);
-void func_001F4BF8(struct O *p);
+void InvalidateSoAaox(struct O *p);
 /** @sly2-annot addr=0x204F78
  * Purpose: Find the SO with an attachment record up plo's parent chain and link/unlink (0x133A38 g_sw, f?1:2)
  *   this step's attachment with it, then 0x1F4BF8
@@ -1386,13 +1386,13 @@ void LinkStepAttachment(struct O *p, void *pv, int f)
     struct O *o = (struct O *)PsoFromLo(pv);
     while (o && !o->pvEC) o = o->pParent;
     if (p->pvEC && o && o->pvEC) UpdateSwPox(&D_003DD490, p->pvEC, o->pvEC, f ? 1 : 2);
-    func_001F4BF8(p);
+    InvalidateSoAaox(p);
 }
 } } // namespace M_func_00204F78
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepAxisXps {
-// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (PxpAdd 0x1A7C18) for a point
+// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
 // against the three axes of the frame BuildOrthonormalMatrixZ(direction, g_normalZ) builds. The contacts go
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.
@@ -1410,7 +1410,7 @@ extern "C" { extern qword D_002A2DC0; }   // g_normalZ
 extern "C" {
 SO *PsoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
-void PxpAdd(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
+void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // AddXp
 }
 static inline qword Sub(const qword &a, const qword &b) {
     qword r;
@@ -1429,7 +1429,7 @@ static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"
 static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 /** @sly2-annot addr=0x205008
- * Purpose: STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
+ * Purpose: STEP vt82: add up to 3 contacts (AddXp 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
  *   for a point, per grf bits, into the link list shared with plo's zap target
  * Info: proposed name AddStepAxisXps (T1); class STEP slot82; TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
@@ -1468,11 +1468,11 @@ extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword 
     M3 mat = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((grf & 1) || ((grf & 8) && X(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);
+        AddXp(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);
     if ((grf & 2) || ((grf & 0x10) && Y(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (grf & 2) ? 11 : 10, 0, 0, ppxpFirst);
+        AddXp(D_003DD490, pso->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (grf & 2) ? 11 : 10, 0, 0, ppxpFirst);
     if ((grf & 4) || ((grf & 0x20) && Z(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (grf & 4) ? 11 : 14, 0, 0, ppxpFirst);
+        AddXp(D_003DD490, pso->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (grf & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;
 }
 } // namespace M_AddStepAxisXps
@@ -1495,7 +1495,7 @@ typedef struct P {
 } P;
 extern qword D_002A2DD0, D_002A2DC0;
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(B *, int);
-extern void func_001F49C8(P *, B *);
+extern void MatchSoXf(P *, B *);
 static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
  __asm__ volatile("vmulax.xyz $ACC,%3,%7x\n\tvmadday.xyz $ACC,%4,%7y\n\tvmaddaz.xyz $ACC,%5,%7z\n\tvmaddw.xyz %0,%6,$vf0w\n\tqmfc2.ni %1,%0\n\tsqc2 %6,%2"
@@ -1548,7 +1548,7 @@ extern void MatchStepXf(P *p, B *other)
         { VTE *s=p->base.vt; ((void (*)(P *,qword))s[36].fn)((P *)((char *)p+s[36].delta), D_002A2DD0); }
         p->count = 0;
     } else {
-        func_001F49C8(p,other);
+        MatchSoXf(p,other);
     }
 }
 

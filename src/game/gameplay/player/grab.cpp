@@ -452,7 +452,7 @@ struct SO {
     char pad0[0xC]; VTE *vt; ulong flags; char pad18[0x6C - 0x18]; int cbsp; char pad70[4]; BSP *absp;
     char pad78[0x90 - 0x78]; GEOM geomWorld;
 };
-// Line segment hit (0x60 bytes, as in CsbiIntersectSphereBsp)
+// Line segment hit (0x60 bytes, as in IntersectSphereBsp)
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *apsurf[2]; void *pedge; int iiposSwap; LSG *plsgNext; };
 struct ACTOR {
     char pad0[0xC]; VTE *vt; char pad10[0xEC - 0x10]; void *pvFilter; char padF0[0x150 - 0xF0]; JOY *pjoy;

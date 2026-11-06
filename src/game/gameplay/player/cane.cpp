@@ -104,7 +104,7 @@ extern float D_002BF43C;
 extern float D_002BF440;
 extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
-void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void func_001CCAC0(void*,int);
+void HideSoPart(JT*,ACTION*);void InvalidateSoAaox(JT*);void func_001CCAC0(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
@@ -161,7 +161,7 @@ extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
  if(state!=-1&&p->state!=-1)compatible=state==D_002BF448[p->state];
  if(!compatible)HideSoPart(p,p->action);
  int exitEffect=-1;
- switch(p->state){case 1:exitEffect=p->target->exitEffect;func_001F4BF8(p);break;case 2:func_001F4BF8(p);break;case 0:func_001CCAC0(p->track,-1);break;case -1:break;}
+ switch(p->state){case 1:exitEffect=p->target->exitEffect;InvalidateSoAaox(p);break;case 2:InvalidateSoAaox(p);break;case 0:func_001CCAC0(p->track,-1);break;case -1:break;}
  Emit(p,exitEffect);
  register float start __asm__("$f22")=0.0f;
  ASEG*clip=0;
@@ -169,14 +169,14 @@ extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
  int enterEffect=-1;register float sharedDeadline __asm__("$f0"),sharedDelay __asm__("$f1");register int sharedMode __asm__("$2");register char*clockHigh __asm__("$3");
  switch(state){
  case -1:p->surface=0;break;
- case 1:case 2:func_001F4BF8(p);break;
- case 10:func_001F4BF8(p);clip=p->alternate10;break;
- case 11:func_001F4BF8(p);clip=p->alternate11;break;
+ case 1:case 2:InvalidateSoAaox(p);break;
+ case 10:InvalidateSoAaox(p);clip=p->alternate10;break;
+ case 11:InvalidateSoAaox(p);clip=p->alternate11;break;
  case 0:{func_001CCAC0(p->track,0);clip=p->idle;rate=0.0f;
   register JT*receiver __asm__("$4");register float half __asm__("$f1"),duration __asm__("$f0");
   __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(p):"$1");
   __asm__("lwc1 %0,%1":"=f"(duration):"m"(clip->duration));start=duration*half;
-  func_001F4BF8(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
+  InvalidateSoAaox(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
 
  case 3:{
   WORK work;

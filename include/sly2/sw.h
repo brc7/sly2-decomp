@@ -244,8 +244,8 @@ struct SW : public BASIC
       int cleaf;
       void *aleaf;
       uint32_t   _pad_333    [ 18 ] ;
-      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (func_001BDA00, tu_1BC050.cpp); was _pad_333+0x48 */
-      DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (func_001BE1E8) */
+      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (NewMergedCid14Obstacle, tu_1BC050.cpp); was _pad_333+0x48 */
+      DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (UpdatePendingCid14Obstacles) */
       CID17 *pcid17Default;
       REGTREE *pregtree;
       CLQ clqGuardScale;

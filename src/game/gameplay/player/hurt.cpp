@@ -36,7 +36,7 @@ void SetJtHurtState(JTHURT *pjthurt, int nState);
 void func_00195A00(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
 int func_00194640(JTGRAB *pjtgrab, int zpk);
 int STEPPLAYER_FInvulnerable(STEPPLAYER *pstepplayer, int zpk);
-void func_001F80D0(STEPPLAYER *pstepplayer, float g);
+void SetSoEyesClosed(STEPPLAYER *pstepplayer, float g);
 void OnStepplayerHeroDied(STEPPLAYER *pstepplayer);
 extern int D_002E1E00;
 int FSwHandsOff(SW *psw);
@@ -103,7 +103,7 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void SetStepTargetHeadingFromVector(P*,qword);
  qword func_001A62E8(P*);
  float GetStepHeading(P*);
- void func_001F4BF8(P*);
+ void InvalidateSoAaox(P*);
  void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
@@ -258,7 +258,7 @@ extern "C" void SetJtHurtState(C*p,int next){
   SetStepTargetHeading(p->actor,GetStepHeading(p->actor));
   p->actor->control->yaw=p->actor->yaw;clip=p->clips[next];break;
  }
- func_001F4BF8(p->actor);
+ InvalidateSoAaox(p->actor);
  p->mode=next;p->time=D_002DDED0.time;
  if(next!=-1){
   if(!clip)clip=p->Default(next);
@@ -278,10 +278,10 @@ struct D { int a; int b; };
 struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
 extern HURTZ D_002BFA30[7];
 struct E *func_001AE238(struct D *d, void *p);
-int PxfFindSo(int a, int b, int c);
+int FindSoXf(int a, int b, int c);
 /** @sly2-annot addr=0x1A1098
  * Purpose: Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs
- *   (PxfFindSo)
+ *   (FindSoXf)
  * Info: proposed name PostLoadJtHurt (T2); TU hurt
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
@@ -297,7 +297,7 @@ void func_001A1098(struct S *s)
     s->x18 = func_001AE238(&d, D_002BFA30);
     for (i = 0; i < s->x14; i++) {
         struct E *e = &s->x18[i];
-        e->x8 = PxfFindSo(s->x0, e->x0, 6);
+        e->x8 = FindSoXf(s->x0, e->x0, 6);
     }
 }
 } } // namespace M_func_001A1098
@@ -386,7 +386,7 @@ extern float D_002BFAA0[3];
 extern float D_002BFAB0[3];
 extern float D_002BFAC0[3];
 extern float D_002BBB60[2];
-void func_001F4BF8(struct LO *po);
+void InvalidateSoAaox(struct LO *po);
 float cosf(float g);
 float atan2f(float y, float x);
 float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
@@ -419,7 +419,7 @@ void UpdateJtActiveZap(struct S *s)
             if (s->x9C < dt) {
                 s->x90 = -1;
                 s->po->xD0 = 0.0f;
-                func_001F4BF8(s->po);
+                InvalidateSoAaox(s->po);
                 goto done;
             }
             u = dt / s->x9C;
@@ -1049,7 +1049,7 @@ extern "C" int func_001A2358(JTHURT *pjthurt, ZPR *pzpr)
  * @end-sly2-annot */
 extern "C" void func_001A2388(STEPPLAYER *pstepplayer)
 {
-    func_001F80D0(pstepplayer, 1.0f);
+    SetSoEyesClosed(pstepplayer, 1.0f);
     OnStepplayerHeroDied(pstepplayer);
 }
 
@@ -1102,7 +1102,7 @@ struct CLOCK {float time,dt;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword func_001A62E8(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
-extern "C" P*func_001F7598(HIT*);
+extern "C" P*DeliverZapToSo(HIT*);
 extern "C" int func_001A2788(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
@@ -1139,7 +1139,7 @@ extern "C" void func_001A2460(P*p){
    hit.kind=p->link->kind;
    hit.point.q=func_001A62E8(p);
    hit.direction.q=Direction(p);
-   (void)func_001F7598(&hit);
+   (void)DeliverZapToSo(&hit);
   }
  }
  if(!p->link->effect)return;
@@ -1189,7 +1189,7 @@ extern "C" {
 extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
-int func_001F7E08(L *pl, void *pfn, int n, void *pv);
+int CollectSoParts(L *pl, void *pfn, int n, void *pv);
 int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void CanWaterInflictZap(void);
 int func_001A2788(O *po, L *pl, qword *pv);
@@ -1220,7 +1220,7 @@ int func_001A2788(O *po, L *pl, qword *pv)
     pmsg->cb = pl->xE0 * 4;
     pmsg->nKind = 0x10;
     void *pbuf = PvAllocSlot__FP8ALLOCREQ(pmsg);
-    int n = func_001F7E08(pl, (void *)CanWaterInflictZap, 0, pbuf);
+    int n = CollectSoParts(pl, (void *)CanWaterInflictZap, 0, pbuf);
     if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;
     qword r;

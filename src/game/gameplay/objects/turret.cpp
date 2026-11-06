@@ -92,7 +92,7 @@ float atanf(float);
 int POCTL_FConsumePressed(CONTROL *x, int a);
 void *PloAcquireProxy(PROXYSRC *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
-void *FIgnoreSoIntersection(TURRETV *p);
+void *ShouldSoIgnoreIntersection(TURRETV *p);
 void *MaxInt(void *v, int a);
 int func_0012DC18(TURRETV *p, int c, int a, int b, int d, qword q);
 void ReleaseAct(void **ph);
@@ -335,7 +335,7 @@ extern "C" void func_00226250(TURRETV *p)
  * @end-sly2-annot */
 extern "C" void *func_00226310(TURRETV *p, PROXYSRC *q)
 {
-    void *v = FIgnoreSoIntersection(p);
+    void *v = ShouldSoIgnoreIntersection(p);
     if (p->pproxy && q->k == p->pproxy->k) v = MaxInt(v, 1);
     return v;
 }

@@ -75,7 +75,7 @@ qword PosSmooth(qword,qword,float,SMPV*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void func_0019EAB0(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
-void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
+void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword func_001A62E8(void*);
 void func_0019FD30(void *pplaces, void *pso, float g);
@@ -265,7 +265,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  if(!path->cyclic){func_0019E110(p,&w.limit);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
  register float stopped __asm__("$f21")=0.0f;
  p->speed=-speed;
- if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;func_001F4BF8(p->actor);}
+ if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;InvalidateSoAaox(p->actor);}
  if(p->path->cyclic)p->distance=GModPositive__Fff(p->distance,SMaxShape(p->path));
  register float magnitude __asm__("$f2")=fabsf(speed);
  if(magnitude<0.01f)mode=1;

@@ -60,14 +60,14 @@ extern OIDT D_002C0EC8[];   /* VAULT oid table (0x18 entries) */
 extern char D_002DEB30[];   /* a game counter */
 void LoadSoFromBrx(SO *pso, CBinaryInputStream *pbis);
 void PostSoLoad(SO *pso);
-void *func_001F7B98(SO *pso);
+void *EnsureSoInSwList187(SO *pso);
 void func_002303A0(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
 int func_00161798(void *pv);
 void func_001617E0(void *pv, int n);
 void func_001C7A08(LOOTV *ploot);
 void InitDprize(DPRIZEV *pdprize);
-XF *PxfFindSo(SO *pso, int oid, int n);
+XF *FindSoXf(SO *pso, int oid, int n);
 int func_001C8110();
 void func_001C8730(VAULTV *pvault, int n);
 }
@@ -78,7 +78,7 @@ struct S { char pad[0x40]; int x40; char p1[0x150 - 0x44]; int x150; int x154; i
     char p4[0x204 - 0x1D0]; int x204; int x208; int x20C; int x210; int x214; int x218; float x21C; int x220; int x224; };
 extern float D_002A7710;
 void InitSo(struct S *p);
-void func_001F7918(struct S *p, int a, int b);
+void SetSoZapResponse(struct S *p, int a, int b);
 static inline int FPtr(int v) { return !(v & 1); }
 /** @sly2-annot addr=0x1C4E50
  * Purpose: DPRIZE::Init (vt7): InitSo + 0x1F7918 setup
@@ -91,7 +91,7 @@ void InitDprize(struct S *p)
 {
     int v;
     InitSo(p);
-    func_001F7918(p, 0x17E, 8);
+    SetSoZapResponse(p, 0x17E, 8);
     v = p->x40;
     p->x21C = 30.0f;
     p->x1C8 = 1;
@@ -122,7 +122,7 @@ void InitDprize(struct S *p)
 extern "C" void LoadDprizeFromBrx(DPRIZEV *pdprize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(pdprize, pbis);
-    *(int *)((char *)func_001F7B98(pdprize) + 0xF0) = 1;
+    *(int *)((char *)EnsureSoInSwList187(pdprize) + 0xF0) = 1;
     func_002303A0(pdprize, pdprize->pxfUnk58, 0x15);
     func_002303A0(pdprize, pdprize->pxfUnk5c, 0x15);
     BindLoOidTable(pdprize, 1, D_002C0D40);
@@ -197,7 +197,7 @@ void HandleDprizeMessage(struct S *p, int n, struct M *pm)
 } } // namespace M_HandleDprizeMessage
 
 namespace M_ProjectDprizeTransform {
-// ProjectDprizeTransform (w2lane4, wave 2): per-frame update of an animated object (state 6 only forwards to func_001F3980).
+// ProjectDprizeTransform (w2lane4, wave 2): per-frame update of an animated object (state 6 only forwards to UpdateSoXfWorld).
 // Step 1: damped velocity/position integration of the object's own coordinate (VU: velocity = velocity * damping + acceleration * dt,
 //         coordinate += velocity * dt) which is pushed into the position channel.
 // Step 2: if the object's holder has an animation, find the position/orientation motions of this object in the animation's action
@@ -237,7 +237,7 @@ extern CAMERA D_002DDF40;
 extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
-void func_001F3980(P *);
+void UpdateSoXfWorld(P *);
 qword *VECTOR_opAssign(qword *, qword);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 M3 LoadRotateMatrixEuler(qword);
@@ -317,7 +317,7 @@ static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, q
  * @end-sly2-annot */
 extern "C" void ProjectDprizeTransform(P *p)
 {
-    if (p->state == 6) { func_001F3980(p); return; }
+    if (p->state == 6) { UpdateSoXfWorld(p); return; }
     float factor;
     if (p->state == 0 || p->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
     else factor = 1.0f;
@@ -373,7 +373,7 @@ extern "C" void ProjectDprizeTransform(P *p)
             }
         }
     }
-    func_001F3980(p);
+    UpdateSoXfWorld(p);
 }
 } // namespace M_ProjectDprizeTransform
 
@@ -427,7 +427,7 @@ void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
 qword func_001A62E8(P *);
 int FFilterDprizeObjects(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
-int CsbiIntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
+int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
 float func_0011E290(qword, qword, qword *, qword *);
 }
 
@@ -531,7 +531,7 @@ extern "C" void CheckDprizeBounce(P *p)
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = CsbiIntersectSphereBsp(func_001A62E8(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = IntersectSphereBsp(func_001A62E8(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
@@ -584,7 +584,7 @@ struct S { char pad[0xC]; struct VTE *vt; char pad10[0x1DC-0x10]; float radius; 
 struct Q { int enabled,pad4; float radius; struct SO *so; };
 extern float D_002C0D7C;
 qword func_001A62E8(void *);
-int CsbiIntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+int IntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
 static inline void Trigger(struct S *p)
 {
     struct VTE *m=&p->vt[76];
@@ -643,7 +643,7 @@ int FCheckDprizeCollect(struct S *p,struct Q *q)
             }
         } else {
             qword here=func_001A62E8(p);
-            if(CsbiIntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
+            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
                 Trigger(p);
                 return 1;
             }
@@ -1608,9 +1608,9 @@ extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
 extern "C" {
 int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
 LO *GetHeroPo(void *);
-REGION *PpathzoneFromPos(qword, int);
+REGION *FindPathzoneAtPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
-int FClipPathzone(REGION *, qword, qword, int);
+int IsEdgeBlockedByPathzone(REGION *, qword, qword, int);
 qword func_001A62E8(LO *);
 void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *);
 int PdprizeNewSpray(void *, int, int, LO **);
@@ -1706,7 +1706,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     if (plo)
         pregion = PregionFromLo(plo);
     if (!pregion)
-        pregion = PpathzoneFromPos(posOrig.q, 1);
+        pregion = FindPathzoneAtPos(posOrig.q, 1);
     VECTOR4 posSnap;
     if (FindPathzoneClosestPoint(pregion, posOrig.q, &posSnap.q, 1))
         posSnap.f[2] = posOrig.f[2];
@@ -1742,7 +1742,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
         qword dpos = Sub(posTrial, posOrig.q);
         qword dposPerp = Sub(dpos, Scale(Dot(dpos, D_002A2DC0), D_002A2DC0));
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));
-        int fBlocked = !FClipPathzone(pregion, posSnap.q, posTrial, 0) && !FClipPathzone(pregion, posTrial, posAdjust, 0);
+        int fBlocked = !IsEdgeBlockedByPathzone(pregion, posSnap.q, posTrial, 0) && !IsEdgeBlockedByPathzone(pregion, posTrial, posAdjust, 0);
         VECTOR4 posLand;
         if (fBlocked && func_001C6DE8(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
             qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->sRadius - 1.0f), D_002A2DC0);
@@ -1996,7 +1996,7 @@ extern "C" int func_001C7A40(LOOTV *ploot)
 namespace M_func_001C7A58 { extern "C" {
 struct E { int id; char pad[0x18]; int c; void *a[3]; };
 struct S { char pad[0x23C]; int c; struct E *ae; struct E *pe; };
-void func_001F6A68(struct S *p);
+void HideSoAllGlobs(struct S *p);
 void ShowSoGlobsById(struct S *p, void *pv);
 /** @sly2-annot addr=0x1C7A58
  * Purpose: helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978)
@@ -2022,7 +2022,7 @@ void func_001C7A58(struct S *p, int id)
         }
     }
     }
-    func_001F6A68(p);
+    HideSoAllGlobs(p);
     for (i = 0; i < p->pe->c; i++) ShowSoGlobsById(p, p->pe->a[i]);
 }
 } } // namespace M_func_001C7A58
@@ -2494,7 +2494,7 @@ void VAULT::VUnk14()
     VAULTV *pvault = (VAULTV *)this;
     PostSoLoad(pvault);
     BindLoOidTable(pvault, 0x18, D_002C0EC8);
-    pvault->pxf204 = PxfFindSo(pvault, 0x645, 1);
+    pvault->pxf204 = FindSoXf(pvault, 0x645, 1);
     func_001C8730(pvault, (func_001C8110() == 0) ? 0 : 5);
 }
 

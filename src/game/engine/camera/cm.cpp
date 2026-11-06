@@ -1163,7 +1163,7 @@ extern float D_002BD8D4;
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(struct AL *pal);
-int CsbiIntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
+int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
 qword LimitVectorLength(qword v, float g);
 
@@ -1205,7 +1205,7 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
     int k;
     for (k = 0; k < c; k++) {
         struct LO *po = apo[k];
-        n += CsbiIntersectSphereBsp(pos, po, &po->ae74[po->c70], g, 0, 0, 64 - n, &ax[n]);
+        n += IntersectSphereBsp(pos, po, &po->ae74[po->c70], g, 0, 0, 64 - n, &ax[n]);
     }
     }
     if (n == 0)

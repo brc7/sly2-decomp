@@ -69,7 +69,7 @@ void RemoveDlEntry__FP2DLPv(DL *, void *);
 L *AddSwObjectPair(SW *, X *, X *);
 L *RemoveSwObjectPair(SW *, X *, X *);
 void FreeSwXpList__FP2SWP2XP(SW *, void *);
-void func_001F5078(LO *);
+void WakeSo(LO *);
 void *memmove(void *, const void *, unsigned int);
 int ShouldSwPairObjects(SW *, X *, X *);
 void UpdateSwPox(SW *, X *, X *, int);
@@ -79,7 +79,7 @@ void UpdateSwAaox(SW *p);
 C *STACKSCOPE_ctor(C *);
 void STACKSCOPE_ctor_1AE4A0(C *, int) __asm__("_$_10STACKSCOPE");
 void *AddSoXps(SW *, X *, X *);
-void func_001F4BF8(LO *);
+void InvalidateSoAaox(LO *);
 }
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
 
@@ -143,7 +143,7 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
         pl2 = RemoveSwObjectPair(p, pl->po->px, px);
         if (pl->pv) {
             if (!VCALL(pl->po, 62, int (*)(void *))))
-                func_001F5078(pl->po);
+                WakeSo(pl->po);
             FreeSwXpList__FP2SWP2XP(p, pl->pv);
         }
         plNext = pl->pnext;
@@ -242,9 +242,9 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
         if (pl1->pv) {
             FreeSwXpList__FP2SWP2XP(p, pl1->pv);
             if (!VCALL(pl1->po, 62, int (*)(void *))))
-                func_001F5078(pl1->po);
+                WakeSo(pl1->po);
             if (!VCALL(pl2->po, 62, int (*)(void *))))
-                func_001F5078(pl2->po);
+                WakeSo(pl2->po);
         }
         func_0011CD98(&p->poolPox, pl1);
         func_0011CD98(&p->poolPox, pl2);
@@ -436,9 +436,9 @@ extern "C" void RecalcSwXpAll(SW *p)
             { void *pvNew = AddSoXps(p, px, px2); pl->pv = pvNew; pl->pother->pv = pvNew; }
             if (pv || pl->pv) {
                 if (!VCALL(px->plo, 62, int (*)(void *))))
-                    func_001F5078(px->plo);
+                    WakeSo(px->plo);
                 if (!VCALL(px2->plo, 62, int (*)(void *))))
-                    func_001F5078(px2->plo);
+                    WakeSo(px2->plo);
             }
         }
     }
@@ -491,7 +491,7 @@ extern "C" int MaxInt(int a, int b)
 extern "C" void RecalcSwOxfFilterForObject(SW *pg, LO *pl) {
     X *po;
     if (pl->px) {
-        func_001F4BF8(pl);
+        InvalidateSoAaox(pl);
         for (po = (X *)pg->dlAaobr.head; po; po = po->pnextAaobr)
             if (po != pl->px) UpdateSwPox(pg, pl->px, po, 0);
     }

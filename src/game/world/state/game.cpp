@@ -786,7 +786,7 @@ extern struct G D_003DD490;
 int IlevelCur__Fv(void);
 int CploFindSwObjects_15E650(struct G *pg, int kind, int oid, int a, int c, void **apv);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
-void *func_001F67E0(void *pv, int n);
+void *FindLiveSma(void *pv, int n);
 void SeekSma(void *p, int id);
 void SetSmaGoal(void *p, int id);
 /** @sly2-annot addr=0x162250
@@ -806,7 +806,7 @@ void TriggerStateRsmg(void *pvUnused, struct E *pe, int n, int k)
     if (pe->f14 != -1 && pe->f14 != IlevelCur__Fv()) return;
     if (CploFindSwObjects_15E650(&D_003DD490, 0x205, pe->oid, 0, 1, &pv) != 1) return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x30)) return;
-    ps = func_001F67E0(pv, pe->n8);
+    ps = FindLiveSma(pv, pe->n8);
     if (!ps) return;
     id = pe->id;
     if (pe->n0 == -1) {

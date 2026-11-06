@@ -18,7 +18,7 @@ union FLOATWORD { float value; int bits; };
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
 struct VTE { short d; short pad; void (*pfn)(void *); };
 
-/* POD matrix rows, and the class form with user-written copies that func_001F9C48 / func_001F9E70 need. */
+/* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoQueuedForces need. */
 struct M3 { qword r[3]; };
 struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
     M3C &operator=(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; return *this; } };
@@ -119,29 +119,29 @@ int FFloatsNear__Ffff(float, float, float);
 void ApplySoExternalAccelerations(SO *pso);
 void SlotUnsettle(SO *pso, XF *pxf);
 qword ConvertXfVec(XF *pxf, XF *pxfParent, qword v);
-void func_001F4BF8(SO *pso);
+void InvalidateSoAaox(SO *pso);
 qword *VECTOR_opAssign(qword *, qword);
 M3C *func_0011B570(M3C *, qword);
 void NormalizeRotateMatrix3__FP7MATRIX3(M3C *);
 void UpdateSoPartMatrices(SO *);
 void UpdateSoPartGeom(NODE *);
-void func_001F4D50(SO *);
+void ClearSoTreeDirty(SO *);
 void func_00230630(SO *, XF *);
 M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
 qword func_001A62E8(SO *pso);
 
-void func_001F8F80(SW *psw, int k);
+void SolveSwContactGroups(SW *psw, int k);
 void BuildContactGroup(SW *psw, SO *pso, int *pc, SO **apso);
-int CpxpBuildXpArray(SW *psw, int grf, int cso, SO **apso, int cxpMax, XP **apxp);
-void func_001F9240(SW *psw, int grf, int cso, SO **apso);
+int BuildGroupXpArray(SW *psw, int grf, int cso, SO **apso, int cxpMax, XP **apxp);
+void SplitSwGroup(SW *psw, int grf, int cso, SO **apso);
 void SolveSwGroup(SW *psw, int flags, int objectCount, SO **objects, int contactCount, XP **contacts);
-void func_001F9C48(SO *pso);
+void IntegrateSoGroupTransforms(SO *pso);
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword v);
 void AddSoAcceleration(SO *pso, qword v);
-qword func_001FAA00(SO *pso, qword v);
-qword func_001FAA48(SO *pso, qword a, qword b);
-qword func_001FAA98(SO *pso, qword v);
-qword func_001FAB48(SO *pso, qword *pv, qword q);
+qword GetSoImpulseLinearDelta(SO *pso, qword v);
+qword GetSoImpulseAngularDelta(SO *pso, qword a, qword b);
+qword ApplySoInverseInertia(SO *pso, qword v);
+qword CalculateSoPointVelocity(SO *pso, qword *pv, qword q);
 }
 
 /** @sly2-annot addr=0x1F8DD8
@@ -163,9 +163,9 @@ extern "C" void SolveSw(SW *p)
         if ((pe->fl & 0x24) == 4) pe->pso->pvt[17].pfn((char *)pe->pso + pe->pso->pvt[17].d);
     }
     p->pi = 0;
-    func_001F8F80(p, 1);
+    SolveSwContactGroups(p, 1);
     RecalcSwXpAll(p);
-    func_001F8F80(p, 6);
+    SolveSwContactGroups(p, 6);
 }
 
 /** @sly2-annot addr=0x1F8E90
@@ -203,7 +203,7 @@ struct A { SO *objects[0x301]; int n; };
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-void func_001F8F80(SW *p, int k)
+void SolveSwContactGroups(SW *p, int k)
 {
     struct A a;
     SOTREE *pl;
@@ -228,7 +228,7 @@ void func_001F8F80(SW *p, int k)
             }
             a.n=0;
             BuildContactGroup(p,receiver,&a.n,a.objects);
-            func_001F9240(p,k,a.n,a.objects);
+            SplitSwGroup(p,k,a.n,a.objects);
         }
     }
     for (pl = p->ptreeFirst; pl; pl = pl->ptreeNext) {
@@ -241,12 +241,12 @@ void func_001F8F80(SW *p, int k)
 /** @sly2-annot addr=0x1F90D0
  * Purpose: Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects
  *   0x10000000; returns count
- * Info: proposed name CpxpBuildXpArray (T1); TU solve
+ * Info: proposed name BuildGroupXpArray (T1); TU solve
  * Notes: names_v2 v1 proposed GetSoContacts__FP2SOPiPPP2SO (0.638)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-int CpxpBuildXpArray(SW *a, int b, int c, SO **apx, int cMax, XP **aps)
+int BuildGroupXpArray(SW *a, int b, int c, SO **apx, int cMax, XP **aps)
 {
     int i;
     int cs = 0;
@@ -289,11 +289,11 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-void func_001F9240(SW*p,int flags,int count,SO**objects)
+void SplitSwGroup(SW*p,int flags,int count,SO**objects)
 {
  int i;
  XP *contacts[64];
- int n=CpxpBuildXpArray(p,flags,count,objects,64,contacts);
+ int n=BuildGroupXpArray(p,flags,count,objects,64,contacts);
  if(flags&1){if(!n)flags=0;}
  else {
    if(flags&4){
@@ -454,7 +454,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
             if(moving)break;
         }
         if(k>=objectCount){
-            for(k=0;k<objectCount;k++)func_001F9C48(objects[k]);
+            for(k=0;k<objectCount;k++)IntegrateSoGroupTransforms(objects[k]);
             RecalcSwXpPos(&D_003DD490,contactCount,contacts);
             RecalcSwXpMovement(&D_003DD490,contactCount,contacts);
         }
@@ -481,7 +481,7 @@ static inline int FNear(qword a, qword b)
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_001F9B20(SO *p)
+extern "C" void PresetSoAccel(SO *p)
 {
     int fUpd = 0;
     int fNear = FNear(D_002A2DD0, p->psophys->v80);
@@ -513,7 +513,7 @@ static inline M3C MulC(const M3C &a,const M3C &b) return r
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-void func_001F9C48(SO *p)
+void IntegrateSoGroupTransforms(SO *p)
 {
     U scalar;
     M3C frame;
@@ -545,7 +545,7 @@ void func_001F9C48(SO *p)
             if(!(node->flags&(1UL<<50)))UpdateSoPartGeom(node);
         }
     }
-    func_001F4D50(p);
+    ClearSoTreeDirty(p);
 }
 
 static inline qword AddScaledIn(qword p,qword v,qword k){__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x":"+j"(v):"j"(p),"j"(k));return v;}
@@ -569,7 +569,7 @@ static inline float HalfAndDelta(float dt,float half,const qword&source,qword*de
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001F9E70(SO *input)
+extern "C" void ApplySoQueuedForces(SO *input)
 {
     register SO *p __asm__("$18");
     __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
@@ -600,7 +600,7 @@ extern "C" void func_001F9E70(SO *input)
             AddVector(&rotation->v,turn);
         }else turn=Zero();
         if(changed){
-            func_001F4BF8(p);
+            InvalidateSoAaox(p);
             int incrementNear=0;NearVector(&incrementNear,D_002A2DD0,shift);
             if(!incrementNear){
                 qword point;qword *positionAddress=PointAddress(position,&point);
@@ -647,7 +647,7 @@ static __inline__ void AddTo(U *out,qword q)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001FA328(SO *p)
+extern "C" void ProjectSoForce(SO *p)
 {
     if(p->psophys){
         qword value=p->qwDv.q;
@@ -660,7 +660,7 @@ extern "C" void func_001FA328(SO *p)
             increment=ConvertXfVec(0,b->pxfParent,p->qwDv.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&b->v,increment);
-            func_001F4BF8(p);
+            InvalidateSoAaox(p);
         }
         value=p->qwDw.q;
         reference=D_002A2DD0;
@@ -672,7 +672,7 @@ extern "C" void func_001FA328(SO *p)
             increment=ConvertXfVec(0,b->pxfParent,p->qwDw.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&b->v,increment);
-            func_001F4BF8(p);
+            InvalidateSoAaox(p);
         }
     }
 }
@@ -694,7 +694,7 @@ static inline qword Consume(SO*p,XF*object,U&pending){SlotUnsettle(p,object);qwo
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001FA528(SO*p)
+extern "C" void ApplySoQueuedMotion(SO*p)
 {
     M3 final;
     int changed=0;
@@ -723,7 +723,7 @@ extern "C" void func_001FA528(SO*p)
             ((int*)&object->mat.r[0])[3]=0;
             object->nStampWorld=++D_003DD490.stamp;
         }
-        if(changed){p->pvt[18].pfn((char*)p+p->pvt[18].d);func_001F4BF8(p);}
+        if(changed){p->pvt[18].pfn((char*)p+p->pvt[18].d);InvalidateSoAaox(p);}
     }
 }
 
@@ -789,12 +789,12 @@ static inline qword RejF(qword a, qword n)
 }
 /** @sly2-annot addr=0x1FA970
  * Purpose: Same CT switch without the object transform
- * Info: proposed name ApplyConstr_1FA970 (T1); TU solve
- * Notes: COLLISION: ApplyConstr already used (same name proposed for 0x1FA810); renamed to ApplyConstr_1FA970
+ * Info: proposed name ApplyConstrNoTransform (T1); TU solve
+ * Notes: COLLISION: ApplyConstr already used (same name proposed for 0x1FA810); renamed to ApplyConstrNoTransform
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" qword ApplyConstr_1FA970(CONSTR *p, qword v)
+extern "C" qword ApplyConstrNoTransform(CONSTR *p, qword v)
 {
     switch (p->k) {
     case 3:
@@ -817,7 +817,7 @@ static inline qword Get(qword r){qword a; __asm__("qmfc2.ni %0,%1" : "=r"(a) : "
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-qword func_001FAA00(SO *input,qword v) {
+qword GetSoImpulseLinearDelta(SO *input,qword v) {
     register SO *p __asm__("$2")=input;
     register CONSTR *projection __asm__("$4");
     U scalar;
@@ -837,14 +837,14 @@ qword func_001FAA00(SO *input,qword v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-qword func_001FAA48(SO *p, qword a, qword b)
+qword GetSoImpulseAngularDelta(SO *p, qword a, qword b)
 {
     qword r, c, d;
     d = func_001A62E8(p);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(d));
     c=b;
     __asm__("vopmula.xyz $ACC, %1, %0\n\tvopmsub.xyz %0, %0, %1" : "+j"(c) : "j"(r));
-    return func_001FAA98(p, c);
+    return ApplySoInverseInertia(p, c);
 }
 
 static inline qword MulMVR(M3 *pm, qword v, qword r)
@@ -876,7 +876,7 @@ static inline qword MulMVRow(M3 *pm, qword *pv)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-qword func_001FAA98(SO *p, qword v)
+qword ApplySoInverseInertia(SO *p, qword v)
 {
     XF *pb = p->pxfRot;
     M3 m;
@@ -893,7 +893,7 @@ qword func_001FAA98(SO *p, qword v)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-qword func_001FAB48(SO *p, qword *pv, qword q)
+qword CalculateSoPointVelocity(SO *p, qword *pv, qword q)
 {
     qword r, c, s;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(q), "j"(p->pxfRot->posWorld.q));
@@ -917,10 +917,10 @@ static inline void AddAccel(XF *po, qword d)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001FAB78(SO *p, qword a, qword b)
+extern "C" void ApplySoImpulse(SO *p, qword a, qword b)
 {
-    qword x = func_001FAA00(p, b);
-    qword y = func_001FAA48(p, a, b);
+    qword x = GetSoImpulseLinearDelta(p, b);
+    qword y = GetSoImpulseAngularDelta(p, a, b);
     AddAccel(p->pxfPos, x);
     AddAccel(p->pxfRot, y);
 }
@@ -956,7 +956,7 @@ void AddSoAcceleration(SO *p, qword v)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001FAC98(SO *p, qword v)
+extern "C" void AddSoAngularAcceleration(SO *p, qword v)
 {
     if (func_00230380(p->pxfRot->nRole)) {
         XF *po = p->pxfRot;
@@ -978,7 +978,7 @@ struct S2 { struct Pr ap[2]; qword v40; struct Q2 *aq; };
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" void func_001FAD00(SO *p, int a1, S2 *ps, int a3, int k)
+extern "C" void ApplySoContactImpulse(SO *p, int a1, S2 *ps, int a3, int k)
 {
     SOPHYS *pe = p->psophys;
     qword v;
@@ -993,8 +993,8 @@ extern "C" void func_001FAD00(SO *p, int a1, S2 *ps, int a3, int k)
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(v), "j"(u.q));
     }
     pr = &ps->ap[k];
-    if (pe->constrPos.k != 3) pr->a = func_001FAA00(p, v);
-    if (pe->constrRot.k != 3) pr->b = func_001FAA48(p, ps->aq[k].v, v);
+    if (pe->constrPos.k != 3) pr->a = GetSoImpulseLinearDelta(p, v);
+    if (pe->constrRot.k != 3) pr->b = GetSoImpulseAngularDelta(p, ps->aq[k].v, v);
 }
 
 struct V4 { int x, y, z, w; };
@@ -1004,8 +1004,8 @@ struct V4 { int x, y, z, w; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" void func_001FADD0(SO *p, qword *a, qword b, V4 *pv)
+extern "C" void GetSoVelocityAtPos(SO *p, qword *a, qword b, V4 *pv)
 {
     if (!p->psophys) { pv->z = 0; pv->y = 0; pv->x = 0; }
-    else *(qword *)pv = func_001FAB48(p, a, b);
+    else *(qword *)pv = CalculateSoPointVelocity(p, a, b);
 }

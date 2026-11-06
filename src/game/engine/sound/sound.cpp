@@ -2191,7 +2191,7 @@ void func_001FDEC8(struct P *p)
 namespace M_func_001FE0E8 { extern "C" {
 struct E { short s0; short k; union { int n; float g; } u; };
 struct P { char pad[0x22C]; void *ap[3]; void *p238; };
-void func_001F80D0(void *, float);
+void SetSoEyesClosed(void *, float);
 void SetSmaGoal(void *, int);
 /** @sly2-annot addr=0x1FE0E8
  * Purpose: Event k: role 3 -> 0x1F80D0(gesture,g); else SetSmaGoal(role SM, state)
@@ -2203,7 +2203,7 @@ void func_001FE0E8(struct P *p, struct E *pe)
 {
     int k = pe->k;
     if (k != -1 && p->ap[k]) {
-        if (k == 3) func_001F80D0(p->p238, pe->u.g);
+        if (k == 3) SetSoEyesClosed(p->p238, pe->u.g);
         else if (pe->u.n != -1) SetSmaGoal(p->ap[k], pe->u.n);
     }
 }
@@ -2406,7 +2406,7 @@ X *PstreamsndNew(D *, int);
 void func_00227728(void *, int, int);
 X *PloFindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int func_001FD0C0(P *, int);
-X *func_001F67E0(X *, int);
+X *FindLiveSma(X *, int);
 }
 /** @sly2-annot addr=0x1FE5F0
  * Purpose: Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker
@@ -2434,7 +2434,7 @@ extern "C" X *StartDialog(P *p, int k, int f)
             register X **slot __asm__("$16")=p->a;
             for(;i<6;i++,slot++) {
                 if(i==primaryRole)p->a[3]=po;
-                else *slot=func_001F67E0(po,func_001FD0C0(p,i));
+                else *slot=FindLiveSma(po,func_001FD0C0(p,i));
                 { X *current=*slot;
                   if(current) { VTE &entry=current->pvt[1];
                     entry.pfn((char *)current+entry.d); } }

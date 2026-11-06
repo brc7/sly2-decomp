@@ -162,7 +162,7 @@ EA *func_0012F938(ASEG *paseg, int n);
 CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
-qword GetSoDvGravity(ALO *);
+qword GetSoGravity(ALO *);
 void func_0020B210(ALO *);
 void func_0020D178(void *);
 float func_00196928(qword,qword,float,float,float,float);
@@ -170,7 +170,7 @@ qword func_0022FC48(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
 ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
-void SetSoDvGravity(ALO *,qword);
+void SetSoGravity(ALO *,qword);
 void func_00130D30(ASEGA *,int,float,float);
 void func_0020B2A8(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
@@ -621,7 +621,7 @@ void SetLeapState(LEAPV *p,int state)
     case 0:
         ApplyAsegCur(p->tuning->animation,p->subject,0.0f,1.0f,p->index,&p->job);
         SubscribeLoObject(p->job,p);
-        p->previousVelocity.q=GetSoDvGravity(p->subject);
+        p->previousVelocity.q=GetSoGravity(p->subject);
         break;
     case 1:{
         if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38)){
@@ -687,7 +687,7 @@ void SetLeapState(LEAPV *p,int state)
             p->subject->flags|=0x04000000ul;
             RecalcSwOxfFilterForObject(&D_003DD490,p->subject);
         }
-        SetSoDvGravity(p->subject,acceleration.q);
+        SetSoGravity(p->subject,acceleration.q);
         break;
     }
     case 2:func_00130D30(p->job,0,p->tuning->afterStart,1.0f);break;
@@ -697,7 +697,7 @@ void SetLeapState(LEAPV *p,int state)
         break;
     case 4:
         if(p->ballistic)func_0020C760(p);
-        SetSoDvGravity(p->subject,p->previousVelocity.q);
+        SetSoGravity(p->subject,p->previousVelocity.q);
         if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38))EnableStuckWatch(p->subject->control);
         break;
     }

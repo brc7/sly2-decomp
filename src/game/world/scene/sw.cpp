@@ -715,7 +715,7 @@ void func_00210940(struct S *p);
 void func_001957C0(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
-void func_001C1260(void *p);
+void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
@@ -755,7 +755,7 @@ void PostSwLoad(struct S *p)
     p->ppoFirst = 0;
     p->n39D8 = 0;
     p->n39D0 = 0;
-    func_001C1260(p->p45CC);
+    BuildPathzoneLinkLists(p->p45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -1737,7 +1737,7 @@ struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
 int CploFindSwObjects_15E650(void *p, int k, int a, int b, int c, void **ppo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-struct Y *func_001F67E0(void *o, int b);
+struct Y *FindLiveSma(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
 void SeekSma(struct Y *y, int id);
 void SetSmaGoal(struct Y *y, int id);
@@ -1760,7 +1760,7 @@ void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
         return;
-    y = func_001F67E0(o, pd->b);
+    y = FindLiveSma(o, pd->b);
     if (!y)
         return;
     if (fl & 1)
@@ -1991,7 +1991,7 @@ namespace M_func_002104A0 { extern "C" {
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void ShowSoPartsById(void *p, void *q);
-void func_001F6B48(void *p, void *q);
+void HideSoPartsById(void *p, void *q);
 /** @sly2-annot addr=0x2104A0
  * Purpose: ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48
  * Info: proposed name HandleSwAsegEvent15 (T2); TU sw
@@ -2009,7 +2009,7 @@ void func_002104A0(void *pv, int f, int id, void *q, void *pdef, void *ctx)
         if (f)
             ShowSoPartsById(p, q);
         else
-            func_001F6B48(p, q);
+            HideSoPartsById(p, q);
     }
 }
 } } // namespace M_func_002104A0
@@ -2066,7 +2066,7 @@ namespace M_func_00210678 { extern "C" {
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
 void *func_001EC918(int id);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void func_001F80D0(void *p, float f);
+void SetSoEyesClosed(void *p, float f);
 void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
  * Purpose: ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f)
@@ -2090,7 +2090,7 @@ void func_00210678(void *pv, int id1, int id2, float f)
             p2 = 0;
     }
     if (p1)
-        func_001F80D0(p1, f);
+        SetSoEyesClosed(p1, f);
     if (p2)
         SetEyesClosed(p2, f);
 }

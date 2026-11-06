@@ -117,7 +117,7 @@ RTE *func_001AE378(ALLOCREQ *preq);
 RTE *func_001AE238(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
-SHAPEV *func_001E94B0(int oid, int c);
+SHAPEV *NewSampledShape(int oid, int c);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *plo);
 qword func_001A62E8(void *p);
 void MeasureShape(SHAPEV *pshape);
@@ -214,7 +214,7 @@ void CID123::VUnk14()
     ROUTE *p = (ROUTE *)this;
     int i;
     PostLoLoad(p);
-    p->pshape = func_001E94B0(0x62C, p->crte);
+    p->pshape = NewSampledShape(0x62C, p->crte);
     p->pshape->ccv = p->crte;
     for (i = 0; i < p->crte; i++) {
         RTE *e = &p->arte[i];

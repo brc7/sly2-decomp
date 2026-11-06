@@ -21,7 +21,7 @@ struct SOV { char pad0[0xC]; VTE *vt; char pad10[0x60]; qwordV position; };
 struct SPRAYER
 {
     char pad0[0x150];
-    SOV *pxf;            /* +0x150 the frame prizes start from (PxfFindSo) */
+    SOV *pxf;            /* +0x150 the frame prizes start from (FindSoXf) */
     SOV *psoProto;       /* +0x154 prototype the copies come from (PloAcquireProxy) */
     SOV *psoFirst;       /* +0x158 the sprayer's own prize */
     char pad15C[0xC];
@@ -44,7 +44,7 @@ void func_001A5EE8(void *p, void *q, float a, float b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *PloAcquireProxy(void *plo, int n);
 void func_001C7A58(SOV *plo, int id);
-SOV *PxfFindSo(SPRAYER *p, void *pv, int n);
+SOV *FindSoXf(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 LMV D_002C0CE0 = {0.75f, 1.2f};                     // flight time
@@ -127,7 +127,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
         ((void (*)(void *, int))p->psoFirst->vt[76].fn)((char *)p->psoFirst + p->psoFirst->vt[76].delta, 2);
     else
         ((void (*)(void *))p->psoFirst->vt[9].fn)((char *)p->psoFirst + p->psoFirst->vt[9].delta);
-    p->pxf = PxfFindSo(p, pv, 0xD);
+    p->pxf = FindSoXf(p, pv, 0xD);
     return 3;
 }
 

@@ -453,7 +453,7 @@ struct CLIMBSURF : public XFM
       TRI3 *atri;
       TRI3 *atriB;
       undefined4 unk_0xf4[3];
-    void FindClosestPoint(qword pos, SURFLOC *plocHint, SURFLOC *ploc, qword *ppos, qword *pnormal) __asm__("func_00185310");
+    void FindClosestPoint(qword pos, SURFLOC *plocHint, SURFLOC *ploc, qword *ppos, qword *pnormal) __asm__("FindMeshClosestPoint");
 };
 
 void RetractAsega(ASEGA *pasega) __asm__("func_00130B18");
@@ -579,7 +579,7 @@ typedef int qword __attribute__((mode(TI)));
 
 extern void PostLoadStepplayer(void *p);
 extern void BindLoOidTable(void *p, int n, void *pv);
-extern int PxfFindSo(void *p, int a, int b);
+extern int FindSoXf(void *p, int a, int b);
 extern void PostJtLoadGait(void *p);
 extern void func_001A0300(void *p, void *a, void *b);
 extern void PostJtLoadSwing(void *p, void *a, void *b);
@@ -610,16 +610,16 @@ void PostJtLoad(char *p)
     int n;
     PostLoadStepplayer(p);
     BindLoOidTable(p, 0x12, D_002BF1B0);
-    F(int, 0x10B8) = PxfFindSo(p, 0x138, 1);
-    F(int, 0x19E0) = PxfFindSo(p, 0x18, 6);
-    F(int, 0x19DC) = PxfFindSo(p, 0x19, 6);
-    F(int, 0x19D8) = PxfFindSo(p, 0x13, 1);
-    F(int, 0x19D4) = PxfFindSo(p, 0x12, 1);
-    F(int, 0x19D0) = PxfFindSo(p, 0x1C, 6);
-    F(int, 0x19CC) = PxfFindSo(p, 0x1D, 6);
-    F(int, 0x19C8) = PxfFindSo(p, 0xD, 1);
-    F(int, 0x19C4) = PxfFindSo(p, 0xC, 1);
-    F(int, 0x19C0) = PxfFindSo(p, 0xC, 6);
+    F(int, 0x10B8) = FindSoXf(p, 0x138, 1);
+    F(int, 0x19E0) = FindSoXf(p, 0x18, 6);
+    F(int, 0x19DC) = FindSoXf(p, 0x19, 6);
+    F(int, 0x19D8) = FindSoXf(p, 0x13, 1);
+    F(int, 0x19D4) = FindSoXf(p, 0x12, 1);
+    F(int, 0x19D0) = FindSoXf(p, 0x1C, 6);
+    F(int, 0x19CC) = FindSoXf(p, 0x1D, 6);
+    F(int, 0x19C8) = FindSoXf(p, 0xD, 1);
+    F(int, 0x19C4) = FindSoXf(p, 0xC, 1);
+    F(int, 0x19C0) = FindSoXf(p, 0xC, 6);
     PostJtLoadGait(A(0x1320));
     PostJtLoadGait(A(0x1C30));
     func_001A0300(p, A(0x1AC0), A(0x1BC0));
@@ -672,7 +672,7 @@ extern float D_002BF288;
 extern float D_002BF28C;
 extern float D_002BF290;
 extern float D_002BF294;
-void func_001F9B20(P*);void PresetStepAccel(P*);
+void PresetSoAccel(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
 qword GetStepAsegaTranslation(P*,MODEL*,float);float func_0012F990(void*,int);
@@ -704,7 +704,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
  * @end-sly2-annot */
 extern "C" void func_00188960(P*p){
  WORK w;
- switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
+ switch(p->mode){case 3:case 8:PresetSoAccel(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
  switch(p->mode){
  case 3:PresetJtAccelHang__FP2JT(p);break;
  case 8:PresetJtAccelPipe((char*)p+0xF50);break;
@@ -1771,7 +1771,7 @@ namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int x18d8; char p3[0xC8]; void *x19a4; };
 qword func_001A62E8(void *p);
-void func_001F3980(struct S *p);
+void UpdateSoXfWorld(struct S *p);
 /** @sly2-annot addr=0x18A278
  * Purpose: JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when
  *   x18D8==0
@@ -1783,7 +1783,7 @@ void func_0018A278(struct S *p)
 {
     p->b = func_001A62E8(p->x19a4);
     p->n = 0;
-    func_001F3980(p);
+    UpdateSoXfWorld(p);
     if (!p->x18d8) {
         p->a = func_001A62E8(p);
         p->c = func_001A62E8(p->x19a4);

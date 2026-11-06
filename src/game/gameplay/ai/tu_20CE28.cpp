@@ -47,7 +47,7 @@ int FStepguardHasSgf(GUARDV *o, int n);
 qword ConvertAloPos(GUARDV *o, int a, qword v);
 int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void func_001F7598(WMSG *pmsg);
+void DeliverZapToSo(WMSG *pmsg);
 qword func_001A62E8(void *p);
 void func_0020D3C0(VOLWATCH *p, int k);
 }
@@ -151,7 +151,7 @@ extern "C" void func_0020D108(STUCKWATCH *p, int n)
         f.pvol = (WVOL *)p->po;
         f.po = p->po;
         f.n10 = 0;
-        func_001F7598(&f);
+        DeliverZapToSo(&f);
     }
 }
 
@@ -265,7 +265,7 @@ extern "C" void func_0020D3C0(VOLWATCH *p, int state)
             l.n10 = p->pvol->n184;
             l.v20 = func_001A62E8(p->po);
             l.v30 = ((qword (*)(void *))p->po->vt[33].pf)((char *)p->po + p->po->vt[33].d);
-            func_001F7598(&l);
+            DeliverZapToSo(&l);
         }
     }
 }

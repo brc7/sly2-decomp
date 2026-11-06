@@ -67,9 +67,9 @@ void OnSoRemove(SO *pso);
 void InitXfm(XFM *pxfm);
 void InitSo(SO *pso);
 void InitGrabspot(void *pgrabspot);
-void func_001F7918(SO *pso, int grf, int n);
+void SetSoZapResponse(SO *pso, int grf, int n);
 void func_001CB518(SO *pso);
-int FIgnoreSoIntersection(SO *pso, LO *plo);
+int ShouldSoIgnoreIntersection(SO *pso, LO *plo);
 int MaxInt(int grf, int f);
 void func_00183F50(GRABSPOT35 *p);
 void func_00184130(GRABSPOT35 *p, LO *plo);
@@ -264,7 +264,7 @@ struct S { char pad[0x38]; float g; char p2[0x154]; void *p190; };
 extern float D_002BE8B4;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
-float func_001E7D90(struct S *p);
+float UpdateShapeBoundingSphere(struct S *p);
 /** @sly2-annot addr=0x182F28
  * Purpose: vt15: PostLoLoad, private TN override off, default busy radius = bounding radius + D_002BE8B4
  * Info: proposed name PostCid12Load (T2); class CID12 slot15; TU grabspot
@@ -275,7 +275,7 @@ void func_00182F28(struct S *p)
 {
     PostLoLoad(p);
     if (p->p190) SetTnTnsOverride(p->p190, 0);
-    if (p->g == 1e10f) p->g = func_001E7D90(p) + D_002BE8B4;
+    if (p->g == 1e10f) p->g = UpdateShapeBoundingSphere(p) + D_002BE8B4;
 }
 } } // namespace M_func_00182F28
 
@@ -785,8 +785,8 @@ extern "C" void InitBarrel(BARRELV *pbarrel)
     pbarrel->nState = 0;
     pbarrel->s158 = 300.0f;
     pbarrel->n18C = 1;
-    func_001F7918(pbarrel, 0x03FFFFFF, 8);
-    func_001F7918(pbarrel, 0x03188001, 0);
+    SetSoZapResponse(pbarrel, 0x03FFFFFF, 8);
+    SetSoZapResponse(pbarrel, 0x03188001, 0);
 }
 
 /** @sly2-annot addr=0x183970
@@ -866,7 +866,7 @@ void CloneBarrel(struct S *p)
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
 extern "C" int func_00183A50(BARRELV *pbarrel, LO *plo)
 {
-    int grf = FIgnoreSoIntersection(pbarrel, plo);
+    int grf = ShouldSoIgnoreIntersection(pbarrel, plo);
     if (FIsBasicDerivedFrom(plo, (CID)0x34) != 0) {
         STEPPLAYER *pstepplayer = (STEPPLAYER *)plo;
         if (pstepplayer->jtgrab.nState == 1 && pbarrel == (BARRELV *)pstepplayer->jtgrab.plo) {
@@ -885,7 +885,7 @@ struct M { float a[12]; };
 struct S { char pad[0x17C]; int x17c; char p1[0xC]; int x18c; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
-void func_001F9B20(struct S *p);
+void PresetSoAccel(struct S *p);
 void *func_001A6318(struct S *p);
 void TiltMatUpright(void *p, int n, struct M *pm);
 void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b);
@@ -899,7 +899,7 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
  * @end-sly2-annot */
 void func_00183B00(struct S *p)
 {
-    func_001F9B20(p);
+    PresetSoAccel(p);
     if (p->x18c && !p->x17c) {
         struct M m;
         TiltMatUpright(func_001A6318(p), 0, &m);
@@ -929,7 +929,7 @@ void SetLoParent_1A58D0(struct O *p, int a, int b);
 void func_002303A0(struct O *p, struct X *px, int n);
 void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
-void func_001F68A8(struct O *p, int n);
+void SetSoPartsBit48(struct O *p, int n);
 void UpdateSwBusyList(void *p);
 void *func_001A6318(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
@@ -965,7 +965,7 @@ void func_00183B80(struct O *p, int n)
             { struct VTE *e = &p->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             SetSoCnstrForce(p, 0);
             SetSoCnstrTorque(p, 0);
-            func_001F68A8(p, 0);
+            SetSoPartsBit48(p, 0);
         }
         { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 6, 0, 0, 0, 0); }
         UpdateSwBusyList(D_003DD490);
@@ -1003,7 +1003,7 @@ void func_00183B80(struct O *p, int n)
             }
 
             p->p58->n9A = n;
-            func_001F68A8(p, 1);
+            SetSoPartsBit48(p, 1);
         }
         { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 5, 0, 0, 0, 0); }
     }
@@ -1020,7 +1020,7 @@ struct Q { char pad[0xC]; char xc[0x38]; int fl; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int x17c; char p2[0x10]; struct O *x190; };
 struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
-int func_001F7588(struct S *p, struct Q *q);
+int HasZapRecordField44(struct S *p, struct Q *q);
 qword func_001A62E8(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
@@ -1037,7 +1037,7 @@ int func_00183E08(struct S *p, struct Q *q)
 {
     struct M m;
     struct VTE *e;
-    if (!func_001F7588(p, q)) return 0;
+    if (!HasZapRecordField44(p, q)) return 0;
     if (p->x17c == 3) return 1;
     if (!(q->fl & 8)) return 1;
     EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);

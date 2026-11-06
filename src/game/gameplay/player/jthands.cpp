@@ -111,7 +111,7 @@ qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent_1A58D0(LO *plo, int a, int b);
 float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
-void func_001F6860(LO *plo, int n);
+void SetSoTreeFlag2(LO *plo, int n);
 void SetLoXfFromMat(LO *plo, M4 *pmat);
 void SetSoCnstrForce(SO *pso, int n);
 void SetSoCnstrTorque(SO *pso, int n);
@@ -666,7 +666,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  ACT *job=func_0012DC18(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
  XFACT *pxfact=(XFACT *)object->pxfUnk5c;
  if(pxfact->pactCur==job)pxfact->tEnd=endTime;
- func_001F6860(object,1);
+ SetSoTreeFlag2(object,1);
 }
 
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14

@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001F8B58(s32, s32, s32, f32, f32);     /* extern */
+void SetXfHandleActuator4(s32, s32, s32, f32, f32);     /* extern */
 CRef *func_0010E758(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[4] = { 4109, 5, 1, 1 };
@@ -11,7 +11,7 @@ CRef *func_0010E758(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 4, aref, aotyp, &arg0_v, &arg1_v, &arg2_v, &arg3_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_001F8B58(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
+    SetXfHandleActuator4(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

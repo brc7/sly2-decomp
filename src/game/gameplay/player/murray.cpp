@@ -169,12 +169,12 @@ extern char D_002C0270[];
 void LoadStepFromBrx(struct P *p);
 void BindLoOidTable(struct P *p, int n, void *q);
 struct T *func_001AE2A0(struct REQ *r);
-void *PxfFindSo(struct P *p, int a, int b);
+void *FindSoXf(struct P *p, int a, int b);
 void func_00186930(struct T *t);
 static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return func_001AE2A0(&req); }
 /** @sly2-annot addr=0x1B4888
  * Purpose: MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0
- *   hand/grip records looking up child XFs 0x200-0x205 (PxfFindSo), caches grip XFs at x15F0..x15FC
+ *   hand/grip records looking up child XFs 0x200-0x205 (FindSoXf), caches grip XFs at x15F0..x15FC
  * Info: proposed name LoadMurrayFromBrx (T1); class MURRAY slot14; TU murray
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest+parse-verified
@@ -187,19 +187,19 @@ void LoadMurrayFromBrx(struct P *p)
     LoadStepFromBrx(p);
     BindLoOidTable(p, 0x89, D_002C0270);
     p->x1610 = NewT();
-    p->x1610->x4 = PxfFindSo(p, 0x200, 6);
-    p->x1610->x8 = PxfFindSo(p, 0x201, 6);
-    p->x1610->xC = PxfFindSo(p, 0x202, 1);
+    p->x1610->x4 = FindSoXf(p, 0x200, 6);
+    p->x1610->x8 = FindSoXf(p, 0x201, 6);
+    p->x1610->xC = FindSoXf(p, 0x202, 1);
     func_00186930(p->x1610);
     p->x1614 = NewT();
-    p->x1614->x4 = PxfFindSo(p, 0x203, 6);
-    p->x1614->x8 = PxfFindSo(p, 0x204, 6);
-    p->x1614->xC = PxfFindSo(p, 0x205, 1);
+    p->x1614->x4 = FindSoXf(p, 0x203, 6);
+    p->x1614->x8 = FindSoXf(p, 0x204, 6);
+    p->x1614->xC = FindSoXf(p, 0x205, 1);
     func_00186930(p->x1614);
     p->x15F0 = p->x1610->xC;
-    p->x15F4 = PxfFindSo(p, 0x202, 6);
+    p->x15F4 = FindSoXf(p, 0x202, 6);
     p->x15F8 = p->x1614->xC;
-    p->x15FC = PxfFindSo(p, 0x205, 6);
+    p->x15FC = FindSoXf(p, 0x205, 6);
 }
 } } // namespace M_LoadMurrayFromBrx
 
@@ -213,7 +213,7 @@ void func_001A0300(struct S *p, void *a, void *b);
 void func_0020BD88(void *p, struct S *s);
 void PostJtthrowLoad(void *p);
 void func_001426E8(struct S *p, int n);
-void *PxfFindSo(struct S *p, int a, int b);
+void *FindSoXf(struct S *p, int a, int b);
 int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
 void SetMurrayState(struct S *p, int n);
 /** @sly2-annot addr=0x1B49E0
@@ -237,7 +237,7 @@ void PostMurrayLoad(struct S *p)
     func_0020BD88(b + 0x1850, p);
     PostJtthrowLoad(b + 0x1910);
     func_001426E8(p, 0x16);
-    v = PxfFindSo(p, p->x18, 0xC);
+    v = FindSoXf(p, p->x18, 0xC);
     if (v) {
         *(int *)(b + 0x1ACC) = func_0012DC18(p, v, 0, 7, 2, D_002A2DE0);
     }
@@ -1382,7 +1382,7 @@ void GetMurrayCpdefi(struct S *p, int *pf)
 
 namespace M_PresetMurrayAccel { extern "C" {
 struct S { char pad[0x13D0]; int k; };
-void func_001F9B20(struct S *p);
+void PresetSoAccel(struct S *p);
 void PresetStepAccel(struct S *p);
 void PresetJtAccelJump(void *p);
 void PresetJtAccelHide(void *p);
@@ -1399,7 +1399,7 @@ void PresetJtAccelPipe(void *p);
 void PresetMurrayAccel(struct S *p)
 {
     char *b = (char *)p;
-    if (p->k == 20) func_001F9B20(p);
+    if (p->k == 20) PresetSoAccel(p);
     else PresetStepAccel(p);
     switch (p->k) {
     case 2: PresetJtAccelJump(b + 0x2C0); break;
@@ -1671,9 +1671,9 @@ struct P {
     struct LINK *plink;
 };
 void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
-void *func_001F7530(void *p, int n);
+void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void *func_001F7598(struct MSG *pmsg);
+void *DeliverZapToSo(struct MSG *pmsg);
 float *func_0012F938(void *p, int n);
 void func_00130D30(struct Q *p, int n, float g, float h);
 void func_00130B18(struct Q *p);
@@ -1767,7 +1767,7 @@ void SetMurrayFlopSubstate(struct P *p, int s)
             int i = pl->as[0].x8 != p;
             struct SIDE *pso = &pl->as[1 - i];
             struct SIDE *psm = &pl->as[i];
-            void *po = func_001F7530(pso->xC, 4);
+            void *po = FindZapResponder(pso->xC, 4);
             if (po) {
                 struct MSG msg;
                 func_002333B4(&msg, 0, sizeof(msg));
@@ -1778,7 +1778,7 @@ void SetMurrayFlopSubstate(struct P *p, int s)
                 msg.x10 = -20;
                 msg.v20 = pso->v10;
                 msg.v30 = psm->v30;
-                (void)func_001F7598(&msg);
+                (void)DeliverZapToSo(&msg);
             }
         }
         FreeSwXpList__FP2SWP2XP(D_003DD490, p->plink);
@@ -2190,9 +2190,9 @@ void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void func_00209FB8(struct LO *p);
 qword func_001A62E8(struct LO *p);
-qword GetSoDvGravity(struct LO *p);
+qword GetSoGravity(struct LO *p);
 qword CalculateVelocityToReachPos(qword a, qword b, qword c, float t);
-void func_001F7A68(struct LO *p, int n);
+void SetSoZapMode(struct LO *p, int n);
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -2223,9 +2223,9 @@ void ThrowMurrayCarried(struct P *p)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
             func_00209FB8(po);
         t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
-        v = CalculateVelocityToReachPos(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
+        v = CalculateVelocityToReachPos(func_001A62E8(po), p->v1420, GetSoGravity(po), t);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
-        func_001F7A68(po, 2);
+        SetSoZapMode(po, 2);
     }
 }
 } } // namespace M_ThrowMurrayCarried
@@ -2268,7 +2268,7 @@ void DetachMurrayCarried(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void func_00209FB8(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
-void func_001F7A68(struct O *p, int n);
+void SetSoZapMode(struct O *p, int n);
 /** @sly2-annot addr=0x1B7AE8
  * Purpose: Release in state 8: detach, velocity = fixed local vector D_002C09D0, zero angular velocity,
  *   SetSoZapMode 3
@@ -2288,7 +2288,7 @@ void func_001B7AE8(struct S *p)
         q = ConvertAloVec(p, 0, D_002C09D0);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, q);
         ((void (*)(void *, qword))po->vt[36].pfn)((char *)po + po->vt[36].d, D_002A2DD0);
-        func_001F7A68(po, 3);
+        SetSoZapMode(po, 3);
     }
 }
 } } // namespace M_func_001B7AE8
@@ -2304,7 +2304,7 @@ void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
 void func_00209EE0(struct X *x);
-void func_001F7A68(struct X *x, int n);
+void SetSoZapMode(struct X *x, int n);
 qword ConvertAloVec(struct P *p, int n, qword q);
 /** @sly2-annot addr=0x1B7BA8
  * Purpose: Abort carrying (on forced state change): detach the carried/lifted object and set its velocity per
@@ -2331,7 +2331,7 @@ void DropMurrayCarried(struct P *p)
     DetachMurrayCarried(p);
     x = p->x13F0->x180;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) func_00209EE0(x);
-    else func_001F7A68(x, 1);
+    else SetSoZapMode(x, 1);
     switch (p->x13D0) {
     case 5: {
         struct VE *e = &x->vt[35];
@@ -2358,7 +2358,7 @@ struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180
 struct P { char pad[0x13F0]; struct O *x13F0; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
 void ReleaseAct(int *p);
 void func_002303A0(struct X *x, int a, int b);
-void func_001F6860(struct X *x, int a);
+void SetSoTreeFlag2(struct X *x, int a);
 void SetLoParent_1A58D0(struct X *x, int a, int b);
 void RecalcSwOxfFilterForObject(void *g, struct P *p);
 /** @sly2-annot addr=0x1B7D20
@@ -2390,7 +2390,7 @@ void DetachMurrayCarried(struct P *p)
     x = p->x13F0->x180;
     func_002303A0(x, x->x58, p->x1404);
     func_002303A0(x, x->x5C, p->x1408);
-    func_001F6860(x, 0);
+    SetSoTreeFlag2(x, 0);
     SetLoParent_1A58D0(x, 0, 0xF);
     p->x1430 = x;
     p->f1434 = D_002DDED0.t;
@@ -3319,8 +3319,8 @@ extern "C" void AdjustStepNewXp(P *p, X *px, int i);
 extern "C" void func_001A2100(void *p, X *px, int i);
 extern "C" void func_0019E9C8(void *p, X *px, int i);
 extern "C" qword func_0011F198(qword a, qword b);
-extern "C" int func_001AA020(void *g, X *px);
-extern "C" void func_001A9FE0(void *g, int r, void *p);
+extern "C" int CloneXpList(void *g, X *px);
+extern "C" void AppendXpList(void *g, int r, void *p);
 
 /** @sly2-annot addr=0x1B9130
  * Purpose: MURRAY vt55(pxp,i): STEP base 0x204250; per-state contact handling (power-move contact trigger,
@@ -3356,7 +3356,7 @@ extern "C" void AdjustMurrayNewXp(P *p, X *px, int i)
     case 3:
         if (p->x13D8 == 1) {
             if (D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-                func_001A9FE0(D_003DD490, func_001AA020(D_003DD490, px), p->x13E4);
+                AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), p->x13E4);
             }
         }
         break;
@@ -3491,7 +3491,7 @@ extern "C" float D_002C0A3C,D_002C0A40;
 extern "C" void ReleaseAct(MOTION**);
 extern "C" void SetSoCnstrForce(OWNER*,int);
 extern "C" void SetLoParent_1A58D0(OWNER*,int,int);
-extern "C" void func_001F6860(OWNER*,int);
+extern "C" void SetSoTreeFlag2(OWNER*,int);
 extern "C" EVENT*func_0012F938(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
@@ -3532,7 +3532,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   p->oldLeft=owner->left->state;
   p->oldRight=owner->right->state;
   SetLoParent_1A58D0(owner,0,15);
-  func_001F6860(owner,1);
+  SetSoTreeFlag2(owner,1);
   M4 predicted;
   float duration;
   EVENT*event=func_0012F938(p->anim->clip,0x1C7);
@@ -3563,7 +3563,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
  valid:
   ROOT*root=p->root;
   SetLoParent_1A58D0(owner,(int)root,15);
-  func_001F6860(owner,1);
+  SetSoTreeFlag2(owner,1);
   U position,rotation;
   M4 frame;
   func_001B72B0(p,root->node,&D_002A2D30,&rotation.q,&position.q);

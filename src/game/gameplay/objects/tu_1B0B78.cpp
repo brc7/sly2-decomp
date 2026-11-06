@@ -96,9 +96,9 @@ void UpdateSo(CID96V *p);
 void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
 void RenderSoSelf(CID96V *p);
-void func_001F59A0(CID96V *p, M3 *pmat, VECTOR3 *pspin);
-int func_001F7588(CID96V *p, struct A96 *pa);
-void func_001F3980(CID96V *p);
+void AccelSoTowardMatBounded(CID96V *p, M3 *pmat, VECTOR3 *pspin);
+int HasZapRecordField44(CID96V *p, struct A96 *pa);
+void UpdateSoXfWorld(CID96V *p);
 void func_002303A0(CID96V *, XFV *, int);
 void func_0022C840(CID96V *, XFV *);
 void func_0022C818(CID96V *, XFV *);
@@ -320,7 +320,7 @@ struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
  * @end-sly2-annot */
 extern "C" int func_001B0F88(CID96V *p, A96 *pa)
 {
-    int r = func_001F7588(p, pa);
+    int r = HasZapRecordField44(p, pa);
     if (r && (pa->n44 & 8) && p->state != 5) {
         func_001B1328(p, 5);
         if (p->plo1C8) {
@@ -351,7 +351,7 @@ extern "C" void func_001B1030(CID96V *p)
         e = &p->pvt[70];
         ((void (*)(void *))e->pfn)((char *)p + e->d);
     }
-    func_001F3980(p);
+    UpdateSoXfWorld(p);
 }
 
 /** @sly2-annot addr=0x1B10B0
@@ -362,7 +362,7 @@ extern "C" void func_001B1030(CID96V *p)
  * @end-sly2-annot */
 extern "C" void func_001B10B0(CID96V *p)
 {
-    func_001F59A0(p, &p->basis, &p->spin);
+    AccelSoTowardMatBounded(p, &p->basis, &p->spin);
 }
 
 struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */

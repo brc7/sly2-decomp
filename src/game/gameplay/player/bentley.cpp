@@ -134,7 +134,7 @@ struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char a1320[0
 union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
 extern VQ D_002BC920;
 void PostLoadStepplayer(struct S *);
-int PxfFindSo(struct S *, int, int);
+int FindSoXf(struct S *, int, int);
 void func_001A0300(struct S *, void *, void *);
 void PostJtLoadGait(void *);
 void func_00136D28(void *, struct S *, ti128, float, float);
@@ -149,7 +149,7 @@ void SetBentleyState(struct S *, int);
  * @end-sly2-annot */
 void PostBentleyLoad(struct S *p) {
     PostLoadStepplayer(p);
-    p->f10b8 = PxfFindSo(p, 0xb, 1);
+    p->f10b8 = FindSoXf(p, 0xb, 1);
     func_001A0300(p, p->a13e0, p->a14e0);
     func_001A0300(p, p->a14f0, p->a15f0);
     PostJtLoadGait(p->a1320);
@@ -893,7 +893,7 @@ struct VT { short d; short pad; void *pfn; };
 struct P { char pad[0xC]; struct VT *pvt; char pad1[0x2C0 - 0x10]; char a2C0[0x200]; char a4C0[0xDF0 - 0x4C0];
     char aDF0[0x160]; char aF50[0x13D0 - 0xF50]; int k; char pad3[0x16B0 - 0x13D4]; int x16B0; };
 extern float D_002BC990;
-void func_001F9B20(struct P *p);
+void PresetSoAccel(struct P *p);
 void PresetStepAccel(struct P *p);
 void PresetJtAccelJump(void *p);
 void PresetJtAccelHide(void *p);
@@ -910,7 +910,7 @@ void AddSoAcceleration(struct P *p, qword v);
 void func_00135940(struct P *p)
 {
     if (p->k == 13)
-        func_001F9B20(p);
+        PresetSoAccel(p);
     else
         PresetStepAccel(p);
     switch (p->k) {

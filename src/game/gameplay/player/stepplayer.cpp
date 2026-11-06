@@ -81,7 +81,7 @@ void InitJtMode(void *pv, struct P *p);
 void InitThrow(void *pv, struct P *p);
 void InitJtPipe(void *pv, struct P *p);
 void InitJtgoal(void *pv, struct P *p);
-void func_001F7918(struct P *p, int mask, int n);
+void SetSoZapResponse(struct P *p, int mask, int n);
 /** @sly2-annot addr=0x13FF70
  * Purpose: STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at
  *   +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x103C=20.0 ...)
@@ -120,8 +120,8 @@ void InitStepplayer(struct P *p)
     p->x1318 = -1;
     p->x10C8 = -1;
 
-    func_001F7918(p, 0x3FFFFFF, 0);
-    func_001F7918(p, 0x10FF00, 8);
+    SetSoZapResponse(p, 0x3FFFFFF, 0);
+    SetSoZapResponse(p, 0x10FF00, 8);
 }
 } } // namespace M_InitStepplayer
 
@@ -155,7 +155,7 @@ int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
 void *func_001AE2A0(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
-int func_001F8278(struct P *);
+int EnsureTargetRecordById(struct P *);
 void SetSoMass(struct P *, float);
 qword func_001A62E8(struct P *);
 struct M3 *func_001A6318(struct P *);
@@ -212,7 +212,7 @@ void PostLoadStepplayer(struct P *p)
     }
     LoadStepplayerGadgets(p);
     BindStepplayerHpMp(p, D_003DD490.grf & 4);
-    p->x1088 = func_001F8278(p);
+    p->x1088 = EnsureTargetRecordById(p);
     SetSoMass(p, 0.25f);
     if (p->pso->x94 == 0) {
         qword q = func_001A62E8(p);
@@ -418,7 +418,7 @@ void SetStepplayerPlayerInteractMode(struct X *p, int a, int b, int c, int d)
 
 namespace M_SetStepplayerCtlState { extern "C" {
 void SetPoCtlState(void *p, int n);
-void func_001F82B8(void *p, int a, int b);
+void SetSoTargetRecordParams(void *p, int a, int b);
 void ClearBhvstk__FP6BHVSTK(void *p);
 /** @sly2-annot addr=0x1406E8
  * Purpose: vt79: PO SetPoCtlState, then 0x1F82B8(p, n==1?0:-1, 0); on becoming current (n==1) clear the
@@ -431,7 +431,7 @@ void ClearBhvstk__FP6BHVSTK(void *p);
 void SetStepplayerCtlState(char *p, int n)
 {
     SetPoCtlState(p, n);
-    func_001F82B8(p, n == 1 ? 0 : -1, 0);
+    SetSoTargetRecordParams(p, n == 1 ? 0 : -1, 0);
     if (n == 1) ClearBhvstk__FP6BHVSTK(p + 0x26C);
 }
 } } // namespace M_SetStepplayerCtlState
@@ -661,7 +661,7 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *pstepplayer, TN *ptn)
 }
 
 namespace M_func_00140D00 { extern "C" {
-void func_001F4FA8(void *p);
+void IgnoreSoSlot59(void *p);
 void func_001991A0(void *p);
 void UpdateJtInternalXpsHide(void *p);
 void UpdateJtInternalXpsPipe(void *p);
@@ -674,7 +674,7 @@ void UpdateJtInternalXpsPipe(void *p);
  * @end-sly2-annot */
 void func_00140D00(char *p)
 {
-    func_001F4FA8(p);
+    IgnoreSoSlot59(p);
     if (*(int *)(p + 0x2DC) != -1) func_001991A0(p + 0x2C0);
     if (*(int *)(p + 0x4CC) != -1) UpdateJtInternalXpsHide(p + 0x4C0);
     if (*(int *)(p + 0xF54) != -1) UpdateJtInternalXpsPipe(p + 0xF50);
@@ -699,7 +699,7 @@ void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here 
 namespace M_func_00140DB0 { extern "C" {
 /* func_00140DB0 (Claude agent for Lilly, T1644): saves s->v, scales it by 0.01 when the
    other entry's k (s->ae[1 - i].k) is one of three known values and p allows it
-   (p->p150->x80 != 1 or func_00144068(p)), calls func_001FAD00 with the same arguments,
+   (p->p150->x80 != 1 or func_00144068(p)), calls ApplySoContactImpulse with the same arguments,
    then restores s->v.
    Matching notes: `save` is a plain qword that is only read by "j" asm operands, so it
    becomes a VU-class pseudo that is spilled across the call (the game's lq/sq v1 + lqc2
@@ -715,7 +715,7 @@ extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
 int func_00144068(struct P *p);
-void func_001FAD00(struct P *p, void *a, struct S *s, void *b, int i);
+void ApplySoContactImpulse(struct P *p, void *a, struct S *s, void *b, int i);
 /** @sly2-annot addr=0x140DB0
  * Purpose: vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
  *   and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before
@@ -744,7 +744,7 @@ void func_00140DB0(struct P *p, void *a, struct S *s, void *b, int i)
             s->v = vo;
         }
     }
-    func_001FAD00(p, a, s, b, i);
+    ApplySoContactImpulse(p, a, s, b, i);
     s->v = save;
 }
 } } // namespace M_func_00140DB0
@@ -1894,7 +1894,7 @@ extern struct CLOCK D_002DDED0;
 extern struct P *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
-void func_001F3C10(struct P *p);
+void RefreshSoBoundsRecord(struct P *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 void RenderSoGlobset(void *p, int n, int m, float a, float b);
 /** @sly2-annot addr=0x1425B0
@@ -1909,7 +1909,7 @@ void RenderStepplayerSelf(struct P *p)
 {
     float g0, g1;
     if (!(p->b2D & (*(int *)&g_cm.grfvis))) return;
-    func_001F3C10(p);
+    RefreshSoBoundsRecord(p);
     if (p->xF04 == 1 && p->xF20 != 2) return;
     if (p->x4C8 == 2) {
         g0 = D_002BD268;
@@ -1934,7 +1934,7 @@ typedef struct { qword r[3]; } M3;
 struct SO { char pad[0x40]; M3 mat; };
 struct X60 { char pad[0x40]; M3 mat; };
 struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
-struct SO *PxfFindSo(struct P *p, int x, int n);
+struct SO *FindSoXf(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword func_0011BFF0(M3 *pm);
 void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
@@ -1963,7 +1963,7 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
  * @end-sly2-annot */
 void func_001426E8(struct P *p, int x)
 {
-    struct SO *pso = PxfFindSo(p, x, 6);
+    struct SO *pso = FindSoXf(p, x, 6);
     M3 m, a;
     if (pso) {
         InvertMatrix3CofactorP(&a, &p->p60->mat);
@@ -3317,7 +3317,7 @@ void func_00144338(char *p, int a, int b)
 } } // namespace M_func_00144338
 
 namespace M_FIgnoreIntersection__10STEPPLAYERP2SO { extern "C" {
-int FIgnoreSoIntersection(void *p, int a);
+int ShouldSoIgnoreIntersection(void *p, int a);
 int func_00220498(void *p, int a, int b);
 void func_001CC9A8(void *p, int a, int b);
 /** @sly2-annot addr=0x144388
@@ -3330,7 +3330,7 @@ void func_001CC9A8(void *p, int a, int b);
  * @end-sly2-annot */
 void FIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
-    int x = FIgnoreSoIntersection(p, a);
+    int x = ShouldSoIgnoreIntersection(p, a);
     x = func_00220498(p + 0x11B0, a, x);
     func_001CC9A8(p + 0x900, a, x);
 }

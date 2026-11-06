@@ -1295,13 +1295,13 @@ struct LO { char pad[0xC]; struct VTE *vt; char p1[0x24 - 0x10]; struct LO *x24;
 struct Q { char pad[0xDC]; int xDC; };
 struct S { char pad[0x64]; struct LO *x64; char p1[0xCC - 0x68]; int xCC; char p2[0xE8 - 0xD0]; struct Q *xE8; };
 void func_001CB4E0(struct S *p, int n);
-void func_001F7A68(struct S *p, int n);
+void SetSoZapMode(struct S *p, int n);
 qword func_001A62E8(void *p);
-void *PpathzoneFromPos(qword q, int n);
-void func_001F37C8(struct S *p, void *pv);
+void *FindPathzoneAtPos(qword q, int n);
+void SetSoPhysRegion(struct S *p, void *pv);
 /** @sly2-annot addr=0x1CB518
  * Purpose: SO slot 26 (called by PspareAcquire with the PROXY when a spare copy is placed): ResetLoForProxy
- *   base, SetSoZapMode(0), clear +0xCC, re-pick the physics region from PpathzoneFromPos when needed, then
+ *   base, SetSoZapMode(0), clear +0xCC, re-pick the physics region from FindPathzoneAtPos when needed, then
  *   slot 26 on children
  * Info: proposed name ResetSoForProxy (T2); class SO slot26; TU proxy
  * Notes: v3: superseded SO_VUnk26Proxy | top50_round (0.50): PspareAcquire 0x1CAEC8 calls vt37(matrix) then
@@ -1317,12 +1317,12 @@ void func_001CB518(struct S *p, int n)
     struct LO *plo;
     int f;
     func_001CB4E0(p, n);
-    func_001F7A68(p, 0);
+    SetSoZapMode(p, 0);
     p->xCC = -1;
     f = 0;
     if (p->xE8) f = p->xE8->xDC;
     if (f) {
-        func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+        SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
     }
     for (plo = p->x64; plo; plo = plo->x24)
         ((void (*)(void *, int))plo->vt[26].pf)((char *)plo + plo->vt[26].d, n);
@@ -1361,7 +1361,7 @@ public:
 };
 extern "C" {
 void func_001CB5C8(LO *p, int n);
-void func_001F37C8(LO *p, int n);
+void SetSoPhysRegion(LO *p, int n);
 void func_001CB5D0(LO *p, int n);
 }
 /** @sly2-annot addr=0x1CB5D0
@@ -1376,7 +1376,7 @@ void func_001CB5D0(LO *p, int n)
     int f;
     func_001CB5C8(p, n);
     f = p->pa ? p->pa->f : 0;
-    if (f) func_001F37C8(p, 0);
+    if (f) SetSoPhysRegion(p, 0);
     for (pc = p->pFirst; pc; pc = pc->pNext) pc->Fn(n);
 }
 } // namespace M_func_001CB5D0

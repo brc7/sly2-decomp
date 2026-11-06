@@ -154,16 +154,16 @@ struct VU_VECTOR4
     qword qw;
 };
 
-/* The bounds record of an SO (SO::psobounds): its owner and one float the owner keeps in step (func_001F2688). */
+/* The bounds record of an SO (SO::psobounds): its owner and one float the owner keeps in step (SetSoBoundsScale). */
 struct SOBOUNDS
 {
     SO *pso;                /* +0x00 */
     int pad4[7];
     float g20;              /* +0x20 */
 };
-/* Objects only one function reads: func_001F7588's +0x44 word and func_001F8238's +0xB4 word. */
+/* Objects only one function reads: HasZapRecordField44's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int n44; char pad48[0x6C]; int nB4; };
-/* The per-step record func_001F8300 finds (three floats at +4, +8, +0xC). */
+/* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
 struct STEPREC { int n0; float g4; float g8; float gC; };
 /* A transform handle (a BASIC with a reference count at +0x10, the object at +0x20 and its XF at +0x24), freed into
    the slot heap D_003E15CC. */
@@ -185,30 +185,30 @@ void RemoveDlEntry(DL *pdl, void *pv);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
 extern "C" {
-SO *PsoFindPhysRoot(SO *pso);
+SO *FindSoPhysRoot(SO *pso);
 void RecalcSwOxfFilterForObject(SW *psw, SO *pso);
 void AdjustSoMomint(SO *pso, float r);
 void PostLoLoadV() __asm__("PostLoLoad");      /* a0 passed through */
 void UpdateSoXfWorldMatrices(SO *pso);
 void BindGlobset(GLOBSET *pglobset);
 void UpdateGeomWorld(MATRIX4 *pmat, GEOM *pgeomLocal, GEOM *pgeomWorld);
-void func_001F4BF8(SO *pso);
-void func_001F4B58(SO *pso);
-void func_001F4BA8(SO *pso);
-void func_001F3C10(SO *pso);
+void InvalidateSoAaox(SO *pso);
+void MarkSoTreeBoundsDirty(SO *pso);
+void ClearSoTreeBoundsDirty(SO *pso);
+void RefreshSoBoundsRecord(SO *pso);
 void RenderSoGlobset(GLOBSET *pglobset, int n, float uAlpha1, float uAlpha2, SOBOUNDS *psobounds);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword qw);
 void SlotUnsettle(SO *pso, XF *pxf);
 void AddSwAaobrObject(SW *psw, SO *pso);
 void func_002303A0(SO *pso, XF *pxf, int n);
-void func_001F5510(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
-void func_001F55C8(SO *pso);
-void func_001F8668(SO *pso, int n);
-void func_001F4E28(SO *pso);
-int func_001F8240(LO *plo);
+void GetSoConstraintAxis(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
+void RebuildSoPhysHook(SO *pso);
+void SetSoBit35Hierarchy(SO *pso, int n);
+void FreeSoContacts(SO *pso);
+int FindTargetRecordById(LO *plo);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void func_0020A5F8(void *ptargetrec, LO *plo);
-STEPREC *func_001F8300(STEP *pstep);
+STEPREC *EnsureSoPhysRegionRecord(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
@@ -269,7 +269,7 @@ void func_001A5900(struct LO *, struct LO *, struct LO *, int);
 void UpdateSoXfWorldMatrices(struct LO *);
 void ReleaseSoBoundsHierarchy(struct LO *);
 void EnsureSoBoundsHierarchy(struct LO *);
-void func_001F8668(struct LO *, int);
+void SetSoBit35Hierarchy(struct LO *, int);
 }
 
 #define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
@@ -327,7 +327,7 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int gr
     if (grf & 8) VCALL(plo, 36, void (*)(void *, qword)), q2);
     ReleaseSoBoundsHierarchy(plo);
     EnsureSoBoundsHierarchy(plo);
-    if (plo->p10 && !(plo->p10->fl & (1L << 35))) func_001F8668(plo, 0);
+    if (plo->p10 && !(plo->p10->fl & (1L << 35))) SetSoBit35Hierarchy(plo, 0);
 }
 } // namespace M_SetSoParent
 
@@ -450,7 +450,7 @@ position:
 typedef char ancestor_layout[(sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(void*)==4 && sizeof(float)==4 && sizeof(int)==4 && sizeof(unsigned)==4 && sizeof(ulong)==8 && sizeof(struct Origin)==0x80 && __alignof__(struct Origin)==16 && sizeof(struct Stats)==0x24 && __alignof__(struct Stats)==4 && sizeof(struct Node)==0x150 && __alignof__(struct Node)==8 && OFF(struct Origin,pos)==0x70 && OFF(struct Stats,owner)==0x0 && OFF(struct Stats,origin)==0x4 && OFF(struct Stats,count)==0x8 && OFF(struct Stats,low)==0x10 && OFF(struct Stats,high)==0x1c && OFF(struct Stats,scale)==0x20 && OFF(struct Node,parent)==0x10 && OFF(struct Node,reference)==0x60 && OFF(struct Node,radius)==0xa0 && OFF(struct Node,flags)==0xd0 && OFF(struct Node,stats)==0x134 && OFF(struct Node,scale)==0x13c && OFF(struct Node,state)==0x148)?1:-1];
 } } // namespace M_EnsureSoBounds
 
-// 0x1F2688 func_001F2688
+// 0x1F2688 SetSoBoundsScale
 /** @sly2-annot addr=0x1F2688
  * Purpose: Store float at +0x13C and mirror it into the shared bounds record if this SO owns it
  * Info: proposed name SetSoBoundsScale (T2); TU so
@@ -458,7 +458,7 @@ typedef char ancestor_layout[(sizeof(qword)==16 && __alignof__(qword)==16 && siz
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Sets gUnk13c, and the bounds record's copy when the record is this object's. */
-extern "C" void func_001F2688(SO *pso, float g)
+extern "C" void SetSoBoundsScale(SO *pso, float g)
 {
     SOBOUNDS *psobounds;
     psobounds = pso->psobounds;
@@ -490,7 +490,7 @@ void EnsureSoBoundsHierarchy(struct L *p)
 }
 } } // namespace M_EnsureSoBoundsHierarchy
 
-// 0x1F2718 func_001F2718
+// 0x1F2718 SetSoUnknownBits20
 namespace M_func_001F2718 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
@@ -501,10 +501,10 @@ struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F2718(struct S *p, int n) { p->b = n; }
+void SetSoUnknownBits20(struct S *p, int n) { p->b = n; }
 } } // namespace M_func_001F2718
 
-// 0x1F2740 func_001F2740
+// 0x1F2740 GetSoUnknownBits20
 namespace M_func_001F2740 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
@@ -514,7 +514,7 @@ struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F2740(struct S *p) { return p->b; }
+int GetSoUnknownBits20(struct S *p) { return p->b; }
 } } // namespace M_func_001F2740
 
 // 0x1F2758 GetSoIgnoreLocked
@@ -542,7 +542,7 @@ int GetSoIgnoreLocked(struct S *p) { return (int)(p->fl >> 34) & 1; }
  * @end-sly2-annot */
 void SetSoIgnoreLocked(SO *pso, int f) { pso->globset.fUnk34 = f; }
 
-// 0x1F2798 PsoFindPhysRoot
+// 0x1F2798 FindSoPhysRoot
 namespace M_PsoFindPhysRoot { extern "C" {
 struct Q; struct A;
 typedef unsigned long ulong;
@@ -551,12 +551,12 @@ struct A { char pad[0x10]; struct A *next; char pad2[0xD4]; struct Q *pq; char p
 /** @sly2-annot addr=0x1F2798
  * Purpose: Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag
  *   +0x148 bit34; returns last visited
- * Info: proposed name PsoFindPhysRoot (T1); TU so
+ * Info: proposed name FindSoPhysRoot (T1); TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct A *PsoFindPhysRoot(struct A *p)
+struct A *FindSoPhysRoot(struct A *p)
 {
     struct A *r = 0;
     while (p) {
@@ -571,7 +571,7 @@ struct A *PsoFindPhysRoot(struct A *p)
 }
 } } // namespace M_PsoFindPhysRoot
 
-// 0x1F27F0 func_001F27F0
+// 0x1F27F0 EnsureSoTree
 /** @sly2-annot addr=0x1F27F0
  * Purpose: Ensure the SO has a contact-tree record (+0xEC): take the phys root's, creating it via vt53 and
  *   registering with g_sw (0x134320)
@@ -580,11 +580,11 @@ struct A *PsoFindPhysRoot(struct A *p)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Makes sure the object has a tree record: its physics root's (created by SO slot 53 when missing). */
-extern "C" void func_001F27F0(SO *pso)
+extern "C" void EnsureSoTree(SO *pso)
 {
     SO *psoRoot;
     if (pso->ptree == 0) {
-        psoRoot = PsoFindPhysRoot(pso);
+        psoRoot = FindSoPhysRoot(pso);
         if (psoRoot->ptree == 0) {
             psoRoot->ptree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
             RecalcSwOxfFilterForObject(&D_003DD490, psoRoot);
@@ -604,12 +604,12 @@ struct VTE { short d; short p; int (*pfn)(void *); };
 struct VT { struct VTE a[63]; };
 struct Q { char pad[0x34]; char dl[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct Q *pq; };
-void func_001F27F0(struct P *);
+void EnsureSoTree(struct P *);
 int FFindDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
-void func_001F4BF8(struct P *);
+void InvalidateSoAaox(struct P *);
 void UpdateSoPartGeom(struct E *);
-void func_001F5078(struct P *);
+void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F2870
  * Purpose: Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty
  *   (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed
@@ -620,16 +620,16 @@ void func_001F5078(struct P *);
 void AddSoPartToTree(struct P *p, struct E *pe)
 {
     struct O *po;
-    func_001F27F0(p);
+    EnsureSoTree(p);
     if (FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
     AppendDlEntry__FP2DLPv(p->pq->dl, pe);
     po = pe->po;
     pe->nA8 = -1;
     pe->m = po->m;
     pe->nAC = po->nA4;
-    func_001F4BF8(p);
+    InvalidateSoAaox(p);
     UpdateSoPartGeom(pe);
-    if (!p->pvt->a[62].pfn((char *)p + p->pvt->a[62].d)) func_001F5078(p);
+    if (!p->pvt->a[62].pfn((char *)p + p->pvt->a[62].d)) WakeSo(p);
 }
 } } // namespace M_AddSoPartToTree
 
@@ -649,9 +649,9 @@ int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 int FIsDlEmpty__FP2DL(void *);
 void RemoveSwPlacesOf(struct G *, int, struct E *);
-void func_001F4E28(struct P *);
+void FreeSoContacts(struct P *);
 void RemoveSwAaobrObject(struct G *, struct Q *);
-void func_001F5078(struct P *);
+void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F2930
  * Purpose: Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if
  *   no own parts remain
@@ -666,7 +666,7 @@ void RemoveSoPartFromTree(struct P *p, struct E *pe)
     if (!FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
     RemoveDlEntry__FP2DLPv(p->pq->dl, pe);
     if (pe->fl & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
-    func_001F4E28(p);
+    FreeSoContacts(p);
     if (FIsDlEmpty__FP2DL(p->pq->dl)) {
         struct Q *pq = p->pq;
         ((struct Q2 *)pq->p60)->pq = 0;
@@ -680,7 +680,7 @@ void RemoveSoPartFromTree(struct P *p, struct E *pe)
         if (i < 0) p->pq = 0;
     }
 done:
-    if (!p->pvt[62].pfn((char *)p + p->pvt[62].d)) func_001F5078(p);
+    if (!p->pvt[62].pfn((char *)p + p->pvt[62].d)) WakeSo(p);
 }
 } } // namespace M_RemoveSoPartFromTree
 
@@ -791,8 +791,8 @@ void AddLoHierarchy(struct L *);
 void UpdateSoXfWorldMatrices(struct L *);
 void AddSoParts(struct L *);
 qword func_001A62E8(struct L *);
-void *PpathzoneFromPos(qword, int);
-void func_001F37C8(struct L *, void *);
+void *FindPathzoneAtPos(qword, int);
+void SetSoPhysRegion(struct L *, void *);
 void PostSwCallback(struct G *, struct L *, long, int);
 /** @sly2-annot addr=0x1F2C30
  * Purpose: SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region
@@ -817,7 +817,7 @@ void AddSoHierarchy(struct L *p)
     pv = p->pe ? p->pe->pDC : 0;
     if (pv) {
         if (D_003DD490.ph && D_003DD490.ph->n2C)
-            func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+            SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
         else
             PostSwCallback(&D_003DD490, p, D_002A8270.l, 0);
     }
@@ -844,7 +844,7 @@ extern const struct K D_002A8270;
 void RemoveLoHierarchy(struct P *);
 void RemoveSoParts(struct P *);
 void ClearSwCallbacks(struct G *, int, struct P *, long, int);
-void func_001F37C8(struct P *, int);
+void SetSoPhysRegion(struct P *, int);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -881,7 +881,7 @@ void RemoveSoHierarchy(struct P *p)
     if (p->pe) n = p->pe->nDC;
     if (n) {
         ClearSwCallbacks(&D_003DD490, 3, p, D_002A8270.l, 0);
-        func_001F37C8(p, 0);
+        SetSoPhysRegion(p, 0);
     }
     InitDli(&dli, &p->dl);
     while ((po = (__typeof__(po))PvNextDli(&dli)) != 0 && !(po->fl & (1L << 56)))
@@ -983,7 +983,7 @@ void ClearSoGrf(struct L *p, int f)
 }
 } } // namespace M_ClearSoGrf
 
-// 0x1F3118 func_001F3118
+// 0x1F3118 SetSoBusyDistance
 namespace M_func_001F3118 {
 struct VTE; struct VT; struct L;
 typedef unsigned long ulong;
@@ -1003,7 +1003,7 @@ extern "C" void func_00147E88(G *, int);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F3118(L *p, float t)
+extern "C" void SetSoBusyDistance(L *p, float t)
 {
     L *q;
     int unused[4];
@@ -1125,7 +1125,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
 }
 } // namespace M_LoadSoFromBrx
 
-// 0x1F3590 func_001F3590
+// 0x1F3590 InitSoPhysics
 /** @sly2-annot addr=0x1F3590
  * Purpose: SO vt64: SOPHYS gravity vector (+0x80) = (0,0,-1750), both XF modes (+0xA0/+0xC0) = 3 (fixed)
  * Info: proposed name ResetSoPhys (T2); class SO slot64; TU so
@@ -1134,7 +1134,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Default physics: gravity -1750 down z, both constraints of kind 3. */
-extern "C" void func_001F3590(SO *pso)
+extern "C" void InitSoPhysics(SO *pso)
 {
     SOPHYS *psophys;
     VECTOR *pdv;
@@ -1236,8 +1236,8 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *pe; 
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct P *);
 qword func_001A62E8(struct P *);
-void *PpathzoneFromPos(qword, int);
-void func_001F37C8(struct P *, void *);
+void *FindPathzoneAtPos(qword, int);
+void SetSoPhysRegion(struct P *, void *);
 /** @sly2-annot addr=0x1F36E0
  * Purpose: SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt,
  *   removing (vt9) at 0
@@ -1253,7 +1253,7 @@ void UpdateSo(struct P *p)
     float d;
     UpdateLo(p);
     q = p->pe ? p->pe->pDC : 0;
-    if (q) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+    if (q) SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
     d = p->g130;
     if (d != 0.0f) {
         float v = p->g12C + D_002DDED0.dt * d;
@@ -1270,7 +1270,7 @@ void UpdateSo(struct P *p)
 }
 } } // namespace M_UpdateSo
 
-// 0x1F37C8 func_001F37C8
+// 0x1F37C8 SetSoPhysRegion
 namespace M_func_001F37C8 { extern "C" {
 struct Q; struct O; struct E; struct P;
 struct Q { char pad[0x118]; char dl[1]; };
@@ -1280,14 +1280,14 @@ struct P { char pad[0xE8]; struct E *pe; };
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
-void func_001C1440(struct Q *, void *);
+void InitObstacleQueryCursor(struct Q *, void *);
 /** @sly2-annot addr=0x1F37C8
  * Purpose: Move the SOPHYS region link (+0xDC) from its current region DL (+0x118) to region q
  * Info: proposed name SetSoPhysRegion (T2); TU so
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F37C8(struct P *p, struct Q *q)
+void SetSoPhysRegion(struct P *p, struct Q *q)
 {
     struct O *o = p->pe->po;
     struct Q *old = o->pq;
@@ -1298,26 +1298,26 @@ void func_001F37C8(struct P *p, struct Q *q)
     if (q) {
         if (!FFindDlEntry__FP2DLPv(q->dl, o)) {
             AppendDlEntry__FP2DLPv(q->dl, o);
-            func_001C1440(q, o->sub);
+            InitObstacleQueryCursor(q, o->sub);
         }
     }
     o->pq = q;
 }
 } } // namespace M_func_001F37C8
 
-// 0x1F3868 func_001F3868
+// 0x1F3868 UpdateSoPhysRegionCallback
 namespace M_func_001F3868 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 qword func_001A62E8(void *);
-int PpathzoneFromPos(qword, int);
-void func_001F37C8(void *, int);
+int FindPathzoneAtPos(qword, int);
+void SetSoPhysRegion(void *, int);
 /** @sly2-annot addr=0x1F3868
  * Purpose: Deferred callback: SetSoPhysRegion(so, region at PosLoWorld)
  * Info: proposed name UpdateSoPhysRegionCallback (T2); TU so
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F3868(void *p) { func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1)); }
+void UpdateSoPhysRegionCallback(void *p) { SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1)); }
 } } // namespace M_func_001F3868
 
 // 0x1F38A8 UpdateSoPartGeom
@@ -1335,7 +1335,7 @@ extern "C" void UpdateSoPartGeom(SOPART *ppart)
     if (ppart->nStampGeom != pxf->nStampWorld) {
         UpdateGeomWorld(&pxf->matWorld, &ppart->geomLocal, &ppart->geomWorld);
         ppart->nStampGeom = ppart->pxf->nStampWorld;
-        func_001F4BF8(ppart->pso);
+        InvalidateSoAaox(ppart->pso);
     }
 }
 
@@ -1368,7 +1368,7 @@ void UpdateSoPartMatrices(struct P *p)
 }
 } } // namespace M_UpdateSoPartMatrices
 
-// 0x1F3980 func_001F3980
+// 0x1F3980 UpdateSoXfWorld
 namespace M_func_001F3980 { extern "C" {
 struct VTE; struct E; struct Q; struct R; struct P; 
 typedef int qword __attribute__((mode(TI)));
@@ -1380,7 +1380,7 @@ struct R { char pad[0x60]; qword v60; qword v70; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *p58; struct Q *p5C; char pad3[0xE0 - 0x60]; int nE0; struct E *aE4; struct R *pE8; };
 extern struct CLOCK D_002DDED0;
 void UpdateSoPartMatrices(struct P *);
-void func_001F6EF8(struct E *, float);
+void UpdateSoPartMesh(struct E *, float);
 int func_00230380(int);
 void UpdateSoSlots(struct P *);
 void UpdateSoPartGeom(struct E *);
@@ -1399,13 +1399,13 @@ static inline void Clear(int *a)
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_001F3980(struct P *p)
+void UpdateSoXfWorld(struct P *p)
 {
     int i;
     UpdateSoPartMatrices(p);
     for (i = 0; i < p->nE0; i++) {
         struct E *pe = &p->aE4[i];
-        if (*(int *)&pe->fl) func_001F6EF8(pe, D_002DDED0.dt);
+        if (*(int *)&pe->fl) UpdateSoPartMesh(pe, D_002DDED0.dt);
     }
     if (p->pE8) {
         if (p->p58) p->pE8->v60 = p->p58->vB0;
@@ -1428,7 +1428,7 @@ void func_001F3980(struct P *p)
 }
 } } // namespace M_func_001F3980
 
-// 0x1F3B28 func_001F3B28
+// 0x1F3B28 SetSoGrfBit8
 namespace M_func_001F3B28 { extern "C" {
 struct P;
 typedef unsigned long ulong;
@@ -1451,7 +1451,7 @@ void func_001D6310(struct P *);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F3B28(struct P *p, int enabled)
+void SetSoGrfBit8(struct P *p, int enabled)
 {
     register int word __asm__("a2") = p->v40;
     register int flags __asm__("v1") = word;
@@ -1502,7 +1502,7 @@ void func_001F3B28(struct P *p, int enabled)
 }
 } } // namespace M_func_001F3B28
 
-// 0x1F3C10 func_001F3C10
+// 0x1F3C10 RefreshSoBoundsRecord
 namespace M_func_001F3C10 { extern "C" {
 struct G; struct Q; struct A;
 struct G { char pad[0x3D60]; int n; };
@@ -1518,7 +1518,7 @@ void func_001A4478(struct G *pg, int n, struct Q *pq);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_001F3C10(struct A *p)
+void RefreshSoBoundsRecord(struct A *p)
 {
     struct Q *pq = p->pq;
     if (pq && pq->n != D_003DD490.n) {
@@ -1542,13 +1542,13 @@ extern "C" void RenderSoSelf(SO *pso)
 {
     float uAlpha;
     if (pso->grfvis & (*(int *)&g_cm.grfvis)) {
-        func_001F3C10(pso);
+        RefreshSoBoundsRecord(pso);
         uAlpha = pso->uAlpha;
         RenderSoGlobset(&pso->globset, 0, uAlpha, uAlpha, pso->psobounds);
     }
 }
 
-// 0x1F3CC8 func_001F3CC8
+// 0x1F3CC8 RenderSoAll
 namespace M_func_001F3CC8 { extern "C" {
 struct B; struct VTE; struct O; struct P;
 struct B { char b[0x30]; };
@@ -1566,7 +1566,7 @@ void RenderSoGlobset(void *, int, float, float, struct B *);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F3CC8(struct P *p, int a, struct B *pb, float f1, float f2)
+void RenderSoAll(struct P *p, int a, struct B *pb, float f1, float f2)
 {
     struct B b;
     int unused[4];
@@ -1676,7 +1676,7 @@ MATRIX4 * SO::PmatWorld()
     return &pso->pxfRoot->matWorld;
 }
 
-// 0x1F3FB0 func_001F3FB0
+// 0x1F3FB0 GetSoLocalXf
 namespace M_func_001F3FB0 { extern "C" {
 struct A;
 struct A { char pad[0x60]; int n; };
@@ -1687,7 +1687,7 @@ void func_002333B4(void *p, int c, int cb) __asm__("memset");
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F3FB0(struct A *p, float *pm)
+int GetSoLocalXf(struct A *p, float *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
@@ -1697,7 +1697,7 @@ int func_001F3FB0(struct A *p, float *pm)
 }
 } } // namespace M_func_001F3FB0
 
-// 0x1F4010 func_001F4010
+// 0x1F4010 ApplySoProxy
 namespace M_func_001F4010 { extern "C" {
 struct M4; struct T; struct VTE; struct VT; struct P; struct G;
 typedef int qword __attribute__((mode(TI)));
@@ -1717,7 +1717,7 @@ void func_00186820(struct P *);
  * See: docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4010(struct P *p, void *pv)
+void ApplySoProxy(struct P *p, void *pv)
 {
     struct T *pt = p->pt;
     pt->m = __ml__FRC7MATRIX4T0(pv, pt);
@@ -1747,12 +1747,12 @@ qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void func_001F4E28(struct P *);
+void FreeSoContacts(struct P *);
 void SlotUnsettle(struct P *, struct LO *);
 void UpdateSoPartMatrices(struct P *);
 qword func_001A62E8(struct P *);
-struct REGION *PpathzoneFromPos(qword, int);
-void func_001F37C8(struct P *, struct REGION *);
+struct REGION *FindPathzoneAtPos(qword, int);
+void SetSoPhysRegion(struct P *, struct REGION *);
 /** @sly2-annot addr=0x1F40A0
  * Purpose: SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part
  *   matrices, region
@@ -1803,13 +1803,13 @@ void TranslateSoToPos(struct P *p, qword v)
     plo->v30.f[3] = 1.0f;
     { int stamp=++D_003DD490.n3D58;p->p58->nA4=stamp; }
     p->pvt[18].pfn((char *)p + p->pvt[18].d);
-    func_001F4E28(p);
+    FreeSoContacts(p);
     SlotUnsettle(p, p->p58);
     UpdateSoPartMatrices(p);
     {
         struct REGION_LINK *link = 0;
         if (p->pe) link = p->pe->regionLink;
-        if (link) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+        if (link) SetSoPhysRegion(p, FindPathzoneAtPos(func_001A62E8(p), 1));
     }
 }
 
@@ -1830,7 +1830,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
-extern "C" void func_001F4E28(P *);
+extern "C" void FreeSoContacts(P *);
 extern "C" void SlotUnsettle(P *,LO *);
 extern "C" void UpdateSoPartMatrices(P *);
 static inline M3 Mul(const M3 &a,const M3 &b) return r
@@ -1872,7 +1872,7 @@ extern "C" void RotateSoToMat(P *p,const M3 *basis)
         int stamp=++D_003DD490.stamp;
         p->object->stamp=stamp;
         p->vt[18].fn((char *)p+p->vt[18].delta);
-        func_001F4E28(p);
+        FreeSoContacts(p);
         SlotUnsettle(p,p->object);
         UpdateSoPartMatrices(p);
     }
@@ -1908,9 +1908,9 @@ int func_00230310(int);
 void func_002303A0(struct P *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(struct P *, struct O *);
-void func_001F4BF8(struct P *);
-void func_001F5078(struct P *);
-void func_001F8668(struct P *, int);
+void InvalidateSoAaox(struct P *);
+void WakeSo(struct P *);
+void SetSoBit35Hierarchy(struct P *, int);
 /** @sly2-annot addr=0x1F4488
  * Purpose: SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys
  * Info: proposed name SetSoVelocity (T1); class SO slot35; TU so
@@ -1929,9 +1929,9 @@ void SetSoVelocity(struct P *p, qword q)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
     po->v.q = ConvertXfVec(0, po->nA0, d);
     SlotUnsettle(p, po);
-    func_001F4BF8(p);
-    func_001F5078(p);
-    func_001F8668(p, 0);
+    InvalidateSoAaox(p);
+    WakeSo(p);
+    SetSoBit35Hierarchy(p, 0);
 }
 } } // namespace M_SetSoVelocity
 
@@ -2026,9 +2026,9 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
 extern "C" int func_00230310(int);
 extern "C" void func_002303A0(P *,LO *,int);
 extern "C" qword ConvertXfVec(LO *,LO *,qword);
-extern "C" void func_001F4BF8(P *);
-extern "C" void func_001F5078(P *);
-extern "C" void func_001F8668(P *,long);
+extern "C" void InvalidateSoAaox(P *);
+extern "C" void WakeSo(P *);
+extern "C" void SetSoBit35Hierarchy(P *,long);
 static inline qword Sub(qword a,const qword *pb) { qword r,b; __asm__("lqc2 %1,%3\n\tvsub.xyzw %0,%2,%1":"=j"(r),"=&j"(b):"j"(a),"m"(*pb));return r; }
 static inline qword Transform(const M3 &m,qword v) { qword r;
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;
@@ -2054,41 +2054,41 @@ extern "C" void SetSoAngularVelocity(P *p,qword position)
     M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
     object->velocity.q=ConvertXfVec(0,object->parent,Transform(relative,Sub(position,&origin)));
     SlotUnsettle(p,object);
-    func_001F4BF8(p);
-    func_001F5078(p);
-    func_001F8668(p,0);
+    InvalidateSoAaox(p);
+    WakeSo(p);
+    SetSoBit35Hierarchy(p,0);
 }
 } // namespace M_SetSoAngularVelocity
 
-// 0x1F4848 func_001F4848
+// 0x1F4848 GetSoPosXfVelocityLocal
 /** @sly2-annot addr=0x1F4848
  * Purpose: Convert position XF velocity (+0xB0) between XF spaces (0x22FCC8) - result discarded by m2c
  * Info: proposed name GetSoPosXfVelocityLocal (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4848(SO *pso)
+extern "C" void GetSoPosXfVelocityLocal(SO *pso)
 {
     XF *pxf;
     pxf = pso->pxfUnk58;
     ConvertXfVec(pxf->pxfParent, pso->pxfRoot, *(qword *)&pxf->vUnkB0);
 }
 
-// 0x1F4870 func_001F4870
+// 0x1F4870 GetSoRotXfVelocityLocal
 /** @sly2-annot addr=0x1F4870
  * Purpose: Same for rotation XF (+0x5C)
  * Info: proposed name GetSoRotXfVelocityLocal (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4870(SO *pso)
+extern "C" void GetSoRotXfVelocityLocal(SO *pso)
 {
     XF *pxf;
     pxf = pso->pxfUnk5c;
     ConvertXfVec(pxf->pxfParent, pso->pxfRoot, *(qword *)&pxf->vUnkB0);
 }
 
-// 0x1F4898 func_001F4898
+// 0x1F4898 SetSoPosXfVelocityLocal
 namespace M_func_001F4898 { extern "C" {
 struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
@@ -2099,29 +2099,29 @@ int func_00230310(int);
 void func_002303A0(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(void *, struct O *);
-void func_001F4BF8(void *);
-void func_001F5078(void *);
-void func_001F8668(void *, int);
+void InvalidateSoAaox(void *);
+void WakeSo(void *);
+void SetSoBit35Hierarchy(void *, int);
 /** @sly2-annot addr=0x1F4898
  * Purpose: Set position XF velocity from a vector given in root XF space, refresh, mark phys
  * Info: proposed name SetSoPosXfVelocityLocal (T2); TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4898(struct P *p, qword v)
+void SetSoPosXfVelocityLocal(struct P *p, qword v)
 {
     struct O *po;
     if (!func_00230310(p->po->k)) func_002303A0(p, p->po, 1);
     po = p->po;
     po->q = ConvertXfVec(((struct Q *)p)->n60, po->nA0, v);
     SlotUnsettle(p, p->po);
-    func_001F4BF8(p);
-    func_001F5078(p);
-    func_001F8668(p, 0);
+    InvalidateSoAaox(p);
+    WakeSo(p);
+    SetSoBit35Hierarchy(p, 0);
 }
 } } // namespace M_func_001F4898
 
-// 0x1F4930 func_001F4930
+// 0x1F4930 SetSoRotXfVelocityLocal
 namespace M_func_001F4930 { extern "C" {
 struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
@@ -2132,29 +2132,29 @@ int func_00230310(int);
 void func_002303A0(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(void *, struct O *);
-void func_001F4BF8(void *);
-void func_001F5078(void *);
-void func_001F8668(void *, int);
+void InvalidateSoAaox(void *);
+void WakeSo(void *);
+void SetSoBit35Hierarchy(void *, int);
 /** @sly2-annot addr=0x1F4930
  * Purpose: Same for rotation XF
  * Info: proposed name SetSoRotXfVelocityLocal (T2); TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4930(struct P *p, qword v)
+void SetSoRotXfVelocityLocal(struct P *p, qword v)
 {
     struct O *po;
     if (!func_00230310(p->po->k)) func_002303A0(p, p->po, 1);
     po = p->po;
     po->q = ConvertXfVec(((struct Q *)p)->n60, po->nA0, v);
     SlotUnsettle(p, p->po);
-    func_001F4BF8(p);
-    func_001F5078(p);
-    func_001F8668(p, 0);
+    InvalidateSoAaox(p);
+    WakeSo(p);
+    SetSoBit35Hierarchy(p, 0);
 }
 } } // namespace M_func_001F4930
 
-// 0x1F49C8 func_001F49C8
+// 0x1F49C8 MatchSoXf
 namespace M_func_001F49C8 {
 class B; class X;
 typedef int qword __attribute__((mode(TI)));
@@ -2210,7 +2210,7 @@ extern "C" void func_001A6B88(X *, X *);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F49C8(X *p, X *q)
+extern "C" void MatchSoXf(X *p, X *q)
 {
     func_001A6B88(p, q);
     if (p->pE8) {
@@ -2220,7 +2220,7 @@ extern "C" void func_001F49C8(X *p, X *q)
 }
 } // namespace M_func_001F49C8
 
-// 0x1F4A80 func_001F4A80
+// 0x1F4A80 SetSoXf
 namespace M_func_001F4A80 {
 union U; struct M4; struct VTE; struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -2252,7 +2252,7 @@ static inline SETVECTOR ReadSetter(const VTE &entry){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4A80(struct P *p, struct A *pa)
+extern "C" void SetSoXf(struct P *p, struct A *pa)
 {
     M4 m;
     qword q;
@@ -2276,7 +2276,7 @@ extern "C" void func_001F4A80(struct P *p, struct A *pa)
 }
 } // namespace M_func_001F4A80
 
-// 0x1F4B58 func_001F4B58
+// 0x1F4B58 MarkSoTreeBoundsDirty
 /** @sly2-annot addr=0x1F4B58
  * Purpose: Set tree flag bit0 and add tree to dirty list g_sw.dlSoTreeQueue1
  * Info: proposed name MarkSoTreeBoundsDirty (T2); TU so
@@ -2284,7 +2284,7 @@ extern "C" void func_001F4A80(struct P *p, struct A *pa)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Queues the object's tree on list 1 (g_sw.dlSoTreeQueue1) once. */
-extern "C" void func_001F4B58(SO *pso)
+extern "C" void MarkSoTreeBoundsDirty(SO *pso)
 {
     SOTREE *ptree;
     ptree = pso->ptree;
@@ -2296,7 +2296,7 @@ extern "C" void func_001F4B58(SO *pso)
     }
 }
 
-// 0x1F4BA8 func_001F4BA8
+// 0x1F4BA8 ClearSoTreeBoundsDirty
 namespace M_func_001F4BA8 { extern "C" {
 struct T; struct S;
 struct T { char pad[0x70]; ulong fl; };
@@ -2311,7 +2311,7 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4BA8(struct S *p)
+void ClearSoTreeBoundsDirty(struct S *p)
 {
     struct T *pt = p->pt;
     if (!pt) return;
@@ -2321,7 +2321,7 @@ void func_001F4BA8(struct S *p)
 }
 } } // namespace M_func_001F4BA8
 
-// 0x1F4BF8 func_001F4BF8
+// 0x1F4BF8 InvalidateSoAaox
 /** @sly2-annot addr=0x1F4BF8
  * Purpose: After an SO moved/changed bounds: MarkSoTreeBoundsDirty, then flag its broadphase OXA (+0xEC, flag
  *   x70 bit1) dirty once and queue it on g_sw.dlSoTreeQueue2 so UpdateSwAaox re-sorts its sweep endpoints
@@ -2336,10 +2336,10 @@ void func_001F4BA8(struct S *p)
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Queues the object's tree on lists 1 and 2 (g_sw.dlSoTreeQueue2) once. */
-extern "C" void func_001F4BF8(SO *pso)
+extern "C" void InvalidateSoAaox(SO *pso)
 {
     SOTREE *ptree;
-    func_001F4B58(pso);
+    MarkSoTreeBoundsDirty(pso);
     ptree = pso->ptree;
     if (ptree != 0) {
         if (ptree->fQueued2 == 0) {
@@ -2349,20 +2349,20 @@ extern "C" void func_001F4BF8(SO *pso)
     }
 }
 
-// 0x1F4C58 PxfFindSo
+// 0x1F4C58 FindSoXf
 namespace M_PxfFindSo { extern "C" {
 struct E; struct S;
 struct E { char pad[0x94]; int b; int pad2; int a; char pad4[0x60]; };
 struct S { char pad[0x50]; int c; struct E *ae; };
 /** @sly2-annot addr=0x1F4C58
  * Purpose: Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids
- * Info: proposed name PxfFindSo (T1); TU so
+ * Info: proposed name FindSoXf (T1); TU so
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-struct E *PxfFindSo(struct S *p, int a, int b)
+struct E *FindSoXf(struct S *p, int a, int b)
 {
     int i;
     for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->a == a && pe->b == b) return pe; }
@@ -2370,7 +2370,7 @@ struct E *PxfFindSo(struct S *p, int a, int b)
 }
 } } // namespace M_PxfFindSo
 
-// 0x1F4CA0 func_001F4CA0
+// 0x1F4CA0 CloneSoXfRef
 namespace M_func_001F4CA0 { extern "C" {
 struct T; struct S;
 struct T { char pad[0x80]; int a80; int a84; void *p88; void *p8C; char pad2[0x100 - 0x90]; };
@@ -2382,7 +2382,7 @@ struct S { char pad[0x10]; struct S *next; char pad2[0x50 - 0x14]; int c; struct
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4CA0(struct S *pnew, struct S *pold, struct T **pp)
+void CloneSoXfRef(struct S *pnew, struct S *pold, struct T **pp)
 {
     struct T *t = *pp;
     struct T *n;
@@ -2403,17 +2403,17 @@ void func_001F4CA0(struct S *pnew, struct S *pold, struct T **pp)
 }
 } } // namespace M_func_001F4CA0
 
-// 0x1F4D50 func_001F4D50
+// 0x1F4D50 ClearSoTreeDirty
 /** @sly2-annot addr=0x1F4D50
  * Purpose: Inverse of MarkSoTreeDirty (clear bits 0/1, remove from both lists)
  * Info: proposed name ClearSoTreeDirty (T2); TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4D50(SO *pso)
+extern "C" void ClearSoTreeDirty(SO *pso)
 {
     SOTREE *ptree;
-    func_001F4BA8(pso);
+    ClearSoTreeBoundsDirty(pso);
     ptree = pso->ptree;
     if (ptree != 0) {
         if (ptree->fQueued2) {
@@ -2423,13 +2423,13 @@ extern "C" void func_001F4D50(SO *pso)
     }
 }
 
-// 0x1F4DA8 func_001F4DA8
+// 0x1F4DA8 RemoveSoContactsWith
 namespace M_func_001F4DA8 { extern "C" {
 struct N;
 struct N { int pad[2]; void *p8; char pad2[0xAC - 0xC]; struct N *next; };
 struct G;
 extern struct G D_003DD490;
-void func_001F5078(void *);
+void WakeSo(void *);
 void FreeSwXpList__FP2SWP2XP(struct G *, struct N *);
 /** @sly2-annot addr=0x1F4DA8
  * Purpose: Unlink contact nodes between pa and pb from list, free them (FreeSwXpList) and invalidate pa
@@ -2437,7 +2437,7 @@ void FreeSwXpList__FP2SWP2XP(struct G *, struct N *);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4DA8(void *pa, void *pb, struct N **ppn)
+void RemoveSoContactsWith(void *pa, void *pb, struct N **ppn)
 {
     struct N *pfree = 0;
     struct N *pn;
@@ -2455,13 +2455,13 @@ loop:
         goto loop;
     }
     if (pfree) {
-        func_001F5078(pa);
+        WakeSo(pa);
         FreeSwXpList__FP2SWP2XP(&D_003DD490, pfree);
     }
 }
 } } // namespace M_func_001F4DA8
 
-// 0x1F4E28 func_001F4E28
+// 0x1F4E28 FreeSoContacts
 namespace M_func_001F4E28 { extern "C" {
 struct VTE; struct VT; struct X; struct N; struct E; struct P;
 struct VTE { short d; short p; void (*pfn)(void *, void *); };
@@ -2472,7 +2472,7 @@ struct E { char pad[0x60]; struct X *p60; struct N *pn; void *p68; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *pe; };
 struct G;
 extern struct G D_003DD490;
-void func_001F4BF8(struct P *);
+void InvalidateSoAaox(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 #define VF(q, n, a) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d, a)
 /** @sly2-annot addr=0x1F4E28
@@ -2481,11 +2481,11 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4E28(struct P *p)
+void FreeSoContacts(struct P *p)
 {
     struct N *pn;
     if (!p->pe) return;
-    func_001F4BF8(p);
+    InvalidateSoAaox(p);
     for (pn = p->pe->pn; pn; pn = pn->next) {
         struct X *q = p->pe->p60;
         q->pvt->a[54].pfn((char *)q + q->pvt->a[54].d, pn->px);
@@ -2500,7 +2500,7 @@ void func_001F4E28(struct P *p)
 }
 } } // namespace M_func_001F4E28
 
-// 0x1F4F10 func_001F4F10
+// 0x1F4F10 AdjustSoXps
 namespace M_func_001F4F10 { extern "C" {
 struct S8; struct N; struct E; struct P;
 typedef unsigned long ulong;
@@ -2519,7 +2519,7 @@ void EnsureSwCallback(struct G *, struct P *, long, int);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F4F10(struct P *p)
+void AdjustSoXps(struct P *p)
 {
     struct E *pe = p->pe;
     struct N *pn;
@@ -2536,7 +2536,7 @@ void func_001F4F10(struct P *p)
 }
 } } // namespace M_func_001F4F10
 
-// 0x1F4FA8 func_001F4FA8
+// 0x1F4FA8 IgnoreSoSlot59
 /** @sly2-annot addr=0x1F4FA8
  * Purpose: SO vt59 default no-op
  * Info: proposed name SO_vt59_Nop (T2); class SO slot59; TU so
@@ -2544,11 +2544,11 @@ void func_001F4F10(struct P *p)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" void func_001F4FA8(void)
+extern "C" void IgnoreSoSlot59(void)
 {
 }
 
-// 0x1F4FB0 func_001F4FB0
+// 0x1F4FB0 AdjustSoNewXp
 /** @sly2-annot addr=0x1F4FB0
  * Purpose: SO vt55 default no-op
  * Info: proposed name SO_vt55_Nop (T2); class SO slot55; TU so
@@ -2557,33 +2557,33 @@ extern "C" void func_001F4FA8(void)
  *   docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4FB0(void)
+extern "C" void AdjustSoNewXp(void)
 {
 }
 
-// 0x1F4FB8 func_001F4FB8
+// 0x1F4FB8 IgnoreSoSlot56
 /** @sly2-annot addr=0x1F4FB8
  * Purpose: SO vt56 default no-op
  * Info: proposed name SO_vt56_Nop (T2); class SO slot56; TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4FB8(void)
+extern "C" void IgnoreSoSlot56(void)
 {
 }
 
-// 0x1F4FC0 func_001F4FC0
+// 0x1F4FC0 AdjustSoXpVelocity
 /** @sly2-annot addr=0x1F4FC0
  * Purpose: SO vt57 default no-op
  * Info: proposed name SO_vt57_Nop (T2); class SO slot57; TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F4FC0(void)
+extern "C" void AdjustSoXpVelocity(void)
 {
 }
 
-// 0x1F4FC8 FIgnoreSoIntersection
+// 0x1F4FC8 ShouldSoIgnoreIntersection
 namespace M_FIgnoreSoIntersection { extern "C" {
 struct VTE; struct VT; struct X;
 typedef unsigned long ulong;
@@ -2593,20 +2593,20 @@ struct X { char pad[0xC]; struct VT *pvt; char pad2[0x148 - 0x10]; ulong fl; };
 #define VF(p) (p)->pvt->a[62].pfn((char *)(p) + (p)->pvt->a[62].d)
 /** @sly2-annot addr=0x1F4FC8
  * Purpose: SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed
- * Info: proposed name FIgnoreSoIntersection (T1); class SO slot61; TU so
+ * Info: proposed name ShouldSoIgnoreIntersection (T1); class SO slot61; TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int FIgnoreSoIntersection(struct X *pa, struct X *pb)
+int ShouldSoIgnoreIntersection(struct X *pa, struct X *pb)
 {
     if (((pa->fl & 0x4000000) || VF(pa)) && VF(pb)) return 1;
     return 0;
 }
 } } // namespace M_FIgnoreSoIntersection
 
-// 0x1F5040 func_001F5040
+// 0x1F5040 IsSoFixed
 /** @sly2-annot addr=0x1F5040
  * Purpose: SO vt62: true if no SOPHYS or both XF modes (+0xA0/+0xC0) == 3
  * Info: proposed name FIsSoFixed (T2); class SO slot62; TU so
@@ -2614,7 +2614,7 @@ int FIgnoreSoIntersection(struct X *pa, struct X *pb)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Whether the object is fixed: no physics, or both constraints of kind 3. */
-extern "C" int func_001F5040(SO *pso)
+extern "C" int IsSoFixed(SO *pso)
 {
     SOPHYS *psophys;
     int nKind;
@@ -2627,7 +2627,7 @@ extern "C" int func_001F5040(SO *pso)
     return f;
 }
 
-// 0x1F5078 func_001F5078
+// 0x1F5078 WakeSo
 /** @sly2-annot addr=0x1F5078
  * Purpose: If the SO is in the broadphase (+0xEC): SetSoGrf(4) (vt47, the awake flag also set by
  *   SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (SlotUnsettle
@@ -2641,7 +2641,7 @@ extern "C" int func_001F5040(SO *pso)
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 /* Wakes the object (LO slot 47 with 4) and unsettles its two physics transforms. */
-extern "C" void func_001F5078(SO *pso)
+extern "C" void WakeSo(SO *pso)
 {
     if (pso->ptree != 0) {
         ((void (*)(void *, int))PVTE(pso)[47].pfn)((char *)pso + PVTE(pso)[47].d, 4);
@@ -2706,7 +2706,7 @@ struct VU_FLOAT {qword qw;};
 extern "C" { extern qword D_002A2DE0,D_002A2DF0,D_002A2E00; }
 extern "C" { extern SW D_003DD490; }
 extern "C" void UpdateSoPartGeom(SOPART *);
-extern "C" void func_001F4BA8(SO *);
+extern "C" void ClearSoTreeBoundsDirty(SO *);
 
 static inline VU_FLOAT VuFloat(float g)
 {
@@ -2867,7 +2867,7 @@ extern "C" void UpdateSoTreeBounds(SO *pso)
     pso->ptree->qwCenter = qwCenter;
     pso->ptree->sRadius = sRadius;
     D_003DD490.fUnk3CCC = 1;
-    func_001F4BA8(pso);
+    ClearSoTreeBoundsDirty(pso);
 }
 
 typedef char layout_part_size[(sizeof(SOPART)==0xB0)?1:-1];
@@ -2911,7 +2911,7 @@ void ExtendSoTreeBounds(struct P *p, qword c, float r)
 }
 } } // namespace M_ExtendSoTreeBounds
 
-// 0x1F5510 func_001F5510
+// 0x1F5510 GetSoConstraintAxis
 namespace M_func_001F5510 { extern "C" {
 struct OUT;
 typedef int qword __attribute__((mode(TI)));
@@ -2946,13 +2946,13 @@ static inline qword NormalizeOr(qword value,qword fallback) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F5510(void *unused,M3 *matrix,int index,struct OUT *out) {
+void GetSoConstraintAxis(void *unused,M3 *matrix,int index,struct OUT *out) {
     out->mode=D_002C3C20[index];
     out->axis=NormalizeOr(Transform(matrix,D_002C3BA0[index]),D_002A2DD0);
 }
 } } // namespace M_func_001F5510
 
-// 0x1F55C8 func_001F55C8
+// 0x1F55C8 RebuildSoPhysHook
 namespace M_func_001F55C8 { extern "C" {
 struct VTE; struct Q; struct O;
 typedef unsigned long ulong;
@@ -2962,31 +2962,31 @@ struct Q { char pad[0x60]; struct O *p60; };
 struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong fl; char pad3[0xEC - 0x30]; struct Q *pq; };
 struct G;
 extern struct G D_003DD490;
-struct O *PsoFindPhysRoot(struct O *);
+struct O *FindSoPhysRoot(struct O *);
 int CploFindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
 void RemoveSoParts(struct O *);
 void RecalcSwOxfFilterForObject(struct G *, struct O *);
 void AddSoParts(struct O *);
-void func_001F5078(struct O *);
+void WakeSo(struct O *);
 /** @sly2-annot addr=0x1F55C8
  * Purpose: After physics-root change: regroup contact trees of SOs whose phys root changed, re-register
  * Info: proposed name RebuildSoPhysHook (T2); TU so
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F55C8(struct O *p)
+void RebuildSoPhysHook(struct O *p)
 {
     struct O *ap[64];
     int i;
     int n;
     if (((p->fl >> 60) & 1) == 0) return;
-    if (PsoFindPhysRoot(p) != p->pq->p60) {
+    if (FindSoPhysRoot(p) != p->pq->p60) {
         n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, p, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
                 struct O *po = ap[i];
                 if (po->pq) {
-                    struct O *q = PsoFindPhysRoot(po);
+                    struct O *q = FindSoPhysRoot(po);
                     if (q != po->pq->p60) {
                         RemoveSoParts(po);
                         if (!q->pq) {
@@ -3001,18 +3001,18 @@ void func_001F55C8(struct O *p)
         }
     }
     RecalcSwOxfFilterForObject(&D_003DD490, p);
-    func_001F5078(p);
+    WakeSo(p);
 }
 } } // namespace M_func_001F55C8
 
-// 0x1F56F8 func_001F56F8
+// 0x1F56F8 NewSoTree
 /** @sly2-annot addr=0x1F56F8
  * Purpose: SO vt53: create tree record via g_sw (0x1336F0)
  * Info: proposed name SO_PtreeNew (T2); class SO slot53; TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F56F8(SO *pso)
+extern "C" void NewSoTree(SO *pso)
 {
     AddSwAaobrObject(&D_003DD490, pso);
 }
@@ -3033,10 +3033,10 @@ extern "C" void SetSoCnstrForce(SO *pso, CONSTR *pconstr)
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
             func_002303A0(pso, pxf, 1);
         }
-        func_001F5510(pso, pxf, pconstr, &pso->psophys->constrForce);
-        func_001F55C8(pso);
+        GetSoConstraintAxis(pso, pxf, pconstr, &pso->psophys->constrForce);
+        RebuildSoPhysHook(pso);
         if (pso->psophys->constrForce.nKind != 3) {
-            func_001F8668(pso, 0);
+            SetSoBit35Hierarchy(pso, 0);
         }
     }
 }
@@ -3057,15 +3057,15 @@ extern "C" void SetSoCnstrTorque(SO *pso, CONSTR *pconstr)
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
             func_002303A0(pso, pxf, 1);
         }
-        func_001F5510(pso, pxf, pconstr, &pso->psophys->constrTorque);
-        func_001F55C8(pso);
+        GetSoConstraintAxis(pso, pxf, pconstr, &pso->psophys->constrTorque);
+        RebuildSoPhysHook(pso);
         if (pso->psophys->constrTorque.nKind != 3) {
-            func_001F8668(pso, 0);
+            SetSoBit35Hierarchy(pso, 0);
         }
     }
 }
 
-// 0x1F5860 GetSoDvGravity
+// 0x1F5860 GetSoGravity
 namespace M_GetSoDvGravity { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -3074,15 +3074,15 @@ struct T { char pad[0x80]; qword v; };
 struct S { char pad[0xE8]; struct T *pt; };
 /** @sly2-annot addr=0x1F5860
  * Purpose: SOPHYS+0x80 (gravity vector) or zero
- * Info: proposed name GetSoDvGravity (T1); TU so
+ * Info: proposed name GetSoGravity (T1); TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-qword GetSoDvGravity(struct S *p) { if (!p->pt) return D_002A2DD0; return p->pt->v; }
+qword GetSoGravity(struct S *p) { if (!p->pt) return D_002A2DD0; return p->pt->v; }
 } } // namespace M_GetSoDvGravity
 
-// 0x1F5880 SetSoDvGravity
+// 0x1F5880 SetSoGravity
 namespace M_SetSoDvGravity { extern "C" {
 struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -3090,20 +3090,20 @@ struct O { char pad[0x90]; int n90; char pad2[4]; short k; };
 struct E { char pad[0x80]; qword q; };
 struct P { char pad[0x58]; struct O *po; char pad2[0xE8 - 0x5C]; struct E *pe; };
 void func_002303A0(struct P *, struct O *, int);
-void func_001F5078(struct P *);
+void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F5880
  * Purpose: Make pos XF dynamic if needed and store gravity vector, invalidate
- * Info: proposed name SetSoDvGravity (T1); TU so
+ * Info: proposed name SetSoGravity (T1); TU so
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void SetSoDvGravity(struct P *p, qword q)
+void SetSoGravity(struct P *p, qword q)
 {
     if (p->pe) {
         struct O *po = p->po;
         if (po->n90 == 0 && po->k != 2) func_002303A0(p, po, 1);
         p->pe->q = q;
-        func_001F5078(p);
+        WakeSo(p);
     }
 }
 } } // namespace M_SetSoDvGravity
@@ -3143,44 +3143,44 @@ void GetSoCpdefi(struct P *p, struct Out *po)
 }
 } } // namespace M_GetSoCpdefi
 
-// 0x1F5988 func_001F5988
+// 0x1F5988 OnSoContactFreed
 /** @sly2-annot addr=0x1F5988
  * Purpose: SO vt54 default no-op (contact notify)
  * Info: proposed name SO_vt54_Nop (T2); class SO slot54; TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F5988(void)
+extern "C" void OnSoContactFreed(void)
 {
 }
 
-// 0x1F5990 func_001F5990
+// 0x1F5990 AddSoCustomXps
 /** @sly2-annot addr=0x1F5990
  * Purpose: SO vt60 default no-op
  * Info: proposed name SO_vt60_Nop (T2); class SO slot60; TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F5990(void)
+extern "C" void AddSoCustomXps(void)
 {
 }
 
-// 0x1F5998 func_001F5998
+// 0x1F5998 QuerySoSlot63
 /** @sly2-annot addr=0x1F5998
  * Purpose: SO vt63 default: return 0
  * Info: proposed name SO_vt63_Ret0 (T2); class SO slot63; TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" int func_001F5998(void)
+extern "C" int QuerySoSlot63(void)
 {
     return 0;
 }
 
-// 0x1F59A0 func_001F59A0
+// 0x1F59A0 AccelSoTowardMatBounded
 namespace M_func_001F59A0 {
 union U; struct M3; struct OWNER; struct P; struct COEF; 
-// func_001F59A0: angular braking and bounded angular-velocity correction.
+// AccelSoTowardMatBounded: angular braking and bounded angular-velocity correction.
 // coef a = top angular speed, (a-b)/c = angular acceleration, a*a/(2*acceleration) = stopping angle.
 // Caps an overspeed, turns the owner toward `orientation` (expressed in its parent space) with a desired
 // speed taken from the predicted remaining angle, and adds a force change bounded by acceleration*dt.
@@ -3222,7 +3222,7 @@ static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F59A0(P *p,const M3 *orientation,const COEF *c)
+extern "C" void AccelSoTowardMatBounded(P *p,const M3 *orientation,const COEF *c)
 {
     M3 frame,relative;
     U axis,wanted,change,predicted;
@@ -3402,7 +3402,7 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
 }
 } } // namespace M_AccelSoTowardPosSpring
 
-// 0x1F5FF8 func_001F5FF8
+// 0x1F5FF8 FindSoGlob
 namespace M_func_001F5FF8 { extern "C" {
 struct E; struct S;
 struct E { int oid; char pad[0x24]; };
@@ -3414,7 +3414,7 @@ struct S { char pad[0xB8]; int c; int pad2; struct E *ae; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct E *func_001F5FF8(struct S *p, int oid)
+struct E *FindSoGlob(struct S *p, int oid)
 {
     int i;
     for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->oid == oid) return pe; }
@@ -3422,20 +3422,20 @@ struct E *func_001F5FF8(struct S *p, int oid)
 }
 } } // namespace M_func_001F5FF8
 
-// 0x1F6030 PsopartFindSo
+// 0x1F6030 FindSoPart
 namespace M_PsopartFindSo { extern "C" {
 struct E; struct S;
 struct E { int a[3]; int oid; char pad[0xA0]; };
 struct S { char pad[0xE0]; int c; struct E *ae; };
 /** @sly2-annot addr=0x1F6030
  * Purpose: Find SOPART by oid (+0x0C)
- * Info: proposed name PsopartFindSo (T1); TU so
+ * Info: proposed name FindSoPart (T1); TU so
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct E *PsopartFindSo(struct S *p, int oid)
+struct E *FindSoPart(struct S *p, int oid)
 {
     int i;
     for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->oid == oid) return pe; }
@@ -3644,7 +3644,7 @@ void CloneSoHierarchy(struct A *pa, struct L *p)
 }
 } } // namespace M_CloneSoHierarchy
 
-// 0x1F6788 func_001F6788
+// 0x1F6788 FindAsegaByOid
 namespace M_func_001F6788 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
@@ -3655,7 +3655,7 @@ struct N { char pad[0x14]; struct B *pb; int n; char pad2[8]; struct N *next; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct N *func_001F6788(int n, int m)
+struct N *FindAsegaByOid(int n, int m)
 {
     struct N *p;
     int unused[4];
@@ -3669,7 +3669,7 @@ struct N *func_001F6788(int n, int m)
 }
 } } // namespace M_func_001F6788
 
-// 0x1F67E0 func_001F67E0
+// 0x1F67E0 FindLiveSma
 namespace M_func_001F67E0 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
@@ -3680,7 +3680,7 @@ struct N { char pad[0x1C]; struct N *next; int pad2; struct B *pb; int n; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct N *func_001F67E0(int n, int m)
+struct N *FindLiveSma(int n, int m)
 {
     struct N *p;
     int unused[4];
@@ -3694,7 +3694,7 @@ struct N *func_001F67E0(int n, int m)
 }
 } } // namespace M_func_001F67E0
 
-// 0x1F6838 func_001F6838
+// 0x1F6838 GetSoTreeFlag2
 namespace M_func_001F6838 { extern "C" {
 struct T; struct S;
 struct T { char pad[0x70]; ulong fl; };
@@ -3705,27 +3705,27 @@ struct S { char pad[0xEC]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F6838(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->pt->fl << 30) >> 32) & 1; }
+int GetSoTreeFlag2(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->pt->fl << 30) >> 32) & 1; }
 } } // namespace M_func_001F6838
 
-// 0x1F6860 func_001F6860
+// 0x1F6860 SetSoTreeFlag2
 /** @sly2-annot addr=0x1F6860
  * Purpose: Set tree flags bit 2 then FreeSoContacts
  * Info: proposed name SetSoTreeFlag2 (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F6860(SO *pso, int f)
+extern "C" void SetSoTreeFlag2(SO *pso, int f)
 {
     SOTREE *ptree;
     ptree = pso->ptree;
     if (ptree != 0) {
         ptree->fNoUpdate = f;
-        func_001F4E28(pso);
+        FreeSoContacts(pso);
     }
 }
 
-// 0x1F68A8 func_001F68A8
+// 0x1F68A8 SetSoPartsBit48
 namespace M_func_001F68A8 { extern "C" {
 struct E; struct P;
 typedef unsigned long ulong;
@@ -3737,14 +3737,14 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F68A8(struct P *p, int f)
+void SetSoPartsBit48(struct P *p, int f)
 {
     int i;
     for (i = 0; i < p->c; i++) p->ae[i].b48 = f;
 }
 } } // namespace M_func_001F68A8
 
-// 0x1F6918 func_001F6918
+// 0x1F6918 SetSoIgnoreFixed
 namespace M_func_001F6918 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:26; int b:1; ulong c:37; };
@@ -3757,10 +3757,10 @@ void RecalcSwOxfFilterForObject(struct G *, struct S *);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F6918(struct S *p, int f) { p->b = f; RecalcSwOxfFilterForObject(&D_003DD490, p); }
+void SetSoIgnoreFixed(struct S *p, int f) { p->b = f; RecalcSwOxfFilterForObject(&D_003DD490, p); }
 } } // namespace M_func_001F6918
 
-// 0x1F6960 func_001F6960
+// 0x1F6960 GetSoIgnoreFixed
 namespace M_func_001F6960 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong fl; };
@@ -3770,7 +3770,7 @@ struct S { char pad[0x148]; ulong fl; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F6960(struct S *p) { return (int)((long)(p->fl << 6) >> 32) & 1; }
+int GetSoIgnoreFixed(struct S *p) { return (int)((long)(p->fl << 6) >> 32) & 1; }
 } } // namespace M_func_001F6960
 
 // 0x1F6978 ShowSoGlobsById
@@ -3833,7 +3833,7 @@ void HideSoGlobsById(struct P *p, int k)
 // 0x1F6A60: dead-code scrap, a nop unit (sly2/scrap.h)
 SLY2_SCRAP("nop");
 
-// 0x1F6A68 func_001F6A68
+// 0x1F6A68 HideSoAllGlobs
 namespace M_func_001F6A68 { extern "C" {
 struct C; struct E; struct A;
 typedef unsigned long ulong;
@@ -3847,7 +3847,7 @@ struct A { char pad[0xB8]; int c; int pad2; struct E *ae; };
  * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F6A68(struct A *p)
+void HideSoAllGlobs(struct A *p)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -3882,7 +3882,7 @@ void ShowSoPartsById(struct P *p, int k)
 }
 } } // namespace M_ShowSoPartsById
 
-// 0x1F6B48 func_001F6B48
+// 0x1F6B48 HideSoPartsById
 namespace M_func_001F6B48 { extern "C" {
 struct E; struct P;
 struct E { int pad[3]; int k; char pad2[0xB0 - 0x10]; };
@@ -3896,7 +3896,7 @@ void HideSoPart(struct P *, struct E *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_001F6B48(struct P *p, int k)
+void HideSoPartsById(struct P *p, int k)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -3905,7 +3905,7 @@ void func_001F6B48(struct P *p, int k)
 }
 } } // namespace M_func_001F6B48
 
-// 0x1F6BC8 func_001F6BC8
+// 0x1F6BC8 SetSoPartsZapKindsById
 namespace M_func_001F6BC8 { extern "C" {
 struct E; struct S;
 struct E { int a[3]; int n; int b[2]; int x18; char pad[0x94]; };
@@ -3916,13 +3916,13 @@ struct S { char pad[0xE0]; int c; struct E *ae; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F6BC8(struct S *p, int n, int x) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->n == n) pe->x18 = x; } }
+void SetSoPartsZapKindsById(struct S *p, int n, int x) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->n == n) pe->x18 = x; } }
 } } // namespace M_func_001F6BC8
 
-// 0x1F6C08 func_001F6C08
+// 0x1F6C08 EnsureSoPartMesh
 namespace M_func_001F6C08 {
 union U; struct TRI; struct MESH; struct EDGE; struct PLANE; struct P; struct FRAME; struct MSG;
-// func_001F6C08 (0x1F6C08): build the scratch mesh of P once (p->mesh at +0x10).
+// EnsureSoPartMesh (0x1F6C08): build the scratch mesh of P once (p->mesh at +0x10).
 // Allocates the MESH, per-point velocity/acceleration arrays and per-triangle vertex triples inside a
 // temporary allocator FRAME, collects each triangle's three vertices from the edge list (edge face ids
 // -> unique edge vertices, at most 3 per triangle), then orients every triple so that
@@ -3957,7 +3957,7 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
  * See: docs/engine/physics-collision.md#1-so-the-solid-object-socpp-0x1f2108-0x1f8dd8-174-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F6C08(P *p)
+extern "C" void EnsureSoPartMesh(P *p)
 {
     if(p->mesh)return;
     U first,second,cross;
@@ -4005,7 +4005,7 @@ extern "C" void func_001F6C08(P *p)
 }
 } // namespace M_func_001F6C08
 
-// 0x1F6EF8 func_001F6EF8
+// 0x1F6EF8 UpdateSoPartMesh
 namespace M_func_001F6EF8 { extern "C" {
 struct TRI; struct MESH; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -4033,7 +4033,7 @@ static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("s
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F6EF8(struct P*p,float dt)
+void UpdateSoPartMesh(struct P*p,float dt)
 {
  V scalar;
  register int vertexIndex __asm__("a2")=0;
@@ -4101,7 +4101,7 @@ typedef char layout_MESH_acceleration[((unsigned)&((struct MESH*)0)->acceleratio
 typedef char layout_MESH_triangles[((unsigned)&((struct MESH*)0)->triangles==8)?1:-1];
 } } // namespace M_func_001F6EF8
 
-// 0x1F70C0 func_001F70C0
+// 0x1F70C0 CloneSoPartGeomInserting
 namespace M_func_001F70C0 {
 union U; struct M4; struct LO; struct GEO; struct TREE; struct P; struct FRAME; struct MSG;
 // Insert zeroed vertices, rebuild transformed geometry, and rebase its tree.
@@ -4132,7 +4132,7 @@ static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
+extern "C" void CloneSoPartGeomInserting(P *source,LO *space,int inserted,P *dest)
 {
     M4 transform;
     GEO temporary;
@@ -4158,7 +4158,7 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
 }
 } // namespace M_func_001F70C0
 
-// 0x1F72F8 func_001F72F8
+// 0x1F72F8 IsPosInSo
 namespace M_func_001F72F8 { extern "C" {
 struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -4174,7 +4174,7 @@ int PbspPointInBspQuick(void *, int, qword);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F72F8(struct P *p, qword pos)
+int IsPosInSo(struct P *p, qword pos)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -4197,7 +4197,7 @@ int func_001F72F8(struct P *p, qword pos)
 }
 } } // namespace M_func_001F72F8
 
-// 0x1F7410 func_001F7410
+// 0x1F7410 InflictSoContactZaps
 namespace M_func_001F7410 { extern "C" {
 struct O; struct H; struct N; struct E; struct P; struct M;
 typedef int qword __attribute__((mode(TI)));
@@ -4209,9 +4209,9 @@ struct P { char pad[0xEC]; struct E *pe; };
 struct M { void *p0; void *p4; void *p8; int nC; int n10; int pad[3]; qword q20; qword q30; char pad2[0x60 - 0x40]; };
 struct G;
 extern struct G D_003DD490;
-void *func_001F7530(void *, int);
+void *FindZapResponder(void *, int);
 void func_002333B4(void *, int, int) __asm__("memset");
-int func_001F7598(struct M *);
+int DeliverZapToSo(struct M *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 /** @sly2-annot addr=0x1F7410
  * Purpose: SO vt74: for each contact, if other part has zap kinds, build a zap record and InflictZap; free
@@ -4221,7 +4221,7 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7410(struct P *p)
+void InflictSoContactZaps(struct P *p)
 {
     struct N *pn;
     for (pn = p->pe->pn; pn; pn = pn->next) {
@@ -4229,7 +4229,7 @@ void func_001F7410(struct P *p)
         struct H *ph = (struct H *)((char *)pn + (i << 6));
         if (ph->po->n18) {
             struct H *pot = (struct H *)((char *)pn + ((1 - i) << 6));
-            void *r = func_001F7530(pot->pC, ph->po->n18);
+            void *r = FindZapResponder(pot->pC, ph->po->n18);
             if (r) {
                 struct M m;
                 func_002333B4(&m, 0, 0x60);
@@ -4240,7 +4240,7 @@ void func_001F7410(struct P *p)
                 m.n10 = ph->po->s14;
                 m.q20 = pot->q10;
                 m.q30 = ph->q30;
-                func_001F7598(&m);
+                DeliverZapToSo(&m);
                 if (!p->pe) break;
             }
         }
@@ -4252,10 +4252,10 @@ void func_001F7410(struct P *p)
 }
 } } // namespace M_func_001F7410
 
-// 0x1F7530 func_001F7530
+// 0x1F7530 FindZapResponder
 namespace M_func_001F7530 { extern "C" {
 struct N;
-int GrfzpdFromSoGrfzpk(void *p, void *q);
+int GetSoZapResponseFlags(void *p, void *q);
 struct N { char pad[0x10]; struct N *next; };
 /** @sly2-annot addr=0x1F7530
  * Purpose: First LO in chain whose zap response for grfzpk is nonzero
@@ -4264,17 +4264,17 @@ struct N { char pad[0x10]; struct N *next; };
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct N *func_001F7530(struct N *p, void *q)
+struct N *FindZapResponder(struct N *p, void *q)
 {
     for (; p; p = p->next) {
-        if (GrfzpdFromSoGrfzpk(p, q))
+        if (GetSoZapResponseFlags(p, q))
             return p;
     }
     return 0;
 }
 } } // namespace M_func_001F7530
 
-// 0x1F7588 func_001F7588
+// 0x1F7588 HasZapRecordField44
 /** @sly2-annot addr=0x1F7588
  * Purpose: return arg1->+0x44 != 0
  * Info: proposed name FZprHasField44 (T2); class SO slot75; TU so
@@ -4283,12 +4283,12 @@ struct N *func_001F7530(struct N *p, void *q)
  *   docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-extern "C" int func_001F7588(SO *pso, SOWATCH *pwatch)
+extern "C" int HasZapRecordField44(SO *pso, SOWATCH *pwatch)
 {
     return pwatch->n44 != 0;
 }
 
-// 0x1F7598 func_001F7598
+// 0x1F7598 DeliverZapToSo
 namespace M_func_001F7598 { extern "C" {
 struct VT; struct O; struct K; struct N; struct M; struct M2; struct M3;
 typedef int qword __attribute__((mode(TI)));
@@ -4309,7 +4309,7 @@ struct M2 { struct O **ppo; int *pn; };
 struct M3 { struct K *pk; };
 extern float D_002DDED0;
 struct O *PsoFromLo(void *);
-int GrfzpdFromSoGrfzpk(struct O *, int);
+int GetSoZapResponseFlags(struct O *, int);
 struct K *PvAllocSlotheapClear(void *);
 void ClearDle__FP3DLE(void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
@@ -4318,7 +4318,7 @@ void AppendDlEntry__FP2DLPv(void *, void *);
 
 /** @sly2-annot addr=0x1F7598
  * Purpose: Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the
- *   recent-zap list (*(struct N * *)&g_sw.dlZprHit), compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time
+ *   recent-zap list (*(struct N * *)&g_sw.dlZprHit), compute GetSoZapResponseFlags, ask target vt75; on accept log a copy with time
  *   and, if damaging (grfzpd&0xF8), send msg 0xB to both and splice events 0xA/0xB; return the SO or NULL
  * Info: proposed name PsoInflictZap (T2); TU so
  * Notes: v3: superseded InflictZap | top50_round (0.55): Body. Sly 1 zap.cpp InflictZpdZap/FInflictSoZap
@@ -4329,7 +4329,7 @@ void AppendDlEntry__FP2DLPv(void *, void *);
  * See: docs/engine/overview.md#6-subsystem-map, docs/engine/physics-collision.md#3-zaps-damage-delivery,
  *   docs/engine/physics-collision.md#7-key-functions
  * @end-sly2-annot */
-struct O *func_001F7598(struct K *pk)
+struct O *DeliverZapToSo(struct K *pk)
 {
     int unused[4];
     struct M m;
@@ -4340,7 +4340,7 @@ struct O *func_001F7598(struct K *pk)
         for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;
         }
-        pk->n44 = GrfzpdFromSoGrfzpk(po, pk->nC);
+        pk->n44 = GetSoZapResponseFlags(po, pk->nC);
         if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
             struct K *pkNew;
             pk->p48 = po;
@@ -4418,7 +4418,7 @@ void ExpireSwZapRecords(struct P *p)
 }
 } } // namespace M_ExpireSwZapRecords
 
-// 0x1F78A0 func_001F78A0
+// 0x1F78A0 GetZapKindIndex
 namespace M_func_001F78A0 { extern "C" {
 /** @sly2-annot addr=0x1F78A0
  * Purpose: Index of lowest set bit among 26 zap kinds
@@ -4427,7 +4427,7 @@ namespace M_func_001F78A0 { extern "C" {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F78A0(int x)
+int GetZapKindIndex(int x)
 {
     int i; int m;
     for (i = 0, m = 1; i < 26; i++, m <<= 1) if (x & m) break;
@@ -4435,18 +4435,18 @@ int func_001F78A0(int x)
 }
 } } // namespace M_func_001F78A0
 
-// 0x1F78D8 GrfzpdFromSoGrfzpk
+// 0x1F78D8 GetSoZapResponseFlags
 namespace M_GrfzpdFromSoGrfzpk { extern "C" {
 struct S;
 struct S { char pad[0x110]; unsigned char ab[26]; };
 /** @sly2-annot addr=0x1F78D8
  * Purpose: OR of per-kind response bytes SO+0x110[26] selected by grfzpk
- * Info: proposed name GrfzpdFromSoGrfzpk (T1); TU so
+ * Info: proposed name GetSoZapResponseFlags (T1); TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int GrfzpdFromSoGrfzpk(struct S *p, int f)
+int GetSoZapResponseFlags(struct S *p, int f)
 {
     int r = 0; int i; int m;
     for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= p->ab[i]; m <<= 1; }
@@ -4454,7 +4454,7 @@ int GrfzpdFromSoGrfzpk(struct S *p, int f)
 }
 } } // namespace M_GrfzpdFromSoGrfzpk
 
-// 0x1F7918 func_001F7918
+// 0x1F7918 SetSoZapResponse
 namespace M_func_001F7918 { extern "C" {
 struct S;
 struct S { char pad[0x110]; unsigned char ab[26]; };
@@ -4467,14 +4467,14 @@ struct S { char pad[0x110]; unsigned char ab[26]; };
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7918(struct S *p, int f, int b)
+void SetSoZapResponse(struct S *p, int f, int b)
 {
     int i; int m;
     for (i = 0, m = 1; i < 26; i++) { if (m & f) p->ab[i] = b; m <<= 1; }
 }
 } } // namespace M_func_001F7918
 
-// 0x1F7950 func_001F7950
+// 0x1F7950 HandleSoTouchZaps
 namespace M_func_001F7950 { extern "C" {
 struct VTE; struct VT; struct E; struct P; struct M; struct G2;
 typedef int qword __attribute__((mode(TI)));
@@ -4486,11 +4486,11 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *pe; 
 struct M { void *p0; int n4; void *p8; int nC; int n10; int pad[3]; qword q20; qword q30; char pad2[0x60 - 0x40]; };
 struct G2 { void *p; };
 extern struct G2 D_002F7900;
-void func_001F7A68(struct P *, int);
+void SetSoZapMode(struct P *, int);
 void func_002333B4(void *, int, int) __asm__("memset");
 qword func_001A62E8(struct P *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void func_001F7598(struct M *);
+void DeliverZapToSo(struct M *);
 /** @sly2-annot addr=0x1F7950
  * Purpose: Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148
  *   bits 24-25)
@@ -4498,7 +4498,7 @@ void func_001F7598(struct M *);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7950(struct P *p)
+void HandleSoTouchZaps(struct P *p)
 {
     int k;
     struct M m;
@@ -4507,7 +4507,7 @@ void func_001F7950(struct P *p)
     if (!p->pe) return;
     k = (int)(p->u.l >> 24) & 3;
     if (!k) return;
-    func_001F7A68(p, 0);
+    SetSoZapMode(p, 0);
     func_002333B4(&m, 0, 0x60);
     m.p8 = p;
     m.q20 = func_001A62E8(p);
@@ -4517,11 +4517,11 @@ void func_001F7950(struct P *p)
     } else {
         m.p0 = p; m.nC = 0x20000; m.n10 = p->u.c.b1;
     }
-    func_001F7598(&m);
+    DeliverZapToSo(&m);
 }
 } } // namespace M_func_001F7950
 
-// 0x1F7A68 func_001F7A68
+// 0x1F7A68 SetSoZapMode
 namespace M_func_001F7A68 { extern "C" {
 struct E; struct P;
 typedef unsigned long ulong;
@@ -4538,7 +4538,7 @@ struct P { char pad[0xE0]; int c; struct E *ae; char pad2[0x148 - 0xE8]; union {
  *   r6_1D5150+top50_round
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7A68(struct P *p, int k)
+void SetSoZapMode(struct P *p, int k)
 {
     int from, to, s;
     int i;
@@ -4559,7 +4559,7 @@ void func_001F7A68(struct P *p, int k)
 }
 } } // namespace M_func_001F7A68
 
-// 0x1F7B40 func_001F7B40
+// 0x1F7B40 GetSoZapMode
 namespace M_func_001F7B40 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong fl; };
@@ -4569,58 +4569,58 @@ struct S { char pad[0x148]; ulong fl; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F7B40(struct S *p) { return (int)((long)(p->fl << 8) >> 32) & 3; }
+int GetSoZapMode(struct S *p) { return (int)((long)(p->fl << 8) >> 32) & 3; }
 } } // namespace M_func_001F7B40
 
-// 0x1F7B58 func_001F7B58
+// 0x1F7B58 SetSoHitDamage
 /** @sly2-annot addr=0x1F7B58
  * Purpose: +0x148 byte = -n (damage amount, default 10)
  * Info: proposed name SetSoDhp0 (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F7B58(SO *pso, int n)
+extern "C" void SetSoHitDamage(SO *pso, int n)
 {
     pso->bUnk148 = -n;
 }
 
-// 0x1F7B68 func_001F7B68
+// 0x1F7B68 GetSoHitDamage
 /** @sly2-annot addr=0x1F7B68
  * Purpose: return -(+0x148 byte)
  * Info: proposed name GetSoDhp0 (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" int func_001F7B68(SO *pso)
+extern "C" int GetSoHitDamage(SO *pso)
 {
     return -pso->bUnk148;
 }
 
-// 0x1F7B78 func_001F7B78
+// 0x1F7B78 SetSoHitDamage2
 /** @sly2-annot addr=0x1F7B78
  * Purpose: +0x149 byte = -n (default 20)
  * Info: proposed name SetSoDhp1 (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F7B78(SO *pso, int n)
+extern "C" void SetSoHitDamage2(SO *pso, int n)
 {
     pso->bUnk149 = -n;
 }
 
-// 0x1F7B88 func_001F7B88
+// 0x1F7B88 GetSoHitDamage2
 /** @sly2-annot addr=0x1F7B88
  * Purpose: return -(+0x149 byte)
  * Info: proposed name GetSoDhp1 (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" int func_001F7B88(SO *pso)
+extern "C" int GetSoHitDamage2(SO *pso)
 {
     return -pso->bUnk149;
 }
 
-// 0x1F7B98 func_001F7B98
+// 0x1F7B98 EnsureSoInSwList187
 /** @sly2-annot addr=0x1F7B98
  * Purpose: If SO not found in g_sw list 0x187 (0x15E938) add it (0x13E3C8)
  * Info: proposed name EnsureSoInSwList187 (T2); TU so
@@ -4629,21 +4629,21 @@ extern "C" int func_001F7B88(SO *pso)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Gives the object a CID 0x12 child with oid 0x187 unless it has one. */
-extern "C" void func_001F7B98(SO *pso)
+extern "C" void EnsureSoInSwList187(SO *pso)
 {
     if (PloFindSwObject(&D_003DD490, 2, (OID)0x187, pso) == 0) {
         PloNew((CID)0x12, pso, (OID)0x187, -1);
     }
 }
 
-// 0x1F7BF0 func_001F7BF0
+// 0x1F7BF0 GetSoPhys
 /** @sly2-annot addr=0x1F7BF0
  * Purpose: return +0xE8
  * Info: proposed name PsophysFromSo (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" SOPHYS *func_001F7BF0(SO *pso)
+extern "C" SOPHYS *GetSoPhys(SO *pso)
 {
     return pso->psophys;
 }
@@ -4750,7 +4750,7 @@ void SetSoFadeRate(struct P *p, float g)
 }
 } } // namespace M_SetSoFadeRate
 
-// 0x1F7E08 func_001F7E08
+// 0x1F7E08 CollectSoParts
 namespace M_func_001F7E08 { extern "C" {
 struct E; struct P;
 struct E { char pad[0xB0]; };
@@ -4762,7 +4762,7 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F7E08(struct P *p, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
+int CollectSoParts(struct P *p, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
 {
     int n = 0;
     int i;
@@ -4776,7 +4776,7 @@ int func_001F7E08(struct P *p, int (*pfn)(void *, struct E *), void *pv, struct 
 }
 } } // namespace M_func_001F7E08
 
-// 0x1F7EC8 func_001F7EC8
+// 0x1F7EC8 SetSoUnknownBits16
 namespace M_func_001F7EC8 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
@@ -4786,10 +4786,10 @@ struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7EC8(struct S *p, int n) { p->b = n; }
+void SetSoUnknownBits16(struct S *p, int n) { p->b = n; }
 } } // namespace M_func_001F7EC8
 
-// 0x1F7EF0 func_001F7EF0
+// 0x1F7EF0 GetSoUnknownBits16
 namespace M_func_001F7EF0 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
@@ -4800,10 +4800,10 @@ struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F7EF0(struct S *p) { return p->b; }
+int GetSoUnknownBits16(struct S *p) { return p->b; }
 } } // namespace M_func_001F7EF0
 
-// 0x1F7F08 func_001F7F08
+// 0x1F7F08 GetSoNoJtPlace
 namespace M_func_001F7F08 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong fl; };
@@ -4814,10 +4814,10 @@ struct S { char pad[0x148]; ulong fl; };
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-int func_001F7F08(struct S *p) { return (int)((long)(p->fl << 3) >> 32) & 1; }
+int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->fl << 3) >> 32) & 1; }
 } } // namespace M_func_001F7F08
 
-// 0x1F7F20 func_001F7F20
+// 0x1F7F20 SetSoNoJtPlace
 namespace M_func_001F7F20 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:29; int b:1; ulong c:34; };
@@ -4827,31 +4827,31 @@ struct S { char pad[0x148]; ulong a:29; int b:1; ulong c:34; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7F20(struct S *p, int n) { p->b = n; }
+void SetSoNoJtPlace(struct S *p, int n) { p->b = n; }
 } } // namespace M_func_001F7F20
 
-// 0x1F7F48 func_001F7F48
+// 0x1F7F48 SetSoTreeRoot
 namespace M_func_001F7F48 { extern "C" {
 struct A;
 typedef unsigned long ulong;
 struct A { char pad[0x148]; ulong a:34; ulong f:1; ulong b:1; };
-void func_001F55C8(struct A *p);
+void RebuildSoPhysHook(struct A *p);
 /** @sly2-annot addr=0x1F7F48
  * Purpose: Set +0x148 bit34 and RebuildSoPhysHook if changed
  * Info: proposed name SetSoPhysHookFlag (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7F48(struct A *p, long f)
+void SetSoTreeRoot(struct A *p, long f)
 {
     if (f != p->f) {
         p->f = f;
-        func_001F55C8(p);
+        RebuildSoPhysHook(p);
     }
 }
 } } // namespace M_func_001F7F48
 
-// 0x1F7FA0 func_001F7FA0
+// 0x1F7FA0 SetSoScrollerSpeeds
 namespace M_func_001F7FA0 { extern "C" {
 struct P;
 struct P { char pad[0xA4]; int c; void **ap; };
@@ -4864,7 +4864,7 @@ void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F7FA0(struct P *p, float f, float g)
+void SetSoScrollerSpeeds(struct P *p, float f, float g)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -4874,7 +4874,7 @@ void func_001F7FA0(struct P *p, float f, float g)
 }
 } } // namespace M_func_001F7FA0
 
-// 0x1F8038 func_001F8038
+// 0x1F8038 SetSoSaaParams
 namespace M_func_001F8038 { extern "C" {
 struct P;
 struct P { char pad[0xA4]; int c; void **ap; };
@@ -4887,7 +4887,7 @@ void SetSaiDuDv(void *, float, float);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8038(struct P *p, float f, float g)
+void SetSoSaaParams(struct P *p, float f, float g)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -4897,7 +4897,7 @@ void func_001F8038(struct P *p, float f, float g)
 }
 } } // namespace M_func_001F8038
 
-// 0x1F80D0 func_001F80D0
+// 0x1F80D0 SetSoEyesClosed
 namespace M_func_001F80D0 { extern "C" {
 struct L;
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xA4 - 0x74]; int c; void **ap; };
@@ -4912,7 +4912,7 @@ void SetEyesClosed(void *, float);
  *   docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-void func_001F80D0(struct L *p, float f)
+void SetSoEyesClosed(struct L *p, float f)
 {
     int i;
     struct L *q;
@@ -4921,24 +4921,24 @@ void func_001F80D0(struct L *p, float f)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
     }
     for (q = p->first; q != p->end; q = q->next)
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) func_001F80D0(q, f);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
 }
 } } // namespace M_func_001F80D0
 
-// 0x1F8198 PsaaFindSoOid
+// 0x1F8198 FindSoSaa
 namespace M_PsaaFindSoOid { extern "C" {
 struct T; struct S;
 struct T { char pad[0x18]; int n; };
 struct S { char pad[0xA4]; int c; struct T **apt; };
 /** @sly2-annot addr=0x1F8198
  * Purpose: Find SAA in +0xA4 list with +0x18 == n
- * Info: proposed name PsaaFindSoOid (T1); TU so
- * Notes: verifier CORRECT: PsaaFindSo -> PsaaFindSoOid
+ * Info: proposed name FindSoSaa (T1); TU so
+ * Notes: verifier CORRECT: PsaaFindSo -> FindSoSaa
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct T *PsaaFindSoOid(struct S *p, int n)
+struct T *FindSoSaa(struct S *p, int n)
 {
     int i;
     for (i = 0; i < p->c; i++) { struct T *pt = p->apt[i]; if (pt->n == n) return pt; }
@@ -4946,7 +4946,7 @@ struct T *PsaaFindSoOid(struct S *p, int n)
 }
 } } // namespace M_PsaaFindSoOid
 
-// 0x1F81E0 func_001F81E0
+// 0x1F81E0 SetSoAnimIndex
 namespace M_func_001F81E0 { extern "C" {
 struct A;
 struct A { char pad[0xAC]; int c; int *a; int n; };
@@ -4956,7 +4956,7 @@ struct A { char pad[0xAC]; int c; int *a; int n; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F81E0(struct A *p, int n)
+void SetSoAnimIndex(struct A *p, int n)
 {
     int i;
     if (n == -1) {
@@ -4973,19 +4973,19 @@ void func_001F81E0(struct A *p, int n)
 }
 } } // namespace M_func_001F81E0
 
-// 0x1F8238 func_001F8238
+// 0x1F8238 ClearSoAnimIndex
 /** @sly2-annot addr=0x1F8238
  * Purpose: +0xB4 = 0
  * Info: proposed name ClearSoB4 (T2); TU so
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F8238(SOWATCH *pwatch)
+extern "C" void ClearSoAnimIndex(SOWATCH *pwatch)
 {
     pwatch->nB4 = 0;
 }
 
-// 0x1F8240 func_001F8240
+// 0x1F8240 FindTargetRecordById
 namespace M_func_001F8240 { extern "C" {
 struct T;
 struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
@@ -4995,10 +4995,10 @@ struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct T *func_001F8240(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
+struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
 } } // namespace M_func_001F8240
 
-// 0x1F8278 func_001F8278
+// 0x1F8278 EnsureTargetRecordById
 /** @sly2-annot addr=0x1F8278
  * Purpose: Find, else new 0xAC object (0x20A5F8)
  * Info: proposed name EnsureGlobalById (T2); TU so
@@ -5007,19 +5007,19 @@ struct T *func_001F8240(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.d
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Makes a target record (0xAC bytes, func_0020A5F8) for plo unless it has one. */
-extern "C" void func_001F8278(LO *plo)
+extern "C" void EnsureTargetRecordById(LO *plo)
 {
-    if (func_001F8240(plo) == 0) {
+    if (FindTargetRecordById(plo) == 0) {
         func_0020A5F8(func_001AE4F8(0xAC), plo);
     }
 }
 
-// 0x1F82B8 func_001F82B8
+// 0x1F82B8 SetSoTargetRecordParams
 namespace M_func_001F82B8 { extern "C" {
 struct K; struct T;
 struct K { int a, b; };
 struct T { char pad[0x10]; int x; struct K k; };
-struct T *func_001F8278(void *);
+struct T *EnsureTargetRecordById(void *);
 /** @sly2-annot addr=0x1F82B8
  * Purpose: Ensure object then set x and optional 8-byte key
  * Info: proposed name SetSoSideRecordParams (T2); TU so
@@ -5031,10 +5031,10 @@ struct T *func_001F8278(void *);
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_001F82B8(void *p, int x, struct K *pk) { struct T *pt = func_001F8278(p); pt->x = x; if (pk) pt->k = *pk; }
+void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = EnsureTargetRecordById(p); pt->x = x; if (pk) pt->k = *pk; }
 } } // namespace M_func_001F82B8
 
-// 0x1F8300 func_001F8300
+// 0x1F8300 EnsureSoPhysRegionRecord
 namespace M_func_001F8300 { extern "C" {
 struct Q; struct E; struct P; struct CB;
 struct Q { void *p0; int pad; float g8; float gC; };
@@ -5053,7 +5053,7 @@ static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pc
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct Q *func_001F8300(struct P *p)
+struct Q *EnsureSoPhysRegionRecord(struct P *p)
 {
     if (!p->pe) return 0;
     if (!p->pe->pq) {
@@ -5069,7 +5069,7 @@ struct Q *func_001F8300(struct P *p)
 }
 } } // namespace M_func_001F8300
 
-// 0x1F83B0 func_001F83B0
+// 0x1F83B0 SetSoPhysRecordParam8
 /** @sly2-annot addr=0x1F83B0
  * Purpose: record.g8 = f
  * Info: proposed name SetSoPhysParam8 (T2); TU so
@@ -5077,16 +5077,16 @@ struct Q *func_001F8300(struct P *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F83B0(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParam8(STEP *pstep, float g)
 {
     STEPREC *prec;
-    prec = func_001F8300(pstep);
+    prec = EnsureSoPhysRegionRecord(pstep);
     if (prec != 0) {
         prec->g8 = g;
     }
 }
 
-// 0x1F83E0 func_001F83E0
+// 0x1F83E0 GetSoPhysRecordParam8
 namespace M_func_001F83E0 { extern "C" {
 struct U; struct T; struct S;
 struct U { char pad[0x8]; float g; };
@@ -5099,10 +5099,10 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F83E0(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F83E0
 
-// 0x1F8410 func_001F8410
+// 0x1F8410 SetSoPhysRecordParamC
 /** @sly2-annot addr=0x1F8410
  * Purpose: record.gC = f
  * Info: proposed name SetSoPhysParamC (T2); TU so
@@ -5110,16 +5110,16 @@ float func_001F83E0(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; 
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F8410(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParamC(STEP *pstep, float g)
 {
     STEPREC *prec;
-    prec = func_001F8300(pstep);
+    prec = EnsureSoPhysRegionRecord(pstep);
     if (prec != 0) {
         prec->gC = g;
     }
 }
 
-// 0x1F8440 func_001F8440
+// 0x1F8440 GetSoPhysRecordParamC
 namespace M_func_001F8440 { extern "C" {
 struct U; struct T; struct S;
 struct U { char pad[0xC]; float g; };
@@ -5132,10 +5132,10 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F8440(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F8440
 
-// 0x1F8470 func_001F8470
+// 0x1F8470 SetSoPhysRecordParam4
 /** @sly2-annot addr=0x1F8470
  * Purpose: record.g4 = f
  * Info: proposed name SetSoPhysParam4 (T2); TU so
@@ -5144,16 +5144,16 @@ float func_001F8440(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; 
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F8470(STEP *pstep, float g)
+extern "C" void SetSoPhysRecordParam4(STEP *pstep, float g)
 {
     STEPREC *prec;
-    prec = func_001F8300(pstep);
+    prec = EnsureSoPhysRegionRecord(pstep);
     if (prec != 0) {
         prec->g4 = g;
     }
 }
 
-// 0x1F84A0 func_001F84A0
+// 0x1F84A0 GetSoPhysRecordParam4
 namespace M_func_001F84A0 { extern "C" {
 struct U; struct T; struct S;
 struct U { char pad[0x4]; float g; };
@@ -5165,7 +5165,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F84A0(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
 } } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi
@@ -5192,7 +5192,7 @@ struct S { char pad[0x148]; ulong fl; };
 int GetSoIceable(struct S *p) { return (int)(p->fl >> 33) & 1; }
 } } // namespace M_GetSoIceable
 
-// 0x1F8510 func_001F8510
+// 0x1F8510 NewSoXfHandle
 namespace M_func_001F8510 { extern "C" {
 struct Q; struct E; struct P;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
@@ -5209,7 +5209,7 @@ void func_002333B4(void *, int, int) __asm__("memset");
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct Q *func_001F8510(struct P *p, int k, int m)
+struct Q *NewSoXfHandle(struct P *p, int k, int m)
 {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -5229,13 +5229,13 @@ struct Q *func_001F8510(struct P *p, int k, int m)
 }
 } } // namespace M_func_001F8510
 
-// 0x1F85E0 func_001F85E0
+// 0x1F85E0 NewSoPartHandle
 namespace M_func_001F85E0 { extern "C" {
 struct Q;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
 extern char D_002CA280[] __asm__("_vt$6CID150");
 struct Pool;
-void *PsopartFindSo(void *);
+void *FindSoPart(void *);
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F85E0
@@ -5245,9 +5245,9 @@ void *func_002333B4(void *, int, int) __asm__("memset");
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct Q *func_001F85E0(void *pa)
+struct Q *NewSoPartHandle(void *pa)
 {
-    void *r = PsopartFindSo(pa);
+    void *r = FindSoPart(pa);
     struct Q *q;
     if (!r) return 0;
     q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
@@ -5261,7 +5261,7 @@ struct Q *func_001F85E0(void *pa)
 }
 } } // namespace M_func_001F85E0
 
-// 0x1F8668 func_001F8668
+// 0x1F8668 SetSoBit35Hierarchy
 namespace M_func_001F8668 { extern "C" {
 struct L; struct G;
 typedef unsigned long ulong;
@@ -5278,7 +5278,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
  * Confidence: low (draft) [T2 0.30] - evidence: semantic review; static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8668(struct L *p, long f)
+void SetSoBit35Hierarchy(struct L *p, long f)
 {
     struct L *q;
     if (f != p->b35) {
@@ -5288,7 +5288,7 @@ void func_001F8668(struct L *p, long f)
             else func_001D6310(p);
         }
         for (q = p->first; q; q = q->next)
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) func_001F8668(q, f);
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoBit35Hierarchy(q, f);
     }
 }
 } } // namespace M_func_001F8668
@@ -5307,17 +5307,17 @@ void CID148::VUnk00()   /* key function: CID148's vtable comes out here */
     pxfh->cref = pxfh->cref + 1;
 }
 
-// 0x1F8740 DecrefXfh
+// 0x1F8740 DecrefXfHandle
 /** @sly2-annot addr=0x1F8740
  * Purpose: --cref; at 0 destroy and free to pool g_sw.slotheapXfh
- * Info: proposed name DecrefXfh (T1); class CID148 slot2; TU so
+ * Info: proposed name DecrefXfHandle (T1); class CID148 slot2; TU so
  * Notes: verifier CORRECT: HANDLE::Decref -> XFH::Decref
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 /* Drops a reference; the last one clears the splice frame and sidebag, unsubscribes and frees the handle. */
-extern "C" void DecrefXfh(XFH *pxfh)
+extern "C" void DecrefXfHandle(XFH *pxfh)
 {
     int cref;
     cref = pxfh->cref - 1;
@@ -5330,7 +5330,7 @@ extern "C" void DecrefXfh(XFH *pxfh)
     }
 }
 
-// 0x1F87A0 func_001F87A0
+// 0x1F87A0 GetXfHandleParamAC
 namespace M_func_001F87A0 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; unsigned short n; };
@@ -5342,10 +5342,10 @@ struct S { char pad[0x24]; struct T *pt; };
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F87A0(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAC(struct S *p) { return p->pt->n * 0.001f; }
 } } // namespace M_func_001F87A0
 
-// 0x1F87C8 func_001F87C8
+// 0x1F87C8 SetXfHandleParamAC
 namespace M_func_001F87C8 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; short n; };
@@ -5358,10 +5358,10 @@ void SlotUnsettle(void *, struct T *);
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F87C8(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAC(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
 } } // namespace M_func_001F87C8
 
-// 0x1F8808 func_001F8808
+// 0x1F8808 GetXfHandleParamAE
 namespace M_func_001F8808 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAE]; unsigned short n; };
@@ -5372,10 +5372,10 @@ struct S { char pad[0x24]; struct T *pt; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F8808(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAE(struct S *p) { return p->pt->n * 0.001f; }
 } } // namespace M_func_001F8808
 
-// 0x1F8830 func_001F8830
+// 0x1F8830 SetXfHandleParamAE
 namespace M_func_001F8830 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAE]; short n; };
@@ -5387,10 +5387,10 @@ void SlotUnsettle(void *, struct T *);
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8830(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAE(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
 } } // namespace M_func_001F8830
 
-// 0x1F8870 func_001F8870
+// 0x1F8870 GetXfHandleParamAC2
 namespace M_func_001F8870 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; unsigned short n; };
@@ -5404,10 +5404,10 @@ struct S { char pad[0x24]; struct T *pt; };
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-float func_001F8870(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAC2(struct S *p) { return p->pt->n * 0.001f; }
 } } // namespace M_func_001F8870
 
-// 0x1F8898 func_001F8898
+// 0x1F8898 SetXfHandleParamAC2
 namespace M_func_001F8898 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; short n; };
@@ -5419,17 +5419,17 @@ void SlotUnsettle(void *, struct T *);
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8898(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAC2(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
 } } // namespace M_func_001F8898
 
-// 0x1F88D8 func_001F88D8
+// 0x1F88D8 GetXfFromHandle
 /** @sly2-annot addr=0x1F88D8
  * Purpose: optionally refresh XF kind (arg==1) and return XF (+0x24)
  * Info: proposed name PxfFromXfh (T2); TU so
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" XF *func_001F88D8(XFH *pxfh, int n)
+extern "C" XF *GetXfFromHandle(XFH *pxfh, int n)
 {
     if (n == 1) {
         SlotUnsettle(pxfh->pso, pxfh->pxf);
@@ -5437,7 +5437,7 @@ extern "C" XF *func_001F88D8(XFH *pxfh, int n)
     return pxfh->pxf;
 }
 
-// 0x1F8910 func_001F8910
+// 0x1F8910 FindXfHandleActuator
 namespace M_func_001F8910 { extern "C" {
 struct E; struct Q; struct P;
 struct E { int k; int pad[2]; int nC; struct E *next; };
@@ -5454,7 +5454,7 @@ void SlotUnsettle(void *, struct Q *);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct E *func_001F8910(struct P *p, int k, int n, int m)
+struct E *FindXfHandleActuator(struct P *p, int k, int n, int m)
 {
     struct E *pe;
     for (pe = p->pq->pe; pe; pe = pe->next) {
@@ -5478,13 +5478,13 @@ struct E *func_001F8910(struct P *p, int k, int n, int m)
 }
 } } // namespace M_func_001F8910
 
-// 0x1F89E0 func_001F89E0
+// 0x1F89E0 SetXfHandleActuator1
 namespace M_func_001F89E0 { extern "C" {
 struct R; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x14]; int n14; };
 struct P { char pad[0x20]; void *p20; void *p24; };
-struct R *func_001F8910(struct P *, int, int, int);
+struct R *FindXfHandleActuator(struct P *, int, int, int);
 void SetActPositionGoal(struct R *, qword);
 void func_0012DC18(void *, void *, int, int, int, qword);
 /** @sly2-annot addr=0x1F89E0
@@ -5493,9 +5493,9 @@ void func_0012DC18(void *, void *, int, int, int, qword);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F89E0(struct P *p, int n, int m, qword q)
+void SetXfHandleActuator1(struct P *p, int n, int m, qword q)
 {
-    struct R *r = func_001F8910(p, 1, n, m);
+    struct R *r = FindXfHandleActuator(p, 1, n, m);
     if (r) {
         r->n14 = n;
         SetActPositionGoal(r, q);
@@ -5505,27 +5505,27 @@ void func_001F89E0(struct P *p, int n, int m, qword q)
 }
 } } // namespace M_func_001F89E0
 
-// 0x1F8A78 func_001F8A78
+// 0x1F8A78 SetXfHandleActuator1World
 namespace M_func_001F8A78 { extern "C" {
 struct B; struct A;
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0xA0]; int n; };
 struct A { char pad[0x24]; struct B *pb; };
 qword func_0022FC48(int a, int n, qword q);
-void func_001F89E0(struct A *p, int a, int b, qword q);
+void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
 /** @sly2-annot addr=0x1F8A78
  * Purpose: 0x1F89E0 with vector converted from XF parent space
  * Info: proposed name SetXfhActuator1World (T2); TU so
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8A78(struct A *p, int a, int b, qword q)
+void SetXfHandleActuator1World(struct A *p, int a, int b, qword q)
 {
-    func_001F89E0(p, a, b, func_0022FC48(0, p->pb->n, q));
+    SetXfHandleActuator1(p, a, b, func_0022FC48(0, p->pb->n, q));
 }
 } } // namespace M_func_001F8A78
 
-// 0x1F8AD8 func_001F8AD8
+// 0x1F8AD8 SetXfHandleActuator1Mat
 namespace M_func_001F8AD8 { extern "C" {
 struct M3; struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -5534,28 +5534,28 @@ struct O { char pad[0xA0]; int nA0; };
 struct P { char pad[0x24]; struct O *po; };
 void ConvertXfMat(struct M3 *, int, int);
 qword func_0011BFF0(struct M3 *);
-void func_001F89E0(struct P *, int, int, qword);
+void SetXfHandleActuator1(struct P *, int, int, qword);
 /** @sly2-annot addr=0x1F8AD8
  * Purpose: 0x1F89E0 with value from matrix
  * Info: proposed name SetXfhActuator1Mat (T2); TU so
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8AD8(struct P *p, int a, int b)
+void SetXfHandleActuator1Mat(struct P *p, int a, int b)
 {
     struct M3 c, t;
     ConvertXfMat(&t, 0, p->po->nA0);
     c = t;
-    func_001F89E0(p, a, b, func_0011BFF0(&c));
+    SetXfHandleActuator1(p, a, b, func_0011BFF0(&c));
 }
 } } // namespace M_func_001F8AD8
 
-// 0x1F8B58 func_001F8B58
+// 0x1F8B58 SetXfHandleActuator4
 namespace M_func_001F8B58 { extern "C" {
 struct R; struct P;
 struct R { char pad[0x14]; int n14; int pad2; float g1C; float g20; };
 struct P { char pad[0x20]; void *p20; void *p24; };
-struct R *func_001F8910(struct P *, int, int, int);
+struct R *FindXfHandleActuator(struct P *, int, int, int);
 void func_0012DCA0(void *, void *, int, int, float, float);
 /** @sly2-annot addr=0x1F8B58
  * Purpose: Update/create kind-4 actuator with two floats
@@ -5564,9 +5564,9 @@ void func_0012DCA0(void *, void *, int, int, float, float);
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8B58(struct P *p, int n, int m, float f, float g)
+void SetXfHandleActuator4(struct P *p, int n, int m, float f, float g)
 {
-    struct R *r = func_001F8910(p, 4, n, m);
+    struct R *r = FindXfHandleActuator(p, 4, n, m);
     if (r) {
         r->n14 = n;
         r->g1C = f;
@@ -5577,7 +5577,7 @@ void func_001F8B58(struct P *p, int n, int m, float f, float g)
 }
 } } // namespace M_func_001F8B58
 
-// 0x1F8BF0 func_001F8BF0
+// 0x1F8BF0 SetXfHandleKind16Params
 namespace M_func_001F8BF0 { extern "C" {
 struct U; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -5592,7 +5592,7 @@ struct S { char pad[0x24]; struct T *pt; };
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F8BF0(struct S *p, int n, qword q, float x, float y, float z, float deg)
+void SetXfHandleKind16Params(struct S *p, int n, qword q, float x, float y, float z, float deg)
 { struct T *pt = p->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
 } } // namespace M_func_001F8BF0
 
@@ -5611,8 +5611,8 @@ int D_002C3C20[8] = {0, 3, 2, 2, 2, 1, 1, 1};
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_so {
-void p_func_001F3868() __asm__("func_001F3868");
-void p_func_001F7950() __asm__("func_001F7950");
+void p_func_001F3868() __asm__("UpdateSoPhysRegionCallback");
+void p_func_001F7950() __asm__("HandleSoTouchZaps");
 extern "C" {
 extern const unsigned int D_002A8270[2] = {0xFFFF0000, (unsigned int)p_func_001F3868};
 extern const unsigned int D_002A8278[2] = {0xFFFF0000, (unsigned int)p_func_001F7950};

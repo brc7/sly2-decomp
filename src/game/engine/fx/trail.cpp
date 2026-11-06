@@ -59,7 +59,7 @@ void *func_001AE2A0(ALLOC *);
 void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 void func_0016EF00(MODEL *,int);
 void UpdateLo(TRAIL *p, float dt);
-void func_001F3980(TRAIL *);
+void UpdateSoXfWorld(TRAIL *);
 qwordV func_001A62E8(void *);
 void func_0021C5F8(TRAIL *, qwordV);
 void RenderSoSelf(TRAIL *);
@@ -268,7 +268,7 @@ static inline float Sqrt(qwordV d) {
  * @end-sly2-annot */
 extern "C" void func_0021C1C8(TRAIL *p)
 {
-    func_001F3980(p);
+    UpdateSoXfWorld(p);
     if (!p->state) {
         Ring *e = &p->ring[p->index];
         p->index = (p->index + 1) % p->count;

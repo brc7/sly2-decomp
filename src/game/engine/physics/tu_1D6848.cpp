@@ -240,8 +240,8 @@ void RecalcSwOxfFilterForObject(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
 void SetSoCnstrTorque(SOV *, void *);
 void SetLoParent_1A58D0(SOV *, int, int);
-void func_001F4898(SOV *, qwordV);
-qwordV GetSoDvGravity(SOV *);
+void SetSoPosXfVelocityLocal(SOV *, qwordV);
+qwordV GetSoGravity(SOV *);
 qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
 float GRandInRange__Fff(float, float);                               // GRandInRange
@@ -390,7 +390,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     SetSoCnstrTorque(pso, 0);
     SetLoParent_1A58D0(pso, 0, 3);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x52)) {
-        func_001F4898(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
+        SetSoPosXfVelocityLocal(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x51)) {
         qwordV v = VuFloatFromWord(pso->svLaunch) * Normalize2(posAim, posStart);
         pso->SetVelocity(v);
@@ -398,7 +398,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         LoadLookAtMatrix(&mat, v);
         pso->RotateToMat(&mat);
     } else {
-        qwordV vAccel = GetSoDvGravity(pso);
+        qwordV vAccel = GetSoGravity(pso);
         qwordV v = CalculateBallisticLaunchVelocity(plaunch->pitch, posStart, posLaunch, vAccel);
         pso->SetVelocity(v);
     }

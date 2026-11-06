@@ -342,7 +342,7 @@ void *GetHeroPo(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 int FFindLoParent(void *n, void *o);
 void func_0014F750(void *p, int n);
-void func_001F7A68(struct A *a, int n);
+void SetSoZapMode(struct A *a, int n);
 /** @sly2-annot addr=0x174BD0
  * Purpose: BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation,
  *   0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35
@@ -418,7 +418,7 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
         }
         return 0;
     case 0x36:
-        func_001F7A68(p->p10, 2);
+        SetSoZapMode(p->p10, 2);
         return 0;
     }
     return 0;
@@ -1444,7 +1444,7 @@ int FBhvcombatChooseAttack(C*);
 int FBhvcombatCanShoot(C*);
 void SetBhvcombatState(C*,int);
 qword func_001A62E8(P*);
-void*PpathzoneFromPos(qword,int);
+void*FindPathzoneAtPos(qword,int);
 void func_002562A8(X*);
 void SetBhvgotoGoal(void*,X*);
 int FBhvattackDone(void*);
@@ -1532,7 +1532,7 @@ void UpdateBhvcombat(C*p){
    current=func_001A62E8(p->actor);
    distance=DistanceXY(p,&work.point,current,&actor,&mode);
    if(mode==8 ||mode==13){SCALE*scale=actor->scale;if(scale)distance/=scale->value;}
-   region=PpathzoneFromPos(work.point.q,1);
+   region=FindPathzoneAtPos(work.point.q,1);
    if(p->state!=0){
     if(p->state!=3)break;
     if(distance<p->actor->close &&region==ActorRegion(p->actor)){SetBhvcombatState(p,0);break;}
@@ -1599,7 +1599,7 @@ void func_0020A9A8(void *p, int n);
 qword func_001A62E8(int p);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
-int PpathzoneFromPos(qword v, int n);
+int FindPathzoneAtPos(qword v, int n);
 void SetDetectorTargetStateById(void *p, int a, int b);
 void SetStepguardTarget(void *p, int n);
 /** @sly2-annot addr=0x176458
@@ -1659,7 +1659,7 @@ void SetBhvcombatState(struct S *p, int n) {
             o->nAC = 1;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
             p->v50 = v1;
-            p->n44 = PpathzoneFromPos(v1, 1);
+            p->n44 = FindPathzoneAtPos(v1, 1);
         }
         break;
     case 4:
@@ -1825,7 +1825,7 @@ struct F; struct S;
 struct F { int a0; int pad; int n8; int nC; int n10; int pad2[0x13]; };
 struct S { char pad[0x10]; int n10; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void func_001F7598(struct F *pf);
+void DeliverZapToSo(struct F *pf);
 /** @sly2-annot addr=0x176B80
  * Purpose: Inflict a zap of kind 0x40000 and amount a on the guard from source b
  * Info: proposed name InflictBhvguardZap (T1); TU guardbhv
@@ -1835,7 +1835,7 @@ void func_001F7598(struct F *pf);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void InflictBhvguardZap(struct S *p, int a, int b) { struct F f; func_002333B4(&f, 0, sizeof(f)); f.a0 = b; f.n10 = a; f.nC = 0x40000; f.n8 = p->n10; func_001F7598(&f); }
+void InflictBhvguardZap(struct S *p, int a, int b) { struct F f; func_002333B4(&f, 0, sizeof(f)); f.a0 = b; f.n10 = a; f.nC = 0x40000; f.n8 = p->n10; DeliverZapToSo(&f); }
 } } // namespace M_InflictBhvguardZap
 
 // 0x176BE8 BHVGUARD_FHandleMessage
@@ -1886,9 +1886,9 @@ void func_001B9DB8(OBJECT*,qword);
 void func_001B9D28(OBJECT*,qword);
 OBJECT*func_00156698(void*,qword,OBJECT*);
 void SetStepguardSpecial(OBJECT*,int);
-void func_001F7A68(OBJECT*,int);
-unsigned GrfzpdFromSoGrfzpk(OBJECT*,unsigned);
-int func_001F78A0(unsigned);
+void SetSoZapMode(OBJECT*,int);
+unsigned GetSoZapResponseFlags(OBJECT*,unsigned);
+int GetZapKindIndex(unsigned);
 void func_0020A9A8(TUNE*,int);
 void func_0017A5B0(HELPER*,int);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
@@ -1900,7 +1900,7 @@ int BHV_FHandleMessage(S*,int,MSG*);
 }
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
 static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
-static __inline__ SLOT*Slot(OBJECT*p,unsigned kind,int offset){int index=func_001F78A0(kind);return(SLOT*)((char*)p+offset+index*sizeof(SLOT));}
+static __inline__ SLOT*Slot(OBJECT*p,unsigned kind,int offset){int index=GetZapKindIndex(kind);return(SLOT*)((char*)p+offset+index*sizeof(SLOT));}
 static __inline__ float Max(float a,float b){register float right __asm__("$f1")=b;__asm__("max.s %0,%0,%1":"+f"(a):"f"(right));return a;}
 static __inline__ qword Raw(float value){register qword bits __asm__("$10");__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));return bits;}
 static __inline__ qword Scalar(float value){int bits;qword result;__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));__asm__("qmtc2.ni %1,%0":"=j"(result):"r"(bits));return result;}
@@ -1941,11 +1941,11 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  switch(p->actor->mode){case 14:SetStepguardSpecial(p->actor,-1);break;case 8:case 13:msg->data.amount<<=2;break;}
  if(p->actor->suppressAmount)msg->data.amount=0;
  if(p->actor->extraGate&&p->current.kind!=11&&p->current.kind!=5&&(msg->data.kind==0x4000||msg->data.kind==0x2000)){
-  func_001F7A68(p->actor,0);Clear(&w.next);w.next.kind=19;SetBhvguardMode(p,&w.next);return 1;
+  SetSoZapMode(p->actor,0);Clear(&w.next);w.next.kind=19;SetBhvguardMode(p,&w.next);return 1;
  }
  switch((KINDENUM)p->current.kind){
  case 9:
-  if(!(GrfzpdFromSoGrfzpk(p->actor,msg->data.kind)&0x40)){
+  if(!(GetSoZapResponseFlags(p->actor,msg->data.kind)&0x40)){
    if(!(msg->data.kind&p->actor->mask9)||(p->helper->flags&p->actor->mask9))return 1;
   }break;
  case 10:if(!(msg->data.kind&p->actor->mask10))return 1;break;
@@ -2624,7 +2624,7 @@ void FindShapeClosestPointFromS(CURVE *pcrv, qword pos, float s, void *pv, VEC *
 void EvaluateShapeS(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
 int FBhvpathAtEnd(S *p);
 void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
-int func_001C0B50(CONTEXT *pctx, qword pos, VEC *pv);
+int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv);
 }
 struct VU_FLOAT
 {
@@ -3002,7 +3002,7 @@ extern "C" void StepBhvpathAlongShape(S *p)
     {
         VEC posHit;
         VEC vecUnused2;
-        if (func_001C0B50(pctx, posNext, &posHit))
+        if (FindPathzoneClosestFreePoint(pctx, posNext, &posHit))
         {
             VEC normal;
             pqwZero = &D_002A2DA0;
@@ -3046,9 +3046,9 @@ struct S {
 void UpdateBhv(struct S *p);
 void StepBhvpathAlongShape(struct S *p);
 qword func_001A62E8(struct A *a);
-int func_001BD718(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
+int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
 void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float func_001E7B38(struct T *p, float a, float b);
+float GetShapeDistanceBetween(struct T *p, float a, float b);
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -3086,7 +3086,7 @@ void UpdateBhvpath(struct S *p) {
             if (!p->n40) {
                 struct X *x = p->p10->pE8;
                 struct Y *y = x ? x->pDC : 0;
-                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, p->p30, p->n38 == 0, &p->p54, &p->g60, p->g34);
+                int n = FindShapeFreePoint(pos, y ? y->p10 : 0, x->pDC->a20, p->p30, p->n38 == 0, &p->p54, &p->g60, p->g34);
                 p->n58 = n;
                 switch (n) {
                 case 0:
@@ -3098,7 +3098,7 @@ void UpdateBhvpath(struct S *p) {
                 case 1:
                 case 2: {
                     FindShapeClosestPoint(p->p54, pos, &D_003DD020, 0, 0, 0, &g);
-                    if (80.0f < __builtin_fabsf(func_001E7B38(p->p54, g, p->g60))) {
+                    if (80.0f < __builtin_fabsf(GetShapeDistanceBetween(p->p54, g, p->g60))) {
                         p->g5C = g;
                         Set(p, 1);
                     } else {
@@ -3119,7 +3119,7 @@ void UpdateBhvpath(struct S *p) {
         case 4:
             if ((((int)(p->p54->fl >> 60) & 1) == 0) || p->p54->n1D8) {
                 Set(p, 0);
-            } else if (__builtin_fabsf(func_001E7B38(p->p54, p->g5C, p->g60)) < 80.0f) {
+            } else if (__builtin_fabsf(GetShapeDistanceBetween(p->p54, p->g5C, p->g60)) < 80.0f) {
                 Set(p, 0);
             } else {
                 float r = p->n4C == 1 ? p->g68 : p->g6C;
@@ -3661,7 +3661,7 @@ struct S { char pad[0x10]; struct T *pt; char pad2[0x9C]; float gB0; float gB4; 
 void UpdateBhvanim(struct S *p);
 qword func_001A62E8(void *p);
 void func_0014F750(void *p, int n);
-void func_001F7A68(struct T *t, int n);
+void SetSoZapMode(struct T *t, int n);
 /** @sly2-annot addr=0x1795E8
  * Purpose: BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode
  *   change
@@ -3677,7 +3677,7 @@ void UpdateBhvhit(struct S *p) {
     { struct T *pt = p->pt; struct V *v = pt->p35C; v->q20 = func_001A62E8(pt); }
     t = D_002DDED0.t + 0.0001f;
     if (p->gB0 < t) { p->gB0 = 3.40282346638528859812e+38f; func_0014F750(D_002DDF40, 0); }
-    if (p->gB4 < t) { p->gB4 = 3.40282346638528859812e+38f; func_001F7A68(p->pt, 2); }
+    if (p->gB4 < t) { p->gB4 = 3.40282346638528859812e+38f; SetSoZapMode(p->pt, 2); }
 }
 } } // namespace M_UpdateBhvhit
 
@@ -3704,7 +3704,7 @@ struct T { char pad[0xA70]; struct E ae[1]; };
 struct T2 { char pad[0xF64]; void *pF64; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; struct E *p40; char pad3[0xC]; int n50; char pad4[8]; void *p5C; };
 extern char D_002DEB30[];
-int func_001F78A0(void *p);
+int GetZapKindIndex(void *p);
 void StartBhvhit(struct S *p);
 void BroadcastGameEvent(void *g, int n, void *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
@@ -3717,7 +3717,7 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
 void func_001796D0(struct S *p) {
-    p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
+    p->p40 = &p->pt->ae[GetZapKindIndex(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;
     StartBhvhit(p);
     BroadcastGameEvent(D_002DEB30, 0x15, p->pt);
@@ -3750,7 +3750,7 @@ struct O { char pad[0xC]; struct VTE *vt; };
 struct T2 { char pad[0xF64]; void *pF64; char pad2[0xFEC - 0xF68]; struct O *pFEC; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; struct E *p40; char pad3[0xC]; int n50; char pad4[8]; void *p5C; };
 extern char D_002DEB30[];
-int func_001F78A0(void *p);
+int GetZapKindIndex(void *p);
 void StartBhvhit(struct S *p);
 void BroadcastGameEvent(void *g, int n, void *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
@@ -3763,7 +3763,7 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
 void func_00179780(struct S *p) {
-    p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
+    p->p40 = &p->pt->ae[GetZapKindIndex(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;
     StartBhvhit(p);
     BroadcastGameEvent(D_002DEB30, 0x15, p->pt);
@@ -3823,7 +3823,7 @@ struct A {
     char pad5[0xF64 - 0x48C]; void *pF64;
 };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; int *p40; char pad3[0xC]; void *p50; char pad4[8]; int mask5C; };
-int func_001F78A0(int mask);
+int GetZapKindIndex(int mask);
 void StartBhvhit(struct S *p);
 void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
@@ -3857,7 +3857,7 @@ static inline int Count(struct A *a) {
 void StartBhvko(struct S *p) {
     int n;
     struct A *a;
-    int *pe = (int *)((char *)p->p10 + (func_001F78A0(p->mask5C) * 16 + 0xC10));
+    int *pe = (int *)((char *)p->p10 + (GetZapKindIndex(p->mask5C) * 16 + 0xC10));
     p->p40 = pe;
     if (*pe == -1) p->p40 = 0;
     StartBhvhit(p);
@@ -4549,7 +4549,7 @@ void StartBhv(struct S *p);
 void func_0017A8C8(struct S *p, int n);
 void func_0020B210(struct T *t);
 void func_0020AB68(struct T *t, int a, int b, qword q);
-void func_001F4E28(struct T *t);
+void FreeSoContacts(struct T *t);
 void SetBhvBusy(struct S *p);
 void func_00153FF8(void *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
@@ -4562,7 +4562,7 @@ void SetDetectorTargetStateById(void *p, int a, int b);
  * @end-sly2-annot */
 void func_0017A730(struct S *p) {
     StartBhv(p); func_0017A8C8(p, 0); func_0020B210(p->pt); func_0020AB68(p->pt, 0, 0, D_002A2DD0);
-    func_001F4E28(p->pt); SetBhvBusy(p); func_00153FF8(p->pt->pF64);
+    FreeSoContacts(p->pt); SetBhvBusy(p); func_00153FF8(p->pt->pF64);
     if (p->n3C) SetDetectorTargetStateById(p->pt->pF64, p->n3C, 2);
 }
 } } // namespace M_func_0017A730
@@ -5124,7 +5124,7 @@ extern "C"{
  void ReleaseAct(DELTA**);
  void func_002303A0(P*,GROUP*,int);
  void RecalcSwOxfFilterForObject(void*,P*);
- void func_001F4E28(P*);
+ void FreeSoContacts(P*);
  void SetBhvanimState(C*,int);
  void func_0017AA78(C*,REQUEST*,U*,U*);
  qword func_001A62E8(P*);
@@ -5242,7 +5242,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
   __asm__("lui %0,%2\n\tlw %1,%3":"=&r"(gameBase),"=r"(callbackActor)
    :"i"((gameAddress+0x8000)>>16),"m"(p->actor));
   RecalcSwOxfFilterForObject(gameBase+(short)(gameAddress&0xffff),callbackActor);
-  func_001F4E28(p->actor);p->mode=next;
+  FreeSoContacts(p->actor);p->mode=next;
  }
  const unsigned clockAddress=0x2DDED0;
  char*clockHigh;
@@ -5764,7 +5764,7 @@ struct T { char pad[0xE8]; struct B *pE8; char pad2[0x294 - 0xEC]; int n294; cha
 struct S { char pad[0x10]; struct T *pt; };
 void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
-void func_001C02D0(void *p, qword a, qword b, int n);
+void FindPathzonePathCurve(void *p, qword a, qword b, int n);
 void func_0017C550(struct S *p, int n);
 /** @sly2-annot addr=0x17BF08
  * Purpose: BHVCIRCLE Start: with path-zone capability (bit 2) walk to a spacing point, else stand facing
@@ -5779,7 +5779,7 @@ void func_0017BF08(struct S *p) {
         struct C *c = p->pt->pE8 ? p->pt->pE8->pDC : 0;
         void *pv = c ? c->p10 : 0;
         qword q = func_001A62E8(p->pt);
-        func_001C02D0(pv, q, func_001A62E8(p->pt), p->pt->n294);
+        FindPathzonePathCurve(pv, q, func_001A62E8(p->pt), p->pt->n294);
         func_0017C550(p, 1);
     } else {
         func_0017C550(p, 0);
@@ -5827,8 +5827,8 @@ qword func_001A62E8(ACTOR*);
 void GetVectorCylind(qword,float*,float*,float*);
 float RadNormalize__Ff(float);float GLimitAbs__Fff(float,float);float GLimitLm__FP2LMf(LM*,float);
 qword SetVectorCylind(float,float,float);int FCheckLm__FP2LMf(LM*,float);
-int func_001C0B50(void*,qword,qword*);
-int func_001C0A40(void*,qword,qword,int,SEGMENT*);
+int FindPathzoneClosestFreePoint(void*,qword,qword*);
+int FindPathzoneSegmentBlocker(void*,qword,qword,int,SEGMENT*);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 }
 struct VU_FLOAT{qword qw;};
@@ -5860,7 +5860,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
  GetVectorCylind(QwSub(func_001A62E8(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
  float angle=heading+GLimitAbs__Fff(RadNormalize__Ff(flow.polarAngle-heading),tuning->narrow);
  float length=GLimitLm__FP2LMf(&first,flow.polarLength);
- if(func_001C0B50(region,QwAdd(origin,SetVectorCylind(angle,length,0.0f)),&closest.q)){
+ if(FindPathzoneClosestFreePoint(region,QwAdd(origin,SetVectorCylind(angle,length,0.0f)),&closest.q)){
   GetVectorCylind(QwSub(closest.q,origin),&flow.candidateAngle,&flow.candidateLength,0);
   if(__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle-heading))<tuning->wide&&FCheckLm__FP2LMf(&second,flow.candidateLength))return closest.q;
  }
@@ -5878,7 +5878,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
   int index;
   for(index=0;index<count;index++){
    qword direction=SetVectorCylind(heading+(-1.0f+index/((count-1)*0.5f))*limit,1.0f,0.0f);
-   int hits=func_001C0A40(region,QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.low),&point),QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.high),&point),8,segments);
+   int hits=FindPathzoneSegmentBlocker(region,QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.low),&point),QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.high),&point),8,segments);
    if(hits>0){
     int k=0;int i=hits;
     do{
@@ -5891,7 +5891,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
   }
   if(bestDistance!=D_002A5600)return best;
  }
- if(func_001C0B50(region,origin,&closest.q))return closest.q;
+ if(FindPathzoneClosestFreePoint(region,origin,&closest.q))return closest.q;
  return origin;
 }
 } // namespace M_func_0017BFF8
@@ -5915,7 +5915,7 @@ void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
 int FCheckLm__FP2LMf(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
-void func_001C02D0(void *q, qword a, qword b, struct B *c);
+void FindPathzonePathCurve(void *q, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *t, struct B *b, int n);
 /** @sly2-annot addr=0x17C3E8
  * Purpose: BHVCIRCLE Update: when out of the distance band or off-heading relative to the target, re-path to
@@ -5961,7 +5961,7 @@ void func_0017C3E8(struct S *p) {
 doit:
     {
         qword v = func_001A62E8(p->p10);
-        func_001C02D0(q, v, func_0017BFF8(p, q, g, pos), b);
+        FindPathzonePathCurve(q, v, func_0017BFF8(p, q, g, pos), b);
     }
     SetBhvpathShape(t, b, 0);
     }
@@ -6957,8 +6957,8 @@ struct S {
     char pad3[0xB4 - 0x80]; int nB4; struct I *aB8[1]; int nBC; int nC0;
 };
 qword func_001A62E8(struct A *p);
-qword func_001C1EC0(struct V2 *p, qword v);
-void *PpathzoneFromPos(qword v, int n);
+qword GetPathlinkEndpointPos(struct V2 *p, qword v);
+void *FindPathzoneAtPos(qword v, int n);
 int FindPathlinkRoute(void *a, struct A *b, qword v, int c, int d, struct I **pp);
 void FindPathzoneClosestPoint(void *a, qword v, qword *pv, int n);
 /** @sly2-annot addr=0x17D8A8
@@ -6975,13 +6975,13 @@ void FindBhvgotoRoute(struct S *p) {
     p->u.v60 = p->v40;
     if (p->nBC == 0) {
         qword pos = func_001A62E8(p->p10);
-        qword v = func_001C1EC0(&p->v40, pos);
+        qword v = GetPathlinkEndpointPos(&p->v40, pos);
         struct C *c = p->p10->pE8;
         struct D *d = c ? c->pDC : 0;
         void *q = d ? d->p10 : 0;
         void *r;
         int fail;
-        r = PpathzoneFromPos(v, 0);
+        r = FindPathzoneAtPos(v, 0);
         fail = 0;
         if (r == 0) {
             fail = 1;
@@ -7044,10 +7044,10 @@ void SetBhvgotoState(struct S *p, int n);
 void FindBhvgotoRoute(struct S *p);
 void func_002562A8(struct X *x);
 qword func_001A62E8(void *p);
-qword func_001C1EC0(struct X *s, qword v);
+qword GetPathlinkEndpointPos(struct X *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
 void MeasureShape(struct B *b);
-int func_001C02D0(void *q, qword a, qword b, struct B *c);
+int FindPathzonePathCurve(void *q, qword a, qword b, struct B *c);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 /** @sly2-annot addr=0x17DA28
  * Purpose: Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and
@@ -7078,8 +7078,8 @@ void PlanBhvgoto(struct S *p) {
             union { qword q; float f[4]; } c;
             float t;
             qword pos = func_001A62E8(p->p10);
-            qword a = func_001C1EC0(&q->x60, pos);
-            qword b = func_001C1EC0(&q->x80, pos);
+            qword a = GetPathlinkEndpointPos(&q->x60, pos);
+            qword b = GetPathlinkEndpointPos(&q->x80, pos);
             int f;
             FindClosestPointOnLineSegment(pos, a, b, &c.q, &t, 0);
             f = 0;
@@ -7100,7 +7100,7 @@ void PlanBhvgoto(struct S *p) {
     if (k > 0) if (k < 3) {
         struct B *b = p->p10->p294;
         qword pos = func_001A62E8(p->p10);
-        qword q = func_001C1EC0(&x, pos);
+        qword q = GetPathlinkEndpointPos(&x, pos);
         if (p->nBC) {
             b->nE8 = 2;
             b->pF4[0] = pos;
@@ -7110,7 +7110,7 @@ void PlanBhvgoto(struct S *p) {
             struct C *c = p->p10->pE8;
             struct D *d = c ? c->pDC : 0;
             void *e = d ? d->p10 : 0;
-            if (!func_001C02D0(e, pos, q, b)) {
+            if (!FindPathzonePathCurve(e, pos, q, b)) {
                 p->x80 = x;
                 k = 5;
             }
@@ -7276,7 +7276,7 @@ void func_0017E278(struct S *p, int n);
 int func_00208B38(struct A *a, void *o);
 float func_00208BB0(struct A *a);
 qword func_001A62E8(void *p);
-qword func_001C1EC0(struct X *s, qword v);
+qword GetPathlinkEndpointPos(struct X *s, qword v);
 void func_0017E0E0(struct S *p);
 static __inline__ float Dist(qword a, qword b) {
     qword d;
@@ -7332,7 +7332,7 @@ void func_0017DE50(struct S *p) {
         struct X *x = &t->x40;
         qword pos = func_001A62E8(p->p10);
         int f = 0;
-        qword q = func_001C1EC0(x, pos);
+        qword q = GetPathlinkEndpointPos(x, pos);
         if (Dist(func_001A62E8(p->p10), q) < D_002BE764) {
             f = 1;
         } else if (Dist(func_001A62E8(p->p10), func_001A62E8(p->p38)) < D_002BE768) {
@@ -7362,9 +7362,9 @@ struct A { char pad[0xE8]; struct C *pE8; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x1C]; void *p38; float f3C; };
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
-qword func_001C1EC0(struct X *s, qword v);
+qword GetPathlinkEndpointPos(struct X *s, qword v);
 qword SetVectorCylind(float a, float b, float c);
-int func_001C0B50(void *q, qword v, qword *out);
+int FindPathzoneClosestFreePoint(void *q, qword v, qword *out);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 }
@@ -7399,12 +7399,12 @@ extern "C" void func_0017E0E0(struct S *p) {
     q = dd ? dd->p10 : 0;
     best = 0.0f;
     ang = atan2f(GetY(d), GetX(d));
-    r = func_001C1EC0(&t->x40, b);
+    r = GetPathlinkEndpointPos(&t->x40, b);
     for (i = 0; i < 16; i++) {
         qword o = SetVectorCylind(ang + D_002BE770[i], D_002BE76C, 0.0f);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(b), "j"(o));
-        if (func_001C0B50(q, s, &hit.q)) {
+        if (FindPathzoneClosestFreePoint(q, s, &hit.q)) {
             qword e, l;
             float g;
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(e) : "j"(hit.q), "j"(a));
@@ -7614,7 +7614,7 @@ namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
 struct E; struct S;
 struct E { int a[8]; };
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; char *p30; int n34; };
-int func_001C1FA0(void *pe, void *p, float g);
+int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 /** @sly2-annot addr=0x17E5F0
  * Purpose: Within 25 of the current segment endpoint
  * Info: proposed name FBhvpathlinkAtSegmentEnd (T1); TU guardbhv
@@ -7623,7 +7623,7 @@ int func_001C1FA0(void *pe, void *p, float g);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int FBhvpathlinkAtSegmentEnd(struct S *p) { return func_001C1FA0(p->p30 + 0x60 + p->n34 * 32, p->p10, 25.0f); }
+int FBhvpathlinkAtSegmentEnd(struct S *p) { return IsNearPathlinkEndpoint(p->p30 + 0x60 + p->n34 * 32, p->p10, 25.0f); }
 } } // namespace M_FBhvpathlinkAtSegmentEnd
 
 // 0x17E628 PushBhvpathlinkLeap
@@ -7635,7 +7635,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; char *p30; int n34; };
 struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
-qword func_001C1EC0(void *pe, qword q);
+qword GetPathlinkEndpointPos(void *pe, qword q);
 /** @sly2-annot addr=0x17E628
  * Purpose: Push BHVLEAP to the current segment endpoint
  * Info: proposed name PushBhvpathlinkLeap (T1); TU guardbhv
@@ -7649,7 +7649,7 @@ void PushBhvpathlinkLeap(struct S *p) {
     struct O *o = PushStepBehavior(p->p10, 0xAC);
     struct VTE *e;
     o->n68 = 1;
-    o->q50 = func_001C1EC0(p->p30 + 0x60 + p->n34 * 32, func_001A62E8(p->p10));
+    o->q50 = GetPathlinkEndpointPos(p->p30 + 0x60 + p->n34 * 32, func_001A62E8(p->p10));
     e = &o->vt[8];
     e->pfn((char *)o + e->d);
 }
@@ -7672,7 +7672,7 @@ struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct P *p3
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
-qword func_001C1EC0(struct SEG *s, qword v);
+qword GetPathlinkEndpointPos(struct SEG *s, qword v);
 void MeasureShape(struct B *b);
 void SetBhvpathShape(struct O *o, struct B *b, int n);
 void PushBhvpathlinkLeap(struct S *p);
@@ -7698,7 +7698,7 @@ void SetBhvpathlinkState(struct S *p, int n) {
                 struct O *o = PushStepBehavior(p->p10, 0xA7);
                 struct B *b = p->p10->p294;
                 qword pos = func_001A62E8(p->p10);
-                qword q = func_001C1EC0(&p->p30->a60[p->n34], pos);
+                qword q = GetPathlinkEndpointPos(&p->p30->a60[p->n34], pos);
                 qword d;
                 float len;
                 float t = D_002DDED0.t;
@@ -7791,7 +7791,7 @@ struct T { char pad[0xFE8]; int nFE8; };
 struct S { char pad[0x10]; struct T *pt; int pad2; void *p18; char pad3[0x14]; int a30[4]; };
 void UpdateBhv(struct S *p);
 int FBhvanimDone(void *p);
-int func_001C1FA0(void *pe, void *p, float g);
+int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 void func_0017E9B0(struct S *p);
 /** @sly2-annot addr=0x17E918
  * Purpose: BHVRELOCATE Update: retry until within 25 of the point
@@ -7804,8 +7804,8 @@ void func_0017E9B0(struct S *p);
 void func_0017E918(struct S *p) {
     UpdateBhv(p);
     if (p->pt->nFE8 & 1) {
-        if (FBhvanimDone(p->p18) && !func_001C1FA0(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
-    } else if (!func_001C1FA0(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
+        if (FBhvanimDone(p->p18) && !IsNearPathlinkEndpoint(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
+    } else if (!IsNearPathlinkEndpoint(p->a30, p->pt, 25.0f)) func_0017E9B0(p);
 }
 } } // namespace M_func_0017E918
 
@@ -7819,7 +7819,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[
 struct S { char pad[0x10]; struct O *p10; int pad2; char a18[0x18]; char a30[0x10]; };
 void PopBhv(void *p);
 qword func_001A62E8(struct O *p);
-qword func_001C1EC0(void *p, qword q);
+qword GetPathlinkEndpointPos(void *p, qword q);
 int func_00173610(qword *pq, float a, float b, int n, void *pfn);
 void FSnapPosToSurfaceAbove(qword *pq);
 struct O *PushStepBehavior(struct O *p, int n);
@@ -7835,7 +7835,7 @@ void func_0020B210(struct O *p);
 void func_0017E9B0(struct S *p) {
     union { qword q; float a[4]; } u;
     PopBhv(p->a18);
-    u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
+    u.q = GetPathlinkEndpointPos(p->a30, func_001A62E8(p->p10));
     if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) FSnapPosToSurfaceAbove(&u.q);
     if (p->p10->nFE8 & 1) {
         struct O *o = PushStepBehavior(p->p10, 0xAC);
@@ -7863,7 +7863,7 @@ struct T; struct S;
 struct T { char pad[0xFE8]; int nFE8; };
 struct S { char pad[0x10]; struct T *pt; int pad2; void *p18; char pad3[0x14]; int a30[4]; };
 int FBhvanimDone(void *p);
-int func_001C1FA0(void *pe, void *p, float g);
+int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 /** @sly2-annot addr=0x17EAE8
  * Purpose: Leap finished (if leaping) and within 25 of the point
  * Info: proposed name FBhv191Done (T2); TU guardbhv
@@ -7871,7 +7871,7 @@ int func_001C1FA0(void *pe, void *p, float g);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-int func_0017EAE8(struct S *p) { if (p->pt->nFE8 & 1) { if (!FBhvanimDone(p->p18)) return 0; } return func_001C1FA0(p->a30, p->pt, 25.0f); }
+int func_0017EAE8(struct S *p) { if (p->pt->nFE8 & 1) { if (!FBhvanimDone(p->p18)) return 0; } return IsNearPathlinkEndpoint(p->a30, p->pt, 25.0f); }
 } } // namespace M_func_0017EAE8
 
 // 0x17EB48 InitBhvpatrolpath
@@ -7978,8 +7978,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float SMinShape(struct B *b);
 float SMaxShape(struct B *b);
 float SWrapShape(struct B *b, float f);
-void func_001EA000(void *p);
-struct R *func_001EA3B0(void *p, float f);
+void BuildShapeValidRanges(void *p);
+struct R *FindRangeContaining(void *p, float f);
 void EvaluateShapeS(struct B *b, float f, qword *pv, int n);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
@@ -8008,8 +8008,8 @@ void AdvanceBhvpatrolpathGoal(struct S *p, int force) {
     }
     if (p->n58 == 0) {
         struct R *r;
-        func_001EA000(p->p30->p180);
-        r = func_001EA3B0(p->p30->p180, t);
+        BuildShapeValidRanges(p->p30->p180);
+        r = FindRangeContaining(p->p30->p180, t);
         if (r) t = SWrapShape(p->p30, p->n34 != 0 ? r->f4 : r->f0);
     }
     if (force == 0 && __builtin_fabsf(p->f38 - t) < D_002BE7C4) return;

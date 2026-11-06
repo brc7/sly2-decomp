@@ -129,8 +129,8 @@ void PostSoLoad(SOW *p);
 void UpdateSo(SOW *);
 void RemoveSoHierarchy(SOW *p);
 void HandleBasicMessage(SOW *p, int k, SOW *q);
-void func_001F3590(SOW *p);
-void func_001F68A8(SOW *p, int a);
+void InitSoPhysics(SOW *p);
+void SetSoPartsBit48(SOW *p, int a);
 qwordV ConvertAloPos(int a, SOW *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
 void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
@@ -139,8 +139,8 @@ MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int CanWaterInflictZap(void *, COLL *);
-int func_001F7E08(SOW *, int (*)(void *, COLL *), void *, COLL **);
-int func_001F6838(SOW *);
+int CollectSoParts(SOW *, int (*)(void *, COLL *), void *, COLL **);
+int GetSoTreeFlag2(SOW *);
 int func_00230380(int);
 float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
 N *AllocSwXa(WORLD *);
@@ -162,7 +162,7 @@ void AccelSoTowardMatSpring(SOW *, const M3 *, const COEF *, qwordV, const COEF 
 M4B *func_001A6318(SOW *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *, float *, qwordV *);
-void func_001FAC98(SOW *, qwordV);
+void AddSoAngularAcceleration(SOW *, qwordV);
 void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SOW *, WATER *, float, qwordV, qwordV, float, float);
 void StopSnd(EMITTER *, float);
 void RcPtr_Assign(EMITTER **, EMITTER *);
@@ -170,10 +170,10 @@ void RemoveSoXa(SOW *p, N *pn);
 void AddSoXa(SOW *p, N *pn);
 void FreeSwXaList(WORLD *pg, N *pn);
 void UpdateSoTreeBounds(SOW *p);
-void func_001F5078(SOW *p, N *pn);
+void WakeSo(SOW *p, N *pn);
 /* The same function called with the object only (AddSoXa: with pn passed on, a1 is copied first; 8 of 11 off). */
-void func_001F5078P(SOW *p) __asm__("func_001F5078");
-void func_001F72F8(SOW *p);
+void func_001F5078P(SOW *p) __asm__("WakeSo");
+void IsPosInSo(SOW *p);
 }
 
 /** @sly2-annot addr=0x228B48
@@ -207,8 +207,8 @@ extern "C" void InitWater(SOW *p)
 // the water friction and spring factors of 1. (inferred: physics init override)
 extern "C" void InitWaterPhysics(SOW *p)
 {
-    func_001F3590(p);
-    func_001F68A8(p, 1);
+    InitSoPhysics(p);
+    SetSoPartsBit48(p, 1);
     { PHYS *t = p->physics;
     t->friction = 1.0f;
     t->spring = 1.0f; }
@@ -329,10 +329,10 @@ extern "C" void UpdateWater(SOW *p){
  STACKSCOPE_ctor(&work.mark);
  {register int size __asm__("$3")=p->count;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
  objects=(COLL **)PvAllocSlot__FP8ALLOCREQ(req);}
- work.count=func_001F7E08(p,CanWaterInflictZap,0,objects);
+ work.count=CollectSoParts(p,CanWaterInflictZap,0,objects);
  for(link=p->state->first;link;link=link->next){
   SOW *o=link->object;
-  if(!o->physics||o->physics->spring<1e-4f||func_001F6838(o)||!func_00230380(o->body->kind))continue;
+  if(!o->physics||o->physics->spring<1e-4f||GetSoTreeFlag2(o)||!func_00230380(o->body->kind))continue;
   if(GetWaterSubmergedFraction(p,o,0,0)==0.0f)continue;
   o->flags|=0x100000000L;
   if(o->flags&0x80000000L)continue;
@@ -495,7 +495,7 @@ extern "C" float GetWaterSubmergedFraction(SOW *p, SOW *pj, qwordV *ppos, qwordV
         pm->alignment = 0x10;
         apv = (void **)PvAllocSlot__FP8ALLOCREQ(pm);
     }
-    c = func_001F7E08(p, CanWaterInflictZap, 0, (COLL **)apv);
+    c = CollectSoParts(p, CanWaterInflictZap, 0, (COLL **)apv);
     if (!ClipEdgeToObjects(work.a.q, work.b.q, c, (COLL **)apv, 0x10, work.alsg)) {
         if (pnormal)
             *pnormal = D_002A2DC0;
@@ -592,7 +592,7 @@ extern "C" void RemoveSoXa(SOW *p, N *n)
     for (pp = &p->firstXa; *pp; pp = &(*pp)->nextXa) {
         if (*pp == n) { *pp = n->nextXa; n->nextXa = 0; break; }
     }
-    func_001F5078(p, n);
+    WakeSo(p, n);
 }
 
 /** @sly2-annot addr=0x229798
@@ -698,7 +698,7 @@ extern "C" void AddSoWaterAcceleration(SOW *a,SOW *b){
   DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&w.phase.basis,&w.angle,&w.axis.vector.q);
   float gain=spring*3.0f;qwordV k=VuFromFloat<qwordV>(w.angle*gain*span);
   qwordV rotation=Scale(w.axis.vector.q,k);w.angularNormal.q=k;
-  func_001FAC98(a,rotation);
+  AddSoAngularAcceleration(a,rotation);
  }
  if(0.0f<span&&span<1.0f&&0.9f<w.normal.f[2]){
   float radius=((a->state->maximum.f[0]-a->state->minimum.f[0])+(a->state->maximum.f[1]-a->state->minimum.f[1]))*0.25f;
@@ -727,7 +727,7 @@ extern "C" int CanWaterInflictZap(void *p, COLL *q)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
 // Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument.
-extern "C" void EnsureWaterZapData(SOW *p)
+extern "C" void IsPosInWater(SOW *p)
 {
-    func_001F72F8(p);
+    IsPosInSo(p);
 }

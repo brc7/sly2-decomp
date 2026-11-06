@@ -32,8 +32,8 @@ extern "C" {
 void InitXfm(XFM *pxfm);
 float UFromShapeS(SHAPE *pshape, float s);
 void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
-void func_001E6A30(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
-void func_001E6DB8(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
+void FindShapeClosestPointLinearFromU(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
+void FindShapeClosestPointCurveFromU(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
@@ -55,7 +55,7 @@ void SHAPE::Init()
 namespace M_CloneShape { extern "C" {
 struct S { char pad[0x17C]; int n; };
 void CloneXfm(struct S *p);
-void func_001E7840(struct S *p, int n);
+void EnsureShapeChain(struct S *p, int n);
 /** @sly2-annot addr=0x1E5DB8
  * Purpose: SHAPE::Clone (vt41): CloneXfm; if a chain was attached (+0x17C) rebuild it
  * Info: proposed name CloneShape (T1); class SHAPE slot41; TU shape
@@ -67,7 +67,7 @@ void CloneShape(struct S *p)
     CloneXfm(p);
     if (p->n) {
         p->n = 0;
-        func_001E7840(p, 0);
+        EnsureShapeChain(p, 0);
     }
 }
 } } // namespace M_CloneShape
@@ -240,7 +240,7 @@ struct S {
 };
 void InvalidateShapeCache(struct S*);
 void CacheShapeSegment(struct S*,int);
-void func_001E9828(void*);
+void SyncChainDistances(void*);
 static inline qword Point(struct M *m,qword a) {
  qword r;
  __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));
@@ -290,7 +290,7 @@ void MeasureShape(struct S *p)
    p->dist[j+1]=p->dist[j]+p->duration;
   }
  }
- if(p->sub)func_001E9828(p->sub);
+ if(p->sub)SyncChainDistances(p->sub);
 }
 } } // namespace M_MeasureShape
 
@@ -309,8 +309,8 @@ extern "C" void InvalidateShapeCache(SHAPE *pshape)
 namespace M_func_001E6340 { extern "C" {
 struct Q { char pad[0x4C]; int st; };
 struct S { char pad[0x17C]; struct Q *pq; };
-void func_001E8378(struct Q *q);
-void func_001E9090(struct Q *q);
+void StepChainRk4(struct Q *q);
+void StepChain(struct Q *q);
 void func_001A5E80(struct S *p);
 /** @sly2-annot addr=0x1E6340
  * Purpose: SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090)
@@ -321,17 +321,17 @@ void func_001A5E80(struct S *p);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E6340(struct S *p)
+void UpdateShapeXfWorld(struct S *p)
 {
     if (p->pq) {
         switch (p->pq->st) {
         case 0:
         case 3:
-            func_001E8378(p->pq);
+            StepChainRk4(p->pq);
             break;
         case 1:
         case 2:
-            func_001E9090(p->pq);
+            StepChain(p->pq);
             break;
         }
     } else {
@@ -628,7 +628,7 @@ typedef int qword __attribute__((mode(TI)));
 struct X; struct SPACE;
 struct S { struct X *a0; struct SPACE *a4; int pad[2]; qword v; };
 void EvaluateShapeU(struct X *, float, qword *, qword *);
-qword ApplyConstr_1FA970(struct SPACE *, qword);
+qword ApplyConstrNoTransform(struct SPACE *, qword);
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword SquareBits(qword a) {
     register qword d __asm__("vf1"),one __asm__("vf3");
@@ -649,7 +649,7 @@ static inline qword ConvertedSquareBits(qword a) {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-float func_001E69A0(void *context,float g){
+float GetShapeDistanceSquaredAtParam(void *context,float g){
     struct S *p=(struct S *)context;
     qword v;register qword bits __asm__("$2");float result;
     EvaluateShapeU(p->a0,g,&v,0);
@@ -664,7 +664,7 @@ float func_001E69A0(void *context,float g){
         register qword path __asm__("vf1")=v;
         register qword delta __asm__("vf3");
         __asm__("vsub.xyzw %0,%1,%2":"=j"(delta):"j"(path),"j"(point));
-        bits=ConvertedSquareBits(ApplyConstr_1FA970(p->a4,delta));
+        bits=ConvertedSquareBits(ApplyConstrNoTransform(p->a4,delta));
     }
     __asm__ __volatile__("mtc1 %1,%0":"=f"(result):"r"(bits));
     return result;
@@ -672,7 +672,7 @@ float func_001E69A0(void *context,float g){
 } } // namespace M_func_001E69A0
 
 namespace M_func_001E6A30 {
-// func_001E6A30 (w2lane4, wave 2): closest point on a path (chain of control points under the path's own matrix) to a query point,
+// FindShapeClosestPointLinearFromU (w2lane4, wave 2): closest point on a path (chain of control points under the path's own matrix) to a query point,
 // searched from a starting time. IsegFindShapeU turns the starting time into a segment index; the loop projects the point on that
 // segment (segment vector rotated by the matrix, point minus the transformed start) and walks to the next / previous segment (wrapping
 // when the path is cyclic) until the projection falls inside a segment. Afterwards the position, direction, time and value outputs
@@ -685,7 +685,7 @@ namespace M_func_001E6A30 {
 //    in global allocation (space $s4, basis $s3). Rows 1 and 2 are read through `basis`, row 0 and the translation row directly.
 //  * `previous = index; continue;` is written in both branches (each gets its own delay-slot copy), and `backward = 1` / `forward = 1`
 //    are set after the if/else of their branch.
-//  * `segment` is a memory union (it is stored and reloaded around the ApplyConstr_1FA970 calls); `NormalizeTo` takes it by value, which
+//  * `segment` is a memory union (it is stored and reloaded around the ApplyConstrNoTransform calls); `NormalizeTo` takes it by value, which
 //    is the unread temp copy stored to the temp slot (sp+0x50, shared with the VU_FLOAT temps of the position block).
 //  * Dot helpers list their input once and `LengthOf` lists the operand once ("j"(v.q) with %2 used twice): two operand
 //    references would make the loaded segment outrank the length in local allocation and swap vf1/vf2.
@@ -704,7 +704,7 @@ struct PATH {
 };
 extern "C" {
 int IsegFindShapeU(PATH *, float, float *, float *);
-qword ApplyConstr_1FA970(SPACE *, qword);
+qword ApplyConstrNoTransform(SPACE *, qword);
 float SFromShapeU(PATH *, float);
 }
 struct VU_FLOAT {
@@ -783,7 +783,7 @@ static inline VV Normalize(VV a)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
+extern "C" void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {
     U segment;
@@ -799,8 +799,8 @@ extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosi
         segment.q = Rotate(matrix, basis, Sub(end, start));
         qword delta = Sub(point, TransformPoint(matrix, start));
         if (space) {
-            delta = ApplyConstr_1FA970(space, delta);
-            segment.q = ApplyConstr_1FA970(space, segment.q);
+            delta = ApplyConstrNoTransform(space, delta);
+            segment.q = ApplyConstrNoTransform(space, segment.q);
         }
         qword length = LengthOf(segment);
         float size = ToFloatR(length);
@@ -854,7 +854,7 @@ struct SPACE;
 struct CTX { struct X *p; struct SPACE *space; int pad[2]; qword q; };
 extern float D_002A8130;
 extern float D_002A8134;
-float func_001E69A0(void *pv, float g);
+float GetShapeDistanceSquaredAtParam(void *pv, float g);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*pfn)(void *, float), void *pv, float g, float dg, float gMin, float gMax, float *pg, float *pgOut);
 float UWrapShape(struct X *p, float g);
 void EvaluateShapeU(struct X *p, float g, qword *a, qword *b);
@@ -865,12 +865,12 @@ float SFromShapeU(struct X *p, float g);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E6DB8(struct X *p, qword q, struct SPACE *space, qword *a, qword *b, float *pg, float *pgOut, float g)
+void FindShapeClosestPointCurveFromU(struct X *p, qword q, struct SPACE *space, qword *a, qword *b, float *pg, float *pgOut, float g)
 {
     struct CTX ctx;
     float gRes;
     ctx.space = space; ctx.q = q; ctx.p = p;
-    MinimizeRange__FPFPvf_fPvffffPfT6(func_001E69A0, &ctx, g, (p->ag[1] - p->ag[0]) * 0.1f, p->fWrap ? D_002A8130 : p->ag[0], p->fWrap ? D_002A8134 : p->ag[p->c - 1], &gRes, 0);
+    MinimizeRange__FPFPvf_fPvffffPfT6(GetShapeDistanceSquaredAtParam, &ctx, g, (p->ag[1] - p->ag[0]) * 0.1f, p->fWrap ? D_002A8130 : p->ag[0], p->fWrap ? D_002A8134 : p->ag[p->c - 1], &gRes, 0);
     gRes = UWrapShape(p, gRes);
     if (a || b) EvaluateShapeU(p, gRes, a, b);
     if (pg) *pg = gRes;
@@ -887,10 +887,10 @@ void func_001E6DB8(struct X *p, qword q, struct SPACE *space, qword *a, qword *b
 extern "C" void FindShapeClosestPointFromU(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u)
 {
     if (pshape->crvk == 0) {
-        func_001E6A30(pshape, pos, pspace, pposOut, pdirOut, puOut, pgOut, u);
+        FindShapeClosestPointLinearFromU(pshape, pos, pspace, pposOut, pdirOut, puOut, pgOut, u);
         return;
     }
-    func_001E6DB8(pshape, pos, pspace, pposOut, pdirOut, puOut, pgOut, u);
+    FindShapeClosestPointCurveFromU(pshape, pos, pspace, pposOut, pdirOut, puOut, pgOut, u);
 }
 
 /** @sly2-annot addr=0x1E6F10
@@ -932,7 +932,7 @@ struct PATH {
 };
 extern "C" {
 extern float D_002A8138;
-qword ApplyConstr_1FA970(SPACE *, qword);
+qword ApplyConstrNoTransform(SPACE *, qword);
 float SFromShapeU(PATH *, float);
 void FindShapeClosestPointFromU(PATH *, qword, SPACE *, qword *, qword *, float *, float *, float);
 }
@@ -1014,15 +1014,15 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
             qword direction = Sub(end = TransformPoint(matrix, p->points[index]), start);
             qword offset = Sub(point, start);
             if (space) {
-                direction = ApplyConstr_1FA970(space, direction);
-                offset = ApplyConstr_1FA970(space, offset);
+                direction = ApplyConstrNoTransform(space, direction);
+                offset = ApplyConstrNoTransform(space, offset);
             }
             float t = ToFloat(Dot(offset, direction)) / ToFloat(Dot(direction, direction));
             t = Clamp(t, 0.0f, 1.0f);
             float u = 1.0f - t;
             closest.q = VecCombo(VU_FLOAT(u), start, VU_FLOAT(t), end);
             qword delta = Sub(point, closest.q);
-            if (space) delta = ApplyConstr_1FA970(space, delta);
+            if (space) delta = ApplyConstrNoTransform(space, delta);
             float distance = Length(delta);
             if (distance < best) {
                 best = distance;
@@ -1041,7 +1041,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
         int closestIndex = -1;
         for (int index = 0; index < p->count; index++) {
             qword displacement = Sub(point, TransformPoint(matrix, p->points[index]));
-            if (space) displacement = ApplyConstr_1FA970(space, displacement);
+            if (space) displacement = ApplyConstrNoTransform(space, displacement);
             float distance = Length(displacement);
             if (distance < best) { best = distance; closestIndex = index; }
         }
@@ -1085,7 +1085,7 @@ float SFromShapeU(struct X *p, float g);
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E7410(struct X *p, float (*pfn)(float, void *), void *pv, int a, int b, float *pg, float *pgOut)
+void FindShapeBestVertex(struct X *p, float (*pfn)(float, void *), void *pv, int a, int b, float *pg, float *pgOut)
 {
     int i;
     float gBest = 0.0f;
@@ -1195,7 +1195,7 @@ void FindShapeClosestPoint(void *a, int b, int c, qword *pq, int d, int e, int f
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-qword func_001E77B0(void *a, int b)
+qword GetShapeClosestPoint(void *a, int b)
 {
     qword q;
     FindShapeClosestPoint(a, b, 0, &q, 0, 0, 0);
@@ -1237,7 +1237,7 @@ void SetLoBusyk(struct P *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void *func_001E7840(struct P *p, int f)
+void *EnsureShapeChain(struct P *p, int f)
 {
     if (!p->px) {
         p->px = InitChain(func_001AE4F8(0x90), p);
@@ -1254,73 +1254,73 @@ void *func_001E7840(struct P *p, int f)
 } } // namespace M_func_001E7840
 
 namespace M_func_001E7930 { extern "C" {
-void *func_001E7840(void *p, int n);
-void func_001E93F0(void *p, int a, int b);
+void *EnsureShapeChain(void *p, int n);
+void SetChainEndObject(void *p, int a, int b);
 /** @sly2-annot addr=0x1E7930
  * Purpose: Chain end 0 follows object (or shape start)
  * Info: proposed name SetShapeChainStartObject (T2); TU shape
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E7930(void *p, int b)
+void SetShapeChainStartObject(void *p, int b)
 {
-    func_001E93F0(func_001E7840(p, 1), 0, b);
+    SetChainEndObject(EnsureShapeChain(p, 1), 0, b);
 }
 } } // namespace M_func_001E7930
 
 namespace M_func_001E7968 { extern "C" {
-void *func_001E7840(void *p, int n);
-void func_001E93F0(void *p, int a, int b);
+void *EnsureShapeChain(void *p, int n);
+void SetChainEndObject(void *p, int a, int b);
 /** @sly2-annot addr=0x1E7968
  * Purpose: Chain end 1 follows object (or shape end)
  * Info: proposed name SetShapeChainEndObject (T2); TU shape
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E7968(void *p, int b)
+void SetShapeChainEndObject(void *p, int b)
 {
-    func_001E93F0(func_001E7840(p, 1), 1, b);
+    SetChainEndObject(EnsureShapeChain(p, 1), 1, b);
 }
 } } // namespace M_func_001E7968
 
 namespace M_func_001E79A0 { extern "C" {
 struct O { char pad[0x5C]; float *ag; };
 struct S { char pad[0xE8]; int c; };
-struct O *func_001E7840(struct S *p, int n);
+struct O *EnsureShapeChain(struct S *p, int n);
 /** @sly2-annot addr=0x1E79A0
  * Purpose: Last entry of the chain's sample array (0 if no points)
  * Info: proposed name SGetShapeChainLength (T2); TU shape
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-float func_001E79A0(struct S *p)
+float GetShapeChainLength(struct S *p)
 {
     float g;
-    if (p->c > 0) g = func_001E7840(p, 0)->ag[p->c - 1];
+    if (p->c > 0) g = EnsureShapeChain(p, 0)->ag[p->c - 1];
     else g = 0.0f;
     return g;
 }
 } } // namespace M_func_001E79A0
 
 namespace M_func_001E79F0 { extern "C" {
-void *func_001E7840(void *p, int n);
-void func_001E95B0(void *p, float g);
+void *EnsureShapeChain(void *p, int n);
+void AddChainSample(void *p, float g);
 /** @sly2-annot addr=0x1E79F0
  * Purpose: Ensure chain then append sample 0x1E95B0(chain,g)
  * Info: proposed name AddShapeChainSample (T2); TU shape
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E79F0(void *p, float g)
+void AddShapeChainSample(void *p, float g)
 {
-    func_001E95B0(func_001E7840(p, 1), g);
+    AddChainSample(EnsureShapeChain(p, 1), g);
 }
 } } // namespace M_func_001E79F0
 
 namespace M_SetShapeChainMode { extern "C" {
 struct Q { char pad[0x4C]; int n; };
 struct P { char pad[0x40]; int fl; char pad2[0x17C - 0x44]; struct Q *px; };
-void *func_001E7840(struct P *p, int f);
+void *EnsureShapeChain(struct P *p, int f);
 void SetLoBusyk(struct P *p, int n);
 /** @sly2-annot addr=0x1E7A28
  * Purpose: n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C
@@ -1332,7 +1332,7 @@ void SetLoBusyk(struct P *p, int n);
 void SetShapeChainMode(struct P *p, int n)
 {
     if (n != -1) {
-        func_001E7840(p, 1);
+        EnsureShapeChain(p, 1);
         SetLoBusyk(p, 0);
         { int v = p->fl; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else p->fl = v & ~0x20; }
         { int v = p->fl; if ((v ^ 1) & 1) *(int *)v |= 0xC; else p->fl = v | 0xC; }
@@ -1354,7 +1354,7 @@ float SMaxShape(struct S *p);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-float func_001E7B38(struct S *p, float a, float b)
+float GetShapeDistanceBetween(struct S *p, float a, float b)
 {
     float d = b - a;
     if (p->fWrap) {
@@ -1380,7 +1380,7 @@ static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E7BB8(struct S*p,qword*lo,qword*hi){
+void GetShapeBounds(struct S*p,qword*lo,qword*hi){
  register qword r0 __asm__("vf2"),r1 __asm__("vf3"),r2 __asm__("vf4"),r3 __asm__("vf11");
  register qword maximum __asm__("vf5"),minimum __asm__("vf6");
  register qword *first __asm__("$5");
@@ -1504,7 +1504,7 @@ static inline float Sqrt(float f){return __builtin_sqrtf(f);}
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-float func_001E7D90(struct P*p)
+float UpdateShapeBoundingSphere(struct P*p)
 {
     register float squared __asm__("$f2");
     UpdateXfmMatWorld(p);squared=0.0f;
@@ -1623,7 +1623,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 /* The shape's chain id, or -1. */
-extern "C" int func_001E7FF0(SHAPE *pshape)
+extern "C" int GetShapeChainMode(SHAPE *pshape)
 {
     SHAPECHAIN *pchain = (SHAPECHAIN *)pshape->pvUnk17c;
     int n = -1;
@@ -1723,7 +1723,7 @@ struct PATH {char pad[0xC];struct VTE *vt;char pad10[0xE8-0x10];int n;int padEC;
 struct S {int a,b;float g8;char padC[0x20-0xC];qword start,end;void *fn40,*fn44;struct PATH *path;int n4C;int pad50;qword *v54,*v58;float *dist;float g60;char pad64[8];float g6C,g70;char pad74[0x84-0x74];int n84;float g88;};
 extern char D_002C44F0[];
 void *func_001AE2A0(struct AL*);
-void func_001E9828(struct S*);
+void SyncChainDistances(struct S*);
 static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));return r;}
 /** @sly2-annot addr=0x1E81C0
  * Purpose: Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths)
@@ -1747,13 +1747,13 @@ struct S *InitChain(struct S *p,struct PATH *path) {
  if(p->path->n>0) {
   p->start=p->v54[0];p->end=p->v54[p->path->n-1];
  }
- func_001E9828(p);
+ SyncChainDistances(p);
  return p;
 }
 } } // namespace M_InitChain
 
 namespace M_func_001E8378 {
-/* func_001E8378 (Lilly's range): one RK4-style step of a spring rope (CHAIN, same struct as matched func_001E9090).
+/* StepChainRk4 (Lilly's range): one RK4-style step of a spring rope (CHAIN, same struct as matched StepChain).
  * Matching tricks (T1869, see notes/190000-1F0000_lanes.md):
  *  - the 4 empty volatile asms at the end of the pass loop add 4 RTL insns (no code) so the hoisted start/startVel/end/endVel
  *    copies get vf12..14 in the game's order (global-alloc live length);
@@ -1808,7 +1808,7 @@ void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);
 void InvalidateShapeCache(PATH *);
-void func_001E8378(CHAIN *);
+void StepChainRk4(CHAIN *);
 }
 
 static inline VV TransformPoint(const M4 &m, VV v)
@@ -1932,7 +1932,7 @@ static inline void LerpP(U *pd, const U *pa, const U *pb, float t) { pd->q = Vec
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E8378(CHAIN *p)
+void StepChainRk4(CHAIN *p)
 {
     U newP[64], newV[64], accP[64], accV[64], force[64];
     int i;
@@ -2073,14 +2073,14 @@ void func_001E8378(CHAIN *p)
 } // namespace M_func_001E8378
 
 namespace M_func_001E9090 {
-/* func_001E9090: one simulation step of a rope-like path chain (wave-4 lane 2, from w3lane9's rewrite).
+/* StepChain: one simulation step of a rope-like path chain (wave-4 lane 2, from w3lane9's rewrite).
  *
  * The first point is the start offset transformed by the first space's matrix; its velocity comes from
  * GetXfVelocity. Every later point is integrated (accel = force - damping * v, v += accel * dt,
  * pos += (v_old + v_new) * dt/2), then pulled back to the rest distance |dist[i] - dist[i-1]| from the previous
  * point along the normalized displacement (fallback direction D_002A2DA0 when shorter than 0.0001), and the
  * part of the relative velocity along that direction is removed. With mode 2 the last point is pinned to the
- * end offset in the last space and func_001E95B0 extends the path. Finally every point is transformed into
+ * end offset in the last space and AddChainSample extends the path. Finally every point is transformed into
  * the path's local space (inverse of its world matrix, virtual slot 31) and InvalidateShapeCache refreshes the path.
  *
  * Two register-choice devices (everything else is plain C++ plus one asm per VU operation):
@@ -2120,9 +2120,9 @@ extern "C" { extern qword D_002A2DA0; }    // fallback direction
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);   // invert
-void func_001E95B0(CHAIN *, float);
+void AddChainSample(CHAIN *, float);
 void InvalidateShapeCache(PATH *);
-void func_001E9090(CHAIN *);
+void StepChain(CHAIN *);
 }
 
 static inline VV TransformPoint(const M4 &m, VV v)
@@ -2184,7 +2184,7 @@ static inline float Abs(float g) { return __builtin_fabsf(g); }
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E9090(CHAIN *p)
+void StepChain(CHAIN *p)
 {
     float dt = D_002DDED0.dt;
     VV prev = TransformPoint(p->first->matrix, p->start);
@@ -2212,7 +2212,7 @@ void func_001E9090(CHAIN *p)
     if (p->mode == 2)
     {
         p->position[n - 1].q = TransformPoint(p->last->matrix, p->end);
-        func_001E95B0(p, p->distance[n - 2] + GFromVf(Length(Sub(p->position[n - 2].q, p->position[n - 1].q))));
+        AddChainSample(p, p->distance[n - 2] + GFromVf(Length(Sub(p->position[n - 2].q, p->position[n - 1].q))));
         n = p->path->count;
     }
     M4 inverse;
@@ -2246,7 +2246,7 @@ void EvaluateShapeU(int, qword *, int, float);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E93F0(struct P *p, int i, struct LO *po)
+void SetChainEndObject(struct P *p, int i, struct LO *po)
 {
     p->apo[i] = po;
     if (po) {
@@ -2280,7 +2280,7 @@ void *func_001AE1D0(struct AR *par);
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-struct X *func_001E94B0(void *pv, int c)
+struct X *NewSampledShape(void *pv, int c)
 {
     struct AR ar;
     int i;
@@ -2306,7 +2306,7 @@ struct X *func_001E94B0(void *pv, int c)
 } } // namespace M_func_001E94B0
 
 namespace M_func_001E95B0 {
-/* func_001E95B0 (Claude agent, wave-2 lane 7): append a time sample to a sampled path (two U arrays a/b, a
+/* AddChainSample (Claude agent, wave-2 lane 7): append a time sample to a sampled path (two U arrays a/b, a
  * path with positions/distances, a time array). If the new time is earlier than the last sample the tail is
  * truncated; otherwise samples are inserted until the new time is within a step of the last one or the
  * capacity is reached, interpolating a/b/pos/dist for the sample that becomes the second-to-last.
@@ -2321,7 +2321,7 @@ struct PATH {char pad[0xE8];int count;int padEC;float*dist;U*pos;};
 struct S {char pad[0x48];PATH*path;int active;int pad50;U*a;U*b;float*time;char pad60[0x84-0x60];int capacity;float step;};
 extern "C" { extern float D_002C3678; }
 extern "C" void InvalidateShapeCache(PATH*);
-extern "C" void func_001E95B0(S*,float);
+extern "C" void AddChainSample(S*,float);
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
@@ -2338,7 +2338,7 @@ static inline void Lerp(U*pd,const U*p0,const U*p1,float f,float cf){pd->q=VecCo
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E95B0(S*p,float time){
+void AddChainSample(S*p,float time){
  int count=p->path->count;
  int n;
  if(time<p->time[count-1]){
@@ -2384,14 +2384,14 @@ refresh:
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-extern "C" void func_001E9828(SHAPECHAIN *pchain)
+extern "C" void SyncChainDistances(SHAPECHAIN *pchain)
 {
     SHAPE *pshape = pchain->pshape;
     CopyAb(pchain->as, pshape->mpicvs, pshape->ccv * 4);
 }
 
 namespace M_func_001E9858 {
-/* func_001E9858: rebuild every mesh entry's sample array in path-local coordinates.
+/* PostCid106Load: rebuild every mesh entry's sample array in path-local coordinates.
  *
  * For each mesh node and each of its entries: copy the entry's vertices to a scratch array, allocate the
  * output sample array, then for every vertex
@@ -2433,7 +2433,7 @@ void CopyAb__FPvT0Ui(void *, const void *, unsigned);   /* memcpy */
 void *func_001AE1D0(AL *);                            /* allocate (size, align) */
 void FindShapeClosestPoint(void *, qword, void *, qword *, qword *, float *, float *);
 M3 *BuildOrthonormalMatrixZ(M3 *, qword, qword);
-void func_001E9858(S *);
+void PostCid106Load(S *);
 }
 
 /* v * 4x4 (translation row applied through vf0.w) */
@@ -2480,7 +2480,7 @@ static inline void TransposeInto(M3 &r, const M3 &m)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E9858(S *p)
+void PostCid106Load(S *p)
 {
     U vertices[128];
     WORK w;
@@ -2601,7 +2601,7 @@ namespace M_func_001E9C30 { extern "C" {
 struct MSG { int cb; int nKind; };
 struct S { char pad[0x180]; void *pv; };
 void *func_001AE2A0(struct MSG *pmsg);
-void func_001E9C88(void *pv, struct S *p);
+void BuildShapeVolumeSegments(void *pv, struct S *p);
 /** @sly2-annot addr=0x1E9C30
  * Purpose: Allocate (0x9C) and build the shape's volume/segment table once (+0x180)
  * Info: proposed name EnsureShapeVolumeSegments (T2); TU shape
@@ -2609,22 +2609,22 @@ void func_001E9C88(void *pv, struct S *p);
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E9C30(struct S *p)
+void EnsureShapeVolumeSegments(struct S *p)
 {
     struct MSG msg;
     if (!p->pv) {
         msg.cb = 0x9C;
         msg.nKind = 0x10;
         p->pv = func_001AE2A0(&msg);
-        func_001E9C88(p->pv, p);
+        BuildShapeVolumeSegments(p->pv, p);
     }
 }
 } } // namespace M_func_001E9C30
 
 namespace M_func_001E9C88 { extern "C" {
-/* func_001E9C88: samples the path po from its start to its end in steps of D_002C367C, collects the distinct
- * objects found at each sample (PpathzoneFromPos) into apv[64] and the parameter ranges where consecutive samples
- * do not stay inside one object (FPosInPathzone) into aseg[64] (joining the first/last range when po->fE4), then copies
+/* BuildShapeVolumeSegments: samples the path po from its start to its end in steps of D_002C367C, collects the distinct
+ * objects found at each sample (FindPathzoneAtPos) into apv[64] and the parameter ranges where consecutive samples
+ * do not stay inside one object (IsPosInPathzone) into aseg[64] (joining the first/last range when po->fE4), then copies
  * both lists to the heap (func_001AE238) into ps.
  * Matching note: the &apv argument of the final func_001AE238 call must go through an inline helper; integrate.c
  * then puts sp+0x200 straight into a1, so gcse has nothing to hoist and the apv[cpv++] cursor (s6) keeps an
@@ -2638,8 +2638,8 @@ extern float D_002C367C;
 float SMinShape(struct O *);
 float SMaxShape(struct O *);
 void EvaluateShapeS(struct O *, float, qword *, qword *);
-void *PpathzoneFromPos(qword, int);
-int FPosInPathzone(void *, qword, int);
+void *FindPathzoneAtPos(qword, int);
+int IsPosInPathzone(void *, qword, int);
 void *func_001AE238(struct MSG *, void *);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
@@ -2649,7 +2649,7 @@ static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001E9C88(struct S *ps, struct O *po)
+void BuildShapeVolumeSegments(struct S *ps, struct O *po)
 {
     struct SEG aseg[64];
     void *apv[64];
@@ -2667,12 +2667,12 @@ void func_001E9C88(struct S *ps, struct O *po)
     t = tStart;
     tEnd = SMaxShape(ps->po);
     EvaluateShapeS(ps->po, tStart, &pos, 0);
-    pPrev = PpathzoneFromPos(pos, 0);
+    pPrev = FindPathzoneAtPos(pos, 0);
     for (; t < tEnd; t += D_002C367C) {
         void *pCur;
         int outside;
         EvaluateShapeS(ps->po, t, &pos2, 0);
-        pCur = PpathzoneFromPos(pos2, 0);
+        pCur = FindPathzoneAtPos(pos2, 0);
         if (pCur) {
             int i;
             for (i = 0; i < cpv; i++)
@@ -2682,7 +2682,7 @@ void func_001E9C88(struct S *ps, struct O *po)
                 apv[cpv++] = pCur;
         }
         outside = 0;
-        if (!pCur || pPrev != pCur || !FPosInPathzone(pPrev, pos2, 0))
+        if (!pCur || pPrev != pCur || !IsPosInPathzone(pPrev, pos2, 0))
             outside = 1;
         if (outside) {
             if (!pseg && cseg < 64) {
@@ -2714,33 +2714,33 @@ void func_001E9C88(struct S *ps, struct O *po)
 
 namespace M_func_001E9F50 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-void *PpathzoneFromPos(qword q, int n);
-int func_001C1700(void *p, int n, qword q, qword q2, int c, void **ap);
-int FPosInCnvo(void *p, qword q);
+void *FindPathzoneAtPos(qword q, int n);
+int FindPathzoneObstacles(void *p, int n, qword q, qword q2, int c, void **ap);
+int IsPosInCnvo(void *p, qword q);
 /** @sly2-annot addr=0x1E9F50
  * Purpose: Find an object at pos (0x1C0D70/0x1C1700) passing 0x1BC9F0
  * Info: proposed name PvFindValidAtPos (T2); TU shape
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void *func_001E9F50(qword q)
+void *FindValidObjectAtPos(qword q)
 {
     void *ap[0x40];
-    void *p = PpathzoneFromPos(q, 0);
+    void *p = FindPathzoneAtPos(q, 0);
     int c, i;
     if (!p) return 0;
-    c = func_001C1700(p, 0, q, q, 0x40, ap);
+    c = FindPathzoneObstacles(p, 0, q, q, 0x40, ap);
     for (i = 0; i < c; i++) {
         void *pT = ap[i];
-        if (FPosInCnvo(pT, q)) return pT;
+        if (IsPosInCnvo(pT, q)) return pT;
     }
     return 0;
 }
 } } // namespace M_func_001E9F50
 
 namespace M_func_001EA000 { extern "C" {
-// func_001EA000 (lane 5): matched. Samples an object's path over [tStart, tEnd] and collects the time segments where
-// func_001E9F50 finds a valid position into ps->aseg10 (func_001BD560 == 3 means "no bound found", so tStart/tEnd are
+// BuildShapeValidRanges (lane 5): matched. Samples an object's path over [tStart, tEnd] and collects the time segments where
+// FindValidObjectAtPos finds a valid position into ps->aseg10 (FindShapeFreeRange == 3 means "no bound found", so tStart/tEnd are
 // used), intersects them with ps->aseg through MergeSegmentLists and fixes up a wrap-around pair at the end.
 // Notes for whoever touches this again:
 //  - `pseg` (the aseg10 pointer used by the wrap-around fix-up) must be assigned after the copy loops, outside the block
@@ -2770,8 +2770,8 @@ extern float D_002C367C;
 float SMinShape(struct O *);
 float SMaxShape(struct O *);
 void EvaluateShapeS(struct O *, float, qword *, qword *);
-void *func_001E9F50(qword);
-int func_001BD560(void *, struct O *, float, int, qword *, float *);
+void *FindValidObjectAtPos(qword);
+int FindShapeFreeRange(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int);
 
@@ -2781,7 +2781,7 @@ int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-void func_001EA000(struct S *ps)
+void BuildShapeValidRanges(struct S *ps)
 {
     struct VEC pos;
     struct X ax[16];
@@ -2810,16 +2810,16 @@ void func_001EA000(struct S *ps)
     while (t < tEnd) {
         void *pv;
         EvaluateShapeS(ps->po, t, (qword *)&pos, 0);
-        pv = func_001E9F50(*(qword *)&pos);
+        pv = FindValidObjectAtPos(*(qword *)&pos);
         if (pv) {
             int fSave = ps->po->fE4;
             struct SEG *pseg;
             int fNew;
             int idx;
             ps->po->fE4 = 0;
-            if (func_001BD560(pv, ps->po, t, 0, 0, &segStart) == 3)
+            if (FindShapeFreeRange(pv, ps->po, t, 0, 0, &segStart) == 3)
                 segStart = tStart;
-            if (func_001BD560(pv, ps->po, t, 1, 0, &segEnd) == 3)
+            if (FindShapeFreeRange(pv, ps->po, t, 1, 0, &segEnd) == 3)
                 segEnd = tEnd;
             ps->po->fE4 = fSave;
             pseg = &aseg[cseg];
@@ -2883,7 +2883,7 @@ struct S { char pad[0xC]; int c; struct LM alm[1]; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-struct LM *func_001EA3B0(struct S *p, float g)
+struct LM *FindRangeContaining(struct S *p, float g)
 {
     int i;
     struct LM *alm = p->alm;

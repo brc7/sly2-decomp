@@ -28,7 +28,7 @@ struct GUARDMOVER
     STEPGUARD *pstepguard;  /* +0x0C */
 };
 #define PMOVER(pstepguard) ((GUARDMOVER *)((char *)(pstepguard) + 0xFD0))
-/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target): the time the first guard engaged,
+/* A target record (STEPGUARD::pvEngage; EnsureTargetRecordById finds the one of a target): the time the first guard engaged,
    the target, and the engaged guards from +0x2C. */
 struct TARGETREC
 {
@@ -83,8 +83,8 @@ BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int cid);
 int func_0020A298(LO *plo, LO *ploOther, int n);
 int func_0020A658(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
 void func_0020A9A8(TARGETREC *ptargetrec, int n);
-TARGETREC *func_001F8278(LO *plo);
-void func_001F5078(STEPGUARD *pstepguard);
+TARGETREC *EnsureTargetRecordById(LO *plo);
+void WakeSo(STEPGUARD *pstepguard);
 void SetStepTargetHeading(STEPGUARD *pstepguard);
 int func_00207B10(int n);
 ANIMBINDING *func_00209C18(STEPGUARD *pstepguard, int i);
@@ -306,7 +306,7 @@ void func_0020D1B0(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_00170C90(struct O *po, int a, int b, float f);
-void *PxfFindSo(struct S *p, int n, int m);
+void *FindSoXf(struct S *p, int n, int m);
 void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
 
 /** @sly2-annot addr=0x2061D8
@@ -342,7 +342,7 @@ void PostStepguardLoad(struct S *p)
         p->p3F4->vt[9].pf((char *)p->p3F4 + p->p3F4->vt[9].d);
     if (p->p3F8)
         p->p3F8->vt[9].pf((char *)p->p3F8 + p->p3F8->vt[9].d);
-    x = PxfFindSo(p, p->n18, 0xC);
+    x = FindSoXf(p, p->n18, 0xC);
     if (x)
         p->pFC4 = func_0012DC18(p, x, 0, 7, 2, D_002A2DE0);
 }
@@ -368,7 +368,7 @@ struct Q { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *pEC; };
 struct T { char pad[0xEC]; void *pEC; };
 struct O { char pad[0x50]; int k; char pad2[8]; struct T *pt; };
 struct S { char pad[0x26C]; char x26C[4]; };
-int FIgnoreSoIntersection(struct S *p, struct Q *q);
+int ShouldSoIgnoreIntersection(struct S *p, struct Q *q);
 int FStepguardHasSgf(struct S *p, int n);
 struct O *PbhvFindBhvstk(void *p, int n);
 int MaxInt(int a, int b);
@@ -381,7 +381,7 @@ int MaxInt(int a, int b);
  * @end-sly2-annot */
 int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
 {
-    int r = FIgnoreSoIntersection(p, q);
+    int r = ShouldSoIgnoreIntersection(p, q);
     if (FStepguardHasSgf(p, 7)) {
         if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
             r = MaxInt(r, 1);
@@ -1158,7 +1158,7 @@ struct A { char pad[0x200]; struct T *pt; };
 struct Q { struct A *pa; int pad[2]; int nC; };
 struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char x26C[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
-int func_001F7588(struct S *p, struct Q *q);
+int HasZapRecordField44(struct S *p, struct Q *q);
 void HandleBhvstkMessage(void *p, int k, struct Q *q);
 /** @sly2-annot addr=0x207468
  * Purpose: STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid
@@ -1174,7 +1174,7 @@ int FTakeStepguardDamage(struct S *p, struct Q *q)
             return 1;
         if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, 0x4F) && q->pa->pt->n14 == p->n14)
             return 1;
-        if (!func_001F7588(p, q))
+        if (!HasZapRecordField44(p, q))
             return 0;
     }
     HandleBhvstkMessage(p->x26C, 0xC, q);
@@ -1265,7 +1265,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3D4C; }
 extern "C" { extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2]; }
 extern "C" {
-void func_001F3C10(P *);
+void RefreshSoBoundsRecord(P *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int) __asm__("memset");
@@ -1291,7 +1291,7 @@ extern "C" void RenderStepguardSelf(P *p)
     M4 basis,matrix,product,inverse;
     CAMERA *camera=&D_002DDF40;
     if(p->flags.bytes[5]&camera->mask){
-        func_001F3C10(p);
+        RefreshSoBoundsRecord(p);
         if(!FActiveCplcy__FP5CPLCY((char *)camera+0x3B0)){
             RenderSoGlobset((EFFECT *)((char *)p+0x80),0,p->material,p->opacity,p->opacity);
         }else{
@@ -1921,7 +1921,7 @@ extern "C" void func_00208538(STEPGUARD *pstepguard, int n)
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-/* Sets the guard's target, moving the guard from the old target's record (func_001F8278) to the new one's. */
+/* Sets the guard's target, moving the guard from the old target's record (EnsureTargetRecordById) to the new one's. */
 extern "C" void SetStepguardTarget(STEPGUARD *pstepguard, LO *ploTarget)
 {
     LO *ploOld;
@@ -1934,7 +1934,7 @@ extern "C" void SetStepguardTarget(STEPGUARD *pstepguard, LO *ploTarget)
         }
         pstepguard->ploTarget = ploTarget;
         if (ploTarget != 0) {
-            ptargetrec = func_001F8278(ploTarget);
+            ptargetrec = EnsureTargetRecordById(ploTarget);
             pstepguard->pvEngage = ptargetrec;
             AddTargetRecordGuard(ptargetrec, pstepguard);
         }
@@ -2946,7 +2946,7 @@ extern "C" void func_00209790(GUARDMOVER *pmover)
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
-    func_001F5078(pmover->pstepguard);
+    WakeSo(pmover->pstepguard);
 }
 
 // 0x2097C8 LockStepguardMover
@@ -3264,7 +3264,7 @@ struct S;
 struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qword); };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; char pad3[0xF80 - 0x21C]; int k; void *pF84; float fF88; int pad4; void *pF90; };
 extern qword D_002A2DA0;
-void func_001F4FA8(struct S *p);
+void IgnoreSoSlot59(struct S *p);
 void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
 qword func_001A62E8(void *p);
 qword *func_001A6318(void *p);
@@ -3279,7 +3279,7 @@ qword *func_001A6318(void *p);
 void func_00209C88(struct S *p)
 {
     qword a, b;
-    func_001F4FA8(p);
+    IgnoreSoSlot59(p);
     switch (p->k) {
     case 0:
         EvaluateShapeS(p->pF84, &a, &b, p->fF88);
@@ -4134,7 +4134,7 @@ struct S { char pad[0x10]; struct O *pParent; int pad14; int cid; char pad2[0x7C
 void PostLoLoad(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void ResolveAnimBinding(void *pe, struct O *o);
-void *PxfFindSo(struct O *o, int a, int b);
+void *FindSoXf(struct O *o, int a, int b);
 float *func_0012F938(int h, int a);
 void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
 /** @sly2-annot addr=0x20AE18
@@ -4159,8 +4159,8 @@ void func_0020AE18(struct S *p)
         struct L l;
         int h;
         float *pf;
-        p->pa = (__typeof__(p->pa))PxfFindSo(p->pAC, p->a, 6);
-        p->nA4 = (int)PxfFindSo(p->pAC, p->b, 6);
+        p->pa = (__typeof__(p->pa))FindSoXf(p->pAC, p->a, 6);
+        p->nA4 = (int)FindSoXf(p->pAC, p->b, 6);
         h = p->hB4;
         pf = func_0012F938(h, p->c);
         func_001300B8(h, p->pAC, p->nA4, p->pa->nA0, &l, 0, *pf, 1.0f);

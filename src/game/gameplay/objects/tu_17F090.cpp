@@ -89,7 +89,7 @@ extern float D_002BE870[3], D_002BE87C, D_002BE884;
 extern char D_002DEB30[];       /* the game (event broadcaster) */
 void RemoveSoHierarchy(SO *pso);
 void func_001CB518(SO *pso, int n);
-void func_001F4FB0(SO *pso, XP *pxp);
+void AdjustSoNewXp(SO *pso, XP *pxp);
 void func_0017F090(HACKV *phack);
 void func_0017F3E0(HACKV *phack, int c, HACKE *ahacke);
 void func_0017F110(HACKV *phack);
@@ -205,7 +205,7 @@ extern "C" int func_0017F170(HACKV *phack, int n)
 /* HACK slot 55: clear the contact's adjustment (as pipe.cpp's ResetJtPipeAdjust). */
 extern "C" void func_0017F1A0(HACKV *phack, XP *pxp)
 {
-    func_001F4FB0(phack, pxp);
+    AdjustSoNewXp(phack, pxp);
     *(int *)((char *)pxp + 0x94) = 0;
     *(int *)((char *)pxp + 0x98) = 0;
 }
@@ -366,7 +366,7 @@ struct S { char pad[0xC]; struct VTE *vt; char pad2[0x178]; int n188; int pad3; 
 struct F { struct S *p0; int n4; int n8; int nC; int n10; int pad[3]; qword q20; qword q30; qword pad2[2]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword func_001A62E8(void *p);
-void func_001F7598(struct F *pf);
+void DeliverZapToSo(struct F *pf);
 void func_0015C150(void *p);
 /** @sly2-annot addr=0x17F5F8
  * Purpose: vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its
@@ -392,7 +392,7 @@ void func_0017F5F8(struct S *p, int n) {
         f.q30 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
         f.nC = 0x100;
         f.n10 = -p->n188;
-        func_001F7598(&f);
+        DeliverZapToSo(&f);
     }
     if (p->p190) func_0015C150(p->p190);
     { struct VTE *e = &p->vt[9]; ((void (*)(void *))e->pfn)((char *)p + e->d); }
@@ -463,7 +463,7 @@ struct G;
 extern struct G D_003DD490;
 struct E { int a; int b; int c; int d; int e; int f; };
 struct S { char pad[0x230]; int c; struct E ae[1]; };
-int PxfFindSo(struct S *p, int a, int b);
+int FindSoXf(struct S *p, int a, int b);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int func_0012DC18(struct S *p, int c, int a, int b, int d, qword q);
 int func_001F0380(int e, struct S *p, int a, int b);
@@ -481,7 +481,7 @@ void func_0017F770(struct S *p) {
     int i;
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
-        pe->c = PxfFindSo(p, pe->a, 6);
+        pe->c = FindSoXf(p, pe->a, 6);
         pe->e = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->b, p);
         if (pe->c) pe->d = func_0012DC18(p, pe->c, 0, 7, 2, D_002A2DD0);
         if (pe->e) pe->f = func_001F0380(pe->e, p, -1, 0);
@@ -619,7 +619,7 @@ extern "C" {
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_002BE800[], D_002BE810[];
 MATRIX3 func_0011B500(qword q, float g);
-void func_001F59A0(S *p, MATRIX3 *pm, void *pv);
+void AccelSoTowardMatBounded(S *p, MATRIX3 *pm, void *pv);
 void AccelSoTowardPosSpring(S *p, qword a, int b, qword c, void *pv);
 void func_0017FB50(S *p);
 }
@@ -635,7 +635,7 @@ void func_0017FB50(S *p);
 void func_0017FB50(S *p) {
     if (p->n1C0 == 3) return;
     MATRIX3 m; m = func_0011B500(D_002A2DC0, p->g218);
-    func_001F59A0(p, &m, D_002BE800);
+    AccelSoTowardMatBounded(p, &m, D_002BE800);
     AccelSoTowardPosSpring(p, D_002A2DD0, 0, p->q220, D_002BE810);
 }
 } // namespace M_func_0017FB50
@@ -722,7 +722,7 @@ void func_002303A0(struct S *p, struct N *n, int k);
 void SetLoParent_1A58D0(struct S *p, int a, int b);
 void SetSoCnstrForce(struct S *p, int n);
 void SetSoCnstrTorque(struct S *p, int n);
-void func_001F68A8(struct S *p, int n);
+void SetSoPartsBit48(struct S *p, int n);
 void SetSmaGoal(void *p, int n);
 void StopSnd(void *p, float f);
 struct M4 func_0022FF40(int a, int b, struct M4 *pm);
@@ -769,7 +769,7 @@ void func_0017FD08(struct S *p, int n) {
         SetLoParent_1A58D0(p, 0, 0xF);
         SetSoCnstrForce(p, 5);
         SetSoCnstrTorque(p, 4);
-        func_001F68A8(p, 0);
+        SetSoPartsBit48(p, 0);
         p->p294 = 0;
         break;
     case 1:
@@ -809,7 +809,7 @@ void func_0017FD08(struct S *p, int n) {
             p->n29C = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
             SetSoCnstrForce(p, 1);
             SetSoCnstrTorque(p, 1);
-            func_001F68A8(p, 1);
+            SetSoPartsBit48(p, 1);
         }
         break;
     case 4:
@@ -974,7 +974,7 @@ extern "C" void func_001801B8(P*p){
 namespace M_func_001803A8 { extern "C" {
 struct T { char pad[0xEC]; int n; };
 struct S { char pad[0x1C8]; struct T *pt; };
-int FIgnoreSoIntersection(struct S *p, struct T *q);
+int ShouldSoIgnoreIntersection(struct S *p, struct T *q);
 /** @sly2-annot addr=0x1803A8
  * Purpose: vt61 override
  * Info: proposed name HACKBULLET_FIgnoreIntersection (T2); class HACKBULLET slot61; TU tu_17F090
@@ -987,7 +987,7 @@ int func_001803A8(struct S *p, struct T *q)
 {
     if (p->pt && q->n == p->pt->n)
         return 3;
-    return FIgnoreSoIntersection(p, q);
+    return ShouldSoIgnoreIntersection(p, q);
 }
 } } // namespace M_func_001803A8
 
@@ -1093,7 +1093,7 @@ extern "C" void func_00180598(HACKENEMYV *phackenemy)
 namespace M_func_001805C8 { extern "C" {
 struct S { char pad[0x58]; int a; int b; char p2[0x178]; int x1d8; char p3[0x44]; char x220[4]; };
 void func_0017F138(struct S *p);
-int func_001E94B0(int a, int b);
+int NewSampledShape(int a, int b);
 void func_002303A0(struct S *p, int a, int b);
 void func_0017F408(struct S *p, int n, void *pv);
 /** @sly2-annot addr=0x1805C8
@@ -1108,7 +1108,7 @@ void func_0017F408(struct S *p, int n, void *pv);
 void func_001805C8(struct S *p)
 {
     func_0017F138(p);
-    p->x1d8 = func_001E94B0(0x2C9, 0x10);
+    p->x1d8 = NewSampledShape(0x2C9, 0x10);
     if (p->a) func_002303A0(p, p->a, 2);
     if (p->b) func_002303A0(p, p->b, 2);
     func_0017F408(p, 5, p->x220);
@@ -1161,7 +1161,7 @@ qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
 float RadNormalize__Ff(float);
 int FCheckLm__FP2LMf(LM*,float);
-void func_001C02D0(void*,qword,qword,void*);
+void FindPathzonePathCurve(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
 float GGetDifficulty(void*);
@@ -1268,7 +1268,7 @@ dispatch:
   else if(D_002BE820<Length(QwSub(self,p->previousSelf)))refresh=1;
   else if(D_002BE824<D_002DDED0.t-p->stamp)refresh=1;
   if(refresh){
-   func_001C02D0(p->binding,self,target,p->curve);
+   FindPathzonePathCurve(p->binding,self,target,p->curve);
    p->progress=0.0f;
    p->previousTarget=target;
    p->previousSelf=self;
@@ -1317,7 +1317,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad1[0x5C - 0x10]; struct X *p5C;
 extern "C" { extern qword D_002A2DC0; }
 extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
-extern "C" void func_001F59A0(struct O *p, MATRIX3 *pm, void *pv);
+extern "C" void AccelSoTowardMatBounded(struct O *p, MATRIX3 *pm, void *pv);
 extern "C" void AddSoAcceleration(struct O *p, qword v);
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
@@ -1338,7 +1338,7 @@ void func_00180EE8(struct O *p)
         mat = func_0011B500(D_002A2DC0, p->g204);
         if (p->n1C0 != 3)
             mat = ConvertXfMat(p->p5C->pA0, 0, &mat);
-        func_001F59A0(p, &mat, p->a378);
+        AccelSoTowardMatBounded(p, &mat, p->a378);
     }
     if (p->n1C0 == 3) {
         qword v = p->v210;
@@ -2361,10 +2361,10 @@ typedef struct P{char pad0[0xE0];int contactCount;CONTACT*contacts;char padE8[0x
 typedef struct SEGMENT{qword a,b,plane;char pad30[0x30];}SEGMENT;
 typedef struct WORK{U direction,newEndpoint,oldEndpoint;SEGMENT segments[2];U scale,dot,one;}WORK;
 extern qword D_002A2DA0;extern int D_003DD490;
-extern void func_001F5990(P*,REQUEST*,int,int,int,CONTACT**);
+extern void AddSoCustomXps(P*,REQUEST*,int,int,int,CONTACT**);
 extern qword*func_002564B8(qword*);
 extern int ClipEdgeToSphere(qword,float,qword,qword,int,SEGMENT*);
-extern void PxpAdd(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
+extern void AddXp(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword Broadcast(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
@@ -2390,7 +2390,7 @@ static inline float Distance(U*dot,U*one,qword plane,qword point){
  one->q=o;dot->q=d;return GX(d);
 }
 /** @sly2-annot addr=0x1823C8
- * Purpose: vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49
+ * Purpose: vt60: SO base then contacts against each segment (AddXp) for requests with flag bit 49
  * Info: proposed name AddHackwallXps (T2); class HACKWALL slot60; TU tu_17F090
  * Notes: names_v2 C proposed AssignSggSearchPoints__FP3SGG (0.638) | CID4C->CID76 (CID 0x4C=76, hex-literal)
  *   | class identity from whole_game WE names/object strings: AddCid76Xps -> AddHackwallXps
@@ -2400,7 +2400,7 @@ static inline float Distance(U*dot,U*one,qword plane,qword point){
  * @end-sly2-annot */
 void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
- func_001F5990(p,q,unused2,unused3,unused4,pout);
+ AddSoCustomXps(p,q,unused2,unused3,unused4,pout);
  if(!(q->flags&0x2000000000000L))return;
  center=q->owner->position;
  count=p->entryCount;i=0;
@@ -2415,7 +2415,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
    distance=Planar(&w.direction);
    if(distance<radius){
     w.newEndpoint.q=Broadcast(-q->radius);
-    PxpAdd(&D_003DD490,&p->contacts[p->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
+    AddXp(&D_003DD490,&p->contacts[p->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
    }else{
     int j;
     for(j=q->start;j<q->count;j++){
@@ -2428,7 +2428,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
       result=MAdd2(point,plane,w.scale.q);
       func_002564B8(&w.dot.q);func_002564B8(&w.one.q);
       distance=Distance(&w.dot,&w.one,plane,point)-q->radius;
-      PxpAdd(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
+      AddXp(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
       break;
      }
     }
@@ -2520,7 +2520,7 @@ typedef int qword __attribute__((mode(TI)));
 struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int x24; int p2; float h; };
 struct S { char pad[0x1C8]; int c; struct E ae[4]; };
 void UpdateSoTreeBounds(struct S *p);
-void func_001E7BB8(int n, qword *pa, qword *pb);
+void GetShapeBounds(int n, qword *pa, qword *pb);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
 /** @sly2-annot addr=0x182780
  * Purpose: vt49 override
@@ -2537,7 +2537,7 @@ void func_00182780(struct S *p)
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
         qword a, b;
-        func_001E7BB8(pe->x24, &a, &b);
+        GetShapeBounds(pe->x24, &a, &b);
         ExtendSoTreeBounds(p, a, pe->g);
         ExtendSoTreeBounds(p, b, pe->g);
     }
@@ -2644,7 +2644,7 @@ extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
 struct Q *func_00182810(struct S *p, qword q);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int func_001F7598(struct CTX *pctx);
+int DeliverZapToSo(struct CTX *pctx);
 void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
 void func_00181EB0(struct S *p, struct Q *q, int n);
 /** @sly2-annot addr=0x1829D8
@@ -2668,7 +2668,7 @@ void func_001829D8(struct S *p, void *pv)
     ctx.q = q->pos;
     ctx.xc = 0x100;
     ctx.x10 = -p->x188;
-    if (func_001F7598(&ctx)) {
+    if (DeliverZapToSo(&ctx)) {
         if (p->x190) ExplodeExplParams(p->x190, 4, 0, D_002A2DD0, q->pos, 0.0f, 0.0f);
         func_00181EB0(p, q, 2);
     }

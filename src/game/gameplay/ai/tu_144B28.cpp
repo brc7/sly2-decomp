@@ -73,7 +73,7 @@ void UpdateBhvpath(BHVB *pbhv);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
 void SetBhvfollowState(BHVB *pbhv, int nState);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
-CID17 *PpathzoneFromPos(qword pos, int n);
+CID17 *FindPathzoneAtPos(qword pos, int n);
 qword func_001A62E8(SO *pso);
 void SetMurrayState(MURRAY *pmurray, int nState);
 void func_001B8D30(MURRAY *pmurray, int n);
@@ -316,7 +316,7 @@ struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
 struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *p18; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
 qword func_001A62E8(struct A *pa);
-void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
+void FindPathzonePathCurve(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
 void SetBhvpathShape(void *p, struct B *pb, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
@@ -343,7 +343,7 @@ void func_00144F48(struct P *p, qword v)
             pb->pq[1] = p->v;
             MeasureShape(pb);
         } else {
-            func_001C02D0(pe, r, p->v, pb);
+            FindPathzonePathCurve(pe, r, p->v, pb);
         }
         SetBhvpathShape(p->p18, pb, 0);
     }
@@ -430,7 +430,7 @@ struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword func_001A62E8(void *p);
 ulong GrfFromSgf(int n);
 int FStepguardHasSgf(struct SO *p, int n);
-struct LIST *func_001F8240(void *p);
+struct LIST *FindTargetRecordById(void *p);
 
 static __inline__ float GDist(qword a, qword b)
 {
@@ -486,7 +486,7 @@ struct SO *func_001450E0(struct P *p)
             gBest = g;
         }
     }
-    plist = func_001F8240(p->p30);
+    plist = FindTargetRecordById(p->p30);
     if (plist) {
         for (i = 0; i < plist->c; i++) {
             struct SO *pso = plist->a[i];
@@ -685,7 +685,7 @@ M3 *func_001A6318(void *p);
 M3 func_0011B500(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *func_00145AA8(P *p);
-int func_001C02D0(E *pe, qword r, qword v, B *pb);
+int FindPathzonePathCurve(E *pe, qword r, qword v, B *pb);
 void MeasureShape(B *pb);
 void SetBhvpathShape(void *p, B *pb, int n);
 void func_001457A8(P *p);
@@ -759,9 +759,9 @@ void func_001457A8(P *p)
             pb->pq[1] = u.s.pos;
             MeasureShape(pb);
         } else if (func_00145AA8(p) != pe) {
-            func_001C02D0(pe, r, r, pb);
-        } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
-            func_001C02D0(pe, r, r, pb);
+            FindPathzonePathCurve(pe, r, r, pb);
+        } else if (!FindPathzonePathCurve(pe, r, u.s.pos, pb)) {
+            FindPathzonePathCurve(pe, r, r, pb);
         }
         SetBhvpathShape(p->p18, pb, 0);
     }
@@ -781,7 +781,7 @@ struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *p30
 struct SO *func_00145AA8(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
-int func_001C09A0(struct SO *pso, qword pos, int n);
+int IsPosFreeInPathzone(struct SO *pso, qword pos, int n);
 int func_00173610(qword *ppos, float a, float b, int c, int d);
 /** @sly2-annot addr=0x1459C0
  * Purpose: checks the leader's ground object vs own
@@ -805,7 +805,7 @@ int func_001459C0(struct P *p)
     if (pso->k == 0x2CA) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x34) && p->p30->x2DC != -1) return 0;
     pos = func_001A62E8(p->p30);
-    if (!func_001C09A0(pso, pos, 0)) return 0;
+    if (!IsPosFreeInPathzone(pso, pos, 0)) return 0;
     if (!func_00173610(&pos, 100.0f, -150.0f, 0, 0)) return 0;
     p->pos = pos;
     return 1;
@@ -840,7 +840,7 @@ extern "C" CID17 *func_00145AA8(BHVFOLLOWV *pbhv)
         }
         return pcid17;
     }
-    pcid17 = PpathzoneFromPos(func_001A62E8(pbhv->pso), 1);
+    pcid17 = FindPathzoneAtPos(func_001A62E8(pbhv->pso), 1);
     return pcid17;
 }
 

@@ -1,7 +1,7 @@
 // tu_1BC050.cpp -- CID14, the convex polygon SHAPE (convex volume): its load / clone / hierarchy overrides, the
-// winding test of its outline, the side planes (func_001BD400) and segment clipping against them (ClsgClipEdgeToCnvo),
-// the overlap and path-zone tests, the free pool of merged polygons and the merge itself (func_001BDE80: the hull of
-// several polygons, func_001BDBF0). TU 0x1BC050..0x1BE398 (31 functions, address order).
+// winding test of its outline, the side planes (BuildCid14EdgePlanes) and segment clipping against them (ClipEdgeToCnvo),
+// the overlap and path-zone tests, the free pool of merged polygons and the merge itself (MergeCid14Obstacles: the hull of
+// several polygons, BuildConvexHull). TU 0x1BC050..0x1BE398 (31 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1BC050
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BE378
 #include "sly2/slotheap.h"
@@ -21,7 +21,7 @@ struct T8 { int a, b; };
 struct CID14O { char pad[0xA4]; int xA4; };
 
 /* CID14 (0x1F0 bytes) as this TU reads it. The outline is apos[c] (the last point repeats the first), ag the arc
-   length at each point; aplane the c - 1 side planes, valid while k equals the owner's xA4 (func_001BD400). */
+   length at each point; aplane the c - 1 side planes, valid while k equals the owner's xA4 (BuildCid14EdgePlanes). */
 struct CID14V
 {
     int x0, x4, x8;
@@ -38,7 +38,7 @@ struct CID14V
     void *xF0;                  /* 0xF0 */
     qword *apos;                /* 0xF4 */
     char padF8[0x190 - 0xF8];
-    int x190;                   /* 0x190: winding (func_001BC2F8) */
+    int x190;                   /* 0x190: winding (ClassifyCid14Polygon) */
     char pad194[0x1A0 - 0x194];
     U vmin, vmax;               /* 0x1A0 */
     int x1C0;                   /* 0x1C0 */
@@ -104,16 +104,16 @@ void MeasureShape(CID14V *p);
 void *memset(void *, int, unsigned);
 int IsegFindShapeS(CID14V *p, float g, int a, int b);
 void EvaluateShapeS(CID14V *p, qword *pv, float g, int n);
-int FClipPathzone(void *pv, qword a, qword b, int k);
+int IsEdgeBlockedByPathzone(void *pv, qword a, qword b, int k);
 float SMaxShape(CID14V *p);
 float SMinShape(CID14V *p);
 float SWrapShape(CID14V *p, float g);
-int FPosInPathzone(void *b, qword v, int c);
+int IsPosInPathzone(void *b, qword v, int c);
 qword func_001A62E8(CID14V *p);
-void *PpathzoneFromPos(qword pos, int n);
-void func_001C1BA0(void *r, CID14V *p);
-void func_001C1968(void *ppathzone, CID14V *p);
-int func_001C1700(void *a, void *b, qword q2, qword q3, int c, CID14V **buf);
+void *FindPathzoneAtPos(qword pos, int n);
+void AddPathzoneObstacle(void *r, CID14V *p);
+void RemovePathzoneObstacle(void *ppathzone, CID14V *p);
+int FindPathzoneObstacles(void *a, void *b, qword q2, qword q3, int c, CID14V **buf);
 void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
 void FindShapeClosestPoint(CID14V *x, qword q, void *g, int a, int b, int c, float *pf);
 CID14V *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
@@ -121,29 +121,29 @@ void func_002333B4(void *p, int c, int n) __asm__("memset");
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 
-int func_001BC208(qword a, qword b);
-int func_001BC278(qword a, qword b, qword c);
-int func_001BC2F8(CID14V *p);
-int func_001BC530(CID14V *p, int n);
-int ClsgClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
-int FPosInCnvo(CID14V *p, qword pos);
-int func_001BCAC0(CID14V *p, void *pv, int fRev, float g0, float g1);
-int func_001BCCE0(CID14V *s, void *x, float *pt, int mode, float t);
-int func_001BCF18(CID14V *a, void *b, float g, float range, float *pf, int c);
-void func_001BD040(CID14V *p);
-void func_001BD1E0(CID14V *p);
-void func_001BD218(CID14V *p);
-CID14V *func_001BD310(void *a, void *b, qword q2, qword q3);
-void func_001BD400(CID14V *p);
-int func_001BD560(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t);
-CID14V *func_001BDA00(void);
-int NCmpPosX(const void *a, const void *b);
-void func_001BDBF0(CID14V *p, int n, qword *pts);
-void func_001BDE18(CID14V *p, CID14V *po);
+int ComparePosXY(qword a, qword b);
+int GetTurnSignXY(qword a, qword b, qword c);
+int ClassifyCid14Polygon(CID14V *p);
+int WrapCid14PointIndex(CID14V *p, int n);
+int ClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
+int IsPosInCnvo(CID14V *p, qword pos);
+int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1);
+int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t);
+int FindShapePointInPathzone(CID14V *a, void *b, float g, float range, float *pf, int c);
+void RegisterCid14Obstacle(CID14V *p);
+void UnregisterCid14Obstacle(CID14V *p);
+void DetachCid14FromOwner(CID14V *p);
+CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword q2, qword q3);
+void BuildCid14EdgePlanes(CID14V *p);
+int FindShapeFreeRange(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t);
+CID14V *NewMergedCid14Obstacle(void);
+int ComparePosX(const void *a, const void *b);
+void BuildConvexHull(CID14V *p, int n, qword *pts);
+void AddCid14ToMerged(CID14V *p, CID14V *po);
 }
 /* The callers' own argument order (floats first): the order in which g++ loads the argument registers follows it. */
-int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("func_001BCAC0");
-int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("func_001BD560");
+int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("FindCid14PathzoneSpan");
+int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("FindShapeFreeRange");
 
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
@@ -191,7 +191,7 @@ void CID14::Init()
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BC088(CID14V *p)
+extern "C" void LoadCid14FromBrx(CID14V *p)
 {
     MSG msg;
     LoadShapeFromBrx(p);
@@ -204,7 +204,7 @@ extern "C" void func_001BC088(CID14V *p)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BC0D0(CID14V *p, int x)
+extern "C" void CloneCid14(CID14V *p, int x)
 {
     T8 a = p->t1D0;
     T8 b = p->t1E0;
@@ -221,7 +221,7 @@ extern "C" void func_001BC0D0(CID14V *p, int x)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BC160(CID14V *p)
+extern "C" void AddCid14Hierarchy(CID14V *p)
 {
     AddLoHierarchy(p);
     AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, p);
@@ -233,12 +233,12 @@ extern "C" void func_001BC160(CID14V *p)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BC198(CID14V *p)
+extern "C" void RemoveCid14Hierarchy(CID14V *p)
 {
     DLV *pdl;
     RemoveLoHierarchy(p);
-    if (p->powner) func_001BD218(p->powner);
-    func_001BD1E0(p);
+    if (p->powner) DetachCid14FromOwner(p->powner);
+    UnregisterCid14Obstacle(p);
     pdl = (DLV *)&g_sw.dlCid14Pending;
     if (FFindDlEntry__FP2DLPv(pdl, p)) RemoveDlEntry__FP2DLPv(pdl, p);
 }
@@ -249,7 +249,7 @@ extern "C" void func_001BC198(CID14V *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BC208(qword a, qword b)
+int ComparePosXY(qword a, qword b)
 {
     if (GetX(a) < GetX(b)) return -1;
     if (GetX(b) < GetX(a)) return 1;
@@ -265,7 +265,7 @@ int func_001BC208(qword a, qword b)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BC278(qword a, qword b, qword c)
+int GetTurnSignXY(qword a, qword b, qword c)
 {
     float g = (GetX(a) - GetX(b)) * (GetY(b) - GetY(c)) - (GetY(a) - GetY(b)) * (GetX(b) - GetX(c));
     if (g < -D_002C0AB0) return -1;
@@ -280,7 +280,7 @@ int func_001BC278(qword a, qword b, qword c)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BC2F8(CID14V *p)
+int ClassifyCid14Polygon(CID14V *p)
 {
     int cFlip, i, sPrev, sgn;
     M4 m;
@@ -290,22 +290,22 @@ int func_001BC2F8(CID14V *p)
     i = 0;
     sPrev = 0;
     m = *GetMat(p);
-    sgn = func_001BC208(MulPt(&m, p->apos[0]), MulPt(&m, p->apos[1]));
+    sgn = ComparePosXY(MulPt(&m, p->apos[0]), MulPt(&m, p->apos[1]));
     for (; i < p->c - 1; i++) {
-        int i0 = func_001BC530(p, i);
-        int i1 = func_001BC530(p, i0 + 1);
-        int i2 = func_001BC530(p, i1 + 1);
+        int i0 = WrapCid14PointIndex(p, i);
+        int i1 = WrapCid14PointIndex(p, i0 + 1);
+        int i2 = WrapCid14PointIndex(p, i1 + 1);
         qword c = MulPt(&m, p->apos[i2]);
         qword b = MulPt(&m, p->apos[i1]);
         qword a = MulPt(&m, p->apos[i0]);
-        int s = func_001BC208(b, c);
+        int s = ComparePosXY(b, c);
         int t;
         if (s) {
             if (s == -sgn)
                 cFlip++;
         }
         sgn = s;
-        t = func_001BC278(a, b, c);
+        t = GetTurnSignXY(a, b, c);
         if (t) {
             if (t == -sPrev)
                 return 0;
@@ -329,7 +329,7 @@ int func_001BC2F8(CID14V *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BC530(CID14V *p, int n)
+int WrapCid14PointIndex(CID14V *p, int n)
 {
     int c = p->c;
     int r = n % c;
@@ -348,12 +348,12 @@ static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t
  * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BC570(CID14V *p)
+extern "C" void PostCid14Load(CID14V *p)
 {
     int r, h, i, j;
     float t;
     PostLoLoad(p);
-    r = func_001BC2F8(p);
+    r = ClassifyCid14Polygon(p);
     p->x190 = r;
     if (r == 3) return;
     if (r != 4) return;
@@ -370,7 +370,7 @@ extern "C" void func_001BC570(CID14V *p)
     p->x190 = 3;
 }
 
-// ClsgClipEdgeToCnvo: clips the segment pos1-pos2 to the convex volume pcnvo (its cplane - 1 planes, built by func_001BD400)
+// ClipEdgeToCnvo: clips the segment pos1-pos2 to the convex volume pcnvo (its cplane - 1 planes, built by BuildCid14EdgePlanes)
 // and writes the parts of it OUTSIDE the volume to alsg (at most clsgMax LSGs); returns how many. Convex-volume twin of
 // ClsgClipEdgeToBsp (func_00118668), same LSG record (0x60 bytes: apos[2], anormal[2], au[2], apsurf[2]).
 // gIn / gOut = where the segment enters / leaves the volume (0 = pos1, 1 = pos2), normalIn / normalOut = those planes.
@@ -413,15 +413,15 @@ static inline qword QwZero() { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 /** @sly2-annot addr=0x1BC688
  * Purpose: Clip segment to the convex volume and write the parts outside it (LSG 0x60)
- * Info: proposed name ClsgClipEdgeToCnvo (T1); TU tu_1BC050
+ * Info: proposed name ClipEdgeToCnvo (T1); TU tu_1BC050
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-int ClsgClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg)
+int ClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
-    func_001BD400(pcnvo);
+    BuildCid14EdgePlanes(pcnvo);
     float gIn = 0.0f;
     qword normalIn = QwZero();
     float gOut = 1.0f;
@@ -508,17 +508,17 @@ static __inline__ float GDistPlane(qword plane, qword pos)
 }
 /** @sly2-annot addr=0x1BC9F0
  * Purpose: Point inside all planes of the convex volume
- * Info: proposed name FPosInCnvo (T1); TU tu_1BC050
+ * Info: proposed name IsPosInCnvo (T1); TU tu_1BC050
  * Notes: names_v2 B proposed FTurnJtToTarget__FP2JT (0.856)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-int FPosInCnvo(CID14V *p, qword pos)
+int IsPosInCnvo(CID14V *p, qword pos)
 {
     int i;
-    func_001BD400(p);
+    BuildCid14EdgePlanes(p);
     for (i = 0; i < p->c - 1; i++) {
         if (0.0f < GDistPlane(p->aplane[i], pos))
             return 0;
@@ -534,13 +534,13 @@ static inline qword MulPos(M4 *pm, qword v)
     return r;
 }
 /** @sly2-annot addr=0x1BCAC0
- * Purpose: Walk polygon edges against the pathzone (FClipPathzone) to find valid span
+ * Purpose: Walk polygon edges against the pathzone (IsEdgeBlockedByPathzone) to find valid span
  * Info: proposed name FindCid14PathzoneSpan (T2); class CID14; TU tu_1BC050
  * Notes: names_v2 B proposed RebuildJtXmg__FP2JTP3ALOfT1P6ACTADJP3XMG (0.961)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BCAC0(CID14V *p, void *pv, int fRev, float g0, float g1)
+int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1)
 {
     int i0, r, pass, k, i1;
     i0 = IsegFindShapeS(p, g0, 0, 0);
@@ -554,8 +554,8 @@ int func_001BCAC0(CID14V *p, void *pv, int fRev, float g0, float g1)
         case 1: r = 1; k = 1; break;
         }
         if (fRev) {
-            a = func_001BC530(p, i0 + 1);
-            iEnd = func_001BC530(p, i1 + 1);
+            a = WrapCid14PointIndex(p, i0 + 1);
+            iEnd = WrapCid14PointIndex(p, i1 + 1);
         } else {
             a = i0;
             iEnd = i1;
@@ -566,16 +566,16 @@ int func_001BCAC0(CID14V *p, void *pv, int fRev, float g0, float g1)
         q = v0;
         while (i != iEnd) {
             v = MulPos(&m, p->apos[i]);
-            if (FClipPathzone(pv, q, v, k))
+            if (IsEdgeBlockedByPathzone(pv, q, v, k))
                 goto next;
             if (fRev)
-                i = func_001BC530(p, i + 1);
+                i = WrapCid14PointIndex(p, i + 1);
             else
-                i = func_001BC530(p, i - 1);
+                i = WrapCid14PointIndex(p, i - 1);
             q = v;
         }
         EvaluateShapeS(p, &v1, g1, 0);
-        if (!FClipPathzone(pv, q, v1, k))
+        if (!IsEdgeBlockedByPathzone(pv, q, v1, k))
             return r;
     next:;
     }
@@ -588,16 +588,16 @@ int func_001BCAC0(CID14V *p, void *pv, int fRev, float g0, float g1)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BCCE0(CID14V *s, void *x, float *pt, int mode, float t)
+int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t)
 {
     float at[2];
     float tB, d, f;
     int fShort, a, b;
-    if (!func_001BCF18(s, x, t, SMaxShape(s) * 0.5f, &at[0], 0) &&
-        !func_001BCF18(s, x, t, SMaxShape(s) * 0.5f, &at[0], 1)) return 4;
+    if (!FindShapePointInPathzone(s, x, t, SMaxShape(s) * 0.5f, &at[0], 0) &&
+        !FindShapePointInPathzone(s, x, t, SMaxShape(s) * 0.5f, &at[0], 1)) return 4;
     t = at[0];
-    if (!func_001BCF18(s, x, *pt, SMaxShape(s) * 0.5f, &at[1], 0) &&
-        !func_001BCF18(s, x, *pt, SMaxShape(s) * 0.5f, &at[1], 1)) return 4;
+    if (!FindShapePointInPathzone(s, x, *pt, SMaxShape(s) * 0.5f, &at[1], 0) &&
+        !FindShapePointInPathzone(s, x, *pt, SMaxShape(s) * 0.5f, &at[1], 1)) return 4;
     tB = at[1];
     *pt = tB;
     d = tB - t;
@@ -623,20 +623,20 @@ int func_001BCCE0(CID14V *s, void *x, float *pt, int mode, float t)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BCF18(CID14V *a, void *b, float g, float range, float *pf, int c)
+int FindShapePointInPathzone(CID14V *a, void *b, float g, float range, float *pf, int c)
 {
     float d, t;
     U v0, v1;
     for (d = 0.0f; d < range; d += D_002C0ABC) {
         t = SWrapShape(a, g - d);
         EvaluateShapeS(a, &v0.q, t, 0);
-        if (FPosInPathzone(b, v0.q, c)) {
+        if (IsPosInPathzone(b, v0.q, c)) {
             if (pf) *pf = t;
             return 1;
         }
         t = SWrapShape(a, g + d);
         EvaluateShapeS(a, &v1.q, t, 0);
-        if (FPosInPathzone(b, v1.q, c)) {
+        if (IsPosInPathzone(b, v1.q, c)) {
             if (pf) *pf = t;
             return 1;
         }
@@ -652,14 +652,14 @@ static inline qword Max(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %
 namespace RO_ORDER { extern const float r_D_002A76D0 __asm__("D_002A76D0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A76D4 __asm__("D_002A76D4") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1BD040
- * Purpose: Transform polygon to world, find its pathzone (PpathzoneFromPos), compute bounds,
+ * Purpose: Transform polygon to world, find its pathzone (FindPathzoneAtPos), compute bounds,
  *   AddPathzoneObstacle
  * Info: proposed name RegisterCid14Obstacle (T2); class CID14; TU tu_1BC050
  * Notes: names_v2 C proposed UpdateJtStand__FP2JT (0.638)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BD040(CID14V *p)
+void RegisterCid14Obstacle(CID14V *p)
 {
     STACKSCOPE ctx;
     int i;
@@ -681,10 +681,10 @@ void func_001BD040(CID14V *p)
     }
     p->vmin.f[2] = D_002A76D0;
     p->vmax.f[2] = D_002A76D4;
-    r = PpathzoneFromPos(func_001A62E8(p), 0);
+    r = FindPathzoneAtPos(func_001A62E8(p), 0);
     if (!r)
         return;
-    func_001C1BA0(r, p);
+    AddPathzoneObstacle(r, p);
 }
 
 /** @sly2-annot addr=0x1BD1E0
@@ -693,11 +693,11 @@ void func_001BD040(CID14V *p)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BD1E0(CID14V *p)
+void UnregisterCid14Obstacle(CID14V *p)
 {
     void *ppathzone = p->ppathzone;
     if (ppathzone != 0) {
-        func_001C1968(ppathzone, p);
+        RemovePathzoneObstacle(ppathzone, p);
         p->ppathzone = 0;
     }
 }
@@ -709,7 +709,7 @@ void func_001BD1E0(CID14V *p)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BD218(CID14V *p)
+void DetachCid14FromOwner(CID14V *p)
 {
     DLI dli;
     CID14V *pv;
@@ -731,18 +731,18 @@ void func_001BD218(CID14V *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-CID14V *func_001BD310(void *a, void *b, qword q2, qword q3)
+CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword q2, qword q3)
 {
     CID14V *buf[0x80];
     LSG r[2];
     CID14V *best = 0;
     float min;
     int i, n;
-    n = func_001C1700(a, b, q2, q3, 0x80, buf);
+    n = FindPathzoneObstacles(a, b, q2, q3, 0x80, buf);
     min = 1.0f;
     for (i = 0; i < n; i++) {
         CID14V *e = buf[i];
-        if (!ClsgClipEdgeToCnvo(e, q2, q3, 2, r) || r[0].au[0] != 0.0f) {
+        if (!ClipEdgeToCnvo(e, q2, q3, 2, r) || r[0].au[0] != 0.0f) {
             best = e;
             break;
         }
@@ -770,7 +770,7 @@ static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz $ACC
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BD400(CID14V *p)
+void BuildCid14EdgePlanes(CID14V *p)
 {
     int i;
     int k = p->po ? p->po->xA4 : 0;
@@ -798,7 +798,7 @@ void func_001BD400(CID14V *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int func_001BD560(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t)
+int FindShapeFreeRange(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t)
 {
     qword av[2];
     LSG ahit[2];
@@ -824,7 +824,7 @@ int func_001BD560(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, floa
             else t = SMaxShape(s);
         }
         EvaluateShapeS(s, &av[1], t, 0);
-        c = ClsgClipEdgeToCnvo(p, av[0], av[1], 2, ahit);
+        c = ClipEdgeToCnvo(p, av[0], av[1], 2, ahit);
         if (c > 0) {
             if (pt) *pt = t;
             if (pq) *pq = (ahit - 1)[c].apos[0];
@@ -840,7 +840,7 @@ int func_001BD560(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, floa
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" int func_001BD718(qword q, void *a1, void *a2, CID14V *obj, int dir, CID14V **pp, float *pf, float g)
+extern "C" int FindShapeFreePoint(qword q, void *a1, void *a2, CID14V *obj, int dir, CID14V **pp, float *pf, float g)
 {
     float t;
     U v, v2;
@@ -850,7 +850,7 @@ extern "C" int func_001BD718(qword q, void *a1, void *a2, CID14V *obj, int dir, 
     if (dir) t = SWrapShape(obj, g + D_002C0AC4);
     else t = SWrapShape(obj, g - D_002C0AC4);
     EvaluateShapeS(obj, &v.q, t, 0);
-    x = func_001BD310(a1, a2, q, v.q);
+    x = FindFirstObstacleHitBySegment(a1, a2, q, v.q);
     if (pp) *pp = x;
     if (!x) return 0;
     r = func_001BD560F(x, obj, t, dir, &v2.q, 0);
@@ -859,17 +859,17 @@ extern "C" int func_001BD718(qword q, void *a1, void *a2, CID14V *obj, int dir, 
     FindShapeClosestPoint(x, v2.q, D_003DD020, 0, 0, 0, &f1);
     if (pf) *pf = f1;
     else pf = &f1;
-    return func_001BCCE0(x, a1, pf, -1, f0);
+    return ClipShapeToPathzone(x, a1, pf, -1, f0);
 }
 
 /** @sly2-annot addr=0x1BD8A8
  * Purpose: Two convex polygons overlap (edge clip or containment)
- * Info: proposed name FCnvoOverlap (T1); TU tu_1BC050
+ * Info: proposed name DoCnvosOverlap (T1); TU tu_1BC050
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" int FCnvoOverlap(CID14V *p, CID14V *q)
+extern "C" int DoCnvosOverlap(CID14V *p, CID14V *q)
 {
     int i;
     M4 m = *GetMat(p);
@@ -879,14 +879,14 @@ extern "C" int FCnvoOverlap(CID14V *p, CID14V *q)
     if (i < p->c) {
         do {
             qword w = MulPt(&m, p->apos[i]);
-            if (ClsgClipEdgeToCnvo(q, v, w, 1, &hit))
+            if (ClipEdgeToCnvo(q, v, w, 1, &hit))
                 break;
             v = w;
         } while (++i < p->c);
     }
     if (i < p->c)
         return 1;
-    return FPosInCnvo(p, MulPt(GetMat(q), q->apos[0])) != 0;
+    return IsPosInCnvo(p, MulPt(GetMat(q), q->apos[0])) != 0;
 }
 
 /** @sly2-annot addr=0x1BDA00
@@ -895,7 +895,7 @@ extern "C" int FCnvoOverlap(CID14V *p, CID14V *q)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-CID14V *func_001BDA00(void)
+CID14V *NewMergedCid14Obstacle(void)
 {
     CID14V *p;
     int i, j;
@@ -941,15 +941,15 @@ CID14V *func_001BDA00(void)
 
 /** @sly2-annot addr=0x1BDBC8
  * Purpose: qsort comparator on first float (used to sort hull points by x)
- * Info: proposed name NCmpPosX (EXISTING); TU tu_1BC050
+ * Info: proposed name ComparePosX (EXISTING); TU tu_1BC050
  * Notes: agent/verifier proposes NCmpGX for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> NCmpPosX (existing_name_changes.csv)
+ *   proposed -> ComparePosX (existing_name_changes.csv)
  * Confidence: high [EXISTING 0.55] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
  *   r5b_rest+arbitration
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-int NCmpPosX(const void *a, const void *b)
+int ComparePosX(const void *a, const void *b)
 {
     int r = -1;
     if (*(const float *)a > *(const float *)b)
@@ -972,11 +972,11 @@ static inline float CrossZ(qword a, qword b, qword c)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BDBF0(CID14V *p, int n, qword *pts)
+void BuildConvexHull(CID14V *p, int n, qword *pts)
 {
     int i, k, t;
     qword *hull, *pv;
-    qsort(pts, n, 0x10, NCmpPosX);
+    qsort(pts, n, 0x10, ComparePosX);
     k = 2;
     {
         STACKSCOPE ctx;
@@ -1019,17 +1019,17 @@ void func_001BDBF0(CID14V *p, int n, qword *pts)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-void func_001BDE18(CID14V *p, CID14V *po)
+void AddCid14ToMerged(CID14V *p, CID14V *po)
 {
     DLV *pdl;
     p->powner = po;
     AppendDlEntry__FP2DLPv(&po->dl, p);
-    func_001BD1E0(p);
+    UnregisterCid14Obstacle(p);
     pdl = (DLV *)&g_sw.dlCid14Pending;
     if (FFindDlEntry__FP2DLPv(pdl, p)) RemoveDlEntry__FP2DLPv(pdl, p);
 }
 
-/* func_001BDE80: merge a set of convex polygons into one new polygon (hull of all their transformed points), re-centre
+/* MergeCid14Obstacles: merge a set of convex polygons into one new polygon (hull of all their transformed points), re-centre
    it on the average point, then reparent the old polygons' children to the new one (lane 10).
    Notes on the compile (all general tricks, see build/lane_notes/lane10.md):
    - first loop is a plain `for`; the `if(n>0){do..while}` form makes gcse hoist `lui %hi(D_002A2DD0)` to the function entry.
@@ -1048,7 +1048,7 @@ static inline qword MulPtP(M4*m,qword*point){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BDE80(int n, CID14V **ap)
+extern "C" void MergeCid14Obstacles(int n, CID14V **ap)
 {
     int c = 0;
     int i, j, k;
@@ -1071,8 +1071,8 @@ extern "C" void func_001BDE80(int n, CID14V **ap)
         }
     } while (++polygon < n);
     }
-    pNew = func_001BDA00();
-    func_001BDBF0(pNew, c, apos);
+    pNew = NewMergedCid14Obstacle();
+    BuildConvexHull(pNew, c, apos);
     {
         qword sum = D_002A2DD0;
         qword k2;
@@ -1100,18 +1100,18 @@ extern "C" void func_001BDE80(int n, CID14V **ap)
             while ((pv = (CID14V *)PvNextDli(&dli)) != 0) {
                 RemoveDlEntry__FP2DLPv(&px->dl, pv);
                 pv->powner = 0;
-                func_001BDE18(pv, pNew);
+                AddCid14ToMerged(pv, pNew);
             }
             ((void (*)(CID14V *))px->vt[9].pfn)((CID14V *)((char *)px + px->vt[9].d));
             AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Free, px);
             D_002DD2FC = dli.pdliNext;
         } else {
-            func_001BDE18(px, pNew);
+            AddCid14ToMerged(px, pNew);
         }
     }
     pNew->fWrap = 1;
     MeasureShape(pNew);
-    pNew->x190 = func_001BC2F8(pNew);
+    pNew->x190 = ClassifyCid14Polygon(pNew);
 }
 
 /** @sly2-annot addr=0x1BE1E8
@@ -1121,11 +1121,11 @@ extern "C" void func_001BDE80(int n, CID14V **ap)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-extern "C" void func_001BE1E8(void)
+extern "C" void UpdatePendingCid14Obstacles(void)
 {
     while (!FIsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
         void *pv = ((DLV *)&g_sw.dlCid14Pending)->pvFirst;
         RemoveDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv);
-        func_001BD040((CID14V *)pv);
+        RegisterCid14Obstacle((CID14V *)pv);
     }
 }

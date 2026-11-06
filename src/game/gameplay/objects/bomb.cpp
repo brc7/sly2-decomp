@@ -119,34 +119,34 @@ void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
 qword func_001A62E8(void *p);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
-void func_001F5990(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
-void PxpAdd(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
-void func_001F4F10(BOMBV *p);
+void AddSoCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
+void AddXp(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
+void AdjustSoXps(BOMBV *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
 void PostSwCallback(G *pg, BOMBV *p, long k, void *x);
 void SetLoParent_1A58D0(BOMBV *, Q18 *, int);
-void func_001F4898(BOMBV *, qword);
-void func_001F4930(BOMBV *, qword);
+void SetSoPosXfVelocityLocal(BOMBV *, qword);
+void SetSoRotXfVelocityLocal(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
 void SetSoCnstrTorque(BOMBV *, int);
-int func_001F7588(BOMBV *p, WKR *pm);
+int HasZapRecordField44(BOMBV *p, WKR *pm);
 M3 *func_001A6318(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void func_0020FA10();
 void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
 void *PvAllocSlot__FP8ALLOCREQ(AREQV *preq);
-int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
+int IntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int func_001F7598(MSG *pmsg);
+int DeliverZapToSo(MSG *pmsg);
 int *func_00156698(int n, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void func_001CB518(BOMBV *);
-void func_001F6860(BOMBV *, int);
-int FIgnoreSoIntersection(BOMBV *pbomb, SOV *pso);
+void SetSoTreeFlag2(BOMBV *, int);
+int ShouldSoIgnoreIntersection(BOMBV *pbomb, SOV *pso);
 int MaxInt(int r, int n);
 void RecalcSwOxfFilterForObject(G *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
@@ -329,7 +329,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
 }
 
 /** @sly2-annot addr=0x13ADE8
- * Purpose: BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd
+ * Purpose: BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (AddXp
  *   type 9)
  * Info: proposed name AddBombCustomXps (T1); class BOMB slot60; TU bomb
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
@@ -338,12 +338,12 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
  * @end-sly2-annot */
 extern "C" void AddBombCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5)
 {
-    func_001F5990(p, ps, a2, a3, a4, a5);
+    AddSoCustomXps(p, ps, a2, a3, a4, a5);
     if (p->fCustomXps) {
         CXP *pe;
         for (pe = p->axp; pe < p->axp + p->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                PxpAdd(&D_003DD490, p->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                AddXp(&D_003DD490, p->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
                 return;
             }
         }
@@ -424,7 +424,7 @@ extern "C" void func_0013AEB0(BOMBV *p)
     XPL *pl;
     XPQ *pq;
 
-    func_001F4F10(p);
+    AdjustSoXps(p);
     switch (p->k) {
     case 0:
     case 2:
@@ -531,8 +531,8 @@ extern "C" int func_0013B1C8(BOMBV *p, SOV *pn) {
 extern "C" void ApplyBombThrow(BOMBV *p, Q18 *q) {
     p->pq1E8 = q;
     SetLoParent_1A58D0(p, q->f18 != 1 ? q : 0, 3);
-    func_001F4898(p, D_002A2DD0);
-    func_001F4930(p, D_002A2DD0);
+    SetSoPosXfVelocityLocal(p, D_002A2DD0);
+    SetSoRotXfVelocityLocal(p, D_002A2DD0);
     SetSoCnstrForce(p, 1);
     SetSoCnstrTorque(p, 1);
     ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x1b, 0, 0, 0, 0);
@@ -564,7 +564,7 @@ extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
     int r;
     if (p->k == 1)
         return 0;
-    r = func_001F7588(p, pm);
+    r = HasZapRecordField44(p, pm);
     if (r && (pm->x44 & 8)) {
         U u;
         U *pu;
@@ -674,7 +674,7 @@ extern "C" void PrepareBombDetonation(BOMBV *p, qword pos, qword q)
  * @end-sly2-annot */
 void PrimeBomb(BOMBV *p, float f) { p->tDetonate = (p->tDetonate < D_002DDED0.t + f) ? p->tDetonate : D_002DDED0.t + f; }
 
-// (Claude agent) CsbiIntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
+// (Claude agent) IntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).
 /** @sly2-annot addr=0x13B5E8
  * Purpose: Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered
@@ -710,7 +710,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
             continue;
         if (pso60 == p->pxp->pso60)
             continue;
-        if (ps->x74 && !CsbiIntersectSphereBsp(p->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? p->sRadiusHero : p->sRadius, &hit))
+        if (ps->x74 && !IntersectSphereBsp(p->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? p->sRadiusHero : p->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;
@@ -805,7 +805,7 @@ extern "C" void DetonateBomb(BOMBV *p)
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(n), "j"(g.q));
                 msg.v30 = v;
             }
-            func_001F7598(&msg);
+            DeliverZapToSo(&msg);
         }
         FrameFree(&frame, 2);
     }
@@ -852,7 +852,7 @@ extern "C" void ResetBomb(BOMBV *p) {
     func_0013BC60(p, p);
     SetSoCnstrForce(p, 0);
     SetSoCnstrTorque(p, 0);
-    func_001F6860(p, 0);
+    SetSoTreeFlag2(p, 0);
     p->x1E8 = 0;
     SetLoParent_1A58D0(p, 0, 0xf);
 }
@@ -865,7 +865,7 @@ extern "C" void ResetBomb(BOMBV *p) {
  * @end-sly2-annot */
 extern "C" int FIgnoreBombIntersection(BOMBV *p, SOV *pso)
 {
-    int r = FIgnoreSoIntersection(p, pso);
+    int r = ShouldSoIgnoreIntersection(p, pso);
     if (pso->ploroot->plo == p->pbombOwner->ploroot->plo) {
         r = MaxInt(r, 1);
     }
