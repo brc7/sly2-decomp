@@ -50,11 +50,11 @@ SWG D_003DD490;
 /* D_003E1C20: four words built at startup (a table header {0, D_002C3EB8, 0, D_003E1C60}). */
 struct O1C20
 {
-    int x0;
-    void *x4;
-    int x8;
-    void *xC;
-    O1C20() { x0 = 0; x4 = D_002C3EB8; x8 = 0; xC = D_003E1C60; }
+    int unknown0;
+    void *table0;
+    int unknown8;
+    void *table1;
+    O1C20() { unknown0 = 0; table0 = D_002C3EB8; unknown8 = 0; table1 = D_003E1C60; }
 };
 O1C20 D_003E1C20;
 
@@ -373,7 +373,7 @@ int IsSwTransitionBusy(void) { if (g_sw.fTransitionPending != 0) return 1; retur
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
-struct S { char pad[0x3B18]; int h3B18; };
+struct S { char pad[0x3B18]; int jobHandle; };   /* the level's running job (AbortJob) (inferred) */
 extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
@@ -404,9 +404,9 @@ void DeleteSw(struct S *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (world->h3B18) {
-        AbortJob(world->h3B18);
-        world->h3B18 = 0;
+    if (world->jobHandle) {
+        AbortJob(world->jobHandle);
+        world->jobHandle = 0;
     }
     func_001D9408(D_003D9E70);
     DeleteSwSplice(world);
@@ -435,13 +435,13 @@ void DeleteSw(struct S *world)
 
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };
-struct H { int a; int b; int c; int d; int e; int f; char dl[0x10]; };
+struct H { int unknown0; int unknown4; int unknown8; int unknownC; int unknown10; int unknown14; char dl[0x10]; };
 struct S {
-    char pad0[0x3BF4]; int fl3BF4;
-    char pad1[0x3CD4 - 0x3BF8]; void *a3CD4[3];
-    char pad2[0x3E38 - 0x3CE0]; int n3E38;
-    char pad3[0x3F0C - 0x3E3C]; struct H *ph; char pad4[0x3F20 - 0x3F10]; void *p3F20;
-    char pad5[0x45E8 - 0x3F24]; char a45E8[2][0x28];
+    char pad0[0x3BF4]; int levelFlags;
+    char pad1[0x3CD4 - 0x3BF8]; void *workBuffers[3];
+    char pad2[0x3E38 - 0x3CE0]; int unknown3E38;
+    char pad3[0x3F0C - 0x3E3C]; struct H *loadHeader; char pad4[0x3F20 - 0x3F10]; void *largeWorkBuffer;
+    char pad5[0x45E8 - 0x3F24]; char renderTargets[2][0x28];   /* sw.h artgt */
 };
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
@@ -471,29 +471,29 @@ void InitSwLoadBuffers(struct S *world)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        world->a3CD4[i] = func_001AE1D0(&msg);
+        world->workBuffers[i] = func_001AE1D0(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    world->p3F20 = func_001AE2A0(&msg);
+    world->largeWorkBuffer = func_001AE2A0(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    world->ph = (__typeof__(world->ph))func_001AE2A0(&msg);
-    world->ph->a = -1;
-    world->ph->c = -1;
-    func_0011A050(world->ph->dl, 0x14);
+    world->loadHeader = (__typeof__(world->loadHeader))func_001AE2A0(&msg);
+    world->loadHeader->unknown0 = -1;
+    world->loadHeader->unknown8 = -1;
+    func_0011A050(world->loadHeader->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        func_001BE398(world->a45E8[j], &zpr);
-    if (world->fl3BF4 & 0x20)
-        world->n3E38 = 1;
+        func_001BE398(world->renderTargets[j], &zpr);
+    if (world->levelFlags & 0x20)
+        world->unknown3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
 } } // namespace M_func_0020E180
 
 namespace M_func_0020E2B0 { extern "C" {
-struct O { char pad[0xB8]; int nB8; char p2[0xC]; int nC8; };
-struct S { char pad[0x3E5C]; int n; };
+struct O { char pad[0xB8]; int priority; char p2[0xC]; int unknownC8; };   /* an MS object; priority (inferred): the largest wins */
+struct S { char pad[0x3E5C]; int mainMsUnknownC8; };
 int CploFindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
 void SetLoVisMask(struct O *o, int n);
 /** @sly2-annot addr=0x20E2B0
@@ -507,20 +507,20 @@ void SetLoVisMask(struct O *o, int n);
 // it visible to every camera mask. (inferred)
 void SelectSwMainMs(struct S *world)
 {
-    struct O *apo[16];
-    int c = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, apo);
-    int nMax = 0;
-    struct O *poBest = 0;
+    struct O *found[16];
+    int numFound = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
+    int maxPriority = 0;
+    struct O *best = 0;
     int i;
-    for (i = 0; i < c; i++) {
-        if (apo[i]->nB8 > nMax) {
-            nMax = apo[i]->nB8;
-            poBest = apo[i];
+    for (i = 0; i < numFound; i++) {
+        if (found[i]->priority > maxPriority) {
+            maxPriority = found[i]->priority;
+            best = found[i];
         }
     }
-    if (poBest) {
-        world->n = poBest->nC8;
-        SetLoVisMask(poBest, 0xFF);
+    if (best) {
+        world->mainMsUnknownC8 = best->unknownC8;
+        SetLoVisMask(best, 0xFF);
     }
 }
 } } // namespace M_func_0020E2B0
@@ -528,8 +528,8 @@ void SelectSwMainMs(struct S *world)
 namespace M_func_0020E338 {
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
  virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
-class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int x54; char p2[8]; float g60; float g64; int p68; int n6C; };
-struct S { char pad[0x3E60]; O *o; };
+class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
+struct S { char pad[0x3E60]; O *screenTint; };
 extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 /** @sly2-annot addr=0x20E338
  * Purpose: PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60
@@ -541,12 +541,12 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
 extern "C" void CreateSwScreenTint(S *world)
 {
-    world->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    world->o->g60 = 0.1f;
-    world->o->g64 = 0.25f;
-    world->o->x54 = 0x80200000;
-    world->o->n6C = 1;
-    world->o->V9();
+    world->screenTint = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->screenTint->param60 = 0.1f;
+    world->screenTint->param64 = 0.25f;
+    world->screenTint->flags = 0x80200000;
+    world->screenTint->unknown6C = 1;
+    world->screenTint->V9();
 }
 } // namespace M_func_0020E338
 
@@ -713,9 +713,9 @@ namespace M_PostSwLoad { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
 struct S {
-    char pad0[0x39D0]; int n39D0; int pad39D4; int n39D8; int pad39DC; struct O **ppoFirst; struct O **ppoLast;
-    char pad1[0x403C - 0x39E8]; char a403C[0x18]; char a4054[0x1C]; char a4070[0x18]; char a4088[4];
-    char pad2[0x45CC - 0x408C]; void *p45CC;
+    char pad0[0x39D0]; int callbackCount; int pad39D4; int callbackIndex; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* (inferred) the deferred-callback array state */
+    char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
+    char pad2[0x45CC - 0x408C]; void *unknown45CC;
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void func_0011CDD8(void *p);
@@ -749,10 +749,10 @@ void BroadcastGameEvent(void *p, int a, int b);
 void PostSwLoad(struct S *world)
 {
     struct O **ppo;
-    func_0011CDD8(world->a403C);
-    func_0011CDD8(world->a4054);
-    func_0011CDD8(world->a4070);
-    func_0011CDD8(world->a4088);
+    func_0011CDD8(world->pool403C);
+    func_0011CDD8(world->pool4054);
+    func_0011CDD8(world->pool4070);
+    func_0011CDD8(world->pool4088);
     CreateSwScreenTint(world);
     SelectSwMainMs(world);
     ClearSwSpliceTable(world);
@@ -771,9 +771,9 @@ void PostSwLoad(struct S *world)
     }
     world->ppoLast = 0;
     world->ppoFirst = 0;
-    world->n39D8 = 0;
-    world->n39D0 = 0;
-    func_001C1260(world->p45CC);
+    world->callbackIndex = 0;
+    world->callbackCount = 0;
+    func_001C1260(world->unknown45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -1128,7 +1128,7 @@ typedef union { qword q; float f; } U;
 typedef struct { float x, y, z; } V3;
 typedef union { qword q; V3 v; } UV;
 extern char D_002BBB60[];
-struct S { char pad[0x3D5C]; int n3D5C; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float f3E20; float f3E24; V3 rgb; float f3E34; int f3E38; };
+struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
 void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
 void func_001ED2D8(UV *pv);
 float GLimitLm__FP2LMf(void *p, float g);
@@ -1155,17 +1155,17 @@ void UpdateSwIllum(struct S *world)
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
-        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->f3E20 * k));
+        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->midtone * k));
         u.q = qwuqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     func_001ED2D8(&out);
     world->rgb = out.v;
-    world->f3E34 = world->f3E24 * k;
-    if (world->f3E38)
-        world->f3E34 = GLimitLm__FP2LMf(D_002BBB60, world->f3E34 + 0.3f);
-    world->n3D5C++;
+    world->shadowScale = world->shadow * k;
+    if (world->isShadowLimited)
+        world->shadowScale = GLimitLm__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
+    world->illumChangeCount++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -1404,8 +1404,8 @@ namespace M_func_0020F710 { extern "C" {
 extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
-struct E { int x; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n4764; int n4768; };
+struct E { int widget; int pad[2]; };
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int unknown4768; };   /* sw.h cClue */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
@@ -1429,22 +1429,22 @@ void BindSwTimerHud(struct S *world)
     l.d = 1.0f;
     l.a = 1.0f;
     for (i = 0; i < 4; i++) {
-        int x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
-        if (x) {
-            SetWidgetXf(x, &l);
-            world->ae[i].x = x;
+        int widget = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
+        if (widget) {
+            SetWidgetXf(widget, &l);
+            world->ae[i].widget = widget;
         }
     }
-    world->n4764 = CClueCollected();
-    world->n4768 = func_001C7D00();
+    world->clueCount = CClueCollected();
+    world->unknown4768 = func_001C7D00();
 }
 } } // namespace M_func_0020F710
 
 namespace M_func_0020F7E0 { extern "C" {
-struct F8 { char pad[0x14]; float v; };
-struct O { char pad[0xF8]; struct F8 *pf8; };
-struct E { struct O *po; float v; int f; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float t476C; int n4770; };
+struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
+struct O { char pad[0xF8]; struct F8 *anim; };
+struct E { struct O *widget; float velocity; int isHidden; };
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float tCountdownEnd; int lastSecond; };
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
@@ -1472,27 +1472,27 @@ void UpdateSwTimerHud(struct S *world)
     z = t;
     for (i = 0; i < 4; i++) {
         struct E *e = &world->ae[i];
-        struct O *o = e->po;
+        struct O *o = e->widget;
         if (!o || !FWidgetVisible(o)) {
-            e->f = 1;
+            e->isHidden = 1;
             continue;
         }
-        if (e->f) {
-            o->pf8->v = t;
-            e->v = 0.0f;
-            e->f = 0;
+        if (e->isHidden) {
+            o->anim->value = t;
+            e->velocity = 0.0f;
+            e->isHidden = 0;
         } else {
-            o->pf8->v = GSmoothA__FffffP4SMPAPf(o->pf8->v, e->v, t, D_002C3E88, &e->v, D_002DDED0.dt);
+            o->anim->value = GSmoothA__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.dt);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float d = -D_002DDED0.t + world->t476C;
+            float remaining = -D_002DDED0.t + world->tCountdownEnd;
             int n;
-            d = (0.0f > d) ? 0.0f : d;
-            n = (int)d;
-            if (n != world->n4770) {
+            remaining = (0.0f > remaining) ? 0.0f : remaining;
+            n = (int)remaining;
+            if (n != world->lastSecond) {
                 SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
-                world->n4770 = n;
+                world->lastSecond = n;
             }
         }
     }
