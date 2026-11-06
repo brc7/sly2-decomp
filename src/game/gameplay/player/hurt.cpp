@@ -334,15 +334,15 @@ extern "C" void SetJtHurtState(C *hurt, int next)
     func_001F4BF8(hurt->actor);
     hurt->mode = next;
     hurt->time = D_002DDED0.time;
-    if (next != -1) {
-        if (!clip)
-            clip = hurt->Default(next);
-        ReleaseAsega(&hurt->actor->asega);
-        ReleaseSma(&hurt->actor->component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
-        ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
-        Invoke(hurt->actor, 90);
-    }
+    if (next == -1)
+        return;
+    if (!clip)
+        clip = hurt->Default(next);
+    ReleaseAsega(&hurt->actor->asega);
+    ReleaseSma(&hurt->actor->component);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
+    ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
+    Invoke(hurt->actor, 90);
 }
 } // namespace M_SetJtHurtState
 
@@ -1337,37 +1337,37 @@ extern "C" void UpdateStepplayerWater(P *player)
     if (!ProbeStepplayerSurface(player, player->link, &point.q))
         return;
     int i = 0;
-    if (player->count > 0) {
-        U position;
-        M4 predicted, base;
-        M4 *pbase = &base;
-        M4 *ppred = &predicted;
-        // Preserve the saved register for the predicted position.
-        register U *predpos __asm__("$20") = &predicted.r[3];
-        for (; i < player->count; i++) {
-            ENTRY *entry = &player->entries[i];
-            if (D_002DDED0.time - entry->time < 0.05f)
-                continue;
-            P *object = entry->object;
-            position.q = func_001A62E8(object);
-            void *frame = ((void *(*)(void *, M4 *))object->vt[32].fn)((char *)object + object->vt[32].delta, pbase);
-            LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.dt);
-            predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
-            int crossed = 0;
-            if (point.f[2] <= position.f[2]) {
-                if (predpos->f[2] <= point.f[2])
-                    crossed = 1;
-            } else if (point.f[2] <= predpos->f[2])
+    if (!(player->count > 0))
+        return;
+    U position;
+    M4 predicted, base;
+    M4 *pbase = &base;
+    M4 *ppred = &predicted;
+    // Preserve the saved register for the predicted position.
+    register U *predpos __asm__("$20") = &predicted.r[3];
+    for (; i < player->count; i++) {
+        ENTRY *entry = &player->entries[i];
+        if (D_002DDED0.time - entry->time < 0.05f)
+            continue;
+        P *object = entry->object;
+        position.q = func_001A62E8(object);
+        void *frame = ((void *(*)(void *, M4 *))object->vt[32].fn)((char *)object + object->vt[32].delta, pbase);
+        LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.dt);
+        predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
+        int crossed = 0;
+        if (point.f[2] <= position.f[2]) {
+            if (predpos->f[2] <= point.f[2])
                 crossed = 1;
-            if (crossed) {
-                MSG msg;
-                msg.position = position;
-                msg.position.f[2] = point.f[2];
-                msg.type = 4;
-                EFFECT *effect = player->link->effect;
-                ((void (*)(void *, MSG *))effect->vt[51].fn)((char *)effect + effect->vt[51].delta, &msg);
-                entry->time = D_002DDED0.time;
-            }
+        } else if (point.f[2] <= predpos->f[2])
+            crossed = 1;
+        if (crossed) {
+            MSG msg;
+            msg.position = position;
+            msg.position.f[2] = point.f[2];
+            msg.type = 4;
+            EFFECT *effect = player->link->effect;
+            ((void (*)(void *, MSG *))effect->vt[51].fn)((char *)effect + effect->vt[51].delta, &msg);
+            entry->time = D_002DDED0.time;
         }
     }
 }
