@@ -127,22 +127,22 @@ qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
 void HandleBasicMessage(CID100V *p, int k, struct MSG100 *q);
 void SetLoParent(CID100V *p, void *q, int a);
-int FIgnoreSoIntersection(CID100V *p, BASIC *q);
-int func_00134310(int v, int a);
-void func_001F4FB0(CID100V *p, XP *pxp, int i);
-void func_001F4F10(CID100V *p);
-void func_001F9B20(CID100V *);
+int ShouldSoIgnoreIntersection(CID100V *p, BASIC *q);
+int MaxInt(int v, int a);
+void AdjustSoNewXp(CID100V *p, XP *pxp, int i);
+void AdjustSoXps(CID100V *p);
+void PresetSoAccel(CID100V *);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
 void TiltMatUpright(M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(CID100V *, M3 *, void *, qwordV, void *);
 struct COLL { void *source; SOV *object; };
 struct LSG { qwordV point; char remainder[0x50]; };
-COLL *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qwordV, qwordV, int, COLL **, LSG *);
-SOV *func_001F7530(SOV *, int);
+COLL *FindFirstObjectHitByLine(int, qwordV, qwordV, int, COLL **, LSG *);
+SOV *FindZapResponder(SOV *, int);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 qwordV GetXfVelocity(XFV *, XFV *, qwordV);
-qwordV func_001FAA00(SOV *, qwordV);
-qwordV func_001FAA48(SOV *, qwordV, qwordV);
+qwordV GetSoImpulseLinearDelta(SOV *, qwordV);
+qwordV GetSoImpulseAngularDelta(SOV *, qwordV, qwordV);
 struct STACKSCOPEMK { int a[4]; };
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
@@ -151,7 +151,7 @@ void IntersectSwBoundingSphere(SW *pg, qwordV pos, void (*pfn)(), void *pv, floa
 qwordV SetVectorSphere(float a, float b, float c);
 qwordV LimitVectorLength(qwordV v, float r);
 struct HIT { SOV *owner; int field4; SOV *object; int filter, channel; char pad14[0xC]; qwordV point, impulse; char pad40[0x20]; };
-void func_001F7598(HIT *px);
+void DeliverZapToSo(HIT *px);
 struct R54 { char pad[0x54]; int x54; };
 R54 *NewNoise(void *pv, qwordV pos, CID100V *p);
 void ReleaseAct(ACT **);
@@ -166,7 +166,7 @@ int CploFindSwObjectsByClass(SW *, int, int, int, int, SOV **);
 void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
-R30 *func_00205458(ACTOR *, int);
+R30 *FindStepBehavior(ACTOR *, int);
 int IsBhvThrownDone(R30 *);
 void SetStepguardMoverTargetMatrix(CONTROL *, const M3 *);
 void SetBhvThrownState(R30 *, int);
@@ -175,7 +175,7 @@ void SprayDprizes(SW *, int, qwordV, void *, int);
 void BroadcastGameEvent(GAME *, int, void *);
 void AddSoAcceleration(SOV *o, qwordV v);
 void AccelSoTowardPosSpring(SOV *o, qwordV v, void *a, qwordV b, void *c);
-void func_00229738(ACTOR *po, HOOK *node);
+void RemoveSoXa(ACTOR *po, HOOK *node);
 int CanSetStepguardSpecial(ACTOR *po, int k);
 void AddSoXa(ACTOR *po, HOOK *node);
 void SendStepguardRootBhvMode6(ACTOR *po, int k);
@@ -344,9 +344,9 @@ void func_00224258(CID100V *p, SOV *q)
  * @end-sly2-annot */
 extern "C" int func_002242E0(CID100V *p, BASIC *q)
 {
-    int v = FIgnoreSoIntersection(p, q);
+    int v = ShouldSoIgnoreIntersection(p, q);
     int k = p->state;
-    if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = func_00134310(v, 1); }
+    if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = MaxInt(v, 1); }
     return v;
 }
 
@@ -357,7 +357,7 @@ extern "C" int func_002242E0(CID100V *p, BASIC *q)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
  * @end-sly2-annot */
 extern "C" float func_00224350(CID100V *p, XP *pxp, int i) {
-    func_001F4FB0(p, pxp, i);
+    AdjustSoNewXp(p, pxp, i);
     pxp->elasticity = 0.25f;
     return 0.25f;
 }
@@ -385,7 +385,7 @@ extern "C" void func_00224380(CID100V *p)
     EDGE *pe;
     LN *pln;
     SOV *id;
-    func_001F4F10(p);
+    AdjustSoXps(p);
     if (!p->state && D_002DDED0.t - p->time < D_002C42E0) return;
     pln = p->ptree->pln;
     id = p->ptree->owner;
@@ -529,7 +529,7 @@ static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
 extern "C" void func_00224698(CID100V *p) {
     M3 m;
     if(p->state==0 || p->state==4)return;
-    func_001F9B20(p);
+    PresetSoAccel(p);
     if(p->kind!=0x1A && p->kind!=0x29)return;
     if(p->nearest) {
         qwordV a=ToVF(GetLoWorldPos(p->nearest));
@@ -548,12 +548,12 @@ extern "C" void func_00224698(CID100V *p) {
 }
 
 // func_00224820: trace a probe segment, record the contact in the caller's HIT list, and push the touched body.
-// - Segment start..end goes through PsoHitTestLineObjects; the hit object's eligible actor comes from func_001F7530.
+// - Segment start..end goes through PsoHitTestLineObjects; the hit object's eligible actor comes from FindZapResponder.
 // - A new HIT record (deduplicated by object, up to capacity) gets owner/object/filter/channel/point and
 //   impulse = normal * D_002C4334 (the target speed).
 // - If the body has physics: project its point velocity (GetXfVelocity) on the normal, evaluate the quadratic
-//   D_002C4320 at along / D_002C4334 clamped to D_002BBB60, scale by D_002C4330, get the linear (func_001FAA00)
-//   and angular (func_001FAA48) responses and, when they speed the point up along the normal, add the fraction
+//   D_002C4320 at along / D_002C4334 clamped to D_002BBB60, scale by D_002C4330, get the linear (GetSoImpulseLinearDelta)
+//   and angular (GetSoImpulseAngularDelta) responses and, when they speed the point up along the normal, add the fraction
 //   (target - along) / change (clamped to 0..1) of them to the body's velocity (virtuals 33/34 -> 35/36).
 // Matching notes (T1586 lilly28 -> T1591 MATCH):
 // - `bits` is ONE int shared by both float->VU loads (the record's `lw` and the impulse's `mfc1`). Used in two
@@ -588,13 +588,13 @@ static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero
  * @end-sly2-annot */
 void func_00224820(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  SOV *owner=Pin(ownerIn);LSG hit;int bits;
- COLL *collider=PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,start,end,queryCount,objects,&hit);
+ COLL *collider=FindFirstObjectHitByLine(0,start,end,queryCount,objects,&hit);
  if(!collider)return;
  qwordV normal;
  SOV *chain=collider->object;
  {qwordV len,one;qwordV d=SubP(end,start);
  __asm__("vmul.xyz %2,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %2,%1,%2z\n\tvsqrt Q,%2x\n\tvwaitq\n\tvaddq.x %2,$vf0,Q\n\tvdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%3,Q":"=&j"(normal),"=&j"(one),"=&j"(len):"j"(d));}
- SOV *object=func_001F7530(chain,filter);
+ SOV *object=FindZapResponder(chain,filter);
  if(!object)return;
  SOV *body=object->ptree->owner;
  int i;
@@ -618,8 +618,8 @@ void func_00224820(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,i
  if(fz<response){
  bits=BitsOfFloat(response*D_002C4330);
  qwordV impulse=ScaleK(normal,MkVukBits(bits));
- qwordV linear=func_001FAA00(body,impulse);
- qwordV angular=func_001FAA48(body,hit.point,impulse);
+ qwordV linear=GetSoImpulseLinearDelta(body,impulse);
+ qwordV angular=GetSoImpulseAngularDelta(body,hit.point,impulse);
  qwordV delta=SubP(hit.point,body->pxfRot->position.q);
  float change=DotP(AddP(linear,CrossXYZ(angular,delta)),normal);
  if(fz<change){
@@ -665,7 +665,7 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
         func_00224820(p, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
     }
     for (m = 0; m < cx; m++)
-        func_001F7598(&ax[m]);
+        DeliverZapToSo(&ax[m]);
     NewNoise(D_003DD490.x402C, pos, p)->x54 = 1;
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
@@ -828,7 +828,7 @@ extern "C" void func_00225300(CID100V *p) {
             R30 *r;
             if(!p->actor) {
                 VCALL(p, 76),3);
-            } else if(!(r=func_00205458(p->actor,0xB0)) || IsBhvThrownDone(r)) {
+            } else if(!(r=FindStepBehavior(p->actor,0xB0)) || IsBhvThrownDone(r)) {
                 VCALL(p, 76),2);
             } else {
                 M3 m((p->source?GetLoWorldMatrix(p->source):GetLoWorldMatrix(p))->basis);
@@ -920,8 +920,8 @@ extern "C" void func_00225660(CID100V *p, int k)
         return;
     if (p->state == 5 && p->actor) {
         R30 *pv;
-        func_00229738(p->actor, &p->hook);
-        pv = func_00205458(p->actor, 0xB0);
+        RemoveSoXa(p->actor, &p->hook);
+        pv = FindStepBehavior(p->actor, 0xB0);
         if (pv)
             SetBhvThrownState(pv, 2);
         if (p->actor->color)

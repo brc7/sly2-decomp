@@ -119,7 +119,7 @@ RTE *AllocClearedFromStack(ALLOCREQ *preq);
 RTE *AllocCopyFromWorldHeap(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
-SHAPEV *func_001E94B0(int oid, int c);
+SHAPEV *NewSampledShape(int oid, int c);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
 qword GetLoWorldPos(void *p);
 void MeasureShape(SHAPEV *shape);
@@ -134,7 +134,7 @@ void func_001FEEA0(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
 int IsStepguardHandsOff(GUARDV *p);
-HEROV *PpoHero(SW *psw);
+HEROV *GetHeroPo(SW *psw);
 ATKENTRY *ChooseStepguardAttack(GUARDV *p, HEROV *phero, int m);
 int IsBhvpathAtEnd(void *p);
 int IsBhvanimDone(void *p);
@@ -154,7 +154,7 @@ qword ConvertCmWorldToScreen(void *, qword);
 void SetStepguardAimAct(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
-void *func_00205438(GUARDV *, int);
+void *PushStepBehavior(GUARDV *, int);
 void SetBhvpathShape(OA7 *, SHAPEV *, int);
 void InitStepguard(GUARDV *p);
 void PostStepguardLoad(GUARDV *p);
@@ -163,7 +163,7 @@ int StepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *object, int k);
 LOV *ChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
-void *func_00205458(GUARDV *p, int n);
+void *FindStepBehavior(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
 void UpdateBhvRouteChase(BHVRT *p);
 int IsBhvRouteOffGround(BHVRT *p);
@@ -204,7 +204,7 @@ void CID123::VUnk14()
     ROUTE *route = (ROUTE *)this;
     int i;
     PostLoLoad(route);
-    route->shape = func_001E94B0(0x62C, route->stationCount);
+    route->shape = NewSampledShape(0x62C, route->stationCount);
     route->shape->pointCount = route->stationCount;
     for (i = 0; i < route->stationCount; i++) {
         RTE *e = &route->stations[i];
@@ -285,7 +285,7 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
                 int v = FindBhvRouteBestStation(behavior);
                 behavior->targetStation = v;
                 if (v == behavior->currentStation) {
-                    ATKENTRY *r = ChooseStepguardAttack(behavior->guard, PpoHero(&D_003DD490), 0);
+                    ATKENTRY *r = ChooseStepguardAttack(behavior->guard, GetHeroPo(&D_003DD490), 0);
                     behavior->attack = r;
                     if (r)
                         SetBhvRouteState(behavior, 3);
@@ -302,7 +302,7 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
             else if (IsBhvpathAtEnd(behavior->currentChild))
                 SetBhvRouteState(behavior, 0);
             else
-                ChooseStepguardAttack(behavior->guard, PpoHero(&D_003DD490), 0);
+                ChooseStepguardAttack(behavior->guard, GetHeroPo(&D_003DD490), 0);
             break;
         case 2:
             if (IsStepguardHandsOff(behavior->guard))
@@ -391,7 +391,7 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
 {
     SW *pg = &D_003DD490;
-    HEROV *hero = PpoHero(pg);
+    HEROV *hero = GetHeroPo(pg);
     qword posPlayer = GetLoWorldPos(hero);
     qword posMe = GetLoWorldPos(behavior->guard);
     qword d = VuSub(posPlayer, posMe);
@@ -489,7 +489,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
     int iBest = -1;
     int i = 0;
     float ag[1];
-    void *pv = PpoHero(&D_003DD490);
+    void *pv = GetHeroPo(&D_003DD490);
     float gBest = -1.0f;
     FindShapeClosestPoint(behavior->route->shape, GetLoWorldPos(pv), 0, 0, 0, 0, ag);
     for (; i < behavior->route->stationCount; i++) {
@@ -583,8 +583,8 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, 0x9E);
-        po->x38 = PpoHero(&D_003DD490);
+        struct O9E *po = (struct O9E *)PushStepBehavior(behavior->guard, 0x9E);
+        po->x38 = GetHeroPo(&D_003DD490);
         VCALL0(po, 8);
         {
             GUARDV *guard = behavior->guard;
@@ -613,12 +613,12 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
             pq[1] = GetLoWorldPos(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
-        po = (struct OA7 *)func_00205438(behavior->guard, 0xA7);
+        po = (struct OA7 *)PushStepBehavior(behavior->guard, 0xA7);
         SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
-        po->xC8 = PpoHero(&D_003DD490);
+        po->xC8 = GetHeroPo(&D_003DD490);
         VCALL0(po, 8);
         behavior->guard->attackCooldownEnd = D_002DDED0.t;
         SetSoCnstrForce(behavior->guard, 0);
@@ -626,14 +626,14 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 2: {
-        struct OAC *po = (struct OAC *)func_00205438(behavior->guard, 0xAC);
+        struct OAC *po = (struct OAC *)PushStepBehavior(behavior->guard, 0xAC);
         po->x50 = GetLoWorldPos(GetBhvRouteStationKind(behavior));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
-        struct OA4 *po = (struct OA4 *)func_00205438(behavior->guard, 0xA4);
+        struct OA4 *po = (struct OA4 *)PushStepBehavior(behavior->guard, 0xA4);
         po->x30 = behavior->guard->target;
         po->attack = behavior->attack;
         VCALL0(po, 8);
@@ -641,8 +641,8 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 4: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, 0x9E);
-        po->x38 = PpoHero(&D_003DD490);
+        struct O9E *po = (struct O9E *)PushStepBehavior(behavior->guard, 0x9E);
+        po->x38 = GetHeroPo(&D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;
@@ -759,12 +759,12 @@ extern "C" void SendCarmelitaRootBhvValue(GUARDV *guard, int val)
     MSG m;
     void *o;
     memset(&m, 0, sizeof(m));
-    o = func_00205458(guard, 0x9C);
+    o = FindStepBehavior(guard, 0x9C);
     if (val) {
         m.val = val;
         m.kind = 0xE;
         SetBhvguardMode(o, &m);
-    } else if (func_00205458(guard, 0xB6)) {
+    } else if (FindStepBehavior(guard, 0xB6)) {
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }

@@ -96,11 +96,11 @@ qword DecomposeRotationMatrixToEuler(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
 void func_00130D30(ASEGA *pasega, int n, float t, float g);
 void func_001384C0(ASEGBL *pasegbl);
-void SetStepRadTargetVec(LO *plo, qword vec);
+void SetStepTargetHeadingFromVector(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
 SO *GetSoFromLo(LO *plo);
-int func_00134310(int grf, int n);   /* NMaxIgnore */
+int MaxInt(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
 qword func_0022CA18(XF *pxfA, XF *pxfB);
@@ -113,7 +113,7 @@ qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent(LO *plo, int a, int b);
 float ComputeMaxBallisticTime(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
-void func_001F6860(LO *plo, int n);
+void SetSoTreeFlag2(LO *plo, int n);
 void SetLoXfFromMat(LO *plo, M4 *pmat);
 void SetSoCnstrForce(SO *pso, int n);
 void SetSoCnstrTorque(SO *pso, int n);
@@ -323,7 +323,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     w.saved.q = w.position.q;
     SO *receiver;
     qword delta = DifferenceFromSaved(&w.saved, GetLoWorldPos(hands->pso), hands, receiver);
-    SetStepRadTargetVec(receiver, delta);
+    SetStepTargetHeadingFromVector(receiver, delta);
     FixStepAngularVelocity(hands->pso);
 }
 
@@ -460,7 +460,7 @@ extern "C" int GetJtHandsIgnoreFlags(JTHANDS *hands, SO *so, int grf)
     if (hands->nMode == 1) {
         SO *psoTarget = GetSoFromLo(hands->ploTarget);
         if (psoTarget && psoTarget->ptree && so->ptree == psoTarget->ptree)
-            grf = func_00134310(grf, 3);
+            grf = MaxInt(grf, 3);
     }
     return grf;
 }
@@ -684,7 +684,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
  ACT *job=func_0012DC18(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
  XFACT *pxfact=(XFACT *)object->pxfUnk5c;
  if(pxfact->pactCur==job)pxfact->tEnd=endTime;
- func_001F6860(object,1);
+ SetSoTreeFlag2(object,1);
 }
 
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14

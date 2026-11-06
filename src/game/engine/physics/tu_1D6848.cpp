@@ -1,5 +1,8 @@
-// tu_1D6848.cpp -- launchers: ballistic launch velocity toward a point, a straight-line launch velocity, the
-// launcher's init, and LaunchSoFromLauncher. VU0 macro-mode asm.
+// tu_1D6848.cpp -- launchers (CID 112, an LO): objects that throw another object toward a target point.
+// Role: computes launch velocities (a ballistic arc at a chosen elevation, or the velocity that covers a distance
+// in a given time under gravity) and launches an SO from a launcher with prediction, offset, class-specific
+// velocity and random spin. Entry points: CID112::Init, LaunchSoFromLauncher, CalculateBallisticLaunchVelocity,
+// CalculateVelocityToReachPos. VU0 macro-mode asm.
 // TU 0x1D6848..0x1D7238 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1D6848
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D7218
@@ -56,37 +59,40 @@ static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;re
  * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
-extern "C" qwordV func_001D6848(float g, qwordV start, qwordV end, qwordV acc)
+// Returns the launch velocity that carries an object from start to end on a ballistic arc under acceleration acc.
+// g (0..1) blends the elevation angle between the direct line to the target (0) and straight up (pi/2, 1); returns
+// zero when the target cannot be reached at that angle.
+extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV start, qwordV end, qwordV acceleration)
 {
-    union U delta, vel, scalar;
-    qwordV d, s, n, r;
-    float k=sinf(g);
-    float z,len,q;
+    union U delta, velocity, scalar;
+    qwordV difference, speedVector, direction, result;
+    float elevation=sinf(elevationBlend);
+    float height,horizontalDistance,speed;
     register float numerator __asm__("$f20");
-    register float angle __asm__("$f12");
-    d=Difference(end,&start);
-    delta.q = d;
-    z = delta.a[2];
+    register float directAngle __asm__("$f12");
+    difference=Difference(end,&start);
+    delta.q = difference;
+    height = delta.a[2];
     delta.a[2] = 0.0f;
-    len = Len(delta.q);
-    angle=atan2f(z,len);
-    if (angle<0.0f) angle=0.0f;
-    q=Dot(&acc,D_002A2DC0);
-    k = angle + (1.57079637051f-angle)*k;
-    q=q/((z-len*tanf(k))*2.0f);
-    if (q<=0.0f) return D_002A2DD0;
-    q=Sqrt(q);
-    numerator=len*q;
-    q=numerator/cosf(k);
-    vel.q=delta.q;
-    vel.a[2]=len*tanf(k);
-    scalar.q=VuFromFloat<qwordV>(q);
-    s=scalar.q;
-    n=Norm(vel.q);
-    __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(s) : "j"(n));
-    r = s;
-    vel.q=r;
-    return vel.q;
+    horizontalDistance = Len(delta.q);
+    directAngle=atan2f(height,horizontalDistance);
+    if (directAngle<0.0f) directAngle=0.0f;
+    speed=Dot(&acceleration,D_002A2DC0);
+    elevation = directAngle + (1.57079637051f-directAngle)*elevation;
+    speed=speed/((height-horizontalDistance*tanf(elevation))*2.0f);
+    if (speed<=0.0f) return D_002A2DD0;
+    speed=Sqrt(speed);
+    numerator=horizontalDistance*speed;
+    speed=numerator/cosf(elevation);
+    velocity.q=delta.q;
+    velocity.a[2]=horizontalDistance*tanf(elevation);
+    scalar.q=VuFromFloat<qwordV>(speed);
+    speedVector=scalar.q;
+    direction=Norm(velocity.q);
+    __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(speedVector) : "j"(direction));
+    result = speedVector;
+    velocity.q=result;
+    return velocity.q;
 }
 
 /* ---- 0x1D69F0: velocity to go from a to b in dt under acceleration acc ---- */
@@ -104,29 +110,31 @@ static inline qwordV Bc(float g) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
-extern "C" qwordV func_001D69F0(qwordV a, qwordV b, qwordV acc, float dt)
+// Returns the velocity that moves an object from a to b in dt seconds under the vertical acceleration acc: the
+// horizontal part is the straight-line distance over dt, the vertical part compensates for the fall.
+extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV acceleration, float dt)
 {
-    float halfdt = dt * 0.5f;
-    float accz = Z(acc);
-    qwordV delta, axis, dot, proj, flat, inv, vz, r;
-    float z, invdt;
-    delta = VuSub(b, a);
-    z = Z(delta) - (dt * halfdt) * accz;
-    invdt = 1.0f / dt;
-    axis = D_002A2DC0;
-    dot = VuDot(delta, axis);
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(proj) : "j"(axis), "j"(dot));
-    flat = VuSub(delta, proj);
-    inv = Bc(invdt);
-    vz = Bc(z / dt);
-    __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(r) : "j"(flat), "j"(inv), "j"(axis), "j"(vz));
-    return r;
+    float halfDt = dt * 0.5f;
+    float verticalAcceleration = Z(acceleration);
+    qwordV delta, up, upAmount, vertical, horizontal, inverseDt, verticalSpeed, result;
+    float height, inverseDtValue;
+    delta = VuSub(end, start);
+    height = Z(delta) - (dt * halfDt) * verticalAcceleration;
+    inverseDtValue = 1.0f / dt;
+    up = D_002A2DC0;
+    upAmount = VuDot(delta, up);
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vertical) : "j"(up), "j"(upAmount));
+    horizontal = VuSub(delta, vertical);
+    inverseDt = Bc(inverseDtValue);
+    verticalSpeed = Bc(height / dt);
+    __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(result) : "j"(horizontal), "j"(inverseDt), "j"(up), "j"(verticalSpeed));
+    return result;
 }
 
 /* ---- 0x1D6A90: launcher init ---- */
 extern const float D_002A7874;   /* defined below where the ELF has it (.rodata order) */
 struct V { float x, y, z; };
-struct S { char p0[0x70]; struct V v70; int pad; int n80; float g84; char p1[8]; struct V v90; int pad2; int nA0; float gA4; char p2[8]; float gB0; };
+struct S { char p0[0x70]; struct V predictCurve; int pad; int predictMin; float predictMax; char p1[8]; struct V offsetCurve; int pad2; int offsetMin; float offsetMax; char p2[8]; float pitch; };
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -139,15 +147,15 @@ namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.4
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
-void CID112::Init() { S *p = (S *)this;
-    InitLo(p);
-    SetVector(&p->v70, 0, 0, 0);
-    p->n80 = 0;
-    p->g84 = D_002A7874;
-    SetVector(&p->v90, 0, 1.0f, 0);
-    p->gB0 = 0.5f;
-    p->gA4 = D_002A7874;
-    p->nA0 = 0;
+void CID112::Init() { S *launcher = (S *)this;
+    InitLo(launcher);
+    SetVector(&launcher->predictCurve, 0, 0, 0);
+    launcher->predictMin = 0;
+    launcher->predictMax = D_002A7874;
+    SetVector(&launcher->offsetCurve, 0, 1.0f, 0);
+    launcher->pitch = 0.5f;
+    launcher->offsetMax = D_002A7874;
+    launcher->offsetMin = 0;
 }
 
 /* ---- 0x1D6B00: LaunchSoFromLauncher ---- */
@@ -155,7 +163,7 @@ void CID112::Init() { S *p = (S *)this;
 // the source's frame, optionally advanced by a predicted time (clqPredict over the distance, clamped to lmPredict), then
 // moved by clqOffset(distance) along the direction to it. Depending on the object's class it gets a speed vector (0x52),
 // a velocity toward that point at its own launch speed plus a matching orientation (0x51), or a ballistic launch velocity
-// (func_001D6848); a random spin from lmSpin; and class 0x50 objects are told their target.
+// (CalculateBallisticLaunchVelocity); a random spin from lmSpin; and class 0x50 objects are told their target.
 // Matching notes (all found on the -da dumps):
 //  * matParent / mat / matPredict reproduce the frame; mat and matPredict live in an inner block, so their slots are freed and
 //    every later temporary (VU_FLOAT, VECTOR, VECTOR4) lands at sp+0x40 like the game's dead stores. posStart, posOrigin,
@@ -220,6 +228,8 @@ extern XFV D_002C44F0;           // identity frame
 extern qwordV D_002A2DA0;        // default direction
 extern char D_003DD490[];
 extern "C" {
+// Slot 7 (Init) of the launcher: InitLo, then the defaults LaunchSoFromLauncher reads: no prediction (curve 0,
+// limits [0, FLT_MAX]), offset equal to the distance (curve (0, 1, 0), limits [0, FLT_MAX]) and pitch 0.5.
 qwordV GetLoWorldPos(SOV *);                                       // PosLoWorld
 MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
@@ -230,9 +240,9 @@ void RecalcSwOxfFilterForObject(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
 void SetSoCnstrTorque(SOV *, void *);
 void SetLoParent(SOV *, int, int);
-void func_001F4898(SOV *, qwordV);
-qwordV GetSoDvGravity(SOV *);
-qwordV func_001D6848(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
+void SetSoPosXfVelocityLocal(SOV *, qwordV);
+qwordV GetSoGravity(SOV *);
+qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
 float GRandInRange__Fff(float, float);                               // GRandInRange
 }
@@ -334,6 +344,10 @@ static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)
  *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
+// Launches pso from the launcher: aims at the target point (optionally advanced by a predicted travel time and
+// offset along the aim direction), then by the object's class gives it a speed vector (0x52), a velocity toward the
+// point at its own launch speed with a matching orientation (0x51), or a ballistic velocity, adds a random spin,
+// and tells class 0x50 objects their target.
 extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
 {
     MATRIX4V matParent;
@@ -376,7 +390,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     SetSoCnstrTorque(pso, 0);
     SetLoParent(pso, 0, 3);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x52)) {
-        func_001F4898(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
+        SetSoPosXfVelocityLocal(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x51)) {
         qwordV v = VuFloatFromWord(pso->svLaunch) * Normalize2(posAim, posStart);
         pso->SetVelocity(v);
@@ -384,8 +398,8 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         LoadLookAtMatrix(&mat, v);
         pso->RotateToMat(&mat);
     } else {
-        qwordV vAccel = GetSoDvGravity(pso);
-        qwordV v = func_001D6848(plaunch->pitch, posStart, posLaunch, vAccel);
+        qwordV vAccel = GetSoGravity(pso);
+        qwordV v = CalculateBallisticLaunchVelocity(plaunch->pitch, posStart, posLaunch, vAccel);
         pso->SetVelocity(v);
     }
     if (plaunch->lmSpin.gMax > 0.0f) {

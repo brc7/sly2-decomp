@@ -73,7 +73,7 @@ void UpdateBhvpath(BHVB *behavior);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
 void SetBhvfollowState(BHVB *behavior, int state);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *object, int cid);
-CID17 *PpathzoneFromPos(qword pos, int n);
+CID17 *FindPathzoneAtPos(qword pos, int n);
 qword GetLoWorldPos(SO *object);
 void SetMurrayState(MURRAY *murray, int state);
 void SetMurrayPowerSubstate(MURRAY *murray, int n);
@@ -227,7 +227,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
 struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
 void StartBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void SetBhvWalkToGoal(struct P *p, qword q);
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
@@ -236,7 +236,7 @@ void StartBhvWalkTo(struct P *behavior)
     struct O *o;
     struct VTE *entry;
     StartBhv(behavior);
-    o = func_00205438(behavior->o10, 0xA8);
+    o = PushStepBehavior(behavior->o10, 0xA8);
     o->n40 = behavior->n30;
     o->g64 = behavior->g34;
     o->nCC = behavior->n38;
@@ -270,7 +270,7 @@ struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
 struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
 qword GetLoWorldPos(struct A *pa);
-void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
+void FindPathzonePathCurve(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
 void SetBhvpathShape(void *p, struct B *pb, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
@@ -293,7 +293,7 @@ void SetBhvWalkToGoal(struct P *behavior, qword v)
             pb->pq[1] = behavior->v;
             MeasureShape(pb);
         } else {
-            func_001C02D0(pe, r, behavior->v, pb);
+            FindPathzonePathCurve(pe, r, behavior->v, pb);
         }
         SetBhvpathShape(behavior->child, pb, 0);
     }
@@ -353,7 +353,7 @@ struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword GetLoWorldPos(void *p);
 ulong GetSgfMask(int n);
 int StepguardHasSgf(struct SO *p, int n);
-struct LIST *func_001F8240(void *p);
+struct LIST *FindTargetRecordById(void *p);
 
 // VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
@@ -404,7 +404,7 @@ struct SO *PickBhvfollowTarget(struct P *p)
             gBest = g;
         }
     }
-    plist = func_001F8240(p->p30);
+    plist = FindTargetRecordById(p->p30);
     if (plist) {
         for (i = 0; i < plist->c; i++) {
             struct SO *pso = plist->a[i];
@@ -600,7 +600,7 @@ M3 *GetLoWorldMatrix(void *p);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *GetBhvfollowLeaderGround(P *p);
-int func_001C02D0(E *pe, qword r, qword v, B *pb);
+int FindPathzonePathCurve(E *pe, qword r, qword v, B *pb);
 void MeasureShape(B *pb);
 void SetBhvpathShape(void *p, B *pb, int n);
 void UpdateBhvfollowPosition(P *p);
@@ -670,9 +670,9 @@ void UpdateBhvfollowPosition(P *behavior)
             pb->pq[1] = u.s.pos;
             MeasureShape(pb);
         } else if (GetBhvfollowLeaderGround(behavior) != pe) {
-            func_001C02D0(pe, r, r, pb);
-        } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
-            func_001C02D0(pe, r, r, pb);
+            FindPathzonePathCurve(pe, r, r, pb);
+        } else if (!FindPathzonePathCurve(pe, r, u.s.pos, pb)) {
+            FindPathzonePathCurve(pe, r, r, pb);
         }
         SetBhvpathShape(behavior->child, pb, 0);
     }
@@ -692,7 +692,7 @@ struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *lea
 struct SO *GetBhvfollowLeaderGround(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
-int func_001C09A0(struct SO *object, qword pos, int n);
+int IsPosFreeInPathzone(struct SO *object, qword pos, int n);
 int SnapToGround(qword *ppos, float a, float b, int c, int d);
 // 0x1459C0: True if the leader stands on a different ground object than the follower.
 int IsBhvfollowLeaderOnNewGround(struct P *behavior)
@@ -708,7 +708,7 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
     if (object->k == 0x2CA) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, 0x34) && behavior->leader->x2DC != -1) return 0;
     pos = GetLoWorldPos(behavior->leader);
-    if (!func_001C09A0(object, pos, 0)) return 0;
+    if (!IsPosFreeInPathzone(object, pos, 0)) return 0;
     if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
     behavior->pos = pos;
     return 1;
@@ -735,7 +735,7 @@ extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
         }
         return pcid17;
     }
-    pcid17 = PpathzoneFromPos(GetLoWorldPos(behavior->pso), 1);
+    pcid17 = FindPathzoneAtPos(GetLoWorldPos(behavior->pso), 1);
     return pcid17;
 }
 
@@ -751,7 +751,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int oid);
+struct O *PushStepBehavior(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void UpdateBhvfollowPosition(struct P *p);
@@ -760,7 +760,7 @@ int GetBasicCid(void *p);
 // Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
 static __inline__ void Activate(struct P *p, int oid)
 {
-    struct O *po = func_00205438(p->guard, oid);
+    struct O *po = PushStepBehavior(p->guard, oid);
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
@@ -773,7 +773,7 @@ void SetBhvfollowState(struct P *behavior, int state)
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = func_00205438(behavior->guard, 0xA8);
+        struct O *po = PushStepBehavior(behavior->guard, 0xA8);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, 0x32)) {
             po->xC0 = behavior->leader->x150;
             po->xC4 = 8;
@@ -1508,12 +1508,12 @@ extern void *D_002E1E40;
 float D_002BD374 = 0.5f, D_002BD378 = 15.0f;
 void UpdateBhv(struct P *p);
 qword GetLoWorldPos(void *p);
-void SetStepRadTargetVec(struct X *px, qword v);
+void SetStepTargetHeadingFromVector(struct X *px, qword v);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
-float RadStepHeading(struct X *px);
+float GetStepHeading(struct X *px);
 float GLimitAbs__Fff(float g, float dg);
-void func_00204660(struct X *px, float g);
+void SetStepTargetHeading(struct X *px, float g);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
@@ -1530,7 +1530,7 @@ void UpdateBhvMurray(struct P *behavior)
             a = GetLoWorldPos(D_002E1E40);
             b = GetLoWorldPos(behavior->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            SetStepRadTargetVec(behavior->px, d);
+            SetStepTargetHeadingFromVector(behavior->px, d);
         }
         behavior->g30 = behavior->px->g1A8;
         break;
@@ -1543,8 +1543,8 @@ void UpdateBhvMurray(struct P *behavior)
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
             g = atan2f(GetY(d), GetX(d));
             if (__builtin_fabsf(RadNormalize__Ff(g - behavior->g30)) < D_002BD374) {
-                gCur = RadStepHeading(behavior->px);
-                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(behavior->px, gCur + GLimitAbs__Fff(d, k * dt)); }
+                gCur = GetStepHeading(behavior->px);
+                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; SetStepTargetHeading(behavior->px, gCur + GLimitAbs__Fff(d, k * dt)); }
             }
         }
         break;

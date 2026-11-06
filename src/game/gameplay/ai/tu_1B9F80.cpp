@@ -73,7 +73,7 @@ void UpdateStepguard(NEELAV*);
 int StepguardHasSgf(NEELAV*,int);
 qword GetLoWorldPos(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
-int FCheckVolPoint(VOLUME*,qword);
+int IsPointInVol(VOLUME*,qword);
 void SetNeelaState(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
@@ -83,8 +83,8 @@ int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
 void ReleaseAct(MOTION **p);
-O *func_00205458(NEELAV *p, int n);
-void func_00204D48(NEELAV *p, float f);
+O *FindStepBehavior(NEELAV *p, int n);
+void ScaleStepSpinSpeed(NEELAV *p, float f);
 void func_0012F9B8(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
 MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
@@ -97,7 +97,7 @@ void RemoveStepguardSgf(NEELAV *p, int n);
 void SetBhvNeelaChaseState(NBHV *p, int n);
 void SaveBhvScriptResumeState(int a, void *b);
 void PopBhv(int *p);
-O *func_00205438(NEELAV *p, int b);
+O *PushStepBehavior(NEELAV *p, int b);
 void SetBhvScriptScript(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
@@ -215,7 +215,7 @@ extern "C" void UpdateNeela(NEELAV*neela){
    qword origin=Vector(GetLoWorldPos(neela));
    float distance=Square(VuSub(origin,GetLoWorldPos(node)));
    if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,GetLoWorldPos(node))){neela->target=node;nearest=distance;}
+   if(IsPointInVol(volume,GetLoWorldPos(node))){neela->target=node;nearest=distance;}
   }
   if(!neela->target&&!StepguardHasSgf(neela,2)){
    qword position=Vector(ConvertAloPos(neela,0,D_002C0A80.q));
@@ -226,7 +226,7 @@ extern "C" void UpdateNeela(NEELAV*neela){
    IntersectSwBoundingBox(&D_003DD490,low,high,FilterCid98,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(FCheckVolPoint(volume,GetLoWorldPos(row->object))){neela->target=row->object;break;}
+    if(IsPointInVol(volume,GetLoWorldPos(row->object))){neela->target=row->object;break;}
    }
   }
   if(neela->target)SetNeelaState(neela,1);
@@ -259,8 +259,8 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
         ReleaseAct(&neela->motion);
         neela->motion = 0;
         neela->target = 0;
-        if (StepguardHasSgf(neela, 2)) func_00205458(neela, 0x9E)->target = D_002E1E40;
-        func_00204D48(neela, 1.0f);
+        if (StepguardHasSgf(neela, 2)) FindStepBehavior(neela, 0x9E)->target = D_002E1E40;
+        ScaleStepSpinSpeed(neela, 1.0f);
     }
     neela->state = st;
     neela->stateTime = D_002DDED0.t;
@@ -269,8 +269,8 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
     VCALL0((O *)neela->animation, 1);
     neela->motion = func_0012DC18(neela, neela->node, 5, 8, 3, D_002A2DD0);
     if (StepguardHasSgf(neela, 2)) {
-        func_00205458(neela, 0x9E)->target = neela->target;
-        func_00204D48(neela, 4.0f);
+        FindStepBehavior(neela, 0x9E)->target = neela->target;
+        ScaleStepSpinSpeed(neela, 4.0f);
     }
 }
 
@@ -324,13 +324,13 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
         switch (s) {
         case 0: {
             DETECTORV *detector = behavior->guard->detector;
-            if (!FCheckVolPoint(detector->farVolume, GetLoWorldPos(D_002E1E40)))
+            if (!IsPointInVol(detector->farVolume, GetLoWorldPos(D_002E1E40)))
                 SetBhvNeelaChaseState(behavior, 1);
             break;
         }
         case 1: {
             DETECTORV *detector = behavior->guard->detector;
-            if (FCheckVolPoint(detector->nearVolume, GetLoWorldPos(D_002E1E40)))
+            if (IsPointInVol(detector->nearVolume, GetLoWorldPos(D_002E1E40)))
                 SetBhvNeelaChaseState(behavior, 0);
             else if (behavior->guard->poly.dt < D_002DDED0.t - behavior->stateTime)
                 SetBhvNeelaChaseState(behavior, 2);
@@ -346,8 +346,8 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
         float d = Dist(GetLoWorldPos(behavior->guard), GetLoWorldPos(D_002E1E40));
         NEELAV *neela = behavior->guard;
         float r = GClamp(GEval(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
-        Q1 *q1 = (Q1 *)func_00205458(behavior->guard, 0xA7);
-        Q2 *q2 = (Q2 *)func_00205458(behavior->guard, 0xB8);
+        Q1 *q1 = (Q1 *)FindStepBehavior(behavior->guard, 0xA7);
+        Q2 *q2 = (Q2 *)FindStepBehavior(behavior->guard, 0xB8);
         if (q1)
             q1->unknownC4 = r;
         else if (q2)
@@ -366,19 +366,19 @@ extern "C" void SetBhvNeelaChaseState(NBHV *behavior, int st)
     behavior->stateTime = D_002DDED0.t;
     switch (st) {
     case 0: {
-        O *o = func_00205438(behavior->guard, 0xA9);
+        O *o = PushStepBehavior(behavior->guard, 0xA9);
         SetBhvScriptScript(o, behavior->script, 0, behavior->guard->resumeState);
         VCALL0(o, 8);
         break;
     }
     case 1: {
-        O *o = func_00205438(behavior->guard, 0x9E);
+        O *o = PushStepBehavior(behavior->guard, 0x9E);
         o->target = D_002E1E40;
         VCALL0(o, 8);
         break;
     }
     case 2: {
-        O *o = func_00205438(behavior->guard, 0x9D);
+        O *o = PushStepBehavior(behavior->guard, 0x9D);
         o->unknown40 = &behavior->guard->unknown1060;
         VCALL0(o, 8);
         BroadcastGameEvent(D_002DEB30, 0x33, behavior->guard);
@@ -396,7 +396,7 @@ extern "C" void SendRootBhvMode15(NEELAV *neela, int n)
     neela->useChaseBehavior = n;
     func_002333B4(&f, 0, sizeof(f));
     f.a[0] = 0xF;
-    po = func_00205458(neela, 0x9C);
+    po = FindStepBehavior(neela, 0x9C);
     if (po) SetBhvguardMode(po, &f);
 }
 #undef FIELD_OFFSET

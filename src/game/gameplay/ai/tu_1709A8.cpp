@@ -81,7 +81,7 @@ void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
 void SetBhvScriptScript(BHVSSG *behavior, SSG *script, int n, void *pv);
 int IsBhvScriptCommandBusy(BHVSSG *behavior);
 SSGE *FindGuardScriptLabel(SSG *script, int id);
-void *func_00205458(LO *object, int cid);
+void *FindStepBehavior(LO *object, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -115,7 +115,7 @@ struct N { int k; int b; char pad[0x10]; struct N *next; };
 struct S { char pad[0x50]; struct N *pn; };
 struct S *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int GetShapeMoveKind(struct S *p);
-void func_001E9C30(struct S *p);
+void EnsureShapeVolumeSegments(struct S *p);
 // 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
 // move-along-shape commands (kind 6) prepare their target shape.
 void PrepareGuardScriptTargets(struct S *guard) {
@@ -124,7 +124,7 @@ void PrepareGuardScriptTargets(struct S *guard) {
         switch (pn->k) {
         case 6: {
             struct S *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pn->b, guard);
-            if (o && GetShapeMoveKind(o) == -1) func_001E9C30(o);
+            if (o && GetShapeMoveKind(o) == -1) EnsureShapeVolumeSegments(o);
             break;
         }
         case 0:
@@ -543,8 +543,8 @@ extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" { void *FindBhvScriptTarget(struct S *p, int oid); }
 extern "C" { void GetBhvScriptTargetPose(struct S *p, void *o, qword *pq, float *pg); }
 extern "C" { void TeleportBhvScriptGuard(struct S *p, qword q, float g); }
-extern "C" { void *func_00205438(struct A *a, int k); }
-extern "C" { void func_001E9C30(void *o); }
+extern "C" { void *PushStepBehavior(struct A *a, int k); }
+extern "C" { void EnsureShapeVolumeSegments(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
 extern "C" { void ClearPointerPair(struct X *x); }
@@ -605,10 +605,10 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         case 3:
             k = 0xBC;
         spawn:
-            ((struct O *)func_00205438(a, k))->V8();
+            ((struct O *)PushStepBehavior(a, k))->V8();
             break;
         case -1:
-            ((struct O *)func_00205438(a, 0x9E))->V8();
+            ((struct O *)PushStepBehavior(a, 0x9E))->V8();
             break;
         }
         behavior->isCommandBusy = 1;
@@ -622,24 +622,24 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         n = a->nF80;
         switch (n) {
         case -1: {
-            struct O2 *o2 = (struct O2 *)func_00205438(a, 0xC0);
+            struct O2 *o2 = (struct O2 *)PushStepBehavior(a, 0xC0);
             o2->p30 = o;
             o2->n34 = c->u.s.n8;
             o2->n58 = behavior->unknown4C;
-            if (!behavior->unknown4C) func_001E9C30(o);
+            if (!behavior->unknown4C) EnsureShapeVolumeSegments(o);
             if (behavior->unknown44) o2->g38 = behavior->unknown44->g8;
             if (c->u.s.nC != -1) o2->n50 = FindBhvScriptTarget(behavior, c->u.s.nC);
             VCALL8(o2);
             break;
         }
         case 0: {
-            struct O *o2 = (struct O *)func_00205438(a, 0xB8);
+            struct O *o2 = (struct O *)PushStepBehavior(a, 0xB8);
             SetBhvrailGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
         }
         case 1: {
-            struct O *o2 = (struct O *)func_00205438(a, 0xB9);
+            struct O *o2 = (struct O *)PushStepBehavior(a, 0xB9);
             SetBhvpipeGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
@@ -667,7 +667,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         a = behavior->guard;
         n = a->nF80;
         if (n == -1) {
-            struct O3 *o3 = (struct O3 *)func_00205438(a, 0xBA);
+            struct O3 *o3 = (struct O3 *)PushStepBehavior(a, 0xBA);
             SetBhvgotoGoal(o3, &x);
             if (c->n10 != -1) o3->nA8 = FindBhvScriptTarget(behavior, c->n10);
             o3->gB0 = c->g14;
@@ -696,7 +696,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         break;
     case 13: {
         void *o = FindBhvScriptTarget(behavior, behavior->currentCommand->n4);
-        struct O4 *o4 = (struct O4 *)func_00205438(behavior->guard, 0xAC);
+        struct O4 *o4 = (struct O4 *)PushStepBehavior(behavior->guard, 0xAC);
         o4->p60 = o;
         o4->n68 = 1;
         o4->n64 = c->u.s.n8;
@@ -710,7 +710,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         behavior->x50.n5C = c->u.s.n8;
         ResolveAnimBinding(&behavior->x50, behavior->guard);
         if (behavior->guard->nF80 == -1) {
-            struct O5 *o5 = (struct O5 *)func_00205438(behavior->guard, 0x9D);
+            struct O5 *o5 = (struct O5 *)PushStepBehavior(behavior->guard, 0x9D);
             o5->p40 = &behavior->x50;
             VCALL8(o5);
             behavior->isCommandBusy = 1;
@@ -742,14 +742,14 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct T { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char a1B0[0x10]; };
 struct S { char pad[0x10]; struct T *pt; };
 void DetachStepguard(struct T *t);
-void func_00204660(struct T *t, float g);
+void SetStepTargetHeading(struct T *t, float g);
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
 void TeleportBhvScriptGuard(struct S *behavior, qword q, float g) {
     struct T *t = behavior->pt;
     struct VTE *entry;
     DetachStepguard(t);
     entry = &t->vt[0x1D]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, q);
-    func_00204660(t, g);
+    SetStepTargetHeading(t, g);
     entry = &t->vt[0x1E]; ((void (*)(void *, void *))entry->pfn)((char *)t + entry->d, t->a1B0);
     entry = &t->vt[0x23]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
     entry = &t->vt[0x24]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
@@ -795,21 +795,21 @@ extern "C" void JumpBhvScriptToLabel(BHVSSG *behavior, int id)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171CF8 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBehavior(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
-void StartGuardScript(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
+void StartGuardScript(void *p, int n) { struct F f; void *o = FindStepBehavior(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171D58 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBehavior(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
-void SetGuardRoutineMode(void *p) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
+void SetGuardRoutineMode(void *p) { struct F f; void *o = FindStepBehavior(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171D58
 
 // 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
@@ -818,7 +818,7 @@ extern "C" int IsGuardRunningScript(LO *object, int id)
 {
     BHVGUARDV *pbhvguard;
     int f;
-    pbhvguard = (BHVGUARDV *)func_00205458(object, 0x9C);
+    pbhvguard = (BHVGUARDV *)FindStepBehavior(object, 0x9C);
     f = 0;
     if ((pbhvguard != 0) && (pbhvguard->mode == 5)) {
         f = pbhvguard->argument == id;

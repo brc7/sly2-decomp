@@ -102,7 +102,7 @@ void GetVectorCylind(qword,float *,float *,float *);
 float GLimitLm__FP2LMf(RANGE *,float);
 void UpdateJtThrowArc(JTTHROW *,int);
 float atan2f(float,float);
-float RadStepHeading(O *);
+float GetStepHeading(O *);
 float RadNormalize__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
 void func_001384C0(ASEG *);
@@ -113,20 +113,20 @@ void SetBentleyHoverState(O *,int);
 TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
-qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
+qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLaunchVelocity
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
 int FilterJtThrowArcObject(void *,SOPAIR *);
-SO *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,SO **,HIT *);
+SO *FindFirstObjectHitByLine(int,qword,qword,int,SO **,HIT *);
 int CSolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
 void func_0021C5F8(EFFECT *,qword);
-int func_00134310(int, int);
+int MaxInt(int, int);
 void AttachJtHandsObject(CTRLSEL *,O *);
 void ReleaseJtHandsActs(CTRLSEL *);
 void RecalcSwOxfFilterForObject(SW *,O *);
-void func_00204660(O *,float);
-void SetStepRadTargetVec(O *,qword);
+void SetStepTargetHeading(O *,float);
+void SetStepTargetHeadingFromVector(O *,qword);
 void SetLoParent(O *,int,int);
 void FadeSoOut(O *,float);
 void ChargeGadgetMp(O *,int);
@@ -342,7 +342,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
   case 0:{
    w.scratch.vector.q=IdleDifference(GetLoWorldPos(s->selected),w.ownerPosition);
    float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-   float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
+   float angle=RadNormalize__Ff(heading-GetStepHeading(s->owner));
    float threshold=s->idleThreshold;
    if(threshold<angle)SetJtThrowState(s,2);
    else if(angle<-threshold)SetJtThrowState(s,1);
@@ -378,7 +378,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
    else if(s->state==4){
     w.scratch.vector.q=ActiveDifference(s->targetWorld,w.ownerPosition);
     float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-    float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
+    float angle=RadNormalize__Ff(heading-GetStepHeading(s->owner));
     float threshold=s->activeThreshold;
     if(threshold<angle)SetJtThrowState(s,6);else if(angle<-threshold)SetJtThrowState(s,5);
    }
@@ -417,7 +417,7 @@ extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 
 // UpdateJtThrowArc = UpdateJtThrowArc (Lilly's Sly2Port name, 0x21FB70): while the hero holds an object (JTTHROW, jts 23)
 // it predicts the arc the object would fly to the aim point. The launch point (vLaunchLocal in the hero's space) and the
-// carried object's gravity give CalculateLaunchVelocity (func_001D6848) a velocity whose elevation follows lmAim; the
+// carried object's gravity give CalculateLaunchVelocity (CalculateBallisticLaunchVelocity) a velocity whose elevation follows lmAim; the
 // apex and the end point after tPredict seconds bound a box for FindSwObjectsInBox (IntersectSwBoundingBox). 28 samples along the
 // arc are line-tested (PsoHitTestLineObjects); at the first hit the flight time is the closest non-negative root of the vertical
 // motion (CSolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
@@ -485,7 +485,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
  qword vAccel=thrower->selected->pgravity->vAccel.q;
  qword posHero=GetLoWorldPos(thrower->owner);
  float uFar=GClamp((GLengthXY(QwSub(posHold,posHero))-thrower->bounds.lo)/(thrower->bounds.hi-thrower->bounds.lo),0.0f,1.0f);
- qword vLaunch=func_001D6848(posLaunch,thrower->targetWorld.q,vAccel,GFromClq(D_002C40F0,uFar));
+ qword vLaunch=CalculateBallisticLaunchVelocity(posLaunch,thrower->targetWorld.q,vAccel,GFromClq(D_002C40F0,uFar));
  float tApex=GMax(-GZOfQw(vLaunch)/GZOfQw(vAccel),0.0f);
  qword posApex=PosOnArc(posLaunch,vAccel,vLaunch,tApex,0.5f);
  float t;
@@ -508,7 +508,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
   t=(float)(int)i*dt;
   qword pos=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
   HIT hit;
-  if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1,posPrev,pos,cso,apso,&hit)){
+  if(FindFirstObjectHitByLine(1,posPrev,pos,cso,apso,&hit)){
    V at;
    int ct=CSolveQuadratic__FfffPf(GZOfQw(vAccel)*0.5f,GZOfQw(vLaunch),GZOfQw(posLaunch)-hit.pos.f[2],at.f);
    float tBest=0.0f,sBest=D_002A96A0;
@@ -569,7 +569,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
  V dpos;
  dpos.q=QwSub(posAim,posHeroNow);
  float rad=atan2f(dpos.f[1],dpos.f[0]);
- float radHero=RadStepHeading(thrower->owner);
+ float radHero=GetStepHeading(thrower->owner);
  rad=RadNormalize__Ff(rad-radHero);
  float uTurn=GClamp(rad/thrower->activeThreshold,-1.0f,1.0f)*0.5f+0.5f;
  if(fUpdateBlends){
@@ -653,7 +653,7 @@ extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, O *object, int n)
         int k = thrower->state;
         if (k != -1) {
             if (k >= 3 || (object == D_002DD5BC && object->airState == 0x12))
-                return func_00134310(n, 3);
+                return MaxInt(n, 3);
             return n;
         }
         return n;
@@ -823,10 +823,10 @@ extern "C" void SetJtThrowState(JTTHROW *s,int state){
  s->state=state;s->time=D_002DDED0.t;
  RecalcSwOxfFilterForObject(&D_003DD490,s->owner);
  switch(s->state){
- case -1:func_00204660(s->owner,RadStepHeading(s->owner));s->owner->movement=0;break;
+ case -1:SetStepTargetHeading(s->owner,GetStepHeading(s->owner));s->owner->movement=0;break;
  case 7:
   {O*getterOwner;w.saved.q=SavedTargetAndOwner(s,getterOwner);
-   qword position=GetLoWorldPos(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);SetStepRadTargetVec(receiver,SubS(target,current));}
+   qword position=GetLoWorldPos(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);SetStepTargetHeadingFromVector(receiver,SubS(target,current));}
   s->owner->movement=0;
   break;
  default:s->owner->direction.q=D_002A2DD0.q;s->owner->movement=1;break;

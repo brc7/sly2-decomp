@@ -176,7 +176,7 @@ SCREENV *func_001DA728(SCREENV *pscreen);
 void ClearGadgetMenu(GADGETMENUV *pgm);
 int func_001DAE58(int idGadget);
 int FPowerupAcquired(int id);
-LO *PpoHero(SW *psw);
+LO *GetHeroPo(SW *psw);
 void SetGadgetMenuState(GADGETMENUV *pgm, int nState);
 void ClearThiefnet(SCREENV *pscreen);
 void ClearJobList(SCREENV *pscreen);
@@ -528,7 +528,7 @@ typedef struct {
 } OBJ;
 extern struct G D_003DD490;
 W *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
-Q *PpoHero(struct G *);
+Q *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
 int GetStepplayerMp(Q *);
 void PlayWidgetAnim(W *, int);
@@ -549,7 +549,7 @@ void PostHudMeterLoad(OBJ *p)
     p->pw = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
     p->x30 = 0;
     p->q = 0;
-    q = PpoHero(&D_003DD490);
+    q = GetHeroPo(&D_003DD490);
     if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->q = q;
     if (p->q == 0) {
@@ -733,7 +733,7 @@ typedef struct OBJ {
 extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3248[];
-Q *PpoHero(struct G *);
+Q *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetHudMeterState(OBJ *, int);
 int GetStepplayerMp(Q *);
@@ -762,7 +762,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         return;
     old = p->x34;
     p->x34 = 0;
-    q = PpoHero(&D_003DD490);
+    q = GetHeroPo(&D_003DD490);
     if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->x34 = q;
     if (!p->x34) {
@@ -1305,7 +1305,7 @@ extern struct G D_003DD490;
 extern int D_002C3258[];
 void func_001DA808(OBJ *);
 int HandleJoyButtons(void *, int);
-void *PpoHero(struct G *);
+void *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetGadgetMenuState(OBJ *, int);
 void UpdateScreenStickDir(OBJ *);
@@ -1339,7 +1339,7 @@ void UpdateGadgetMenu(OBJ *p)
         SetGadgetMenuState(p, -1);
         return;
     }
-    pv = PpoHero(&D_003DD490);
+    pv = GetHeroPo(&D_003DD490);
     if (pv == 0 || !FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x34)) {
         SetGadgetMenuState(p, -1);
         return;
@@ -1385,7 +1385,7 @@ extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
 int FWidgetVisible(void *);
-Q *PpoHero(struct G *);
+Q *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void CTextBox_SetPos(TXT *, float, float);
 void CTextBox_SetSize(TXT *, float, float);
@@ -1410,7 +1410,7 @@ void func_001DAC58(OBJ *p)
         return;
     if (!FWidgetVisible(p->x24))
         return;
-    q = PpoHero(&D_003DD490);
+    q = GetHeroPo(&D_003DD490);
     if (q == 0)
         return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
@@ -1601,7 +1601,7 @@ extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A
 
 extern "C" {
 ITEM *func_001DAE20(SELECTOR *sel, int id);
-int func_0014C748(qword point, qword start, qword end, int flags, HIT *hit, float radius);
+int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, float radius);
 void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance);
 void SelectGadgetMenuItem(SELECTOR *sel, int id);
 void func_001DA9E8(SELECTOR *sel);
@@ -1680,7 +1680,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
         float zero = 0.0f;
         qword point = XYZ(item->x, item->y * D_002C3280, zero, home);
         float score;
-        if (func_0014C748(point, origin, Add(origin, ray), 1, &hit, D_002C3278) > 0) {
+        if (ClipEdgeToSphere(point, origin, Add(origin, ray), 1, &hit, D_002C3278) > 0) {
             score = hit.fraction * D_002C3274;
         } else {
             FindClosestPointOnLineSegment(point, origin, Add(origin, ray), 0, &proximity.along, &proximity.distance);
@@ -1766,7 +1766,7 @@ void SelectGadgetMenuItem(OBJ *p, int key)
  * @end-sly2-annot */
 extern "C" void OpenGadgetMenuForHero(GADGETMENUV *pgm)
 {
-    LO *ploHero = PpoHero(&D_003DD490);
+    LO *ploHero = GetHeroPo(&D_003DD490);
     if (ploHero != 0) {
         if (ploHero == D_002E1E40) {
             SetGadgetMenuState(pgm, 0);
@@ -2557,7 +2557,7 @@ char *PchzFindSwLangstr__FP2SWi(void *, int);
 char *strcpy(char *, char *);
 int sprintf(char *, char *, ...);
 OBJ *func_001DAE20(GS *,int);
-void *PpoHero(void *);
+void *GetHeroPo(void *);
 int GetGadgetSlotFromId(void *, int);
 /** @sly2-annot addr=0x1DC598
  * Purpose: Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name,
@@ -2576,7 +2576,7 @@ void BuildGadgetMenuInfoText(char *out)
         strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
     } else {
         OBJ *po = func_001DAE20(&D_003DA0F0,D_003DA0F0.x48);
-        int v = GetGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
+        int v = GetGadgetSlotFromId(GetHeroPo(D_003DD490), D_003DA0F0.x48);
         if ((po->x1C & 1) && v < 0) {
             strcpy(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;

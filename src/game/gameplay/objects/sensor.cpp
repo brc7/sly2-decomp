@@ -251,14 +251,14 @@ extern "C" {
 void InitSo(SOV *pso);
 int HasLoOid(SOV *pso, OID oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
-int func_00134310(int n, int nMax);   /* NMaxIgnore */
+int MaxInt(int n, int nMax);   /* NMaxIgnore */
 void *AllocClearedFromStack(ALLOCREQ *preq);
 void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void LoadSoFromBrx(SOV *pso, CBinaryInputStream *pbis);
 void CloneSo(SOV *pso);
 void PostSoLoad(SOV *pso);
-SOTREEV *func_001F56F8(SOV *pso);   /* SO::PtreeNew */
+SOTREEV *NewSoTree(SOV *pso);   /* SO::PtreeNew */
 void RemoveSoParts(SOV *pso);
 void AddSoParts(SOV *pso);
 LO *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
@@ -269,17 +269,17 @@ qword GetLoWorldPos(void *pso);   /* object position */
 qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOMV *pgeom, const M4 *pmat, GEOMV *pgeomOut);
 void CploFindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
-ASEGAV *func_001F6788(ALO *palo, OID oid);
+ASEGAV *FindAsegaByOid(ALO *palo, OID oid);
 ASEGAV *func_00130488(ASEGV *paseg, ALO *palo, int grf, float t, float svt);
 CHNV *func_0012FF10(ASEGV *paseg, ALO *palo, int n, int f);
-void func_001F5988(void);
+void OnSoContactFreed(void);
 void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
-void func_001F5990(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
-int ClsgClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
-int func_00205670(void *pso, qword posA, qword posB, qword *ppos);
-void PxpAdd(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, int s, int x, XP **ppxp, float g);
-void func_001F7598(ZAP *pzap);   /* InflictZap */
+void AddSoCustomXps(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
+int ClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
+int IntersectStepFootprint(void *pso, qword posA, qword posB, qword *ppos);
+void AddXp(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, int s, int x, XP **ppxp, float g);
+void DeliverZapToSo(ZAP *pzap);   /* InflictZap */
 void UpdateSo(SOV *pso, float dt);
 float fmodf(float, float);
 void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
@@ -307,7 +307,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 }
 
 /** @sly2-annot addr=0x1DE2D8
- * Purpose: SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list
+ * Purpose: SENSOR vt61 (SO ShouldSoIgnoreIntersection override): ignore objects matching the no-trigger oid list
  *   (+0x150, max 7, HasLoOid) or class list (+0x170, FIsBasicDerivedFrom); result combined with
  *   NMaxIgnore
  * Info: proposed name FIgnoreSensorIntersection (T1); class SENSOR slot61; TU sensor
@@ -320,11 +320,11 @@ extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
     int r = 1;
     for (i = 0; i < psensor->coidNoTrigger; i++) {
         if (HasLoOid(pso, psensor->aoidNoTrigger[i]))
-            r = func_00134310(r, 2);
+            r = MaxInt(r, 2);
     }
     for (j = 0; j < psensor->ccidNoTrigger; j++) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, psensor->acidNoTrigger[j]))
-            r = func_00134310(r, 2);
+            r = MaxInt(r, 2);
     }
     return r;
 }
@@ -439,7 +439,7 @@ void LASEN::VUnk14()
  * @end-sly2-annot */
 extern "C" SOTREEV *func_001DE5A8(LASENV *plasen)
 {
-    SOTREEV *ptree = func_001F56F8(plasen);
+    SOTREEV *ptree = NewSoTree(plasen);
     ptree->grf |= 0x20;
     return ptree;
 }
@@ -683,7 +683,7 @@ extern "C" void func_001DEDB0(LASENV *plasen)
         paseg = pcap->paseg;
         if (paseg == 0)
             continue;
-        pcap->pasega = func_001F6788(palo, paseg->oid);
+        pcap->pasega = FindAsegaByOid(palo, paseg->oid);
         if (pcap->pasega == 0) {
             pcap->pasega = func_00130488(paseg, palo, 8, 0.0f, 1.0f);
             if (pcap->pasega == 0)
@@ -707,7 +707,7 @@ extern "C" void func_001DEEA8(LASENV *plasen, SOV *pso)
 {
     XP *list = 0;
     int i;
-    func_001F5988();
+    OnSoContactFreed();
     for (i = 0; i < plasen->cbeam; i++) {
         XP **ppxp = &plasen->abeam[i].pxpFirst;
         XP *pxp;
@@ -754,15 +754,15 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
     }
 }
 
-/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClsgClipEdgeToObject,
-   else the CID 0x33 test func_00205670), add a kind-10 contact there with PxpAdd, and post ZapLasenBeams through
+/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClipEdgeToObject,
+   else the CID 0x33 test IntersectStepFootprint), add a kind-10 contact there with AddXp, and post ZapLasenBeams through
    EnsureSwCallback. What mattered for the match:
     - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
-      the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
+      the empty base stub AddSoCustomXps (no code, but the call's argument uses fix the prologue schedule);
     - VU helpers taking VU_VECTOR parameters (const qword & conversion): the extra RTL copies keep the loop above
       loop.c's ~95-insn limit, so i * sizeof(BEAM) stays a mult inside the loop as in the target;
     - Len(v) = Sqrt(Dot(v, v)) with a two-input Dot, one asm per VU step (target VU order and vf registers);
-    - the distance is a float in a GPR (qmfc2) passed bit-for-bit as PxpAdd's int argument (v0 scratch, not v1). */
+    - the distance is a float in a GPR (qmfc2) passed bit-for-bit as AddXp's int argument (v0 scratch, not v1). */
 static inline qword Sub(VU_VECTOR a, VU_VECTOR b)
 {
     qword d;
@@ -805,7 +805,7 @@ static inline float Scalar(VU_VECTOR v)
 extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
-    func_001F5990(p, q, a2, a3, a4, ppxp);
+    AddSoCustomXps(p, q, a2, a3, a4, ppxp);
     for (i = 0; i < p->cbeam; i++) {
         BEAM *e = &p->abeam[i];
         qword seg[2];
@@ -813,10 +813,10 @@ extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP 
         HIT hit;
         int found = 0;
         GetLasenBeamEnds(p, e->aend, seg, 0);
-        if (!ClsgClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
+        if (!ClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             SOV *so = *q->psub->ppso;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
-                found = func_00205670(so, seg[0], seg[1], &pos.q);
+                found = IntersectStepFootprint(so, seg[0], seg[1], &pos.q);
         } else {
             found = 1;
             pos.q = hit.pos;
@@ -825,7 +825,7 @@ extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP 
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            PxpAdd(&D_003DD490, p->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->pxpFirst, 0.0f);
+            AddXp(&D_003DD490, p->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->pxpFirst, 0.0f);
             EnsureSwCallback(&D_003DD490, p, &LASENV::ZapBeams, 0);
         }
     }
@@ -868,7 +868,7 @@ void LASENV::ZapBeams(int)
             zap.grf = 0x1000;
             zap.dhp = -10;
             zap.pos = pxpMin->axps[0].qwPos;
-            func_001F7598(&zap);
+            DeliverZapToSo(&zap);
             beam->sVisible = sMin;
         }
     }

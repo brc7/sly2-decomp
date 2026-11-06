@@ -21,7 +21,7 @@ struct K { int a, b; };
 struct RAILV
 {
     char pad0[0x38];
-    float length;           /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C1EC0 */
+    float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C1EC0 */
     char pad3C[0xA8];
     int isClosed;           /* +0x0E4 non-zero: a closed shape, no range clamp */
     char pad0E8[0xA8];
@@ -46,7 +46,7 @@ extern "C" {
 void InitShape(RAILV *p);
 void InitGrabspot(void *pgrabspot);
 void PostLoLoad(RAILV *p);
-float func_001E7D90(RAILV *p);
+float UpdateShapeBoundingSphere(RAILV *p);
 void OnLoAdd(RAILV *p);
 void OnLoRemove(RAILV *p);
 void CloneShape(RAILV *p);
@@ -86,7 +86,7 @@ extern "C" void InitRail(RAILV *rail)
 extern "C" void PostRailLoad(RAILV *rail)
 {
     PostLoLoad(rail);
-    if (rail->length == 1e10f) rail->length = func_001E7D90(rail) + D_002C1EC0;
+    if (rail->length == 1e10f) rail->length = UpdateShapeBoundingSphere(rail) + D_002C1EC0;
 }
 
 /** @sly2-annot addr=0x1CB9B0

@@ -354,7 +354,7 @@ SLY2_SPLICEWRAP_BEGIN(func_00101468)
 #include "../../generated/splicewrap/func_00101468.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void *func_001F8510(void *p, int a, int b);
+extern "C" void *NewSoXfHandle(void *p, int a, int b);
 /** @sly2-annot addr=0x1014E8
  * Purpose: Splice option thunk: optid 194 on SO (g_aeopid[77] thunkFn, returns 0x2095, crefReq 2); unpacks 2
  *   args (Oid, 0x104C) -> 0x2095 via RefSetArgsFromSplice then calls PxfhNewSo (0x1F8510)
@@ -371,7 +371,7 @@ extern "C" CRef func_001014E8(void *p, int c, void *aref)
     int ak[2] = {6, 0x104c};
     int a, b;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &a, &b);
-    ref = func_001F8510(p, a, b);
+    ref = NewSoXfHandle(p, a, b);
     return ref;
 }
 
@@ -379,7 +379,7 @@ SLY2_SPLICEWRAP_BEGIN(func_00101588)
 #include "../../generated/splicewrap/func_00101588.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_001F82B8(void *p, int, void *);
+extern "C" void SetSoTargetRecordParams(void *p, int, void *);
 /** @sly2-annot addr=0x101608
  * Purpose: Splice option thunk: optid 196 on SO (g_aeopid[79] thunkFn/thunkUser, returns Void, crefReq 2);
  *   unpacks 2 args (0x104D, Lm) -> Void via RefSetArgsFromSplice then calls SetSoSideRecordParams (0x1F82B8)
@@ -399,7 +399,7 @@ extern "C" CRef func_00101608(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &v0, &v1);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001F82B8(p, v0, &v1);
+    SetSoTargetRecordParams(p, v0, &v1);
     return ref;
 }
 
@@ -1017,12 +1017,12 @@ extern "C" CRef func_00104638(void *p, int c, void *aref)
 namespace T_RefThunkVolCHECK_POINT {
 extern "C" {
 CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0);
-int FCheckVolPoint(void *p, qword q);
+int IsPointInVol(void *p, qword q);
 CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
 }
 /** @sly2-annot addr=0x104718
  * Purpose: Splice option thunk: optid 108 on VOL (g_aeopid[366] thunkFn, returns Bool, crefReq 1); unpacks 1
- *   args (Vector) -> Bool via RefSetArgsFromSplice then calls FCheckVolPoint (0x227C90)
+ *   args (Vector) -> Bool via RefSetArgsFromSplice then calls IsPointInVol (0x227C90)
  * Info: proposed name RefThunkVolCHECK_POINT (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
@@ -1035,12 +1035,12 @@ CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref)
     int ak[1] = {2};
     union { qword q; } u;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, ak, &u);
-    ref = FCheckVolPoint(p, u.q) != 0;
+    ref = IsPointInVol(p, u.q) != 0;
     return ref;
 }
 } // namespace T_RefThunkVolCHECK_POINT
 
-extern "C" int func_00227D20(void *p, qword q, float g);
+extern "C" int IsSphereInVol(void *p, qword q, float g);
 /** @sly2-annot addr=0x1047A0
  * Purpose: Splice option thunk: optid 474 on VOL (g_aeopid[367] thunkFn, returns Bool, crefReq 2); unpacks 2
  *   args (Vector, Float) -> Bool via RefSetArgsFromSplice then calls FCheckVolSphere (0x227D20)
@@ -1058,7 +1058,7 @@ extern "C" CRef func_001047A0(void *p, int c, void *aref)
     union { qword q; } u;
     float g;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &u, &g);
-    ref = func_00227D20(p, u.q, g) != 0;
+    ref = IsSphereInVol(p, u.q, g) != 0;
     return ref;
 }
 
@@ -2140,7 +2140,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010B598)
 #include "../../generated/splicewrap/func_0010B598.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00185E30(void *p, qword, qword, qword);
+extern "C" void SetJtMeshProbePoints(void *p, qword, qword, qword);
 /** @sly2-annot addr=0x10B618
  * Purpose: Splice option thunk: optid 754 on JT (g_aeopid[771] thunkFn/thunkUser, returns Void, crefReq 3);
  *   unpacks 3 args (Vector, Vector, Vector) -> Void via RefSetArgsFromSplice then calls SetMeshVectors
@@ -2162,7 +2162,7 @@ extern "C" CRef func_0010B618(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00185E30(p, v0.q, v1.q, v2.q);
+    SetJtMeshProbePoints(p, v0.q, v1.q, v2.q);
     return ref;
 }
 
@@ -2236,12 +2236,12 @@ SLY2_SPLICEWRAP_END
 namespace T_RefThunk_PpoClosestSw {
 extern "C" {
 CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
-void *PpoClosestSw(void *p, qword q);
+void *FindClosestSwPo(void *p, qword q);
 CRef RefThunk_PpoClosestSw(void *p, int c, void *aref);
 }
 /** @sly2-annot addr=0x10BF70
  * Purpose: Splice option thunk: optid 847 on SW (g_aeopid[929] thunkFn, returns 0x2032, crefReq 1); unpacks 1
- *   args (Vector) -> 0x2032 via RefSetArgsFromSplice then calls PpoClosestSw (0x1C4AF8)
+ *   args (Vector) -> 0x2032 via RefSetArgsFromSplice then calls FindClosestSwPo (0x1C4AF8)
  * Info: proposed name RefThunk_PpoClosestSw (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
@@ -2254,7 +2254,7 @@ CRef RefThunk_PpoClosestSw(void *p, int c, void *aref)
     union { qword q; } u;
     int k = 2;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
-    ref = PpoClosestSw(p, u.q);
+    ref = FindClosestSwPo(p, u.q);
     return ref;
 }
 } // namespace T_RefThunk_PpoClosestSw
@@ -2528,7 +2528,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010E4A8)
 #include "../../generated/splicewrap/func_0010E4A8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" qword func_001E77B0(void *p, qword q);
+extern "C" qword GetShapeClosestPoint(void *p, qword q);
 /** @sly2-annot addr=0x10E550
  * Purpose: Splice option thunk: optid 1057 on SHAPE (g_aeopid[1223] thunkFn, returns Vector, crefReq 1);
  *   unpacks 1 args (Vector) -> Vector via RefSetArgsFromSplice then calls PosFindShapeClosest (0x1E77B0)
@@ -2545,11 +2545,11 @@ extern "C" CRef func_0010E550(void *p, int c, void *aref)
     union { qword q; } u;
     int k = 2;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
-    ref = func_001E77B0(p, u.q);
+    ref = GetShapeClosestPoint(p, u.q);
     return ref;
 }
 
-extern "C" void func_001F8A78(void *p, int, int, qword);
+extern "C" void SetXfHandleActuator1World(void *p, int, int, qword);
 /** @sly2-annot addr=0x10E5D8
  * Purpose: Splice option thunk: optid 1060 on CID149 (g_aeopid[1228] thunkFn, returns Void, crefReq 3);
  *   unpacks 3 args (0x100D, Int, Vector) -> Void via RefSetArgsFromSplice then calls SetXfhActuator1World
@@ -2571,11 +2571,11 @@ extern "C" CRef func_0010E5D8(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001F8A78(p, v0, v1, v2.q);
+    SetXfHandleActuator1World(p, v0, v1, v2.q);
     return ref;
 }
 
-extern "C" void func_001F8AD8(void *p, int a, int b, void *ps); 
+extern "C" void SetXfHandleActuator1Mat(void *p, int a, int b, void *ps); 
 struct BIG { qword aq[4]; };
 /** @sly2-annot addr=0x10E690
  * Purpose: Splice option thunk: optid 1061 on CID149 (g_aeopid[1229] thunkFn, returns Void, crefReq 3);
@@ -2597,7 +2597,7 @@ extern "C" CRef func_0010E690(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &a, &b, &s);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001F8AD8(p, a, b, &s);
+    SetXfHandleActuator1Mat(p, a, b, &s);
     return ref;
 }
 
@@ -2605,7 +2605,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010E758)
 #include "../../generated/splicewrap/func_0010E758.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_001F8BF0(void *p, int, float, float, float, float, qword);
+extern "C" void SetXfHandleKind16Params(void *p, int, float, float, float, float, qword);
 /** @sly2-annot addr=0x10E820
  * Purpose: Splice option thunk: optid 1063 on CID149 (g_aeopid[1231] thunkFn, returns Void, crefReq 6);
  *   unpacks 6 args (Int, Float, Float, Float, Float, Vector) -> Void via RefSetArgsFromSplice then calls
@@ -2631,7 +2631,7 @@ extern "C" CRef func_0010E820(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(6, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001F8BF0(p, v0, v1, v2, v3, v4, v5.q);
+    SetXfHandleKind16Params(p, v0, v1, v2, v3, v4, v5.q);
     return ref;
 }
 

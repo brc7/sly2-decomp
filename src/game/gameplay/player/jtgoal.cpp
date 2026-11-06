@@ -47,7 +47,7 @@ extern char D_002DEB30[];
 extern "C" {
 int IsStepplayerPushing(PO *);
 int IsSwHandsOff(void *);
-R *func_00205458(void *, int);
+R *FindStepBehavior(void *, int);
 void BroadcastGameEvent(void *, int, T *);
 void FadeSoOut(T *, float);
 qword GetLoWorldPos(void *p);
@@ -125,7 +125,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
                 int i = GetPlayerEndIndex(goal->player, contact);
                 T *object = (T *)contact->ends[1 - i].object;
                 if (FIsBasicDerivedFrom((BASIC *)object, CID_38)) {
-                    R *behavior = func_00205458(object, 0xA9);
+                    R *behavior = FindStepBehavior(object, 0xA9);
                     if (!behavior || !behavior->value) {
                         if (0.0f <= object->unknown130)
                             BroadcastGameEvent(D_002DEB30, 0x17, object);
@@ -142,7 +142,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
         if (goal->player->unknown1084->lo->cid != 0x24)
             return;
     } else {
-        R *behavior = func_00205458(goal->player, 0xA8);
+        R *behavior = FindStepBehavior(goal->player, 0xA8);
         if (!behavior)
             return;
         {

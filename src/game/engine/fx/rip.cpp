@@ -142,7 +142,7 @@ struct REMIT : RIP   /* RIPT 2 */
 };
 extern "C" {
 extern qword D_002C1F90, D_002C1FA0, D_002C1F40;
-void func_001F4BA8(SO *pso);
+void ClearSoTreeBoundsDirty(SO *pso);
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void UpdateRip(RIP *prip, float dt);
 void InitRip(RIP *prip);
@@ -202,8 +202,8 @@ struct S { char p0[0x40]; int x40; char p1[0x148 - 0x44]; unsigned long x148; in
 void InitSo(struct S *p);
 void InitDl__FP2DLi(void *pdl, int n);
 void SetLoBusyk(struct S *p, int n);
-void func_001F27F0(struct S *p);
-void func_001F6860(struct S *p, int n);
+void EnsureSoTree(struct S *p);
+void SetSoTreeFlag2(struct S *p, int n);
 static inline int FPtr(int v) { return !(v & 1); }
 /** @sly2-annot addr=0x1CDDC8
  * Purpose: RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags
@@ -222,8 +222,8 @@ void InitRipg__FP4RIPG(struct S *p)
     if (FPtr(v)) *(int *)v = (*(int *)v & 1) | 0xE; else p->x40 = (v & 1) | 0xE;
     p->x148 &= ~(1UL << 35);
     if (p->x150 == 1) {
-        func_001F27F0(p);
-        func_001F6860(p, 1);
+        EnsureSoTree(p);
+        SetSoTreeFlag2(p, 1);
     }
 }
 } } // namespace M_InitRipg__FP4RIPG
@@ -320,7 +320,7 @@ typedef struct S {
 extern DLI *D_002DD2FC;
 extern struct { float t; } D_002DDED0;
 extern const float D_002A77D0, D_002A77D4;
-void func_001F4B58(S *);
+void MarkSoTreeBoundsDirty(S *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -389,7 +389,7 @@ void ProjectRipgTransform(S *p)
         p->hi.q = hv;
         *(int *)&p->radius = r;
         p->center.q = mid;
-        func_001F4B58(p);
+        MarkSoTreeBoundsDirty(p);
     }
     D_002DD2FC = dli.pdliNext;
 }
@@ -413,7 +413,7 @@ extern "C" void UpdateRipgBounds(RIPGV *pripg)
     ((qword *)pripg->ptree)[2] = pripg->aqwBounds[2];
     ((float *)pripg->ptree)[12] = pripg->gBounds;
     g_sw.fAaoxUnsorted = 1;
-    func_001F4BA8(pripg);
+    ClearSoTreeBoundsDirty(pripg);
 }
 
 namespace M_UpdateRipg { extern "C" {
@@ -512,7 +512,7 @@ FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(const REQ *);
 int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
-int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
+int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int FIsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
@@ -567,7 +567,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                     RIP *rip;
                     for (rip = (RIP *)Next(&phase.rip); rip; rip = (RIP *)Next(&phase.rip)) {
                         if (D_002DDED0.t <= rip->start) continue;
-                        int count = ClsgClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
+                        int count = ClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
                         int i = 0;
                         if (i < count) do {
                             XP *hit = &contacts[i];
@@ -2588,7 +2588,7 @@ typedef struct {
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
-int ClsgClipEdgeToObject(void *, qword, qword, int, HIT *);
+int ClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
 /** @sly2-annot addr=0x1D0D28
@@ -2607,7 +2607,7 @@ void func_001D0D28(OBJ *p, int n)
         goto done;
     hit.pos = p->x70;
     for (i = 0; i < p->q->c; i++) {
-        if (ClsgClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
+        if (ClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
             goto found;
     }
 found:

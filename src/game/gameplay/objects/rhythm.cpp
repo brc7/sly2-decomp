@@ -103,7 +103,7 @@ void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
 int FAsegaRetracted(ASEGAV *pa);
 void func_002303A0(DANCERV *p, void *pv, int n);
-qwordV func_00204E38(DANCERV *p, void *pa, float g);
+qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
 void GetSoCpdefi(DANCERV *p, struct CPDEFIV *pc);
 int POCTL_FConsumePressed(void *p, int a);
@@ -215,7 +215,7 @@ extern "C" void func_00152148(DANCERV *p)
         break;
     }
     if (p->pa408)
-        p->v190 = VecMul(func_00204E38(p, p->pa408, p->pa408->tLocal), -1.0f);
+        p->v190 = VecMul(GetStepAsegaTranslation(p, p->pa408, p->pa408->tLocal), -1.0f);
 }
 
 struct SOM { char pad[0x18]; DANCERV *p18; };
@@ -242,7 +242,7 @@ extern "C" void func_00152250(DANCERV *p, int msgk, MSGD *pmsg)
                 pp->f40C = 0;
                 break;
             case 0x15E: {
-                qwordV v = func_00204E38(pp, pmsg->pso, pmsg->g);
+                qwordV v = GetStepAsegaTranslation(pp, pmsg->pso, pmsg->g);
                 VTE *pvt = pp->vt;
                 qwordV *pm = pp->mat;
                 qwordV r;

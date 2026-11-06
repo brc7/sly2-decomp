@@ -1,5 +1,8 @@
-// geom.cpp -- collision geometry (GEOM): clone and transform, the VU0 point transform, world update with
-// inverse-transpose plane normals (VU0 microprograms + EE 128-bit asm), and edges around a point.
+// geom.cpp -- collision geometry (GEOM: points, surface planes, edges) shared by solid objects, volumes and shapes.
+// Role: copies geometry into the world heap, transforms a local GEOM into world space every time its owner moves
+// (points through a VU0 microprogram, plane normals through the inverse-transpose rotation), and finds the edges
+// that meet at a point for the contact code. Entry points: CloneGeom, UpdateGeomWorld, TransformPointsVu0,
+// CollectEdgesAtGeomPoint. VU0 microprograms + EE 128-bit asm.
 // TU 0x166270..0x166920 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_geom
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00166900
@@ -28,19 +31,19 @@ struct M3
     }
 };
 /* A surface plane (0x20): normal, three unknown words, index of a point on it. */
-struct PLANE { qword normal; int unknown10, unknown14, unknown18, ipos; };
+struct PLANE { qword normal; int unknown10, unknown14, unknown18, pointIndex; };
 typedef char assert_PLANE_size[sizeof(PLANE) == 0x20 ? 1 : -1];
 struct GEOM
 {
-    int cpos;           /* +0x00 points */
-    qword *apos;        /* +0x04 */
-    int csurf;          /* +0x08 planes */
-    PLANE *asurf;       /* +0x0C */
-    int x10, x14;
+    int numPoints;           /* +0x00 points */
+    qword *points;        /* +0x04 */
+    int numSurfaces;          /* +0x08 planes */
+    PLANE *surfaces;       /* +0x0C */
+    int numEdges, edgeList;
 };
-/* An edge (a, b: point indices) and a surface's edge list (+0x10), as func_001665F0 walks them. */
+/* An edge (a, b: point indices) and a surface's edge list (+0x10), as CollectEdgesAtGeomPoint walks them. */
 struct EDGE { unsigned short a, b; int pad; EDGE *next; };
-struct SURFV { char pad[0x10]; EDGE *edges; };
+struct SURFV { char pad[0x10]; EDGE *edgeList; };
 struct Entry { int a, b; SURFV *poly; };
 /* The geometry's spatial tree view (+0x4 count, +0xC tree). */
 struct GEOMTREE { int pad, count; void *pad8; void *tree; };
@@ -84,25 +87,28 @@ static inline qword Normalize(qword v) {
  * See: docs/engine/game-progression.md#7-source-files,
  *   docs/engine/physics-collision.md#4-geometry-and-queries, docs/engine/physics-collision.md#6-source-files
  * @end-sly2-annot */
+// Copies a GEOM's point and plane arrays into newly allocated slot-heap memory. When a transform is given, the
+// copied points are transformed by it and each plane normal is rotated, renormalised and its plane rebuilt through
+// one of the plane's points. Used when an object's geometry is cloned or instanced.
 void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
 {
- REQ req;
- MATRIX4 m;
+ REQ request;
+ MATRIX4 matrix;
  int i,j;
- dest->cpos=src->cpos;
- req.cb=src->cpos*16;req.kind=16;
- dest->apos=(qword *)AllocCopyFromWorldHeap(&req,src->apos);
- dest->csurf=src->csurf;
- req.cb=src->csurf*32;req.kind=16;
- dest->asurf=(PLANE *)AllocCopyFromWorldHeap(&req,src->asurf);
- dest->x10=src->x10;dest->x14=src->x14;
+ dest->numPoints=src->numPoints;
+ request.cb=src->numPoints*16;request.kind=16;
+ dest->points=(qword *)AllocCopyFromWorldHeap(&request,src->points);
+ dest->numSurfaces=src->numSurfaces;
+ request.cb=src->numSurfaces*32;request.kind=16;
+ dest->surfaces=(PLANE *)AllocCopyFromWorldHeap(&request,src->surfaces);
+ dest->numEdges=src->numEdges;dest->edgeList=src->edgeList;
  if(transform) {
-  m=*transform;
-  for(i=0;i<dest->cpos;i++){ qword *point=(qword *)((int)dest->apos+(i<<4)); *point=Transform(&m,*point); }
-  for(j=0;j<dest->csurf;j++) {
-   PLANE *n=&dest->asurf[j];
-   register const MATRIX4 *pm __asm__("$17")=&m;
-   InitPlaneFromNormalPos(n,Normalize(Rotate(pm,n->normal)),dest->apos[n->ipos]);
+  matrix=*transform;
+  for(i=0;i<dest->numPoints;i++){ qword *point=(qword *)((int)dest->points+(i<<4)); *point=Transform(&matrix,*point); }
+  for(j=0;j<dest->numSurfaces;j++) {
+   PLANE *n=&dest->surfaces[j];
+   register const MATRIX4 *pm __asm__("$17")=&matrix;
+   InitPlaneFromNormalPos(n,Normalize(Rotate(pm,n->normal)),dest->points[n->pointIndex]);
   }
  }
 }
@@ -114,6 +120,8 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
  * @end-sly2-annot */
+// Transforms count points by a 4x4 matrix with the VU0 microprograms at 0x120/0xF0, double-buffered so one point
+// is loaded while the previous one is transformed. The workhorse of UpdateGeomWorld.
 extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
                    const qword *in0, qword *output)
 {
@@ -165,7 +173,7 @@ static __inline__ M3 Transpose(const M3&input,GEOM*source,int&planeCount){
  register int count __asm__("$9");
  __asm__("lq %3,%8\n\tlq %2,16+%8\n\tlq %4,32+%8\n\tpextlw %1,%2,%3\n\tpextuw %5,%2,%3\n\tpextlw %6,$zero,%4\n\tpextuw %0,$zero,%4\n\tlw %7,%9\n\tpcpyld %4,%6,%1\n\tpcpyud %3,%1,%6\n\tpcpyld %2,%0,%5\n\tpor %0,$zero,%4\n\tpor %1,$zero,%3"
   :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(first),"=&r"(third),"=&r"(zw),"=&r"(cx),"=&r"(count)
-  :"m"(input),"m"(source->csurf));
+  :"m"(input),"m"(source->numSurfaces));
  planeCount=count;return M3(out,row0,row1,row2);
 }
 static inline const qword *PrefetchAddress(const PLANE *input,const GEOM *destination,qword &normal){
@@ -173,7 +181,7 @@ static inline const qword *PrefetchAddress(const PLANE *input,const GEOM *destin
  register qword nextNormal asm("$19");
  asm("lw %1,%2\n\tlw $3,%3\n\tsll %1,%1,4\n\tlq %0,%4\n\taddu %1,%1,$3"
      :"=&r"(nextNormal),"=&r"(address)
-     :"m"(input->ipos),"m"(destination->apos),"m"(input->normal):"$3");
+     :"m"(input->pointIndex),"m"(destination->points),"m"(input->normal):"$3");
  normal=nextNormal;return address;
 }
 static inline PLANE *FinalPlane(PLANE *base,int count){
@@ -192,17 +200,20 @@ static inline PLANE *FinalPlane(PLANE *base,int count){
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Brings a world GEOM up to date with its local GEOM and the owner's world matrix: points via TransformPointsVu0,
+// plane normals via the transposed inverse of the 3x3 rotation (VU0 microprogram 0x150), plane distances recomputed
+// from each plane's anchor point. Skipped when source and destination share their point array.
 extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  register const MATRIX4 *inverseSource asm("$16")=matrix;
- if(source->apos!=dest->apos){
-  TransformPointsVu0(matrix,source->cpos,source->apos,dest->apos);
+ if(source->points!=dest->points){
+  TransformPointsVu0(matrix,source->numPoints,source->points,dest->points);
   int planeCount;
   M3 normal;normal=Transpose(InvertMatrix3Cofactor((const M3*)inverseSource),source,planeCount);
   if(planeCount>0){
-   PLANE*input=source->asurf;PLANE*output=dest->asurf;PLANE*last=FinalPlane(output,planeCount);
+   PLANE*input=source->surfaces;PLANE*output=dest->surfaces;PLANE*last=FinalPlane(output,planeCount);
    register qword nextNormal asm("$19"),nextAnchor asm("$18");
    register qword v1 __asm__("vf1")=normal.r[0],v2 __asm__("vf2")=normal.r[1],v3 __asm__("vf3")=normal.r[2];
-   register qword v4 __asm__("vf4")=dest->apos[input->ipos],v5 __asm__("vf5")=input->normal;
+   register qword v4 __asm__("vf4")=dest->points[input->pointIndex],v5 __asm__("vf5")=input->normal;
    input++;
    for(;;){
     __asm__ __volatile__("vcallms 0x150" : : "j"(v1),"j"(v2),"j"(v3),"j"(v4),"j"(v5));
@@ -231,25 +242,28 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
  * @end-sly2-annot */
-extern "C" int func_001665F0(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
- FRAME frame;int capacity,limit,count,i;Entry*first,*end;
- STACKSCOPE_ctor(&frame);
- capacity=NMin(g->count,0x1555);limit=capacity;REQ req(capacity*12,16);
- end=first=(Entry*)AllocFromStack(&req);
- if(PruneBspBySphere(g->tree,0x7FFFFFFF,p->apos[index],&limit,&end,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&frame,2);return 0;}
- int ne=end-first;
+// Fills out[] with up to max distinct edges that touch point index of the geometry, found by querying the
+// geometry's BSP with a unit sphere around the point and walking each hit surface's edge list. Returns the number
+// of edges written (0 if the query fails). Used by the contact builder for vertex contacts (inferred).
+extern "C" int CollectEdgesAtGeomPoint(GEOM*geom,GEOMTREE*tree,int index,int max,EDGE**out){
+ FRAME scope;int capacity,numFound,count,i;Entry*hits,*hitsEnd;
+ STACKSCOPE_ctor(&scope);
+ capacity=NMin(tree->count,0x1555);numFound=capacity;REQ req(capacity*12,16);
+ hitsEnd=hits=(Entry*)AllocFromStack(&req);
+ if(PruneBspBySphere(tree->tree,0x7FFFFFFF,geom->points[index],&numFound,&hitsEnd,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&scope,2);return 0;}
+ int numHits=hitsEnd-hits;
  count=0;
- for(i=0;i<ne;i++){
-  EDGE*e=first[i].poly->edges;EDGE**dst;
-  if(!e)continue;
-  dst=(EDGE**)((count<<2)+(int)out);
-  for(;e;e=e->next){
+ for(i=0;i<numHits;i++){
+  EDGE*edge=hits[i].poly->edgeList;EDGE**outPtr;
+  if(!edge)continue;
+  outPtr=(EDGE**)((count<<2)+(int)out);
+  for(;edge;edge=edge->next){
    int j;
-   if(index!=e->a && index!=e->b)continue;
-   for(j=0;j<count;j++){if(e==out[j])break;}
-   if(j>=count && count<max){*dst++=e;count++;}
+   if(index!=edge->a && index!=edge->b)continue;
+   for(j=0;j<count;j++){if(edge==out[j])break;}
+   if(j>=count && count<max){*outPtr++=edge;count++;}
   }
  }
- STACKSCOPE_ctor_1AE4A0(&frame,2);
+ STACKSCOPE_ctor_1AE4A0(&scope,2);
  return count;
 }

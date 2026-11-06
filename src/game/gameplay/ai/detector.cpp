@@ -90,17 +90,17 @@ qword GetLoWorldPos(void *object);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
 void BroadcastGameEvent(void *object, int n, void *q);
 void memmove(void *dst, void *src, int cb);
-SOV *PpoHero(void *object);
+SOV *GetHeroPo(void *object);
 int IsLoInWorld(SOV *object);
 int IsSwInputLocked(void *object);
 qword ConvertAloPos(void *plo0, void *plo1, qword v);
 int func_00118668(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
-int FCheckVolPoint(void *object, qword v);
+int IsPointInVol(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, HITV *hit);
 int GetBasicCid(OV *po);
 void *AllocFromStack(AL *request);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int state);
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int state);
 VECTORQ *GetLoWorldMatrix(SOV *object);
 void UpdateDetectorTargets(DETECTORV *object);
 qword GetDetectorEyePosition(DETECTORV *object);
@@ -281,7 +281,7 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     BUF hitBuffer;
     qword targetPos;
     WVOL *occluder;
-    SOV *hero = PpoHero(D_003DD490);
+    SOV *hero = GetHeroPo(D_003DD490);
     if (!target) { state = 0; goto done; }
     if (!IsLoInWorld(target)) { state = 0; goto done; }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x32) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = 0; goto done; }
@@ -310,18 +310,18 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
                 }
             }
         }
-        if (!FCheckVolPoint(detector->nearVolume, targetPos)) { state = 0; goto done; }
-        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = 0; goto done; }
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
         if ((detector->options & 1) == 0 && IsDetectorTargetConcealed(detector, target)) { state = 0; goto done; }
         if (detector->options & 2) { state = 1; goto done; }
         { state = !IsDetectorLineBlocked(detector, target); goto done; }
     case 1:
-        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
-        if (!FCheckVolPoint(detector->nearVolume, targetPos)) { state = 2; goto done; }
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = 2; goto done; }
         break;
     case 2:
-        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
-        if (FCheckVolPoint(detector->nearVolume, targetPos)) {
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if (IsPointInVol(detector->nearVolume, targetPos)) {
             if (detector->options & 2) { state = 1; goto done; }
             if (IsDetectorLineBlocked(detector, target)) return state;
             state = 1;
@@ -390,7 +390,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
     IntersectSwBoundingBox(D_003DD490, boxMin, boxMax, filter, detector, &firstObject, &objectCount);
     bool isClear;
     for (i = 0; (isClear = i < 1); i++)
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, eyePos, points[i], firstObject, objectCount, 0)) break;
+        if (!FindFirstObjectHitByLine(0, eyePos, points[i], firstObject, objectCount, 0)) break;
     return !isClear;
 }
 

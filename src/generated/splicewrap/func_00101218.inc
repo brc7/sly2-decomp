@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001F7FA0(s32, f32, f32);               /* extern */
+void SetSoScrollerSpeeds(s32, f32, f32);               /* extern */
 CRef *func_00101218(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 1, 1 };
@@ -9,7 +9,7 @@ CRef *func_00101218(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_001F7FA0(pbasic, arg0_v, arg1_v);
+    SetSoScrollerSpeeds(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

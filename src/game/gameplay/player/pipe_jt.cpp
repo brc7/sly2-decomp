@@ -76,13 +76,13 @@ float SMaxShape(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
-float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
-void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
+float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
+void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
 void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
-void func_00204F78(JT*,PATH*,int);
+void LinkStepAttachment(JT*,PATH*,int);
 float GLimitLm__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
@@ -249,7 +249,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*pipe){
  goto proceed;
  turn:SetJtPipeState(pipe,4);return;
  proceed:;
- register qword tangent __asm__("$2")=func_001C4768(input,VuSub(w.ahead.q,w.behind.q));
+ register qword tangent __asm__("$2")=GetPoctlLateralVector(input,VuSub(w.ahead.q,w.behind.q));
  __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 $4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni $3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tsq $3,%3\n\tqmfc2.ni $2,$vf1\n\tmtc1 $2,%4":"=f"(amount),"=r"(previous),"=f"(zero),"=m"(w.reuse.input.q),"=f"(dot):"r"(tangent),"r"(input),"r"(pipe):"$2","$3","$4","$f0","$f1","vf1","vf2","vf3","vf4","memory");
  }
  switch(previous){case 0:if(amount<0.25f)pipe->previous=-1;else if(dot<-0.7f)pipe->previous=1;break;
@@ -278,7 +278,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*pipe){
  if(!path->cyclic){GetJtPipeDistanceRange(pipe,&w.limit);(void)GSmooth__FfffP3SMPPf(pipe->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(pipe->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
  register float stopped __asm__("$f21")=0.0f;
  pipe->speed=-speed;
- if(speed!=stopped){pipe->distance+=pipe->speed*D_002DDED0.dt;func_001F4BF8(pipe->actor);}
+ if(speed!=stopped){pipe->distance+=pipe->speed*D_002DDED0.dt;InvalidateSoAaox(pipe->actor);}
  if(pipe->path->cyclic)pipe->distance=GModPositive__Fff(pipe->distance,SMaxShape(pipe->path));
  register float magnitude __asm__("$f2")=fabsf(speed);
  if(magnitude<0.01f)mode=1;
@@ -423,7 +423,7 @@ extern "C" void SetJtPipeState(JTPIPE*pipe,int next){
  WORKB w;
  switch(old){
  case -1:{
-  PathState(pipe->path,5);SubscribeLoObject(pipe->path,pipe->actor);func_00204F78(pipe->actor,pipe->path,1);
+  PathState(pipe->path,5);SubscribeLoObject(pipe->path,pipe->actor);LinkStepAttachment(pipe->actor,pipe->path,1);
   pipe->previous=old;
   EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance+50.0f),&w.ahead,0);
   EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance-50.0f),&w.behind,0);
@@ -446,7 +446,7 @@ extern "C" void SetJtPipeState(JTPIPE*pipe,int next){
  ASEGV*clip=0;float position=0.0f,speed=1.0f;int flags=1;
  switch(next){
  case -1:{
-  PathState(pipe->path,6);UnsubscribeLoObject(pipe->path,pipe->actor);func_00204F78(pipe->actor,pipe->path,0);
+  PathState(pipe->path,6);UnsubscribeLoObject(pipe->path,pipe->actor);LinkStepAttachment(pipe->actor,pipe->path,0);
   JT*actor=pipe->actor;w.target=actor->goal;
   void*focus;actor->motion.q=GoalInputs(&w.target,GetLoWorldPos(actor),focus);
   pipe->actor->motion.i[2]=0;SetStepplayerTnOverride(pipe->actor,focus);

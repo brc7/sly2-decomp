@@ -2886,7 +2886,7 @@ struct O { char pad[0xE8]; XFM *pxfm; };
 struct W { char pad[0xC]; O *po; };
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
-qword func_001D6848(qword a, qword b, qword c, float g);
+qword CalculateBallisticLaunchVelocity(qword a, qword b, qword c, float g);
 CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x122BE0
@@ -2911,7 +2911,7 @@ CRef RefOpVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     CRef ref(0x1A);
     qword *pq = (qword *)ref.u.pv;
-    *pq = func_001D6848(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, v.q, CRef_RefCoerceF32(&args[2]).u.g);
+    *pq = CalculateBallisticLaunchVelocity(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, v.q, CRef_RefCoerceF32(&args[2]).u.g);
     return ref;
 }
 } // namespace M_RefOpVectorBallisticVelocity__FiP4CRefP6CFrame
@@ -4587,7 +4587,7 @@ CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args
 // 0x1249A8 RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
 namespace M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
 struct SPN; struct SO; struct LO; struct HIT;
-/* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClsgClipEdgeToObject) vs every SO of each LO in list aref[0].
+/* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClipEdgeToObject) vs every SO of each LO in list aref[0].
    pv==0x7B returns a list of (lo pos normal) for all hits, else (lo normal) of the first hit (the original stores &hit.normal there). */
 typedef int qword __attribute__((mode(TI)));
 
@@ -4622,7 +4622,7 @@ struct HIT {
     qword normal;
     int pad[16];
 };
-extern "C" int ClsgClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
+extern "C" int ClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
@@ -4657,7 +4657,7 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
                 HIT hit;
                 if (pso->grf & (1UL << 50))
                     continue;
-                if (ClsgClipEdgeToObject(pso, *(qword *)prefFrom->u.pv, *(qword *)prefTo->u.pv, 1, &hit) <= 0)
+                if (ClipEdgeToObject(pso, *(qword *)prefFrom->u.pv, *(qword *)prefTo->u.pv, 1, &hit) <= 0)
                     continue;
                 {
                     SPN spLo(PtNew__t6CGcObj1Z5CPair());

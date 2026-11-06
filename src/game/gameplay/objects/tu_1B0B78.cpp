@@ -96,9 +96,9 @@ void UpdateSo(CID96V *p);
 void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
 void RenderSoSelf(CID96V *p);
-void func_001F59A0(CID96V *p, M3 *pmat, VECTOR3 *pspin);
-int func_001F7588(CID96V *p, struct A96 *pa);
-void func_001F3980(CID96V *p);
+void AccelSoTowardMatBounded(CID96V *p, M3 *pmat, VECTOR3 *pspin);
+int CanSoTakeDamage(CID96V *p, struct A96 *pa);
+void UpdateSoXfWorld(CID96V *p);
 void func_002303A0(CID96V *, XFV *, int);
 void func_0022C840(CID96V *, XFV *);
 void func_0022C818(CID96V *, XFV *);
@@ -113,7 +113,7 @@ float UMinShape(SHAPE *);
 float UMaxShape(SHAPE *);
 float UWrapShape(SHAPE *, float);
 void EvaluateShapeU(SHAPE *, float, qwordV *, qwordV *);
-LOV *PpoClosestSw(SW *, qwordV);
+LOV *FindClosestSwPo(SW *, qwordV);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
@@ -320,7 +320,7 @@ struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
  * @end-sly2-annot */
 extern "C" int func_001B0F88(CID96V *p, A96 *pa)
 {
-    int r = func_001F7588(p, pa);
+    int r = CanSoTakeDamage(p, pa);
     if (r && (pa->n44 & 8) && p->state != 5) {
         func_001B1328(p, 5);
         if (p->plo1C8) {
@@ -351,7 +351,7 @@ extern "C" void func_001B1030(CID96V *p)
         e = &p->pvt[70];
         ((void (*)(void *))e->pfn)((char *)p + e->d);
     }
-    func_001F3980(p);
+    UpdateSoXfWorld(p);
 }
 
 /** @sly2-annot addr=0x1B10B0
@@ -362,7 +362,7 @@ extern "C" void func_001B1030(CID96V *p)
  * @end-sly2-annot */
 extern "C" void func_001B10B0(CID96V *p)
 {
-    func_001F59A0(p, &p->basis, &p->spin);
+    AccelSoTowardMatBounded(p, &p->basis, &p->spin);
 }
 
 struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */
@@ -519,7 +519,7 @@ void func_001B1328(CID96V*p,int next){
    float end=SMaxShape(p->pshapeFlee);
    p->deadline=D_002DDED0.t+travel+(end-w.parameter)/p->speed.value-p->lead;
   }else{
-   LOV*near=PpoClosestSw(&D_003DD490,w.first.q);w.second=w.first;w.first.q=GetLoWorldPos(near);p->deadline=D_002DDED0.t+2.0f;
+   LOV*near=FindClosestSwPo(&D_003DD490,w.first.q);w.second=w.first;w.first.q=GetLoWorldPos(near);p->deadline=D_002DDED0.t+2.0f;
   }
   qwordV ff=w.first.q;qwordV ss=w.second.q;qwordV gap=VuSub(ss,ff);
   w.direction.q=gap;w.direction.i[2]=0;
@@ -614,7 +614,7 @@ int func_001B1900(CID96V *p)
 {
     int r = p->state;
     qwordV pos = GetLoWorldPos(p);
-    LOV *po = PpoClosestSw(&D_003DD490, pos);
+    LOV *po = FindClosestSwPo(&D_003DD490, pos);
     U d;
     float len;
     if (!po)

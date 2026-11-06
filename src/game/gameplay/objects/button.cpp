@@ -160,7 +160,7 @@ void CloneSo(BUTTONV *pbutton, BUTTONV *pbuttonBase);
 void UpdateSo(BUTTONV *pbutton, float dt);
 void RemoveSoHierarchy(BUTTONV *pbutton);
 void EnsureSwCallback(SW *psw, void *pv, long k, int n);
-void *func_001F7588(BUTTONV *pbutton, WKR *pwkr);
+void *CanSoTakeDamage(BUTTONV *pbutton, WKR *pwkr);
 void InitXfm(VOLBTNV *pvolbtn);
 void SetLoBusyk(VOLBTNV *pvolbtn, int busyk);
 void LoadVolFromBrx(VOLBTNV *pvolbtn, void *pbis);
@@ -174,7 +174,7 @@ void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
 int CploFindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
-int FCheckVolPoint(VOLBTNV *pvolbtn, qwordV pos);
+int IsPointInVol(VOLBTNV *pvolbtn, qwordV pos);
 void qsort(void *pv, int c, int cb, int (*pfncmp)(const void *, const void *));
 CRef BuildSpliceListFromUniformValues(int c, int otyp, LOV **aplo);
 
@@ -612,7 +612,7 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
  * @end-sly2-annot */
 extern "C" void *FAbsorbButtonWkr(BUTTONV *pbutton, WKR *pwkr)
 {
-    void *pv = func_001F7588(pbutton, pwkr);
+    void *pv = CanSoTakeDamage(pbutton, pwkr);
     if (pv && !(pwkr->grf & 4) && FCheckButtonObject(pbutton, pwkr->plo))
     {
         switch (pbutton->btnk)
@@ -928,7 +928,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
         if (j < c) do
         {
             LOV *plo = aplo[j];
-            if (plo && IsLoInWorld(plo) && FCheckVolPoint(pvolbtn, GetLoWorldPos(plo)))
+            if (plo && IsLoInWorld(plo) && IsPointInVol(pvolbtn, GetLoWorldPos(plo)))
             {
                 fFound = 1;
                 if (!pvolbtn->btn.pvRelay)

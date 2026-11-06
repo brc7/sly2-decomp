@@ -131,23 +131,23 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
+int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
-LOV *PpoHero(void *g);
+LOV *GetHeroPo(void *g);
 qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
-EVENT *func_001F8240(LOV *object);
+EVENT *FindTargetRecordById(LOV *object);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
 void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
 void func_001B44D8(int *, void ***);
 float SMaxShape(LOV *);
-int func_001EA3B0(void *, float);
+int FindRangeContaining(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 BuildAxisAngleRotationMatrix(float, qwordV);
 GUARDV *AcquireProxyObject(void *p, int n);
-void *func_00205458(GUARDV *r, int n);
+void *FindStepBehavior(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
 void AddSpawnerOffset(CID119V *p, qwordV q);
 int IsInScreenRect(qwordV v, float r);
@@ -310,7 +310,7 @@ extern "C" int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void)
     {
     HITY y;
     IntersectSwBoundingBox(&D_003DD490, va, vb, fn, 0, &na, &nb);
-    if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, va, vb, na, (void *)nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
+    if (!FindFirstObjectHitByLine(1, va, vb, na, (void *)nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
         STACKSCOPE_ctor_1AE4A0(&x, 2);
         return 0;
     }
@@ -352,7 +352,7 @@ extern "C" int GetSpawnPointConcealment(CID119V*spawner,qwordV pos,int count,voi
  if(spawner->useRangeTest&&TooFar(difference.q,spawner->planarRange))return 2;
  if(spawner->useOcclusionTest){
   {register qwordV copied asm("$5")=position.q;raised.q=copied;}raised.f[2]+=D_002BE5C8;
-  if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,origin.q,raised.q,cso,apso,0))return 3;
+  if(FindFirstObjectHitByLine(0,origin.q,raised.q,cso,apso,0))return 3;
  }
  return 0;
 }
@@ -379,7 +379,7 @@ extern "C" void ReleaseSpawnerEntry(CID119V *spawner, ENTRY *slot, int k, int f)
 }
 
 // 0x173A18: Returns the focus position the spawner works from: the current player's position, or the camera's.
-extern "C" qwordV GetSpawnerFocusPosition(CID119V *spawner) { void *g = D_003DD490; if (PpoHero(g)) return GetLoWorldPos(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+extern "C" qwordV GetSpawnerFocusPosition(CID119V *spawner) { void *g = D_003DD490; if (GetHeroPo(g)) return GetLoWorldPos(GetHeroPo(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -402,10 +402,10 @@ extern "C" void UpdateSpawner(CID119V*spawner){
  if(D_002DDED0.t<spawner->nextSpawnTime)return;
  spawner->nextSpawnTime=D_002DDED0.t+D_002BE5D0;
  if(spawner->entryCount==spawner->entryCapacity){int close=DistanceXY(pos,spawner->lastSpawnPosition)<D_002BE5D4;if(close)return;}
- event=0;context=PpoHero(&D_003DD490);
+ event=0;context=GetHeroPo(&D_003DD490);
  {
  if(context){
-  event=func_001F8240(context);
+  event=FindTargetRecordById(context);
   if(event){
    if(!event->kind)event=0;
    else switch(spawner->mode){
@@ -644,7 +644,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposO
             {
                 int kNext = k + 1;
                 float u = D_002BE5E8 * ((float)k + GRandInRange(D_002BBB60.gMin, D_002BBB60.gMax));
-                if (func_001EA3B0(object->curveData, u))
+                if (FindRangeContaining(object->curveData, u))
                     goto nextSample;
                 {
                     EvaluateShapeS(object, &posCurve.q, &dirCurve.q, u);
@@ -725,7 +725,7 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *m, qwordV *pv, M
             if (r) {
             m->scriptCommand->isReversed = fFlip;
             r->script = m->script;
-            object = func_00205458(r, 0x9C);
+            object = FindStepBehavior(r, 0x9C);
             F f;
             f.a = -1;
             SetBhvguardMode(object, &f);

@@ -69,7 +69,7 @@ void *AllocFromStack(const AREQV &r);
 void *AllocClearedFromStack(const AREQV &r);
 void *AllocCopyFromWorldHeap(const AREQV &r, void *pv);
 void InitSo(TRIG *p);
-void func_001F7918(TRIG *p, int a, int b);
+void SetSoZapResponse(TRIG *p, int a, int b);
 void LoadSoFromBrx(TRIG *p, void *a);
 void OnSoRemove(TRIG *p);
 void OnSoAdd(TRIG *p);
@@ -81,10 +81,10 @@ SOX *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int v, TRIG *p);
 void ShowSoGlobsById(TRIG *p, int v);
 void HideSoGlobsById(TRIG *p, int v);
 void ShowSoPartsById(TRIG *p, int v);
-void func_001F6B48(TRIG *p, int v);
-void func_001F4F10(TRIG *p);
+void HideSoPartsById(TRIG *p, int v);
+void AdjustSoXps(TRIG *p);
 void FreeSwXpList__FP2SWP2XP(SW *psw, int k);
-void *PpoHero(SW *psw);
+void *GetHeroPo(SW *psw);
 qword GetLoWorldPos(void *p);
 void EmitSwNoise(SW *psw, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, TRIG *p);
@@ -120,8 +120,8 @@ static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb
  * @end-sly2-annot */
 extern "C" void func_001BAB50(TRIG *p) {
     InitSo(p);
-    func_001F7918(p, 0x03FFFFFF, 8);
-    func_001F7918(p, 0x80001, 0);
+    SetSoZapResponse(p, 0x03FFFFFF, 8);
+    SetSoZapResponse(p, 0x80001, 0);
 }
 
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
@@ -282,7 +282,7 @@ void func_001BAF18(TRIG *p, int id)
                     ShowSoPartsById(p, pi->b);
                     break;
                 case 5:
-                    func_001F6B48(p, pi->b);
+                    HideSoPartsById(p, pi->b);
                     break;
                 }
             }
@@ -321,7 +321,7 @@ void func_001BAF18(TRIG *p, int id)
                     ShowSoGlobsById(p, pi->b);
                     break;
                 case 4:
-                    func_001F6B48(p, pi->b);
+                    HideSoPartsById(p, pi->b);
                     break;
                 case 5:
                     ShowSoPartsById(p, pi->b);
@@ -357,7 +357,7 @@ void CID98::VUnk57()
     TRIG *p = (TRIG *)this;
     L *pl;
     int i, j;
-    func_001F4F10(p);
+    AdjustSoXps(p);
     if (func_001BBE48(p)) return;
     for (pl = p->pxEC->pl; pl; pl = pl->next) {
         if (*pl->px8 == 0) continue;
@@ -400,7 +400,7 @@ void TRIG::Action()
     E *pe;
     int v;
     if (func_001BBE48(p)) return;
-    if (p->x16C == PpoHero(&D_003DD490)) {
+    if (p->x16C == GetHeroPo(&D_003DD490)) {
         p->x168 = 0xE;
     } else {
         v = p->x170;
@@ -477,7 +477,7 @@ void func_001BB648(TRIG *p, E *pe)
             ShowSoPartsById(p, pi->b);
             break;
         case 5:
-            func_001F6B48(p, pi->b);
+            HideSoPartsById(p, pi->b);
             break;
         case 7:
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
@@ -717,7 +717,7 @@ extern "C" void func_001BBC98(TRIG *p, int v) {
  * @end-sly2-annot */
 extern "C" void func_001BBCF0(TRIG *p, int v) {
     if (func_001BBE18(p) == 0) {
-        func_001F6B48(p, v);
+        HideSoPartsById(p, v);
         return;
     }
     func_001BBDB0(p, 5)->b = v;

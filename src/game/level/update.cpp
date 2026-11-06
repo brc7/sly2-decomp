@@ -49,7 +49,7 @@ void UpdateSwGuardOverride(SWVIEW *p);
 void UpdateAsega(void *pv);   /* takes an ASEGA* */
 void ExpireNoise(void *pv);
 void SolveSw(SWVIEW *p);
-void func_001BE1E8(void);
+void UpdatePendingCid14Obstacles(void);
 void UpdateShaders(void);
 void UpdateSave__FP4SAVE(void *pv);
 void UpdateSndmgr(void *pv);
@@ -102,7 +102,7 @@ void SW::Update()
             ExpireNoise(pv);
         ProcessSwCallbacks(p);
         SolveSw(p);
-        func_001BE1E8();
+        UpdatePendingCid14Obstacles();
         UpdateShaders();
         ProcessSwCallbacks(p);
         D_002DD2FC = dli.m_pdliNext;

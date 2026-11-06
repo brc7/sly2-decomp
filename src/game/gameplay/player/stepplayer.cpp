@@ -42,9 +42,9 @@ extern char D_002DEB30[];       /* the game */
 extern CLOCK D_002DDED0;
 extern const float D_002A4D60;
 int IsSwHandsOff(SW *psw);
-STEPPLAYER *PpoHero(SW *psw);
+STEPPLAYER *GetHeroPo(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
-void func_00204768(STEPPLAYER *pstepplayer);
+void AdjustStepXps(STEPPLAYER *pstepplayer);
 void FreeJtWallRunXps(JTAIR *pjtair);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 int TakeJtDamage(JTHURT *pjthurt, ZPR *pzpr);
@@ -61,7 +61,7 @@ BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, int n);
 void UpdateStepplayerBootySave(STEPPLAYER *pstepplayer, int n0, int n1);
 void SetBootyState(LO *pbooty, int nState);
 void TranslateStepToPos(STEP *pstep, qword pos);
-int FCanPoBeHealed(PO *ppo);
+int CanPoBeHealed(PO *ppo);
 void UnlockStepplayerLeanTarget(STEPPLAYER *pstepplayer);
 int IsStepplayerInScriptState(STEPPLAYER *pstepplayer);
 void SetStepplayerGrabTarget(STEPPLAYER *pstepplayer, LO *plo);
@@ -84,7 +84,7 @@ void InitJtMode(void *pv, struct P *p);
 void InitThrow(void *pv, struct P *p);
 void InitJtPipe(void *pv, struct P *p);
 void InitJtgoal(void *pv, struct P *p);
-void func_001F7918(struct P *p, int mask, int n);
+void SetSoZapResponse(struct P *p, int mask, int n);
 /** @sly2-annot addr=0x13FF70
  * Purpose: STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at
  *   +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x103C=20.0 ...)
@@ -125,8 +125,8 @@ void InitStepplayer(struct P *player)
     player->x1318 = -1;
     player->x10C8 = -1;
 
-    func_001F7918(player, 0x3FFFFFF, 0);
-    func_001F7918(player, 0x10FF00, 8);
+    SetSoZapResponse(player, 0x3FFFFFF, 0);
+    SetSoZapResponse(player, 0x10FF00, 8);
 }
 } } // namespace M_InitStepplayer
 
@@ -160,7 +160,7 @@ int FindSwObjects(struct G *, int, int, struct P *, int, void **);
 void *AllocClearedFromWorldHeap(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
-int func_001F8278(struct P *);
+int EnsureTargetRecordById(struct P *);
 void SetSoMass(struct P *, float);
 qword GetLoWorldPos(struct P *);
 struct M3 *GetLoWorldMatrix(struct P *);
@@ -218,7 +218,7 @@ void PostLoadStepplayer(struct P *player)
     }
     LoadStepplayerGadgets(player);
     BindStepplayerHpMp(player, D_003DD490.grf & 4);
-    player->x1088 = func_001F8278(player);
+    player->x1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->pso->x94 == 0) {
         qword q = GetLoWorldPos(player);
@@ -428,7 +428,7 @@ void SetStepplayerPlayerInteractMode(struct X *player, int a, int b, int c, int 
 
 namespace M_SetStepplayerCtlState { extern "C" {
 void SetPoCtlState(void *p, int n);
-void func_001F82B8(void *p, int a, int b);
+void SetSoTargetRecordParams(void *p, int a, int b);
 void ClearBhvstk__FP6BHVSTK(void *p);
 /** @sly2-annot addr=0x1406E8
  * Purpose: vt79: PO SetPoCtlState, then 0x1F82B8(p, n==1?0:-1, 0); on becoming current (n==1) clear the
@@ -442,7 +442,7 @@ void ClearBhvstk__FP6BHVSTK(void *p);
 void SetStepplayerCtlState(char *player, int n)
 {
     SetPoCtlState(player, n);
-    func_001F82B8(player, n == 1 ? 0 : -1, 0);
+    SetSoTargetRecordParams(player, n == 1 ? 0 : -1, 0);
     if (n == 1) ClearBhvstk__FP6BHVSTK(player + 0x26C);
 }
 } } // namespace M_SetStepplayerCtlState
@@ -665,7 +665,7 @@ void StepplayerVirtual82(struct X *player, void *a, struct Y *b, qword v)
 // If this is the current player, swaps the camera TN override (+0x1024).
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 {
-    STEPPLAYER *pstepplayerHero = PpoHero(&D_003DD490);
+    STEPPLAYER *pstepplayerHero = GetHeroPo(&D_003DD490);
     if (pstepplayerHero == player) {
         if (pstepplayerHero->ptnUnk1024 != 0) {
             SetTnTnsOverride(pstepplayerHero->ptnUnk1024, 0);
@@ -678,7 +678,7 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 }
 
 namespace M_func_00140D00 { extern "C" {
-void func_001F4FA8(void *p);
+void IgnoreSoSlot59(void *p);
 void AddJtWallRunXps(void *p);
 void UpdateJtInternalXpsHide(void *p);
 void UpdateJtInternalXpsPipe(void *p);
@@ -692,7 +692,7 @@ void UpdateJtInternalXpsPipe(void *p);
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
 void StepplayerVirtual59(char *player)
 {
-    func_001F4FA8(player);
+    IgnoreSoSlot59(player);
     if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
     if (*(int *)(player + 0x4CC) != -1) UpdateJtInternalXpsHide(player + 0x4C0);
     if (*(int *)(player + 0xF54) != -1) UpdateJtInternalXpsPipe(player + 0xF50);
@@ -709,7 +709,7 @@ void StepplayerVirtual59(char *player)
 void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here */
 {
     STEPPLAYER *player = this;
-    func_00204768(player);
+    AdjustStepXps(player);
     if (player->jtair.nState != -1) {
         FreeJtWallRunXps(&player->jtair);
     }
@@ -718,7 +718,7 @@ void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here 
 namespace M_func_00140DB0 { extern "C" {
 /* HandleStepplayerContactImpulse (Claude agent for Lilly, T1644): saves s->v, scales it by 0.01 when the
    other entry's k (s->ae[1 - i].k) is one of three known values and p allows it
-   (p->p150->x80 != 1 or IsStepplayerPushing(p)), calls func_001FAD00 with the same arguments,
+   (p->p150->x80 != 1 or IsStepplayerPushing(p)), calls CalculateSoContactResponse with the same arguments,
    then restores s->v.
    Matching notes: `save` is a plain qword that is only read by "j" asm operands, so it
    becomes a VU-class pseudo that is spilled across the call (the game's lq/sq v1 + lqc2
@@ -734,7 +734,7 @@ extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
 int IsStepplayerPushing(struct P *p);
-void func_001FAD00(struct P *p, void *a, struct S *s, void *b, int i);
+void CalculateSoContactResponse(struct P *p, void *a, struct S *s, void *b, int i);
 /** @sly2-annot addr=0x140DB0
  * Purpose: vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
  *   and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before
@@ -764,7 +764,7 @@ void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void
             s->v = vo;
         }
     }
-    func_001FAD00(player, a, s, b, i);
+    CalculateSoContactResponse(player, a, s, b, i);
     s->v = save;
 }
 } } // namespace M_func_00140DB0
@@ -784,7 +784,7 @@ extern "C" void OnStepplayerHeroDied(STEPPLAYER *player)
 
 namespace M_STEPPLAYER_FInvulnerable { extern "C" {
 extern void *D_003D4A54;
-int FIsPoCur(void *p);
+int IsPoCurrent(void *p);
 int ShouldStepplayerIgnoreZap(void *p, int a);
 /** @sly2-annot addr=0x140ED8
  * Purpose: vt76: invulnerable if jtmode state==1, jtair state 0x15, the D_003D4A54 PO is current, else jthurt
@@ -800,7 +800,7 @@ int IsStepplayerInvulnerable(char *player, int a)
 {
     if (*(int *)(player + 0xF20) == 1) return 1;
     if (*(int *)(player + 0x2DC) == 0x15) return 1;
-    if (D_003D4A54 && FIsPoCur(D_003D4A54)) return 1;
+    if (D_003D4A54 && IsPoCurrent(D_003D4A54)) return 1;
     return ShouldStepplayerIgnoreZap(player + 0xDF0, a);
 }
 } } // namespace M_STEPPLAYER_FInvulnerable
@@ -862,7 +862,7 @@ extern struct GG *D_002E1E40;
 extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
 void SetJtThrowState(void *p, int n);
-qword func_00204E38(void *p, struct SO *pso, float g);
+qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
 qword GetLoWorldPos(void *p);
 void ReleaseJtThrowObject(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
@@ -943,7 +943,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             break;
         switch (message->k) {
         case 0x15E: {
-            qword v = func_00204E38(player, message->pso, message->g);
+            qword v = GetStepAsegaTranslation(player, message->pso, message->g);
             qword *pm = &F(qword, player, 0x1B0);
             union { qword q; float f[4]; } s; /* home of the -1.0f VU_FLOAT: stored, never read */
             qword sv, r;
@@ -1268,7 +1268,7 @@ struct P {
     char pad7[0xDF4 - 0x370]; int xDF4;
 };
 qword GetLoWorldPos(struct P *p);
-qword func_001D6848(qword a, qword b, float g, qword c);
+qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c);
 void SetJtAirJump(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x141968
  * Purpose: Splice: compute ballistic velocity from pos(+dz) toward target (0x1D6848 with g,h), SetVelocity
@@ -1285,7 +1285,7 @@ void LaunchStepplayer(struct P *player, qword v, float g, float h)
     UQ r;
     pos.q = GetLoWorldPos(player);
     pos.f[2] += player->dz;
-    r.q = func_001D6848(pos.q, v, g, player->pE8->q);
+    r.q = CalculateBallisticLaunchVelocity(pos.q, v, g, player->pE8->q);
     player->vt[35].pfn((char *)player + player->vt[35].d, r.q);
     if (player->xDF4 == -1) {
         SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
@@ -1908,7 +1908,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x142540
  * Purpose: Splice optid 446 on STEPPLAYER: clear the BHV stack and, if a leader is given, push BHVFOLLOW (cid
  *   194) with leader +0x30 and params +0x40/+0x44, then Start (AI partner follow)
@@ -1927,7 +1927,7 @@ void StartStepplayerFollow(char *player, int a, qword q)
     struct VTE *e;
     ClearBhvstk__FP6BHVSTK(player + 0x26C);
     if (a) {
-        o = func_00205438(player, 0xC2);
+        o = PushStepBehavior(player, 0xC2);
         o->n30 = a;
         o->q40 = q;
         e = &o->vt[8];
@@ -1948,7 +1948,7 @@ extern struct CLOCK D_002DDED0;
 extern struct P *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
-void func_001F3C10(struct P *p);
+void RefreshSoBoundsRecord(struct P *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 void RenderSoGlobset(void *p, int n, int m, float a, float b);
 /** @sly2-annot addr=0x1425B0
@@ -1964,7 +1964,7 @@ void RenderStepplayerSelf(struct P *player)
 {
     float g0, g1;
     if (!(player->b2D & (*(int *)&g_cm.grfvis))) return;
-    func_001F3C10(player);
+    RefreshSoBoundsRecord(player);
     if (player->jtModeState == 1 && player->jtModeKind != 2) return;
     if (player->grabState == 2) {
         g0 = D_002BD268;
@@ -1989,7 +1989,7 @@ typedef struct { qword r[3]; } M3;
 struct SO { char pad[0x40]; M3 mat; };
 struct X60 { char pad[0x40]; M3 mat; };
 struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
-struct SO *PxfFindSo(struct P *p, int x, int n);
+struct SO *FindSoXf(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(M3 *pm);
 void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
@@ -2019,7 +2019,7 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
 // Finds the start-marker child and places the player relative to it.
 void AttachStepplayerToStartMarker(struct P *player, int x)
 {
-    struct SO *so = PxfFindSo(player, x, 6);
+    struct SO *so = FindSoXf(player, x, 6);
     M3 m, a;
     if (so) {
         InvertMatrix3CofactorP(&a, &player->p60->mat);
@@ -3222,7 +3222,7 @@ extern "C" int IsStepplayerPushing(STEPPLAYER *player)
 }
 
 /** @sly2-annot addr=0x144090
- * Purpose: vt80: PO FCanPoBeHealed and hurt state != 2
+ * Purpose: vt80: PO CanPoBeHealed and hurt state != 2
  * Info: proposed name STEPPLAYER_FCanBeHealed (T1); class STEPPLAYER slot80; TU stepplayer
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
@@ -3230,7 +3230,7 @@ extern "C" int IsStepplayerPushing(STEPPLAYER *player)
 // Slot 80: PO heal check, and not dead (hurt status != 2).
 int STEPPLAYER::FCanBeHealed()
 {
-    if (FCanPoBeHealed(this) == 0) {
+    if (CanPoBeHealed(this) == 0) {
         return 0;
     }
     return GetJtHurtStatus(&jthurt) != 2;
@@ -3365,7 +3365,7 @@ void AddStepplayerHpMp(char *player, int a, int b)
 } } // namespace M_AddStepplayerHpMp
 
 namespace M_func_001442D0 { extern "C" {
-void func_00205478(void *p, int a, int b);
+void AddStepDialogSmRefs(void *p, int a, int b);
 void PlayStepplayerScriptAnim(void *p, int a, int b, int c);
 void SetJtModeState__FP6JTMODEi(void *p, int a);
 /** @sly2-annot addr=0x1442D0
@@ -3378,7 +3378,7 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
 void StepplayerVirtual83(char *player, int a, int b)
 {
-    func_00205478(player, a, b);
+    AddStepDialogSmRefs(player, a, b);
     if (b) {
         if (++*(int *)(player + 0x12F4) == 1) {
             PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
@@ -3389,7 +3389,7 @@ void StepplayerVirtual83(char *player, int a, int b)
 } } // namespace M_func_001442D0
 
 namespace M_func_00144338 { extern "C" {
-void func_00205588(void *p, int a, int b);
+void RemoveStepDialogSmRefs(void *p, int a, int b);
 void StopStepplayerScriptAnim(void *p);
 /** @sly2-annot addr=0x144338
  * Purpose: vt84 (STEP VUnk83(grf,fCount)): base 0x205588; when +0x12F4 drops to 0 stop the script anim
@@ -3400,7 +3400,7 @@ void StopStepplayerScriptAnim(void *p);
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
 void StepplayerVirtual84(char *player, int a, int b)
 {
-    func_00205588(player, a, b);
+    RemoveStepDialogSmRefs(player, a, b);
     if (b) {
         if (--*(int *)(player + 0x12F4) == 0) StopStepplayerScriptAnim(player);
     }
@@ -3408,7 +3408,7 @@ void StepplayerVirtual84(char *player, int a, int b)
 } } // namespace M_func_00144338
 
 namespace M_FIgnoreIntersection__10STEPPLAYERP2SO { extern "C" {
-int FIgnoreSoIntersection(void *p, int a);
+int ShouldSoIgnoreIntersection(void *p, int a);
 int AdjustJtThrowFindFlags(void *p, int a, int b);
 void GetJtHandsIgnoreFlags(void *p, int a, int b);
 /** @sly2-annot addr=0x144388
@@ -3422,7 +3422,7 @@ void GetJtHandsIgnoreFlags(void *p, int a, int b);
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
 void FIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
-    int x = FIgnoreSoIntersection(p, a);
+    int x = ShouldSoIgnoreIntersection(p, a);
     x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);
     GetJtHandsIgnoreFlags(p + 0x900, a, x);
 }

@@ -38,7 +38,7 @@ void SetJtHurtState(JTHURT *pjthurt, int nState);
 void SetJtAirJump(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
 int IsJtGrabBusy(JTGRAB *pjtgrab, int zpk);
 int IsStepplayerInvulnerable(STEPPLAYER *pstepplayer, int zpk);
-void func_001F80D0(STEPPLAYER *pstepplayer, float g);
+void SetSoEyesClosed(STEPPLAYER *pstepplayer, float g);
 void OnStepplayerHeroDied(STEPPLAYER *pstepplayer);
 extern int D_002E1E00;
 int IsSwHandsOff(SW *psw);
@@ -102,12 +102,12 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
- void func_00204660(P*,float);
+ void SetStepTargetHeading(P*,float);
  void FixStepAngularVelocity(P*);
- void SetStepRadTargetVec(P*,qword);
+ void SetStepTargetHeadingFromVector(P*,qword);
  qword GetLoWorldPos(P*);
- float RadStepHeading(P*);
- void func_001F4BF8(P*);
+ float GetStepHeading(P*);
+ void InvalidateSoAaox(P*);
  void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
@@ -235,13 +235,13 @@ extern "C" void SetJtHurtState(C*hurt,int next){
    float blend=ClampKnownLower(fraction,lower,range);
    float angle=atan2f(velocity.f[1],velocity.f[0])+3.1415927f;
    angle=RadNormalize__Ff(angle-hurt->actor->yaw);
-   func_00204660(hurt->actor,hurt->actor->yaw+angle*blend);
+   SetStepTargetHeading(hurt->actor,hurt->actor->yaw+angle*blend);
    FixStepAngularVelocity(hurt->actor);
   }}
  case 9:clip=hurt->clips[next];flags=0x21;break;
  case 10:
   camera0.q=Position();
-  {P*owner;qword direction=Difference(&camera0,GetLoWorldPos(hurt->actor),hurt,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference(&camera0,GetLoWorldPos(hurt->actor),hurt,owner);SetStepTargetHeadingFromVector(owner,direction);}
   flags=0x21;
  case 3:
   clip=hurt->clips[next];
@@ -249,22 +249,22 @@ extern "C" void SetJtHurtState(C*hurt,int next){
   break;
  case 5:case 11:
   camera1.q=Position();
-  {P*owner;qword direction=Difference1(&camera1,GetLoWorldPos(hurt->actor),hurt,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference1(&camera1,GetLoWorldPos(hurt->actor),hurt,owner);SetStepTargetHeadingFromVector(owner,direction);}
   if(next==11)flags=0x21;
   clip=hurt->clips[next];break;
  case 0:case 6:case 7:clip=hurt->clips[next];break;
  case 4:case 12:
   SetVector(hurt->actor,D_002A2DD0.q);
-  func_00204660(hurt->actor,RadStepHeading(hurt->actor));
+  SetStepTargetHeading(hurt->actor,GetStepHeading(hurt->actor));
   hurt->actor->control->yaw=hurt->actor->yaw;
   if(next==12)flags=0x21;
   clip=hurt->clips[next];break;
  case 1:case 2:
   flags=0;
-  func_00204660(hurt->actor,RadStepHeading(hurt->actor));
+  SetStepTargetHeading(hurt->actor,GetStepHeading(hurt->actor));
   hurt->actor->control->yaw=hurt->actor->yaw;clip=hurt->clips[next];break;
  }
- func_001F4BF8(hurt->actor);
+ InvalidateSoAaox(hurt->actor);
  hurt->mode=next;hurt->time=D_002DDED0.time;
  if(next!=-1){
   if(!clip)clip=hurt->Default(next);
@@ -284,10 +284,10 @@ struct D { int a; int b; };
 struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
 extern HURTZ D_002BFA30[7];
 struct E *AllocCopyFromWorldHeap(struct D *d, void *p);
-int PxfFindSo(int a, int b, int c);
+int FindSoXf(int a, int b, int c);
 /** @sly2-annot addr=0x1A1098
  * Purpose: Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs
- *   (PxfFindSo)
+ *   (FindSoXf)
  * Info: proposed name PostLoadJtHurt (T2); TU hurt
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
@@ -304,7 +304,7 @@ void PostLoadJtHurt(struct S *s)
     s->x18 = AllocCopyFromWorldHeap(&d, D_002BFA30);
     for (i = 0; i < s->x14; i++) {
         struct E *e = &s->x18[i];
-        e->x8 = PxfFindSo(s->x0, e->x0, 6);
+        e->x8 = FindSoXf(s->x0, e->x0, 6);
     }
 }
 } } // namespace M_func_001A1098
@@ -396,11 +396,11 @@ extern float D_002BFAA0[3];
 extern float D_002BFAB0[3];
 extern float D_002BFAC0[3];
 extern float D_002BBB60[2];
-void func_001F4BF8(struct LO *po);
+void InvalidateSoAaox(struct LO *po);
 float cosf(float g);
 float atan2f(float y, float x);
 float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
-void func_00204660(struct LO *po, float g);
+void SetStepTargetHeading(struct LO *po, float g);
 int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
 static inline float GClamp(float g, float lo, float hi)
@@ -431,7 +431,7 @@ void UpdateJtActiveZap(struct S *s)
             if (s->x9C < dt) {
                 s->x90 = -1;
                 s->po->xD0 = 0.0f;
-                func_001F4BF8(s->po);
+                InvalidateSoAaox(s->po);
                 goto done;
             }
             u = dt / s->x9C;
@@ -451,7 +451,7 @@ done:
         float g;
         v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        func_00204660(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
+        SetStepTargetHeading(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
         if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (IsJtStuck(s->po, 0, s->x8))
@@ -1086,7 +1086,7 @@ extern "C" int ShouldJtVetoDamage(JTHURT *hurt, ZPR *damage)
 // JT vtable slot 93 (hero died): closes Sly's eyes, then the STEPPLAYER base.
 extern "C" void OnJtDeath(STEPPLAYER *player)
 {
-    func_001F80D0(player, 1.0f);
+    SetSoEyesClosed(player, 1.0f);
     OnStepplayerHeroDied(player);
 }
 
@@ -1141,7 +1141,7 @@ struct CLOCK {float time,dt;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword GetLoWorldPos(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
-extern "C" P*func_001F7598(HIT*);
+extern "C" P*DeliverZapToSo(HIT*);
 extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
@@ -1180,7 +1180,7 @@ extern "C" void UpdateStepplayerWater(P*player){
    hit.kind=player->link->kind;
    hit.point.q=GetLoWorldPos(player);
    hit.direction.q=Direction(player);
-   (void)func_001F7598(&hit);
+   (void)DeliverZapToSo(&hit);
   }
  }
  if(!player->link->effect)return;
@@ -1230,9 +1230,9 @@ extern "C" {
 extern qword D_002A2DD0;
 qword GetLoWorldPos(void *p);
 void *AllocFromStack(MSG *pmsg);
-int func_001F7E08(L *pl, void *pfn, int n, void *pv);
-int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
-void func_00229D60(void);
+int CollectSoParts(L *pl, void *pfn, int n, void *pv);
+int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
+void CanWaterInflictZap(void);
 int ProbeStepplayerSurface(O *po, L *pl, qword *pv);
 }
 /** @sly2-annot addr=0x1A2788
@@ -1262,8 +1262,8 @@ int ProbeStepplayerSurface(O *object, L *pl, qword *pv)
     message->cb = pl->xE0 * 4;
     message->nKind = 0x10;
     void *pbuf = AllocFromStack(message);
-    int n = func_001F7E08(pl, (void *)func_00229D60, 0, pbuf);
-    if (!ClsgClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
+    int n = CollectSoParts(pl, (void *)CanWaterInflictZap, 0, pbuf);
+    if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;
     qword r;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(hit.pos), "j"(off.q));
@@ -1293,7 +1293,7 @@ struct P {
 extern struct CLOCK D_002DDED0;
 int ProbeStepplayerSurface(struct P *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
-void func_002297F8(struct P *p,void *o);
+void AddSoWaterAcceleration(struct P *p,void *o);
 qword GetLoWorldPos(struct P *p);
 float GSmoothA__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
@@ -1323,7 +1323,7 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
  case 7:
  vertical:
   origin.q=GetVel(player);
-  if(origin.f[2]<0.0f) func_002297F8(player,o);
+  if(origin.f[2]<0.0f) AddSoWaterAcceleration(player,o);
   break;
  case 3:case 10:
   if(!ProbeStepplayerSurface(player,o,&pos.q)) break;
@@ -1345,7 +1345,7 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   AddSoAcceleration(player,accel.q);
   break;
  default:
-  func_002297F8(player,o);
+  AddSoWaterAcceleration(player,o);
   break;
  }
 }

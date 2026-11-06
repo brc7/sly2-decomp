@@ -1,6 +1,10 @@
-// step.cpp -- STEP (step.h, a PO that walks: guards and players derive from it): init/load/clone, physics part
-// binding (SetStepPhys/UpdateStepPhys), acceleration presets, contact adjustment (floor contact, custom and axis
-// contacts), heading and facing, the behaviour stack accessors and transform matching.
+// step.cpp -- STEP (a PO that walks on legs: the guards and the player characters derive from it).
+// Role: the walking body's physics on top of SO/PO: a "phys" collision part that the body part smoothly follows,
+// steering toward a target heading, a cached floor contact (base) found by a ground probe, contact adjustments
+// (friction and closing speed on the floor), terrain fitting with a two-triangle footprint, the behaviour stack
+// (BHVSTK) accessors and transform matching. Entry points: STEP::Init, LoadStepFromBrx, PostStepLoad, UpdateStep
+// (slot 16), PresetStepAccel (slot 70), the contact slots 54-60, SetStepTargetHeading / FaceStepToward,
+// PushStepBehavior / FindStepBehavior.
 // TU 0x203948..0x205E70 (45 functions, address order); the linkonce setter 0x259D18 is an inline function in
 // sly2/step.h.
 //
@@ -29,25 +33,25 @@ void ClonePo(PO *ppo, PO *ppoBase);
 void CloneBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 void RenderSoSelf(SO *pso, void *pcm, void *pro);
 qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);
-int func_001F8300(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
-SOPART *PsopartFindSo(SO *pso, OID oid);
+int EnsureSoPhysRegionRecord(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
+SOPART *FindSoPart(SO *pso, OID oid);
 void SetStepPhys(STEP *pstep, SOPART *ppart, int n);
 void TranslateSoToPos(SO *pso, qword pos);
 void RotateSoToMat(SO *pso, MATRIX3 *pmat);
-void func_00204660(STEP *pstep, float rad);
-float RadStepHeading(STEP *pstep);
+void SetStepTargetHeading(STEP *pstep, float rad);
+float GetStepHeading(STEP *pstep);
 float atan2f(float y, float x);
-void func_001F5988(SO *pso, SO *psoOther);
+void OnSoContactFreed(SO *pso, SO *psoOther);
 BHV *PushBhvstk(BHVSTK *pbhvstk);
 BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, CID cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
-struct S { char pad[0x200]; float g200; char p1[0x10]; float g214; char p2[8]; float g220; char p3[0x3C]; float g260; int n264; char p4[4]; char x26C[4]; };
+struct S { char pad[0x200]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
 void InitPo(struct S *p);
-void func_00204D48(struct S *p, float g);
-void func_00204660(struct S *p, float g);
+void ScaleStepSpinSpeed(struct S *p, float g);
+void SetStepTargetHeading(struct S *p, float g);
 void InitBhvstk(void *pv, struct S *p);
 /** @sly2-annot addr=0x203948
  * Purpose: STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius
@@ -58,19 +62,21 @@ void InitBhvstk(void *pv, struct S *p);
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
 } } // namespace M_InitStep
+// Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
+// 0, base radius 30, step-down height -50, and the behaviour stack.
 void STEP::Init()
 {
     using namespace M_InitStep;
     M_InitStep::S *p = (M_InitStep::S *)this;
     InitPo(p);
-    p->n264 = -1;
-    p->g260 = 1.0f;
-    p->g200 = 1.0f;
-    func_00204D48(p, 1.0f);
-    func_00204660(p, 0.0f);
-    p->g220 = 30.0f;
-    p->g214 = -50.0f;
-    InitBhvstk(p->x26C, p);
+    p->physPartOid = -1;
+    p->gravityRatio = 1.0f;
+    p->unknownRatio200 = 1.0f;
+    ScaleStepSpinSpeed(p, 1.0f);
+    SetStepTargetHeading(p, 0.0f);
+    p->baseRadius = 30.0f;
+    p->stepDownHeight = -50.0f;
+    InitBhvstk(p->behaviorStack, p);
 }
 
 /** @sly2-annot addr=0x2039C0
@@ -81,11 +87,13 @@ void STEP::Init()
  * See: docs/engine/guards-ai.md#9-key-functions, docs/engine/player.md#11-key-functions,
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
-extern "C" void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis)
+// Slot 14 (LoadFromBrx): LoadPoFromBrx, caches the base position in parent space (+0x240) and ensures the physics
+// region record.
+extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
-    LoadPoFromBrx(pstep, pbis);
-    pstep->qwUnk240 = ConvertAloPos(pstep->psoParent, pstep, D_002A2DD0);
-    func_001F8300(pstep);
+    LoadPoFromBrx(step, stream);
+    step->qwUnk240 = ConvertAloPos(step->psoParent, step, D_002A2DD0);
+    EnsureSoPhysRegionRecord(step);
 }
 
 /** @sly2-annot addr=0x203A08
@@ -94,21 +102,22 @@ extern "C" void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void CloneStep(STEP *pstep, STEP *pstepBase)
+// Slot 41 (Clone): ClonePo, then points the behaviour stack's owner at the clone.
+extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 {
-    ClonePo(pstep, pstepBase);
-    CloneBhvstk(&pstep->bhvstk, pstep);
+    ClonePo(step, pstepBase);
+    CloneBhvstk(&step->bhvstk, step);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad { extern "C" {
-struct S { char pad[0x58]; int n58; int n5C; char pad2[0x294 - 0x60]; int x294; };
-struct O { char pad[0x264]; int oid; void *p268; char x26C[0x28]; int x294; };
+struct S { char pad[0x58]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
+struct O { char pad[0x264]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
 void PostSoLoad(struct O *p);
-int func_001E94B0(int a, int b);
+int NewSampledShape(int a, int b);
 void func_002303A0(struct O *p, int n, int f);
-void *PsopartFindSo(struct O *p, int oid);
-void func_00203AF0(struct O *p, void *pv);
+void *FindSoPart(struct O *p, int oid);
+void BuildStepPhysPart(struct O *p, void *pv);
 void HideSoPart(struct O *p, void *pv);
 void PostBhvstkLoad(void *pv);
 /** @sly2-annot addr=0x203A38
@@ -120,20 +129,22 @@ void PostBhvstkLoad(void *pv);
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void PostStepLoad(struct O *p)
+// Slot 15 (PostLoad): PostSoLoad, allocates the step's runtime block, attaches its two child objects by oid and
+// builds the collision ("phys") part from the mesh part named by oid +0x264 (BuildStepPhysPart).
+void PostStepLoad(struct O *step)
 {
-    PostSoLoad(p);
-    p->x294 = func_001E94B0(0x2C9, 0x10);
-    func_002303A0(p, ((struct S *)p)->n58, 1);
-    func_002303A0(p, ((struct S *)p)->n5C, 1);
-    if (p->oid != -1) {
-        p->p268 = PsopartFindSo(p, p->oid);
-        if (p->p268) {
-            func_00203AF0(p, p->p268);
-            HideSoPart(p, p->p268);
+    PostSoLoad(step);
+    step->sampledShape = NewSampledShape(0x2C9, 0x10);
+    func_002303A0(step, ((struct S *)step)->childOid0, 1);
+    func_002303A0(step, ((struct S *)step)->childOid1, 1);
+    if (step->oid != -1) {
+        step->ownPart = FindSoPart(step, step->oid);
+        if (step->ownPart) {
+            BuildStepPhysPart(step, step->ownPart);
+            HideSoPart(step, step->ownPart);
         }
     }
-    PostBhvstkLoad(p->x26C);
+    PostBhvstkLoad(step->behaviorStack);
 }
 } } // namespace M_PostStepLoad
 
@@ -143,9 +154,10 @@ void PostStepLoad(struct O *p)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void RenderStepSelf(STEP *pstep, void *pcm, void *pro)
+// Slot 19 (RenderSelf): just RenderSoSelf.
+extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
 {
-    RenderSoSelf(pstep, pcm, pro);
+    RenderSoSelf(step, pcm, pro);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -162,8 +174,8 @@ struct Q0 { char pad[0x40]; char a40[1]; };
 struct Q { struct Q0 *p0; char pad[0x1C - 4]; int c; char pad2[0x78 - 0x20]; char a78[4]; void *p7C; char pad3[0x90 - 0x80]; char a90[4]; char *p94; };
 struct M { char pad[0x1C]; int n1C; char pad2[0x78 - 0x20]; int n78; };
 struct S {
-    char pad0[0x28]; unsigned long fl28; char pad1[0x60 - 0x30]; void *p60; char pad2[0xE0 - 0x64]; int nE0; char *pE4;
-    char pad3[0x210 - 0xE8]; float f210; int n214; char *p218; char *p21C; char pad4[0x240 - 0x220]; qword q240;
+    char pad0[0x28]; unsigned long fl28; char pad1[0x60 - 0x30]; void *p60; char pad2[0xE0 - 0x64]; int numParts; char *parts;
+    char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword q240;
     char pad5[0x258 - 0x250]; struct Q *pq;
 };
 extern const float D_002A85F0;   /* defined below where the ELF has it (.rodata order) */
@@ -172,8 +184,8 @@ extern qword D_002A2DD0;
 void RemoveSoParts(struct S *p);
 void AddSoParts(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-void func_001F70C0(struct M *m, void *p, int k, struct Q *q);
-void func_001F6C08(struct Q *q);
+void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q);
+void EnsureSoPartMesh(struct Q *q);
 void UpdateGeomWorld(void *a, void *b, void *c);
 
 /** @sly2-annot addr=0x203AF0
@@ -184,50 +196,52 @@ void UpdateGeomWorld(void *a, void *b, void *c);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00203AF0(struct S *p, struct M *m)
+// Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
+// point as the base height (+0x210) and adds two helper points. (inferred)
+void BuildStepPhysPart(struct S *step, struct M *m)
 {
     int n, fl, i, c;
     float mn;
     U u;
     qword r;
-    if ((int)(p->fl28 >> 60) & 1)
-        RemoveSoParts(p);
-    n = p->nE0;
-    p->nE0 = n + 1;
+    if ((int)(step->fl28 >> 60) & 1)
+        RemoveSoParts(step);
+    n = step->numParts;
+    step->numParts = n + 1;
     fl = 0;
-    p->pq = (struct Q *)(p->pE4 + n * 0xB0);
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34))
+    step->pq = (struct Q *)(step->parts + n * 0xB0);
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
         fl = m->n1C == m->n78;
-    func_001F70C0(m, p->p60, !fl ? 2 : 3, p->pq);
-    func_001F6C08(p->pq);
+    CloneSoPartGeomInserting(m, step->p60, !fl ? 2 : 3, step->pq);
+    EnsureSoPartMesh(step->pq);
     mn = D_002A85F0;
-    for (i = 0; i < p->pq->c; i++) {
-        float e = ((struct E *)p->pq->p7C)[i].c;
+    for (i = 0; i < step->pq->c; i++) {
+        float e = ((struct E *)step->pq->p7C)[i].c;
         mn = (e > mn) ? mn : e;
     }
-    p->f210 = mn;
-    c = p->pq->c;
-    p->pq->c = c + 2;
-    {register struct Q *mesh __asm__("$4")=p->pq;
-     register qword point __asm__("$3")=p->q240;
+    step->baseHeight = mn;
+    c = step->pq->c;
+    step->pq->c = c + 2;
+    {register struct Q *mesh __asm__("$4")=step->pq;
+     register qword point __asm__("$3")=step->q240;
      ((qword *)mesh->p7C)[c]=point;}
     {register int word __asm__("$2");
      register struct Q *mesh __asm__("$3");
      register qword *dst __asm__("$2");
-     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(p->n214),"m"(p->pq));
+     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->pq));
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
      dst=(qword *)mesh->p7C;
-     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(p->q240),"j"(D_002A2DC0),"j"(value));
+     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->q240),"j"(D_002A2DC0),"j"(value));
      {qword *slot=(qword *)(c*16+(int)dst);
      u.q=value;
      slot[1]=r;}}}
     if (fl)
-        ((qword *)p->pq->p7C)[c + 2] = D_002A2DD0;
-    UpdateGeomWorld(p->pq->p0->a40, p->pq->a78, p->pq->a90);
-    p->p218 = p->pq->p94 + c * 16;
-    p->p21C = p->pq->p94 + (c * 16 + 0x10);
-    if ((int)(p->fl28 >> 60) & 1)
-        AddSoParts(p);
+        ((qword *)step->pq->p7C)[c + 2] = D_002A2DD0;
+    UpdateGeomWorld(step->pq->p0->a40, step->pq->a78, step->pq->a90);
+    step->basePoint = step->pq->p94 + c * 16;
+    step->topPoint = step->pq->p94 + (c * 16 + 0x10);
+    if ((int)(step->fl28 >> 60) & 1)
+        AddSoParts(step);
 }
 } } // namespace M_func_00203AF0
 
@@ -237,12 +251,13 @@ void func_00203AF0(struct S *p, struct M *m)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00203CB8(STEP *pstep, OID oid, int n)
+// Looks up a part by oid and makes it the current phys shape (SetStepPhys).
+extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
 {
     SOPART *ppart;
-    ppart = PsopartFindSo(pstep, oid);
+    ppart = FindSoPart(step, oid);
     if (ppart != 0) {
-        SetStepPhys(pstep, ppart, n);
+        SetStepPhys(step, ppart, n);
     }
 }
 
@@ -259,7 +274,7 @@ struct S { char pad[0x258]; struct M *pm0; struct M *pm1; };
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void func_001F4BF8(struct S *p);
+void InvalidateSoAaox(struct S *p);
 /** @sly2-annot addr=0x203D00
  * Purpose: Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body
  *   part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts)
@@ -269,21 +284,23 @@ void func_001F4BF8(struct S *p);
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void SetStepPhys(struct S *p, struct M *pm, int f)
+// Sets the current phys part (+0x25C). With fForceSnap the body part (+0x258) takes its points at once (in the body
+// part's frame) and the per-point velocities are cleared.
+void SetStepPhys(struct S *step, struct M *pm, int f)
 {
-    p->pm1 = pm;
+    step->pm1 = pm;
     if (f) {
         MATRIX4 m, mm, mi;
         MATRIX4 *pmm = &mm;
         MATRIX4 *pmi = &mi;
         int i;
         qword *ps, *pd;
-        InvertMatrix4RigidP(&mi, &p->pm0->px->m);
-        __ml__FRC7MATRIX4T0(pmm, pmi, &p->pm1->px->m);
+        InvertMatrix4RigidP(&mi, &step->pm0->px->m);
+        __ml__FRC7MATRIX4T0(pmm, pmi, &step->pm1->px->m);
         m = mm;
-        ps = p->pm1->av;
-        pd = p->pm0->av;
-        i = p->pm1->c;
+        ps = step->pm1->av;
+        pd = step->pm0->av;
+        i = step->pm1->c;
         while (--i >= 0) {
             qword r;
             __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -292,8 +309,8 @@ void SetStepPhys(struct S *p, struct M *pm, int f)
             ps++;
             pd++;
         }
-        func_002333B4(p->pm0->pb->p, 0, p->pm0->c * 16);
-        func_001F4BF8(p);
+        func_002333B4(step->pm0->pb->p, 0, step->pm0->c * 16);
+        InvalidateSoAaox(step);
     }
 }
 } } // namespace M_SetStepPhys
@@ -334,6 +351,8 @@ static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Per frame: moves each body-part point toward the phys part's point with GSmooth and stores the point's velocity
+// ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
 void UpdateStepPhys(struct S *input)
 {
     void *context=input;
@@ -412,12 +431,13 @@ void UpdateStepPhys(struct S *input)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00203FA0(STEP *pstep, int n)
+// Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
+extern "C" void SetStepNoBase(STEP *step, int n)
 {
-    if (pstep->nUnk204 != n) {
-        pstep->nUnk204 = n;
+    if (step->nUnk204 != n) {
+        step->nUnk204 = n;
         if (n != 0) {
-            pstep->pxpFloor = 0;
+            step->pxpFloor = 0;
         }
     }
 }
@@ -427,9 +447,9 @@ namespace M_UpdateStep { extern "C" {
 struct VT;
 struct S {
     char pad0[0xC]; struct VT *vt;
-    char pad1[0x180 - 0x10]; float f180;
-    char pad2[0x1A4 - 0x184]; int k1A4; float f1A8;
-    char pad3[0x208 - 0x1AC]; int n208; float t20C;
+    char pad1[0x180 - 0x10]; float turnSpeedFactor;
+    char pad2[0x1A4 - 0x184]; int k1A4; float targetHeading;
+    char pad3[0x208 - 0x1AC]; int floorContact; float t20C;
 };
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
@@ -450,15 +470,17 @@ float RadNormalize__Ff(float a);
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void UpdateStep(struct S *p)
+// Slot 16 (Update): UpdateSo, UpdateStepPhys, then the turn-rate speed factor (+0x180) from how far the heading is
+// from the target heading.
+void UpdateStep(struct S *step)
 {
-    UpdateSo(p);
-    UpdateStepPhys(p);
-    switch (p->k1A4) {
+    UpdateSo(step);
+    UpdateStepPhys(step);
+    switch (step->k1A4) {
     case 0: {
-        float *a = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
-        float *b = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
-        float d = RadNormalize__Ff(p->f1A8 - atan2f(a[1], b[0]));
+        float *a = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
+        float *b = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
+        float d = RadNormalize__Ff(step->targetHeading - atan2f(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);
@@ -469,16 +491,16 @@ void UpdateStep(struct S *p)
             else if (hi < f)
                 f = hi;
         }
-        p->f180 = f;
+        step->turnSpeedFactor = f;
         break;
     }
     case -1:
     case 1:
-        p->f180 = 1.0f;
+        step->turnSpeedFactor = 1.0f;
         break;
     }
-    if (p->n208)
-        p->t20C = D_002DDED0.t;
+    if (step->floorContact)
+        step->t20C = D_002DDED0.t;
 }
 } } // namespace M_UpdateStep
 
@@ -489,9 +511,10 @@ void UpdateStep(struct S *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_002040F8(STEP *pstep)
+// Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
+extern "C" int GetStepGroundProbeFlags(STEP *step)
 {
-    return (pstep->nUnk204 != 0) ? 0 : 7;
+    return (step->nUnk204 != 0) ? 0 : 7;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -504,11 +527,11 @@ typedef struct { qword row[3]; } M3;
 union FLOATWORD { float value; int bits; };
 extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
-struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float f1F4, f1F8, f1FC, f200; };
-void func_001F9B20(struct S *p);
+struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
+void PresetSoAccel(struct S *p);
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
-void func_001F59A0(struct S *,M3 *,VECTOR3 *);
+void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *);
 static inline void InitScalar(U *value,int bits) {
     register qword scalar __asm__("vf4");
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
@@ -523,26 +546,28 @@ static inline void InitScalar(U *value,int bits) {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void PresetStepAccel(struct S *p)
+// Slot 70: PresetSoAccel, then steering: mode 0 accelerates the rotation toward the target heading matrix with the
+// spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
+void PresetStepAccel(struct S *step)
 {
-    func_001F9B20(p);
-    switch (p->k) {
+    PresetSoAccel(step);
+    switch (step->k) {
     case 0: {
         VECTOR3 v;
-        float s = p->f200;
-        v.z = p->f1FC;
-        v.x = p->f1F4 * s;
-        v.y = p->f1F8 * s;
-        func_001F59A0(p, &p->desired, &v);
+        float s = step->unknownRatio200;
+        v.z = step->spinFastTime;
+        v.x = step->spinFastSpeed * s;
+        v.y = step->spinSlowSpeed * s;
+        AccelSoTowardMatBounded(step, &step->desired, &v);
         break;
     }
     case 1: {
-        register struct O *po __asm__("$3") = p->po;
+        register struct O *po __asm__("$3") = step->po;
         U u;
         register qword d __asm__("vf3");         register qword vel __asm__("vf2");
         char*page=ClockPage();
         int word;
-        d=p->v1E0;
+        d=step->v1E0;
         word=ClockWord(page);
         vel = po->angularForce;
         __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(po->angularVelocity));
@@ -565,10 +590,11 @@ void PresetStepAccel(struct S *p)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" void TranslateStepToPos(STEP *pstep, qword pos)
+// Slot 29: TranslateSoToPos, then refreshes the world base position (+0x230) from the local one (+0x240).
+extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
-    TranslateSoToPos(pstep, pos);
-    pstep->qwUnk230 = ConvertAloPos(pstep, 0, pstep->qwUnk240);
+    TranslateSoToPos(step, pos);
+    step->qwUnk230 = ConvertAloPos(step, 0, step->qwUnk240);
 }
 
 /** @sly2-annot addr=0x2041F8
@@ -578,14 +604,15 @@ extern "C" void TranslateStepToPos(STEP *pstep, qword pos)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
+// Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.
+extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
 {
     POCTL *pctl;
-    RotateSoToMat(pstep, pmat);
-    func_00204660(pstep, RadStepHeading(pstep));
-    pctl = pstep->pctl;
+    RotateSoToMat(step, matrix);
+    SetStepTargetHeading(step, GetStepHeading(step));
+    pctl = step->pctl;
     if (pctl != 0) {
-        pctl->radLeft = pstep->radTarget;
+        pctl->radLeft = step->radTarget;
     }
 }
 
@@ -595,7 +622,9 @@ extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_00204248()
+// Slot 63 (so.h CpartExtra): a STEP has one extra part, the phys part built by BuildStepPhysPart; the SO
+// default (GetSoExtraPartCount) answers 0 (inferred from the slot name).
+extern "C" int GetStepExtraPartCount()
 {
     return 1;
 }
@@ -603,7 +632,7 @@ extern "C" int func_00204248()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustStepNewXp { extern "C" {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
-   side-facing kinds add a horizontal response contact (kind 10) through PxpAdd. */
+   side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
@@ -614,8 +643,8 @@ extern char D_003DD490[];
 extern qword D_002A2DA0;
 extern float D_002C3C60[];
 extern float D_002C3C90;   /* base contact friction */
-void func_001F4FB0(void);
-void PxpAdd(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
+void AdjustSoNewXp(void);
+void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
@@ -676,23 +705,25 @@ static inline qword AddScaled(const qword *pa, qword b, float g)
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void AdjustStepNewXp(struct P *p, struct XP *x, int side)
+// Slot 55: sets up a new contact: resets friction and response; a floor contact (kind 14) with an upward normal
+// (z > 0.7) gets the step's floor friction and a force limit from its weight.
+void AdjustStepNewXp(struct P *step, struct XP *x, int side)
 {
     U dir, diff, point;
     float d;
     float sign;
     int kind;
-    func_001F4FB0();
+    AdjustSoNewXp();
     kind = x->kind;
     x->friction = 0.0f;
     x->response = 0.0f;
     if (kind == 14) {
         if (x->normal.f[2] > 0.7f) {
             x->friction = D_002C3C90;
-            x->lower = p->state->mass * -4500.0f;
-            x->upper = p->state->mass * 9000.0f;
+            x->lower = step->state->mass * -4500.0f;
+            x->upper = step->state->mass * 9000.0f;
         } else
-            x->upper = p->state->mass * 9000.0f;
+            x->upper = step->state->mass * 9000.0f;
         return;
     }
     if (kind != 3) {
@@ -711,7 +742,7 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
         diff.q = Sub(&x->ae[side].pos, &x->ae[1 - side].pos);
         d = Dot(diff.q, dir.q);
         point.q = AddScaled(&x->ae[1 - side].pos, dir.q, d);
-        PxpAdd(D_003DD490, p->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
+        AddXp(D_003DD490, step->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
     }
 }
 } } // namespace M_AdjustStepNewXp
@@ -719,7 +750,7 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustStepXpVelocity {
 // AdjustStepXpVelocity: a STEP's contact-velocity adjustment (vtable slot 56; Sly 1 has AdjustStepXpVelocity(STEP *, XP *, int)).
-// After the base version (func_001F4FC0), for a kind-0xE contact: the closing speed along the contact normal is smoothed
+// After the base version (AdjustSoXpVelocity), for a kind-0xE contact: the closing speed along the contact normal is smoothed
 // with GSmooth (GSmooth) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
 // dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * vUnk190 without its part along the
 // normal) * gUnk180. Finally the contact distance moves by gUnk210 - gUnk248.
@@ -777,7 +808,7 @@ extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
 extern "C" float D_002C3CA8[3];
 
-extern "C" { void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd); }
+extern "C" { void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd); }
 extern "C" { float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
 
 static inline qword QwSub(qword a, qword b)
@@ -848,16 +879,18 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void AdjustStepXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd)
+// Slot 57: for floor contacts (kind 14) smooths the closing speed with GSmooth, limited to dt * 9000, so the step
+// settles onto the floor without bouncing.
+extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd)
 {
-    func_001F4FC0(pstep, pxp, ixpd);
+    AdjustSoXpVelocity(step, pxp, ixpd);
     if (pxp->xpk != 0xE)
         return;
 
     float gVn = FloatOfVf(QwDot(QwSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    GSmooth__FfffP3SMPPf(pxp->gDist, pstep->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
+    GSmooth__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
     GSmooth__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.dt, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
@@ -874,14 +907,14 @@ extern "C" void AdjustStepXpVelocity(struct STEP *pstep, struct XP *pxp, int ixp
     }
 
     struct XPD *pxpd = &pxp->axpd[ixpd];
-    struct M3 *pmat = &pstep->matTarget;
-    qword v = QwRotate(pmat, pstep->vUnk190);
+    struct M3 *pmat = &step->matTarget;
+    qword v = QwRotate(pmat, step->vUnk190);
     qword normal = pxp->normal;
     qword vT = QwSub(v, QwScale(normal, QwDot(v, normal)));
     struct VU_FLOAT vuVn = VuFloat(-gVn);
-    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&pstep->gUnk180);
+    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->gUnk180);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);
-    pxp->gDist += pstep->gUnk210 - pstep->gUnk248;
+    pxp->gDist += step->gUnk210 - step->gUnk248;
 }
 } // namespace M_AdjustStepXpVelocity
 
@@ -900,58 +933,62 @@ struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204660(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
+// Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
+void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
 } } // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepRadTargetVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 float atan2f(float y, float x);
-void func_00204660(void *p, float g);
+void SetStepTargetHeading(void *p, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x2046B0
  * Purpose: SetStepRadTarget(atan2(v.y, v.x)) for a direction vector
- * Info: proposed name SetStepRadTargetVec (T1); TU step
+ * Info: proposed name SetStepTargetHeadingFromVector (T1); TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void SetStepRadTargetVec(void *p, qword v) { func_00204660(p, atan2f(GetY(v), GetX(v))); }
+// Sets the target heading toward a direction vector (atan2 of its y and x).
+void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(GetY(v), GetX(v))); }
 } } // namespace M_SetStepRadTargetVec
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FaceStepToward { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p);
-void SetStepRadTargetVec(void *p, qword v);
+void SetStepTargetHeadingFromVector(void *p, qword v);
 /** @sly2-annot addr=0x2046F0
- * Purpose: Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this))
+ * Purpose: Turn toward another LO: SetStepTargetHeadingFromVector(PosLoWorld(lo) - PosLoWorld(this))
  * Info: proposed name FaceStepToward (T1); TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void FaceStepToward(void *p, void *q)
+// Turns the target heading toward another object's world position.
+void FaceStepToward(void *step, void *q)
 {
     qword a, b, d;
     a = GetLoWorldPos(q);
-    b = GetLoWorldPos(p);
+    b = GetLoWorldPos(step);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    SetStepRadTargetVec(p, d);
+    SetStepTargetHeadingFromVector(step, d);
 }
 } } // namespace M_FaceStepToward
 
 /** @sly2-annot addr=0x204740
  * Purpose: Current heading = atan2(xf.mat[0][1], xf.mat[0][0])
- * Info: proposed name RadStepHeading (T1); TU step
+ * Info: proposed name GetStepHeading (T1); TU step
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 /* The heading of the step's root transform (atan2 of its world x axis). */
-extern "C" float RadStepHeading(STEP *pstep)
+// Returns the current heading: atan2 of the rotation matrix's first row (y, x).
+extern "C" float GetStepHeading(STEP *step)
 {
-    XF *pxf = pstep->pxfRoot;
+    XF *pxf = step->pxfRoot;
     return atan2f(pxf->matWorld.mat[0][1], pxf->matWorld.mat[0][0]);
 }
 
@@ -969,7 +1006,7 @@ extern const float D_002A85F4;   /* defined below where the ELF has it (.rodata 
 extern float D_002DDED0;
 struct SW;
 extern struct SW D_003DD490;
-void func_001F4F10(struct P *);
+void AdjustSoXps(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *);
 static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;}
 /** @sly2-annot addr=0x204768
@@ -980,17 +1017,19 @@ static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigne
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00204768(struct P *p)
+// Slot 58: base AdjustSoXps, then keeps only the best floor contact (kind 14, lowest distance) as the cached base
+// contact (+0x208) with its stamp (+0x20C) and position (+0x230).
+void AdjustStepXps(struct P *step)
 {
     struct N *best;
     struct L *group;
-    func_001F4F10(p);
+    AdjustSoXps(step);
     {
         float value=D_002A85F4;
-        group=p->g->groups;
+        group=step->g->groups;
         best=0;
         for(;;){
-            struct N *node=group?group->first:p->g->def;
+            struct N *node=group?group->first:step->g->def;
             for(;node;node=node->next){
                 if(node->kind==14 && node->value<value){value=node->value;best=node;}
             }
@@ -998,16 +1037,16 @@ void func_00204768(struct P *p)
             group=group->next;
         }
     }
-    p->best=best;
-    if(best){p->t=D_002DDED0;p->position=*(qword *)((char *)best+0x50);}
+    step->best=best;
+    if(best){step->t=D_002DDED0;step->position=*(qword *)((char *)best+0x50);}
     {
         struct N *removed=0;
-        group=p->g->groups;
+        group=step->g->groups;
         for(;;){
-            struct N **link=group?&group->first:&p->g->def;
+            struct N **link=group?&group->first:&step->g->def;
             struct N *node;
             while((node=*link)!=0){
-                if(Other(node,p)==p && node->kind==14 && node!=best){
+                if(Other(node,step)==step && node->kind==14 && node!=best){
                     *link=node->next;
                     node->next=removed;
                     removed=node;
@@ -1024,7 +1063,7 @@ void func_00204768(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002048C8 { extern "C" {
-// func_002048C8 (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
+// HasStepFloorNearby (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 union V {qword q;float f[4];};
@@ -1041,13 +1080,15 @@ static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-int func_002048C8(struct P *p,qword position,struct GEOM *g,struct POLY *first)
+// Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
+// one whose height is inside the step-height window: there is floor nearby to step onto. (inferred)
+int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
     union V closest;
     float distance;
     int count=1,current=0;
-    float delta=p->height-p->previous;
+    float delta=step->height-step->previous;
     float limit=delta*1.45f;
     float maximumNormal=0.7f;
     queue[0]=first;
@@ -1090,16 +1131,16 @@ struct VE { short d; short pad; unsigned int (*pf)(void *); };
 struct EC { char pad[0x60]; void *p60; };
 struct X4 { char pad[0xEC]; struct EC *pec; };
 struct X { int pad; struct X4 *p4; };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; qword *p21C; char pad3[0x258 - 0x220]; void *p258; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword q10; qword normal; qword q30; float t; int n44; int n48; int n4C; char pad[0x10]; };
 extern qword D_002A2DC0;
 extern char D_003DD490[];
-void func_001F5990(void);
+void AddSoCustomXps(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
-int ClsgClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
-int func_002048C8(struct S *p, qword v, struct X *x, int n);
-void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
+int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
+int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n);
+void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
 
 /** @sly2-annot addr=0x204AC8
  * Purpose: STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a
@@ -1108,20 +1149,22 @@ void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
+// Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
+// adds a floor contact (kind 14) at the hit.
+void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;
     struct HIT hit;
     qword pos, n, d, tmp;
     float f;
-    func_001F5990();
-    fl = p->vt[85].pf((char *)p + p->vt[85].d);
+    AddSoCustomXps();
+    fl = step->vt[85].pf((char *)step + step->vt[85].d);
     if ((fl & 1) == 0)
         return;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
         return;
-    pos = GetLoWorldPos(p);
-    if (ClsgClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
+    pos = GetLoWorldPos(step);
+    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & 8)
@@ -1130,14 +1173,14 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
             n = D_002A2DC0;
         else if (hit.n48)
             n = hit.normal;
-        else if (func_002048C8(p, *p->p218, x, hit.n4C))
+        else if (HasStepFloorNearby(step, *step->basePoint, x, hit.n4C))
             n = D_002A2DC0;
         else
             n = hit.normal;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*p->p218), "j"(hit.pos));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->basePoint), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        PxpAdd(D_003DD490, p->p258, x, *p->p218, n, 0xE, 0, 0, a5, f);
+        AddXp(D_003DD490, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);
     }
 }
 } } // namespace M_AddStepCustomXps
@@ -1151,13 +1194,14 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void OnStepSoContactFreed(STEP *pstep, SO *pso)
+// Slot 54: a contact is being freed; drops the cached floor contact if it is that one.
+extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 {
     XP *pxp;
-    func_001F5988(pstep, pso);
-    pxp = pstep->pxpFloor;
-    if ((pxp != 0) && (PSO_XP(pxp) == pso)) {
-        pstep->pxpFloor = 0;
+    OnSoContactFreed(step, object);
+    pxp = step->pxpFloor;
+    if ((pxp != 0) && (PSO_XP(pxp) == object)) {
+        step->pxpFloor = 0;
     }
 }
 
@@ -1176,15 +1220,17 @@ void RadSmooth__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void FixStepAngularVelocity(struct S *p)
+// Smooths the heading toward the target heading (RadSmooth with the spin parameters) and sets the resulting
+// angular velocity about Z.
+void FixStepAngularVelocity(struct S *step)
 {
     U v;
     float *a, *b;
-    v.q = p->pb->v;
-    a = ((float *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d);
-    b = ((float *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d);
-    RadSmooth__FfffP3SMPPf(atan2f(a[1], b[0]), p->g, 0.0f, &p->x, &v.f[2]);
-    ((void (*)(void *, qword))p->vt[36].pfn)((char *)p + p->vt[36].d, v.q);
+    v.q = step->pb->v;
+    a = ((float *(*)(void *))step->vt[31].pfn)((char *)step + step->vt[31].d);
+    b = ((float *(*)(void *))step->vt[31].pfn)((char *)step + step->vt[31].d);
+    RadSmooth__FfffP3SMPPf(atan2f(a[1], b[0]), step->g, 0.0f, &step->x, &v.f[2]);
+    ((void (*)(void *, qword))step->vt[36].pfn)((char *)step + step->vt[36].d, v.q);
 }
 } } // namespace M_FixStepAngularVelocity
 
@@ -1201,13 +1247,14 @@ struct S { char pad[0x1F0]; float g; VECTOR v; };
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204D48(struct S *p, float g)
+// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (+0x1F0).
+void ScaleStepSpinSpeed(struct S *step, float g)
 {
-    p->v = D_002C3CB8;
-    p->v.x *= g;
-    p->v.y *= g;
-    p->v.z *= 1.0f / SqrtF(g);
-    p->g = g;
+    step->v = D_002C3CB8;
+    step->v.x *= g;
+    step->v.y *= g;
+    step->v.z *= 1.0f / SqrtF(g);
+    step->g = g;
 }
 } } // namespace M_func_00204D48
 
@@ -1226,26 +1273,28 @@ extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00204DA8(struct STEP *pstep, float rGravity)
+// Sets the gravity ratio (clamped to >= 0.1): rescales the mass and the gravity vector by the ratio change and
+// stores it (+0x260).
+extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
 {
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    SetSoMass(pstep, pstep->psophys->m * pstep->rUnk260 / r);
+    SetSoMass(step, step->psophys->m * step->rUnk260 / r);
     {
         struct VU_FLOAT vuR;
-        qword qwGrav = *(qword *)&pstep->psophys->dvGravity;
+        qword qwGrav = *(qword *)&step->psophys->dvGravity;
         __asm__("qmtc2 %1, %0" : "=j"(vuR.qw) : "r"(r));
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwScaled) : "j"(qwGrav), "j"(vuR.qw));
     }
     {
         struct VU_FLOAT vuOld;
         qword qwResult;
-        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&pstep->rUnk260));
+        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->rUnk260));
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qwResult) : "j"(qwScaled), "j"(vuOld.qw));
-        *(qword *)&pstep->psophys->dvGravity = qwResult;
+        *(qword *)&step->psophys->dvGravity = qwResult;
     }
-    pstep->rUnk260 = r;
+    step->rUnk260 = r;
 }
 } // namespace M_func_00204DA8
 
@@ -1269,11 +1318,12 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r7b_guard+top50_round
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-qword func_00204E38(void *p, struct Q *q, float g)
+// If the step's animation (ASEGA) is live, evaluates its translation channel for this object; else zero.
+qword GetStepAsegaTranslation(void *step, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
-        struct X *x = func_0012FF10(q->table, p, 1, 1);
+        struct X *x = func_0012FF10(q->table, step, 1, 1);
         if (x) {
             struct O *o = x->po;
             ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
@@ -1300,11 +1350,12 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-qword func_00204ED8(void *p, struct Q *q, float g)
+// Same as GetStepAsegaTranslation for the rotation channel.
+qword GetStepAsegaRotation(void *step, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
-        struct X *x = func_0012FF10(q->table, p, 6, 1);
+        struct X *x = func_0012FF10(q->table, step, 6, 1);
         if (x) {
             struct O *o = x->po;
             ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
@@ -1321,7 +1372,7 @@ extern struct G D_003DD490;
 struct O { char pad[0x10]; struct O *pParent; char p2[0xEC - 0x14]; void *pvEC; };
 void *GetSoFromLo(void *pv);
 void UpdateSwPox(struct G *pg, void *a, void *b, int n);
-void func_001F4BF8(struct O *p);
+void InvalidateSoAaox(struct O *p);
 /** @sly2-annot addr=0x204F78
  * Purpose: Find the SO with an attachment record up plo's parent chain and link/unlink (0x133A38 g_sw, f?1:2)
  *   this step's attachment with it, then 0x1F4BF8
@@ -1329,18 +1380,20 @@ void func_001F4BF8(struct O *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204F78(struct O *p, void *pv, int f)
+// Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
+// attachment pair through UpdateSwPox. (inferred)
+void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)GetSoFromLo(pv);
     while (o && !o->pvEC) o = o->pParent;
-    if (p->pvEC && o && o->pvEC) UpdateSwPox(&D_003DD490, p->pvEC, o->pvEC, f ? 1 : 2);
-    func_001F4BF8(p);
+    if (step->pvEC && o && o->pvEC) UpdateSwPox(&D_003DD490, step->pvEC, o->pvEC, f ? 1 : 2);
+    InvalidateSoAaox(step);
 }
 } } // namespace M_func_00204F78
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepAxisXps {
-// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (PxpAdd 0x1A7C18) for a point
+// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
 // against the three axes of the frame BuildOrthonormalMatrixZ(direction, g_normalZ) builds. The contacts go
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.
@@ -1358,7 +1411,7 @@ extern "C" { extern qword D_002A2DC0; }   // g_normalZ
 extern "C" {
 SO *GetSoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
-void PxpAdd(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
+void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // AddXp
 }
 static inline qword Sub(const qword &a, const qword &b) {
     qword r;
@@ -1377,14 +1430,16 @@ static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"
 static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 /** @sly2-annot addr=0x205008
- * Purpose: STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
+ * Purpose: STEP vt82: add up to 3 contacts (AddXp 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
  *   for a point, per grf bits, into the link list shared with plo's zap target
  * Info: proposed name AddStepAxisXps (T1); class STEP slot82; TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword direction, qword pos)
+// Slot 82: adds up to three contacts at a point along the axes of an orthonormal frame built around dir, one per
+// grf bit.
+extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, qword direction, qword pos)
 {
     XP **ppxpFirst, **ppxpOut;
     SOPART *psopartOther;
@@ -1392,7 +1447,7 @@ extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword 
     ATT *patt, *pattThis;
     if (psoTarget) {
         patt = psoTarget->patt;
-        pattThis = pso->patt;
+        pattThis = object->patt;
         if (!patt) {
             while ((psoTarget = psoTarget->psoParent) != 0) {
                 patt = psoTarget->patt;
@@ -1409,16 +1464,16 @@ extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword 
         psopartOther = psoOwner->patt->psopart;
     } else {
         psopartOther = 0;
-        ppxpFirst = ppxpOut = &pso->patt->pxpFirst;
+        ppxpFirst = ppxpOut = &object->patt->pxpFirst;
     }
     M3 mat = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
-    if ((grf & 1) || ((grf & 8) && X(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);
-    if ((grf & 2) || ((grf & 0x10) && Y(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (grf & 2) ? 11 : 10, 0, 0, ppxpFirst);
-    if ((grf & 4) || ((grf & 0x20) && Z(posLocal) < 0.0001f))
-        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (grf & 4) ? 11 : 14, 0, 0, ppxpFirst);
+    if ((flags & 1) || ((flags & 8) && X(posLocal) < 0.0001f))
+        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[0], X(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
+    if ((flags & 2) || ((flags & 0x10) && Y(posLocal) < 0.0001f))
+        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
+    if ((flags & 4) || ((flags & 0x20) && Z(posLocal) < 0.0001f))
+        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;
 }
 } // namespace M_AddStepAxisXps
@@ -1441,7 +1496,7 @@ typedef struct P {
 } P;
 extern qword D_002A2DD0, D_002A2DC0;
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(B *, int);
-extern void func_001F49C8(P *, B *);
+extern void MatchSoXf(P *, B *);
 static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
  __asm__ volatile("vmulax.xyz $ACC,%3,%7x\n\tvmadday.xyz $ACC,%4,%7y\n\tvmaddaz.xyz $ACC,%5,%7z\n\tvmaddw.xyz %0,%6,$vf0w\n\tqmfc2.ni %1,%0\n\tsqc2 %6,%2"
@@ -1457,7 +1512,9 @@ static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm_
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern void MatchStepXf(P *p, B *other)
+// Slot 38: copies another object's pose (its world matrix, including the base offset +0x240) and resets the
+// velocities; non-STEP sources fall back to MatchSoXf.
+extern void MatchStepXf(P *step, B *other)
 {
     if (!other) return;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 3)) {
@@ -1468,31 +1525,31 @@ extern void MatchStepXf(P *p, B *other)
         VTE *get = &other->vt[31];
         const M4 *source = ((M4 *(*)(B *))get->fn)((B *)((char *)other+get->delta));
         m.row[0] = source->row[0];
-        set = p->base.vt;
+        set = step->base.vt;
         {qword sc = Broadcast(-1.0f);
         m.row[1] = source->row[1];
-        v = MulX(p->offset, sc);
+        v = MulX(step->offset, sc);
         m.row[2] = source->row[2];
         {qword t = Transform(&m,v,source->row[3],&m.row[3]);
-        P *self = (P *)((char *)p+set[29].delta);
+        P *self = (P *)((char *)step+set[29].delta);
         register void (*positionFn)(P*,qword) __asm__("v1")=(void(*)(P*,qword))set[29].fn;
         scale.q = sc;
         positionFn(self, t);}}
-        { VTE *s=p->base.vt; ((void (*)(P *,const M4 *))s[30].fn)((P *)((char *)p+s[30].delta), &m); }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(&p->base,0x34)) {
+        { VTE *s=step->base.vt; ((void (*)(P *,const M4 *))s[30].fn)((P *)((char *)step+s[30].delta), &m); }
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(&step->base,0x34)) {
             qword r;
             qword scq;
-            __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(p->amount.word));
+            __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(step->amount.word));
             scale.q = scq;
             r = m.row[3];
             __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(r) : "j"(D_002A2DC0), "j"(scale.q));
-            p->adjusted = r;
+            step->adjusted = r;
         }
-        { VTE *s=p->base.vt; ((void (*)(P *,qword))s[35].fn)((P *)((char *)p+s[35].delta), D_002A2DD0); }
-        { VTE *s=p->base.vt; ((void (*)(P *,qword))s[36].fn)((P *)((char *)p+s[36].delta), D_002A2DD0); }
-        p->count = 0;
+        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[35].fn)((P *)((char *)step+s[35].delta), D_002A2DD0); }
+        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[36].fn)((P *)((char *)step+s[36].delta), D_002A2DD0); }
+        step->count = 0;
     } else {
-        func_001F49C8(p,other);
+        MatchSoXf(step,other);
     }
 }
 
@@ -1524,9 +1581,10 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
  * See: docs/engine/player.md#3-step-stepcpp-0x203948, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" BHV *func_00205438(STEP *pstep)
+// Pushes a new behaviour of class cid on the step's behaviour stack (+0x26C) and initialises it.
+extern "C" BHV *PushStepBehavior(STEP *step)
 {
-    return PushBhvstk(&pstep->bhvstk);
+    return PushBhvstk(&step->bhvstk);
 }
 
 /** @sly2-annot addr=0x205458
@@ -1536,9 +1594,10 @@ extern "C" BHV *func_00205438(STEP *pstep)
  * See: docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" BHV *func_00205458(STEP *pstep, CID cid)
+// Returns the behaviour of class cid on the step's behaviour stack, or 0.
+extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 {
-    return FindBhvInBhvstk(&pstep->bhvstk, cid);
+    return FindBhvInBhvstk(&step->bhvstk, cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1558,7 +1617,9 @@ void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00205478(struct S *p, int mask)
+// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (+0x2A0); the first reference
+// ensures a state-machine instance (SMA) of the role's dialog SM. (inferred)
+void AddStepDialogSmRefs(struct S *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1566,13 +1627,13 @@ void func_00205478(struct S *p, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (++p->a[i] < 2) {
+            if (++step->a[i] < 2) {
                 int id = func_001FD0C0(D_003DD040, i);
-                void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
+                void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                 if (x) {
-                    void *y = PsmaFindSm__FP2SMP3ALO(x, p);
+                    void *y = PsmaFindSm__FP2SMP3ALO(x, step);
                     if (!y)
-                        PsmaApplySmOut(x, p, -1, 9, &y);
+                        PsmaApplySmOut(x, step, -1, 9, &y);
                 }
             }
         }
@@ -1596,7 +1657,8 @@ void func_001F0598(void *y);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00205588(struct S *p, int mask)
+// Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted. (inferred)
+void RemoveStepDialogSmRefs(struct S *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1604,12 +1666,12 @@ void func_00205588(struct S *p, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (p->a[i] != 0) {
-                if (--p->a[i] <= 0) {
+            if (step->a[i] != 0) {
+                if (--step->a[i] <= 0) {
                     int id = func_001FD0C0(D_003DD040, i);
-                    void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
+                    void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                     if (x) {
-                        void *y = PsmaFindSm__FP2SMP3ALO(x, p);
+                        void *y = PsmaFindSm__FP2SMP3ALO(x, step);
                         if (y)
                             func_001F0598(y);
                     }
@@ -1626,7 +1688,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} V;
 struct P {char pad[0x208];int enabled;};
 extern qword D_002A2DC0;
-void func_002057E8(struct P*,V*);
+void BuildStepFootprint(struct P*,V*);
 int FIntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -1645,7 +1707,9 @@ __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-int func_00205670(struct P*p,qword from,qword to,qword*output)
+// When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
+// and the hit point on a hit.
+int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
 {
  V tri[6],d,k;
  float distance,length;
@@ -1654,8 +1718,8 @@ int func_00205670(struct P*p,qword from,qword to,qword*output)
  register V *third __asm__("s0");
  register V *end __asm__("s2");
  register float *distanceOut __asm__("s3");
- if(!p->enabled)return 0;
- func_002057E8(p,tri);
+ if(!step->enabled)return 0;
+ BuildStepFootprint(step,tri);
  d.q=Sub(&to,&from);
  length=Normal(&d,&D_002A2DC0);
  distanceOut=&distance;third=&tri[2];t=tri;end=tri+6;
@@ -1691,14 +1755,16 @@ static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_002057E8(S *p, qword out[2][3])
+// Builds the two footprint triangles: a diamond of radius +0x220 around the base point (+0x218), oriented by the
+// world matrix.
+extern "C" void BuildStepFootprint(S *step, qword out[2][3])
 {
     qword point[5];
-    qword origin = *p->origin;
-    qword right = GetLoWorldMatrix(p)->r[0];
-    qword forward = LoadVf(&GetLoWorldMatrix(p)->r[1]);
-    point[0] = GetLoWorldPos(p);
-    float radius = p->radius;
+    qword origin = *step->origin;
+    qword right = GetLoWorldMatrix(step)->r[0];
+    qword forward = LoadVf(&GetLoWorldMatrix(step)->r[1]);
+    point[0] = GetLoWorldPos(step);
+    float radius = step->radius;
     point[1] = Add(origin, MulX(right, VU_FLOAT(radius)));
     point[2] = Add(origin, MulX(forward, VU_FLOAT(radius)));
     point[3] = Add(origin, MulX(right, VU_FLOAT(-radius)));
@@ -1715,7 +1781,7 @@ extern "C" void func_002057E8(S *p, qword out[2][3])
 namespace RO_ORDER { extern const float r_D_002A85F8 __asm__("D_002A85F8") = -3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205910 {
-/* func_00205910 (Lilly / Claude agent, T1593): terrain-fit of the crawl probes (our name UpdateCrawlCollide, 0x205910; see
+/* FitStepToTerrain (Lilly / Claude agent, T1593): terrain-fit of the crawl probes (our name UpdateCrawlCollide, 0x205910; see
  * re/symbols: the 3-probe floor follower of the vent crawl, called from UpdateJtGrab case 8).  MATCH, no register pins.
  * What it does: the actor's orientation is turned about the up axis (D_002A2DC0) by its heading (p+0x1A8) into a position+rotation
  * matrix matCur (copied to matOrig); the largest probe radius (length of the local probe points, start -FLT_MAX D_002A85F8) is the
@@ -1818,10 +1884,12 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
  * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
  *   docs/engine/bosses.md#6-open-questions, docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
  * @end-sly2-annot */
-extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
+// Fits the step's orientation to the floor under three probe points (bounding-sphere query and line tests), with
+// the tilt limited to a maximum angle. (inferred)
+extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
-    InitMat(&matCur,Rotation(D_002A2DC0,p->heading),GetLoWorldPos(p));
+    InitMat(&matCur,Rotation(D_002A2DC0,step->heading),GetLoWorldPos(step));
     matOrig=matCur;
     float radius=D_002A85F8;
     for(int i=0;i<pointCount;i++){float length=GLength(localPoints[i]);radius=(radius>length)?radius:length;}
@@ -1829,7 +1897,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
     FRAME *frame=&storage;
     STACKSCOPE_ctor(frame);
     int nearbyCount;void **nearby;
-    IntersectSwBoundingSphere(&D_003DD490,*(qword *)matCur.mat[3],radius,ShouldKeepSoNotSelfSlot62,p->attachment,&nearbyCount,&nearby);
+    IntersectSwBoundingSphere(&D_003DD490,*(qword *)matCur.mat[3],radius,ShouldKeepSoNotSelfSlot62,step->attachment,&nearbyCount,&nearby);
     U points[3];
     U point;
     for(int pass=0;pass<D_002C3CE4;pass++){
@@ -1858,7 +1926,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         *(MATRIX3 *)&matCur=adjustment**pmatOrig;
         matCur.mat[2][3]=0;matCur.mat[1][3]=0;matCur.mat[0][3]=0;
     }
-    p->basis=*(MATRIX3 *)&matCur;
+    step->basis=*(MATRIX3 *)&matCur;
     STACKSCOPE_ctor_1AE4A0(frame,2);
     GCSE_PAD10
     GCSE_PAD10
@@ -1880,7 +1948,8 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_00205D08()
+// Slot 86: the base answer 0; STEPGUARD's override tests whether the current zap is lethal (inferred).
+extern "C" int IsStepHitByLethalZap()
 {
     return 0;
 }
@@ -1893,7 +1962,8 @@ extern "C" int func_00205D08()
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_00205D10()
+// Slot 87: empty in the base class.
+extern "C" void IgnoreStepSlot87()
 {
 }
 

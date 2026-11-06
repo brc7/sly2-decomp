@@ -152,7 +152,7 @@ void SetSndmgrChannelVolume(SNDMGR *, int, float, int);
 void ApplyGsSettings(void *);
 int FScreenShown(void *p);
 int IsSwTransitionBusy(SWM *g);
-char *PpoHero(SWM *g);
+char *GetHeroPo(SWM *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
 int func_002127C8(void);
@@ -916,7 +916,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     if (!D_003D9ED0.x20) return 0;
     if (IsSwTransitionBusy(&D_003DD490)) return 0;
     if (FScreenShown(&D_002E6550)) return 0;
-    pl = PpoHero(&D_003DD490);
+    pl = GetHeroPo(&D_003DD490);
     if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!func_002127C8()) return 0;
     psrc = D_002C00E8;
@@ -1054,7 +1054,7 @@ extern "C" void OpenPauseCharacterPage(ITEM *item)
 {
     char *s;
     BroadcastGameEvent(D_002DEB30, 0x29, 0);
-    switch (GetBasicCid(PpoHero(&D_003DD490))) {
+    switch (GetBasicCid(GetHeroPo(&D_003DD490))) {
     case 0x35: s = (char *)D_002C01D0; break;
     case 0x37: s = (char *)D_002C01F0; break;
     case 0x36: s = (char *)D_002C0210; break;

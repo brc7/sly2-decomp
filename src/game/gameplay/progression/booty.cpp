@@ -121,25 +121,25 @@ void *GetLoWorldMatrix(void *);
 M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
 void RenderLoAtMatrix(BOOTYV *, M4 *, float, float);
 void HandleBasicMessage(BOOTYV *, int, MATCH *);
-int FIgnoreSoIntersection(BOOTYV *, struct XPM *);
-void func_001F4FB0(BOOTYV *, struct XPE *, int);
+int ShouldSoIgnoreIntersection(BOOTYV *, struct XPM *);
+void AdjustSoNewXp(BOOTYV *, struct XPE *, int);
 void EnsureSwCallback(SW *, void *, long, int);
-int func_001F7588(BOOTYV *, void *);
+int CanSoTakeDamage(BOOTYV *, void *);
 int IsLoInWorld(CID37V *);
 void UnlockProxyObject(void *pv, BOOTYV *p);
 void LockProxyObject(void *pv, BOOTYV *p);
-void func_001F6A68(BOOTYV *p);
+void HideSoAllGlobs(BOOTYV *p);
 void ShowSoGlobsById(BOOTYV *p, int n);
 void HideSoPart(BOOTYV *p, void *pv);
 void ShowSoPartsById(BOOTYV *p, int n);
-void func_001F6B48(BOOTYV *p, int n);
+void HideSoPartsById(BOOTYV *p, int n);
 void ShowCountdownHud(SW *psw, float g);
 void ReplaceHeldSwNoise(SW *psw, int n, qword v, CID37V *pq, void *pv);
 void BroadcastGameEvent(void *pv, int n, void *p);
 void HideCountdownHud(SW *psw);
 void SetSoCnstrForce(BOOTYV *p, int n);
 void SetSoCnstrTorque(BOOTYV *p, int n);
-void SetSoDvGravity(BOOTYV *p, qword v);
+void SetSoGravity(BOOTYV *p, qword v);
 void SetLoParent(BOOTYV *p, void *pv, int n);
 void SetLoXfFromMat(BOOTYV *p, void *pv);
 void FadeSoIn(BOOTYV *p, float g);
@@ -345,7 +345,7 @@ struct XPM { char pad[0x14]; XPO *pa; };
  * @end-sly2-annot */
 extern "C" int FIgnoreBootyIntersection(BOOTYV *p, XPM *pm) {
     if (p->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
-    return FIgnoreSoIntersection(p, pm);
+    return ShouldSoIgnoreIntersection(p, pm);
 }
 
 struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
@@ -357,7 +357,7 @@ struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
 extern "C" void AdjustBootyNewXp(BOOTYV *p, XPE *ae, int i) {
-    func_001F4FB0(p, ae, i);
+    AdjustSoNewXp(p, ae, i);
     if (p->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, p, D_002A4B58.l, 0); }
 }
 
@@ -368,7 +368,7 @@ extern "C" void AdjustBootyNewXp(BOOTYV *p, XPE *ae, int i) {
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
 extern "C" int func_0013C368(BOOTYV *p, void *pv) {
-    if ((func_001F7588(p, pv) == 0) || (p->st != 5)) {
+    if ((CanSoTakeDamage(p, pv) == 0) || (p->st != 5)) {
         return 0;
     }
     SetBootyState(p, 0);
@@ -591,7 +591,7 @@ void SetBootyState(BOOTYV *p, int st)
     case -1:
         break;
     case 0:
-        func_001F6A68(p);
+        HideSoAllGlobs(p);
         for (i = 0; i < (int)p->pbootyeCur->c1C; i++)
             ShowSoGlobsById(p, p->pbootyeCur->aoid[i]);
         for (i = 0; i < p->cpart; i++)
@@ -635,7 +635,7 @@ void SetBootyState(BOOTYV *p, int st)
         SetSoCnstrTorque(p, 1);
         VCALL(p, 35, PFNQ), D_002A2DD0);
         VCALL(p, 36, PFNQ), D_002A2DD0);
-        SetSoDvGravity(p, D_002A2DD0);
+        SetSoGravity(p, D_002A2DD0);
         break;
     }
     case 6:
@@ -694,7 +694,7 @@ void SetBootyState(BOOTYV *p, int st)
     case 4:
         p->phero->pbooty = p;
         if (p->pbootyeCur->x18 != -1)
-            func_001F6B48(p, p->pbootyeCur->x18);
+            HideSoPartsById(p, p->pbootyeCur->x18);
         break;
     case 5: {
         union { qword q; float f[4]; } v;
@@ -726,7 +726,7 @@ void SetBootyState(BOOTYV *p, int st)
         u.f[1] = b;
         u.f[2] = c;
         VCALL(p, 36, PFNQ), u.q);
-        SetSoDvGravity(p, D_002A4B60.q);
+        SetSoGravity(p, D_002A4B60.q);
         BroadcastGameEvent(D_002DEB30, 0x30, p);
         break;
     }

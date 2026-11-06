@@ -21,7 +21,7 @@ struct SOV { char pad0[0xC]; VTE *vt; char pad10[0x60]; qwordV position; };
 struct SPRAYER
 {
     char pad0[0x150];
-    SOV *pxf;            /* +0x150 the frame prizes start from (PxfFindSo) */
+    SOV *pxf;            /* +0x150 the frame prizes start from (FindSoXf) */
     SOV *psoProto;       /* +0x154 prototype the copies come from (AcquireProxyObject) */
     SOV *psoFirst;       /* +0x158 the sprayer's own prize */
     char pad15C[0xC];
@@ -44,19 +44,19 @@ void RenderLoAtMatrix(void *p, void *q, float a, float b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
 void func_001C7A58(SOV *plo, int id);
-SOV *PxfFindSo(SPRAYER *p, void *pv, int n);
+SOV *FindSoXf(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 LMV D_002C0CE0 = {0.75f, 1.2f};                     // flight time
 float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
 LMV D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
 extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
-void *PpoHero(GAME *);
+void *GetHeroPo(GAME *);
 qwordV GetLoWorldPos(void *);
 float GRandInRange__Fff(float, float);
 qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
-qwordV func_001D69F0(qwordV, qwordV, qwordV, float);
+qwordV CalculateVelocityToReachPos(qwordV, qwordV, qwordV, float);
 void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
 void func_001C2DB8(SPRAYER *);
 }
@@ -127,7 +127,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
         ((void (*)(void *, int))p->psoFirst->vt[76].fn)((char *)p->psoFirst + p->psoFirst->vt[76].delta, 2);
     else
         ((void (*)(void *))p->psoFirst->vt[9].fn)((char *)p->psoFirst + p->psoFirst->vt[9].delta);
-    p->pxf = PxfFindSo(p, pv, 0xD);
+    p->pxf = FindSoXf(p, pv, 0xD);
     return 3;
 }
 
@@ -135,7 +135,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
 // The first object is the owner's existing one (+0x158), the others come from its factory (AcquireProxyObject); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
-// horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
+// horizontal part of the start->target direction and the up axis, and CalculateVelocityToReachPos computes the launch velocity.
 // Class 0x5A objects are launched through LaunchSprayedDprize with an index-scaled delay; others are reset, parented to the
 // source and given the velocity through virtual calls.  func_001C2DB8 cleans up the owner on every exit.
 // Matching notes:
@@ -210,7 +210,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
         if (!first)
             first = node;
         qwordV start = p->pxf->position;
-        qwordV target = GetLoWorldPos(PpoHero(game));
+        qwordV target = GetLoWorldPos(GetHeroPo(game));
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qwordV delta = VuSub(target, start);
@@ -218,7 +218,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
         M3 mat;
         mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
         qwordV dest = VuAdd(target, Transform(mat, offset));
-        qwordV velocity = func_001D69F0(start, dest, D_002C0D60, Rand(D_002C0CE0));
+        qwordV velocity = CalculateVelocityToReachPos(start, dest, D_002C0D60, Rand(D_002C0CE0));
         if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A)) {
             float lifetime;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5B) || FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5D))

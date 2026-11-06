@@ -563,7 +563,7 @@ extern struct G D_002DDF40;
 extern char D_003DD490[];
 struct S { int pad[4]; void *p10; };
 qword GetLoWorldPos(void *p);
-void *PpoCur(void *p);
+void *GetCurrentPo(void *p);
 /** @sly2-annot addr=0x150780
  * Purpose: Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos
  * Info: proposed name PosCpzoomCenter (T1); TU cplcy
@@ -576,7 +576,7 @@ qword PosCpzoomCenter(struct S *p)
     if (p->p10) {
         v.q = GetLoWorldPos(p->p10);
     } else {
-        void *o = PpoCur(D_003DD490);
+        void *o = GetCurrentPo(D_003DD490);
         if (o) {
             v.q = GetLoWorldPos(o);
             v.f[2] += 150.0f;

@@ -22,7 +22,7 @@ struct K { int a, b; };
 struct PIPEV
 {
     char pad0[0x38];
-    float length;           /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C0D00 */
+    float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C0D00 */
     char pad3C[0xA8];
     int isCyclic;           /* +0x0E4 closed shape: distances wrap, no range clamp */
     char pad0E8[0xA8];
@@ -51,7 +51,7 @@ void InitGrabspot(void *p);
 void OnLoAdd(PIPEV *p);
 void OnLoRemove(PIPEV *p);
 void PostLoLoad(PIPEV *p);
-float func_001E7D90(PIPEV *p);
+float UpdateShapeBoundingSphere(PIPEV *p);
 void CloneShape(PIPEV *p);
 float SMinShape(PIPEV *);           // low distance bound
 float SMaxShape(PIPEV *);           // high distance bound
@@ -136,7 +136,7 @@ extern "C" void OnPipeRemove(PIPEV *pipe)
 extern "C" void PostPipeLoad(PIPEV *pipe)
 {
     PostLoLoad(pipe);
-    if (pipe->length == 1e10f) pipe->length = func_001E7D90(pipe) + D_002C0D00;
+    if (pipe->length == 1e10f) pipe->length = UpdateShapeBoundingSphere(pipe) + D_002C0D00;
 }
 
 /** @sly2-annot addr=0x1C34B8

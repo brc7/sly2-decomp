@@ -41,7 +41,7 @@ extern CM D_002DDF40;
 float g_busyRescanDistance = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
-void *PpoHero(void);
+void *GetHeroPo(void);
 qword GetLoWorldPos(void *p);
 void UnlinkSwBusyEntry(SWBUSY *p, void *pv);
 void MoveSwBusyEntryToEnd(SWBUSY *p, void *pv);
@@ -162,7 +162,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
     void *entry;
     cameraPos = D_002DDF40.position;
     cameraMask = D_002DDF40.zoneMask;
-    hero = PpoHero();
+    hero = GetHeroPo();
     if (hero)
         heroPos = GetLoWorldPos(hero);
     else
@@ -258,7 +258,7 @@ extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
     if ((*(int *)&g_sw.aploNew)) return;
     cameraPos = D_002DDF40.position;
     cameraMask = D_002DDF40.zoneMask;
-    hero = PpoHero();
+    hero = GetHeroPo();
     if (hero) heroPos = GetLoWorldPos(hero);
     else heroPos = cameraPos;
     entry = (int)object->busyEntry;

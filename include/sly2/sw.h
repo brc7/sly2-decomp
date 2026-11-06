@@ -205,7 +205,7 @@ struct SW : public BASIC
                                the 3 states with no world loaded) */
 
       PO *apo[16];          /* +0x3EBC [R] player objects (oids 8 Bentley, 7 Sly(JT), 9 Murray, 0x4357 CID 0x46 char-select) */
-      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (PpoCur): follows character switches; g_pjt stays Sly (runtime3) */
+      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (GetCurrentPo): follows character switches; g_pjt stays Sly (runtime3) */
       PO *ppoOverride;      /* +0x3F00 [R] override player; 0 in all states; current = ppoOverride ? ppoOverride : ppoHero */
       int cproxysrc;   /* number of proxy sources */
       PROXYSRC *aproxysrc;   /* the proxy sources (templates PROXY objects clone) */
@@ -257,8 +257,8 @@ struct SW : public BASIC
       int cleaf;   /* number of leaves */
       void *aleaf;   /* the leaves */
       uint32_t   _pad_333    [ 18 ] ;
-      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (func_001BDA00, tu_1BC050.cpp); was _pad_333+0x48 */
-      DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (func_001BE1E8) */
+      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (NewMergedCid14Obstacle, tu_1BC050.cpp); was _pad_333+0x48 */
+      DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (UpdatePendingCid14Obstacles) */
       CID17 *pcid17Default;   /* default CID17 object (inferred) */
       REGTREE *pregtree;   /* region tree */
       CLQ clqGuardScale;   /* guard scaling curve (difficulty, inferred) */

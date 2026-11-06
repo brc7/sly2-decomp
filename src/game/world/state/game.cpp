@@ -86,7 +86,7 @@ void ActivateJob(JOBV *job);
 void CompleteJob(JOBV *job, TASKV *task);
 void CompleteJob1(JOBV *job) __asm__("CompleteJob");   /* OnJobTaskComplete passes only the job (a1 is left as is) */
 void SetSwTaskPending(SW *world, LO *plo);
-LO *PpoHero(SW *world);
+LO *GetHeroPo(SW *world);
 void DropStepplayerBooty(LO *pstepplayer);
 void SetCurrentJob(JOBV *job);
 void GoToTask(TASKV *task);
@@ -815,7 +815,7 @@ extern struct G D_003DD490;
 int IlevelCur__Fv(void);
 int FindSwObjects(struct G *pg, int kind, int oid, int a, int c, void **apv);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
-void *func_001F67E0(void *pv, int n);
+void *FindLiveSma(void *pv, int n);
 void SeekSma(void *p, int id);
 void SetSmaGoal(void *p, int id);
 /** @sly2-annot addr=0x162250
@@ -837,7 +837,7 @@ void TriggerStateRsmg(void *pvUnused, struct E *pe, int n, int k)
     if (pe->f14 != -1 && pe->f14 != IlevelCur__Fv()) return;
     if (FindSwObjects(&D_003DD490, 0x205, pe->oid, 0, 1, &pv) != 1) return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x30)) return;
-    ps = func_001F67E0(pv, pe->n8);
+    ps = FindLiveSma(pv, pe->n8);
     if (!ps) return;
     id = pe->id;
     if (pe->n0 == -1) {
@@ -1420,7 +1420,7 @@ extern "C" void ActivateJob(JOBV *job)
     LO *ploHero;
     if (IsCurrentJob(job) == 0) {
         BroadcastGameEvent(D_002DEB30, 0x1C, job);
-        ploHero = PpoHero(&D_003DD490);
+        ploHero = GetHeroPo(&D_003DD490);
         if (ploHero != 0 && FIsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
             DropStepplayerBooty(ploHero);
         }

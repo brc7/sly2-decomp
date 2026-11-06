@@ -1164,9 +1164,9 @@ struct SUB {char pad[0x9C];int x9C;char pad2[0x100-0xA0];};
 struct ALO {char pad[0x50];int c;struct SUB*a;};
 struct E {int grf,id,ib;};
 extern char D_003DD490[];
-void*PsopartFindSo(struct ALO*,int);
+void*FindSoPart(struct ALO*,int);
 void HideSoPart(struct ALO*, void*);
-void*func_001F5FF8(struct ALO*,int);
+void*FindSoGlob(struct ALO*,int);
 void HideSoGlobsById(struct ALO*,int);
 struct LO*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
 /** @sly2-annot addr=0x1A64E8
@@ -1197,10 +1197,10 @@ again:
    *(void**)((char*)palo+pe->ib)=p;
 done:;
   }else if(grf&0x20){
-   void*p=PsopartFindSo(palo,pe->id);
+   void*p=FindSoPart(palo,pe->id);
    if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)HideSoPart(palo,p);}else i++;
   }else if(grf&0x40){
-   void*p=func_001F5FF8(palo,pe->id);
+   void*p=FindSoGlob(palo,pe->id);
    if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)HideSoGlobsById(palo,pe->id);}else i++;
   }else{
    int k;struct LO*p;
@@ -1545,7 +1545,7 @@ void ResortSwBusyEntry(void *, void *);
  *   world
  * Info: proposed name SetLoBusyk (T1); TU lo
  * Notes: top50_round (0.80): UpdateLoBusy 0x148300 switch on the same nibble: case1 fIn=1, case2 fIn=0, case0
- *   dist(PosLoWorld,camera pos D_002DDF40)<sBusy(+0x38), case3 dist to PpoHero. InitLo sets 2, InitSo 0,
+ *   dist(PosLoWorld,camera pos D_002DDF40)<sBusy(+0x38), case3 dist to GetHeroPo. InitLo sets 2, InitSo 0,
  *   InitTarget/InitGrabspot 3, relays 1 wh
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r4_17F090+top50_round
  * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/guards-ai.md#9-key-functions,

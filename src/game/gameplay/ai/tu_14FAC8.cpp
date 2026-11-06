@@ -21,7 +21,7 @@ struct GUARDV
       int attachKind;                 /* +0xF80 */
 };
 
-/* The Contessa's crawl probes for func_00205910 (step.cpp's terrain fit): three local probe points (16-byte vectors,
+/* The Contessa's crawl probes for FitStepToTerrain (step.cpp's terrain fit): three local probe points (16-byte vectors,
  * read as qwords) and the height limits {min, max} of the floor test. tu_14FAC8's .data, address order. */
 struct VECTOR4V { float x, y, z, w; } __attribute__((aligned(16)));
 struct HEIGHT { float min, max; };
@@ -30,7 +30,7 @@ HEIGHT D_002BD940 = {-200.0f, 200.0f};
 extern "C" {
 void InitStepguard(GUARDV *contessa);
 void UpdateStepguard(GUARDV *contessa, float dt);
-void func_00205910(GUARDV *contessa, HEIGHT *heightRange, int probeCount, const VECTOR4V *probes);
+void FitStepToTerrain(GUARDV *contessa, HEIGHT *heightRange, int probeCount, const VECTOR4V *probes);
 }
 
 // 0x14FAC8: CONTESSA vtable slot 7 (Init): STEPGUARD Init, then sets +0x4A4 (also set by other named guards;
@@ -48,6 +48,6 @@ extern "C" void UpdateContessa(GUARDV *contessa, float dt)
 {
       UpdateStepguard(contessa, dt);
       if (contessa->attachKind == -1 && contessa->isOnGround != 0)
-            func_00205910(contessa, &D_002BD940, 3, D_002BD910);
+            FitStepToTerrain(contessa, &D_002BD940, 3, D_002BD910);
 }
 

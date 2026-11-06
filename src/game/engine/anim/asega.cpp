@@ -94,7 +94,7 @@ void ShowSwAsegParts(SW *, int, void *, int, ALO *, LO *, ASEG *);
 void ShowCountdownHud(SW *, float);
 void HideCountdownHud(SW *);
 void SetSwAsegEyesClosed(SW *, int, int, LO *, ASEG *, float);
-void func_001F81E0(ALO *, int);
+void SetSoAnimIndex(ALO *, int);
 void SetStepplayerIdleParams(ALO *, char *, char *, char *);
 float fmodf(float a, float b);
 
@@ -525,10 +525,10 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         func_00230CF0(p, pev->n8);
         break;
     case 22:
-        func_001F81E0(p->paloRoot, pev->n8);
+        SetSoAnimIndex(p->paloRoot, pev->n8);
         break;
     case 23:
-        func_001F81E0(p->paloRoot, -1);
+        SetSoAnimIndex(p->paloRoot, -1);
         break;
     case 24:
         if (p->paloRoot && FIsBasicDerivedFrom((BASIC *)p->paloRoot, (CID)0x34)) {

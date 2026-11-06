@@ -195,13 +195,13 @@ extern "C" {
 extern qword D_002A2DC0,D_002A2DD0;
 extern char D_003DD490[];
 void PostSoLoad(P *);
-REF *PxfFindSo(P *,int,int);
+REF *FindSoXf(P *,int,int);
 void *memmove(void *,const void *,int);
 qword ConvertAloPos(void *,P *,qword);
 void *func_0012DC18(P *,REF *,int,int,int,qword);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
 void *func_001F0380(void *,P *,int,int);
-void *func_001E94B0(int,int);
+void *NewSampledShape(int,int);
 void ReplaceSma(void *,P *,int,int,void **);
 void ResetRobottankHealth(P *);
 }
@@ -230,7 +230,7 @@ extern "C" void PostRobottankLoad(P *p){
  E *next=p->entries+1,*cursor=p->entries;
  do {
   current.entry=cursor;
-  REF *reference=PxfFindSo(p,current.entry->id,13);
+  REF *reference=FindSoXf(p,current.entry->id,13);
   current.entry->reference=reference;
   if(!reference){
    unsigned bytes=(p->count-i)*stride-sizeof(E);
@@ -287,7 +287,7 @@ extern "C" void PostRobottankLoad(P *p){
  scale.stride=0x14;
  SIDE*next=p->sides+1;current.side=p->sides;
  do {
-  REF *reference=PxfFindSo(p,current.side->id,6);
+  REF *reference=FindSoXf(p,current.side->id,6);
   current.side->reference=reference;
   if(!reference){
    unsigned bytes=(p->sideCount-i)*scale.stride-sizeof(SIDE);
@@ -308,7 +308,7 @@ extern "C" void PostRobottankLoad(P *p){
   current.attachment=*cursor;
   current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,p);
   if(current.attachment->object){
-   current.attachment->mesh=PxfFindSo(p,current.attachment->meshId,6);
+   current.attachment->mesh=FindSoXf(p,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
     current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,p);
     if(current.attachment->extra || current.attachment->extraId==invalid){
@@ -331,7 +331,7 @@ extern "C" void PostRobottankLoad(P *p){
   ++j;++cursor;byteOffset+=4;
  }while(j<p->attachCount);}
 
- p->path=func_001E94B0(0x2C9,16);
+ p->path=NewSampledShape(0x2C9,16);
  ReplaceSma(p->asset,p,-1,0,binding);
  ResetRobottankHealth(p);
 }
@@ -482,7 +482,7 @@ float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
 void func_001FB1F8(SOUND *,float);
 void SetSndPitch(SOUND *,float);
 void ResumeSnd(SOUND *);
-void func_001F5078(P *);
+void WakeSo(P *);
 }
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return X(r);}
@@ -655,7 +655,7 @@ extern "C" void UpdateRobottank(P *p)
         SetSndPitch(p->sound,rate*0.2f);
         if(p->sound->references>0)ResumeSnd(p->sound);
     }
-    if(p->drive!=0.0f || p->turn!=0.0f)func_001F5078(p);
+    if(p->drive!=0.0f || p->turn!=0.0f)WakeSo(p);
 }
 
 #define OFF(T,m) ((unsigned long)&((T*)0)->m)
@@ -1067,10 +1067,10 @@ int FCheckLm__FP2LMf(LM *, float);
 void func_001D4B28(P *, int);
 float acosf(float);
 M3 BuildAxisAngleRotationMatrix(qword, float);
-int ClsgClipPathzone(void *, qword, qword, int, HIT *, int);
+int ClipEdgeToPathzone(void *, qword, qword, int, HIT *, int);
 void MeasureShape(PATH *);
 void func_001D2420(P *);
-void func_001C02D0(void *, qword, qword, PATH *);
+void FindPathzonePathCurve(void *, qword, qword, PATH *);
 float atan2f(float, float);
 M3 *GetLoWorldMatrix(P *);
 qword func_0022CA18(void *, void *);
@@ -1079,7 +1079,7 @@ void SetSmaGoal(void *, int);
 float GRandInRange__Fff(float, float);
 void func_001D2490(P *);
 int func_001D4E08(ATTACH *);
-int FCheckVolPoint(void *, qword);
+int IsPointInVol(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
@@ -1200,7 +1200,7 @@ extern "C" void UpdateRobottankAi(P *p)
             break;
         }
         HIT hits[4];
-        if (ClsgClipPathzone(p->navigator, position, goal, 4, hits, 2) == 1 &&
+        if (ClipEdgeToPathzone(p->navigator, position, goal, 4, hits, 2) == 1 &&
             hits[0].startFraction == 0.0f && hits[0].endFraction == 1.0f) {
             // straight line to the goal
             p->path->points[0].q = position;
@@ -1209,7 +1209,7 @@ extern "C" void UpdateRobottankAi(P *p)
             MeasureShape(p->path);
             func_001D2420(p);
         } else if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, target)) {
-            func_001C02D0(p->navigator, position, target, p->path);
+            FindPathzonePathCurve(p->navigator, position, target, p->path);
             func_001D2420(p);
         }
         func_001D2490(p);
@@ -1245,7 +1245,7 @@ extern "C" void UpdateRobottankAi(P *p)
     case 2: {
         VV object = GetLoWorldPos(p->selectedObject);
         if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, object)) {
-            func_001C02D0(p->navigator, position, object, p->path);
+            FindPathzonePathCurve(p->navigator, position, object, p->path);
             func_001D2420(p);
         }
         func_001D2490(p);
@@ -1264,7 +1264,7 @@ extern "C" void UpdateRobottankAi(P *p)
             ATTACH *attach = p->attachments[i];
             if (!func_001D4E08(attach))
                 continue;
-            if (attach->constraint && !FCheckVolPoint(attach->constraint, target))
+            if (attach->constraint && !IsPointInVol(attach->constraint, target))
                 continue;
             if (0.0f < attach->enterRange.max && p->state != 1)
                 continue;
@@ -1323,7 +1323,7 @@ namespace M_PresetRobottankAccel {
 // (entries 0x1A0, stride 0x60), then turn and drive the body within the remaining impulse budget.
 // How it matches (on top of w2lane4's v13 draft, which had the right instruction stream):
 // - Min and Abs are plain C (`b < a ? b : a`, __builtin_fabsf). As asm statements they were cost-1 "no unit"
-//   insns, which changed sched1 priorities of the whole post-loop block and the abs.s/sub.s order before func_001FAC98.
+//   insns, which changed sched1 priorities of the whole post-loop block and the abs.s/sub.s order before AddSoAngularAcceleration.
 // - Both dt-word qmtc2 helpers take the int through an "rV" constraint: the lw is then a reload emitted next to the
 //   qmtc2, so it is not a sched1 insn and reload picks $v0 (`lw v0,4(s0)` / `lw v0,4(v0)`) as in the target.
 // - The primary velocity is copied to a local before the dt vector is stored: target order is V load, dt store, A load.
@@ -1362,16 +1362,16 @@ extern "C" float D_002C2140;
 extern "C" float D_002C2144;
 extern "C" float D_002C2148;
 extern "C" {
-void func_001F9B20(P *);
+void PresetSoAccel(P *);
 M3 *GetLoWorldMatrix(P *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(P *, const M3 *, const POLY *, qword, const POLY *);
 CONTACT *func_001D2DD0(P *, ENTRY *);
 qword GetXfVelocity(MOTION *, MOTION *, qword);
-void func_001FAB78(P *, qword, qword);
+void ApplySoImpulse(P *, qword, qword);
 qword ConvertXfVec(MOTION *, MOTION *, qword);
 float GLimitAbs__Fff(float, float);
-void func_001FAC98(P *, qword);
+void AddSoAngularAcceleration(P *, qword);
 M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
 qword LimitVectorLength(float, qword);
 void AddSoAcceleration(P *, qword);
@@ -1428,7 +1428,7 @@ static inline float Abs(float f) { return __builtin_fabsf(f); }
  * @end-sly2-annot */
 extern "C" void PresetRobottankAccel(P *p)
 {
-    func_001F9B20(p);
+    PresetSoAccel(p);
     if (D_002DDED0.time - p->lastCorrection > 3.0f) {
         M3 reset;
         TiltMatUpright(GetLoWorldMatrix(p), 0, &reset);
@@ -1458,7 +1458,7 @@ extern "C" void PresetRobottankAccel(P *p)
                 if (response < 0.0f) goto contactDone;
                 scalar.q = Scalar(response * p->physics->mass);
                 qword force = Scale(normal, scalar.q);
-                func_001FAB78(p, point, force);
+                ApplySoImpulse(p, point, force);
                 total += Dot(force, normal);
             }
         contactDone:;
@@ -1477,7 +1477,7 @@ extern "C" void PresetRobottankAccel(P *p)
     torque.f[2] = turnImpulse;
     worldTorque.q = Rotate(p->secondary->world.basis, torque.q);
     budget -= Abs(D_002C2148 * turnImpulse / acceleration);
-    func_001FAC98(p, worldTorque.q);
+    AddSoAngularAcceleration(p, worldTorque.q);
     float dt = clock->dt;
     float half = dt * 0.5f;
     BuildAxisAngleRotationMatrix(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
@@ -1513,8 +1513,8 @@ namespace M_func_001D3450 {
 //  2. ray pass: six segments around the wheel profile are clipped to the BSP (ClsgClipEdgeToBsp); both ends of every
 //     piece give support points;
 //  3. two support passes pair points by surface, find the deepest tangency of the wheel circle with each support plane,
-//     and post the best one as a kind-10 contact (PxpAdd 0x1A7C18).
-// Names follow Lilly's CsbiIntersectSphereBsp port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
+//     and post the best one as a kind-10 contact (AddXp 0x1A7C18).
+// Names follow Lilly's IntersectSphereBsp port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
 /* #line: gcc 2.95 hashes the file name into the gcse order of asm expressions (see VU_FLOAT below). Pinning it
    to the repo path makes the output independent of the path/cwd the compiler is run with. Keep it accurate. */
 #line 13 "src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"
@@ -1572,7 +1572,7 @@ void *AllocFromStack(SWALLOC *);
 int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
 qword TransformPlane(M4 *, qword);
-void PxpAdd(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
+void AddXp(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
 }
 
 static inline M4 *GetMatrix(OWNER *p) { return p->vt[31].pfn((char *)p + p->vt[31].delta); }
@@ -1664,7 +1664,7 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
 
 /** @sly2-annot addr=0x1D3450
  * Purpose: Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass
- *   (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18)
+ *   (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (AddXp 0x1A7C18)
  * Info: proposed name AddRobottankWheelXps (T1); TU tu_1D1370
  * Notes: class identity from whole_game WE names/object strings: AddRcCarWheelXps -> AddRobottankWheelXps
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
@@ -1846,7 +1846,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
         qword world = Transform(frame, bestPoint).q;
         VECTOR normal;
         normal.q = plane;
-        PxpAdd(&D_003DD490, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
+        AddXp(&D_003DD490, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
     }
 }
 } // namespace M_func_001D3450
@@ -1866,7 +1866,7 @@ typedef struct {
     char pad2[0xC];
     ENT ae[8];
 } OBJ;
-void func_001F5990(void);
+void AddSoCustomXps(void);
 void func_001D3450(OBJ *, ENT *, A *, int, int, int, void *);
 /** @sly2-annot addr=0x1D3E48
  * Purpose: CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object
@@ -1882,7 +1882,7 @@ void AddRobottankCustomXps(OBJ *p, A *pa, int x, int y, int z)
 {
     int i;
     VOBJ *po;
-    func_001F5990();
+    AddSoCustomXps();
     po = pa->pb->pc->p;
     if (po->vt->a[62].pfn((char *)po + po->vt->a[62].d)) {
         for (i = 0; i < p->c; i++)
@@ -1895,8 +1895,8 @@ void AddRobottankCustomXps(OBJ *p, A *pa, int x, int y, int z)
 namespace M_func_001D3F30 { extern "C" {
 struct E { int a[2]; char b[0x58]; };
 struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
-void func_001F5988(struct S *p, void *q);
-void func_001F4DA8(struct S *p, void *q, void *pe);
+void OnSoContactFreed(struct S *p, void *q);
+void RemoveSoContactsWith(struct S *p, void *q, void *pe);
 /** @sly2-annot addr=0x1D3F30
  * Purpose: CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel
  * Info: proposed name Robottank_vt54 (T2); class ROBOTTANK slot54; TU tu_1D1370
@@ -1909,8 +1909,8 @@ void func_001F4DA8(struct S *p, void *q, void *pe);
  * @end-sly2-annot */
 void func_001D3F30(struct S *p, void *q) {
     int i;
-    func_001F5988(p, q);
-    for (i = 0; i < p->c; i++) func_001F4DA8(p, q, p->ae[i].b);
+    OnSoContactFreed(p, q);
+    for (i = 0; i < p->c; i++) RemoveSoContactsWith(p, q, p->ae[i].b);
 }
 } } // namespace M_func_001D3F30
 
@@ -1978,7 +1978,7 @@ typedef struct {
 } OBJ;
 extern char D_003DD490[];
 extern const LONGU D_002A7840;
-void func_001F4FB0(void *, OBJ *, int);
+void AdjustSoNewXp(void *, OBJ *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
@@ -1994,7 +1994,7 @@ void AdjustRobottankNewXp(void *a, OBJ *p, int n)
 {
     void *e;
     qword v;
-    func_001F4FB0(a, p, n);
+    AdjustSoNewXp(a, p, n);
     e = p->ab[1 - n].x8;
     if (n == 0) {
         v = p->x80;
@@ -2139,7 +2139,7 @@ extern "C" void RenderRobottankSelf(P*p){
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4568 {
-/* func_001D4568 (Claude agent, wave-3 lane 9): hit reaction. After the base handler (func_001F7588) accepts the event, the
+/* func_001D4568 (Claude agent, wave-3 lane 9): hit reaction. After the base handler (CanSoTakeDamage) accepts the event, the
  * remaining count is updated (clamped at 0) and, for kind 0x100 (random hit) or 0x1000 (hit from a sender), a random linear
  * and angular impulse is built and added to the object's velocity through its virtual get/set pairs (vtable slots 33/35 and
  * 34/36).
@@ -2171,7 +2171,7 @@ extern "C" float D_002C21F0[2];
 extern "C" float D_002C21F8[2];
 extern "C" float D_002C2200[2];
 extern "C" {
-int func_001F7588(P *, EVENT *);
+int CanSoTakeDamage(P *, EVENT *);
 void UpdateRobottankHealthMeter(P *);
 void SetRobottankState(P *, int);
 float GRandInRange__Fff(float, float);
@@ -2237,7 +2237,7 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
  * @end-sly2-annot */
 int func_001D4568(P *p, EVENT *event)
 {
-    if (!func_001F7588(p, event))
+    if (!CanSoTakeDamage(p, event))
         return 0;
     int remaining = p->remaining + event->change;
     if (remaining < 0)

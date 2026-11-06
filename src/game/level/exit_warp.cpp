@@ -94,7 +94,7 @@ extern "C" {
 int CploFindSwObjectsByClass(SW *world, int findFlags, int cid, LO *context, int cploMax, void *aplo);
 void LoadXfmFromBrx(WARPV *warp, CBinaryInputStream *stream);
 void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
-LO *PpoHero(SW *world);
+LO *GetHeroPo(SW *world);
 void InitXfm(EXITV *exitVolume);
 void SetLoBusyk(EXITV *exitVolume, int busyk);
 void *AllocCopyFromWorldHeap(MEMREQ *request, WARPBLOB *pblob);
@@ -224,7 +224,7 @@ void CID41::LoadFromBrx(CBinaryInputStream *stream)
 // method; cutscene relays call it too.
 extern "C" void PutHeroAtWarp(WARPV *warp)
 {
-    LO *hero = PpoHero(&D_003DD490);
+    LO *hero = GetHeroPo(&D_003DD490);
     if (hero)
     {
         VT *heroVtable = *(VT **)((char *)hero + 0xC);
@@ -438,7 +438,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
     case 1:
     case 3:
     {
-        LO *hero = PpoHero(&D_003DD490);
+        LO *hero = GetHeroPo(&D_003DD490);
         union { qwordV q; } u;
         int isInside;
         if (!hero)

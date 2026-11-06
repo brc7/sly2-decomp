@@ -83,7 +83,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 float GetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
 void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_001F8668(LO *plo, long);
+void SetSoBit35Hierarchy(LO *plo, long);
 void *func_0012E1F0(unsigned int);
 void AddXfAct(LO *plo, void *pv, ACTSEG *pactseg);
 void *func_0012CE50(unsigned int);
@@ -331,7 +331,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
             void *b;
             func_0012FE58(pt, x, pe, &a, &b);
             if (b) {
-                func_001F8668(a, 0);
+                SetSoBit35Hierarchy(a, 0);
                 ACTSEG *pn = (ACTSEG *)func_0012E1F0(0x2C);
                 pn->pvt = D_002CAF08;
                 pn->x0 = 0;

@@ -32,7 +32,7 @@ struct GUARDV
 };
 typedef char assert_GUARDV_capabilities[(unsigned int)&((GUARDV *)0)->capabilities == 0xFE8 ? 1 : -1];
 
-/* A sub-behaviour started by SetBhvSearchState (func_00205438 finds it on the guard; vtable slot 8 starts it). */
+/* A sub-behaviour started by SetBhvSearchState (PushStepBehavior finds it on the guard; vtable slot 8 starts it). */
 struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int animFlag; char pad40[0xC0 - 0x40]; int walkAnimFlag; };
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
 struct WATCH { char pad[0xC]; VE *vt; char pad10[0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
@@ -92,7 +92,7 @@ void AddStepguardSgf(GUARDV *guard, int sgf);
 void RemoveStepguardSgf(GUARDV *guard, int sgf);
 int IsBhvanimDone(void *behavior);
 int IsStepguardHandsOff(GUARDV *guard);
-BHVO *func_00205438(GUARDV *guard, int n);
+BHVO *PushStepBehavior(GUARDV *guard, int n);
 qword GetLoWorldPos(void *object);
 void ClearPointerPair(GOAL *goal);
 void SetBhvgotoGoal(void *behavior, GOAL *goal);
@@ -110,7 +110,7 @@ int CompareSearchCandidates(ROW *a, ROW *b);
 void ChooseBhvSearchPoints(BHV171V *behavior);
 void StepBhvSearchPoint(BHV171V *behavior);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
-float RadStepHeading(void *object);
+float GetStepHeading(void *object);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
 int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
@@ -249,11 +249,11 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 0:
-        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xC; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = PushStepBehavior(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xC; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     case 1:
         {
-            BHVO *child = func_00205438(behavior->guard, 0xBA);
+            BHVO *child = PushStepBehavior(behavior->guard, 0xBA);
             GOAL goal;
             VE *entry;
             qword v;
@@ -273,13 +273,13 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             qword d;
             d = VuSub(a, b);
             SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
-            { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+            { BHVO *child = PushStepBehavior(behavior->guard, 0x9E); VE *entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
             SetBhvSearchLookTimers(behavior);
         }
         break;
     case 3:
         {
-            BHVO *child = func_00205438(behavior->guard, 0xBA);
+            BHVO *child = PushStepBehavior(behavior->guard, 0xBA);
             VE *entry;
             child->walkAnimFlag = 1;
             ChooseBhvSearchPoints(behavior);
@@ -288,12 +288,12 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
         }
         break;
     case 4:
-        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xE; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = PushStepBehavior(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xE; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         SetBhvSearchWatched(behavior, 0);
         behavior->needsReplan = 0;
         break;
     case 5:
-        { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry; child->animFlag = 1; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = PushStepBehavior(behavior->guard, 0x9E); VE *entry; child->animFlag = 1; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     }
 }
@@ -423,7 +423,7 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
 extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=GetLoWorldPos(behavior->guard);
- w.query.heading=RadStepHeading(behavior->guard);w.query.count=0;
+ w.query.heading=GetStepHeading(behavior->guard);w.query.count=0;
  for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
   qword posObj=GetLoWorldPos(object);
   qword qwFallback=D_002A2DA0;

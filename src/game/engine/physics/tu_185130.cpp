@@ -1,9 +1,9 @@
-// tu_185130.cpp -- a mesh surface Sly can stick to (an XFM with its own triangle mesh: vertices, triangles and edge
-// neighbours; DLV g_sw.dlCid9 holds the live ones) and the player code that keeps him attached to it: closest point on
-// the mesh, boundary-edge planes, a small inequality solve that projects the movement, and the per-frame attach
-// update (func_00185E40). VU0 macro-mode asm; func_00185310, func_001856C0, func_00185A80, func_00185D18 and
-// func_00185E40 are hand-tuned (register pins, allocation-only operands; see the notes above each).
-// TU 0x185130..0x186610 (16 functions, address order).
+// tu_185130.cpp -- sticky meshes: CID 8/9, an XFM carrying its own triangle mesh (vertices, triangles, edge
+// neighbours) that the player can attach to and move along (the live ones are in g_sw.dlCid9), and the player
+// (JT) code that keeps him attached: closest point on the mesh, boundary-edge contact planes, a small inequality
+// solve that projects the movement onto the allowed region, and the per-frame attach update.
+// Entry points: LoadCid8FromBrx, FindMeshClosestPoint, CollectMeshContacts, SolveMeshConstraints,
+// PredictMeshContact, SetJtMeshProbePoints, UpdateJtMeshAttachment (per-frame update).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_185130
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001865F0
 #include "sly2/slotheap.h"
@@ -40,11 +40,11 @@ typedef struct MESH
 } MESH;
 typedef char assert_MESH_ptn[(unsigned int)&((MESH *)0)->ptn == 0x110 ? 1 : -1];
 typedef struct TRIREF { int index; float u, v; } TRIREF;
-/* Planes gathered by func_001856C0 for the solve in func_00185A80. */
+/* Planes gathered by CollectMeshContacts for the solve in SolveMeshConstraints. */
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
 struct SMPV { float svFast, svSlow, dtFast; };
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-/* The player (JT) while attached to a mesh: view of the fields func_00185E40 and func_00185E30 use. */
+/* The player (JT) while attached to a mesh: view of the fields UpdateJtMeshAttachment and SetJtMeshProbePoints use. */
 struct CONTROL{char pad0[0x10];float y,z;int pad18;float speed;};
 struct REQUEST{char pad0[0x78];float multiplier;};
 struct AXIS{float weight;int active;char pad8[8];U direction;};
@@ -62,7 +62,7 @@ public:
 };
 
 extern const float D_002A5684;   /* defined below where the ELF has it (.rodata order) */
-extern float D_002A5688;   /* declared non-const: read as a const it changes func_001856C0 (see the data guide); defined below */
+extern float D_002A5688;   /* declared non-const: read as a const it changes CollectMeshContacts (see the data guide); defined below */
 extern const float D_002A568C;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5690;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
@@ -91,10 +91,10 @@ void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMPV*,qword*,float);
 void SetJtState__FP2JT3JTS4JTBS(JTV*,int,int);void UpdateDirectionalBlend(JTV*,AXIS*,REQUEST*);
 void func_00185130(MESH *pmesh);
-void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
-void func_001856B8(MESH *pmesh, LIST *plist);
-void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
-qword func_00185A80(void *unused, LIST *p, qword v);
+void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
+void ClearMeshContactList(MESH *pmesh, LIST *plist);
+void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
+qword SolveMeshConstraints(void *unused, LIST *p, qword v);
 }
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
 float GSmooth(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("GSmooth__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
@@ -108,6 +108,7 @@ void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
  * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// CID 8 slot 7 (Init): InitXfm.
 void CID8::Init()
 {
     MESH *pmesh = (MESH *)this;
@@ -129,30 +130,32 @@ static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind =
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185150(MESH *p, CBinaryInputStream *pbis)
+// CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
+// neighbours) into world-heap memory, then the object's options.
+extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 {
     MSG msg;
     int i, j;
-    LoadXfmXfFromBrx(p, pbis);
-    p->cvertex = pbis->S16Read();
-    p->vertices = (qword *)PvAllocMsg(&msg, p->cvertex << 4, 0x10);
-    for (i = 0; i < p->cvertex; i++)
-        pbis->ReadVector((VECTOR *)&p->vertices[i]);
-    p->count = pbis->S16Read();
-    p->triangles = (I3 *)PvAllocMsg(&msg, p->count * 12, 0x10);
-    for (j = 0; j < p->count; j++) {
-        I3 *px = &p->triangles[j];
-        px->index[0] = pbis->S16Read();
-        px->index[1] = pbis->S16Read();
-        px->index[2] = pbis->S16Read();
+    LoadXfmXfFromBrx(mesh, stream);
+    mesh->cvertex = stream->S16Read();
+    mesh->vertices = (qword *)PvAllocMsg(&msg, mesh->cvertex << 4, 0x10);
+    for (i = 0; i < mesh->cvertex; i++)
+        stream->ReadVector((VECTOR *)&mesh->vertices[i]);
+    mesh->count = stream->S16Read();
+    mesh->triangles = (I3 *)PvAllocMsg(&msg, mesh->count * 12, 0x10);
+    for (j = 0; j < mesh->count; j++) {
+        I3 *px = &mesh->triangles[j];
+        px->index[0] = stream->S16Read();
+        px->index[1] = stream->S16Read();
+        px->index[2] = stream->S16Read();
     }
-    p->neighbors = (I3 *)PvAllocMsg(&msg, p->count * 12, 0x10);
-    for (j = 0; j < p->count; j++) {
-        p->neighbors[j].index[0] = pbis->S16Read();
-        p->neighbors[j].index[1] = pbis->S16Read();
-        p->neighbors[j].index[2] = pbis->S16Read();
+    mesh->neighbors = (I3 *)PvAllocMsg(&msg, mesh->count * 12, 0x10);
+    for (j = 0; j < mesh->count; j++) {
+        mesh->neighbors[j].index[0] = stream->S16Read();
+        mesh->neighbors[j].index[1] = stream->S16Read();
+        mesh->neighbors[j].index[2] = stream->S16Read();
     }
-    LoadOptionsFromBrx(p, pbis);
+    LoadOptionsFromBrx(mesh, stream);
 }
 
 typedef struct WORK{M4 matrix;TRIREF candidate;TRIREF best __attribute__((aligned(16)));U closest,scalar;float parameter;U bestNormal,input,normal;}WORK;
@@ -168,7 +171,9 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
+// Finds the point of the mesh closest to a world position: returns the point, the surface normal and the triangle
+// (vertex positions transformed by the object's world matrix, slot 31).
+extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  VTE*entry=&mesh->vt[31];
  w.input.q=point;
@@ -248,12 +253,13 @@ namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.4
  * Notes: descriptive only: (stub: *pn = 0) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * @end-sly2-annot */
-extern "C" void func_001856B8(MESH *pmesh, LIST *plist)
+// Empties a contact-plane list.
+extern "C" void ClearMeshContactList(MESH *mesh, LIST *list)
 {
-    plist->count = 0;
+    list->count = 0;
 }
 
-// func_001856C0 (Claude agent, lane G17, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// CollectMeshContacts (Claude agent, lane G17, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG16v1 (46). Keys: (1) points loop as `for (n = 0; n < count; n++)` over points[n] (gcc reverses it: bnez),
 // with the edge direction Sub hoisted into the edge body and the edge-plane Cross left inside the loop (loop.c moves it
 // after the count test) (46 -> 38). (2) Append(LIST*, const qword&) helper storing through `&l->planes[l->count++]`:
@@ -312,7 +318,9 @@ static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->co
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
+// Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
+// inequality solve.
+extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
 {
     M4 mat;
     U v[3];
@@ -362,7 +370,7 @@ extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, S
     }
 }
 
-// func_00185A80 (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// SolveMeshConstraints (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG13v1 (12). Keys: (1) loop 2: the plane.w read before a qmfc2 helper with a "memory" clobber, then an
 // mtc1 helper with allocation-only "f"(w) operands (12 -> 9). (2) loop 3 as a fresh block-scoped `int k`/`int m`
 // with the weights read through Lilly's VuFloatFromMemWord ("rV": reload makes the lw) (9 -> 1). (3) an early
@@ -412,39 +420,40 @@ namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.4
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" qword func_00185A80(void *unused, LIST *p, qword v)
+// Projects a movement vector onto the region allowed by the collected contact planes (SolveInequalities).
+extern "C" qword SolveMeshConstraints(void *unused, LIST *list, qword vector)
 {
     int matrix[36];
     float rhs[8];
     int weights[8];
     int i, j, n;
     int *pm;
-    n = p->count;
+    n = list->count;
     if (n == 0)
-        return v;
+        return vector;
     {
         pm = matrix;
         __asm__("" : "+r"(pm)); /* empty, allocation-only: unknown alias base so the count reloads follow the matrix stores */
         for (i = 0; i < n; i++) {
-            for (j = 0; j < p->count; j++)
-                *pm++ = Bits(DotQ(*AddrQ(&p->planes[i]), p->planes[j]));
-            n = p->count;
+            for (j = 0; j < list->count; j++)
+                *pm++ = Bits(DotQ(*AddrQ(&list->planes[i]), list->planes[j]));
+            n = list->count;
         }
         pm = (int *)rhs;
-        for (i = 0; i < p->count; i++) {
-            qword *pl = AddrQ(&p->planes[i]);
+        for (i = 0; i < list->count; i++) {
+            qword *pl = AddrQ(&list->planes[i]);
             qword point;
-            __asm__("" : "=j"(point) : "0"(v)); /* empty: a VF copy of v (loop.c hoists it: the target's vmove) */
+            __asm__("" : "=j"(point) : "0"(vector)); /* empty: a VF copy of v (loop.c hoists it: the target's vmove) */
             qword d = DotQ(point, *pl);
             float w = ((float *)pl)[3];
             *(float *)pm++ = w + FloatFromBitsW(BitsM(d), w);
         }
-        SolveInequalities(p->count, (float *)matrix, rhs, (float *)weights, D_002A568C);
-        int k = p->count;
+        SolveInequalities(list->count, (float *)matrix, rhs, (float *)weights, D_002A568C);
+        int k = list->count;
         for (int m = 0; m < k; m++)
-            v = AddScaledM(v, p->planes[m], VufmFromMemWord(weights[m]));
+            vector = AddScaledM(vector, list->planes[m], VufmFromMemWord(weights[m]));
     }
-    return v;
+    return vector;
 }
 
 namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.40282347e+38f; }
@@ -455,6 +464,7 @@ namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.4
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 7 (Init): the CID 8 init plus the default attach radius.
 void CID9::Init()
 {
     MESH *p = (MESH *)this;
@@ -468,10 +478,11 @@ void CID9::Init()
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C28(MESH *pmesh)
+// CID 9 slot 11: AddLoHierarchy and append to the world's sticky-mesh list g_sw.dlCid9.
+extern "C" void AddCid9Hierarchy(MESH *mesh)
 {
-    AddLoHierarchy(pmesh);
-    AppendDlEntry((DLV *)&g_sw.dlCid9, pmesh);
+    AddLoHierarchy(mesh);
+    AppendDlEntry((DLV *)&g_sw.dlCid9, mesh);
 }
 
 /** @sly2-annot addr=0x185C60
@@ -480,10 +491,11 @@ extern "C" void func_00185C28(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C60(MESH *pmesh)
+// CID 9 slot 12: RemoveLoHierarchy and remove from g_sw.dlCid9.
+extern "C" void RemoveCid9Hierarchy(MESH *mesh)
 {
-    RemoveLoHierarchy(pmesh);
-    RemoveDlEntry((DLV *)&g_sw.dlCid9, pmesh);
+    RemoveLoHierarchy(mesh);
+    RemoveDlEntry((DLV *)&g_sw.dlCid9, mesh);
 }
 
 /** @sly2-annot addr=0x185C98
@@ -493,11 +505,12 @@ extern "C" void func_00185C60(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185C98(MESH *p)
+// CID 9 slot 41 (Clone): CloneXfm, keeping the clone's own mesh pointer.
+extern "C" void CloneCid9(MESH *mesh)
 {
-    K k = p->k;
-    CloneXfm(p);
-    p->k = k;
+    K k = mesh->k;
+    CloneXfm(mesh);
+    mesh->k = k;
 }
 
 /** @sly2-annot addr=0x185CE0
@@ -507,14 +520,15 @@ extern "C" void func_00185C98(MESH *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185CE0(MESH *pmesh)
+// CID 9 slot 15 (PostLoad): PostLoLoad, then binds its tunnel (SetTnTns).
+extern "C" void PostCid9Load(MESH *mesh)
 {
-    PostLoLoad(pmesh);
-    if (pmesh->ptn != 0)
-        SetTnTns(pmesh->ptn, 0);
+    PostLoLoad(mesh);
+    if (mesh->ptn != 0)
+        SetTnTns(mesh->ptn, 0);
 }
 
-// func_00185D18 (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
+// PredictMeshContact (Claude agent, lane G16, 2026-10-24): MATCH, no register pins, VU helper asms only.
 // From laneG15v1 (6). Keys: (1) D_002BE918 is `extern const float` read straight into the qmtc2's "rV" operand
 // (VuFloatFromMem(float)): reload makes the lw, and the unchanging MEM keeps the *ppos/*pvel stores free of
 // anti-dependences on it (3). (2) the last AddScaled2 lists a dead "$2" (v0) clobber: the extra dependence on the lw
@@ -551,16 +565,18 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" int func_00185D18(MESH *p, qword pos, qword vel, qword acc, TRIREF *ptr, qword *ppos, qword *pvel, float offset, float t)
+// Projects a ballistic point (pos + v t + a t^2 / 2) onto the mesh: returns the landing point (offset along the
+// normal) and the velocity there. Used to predict where a jump meets the mesh. (inferred)
+extern "C" int PredictMeshContact(MESH *mesh, qword pos, qword velocity, qword acceleration, TRIREF *triangle, qword *posOut, qword *velocityOut, float offset, float time)
 {
     TRIREF tr;
     union { qword q; } closest, normal;
-    func_00185310(p, AddScaled2(pos, vel, VUFQ(t), acc, VUFQ((t * 0.5f) * t)), 0, &tr, &closest.q, &normal.q);
-    *ptr = tr;
+    FindMeshClosestPoint(mesh, AddScaled2(pos, velocity, VUFQ(time), acceleration, VUFQ((time * 0.5f) * time)), 0, &tr, &closest.q, &normal.q);
+    *triangle = tr;
     qword rp = AddScaledQ(closest.q, normal.q, VUFQ(offset));
-    qword rv = AddScaled2H(vel, acc, VUFQ(t), normal.q, VufqFromMem(D_002BE918), ptr, pvel);
-    *ppos = rp;
-    *pvel = rv;
+    qword rv = AddScaled2H(velocity, acceleration, VUFQ(time), normal.q, VufqFromMem(D_002BE918), triangle, velocityOut);
+    *posOut = rp;
+    *velocityOut = rv;
     return 1;
 }
 
@@ -570,27 +586,28 @@ extern "C" int func_00185D18(MESH *p, qword pos, qword vel, qword acc, TRIREF *p
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
-extern "C" void func_00185E30(JTV *p, qword a, qword b, qword c)
+// Stores the player's three mesh probe points (splice option 754 on JT, inferred).
+extern "C" void SetJtMeshProbePoints(JTV *jt, qword point0, qword point1, qword point2)
 {
-    p->points[0].q = a;
-    p->points[1].q = b;
-    p->points[2].q = c;
+    jt->points[0].q = point0;
+    jt->points[1].q = point1;
+    jt->points[2].q = point2;
 }
 
-// func_00185E40 laneH20v1 (Claude agent lane H20): MATCH. laneH19v2 + loop 2 through an inline StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q) that rotates inside its body. A nested inline call argument is expanded before the other arguments, so in H19v2 the points address came first in the loop body; now the samples address does, the giv list (prepended) is reversed, and loop.c emits the points init `addiu v1,s1,0x1F30` before `addiu v0,sp,0x160` like the target. One register pin (direction vf2), allocation-only operands commented.
-// func_00185E40 laneH19v2 (Claude agent lane H19): v1 + loop 2 stores through an inline StoreAddM(&samples[i],a,b) (operator=-style, the address is an inline param) with an allocation-only "m"(d->q) input. gcse no longer shares the loop base with the 1856C0 arg, so loop.c builds a fresh `addiu v0,sp,0x160` (no lw 0x250), the loop is still reversed, and the "m" ref keeps samples v0 / points v1. Left: the two giv inits come out samples-then-points (target points first), aligned 1 / 2 lines.
-// func_00185E40 laneH19v1 (Claude agent lane H19): laneH18v3 + MulM3 through QwRotateVecR, a rotate helper with the matrix rows as operands %1..%3 and the vector last (like QwTransformPos). local-alloc ties an asm output to its operand 1 when it dies there, so c1 now reuses inv r0 (vf5) and the movement load schedules before c1 (13 -> 1). Only the loop-2 `lw 0x250` reload is left.
-// func_00185E40 laneH18v3 (Claude agent lane H18): v2 + MulM3 c1 through QwRotateVecJ with allocation-only extra "j"(v),"j"(v),"j"(m->r[1].q) inputs: D1 and inv r1 get more refs, so local-alloc gives inv r0 vf5 / D1 vf4 like the target (14 -> 13; c1 output is now vf4, target vf5).
-// func_00185E40 laneH17v3 (Claude agent lane H17): v2 + BuildM4L(m,pos,d) takes the frame pointer LAST, so pd=&frame is evaluated after the 11B830 call (addiu s0,sp,0x20 after the call like the target) (27 -> 25).
-// func_00185E40 laneH16v5 (Claude agent lane H16): v4 + speed-block fallback as a qword value whose allocation-only "r" operand sits on the else-branch divide (QwDivideR) instead of the compare mtc1, so its lq is no longer forced before the compare (38 -> 36).
-// func_00185E40 laneH16v4 (Claude agent lane H16): v3 + BuildM4 rows written through a caller-side pointer pd=&frame (a pseudo, so rows 1/2 stay s0-based like the target), the .i[3] zeros through frame and f[3]=1 through pd (41 -> 38).
-// func_00185E40 laneH16v3 (Claude agent lane H16): v2 + movement rotated with QwRotateVec(&rotation,..) and a dead `M3 copy=rotation;` after the speed load (the 0x1F0 stores then follow the speed load like the target) (45 -> 41).
-// func_00185E40 laneH16v2 (Claude agent lane H16): v1 + multiplier read as a float struct member through "rV"(float) (VuFloatFromMemF): the load is MEM_IN_STRUCT, so the 0xC0 temp stores no longer alias it and sched delays them like the target (50 -> 45).
-// func_00185E40 laneH16v1 (Claude agent lane H16): laneH15v1 + speed written straight into a VU_FLOAT local through an inline LoadVuFloatFromMemWord(VU_FLOAT&,int) helper (no return temp pseudo, so global alloc gives len/dir vf1 and speed vf2 and the vmove is gone): 59 -> 50.
-// func_00185E40 laneH15v1 (Claude agent lane H15): laneH13v3 with MulM3 in natural c0,c1,c2 order (the g_cm.mat address dies on the r2 load, so sched1 picks r2 first, then r0, r1 like the target): 62 -> 59.
-// func_00185E40 laneH13v3 (Claude agent lane H13): v2 + one pseudo for len/dir in the movement normalize and allocation-only "r"(fallback) on its mtc1 (66 -> 62).
-// func_00185E40 laneH9v1 (Claude agent lane H9): laneH7v5 + const-ref QwAdd and BuildM4 pos (78 -> 75).
-/* laneH7v5 (Claude agent): fresh Lilly-style rewrite of func_00185E40, no pins, VU helper asms only. */
+// UpdateJtMeshAttachment laneH20v1 (Claude agent lane H20): MATCH. laneH19v2 + loop 2 through an inline StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q) that rotates inside its body. A nested inline call argument is expanded before the other arguments, so in H19v2 the points address came first in the loop body; now the samples address does, the giv list (prepended) is reversed, and loop.c emits the points init `addiu v1,s1,0x1F30` before `addiu v0,sp,0x160` like the target. One register pin (direction vf2), allocation-only operands commented.
+// UpdateJtMeshAttachment laneH19v2 (Claude agent lane H19): v1 + loop 2 stores through an inline StoreAddM(&samples[i],a,b) (operator=-style, the address is an inline param) with an allocation-only "m"(d->q) input. gcse no longer shares the loop base with the 1856C0 arg, so loop.c builds a fresh `addiu v0,sp,0x160` (no lw 0x250), the loop is still reversed, and the "m" ref keeps samples v0 / points v1. Left: the two giv inits come out samples-then-points (target points first), aligned 1 / 2 lines.
+// UpdateJtMeshAttachment laneH19v1 (Claude agent lane H19): laneH18v3 + MulM3 through QwRotateVecR, a rotate helper with the matrix rows as operands %1..%3 and the vector last (like QwTransformPos). local-alloc ties an asm output to its operand 1 when it dies there, so c1 now reuses inv r0 (vf5) and the movement load schedules before c1 (13 -> 1). Only the loop-2 `lw 0x250` reload is left.
+// UpdateJtMeshAttachment laneH18v3 (Claude agent lane H18): v2 + MulM3 c1 through QwRotateVecJ with allocation-only extra "j"(v),"j"(v),"j"(m->r[1].q) inputs: D1 and inv r1 get more refs, so local-alloc gives inv r0 vf5 / D1 vf4 like the target (14 -> 13; c1 output is now vf4, target vf5).
+// UpdateJtMeshAttachment laneH17v3 (Claude agent lane H17): v2 + BuildM4L(m,pos,d) takes the frame pointer LAST, so pd=&frame is evaluated after the 11B830 call (addiu s0,sp,0x20 after the call like the target) (27 -> 25).
+// UpdateJtMeshAttachment laneH16v5 (Claude agent lane H16): v4 + speed-block fallback as a qword value whose allocation-only "r" operand sits on the else-branch divide (QwDivideR) instead of the compare mtc1, so its lq is no longer forced before the compare (38 -> 36).
+// UpdateJtMeshAttachment laneH16v4 (Claude agent lane H16): v3 + BuildM4 rows written through a caller-side pointer pd=&frame (a pseudo, so rows 1/2 stay s0-based like the target), the .i[3] zeros through frame and f[3]=1 through pd (41 -> 38).
+// UpdateJtMeshAttachment laneH16v3 (Claude agent lane H16): v2 + movement rotated with QwRotateVec(&rotation,..) and a dead `M3 copy=rotation;` after the speed load (the 0x1F0 stores then follow the speed load like the target) (45 -> 41).
+// UpdateJtMeshAttachment laneH16v2 (Claude agent lane H16): v1 + multiplier read as a float struct member through "rV"(float) (VuFloatFromMemF): the load is MEM_IN_STRUCT, so the 0xC0 temp stores no longer alias it and sched delays them like the target (50 -> 45).
+// UpdateJtMeshAttachment laneH16v1 (Claude agent lane H16): laneH15v1 + speed written straight into a VU_FLOAT local through an inline LoadVuFloatFromMemWord(VU_FLOAT&,int) helper (no return temp pseudo, so global alloc gives len/dir vf1 and speed vf2 and the vmove is gone): 59 -> 50.
+// UpdateJtMeshAttachment laneH15v1 (Claude agent lane H15): laneH13v3 with MulM3 in natural c0,c1,c2 order (the g_cm.mat address dies on the r2 load, so sched1 picks r2 first, then r0, r1 like the target): 62 -> 59.
+// UpdateJtMeshAttachment laneH13v3 (Claude agent lane H13): v2 + one pseudo for len/dir in the movement normalize and allocation-only "r"(fallback) on its mtc1 (66 -> 62).
+// UpdateJtMeshAttachment laneH9v1 (Claude agent lane H9): laneH7v5 + const-ref QwAdd and BuildM4 pos (78 -> 75).
+/* laneH7v5 (Claude agent): fresh Lilly-style rewrite of UpdateJtMeshAttachment, no pins, VU helper asms only. */
 struct VU_FLOAT{qword qw;VU_FLOAT(){}VU_FLOAT(float f){__asm__("mfc1 %0,%1":"=r"(qw):"f"(f));}};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -627,54 +644,58 @@ static inline qword QwRotateVecRJ(const M3*m,qword v){qword r;__asm__("vmulax.xy
 static inline void MulM3(M3*r,const M3*a,const M3*b){qword c0=QwRotateVecR(a,b->r[0].q),c1=QwRotateVecR(a,b->r[1].q),c2=QwRotateVecR(a,b->r[2].q);r->r[0].q=c0;r->r[1].q=c1;r->r[2].q=c2;}
 static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(void*,qword))e->fn)((char*)p+e->delta,q);}
-extern "C" void func_00185E40(JTV*p){
+// Per-frame update of the player (JT) attached to a sticky mesh: finds the closest mesh point, orients the body to
+// the surface under the three probe points (smoothed), turns the stick into a camera-relative acceleration along
+// the surface and projects it against the mesh boundary planes (CollectMeshContacts / SolveMeshConstraints).
+// Called from jt.cpp while attached (inferred).
+extern "C" void UpdateJtMeshAttachment(JTV*jt){
  U closest,normal;
- qword position=GetLoWorldPos(p);
- func_00185310(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);
+ qword position=GetLoWorldPos(jt);
+ FindMeshClosestPoint(jt->mesh,position,&jt->triangle,&jt->triangle,&closest.q,&normal.q);
  M4 frame;U contacts[3];
  qword difference=VuSub(closest.q,position);
  qword len=QwSqrt(VuDot(difference,difference));
  qword fallback=QwScaleX(normal.q,VuFloat(-1.0f));register qword direction asm("vf2"); // the one register pin: direction vf2
  if(GXOfQw(len)<0.0001f)direction=fallback;else direction=QwDivide(difference,len);
- qword target=QwAddScaled(closest.q,direction,VuFloat(-p->points[0].f[0]));
+ qword target=QwAddScaled(closest.q,direction,VuFloat(-jt->points[0].f[0]));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
- for(i=0;i<3;i++)func_00185310(p->mesh,QwTransformPos(&frame,p->points[i].q),&p->triangle,0,&contacts[i].q,0);
+ for(i=0;i<3;i++)FindMeshClosestPoint(jt->mesh,QwTransformPos(&frame,jt->points[i].q),&jt->triangle,0,&contacts[i].q,0);
  qword surface=QwCross(VuSub(contacts[2].q,contacts[0].q),VuSub(contacts[1].q,contacts[0].q));
  qword unit=QwDivide(surface,QwSqrt(VuDot(surface,surface)));
- {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);p->basis.r[0]=m.r[0];p->basis.r[1]=m.r[1];p->basis.r[2]=m.r[2];}
+ {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);jt->basis.r[0]=m.r[0];jt->basis.r[1]=m.r[1];jt->basis.r[2]=m.r[2];}
  U angular,linear;
- SmoothMatrix(GetLoWorldMatrix(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
- SetVec(p,36,angular.q);
+ SmoothMatrix(GetLoWorldMatrix(jt),&jt->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
+ SetVec(jt,36,angular.q);
  PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
  LIST planes;U samples[3];
- for(i=0;i<3;i++)StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q);
- func_001856B8(p->mesh,&planes);
- func_001856C0(p->mesh,&planes,3,(qword*)samples,&D_002BE940,10.0f);
- if(0.0f<p->control->speed){
+ for(i=0;i<3;i++)StoreAddRot(&samples[i],target,&jt->basis,&jt->points[i].q);
+ ClearMeshContactList(jt->mesh,&planes);
+ CollectMeshContacts(jt->mesh,&planes,3,(qword*)samples,&D_002BE940,10.0f);
+ if(0.0f<jt->control->speed){
   U movement;
-  {float y=p->control->y,z=p->control->z;movement.f[0]=0.0f;movement.f[1]=-y;movement.f[2]=z;}
-  M3 rotation;M3 inverse=InvertMatrix3Cofactor(&p->basis);
+  {float y=jt->control->y,z=jt->control->z;movement.f[0]=0.0f;movement.f[1]=-y;movement.f[2]=z;}
+  M3 rotation;M3 inverse=InvertMatrix3Cofactor(&jt->basis);
   MulM3(&rotation,&inverse,(M3 *)&g_cm.mat);
   movement.q=QwRotateVec(&rotation,movement.q);movement.f[0]=0.0f;
   qword dir=QwSqrt(VuDot(movement.q,movement.q));
-  VU_FLOAT speed;LoadVuFloatFromMemWord(speed,*(int*)&p->control->speed);M3 copy=rotation;
+  VU_FLOAT speed;LoadVuFloatFromMemWord(speed,*(int*)&jt->control->speed);M3 copy=rotation;
   qword fallback=D_002A2DC0.q;
   if(GXOfQw(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
   movement.q=QwScaleX(dir,speed);
-  p->acceleration.q=QwCombo(p->axes[1].direction.q,p->axes[2].direction.q,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));
-  p->acceleration.q=QwScaleX(p->acceleration.q,VuFloatFromMemF(p->request->multiplier));
- }else ClearXyz(&p->acceleration);
+  jt->acceleration.q=QwCombo(jt->axes[1].direction.q,jt->axes[2].direction.q,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));
+  jt->acceleration.q=QwScaleX(jt->acceleration.q,VuFloatFromMemF(jt->request->multiplier));
+ }else ClearXyz(&jt->acceleration);
  if(planes.count>0){
-  qword projected=func_00185A80(p->mesh,&planes,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VU_FLOAT(-1.0f))));
-  M3 inverse=InvertMatrix3Cofactor(&p->basis);
-  p->acceleration.q=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
+  qword projected=SolveMeshConstraints(jt->mesh,&planes,QwRotateVec(&jt->basis,QwScaleX(jt->acceleration.q,VU_FLOAT(-1.0f))));
+  M3 inverse=InvertMatrix3Cofactor(&jt->basis);
+  jt->acceleration.q=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }
  int active=0;
- if(GXOfQw(VuDot(p->acceleration.q,p->acceleration.q))>1.0f)active=1;
- else if(p->control->speed!=0.0f)active=1;
+ if(GXOfQw(VuDot(jt->acceleration.q,jt->acceleration.q))>1.0f)active=1;
+ else if(jt->control->speed!=0.0f)active=1;
  if(active){
-  SetJtState__FP2JT3JTS4JTBS(p,21,11);UpdateDirectionalBlend(p,p->axes,p->request);
-  SetVec(p,35,QwAdd(linear.q,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VuFloatC1(-1.0f)))));
- }else{SetJtState__FP2JT3JTS4JTBS(p,21,10);SetVec(p,35,linear.q);}
+  SetJtState__FP2JT3JTS4JTBS(jt,21,11);UpdateDirectionalBlend(jt,jt->axes,jt->request);
+  SetVec(jt,35,QwAdd(linear.q,QwRotateVec(&jt->basis,QwScaleX(jt->acceleration.q,VuFloatC1(-1.0f)))));
+ }else{SetJtState__FP2JT3JTS4JTBS(jt,21,10);SetVec(jt,35,linear.q);}
 }

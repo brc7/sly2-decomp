@@ -731,7 +731,7 @@ void BindSwBootyProxy(struct S *p);
 void PostLoadGrabMarker(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
-void func_001C1260(void *p);
+void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
@@ -773,7 +773,7 @@ void PostSwLoad(struct S *world)
     world->ppoFirst = 0;
     world->n39D8 = 0;
     world->n39D0 = 0;
-    func_001C1260(world->p45CC);
+    BuildPathzoneLinkLists(world->p45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -822,8 +822,8 @@ void ShowCountdownHud(SW *,float);
 void ClearCheatItems(void);
 CONTEXT *FindWarpByOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
-ACTOR *PpoHero(SW *);
-ACTOR *PpoCur(SW *);
+ACTOR *GetHeroPo(SW *);
+ACTOR *GetCurrentPo(SW *);
 void Decref__4CRef(REF *);
 ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
@@ -909,7 +909,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     if(changed||(world->request.flags&0x40))ClearCheatItems();
     CONTEXT *context=FindWarpByOid(world,world->request.objectId,world->request.objectKey);
     if(context){TriggerWarp(context);world->objectId=world->request.objectId;world->objectKey=world->request.objectKey;}
-    if(!PpoHero(world)&&!PpoCur(world)&&world->actorCount>0){
+    if(!GetHeroPo(world)&&!GetCurrentPo(world)&&world->actorCount>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
@@ -932,7 +932,7 @@ extern "C" void ExecuteSwTransition(SW *world)
         }
     }
     if(!NWorldCur()){
-        ACTOR *actor=PpoHero(world);
+        ACTOR *actor=GetHeroPo(world);
         if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
@@ -1505,7 +1505,7 @@ struct O { char pad[0xC]; VTE *vt; };
 struct S { char pad[0x60]; struct O *po; char pad2[0xC]; long fl; };
 struct B { char pad[0xEC]; struct S *ps; };
 struct E { int pad; struct B *pb; int pad2[2]; long fl; };
-int func_00134310(int a, int b);
+int MaxInt(int a, int b);
 #define VC61(o, a) ((int (*)(void *, struct O *))(o)->vt[61].pfn)((char *)(o) + (o)->vt[61].d, a)
 /** @sly2-annot addr=0x20F948
  * Purpose: Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3
@@ -1527,7 +1527,7 @@ int ShouldKeepSoPair(struct S *object, struct E *e)
         return 0;
     a = VC61(object->po, ps->po);
     b = VC61(ps->po, object->po);
-    r = func_00134310(a, b);
+    r = MaxInt(a, b);
     return r != 1 && r != 3;
 }
 } } // namespace M_FFilterSoPair
@@ -1793,7 +1793,7 @@ struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
 int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-struct Y *func_001F67E0(void *o, int b);
+struct Y *FindLiveSma(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
 void SeekSma(struct Y *y, int id);
 void SetSmaGoal(struct Y *y, int id);
@@ -1818,7 +1818,7 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
         return;
-    y = func_001F67E0(o, pd->b);
+    y = FindLiveSma(o, pd->b);
     if (!y)
         return;
     if (fl & 1)
@@ -1954,7 +1954,7 @@ struct XB { char pad[0xC];
 struct X : XB { char pad10[0x10]; X *next; };
 struct B { X *first; int a, b; };
 struct S { char pad[0x3038]; B ab[199]; };
-extern "C" void func_001C4A60(S *p, int k);
+extern "C" void SetSwPoOverride(S *p, int k);
 /** @sly2-annot addr=0x2102A0
  * Purpose: 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038)
  * Info: proposed name RefreshSwObjects (T2); TU sw
@@ -1969,7 +1969,7 @@ extern "C" void func_001C4A60(S *p, int k);
 extern "C" void CallSlot24OnSwObjects(S *world)
 {
     int i;
-    func_001C4A60(world, 0);
+    SetSwPoOverride(world, 0);
     for (i = 0; i < 199; i++) {
         X *x = ((struct B *)((char *)world + 0x3038))[i].first;
         for (; x; x = x->next)
@@ -2060,7 +2060,7 @@ namespace M_func_002104A0 { extern "C" {
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void ShowSoPartsById(void *p, void *q);
-void func_001F6B48(void *p, void *q);
+void HideSoPartsById(void *p, void *q);
 /** @sly2-annot addr=0x2104A0
  * Purpose: ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48
  * Info: proposed name ShowSwAsegParts (T2); TU sw
@@ -2079,7 +2079,7 @@ void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
         if (f)
             ShowSoPartsById(p, q);
         else
-            func_001F6B48(p, q);
+            HideSoPartsById(p, q);
     }
 }
 } } // namespace M_func_002104A0
@@ -2137,7 +2137,7 @@ namespace M_func_00210678 { extern "C" {
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
 void *func_001EC918(int id);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void func_001F80D0(void *p, float f);
+void SetSoEyesClosed(void *p, float f);
 void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
  * Purpose: ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f)
@@ -2163,7 +2163,7 @@ void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
             p2 = 0;
     }
     if (p1)
-        func_001F80D0(p1, f);
+        SetSoEyesClosed(p1, f);
     if (p2)
         SetEyesClosed(p2, f);
 }

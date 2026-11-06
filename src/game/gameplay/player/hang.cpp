@@ -71,16 +71,16 @@ float func_0011E290(qword,qword,qword*,qword*);
 float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
 M3 BuildRotationMatrixFromVector(qword);
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
-qword func_001FAA00(NODE*,qword);
-qword func_001FAA48(NODE*,qword,qword);
+qword GetSoImpulseLinearDelta(NODE*,qword);
+qword GetSoImpulseAngularDelta(NODE*,qword,qword);
 void AddSoAcceleration(void*,qword);
-void func_001FAC98(void*,qword);
-void func_001F59A0(JT*,M3P*,float*);
+void AddSoAngularAcceleration(void*,qword);
+void AccelSoTowardMatBounded(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
-void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void func_00204660(JT*,float);float atan2f(float,float);
-void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
+void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
+void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
@@ -144,7 +144,7 @@ extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
 }
 
 // AnticipateJtForce: paired-response solver. For each world axis (D_002A2D00 rows) and each of the two objects (p, other;
-// side 1 uses the reversed axis) it asks func_001FAA00 / func_001FAA48 for a pair of effects, then lets p's virtual
+// side 1 uses the reversed axis) it asks GetSoImpulseLinearDelta / GetSoImpulseAngularDelta for a pair of effects, then lets p's virtual
 // slot 69 turn that pair into a velocity response. The difference of the two responses per axis forms a 3x3 matrix
 // that CroutDecomp/CroutSolve solve against the three input floats; the out pairs are the weighted sums of the effects.
 // Claude agent, T1668 (from lilly1 / laneJ9v2, aligned 1). What finished it:
@@ -206,9 +206,9 @@ extern "C" void AnticipateJtForce(NODE*jt,NODE*other,qword*point,float*input,DEL
    /* fresh pointer form: cse1 must not reuse this address for call 1's objects[side].p (see header) */OBJ*fresh=&objects[side+1]-1;NODE*object=fresh->p;axis=D_002A2D00[axisIndex].q;
    if(side==1){VU_FLOAT minus=Scalar(-1.0f);axis=(VU_VECTOR(axis)*minus).q;scalar=minus.q;}
    U*second=Addr(&effects[side][axisIndex].second);DELTA*effect=&effects[side][axisIndex];
-   (second-1)->q=func_001FAA00(objects[side].p,axis);
+   (second-1)->q=GetSoImpulseLinearDelta(objects[side].p,axis);
    /* empty asm, allocation-only: two extra refs make the arg and .second store givs outrank objects/points in global-alloc (target s1 store, s2 arg, s3 objects, s4 points); "=m"(scalar) keeps it a non-barrier */__asm__("" : "=m"(scalar) : "r"(effect),"r"(second));
-   second->q=func_001FAA48(object,Addr(&points[side])->q,Ref(axis));
+   second->q=GetSoImpulseAngularDelta(object,Addr(&points[side])->q,Ref(axis));
    VTE*method=&jt->vt[69];((void(*)(NODE*,DELTA*,qword,U*))method->fn)((NODE*)((char*)jt+method->delta),effect,*point,&velocity[side]);
   }
   relative[axisIndex].q=SubV(velocity[0].q,velocity[1].q);
@@ -369,7 +369,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
     m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
     m2 = BuildAxisAngleRotationMatrix(D_002A2DC0.q, jt->angle);
     m = Mul(m1, m2);
-    func_001F59A0(jt, &m, D_002BF548);
+    AccelSoTowardMatBounded(jt, &m, D_002BF548);
 }
 
 /** @sly2-annot addr=0x1904E0
@@ -380,7 +380,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
 // Physics callback: applies the stored force pair as velocity and angular velocity to the hung-from object.
-extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->object, s->response[1].first.q); func_001FAC98(s->link->object, s->response[1].second.q); }
+extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->object, s->response[1].first.q); AddSoAngularAcceleration(s->link->object, s->response[1].second.q); }
 
 // Update target-facing movement modes and animation weights.
 extern "C" float fabsf(float);
@@ -446,7 +446,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*jt){
  WORK w;int near=0,far=0;
  GetJtHangHeading__FP2JTPf(jt,&w.heading);
  if(jt->flipped)w.heading=RadNormalize__Ff(w.heading+3.1415927410125732421875f);
- func_00204660(jt,w.heading);
+ SetStepTargetHeading(jt,w.heading);
  float inputDifference=RadNormalize__Ff(jt->input->angle-jt->angle);
  if(jt->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;jt->farTime=D_002DDED0.t;}else if(d>2.094395160675048828125f){far=1;jt->farTime=D_002DDED0.t;}}
  else jt->previous=-1;
@@ -505,7 +505,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*jt){
   break;
  }
  SetJtState__FP2JT3JTS4JTBS(jt,3,next);CalculateJtHangAccel__FP2JT(jt);
- if(jt->link)func_001F5078(jt->link->object);
+ if(jt->link)WakeSo(jt->link->object);
  if(GrfPressedWithin__5POCTLUif(jt->input,0x400,0.15f)&&Can(jt,3)){ClearPoctlJoyPressed(jt->input,0x400);StartJtMode(jt->action,0,0,0);}
  if(jt->state==3)return;
  float activeTarget,speedTarget;

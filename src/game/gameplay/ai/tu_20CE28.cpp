@@ -48,7 +48,7 @@ int StepguardHasSgf(GUARDV *object, int state);
 qword ConvertAloPos(GUARDV *object, int a, qword v);
 int SnapToGround(qword *context, float f, float g, int a, int (*pfn)(void *, FPAIR *));
 void *func_002333B4(void *context, int c, int cb) __asm__("memset");
-void func_001F7598(WMSG *zap);
+void DeliverZapToSo(WMSG *zap);
 qword GetLoWorldPos(void *watch);
 void SetHazardWatchState(VOLWATCH *watch, int state);
 }
@@ -122,7 +122,7 @@ extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
         zap.volume = (WVOL *)watch->guard;
         zap.guard = watch->guard;
         zap.damage = 0;
-        func_001F7598(&zap);
+        DeliverZapToSo(&zap);
     }
 }
 
@@ -207,7 +207,7 @@ extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
             zap.damage = watch->volume->zapAmount;
             zap.position = GetLoWorldPos(watch->guard);
             zap.velocity = ((qword (*)(void *))watch->guard->vt[33].function)((char *)watch->guard + watch->guard->vt[33].d);
-            func_001F7598(&zap);
+            DeliverZapToSo(&zap);
         }
     }
 }

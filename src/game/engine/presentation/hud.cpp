@@ -64,7 +64,7 @@ void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 extern "C" {
 char *strcpy(char *, const char *);
-PO *PpoHero(SW *psw);
+PO *GetHeroPo(SW *psw);
 char *GetReconPendingText(int *pn);
 char *GetReconSelectedText(int *pn);
 void func_002277D0(char *pchz, int n);
@@ -174,7 +174,7 @@ namespace M_func_00210FE0 { extern "C" {
 struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
 extern char D_003DD490[];
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
-struct X *PpoHero(void *);
+struct X *GetHeroPo(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
 int sprintf(char *, char *, ...);
 int fptodp(float);
@@ -188,7 +188,7 @@ int fptodp(float);
  * @end-sly2-annot */
 void func_00210FE0(char *pch)
 {
-    struct X *x = PpoHero(D_003DD490);
+    struct X *x = GetHeroPo(D_003DD490);
     float g;
     if (!x || !FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x34))
         return;
@@ -230,7 +230,7 @@ extern "C" void BuildReconSelectionText(char *pchz, int i)
     JT *pjt;
     int *pnRecon;
     char *pchzRecon;
-    pjt = (JT *)PpoHero(&D_003DD490);
+    pjt = (JT *)GetHeroPo(&D_003DD490);
     if ((pjt != 0) && (FIsBasicDerivedFrom((BASIC *)pjt, (CID)0x34) != 0)) {
         pnRecon = pjt->jtmode.hud.pnUnk14;
         pchzRecon = 0;
@@ -256,7 +256,7 @@ extern struct G D_003DD490;
 struct Z { char pad[0xF8]; int xF8; };
 struct Y { char pad[0x74]; int c; struct Z *a[1]; };
 struct X { char pad[0xF38]; struct Y *py; };
-struct X *PpoHero(struct G *g);
+struct X *GetHeroPo(struct G *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 void strcpy(char *dst, char *src);
@@ -269,7 +269,7 @@ void strcpy(char *dst, char *src);
 void BuildReconTargetText(char *dst, int i)
 {
     struct G *g = &D_003DD490;
-    struct X *p = PpoHero(g);
+    struct X *p = GetHeroPo(g);
     if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34)) {
         struct Y *y = p->py;
         if (y && i < y->c)
@@ -378,7 +378,7 @@ struct Z { int x0; int x4; };
 struct Y { char pad[0x224]; int x224; char pad228[0x1C]; struct Z *x244; };
 struct X { char pad[0x4C8]; int x4C8; char pad4cc[0x9A0 - 0x4CC]; struct Y *x9A0; char pad9a4[0x1318 - 0x9A4]; int x1318; };
 extern char D_003DD490[];
-struct X *PpoHero(void *);
+struct X *GetHeroPo(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 char *PchzFindSwLangstr__FP2SWi(void *, int);
 void strcpy(char *, char *);
@@ -392,7 +392,7 @@ void strcpy(char *, char *);
 void func_00211420(char *pch)
 {
     int id = -1;
-    struct X *x = PpoHero(D_003DD490);
+    struct X *x = GetHeroPo(D_003DD490);
     if (x && FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x34)) {
         struct Y *y = x->x9A0;
         if (y) {

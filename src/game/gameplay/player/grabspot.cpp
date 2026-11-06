@@ -70,10 +70,10 @@ void OnSoRemove(SO *pso);
 void InitXfm(XFM *pxfm);
 void InitSo(SO *pso);
 void InitGrabspot(void *pgrabspot);
-void func_001F7918(SO *pso, int grf, int n);
+void SetSoZapResponse(SO *pso, int grf, int n);
 void SO_ResetForProxy(SO *pso);
-int FIgnoreSoIntersection(SO *pso, LO *plo);
-int func_00134310(int grf, int f);
+int ShouldSoIgnoreIntersection(SO *pso, LO *plo);
+int MaxInt(int grf, int f);
 void PostTriggerGrabspotLoad(GRABSPOT35 *p);
 void FireTriggerGrabspot(GRABSPOT35 *p, LO *plo);
 void StartMurrayLiftGrabspot(LO *plo, GRABSPOT36 *p);
@@ -279,7 +279,7 @@ struct S { char pad[0x38]; float g; char p2[0x154]; void *carrier; };
 extern float D_002BE8B4;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
-float func_001E7D90(struct S *p);
+float UpdateShapeBoundingSphere(struct S *p);
 /** @sly2-annot addr=0x182F28
  * Purpose: vt15: PostLoLoad, private TN override off, default busy radius = bounding radius + D_002BE8B4
  * Info: proposed name PostCid12Load (T2); class CID12 slot15; TU grabspot
@@ -291,7 +291,7 @@ void PostWallGrabspotLoad(struct S *wall)
 {
     PostLoLoad(wall);
     if (wall->carrier) SetTnTnsOverride(wall->carrier, 0);
-    if (wall->g == 1e10f) wall->g = func_001E7D90(wall) + D_002BE8B4;
+    if (wall->g == 1e10f) wall->g = UpdateShapeBoundingSphere(wall) + D_002BE8B4;
 }
 } } // namespace M_func_00182F28
 
@@ -822,8 +822,8 @@ extern "C" void InitBarrel(BARRELV *barrel)
     barrel->nState = 0;
     barrel->s158 = 300.0f;
     barrel->isFree = 1;
-    func_001F7918(barrel, 0x03FFFFFF, 8);
-    func_001F7918(barrel, 0x03188001, 0);
+    SetSoZapResponse(barrel, 0x03FFFFFF, 8);
+    SetSoZapResponse(barrel, 0x03188001, 0);
 }
 
 /** @sly2-annot addr=0x183970
@@ -908,14 +908,14 @@ void CloneBarrel(struct S *barrel)
 // Intersection filter (slot 61): SO base, and ignores a player that is holding this barrel (grab state 1 on it).
 extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
 {
-    int grf = FIgnoreSoIntersection(barrel, lo);
+    int grf = ShouldSoIgnoreIntersection(barrel, lo);
     if (FIsBasicDerivedFrom(lo, (CID)0x34) != 0) {
         STEPPLAYER *player = (STEPPLAYER *)lo;
         if (player->jtgrab.nState == 1 && barrel == (BARRELV *)player->jtgrab.plo) {
-            grf = func_00134310(grf, 1);
+            grf = MaxInt(grf, 1);
         }
         if ((unsigned int)(player->jtair.nState - 6) < 2 && barrel == (BARRELV *)player->jtair.plo) {
-            grf = func_00134310(grf, 1);
+            grf = MaxInt(grf, 1);
         }
     }
     return grf;
@@ -927,7 +927,7 @@ struct M { float a[12]; };
 struct S { char pad[0x17C]; int carryState; char p1[0xC]; int isFree; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
-void func_001F9B20(struct S *p);
+void PresetSoAccel(struct S *p);
 void *GetLoWorldMatrix(struct S *p);
 void TiltMatUpright(void *p, int n, struct M *pm);
 void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b);
@@ -942,7 +942,7 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
 void PresetBarrelAccel(struct S *barrel)
 {
-    func_001F9B20(barrel);
+    PresetSoAccel(barrel);
     if (barrel->isFree && !barrel->carryState) {
         struct M m;
         TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
@@ -972,7 +972,7 @@ void SetLoParent(struct O *p, int a, int b);
 void func_002303A0(struct O *p, struct X *px, int n);
 void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
-void func_001F68A8(struct O *p, int n);
+void SetSoPartsBit48(struct O *p, int n);
 void UpdateSwBusyList(void *p);
 void *GetLoWorldMatrix(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
@@ -1009,7 +1009,7 @@ void SetBarrelState(struct O *barrel, int n)
             { struct VTE *e = &barrel->vtable[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
             SetSoCnstrForce(barrel, 0);
             SetSoCnstrTorque(barrel, 0);
-            func_001F68A8(barrel, 0);
+            SetSoPartsBit48(barrel, 0);
         }
         { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 6, 0, 0, 0, 0); }
         UpdateSwBusyList(D_003DD490);
@@ -1047,7 +1047,7 @@ void SetBarrelState(struct O *barrel, int n)
             }
 
             barrel->partA->partFlags = n;
-            func_001F68A8(barrel, 1);
+            SetSoPartsBit48(barrel, 1);
         }
         { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
     }
@@ -1064,7 +1064,7 @@ struct Q { char pad[0xC]; char xc[0x38]; int fl; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int carryState; char p2[0x10]; struct O *carrier; };
 struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
-int func_001F7588(struct S *p, struct Q *q);
+int CanSoTakeDamage(struct S *p, struct Q *q);
 qword GetLoWorldPos(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
@@ -1082,7 +1082,7 @@ int HandleBarrelZap(struct S *barrel, struct Q *q)
 {
     struct M m;
     struct VTE *e;
-    if (!func_001F7588(barrel, q)) return 0;
+    if (!CanSoTakeDamage(barrel, q)) return 0;
     if (barrel->carryState == 3) return 1;
     if (!(q->fl & 8)) return 1;
     EmitSwNoise(D_003DD490, 0, GetLoWorldPos(barrel), barrel);

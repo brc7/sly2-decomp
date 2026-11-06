@@ -106,7 +106,7 @@ extern float D_002BF43C;
 extern float D_002BF440;
 extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
-void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void SetJtHandsTarget(void*,int);
+void HideSoPart(JT*,ACTION*);void InvalidateSoAaox(JT*);void SetJtHandsTarget(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
@@ -136,9 +136,9 @@ void SetJtAirJump(void *, int, int, int);
 void SetJtCaneState__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
 void func_001384C0(ASEG *);
-void SetStepRadTargetVec(JT *, qword);
+void SetStepTargetHeadingFromVector(JT *, qword);
 void FixStepAngularVelocity(JT *);
-void func_00204660(JT *, float);
+void SetStepTargetHeading(JT *, float);
 extern float D_002BF4AC;
 extern float D_002BF4B0[2];   /* an LM {min, max}: the takedown target's z window */
 extern "C" float D_002BF4B8;
@@ -166,7 +166,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT*jt,int state){
  if(state!=-1&&jt->state!=-1)compatible=state==D_002BF448[jt->state];
  if(!compatible)HideSoPart(jt,jt->action);
  int exitEffect=-1;
- switch(jt->state){case 1:exitEffect=jt->target->exitEffect;func_001F4BF8(jt);break;case 2:func_001F4BF8(jt);break;case 0:SetJtHandsTarget(jt->track,-1);break;case -1:break;}
+ switch(jt->state){case 1:exitEffect=jt->target->exitEffect;InvalidateSoAaox(jt);break;case 2:InvalidateSoAaox(jt);break;case 0:SetJtHandsTarget(jt->track,-1);break;case -1:break;}
  Emit(jt,exitEffect);
  register float start __asm__("$f22")=0.0f;
  ASEG*clip=0;
@@ -174,14 +174,14 @@ extern "C" void SetJtCaneState__FP2JTi(JT*jt,int state){
  int enterEffect=-1;register float sharedDeadline __asm__("$f0"),sharedDelay __asm__("$f1");register int sharedMode __asm__("$2");register char*clockHigh __asm__("$3");
  switch(state){
  case -1:jt->surface=0;break;
- case 1:case 2:func_001F4BF8(jt);break;
- case 10:func_001F4BF8(jt);clip=jt->alternate10;break;
- case 11:func_001F4BF8(jt);clip=jt->alternate11;break;
+ case 1:case 2:InvalidateSoAaox(jt);break;
+ case 10:InvalidateSoAaox(jt);clip=jt->alternate10;break;
+ case 11:InvalidateSoAaox(jt);clip=jt->alternate11;break;
  case 0:{SetJtHandsTarget(jt->track,0);clip=jt->idle;rate=0.0f;
   register JT*receiver __asm__("$4");register float half __asm__("$f1"),duration __asm__("$f0");
   __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(jt):"$1");
   __asm__("lwc1 %0,%1":"=f"(duration):"m"(clip->duration));start=duration*half;
-  func_001F4BF8(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
+  InvalidateSoAaox(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
 
  case 3:{
   WORK work;
@@ -693,7 +693,7 @@ extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
     func_001384C0(aseg);
     jt->surface = alo;
     if (alo && jt->mode == 0) {
-        SetStepRadTargetVec(jt, v.q);
+        SetStepTargetHeadingFromVector(jt, v.q);
         FixStepAngularVelocity(jt);
     }
 }
@@ -717,7 +717,7 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
     jt->surface = alo;
     if (alo)
         g = atan2f(v.f[1], v.f[0]);
-    func_00204660(jt, g);
+    SetStepTargetHeading(jt, g);
     FixStepAngularVelocity(jt);
 }
 
@@ -736,7 +736,7 @@ extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
     ChooseJtAttackTarget((ALO *)jt, jt->heading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
     jt->surface = alo;
     if (alo) {
-        SetStepRadTargetVec(jt, v.q);
+        SetStepTargetHeadingFromVector(jt, v.q);
         FixStepAngularVelocity(jt);
     }
 }

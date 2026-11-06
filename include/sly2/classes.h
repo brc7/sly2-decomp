@@ -1265,7 +1265,7 @@ struct CID8 : XFM
     char padE0[0x100 - 0xE0];
     virtual void Init() __asm__("func_00185130");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid8ClassDesc");   /* slot 6 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_00185150");   /* slot 14 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCid8FromBrx");   /* slot 14 */
 };
 typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
 
@@ -1275,10 +1275,10 @@ struct CID9 : CID8
     char pad100[0x120 - 0x100];
     virtual void Init() __asm__("func_00185BF8");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
-    virtual void AddHierarchy() __asm__("func_00185C28");   /* slot 11 */
-    virtual void RemoveHierarchy() __asm__("func_00185C60");   /* slot 12 */
-    virtual void VUnk14() __asm__("func_00185CE0");   /* slot 15 */
-    virtual void Clone(LO *ploBase) __asm__("func_00185C98");   /* slot 41 */
+    virtual void AddHierarchy() __asm__("AddCid9Hierarchy");   /* slot 11 */
+    virtual void RemoveHierarchy() __asm__("RemoveCid9Hierarchy");   /* slot 12 */
+    virtual void VUnk14() __asm__("PostCid9Load");   /* slot 15 */
+    virtual void Clone(LO *ploBase) __asm__("CloneCid9");   /* slot 41 */
 };
 typedef char assert_CID9_size[sizeof(CID9) == 0x120 ? 1 : -1];
 
@@ -1419,11 +1419,11 @@ struct CID14 : SHAPE
     char pad190[0x1F0 - 0x190];
     virtual void Init() __asm__("func_001BC050");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid14ClassDesc");   /* slot 6 */
-    virtual void AddHierarchy() __asm__("func_001BC160");   /* slot 11 */
-    virtual void RemoveHierarchy() __asm__("func_001BC198");   /* slot 12 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001BC088");   /* slot 14 */
-    virtual void VUnk14() __asm__("func_001BC570");   /* slot 15 */
-    virtual void Clone(LO *ploBase) __asm__("func_001BC0D0");   /* slot 41 */
+    virtual void AddHierarchy() __asm__("AddCid14Hierarchy");   /* slot 11 */
+    virtual void RemoveHierarchy() __asm__("RemoveCid14Hierarchy");   /* slot 12 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCid14FromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostCid14Load");   /* slot 15 */
+    virtual void Clone(LO *ploBase) __asm__("CloneCid14");   /* slot 41 */
 };
 typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
 
@@ -1707,7 +1707,7 @@ struct CID106 : SO
     char pad150[0x160 - 0x150];
     virtual void RenderSelf() __asm__("func_001E9AC0");   /* slot 19 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid106ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("func_001E9858");   /* slot 15 */
+    virtual void VUnk14() __asm__("PostCid106Load");   /* slot 15 */
 };
 typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
 
@@ -2003,7 +2003,7 @@ struct CID23 : VOL
     char pad130[0x140 - 0x130];
     virtual void Unfreeze() __asm__("func_00227E20");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid23ClassDesc");   /* slot 6 */
-    virtual void Freeze() __asm__("func_00227E58");   /* slot 22 */
+    virtual void Freeze() __asm__("FreezeVol");   /* slot 22 */
 };
 typedef char assert_CID23_size[sizeof(CID23) == 0x140 ? 1 : -1];
 
@@ -2041,14 +2041,14 @@ struct WATER : SO
     char pad150[0x190 - 0x150];
     virtual void VUnk14() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWaterClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00229370");   /* slot 5 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleWaterMessage");   /* slot 5 */
     virtual void Init() __asm__("InitWater");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_00229308");   /* slot 12 */
+    virtual void RemoveHierarchy() __asm__("RemoveWaterHierarchy");   /* slot 12 */
     virtual void VUnk15() __asm__("UpdateWater");   /* slot 16 */
-    virtual void VUnk48() __asm__("func_00229680");   /* slot 49 */
-    virtual void InitPhys() __asm__("func_00228BB0");   /* slot 64 */
-    virtual void VUnk70() __asm__("func_002292D8");   /* slot 71 */
-    virtual void VUnk72() __asm__("func_00229D78");   /* slot 73 */
+    virtual void VUnk48() __asm__("UpdateWaterBounds");   /* slot 49 */
+    virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
+    virtual void VUnk70() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
+    virtual void VUnk72() __asm__("IsPosInWater");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 

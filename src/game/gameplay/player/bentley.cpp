@@ -43,7 +43,7 @@ void SetGadgetRecordObject(BENTLEY *pbentley, JTPOCKET *ppocket, LO *plo);
 void UnlockProxyObject(PROXY *pproxy, LO *plo);
 void SetBentleyCrosshairState(BTBLENDS *pbtblends, int n);
 void OnStepplayerGadgetsChanged(STEPPLAYER *pstepplayer);
-int FIsPoCur(PO *ppo);
+int IsPoCurrent(PO *ppo);
 int GetGadgetButtonMask(STEPPLAYER *pstepplayer, int n);
 void ShowSoGlobsById(SO *pso, int id);
 void HideSoGlobsById(SO *pso, int id);
@@ -140,7 +140,7 @@ struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char gaitA[0
 union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
 extern VQ D_002BC920;
 void PostLoadStepplayer(struct S *);
-int PxfFindSo(struct S *, int, int);
+int FindSoXf(struct S *, int, int);
 void InitDirectionalBlend(struct S *, void *, void *);
 void PostJtLoadGait(void *);
 void InitBentleyCrosshair(void *, struct S *, ti128, float, float);
@@ -157,7 +157,7 @@ void SetBentleyState(struct S *, int);
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
 void PostBentleyLoad(struct S *bentley) {
     PostLoadStepplayer(bentley);
-    bentley->f10b8 = PxfFindSo(bentley, 0xb, 1);
+    bentley->f10b8 = FindSoXf(bentley, 0xb, 1);
     InitDirectionalBlend(bentley, bentley->a13e0, bentley->a14e0);
     InitDirectionalBlend(bentley, bentley->a14f0, bentley->a15f0);
     PostJtLoadGait(bentley->gaitA);
@@ -391,7 +391,7 @@ void UpdateStepplayer(struct P *p);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, struct P *p, int n);
 void UpdateBentleyJtMode(struct P *p);
 void UpdateBentleyStateMachine(struct P *p);
-void func_00204660(struct P *p, float g);
+void SetStepTargetHeading(struct P *p, float g);
 int GetStepplayerLeanFlags(struct P *p);
 void SetSmaMask(int a, int b);
 void UpdateGaitBlend(void *pv, float g);
@@ -401,7 +401,7 @@ void UpdateJtActiveHide(void *pv);
 void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void UpdateDirectionalBlend(struct P *p, void *pv, int n);
-qword func_00204E38(struct P *p, struct S1030 *px, float g);
+qword GetStepAsegaTranslation(struct P *p, struct S1030 *px, float g);
 void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
 float RadNormalize__Ff(float g);
 float GLimitAbs__Fff(float g, float dg);
@@ -454,7 +454,7 @@ static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
 static __inline__ void Pull(struct P *p)
 {
     VUF u;
-    qword v = func_00204E38(p, p->action, p->action->g1C);
+    qword v = GetStepAsegaTranslation(p, p->action, p->action->g1C);
     qword r;
     qword uq;
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(-1.0f));
@@ -465,7 +465,7 @@ static __inline__ void Pull(struct P *p)
 static __inline__ void PullB(struct P *p)
 {
     VUF u;
-    qword v = func_00204E38(p, p->action, p->action->g1C);
+    qword v = GetStepAsegaTranslation(p, p->action, p->action->g1C);
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
@@ -496,17 +496,17 @@ void UpdateBentley(struct P *bentley)
     switch (bentley->state) {
     case 0:
         if (bentley->x181C) {
-            func_00204660(bentley, D_002BC934);
+            SetStepTargetHeading(bentley, D_002BC934);
             break;
         }
         SetSmaMask(bentley->x1034, GetStepplayerLeanFlags(bentley));
         break;
     case 1:
-        func_00204660(bentley, bentley->controller->g18);
+        SetStepTargetHeading(bentley, bentley->controller->g18);
         Kick(bentley->gaitA, 1.0f);
         break;
     case 7:
-        func_00204660(bentley, bentley->controller->g18);
+        SetStepTargetHeading(bentley, bentley->controller->g18);
         Kick(bentley->gaitB, bentley->controller->g1C);
         break;
     case 2:
@@ -536,7 +536,7 @@ void UpdateBentley(struct P *bentley)
             float z = 0.0f;
             if (z < bentley->controller->g1C) {
                 float d = RadNormalize__Ff(bentley->controller->g18 - bentley->g1A8);
-                func_00204660(bentley, bentley->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
+                SetStepTargetHeading(bentley, bentley->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
             SetVel(bentley, SetVectorCylind(bentley->controller->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->action->g40, z), bentley->x14F0, bentley->x15F0);
         }
@@ -547,11 +547,11 @@ void UpdateBentley(struct P *bentley)
     case 11:
         PullB(bentley);
         SetAsegaSpeed__FP5ASEGAf(bentley->action, bentley->controller->g1C);
-        func_00204660(bentley, bentley->controller->g18);
+        SetStepTargetHeading(bentley, bentley->controller->g18);
         break;
     case 14:
         Pull(bentley);
-        func_00204660(bentley, bentley->controller->g18);
+        SetStepTargetHeading(bentley, bentley->controller->g18);
         break;
     }
     UpdateBentleyPlaces(bentley);
@@ -797,7 +797,7 @@ struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, struct LSG *);
+int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *);
 /** @sly2-annot addr=0x1356E8
  * Purpose: Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox +
  *   PsoHitTestLineObjects); store hit (or far point) at +0x16F0
@@ -817,7 +817,7 @@ void UpdateBentleyAimPoint(struct S *bentley) {
     ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
     IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, bentley->fec, &cso, &aso);
-    if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) bentley->v16f0 = lsg.pos;
+    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->v16f0 = lsg.pos;
     else bentley->v16f0 = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
@@ -912,7 +912,7 @@ struct VT { short d; short pad; void *pfn; };
 struct P { char pad[0xC]; struct VT *pvt; char pad1[0x2C0 - 0x10]; char air[0x200]; char grab[0xDF0 - 0x4C0];
     char hurt[0x160]; char pipe[0x13D0 - 0xF50]; int k; char pad3[0x16B0 - 0x13D4]; int subState; };
 extern float D_002BC990;
-void func_001F9B20(struct P *p);
+void PresetSoAccel(struct P *p);
 void PresetStepAccel(struct P *p);
 void PresetJtAccelJump(void *p);
 void PresetJtAccelHide(void *p);
@@ -931,7 +931,7 @@ void AddSoAcceleration(struct P *p, qword v);
 void PresetBentleyAccel(struct P *bentley)
 {
     if (bentley->k == 13)
-        func_001F9B20(bentley);
+        PresetSoAccel(bentley);
     else
         PresetStepAccel(bentley);
     switch (bentley->k) {
@@ -1301,7 +1301,7 @@ int FAsegaRetracted(void *pv);
 void SetBentleySubState(struct P *p, int n);
 void func_00224258(struct O *po, int n);
 int GetGadgetButtonMask(struct P *p, int n);
-int POCTL_FButtonDown(void *pv, int n);
+int POCTL_IsButtonDown(void *pv, int n);
 void ReleaseBentleyHeldObject(struct P *p);
 void SetJtAirJump(void *pv, int a, int b, int c);
 /** @sly2-annot addr=0x136118
@@ -1328,7 +1328,7 @@ void UpdateBentleySubState(struct P *bentley)
                 func_00224258(object, object->x1A0);
                 goto common;
             }
-            if (object->x158 == 4 || !POCTL_FButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->pq->x0) | 0x10)) {
+            if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->pq->x0) | 0x10)) {
                 ((void (*)(void *, int))object->vt[76].pfn)((char *)object + object->vt[76].d, 1);
             common:
                 ReleaseBentleyHeldObject(bentley);
@@ -1476,8 +1476,8 @@ extern qword D_002A2DD0;
 void SetLoParent(struct P *, int, int);
 void ReleaseAct(void *);
 void func_002303A0(struct P *, struct O *, int);
-float RadStepHeading(struct P *);
-void func_00204660(struct P *, float);
+float GetStepHeading(struct P *);
+void SetStepTargetHeading(struct P *, float);
 void FixStepAngularVelocity(struct P *);
 void SetJtThrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
@@ -1511,7 +1511,7 @@ void SetBentleyHoverState(struct P *bentley, int k)
         break;
     }
     case 1:
-        func_00204660(bentley, RadStepHeading(bentley));
+        SetStepTargetHeading(bentley, GetStepHeading(bentley));
         bentley->x1A4 = 0;
         FixStepAngularVelocity(bentley);
         break;
@@ -1803,7 +1803,7 @@ void BENTLEY::VSlot105()
 {
     BENTLEY *bentley = (BENTLEY *)this;
     OnStepplayerGadgetsChanged(bentley);
-    if ((FIsPoCur(bentley) != 0) && (GetGadgetButtonMask(bentley, 0xC) != 0)) {
+    if ((IsPoCurrent(bentley) != 0) && (GetGadgetButtonMask(bentley, 0xC) != 0)) {
         ShowSoGlobsById(bentley, 0x24D);
         return;
     }
@@ -1940,7 +1940,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
 qword ConvertAloPos(void *, struct PO *, qword);
-void SetStepRadTargetVec(struct PO *, qword);
+void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void func_001384C0(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
@@ -1988,7 +1988,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         r.q = ConvertAloPos(ps->pvE4, ps->po, D_002A2DD0);
         ps->x8 = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
-            SetStepRadTargetVec(ps->po, v.q);
+            SetStepTargetHeadingFromVector(ps->po, v.q);
             FixStepAngularVelocity(ps->po);
         }
     }

@@ -92,7 +92,7 @@ TABLE D_002C3968[9] = {
 extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
 ulong GetSgfMask(int);
-int PpoHero(G *);
+int GetHeroPo(G *);
 void func_001C2DB8(OWNER *);
 int func_001C2DC8(OWNER *, OBJECT *, int, int);
 void *func_001C2EF0(OWNER *, int);
@@ -105,7 +105,7 @@ float GRandInRange__Fff(float, float);
 int NRandInRange__Fii(int, int);
 void BroadcastGameEvent(G *, int, P *);
 void BuildSpliceListFromUniformValues(void *, int, int, int *);
-void func_00205D10(P *, int);
+void IgnoreStepSlot87(P *, int);
 void SetStepguardPickpocketState(P *guard, int state);
 void UpdateStepguardPickpocket(P *guard);
 void StageStepguardLoot(P *guard);
@@ -169,7 +169,7 @@ extern "C" void UpdateStepguardPickpocket(P *guard)
         alertMask = GetSgfMask(0x1D) | GetSgfMask(0x20) | GetSgfMask(5) | GetSgfMask(6)
             | GetSgfMask(7) | GetSgfMask(0x17) | GetSgfMask(0x16);
         if (guard->guardFlags & alertMask) state = 0;
-        else if (!guard->lootCount || guard->loot[guard->lootCount - 1].oid == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) state = 1;
+        else if (!guard->lootCount || guard->loot[guard->lootCount - 1].oid == 0x2B3 || !GetHeroPo(&D_003DD490) || GetHeroPo(&D_003DD490) != D_002E1E40) state = 1;
         else state = 2;
     }
     SetStepguardPickpocketState(guard, state);
@@ -290,7 +290,7 @@ extern "C" void *GetStepguardLootRefList(void *result, P *guard)
 // vtable slot 21) only while the guard is not in this mode.
 extern "C" void SetStepguardPlayable(P *guard, int isPlayable)
 {
-    func_00205D10(guard, isPlayable);
+    IgnoreStepSlot87(guard, isPlayable);
     if (isPlayable) { if (guard->pouch) VFN(guard->pouch, 21, 0); }
     else if (guard->pouch) VFN(guard->pouch, 21, 1);
 }

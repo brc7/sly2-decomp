@@ -87,7 +87,7 @@ extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, vo
 extern SW D_003DD490;
 void IncrementSwNoPause(SW *psw) __asm__("IncrementSwNoPause");
 void DecrementSwNoPause(SW *psw) __asm__("DecrementSwNoPause");
-void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("func_00204660");
+void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("SetStepTargetHeading");
 struct SWALLOC
 {
     int cb;
@@ -189,7 +189,7 @@ extern "C" {
 void InitJtModeHud(JTMODEHUD *phud, JTMODE *pjtmode);
 void PostLoadJtModeHud(JTMODEHUD *phud);
 int FAsegaRetracted(ASEGA *pasega);
-void func_00204660(STEPPLAYER *pstepplayer, float g);
+void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g);
 void UpdateJtModeHud(JTMODEHUD *phud);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
 void InitReconSel(int *psel, JTMODE *pjtmode);
@@ -472,12 +472,12 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
             switch (jtMode->nKind) {
             case 0:
-                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->lookHeading);
+                SetStepTargetHeading(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->lookHeading);
                 jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->lookZoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;
             case 1:
-                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->reconHeading);
+                SetStepTargetHeading(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->reconHeading);
                 jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->reconZoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;

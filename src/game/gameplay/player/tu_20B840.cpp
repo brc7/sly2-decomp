@@ -164,7 +164,7 @@ EA *func_0012F938(ASEG *paseg, int n);
 CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
-qword GetSoDvGravity(ALO *);
+qword GetSoGravity(ALO *);
 void DetachStepguard(ALO *);
 void DisableStuckWatch(void *);
 float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
@@ -172,7 +172,7 @@ qword func_0022FC48(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
 ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
-void SetSoDvGravity(ALO *,qword);
+void SetSoGravity(ALO *,qword);
 void func_00130D30(ASEGA *,int,float,float);
 void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
@@ -642,7 +642,7 @@ void SetLeapState(LEAPV *leap,int state)
     case 0:
         ApplyAsegCur(leap->tuning->animation,leap->subject,0.0f,1.0f,leap->index,&leap->job);
         SubscribeLoObject(leap->job,leap);
-        leap->previousVelocity.q=GetSoDvGravity(leap->subject);
+        leap->previousVelocity.q=GetSoGravity(leap->subject);
         break;
     case 1:{
         if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38)){
@@ -708,7 +708,7 @@ void SetLeapState(LEAPV *leap,int state)
             leap->subject->flags|=0x04000000ul;
             RecalcSwOxfFilterForObject(&D_003DD490,leap->subject);
         }
-        SetSoDvGravity(leap->subject,acceleration.q);
+        SetSoGravity(leap->subject,acceleration.q);
         break;
     }
     case 2:func_00130D30(leap->job,0,leap->tuning->afterStart,1.0f);break;
@@ -718,7 +718,7 @@ void SetLeapState(LEAPV *leap,int state)
         break;
     case 4:
         if(leap->ballistic)ReleaseLeapConstraint(leap);
-        SetSoDvGravity(leap->subject,leap->previousVelocity.q);
+        SetSoGravity(leap->subject,leap->previousVelocity.q);
         if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38))EnableStuckWatch(leap->subject->control);
         break;
     }

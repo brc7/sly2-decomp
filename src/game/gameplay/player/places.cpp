@@ -77,10 +77,10 @@ void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(JT *, PLACE *);
 void ChooseJtSafePlace(JTPLACES *p, PLACE *e);
-JT *PpoHero(G *g);
+JT *GetHeroPo(G *g);
 qword GetJtPlacePosition(JT *p, PLACE *e, float g);
 float ComputeMaxBallisticTime(qword a, qword b, float c, float d, float e, float f);
-void SetStepRadTargetVec(JT *p, qword q);
+void SetStepTargetHeadingFromVector(JT *p, qword q);
 void CutCm__FP2CM(D *d);
 void SetJtAirJump(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
@@ -88,7 +88,7 @@ void UpdateSoBusy(G *g, LO *a);
 void ChooseJtLanding(void *p, LO *a);
 void func_0015E1D8(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
 void ShouldKeepSoPair(void);
 /* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
 union VQ { float af[4]; qword q; };
@@ -196,14 +196,14 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
     if (!q) {
         ChooseJtSafePlace(&jt->places, &e);
         q = &e;
-        if (jt == PpoHero(&D_003DD490)) {
+        if (jt == GetHeroPo(&D_003DD490)) {
             qword r = GetJtPlacePosition(jt, &e, 0.0f);
             float g = ComputeMaxBallisticTime(VuSub(r, jt->rootXf->position), jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = jt->places.count;
                 ((void (*)(void *, qword))jt->vt[29].function)((char *)jt + jt->vt[29].delta, VuSub(r, jt->pivotOffset));
                 jt->places.count = save;
-                SetStepRadTargetVec(jt, D_002DDF40.unknown60);
+                SetStepTargetHeadingFromVector(jt, D_002DDF40.unknown60);
                 ((void (*)(void *, void *))jt->vt[30].function)((char *)jt + jt->vt[30].delta, jt->orientation);
                 CutCm__FP2CM(&D_002DDF40);
                 SetJtAirJump(jt->air, 0xB, 0, 0);
@@ -248,7 +248,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         b.q = pos;
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit) || hit.unknown40 == 0.0f || hit.normalZ < 0.7f)
+        if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit) || hit.unknown40 == 0.0f || hit.normalZ < 0.7f)
             g = GMax(g, 2000.0f);
         else
             pos = hit.pos;
@@ -256,7 +256,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         a.q = pos;
         a.f[2] += 180.0f;
         b.f[2] += 5.0f;
-        if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit))
+        if (FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit))
             g = GMax(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
@@ -265,7 +265,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
             a.q = v;
             a.f[2] += 50.0f;
             b.f[2] -= 30.0f;
-            if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit)) {
+            if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit)) {
                 g = GMax(g, 1500.0f);
                 break;
             }

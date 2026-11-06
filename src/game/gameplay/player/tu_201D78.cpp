@@ -105,13 +105,13 @@ extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separat
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
-int FCheckVolPoint(LOV *pvol, qword v);
+int IsPointInVol(LOV *pvol, qword v);
 qword GetLoWorldPos(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
 void func_00213BD8(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
-RECONTGT *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, RECONTGT **, LSG *);
+RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
 int FInsideCmFrustum(CMV *, qword, qword);
 int FInsideCmMrd(CMV *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
@@ -139,7 +139,7 @@ void LoadXfmFromBrx(RECONTGT *p, void *pbis);
 void PostLoLoad(RECONTGT *p);
 void SubscribeLoObject(LINK *plink, RECONTGT *p);
 void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
-PLAYER *PpoHero(SW *psw);
+PLAYER *GetHeroPo(SW *psw);
 void RequestTaskState(LINK *plink, int n, RECONTGT *p);
 void GatherJtModeHudTags(void *pv);
 int IsTaskComplete(LINK *plink);
@@ -242,7 +242,7 @@ void NotifyReconTargets(RECONSEL *reconSel)
 }
 
 /** @sly2-annot addr=0x201F90
- * Purpose: flag +0xB8 = origin inside any class-0x19 VOL (FCheckVolPoint)
+ * Purpose: flag +0xB8 = origin inside any class-0x19 VOL (IsPointInVol)
  * Info: proposed name UpdateReconSelInVolume (T2); TU tu_201D78
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
@@ -255,7 +255,7 @@ void UpdateReconSelInVolume(RECONSEL *reconSel)
     reconSel->visible = 0;
     n = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_19, 0, 16, (RECONTGT **)a);
     for (i = 0; i < n; i++) {
-        if (FCheckVolPoint(a[i], reconSel->position.q)) {
+        if (IsPointInVol(a[i], reconSel->position.q)) {
             reconSel->visible = 1;
             break;
         }
@@ -429,7 +429,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel,RECONTGT *other)
     }
     point=points;
     for(;i<4;++i){
-        if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,reconSel->position.q,point->q,query.count,query.objects,0))++cHit;
+        if(FindFirstObjectHitByLine(0,reconSel->position.q,point->q,query.count,query.objects,0))++cHit;
         ++point;
     }
     {
@@ -911,7 +911,7 @@ extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
     PLAYER *o;
     HandleBasicMessage(target, msg, pm);
     if (msg != 0x11) return;
-    o = PpoHero(&D_003DD490);
+    o = GetHeroPo(&D_003DD490);
     if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
         RefreshReconPendingTargets(o->preconsel);
         UpdateReconChecklist(o->preconsel);
@@ -931,7 +931,7 @@ void SetReconTargetDone(RECONTGT *target, int n)
     if (target->link) {
         PLAYER *o;
         RequestTaskState(target->link, 2, target);
-        o = PpoHero(&D_003DD490);
+        o = GetHeroPo(&D_003DD490);
         if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
     } else target->fDone = n;
 }

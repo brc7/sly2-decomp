@@ -95,7 +95,7 @@ extern SW D_003DD490;       /* g_sw */
 extern "C" {
 extern const float D_002A514C;    /* "indefinitely": a time far in the future */
 extern CLOCK D_002DDED0;    /* g_clock */
-void func_001C4848(SW *psw, EMITTERV *pemitter);
+void AddSwPoFollower(SW *psw, EMITTERV *pemitter);
 void SetLoParent(LO *plo, SO *psoParent, int n);
 SO *GetSoFromLo(int oid);
 void SetBlipgEmitb(BLIPG *pblipg, EMITBV *pemitb);
@@ -259,7 +259,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
  * @end-sly2-annot */
 extern "C" void func_001594D8(EMITTERV *pemitter)
 {
-    func_001C4848(&D_003DD490, pemitter);
+    AddSwPoFollower(&D_003DD490, pemitter);
 }
 
 namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {

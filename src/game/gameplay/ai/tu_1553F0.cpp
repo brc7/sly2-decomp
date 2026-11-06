@@ -53,7 +53,7 @@ struct DIMITRIV
     int hitPointsAtLastEscape;               /* +0x1018 hp when the last escape started */
 };
 typedef char assert_DIMITRI_hitPointsAtLastEscape[(unsigned int)&((DIMITRIV *)0)->hitPointsAtLastEscape == 0x1018 ? 1 : -1];
-/* A sub-behaviour found by func_00205438 (vtable slot 8 starts it). */
+/* A sub-behaviour found by PushStepBehavior (vtable slot 8 starts it). */
 struct BHVO { int a[3]; VTE *vt; char pad[0x20]; union { void *plo30; int x30; }; int pad34; union { void *p38; int x38; }; int x3C; int x40;
               char pad44[8]; void *n4C; char pad50[0xC0 - 0x50]; int xC0; int padC4; void *pC8; };
 typedef char assert_BHVO_pC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
@@ -124,8 +124,8 @@ void AddStepguardSgf(DIMITRIV *guard, int sgf);
 void RemoveStepguardSgf(DIMITRIV *guard, int sgf);
 void SetStepguardTarget(DIMITRIV *guard, void *object);
 qwordV GetLoWorldPos(void *p);
-BHVO *func_00205438(DIMITRIV *guard, int n);
-int FCheckVolPoint(void *p, qwordV q);
+BHVO *PushStepBehavior(DIMITRIV *guard, int n);
+int IsPointInVol(void *p, qwordV q);
 void SetStepguardAimAct(DIMITRIV *object, int a, int b, qwordV q);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
@@ -147,7 +147,7 @@ extern float D_002BDC90[2];
 extern float D_002BDC98;
 extern float D_002BDCA0[11];   /* pan offsets tried in turn */
 extern const float D_002A513C;   /* defined below where the ELF has it (.rodata order) */
-HERO *PpoHero(void *p);
+HERO *GetHeroPo(void *p);
 extern char D_002DE578[];
 M3 *GetLoWorldMatrix(void *p);
 float GetDifficulty(void *p);
@@ -161,7 +161,7 @@ FRAME *STACKSCOPE_ctor(FRAME *pf);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n) __asm__("_$_10STACKSCOPE");
 void func_001B44D8(int *pc, void **pa);
 qwordV SetVectorSphere(float pan, float tilt, float s);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
+int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
 }
 float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
@@ -279,7 +279,7 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
     behavior->stateTime = D_002DDED0.t;
     switch (k) {
     case 0: {
-        BHVO *child = func_00205438(behavior->guard, 0xB5);
+        BHVO *child = PushStepBehavior(behavior->guard, 0xB5);
         VTE *entry;
         child->p38 = behavior->route;
         child->n4C = behavior->target;
@@ -289,7 +289,7 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
         break;
     }
     case 1: {
-        BHVO *child = func_00205438(behavior->guard, 0xA5);
+        BHVO *child = PushStepBehavior(behavior->guard, 0xA5);
         VTE *entry;
         child->plo30 = behavior->target;
         child->x40 = k;
@@ -381,9 +381,9 @@ void BHV181::Start()
 // 0x155A68: Picks which end of the route to run to (the one whose volume does not contain the player, inferred).
 extern "C" void *ChooseBhvDimitriAttackRouteEnd(BHVATK *behavior)
 {
-    if (FCheckVolPoint(behavior->route->firstVolume, GetLoWorldPos(behavior->target)))
+    if (IsPointInVol(behavior->route->firstVolume, GetLoWorldPos(behavior->target)))
         return behavior->route->first;
-    if (FCheckVolPoint(behavior->route->secondVolume, GetLoWorldPos(behavior->target)))
+    if (IsPointInVol(behavior->route->secondVolume, GetLoWorldPos(behavior->target)))
         return behavior->route->second;
     return behavior->route->first;
 }
@@ -429,7 +429,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         BHVO *child;
         qwordV d;
         behavior->goal = ChooseBhvDimitriAttackRouteEnd(behavior);
-        child = func_00205438(behavior->guard, 0x9D);
+        child = PushStepBehavior(behavior->guard, 0x9D);
         child->x3C = 0xB;
         d = VuSub(GetLoWorldPos(behavior->goal), GetLoWorldPos(behavior->guard));
         {
@@ -442,7 +442,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     }
     case 1: {
         BHVO *child;
-        child = func_00205438(behavior->guard, 0x9E);
+        child = PushStepBehavior(behavior->guard, 0x9E);
         child->p38 = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         break;
@@ -450,7 +450,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     case 2: {
         BHVO *child;
         PATHV *palo;
-        child = func_00205438(behavior->guard, 0xA7);
+        child = PushStepBehavior(behavior->guard, 0xA7);
         palo = behavior->guard->path;
         palo->pointCount = k;
         {
@@ -471,7 +471,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     }
     case 3: {
         BHVO *child;
-        child = func_00205438(behavior->guard, 0xA4);
+        child = PushStepBehavior(behavior->guard, 0xA4);
         child->x3C = (int)behavior->attack;
         child->plo30 = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
@@ -568,7 +568,7 @@ namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.
 // the clearest of 11 directions away from it.
 extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
 {
-    HERO *object = PpoHero(D_003DD490);
+    HERO *object = GetHeroPo(D_003DD490);
     float dist = Len(VuSub(GetLoWorldPos(object), pos));
     float u = GetDifficulty(D_002DE578);
     qwordV posTarget = AddScaled(GetLoWorldPos(object), g_normalZ, VU_FLOAT(50.0f));
@@ -614,7 +614,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
         float g;
         float panT = RadNormalize(pan + D_002BDCA0[i]);
         test = Add(pos, SetVectorSphere(panT, tilt, s));
-        int f = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pos, test, c, av, &hit.q);
+        int f = FindFirstObjectHitByLine(0, pos, test, c, av, &hit.q);
         if (f)
             test = hit.q;
         __asm__ __volatile__(""); /* emulates the original compiler not threading this jump */
