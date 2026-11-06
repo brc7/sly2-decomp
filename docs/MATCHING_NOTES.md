@@ -520,3 +520,21 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+
+## 2026-11-06 (Claude agent, player readability pass): what a cleanup may and may not change
+Measured on src/game/gameplay/player/ (every rewrite checked by section bytes + nm set + matchtool; ~120 kept, ~20 reverted).
+- **Free:** whitespace/clang-format (no debug sections; mind `#line` pins), enum constants for literals (states, pad bits), field
+  access through the real layout instead of `(char *)p + 0x2C0` or `*(T *)((char *)p + off)` with the same type, early
+  `return` for a trailing `if` without else, merging `if (A) { if (B) {…} }` into `&&`, `goto` into the else branch of the
+  same `if` (StartJtMode), `goto L` over a block → `if/else` (MeasureJtJumpToTargetAtTime, leap init), a goto into a shared
+  tail **between if-branches** → tail written twice (cross-jumping merges it: UpdateBentleySubState), `(unsigned)x - 8u < 5u`
+  → `x >= 8 && x <= 12` when x is a plain field or local (via a local when it came from a macro read).
+- **Not free (reverted):** shared `ret0:`/`ret1:` return labels → separate `return`s (block layout changes); a goto into
+  **another switch case's** tail → duplicated tail (case-tail sharing is a layout decision: SetBentleyState L1,
+  ChooseJtGroundState fell); merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal: one jump-table
+  target instead of three blocks); `if (a) goto L; if (b) goto L;` → `if (a || b) goto L` (CanJtUseGadgetInAir);
+  inverting a float compare (`!(x > 0.1f)`, NaN-safe c.le vs c.lt) or a 64-bit flag bit test `(int)(f >> 60) & 1`;
+  dropping the `(uchar)` cast on a 1-bit bitfield test (UpdateJt); a `do { … goto end; } while (0)` tail → `if/else`
+  (SetMurrayLiftSubstate); anything near register-pinned asm (cane, SetMurrayCarrySubstate, SmoothJtCameraCurveTarget).
+- **Declarations:** a view that declares a helper as `(…, float, int)` instead of `(…, int, float)` generates the same code
+  (float and int arguments go to separate register files), so fixing the order is free.
