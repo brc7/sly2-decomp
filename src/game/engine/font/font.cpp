@@ -152,10 +152,10 @@ void BuildBmpGifs(BMP *pbmp, int n, GIFS *pgifs);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 
 void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb);
-CFontBrx *func_0015EFA0(unsigned char ch);
+CFontBrx *GetFontForEscapeChar(unsigned char ch);
 int FEnsureLoaded(CFont *pfont, GIFS *pgifs);
 void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs);
-void func_0015F888(CFont *pfont);
+void RegisterFont(CFont *pfont);
 GLYPH *PglyffFromCh(CFont *pfont, unsigned char ch);
 void CleanupDraw(CFont *pfont, CTextBox *ptbClip, GIFS *pgifs);
 }
@@ -172,28 +172,15 @@ extern "C" char ChNextC(CRichText *p) __asm__("ChNext__9CRichText");
 extern "C" float DxFromChI(CFontBrx *pfont, int ch) __asm__("DxFromCh__8CFontBrxc");
 extern "C" float DxDrawChI(CFontBrx *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs) __asm__("DxDrawCh__8CFontBrxcffUiP4GIFS");
 
-/** @sly2-annot addr=0x15EF00
- * Purpose: Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer
- *   D_002DE760 = font[0]
- * Info: proposed name StartupFont (T1); TU font
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
- *   docs/engine/hud-ui.md#5-key-functions
- * @end-sly2-annot */
+// Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0].
+// (inferred)
 void StartupFont()
 {
     PostFontsLoad();
     D_002DE760 = D_002DE9F0[0];
 }
 
-/** @sly2-annot addr=0x15EF30
- * Purpose: InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory
- *   (0x15F710)
- * Info: proposed name PostFontsLoad (T1); TU font
- * Notes: names_v2 v1 proposed FUN_0015c200 (0.000)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory (0x15F710) (inferred)
 void PostFontsLoad()
 {
     GSB gsb;
@@ -205,14 +192,8 @@ void PostFontsLoad()
     }
 }
 
-/** @sly2-annot addr=0x15EFA0
- * Purpose: Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts
- * Info: proposed name PfontFromCh (T2); TU font
- * Notes: names_v2 B proposed CleanupDraw__5CFontP8CTextBoxP4GIFS (0.856)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
-CFontBrx *func_0015EFA0(unsigned char ch)
+// Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts. (inferred)
+CFontBrx *GetFontForEscapeChar(unsigned char ch)
 {
     int i;
     for (i = 0; i < 2; i++)
@@ -223,13 +204,7 @@ CFontBrx *func_0015EFA0(unsigned char ch)
     return 0;
 }
 
-/** @sly2-annot addr=0x15F000
- * Purpose: If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing
- * Info: proposed name CleanupDraw (T1); TU font
- * Notes: names_v2 C proposed DyWrapPchz__5CFontPcf (0.167)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing. (inferred)
 void CleanupDraw(CFont *pfont, CTextBox *ptbClip, GIFS *pgifs)
 {
     if (ptbClip) {
@@ -244,11 +219,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 SLY2_SCRAP("addiu $sp, $sp, 0xc0");
 
-/** @sly2-annot addr=0x15F078
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Pushes the current scale and sets a new one relative to the font's base scale (m_ascl[0]). Note the saved y scale is
+// the x scale (as in the original), so PopScaling restores rx into both axes.
 void CFont::PushScaling(float rx, float ry)
 {
     SCL *pscl = &m_ascl[m_cscl++];
@@ -258,11 +230,7 @@ void CFont::PushScaling(float rx, float ry)
     m_ryScale = m_ascl[0].ry * ry;
 }
 
-/** @sly2-annot addr=0x15F0C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Restores the scale saved by the matching PushScaling.
 void CFont::PopScaling()
 {
     SCL *pscl;
@@ -272,11 +240,8 @@ void CFont::PopScaling()
     m_ryScale = pscl->ry;
 }
 
-/** @sly2-annot addr=0x15F0F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Returns the advance width of a character at the current scale (glyph width + 1 pixel, or the space width when the
+// font has no glyph for it).
 float CFontBrx::DxFromCh(char ch)
 {
     GLYPH *pglyph = PglyffFromCh(this, ch);
@@ -285,14 +250,8 @@ float CFontBrx::DxFromCh(char ch)
     return (float)m_dxSpace * m_rxScale;
 }
 
-/** @sly2-annot addr=0x15F148
- * Purpose: Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when
- *   drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed
- * Info: proposed name FEnsureLoaded (T1); TU font
- * Notes: names_v2 B proposed FEnsureLoaded__8CFontBrxP4GIFS (0.895)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs,
+// emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed. (inferred)
 int FEnsureLoaded(CFont *pfont, GIFS *pgifs)
 {
     int fLoad;
@@ -317,13 +276,8 @@ int FEnsureLoaded(CFont *pfont, GIFS *pgifs)
     return fLoad;
 }
 
-/** @sly2-annot addr=0x15F220
- * Purpose: CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then
- *   the sprite prim list setup
- * Info: proposed name SetupDraw (T1); TU font
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim
+// list setup. (inferred)
 void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
 {
     int fFlush;
@@ -349,11 +303,9 @@ void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
     pgifs->AddPrimList(5, 0x43431);
 }
 
-/** @sly2-annot addr=0x15F3E8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Switches the GIF stream to this font's texture: ensures the font bitmap is in GS memory (TEXFLUSH when it was just
+// uploaded), sets TEX0_1 and the sprite primitive, then opens the REGLIST primitive (RGBAQ, UV, XYZF2, UV, XYZF2) that
+// DxDrawCh fills per glyph.
 void CFontBrx::SwitchTex0(GIFS *pgifs)
 {
     int f = FEnsureLoaded(this, pgifs);
@@ -367,11 +319,8 @@ void CFontBrx::SwitchTex0(GIFS *pgifs)
 
 // (Claude agent, lane E7) MATCH from the 3-diff wip: ONE register pin, the 0.0f compare constant in $f12 (x's incoming reg;
 // without the pin global-alloc gives it $f4).
-/** @sly2-annot addr=0x15F480
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Draws one character as a textured sprite at (x, y) in the 640x492.8 virtual screen (skipped when fully off screen)
+// and returns its advance width. Alpha is doubled into GS range (0x80 = opaque).
 float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
     GLYPH *pglyph = PglyffFromCh(this, ch);
@@ -396,19 +345,13 @@ float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgi
 SLY2_SCRAP("addiu $sp, $sp, 0xe0");
 SLY2_SCRAP("addiu $sp, $sp, 0xf0");
 
-/** @sly2-annot addr=0x15F710
- * Purpose: CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb)
- *   and builds TEX0/CLUT upload GIFs for its bitmap
- * Info: proposed name PostLoad (T1); TU font
- * Notes: names_v2 v1 proposed DrawPart__8CFontBrxffffffffUiP4GIFS (0.932)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/formats/textures.md#7-open, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb) and builds
+// TEX0/CLUT upload GIFs for its bitmap. (inferred)
 void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb)
 {
     HDR *phdr = pfd->phdr;
     pfont->m_ifont = phdr->b7;
-    func_0015F888(pfont);
+    RegisterFont(pfont);
     pfont->m_dxCharUnscaled = phdr->b4;
     pfont->m_dxSpace = phdr->b5;
     pfont->m_dy = phdr->b6;
@@ -439,24 +382,13 @@ void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb)
     }
 }
 
-/** @sly2-annot addr=0x15F888
- * Purpose: Stores the font in the font table D_002DE9F0[font->id]
- * Info: proposed name RegisterFont (T2); TU font
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
-void func_0015F888(CFont *pfont)
+// Stores the font in the font table D_002DE9F0[font->id]. (inferred)
+void RegisterFont(CFont *pfont)
 {
     D_002DE9F0[pfont->m_ifont] = (CFontBrx *)pfont;
 }
 
-/** @sly2-annot addr=0x15F8A8
- * Purpose: Binary-searches the font glyph table for a character (via remap table D_002BE338)
- * Info: proposed name PglyffFromCh (T1); TU font
- * Notes: names_v2 v1 proposed IglyffFromCh (0.976)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Binary-searches the font glyph table for a character (via remap table D_002BE338)
 GLYPH *PglyffFromCh(CFont *p, unsigned char ch)
 {
     int key = D_002BE338[ch];
@@ -475,11 +407,8 @@ GLYPH *PglyffFromCh(CFont *p, unsigned char ch)
     return 0;
 }
 
-/** @sly2-annot addr=0x15F928
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Constructs rich text over a string with a base font; all four colours start as 0xFF808080 (opaque mid-grey, which
+// the GS treats as unmodulated white).
 CRichText::CRichText(char *achz, CFont *pfont)
 {
     m_achz = (unsigned char *)achz;
@@ -491,11 +420,7 @@ CRichText::CRichText(char *achz, CFont *pfont)
     Reset();
 }
 
-/** @sly2-annot addr=0x15F970
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Rewinds to the start of the text and the base font and colour.
 void CRichText::Reset()
 {
     m_pchCur = m_achz;
@@ -505,11 +430,7 @@ void CRichText::Reset()
     m_fDirty = 0;
 }
 
-/** @sly2-annot addr=0x15F9A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Sets the base colour (the colour "~." escapes return to) and makes it current.
 void CRichText::SetBaseColor(RGBA *rgba)
 {
     m_rgbaBase = *rgba;
@@ -518,11 +439,10 @@ void CRichText::SetBaseColor(RGBA *rgba)
 
 // (Claude agent, lane E7) MATCH from v2 (1 diff): ONE register pin, `one` in $19 for the three m_fDirty = 1 stores. Without it,
 // the null-font branch's m_fDirty = 1 is CSE'd into fDone's s1 (target keeps the hoisted const-1 in s3).
-/** @sly2-annot addr=0x15F9D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Returns the next printable character, consuming the escapes before it: "~RRGGBB" sets the colour (halved to GS
+// range), "~." restores the base colour, "~~" is a literal tilde; "&N" switches to font N (scaled to the base font's
+// line height), "&." restores the base font, "&&" is a literal ampersand; "^" escapes push or pop a text scale.
+// Returns 0 at the end of the text.
 unsigned char CRichText::ChNext()
 {
     int fDone = 0;
@@ -577,7 +497,7 @@ unsigned char CRichText::ChNext()
                 m_fDirty = one;
                 m_pchCur += 2;
             } else {
-                CFontBrx *pfont = func_0015EFA0(pch[1]);
+                CFontBrx *pfont = GetFontForEscapeChar(pch[1]);
                 if (pfont) {
                     m_font = *pfont;
                     m_pchCur += 2;
@@ -624,11 +544,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 // (Claude agent) newline kept in a local (two copies of 10 in the target); the register pin only swaps s2/s3 with the hoisted compare constant.
-/** @sly2-annot addr=0x15FD68
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Word-wraps the text in place to a maximum line width (0 = no limit): replaces the last space or tab before an
+// overflow (or the overflowing character) with a newline, and returns the resulting line count.
 int CRichText::ClineWrap(float dxMax)
 {
     int cline = 1;
@@ -664,23 +581,14 @@ int CRichText::ClineWrap(float dxMax)
     return cline;
 }
 
-/** @sly2-annot addr=0x15FEF8
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
-extern "C" float FUN_0015e1b0(CRichText *p, float dx)
+// UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
+extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 {
     float dy = (float)p->m_pfontBase->m_dy * p->m_pfontBase->m_ryScale;
     return dy * (float)p->ClineWrap(dx);
 }
 
-/** @sly2-annot addr=0x15FF40
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name DxMaxLine__9CRichText (EXISTING); TU font
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Returns the width of the widest line of the text (escapes applied).
 float CRichText::DxMaxLine()
 {
     float dxMax = 0.0f;
@@ -699,11 +607,9 @@ float CRichText::DxMaxLine()
     return dxMax;
 }
 
-/** @sly2-annot addr=0x15FFD0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
- * @end-sly2-annot */
+// Draws the text into a text box (justified horizontally and vertically, clipped against an optional clip box) through
+// a GIF stream, line by line with per-line widths precomputed for justification; switches the texture when an escape
+// changes font.
 void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
 {
     float adx[64];
