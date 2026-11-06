@@ -2,6 +2,10 @@
 // Euler, pan-tilt, look-at, orthonormal from a z axis, one direction onto another), products, decompositions (pan / tilt, angle /
 // axis, Euler), position-rotation-scale matrices, projection, transpose and smoothing. TU 0x11B318..0x11CCA8 (33 functions,
 // address order).
+// Matrices are row-major with VU0 quadword rows; a 3x3 rotation's rows are the local axes in world space (row 2 is
+// local z), and vectors multiply on the left (v * M). Angles are radians, z is up. Used by every system that moves
+// or orients objects. Entry points: the Load*/Build* constructors, MulMatrix3Matrix3, the Decompose* functions,
+// InvertMatrix3Cofactor / InvertMatrix4Rigid / FInvertMatrix, SmoothMatrix.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_mat
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011CC88
 #include "sly2/slotheap.h"
@@ -84,8 +88,9 @@ void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" void FInvertMatrix3(float *pgSrc, float *pgDst) {
-    FInvertMatrix__FiPfT1(4, 3, pgSrc, pgDst);
+// Inverts a 3x3 matrix stored with a 4-float row stride (FInvertMatrix, Gauss-Jordan).
+extern "C" void FInvertMatrix3(float *src, float *dst) {
+    FInvertMatrix__FiPfT1(4, 3, src, dst);
 }
 
 /** @sly2-annot addr=0x11B340
@@ -94,12 +99,13 @@ extern "C" void FInvertMatrix3(float *pgSrc, float *pgDst) {
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" M3 InvertMatrix3Cofactor(M3 *pm)
+// Returns the inverse of a 3x3 matrix by cofactors (row cross products over the determinant).
+extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
 {
     M3 m;
-    register qword v1 __asm__("vf1") = pm->r[1];
-    register qword v2 __asm__("vf2") = pm->r[0];
-    register qword v3 __asm__("vf3") = pm->r[2];
+    register qword v1 __asm__("vf1") = matrix->r[1];
+    register qword v2 __asm__("vf2") = matrix->r[0];
+    register qword v3 __asm__("vf3") = matrix->r[2];
     register qword v4 __asm__("vf4");
     register qword v5 __asm__("vf5");
     register qword v6 __asm__("vf6");
@@ -154,15 +160,17 @@ static inline qword Cross(qword a, qword b)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-void NormalizeRotateMatrix3(MATRIX3 *pmat)
+// Re-orthonormalises a rotation matrix in place (Gram-Schmidt through cross products, keeping row 0's
+// direction), removing drift from repeated multiplication.
+void NormalizeRotateMatrix3(MATRIX3 *matrix)
 {
-    qword v0 = NormalizeN(pmat->r[0]);
-    qword c = Cross(v0, pmat->r[1]);
-    pmat->r[0] = v0;
+    qword v0 = NormalizeN(matrix->r[0]);
+    qword c = Cross(v0, matrix->r[1]);
+    matrix->r[0] = v0;
     qword v2 = NormalizeN(c);
     c = Cross(v2, v0);
-    pmat->r[2] = v2;
-    pmat->r[1] = NormalizeN(c);
+    matrix->r[2] = v2;
+    matrix->r[1] = NormalizeN(c);
 }
 
 // 0x11B470..0x11B47C: 2 dead-code scraps (sly2/scrap.h)
@@ -175,14 +183,15 @@ SLY2_SCRAP("addiu $sp, $sp, 0xb0");
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-M3 LoadRotateMatrixSinCos(qword s, qword c, qword axis)
+// Returns the rotation about the unit `axis` whose angle has sine s and cosine c (Rodrigues' formula).
+M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
 {
     M3 m;
     register qword v1 __asm__("vf1");
     register qword v2 __asm__("vf2");
     register qword v3 __asm__("vf3");
-    register qword v6 __asm__("vf6") = c;
-    register qword v7 __asm__("vf7") = s;
+    register qword v6 __asm__("vf6") = cosine;
+    register qword v7 __asm__("vf7") = sine;
     register qword v8 __asm__("vf8") = axis;
     __asm__(
         "vsubx.w $vf5, $vf0, $vf6x\n\t"
@@ -223,11 +232,12 @@ static inline qword QwFromN(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0"(n
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis)
+// Builds the rotation of `rad` radians about the unit `axis` into *outMatrix and returns it.
+M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
 {
     int s, c;
     M3 m;
-    CalculateSinCos__FfPfT1(g, (float *)&s, (float *)&c);
+    CalculateSinCos__FfPfT1(rad, (float *)&s, (float *)&c);
     { qword qs = QwFromN(s), qc; QWFROMN2(qc, c, axis);
       /* LoadRotateMatrixSinCos with its hidden result pointer passed by hand; the empty-move asm makes the a3 and a2
          argument copies come before the a0 set-up, as the C original scheduled them (every plain C++ spelling sets
@@ -237,8 +247,8 @@ M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis)
       register M3 *pret __asm__("$4");
       __asm__("daddu %0,%2,$zero" : "=r"(pret), "+r"(qa2) : "r"(&m), "r"(qa3));
       LoadRotateMatrixSinCosP(pret, qs, qa2, qa3); }
-    func_0023320C(pm, &m, sizeof(M3));
-    return pm;
+    func_0023320C(outMatrix, &m, sizeof(M3));
+    return outMatrix;
 }
 
 /** @sly2-annot addr=0x11B570
@@ -248,7 +258,8 @@ M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis)
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" M3 *BuildRotationMatrixFromVector(M3 *pm, qword v)
+// Builds the rotation given by a rotation vector (angle = |v|, axis = v / |v|; identity for a tiny v).
+extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
 {
     qword d, one, l;
     float g;
@@ -256,7 +267,7 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *pm, qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l));
     if (g < 1.0e-4f) {
-        func_0023320C(pm, &D_002A2D00, sizeof(M3));
+        func_0023320C(outMatrix, &D_002A2D00, sizeof(M3));
     } else {
         M3 m;
         UG s;
@@ -265,9 +276,9 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *pm, qword v)
         s.q = ts;
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(n) : "j"(s.q), "j"(v));
         BuildAxisAngleRotationMatrix(&m, g, n);
-        func_0023320C(pm, &m, sizeof(M3));
+        func_0023320C(outMatrix, &m, sizeof(M3));
     }
-    return pm;
+    return outMatrix;
 }
 
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -282,7 +293,8 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *pmat, qword v)
+// Builds a rotation matrix from Euler angles (x, y, z components of v).
+extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *outMatrix, qword v)
 {
     float sx, cx, sy, cy, sz, cz;
     float sxsy, cxsy;
@@ -291,16 +303,16 @@ extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *pmat, qword v)
     CalculateSinCos__FfPfT1(GetZ(v), &sz, &cz);
     sxsy = sx * sy;
     cxsy = cx * sy;
-    pmat->mat[0][2] = -sy;
-    pmat->mat[0][0] = cy * cz;
-    pmat->mat[0][1] = cy * sz;
-    pmat->mat[1][0] = sxsy * cz - cx * sz;
-    pmat->mat[1][1] = sxsy * sz + cx * cz;
-    pmat->mat[1][2] = sx * cy;
-    pmat->mat[2][0] = cxsy * cz + sx * sz;
-    pmat->mat[2][1] = cxsy * sz - sx * cz;
-    pmat->mat[2][2] = cx * cy;
-    return pmat;
+    outMatrix->mat[0][2] = -sy;
+    outMatrix->mat[0][0] = cy * cz;
+    outMatrix->mat[0][1] = cy * sz;
+    outMatrix->mat[1][0] = sxsy * cz - cx * sz;
+    outMatrix->mat[1][1] = sxsy * sz + cx * cz;
+    outMatrix->mat[1][2] = sx * cy;
+    outMatrix->mat[2][0] = cxsy * cz + sx * sz;
+    outMatrix->mat[2][1] = cxsy * sz - sx * cz;
+    outMatrix->mat[2][2] = cx * cy;
+    return outMatrix;
 }
 
 /* C++ would build the result in a temporary first: the product goes through the out pointer (one copy, as in C). */
@@ -328,16 +340,17 @@ static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
  * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" M3 *LoadRotateMatrixPanTilt(M3 *pm, float g1, float g2)
+// Builds the rotation for a pan (about z) and a tilt (about the panned y, positive up): Rz(pan) * Ry(-tilt).
+extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
 {
     M3 c;
     M3 a;
     M3 b;
-    func_0011B500V(&a, g1, D_002A2DC0);
-    func_0011B500V(&b, -g2, D_002A2DB0);
+    func_0011B500V(&a, pan, D_002A2DC0);
+    func_0011B500V(&b, -tilt, D_002A2DB0);
     MulM3PT(&c, &a, &b);
-    func_0023320C(pm, &c, sizeof(M3));
-    return pm;
+    func_0023320C(outMatrix, &c, sizeof(M3));
+    return outMatrix;
 }
 
 /** @sly2-annot addr=0x11B7E0
@@ -346,11 +359,12 @@ extern "C" M3 *LoadRotateMatrixPanTilt(M3 *pm, float g1, float g2)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *pmat, qword vec)
+// Builds a look-at rotation whose x axis points along `vec` (BuildOrthonormalMatrixZ with the default up).
+extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *outMatrix, qword vec)
 {
     MATRIX3 mat = BuildOrthonormalMatrixZR(vec, D_002A2DC0);
-    func_0023320C(pmat, &mat, sizeof(MATRIX3));
-    return pmat;
+    func_0023320C(outMatrix, &mat, sizeof(MATRIX3));
+    return outMatrix;
 }
 
 /* BuildOrthonormalMatrixZ (Claude agent, 2026-10-23): matched from build/hand_wip/BuildOrthonormalMatrixZ.v4.c. Separate l/l2 for the two
@@ -394,27 +408,29 @@ SLY2_SCRAP("addiu $sp, $sp, 0x70");
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-M3 *BuildOrthonormalMatrixZ(M3 *pm, qword x, qword y)
+// Builds an orthonormal basis from a primary direction and an up hint (crosses and normalises; falls back to
+// any perpendicular when they are parallel).
+M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
 {
     qword l, l2, z;
     register qword xn __asm__("vf4"); /* register pin: normalized x lives in vf4 on both paths */
     qword fb;
-    l = Len(x);
+    l = Len(direction);
     fb = D_002A2DA0;
     if (F(l) < 1.0e-4f)
         xn = fb;
     else
-        xn = Div1(x, l);
-    z = Cross(y, xn);
-    pm->r[1] = z;
+        xn = Div1(direction, l);
+    z = Cross(up, xn);
+    outMatrix->r[1] = z;
     l2 = LenZ(z);
-    pm->r[0] = xn;
+    outMatrix->r[0] = xn;
     { qword t[1]; t[0] = z; } /* dead stack copy of z (the target's sqc2 vf1,0(sp)) */
-    pm->r[1] = Div(z, l2);
+    outMatrix->r[1] = Div(z, l2);
     if (F(l2) < 1.0e-4f)
-        pm->r[1] = GetNormalVector(xn);
-    pm->r[2] = Cross(pm->r[0], pm->r[1]);
-    return pm;
+        outMatrix->r[1] = GetNormalVector(xn);
+    outMatrix->r[2] = Cross(outMatrix->r[0], outMatrix->r[1]);
+    return outMatrix;
 }
 
 // (Claude agent) Matched: MulM3q writes rows through an out pointer, copying each row right after storing it (interleaved m/t stores).
@@ -443,18 +459,20 @@ static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" void TiltMatUpright(M3 *pm, M3 *pmA, M3 *pmB)
+// Computes the rotation that takes the matrix's local z onto world z: optionally returns it (outDelta) and the
+// matrix with it applied (outUpright).
+extern "C" void TiltMatUpright(M3 *matrix, M3 *outDelta, M3 *outUpright)
 {
     M3 local;
-    M3 *p = pmA ? pmA : &local;
+    M3 *p = outDelta ? outDelta : &local;
     qword a0, a1, a2;
-    M3 t = BuildRotateVectorsMatrixR(pm->r[2], D_002A2DC0);
+    M3 t = BuildRotateVectorsMatrixR(matrix->r[2], D_002A2DC0);
     a0 = t.r[0]; p->r[0] = a0;
     a1 = t.r[1]; p->r[1] = a1;
     a2 = t.r[2]; p->r[2] = a2;
-    if (pmB) {
-        MulM3q(a0, a1, a2, pm, &t);
-        *pmB = t;
+    if (outUpright) {
+        MulM3q(a0, a1, a2, matrix, &t);
+        *outUpright = t;
     }
 }
 
@@ -500,14 +518,16 @@ SLY2_SCRAP("addiu $sp, $sp, 0xd0");
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b)
+// Builds the minimal rotation taking direction a onto direction b (identity if either is shorter than 1e-4;
+// axis a x b, or any perpendicular when they are opposite; cosine clamped).
+M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword b)
 {
     VU_FLOAT la, lb;
     la.q = LenB(a);
     lb.q = LenB(b);
     if (la.H() < 1e-4f || lb.H() < 1e-4f) {
-        MAT3 *p = (MAT3 *)pm;
-        func_002333B4(pm, 0, 0x30);
+        MAT3 *p = (MAT3 *)outMatrix;
+        func_002333B4(outMatrix, 0, 0x30);
         p->m[0][0] = p->m[1][1] = p->m[2][2] = 1.0f;
     } else {
         qword axis;
@@ -528,9 +548,9 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b)
         /* volatile: emulates the original schedule, see header */
         __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(sn) : "f"(1.0f - cc * cc));
         M3 m = LoadRotateMatrixSinCosV(VU_FLOAT(sn), c, axis);
-        func_0023320C(pm, &m, sizeof(M3));
+        func_0023320C(outMatrix, &m, sizeof(M3));
     }
-    return pm;
+    return outMatrix;
 }
 
 // Claude agent, lane A19, 2026-10-23: matched from fresh7 (3). One pin ($5), one commented empty asm, allocation-only asm operands.
@@ -568,14 +588,15 @@ static inline M3 MulM3MM(M3 *pa, M3 *pb, M3 *pd) return m
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-M3 *MulMatrix3Matrix3(M3 *pm, M3 *pa, M3 *pb)
+// Multiplies two 3x3 matrices (a * b) into *outMatrix and returns it.
+M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
 {
     M3 m;
     register M3 *pt __asm__("$5") = &m; /* pin */
-    __asm__("" : "+r"(pa) : "r"(pt)); /* empty asm: keeps a1 = sp ahead of the MulM3 asm (emulates the original schedule) */
-    m = MulM3MM(pa, pb, pm);
-    func_0023320C(pm, pt, sizeof(M3));
-    return pm;
+    __asm__("" : "+r"(a) : "r"(pt)); /* empty asm: keeps a1 = sp ahead of the MulM3 asm (emulates the original schedule) */
+    m = MulM3MM(a, b, outMatrix);
+    func_0023320C(outMatrix, pt, sizeof(M3));
+    return outMatrix;
 }
 
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
@@ -584,10 +605,11 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-void DecomposeRotateMatrixPanTilt(MATRIX3 *pmat, float *ppan, float *ptilt)
+// Extracts pan and tilt from a rotation matrix's row 0 (its x axis): pan = atan2(y, x), tilt = atan2(z, |xy|).
+void DecomposeRotateMatrixPanTilt(MATRIX3 *matrix, float *outPan, float *outTilt)
 {
-    *ppan = atan2f(pmat->mat[0][1], pmat->mat[0][0]);
-    *ptilt = atan2f(pmat->mat[0][2], sqrtf_(pmat->mat[0][0] * pmat->mat[0][0] + pmat->mat[0][1] * pmat->mat[0][1]));
+    *outPan = atan2f(matrix->mat[0][1], matrix->mat[0][0]);
+    *outTilt = atan2f(matrix->mat[0][2], sqrtf_(matrix->mat[0][0] * matrix->mat[0][0] + matrix->mat[0][1] * matrix->mat[0][1]));
 }
 
 static inline float SqrtF(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
@@ -597,64 +619,66 @@ static inline float SqrtF(float x) { float r; __asm__ __volatile__("sqrt.s %0, %
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec)
+// Decomposes a rotation matrix into an angle (from the trace) and a unit axis (from the diagonal, signs from the
+// off-diagonal terms); a near-identity matrix gives angle 0 and a default axis, a half turn is handled apart.
+void DecomposeRotateMatrixRad(MATRIX3 *matrix, float *outRad, VECTOR *outAxis)
 {
-    float c = (pmat->mat[0][0] + pmat->mat[1][1] + pmat->mat[2][2] - 1.0f) * 0.5f;
+    float c = (matrix->mat[0][0] + matrix->mat[1][1] + matrix->mat[2][2] - 1.0f) * 0.5f;
     if (c > 0.999999f) {
-        *prad = 0.0f;
-        *pvec = D_002A2DA0V;
+        *outRad = 0.0f;
+        *outAxis = D_002A2DA0V;
         return;
     }
     float gRem = 1.0f;
     float gDiv = gRem - c;
     int i;
     for (i = 0; i < 2; i++) {
-        float g = (pmat->mat[i][i] - c) / gDiv;
+        float g = (matrix->mat[i][i] - c) / gDiv;
         float gAbs = __builtin_fabsf(g);
         if (gAbs > gRem)
             gAbs = gRem;
         else if (gAbs < 0.0f)
             gAbs = 0.0f;
-        (&pvec->x)[i] = SqrtF(gAbs);
+        (&outAxis->x)[i] = SqrtF(gAbs);
         gRem -= gAbs;
     }
-    pvec->z = SqrtF(gRem);
+    outAxis->z = SqrtF(gRem);
     if (c < -0.9999f) {
-        *prad = 3.14159265f;
-        float x = pvec->x;
-        float y = pvec->y;
-        float z = pvec->z;
+        *outRad = 3.14159265f;
+        float x = outAxis->x;
+        float y = outAxis->y;
+        float z = outAxis->z;
         if (y < x) {
             if (z < x) {
-                if (pmat->mat[0][1] < 0.0f)
-                    pvec->y = -y;
-                if (pmat->mat[0][2] < 0.0f)
-                    pvec->z = -pvec->z;
+                if (matrix->mat[0][1] < 0.0f)
+                    outAxis->y = -y;
+                if (matrix->mat[0][2] < 0.0f)
+                    outAxis->z = -outAxis->z;
             } else {
-                if (pmat->mat[2][0] < 0.0f)
-                    pvec->x = -x;
-                if (pmat->mat[2][1] < 0.0f)
-                    pvec->y = -pvec->y;
+                if (matrix->mat[2][0] < 0.0f)
+                    outAxis->x = -x;
+                if (matrix->mat[2][1] < 0.0f)
+                    outAxis->y = -outAxis->y;
             }
         } else if (z < y) {
-            if (pmat->mat[1][0] < 0.0f)
-                pvec->x = -x;
-            if (pmat->mat[1][2] < 0.0f)
-                pvec->z = -pvec->z;
+            if (matrix->mat[1][0] < 0.0f)
+                outAxis->x = -x;
+            if (matrix->mat[1][2] < 0.0f)
+                outAxis->z = -outAxis->z;
         } else {
-            if (pmat->mat[2][0] < 0.0f)
-                pvec->x = -x;
-            if (pmat->mat[2][1] < 0.0f)
-                pvec->y = -pvec->y;
+            if (matrix->mat[2][0] < 0.0f)
+                outAxis->x = -x;
+            if (matrix->mat[2][1] < 0.0f)
+                outAxis->y = -outAxis->y;
         }
     } else {
-        *prad = acosf(c);
-        if (pmat->mat[1][0] > pmat->mat[0][1])
-            pvec->z = -pvec->z;
-        if (pmat->mat[2][0] < pmat->mat[0][2])
-            pvec->y = -pvec->y;
-        if (pmat->mat[2][1] > pmat->mat[1][2])
-            pvec->x = -pvec->x;
+        *outRad = acosf(c);
+        if (matrix->mat[1][0] > matrix->mat[0][1])
+            outAxis->z = -outAxis->z;
+        if (matrix->mat[2][0] < matrix->mat[0][2])
+            outAxis->y = -outAxis->y;
+        if (matrix->mat[2][1] > matrix->mat[1][2])
+            outAxis->x = -outAxis->x;
     }
 }
 
@@ -664,13 +688,14 @@ void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" qword DecomposeRotationMatrixToVector(void *pmat)
+// Returns the rotation vector (axis * angle) of a rotation matrix.
+extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
 {
     UG v;
     UG s;
     int g;
     qword r;
-    DecomposeRotateMatrixRad((MATRIX3 *)pmat, (float *)&g, (VECTOR *)&v);
+    DecomposeRotateMatrixRad((MATRIX3 *)matrix, (float *)&g, (VECTOR *)&v);
     qword ts;
     __asm__("qmtc2.ni %1, %0" : "=j"(ts) : "r"(g));
     s.q = ts;
@@ -693,22 +718,24 @@ static __inline__ qword Make(float x, float y, float z)
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *pmat)
+// Returns the Euler angles of a rotation matrix (asin of the clamped -m02, atan2 for the others, with a
+// gimbal-lock branch); the inverse of LoadRotateMatrixEuler.
+extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
 {
     U4 r;
     qword q;
-    float tilt = asinf(GLimitAbs__Fff(-pmat->mat[0][2], 1.0f));
+    float tilt = asinf(GLimitAbs__Fff(-matrix->mat[0][2], 1.0f));
     if (tilt < 1.5706963539123535f) {
         if (-1.5706963539123535f < tilt) {
-            float x = atan2f(pmat->mat[1][2], pmat->mat[2][2]);
-            r.q = Make(x, tilt, atan2f(pmat->mat[0][1], pmat->mat[0][0]));
+            float x = atan2f(matrix->mat[1][2], matrix->mat[2][2]);
+            r.q = Make(x, tilt, atan2f(matrix->mat[0][1], matrix->mat[0][0]));
             q = r.q;
         } else {
-            r.q = Make(0.0f, tilt, atan2f(-pmat->mat[1][0], -pmat->mat[2][0]));
+            r.q = Make(0.0f, tilt, atan2f(-matrix->mat[1][0], -matrix->mat[2][0]));
             q = r.q;
         }
     } else {
-        r.q = Make(0.0f, tilt, atan2f(-pmat->mat[1][0], pmat->mat[2][0]));
+        r.q = Make(0.0f, tilt, atan2f(-matrix->mat[1][0], matrix->mat[2][0]));
         q = r.q;
     }
     return q;
@@ -732,7 +759,8 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
  * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01,
  *   docs/engine/animation.md#animation-format-summary-anim_lab-v31, docs/engine/core-library.md#3-math
  * @end-sly2-annot */
-M4 *__ml__FRC7MATRIX4T0(M4 *pm, const M4 *a, const M4 *b)
+// MATRIX4 operator*: 4x4 product a * b into *outMatrix.
+M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
 {
     register qword v1 __asm__("vf1") = a->r[0];
     register qword v2 __asm__("vf2") = a->r[1];
@@ -746,8 +774,8 @@ M4 *__ml__FRC7MATRIX4T0(M4 *pm, const M4 *a, const M4 *b)
     __asm__ __volatile__("vcallms 0x60" : "=j"(v5), "=j"(v6), "=j"(v7), "=j"(v8)
         : "j"(v1), "j"(v2), "0"(v5), "1"(v6), "2"(v7), "3"(v8));
     __asm__ __volatile__("cfc2.i %0, $vi0" : "=r"(t) : "j"(v3), "j"(v4), "j"(v5), "j"(v6), "j"(v7), "j"(v8));
-    pm->r[0] = v5; pm->r[1] = v6; pm->r[2] = v7; pm->r[3] = v8;
-    return pm;
+    outMatrix->r[0] = v5; outMatrix->r[1] = v6; outMatrix->r[2] = v7; outMatrix->r[3] = v8;
+    return outMatrix;
 }
 
 qword ml(const M4 *m, qword v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
@@ -756,6 +784,7 @@ qword ml(const M4 *m, qword v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
+// Transforms a 4-vector by a 4x4 matrix (v * M, all four components).
 qword ml(const M4 *m, qword v)
 {
     qword r;
@@ -773,9 +802,10 @@ qword ml(const M4 *m, qword v)
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" float *TransposeMatrix4(float *pgDst, float *pgSrc) {
-    TransposeMatrix(4, 4, pgSrc, pgDst);
-    return pgDst;
+// Transposes a 4x4 matrix (TransposeMatrix with stride 4); returns dst.
+extern "C" float *TransposeMatrix4(float *dst, float *src) {
+    TransposeMatrix(4, 4, src, dst);
+    return dst;
 }
 
 /* LoadMatrixFromPosRotScale (Claude agent, lane A29, 2026-10-24): builds a 4x4 matrix from a 3x3 rotation scaled per row by pg[0..2] plus a
@@ -813,23 +843,24 @@ static inline qword Mul(qword a, qword s)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" M4F *LoadMatrixFromPosRotScale(M4F *pm, qword pos, M3 *pmat, int *pg)
+// Builds a 4x4 transform from a position, a 3x3 rotation and a per-axis scale (each rotation row scaled).
+extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotation, int *scale)
 {
     union { qword q; float f[4]; } u;
     qword s0, s1, s2;
-    s0 = Q0(pg[0], &u.q);
-    *(qword *)pm->m[0] = Mul(pmat->r[0], s0);
-    s1 = Q(pg[1]);
+    s0 = Q0(scale[0], &u.q);
+    *(qword *)outMatrix->m[0] = Mul(rotation->r[0], s0);
+    s1 = Q(scale[1]);
     __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s0), "j"(s1)); /* "j"(s1): allocation-only operand */
-    *(qword *)pm->m[1] = Mul(pmat->r[1], s1);
-    s2 = Q7(pg[2]);
-    *(qword *)pm->m[2] = Mul(pmat->r[2], s2);
-    *(qword *)pm->m[3] = pos;
+    *(qword *)outMatrix->m[1] = Mul(rotation->r[1], s1);
+    s2 = Q7(scale[2]);
+    *(qword *)outMatrix->m[2] = Mul(rotation->r[2], s2);
+    *(qword *)outMatrix->m[3] = pos;
     __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s1), "j"(s2)); /* "j"(s2): allocation-only operand */
-    pm->m[0][3] = pm->m[1][3] = pm->m[2][3] = 0.0f;
-    pm->m[3][3] = 1.0f;
-    __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s2), "m"(pm->m[0][3])); /* "m": ordering-only operand */
-    return pm;
+    outMatrix->m[0][3] = outMatrix->m[1][3] = outMatrix->m[2][3] = 0.0f;
+    outMatrix->m[3][3] = 1.0f;
+    __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s2), "m"(outMatrix->m[0][3])); /* "m": ordering-only operand */
+    return outMatrix;
 }
 
 static inline qword MulxS(qword a, float g)
@@ -848,15 +879,16 @@ static inline qword MulxS(qword a, float g)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *pm, qword pos, M3 *pmat, float g)
+// Builds a 4x4 transform from a position, a 3x3 rotation and a uniform scale.
+extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *outMatrix, qword pos, M3 *rotation, float scale)
 {
-    *(qword *)pm->m[0] = MulxS(pmat->r[0], g);
-    *(qword *)pm->m[1] = MulxS(pmat->r[1], g);
-    *(qword *)pm->m[2] = MulxS(pmat->r[2], g);
-    *(qword *)pm->m[3] = pos;
-    pm->m[0][3] = pm->m[1][3] = pm->m[2][3] = 0.0f;
-    pm->m[3][3] = 1.0f;
-    return pm;
+    *(qword *)outMatrix->m[0] = MulxS(rotation->r[0], scale);
+    *(qword *)outMatrix->m[1] = MulxS(rotation->r[1], scale);
+    *(qword *)outMatrix->m[2] = MulxS(rotation->r[2], scale);
+    *(qword *)outMatrix->m[3] = pos;
+    outMatrix->m[0][3] = outMatrix->m[1][3] = outMatrix->m[2][3] = 0.0f;
+    outMatrix->m[3][3] = 1.0f;
+    return outMatrix;
 }
 
 /** @sly2-annot addr=0x11C2F0
@@ -867,8 +899,9 @@ extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *pm, qword pos, M3 *pmat, float g
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" void InvertMatrix4(float *pgSrc, float *pgDst) {
-    FInvertMatrix__FiPfT1(4, 4, pgSrc, pgDst);
+// Inverts a general 4x4 matrix (FInvertMatrix, Gauss-Jordan).
+extern "C" void InvertMatrix4(float *src, float *dst) {
+    FInvertMatrix__FiPfT1(4, 4, src, dst);
 }
 
 /** @sly2-annot addr=0x11C318
@@ -879,13 +912,14 @@ extern "C" void InvertMatrix4(float *pgSrc, float *pgDst) {
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-M4 InvertMatrix4Rigid(M4 *pm)
+// Returns the inverse of a rigid 4x4 transform (transposed rotation, translation -t * R^T).
+M4 InvertMatrix4Rigid(M4 *matrix)
 {
     M4 m;
-    register qword v2 __asm__("vf2") = pm->r[1];
-    register qword v1 __asm__("vf1") = pm->r[2];
-    register qword v3 __asm__("vf3") = pm->r[0];
-    register qword v4 __asm__("vf4") = pm->r[3];
+    register qword v2 __asm__("vf2") = matrix->r[1];
+    register qword v1 __asm__("vf1") = matrix->r[2];
+    register qword v3 __asm__("vf3") = matrix->r[0];
+    register qword v4 __asm__("vf4") = matrix->r[3];
     register qword v5 __asm__("vf5");
     register qword v6 __asm__("vf6");
     register qword v7 __asm__("vf7");
@@ -936,13 +970,15 @@ M4 InvertMatrix4Rigid(M4 *pm)
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" void CalculateDmat4(void *pv, MATRIX4 *pmat, MATRIX4 *pmatOut)
+// Computes the relative transform a matrix makes with a reference: outMatrix = matrix * inverse(reference)
+// (reference assumed rigid).
+extern "C" void CalculateDmat4(void *reference, MATRIX4 *matrix, MATRIX4 *outMatrix)
 {
     MATRIX4 matRes;
     MATRIX4 matT;
-    InvertMatrix4RigidP(&matT, pv);
-    MulMatrix4Matrix4P(&matRes, pmat, &matT);
-    *pmatOut = matRes;
+    InvertMatrix4RigidP(&matT, reference);
+    MulMatrix4Matrix4P(&matRes, matrix, &matT);
+    *outMatrix = matRes;
 }
 
 /** @sly2-annot addr=0x11C448
@@ -950,18 +986,20 @@ extern "C" void CalculateDmat4(void *pv, MATRIX4 *pmat, MATRIX4 *pmatOut)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sFar, float sNear, MATRIX4 *pmat)
+// Builds a perspective projection: x and y scales, the projection centre offsets, and a depth mapping from the
+// near/far distances (w = z).
+void BuildSimpleProjectionMatrix(float xScale, float yScale, float xOffset, float yOffset, float farDistance, float nearDistance, MATRIX4 *outMatrix)
 {
-    memset(pmat, 0, sizeof(MATRIX4));
-    float zScale = (sFar + sNear) / (sFar - sNear);
-    float zTrans = (sFar * (1.0f - zScale));
-    pmat->mat[0][0] = rx;
-    pmat->mat[2][3] = 1.0f;
-    pmat->mat[2][0] = dxOffset;
-    pmat->mat[1][1] = ry;
-    pmat->mat[2][1] = dyOffset;
-    pmat->mat[2][2] = zScale;
-    pmat->mat[3][2] = zTrans;
+    memset(outMatrix, 0, sizeof(MATRIX4));
+    float zScale = (farDistance + nearDistance) / (farDistance - nearDistance);
+    float zTrans = (farDistance * (1.0f - zScale));
+    outMatrix->mat[0][0] = xScale;
+    outMatrix->mat[2][3] = 1.0f;
+    outMatrix->mat[2][0] = xOffset;
+    outMatrix->mat[1][1] = yScale;
+    outMatrix->mat[2][1] = yOffset;
+    outMatrix->mat[2][2] = zScale;
+    outMatrix->mat[3][2] = zTrans;
 }
 
 // 0x11C4F8: dead-code scrap, a nop unit (sly2/scrap.h)
@@ -975,24 +1013,26 @@ static inline float GAbs(float g) { return __builtin_fabsf(g); }
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst)
+// Inverts the n x n matrix src (row stride `stride` floats) into dst by Gauss-Jordan elimination with partial
+// pivoting, using a scratch copy on the stack. Returns whether the matrix was invertible.
+int FInvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
 {
     int fRet = 0;
     STACKSCOPE frame;
     int i, j, k;
-    int cb = n * c * 4;
+    int cb = size * stride * 4;
     MSG msg;
     float *a = (float *)PvAllocMsg(&msg, cb, 0x10);
     float gMax, g, f, t;
-    CopyAb__FPvT0Ui(a, pgSrc, cb);
-    for (i = 0; i < n; i++)
-        for (j = 0; j < n; j++)
-            pgDst[i * c + j] = (i == j) ? 1.0f : 0.0f;
-    for (i = 0; i < n; i++) {
+    CopyAb__FPvT0Ui(a, src, cb);
+    for (i = 0; i < size; i++)
+        for (j = 0; j < size; j++)
+            dst[i * stride + j] = (i == j) ? 1.0f : 0.0f;
+    for (i = 0; i < size; i++) {
         j = i;
-        gMax = GAbs(a[i * c + i]);
-        for (k = i + 1; k < n; k++) {
-            f = GAbs(a[i * c + k]);
+        gMax = GAbs(a[i * stride + i]);
+        for (k = i + 1; k < size; k++) {
+            f = GAbs(a[i * stride + k]);
             if (gMax < f) {
                 gMax = f;
                 j = k;
@@ -1001,32 +1041,32 @@ int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst)
         if (gMax < 1e-4f)
             goto LDone;
         if (j != i) {
-            for (k = 0; k < n; k++) {
-                g = a[k * c + i]; a[k * c + i] = a[k * c + j]; a[k * c + j] = g;
-                t = pgDst[k * c + i]; pgDst[k * c + i] = pgDst[k * c + j]; pgDst[k * c + j] = t;
+            for (k = 0; k < size; k++) {
+                g = a[k * stride + i]; a[k * stride + i] = a[k * stride + j]; a[k * stride + j] = g;
+                t = dst[k * stride + i]; dst[k * stride + i] = dst[k * stride + j]; dst[k * stride + j] = t;
             }
         }
-        for (j = i + 1; j < n; j++) {
-            f = a[i * c + j] / a[i * c + i];
-            for (k = 0; k < n; k++) {
-                a[k * c + j] -= f * a[k * c + i];
-                pgDst[k * c + j] -= f * pgDst[k * c + i];
+        for (j = i + 1; j < size; j++) {
+            f = a[i * stride + j] / a[i * stride + i];
+            for (k = 0; k < size; k++) {
+                a[k * stride + j] -= f * a[k * stride + i];
+                dst[k * stride + j] -= f * dst[k * stride + i];
             }
         }
     }
-    for (i = n - 1; i >= 0; i--) {
+    for (i = size - 1; i >= 0; i--) {
         for (j = 0; j < i; j++) {
-            f = a[i * c + j] / a[i * c + i];
-            for (k = 0; k < n; k++) {
-                a[k * c + j] -= f * a[k * c + i];
-                pgDst[k * c + j] -= f * pgDst[k * c + i];
+            f = a[i * stride + j] / a[i * stride + i];
+            for (k = 0; k < size; k++) {
+                a[k * stride + j] -= f * a[k * stride + i];
+                dst[k * stride + j] -= f * dst[k * stride + i];
             }
         }
     }
-    for (i = 0; i < n; i++) {
-        f = a[i * c + i];
-        for (j = 0; j < n; j++)
-            pgDst[j * c + i] /= f;
+    for (i = 0; i < size; i++) {
+        f = a[i * stride + i];
+        for (j = 0; j < size; j++)
+            dst[j * stride + i] /= f;
     }
     fRet = 1;
 LDone:
@@ -1039,12 +1079,13 @@ LDone:
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-void TransposeMatrix(int cStride, int c, float *agSrc, float *agDst)
+// Transposes an n x n matrix with a row stride of `stride` floats (src and dst may be the same).
+void TransposeMatrix(int stride, int size, float *src, float *dst)
 {
     int i, j;
-    for (i = 0; i < c; i++) {
-        for (j = 0; j < c; j++) {
-            agDst[j * cStride + i] = agSrc[i * cStride + j];
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            dst[j * stride + i] = src[i * stride + j];
         }
     }
 }
@@ -1078,29 +1119,31 @@ SLY2_SCRAP("addiu $2, $zero, 0x1");
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" void SmoothMatrix(M3 *pmatPrev, M3 *pmatGoal, SMP *psmp, float dt, M3 *pmatNext, qword *pw)
+// Smoothly rotates from prev toward goal: decomposes the remaining rotation into angle and axis, advances the
+// angle with GSmooth (params, dt) and optionally returns the new matrix and the angular velocity (axis * speed).
+extern "C" void SmoothMatrix(M3 *prev, M3 *goal, SMP *params, float dt, M3 *outNext, qword *outAngularVelocity)
 {
     UG normal;
     float rad, dv, radNew;
     {
-        M3 mat = MulMatrix3Matrix3R(pmatPrev, pmatGoal);
+        M3 mat = MulMatrix3Matrix3R(prev, goal);
         DecomposeRotateMatrixRad((MATRIX3 *)&mat, &rad, (VECTOR *)&normal.q);
     }
-    radNew = GSmooth__FfffP3SMPPf(0.0f, rad, dt, psmp, &dv);
-    if (pmatNext) {
+    radNew = GSmooth__FfffP3SMPPf(0.0f, rad, dt, params, &dv);
+    if (outNext) {
         if (radNew == rad) {
-            *pmatNext = *pmatGoal;
+            *outNext = *goal;
         } else {
-            *pmatNext = MulM3S(func_0011B500R(radNew, normal.q), pmatPrev);
+            *outNext = MulM3S(func_0011B500R(radNew, normal.q), prev);
         }
     }
-    if (pw) {
+    if (outAngularVelocity) {
         UG u;
         qword s, r;
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&dv));
         u.q = s;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(normal.q), "j"(s));
-        *pw = r;
+        *outAngularVelocity = r;
     }
 }
 
@@ -1119,11 +1162,12 @@ static inline float DotSq(qword v)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" float GetMaxRowLengthMatrix3(M3 *pm)
+// Returns the length of the longest row of a 3x3 matrix (its largest axis scale), e.g. to scale bounding spheres.
+extern "C" float GetMaxRowLengthMatrix3(M3 *matrix)
 {
-    float d0 = DotSq(pm->r[0]);
-    float d1 = DotSq(pm->r[1]);
-    float d2 = DotSq(pm->r[2]);
+    float d0 = DotSq(matrix->r[0]);
+    float d1 = DotSq(matrix->r[1]);
+    float d2 = DotSq(matrix->r[2]);
     float g;
     if (d1 < d0 && d2 < d0)
         g = d0;
