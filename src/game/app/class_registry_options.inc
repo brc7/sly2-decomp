@@ -25,7 +25,8 @@
  * meet the prototypes of the same functions elsewhere in this file nor need them (several are class members, inline
  * accessors, or wrappers declared under C linkage in their own namespace). A label that equals the mangled name of an
  * inline function of the headers makes g++ emit that function here (tu-merging.md "class_registry", GLOBSET's
- * "__4CRef "): the 25 inline accessors eopid_linkonce.cpp emits carry a trailing space, dropped by the assembler. */
+ * "__4CRef "): the 27 inline accessors eopid_linkonce.cpp emits and the two PemitbEnsure template instances
+ * (emitter.cpp) carry a trailing space, dropped by the assembler. The C++ names stay the old symbols. */
 namespace EOPIDFN {
 void AddButtonPushObject() __asm__("AddButtonPushObject");
 void AddDetectorTarget() __asm__("AddDetectorTarget");
@@ -59,8 +60,8 @@ void MpStepplayerCur() __asm__("MpStepplayerCur");
 void OidFromTaskState() __asm__("OidFromTaskState");
 void OidProxyLo() __asm__("OidProxyLo");
 void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
-void PemitbEnsureEmitter() __asm__("PemitbEnsureEmitter");
-void PemitbEnsureExplo() __asm__("PemitbEnsureExplo");
+void PemitbEnsureEmitter() __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB ");
+void PemitbEnsureExplo() __asm__("PemitbEnsure__H1Z5EXPLO_PX014ENSK_P5EMITB ");
 void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
 void PpoCur() __asm__("PpoCur");
 void PpoHero() __asm__("PpoHero");
@@ -683,7 +684,7 @@ void func_00224610() __asm__("func_00224610");
 void func_00224638() __asm__("func_00224638");
 void func_00226370() __asm__("func_00226370");
 void func_00228518() __asm__("func_00228518");
-void func_00256278() __asm__("func_00256278");
+void func_00256278() __asm__("func_00256278__FP2CMP7MATRIX3 ");
 void func_00256298__FP2CM() __asm__("func_00256298__FP2CM ");
 void func_002562A0__FP2CM() __asm__("func_002562A0__FP2CM ");
 void func_002562B8__FP6CID150f() __asm__("func_002562B8__FP6CID150f ");
@@ -741,7 +742,7 @@ void func_00259B00__FP4PIPE() __asm__("func_00259B00__FP4PIPE ");
 void func_00259B10__FP4RAIL() __asm__("func_00259B10__FP4RAIL ");
 void func_00259B20__FP2SO() __asm__("func_00259B20__FP2SO ");
 void func_00259C10__FP5CID39() __asm__("func_00259C10__FP5CID39 ");
-void func_00259D18() __asm__("func_00259D18");
+void func_00259D18() __asm__("func_00259D18__FP4STEPf ");
 void func_00259D38__FP9STEPGUARDP3VOL() __asm__("func_00259D38__FP9STEPGUARDP3VOL ");
 void func_00259D48__FP9STEPGUARDP3VOL() __asm__("func_00259D48__FP9STEPGUARDP3VOL ");
 void func_00259D60__FP9STEPGUARD() __asm__("func_00259D60__FP9STEPGUARD ");
