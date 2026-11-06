@@ -24,6 +24,14 @@ enum {
     CID_BHV169 = 0xA9,
     CID_BHVRAIL = 0xB8,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_IDLE = 0x2,
+    SGF_KO = 0x7,
+    SGF_MOVING = 0x9,
+    SGF_NEELA_CHASE = 0x25,   // BHV174
+};
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 #include "sly2/sw.h"
@@ -226,20 +234,20 @@ extern "C" void UpdateNeela(NEELAV *neela)
     UpdateStepguard(neela);
     switch (neela->state) {
     case 0: {
-        if (!StepguardHasSgf(neela, 0x25))
+        if (!StepguardHasSgf(neela, SGF_NEELA_CHASE))
             break;
         VOLUME *volume;
-        if (StepguardHasSgf(neela, 9)) {
+        if (StepguardHasSgf(neela, SGF_MOVING)) {
             volume = neela->first;
             neela->target = 0;
-        } else if (StepguardHasSgf(neela, 2)) {
+        } else if (StepguardHasSgf(neela, SGF_IDLE)) {
             volume = neela->second;
             neela->target = 0;
         } else
             break;
         float nearest = D_002A7620;
         for (NEELAV *node = (*(NEELAV **)&g_sw.dlStepguard); node; node = node->next) {
-            if (node == neela || StepguardHasSgf(node, 7))
+            if (node == neela || StepguardHasSgf(node, SGF_KO))
                 continue;
             qword origin = Vector(func_001A62E8(neela));
             float distance = Square(VuSub(origin, func_001A62E8(node)));
@@ -250,7 +258,7 @@ extern "C" void UpdateNeela(NEELAV *neela)
                 nearest = distance;
             }
         }
-        if (!neela->target && !StepguardHasSgf(neela, 2)) {
+        if (!neela->target && !StepguardHasSgf(neela, SGF_IDLE)) {
             qword position = Vector(ConvertAloPos(neela, 0, D_002C0A80.q));
             qword low = VuAdd(position, D_002C0A90.q);
             qword high = VuAdd(position, D_002C0AA0.q);
@@ -302,7 +310,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
         ReleaseAct(&neela->motion);
         neela->motion = 0;
         neela->target = 0;
-        if (StepguardHasSgf(neela, 2)) func_00205458(neela, CID_BHVIDLE)->target = D_002E1E40;
+        if (StepguardHasSgf(neela, SGF_IDLE)) func_00205458(neela, CID_BHVIDLE)->target = D_002E1E40;
         func_00204D48(neela, 1.0f);
     }
     neela->state = st;
@@ -311,7 +319,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
     func_0012F9B8(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
     VCALL0((O *)neela->animation, 1);
     neela->motion = func_0012DC18(neela, neela->node, 5, 8, 3, D_002A2DD0);
-    if (StepguardHasSgf(neela, 2)) {
+    if (StepguardHasSgf(neela, SGF_IDLE)) {
         func_00205458(neela, CID_BHVIDLE)->target = neela->target;
         func_00204D48(neela, 4.0f);
     }
@@ -322,7 +330,7 @@ extern "C" void InitBhvNeelaChase(NBHV *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
-    AddStepguardSgf(behavior->guard, 0x25);
+    AddStepguardSgf(behavior->guard, SGF_NEELA_CHASE);
 }
 
 // 0x1BA598: Neela chase behaviour vtable slot 8 (Start): base, then state 0.
@@ -338,7 +346,7 @@ extern "C" void CloseBhvNeelaChase(NBHV *behavior)
 {
     SetBhvNeelaChaseState(behavior, -1);
     CloseBhv(behavior);
-    RemoveStepguardSgf(behavior->guard, 0x25);
+    RemoveStepguardSgf(behavior->guard, SGF_NEELA_CHASE);
 }
 
 // VU0 helper: distance between two points.
@@ -385,7 +393,7 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
         if (s == behavior->state)
             break;
     }
-    if (behavior->state == 0 && StepguardHasSgf(behavior->guard, 9)) {
+    if (behavior->state == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
         float d = Dist(func_001A62E8(behavior->guard), func_001A62E8(D_002E1E40));
         NEELAV *neela = behavior->guard;
         float r = GClamp(GEval(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
