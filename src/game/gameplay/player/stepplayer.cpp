@@ -758,17 +758,16 @@ void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void
     save = s->v;
     off = (1 - i) * 64;
     kk = ((struct E *)((char *)s->ae + off))->k;
-    if (kk == D_002E1E40 || kk == D_002DD5BC || kk == D_002F7900) {
-        if (player->controller->x80 != 1 || IsStepplayerPushing(player)) {
-            qword vo;
-            {
-                qword qwcqOut;
-                __asm__("qmtc2.ni %1, %0" : "=j"(qwcqOut) : "r"(0.01f));
-                c.q = qwcqOut;
-            }
-            __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vo) : "j"(save), "j"(c.q));
-            s->v = vo;
+    if ((kk == D_002E1E40 || kk == D_002DD5BC || kk == D_002F7900) &&
+        (player->controller->x80 != 1 || IsStepplayerPushing(player))) {
+        qword vo;
+        {
+            qword qwcqOut;
+            __asm__("qmtc2.ni %1, %0" : "=j"(qwcqOut) : "r"(0.01f));
+            c.q = qwcqOut;
         }
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vo) : "j"(save), "j"(c.q));
+        s->v = vo;
     }
     func_001FAD00(player, a, s, b, i);
     s->v = save;
