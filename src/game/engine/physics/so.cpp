@@ -1281,8 +1281,8 @@ struct VTE; struct VT; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[10]; };
-struct E { char pad[0xDC]; void *pDC; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *pe; char pad3[0x12C - 0xEC]; float g12C; float g130; };
+struct E { char pad[0xDC]; void *region; };
+struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *physics; char pad3[0x12C - 0xEC]; float alpha; float alphaRate; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct P *);
 qword func_001A62E8(struct P *);
@@ -1304,19 +1304,19 @@ void UpdateSo(struct P *so)
     void *q;
     float d;
     UpdateLo(so);
-    q = so->pe ? so->pe->pDC : 0;
+    q = so->physics ? so->physics->region : 0;
     if (q) SetSoPhysRegion(so, FindPathzoneAtPos(func_001A62E8(so), 1));
-    d = so->g130;
+    d = so->alphaRate;
     if (d != 0.0f) {
-        float v = so->g12C + D_002DDED0.dt * d;
-        so->g12C = v;
+        float v = so->alpha + D_002DDED0.dt * d;
+        so->alpha = v;
         if (v <= 0.0f) {
-            so->g12C = 0.0f;
-            so->g130 = 0.0f;
+            so->alpha = 0.0f;
+            so->alphaRate = 0.0f;
             so->pvt->a[9].pfn((char *)so + so->pvt->a[9].d);
         } else if (1.0f <= v) {
-            so->g12C = 1.0f;
-            so->g130 = 0.0f;
+            so->alpha = 1.0f;
+            so->alphaRate = 0.0f;
         }
     }
 }
@@ -1401,9 +1401,9 @@ struct M; struct O; struct E; struct P;
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a[4]; };
-struct O { char pad[0x40]; struct M m; char pad2[0xA4 - 0x80]; int nA4; };
-struct E { struct O *po; int pad[3]; ulong fl; int pad2[2]; struct M m; char pad3[0xAC - 0x60]; int nAC; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct O { char pad[0x40]; struct M matWorld; char pad2[0xA4 - 0x80]; int stamp; };
+struct E { struct O *transform; int pad[3]; ulong flags; int pad2[2]; struct M matWorld; char pad3[0xAC - 0x60]; int worldStamp; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 /** @sly2-annot addr=0x1F3900
  * Purpose: Copy each visible part's XF world matrix (+0x40) and stamp (+0xA4) into the part
  * Info: proposed name UpdateSoPartMatrices (T1); TU so
@@ -1414,12 +1414,12 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
 void UpdateSoPartMatrices(struct P *so)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (!(pe->fl & (1L << 50))) {
-            struct O *po = pe->po;
-            pe->m = po->m;
-            pe->nAC = po->nA4;
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (!(pe->flags & (1L << 50))) {
+            struct O *po = pe->transform;
+            pe->matWorld = po->matWorld;
+            pe->worldStamp = po->stamp;
         }
     }
 }
@@ -1431,10 +1431,10 @@ struct VTE; struct E; struct Q; struct R; struct P;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct E { char pad[0x10]; ulong fl; char pad2[0xB0 - 0x18]; };
-struct Q { char pad[0x98]; short h98; char pad2[0xB0 - 0x9A]; qword vB0; char padC0[0xF0 - 0xC0]; int aF0[3]; };
-struct R { char pad[0x60]; qword v60; qword v70; };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *p58; struct Q *p5C; char pad3[0xE0 - 0x60]; int nE0; struct E *aE4; struct R *pE8; };
+struct E { char pad[0x10]; ulong flags; char pad2[0xB0 - 0x18]; };
+struct Q { char pad[0x98]; short role; char pad2[0xB0 - 0x9A]; qword velocity; char padC0[0xF0 - 0xC0]; int unknownF0[3]; };
+struct R { char pad[0x60]; qword velocity; qword angularVelocity; };
+struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *positionXf; struct Q *rotationXf; char pad3[0xE0 - 0x60]; int numParts; struct E *parts; struct R *physics; };
 extern struct CLOCK D_002DDED0;
 void UpdateSoPartMatrices(struct P *);
 void UpdateSoPartMesh(struct E *, float);
@@ -1462,27 +1462,27 @@ void UpdateSoXfWorld(struct P *so)
 {
     int i;
     UpdateSoPartMatrices(so);
-    for (i = 0; i < so->nE0; i++) {
-        struct E *pe = &so->aE4[i];
-        if (*(int *)&pe->fl) UpdateSoPartMesh(pe, D_002DDED0.dt);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (*(int *)&pe->flags) UpdateSoPartMesh(pe, D_002DDED0.dt);
     }
-    if (so->pE8) {
-        if (so->p58) so->pE8->v60 = so->p58->vB0;
-        if (so->p5C) so->pE8->v70 = so->p5C->vB0;
-        if ((unsigned short)(so->p58->h98 - 1) < 2 || so->p5C->h98 == 1 || so->p5C->h98 == 2) {
-            if (func_00230380(so->p58->h98)) {
-                Clear(so->p58->aF0);
+    if (so->physics) {
+        if (so->positionXf) so->physics->velocity = so->positionXf->velocity;
+        if (so->rotationXf) so->physics->angularVelocity = so->rotationXf->velocity;
+        if ((unsigned short)(so->positionXf->role - 1) < 2 || so->rotationXf->role == 1 || so->rotationXf->role == 2) {
+            if (func_00230380(so->positionXf->role)) {
+                Clear(so->positionXf->unknownF0);
             }
-            if (func_00230380(so->p5C->h98)) {
-                Clear(so->p5C->aF0);
+            if (func_00230380(so->rotationXf->role)) {
+                Clear(so->rotationXf->unknownF0);
             }
             so->pvt[70].pfn((char *)so + so->pvt[70].d);
         }
     }
     UpdateSoSlots(so);
-    for (i = 0; i < so->nE0; i++) {
-        struct E *pe = &so->aE4[i];
-        if (!(pe->fl & (1L << 50))) UpdateSoPartGeom(pe);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (!(pe->flags & (1L << 50))) UpdateSoPartGeom(pe);
     }
 }
 } } // namespace M_func_001F3980
@@ -1494,9 +1494,9 @@ typedef unsigned long ulong;
 
 struct P {
     char pad[0x40];
-    int v40;
+    int flagWord;
     char pad2[0x148 - 0x44];
-    ulong fl;
+    ulong flags;
 };
 
 int func_001A61A0(struct P *);
@@ -1514,7 +1514,7 @@ void func_001D6310(struct P *);
 // disabling unregisters them (meaning inferred).
 void SetSoGrfBit8(struct P *so, int enabled)
 {
-    register int word __asm__("a2") = so->v40;
+    register int word __asm__("a2") = so->flagWord;
     register int flags __asm__("v1") = word;
     register int firstTest __asm__("v0");
 
@@ -1536,10 +1536,10 @@ void SetSoGrfBit8(struct P *so, int enabled)
                     *(int *)tagged |= 8;
                 else {
                     register int value __asm__("v0") = word | 8;
-                    __asm__("sw %1,%0" : "=m"(so->v40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->flagWord) : "r"(value));
                 }
             }
-            if ((so->fl & (1L << 35)) && func_001A61A0(so))
+            if ((so->flags & (1L << 35)) && func_001A61A0(so))
                 func_001D6378(so);
         } else {
             if (!has8)
@@ -1554,7 +1554,7 @@ void SetSoGrfBit8(struct P *so, int enabled)
                     *destination = value & mask;
                 } else {
                     register int value __asm__("v0") = word & ~8;
-                    __asm__("sw %1,%0" : "=m"(so->v40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->flagWord) : "r"(value));
                 }
             }
             func_001D6310(so);
@@ -1616,8 +1616,8 @@ namespace M_func_001F3CC8 { extern "C" {
 struct B; struct VTE; struct O; struct P;
 struct B { char b[0x30]; };
 struct VTE { short d; short pad; void (*pfn)(void *, int, float, float, struct B *); };
-struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *pNext; };
-struct P { char pad[0x64]; struct O *pFirst; char pad2[0x70 - 0x68]; struct O *pEnd; char pad3[0x80 - 0x74]; char x80[0x134 - 0x80]; struct B *pb; };
+struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *next; };
+struct P { char pad[0x64]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; struct B *bounds; };
 struct G;
 extern struct G D_003DD490;
 void func_001A4478(struct G *, int, struct B *);
@@ -1635,13 +1635,13 @@ void RenderSoAll(struct P *so, int a, struct B *pb, float f1, float f2)
     struct B b;
     int unused[4];
     struct O *po;
-    if (!pb && so->pb) {
-        b = *so->pb;
+    if (!pb && so->bounds) {
+        b = *so->bounds;
         pb = &b;
         func_001A4478(&D_003DD490, a, &b);
     }
-    RenderSoGlobset(so->x80, a, f1, f2, pb);
-    for (po = so->pFirst; po != so->pEnd; po = po->pNext)
+    RenderSoGlobset(so->globset, a, f1, f2, pb);
+    for (po = so->firstChild; po != so->firstRemovedChild; po = po->next)
         po->pvt[20].pfn((char *)po + po->pvt[20].d, a, f1, f2, pb);
 }
 } } // namespace M_func_001F3CC8
@@ -1652,8 +1652,8 @@ struct VTE; struct VT; struct L; struct E;
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[50]; };
 struct E;
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; };
-struct E { char pad[0x60]; struct L *p60; };
+struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xEC - 0x74]; struct E *tree; };
+struct E { char pad[0x60]; struct L *rootSo; };
 struct DL;
 void OnLoRemove(struct L *);
 void func_001D6310(struct L *);
@@ -1678,10 +1678,10 @@ void OnSoRemove(struct L *so)
     int unused[4];
     OnLoRemove(so);
     func_001D6310(so);
-    for (q = so->first; q != so->end; q = q->next) VF(q, 22);
-    if (so->pe && so->pe->p60 == so) {
+    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) VF(q, 22);
+    if (so->tree && so->tree->rootSo == so) {
         VF(so, 49);
-        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->pe);
+        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
     }
 }
 } } // namespace M_OnSoRemove
@@ -1693,8 +1693,8 @@ typedef unsigned long ulong;
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[50]; };
 struct E;
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int v40; char pad2[0x64 - 0x44]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; char pad5[0x148 - 0xF0]; ulong fl; };
-struct E { char pad[0x60]; struct L *p60; };
+struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xEC - 0x74]; struct E *tree; char pad5[0x148 - 0xF0]; ulong flags; };
+struct E { char pad[0x60]; struct L *rootSo; };
 struct DL;
 void OnLoAdd(struct L *);
 void func_001D6378(struct L *);
@@ -1717,14 +1717,14 @@ void OnSoAdd(struct L *so)
     struct L *q;
     int unused[4];
     OnLoAdd(so);
-    if (so->fl & (1L << 35)) {
-        int v = so->v40;
+    if (so->flags & (1L << 35)) {
+        int v = so->flagWord;
         if ((v ^ 1) & 1) v = *(int *)v;
         if (v & 8) func_001D6378(so);
     }
-    for (q = so->first; q != so->end; q = q->next) VF(q, 23);
-    if (so->pe && so->pe->p60 == so) {
-        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, so->pe)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->pe);
+    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) VF(q, 23);
+    if (so->tree && so->tree->rootSo == so) {
+        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, so->tree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
         VF(so, 49);
     }
 }
@@ -1772,11 +1772,11 @@ namespace M_func_001F4010 { extern "C" {
 struct M4; struct T; struct VTE; struct VT; struct P; struct G;
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword a[4]; };
-struct T { struct M4 m; char pad[0xA4 - 0x40]; int nA4; };
+struct T { struct M4 matWorld; char pad[0xA4 - 0x40]; int stamp; };
 struct VTE { short d; short p; int (*pfn)(void *); };
 struct VT { struct VTE a[19]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x54 - 0x10]; struct T *pt; };
-struct G { char pad[0x3D58]; int n; };
+struct P { char pad[0xC]; struct VT *pvt; char pad2[0x54 - 0x10]; struct T *rootTransform; };
+struct G { char pad[0x3D58]; int nStampXf; };
 extern struct G D_003DD490;
 struct M4 __ml__FRC7MATRIX4T0(void *, struct T *);
 void func_00186820(struct P *);
@@ -1790,9 +1790,9 @@ void func_00186820(struct P *);
 // Slot 37: applies a proxy's matrix to the root XF, bumps the world stamp and updates the transform hierarchy.
 void ApplySoProxy(struct P *so, void *pv)
 {
-    struct T *pt = so->pt;
-    pt->m = __ml__FRC7MATRIX4T0(pv, pt);
-    { int n = ++D_003DD490.n; so->pt->nA4 = n; }
+    struct T *pt = so->rootTransform;
+    pt->matWorld = __ml__FRC7MATRIX4T0(pv, pt);
+    { int n = ++D_003DD490.nStampXf; so->rootTransform->stamp = n; }
     so->pvt->a[18].pfn((char *)so + so->pvt->a[18].d);
     func_00186820(so);
 }
@@ -1806,13 +1806,13 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { M3 m3; qword r3; } s; float f[4][4]; qword r[4]; } __attribute__((aligned(16))) M4;
 typedef union { qword q; float f[4]; } V4;
-struct LO { char pad[0x30]; V4 v30; M4 m40; char pad2[0xA0 - 0x80]; struct LO *pA0; int nA4; };
+struct LO { char pad[0x30]; V4 position; M4 matWorld; char pad2[0xA0 - 0x80]; struct LO *parent; int stamp; };
 struct REGION;
 struct REGION_LINK;
 struct E { char pad[0xDC]; struct REGION_LINK *regionLink; };
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *p58; char pad3[0x60 - 0x5C]; struct LO *p60; char pad4[0xE8 - 0x64]; struct E *pe; };
-struct SW { char pad[0x3D58]; int n3D58; };
+struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
+struct SW { char pad[0x3D58]; int nStampXf; };
 extern struct SW D_003DD490;
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
@@ -1836,12 +1836,12 @@ void SetSoPhysRegion(struct P *, struct REGION *);
 // contacts and refreshes XF modes, part matrices and region.
 void TranslateSoToPos(struct P *so, qword v)
 {
-    M4 m0, m40, m80, mC0, m100, m140, m180, m1C0;
+    M4 m0, matWorld, m80, mC0, m100, m140, m180, m1C0;
     struct LO *plo;
     const M3 *basis;
     register M4 *presult __asm__("$18");
-    if (!so->p58) return;
-    basis = &so->p60->m40.s.m3;
+    if (!so->positionXf) return;
+    basis = &so->rootTransform->matWorld.s.m3;
     VECTOR_opAssign(&m0.s.r3, v);
     m0.s.m3 = *basis;
     m0.f[1][3] = 0.0f;
@@ -1849,14 +1849,14 @@ void TranslateSoToPos(struct P *so, qword v)
     m0.f[0][3] = 0.0f;
     m0.f[3][3] = 1.0f;
     presult=&mC0;
-    InvertMatrix4Rigid(&m100,&so->p58->m40);
-    __ml__FRC7MATRIX4T0(presult, &m100, &so->p60->m40);
-    m40.r[1] = mC0.r[1];
-    m40.r[0] = mC0.r[0];
-    m40.r[2] = mC0.r[2];
-    m40.r[3] = mC0.r[3];
-    if (so->p58->pA0) {
-        m80 = so->p58->pA0->m40;
+    InvertMatrix4Rigid(&m100,&so->positionXf->matWorld);
+    __ml__FRC7MATRIX4T0(presult, &m100, &so->rootTransform->matWorld);
+    matWorld.r[1] = mC0.r[1];
+    matWorld.r[0] = mC0.r[0];
+    matWorld.r[2] = mC0.r[2];
+    matWorld.r[3] = mC0.r[3];
+    if (so->positionXf->parent) {
+        m80 = so->positionXf->parent->matWorld;
     } else {
         M4 *identity = &m80;
         func_002333B4(identity, 0, 0x40);
@@ -1868,20 +1868,20 @@ void TranslateSoToPos(struct P *so, qword v)
     M4 *world=&m140;
     InvertMatrix4Rigid(&m180,&m80);
     __ml__FRC7MATRIX4T0(world, &m180, &m0);
-    InvertMatrix4Rigid(&m1C0,&m40);
+    InvertMatrix4Rigid(&m1C0,&matWorld);
     __ml__FRC7MATRIX4T0(&m100, world, &m1C0);
-    plo = so->p58;
+    plo = so->positionXf;
     mC0 = m100;
-    VECTOR_opAssign(&plo->v30.q, mC0.r[3]);
-    plo->v30.f[3] = 1.0f;
-    { int stamp=++D_003DD490.n3D58;so->p58->nA4=stamp; }
+    VECTOR_opAssign(&plo->position.q, mC0.r[3]);
+    plo->position.f[3] = 1.0f;
+    { int stamp=++D_003DD490.nStampXf;so->positionXf->stamp=stamp; }
     so->pvt[18].pfn((char *)so + so->pvt[18].d);
     FreeSoContacts(so);
-    SlotUnsettle(so, so->p58);
+    SlotUnsettle(so, so->positionXf);
     UpdateSoPartMatrices(so);
     {
         struct REGION_LINK *link = 0;
-        if (so->pe) link = so->pe->regionLink;
+        if (so->physics) link = so->physics->regionLink;
         if (link) SetSoPhysRegion(so, FindPathzoneAtPos(func_001A62E8(so), 1));
     }
 }
