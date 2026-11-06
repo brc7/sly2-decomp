@@ -33,6 +33,11 @@ enum {
     CID_BHVGOTO = 0xBA,
     CID_BHVPATROLPATH = 0xC0,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_SCRIPT = 0x21,
+};
 
 /* A guard script command (SSGE, from SW::slotheapSsge): its kind (0 set the context object, 1/2 a key pair, 3 a
    point, 4, 5 wait g seconds, 6 follow a path object, 7 go to a point, 8..10, 11/12 stop/resume point selection,
@@ -456,7 +461,7 @@ void BHV169::OnPush()
 {
     BHVSSG *behavior = (BHVSSG *)this;
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x21);
+    AddStepguardSgf(behavior->guard, SGF_SCRIPT);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -509,7 +514,7 @@ extern "C" void CloseBhvScript(BHVSSG *behavior)
     CloseBhv(behavior);
     ClearBhvBusy(behavior);
     SetBhvScriptScript(behavior, 0, 0, 0);
-    RemoveStepguardSgf(behavior->guard, 0x21);
+    RemoveStepguardSgf(behavior->guard, SGF_SCRIPT);
 }
 
 // 0x1713E8: Script behaviour vtable slot 10 (Update): executes commands until one is still busy or the script ends.
