@@ -315,12 +315,12 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
                 return;
         }
     }
-    if (best == D_002A66A0) {
-        qword r;
-        func_002333B4(pe, 0, 0x20);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(places->jt)), "j"(places->jt->pivotOffset));
-        pe->v.q = r;
-    }
+    if (best != D_002A66A0)
+        return;
+    qword r;
+    func_002333B4(pe, 0, 0x20);
+    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(places->jt)), "j"(places->jt->pivotOffset));
+    pe->v.q = r;
 }
 
 /** @sly2-annot addr=0x19FC30
