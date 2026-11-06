@@ -222,12 +222,12 @@ extern char D_004435F0[];
  * @end-sly2-annot */
 // Initializes the player's look/recon mode context (STEPPLAYER+0xF00): owner, state -1, requested kind -1, then its
 // HUD. Kinds: 0 binocucom, 1 recon (runtime-verified), 2 another look mode.
-extern "C" void InitJtMode(JTMODE *p, STEPPLAYER *pstepplayer)
+extern "C" void InitJtMode(JTMODE *jtMode, STEPPLAYER *player)
 {
-    p->pstepplayer = pstepplayer;
-    p->nState = -1;
-    p->nKind = -1;
-    InitJtModeHud(&p->hud, p);
+    jtMode->pstepplayer = player;
+    jtMode->nState = -1;
+    jtMode->nKind = -1;
+    InitJtModeHud(&jtMode->hud, jtMode);
 }
 
 /** @sly2-annot addr=0x19CC30
@@ -238,9 +238,9 @@ extern "C" void InitJtMode(JTMODE *p, STEPPLAYER *pstepplayer)
  *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Post-load: binds the mode HUD widgets.
-extern "C" void PostLoadJtMode(JTMODE *p)
+extern "C" void PostLoadJtMode(JTMODE *jtMode)
 {
-    PostLoadJtModeHud(&p->hud);
+    PostLoadJtModeHud(&jtMode->hud);
 }
 
 /** @sly2-annot addr=0x19CC50
@@ -254,20 +254,20 @@ extern "C" void PostLoadJtMode(JTMODE *p)
  * @end-sly2-annot */
 // Requests mode `kind`: if a mode is running and the request is recon (1), ends and resets the current one first;
 // stores the kind and enters state 0 (starting).
-extern "C" void StartJtMode(JTMODE *p, int nKind, STEP *pstepOther, WIDGET *pwidget)
+extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *widget)
 {
-    if (p->nState != -1) {
-        if (p->nKind != 1 && nKind == 1) {
-            SetJtModeState(p, 2);
-            SetJtModeState(p, -1);
+    if (jtMode->nState != -1) {
+        if (jtMode->nKind != 1 && kind == 1) {
+            SetJtModeState(jtMode, 2);
+            SetJtModeState(jtMode, -1);
             goto start;
         }
     } else {
 start:
-        p->nKind = nKind;
-        p->pstepOther = pstepOther;
-        p->ploHudOverride = pwidget;
-        SetJtModeState(p, 0);
+        jtMode->nKind = kind;
+        jtMode->pstepOther = otherStep;
+        jtMode->ploHudOverride = widget;
+        SetJtModeState(jtMode, 0);
     }
 }
 
@@ -280,13 +280,13 @@ start:
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Leaves the mode (state 2, ending) unless the owner is in state 0, 8, 9 or 10.
-extern "C" void EndJtMode(JTMODE *p) {
-    if (p->hud.pnUnk14) {
-        switch (*p->hud.pnUnk14) {
+extern "C" void EndJtMode(JTMODE *jtMode) {
+    if (jtMode->hud.pnUnk14) {
+        switch (*jtMode->hud.pnUnk14) {
         case 0: case 8: case 9: case 10: return;
         }
     }
-    SetJtModeState(p, 2);
+    SetJtModeState(jtMode, 2);
 }
 
 // SetJtModeState: ported from Lilly's personal Sly 2 decomp (src/P2/jtmode.c), reduced to the declarations it needs.
@@ -308,142 +308,142 @@ extern "C" void EndJtMode(JTMODE *p) {
  * @end-sly2-annot */
 // Mode state change: -1 off, 0 starting, 1 running (pushes the look camera policy at priority 7 for kinds 0/2 or the
 // recon camera at priority 8 for kind 1, stops the hero and ducks sound buses 0/1 to 0.6), 2 ending; the HUD follows.
-void SetJtModeState(JTMODE *pjtmode, int nState)
+void SetJtModeState(JTMODE *jtMode, int state)
 {
-    ASEG *paseg;
-    if (nState == pjtmode->nState)
+    ASEG *aseg;
+    if (state == jtMode->nState)
         return;
-    switch (pjtmode->nState)
+    switch (jtMode->nState)
     {
         case 1:
-            switch (pjtmode->nKind)
+            switch (jtMode->nKind)
             {
                 case 0:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, pjtmode->pstepplayer, 0);
+                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, jtMode->pstepplayer, 0);
                     break;
                 case 1:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 8, &D_002DDF40.cpzoom, pjtmode->pstepplayer, 0);
+                    RevokeCmPolicy(&D_002DDF40, 0xF, 8, &D_002DDF40.cpzoom, jtMode->pstepplayer, 0);
                     {
-                        STEP *pstep = pjtmode->pstepOther;
-                        if (pstep)
+                        STEP *step = jtMode->pstepOther;
+                        if (step)
                         {
-                            pstep->VUnk83(0x3F, 1);
-                            SetSoCnstrForce(pstep, 0);
+                            step->VUnk83(0x3F, 1);
+                            SetSoCnstrForce(step, 0);
                         }
                     }
-                    pjtmode->pstepplayer->VUnk83(0x3F, 0);
+                    jtMode->pstepplayer->VUnk83(0x3F, 0);
                     break;
                 case 2:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, pjtmode->pstepOther, 0);
+                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, jtMode->pstepOther, 0);
                     break;
             }
             CutCm(&D_002DDF40);
             SetSndmgrChannelVolume(&D_003DD040, 0, 1.0f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 1.0f, 3);
-            if (pjtmode->nKind != 2)
-                pjtmode->pstepplayer->VUnk86(0);
-            pjtmode->nState = nState;
+            if (jtMode->nKind != 2)
+                jtMode->pstepplayer->VUnk86(0);
+            jtMode->nState = state;
             break;
         case -1:
         {
-            if (pjtmode->nKind == 1)
+            if (jtMode->nKind == 1)
             {
                 func_0020F198(&D_003DD490);
                 IncrementSwNoPause(&D_003DD490);
             }
-            STEPPLAYER *pstepplayer = pjtmode->pstepplayer;
-            if (pstepplayer->pasegaUnk1030)
-                pjtmode->pasegaHold = pstepplayer->pasegaUnk1030;
-            else if (pstepplayer->psmaUnk1034)
-                pjtmode->pasegaHold = pstepplayer->psmaUnk1034->pasegaCur;
-            if (pjtmode->pasegaHold)
+            STEPPLAYER *player = jtMode->pstepplayer;
+            if (player->pasegaUnk1030)
+                jtMode->pasegaHold = player->pasegaUnk1030;
+            else if (player->psmaUnk1034)
+                jtMode->pasegaHold = player->psmaUnk1034->pasegaCur;
+            if (jtMode->pasegaHold)
             {
-                pjtmode->pasegaHold->VUnk00();
-                SetAsegaSpeed(pjtmode->pasegaHold, 0.0f);
+                jtMode->pasegaHold->VUnk00();
+                SetAsegaSpeed(jtMode->pasegaHold, 0.0f);
             }
-            pjtmode->nState = nState;
+            jtMode->nState = state;
             break;
         }
         default:
-            pjtmode->nState = nState;
+            jtMode->nState = state;
             break;
     }
-    pjtmode->tEnter = D_002DDED0.t;
-    paseg = 0;
-    switch (nState)
+    jtMode->tEnter = D_002DDED0.t;
+    aseg = 0;
+    switch (state)
     {
         case 0:
-            paseg = pjtmode->pasegStart;
+            aseg = jtMode->pasegStart;
             break;
         case 1:
-            switch (pjtmode->nKind)
+            switch (jtMode->nKind)
             {
                 case 0:
-                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)pjtmode->pstepplayer, 0);
-                    SetStepRadTarget(pjtmode->pstepplayer, *(float *)((char *)&D_002DDF40 + 0x460));
-                    pjtmode->hud.SetState(0);
+                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)jtMode->pstepplayer, 0);
+                    SetStepRadTarget(jtMode->pstepplayer, *(float *)((char *)&D_002DDF40 + 0x460));
+                    jtMode->hud.SetState(0);
                     break;
                 case 1:
-                    SetCmPolicy(&D_002DDF40, 8, &D_002DDF40.cpzoom, (int)pjtmode->pstepplayer, 0);
-                    SetStepRadTarget(pjtmode->pstepplayer, *(float *)((char *)&D_002DDF40 + 0x5C4));
+                    SetCmPolicy(&D_002DDF40, 8, &D_002DDF40.cpzoom, (int)jtMode->pstepplayer, 0);
+                    SetStepRadTarget(jtMode->pstepplayer, *(float *)((char *)&D_002DDF40 + 0x5C4));
                     {
-                        STEP *pstep = pjtmode->pstepOther;
-                        if (pstep)
+                        STEP *step = jtMode->pstepOther;
+                        if (step)
                         {
-                            pstep->VUnk82(0x3F, 1);
-                            SetSoCnstrForce(pstep, 1);
-                            ClearXyz(&pstep->vUnk190);
-                            pstep->SetVelocity(D_002A2DD0);
-                            pstep->SetAngularVelocity(D_002A2DD0);
+                            step->VUnk82(0x3F, 1);
+                            SetSoCnstrForce(step, 1);
+                            ClearXyz(&step->vUnk190);
+                            step->SetVelocity(D_002A2DD0);
+                            step->SetAngularVelocity(D_002A2DD0);
                         }
                     }
-                    pjtmode->hud.SetWidgetCur(pjtmode->ploHudOverride);
-                    pjtmode->hud.SetState(0);
-                    pjtmode->pstepplayer->VUnk82(0x3F, 0);
+                    jtMode->hud.SetWidgetCur(jtMode->ploHudOverride);
+                    jtMode->hud.SetState(0);
+                    jtMode->pstepplayer->VUnk82(0x3F, 0);
                     break;
                 case 2:
-                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)pjtmode->pstepOther, 0);
-                    pjtmode->hud.SetState(0);
+                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)jtMode->pstepOther, 0);
+                    jtMode->hud.SetState(0);
                     break;
             }
-            ClearXyz(&pjtmode->pstepplayer->vUnk190);
-            pjtmode->pstepplayer->SetVelocity(D_002A2DD0);
-            pjtmode->pstepplayer->SetAngularVelocity(D_002A2DD0);
+            ClearXyz(&jtMode->pstepplayer->vUnk190);
+            jtMode->pstepplayer->SetVelocity(D_002A2DD0);
+            jtMode->pstepplayer->SetAngularVelocity(D_002A2DD0);
             CutCm(&D_002DDF40);
             SetSndmgrChannelVolume(&D_003DD040, 0, 0.6f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 0.6f, 3);
-            if (pjtmode->nKind != 2)
-                pjtmode->pstepplayer->VUnk86(1);
+            if (jtMode->nKind != 2)
+                jtMode->pstepplayer->VUnk86(1);
             break;
         case 2:
-            pjtmode->hud.SetState(2);
-            paseg = pjtmode->pasegEnd;
+            jtMode->hud.SetState(2);
+            aseg = jtMode->pasegEnd;
             break;
         case -1:
-            switch (pjtmode->nKind)
+            switch (jtMode->nKind)
             {
                 case 0:
                 case 2:
-                    pjtmode->hud.SetState(-1);
+                    jtMode->hud.SetState(-1);
                     break;
                 case 1:
-                    pjtmode->hud.SetState(-1);
+                    jtMode->hud.SetState(-1);
                     func_0020F1A8(&D_003DD490);
                     DecrementSwNoPause(&D_003DD490);
                     break;
             }
-            if (pjtmode->pasegaHold)
+            if (jtMode->pasegaHold)
             {
-                SetAsegaSpeed(pjtmode->pasegaHold, 1.0f);
-                pjtmode->pasegaHold->VUnk01();
-                pjtmode->pasegaHold = 0;
+                SetAsegaSpeed(jtMode->pasegaHold, 1.0f);
+                jtMode->pasegaHold->VUnk01();
+                jtMode->pasegaHold = 0;
             }
-            pjtmode->nKind = -1;
+            jtMode->nKind = -1;
             break;
     }
-    if (paseg && !pjtmode->pstepplayer->VUnk93())
-        paseg = 0;
-    ApplyAsegCur(paseg, (ALO *)pjtmode->pstepplayer, 0.0f, 1.0f, 1, &pjtmode->pasega);
+    if (aseg && !jtMode->pstepplayer->VUnk93())
+        aseg = 0;
+    ApplyAsegCur(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
 }
 
 /** @sly2-annot addr=0x19D330
@@ -457,41 +457,41 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
  * @end-sly2-annot */
 // Per-frame mode state machine: state 0 waits for the start clip then runs, state 1 turns the player toward the look
 // direction, state 2 waits for the end clip then turns the mode off; updates the HUD.
-extern "C" void UpdateJtMode(JTMODE *p)
+extern "C" void UpdateJtMode(JTMODE *jtMode)
 {
     int n;
     do {
-        n = p->nState;
+        n = jtMode->nState;
         switch (n) {
         case 0:
-            *(qword *)&p->pstepplayer->vUnk190 = D_002A2DD0;
-            if (!p->pasega || FAsegaRetracted(p->pasega))
-                SetJtModeState(p, 1);
+            *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
+            if (!jtMode->pasega || FAsegaRetracted(jtMode->pasega))
+                SetJtModeState(jtMode, 1);
             break;
         case 1:
-            *(qword *)&p->pstepplayer->vUnk190 = D_002A2DD0;
-            switch (p->nKind) {
+            *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
+            switch (jtMode->nKind) {
             case 0:
-                func_00204660(p->pstepplayer, ((CMVIEW *)&D_002DDF40)->x460);
-                p->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x470;
-                UpdateJtModeHud(&p->hud);
+                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->x460);
+                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x470;
+                UpdateJtModeHud(&jtMode->hud);
                 break;
             case 1:
-                func_00204660(p->pstepplayer, ((CMVIEW *)&D_002DDF40)->x5c4);
-                p->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x5cc;
-                UpdateJtModeHud(&p->hud);
+                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->x5c4);
+                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x5cc;
+                UpdateJtModeHud(&jtMode->hud);
                 break;
             }
             break;
         case 2:
-            *(qword *)&p->pstepplayer->vUnk190 = D_002A2DD0;
-            if (!p->pasega || FAsegaRetracted(p->pasega))
-                SetJtModeState(p, -1);
+            *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
+            if (!jtMode->pasega || FAsegaRetracted(jtMode->pasega))
+                SetJtModeState(jtMode, -1);
             break;
         }
-    } while (n != p->nState);
-    if (p->nKind == 0) {
-        POCTL *v = p->pstepplayer->pctl;
+    } while (n != jtMode->nState);
+    if (jtMode->nKind == 0) {
+        POCTL *v = jtMode->pstepplayer->pctl;
         if (v->nState == 1) {
             v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
             v->dyRight = v->radRight = v->sRight = 0.0f;
@@ -509,17 +509,17 @@ extern "C" void UpdateJtMode(JTMODE *p)
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Initializes the mode HUD record: owner, state -1; for Sly (CID 0x35) also binds the recon selector at JT+0x1D40.
-extern "C" void InitJtModeHud(JTMODEHUD *p, JTMODE *pjtmode)
+extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 {
-    p->pjtmode = pjtmode;
-    p->nState = -1;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pjtmode->pstepplayer, 0x35) != 0) {
-        int *psel = (int *)((char *)p->pjtmode->pstepplayer + 0x1D40);   /* the recon selector */
-        p->pnUnk14 = psel;
-        InitReconSel(psel, pjtmode);
+    hud->pjtmode = jtMode;
+    hud->nState = -1;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(jtMode->pstepplayer, 0x35) != 0) {
+        int *psel = (int *)((char *)hud->pjtmode->pstepplayer + 0x1D40);   /* the recon selector */
+        hud->pnUnk14 = psel;
+        InitReconSel(psel, jtMode);
         return;
     }
-    p->pnUnk14 = 0;
+    hud->pnUnk14 = 0;
 }
 
 /** @sly2-annot addr=0x19D540
@@ -530,21 +530,21 @@ extern "C" void InitJtModeHud(JTMODEHUD *p, JTMODE *pjtmode)
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Finds the per-character HUD widgets by oid (Sly 0x35F/0x368, Bentley 0x360/0x369, Murray 0x361/...).
-extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
+extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
 {
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pjtmode->pstepplayer, 0x35)) {
-        p->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x35F, 0);
-        p->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x368, 0);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pjtmode->pstepplayer, 0x37)) {
-        p->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x360, 0);
-        p->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x369, 0);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pjtmode->pstepplayer, 0x36)) {
-        p->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x361, 0);
-        p->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36A, 0);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x35)) {
+        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x35F, 0);
+        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x368, 0);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x37)) {
+        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x360, 0);
+        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x369, 0);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x36)) {
+        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x361, 0);
+        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36A, 0);
     }
-    if (p->pnUnk14)
-        PostReconSelLoad(p->pnUnk14);
-    SetJtModeHudOverride(p, p->pwidgetDefault);
+    if (hud->pnUnk14)
+        PostReconSelLoad(hud->pnUnk14);
+    SetJtModeHudOverride(hud, hud->pwidgetDefault);
 }
 
 /** @sly2-annot addr=0x19D660
@@ -556,51 +556,51 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
  * @end-sly2-annot */
 // HUD state change: on first use gathers the world's tag list; state 0 broadcasts game event 0xC for recon and starts
 // the timers and speaker labels.
-extern "C" void SetJtModeHudState(JTMODEHUD *p, int st)
+extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
 {
     int old;
-    if (p->nState == st) return;
-    if (p->nState == -1) GatherJtModeHudTags(p);
-    old = p->nState;
-    p->nState = st;
+    if (hud->nState == st) return;
+    if (hud->nState == -1) GatherJtModeHudTags(hud);
+    old = hud->nState;
+    hud->nState = st;
     switch (st) {
     case 0:
-        if (p->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xC, 0);
+        if (hud->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xC, 0);
         else BroadcastGameEvent(D_002DEB30, 7, 0);
-        if (p->pwidgetHud) {
-            p->pwidgetHud->vt[49].pfn((char *)p->pwidgetHud + p->pwidgetHud->vt[49].d, -1);
-            PlayWidgetAnim(p->pwidgetHud, 0x352);
-            PlayWidgetAnim(p->pwidgetHud, 0x351);
-            SetWidgetAnimPhase(p->pwidgetHud, 0x352, (p->pjtmode->pstepplayer->radTarget + 3.1415927f) * 0.15915494f);
-            SetWidgetAnimPhase(p->pwidgetHud, 0x351, p->pjtmode->hud.uZoom);
+        if (hud->pwidgetHud) {
+            hud->pwidgetHud->vt[49].pfn((char *)hud->pwidgetHud + hud->pwidgetHud->vt[49].d, -1);
+            PlayWidgetAnim(hud->pwidgetHud, 0x352);
+            PlayWidgetAnim(hud->pwidgetHud, 0x351);
+            SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->pstepplayer->radTarget + 3.1415927f) * 0.15915494f);
+            SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
         }
-        if (p->pjtmode->nKind == 1) {
+        if (hud->pjtmode->nKind == 1) {
             func_00227788(D_004435F0);
-            if (p->pwidgetCur) p->pwidgetCur->vt[49].pfn((char *)p->pwidgetCur + p->pwidgetCur->vt[49].d, -1);
+            if (hud->pwidgetCur) hud->pwidgetCur->vt[49].pfn((char *)hud->pwidgetCur + hud->pwidgetCur->vt[49].d, -1);
         }
-        if (p->pnUnk14) SetReconSelState(p->pnUnk14, 0);
+        if (hud->pnUnk14) SetReconSelState(hud->pnUnk14, 0);
         break;
     case 2:
-        if (p->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xD, 0);
+        if (hud->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xD, 0);
         else BroadcastGameEvent(D_002DEB30, 8, 0);
-        if (p->pwidgetHud) p->pwidgetHud->vt[50].pfn((char *)p->pwidgetHud + p->pwidgetHud->vt[50].d);
-        if (p->pwidgetCur) p->pwidgetCur->vt[50].pfn((char *)p->pwidgetCur + p->pwidgetCur->vt[50].d);
-        if (p->pnUnk14) SetReconSelState(p->pnUnk14, 10);
+        if (hud->pwidgetHud) hud->pwidgetHud->vt[50].pfn((char *)hud->pwidgetHud + hud->pwidgetHud->vt[50].d);
+        if (hud->pwidgetCur) hud->pwidgetCur->vt[50].pfn((char *)hud->pwidgetCur + hud->pwidgetCur->vt[50].d);
+        if (hud->pnUnk14) SetReconSelState(hud->pnUnk14, 10);
         break;
     case -1:
         if (old != 2) {
-            if (p->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xD, 0);
+            if (hud->pjtmode->nKind == 1) BroadcastGameEvent(D_002DEB30, 0xD, 0);
             else BroadcastGameEvent(D_002DEB30, 8, 0);
         }
-        if (p->pwidgetHud && p->pwidgetHud->nState) {
-            SetWidgetState(p->pwidgetHud, 1);
-            SetWidgetRequest(p->pwidgetHud, 1);
+        if (hud->pwidgetHud && hud->pwidgetHud->nState) {
+            SetWidgetState(hud->pwidgetHud, 1);
+            SetWidgetRequest(hud->pwidgetHud, 1);
         }
-        if (p->pwidgetCur && p->pwidgetCur->nState) {
-            SetWidgetState(p->pwidgetCur, 1);
-            SetWidgetRequest(p->pwidgetCur, 1);
+        if (hud->pwidgetCur && hud->pwidgetCur->nState) {
+            SetWidgetState(hud->pwidgetCur, 1);
+            SetWidgetRequest(hud->pwidgetCur, 1);
         }
-        if (p->pnUnk14) SetReconSelState(p->pnUnk14, -1);
+        if (hud->pnUnk14) SetReconSelState(hud->pnUnk14, -1);
         break;
     }
 }
@@ -642,13 +642,13 @@ typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Collects the world's tag ids from the game record and sorts them (qsort) for the HUD. (inferred)
-extern "C" void GatherJtModeHudTags(JTMODEHUD*p){
- WIDGET*pt=p->pwidgetHud;
+extern "C" void GatherJtModeHudTags(JTMODEHUD*hud){
+ WIDGET*pt=hud->pwidgetHud;
  if(!pt)return;
  pt->tags[0]=pt->tags[1]=-1;
  GTASK*pg=(GTASK*)&D_003DD490;
  if(!pg->x || pg->x->x6C==-1)return;
- p->pwidgetHud->tags[0]=pg->x->x6C;
+ hud->pwidgetHud->tags[0]=pg->x->x6C;
  int n=1,i=0;
  GTASK*pgLoop=CopyGame(pg);
  STACKSCOPE fr;
@@ -659,7 +659,7 @@ extern "C" void GatherJtModeHudTags(JTMODEHUD*p){
  for(;i<c;i++){
   X*x=ap[i];
   if(pgLoop->x==x->x7C && x->x5C!=-1 && !FTaskComplete(x)){
-   p->pwidgetHud->tags[n++]=x->x5C;
+   hud->pwidgetHud->tags[n++]=x->x5C;
    break;
   }
  }
@@ -676,52 +676,52 @@ static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->nState==2)value=1
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Per-frame HUD update for the current mode state (widget update, timers).
-extern "C" void UpdateJtModeHud(JTMODEHUD *p)
+extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
 {
 
-    if (p->pnUnk14)
-        UpdateReconSel((SELECTOR *)p->pnUnk14);
-    switch (p->nState) {
+    if (hud->pnUnk14)
+        UpdateReconSel((SELECTOR *)hud->pnUnk14);
+    switch (hud->nState) {
     case -1:
         return;
     case 2:{
         int a,b;
-        Below(a,p->pwidgetHud);
+        Below(a,hud->pwidgetHud);
         b = 1;
-        if (p->pjtmode->nKind == 1) {
-            Below(b,p->pwidgetCur);
+        if (hud->pjtmode->nKind == 1) {
+            Below(b,hud->pwidgetCur);
         }
         if (a && b)
-            SetJtModeHudState(p, -1);
+            SetJtModeHudState(hud, -1);
         return;
     }
     case 0:{
         int a,b;
-        Equal(a,p->pwidgetHud);
+        Equal(a,hud->pwidgetHud);
         D_002BF920 = -1;
         b = 1;
-        if (p->pjtmode->nKind == 1) {
-            Equal(b,p->pwidgetCur);
+        if (hud->pjtmode->nKind == 1) {
+            Equal(b,hud->pwidgetCur);
         }
         if (a && b)
-            SetJtModeHudState(p, 1);
+            SetJtModeHudState(hud, 1);
         break;
     }
     }
-    if (!p->pwidgetHud)
+    if (!hud->pwidgetHud)
         return;
-    if (p->nState) {
-        int previous=p->pjtmode->pstepplayer->nInteractMode;
+    if (hud->nState) {
+        int previous=hud->pjtmode->pstepplayer->nInteractMode;
         if(previous==4){
-            if(D_002BF920!=previous)PlayWidgetAnim(p->pwidgetHud,0x353);
-            if(p->pjtmode->pstepplayer->nInteractMode==previous)goto store;
+            if(D_002BF920!=previous)PlayWidgetAnim(hud->pwidgetHud,0x353);
+            if(hud->pjtmode->pstepplayer->nInteractMode==previous)goto store;
         }
-        if(D_002BF920==4)StopWidgetAnim(p->pwidgetHud,0x353);
+        if(D_002BF920==4)StopWidgetAnim(hud->pwidgetHud,0x353);
 store:
-        D_002BF920=p->pjtmode->pstepplayer->nUnk10e4;
+        D_002BF920=hud->pjtmode->pstepplayer->nUnk10e4;
     }
-    SetWidgetAnimPhase(p->pwidgetHud, 0x352, (p->pjtmode->pstepplayer->radTarget + 3.14159265f) * 0.15915494f);
-    SetWidgetAnimPhase(p->pwidgetHud, 0x351, p->pjtmode->hud.uZoom);
+    SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->pstepplayer->radTarget + 3.14159265f) * 0.15915494f);
+    SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
 }
 
 
