@@ -37,6 +37,10 @@ tools/dev.sh progress                # Docker: the Linux-compiler SDK files
 and exits non-zero if any file's result is carried over from the committed `config/matched.csv` instead of being
 verified in at least one environment.
 
+Before pushing a branch, `tools/verify.sh` runs all of it in one go — a clean native run, the Docker run, the
+`config/matched.csv` diff, the doc link check and the full link (`--no-link` skips it) — and prints a pass/fail summary
+(logs in build/logs/verify-*.log).
+
 Docker Desktop's "Use Rosetta for x86_64/amd64 emulation" may be on or off; only Linux-compiler binaries run there.
 
 ## x86-64 Linux (and WSL)
