@@ -16,6 +16,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Class ids used here (docs/reference/class-tree.md). */
 enum {
+    CID_CLASS19 = 0x13,
+    CID_CLASS27 = 0x1B,
+    CID_CLASS35 = 0x23,
+    CID_BOOTY = 0x67,
     CID_BHVANIM = 0x9D,
     CID_BHVIDLE = 0x9E,
     CID_BHVGOTO = 0xBA,
@@ -476,8 +480,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
 {
     WORK w;
     NODE *object;
-    NODE **cursor;
-    int remaining, i;
+    int i;
     unsigned accepted;
     float lastAngle;
     w.query.point.q = func_001A62E8(behavior->guard);
@@ -526,48 +529,30 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         TryAddSearchCandidate(&w.query);
     }
     for (object = (*(NODE **)&g_sw.dlTarget); object; object = object->nextE0) {
-        if ((object->flags & 1) && FIsBasicDerivedFrom(object, 0x13)) {
+        if ((object->flags & 1) && FIsBasicDerivedFrom(object, CID_CLASS19)) {
             w.query.candidate.q = func_001A62E8(object);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x23, 0, 0x100, w.result256);
-        if (count > 0) {
-            cursor = w.result256;
-            remaining = count;
-            do {
-                NODE *item = *cursor++;
-                --remaining;
-                w.query.candidate.q = func_001A62E8(item);
-                TryAddSearchCandidate(&w.query);
-            } while (remaining);
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS35, 0, 0x100, w.result256);
+        for (int i = 0; i < count; i++) {
+            w.query.candidate.q = func_001A62E8(w.result256[i]);
+            TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x67, 0, 0x20, w.result32);
-        if (count > 0) {
-            cursor = w.result32;
-            remaining = count;
-            do {
-                NODE *item = *cursor++;
-                --remaining;
-                w.query.candidate.q = func_001A62E8(item);
-                TryAddSearchCandidate(&w.query);
-            } while (remaining);
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_BOOTY, 0, 0x20, w.result32);
+        for (int i = 0; i < count; i++) {
+            w.query.candidate.q = func_001A62E8(w.result32[i]);
+            TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x1B, 0, 0x80, w.result128);
-        if (count > 0) {
-            cursor = w.result128;
-            remaining = count;
-            do {
-                NODE *item = *cursor++;
-                --remaining;
-                w.query.candidate.q = func_001A62E8(item);
-                TryAddSearchCandidate(&w.query);
-            } while (remaining);
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS27, 0, 0x80, w.result128);
+        for (int i = 0; i < count; i++) {
+            w.query.candidate.q = func_001A62E8(w.result128[i]);
+            TryAddSearchCandidate(&w.query);
         }
     }
     for (object = (*(NODE **)&g_sw.dlCid98); object; object = object->next174) {
