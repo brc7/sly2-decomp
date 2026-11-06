@@ -1,6 +1,8 @@
 // tu_119BC8.cpp -- a small class with vtable 0x2CA5E0 (a keyed container at +0x34, a string reader) and the linkonce
 // container instances it homes: an owner-list attach, a virtual-element dynamic array and a string-keyed hash table.
 // TU 0x119BC8..0x119DA0 (5 functions, address order) plus 11 linkonce instances (0x2564E0..0x256B48).
+// The class is a string array loaded from a binary stream with a hash index over the strings, so names can be
+// looked up after loading. Entry points: CDynArrayStr_Init, CDynArrayStr_ReadElement (vtable slots 1 and 4).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_119BC8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00119D80
 #include "sly2/slotheap.h"
@@ -18,7 +20,7 @@ void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, ALL
 }
 
 extern "C" {
-int GetElementKey(int *p);
+int GetElementKey(int *element);
 void func_002564E0(void *pa, void *pb) __asm__("Init__t10CDynArrayV1ZPcPv");                     /* CDynArrayV<char *>::Init */
 void func_00256528(void *pa, void *pb, void *pfnKey) __asm__("Init__t10CHashIndex1ZPcPt10CDynArrayV1ZPcPv");      /* CHashIndex<char *>::Init */
 }
@@ -31,7 +33,8 @@ void func_00256528(void *pa, void *pb, void *pfnKey) __asm__("Init__t10CHashInde
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#open-questions,
  *   docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
  * @end-sly2-annot */
-extern "C" int GetElementKey(int *p) { return *p; }
+// Key callback of the hash index: returns the element itself (the string pointer) as its key.
+extern "C" int GetElementKey(int *element) { return *element; }
 
 /** @sly2-annot addr=0x119BD0
  * Purpose: vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn
@@ -52,11 +55,12 @@ public:
     virtual void Init(void *powner) __asm__("CDynArrayStr_Init");   /* slot 1; key function */
     virtual void ReadElement(char **ppchz, CBinaryInputStream *pbis) __asm__("CDynArrayStr_ReadElement");   /* slot 4 */
 };
-void CDynArrayStr::Init(void *pOwner)   /* key function: CDynArrayStr's vtable comes out here */
+// Initialises the array for its owner and sets up the hash index at +0x34 over it, keyed by GetElementKey.
+void CDynArrayStr::Init(void *owner)   /* key function: CDynArrayStr's vtable comes out here */
 {
-    void *p = this;
-    func_002564E0(p, pOwner);
-    func_00256528((char *)p + 0x34, p, (void *)GetElementKey);
+    void *self = this;
+    func_002564E0(self, owner);
+    func_00256528((char *)self + 0x34, self, (void *)GetElementKey);
 }
 
 /* The heap holder the string reader allocates from. */
@@ -69,9 +73,10 @@ struct STRREADER { HEAPHOLDER *pheap; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
  * @end-sly2-annot */
-extern "C" void CDynArrayStr_ReadElement(STRREADER *px, char **ppchz, CBinaryInputStream *pbis)
+// Reads one element: a string from the stream, allocated from the owner's heap (kind 7).
+extern "C" void CDynArrayStr_ReadElement(STRREADER *reader, char **outString, CBinaryInputStream *stream)
 {
-    CBinaryInputStream_ReadStringSw(pbis, ppchz, px->pheap->palloc, 7);
+    CBinaryInputStream_ReadStringSw(stream, outString, reader->pheap->palloc, 7);
 }
 
 // 0x119C30..0x119C44: 3 dead-code scraps (sly2/scrap.h)
@@ -94,32 +99,34 @@ SLY2_SCRAP("addiu $sp, $sp, 0x60");
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-template <> void CHash<char *, int>::Resize(int n)
+template <> void CHash<char *, int>::Resize(int bucketCount)
     __attribute__((weak, section(".gnu.linkonce.t.Resize__t5CHash2ZPcZii")));
-template <> void CHash<char *, int>::Resize(int n)
+// Rehashes every entry into `bucketCount` buckets: chains all entries into one list, reallocates the bucket array
+// through the allocator, then reinserts each by key modulo the bucket count.
+template <> void CHash<char *, int>::Resize(int bucketCount)
 {
-    ArrayV::HASH *h = (ArrayV::HASH *)this;
+    ArrayV::HASH *hash = (ArrayV::HASH *)this;
     register ArrayV::HENT *list asm("s1") = 0;   /* MATCH only with this pin (the same scheduling tie) */
-    ArrayV::HENT *e, *next;
+    ArrayV::HENT *entry, *nextEntry;
     int i;
-    for (i = 0; i < h->c; i++) {
-        e = h->ap[i];
-        if (e) {
-            while (e->next)
-                e = e->next;
-            e->next = list;
-            list = h->ap[i];
+    for (i = 0; i < hash->c; i++) {
+        entry = hash->ap[i];
+        if (entry) {
+            while (entry->next)
+                entry = entry->next;
+            entry->next = list;
+            list = hash->ap[i];
         }
     }
-    h->c = n;
-    h->ap = ((ArrayV::HENT **(*)(void *, void *, int, int))h->pa->vt[2].pfn)((char *)h->pa + h->pa->vt[2].d, h->ap, n * 4, 3);
-    ArrayV_Memset(h->ap, 0, h->c * 4);
-    for (e = list; e; e = next) {
-        unsigned int j;
-        next = e->next;
-        j = e->key % h->c;
-        e->next = h->ap[j];
-        h->ap[j] = e;
+    hash->c = bucketCount;
+    hash->ap = ((ArrayV::HENT **(*)(void *, void *, int, int))hash->pa->vt[2].pfn)((char *)hash->pa + hash->pa->vt[2].d, hash->ap, bucketCount * 4, 3);
+    ArrayV_Memset(hash->ap, 0, hash->c * 4);
+    for (entry = list; entry; entry = nextEntry) {
+        unsigned int bucket;
+        nextEntry = entry->next;
+        bucket = entry->key % hash->c;
+        entry->next = hash->ap[bucket];
+        hash->ap[bucket] = entry;
     }
 }
 

@@ -1,5 +1,7 @@
 // dynarray.cpp -- CDynArray (growable array of fixed-size elements) and fixed-size key comparators.
-// TU 0x116CA0..0x117030 (9 functions, address order).
+// CDynArray keeps m_c elements of m_cb bytes in storage from its HEAP, growing by doubling (from 8) below 512
+// elements and in steps of 1024 above. Entry points: CDynArray::Reserve / Free, CDynArray_Append,
+// CompareKeys4/8/12/16. TU 0x116CA0..0x117030 (9 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dynarray
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00117010
 #include "heap.h"
@@ -22,9 +24,10 @@ void *func_0023320C(void *pvDst, const void *pvSrc, unsigned int cb) __asm__("me
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
  *   docs/engine/core-library.md#open-questions
  * @end-sly2-annot */
-extern "C" int CompareKeys4(const void *pv1, const void *pv2)
+// Compares two 4-byte keys bytewise (memcmp); a comparator for sorted/hashed containers of fixed-size keys.
+extern "C" int CompareKeys4(const void *a, const void *b)
 {
-    return memcmp(pv1, pv2, 4);
+    return memcmp(a, b, 4);
 }
 
 /** @sly2-annot addr=0x116CC0
@@ -33,9 +36,10 @@ extern "C" int CompareKeys4(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int CompareKeys8(const void *pv1, const void *pv2)
+// Compares two 8-byte keys bytewise (memcmp).
+extern "C" int CompareKeys8(const void *a, const void *b)
 {
-    return memcmp(pv1, pv2, 8);
+    return memcmp(a, b, 8);
 }
 
 /** @sly2-annot addr=0x116CE0
@@ -44,9 +48,10 @@ extern "C" int CompareKeys8(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int CompareKeys12(const void *pv1, const void *pv2)
+// Compares two 12-byte keys bytewise (memcmp).
+extern "C" int CompareKeys12(const void *a, const void *b)
 {
-    return memcmp(pv1, pv2, 0xC);
+    return memcmp(a, b, 0xC);
 }
 
 /** @sly2-annot addr=0x116D00
@@ -55,9 +60,10 @@ extern "C" int CompareKeys12(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int CompareKeys16(const void *pv1, const void *pv2)
+// Compares two 16-byte keys bytewise (memcmp).
+extern "C" int CompareKeys16(const void *a, const void *b)
 {
-    return memcmp(pv1, pv2, 0x10);
+    return memcmp(a, b, 0x10);
 }
 
 // 0x116D20: dead-code scrap (sly2/scrap.h)
@@ -71,6 +77,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  *   in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
+// Releases the storage to the heap and empties the array.
 void CDynArray::Free()
 {
     m_pheap->Free(m_pv);
@@ -84,23 +91,25 @@ void CDynArray::Free()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-void CDynArray::Reserve(int c)
+// Ensures room for `count` elements: below 512 the capacity doubles (starting at 8) until it fits, above it rounds
+// up to a multiple of 1024; storage is reallocated through the heap (see heap.cpp: PvRealloc does not copy).
+void CDynArray::Reserve(int count)
 {
-    if (m_cMax < c)
+    if (m_cMax < count)
     {
-        int cMax;
-        if (c < 0x200)
+        int capacity;
+        if (count < 0x200)
         {
-            cMax = m_cMax ? m_cMax : 8;
-            while (cMax < c)
-                cMax *= 2;
+            capacity = m_cMax ? m_cMax : 8;
+            while (capacity < count)
+                capacity *= 2;
         }
         else
         {
-            cMax = (c + 0x3FF) & ~0x3FF;
+            capacity = (count + 0x3FF) & ~0x3FF;
         }
-        m_pv = m_pheap->PvRealloc(m_pv, cMax * m_cb, 4);
-        m_cMax = cMax;
+        m_pv = m_pheap->PvRealloc(m_pv, capacity * m_cb, 4);
+        m_cMax = capacity;
     }
 }
 
@@ -111,11 +120,12 @@ void CDynArray::Reserve(int c)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" void CDynArray_Append(CDynArray *pdyna, void *pv, int c)
+// Appends `count` elements copied from `elements` (growing the array first).
+extern "C" void CDynArray_Append(CDynArray *array, void *elements, int count)
 {
-    pdyna->Reserve(pdyna->m_c + c);
-    func_0023320C((char *)pdyna->m_pv + pdyna->m_cb * pdyna->m_c, pv, pdyna->m_cb * c);
-    pdyna->m_c += c;
+    array->Reserve(array->m_c + count);
+    func_0023320C((char *)array->m_pv + array->m_cb * array->m_c, elements, array->m_cb * count);
+    array->m_c += count;
 }
 
 // 0x116EA8..0x116ED4: 6 dead-code scraps (sly2/scrap.h)
