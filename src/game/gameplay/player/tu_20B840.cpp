@@ -539,8 +539,8 @@ extern "C" LEAPV *AllocLeap(void) {
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 // Returns a leap object to the world's leap slot heap.
-extern "C" void FreeLeap(LEAPV *p) {
-    func_0011CD98(&g_sw.slotheapLeap, p);
+extern "C" void FreeLeap(LEAPV *leap) {
+    func_0011CD98(&g_sw.slotheapLeap, leap);
 }
 
 /** @sly2-annot addr=0x20C058
@@ -550,7 +550,7 @@ extern "C" void FreeLeap(LEAPV *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Leap (CID 0x91) constructor: sets its vtable.
-LEAPV *ConstructLeap(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; p->x4 = 0; return p; }
+LEAPV *ConstructLeap(LEAPV *leap) { leap->pvt = D_002DAA10; leap->state = -1; leap->x0 = 0; leap->x4 = 0; return leap; }
 
 /** @sly2-annot addr=0x20C080
  * Purpose: if not finished: state 4, clear anim job
@@ -559,7 +559,7 @@ LEAPV *ConstructLeap(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; 
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // If the leap is not finished: state 4 and clears its animation job.
-extern "C" void StopLeap(LEAPV *p) { if (!IsLeapDone(p)) { SetLeapState(p, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->job); } }
+extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
 
 /** @sly2-annot addr=0x20C0D8
  * Purpose: state == 4
@@ -568,8 +568,8 @@ extern "C" void StopLeap(LEAPV *p) { if (!IsLeapDone(p)) { SetLeapState(p, 4); A
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Whether the leap is in state 4 (done).
-int IsLeapDone(LEAPV *p) {
-    return p->state == 4;
+int IsLeapDone(LEAPV *leap) {
+    return leap->state == 4;
 }
 
 /** @sly2-annot addr=0x20C0E8
@@ -579,34 +579,34 @@ int IsLeapDone(LEAPV *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Leap state machine for states 1..3.
-extern "C" void UpdateLeap(LEAPV *p)
+extern "C" void UpdateLeap(LEAPV *leap)
 {
     int k;
     do {
-        k = p->state;
+        k = leap->state;
         switch (k) {
         case 1:
-            if (p->subject->n208 && p->stateTime + 0.15f < D_002DDED0.time)
-                SetLeapState(p, 3);
-            else if (p->end <= D_002DDED0.time)
-                SetLeapState(p, 2);
+            if (leap->subject->n208 && leap->stateTime + 0.15f < D_002DDED0.time)
+                SetLeapState(leap, 3);
+            else if (leap->end <= D_002DDED0.time)
+                SetLeapState(leap, 2);
             break;
         case 2:
-            if (p->subject->n208 || D_002DDED0.time - p->arrival > D_002C3DE0)
-                SetLeapState(p, 3);
-            else if (p->arrival <= D_002DDED0.time) {
-                if (p->ballistic)
-                    SetLeapState(p, 3);
-                else if (FIsBasicDerivedFrom((BASIC *)p->subject, (CID)0x38))
-                    EnableStuckWatch(p->subject->control);
+            if (leap->subject->n208 || D_002DDED0.time - leap->arrival > D_002C3DE0)
+                SetLeapState(leap, 3);
+            else if (leap->arrival <= D_002DDED0.time) {
+                if (leap->ballistic)
+                    SetLeapState(leap, 3);
+                else if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
+                    EnableStuckWatch(leap->subject->control);
             }
             break;
         case 3:
-            if (FAsegaRetracted(p->job))
-                SetLeapState(p, 4);
+            if (FAsegaRetracted(leap->job))
+                SetLeapState(leap, 4);
             break;
         }
-    } while (k != p->state);
+    } while (k != leap->state);
 }
 
 struct MSGL { int a, b, n8; };
@@ -632,52 +632,52 @@ static inline float MaxR(float a,float b){return a<b?b:a;}
  * @end-sly2-annot */
 // Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
 // target; 4 land.
-void SetLeapState(LEAPV *p,int state)
+void SetLeapState(LEAPV *leap,int state)
 {
     U scalar,delta,acceleration,velocity,finalVelocity;
-    if(state==p->state)return;
-    p->state=state;
-    p->stateTime=D_002DDED0.time;
+    if(state==leap->state)return;
+    leap->state=state;
+    leap->stateTime=D_002DDED0.time;
     switch(state){
     case 0:
-        ApplyAsegCur(p->tuning->animation,p->subject,0.0f,1.0f,p->index,&p->job);
-        SubscribeLoObject(p->job,p);
-        p->previousVelocity.q=GetSoDvGravity(p->subject);
+        ApplyAsegCur(leap->tuning->animation,leap->subject,0.0f,1.0f,leap->index,&leap->job);
+        SubscribeLoObject(leap->job,leap);
+        leap->previousVelocity.q=GetSoDvGravity(leap->subject);
         break;
     case 1:{
-        if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38)){
-            ALO *subject=p->subject;
+        if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38)){
+            ALO *subject=leap->subject;
             func_0020B210(subject);
             func_0020D178(subject->control);
         }
-        float playbackRate=p->job->svt;
-        register ALO *motionSubject __asm__("$3")=p->subject;
+        float playbackRate=leap->job->svt;
+        register ALO *motionSubject __asm__("$3")=leap->subject;
         register XF *motionSpace __asm__("$4");
         register LEAPTUNE *motionTuning __asm__("$3");
         register float square __asm__("$f0");
         __asm__("lw %0,%3\n\tmul.s %1,%4,%4\n\tlw %2,%5"
           :"=&r"(motionSpace),"=f"(square),"=r"(motionTuning)
-          :"m"(motionSubject->space),"f"(playbackRate),"m"(p->tuning));
+          :"m"(motionSubject->space),"f"(playbackRate),"m"(leap->tuning));
         register qword rateSquared __asm__("vf3");
         register int ballistic __asm__("$2");
         __asm__("lqc2 $vf4,%4\n\tlqc2 $vf1,%5\n\tmfc1 %0,%8\n\tqmtc2.ni %0,%1\n\tvmulx.xyzw $vf2,$vf1,%1x\n\tsqc2 $vf2,%2\n\tlqc2 $vf2,%6\n\tvsub.xyzw $vf1,$vf2,$vf4\n\tsqc2 $vf1,%3\n\tlw %0,%7"
           :"=&r"(ballistic),"=&j"(rateSquared),"=m"(acceleration.q),"=m"(delta.q)
-          :"m"(POSITION(motionSpace)),"m"(motionTuning->acceleration.q),"m"(p->target.q),"m"(p->ballistic),"f"(square):"vf1","vf2","vf4");
+          :"m"(POSITION(motionSpace)),"m"(motionTuning->acceleration.q),"m"(leap->target.q),"m"(leap->ballistic),"f"(square):"vf1","vf2","vf4");
         scalar.q=rateSquared;
         float time;
         if(ballistic){
             float low,high,slopeLow,slopeHigh;
-            if(p->related&&(FIsBasicDerivedFrom((BASIC *)p->related,(CID)0x13)||FIsBasicDerivedFrom((BASIC *)p->related,(CID)0xB))){
+            if(leap->related&&(FIsBasicDerivedFrom((BASIC *)leap->related,(CID)0x13)||FIsBasicDerivedFrom((BASIC *)leap->related,(CID)0xB))){
                 low=1250.0f;slopeLow=1.1f;high=0.0f;slopeHigh=50.0f;
-            }else if(p->steep){
+            }else if(leap->steep){
                 low=1500.0f;slopeLow=1.33f;high=-1500.0f;slopeHigh=-1.33f;
             }else{
                 low=1250.0f;slopeLow=1.1f;high=-1250.0f;slopeHigh=-1.1f;
             }
             time=ComputeMaxBallisticTime(delta.q,acceleration.q,low,high,slopeLow,slopeHigh);
         }else time=motionTuning->flightTime/playbackRate;
-        time=MaxR(p->tuning->minimumTime/playbackRate,time);
-        ALO *subject=p->subject;
+        time=MaxR(leap->tuning->minimumTime/playbackRate,time);
+        ALO *subject=leap->subject;
         VTE &entry=subject->pvt[35];
         short adjustment=entry.d;
         void (*applyVelocity)(void *,qword)=(void (*)(void *,qword))entry.pfn;
@@ -687,39 +687,39 @@ void SetLeapState(LEAPV *p,int state)
         qword initialVelocity=Combine(delta.q,inverseTime,acceleration.q,scalar.q);
         Store(&velocity,initialVelocity);
         applyVelocity((char *)subject+adjustment,velocity.q);
-        p->arrival=D_002DDED0.time+time;
-        p->end=p->arrival-p->tuning->minimumTime/playbackRate;
-        if(p->ballistic){
+        leap->arrival=D_002DDED0.time+time;
+        leap->end=leap->arrival-leap->tuning->minimumTime/playbackRate;
+        if(leap->ballistic){
             register qword timeScalar __asm__("vf1"),motionVelocity __asm__("vf2"),force __asm__("vf3");
             register ALO *launchSubject __asm__("$3");
             register qword target __asm__("$6");
             __asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tlqc2 %2,%6\n\tlw %3,%7"
               :"=j"(timeScalar),"=j"(motionVelocity),"=j"(force),"=r"(launchSubject)
-              :"r"(time),"m"(velocity.q),"m"(acceleration.q),"m"(p->subject));
+              :"r"(time),"m"(velocity.q),"m"(acceleration.q),"m"(leap->subject));
             __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%3x\n\tlq %1,%4"
-              :"+j"(motionVelocity),"=r"(target):"j"(force),"j"(timeScalar),"m"(p->target.q));
+              :"+j"(motionVelocity),"=r"(target):"j"(force),"j"(timeScalar),"m"(leap->target.q));
             register XF *parentSpace __asm__("$2");
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
               :"=m"(finalVelocity.q),"=r"(parentSpace),"=m"(scalar.q)
               :"j"(timeScalar),"j"(motionVelocity),"m"(launchSubject->space));
             qword position=func_0022FC48(0,parentSpace->pxfParent,target);
-            qword speed=ConvertXfVec(0,p->subject->space->pxfParent,finalVelocity.q);
-            p->constraint=func_0012DE58(p->subject,p->subject->space,5,position,speed,p->arrival);
-            p->subject->flags|=0x04000000ul;
-            RecalcSwOxfFilterForObject(&D_003DD490,p->subject);
+            qword speed=ConvertXfVec(0,leap->subject->space->pxfParent,finalVelocity.q);
+            leap->constraint=func_0012DE58(leap->subject,leap->subject->space,5,position,speed,leap->arrival);
+            leap->subject->flags|=0x04000000ul;
+            RecalcSwOxfFilterForObject(&D_003DD490,leap->subject);
         }
-        SetSoDvGravity(p->subject,acceleration.q);
+        SetSoDvGravity(leap->subject,acceleration.q);
         break;
     }
-    case 2:func_00130D30(p->job,0,p->tuning->afterStart,1.0f);break;
+    case 2:func_00130D30(leap->job,0,leap->tuning->afterStart,1.0f);break;
     case 3:
-        func_00130D30(p->job,0,p->tuning->afterEnd,1.0f);
-        if(p->related)func_0020B2A8(p->subject,p->related,p->kind);
+        func_00130D30(leap->job,0,leap->tuning->afterEnd,1.0f);
+        if(leap->related)func_0020B2A8(leap->subject,leap->related,leap->kind);
         break;
     case 4:
-        if(p->ballistic)ReleaseLeapConstraint(p);
-        SetSoDvGravity(p->subject,p->previousVelocity.q);
-        if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38))EnableStuckWatch(p->subject->control);
+        if(leap->ballistic)ReleaseLeapConstraint(leap);
+        SetSoDvGravity(leap->subject,leap->previousVelocity.q);
+        if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38))EnableStuckWatch(leap->subject->control);
         break;
     }
 }
@@ -732,12 +732,12 @@ struct ACTPOS { char pad[0x20]; qword v; };
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Updates the leap's target and constraint target.
-extern "C" void SetLeapTarget(LEAPV *p, qword v)
+extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 {
-    switch (p->state) {
-    case 0: p->target.q = v; break;
+    switch (leap->state) {
+    case 0: leap->target.q = v; break;
     case 1: case 2:
-        if (p->ballistic) { ACTPOS *pd = (ACTPOS *)p->constraint; pd->v = func_0022FC48(0, p->subject->space->pxfParent, v); }
+        if (leap->ballistic) { ACTPOS *pd = (ACTPOS *)leap->constraint; pd->v = func_0022FC48(0, leap->subject->space->pxfParent, v); }
         break;
     }
 }
@@ -749,15 +749,15 @@ extern "C" void SetLeapTarget(LEAPV *p, qword v)
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Drops the leap constraint and clears LO flag bit 26.
-void ReleaseLeapConstraint(LEAPV *p)
+void ReleaseLeapConstraint(LEAPV *leap)
 {
-    if (p->ballistic) {
-        p->ballistic = 0;
-        if (p->constraint) {
-            ReleaseAct(&p->constraint);
-            func_002303A0(p->subject, p->subject->space, 2);
-            p->subject->flags &= ~(1L << 26);
-            RecalcSwOxfFilterForObject(&D_003DD490, p->subject);
+    if (leap->ballistic) {
+        leap->ballistic = 0;
+        if (leap->constraint) {
+            ReleaseAct(&leap->constraint);
+            func_002303A0(leap->subject, leap->subject->space, 2);
+            leap->subject->flags &= ~(1L << 26);
+            RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
         }
     }
 }
@@ -770,8 +770,8 @@ void ReleaseLeapConstraint(LEAPV *p)
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Marks the directional animations uninitialized.
-extern "C" void InvalidateDirAnims(DIRBL *p) {
-    p->fInit = 0;
+extern "C" void InvalidateDirAnims(DIRBL *dirAnims) {
+    dirAnims->fInit = 0;
 }
 
 /** @sly2-annot addr=0x20C7E0
@@ -782,10 +782,10 @@ extern "C" void InvalidateDirAnims(DIRBL *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Measures the root velocity and speed of the four directional animations.
-extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
+extern "C" void InitDirAnims(DIRBL *dirAnims,ALO *arg)
 {
     DIRE *e; unsigned int i;
-    if (p->fInit)
+    if (dirAnims->fInit)
         return;
     for (i = 0; i < 4; i++) {
         ASEG *o;
@@ -798,7 +798,7 @@ extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
         register qword end __asm__("vf3");
         register qword scalar __asm__("vf1");
         int f;
-        e = &p->ae[i];
+        e = &dirAnims->ae[i];
         o = (ASEG *)PloFindSwObject(&D_003DD490SW,4,(OID)(int)e->animation,(LO *)arg);
         e->animation = o;
         if (!o)
@@ -819,7 +819,7 @@ extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(s));
         e->speed.bits=f;
     }
-    p->fInit = 1;
+    dirAnims->fInit = 1;
 }
 
 /** @sly2-annot addr=0x20C948
@@ -830,19 +830,19 @@ extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Initializes a directional-animation object (CID 0x92) and applies its animation.
-extern "C" void StartDirAnim(DIROWNER *p, ALO *a, int b, DIRACT *object)
+extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
 {
     memset(object, 0, sizeof(*object));
     memset(object, 0, sizeof(*object));
-    object->powner = p;
+    object->powner = dirAnims;
     object->palo = a;
     object->pvt = D_002DA9D0;
     object->grfapl = b;
     object->n0 = 0;
     object->n4 = 0;
-    ApplyAsegCur(p->paseg, a, 0.0f, 1.0f, b, &object->pasega);
+    ApplyAsegCur(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
     SubscribeLoObject(object->pasega, object);
-    object->ppaseg = &p->paseg;
+    object->ppaseg = &dirAnims->paseg;
 }
 
 /** @sly2-annot addr=0x20CA00
@@ -868,8 +868,8 @@ extern "C" DIRACT *AllocDirAnim(void) {
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 // Returns a directional-animation object to the world's slot heap.
-extern "C" void FreeDirAnim(DIRACT *p) {
-    func_0011CD98(&g_sw.slotheapDiract, p);
+extern "C" void FreeDirAnim(DIRACT *dirAnims) {
+    func_0011CD98(&g_sw.slotheapDiract, dirAnims);
 }
 
 /** @sly2-annot addr=0x20CA48
@@ -880,7 +880,7 @@ extern "C" void FreeDirAnim(DIRACT *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Clears the directional animation's job if active.
-extern "C" void StopDirAnim(DIRACT *p) { if (!IsDirAnimStopped(p)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->pasega); }
+extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
 
 /** @sly2-annot addr=0x20CA98
  * Purpose: job +0x24 == 0
@@ -890,8 +890,8 @@ extern "C" void StopDirAnim(DIRACT *p) { if (!IsDirAnimStopped(p)) ApplyAsegCur(
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Whether the directional animation's job is cleared.
-int IsDirAnimStopped(DIRACT *p) {
-    return p->pasega == 0;
+int IsDirAnimStopped(DIRACT *dirAnims) {
+    return dirAnims->pasega == 0;
 }
 
 /** @sly2-annot addr=0x20CAA8
@@ -944,7 +944,7 @@ namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Chooses the best of the four directional animations for the desired direction.
-extern "C" void SelectDirAnim(DIRSEL*p,qword v)
+extern "C" void SelectDirAnim(DIRSEL*dirAnims,qword v)
 {
  U scalar,direction;
  register qword finalDirection __asm__("vf3");
@@ -952,36 +952,36 @@ extern "C" void SelectDirAnim(DIRSEL*p,qword v)
  register DIRE *current __asm__("v0");
  Normalize(&direction,v);
  float maximum=D_002A8904;
- if(p->forward||p->backward){
+ if(dirAnims->forward||dirAnims->backward){
    DIRE *entry;
    unsigned int i;float bias;
    register qword scoringDirection __asm__("vf4");
-   __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7":"=j"(scoringDirection),"=&r"(entry),"=&r"(i),"=f"(bias):"m"(direction.q),"m"(p->entries),"rJ"(0),"m"(D_002C3DE4));
+   __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7":"=j"(scoringDirection),"=&r"(entry),"=&r"(i),"=f"(bias):"m"(direction.q),"m"(dirAnims->entries),"rJ"(0),"m"(D_002C3DE4));
    do{
      ASEG *animation=entry->animation;
      if(animation){
        float score=Float(DotReuse(scoringDirection,NormalizeEntry(entry->velocity)));
-       if(animation==p->active->paseg)score*=bias;
+       if(animation==dirAnims->active->paseg)score*=bias;
        if(maximum<score){maximum=score;best=entry;}
      }
    }while(++entry,++i<4);
- current=p->best;
+ current=dirAnims->best;
  finalDirection=direction.q;
  if(best!=current){
    float time=0.0f;
    EA*tag;
    ASEG*animation;
    int id;
-   if(p->forward){id=0x17D;animation=best->animation;}
+   if(dirAnims->forward){id=0x17D;animation=best->animation;}
    else {id=0x17F;animation=best->animation;}
    tag=func_0012F938(animation,id);
    if(tag)time=tag->tLocal;
-   ApplyAsegCur(best->animation,p->root,time,1.0f,p->flags,&p->active);
-   SubscribeLoObject(p->active,p);
-   p->best=best;
+   ApplyAsegCur(best->animation,dirAnims->root,time,1.0f,dirAnims->flags,&dirAnims->active);
+   SubscribeLoObject(dirAnims->active,dirAnims);
+   dirAnims->best=best;
  }
  }
- current=p->best;finalDirection=direction.q;
+ current=dirAnims->best;finalDirection=direction.q;
  scalar.q=ScalarFW(&current->speed);
- p->direction=Scale(finalDirection,scalar.q);
+ dirAnims->direction=Scale(finalDirection,scalar.q);
 }
