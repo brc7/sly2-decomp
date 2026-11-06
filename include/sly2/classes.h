@@ -1283,9 +1283,9 @@ typedef char assert_CID9_size[sizeof(CID9) == 0x120 ? 1 : -1];
 struct CID40 : XFM
 {
     char padE0[0xF0 - 0xE0];
+    virtual void AddHierarchy() __asm__("AddJmtHierarchy");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid40ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitJmt");   /* slot 7 */
-    virtual void AddHierarchy() __asm__("AddJmtHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveJmtHierarchy");   /* slot 12 */
     virtual void Clone(LO *ploBase) __asm__("CloneJmt");   /* slot 41 */
 };
