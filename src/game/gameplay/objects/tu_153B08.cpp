@@ -1,5 +1,7 @@
-// tu_153B08.cpp -- an LO subclass with a table of named entries loaded from the BRX. TU 0x153B08..0x153D58
-// (3 functions, address order).
+// tu_153B08.cpp -- CID122, an LO that carries a table of named records loaded from the level file (the class table
+// calls it a FILEREC list: a name from the world's string table, a signed byte, two ints and a 64-byte payload each).
+// Its only code is the loader; who reads the table is not known yet. Entry point: CID122 vtable slot 14.
+// TU 0x153B08..0x153D58 (3 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_153B08
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00153D38
 #include "sly2/slotheap.h"
@@ -10,9 +12,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct MSG { int cb; int nKind; };
 extern "C" void *func_001AE2A0(MSG *pmsg);
+// Allocates cb bytes of kind nKind from the world heap through the message-style allocator func_001AE2A0.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
-struct E { char *pchz; int n4; int n8; int nC; char ab[0x40]; };
-struct S { char pad[0x50]; int c; struct E *ae; };
+struct E { char *name; int byteValue; int value1; int value2; char payload[0x40]; };   /* one record (0x50 bytes) */
+struct S { char pad[0x50]; int numRecords; struct E *records; };                      /* CID122 (an LO) */
 extern char D_002DD590[];
 extern "C" {
 void LoadLoFromBrx(struct S *p, void *pbis);
@@ -22,23 +25,24 @@ int S32Read__18CBinaryInputStream(void *pbis);
 void CBinaryInputStream_ReadStringSw(void *pbis, char **ppchz, void *palloc, int nKind);
 void CBinaryInputStream_ReadCb64(void *pbis, void *pv);
 }
-// Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...} records. (inferred)
+// CID122 vtable slot 14 (LoadFromBrx): reads the LO part, then a byte count and that many records into a world-heap
+// array: name (interned in the string table D_002DD590), s8, s32, s32, 64 raw bytes. Field meanings unknown.
 void CID122::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
-    S *p = (S *)this;
-    void *pbis = (void *)pbis_m;
+    S *object = (S *)this;
+    void *stream = (void *)pbis_m;
     MSG msg;
     int i;
-    LoadLoFromBrx(p, pbis);
-    p->c = U8Read__18CBinaryInputStream(pbis);
-    p->ae = (struct E *)PvAllocMsg(&msg, p->c * sizeof(struct E), 0x10);
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        CBinaryInputStream_ReadStringSw(pbis, &pe->pchz, D_002DD590, 7);
-        pe->n4 = S8Read__18CBinaryInputStream(pbis);
-        pe->n8 = S32Read__18CBinaryInputStream(pbis);
-        pe->nC = S32Read__18CBinaryInputStream(pbis);
-        CBinaryInputStream_ReadCb64(pbis, pe->ab);
+    LoadLoFromBrx(object, stream);
+    object->numRecords = U8Read__18CBinaryInputStream(stream);
+    object->records = (struct E *)PvAllocMsg(&msg, object->numRecords * sizeof(struct E), 0x10);
+    for (i = 0; i < object->numRecords; i++) {
+        struct E *record = &object->records[i];
+        CBinaryInputStream_ReadStringSw(stream, &record->name, D_002DD590, 7);
+        record->byteValue = S8Read__18CBinaryInputStream(stream);
+        record->value1 = S32Read__18CBinaryInputStream(stream);
+        record->value2 = S32Read__18CBinaryInputStream(stream);
+        CBinaryInputStream_ReadCb64(stream, record->payload);
     }
 }
 

@@ -1,4 +1,7 @@
-// tu_1FF3B8.cpp -- a grab spot object (an XFM with GRABSPOTDATA at +0xE0) kept in a global list. VU0 asm.
+// tu_1FF3B8.cpp -- CID39, a free-standing grab spot: an XFM that embeds a GRABSPOT (see grabspot.cpp) and is kept
+// in the world list g_sw.dlCid39 while active, so the player's grab search finds it like the spots built into
+// poles and ledges. Entry points: the CID39 vtable (Init, PostLoad, OnAdd/OnRemove, Clone) and
+// GetOffsetToObjectPosition. VU0 asm.
 // TU 0x1FF3B8..0x1FF690 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1FF3B8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001FF670
@@ -16,18 +19,18 @@ struct K { int a, b; };
 struct GRABXFM
 {
     char pad0[0x38];
-    float g38;          /* +0x038 1e10 at load means "use the default" (D_002C3C58) */
+    float sBusy;        /* +0x038 LO busy radius; 1e10 at load means "use the default" (D_002C3C58) */
     char pad3C[0xA4];
     char grabspot[0x20];/* +0x0E0 GRABSPOTDATA (0x20) */
-    int x100;
-    K k;                /* +0x104 kept across CloneXfm */
+    int unknown100;
+    K listLink;         /* +0x104 kept across CloneXfm (the list link, inferred) */
 };
-typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->k == 0x104 ? 1 : -1];
+typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->listLink == 0x104 ? 1 : -1];
 /* The object a position is measured from (+0x240). */
-struct P { char pad[0x240]; qword pos; };
+struct P { char pad[0x240]; qword position; };
 
 struct DL;
-float D_002C3C58 = 1250.0f;   /* the default radius */
+float D_002C3C58 = 1250.0f;   /* the default busy radius */
 extern "C" {
 void InitXfm(GRABXFM *p);
 void InitGrabspot(void *pgrabspot);
@@ -40,41 +43,42 @@ qword func_001A62E8(void *p);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
-// CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70). (inferred)
+// CID39 vtable slot 7 (Init): XFM defaults, then the embedded grab spot's defaults (InitGrabspot).
 void CID39::Init()
 {
-    GRABXFM *p = (GRABXFM *)this;
-    InitXfm(p);
-    InitGrabspot(p->grabspot);
+    GRABXFM *grabSpot = (GRABXFM *)this;
+    InitXfm(grabSpot);
+    InitGrabspot(grabSpot->grabspot);
 }
 
-// vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58. (inferred)
-extern "C" void PostGrabSpotXfmLoad(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) p->g38 = D_002C3C58; }
+// CID39 vtable slot 15 (PostLoad): finishes the LO load; an unset busy radius (1e10) becomes 1250 units.
+extern "C" void PostGrabSpotXfmLoad(GRABXFM *grabSpot) { PostLoLoad(grabSpot); if (grabSpot->sBusy == 1e10f) grabSpot->sBusy = D_002C3C58; }
 
-// vt23: add to SW update array (0x1A6178) and to global DL g_sw.dlCid39. (inferred)
-extern "C" void OnGrabSpotXfmAdd(GRABXFM *p)
+// CID39 vtable slot 23 (OnAdd): enters the active world and the world list g_sw.dlCid39.
+extern "C" void OnGrabSpotXfmAdd(GRABXFM *grabSpot)
 {
-    OnLoAdd(p);
-    AppendDlEntry(&g_sw.dlCid39, p);
+    OnLoAdd(grabSpot);
+    AppendDlEntry(&g_sw.dlCid39, grabSpot);
 }
 
-// vt22: remove from SW update array (0x1A6150) and from DL g_sw.dlCid39. (inferred)
-extern "C" void OnGrabSpotXfmRemove(GRABXFM *p)
+// CID39 vtable slot 22 (OnRemove): leaves the active world and g_sw.dlCid39.
+extern "C" void OnGrabSpotXfmRemove(GRABXFM *grabSpot)
 {
-    OnLoRemove(p);
-    RemoveDlEntry(&g_sw.dlCid39, p);
+    OnLoRemove(grabSpot);
+    RemoveDlEntry(&g_sw.dlCid39, grabSpot);
 }
 
-// Clone: XFM clone (0x2311B0) preserving a key field. (inferred)
-extern "C" void CloneGrabSpotXfm(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
+// CID39 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
+extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot) { K listLink = grabSpot->listLink; CloneXfm(grabSpot); grabSpot->listLink = listLink; }
 
-// *pv = PosLoWorld(a) - p->pos when pv non-NULL. (inferred)
-extern "C" void GetOffsetToObjectPosition(void *a, P *p, qword *pv)
+// If `offset` is non-null, stores the vector from reference's position (+0x240) to the world position of `object`.
+// Used as a grab-spot helper (the reference is a step/player). (inferred)
+extern "C" void GetOffsetToObjectPosition(void *object, P *reference, qword *offset)
 {
-    qword a0, r;
-    if (pv) {
-        a0 = func_001A62E8(a);
-        r = VuSub(a0, p->pos);
-        *pv = r;
+    qword objectPos, result;
+    if (offset) {
+        objectPos = func_001A62E8(object);
+        result = VuSub(objectPos, reference->position);
+        *offset = result;
     }
 }
