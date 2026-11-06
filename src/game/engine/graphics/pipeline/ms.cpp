@@ -16,7 +16,7 @@ struct MSV : public SO
 {
 };
 
-/* Scene render-list scratch on the stack (HYPOTHESIS name; size CONFIRMED by match: frame size). */
+/* The render-tree block stack (tu_1D57A8 STACK: a count and 256 block pointers; size CONFIRMED by match: frame size). */
 struct INTSTACK
 {
       byte ab[0x410];
@@ -41,7 +41,7 @@ struct GLOBOWNER
 
 extern "C" {
 void InitSo(SO *pso);
-void InitIntStack(INTSTACK *pis);                                     /* InitIntStack (HYPOTHESIS) */
+void InitBlockStack(INTSTACK *stack);   /* tu_1D57A8: the render-tree block stack */
 void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }
@@ -61,7 +61,7 @@ extern "C" void RenderMsGlobset(MSV *mesh)
       if (mesh->globset.aposeset) {
             // posed (skinned) globs go through the scene render list
             INTSTACK scratch;
-            InitIntStack(&scratch);
+            InitBlockStack(&scratch);
             CullSceneRenderList(&scratch, &mesh->globset);
       } else {
             RenderSoGlobset(&mesh->globset, 0, 0, 1.0f, 1.0f);

@@ -4523,7 +4523,7 @@ typedef struct { char pad[0x148]; unsigned long f148; } A;
 typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 v10; float g20; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
-void RemoveLoFromSphereTree(A *pa);
+void RemoveLoFromRenderTree(A *pa);
 /* func_002599D8/E0/E8: the file-scope inline readers */
 
 
@@ -4535,7 +4535,7 @@ void func_0016EF00(S *p, int i)
     E *pe;
     V4 v;
     float x, y, z;
-    RemoveLoFromSphereTree(p->pa);
+    RemoveLoFromRenderTree(p->pa);
     p->pa->f148 &= 0xFFFFFFF7FFFFFFFFUL;
     p->v10 = D_002A2DD0;
     p->g20 = g;

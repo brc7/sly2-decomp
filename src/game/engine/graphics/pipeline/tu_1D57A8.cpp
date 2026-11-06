@@ -174,33 +174,33 @@ extern RPL *D_003D4A50;
 extern "C" {
 int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 void SubmitGlobsetRelight(SCENE *pscene);
-void PushIntStack(STACK *pstack, BLOCK *pblock);
-BLOCK *PopIntStack(STACK *pstack);
+void PushBlockStack(STACK *pstack, BLOCK *pblock);
+BLOCK *PopBlockStack(STACK *pstack);
 M4 __ml__FRC7MATRIX4T0(const M4 &matA, const M4 &matB);
 M4 InvertMatrix4Rigid(const M4 &matSrc);
 float func_0011CAB0(M4 *pmat);
-RENDER *InsertSphereEntry(G *pg, qword pos, float sRadius, float sFar, int grfChannels);
-BLOCK *AllocSphereNode(G *pg);
+RENDER *InsertRenderEntry(G *pg, qword pos, float sRadius, float sFar, int grfChannels);
+BLOCK *AllocRenderBlock(G *pg);
 void *func_001AE2A0(struct MSG *pmsg);
 }
 extern const float D_002A7870;   /* defined below where the ELF has it (.rodata order) */
 
-// *p = 0 (empty stack) (inferred)
-extern "C" STACK *InitIntStack(STACK *pstack)
+// Empties a block stack (the explicit stack CullSceneRenderList walks the render tree with).
+extern "C" STACK *InitBlockStack(STACK *pstack)
 {
     pstack->c = 0;
     return pstack;
 }
 
-// Push int on 256-entry stack if not full. (inferred)
-extern "C" void PushIntStack(STACK *pstack, BLOCK *pblock)
+// Pushes a render-tree block on the stack (256 entries; ignored when full).
+extern "C" void PushBlockStack(STACK *pstack, BLOCK *pblock)
 {
     if (pstack->c < 0x100)
         pstack->a[pstack->c++] = pblock;
 }
 
-// Pop int (0 if empty) (inferred)
-extern "C" BLOCK *PopIntStack(STACK *pstack)
+// Pops a render-tree block (0 when the stack is empty).
+extern "C" BLOCK *PopBlockStack(STACK *pstack)
 {
     if (pstack->c == 0)
         return 0;
@@ -404,10 +404,10 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     if (pscene->nStamp != pg->nStamp)
         SubmitGlobsetRelight(pscene);
     int cDeferred = 0;
-    PushIntStack(pstack, pscene->pblockRoot);
+    PushBlockStack(pstack, pscene->pblockRoot);
     int grfChannels = D_002DDF40.grfChannels;
     BLOCK *pblock;
-    while ((pblock = PopIntStack(pstack)) != 0)
+    while ((pblock = PopBlockStack(pstack)) != 0)
     {
         qword *aqwPlane = D_002DDF40.aqwPlane;
         for (uint ir = 0; ir < 4; ir++)
@@ -426,7 +426,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             switch (prender->kind)
             {
             case 1:
-                PushIntStack(pstack, (BLOCK *)prender->pv);
+                PushBlockStack(pstack, (BLOCK *)prender->pv);
                 break;
             case 4:
                 if ((uint)cDeferred < 512)
@@ -570,7 +570,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             }
         }
         if (pblock->ar[3].pblockNext)
-            PushIntStack(pstack, pblock->ar[3].pblockNext);
+            PushBlockStack(pstack, pblock->ar[3].pblockNext);
     }
     for (i = 0; i < cDeferred; i++)
     {
@@ -580,9 +580,9 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     }
 }
 
-// Unregister LO from world sphere tree: mark node entry free (fl|=0xF<<32), +0x140=-1, +0x144=0, clear grf 0x80.
-// (inferred)
-extern "C" void RemoveLoFromSphereTree(OBJ *pobj)
+// Takes an object out of the world's render tree: marks its entry free (kind -1), forgets the entry and clears its
+// in-tree flag (0x80).
+extern "C" void RemoveLoFromRenderTree(OBJ *pobj)
 {
     if (pobj->prender) {
         int n;
@@ -595,9 +595,10 @@ extern "C" void RemoveLoFromSphereTree(OBJ *pobj)
     }
 }
 
-// Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary sphere tree (g_sw+?),
-// store entry +0x144, set grf 0x80. (inferred)
-extern "C" void AddLoToSphereTree(OBJ *pobj)
+// Puts an object into the world's render tree: its world bounding sphere (local centre through its world matrix,
+// radius scaled by the matrix) goes in as a deferred entry (KIND_DEFERRED: its Render is called when the entry is
+// visible); stores the entry and sets the in-tree flag (0x80).
+extern "C" void AddLoToRenderTree(OBJ *pobj)
 {
     M4 m = *((M4 *(*)(void *))pobj->pvt[31].pfn)((char *)pobj + pobj->pvt[31].delta);
     qword v;
@@ -605,7 +606,7 @@ extern "C" void AddLoToSphereTree(OBJ *pobj)
     v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
     {
         float r = func_0011CAB0(&m) * pobj->sRadius;
-        prender = InsertSphereEntry(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
+        prender = InsertRenderEntry(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
     }
     pobj->prender = prender;
     if (prender) {
@@ -622,8 +623,8 @@ extern "C" void AddLoToSphereTree(OBJ *pobj)
 struct MSG { int cb; int nKind; };
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
 
-// Allocate 0x80-byte node of 4 sphere entries (kinds = -1) (inferred)
-extern "C" BLOCK *AllocSphereNode(G *pg)
+// Allocates a render-tree block: four empty entries (kind -1), 0x80 bytes.
+extern "C" BLOCK *AllocRenderBlock(G *pg)
 {
     MSG msg;
     BLOCK *pblock = (BLOCK *)PvAllocMsg(&msg, 0x80, 0x10);
@@ -647,9 +648,10 @@ static inline float Dist(qword a, qword b)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7870 __asm__("D_002A7870") = 3.40282347e+38f; }
-// Descend sphere tree choosing child sphere that contains (pos,r) within busy distance; allocate free entry.
-// (inferred)
-extern "C" RENDER *InsertSphereEntry(G *pg, qword pos, float r, float f, int mask)
+// Finds a free entry for a sphere (pos, radius, far distance, channel mask) in the render tree: descends from the root
+// into the child block whose sphere contains it best, then takes or allocates a free entry. Returns 0 when the world
+// has no tree. (inferred)
+extern "C" RENDER *InsertRenderEntry(G *pg, qword pos, float r, float f, int mask)
 {
     BLOCK *pblockLevel = pg->pblockRoot;
     BLOCK *pblock;
@@ -695,7 +697,7 @@ extern "C" RENDER *InsertSphereEntry(G *pg, qword pos, float r, float f, int mas
         }
         if (!pblockChild) {
             if (!prenderFree) {
-                pblock->ar[3].pblockNext = AllocSphereNode(pg);
+                pblock->ar[3].pblockNext = AllocRenderBlock(pg);
                 prenderFree = pblock->ar[3].pblockNext->ar;
             }
             prenderFree->sFar = f;
