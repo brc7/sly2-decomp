@@ -369,11 +369,11 @@ void UpdateJtMode(void *);
  * @end-sly2-annot */
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
 void UpdateBentleyJtMode(struct S *bentley) {
-    if (IsStepplayerInJtMode(bentley)) {
-        void *pv = &bentley->ff00;
-        if (bentley->jtModeState == 1 && bentley->jtModeKind == 0 && GrfConsumePressed__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
-        UpdateJtMode(pv);
-    }
+    if (!IsStepplayerInJtMode(bentley))
+        return;
+    void *pv = &bentley->ff00;
+    if (bentley->jtModeState == 1 && bentley->jtModeKind == 0 && GrfConsumePressed__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
+    UpdateJtMode(pv);
 }
 } } // namespace M_func_00134D30
 
@@ -1398,12 +1398,12 @@ extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
 // Sets the dart aim state (+0x16BC) with a timestamp; state 0 also stops the crosshair.
 extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 {
-    if (n != bentley->nUnk16bc) {
-        bentley->nUnk16bc = n;
-        T16C0(bentley) = D_002DDED0.t;
-        if (n == 0) {
-            SetBentleyCrosshairState(&bentley->btblends, -1);
-        }
+    if (n == bentley->nUnk16bc)
+        return;
+    bentley->nUnk16bc = n;
+    T16C0(bentley) = D_002DDED0.t;
+    if (n == 0) {
+        SetBentleyCrosshairState(&bentley->btblends, -1);
     }
 }
 
@@ -1942,11 +1942,11 @@ void func_00131B10(int, struct L *, void *);
  * @end-sly2-annot */
 // Crosshair message handler: message 9 kinds 0x16E/0x242.
 void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
-    if (msg == 9 && pm->id == bentley->fe0) {
-        switch (pm->f8) {
-        case 0x16e: func_00131B10(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
-        case 0x242: bentley->fc = 1; break;
-        }
+    if (msg != 9 || pm->id != bentley->fe0)
+        return;
+    switch (pm->f8) {
+    case 0x16e: func_00131B10(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
+    case 0x242: bentley->fc = 1; break;
     }
 }
 } } // namespace M_func_00136ED0
