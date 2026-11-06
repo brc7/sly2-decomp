@@ -46,6 +46,19 @@ BHV *PbhvPushBhvstk(BHVSTK *pbhvstk);
 BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, CID cid);
 }
 
+/* STEP +0x1A4: how the body turns (inferred from UpdateStep / PresetStepAccel): toward the target heading with the
+   spin smoothing, by a fixed angular velocity (+0x1E0), or not at all. */
+enum STEERING { STEERING_NONE = -1, STEERING_HEADING = 0, STEERING_ANGULAR_VELOCITY = 1 };
+/* Ground-probe flags (slot 85, GetStepGroundProbeFlags; read by AddStepCustomXps). */
+enum
+{
+    PROBE_ENABLED = 1,          /* cast the floor ray at all */
+    PROBE_FROM_TOP = 2,         /* cast to the top helper point instead of the base point */
+    PROBE_FLAG4 = 4,            /* set by the default flags; not read here */
+    PROBE_KEEP_NORMAL = 8,      /* always use the hit normal (no snapping to straight up) */
+    PROBE_DEFAULT = PROBE_ENABLED | PROBE_FROM_TOP | PROBE_FLAG4
+};
+
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
 struct S { char pad[0x200]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
@@ -166,17 +179,17 @@ extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
 namespace RO_ORDER { extern const float r_D_002A85F0 __asm__("D_002A85F0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00203AF0 { extern "C" {
-/* (Claude agent) matched: mesh->p7C loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = c*16 + (int)dst computed before the u.q store. */
+/* (Claude agent) matched: mesh->localPoints loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = firstHelper*16 + (int)dst computed before the u.q store. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct E { float a; float b; float c; float d; };
-struct Q0 { char pad[0x40]; char a40[1]; };
-struct Q { struct Q0 *p0; char pad[0x1C - 4]; int c; char pad2[0x78 - 0x20]; char a78[4]; void *p7C; char pad3[0x90 - 0x80]; char a90[4]; char *p94; };
-struct M { char pad[0x1C]; int n1C; char pad2[0x78 - 0x20]; int n78; };
+struct E { float x; float y; float z; float w; };
+struct Q0 { char pad[0x40]; char matWorld[1]; };
+struct Q { struct Q0 *transform; char pad[0x1C - 4]; int numPinnedPoints; char pad2[0x78 - 0x20]; char geomLocal[4]; void *localPoints; char pad3[0x90 - 0x80]; char geomWorld[4]; char *worldPoints; };
+struct M { char pad[0x1C]; int numPinnedPoints; char pad2[0x78 - 0x20]; int numLocalPoints; };
 struct S {
-    char pad0[0x28]; unsigned long fl28; char pad1[0x60 - 0x30]; void *p60; char pad2[0xE0 - 0x64]; int numParts; char *parts;
-    char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword q240;
-    char pad5[0x258 - 0x250]; struct Q *pq;
+    char pad0[0x28]; unsigned long flags; char pad1[0x60 - 0x30]; void *rootTransform; char pad2[0xE0 - 0x64]; int numParts; char *parts;
+    char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword basePos;
+    char pad5[0x258 - 0x250]; struct Q *physPart;
 };
 extern const float D_002A85F0;   /* defined below where the ELF has it (.rodata order) */
 extern qword D_002A2DC0;
@@ -186,7 +199,7 @@ void AddSoParts(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q);
 void EnsureSoPartMesh(struct Q *q);
-void UpdateGeomWorld(void *a, void *b, void *c);
+void UpdateGeomWorld(void *a, void *b, void *firstHelper);
 
 /** @sly2-annot addr=0x203AF0
  * Purpose: Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min
@@ -200,47 +213,47 @@ void UpdateGeomWorld(void *a, void *b, void *c);
 // point as the base height (+0x210) and adds two helper points. (inferred)
 void BuildStepPhysPart(struct S *step, struct M *m)
 {
-    int n, fl, i, c;
-    float mn;
+    int n, allPinned, i, firstHelper;
+    float lowestZ;
     U u;
     qword r;
-    if ((int)(step->fl28 >> 60) & 1)
+    if ((int)(step->flags >> 60) & 1)
         RemoveSoParts(step);
     n = step->numParts;
     step->numParts = n + 1;
-    fl = 0;
-    step->pq = (struct Q *)(step->parts + n * 0xB0);
+    allPinned = 0;
+    step->physPart = (struct Q *)(step->parts + n * 0xB0);
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
-        fl = m->n1C == m->n78;
-    CloneSoPartGeomInserting(m, step->p60, !fl ? 2 : 3, step->pq);
-    EnsureSoPartMesh(step->pq);
-    mn = D_002A85F0;
-    for (i = 0; i < step->pq->c; i++) {
-        float e = ((struct E *)step->pq->p7C)[i].c;
-        mn = (e > mn) ? mn : e;
+        allPinned = m->numPinnedPoints == m->numLocalPoints;
+    CloneSoPartGeomInserting(m, step->rootTransform, !allPinned ? 2 : 3, step->physPart);
+    EnsureSoPartMesh(step->physPart);
+    lowestZ = D_002A85F0;
+    for (i = 0; i < step->physPart->numPinnedPoints; i++) {
+        float e = ((struct E *)step->physPart->localPoints)[i].z;
+        lowestZ = (e > lowestZ) ? lowestZ : e;
     }
-    step->baseHeight = mn;
-    c = step->pq->c;
-    step->pq->c = c + 2;
-    {register struct Q *mesh __asm__("$4")=step->pq;
-     register qword point __asm__("$3")=step->q240;
-     ((qword *)mesh->p7C)[c]=point;}
+    step->baseHeight = lowestZ;
+    firstHelper = step->physPart->numPinnedPoints;
+    step->physPart->numPinnedPoints = firstHelper + 2;
+    {register struct Q *mesh __asm__("$4")=step->physPart;
+     register qword point __asm__("$3")=step->basePos;
+     ((qword *)mesh->localPoints)[firstHelper]=point;}
     {register int word __asm__("$2");
      register struct Q *mesh __asm__("$3");
      register qword *dst __asm__("$2");
-     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->pq));
+     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->physPart));
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
-     dst=(qword *)mesh->p7C;
-     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->q240),"j"(D_002A2DC0),"j"(value));
-     {qword *slot=(qword *)(c*16+(int)dst);
+     dst=(qword *)mesh->localPoints;
+     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->basePos),"j"(D_002A2DC0),"j"(value));
+     {qword *slot=(qword *)(firstHelper*16+(int)dst);
      u.q=value;
      slot[1]=r;}}}
-    if (fl)
-        ((qword *)step->pq->p7C)[c + 2] = D_002A2DD0;
-    UpdateGeomWorld(step->pq->p0->a40, step->pq->a78, step->pq->a90);
-    step->basePoint = step->pq->p94 + c * 16;
-    step->topPoint = step->pq->p94 + (c * 16 + 0x10);
-    if ((int)(step->fl28 >> 60) & 1)
+    if (allPinned)
+        ((qword *)step->physPart->localPoints)[firstHelper + 2] = D_002A2DD0;
+    UpdateGeomWorld(step->physPart->transform->matWorld, step->physPart->geomLocal, step->physPart->geomWorld);
+    step->basePoint = step->physPart->worldPoints + firstHelper * 16;
+    step->topPoint = step->physPart->worldPoints + (firstHelper * 16 + 0x10);
+    if ((int)(step->flags >> 60) & 1)
         AddSoParts(step);
 }
 } } // namespace M_func_00203AF0
@@ -448,8 +461,8 @@ struct VT;
 struct S {
     char pad0[0xC]; struct VT *vt;
     char pad1[0x180 - 0x10]; float turnSpeedFactor;
-    char pad2[0x1A4 - 0x184]; int k1A4; float targetHeading;
-    char pad3[0x208 - 0x1AC]; int floorContact; float t20C;
+    char pad2[0x1A4 - 0x184]; int steeringMode; float targetHeading;
+    char pad3[0x208 - 0x1AC]; int floorContact; float lastFloorContactTime;
 };
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
@@ -476,8 +489,8 @@ void UpdateStep(struct S *step)
 {
     UpdateSo(step);
     UpdateStepPhys(step);
-    switch (step->k1A4) {
-    case 0: {
+    switch (step->steeringMode) {
+    case STEERING_HEADING: {
         float *a = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
         float *b = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
         float d = RadNormalize__Ff(step->targetHeading - atan2f(a[1], b[0]));
@@ -494,13 +507,13 @@ void UpdateStep(struct S *step)
         step->turnSpeedFactor = f;
         break;
     }
-    case -1:
-    case 1:
+    case STEERING_NONE:
+    case STEERING_ANGULAR_VELOCITY:
         step->turnSpeedFactor = 1.0f;
         break;
     }
     if (step->floorContact)
-        step->t20C = D_002DDED0.t;
+        step->lastFloorContactTime = D_002DDED0.t;
 }
 } } // namespace M_UpdateStep
 
@@ -514,12 +527,12 @@ void UpdateStep(struct S *step)
 // Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
 extern "C" int GetStepGroundProbeFlags(STEP *step)
 {
-    return (step->nUnk204 != 0) ? 0 : 7;
+    return (step->nUnk204 != 0) ? 0 : PROBE_DEFAULT;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetStepAccel { extern "C" {
-/* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/ProjectRipTransform.cpp, lw into the lui register); volatile on the lw keeps it after the v1E0 lqc2. */
+/* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/ProjectRipTransform.cpp, lw into the lui register); volatile on the lw keeps it after the targetAngularVelocity lqc2. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { float x,y,z; } VECTOR3;
@@ -527,7 +540,7 @@ typedef struct { qword row[3]; } M3;
 union FLOATWORD { float value; int bits; };
 extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
-struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
+struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p);
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
@@ -551,8 +564,8 @@ static inline void InitScalar(U *value,int bits) {
 void PresetStepAccel(struct S *step)
 {
     PresetSoAccel(step);
-    switch (step->k) {
-    case 0: {
+    switch (step->steeringMode) {
+    case STEERING_HEADING: {
         VECTOR3 v;
         float s = step->unknownRatio200;
         v.z = step->spinFastTime;
@@ -561,13 +574,13 @@ void PresetStepAccel(struct S *step)
         AccelSoTowardMatBounded(step, &step->desired, &v);
         break;
     }
-    case 1: {
+    case STEERING_ANGULAR_VELOCITY: {
         register struct O *po __asm__("$3") = step->po;
         U u;
         register qword d __asm__("vf3");         register qword vel __asm__("vf2");
         char*page=ClockPage();
         int word;
-        d=step->v1E0;
+        d=step->targetAngularVelocity;
         word=ClockWord(page);
         vel = po->angularForce;
         __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(po->angularVelocity));
@@ -577,7 +590,7 @@ void PresetStepAccel(struct S *step)
         po->angularForce=vel;
         break;
     }
-    case -1:
+    case STEERING_NONE:
         break;
     }
 }
@@ -1128,11 +1141,11 @@ int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY 
 namespace M_AddStepCustomXps { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; unsigned int (*pf)(void *); };
-struct EC { char pad[0x60]; void *p60; };
-struct X4 { char pad[0xEC]; struct EC *pec; };
-struct X { int pad; struct X4 *p4; };
+struct EC { char pad[0x60]; void *rootSo; };
+struct X4 { char pad[0xEC]; struct EC *tree; };
+struct X { int pad; struct X4 *so; };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
-struct HIT { qword pos; qword q10; qword normal; qword q30; float t; int n44; int n48; int n4C; char pad[0x10]; };
+struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
 extern qword D_002A2DC0;
 extern char D_003DD490[];
 void AddSoCustomXps(void);
@@ -1159,28 +1172,28 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
     float f;
     AddSoCustomXps();
     fl = step->vt[85].pf((char *)step + step->vt[85].d);
-    if ((fl & 1) == 0)
+    if ((fl & PROBE_ENABLED) == 0)
         return;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
         return;
     pos = func_001A62E8(step);
-    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
+    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & PROBE_FROM_TOP) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
-        if (fl & 8)
+        if (fl & PROBE_KEEP_NORMAL)
             n = hit.normal;
-        else if (0.7f < ((float *)&hit.normal)[2])
+        else if (0.7f < ((float *)&hit.normal)[2])   /* a floor-like slope (normal z above 0.7): straight up */
             n = D_002A2DC0;
-        else if (hit.n48)
+        else if (hit.unknown48)
             n = hit.normal;
-        else if (HasStepFloorNearby(step, *step->basePoint, x, hit.n4C))
+        else if (HasStepFloorNearby(step, *step->basePoint, x, hit.tag))
             n = D_002A2DC0;
         else
             n = hit.normal;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->basePoint), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        AddXp(D_003DD490, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);
+        AddXp(D_003DD490, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);   /* kind 14: the floor contact */
     }
 }
 } } // namespace M_AddStepCustomXps
@@ -1306,7 +1319,7 @@ extern qword D_002A2DD0;
 struct O { VTE *vt; };
 struct X { int a; struct O *po; };
 struct TABLE;
-struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
+struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float effectiveSpeed; };
 int FAsegaRetracted(struct Q *q);
 struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
 /** @sly2-annot addr=0x204E38
@@ -1326,7 +1339,7 @@ qword GetStepAsegaTranslation(void *step, struct Q *q, float g)
         struct X *x = func_0012FF10(q->table, step, 1, 1);
         if (x) {
             struct O *o = x->po;
-            ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
+            ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->effectiveSpeed);
         }
     }
     return r;
@@ -1369,7 +1382,7 @@ qword GetStepAsegaRotation(void *step, struct Q *q, float g)
 namespace M_func_00204F78 { extern "C" {
 struct G;
 extern struct G D_003DD490;
-struct O { char pad[0x10]; struct O *pParent; char p2[0xEC - 0x14]; void *pvEC; };
+struct O { char pad[0x10]; struct O *parent; char p2[0xEC - 0x14]; void *tree; };
 void *PsoFromLo(void *pv);
 void UpdateSwPox(struct G *pg, void *a, void *b, int n);
 void InvalidateSoAaox(struct O *p);
@@ -1385,8 +1398,8 @@ void InvalidateSoAaox(struct O *p);
 void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)PsoFromLo(pv);
-    while (o && !o->pvEC) o = o->pParent;
-    if (step->pvEC && o && o->pvEC) UpdateSwPox(&D_003DD490, step->pvEC, o->pvEC, f ? 1 : 2);
+    while (o && !o->tree) o = o->parent;
+    if (step->tree && o && o->tree) UpdateSwPox(&D_003DD490, step->tree, o->tree, f ? 1 : 2);
     InvalidateSoAaox(step);
 }
 } } // namespace M_func_00204F78
