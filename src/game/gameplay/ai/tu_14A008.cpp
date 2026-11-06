@@ -232,108 +232,108 @@ extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
 
 // 0x14A1B0: Route behaviour (BHV182) vtable slot 7 (OnPush): base, starts the music cue, raises guard flag 0x24, no
 // current or target station.
-extern "C" void InitBhvRoute(BHVRT *p)
+extern "C" void InitBhvRoute(BHVRT *behavior)
 {
-    InitBhv(p);
+    InitBhv(behavior);
     func_001FEE90(D_003DD040);
-    AddStepguardSgf(p->pguard, 0x24);
-    p->state = -1;
-    p->iTarget = -1;
-    p->iCur = -1;
+    AddStepguardSgf(behavior->pguard, 0x24);
+    behavior->state = -1;
+    behavior->iTarget = -1;
+    behavior->iCur = -1;
 }
 
 // 0x14A200: Route behaviour vtable slot 8 (Start): state 0, start time, clears the guard's +0x4A4.
 void BHV182::Start()
 {
-    BHVRT *p = (BHVRT *)this;
-    StartBhv(p);
-    SetBhvRouteState(p, 0);
-    p->t48 = D_002DDED0.t;
-    p->pguard->n4A4 = 0;
+    BHVRT *behavior = (BHVRT *)this;
+    StartBhv(behavior);
+    SetBhvRouteState(behavior, 0);
+    behavior->t48 = D_002DDED0.t;
+    behavior->pguard->n4A4 = 0;
 }
 
 // 0x14A248: Route behaviour vtable slot 9 (Close): state -1, lowers flag 0x24, stops the music cue, sets the
 // guard's +0x4A4 again.
-extern "C" void CloseBhvRoute(BHVRT *p)
+extern "C" void CloseBhvRoute(BHVRT *behavior)
 {
-    CloseBhv(p);
-    SetBhvRouteState(p, -1);
-    RemoveStepguardSgf(p->pguard, 0x24);
+    CloseBhv(behavior);
+    SetBhvRouteState(behavior, -1);
+    RemoveStepguardSgf(behavior->pguard, 0x24);
     func_001FEEA0(D_003DD040);
-    p->pguard->n4A4 = 1;
+    behavior->pguard->n4A4 = 1;
 }
 
 // 0x14A2A0: Route behaviour vtable slot 10 (Update): updates the chase position, then runs the state machine: 0 at
 // a station (attack the hero if it is the best station, else advance), 1 travelling (back to 0 at the path end), 2
 // falling/recovering animation, 3 attacking, 4 hands-off pause.
-extern "C" void UpdateBhvRoute(BHVRT *p)
+extern "C" void UpdateBhvRoute(BHVRT *behavior)
 {
     int s;
-    UpdateBhv(p);
-    UpdateBhvRouteChase(p);
+    UpdateBhv(behavior);
+    UpdateBhvRouteChase(behavior);
     for (;;) {
-        if (IsBhvBusyAbove(p))
+        if (IsBhvBusyAbove(behavior))
             break;
-        s = p->state;
+        s = behavior->state;
         switch (s) {
         case 0:
-            if (IsStepguardHandsOff(p->pguard)) {
-                SetBhvRouteState(p, 4);
-            } else if (IsBhvRouteOffGround(p)) {
-                SetBhvRouteState(p, 2);
+            if (IsStepguardHandsOff(behavior->pguard)) {
+                SetBhvRouteState(behavior, 4);
+            } else if (IsBhvRouteOffGround(behavior)) {
+                SetBhvRouteState(behavior, 2);
             } else {
-                int v = FindBhvRouteBestStation(p);
-                p->iTarget = v;
-                if (v == p->iCur) {
-                    ATKENTRY *r = ChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
-                    p->pentry = r;
+                int v = FindBhvRouteBestStation(behavior);
+                behavior->iTarget = v;
+                if (v == behavior->iCur) {
+                    ATKENTRY *r = ChooseStepguardAttack(behavior->pguard, PpoHero(&D_003DD490), 0);
+                    behavior->pentry = r;
                     if (r)
-                        SetBhvRouteState(p, 3);
+                        SetBhvRouteState(behavior, 3);
                 } else {
-                    AdvanceBhvRouteStation(p);
+                    AdvanceBhvRouteStation(behavior);
                 }
             }
             break;
         case 1:
-            if (IsStepguardHandsOff(p->pguard))
-                SetBhvRouteState(p, 4);
-            else if (IsBhvRouteOffGround(p))
-                SetBhvRouteState(p, 2);
-            else if (IsBhvpathAtEnd(p->pbhvCur))
-                SetBhvRouteState(p, 0);
+            if (IsStepguardHandsOff(behavior->pguard))
+                SetBhvRouteState(behavior, 4);
+            else if (IsBhvRouteOffGround(behavior))
+                SetBhvRouteState(behavior, 2);
+            else if (IsBhvpathAtEnd(behavior->pbhvCur))
+                SetBhvRouteState(behavior, 0);
             else
-                ChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
+                ChooseStepguardAttack(behavior->pguard, PpoHero(&D_003DD490), 0);
             break;
         case 2:
-            if (IsStepguardHandsOff(p->pguard))
-                SetBhvRouteState(p, 4);
-            else if (IsBhvanimDone(p->pbhvCur))
-                SetBhvRouteState(p, 0);
+            if (IsStepguardHandsOff(behavior->pguard))
+                SetBhvRouteState(behavior, 4);
+            else if (IsBhvanimDone(behavior->pbhvCur))
+                SetBhvRouteState(behavior, 0);
             break;
         case 3:
-            if (IsStepguardHandsOff(p->pguard))
-                SetBhvRouteState(p, 4);
-            else if (IsBhvattackDone(p->pbhvCur))
-                SetBhvRouteState(p, 0);
+            if (IsStepguardHandsOff(behavior->pguard))
+                SetBhvRouteState(behavior, 4);
+            else if (IsBhvattackDone(behavior->pbhvCur))
+                SetBhvRouteState(behavior, 0);
             break;
         case 4:
-            if (!IsStepguardHandsOff(p->pguard))
-                SetBhvRouteState(p, 0);
+            if (!IsStepguardHandsOff(behavior->pguard))
+                SetBhvRouteState(behavior, 0);
             break;
         }
-        if (s == p->state)
+        if (s == behavior->state)
             break;
     }
 }
 
 // 0x14A478: True if the guard is on the ground but no ground is found within 100 above / 250 below its position (it
 // walked off the route, inferred).
-extern "C" int IsBhvRouteOffGround(BHVRT *p)
+extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
 {
-    GUARDV *q = p->pguard;
+    GUARDV *guard = behavior->pguard;
     qword t;
-    if (q->x208) return 0;
-    t = func_001A62E8(q);
+    if (guard->x208) return 0;
+    t = func_001A62E8(guard);
     return SnapToGround(&t, 1, 0, 100.0f, -250.0f) == 0;
 }
 
@@ -382,22 +382,22 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 
 // 0x14A4D0: Compares the hero's and the guard's positions and velocities along the route to pick the chase speed
 // and lead the hero (inferred).
-extern "C" void UpdateBhvRouteChase(BHVRT *p)
+extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
 {
     SW *pg = &D_003DD490;
     HEROV *pso = PpoHero(pg);
     qword posPlayer = func_001A62E8(pso);
-    qword posMe = func_001A62E8(p->pguard);
+    qword posMe = func_001A62E8(behavior->pguard);
     qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
     {
-        VTE *e = &pso->vt[33];
-        v = ((qword (*)(void *))e->pfn)((char *)pso + e->d);
+        VTE *entry = &pso->vt[33];
+        v = ((qword (*)(void *))entry->pfn)((char *)pso + entry->d);
     }
     if (FLess(D_002BD460, Len(v)))
-        p->t48 = D_002DDED0.t;
-    float dt = D_002DDED0.t - p->t48;
+        behavior->t48 = D_002DDED0.t;
+    float dt = D_002DDED0.t - behavior->t48;
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
@@ -409,7 +409,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *p)
             }
             goto done;
         }
-        SetStepguardTarget(p->pguard, pso);
+        SetStepguardTarget(behavior->pguard, pso);
         return;
     }
     for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->pnext) {
@@ -437,13 +437,13 @@ extern "C" void UpdateBhvRouteChase(BHVRT *p)
                 float tilt = GRandInRange(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
                 q = Add(posT, SetVectorSphere(pan, tilt, GRandInRange(0.0f, r)));
-                qword e = SubX(q, posMe);
+                qword entry = SubX(q, posMe);
                 posT = q;
-                if (FLess(Len2(e), Len2(d))) {
+                if (FLess(Len2(entry), Len2(d))) {
                     pos = posT;
                     goto done;
                 }
-                float g = RadBetweenVectors(d, e, 0);
+                float g = RadBetweenVectors(d, entry, 0);
                 if (!(__builtin_fabsf(g) * 57.295776f <= D_002BD47C)) {
                     pos = posT;
                     goto done;
@@ -452,8 +452,8 @@ extern "C" void UpdateBhvRouteChase(BHVRT *p)
         }
     }
     if (FLess(Len2(v), D_002BD460)) {
-        qword e = VuSub(posMe, posPlayer);
-        float rad = atan2f(GetY(e), GetX(e));
+        qword entry = VuSub(posMe, posPlayer);
+        float rad = atan2f(GetY(entry), GetX(entry));
         qword pp = func_001A62E8(pso);
         pos = Add(pp, SetVectorCylind(GRandInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
@@ -461,11 +461,11 @@ extern "C" void UpdateBhvRouteChase(BHVRT *p)
     }
 done:
     {
-        LOV *plo = p->pguard->ploMarker;
-        VTE *e = &plo->vt[29];
-        ((void (*)(void *, qword))e->pfn)((char *)plo + e->d, pos);
+        LOV *plo = behavior->pguard->ploMarker;
+        VTE *entry = &plo->vt[29];
+        ((void (*)(void *, qword))entry->pfn)((char *)plo + entry->d, pos);
     }
-    SetStepguardTarget(p->pguard, p->pguard->ploMarker);
+    SetStepguardTarget(behavior->pguard, behavior->pguard->ploMarker);
 }
 
 // Remaps g through an LM range (inferred: clamped linear mapping).
@@ -476,22 +476,22 @@ static inline float GRemap(LMV *pr, float g)
     return (g - pr->gMin) / (pr->gMax - pr->gMin);
 }
 // 0x14AA30: Returns the index of the route station best placed relative to the current player.
-extern "C" int FindBhvRouteBestStation(BHVRT *p)
+extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
 {
     int iBest = -1;
     int i = 0;
     float ag[1];
     void *pv = PpoHero(&D_003DD490);
     float gBest = -1.0f;
-    FindShapeClosestPoint(p->proute->pshape, func_001A62E8(pv), 0, 0, 0, 0, ag);
-    for (; i < p->proute->crte; i++) {
+    FindShapeClosestPoint(behavior->proute->pshape, func_001A62E8(pv), 0, 0, 0, 0, ag);
+    for (; i < behavior->proute->crte; i++) {
         float g, u1, u2, u3, s;
         U v;
-        RTE *pe = &p->proute->arte[i];
+        RTE *pe = &behavior->proute->arte[i];
         if (!pe->plo)
             continue;
-        g = ag[0] - p->proute->pshape->mpicvs[i];
-        if (p->proute->fReverse == 1)
+        g = ag[0] - behavior->proute->pshape->mpicvs[i];
+        if (behavior->proute->fReverse == 1)
             g = -g;
         if (FCheckLm(&D_002BD480, g))
             u1 = GRemap(&D_002BD480, g);
@@ -499,7 +499,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *p)
             u1 = 1.0f - GRemap(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = ConvertCmWorldToScreen(D_002DDF40, p->proute->pshape->mpicvpos[i]);
+        v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->proute->pshape->mpicvpos[i]);
         if (FCheckLm(&D_002BD490, v.f[2]))
             u2 = GRemap(&D_002BD490, v.f[2]);
         else if (FCheckLm(&D_002BD498, v.f[2]))
@@ -521,127 +521,127 @@ extern "C" int FindBhvRouteBestStation(BHVRT *p)
 }
 
 // 0x14AD70: Advances one station toward the target station and starts the move its kind asks for (walk or leap).
-extern "C" void AdvanceBhvRouteStation(BHVRT *p)
+extern "C" void AdvanceBhvRouteStation(BHVRT *behavior)
 {
     int k;
-    if (p->iCur < p->iTarget) {
-        p->iCur++;
-        k = p->proute->arte[p->iCur].k;
+    if (behavior->iCur < behavior->iTarget) {
+        behavior->iCur++;
+        k = behavior->proute->arte[behavior->iCur].k;
     } else {
-        k = p->proute->arte[p->iCur].k;
-        p->iCur--;
+        k = behavior->proute->arte[behavior->iCur].k;
+        behavior->iCur--;
     }
     switch (k) {
     case 0:
-        SetBhvRouteState(p, 1);
+        SetBhvRouteState(behavior, 1);
         break;
     case 1:
-        SetBhvRouteState(p, 2);
+        SetBhvRouteState(behavior, 2);
         break;
     }
 }
 
 // 0x14AE18: Returns the kind of the current route station.
-extern "C" void *GetBhvRouteStationKind(BHVRT *p)
+extern "C" void *GetBhvRouteStationKind(BHVRT *behavior)
 {
-    return p->proute->arte[p->iCur].plo;
+    return behavior->proute->arte[behavior->iCur].plo;
 }
 
 #define VCALL0(po, n) { VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
 // 0x14AE38: Route behaviour state change: pushes the child behaviour for the new state (path walk, leap, animation,
 // attack, idle).
-extern "C" void SetBhvRouteState(BHVRT *p, int state)
+extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
 {
-    if (state == p->state)
+    if (state == behavior->state)
         return;
-    switch (p->state) {
+    switch (behavior->state) {
     case 0:
-        SetStepguardAimAct(p->pguard, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(behavior->pguard, 0, 0, D_002A2DD0);
         break;
     case -1:
     case 1:
-        SetSoCnstrForce(p->pguard, 1);
-        SetSoCnstrTorque(p->pguard, 1);
+        SetSoCnstrForce(behavior->pguard, 1);
+        SetSoCnstrTorque(behavior->pguard, 1);
         break;
     case 3: {
         float t = D_002DDED0.t;
-        p->pguard->tF04 = t + GRandInRange(p->pentry->lm.gMin, p->pentry->lm.gMax);
-        p->pentry = 0;
+        behavior->pguard->tF04 = t + GRandInRange(behavior->pentry->lm.gMin, behavior->pentry->lm.gMax);
+        behavior->pentry = 0;
         break;
     }
     }
-    PopBhv(p->abhvstk);
-    p->state = state;
-    p->tState = D_002DDED0.t;
+    PopBhv(behavior->abhvstk);
+    behavior->state = state;
+    behavior->tState = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O9E *po = (struct O9E *)func_00205438(p->pguard, 0x9E);
+        struct O9E *po = (struct O9E *)func_00205438(behavior->pguard, 0x9E);
         po->x38 = PpoHero(&D_003DD490);
         VCALL0(po, 8);
         {
-            GUARDV *px = p->pguard;
-            VTE *e = &px->vt[35];
-            ((void (*)(void *, qword))e->pfn)((char *)px + e->d, D_002A2DD0);
+            GUARDV *guard = behavior->pguard;
+            VTE *entry = &guard->vt[35];
+            ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
         }
         {
-            GUARDV *px = p->pguard;
-            VTE *e = &px->vt[36];
-            ((void (*)(void *, qword))e->pfn)((char *)px + e->d, D_002A2DD0);
+            GUARDV *guard = behavior->pguard;
+            VTE *entry = &guard->vt[36];
+            ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
         }
         {
-            V3 *pv = &p->pguard->v190;
+            V3 *pv = &behavior->pguard->v190;
             pv->x = pv->y = pv->z = 0;
         }
         break;
     }
     case 1: {
-        SHAPEV *psp = p->pguard->ppath;
+        SHAPEV *psp = behavior->pguard->ppath;
         struct OA7 *po;
         psp->ccv = 2;
         {
             qword *pq = psp->mpicvpos;
-            *pq = func_001A62E8(p->pguard);
+            *pq = func_001A62E8(behavior->pguard);
             pq = psp->mpicvpos;
-            pq[1] = func_001A62E8(GetBhvRouteStationKind(p));
+            pq[1] = func_001A62E8(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
-        po = (struct OA7 *)func_00205438(p->pguard, 0xA7);
+        po = (struct OA7 *)func_00205438(behavior->pguard, 0xA7);
         SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
         po->xC8 = PpoHero(&D_003DD490);
         VCALL0(po, 8);
-        p->pguard->tF04 = D_002DDED0.t;
-        SetSoCnstrForce(p->pguard, 0);
-        SetSoCnstrTorque(p->pguard, 0);
+        behavior->pguard->tF04 = D_002DDED0.t;
+        SetSoCnstrForce(behavior->pguard, 0);
+        SetSoCnstrTorque(behavior->pguard, 0);
         break;
     }
     case 2: {
-        struct OAC *po = (struct OAC *)func_00205438(p->pguard, 0xAC);
-        po->x50 = func_001A62E8(GetBhvRouteStationKind(p));
+        struct OAC *po = (struct OAC *)func_00205438(behavior->pguard, 0xAC);
+        po->x50 = func_001A62E8(GetBhvRouteStationKind(behavior));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
-        struct OA4 *po = (struct OA4 *)func_00205438(p->pguard, 0xA4);
-        po->x30 = p->pguard->ploTarget;
-        po->pentry = p->pentry;
+        struct OA4 *po = (struct OA4 *)func_00205438(behavior->pguard, 0xA4);
+        po->x30 = behavior->pguard->ploTarget;
+        po->pentry = behavior->pentry;
         VCALL0(po, 8);
-        p->pguard->tF04 = 3.40282346638528859812e+38f;
+        behavior->pguard->tF04 = 3.40282346638528859812e+38f;
         break;
     }
     case 4: {
-        struct O9E *po = (struct O9E *)func_00205438(p->pguard, 0x9E);
+        struct O9E *po = (struct O9E *)func_00205438(behavior->pguard, 0x9E);
         po->x38 = PpoHero(&D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;
     }
     case -1:
-        SetSoCnstrForce(p->pguard, 0);
-        SetSoCnstrTorque(p->pguard, 0);
+        SetSoCnstrForce(behavior->pguard, 0);
+        SetSoCnstrTorque(behavior->pguard, 0);
         break;
     }
 }
@@ -651,28 +651,28 @@ extern "C" void SetBhvRouteState(BHVRT *p, int state)
 // sets +0x4A4.
 void CARMELITA::Init()
 {
-    GUARDV *p = (GUARDV *)this;
-    InitStepguard(p);
-    D_002DD648 = p;
-    p->n4A4 = 1;
+    GUARDV *guard = (GUARDV *)this;
+    InitStepguard(guard);
+    D_002DD648 = guard;
+    guard->n4A4 = 1;
 }
 
 // 0x14B1D8: CARMELITA vtable slot 15 (PostLoad): STEPGUARD post-load, then creates her helper object (oid 0x62B) at
 // +0x1010.
-extern "C" void PostCarmelitaLoad(GUARDV *p)
+extern "C" void PostCarmelitaLoad(GUARDV *guard)
 {
-    PostStepguardLoad(p);
-    p->ploMarker = PloNew(3, 0, 0x62B, -1);
+    PostStepguardLoad(guard);
+    guard->ploMarker = PloNew(3, 0, 0x62B, -1);
 }
 
 // 0x14B218: CARMELITA vtable slot 5 (HandleMessage): STEPGUARD handler; message 0xB about herself while not on her
 // route (flag 0x24 clear) marks the hero as seen on her detector (inferred).
-extern "C" void HandleCarmelitaMessage(GUARDV *p, int msgid, void **ppv)
+extern "C" void HandleCarmelitaMessage(GUARDV *guard, int msgid, void **ppv)
 {
-    HandleStepguardMessage(p, msgid, ppv);
-    if (StepguardHasSgf(p, 0x24) == 0 && msgid == 0xB) {
+    HandleStepguardMessage(guard, msgid, ppv);
+    if (StepguardHasSgf(guard, 0x24) == 0 && msgid == 0xB) {
         GUARDV *pguard = (GUARDV *)ppv[0];
-        if (pguard == p) {
+        if (pguard == guard) {
             SetDetectorTargetStateById(pguard->pdetector, ppv[1], 1);
         }
     }
@@ -696,7 +696,7 @@ static __inline__ float GDist(qword a, qword b)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 // 0x14B290: CARMELITA vtable slot 88 (choose target): picks the best candidate object by kind and distance.
-extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
+extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
 {
     LOV *poBest;
     LOV *po;
@@ -704,18 +704,18 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
     int kBest;
     qword pos;
     int i;
-    if (StepguardHasSgf(p, 0x24))
-        return ChooseStepguardTarget(p);
+    if (StepguardHasSgf(guard, 0x24))
+        return ChooseStepguardTarget(guard);
     poBest = 0;
-    po = p->plo390;
+    po = guard->plo390;
     if (po && (uchar)po->f) {   /* (uchar): the bit extract of the target (see brx) */
         poBest = po;
     } else {
     gBest = D_002A4EE8;
     kBest = 999;
-    pos = func_001A62E8(p);
-    for (i = 0; i < p->pdetector->cdte; i++) {
-        DTE *pe = &p->pdetector->adte[i];
+    pos = func_001A62E8(guard);
+    for (i = 0; i < guard->pdetector->cdte; i++) {
+        DTE *pe = &guard->pdetector->adte[i];
         int k;
         float g;
         if (!pe->fOn)
@@ -727,7 +727,7 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
         else
             k = 2;
         g = GDist(pos, func_001A62E8(pe->po));
-        if (pe->po == p->ploTarget)
+        if (pe->po == guard->ploTarget)
             g = D_002BD4B0[0] + g * (D_002BD4B0[1] + g * D_002BD4B0[2]);
         if (k < kBest || (k == kBest && g < gBest)) {
             kBest = k;
@@ -746,17 +746,17 @@ extern "C" int IsCarmelitaZapLethal()
 }
 
 // 0x14B468: Splice option: sends a value (mode record 0xF) to her root guard behaviour (BHVGUARD, cid 0x9C).
-extern "C" void SendCarmelitaRootBhvValue(GUARDV *p, int val)
+extern "C" void SendCarmelitaRootBhvValue(GUARDV *guard, int val)
 {
     MSG m;
     void *o;
     memset(&m, 0, sizeof(m));
-    o = func_00205458(p, 0x9C);
+    o = func_00205458(guard, 0x9C);
     if (val) {
         m.val = val;
         m.kind = 0xE;
         SetBhvguardMode(o, &m);
-    } else if (func_00205458(p, 0xB6)) {
+    } else if (func_00205458(guard, 0xB6)) {
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }
