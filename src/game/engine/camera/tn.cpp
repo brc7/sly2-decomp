@@ -677,12 +677,9 @@ void UpdateTnCallback(TN *p)
     int sentinel=AutomaticSentinel();
     if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, func_001A62E8(po))) != 0;
     else f=initial;
-    if (p->nUnk124) goto set;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) goto set;
-    if (po->x2DC == -1) goto set;
-    if (D_002DE240) goto set;
-    if (p->tnsWant == -1) return;
-set:
+    if (!p->nUnk124 && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34) && po->x2DC != -1 && !D_002DE240
+        && p->tnsWant == -1)
+        return;
     SetTnTns(p, f);
 }
 
