@@ -3926,19 +3926,19 @@ void InitBhvko(struct S *behavior) { InitBhvanim(behavior); behavior->sgf = 7; }
 namespace M_StartBhvko { extern "C" {
 struct E; struct A; struct S;
 /* StartBhvko (Claude agent lane G2, 2026-10-24). Count() is an inline whose else arm starts with the
-   for-init `n = 0` (keeps the target's bltz/then-first layout). The v3E0 vector is read into q before the call. */
+   for-init `n = 0` (keeps the target's bltz/then-first layout). The coinDropPos vector is read into q before the call. */
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD490;
 extern char D_002DEB30[];
 extern char D_002DE578[];
-struct E { int n0; int pad[2]; int nC; };
+struct E { int oid; int pad[2]; int count; };
 struct A {
-    char pad[0xEC]; void *pEC; char padF0[0x330-0xF0]; int n330; char pad2[0x3D8 - 0x334]; int n3D8; char pad3[4]; qword v3E0; int n3F0;
-    char pad4[0x404 - 0x3F4]; struct E ae[(0x484 - 0x404) / 16]; int n484; int n488;
-    char pad5[0xF64 - 0x48C]; void *detector;
+    char pad[0xEC]; void *unknownEC; char padF0[0x330-0xF0]; int isKO; char pad2[0x3D8 - 0x334]; int coinCountOverride; char pad3[4]; qword coinDropPos; int unknown3F0;
+    char pad4[0x404 - 0x3F4]; struct E loot[(0x484 - 0x404) / 16]; int numLoot; int firstLoot;
+    char pad5[0xC10 - 0x48C]; int koReactions[26][4]; char pad6[0xF64 - 0xDB0]; void *detector;
 };
-struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; int *binding; char pad3[0xC]; void *attacker; char pad4[8]; int mask5C; };
+struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; int *binding; char pad3[0xC]; void *attacker; char pad4[8]; int zapKind; };
 int func_001F78A0(int mask);
 void StartBhvhit(struct S *p);
 void *PpoHero(struct G *g);
@@ -3950,12 +3950,12 @@ void ResetDetectorTargets(void *p);
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
 static inline int Count(struct A *a) {
     int n, i;
-    if (a->n3D8 >= 0) {
-        n = a->n3D8;
+    if (a->coinCountOverride >= 0) {
+        n = a->coinCountOverride;
     } else {
-        for (i = a->n488, n = 0; i < a->n484; i++) {
-            struct E *e = &a->ae[i];
-            if (e->n0 == 0x2B3) n += e->nC;
+        for (i = a->firstLoot, n = 0; i < a->numLoot; i++) {
+            struct E *e = &a->loot[i];
+            if (e->oid == 0x2B3) n += e->count;
         }
         n = (n + 1) / 2;
     }
@@ -3966,26 +3966,26 @@ static inline int Count(struct A *a) {
 void StartBhvko(struct S *behavior) {
     int n;
     struct A *a;
-    int *pe = (int *)((char *)behavior->guard + (func_001F78A0(behavior->mask5C) * 16 + 0xC10));
+    int *pe = behavior->guard->koReactions[func_001F78A0(behavior->zapKind)];
     behavior->binding = pe;
     if (*pe == -1) behavior->binding = 0;
     StartBhvhit(behavior);
     a = behavior->guard;
-    if (a->n330 != 0)
+    if (a->isKO != 0)
         return;
-    a->n330 = 1;
+    a->isKO = 1;
     if (behavior->attacker == PpoHero(&D_003DD490))
         BroadcastGameEvent(D_002DEB30, 0x18, behavior->guard);
     else
         BroadcastGameEvent(D_002DEB30, 0x17, behavior->guard);
     n = Count(behavior->guard);
     {
-        qword q = behavior->guard->v3E0;
+        qword q = behavior->guard->coinDropPos;
         qword v;
         /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
         __asm__ __volatile__("" : : : "memory");
         v = ConvertAloPos(behavior->guard, 0, q);
-        func_00154E10(D_002DE578, v, n, behavior->guard->n3F0, behavior->guard);
+        func_00154E10(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
     }
     RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
     ResetDetectorTargets(behavior->guard->detector);
@@ -3998,22 +3998,22 @@ typedef char layout_E[(sizeof(struct E)==16)?1:-1];
 typedef char layout_A_prefix[(sizeof(struct A)==0xF70)?1:-1];
 typedef char layout_S_prefix[(sizeof(struct S)==0x60)?1:-1];
 typedef char layout_A_align[(__alignof__(struct A)==16)?1:-1];
-typedef char layout_A_pEC[((unsigned)&((struct A*)0)->pEC==0xec)?1:-1];
-typedef char layout_A_n330[((unsigned)&((struct A*)0)->n330==0x330)?1:-1];
-typedef char layout_A_n3D8[((unsigned)&((struct A*)0)->n3D8==0x3d8)?1:-1];
-typedef char layout_A_v3E0[((unsigned)&((struct A*)0)->v3E0==0x3e0)?1:-1];
-typedef char layout_A_n3F0[((unsigned)&((struct A*)0)->n3F0==0x3f0)?1:-1];
-typedef char layout_A_ae[((unsigned)&((struct A*)0)->ae==0x404)?1:-1];
-typedef char layout_A_n484[((unsigned)&((struct A*)0)->n484==0x484)?1:-1];
-typedef char layout_A_n488[((unsigned)&((struct A*)0)->n488==0x488)?1:-1];
+typedef char layout_A_pEC[((unsigned)&((struct A*)0)->unknownEC==0xec)?1:-1];
+typedef char layout_A_n330[((unsigned)&((struct A*)0)->isKO==0x330)?1:-1];
+typedef char layout_A_n3D8[((unsigned)&((struct A*)0)->coinCountOverride==0x3d8)?1:-1];
+typedef char layout_A_v3E0[((unsigned)&((struct A*)0)->coinDropPos==0x3e0)?1:-1];
+typedef char layout_A_n3F0[((unsigned)&((struct A*)0)->unknown3F0==0x3f0)?1:-1];
+typedef char layout_A_ae[((unsigned)&((struct A*)0)->loot==0x404)?1:-1];
+typedef char layout_A_n484[((unsigned)&((struct A*)0)->numLoot==0x484)?1:-1];
+typedef char layout_A_n488[((unsigned)&((struct A*)0)->firstLoot==0x488)?1:-1];
 typedef char layout_A_pF64[((unsigned)&((struct A*)0)->detector==0xf64)?1:-1];
 typedef char layout_S_guard[((unsigned)&((struct S*)0)->guard==0x10)?1:-1];
 typedef char layout_S_p40[((unsigned)&((struct S*)0)->binding==0x40)?1:-1];
 typedef char layout_S_p50[((unsigned)&((struct S*)0)->attacker==0x50)?1:-1];
-typedef char layout_S_mask5C[((unsigned)&((struct S*)0)->mask5C==0x5c)?1:-1];
-typedef char layout_E_n0[((unsigned)&((struct E*)0)->n0==0x0)?1:-1];
-typedef char layout_E_nC[((unsigned)&((struct E*)0)->nC==0xc)?1:-1];
-typedef char layout_A_entry_capacity[(sizeof(((struct A*)0)->ae)/sizeof(struct E)==8)?1:-1];
+typedef char layout_S_mask5C[((unsigned)&((struct S*)0)->zapKind==0x5c)?1:-1];
+typedef char layout_E_n0[((unsigned)&((struct E*)0)->oid==0x0)?1:-1];
+typedef char layout_E_nC[((unsigned)&((struct E*)0)->count==0xc)?1:-1];
+typedef char layout_A_entry_capacity[(sizeof(((struct A*)0)->loot)/sizeof(struct E)==8)?1:-1];
 } } // namespace M_StartBhvko
 
 // 0x179A20 CloseBhvko
@@ -4045,8 +4045,8 @@ void InitBhvpatrol(struct S *behavior)
 namespace M_StartBhvpatrol { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x2DC]; int n2DC; char pad2[8]; int n2E8; int n2EC; char pad3[0xFE8 - 0x2F0]; int nFE8; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; int n40; };
+struct T { char pad[0x2DC]; int scriptResumePoint; char pad2[8]; int patrolScript; int altPatrolScript; char pad3[0xFE8 - 0x2F0]; int grfCapability; };
+struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; int script; };
 void StartBhv(struct S *p);
 void SetBhvpatrolState(struct S *p, int n);
 qword func_001A62E8(void *p);
@@ -4058,10 +4058,10 @@ void StartBhvpatrol(struct S *behavior) {
     struct T *t;
     StartBhv(behavior);
     t = behavior->guard;
-    if (t->n2E8) behavior->n40 = t->n2E8;
-    else if (t->nFE8 & 2) behavior->n40 = t->n2EC;
-    else { behavior->n40 = 0; SetBhvpatrolState(behavior, 2); return; }
-    if (behavior->guard->n2DC) ChooseGuardScriptNearestCommand(behavior->n40, func_001A62E8(behavior->guard), &behavior->guard->n2DC);
+    if (t->patrolScript) behavior->script = t->patrolScript;
+    else if (t->grfCapability & 2) behavior->script = t->altPatrolScript;
+    else { behavior->script = 0; SetBhvpatrolState(behavior, 2); return; }
+    if (behavior->guard->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, func_001A62E8(behavior->guard), &behavior->guard->scriptResumePoint);
     if (IsStepguardHandsOff(behavior->guard)) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
 }
 } } // namespace M_StartBhvpatrol
@@ -4081,7 +4081,7 @@ namespace M_UpdateBhvpatrol { extern "C" {
 struct CLOCK; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float f30; float f34; int state; char pad4[4]; int n40; };
+struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; char pad4[4]; int script; };
 void UpdateBhv(struct S *p);
 int IsStepguardHandsOff(void *p);
 int IsBhvBusyAbove(struct S *p);
@@ -4098,19 +4098,19 @@ void UpdateBhvpatrol(struct S *behavior) {
         switch (s) {
         case 1:
             if (f) SetBhvpatrolState(behavior, 3);
-            else if (D_002DDED0.t > behavior->f34) SetBhvpatrolState(behavior, 0);
+            else if (D_002DDED0.t > behavior->pauseEndTime) SetBhvpatrolState(behavior, 0);
             break;
         case 2:
             if (f) SetBhvpatrolState(behavior, 3);
             break;
         case 0:
             if (f) SetBhvpatrolState(behavior, 3);
-            else if (D_002DDED0.t > behavior->f30) SetBhvpatrolState(behavior, 1);
-            else if (IsBhvScriptDone(behavior->child)) { behavior->n40 = 0; SetBhvpatrolState(behavior, 2); }
+            else if (D_002DDED0.t > behavior->walkEndTime) SetBhvpatrolState(behavior, 1);
+            else if (IsBhvScriptDone(behavior->child)) { behavior->script = 0; SetBhvpatrolState(behavior, 2); }
             break;
         case 3:
             if (!f) {
-                if (behavior->n40) SetBhvpatrolState(behavior, 1);
+                if (behavior->script) SetBhvpatrolState(behavior, 1);
                 else SetBhvpatrolState(behavior, 2);
             }
             break;
@@ -4127,8 +4127,9 @@ struct CLOCK; struct VTE; struct O; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
-struct S { char pad[0x10]; char *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; float g3C; void *p40; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct T { char pad[0x2DC]; char scriptResumePoint[4]; };
+struct S { char pad[0x10]; struct T *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; float stateTime; void *script; };
 void PopBhv(void *p);
 struct O *PushStepBhv(void *p, int n);
 void SaveBhvScriptResumeState(void *p, void *q);
@@ -4139,10 +4140,10 @@ void ArmBhvpatrolWalkTimer(struct S *p);
 // hands-off idle.
 void SetBhvpatrolState(struct S *behavior, int n) {
     if (n == behavior->state) return;
-    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard + 0x2DC);
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard->scriptResumePoint);
     PopBhv(&behavior->child);
     behavior->state = n;
-    behavior->g3C = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 1: case 2:
         { struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE); struct VTE *entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
@@ -4150,12 +4151,12 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         behavior->walkEndTime = 3.40282346638528859812e+38f;
         break;
     case 0:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV169); struct VTE *entry; SetBhvScriptScript(o, behavior->p40, 0, behavior->guard + 0x2DC); entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
+        { struct O *o = PushStepBhv(behavior->guard, CID_BHV169); struct VTE *entry; SetBhvScriptScript(o, behavior->script, 0, behavior->guard->scriptResumePoint); entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
         ArmBhvpatrolWalkTimer(behavior);
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
         break;
     case 3:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE); struct VTE *entry; o->n3C = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
+        { struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE); struct VTE *entry; o->sgf = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
         break;
     }
 }
