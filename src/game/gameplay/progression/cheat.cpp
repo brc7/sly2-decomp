@@ -1,4 +1,7 @@
-// cheat.cpp -- cheat codes: button sequences matched against pad input, and the cheat actions they fire.
+// cheat.cpp -- cheat codes: six-button sequences matched against the pad's new presses (only while the pause menu's
+// cheat entry is open, D_003DA0B8), and the cheat actions they fire. Entry points: StartupCodes (registers the 15
+// codes at boot), _MatchCodes and UpdateCodes (called each frame from the pause screen); the Cheat* functions are
+// the codes' actions.
 // TU 0x14BEA8..0x14C548 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cheat
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014C528
@@ -36,6 +39,7 @@ struct CODES
 /* Safe iterator over an SL (the SL counterpart of sly2/dli.h; its own stack at D_002DD2F8). */
 struct SLI { SL *m_psl; void **m_ppv; int m_ibSle; SLI *m_psliNext; };
 extern SLI *D_002DD2F8;
+// Starts a safe iteration over an SL: pushes the iterator on the iterator stack D_002DD2F8.
 static inline void InitSli(SLI *psli, SL *psl)
 {
     psli->m_psl = psl;
@@ -44,6 +48,7 @@ static inline void InitSli(SLI *psli, SL *psl)
     psli->m_psliNext = D_002DD2F8;
     D_002DD2F8 = psli;
 }
+// Returns the current element and advances the iterator to the next one.
 static inline void *PvNextSli(SLI *psli)
 {
     void *pv = *psli->m_ppv;
@@ -65,9 +70,9 @@ extern CODE D_002BD4E0, D_002BD518, D_002BD550, D_002BD588, D_002BD5C0, D_002BD5
 
 extern "C" {
 int FFindSlEntry(CODES *pcodes, CODE *pcode);
-void func_0011A070(CODES *pcodes, CODE *pcode);     /* append to the SL */
-void func_0011A050(CODES *pcodes, int ibSle);       /* init the SL */
-void RemoveSlEntry(CODES *pcodes, CODE *pcode);
+void func_0011A070(CODES *codes, CODE *pcode);     /* append to the SL */
+void func_0011A050(CODES *codes, int ibSle);       /* init the SL */
+void RemoveSlEntry(CODES *codes, CODE *pcode);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetSndmgrMasterVolume(void *psndmgr, float g);
@@ -78,17 +83,17 @@ void SetPowerupAcquired(int n, int f);
 int IGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
 void func_0019F0A8(void *psw);
-void _ResetCodes(CODES *pcodes);
-int AddCode(CODES *pcodes, CODE *pcode);
+void _ResetCodes(CODES *codes);
+int AddCode(CODES *codes, CODE *pcode);
 }
 
-// If not already in the list (0x11A1B8 ? FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur = (current
-// buttons (*(int *)&g_joy.grfbtn) == ajbc[0]).
-extern "C" int AddCode(CODES *pcodes, CODE *pcode)
+// Adds a code to the list unless it is already there, and starts its match position at 1 if the button currently
+// held is already its first button (else 0).
+extern "C" int AddCode(CODES *codes, CODE *pcode)
 {
-    int r = FFindSlEntry(pcodes, pcode);
+    int r = FFindSlEntry(codes, pcode);
     if (r) return r;
-    func_0011A070(pcodes, pcode);
+    func_0011A070(codes, pcode);
     if (*pcode->abtn == (*(int *)&g_joy.grfbtn)) pcode->ibtn = 1;
     else pcode->ibtn = 0;
 }
@@ -96,46 +101,45 @@ extern "C" int AddCode(CODES *pcodes, CODE *pcode)
 // 0x14BF10: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sw $2, 0x14($5)");
 
-// Sets ijbcCur = 0 on every code.
-extern "C" void _ResetCodes(CODES *pcodes)
+// Resets every code's match position to the start.
+extern "C" void _ResetCodes(CODES *codes)
 {
-    for (CODE *pcode = (CODE *)pcodes->sl.head; pcode; pcode = pcode->pcodeNext)
+    for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext)
         pcode->ibtn = 0;
 }
 
-// Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is set: for each
-// unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then tCheck =
-// g_clock.tUnpaused + 1.0.
-extern "C" void _MatchCodes(CODES *pcodes, JOYV *pjoy, unsigned short btnPrev)
+// Feeds one new button press of the first pad (g_joy) into every unfinished code while the cheat entry is open: a
+// code advances when the press is its next button, otherwise it starts over. Arms a one-second check timer.
+extern "C" void _MatchCodes(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
 {
     CODE *pcode;
     if (pjoy != &D_002DFC00) return;
     if (btnPrev == pjoy->btn) return;
     if (!pjoy->btn) return;
     if (!D_003DA0B8) return;
-    for (pcode = (CODE *)pcodes->sl.head; pcode; pcode = pcode->pcodeNext) {
+    for (pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext) {
         int fDone = pcode->ibtn >= pcode->cbtn;
         if (!fDone) {
             if (pcode->abtn[pcode->ibtn] == pjoy->btn) pcode->ibtn++;
             else pcode->ibtn = 0;
         }
     }
-    pcodes->tMatch = D_002DDED0.tReal + 1.0f;
+    codes->tMatch = D_002DDED0.tReal + 1.0f;
 }
 
-// When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc; StartSound(0x34)
-// via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0.
-extern "C" void UpdateCodes(CODES *pcodes)
+// One second after the last press: removes one-shot codes that already fired, picks the longest completed code,
+// plays the confirmation sound (0x34), calls its action with its parameter and resets all codes.
+extern "C" void UpdateCodes(CODES *codes)
 {
     SLI sli;
     CODE *pcode, *pcodeBest;
-    if (pcodes->tMatch == 0.0f) return;
-    if (pcodes->tMatch <= D_002DDED0.tReal) {
-        InitSli(&sli, &pcodes->sl);
+    if (codes->tMatch == 0.0f) return;
+    if (codes->tMatch <= D_002DDED0.tReal) {
+        InitSli(&sli, &codes->sl);
         pcodeBest = 0;
         while ((pcode = (CODE *)PvNextSli(&sli)) != 0) {
             if (pcode->fRemove) {
-                RemoveSlEntry(pcodes, pcode);
+                RemoveSlEntry(codes, pcode);
                 pcode->ibtn = 0;
                 pcode->fRemove = 0;
             } else {
@@ -149,23 +153,24 @@ extern "C" void UpdateCodes(CODES *pcodes)
             SetSndSourceLo(PsndStartSound(0x34), 0);
             pcodeBest->pfn(pcodeBest->pv);
         }
-        _ResetCodes(pcodes);
-        pcodes->tMatch = 0.0f;
+        _ResetCodes(codes);
+        codes->tMatch = 0.0f;
         D_002DD2F8 = sli.m_psliNext;
     }
 }
 
-// 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1). (inferred)
-extern "C" void CheatWipeToWarp(void *p)
+// Cheat action: mutes the sound manager and wipes to the current world's warp point `param` (WipeToWorldWarp with no
+// world entry, reason 0x189). (inferred)
+extern "C" void CheatWipeToWarp(void *param)
 {
     SetSndmgrMasterVolume(D_003DD040, 0.0f);
-    WipeToWorldWarp(D_003DD490, 0, 0x189, -1, p, -1);
+    WipeToWorldWarp(D_003DD490, 0, 0x189, -1, param, -1);
 }
 
-// v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1). (inferred)
-extern "C" void CheatWarpToEpisode(void *p)
+// Cheat action: wipes to the world entry of episode `param` (or of episode 0 if it has none). (inferred)
+extern "C" void CheatWarpToEpisode(void *param)
 {
-    void *prec = PrecWorldEntry(p);
+    void *prec = PrecWorldEntry(param);
     if (!prec) prec = PrecWorldEntry(0);
     WipeToWorldWarp(D_003DD490, prec, 0x189, -1, 0, -1);
 }
@@ -174,10 +179,11 @@ extern "C" void CheatWarpToEpisode(void *p)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-// *pf = 1. (inferred)
+// Cheat action: sets the flag the code points at (e.g. an unlock flag).
 extern "C" void CheatSetFlag(int *pf) { *pf = 1; }
 
-// If 0x1D82B8(&(*(char (*)[])&g_sw.savevars), ...) ? 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E. (inferred)
+// Cheat action: if the save is 100% complete (NCompletionPercentGs), grants powerup 0x1F; otherwise plays the error
+// sound 0x3E. (inferred)
 extern "C" void CheatUnlockCompletionReward(void)
 {
     if (NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
@@ -187,7 +193,7 @@ extern "C" void CheatUnlockCompletionReward(void)
     SetSndSourceLo(PsndStartSound(0x3E), 0);
 }
 
-// If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0). (inferred)
+// Cheat action: takes powerup 0x1F away again (removes it from the item list D_002E1E40 and clears it). (inferred)
 extern "C" void ClearCheatItems(void)
 {
     if (D_002E1E40) {
@@ -198,32 +204,32 @@ extern "C" void ClearCheatItems(void)
     }
 }
 
-// 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh). (inferred)
+// Cheat action: grants gadget/powerup `id` (SetPowerupAcquired) and refreshes the player's gadget state.
 extern "C" void CheatGiveGadget(int id)
 {
     SetPowerupAcquired(id, 1);
     func_0019F0A8(D_003DD490);
 }
 
-// InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0.
-extern "C" void StartupCodes(CODES *pcodes)
+// Boot-time setup: initializes the code list (link at CODE+0x18) and adds the 15 built-in codes.
+extern "C" void StartupCodes(CODES *codes)
 {
-    func_0011A050(pcodes, 0x18);
-    AddCode(pcodes, &D_002BD4E0);
-    AddCode(pcodes, &D_002BD518);
-    AddCode(pcodes, &D_002BD550);
-    AddCode(pcodes, &D_002BD588);
-    AddCode(pcodes, &D_002BD5C0);
-    AddCode(pcodes, &D_002BD5F8);
-    AddCode(pcodes, &D_002BD630);
-    AddCode(pcodes, &D_002BD668);
-    AddCode(pcodes, &D_002BD6A0);
-    AddCode(pcodes, &D_002BD6D8);
-    AddCode(pcodes, &D_002BD710);
-    AddCode(pcodes, &D_002BD748);
-    AddCode(pcodes, &D_002BD780);
-    AddCode(pcodes, &D_002BD7B8);
-    AddCode(pcodes, &D_002BD7F0);
+    func_0011A050(codes, 0x18);
+    AddCode(codes, &D_002BD4E0);
+    AddCode(codes, &D_002BD518);
+    AddCode(codes, &D_002BD550);
+    AddCode(codes, &D_002BD588);
+    AddCode(codes, &D_002BD5C0);
+    AddCode(codes, &D_002BD5F8);
+    AddCode(codes, &D_002BD630);
+    AddCode(codes, &D_002BD668);
+    AddCode(codes, &D_002BD6A0);
+    AddCode(codes, &D_002BD6D8);
+    AddCode(codes, &D_002BD710);
+    AddCode(codes, &D_002BD748);
+    AddCode(codes, &D_002BD780);
+    AddCode(codes, &D_002BD7B8);
+    AddCode(codes, &D_002BD7F0);
 }
 
 
