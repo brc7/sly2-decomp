@@ -531,12 +531,19 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   a global variable.
 - Whitespace/layout (clang-format on a function range; there are no debug sections, but mind `#line` pins).
 - Field access through the real layout instead of `(char *)p + 0x2C0` or `*(T *)((char *)p + off)` with the same type.
-- An early `return` for a trailing `if` without else; merging `if (A) { if (B) {...} }` into `&&`.
+- An early `return` for a trailing `if` without else (a void function whose whole body is `if (c) {...}` -> `if (!c) return;`);
+  merging `if (A) { if (B) {...} }` into `&&`; `} else { if` -> `} else if`; dropping a bare `{ }` block that holds no
+  declarations; `(f ^ 1) & 1` -> `!(f & 1)`; `x = x + 1` -> `x++`; `sizeof(T)` for a literal size.
+- `goto next` -> `continue` when the label ends the loop body (also with a `k = kNext` increment moved into the `for` header).
+- m2c's `i = 0; if (n > 0) { p = base; do { f(p); i++; p++; } while (i < n); }` -> `for (i = 0; i < n; i++) f(&base[i]);`
+  (loop.c re-derives the pointer); cursor/countdown do-whiles -> `for (int i...)` with a block-local index
+  (ChooseBhvSearchPoints); a backward `goto loop` -> `for (;;)` with breaks when the outer `if` and the bottom test are kept
+  (UpdateBhvScript).
 - `goto L` over a block -> `if/else` (MeasureJtJumpToTargetAtTime, leap init); a `goto` into the else branch of the same `if`
-  (StartJtMode); a goto *back* to a loop head -> `for (;;)` (FindBspLeafContainingPointFast); a goto *into* a case -> plain
+  (StartJtMode), or of an earlier `if` with the same test -> two plain ifs (GenerateStepguardLoot); a goto *back* to a loop head -> `for (;;)` (FindBspLeafContainingPointFast); a goto *into* a case -> plain
   cases (RefOpMult's int/float multiply).
 - A goto into a shared tail **between if-branches** -> the tail written twice (cross-jumping merges it again:
-  UpdateBentleySubState).
+  UpdateBentleySubState; AI `goto fill`/`goto take`/`goto spawn`).
 - `(unsigned)x - 8u < 5u` -> `x >= 8 && x <= 12` when x is a plain field or local (via a local when it came from a macro read).
 - A `goto skip` around one call becomes an `if` when the skipped condition is assigned in the condition
   (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
@@ -546,9 +553,13 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   files, so fixing a view's argument order is free.
 
 **Not free** (reverted):
-- Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`) -> early/separate `return`s: the return
-  duplicates STACKSCOPE's cleanup (FInvertMatrix) or a second copy of the return expression changes allocation/layout
-  (func_0011F198, OSTRM::CbWrite, RefOpFindBindingOrNoop).
+- Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
+  early/separate `return`s: the return duplicates STACKSCOPE's cleanup (FInvertMatrix), a second copy of the return
+  expression changes allocation/layout (func_0011F198, OSTRM::CbWrite, RefOpFindBindingOrNoop), the result lives in `$v0`
+  instead of a saved register (`state = X; goto done;` in CalculateDetectorTargetState), or blocks reorder
+  (IsStepguardTargetValid, DoesTargetRecordAllowGuard, ChooseStepguardTarget).
+- A goto that leaves a nested loop to continue the outer one -> `break` + re-test (loop rotation changes): keep a labelled
+  `goto nextX`.
 - Gotos that share tails across switch cases or jump into a common cleanup label (MsgFromMcError, McJobCreateSave,
   load_file_from_disc, SetBentleyState, ChooseJtGroundState): `break` + a re-test of the result, per-case `return`s or a
   duplicated tail reorder blocks (40-90% differ). Case-tail sharing is a layout decision.
@@ -562,11 +573,22 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - `again: ... goto again` search loops (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)` or a reset of the
   iterator moves the loop test.
 - `goto test; loop: ... test: if (i < 8) goto loop;` with an early `goto done` (IgsAllocGsb) -> `for` + `return` (register
-  choice changes); RenderBlipgSelf's `top:/next:` list walk as a `for`/`do-while` (frame size changes).
+  choice changes); RenderBlipgSelf's `top:/next:` list walk as a `for`/`do-while` (frame size changes). Such a rotated loop
+  is not a `while` either: it has no loop notes, so loop.c does not hoist (UpdateBhvEscort); hand-rotated loops with pinned
+  registers stay as they are.
+- A `for` loop that carries m2c's hand-held pointer (ResolveStepguardAnimBindings); m2c's `if (n > 0) do {...} while (j < n);`
+  as a `for` (GenerateStepguardLoot's coin split).
+- A named `int` temporary for a flag or float compare (`int isClose = a < b; if (isClose)`, `int isInWorld =
+  (int)(flags >> 60) & 1;` in its own block) inlined into the `if` (the branch structure changes).
+- Branch order: ReleaseAnimBinding matches only as `if (kind != 2) { if (kind == 3) ... } else ...`, not as a switch or an
+  `== 2 / == 3` chain.
+- `*(i + array)` <-> `array[i]` (operand order of the address add): keep the index-first form where the match needs it, with a
+  comment.
 - A `do { ... goto end; } while (0)` tail -> `if/else` (SetMurrayLiftSubstate).
 - `*(*pp)++ = x` -> `T **slot = (*pp)++; *slot = x;` (CollectBspSurfacesTouchingPolygon): the temp form fixes the evaluation
   order the target has.
-- Inverting a float compare (`!(x > 0.1f)`: NaN-safe c.le vs c.lt) or rewriting a 64-bit flag bit test `(int)(f >> 60) & 1`;
+- Inverting a float compare (`!(x > 0.1f)` or a float `if (a > b) goto L;` turned into an if-block: with -ffast-math it folds
+  to `a <= b`, c.le/bc1f instead of c.lt/bc1t; UpdateBhvCircle) or rewriting a 64-bit flag bit test `(int)(f >> 60) & 1`;
   dropping the `(uchar)` cast on a 1-bit bitfield test (UpdateJt).
 - Anything near register-pinned asm or register-pinned constants (Startup's colours, cane, SetMurrayCarrySubstate,
   SmoothJtCameraCurveTarget).

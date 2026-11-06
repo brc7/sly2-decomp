@@ -171,7 +171,7 @@ extern "C" NOISE *NewNoise(NOISETYPE *type, qword pos, int loudness)
 void CID147::VUnk00()   /* key function: CID147's vtable comes out here */
 {
     NOISE *noise = (NOISE *)this;
-    noise->refCount = noise->refCount + 1;
+    noise->refCount++;
 }
 
 // 0x1566C8: Noise vtable slot 2: drops a reference; at zero, clears its frame and side-bag references, unsubscribes
@@ -372,7 +372,7 @@ extern "C" void InitListener(LISTENER *listener)
     InitXfm(listener);
     SetLoBusyk(listener, 0);
     flags = listener->grfUnk40;
-    if ((flags ^ 1) & 1) *(int *)flags |= 2;
+    if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else listener->grfUnk40 = flags | 2;
 }
 

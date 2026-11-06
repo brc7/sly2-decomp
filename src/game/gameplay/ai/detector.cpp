@@ -18,6 +18,18 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef union { qword q; float f[4]; } U;
+/* Class ids tested here (docs/reference/class-tree.md). */
+enum { CID_MS = 0x31, CID_PO = 0x32, CID_STEP = 0x33, CID_STEPPLAYER = 0x34, CID_STEPGUARD = 0x38, CID_SAFEHOUSE = 0x46,
+       CID_COVER_C = 0xC, CID_COVER_22 = 0x22 };
+/* DETECTORV::options bits. */
+enum {
+    DETECTOR_SKIP_CONCEALMENT = 1,   // ignore the target's concealment (cover/sneak) state
+    DETECTOR_NEAR_IS_ENOUGH = 2,     // inside the near volume counts as seen, no line test
+    DETECTOR_FILTER_MS = 4,          // the line test only counts MS objects (cid 0x31) as blockers
+    DETECTOR_RETEST_LINE = 8         // re-test the line of sight every frame
+};
+/* Target detection states (DTE::state). */
+enum { TARGET_UNSEEN = 0, TARGET_SEEN = 1, TARGET_LOST = 2 };
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void (*pfn)(); };
 
@@ -42,7 +54,7 @@ struct DETECTORV
     void *farVolume;
     int isForced;           /* +0xF0 every live target counts as seen */
     int isDisabled;
-    int options;              /* +0xF8 1: skip the facing test; 2: inside the near volume is enough; 4: other line filter; 8 */
+    int options;              /* +0xF8 DETECTOR_* bits */
     int targetCount;
     DTE targets[8];          /* +0x100 */
 };
@@ -122,7 +134,7 @@ extern "C" void InitDetector(DETECTORV *detector)
     InitXfm(detector);
     SetLoBusyk(detector, 1);
     flags = detector->objectFlags;
-    if ((flags ^ 1) & 1) *(int *)flags |= 2;
+    if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else detector->objectFlags = flags | 2;
 }
 
@@ -150,7 +162,7 @@ extern "C" void UpdateDetectorTargets(DETECTORV *detector)
 extern "C" qword GetDetectorEyePosition(DETECTORV *detector)
 {
     if (!detector->eye) return GetLoWorldPos(detector);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(detector->eye, 0x38)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(detector->eye, CID_STEPGUARD)) {
         U height;
         qword heightVector;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
         qword result;
@@ -176,15 +188,15 @@ extern "C" void UpdateDetectorTrackedObject(DETECTORV *detector, void *oldObject
 // 0x153F18: Adds an object to the target list (at most eight) in state 0, unless it is already tracked.
 extern "C" void AddDetectorTarget(DETECTORV *detector, void *object)
 {
-    if (FindDetectorTarget(detector, object) == 0) {
-        unsigned int count = detector->targetCount;
-        if (count < 8U) {
-            DTE *entry;
-            detector->targetCount = count + 1;
-            entry = &detector->targets[count];
-            entry->object = object;
-            SetDetectorTargetState(detector, entry, 0);
-        }
+    if (FindDetectorTarget(detector, object) != 0)
+        return;
+    unsigned int count = detector->targetCount;
+    if (count < 8U) {   // at most eight targets
+        DTE *entry;
+        detector->targetCount = count + 1;
+        entry = &detector->targets[count];
+        entry->object = object;
+        SetDetectorTargetState(detector, entry, 0);
     }
 }
 
@@ -222,14 +234,14 @@ extern "C" void SetDetectorTargetStateById(DETECTORV *detector, void *object, in
 
 // 0x154080: Changes a target's state: records when it left state 0 and when it changed, notifies the detector
 // through vtable slot 3 (HandleSpliceEvent, message 0x1C with {entry, &old, &new}) and, when the detector's parent
-// is a player (cid 0x33) and the new state is 1 (seen), broadcasts game event 0x13.
+// is a STEP (cid 0x33: a player or a guard) and the new state is TARGET_SEEN, broadcasts game event 0x13.
 extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newState)
 {
     ARGS args;
     VTE *vtableEntry;
     if (!entry || newState == entry->state)
         return;
-    if (entry->state == 0)
+    if (entry->state == TARGET_UNSEEN)
         entry->detectTime = D_002DDED0.t;
     args.entry = entry;
     args.oldState = &entry->state;
@@ -238,9 +250,9 @@ extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newS
     ((void (*)(...))vtableEntry->pfn)((char *)detector + vtableEntry->d, 0x1C, 0, 3, &args, 0);
     entry->state = newState;
     entry->stateTime = D_002DDED0.t;
-    if (newState == 1) {
+    if (newState == TARGET_SEEN) {
         void *parent = detector->parent;
-        if (parent && FIsBasicDerivedFrom__FP5BASIC3CID(parent, 0x33))
+        if (parent && FIsBasicDerivedFrom__FP5BASIC3CID(parent, CID_STEP))
             BroadcastGameEvent(D_002DEB30, 0x13, parent);
     }
 }
@@ -281,57 +293,59 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     BUF hitBuffer;
     qword targetPos;
     WVOL *occluder;
+    // (Single exit through `done`: returning directly keeps the result in $v0 instead of a saved register and
+    // no longer matches.)
     SOV *hero = GetHeroPo(D_003DD490);
-    if (!target) { state = 0; goto done; }
-    if (!IsLoInWorld(target)) { state = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x32) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34) && hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x46)) { state = 0; goto done; }
-    if (IsSwInputLocked(D_003DD490)) { state = 0; goto done; }
-    if (detector->isDisabled) { state = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34) && target->isHidden) { state = 0; goto done; }
-    if (detector->isForced) { state = 1; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x33))
+    if (!target) { state = TARGET_UNSEEN; goto done; }
+    if (!IsLoInWorld(target)) { state = TARGET_UNSEEN; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_SAFEHOUSE)) { state = TARGET_UNSEEN; goto done; }
+    if (IsSwInputLocked(D_003DD490)) { state = TARGET_UNSEEN; goto done; }
+    if (detector->isDisabled) { state = TARGET_UNSEEN; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && target->isHidden) { state = TARGET_UNSEEN; goto done; }
+    if (detector->isForced) { state = TARGET_SEEN; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEP))
         targetPos = Add(GetLoWorldPos(target), target->eyeOffset);
     else
         targetPos = GetLoWorldPos(target);
     for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
         qword eyeLocal = ConvertAloPos(0, occluder, GetDetectorEyePosition(detector));
         qword targetLocal = ConvertAloPos(0, occluder, targetPos);
-        if (func_00118668(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = 0; goto done; }
+        if (func_00118668(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
     }
     switch (state) {
-    case 0:
+    case TARGET_UNSEEN:
         if (detector->eyeChildren) {
             CHNL *child;
             for (child = detector->eyeChildren->firstChild; child; child = child->next) {
                 if (child->object == target) {
-                    if (child->isSeen) { state = 1; goto done; }
+                    if (child->isSeen) { state = TARGET_SEEN; goto done; }
                     break;
                 }
             }
         }
-        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = 0; goto done; }
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
-        if ((detector->options & 1) == 0 && IsDetectorTargetConcealed(detector, target)) { state = 0; goto done; }
-        if (detector->options & 2) { state = 1; goto done; }
+        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if ((detector->options & DETECTOR_SKIP_CONCEALMENT) == 0 && IsDetectorTargetConcealed(detector, target)) { state = TARGET_UNSEEN; goto done; }
+        if (detector->options & DETECTOR_NEAR_IS_ENOUGH) { state = TARGET_SEEN; goto done; }
         { state = !IsDetectorLineBlocked(detector, target); goto done; }
-    case 1:
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
-        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = 2; goto done; }
+    case TARGET_SEEN:
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = TARGET_LOST; goto done; }
         break;
-    case 2:
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = 0; goto done; }
+    case TARGET_LOST:
+        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
         if (IsPointInVol(detector->nearVolume, targetPos)) {
-            if (detector->options & 2) { state = 1; goto done; }
+            if (detector->options & DETECTOR_NEAR_IS_ENOUGH) { state = TARGET_SEEN; goto done; }
             if (IsDetectorLineBlocked(detector, target)) return state;
-            state = 1;
+            state = TARGET_SEEN;
             goto done;
         }
         break;
     default:
         goto done;
     }
-    if ((detector->options & 8) && IsDetectorLineBlocked(detector, target)) state = 0;
+    if ((detector->options & DETECTOR_RETEST_LINE) && IsDetectorLineBlocked(detector, target)) state = TARGET_UNSEEN;
 done:
     return state;
 }
@@ -343,11 +357,11 @@ extern "C" int FilterDetectorHitClass31(void *context, HITV *hit)
     if (ShouldKeepSoNotSelf(context, hit) == 0) {
         return 0;
     }
-    return GetBasicCid(hit->object) == 0x31;
+    return GetBasicCid(hit->object) == CID_MS;
 }
 
 // 0x154568: Line-test object filter (default): ignores hits flagged as non-blocking, objects whose collision entry
-// has bit 2, objects in the detector's own hierarchy, and anything below a player (cid 0x33) ancestor.
+// has bit 2, objects in the detector's own hierarchy, and anything below a STEP (cid 0x33: player or guard) ancestor.
 extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
 {
     OV *object;
@@ -360,7 +374,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
         return 0;
     {
         OV *ancestor = object;
-        while (ancestor && !FIsBasicDerivedFrom__FP5BASIC3CID(ancestor, 0x33))
+        while (ancestor && !FIsBasicDerivedFrom__FP5BASIC3CID(ancestor, CID_STEP))
             ancestor = ancestor->parent;
         return ancestor == 0;
     }
@@ -386,7 +400,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
         __asm__("vmax.xyz %0, %0, %1" : "+j"(boxMax) : "j"(point));
     }
     void *filter = (void *)FilterDetectorLineOfSightHit;
-    if (detector->options & 4) filter = (void *)FilterDetectorHitClass31;
+    if (detector->options & DETECTOR_FILTER_MS) filter = (void *)FilterDetectorHitClass31;
     IntersectSwBoundingBox(D_003DD490, boxMin, boxMax, filter, detector, &firstObject, &objectCount);
     bool isClear;
     for (i = 0; (isClear = i < 1); i++)
@@ -407,15 +421,15 @@ static inline float Dot(qword a, const VECTORQ &b)
 // are JT states).
 extern "C" int IsDetectorTargetConcealed(DETECTORV *detector, SOV *target)
 {
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34)) return 0;
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;
     if (target->jtSubstate == -1) return 0;
     VECTORQ offset; offset.q = VuSub(GetLoWorldPos(target), GetLoWorldPos(detector));
     switch (target->jtState) {
     case 0:
     case 13:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, 0xC)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_C)) {
             if (target->attachedObject->unknown194) return 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, 0x22)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_22)) {
             if (target->attachedObject->unknownE4) return 0;
         } else {
             return !target->attachedObject->unknownE4;

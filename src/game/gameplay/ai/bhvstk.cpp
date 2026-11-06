@@ -42,46 +42,91 @@ struct AREQV { int cb; int nKind; };
 /* ResetBhvSteering's argument. */
 struct BHVTIMER { char pad[0x18]; float heading; int unknown1C; };
 
-extern char D_002D04A0[] __asm__("_vt$8BHVGUARD");
-extern char D_002D0AB0[] __asm__("_vt$7BHVANIM");
-extern char D_002D0A30[] __asm__("_vt$7BHVIDLE");
-extern char D_002D07B0[] __asm__("_vt$9BHVSTRIKE");
-extern char D_002D0930[] __asm__("_vt$6BHV161");
-extern char D_002D0830[] __asm__("_vt$6BHV162");
-extern char D_002D08B0[] __asm__("_vt$5BHVKO");
-extern char D_002D0620[] __asm__("_vt$9BHVATTACK");
-extern char D_002D05A0[] __asm__("_vt$9BHVCOMBAT");
-extern char D_002D06A0[] __asm__("_vt$11BHVWALKPATH");
-extern char D_002CF7F8[] __asm__("_vt$6BHV169");
-extern char D_002D0520[] __asm__("_vt$9BHVPATROL");
-extern char D_002CFA10[] __asm__("_vt$6BHV171");
-extern char D_002D4AF8[] __asm__("_vt$6BHV174");
-extern char D_002D0320[] __asm__("_vt$7BHVLEAP");
-extern char D_002D02A0[] __asm__("_vt$6BHV175");
-extern char D_002D0420[] __asm__("_vt$6BHV176");
-extern char D_002D03A0[] __asm__("_vt$10BHVJUGGLED");
-extern char D_002D0220[] __asm__("_vt$8BHVSHOOT");
-extern char D_002D01A0[] __asm__("_vt$6BHV178");
-extern char D_002D0120[] __asm__("_vt$6BHV179");
-extern char D_002CDDC0[] __asm__("_vt$6BHV180");
-extern char D_002CDD40[] __asm__("_vt$6BHV181");
-extern char D_002CC4C0[] __asm__("_vt$11BHVWALKGOAL");
-extern char D_002CC440[] __asm__("_vt$6BHV193");
-extern char D_002CC3C0[] __asm__("_vt$9BHVFOLLOW");
-extern char D_002CC340[] __asm__("_vt$6BHV195");
-extern char D_002CC2C0[] __asm__("_vt$6BHV196");
-extern char D_002CC240[] __asm__("_vt$6BHV197");
-extern char D_002CCE90[] __asm__("_vt$6BHV182");
-extern char D_002CC1C0[] __asm__("_vt$6BHV198");
-extern char D_002D00A0[] __asm__("_vt$6BHV183");
-extern char D_002D0020[] __asm__("_vt$7BHVRAIL");
-extern char D_002CFFA0[] __asm__("_vt$7BHVPIPE");
-extern char D_002CFF20[] __asm__("_vt$6BHV187");
-extern char D_002CFE20[] __asm__("_vt$7BHVGOTO");
-extern char D_002CFD20[] __asm__("_vt$6BHV189");
-extern char D_002CFCA0[] __asm__("_vt$11BHVPATHLINK");
-extern char D_002CFC20[] __asm__("_vt$6BHV191");
-extern char D_002CFDA0[] __asm__("_vt$13BHVPATROLPATH");
+/* Class ids: the guard step and the behaviour classes (docs/reference/class-tree.md). */
+enum {
+    CID_STEPGUARD = 0x38,
+    CID_BHVGUARD = 0x9C,
+    CID_BHVANIM = 0x9D,
+    CID_BHVIDLE = 0x9E,
+    CID_BHVSTRIKE = 0x9F,
+    CID_BHV161 = 0xA1,
+    CID_BHV162 = 0xA2,
+    CID_BHVKO = 0xA3,
+    CID_BHVATTACK = 0xA4,
+    CID_BHVCOMBAT = 0xA5,
+    CID_BHVWALKPATH = 0xA7,
+    CID_BHV168 = 0xA8,
+    CID_BHV169 = 0xA9,
+    CID_BHVPATROL = 0xAA,
+    CID_BHV171 = 0xAB,
+    CID_BHVLEAP = 0xAC,
+    CID_BHV173 = 0xAD,
+    CID_BHV174 = 0xAE,
+    CID_BHV175 = 0xAF,
+    CID_BHV176 = 0xB0,
+    CID_BHVJUGGLED = 0xB1,
+    CID_BHV178 = 0xB2,
+    CID_BHV179 = 0xB3,
+    CID_BHV180 = 0xB4,
+    CID_BHV181 = 0xB5,
+    CID_BHV182 = 0xB6,
+    CID_BHV183 = 0xB7,
+    CID_BHVRAIL = 0xB8,
+    CID_BHVPIPE = 0xB9,
+    CID_BHVGOTO = 0xBA,
+    CID_BHV187 = 0xBB,
+    CID_BHV189 = 0xBD,
+    CID_BHVPATHLINK = 0xBE,
+    CID_BHV191 = 0xBF,
+    CID_BHVPATROLPATH = 0xC0,
+    CID_BHV193 = 0xC1,
+    CID_BHV194 = 0xC2,
+    CID_BHV195 = 0xC3,
+    CID_BHV196 = 0xC4,
+    CID_BHV197 = 0xC5,
+    CID_BHV198 = 0xC6,
+};
+/* The behaviour vtables (the asm labels are the symbols). */
+extern char vtableBHVGUARD[] __asm__("_vt$8BHVGUARD");
+extern char vtableBHVANIM[] __asm__("_vt$7BHVANIM");
+extern char vtableBHVIDLE[] __asm__("_vt$7BHVIDLE");
+extern char vtableBHVSTRIKE[] __asm__("_vt$9BHVSTRIKE");
+extern char vtableBHV161[] __asm__("_vt$6BHV161");
+extern char vtableBHV162[] __asm__("_vt$6BHV162");
+extern char vtableBHVKO[] __asm__("_vt$5BHVKO");
+extern char vtableBHVATTACK[] __asm__("_vt$9BHVATTACK");
+extern char vtableBHVCOMBAT[] __asm__("_vt$9BHVCOMBAT");
+extern char vtableBHVWALKPATH[] __asm__("_vt$11BHVWALKPATH");
+extern char vtableBHV169[] __asm__("_vt$6BHV169");
+extern char vtableBHVPATROL[] __asm__("_vt$9BHVPATROL");
+extern char vtableBHV171[] __asm__("_vt$6BHV171");
+extern char vtableBHV174[] __asm__("_vt$6BHV174");
+extern char vtableBHVLEAP[] __asm__("_vt$7BHVLEAP");
+extern char vtableBHV175[] __asm__("_vt$6BHV175");
+extern char vtableBHV176[] __asm__("_vt$6BHV176");
+extern char vtableBHVJUGGLED[] __asm__("_vt$10BHVJUGGLED");
+extern char vtableBHVSHOOT[] __asm__("_vt$8BHVSHOOT");
+extern char vtableBHV178[] __asm__("_vt$6BHV178");
+extern char vtableBHV179[] __asm__("_vt$6BHV179");
+extern char vtableBHV180[] __asm__("_vt$6BHV180");
+extern char vtableBHV181[] __asm__("_vt$6BHV181");
+extern char vtableBHVWALKGOAL[] __asm__("_vt$11BHVWALKGOAL");
+extern char vtableBHV193[] __asm__("_vt$6BHV193");
+extern char vtableBHVFOLLOW[] __asm__("_vt$9BHVFOLLOW");
+extern char vtableBHV195[] __asm__("_vt$6BHV195");
+extern char vtableBHV196[] __asm__("_vt$6BHV196");
+extern char vtableBHV197[] __asm__("_vt$6BHV197");
+extern char vtableBHV182[] __asm__("_vt$6BHV182");
+extern char vtableBHV198[] __asm__("_vt$6BHV198");
+extern char vtableBHV183[] __asm__("_vt$6BHV183");
+extern char vtableBHVRAIL[] __asm__("_vt$7BHVRAIL");
+extern char vtableBHVPIPE[] __asm__("_vt$7BHVPIPE");
+extern char vtableBHV187[] __asm__("_vt$6BHV187");
+extern char vtableBHVGOTO[] __asm__("_vt$7BHVGOTO");
+extern char vtableBHV189[] __asm__("_vt$6BHV189");
+extern char vtableBHVPATHLINK[] __asm__("_vt$11BHVPATHLINK");
+extern char vtableBHV191[] __asm__("_vt$6BHV191");
+extern char vtableBHVPATROLPATH[] __asm__("_vt$13BHVPATROLPATH");
 extern "C" {
 int GetBhvSlotSize();
 void *AllocFromWorldHeap(AREQV *request);
@@ -159,40 +204,45 @@ extern "C" void HandleBhvstkMessage(BHVSTKV *stack, int messageId, int payload)
 }
 
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
-static inline int Count(const int*p){
+static inline int Count(const int *p)
+{
     register int value __asm__("$2");
-    __asm__("lw %0,%1":"=r"(value):"m"(*p));
+    __asm__("lw %0,%1" : "=r"(value) : "m"(*p));
     return value;
 }
 // 0x1EEE00: Pushes a new behaviour of class `cid`: takes the next free slot, clears it, constructs the behaviour
 // there (ConstructBhv), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
 // the new behaviour.
-extern "C" BHVV *PushBhvstk(BHVSTKV *stack,int cid){
-    BHVV *below,*behavior;
+extern "C" BHVV *PushBhvstk(BHVSTKV *stack, int cid)
+{
+    BHVV *below, *behavior;
     void *memory;
-    if(stack->depth==0)below=0;
-    else below=stack->slots[stack->depth-1];
+    if (stack->depth == 0)
+        below = 0;
+    else
+        below = stack->slots[stack->depth - 1];
     {
-        int index=Count(&stack->depth);
-        memory=stack->slots[index];
-        stack->depth=index+1;
+        int index = Count(&stack->depth);
+        memory = stack->slots[index];
+        stack->depth = index + 1;
     }
-    func_002333B4(memory,0,GetBhvSlotSize());
-    behavior=ConstructBhv(cid,memory);
+    func_002333B4(memory, 0, GetBhvSlotSize());
+    behavior = ConstructBhv(cid, memory);
     {
-        register OWNERV *owner __asm__("$3")=stack->owner;
-        behavior->owner=owner;
-        behavior->below=below;
+        register OWNERV *owner __asm__("$3") = stack->owner;
+        behavior->owner = owner;
+        behavior->below = below;
     }
-    if(below)below->above=behavior;
-    ((void (*)(void *))behavior->vt[7].pfn)((char *)behavior+behavior->vt[7].d);
+    if (below)
+        below->above = behavior;
+    ((void (*)(void *))behavior->vt[7].pfn)((char *)behavior + behavior->vt[7].d);
     return behavior;
 }
 
 // 0x1EEED0: Decrements the stack depth (called by PopBhv once a behaviour has been closed).
 extern "C" void DecrementBhvstk(BHVSTKV *stack)
 {
-    stack->depth = stack->depth - 1;
+    stack->depth--;
 }
 
 // 0x1EEEE0: Returns the first stacked behaviour (searching bottom up) whose class derives from `cid`, or NULL.
@@ -247,40 +297,30 @@ extern "C" void UpdateBhvMotion(BHVV *behavior)
 // and every behaviour below gets its busy-above count incremented. Runtime-confirmed busy protocol.
 extern "C" void SetBhvBusy(BHVV *behavior)
 {
-    if (behavior->isBusy == 0) {
-        BHVV *lower;
-        behavior->isBusy = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, 0x38) != 0) {
-            IncrementStepguardBusy(behavior->owner);
-        }
-        lower = behavior->below;
-        if (lower != 0) {
-            do {
-                lower->numBusyAbove = lower->numBusyAbove + 1;
-                lower = lower->below;
-            } while (lower != 0);
-        }
+    if (behavior->isBusy)
+        return;
+    BHVV *lower;
+    behavior->isBusy = 1;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+        IncrementStepguardBusy(behavior->owner);
     }
+    for (lower = behavior->below; lower; lower = lower->below)
+        lower->numBusyAbove++;
 }
 
 // 0x1EF038: Inverse of SetBhvBusy: clears the busy flag, decrements the owning STEPGUARD's busy count and the
 // busy-above count of every behaviour below.
 extern "C" void ClearBhvBusy(BHVV *behavior)
 {
-    if (behavior->isBusy != 0) {
-        BHVV *lower;
-        behavior->isBusy = 0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, 0x38) != 0) {
-            DecrementStepguardBusy(behavior->owner);
-        }
-        lower = behavior->below;
-        if (lower != 0) {
-            do {
-                lower->numBusyAbove = lower->numBusyAbove - 1;
-                lower = lower->below;
-            } while (lower != 0);
-        }
+    if (!behavior->isBusy)
+        return;
+    BHVV *lower;
+    behavior->isBusy = 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+        DecrementStepguardBusy(behavior->owner);
     }
+    for (lower = behavior->below; lower; lower = lower->below)
+        lower->numBusyAbove--;
 }
 
 // 0x1EF0A8: True if a behaviour higher on the stack is busy.
@@ -316,179 +356,191 @@ extern "C" void PopBhv(BHVV **slot)
     }
 }
 
+// Clears a behaviour slot (`size` bytes, the class's size) and its BASIC header: the start of every behaviour
+// class's inlined constructor (the caller then installs the vtable).
+static inline BHVP *ClearBhv(void *memory, int size)
+{
+    BHVP *header = (BHVP *)memory;
+    func_002333B4(memory, 0, size);
+    header->tag = 0;
+    header->value = 0;
+    return header;
+}
 // 0x1EF138: Placement factory: constructs the behaviour of class `cid` (0x9C..0xC6) in `memory` by clearing the
 // class's size and installing its BASIC header and vtable; some classes also initialize embedded reference fields.
-extern "C" BHVV *ConstructBhv(int cid,void *memory){
- BHVV *behavior;
- switch(cid){
- case 0x9C:
-  func_002333B4(memory,0,0xB0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D04A0;
-  func_002333B4((char*)memory+0x30,0,0x70);
-  behavior=(BHVV*)memory;break;
- case 0x9D:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0AB0;
-  behavior=(BHVV*)memory;break;
- case 0x9E:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0A30;
-  behavior=(BHVV*)memory;break;
- case 0x9F:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D07B0;
-  behavior=(BHVV*)memory;break;
- case 0xA1:
-  func_002333B4(memory,0,0xC0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0930;
-  behavior=(BHVV*)memory;break;
- case 0xA2:
-  func_002333B4(memory,0,0xC0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0830;
-  behavior=(BHVV*)memory;break;
- case 0xA3:
-  func_002333B4(memory,0,0xC0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D08B0;
-  behavior=(BHVV*)memory;break;
- case 0xA4:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0620;
-  behavior=(BHVV*)memory;break;
- case 0xA5:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D05A0;
-  behavior=(BHVV*)memory;break;
- case 0xA7:
-  func_002333B4(memory,0,0xF0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D06A0;
-  behavior=(BHVV*)memory;break;
- case 0xA9:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CF7F8;
-  behavior=(BHVV*)memory;break;
- case 0xAA:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0520;
-  behavior=(BHVV*)memory;break;
- case 0xAB:
-  func_002333B4(memory,0,0xE0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFA10;
-  behavior=(BHVV*)memory;break;
- case 0xAE:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D4AF8;
-  behavior=(BHVV*)memory;break;
- case 0xAC:
-  func_002333B4(memory,0,0xA0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0320;
-  behavior=(BHVV*)memory;break;
- case 0xAF:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D02A0;
-  behavior=(BHVV*)memory;break;
- case 0xB0:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0420;
-  behavior=(BHVV*)memory;break;
- case 0xB1:
-  func_002333B4(memory,0,0x70);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D03A0;
-  behavior=(BHVV*)memory;break;
- case 0xAD:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0220;
-  behavior=(BHVV*)memory;break;
- case 0xB2:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D01A0;
-  behavior=(BHVV*)memory;break;
- case 0xB3:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0120;
-  behavior=(BHVV*)memory;break;
- case 0xB4:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CDDC0;
-  behavior=(BHVV*)memory;break;
- case 0xB5:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CDD40;
-  behavior=(BHVV*)memory;break;
- case 0xA8:
-  func_002333B4(memory,0,0xE0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC4C0;
-  behavior=(BHVV*)memory;break;
- case 0xC1:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC440;
-  behavior=(BHVV*)memory;break;
- case 0xC2:
-  func_002333B4(memory,0,0xA0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC3C0;
-  behavior=(BHVV*)memory;break;
- case 0xC3:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC340;
-  behavior=(BHVV*)memory;break;
- case 0xC4:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC2C0;
-  behavior=(BHVV*)memory;break;
- case 0xC5:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC240;
-  behavior=(BHVV*)memory;break;
- case 0xB6:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CCE90;
-  behavior=(BHVV*)memory;break;
- case 0xC6:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CC1C0;
-  behavior=(BHVV*)memory;break;
- case 0xB7:
-  func_002333B4(memory,0,0x70);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D00A0;
-  behavior=(BHVV*)memory;break;
- case 0xB8:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002D0020;
-  behavior=(BHVV*)memory;break;
- case 0xB9:
-  func_002333B4(memory,0,0x40);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFFA0;
-  behavior=(BHVV*)memory;break;
- case 0xBB:
-  func_002333B4(memory,0,0x30);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFF20;
-  behavior=(BHVV*)memory;break;
- case 0xBA:
-  func_002333B4(memory,0,0xD0);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFE20;
-  ClearPointerPair((REFV*)((char*)memory+0x40));
-  ClearPointerPair((REFV*)((char*)memory+0x60));
-  ClearPointerPair((REFV*)((char*)memory+0x80));
-  behavior=(BHVV*)memory;break;
- case 0xBD:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFD20;
-  behavior=(BHVV*)memory;break;
- case 0xBE:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFCA0;
-  behavior=(BHVV*)memory;break;
- case 0xBF:
-  func_002333B4(memory,0,0x50);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFC20;
-  ClearPointerPair((REFV*)((char*)memory+0x30));
-  behavior=(BHVV*)memory;break;
- case 0xC0:
-  func_002333B4(memory,0,0x60);
-  ((BHVP*)memory)->tag=0;((BHVP*)memory)->value=0;((BHVP*)memory)->vtable=D_002CFDA0;
-  behavior=(BHVV*)memory;break;
- default:break;
- }
- return behavior;
+extern "C" BHVV *ConstructBhv(int cid, void *memory)
+{
+    BHVV *behavior;
+    switch (cid) {
+    case CID_BHVGUARD:
+        ClearBhv(memory, 0xB0)->vtable = vtableBHVGUARD;
+        func_002333B4((char *)memory + 0x30, 0, 0x70);
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVANIM:
+        ClearBhv(memory, 0x50)->vtable = vtableBHVANIM;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVIDLE:
+        ClearBhv(memory, 0x50)->vtable = vtableBHVIDLE;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVSTRIKE:
+        ClearBhv(memory, 0x60)->vtable = vtableBHVSTRIKE;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV161:
+        ClearBhv(memory, 0xC0)->vtable = vtableBHV161;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV162:
+        ClearBhv(memory, 0xC0)->vtable = vtableBHV162;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVKO:
+        ClearBhv(memory, 0xC0)->vtable = vtableBHVKO;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVATTACK:
+        ClearBhv(memory, 0x50)->vtable = vtableBHVATTACK;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVCOMBAT:
+        ClearBhv(memory, 0x60)->vtable = vtableBHVCOMBAT;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVWALKPATH:
+        ClearBhv(memory, 0xF0)->vtable = vtableBHVWALKPATH;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV169:
+        ClearBhv(memory, 0x60)->vtable = vtableBHV169;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVPATROL:
+        ClearBhv(memory, 0x50)->vtable = vtableBHVPATROL;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV171:
+        ClearBhv(memory, 0xE0)->vtable = vtableBHV171;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV174:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV174;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVLEAP:
+        ClearBhv(memory, 0xA0)->vtable = vtableBHVLEAP;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV175:
+        ClearBhv(memory, 0x60)->vtable = vtableBHV175;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV176:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV176;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVJUGGLED:
+        ClearBhv(memory, 0x70)->vtable = vtableBHVJUGGLED;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV173:
+        ClearBhv(memory, 0x40)->vtable = vtableBHVSHOOT;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV178:
+        ClearBhv(memory, 0x50)->vtable = vtableBHV178;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV179:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV179;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV180:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV180;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV181:
+        ClearBhv(memory, 0x60)->vtable = vtableBHV181;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV168:
+        ClearBhv(memory, 0xE0)->vtable = vtableBHVWALKGOAL;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV193:
+        ClearBhv(memory, 0x50)->vtable = vtableBHV193;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV194:
+        ClearBhv(memory, 0xA0)->vtable = vtableBHVFOLLOW;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV195:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV195;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV196:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV196;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV197:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV197;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV182:
+        ClearBhv(memory, 0x50)->vtable = vtableBHV182;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV198:
+        ClearBhv(memory, 0x40)->vtable = vtableBHV198;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV183:
+        ClearBhv(memory, 0x70)->vtable = vtableBHV183;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVRAIL:
+        ClearBhv(memory, 0x40)->vtable = vtableBHVRAIL;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVPIPE:
+        ClearBhv(memory, 0x40)->vtable = vtableBHVPIPE;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV187:
+        ClearBhv(memory, 0x30)->vtable = vtableBHV187;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVGOTO:
+        ClearBhv(memory, 0xD0)->vtable = vtableBHVGOTO;
+        ClearPointerPair((REFV *)((char *)memory + 0x40));
+        ClearPointerPair((REFV *)((char *)memory + 0x60));
+        ClearPointerPair((REFV *)((char *)memory + 0x80));
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV189:
+        ClearBhv(memory, 0x50)->vtable = vtableBHV189;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVPATHLINK:
+        ClearBhv(memory, 0x50)->vtable = vtableBHVPATHLINK;
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHV191:
+        ClearBhv(memory, 0x50)->vtable = vtableBHV191;
+        ClearPointerPair((REFV *)((char *)memory + 0x30));
+        behavior = (BHVV *)memory;
+        break;
+    case CID_BHVPATROLPATH:
+        ClearBhv(memory, 0x60)->vtable = vtableBHVPATROLPATH;
+        behavior = (BHVV *)memory;
+        break;
+    default:
+        break;
+    }
+    return behavior;
 }
 
 // 0x1EF6F0: Returns the slot size every behaviour must fit in: 0xF0 bytes (the largest subclass, the walk-path
