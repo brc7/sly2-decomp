@@ -1,6 +1,7 @@
 // button.cpp -- BTN, the trigger logic shared by two button objects: BUTTON (an SO pressed by contact, a player
 // state or a worker) and VOLBTN (a VOL pressed by objects inside it). A BTN plays its "on"/"off" animation segment
 // lists, fires a relay, applies rsmgs and task states, and tells its object (HandleSpliceEvent, SendMessage).
+// Entry points: the BUTTON and VOLBTN vtables, and the Splice setters (AddButton*/AddVolbtn*, SetButtonRsmg...).
 // TU 0x148620..0x149A50 (50 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_button
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00149A30
@@ -124,7 +125,7 @@ struct VOLBTNV
 /* A worker as FAbsorbButtonWkr sees it. */
 struct WKR { LOV *plo; char pad[0x40]; int grf; };
 
-/* The pressing object as func_00149010 sees it. */
+/* The pressing object as UpdateButtonPlayerPush sees it. */
 struct PUSHER { char pad[0x2C4]; int x2C4; char pad2C8[0x2DC - 0x2C8]; int x2DC; float t2E0; };
 
 /* HYPOTHESIS: the player state (the object 0x2E1E40 points to). */
@@ -178,7 +179,7 @@ int IsPointInVol(VOLBTNV *pvolbtn, qwordV pos);
 void qsort(void *pv, int c, int cb, int (*pfncmp)(const void *, const void *));
 CRef BuildSpliceListFromUniformValues(int c, int otyp, LOV **aplo);
 
-int FAddAshOid(ASH *pash, OID oid, int x);
+int AddAshEntry(ASH *pash, OID oid, int x);
 void InitBtn(BTN *pbtn);
 void LoadBtn(BTN *pbtn, LOV *plo);
 void PostBtnLoad(BTN *pbtn);
@@ -187,319 +188,225 @@ void UntriggerBtn(BTN *pbtn);
 void AddBtnAseg(BTN *pbtn, OID oid, int x);
 void AddBtnOffAseg(BTN *pbtn, OID oid, int x);
 void SetBtnRsmg(BTN *pbtn, int d, OID e, OID f, OID g);
-void func_00148B78(BTN *pbtn, int d, int e);
+void AddBtnEventListener(BTN *pbtn, int d, int e);
 void PostAshLoad(ASH *pash, LOV *ploContext);
 void RunBtnAsegs(BTN *pbtn, int iash);
 void SetBtnButtons(BTN *pbtn, int state);
 void SetButtonButtons(BUTTONV *pbutton, int state);
-int FCheckButtonObject(BUTTONV *pbutton, LOV *plo);
+int CanObjectPushButton(BUTTONV *pbutton, LOV *plo);
 void SetVolbtnButtons(VOLBTNV *pvolbtn, int state);
-int func_00149420(LOV **pplo1, LOV **pplo2);
+int CompareVolbtnObjects(LOV **pplo1, LOV **pplo2);
 }
 
-/** @sly2-annot addr=0x148620
- * Purpose: Append {oid, x} to an ASH list (max 8)
- * Info: proposed name FAddAshOid (T1); TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/object-model.md#8-source-files
- * @end-sly2-annot */
-extern "C" int FAddAshOid(ASH *pash, OID oid, int x)
+// Append {oid, x} to an ASH list (max 8). (inferred)
+extern "C" int AddAshEntry(ASH *animList, OID oid, int x)
 {
-    if ((unsigned int)pash->c >= 8)
+    if ((unsigned int)animList->c >= 8)
         return 0;
-    pash->a[pash->c].u.oid = oid;
-    pash->a[pash->c].x = x;
-    pash->c++;
+    animList->a[animList->c].u.oid = oid;
+    animList->a[animList->c].x = x;
+    animList->c++;
     return 1;
 }
 
-/** @sly2-annot addr=0x148668
- * Purpose: Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs
- * Info: proposed name PostAshLoad (T1); TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void PostAshLoad(ASH *pash, LOV *ploContext)
+// Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs. (inferred)
+extern "C" void PostAshLoad(ASH *animList, LOV *ploContext)
 {
     int i;
-    for (i = 0; i < pash->c; i++)
+    for (i = 0; i < animList->c; i++)
     {
-        LOV *plo = PloFindSwObject(&D_003DD490, 4, pash->a[i].u.oid, ploContext);
+        LOV *plo = PloFindSwObject(&D_003DD490, 4, animList->a[i].u.oid, ploContext);
         if (plo)
         {
             VT *e;
-            pash->a[i].u.paseg = (ASEGV *)plo;
+            animList->a[i].u.paseg = (ASEGV *)plo;
             e = &plo->pvt[9];   /* Remove */
             ((void (*)(void *))e->pfn)((char *)plo + e->d);
         }
         else
         {
-            pash->a[i].u.paseg = 0;
+            animList->a[i].u.paseg = 0;
         }
     }
 }
 
-/** @sly2-annot addr=0x148718
- * Purpose: BTN defaults: state -1, rates 1.0
- * Info: proposed name InitBtn (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void InitBtn(BTN *pbtn)
+// BTN defaults: state -1, rates 1.0. (inferred)
+extern "C" void InitBtn(BTN *btn)
 {
-    pbtn->state = -1;
-    pbtn->svt = 1.0f;
-    pbtn->dtReset = 1.0f;
+    btn->state = -1;
+    btn->svt = 1.0f;
+    btn->dtReset = 1.0f;
 }
 
-/** @sly2-annot addr=0x148738
- * Purpose: BTN owner = palo
- * Info: proposed name LoadBtn (T1); TU button
- * Notes: names_v2 C proposed SetSensorAlarm__FP6SENSORP5ALARM (0.638)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void LoadBtn(BTN *pbtn, LOV *plo)
+// BTN owner = palo. (inferred)
+extern "C" void LoadBtn(BTN *btn, LOV *plo)
 {
-    pbtn->plo = plo;
+    btn->plo = plo;
 }
 
-/** @sly2-annot addr=0x148740
- * Purpose: PostAshLoad for the on and off ASH lists
- * Info: proposed name PostBtnLoad (T1); TU button
- * Notes: names_v2 C proposed FOnlySensorTriggerObject__FP6SENSORP2SO (0.167)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void PostBtnLoad(BTN *pbtn)
+// PostAshLoad for the on and off ASH lists. (inferred)
+extern "C" void PostBtnLoad(BTN *btn)
 {
     unsigned int i;
     for (i = 0; i < 2; i++)
-        PostAshLoad(&pbtn->aash[i], pbtn->plo);
+        PostAshLoad(&btn->aash[i], btn->plo);
 }
 
-/** @sly2-annot addr=0x1487A0
- * Purpose: Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers
- * Info: proposed name TriggerBtn (T1); TU button
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void TriggerBtn(BTN *pbtn)
+// Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers. (inferred)
+extern "C" void TriggerBtn(BTN *btn)
 {
-    LOV *plo = pbtn->plo;
+    LOV *plo = btn->plo;
     VT *e = &plo->pvt[3];   /* HandleSpliceEvent */
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)plo + e->d, 5, 0, 0, 0, 0);
-    if (!pbtn->fNoSound)
+    if (!btn->fNoSound)
     {
-        LOV *plo2 = pbtn->plo;
+        LOV *plo2 = btn->plo;
         SetSndSourceLo(PsndStartSound(2), plo2);
     }
-    RunBtnAsegs(pbtn, 0);
-    if (!pbtn->fStayTriggered)
-        SetBtnButtons(pbtn, 2);
+    RunBtnAsegs(btn, 0);
+    if (!btn->fStayTriggered)
+        SetBtnButtons(btn, 2);
     {
-        LOV *plo3 = pbtn->plo;
+        LOV *plo3 = btn->plo;
         VT *e3 = &plo3->pvt[4];   /* SendMessage */
-        ((void (*)(void *, int, void *))e3->pfn)((char *)plo3 + e3->d, 6, pbtn);
+        ((void (*)(void *, int, void *))e3->pfn)((char *)plo3 + e3->d, 6, btn);
     }
 }
 
-/** @sly2-annot addr=0x148860
- * Purpose: Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1))
- * Info: proposed name UntriggerBtn (T1); TU button
- * Notes: names_v2 C proposed FFoundAshAseg__FP3ASHP4ASEG (0.638)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void UntriggerBtn(BTN *pbtn)
+// Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)). (inferred)
+extern "C" void UntriggerBtn(BTN *btn)
 {
-    LOV *plo = pbtn->plo;
+    LOV *plo = btn->plo;
     VT *e = &plo->pvt[3];   /* HandleSpliceEvent */
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)plo + e->d, 6, 0, 0, 0, 0);
-    RunBtnAsegs(pbtn, 1);
+    RunBtnAsegs(btn, 1);
     {
-        LOV *plo2 = pbtn->plo;
+        LOV *plo2 = btn->plo;
         VT *e2 = &plo2->pvt[4];   /* SendMessage */
-        ((void (*)(void *, int, void *))e2->pfn)((char *)plo2 + e2->d, 7, pbtn);
+        ((void (*)(void *, int, void *))e2->pfn)((char *)plo2 + e2->d, 7, btn);
     }
 }
 
-/** @sly2-annot addr=0x1488D8
- * Purpose: Apply/seek every aseg in ASH list i on its object
- * Info: proposed name RunBtnAsegs (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void RunBtnAsegs(BTN *pbtn, int iash)
+// Apply/seek every aseg in ASH list i on its object. (inferred)
+extern "C" void RunBtnAsegs(BTN *btn, int iash)
 {
     int j;
     ASEGV *paseg;
-    for (j = 0; j < pbtn->aash[iash].c; j++)
+    for (j = 0; j < btn->aash[iash].c; j++)
     {
         LOV *plo;
         int oid, x;
-        paseg = pbtn->aash[iash].a[j].u.paseg;
+        paseg = btn->aash[iash].a[j].u.paseg;
         if (!paseg)
             continue;
         oid = paseg->ploroot->plo->oid;
-        x = pbtn->aash[iash].a[j].x;
-        if (pbtn->plo->oid == oid)
-            plo = pbtn->plo;
+        x = btn->aash[iash].a[j].x;
+        if (btn->plo->oid == oid)
+            plo = btn->plo;
         else if (oid != -1)
-            plo = PloFindSwObject(&D_003DD490, 4, (OID)oid, pbtn->plo);
+            plo = PloFindSwObject(&D_003DD490, 4, (OID)oid, btn->plo);
         else
             plo = 0;
-        if (pbtn->fSeek)
+        if (btn->fSeek)
         {
             int seek = 0;
-            if (pbtn->svt < 0.0f)
+            if (btn->svt < 0.0f)
                 seek = 2;
-            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)seek, 0.0f, pbtn->svt, x);
+            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)seek, 0.0f, btn->svt, x);
         }
         else
         {
-            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)1, 0.0f, pbtn->svt, x);
+            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)1, 0.0f, btn->svt, x);
         }
     }
-    TriggerRsmg(&D_003DD490, pbtn->crsmg, pbtn->arsmg, pbtn->plo, iash == 0);
+    TriggerRsmg(&D_003DD490, btn->crsmg, btn->arsmg, btn->plo, iash == 0);
     if (iash == 0)
     {
-        if (pbtn->prelay)
-            FireRelay(pbtn->prelay, pbtn->pvRelay);
-        ApplyTaskStates(D_002DEB30, pbtn->ctaskstate, pbtn->ataskstate, pbtn->plo);
+        if (btn->prelay)
+            FireRelay(btn->prelay, btn->pvRelay);
+        ApplyTaskStates(D_002DEB30, btn->ctaskstate, btn->ataskstate, btn->plo);
     }
 }
 
-/** @sly2-annot addr=0x148A78
- * Purpose: BTN state change; 0->1 triggers, any->0 untriggers; stamps time
- * Info: proposed name SetBtnButtons (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetBtnButtons(BTN *pbtn, int state)
+// BTN state change; 0->1 triggers, any->0 untriggers; stamps time. (inferred)
+extern "C" void SetBtnButtons(BTN *btn, int state)
 {
     int fTrigger, fUntrigger;
-    int stateOld = pbtn->state;
+    int stateOld = btn->state;
     if (stateOld == state)
         return;
     fTrigger = stateOld == 0 && state == 1;
     fUntrigger = stateOld != -1 && state == 0;
-    pbtn->state = state;
-    pbtn->tState = D_002DDED0.t;
+    btn->state = state;
+    btn->tState = D_002DDED0.t;
     if (fTrigger)
-        TriggerBtn(pbtn);
+        TriggerBtn(btn);
     if (fUntrigger)
-        UntriggerBtn(pbtn);
+        UntriggerBtn(btn);
 }
 
-/** @sly2-annot addr=0x148AF8
- * Purpose: FAddAshOid on the 'on' list (+4)
- * Info: proposed name AddBtnAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddBtnAseg(BTN *pbtn, OID oid, int x)
+// AddAshEntry on the 'on' list (+4). (inferred)
+extern "C" void AddBtnAseg(BTN *btn, OID oid, int x)
 {
-    FAddAshOid(&pbtn->aash[0], oid, x);
+    AddAshEntry(&btn->aash[0], oid, x);
 }
 
-/** @sly2-annot addr=0x148B18
- * Purpose: FAddAshOid on the 'off' list (+0x48)
- * Info: proposed name AddBtnOffAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddBtnOffAseg(BTN *pbtn, OID oid, int x)
+// AddAshEntry on the 'off' list (+0x48). (inferred)
+extern "C" void AddBtnOffAseg(BTN *btn, OID oid, int x)
 {
-    FAddAshOid(&pbtn->aash[1], oid, x);
+    AddAshEntry(&btn->aash[1], oid, x);
 }
 
-/** @sly2-annot addr=0x148B38
- * Purpose: FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal)
- * Info: proposed name SetBtnRsmg (T1); TU button
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetBtnRsmg(BTN *pbtn, int d, OID e, OID f, OID g)
+// FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal).
+extern "C" void SetBtnRsmg(BTN *btn, int d, OID e, OID f, OID g)
 {
-    FAddRsmg(&D_003DD490, pbtn->arsmg, 8, &pbtn->crsmg, d, e, f, g);
+    FAddRsmg(&D_003DD490, btn->arsmg, 8, &btn->crsmg, d, e, f, g);
 }
 
-/** @sly2-annot addr=0x148B78
- * Purpose: Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30
- * Info: proposed name AddBtnEventListener (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00148B78(BTN *pbtn, int d, int e)
+// Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30. (inferred)
+extern "C" void AddBtnEventListener(BTN *btn, int d, int e)
 {
-    AppendBoundedPair(D_002DEB30, pbtn->ataskstate, 4, &pbtn->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, btn->ataskstate, 4, &btn->ctaskstate, d, e);
 }
 
-/** @sly2-annot addr=0x148BB0
- * Purpose: cid 0x53 vt7: InitSo, InitBtn(+0x150), flag
- * Info: proposed name InitButton (T1); class BUTTON slot7; TU button
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void InitButton(BUTTONV *pbutton)
+// BUTTON (cid 0x53) vtable slot 7: InitSo, InitBtn(+0x150), flag.
+extern "C" void InitButton(BUTTONV *button)
 {
     unsigned int grf;
-    InitSo(pbutton);
-    InitBtn(&pbutton->btn);
-    grf = pbutton->grf40;
+    InitSo(button);
+    InitBtn(&button->btn);
+    grf = button->grf40;
     if ((grf ^ 1) & 1)
         *(int *)grf |= 2;
     else
-        pbutton->grf40 = grf | 2;
+        button->grf40 = grf | 2;
 }
 
-/** @sly2-annot addr=0x148C08
- * Purpose: vt14: LoadSoFromBrx then LoadBtn(+0x150, this)
- * Info: proposed name LoadButtonFromBrx (T1); class BUTTON slot14; TU button
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void LoadButtonFromBrx(BUTTONV *pbutton, void *pbis)
+// vtable slot 14: LoadSoFromBrx then LoadBtn(+0x150, this).
+extern "C" void LoadButtonFromBrx(BUTTONV *button, void *stream)
 {
-    LoadSoFromBrx(pbutton, pbis);
-    LoadBtn(&pbutton->btn, (LOV *)pbutton);
+    LoadSoFromBrx(button, stream);
+    LoadBtn(&button->btn, (LOV *)button);
 }
 
-/** @sly2-annot addr=0x148C38
- * Purpose: vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0)
- * Info: proposed name PostButtonLoad (T1); class BUTTON slot15; TU button
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void PostButtonLoad(BUTTONV *pbutton)
+// vtable slot 15: PostSoLoad, PostBtnLoad, SetButtonButtons(0). (inferred)
+extern "C" void PostButtonLoad(BUTTONV *button)
 {
-    PostSoLoad(pbutton);
-    PostBtnLoad(&pbutton->btn);
-    SetButtonButtons(pbutton, 0);
+    PostSoLoad(button);
+    PostBtnLoad(&button->btn);
+    SetButtonButtons(button, 0);
 }
 
-/** @sly2-annot addr=0x148C70
- * Purpose: vt41: SO Clone then btn owner = self
- * Info: proposed name CloneButton (T1); class BUTTON slot41; TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
+// vtable slot 41: SO Clone then btn owner = self. (inferred)
 void BUTTON::Clone(LO *pbuttonBase_m)
 {
-    BUTTONV *pbutton = (BUTTONV *)this;
+    BUTTONV *button = (BUTTONV *)this;
     BUTTONV *pbuttonBase = (BUTTONV *)pbuttonBase_m;
-    CloneSo(pbutton, pbuttonBase);
-    pbutton->btn.plo = (LOV *)pbutton;
+    CloneSo(button, pbuttonBase);
+    button->btn.plo = (LOV *)button;
 }
 
+// Index (0/1) of the other end of a contact, relative to the given tree.
 static inline int IOther(SOTREEV *ptree, CONTACT *pcontact)
 {
     return ptree->plo == pcontact->aend[0].plo ? 0 : 1;
@@ -509,27 +416,22 @@ static inline int IOther(SOTREEV *ptree, CONTACT *pcontact)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_00149010() __asm__("func_00149010");
+void p_func_00149010() __asm__("UpdateButtonPlayerPush");
 extern const unsigned int r_D_002A4E80[2] __asm__("D_002A4E80") = {0xFFFF0000, (unsigned int)p_func_00149010};
 }
-/** @sly2-annot addr=0x148C98
- * Purpose: vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.)
- * Info: proposed name UpdateButton (T1); class BUTTON slot16; TU button
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
+// vtable slot 16: UpdateSo then press/repush state machine against pushing objects (current player etc.) (inferred)
+extern "C" void UpdateButton(BUTTONV *button, float dt)
 {
-    UpdateSo(pbutton, dt);
-    switch (pbutton->btn.state)
+    UpdateSo(button, dt);
+    switch (button->btn.state)
     {
     case 2:
     {
         PLAYERSTATEV *pps = D_002E1E40;
-        if (pps && pps->x18C8 == 3 && pps->x18C4 == pbutton->x2F4)
-            pbutton->btn.tState = D_002DDED0.t;
-        if (0.0f <= pbutton->btn.dtReset && pbutton->btn.dtReset < D_002DDED0.t - pbutton->btn.tState)
-            SetButtonButtons(pbutton, 4);
+        if (pps && pps->x18C8 == 3 && pps->x18C4 == button->x2F4)
+            button->btn.tState = D_002DDED0.t;
+        if (0.0f <= button->btn.dtReset && button->btn.dtReset < D_002DDED0.t - button->btn.tState)
+            SetButtonButtons(button, 4);
         break;
     }
     case 3:
@@ -537,7 +439,7 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
     case 4:
     {
         int k = -1;
-        switch (pbutton->btnk)
+        switch (button->btnk)
         {
         case 0:
         case 2:
@@ -549,15 +451,15 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
             break;
         }
         if (k != -1)
-            SetButtonButtons(pbutton, k);
+            SetButtonButtons(button, k);
         break;
     }
     case 0:
     case 1:
     {
-        int k = pbutton->btn.state;
+        int k = button->btn.state;
         LOV *ploOther;
-        switch (pbutton->btnk)
+        switch (button->btnk)
         {
         case 1:
         case 2:
@@ -567,30 +469,30 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
             PLAYERSTATEV *pps = D_002E1E40;
             k = 0;
             if (pps && pps->x18C8 == 3)
-                k = pps->x18C4 == pbutton->x2F4;
+                k = pps->x18C4 == button->x2F4;
             break;
         }
         found:
-            pbutton->ploPush = ploOther;
-            EnsureSwCallback(&D_003DD490, pbutton, D_002A4E80.l, 0);
-            k = pbutton->btn.state;
+            button->ploPush = ploOther;
+            EnsureSwCallback(&D_003DD490, button, D_002A4E80.l, 0);
+            k = button->btn.state;
             break;
         case 0:
         {
             CONTACTL *pcontactl;
             k = 0;
-            for (pcontactl = pbutton->ptree->pcontactl; pcontactl; pcontactl = pcontactl->pnext)
+            for (pcontactl = button->ptree->pcontactl; pcontactl; pcontactl = pcontactl->pnext)
             {
                 CONTACT *pcontact;
                 for (pcontact = pcontactl->pcontact; pcontact; pcontact = pcontact->pnext)
                 {
                     if (pcontact->x9C != 10)
                     {
-                        int i = IOther(pbutton->ptree, pcontact);
+                        int i = IOther(button->ptree, pcontact);
                         int j = 1 - i;
                         CONTACTEND *pend = &pcontact->aend[i];
                         ploOther = pcontact->aend[j].plo;
-                        if (pend->pv == pbutton && FCheckButtonObject(pbutton, ploOther))
+                        if (pend->pv == button && CanObjectPushButton(button, ploOther))
                             goto found;
                     }
                 }
@@ -598,38 +500,33 @@ extern "C" void UpdateButton(BUTTONV *pbutton, float dt)
             break;
         }
         }
-        SetButtonButtons(pbutton, k);
+        SetButtonButtons(button, k);
         break;
     }
     }
 }
 
-/** @sly2-annot addr=0x148F20
- * Purpose: vt75: zap/hit by an allowed object presses the button (by btnt mode)
- * Info: proposed name FAbsorbButtonWkr (T1); class BUTTON slot75; TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void *FAbsorbButtonWkr(BUTTONV *pbutton, WKR *pwkr)
+// vtable slot 75: zap/hit by an allowed object presses the button (by btnt mode). (inferred)
+extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *pwkr)
 {
-    void *pv = CanSoTakeDamage(pbutton, pwkr);
-    if (pv && !(pwkr->grf & 4) && FCheckButtonObject(pbutton, pwkr->plo))
+    void *pv = CanSoTakeDamage(button, pwkr);
+    if (pv && !(pwkr->grf & 4) && CanObjectPushButton(button, pwkr->plo))
     {
-        switch (pbutton->btnk)
+        switch (button->btnk)
         {
         case 1:
-            if (pbutton->btn.state == 0)
-                SetButtonButtons(pbutton, 1);
+            if (button->btn.state == 0)
+                SetButtonButtons(button, 1);
             break;
         case 2:
-            if (pbutton->btn.state == 0)
+            if (button->btn.state == 0)
             {
-                if (pbutton->btn.dtReset <= D_002DDED0.t - pbutton->btn.tState)
-                    SetButtonButtons(pbutton, 1);
+                if (button->btn.dtReset <= D_002DDED0.t - button->btn.tState)
+                    SetButtonButtons(button, 1);
             }
-            else if (pbutton->btn.state == 1)
+            else if (button->btn.state == 1)
             {
-                SetButtonButtons(pbutton, 0);
+                SetButtonButtons(button, 0);
             }
             break;
         }
@@ -637,270 +534,174 @@ extern "C" void *FAbsorbButtonWkr(BUTTONV *pbutton, WKR *pwkr)
     return pv;
 }
 
-/** @sly2-annot addr=0x149010
- * Purpose: if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button
- * Info: proposed name UpdateButtonPlayerPush (T2); TU button
- * Notes: names_v2 C proposed DisablePrsen__FP5PRSEN (0.668)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00149010(BUTTONV *pbutton)
+// if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button. (inferred)
+extern "C" void UpdateButtonPlayerPush(BUTTONV *button)
 {
-    if (FIsBasicDerivedFrom((BASIC *)pbutton->ploPush, (CIDV)0x34))
+    if (FIsBasicDerivedFrom((BASIC *)button->ploPush, (CIDV)0x34))
     {
-        PUSHER *ppusher = (PUSHER *)pbutton->ploPush;
+        PUSHER *ppusher = (PUSHER *)button->ploPush;
         if (ppusher->x2DC == 0x11 || (ppusher->x2C4 == 3 && D_002DDED0.t - ppusher->t2E0 < 0.15f))
         {
-            pbutton->ploPush = 0;
+            button->ploPush = 0;
             return;
         }
     }
-    SetButtonButtons(pbutton, 1);
+    SetButtonButtons(button, 1);
 }
 
-/** @sly2-annot addr=0x1490A0
- * Purpose: SetBtnButtons(+0x150, n)
- * Info: proposed name SetButtonButtons (T1); TU button
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetButtonButtons(BUTTONV *pbutton, int state)
+// SetBtnButtons(+0x150, n). (inferred)
+extern "C" void SetButtonButtons(BUTTONV *button, int state)
 {
-    SetBtnButtons(&pbutton->btn, state);
+    SetBtnButtons(&button->btn, state);
 }
 
-/** @sly2-annot addr=0x1490C0
- * Purpose: TriggerBtn(+0x150)
- * Info: proposed name TriggerButton (T1); TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void TriggerButton(BUTTONV *pbutton)
+// TriggerBtn(+0x150). (inferred)
+extern "C" void TriggerButton(BUTTONV *button)
 {
-    TriggerBtn(&pbutton->btn);
+    TriggerBtn(&button->btn);
 }
 
-/** @sly2-annot addr=0x1490E0
- * Purpose: UntriggerBtn(+0x150)
- * Info: proposed name UntriggerButton (T1); TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void UntriggerButton(BUTTONV *pbutton)
+// UntriggerBtn(+0x150). (inferred)
+extern "C" void UntriggerButton(BUTTONV *button)
 {
-    UntriggerBtn(&pbutton->btn);
+    UntriggerBtn(&button->btn);
 }
 
-/** @sly2-annot addr=0x149100
- * Purpose: Is the object allowed to push (push oid/cid lists vs no-push lists)
- * Info: proposed name FCheckButtonObject (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" int FCheckButtonObject(BUTTONV *pbutton, LOV *plo)
+// Is the object allowed to push (push oid/cid lists vs no-push lists). (inferred)
+extern "C" int CanObjectPushButton(BUTTONV *button, LOV *plo)
 {
     int i, j;
-    if (pbutton->cploPush > 0)
+    if (button->cploPush > 0)
     {
-        for (i = 0; i < pbutton->cploPush; i++)
-            if (pbutton->aploPush[i] == plo)
+        for (i = 0; i < button->cploPush; i++)
+            if (button->aploPush[i] == plo)
                 break;
-        if (i >= pbutton->cploPush)
+        if (i >= button->cploPush)
             return 0;
     }
-    if (pbutton->ccidPush > 0)
+    if (button->ccidPush > 0)
     {
-        for (j = 0; j < pbutton->ccidPush; j++)
-            if (FIsBasicDerivedFrom((BASIC *)plo, pbutton->acidPush[j]))
+        for (j = 0; j < button->ccidPush; j++)
+            if (FIsBasicDerivedFrom((BASIC *)plo, button->acidPush[j]))
                 break;
-        if (j >= pbutton->ccidPush)
+        if (j >= button->ccidPush)
             return 0;
     }
     return 1;
 }
 
-/** @sly2-annot addr=0x1491E0
- * Purpose: AddBtnAseg(+0x150, oid)
- * Info: proposed name AddButtonAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddButtonAseg(BUTTONV *pbutton, OID oid, int x)
+// AddBtnAseg(+0x150, oid). (inferred)
+extern "C" void AddButtonAseg(BUTTONV *button, OID oid, int x)
 {
-    AddBtnAseg(&pbutton->btn, oid, x);
+    AddBtnAseg(&button->btn, oid, x);
 }
 
-/** @sly2-annot addr=0x149200
- * Purpose: AddBtnOffAseg(+0x150, oid)
- * Info: proposed name AddButtonOffAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddButtonOffAseg(BUTTONV *pbutton, OID oid, int x)
+// AddBtnOffAseg(+0x150, oid). (inferred)
+extern "C" void AddButtonOffAseg(BUTTONV *button, OID oid, int x)
 {
-    AddBtnOffAseg(&pbutton->btn, oid, x);
+    AddBtnOffAseg(&button->btn, oid, x);
 }
 
-/** @sly2-annot addr=0x149220
- * Purpose: append oid to push list (max 8)
- * Info: proposed name AddButtonPushObject (T1); TU button
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddButtonPushObject(BUTTONV *pbutton, LOV *plo)
+// append oid to push list (max 8). (inferred)
+extern "C" void AddButtonPushObject(BUTTONV *button, LOV *plo)
 {
-    if ((unsigned int)pbutton->cploPush < 8)
-        pbutton->aploPush[pbutton->cploPush++] = plo;
+    if ((unsigned int)button->cploPush < 8)
+        button->aploPush[button->cploPush++] = plo;
 }
 
-/** @sly2-annot addr=0x149248
- * Purpose: append to second list (max 8)
- * Info: proposed name AddButtonPushClass (T2); TU button
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00149248(BUTTONV *pbutton, CIDV cid)
+// append to second list (max 8). (inferred)
+extern "C" void AddButtonPushClass(BUTTONV *button, CIDV cid)
 {
-    if ((unsigned int)pbutton->ccidPush < 8)
-        pbutton->acidPush[pbutton->ccidPush++] = cid;
+    if ((unsigned int)button->ccidPush < 8)
+        button->acidPush[button->ccidPush++] = cid;
 }
 
-/** @sly2-annot addr=0x149270
- * Purpose: SetBtnRsmg(+0x150,...)
- * Info: proposed name SetButtonRsmg (T1); TU button
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetButtonRsmg(BUTTONV *pbutton, int d, OID e, OID f, OID g)
+// SetBtnRsmg(+0x150,...) (inferred)
+extern "C" void SetButtonRsmg(BUTTONV *button, int d, OID e, OID f, OID g)
 {
-    SetBtnRsmg(&pbutton->btn, d, e, f, g);
+    SetBtnRsmg(&button->btn, d, e, f, g);
 }
 
-/** @sly2-annot addr=0x149290
- * Purpose: 0x148B78 on +0x150
- * Info: proposed name AddButtonEventListener (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00149290(BUTTONV *pbutton, int d, int e)
+// 0x148B78 on +0x150. (inferred)
+extern "C" void AddButtonEventListener(BUTTONV *button, int d, int e)
 {
-    func_00148B78(&pbutton->btn, d, e);
+    AddBtnEventListener(&button->btn, d, e);
 }
 
-/** @sly2-annot addr=0x1492B0
- * Purpose: cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0
- * Info: proposed name RemoveButtonHierarchy (T2); class BUTTON slot12; TU button
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_001492B0(BUTTONV *pbutton)
+// BUTTON (cid 0x53) vtable slot 12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
+extern "C" void RemoveButtonHierarchy(BUTTONV *button)
 {
-    RemoveSoHierarchy(pbutton);
-    if ((unsigned int)(pbutton->btn.state - 1) < 2)
-        SetButtonButtons(pbutton, 0);
+    RemoveSoHierarchy(button);
+    if ((unsigned int)(button->btn.state - 1) < 2)
+        SetButtonButtons(button, 0);
 }
 
-/** @sly2-annot addr=0x1492F0
- * Purpose: cid 0x18/0x19 vt7: base init, InitBtn
- * Info: proposed name InitVolbtn (T1); class VOLBTN slot7; TU button
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void InitVolbtn(VOLBTNV *pvolbtn)
+// VOLBTN (cid 0x18)/0x19 vtable slot 7: base init, InitBtn. (inferred)
+extern "C" void InitVolbtn(VOLBTNV *volumeButton)
 {
     unsigned int grf;
-    InitXfm(pvolbtn);
-    InitBtn(&pvolbtn->btn);
-    pvolbtn->btn.fNoSound = 1;
-    SetLoBusyk(pvolbtn, 0);
-    grf = pvolbtn->grf40;
+    InitXfm(volumeButton);
+    InitBtn(&volumeButton->btn);
+    volumeButton->btn.fNoSound = 1;
+    SetLoBusyk(volumeButton, 0);
+    grf = volumeButton->grf40;
     if ((grf ^ 1) & 1)
         *(int *)grf |= 2;
     else
-        pvolbtn->grf40 = grf | 2;
+        volumeButton->grf40 = grf | 2;
 }
 
-/** @sly2-annot addr=0x149358
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name LoadVolbtnFromBrx (T1); class VOLBTN slot14; TU button
- * Notes: names_v2 C hint not used: LoadVolbtnFromBrx__FP6VOLBTNP18CBinaryInputStream | CID24 vtable slot 14;
- *   body = LoadVolFromBrx only (r0: CID24 likely VOLBTN; names_v2 C hint LoadVolbtnFromBrx) | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels | v3 class identity:
- *   LoadCid24FromBrx -> LoadVolbtnFromBrx
- * Confidence: name mid [T1 0.75]; purpose not reviewed - evidence: static naming pass
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void LoadVolbtnFromBrx(VOLBTNV *pvolbtn, void *pbis)
+// VOLBTN vtable slot 14 (LoadFromBrx): loads the VOL part and the BTN; a volume button that tracks what is inside stays
+// triggered while occupied.
+extern "C" void LoadVolbtnFromBrx(VOLBTNV *volumeButton, void *stream)
 {
-    LoadVolFromBrx(pvolbtn, pbis);
-    LoadBtn(&pvolbtn->btn, (LOV *)pvolbtn);
-    if (pvolbtn->fTrackInside)
-        pvolbtn->btn.fStayTriggered = 1;
+    LoadVolFromBrx(volumeButton, stream);
+    LoadBtn(&volumeButton->btn, (LOV *)volumeButton);
+    if (volumeButton->fTrackInside)
+        volumeButton->btn.fStayTriggered = 1;
 }
 
-/** @sly2-annot addr=0x149398
- * Purpose: vt15: base, PostBtnLoad
- * Info: proposed name PostVolbtnLoad (T1); class VOLBTN slot15; TU button
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void PostVolbtnLoad(VOLBTNV *pvolbtn)
+// vtable slot 15: base, PostBtnLoad. (inferred)
+extern "C" void PostVolbtnLoad(VOLBTNV *volumeButton)
 {
-    PostLoLoad(pvolbtn);
-    PostBtnLoad(&pvolbtn->btn);
-    SetVolbtnButtons(pvolbtn, 0);
-    if (pvolbtn->fTrackInside)
+    PostLoLoad(volumeButton);
+    PostBtnLoad(&volumeButton->btn);
+    SetVolbtnButtons(volumeButton, 0);
+    if (volumeButton->fTrackInside)
     {
         int an[2];
         an[0] = 0x100;
         an[1] = 0x10;
-        pvolbtn->aploInside = (LOV **)AllocFromWorldHeap(an);
+        volumeButton->aploInside = (LOV **)AllocFromWorldHeap(an);
     }
 }
 
-/** @sly2-annot addr=0x1493F8
- * Purpose: vt41
- * Info: proposed name CloneVolbtn (T1); class VOLBTN slot41; TU button
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
+// vtable slot 41. (inferred)
 void VOLBTN::Clone(LO *pvolbtnBase_m)
 {
-    VOLBTNV *pvolbtn = (VOLBTNV *)this;
+    VOLBTNV *volumeButton = (VOLBTNV *)this;
     VOLBTNV *pvolbtnBase = (VOLBTNV *)pvolbtnBase_m;
-    CloneXfm(pvolbtn, pvolbtnBase);
-    pvolbtn->btn.plo = (LOV *)pvolbtn;
+    CloneXfm(volumeButton, pvolbtnBase);
+    volumeButton->btn.plo = (LOV *)volumeButton;
 }
 
-/** @sly2-annot addr=0x149420
- * Purpose: qsort comparator (difference / 0x14)
- * Info: proposed name CompareVolbtnObjects (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
+// qsort comparator (difference / 0x14). (inferred)
 /* qsort comparator: objects in address order. */
-extern "C" int func_00149420(LOV **pplo1, LOV **pplo2)
+extern "C" int CompareVolbtnObjects(LOV **pplo1, LOV **pplo2)
 {
     return *pplo1 - *pplo2;
 }
 
-/** @sly2-annot addr=0x149440
- * Purpose: vt16: volume button - objects inside the volume trigger/untrigger
- * Info: proposed name UpdateVolbtn (T1); class VOLBTN slot16; TU button
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
+// vtable slot 16: volume button - objects inside the volume trigger/untrigger. (inferred)
+extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
 {
     int state;
-    UpdateLo(pvolbtn, dt);
-    state = pvolbtn->btn.state;
+    UpdateLo(volumeButton, dt);
+    state = volumeButton->btn.state;
     if (state == 2)
     {
-        if (0.0f <= pvolbtn->btn.dtReset && pvolbtn->btn.dtReset < D_002DDED0.t - pvolbtn->btn.tState)
-            SetVolbtnButtons(pvolbtn, 1);
+        if (0.0f <= volumeButton->btn.dtReset && volumeButton->btn.dtReset < D_002DDED0.t - volumeButton->btn.tState)
+            SetVolbtnButtons(volumeButton, 1);
     }
     else if (state < 3) if (state >= 0)
     {
@@ -913,36 +714,36 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
         int j;
         int cSel;
         STACKSCOPE_ctor(ctx);
-        CopyAb(aplo, pvolbtn->aploPush, pvolbtn->cploPush * 4);
-        c = pvolbtn->cploPush;
-        for (; i < pvolbtn->ccidPush; i++)
-            c += CploFindSwObjectsByClass(&D_003DD490, 0x505, pvolbtn->acidPush[i], 0, 0x40 - c, &aplo[c]);
-        if (pvolbtn->cploPush == 0 && pvolbtn->ccidPush == 0)
+        CopyAb(aplo, volumeButton->aploPush, volumeButton->cploPush * 4);
+        c = volumeButton->cploPush;
+        for (; i < volumeButton->ccidPush; i++)
+            c += CploFindSwObjectsByClass(&D_003DD490, 0x505, volumeButton->acidPush[i], 0, 0x40 - c, &aplo[c]);
+        if (volumeButton->cploPush == 0 && volumeButton->ccidPush == 0)
         {
             CopyAb(&aplo[c], D_003DD490.apo, D_003DD490.cpo * 4);
             c += D_003DD490.cpo;
         }
-        pvolbtn->btn.pvRelay = 0;
+        volumeButton->btn.pvRelay = 0;
         cSel = 0;
         j = 0;
         if (j < c) do
         {
             LOV *plo = aplo[j];
-            if (plo && IsLoInWorld(plo) && IsPointInVol(pvolbtn, GetLoWorldPos(plo)))
+            if (plo && IsLoInWorld(plo) && IsPointInVol(volumeButton, GetLoWorldPos(plo)))
             {
                 fFound = 1;
-                if (!pvolbtn->btn.pvRelay)
-                    pvolbtn->btn.pvRelay = plo;
-                if (!pvolbtn->fTrackInside)
+                if (!volumeButton->btn.pvRelay)
+                    volumeButton->btn.pvRelay = plo;
+                if (!volumeButton->fTrackInside)
                     break;
                 aploSel[cSel++] = plo;
             }
         } while (++j < c);
-        if (pvolbtn->fTrackInside)
+        if (volumeButton->fTrackInside)
         {
             int fChanged = 0;
-            qsort(aplo, c, 4, (int (*)(const void *, const void *))func_00149420);
-            if (pvolbtn->cploInside != cSel)
+            qsort(aplo, c, 4, (int (*)(const void *, const void *))CompareVolbtnObjects);
+            if (volumeButton->cploInside != cSel)
             {
                 fChanged = 1;
             }
@@ -953,7 +754,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
                 int i2 = 0;
                 if (i2 < cSel)
                 {
-                    if (aploSel[i2] == pvolbtn->aploInside[i2])
+                    if (aploSel[i2] == volumeButton->aploInside[i2])
                         goto next;
                     fChanged = 1;
                     goto changed;
@@ -963,7 +764,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
                         i2++;
                         if (i2 >= cSel)
                             break;
-                        if (aploSel[i2] != pvolbtn->aploInside[i2])
+                        if (aploSel[i2] != volumeButton->aploInside[i2])
                         {
                         changed:
                             fChanged = 1;
@@ -975,148 +776,93 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
             if (fChanged)
             {
                 VT *e;
-                pvolbtn->cploInside = cSel;
-                CopyAb(pvolbtn->aploInside, aploSel, cSel * 4);
-                e = &pvolbtn->pvt[3];   /* HandleSpliceEvent */
-                ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)pvolbtn + e->d, 9, 0, 0, 0, 0);
+                volumeButton->cploInside = cSel;
+                CopyAb(volumeButton->aploInside, aploSel, cSel * 4);
+                e = &volumeButton->pvt[3];   /* HandleSpliceEvent */
+                ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)volumeButton + e->d, 9, 0, 0, 0, 0);
             }
         }
-        SetVolbtnButtons(pvolbtn, fFound);
+        SetVolbtnButtons(volumeButton, fFound);
         STACKSCOPE_ctor_1AE4A0(ctx, 2);
     }
 }
 
-/** @sly2-annot addr=0x149718
- * Purpose: SetBtnButtons on the volbtn's BTN
- * Info: proposed name SetVolbtnButtons (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetVolbtnButtons(VOLBTNV *pvolbtn, int state)
+// SetBtnButtons on the volbtn's BTN. (inferred)
+extern "C" void SetVolbtnButtons(VOLBTNV *volumeButton, int state)
 {
-    SetBtnButtons(&pvolbtn->btn, state);
+    SetBtnButtons(&volumeButton->btn, state);
 }
 
-/** @sly2-annot addr=0x149738
- * Purpose: TriggerBtn
- * Info: proposed name TriggerVolbtn (T1); TU button
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void TriggerVolbtn(VOLBTNV *pvolbtn)
+// TriggerBtn. (inferred)
+extern "C" void TriggerVolbtn(VOLBTNV *volumeButton)
 {
-    TriggerBtn(&pvolbtn->btn);
+    TriggerBtn(&volumeButton->btn);
 }
 
-/** @sly2-annot addr=0x149758
- * Purpose: UntriggerBtn
- * Info: proposed name UntriggerVolbtn (T1); TU button
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void UntriggerVolbtn(VOLBTNV *pvolbtn)
+// UntriggerBtn. (inferred)
+extern "C" void UntriggerVolbtn(VOLBTNV *volumeButton)
 {
-    UntriggerBtn(&pvolbtn->btn);
+    UntriggerBtn(&volumeButton->btn);
 }
 
-/** @sly2-annot addr=0x149778
- * Purpose: AddBtnAseg
- * Info: proposed name AddVolbtnAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddVolbtnAseg(VOLBTNV *pvolbtn, OID oid, int x)
+// AddBtnAseg. (inferred)
+extern "C" void AddVolbtnAseg(VOLBTNV *volumeButton, OID oid, int x)
 {
-    AddBtnAseg(&pvolbtn->btn, oid, x);
+    AddBtnAseg(&volumeButton->btn, oid, x);
 }
 
-/** @sly2-annot addr=0x149798
- * Purpose: AddBtnOffAseg
- * Info: proposed name AddVolbtnOffAseg (T1); TU button
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddVolbtnOffAseg(VOLBTNV *pvolbtn, OID oid, int x)
+// AddBtnOffAseg. (inferred)
+extern "C" void AddVolbtnOffAseg(VOLBTNV *volumeButton, OID oid, int x)
 {
-    AddBtnOffAseg(&pvolbtn->btn, oid, x);
+    AddBtnOffAseg(&volumeButton->btn, oid, x);
 }
 
-/** @sly2-annot addr=0x1497B8
- * Purpose: append to push list (max 8)
- * Info: proposed name AddVolbtnPushObject (T1); TU button
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void AddVolbtnPushObject(VOLBTNV *pvolbtn, LOV *plo)
+// append to push list (max 8). (inferred)
+extern "C" void AddVolbtnPushObject(VOLBTNV *volumeButton, LOV *plo)
 {
-    if ((unsigned int)pvolbtn->cploPush < 8)
-        pvolbtn->aploPush[pvolbtn->cploPush++] = plo;
+    if ((unsigned int)volumeButton->cploPush < 8)
+        volumeButton->aploPush[volumeButton->cploPush++] = plo;
 }
 
-/** @sly2-annot addr=0x1497E0
- * Purpose: append to a 4-entry list
- * Info: proposed name AddVolbtnList4 (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_001497E0(VOLBTNV *pvolbtn, CIDV cid)
+// append to a 4-entry list. (inferred)
+extern "C" void AddVolbtnPushClass(VOLBTNV *volumeButton, CIDV cid)
 {
-    if ((unsigned int)pvolbtn->ccidPush < 4)
-        pvolbtn->acidPush[pvolbtn->ccidPush++] = cid;
+    if ((unsigned int)volumeButton->ccidPush < 4)
+        volumeButton->acidPush[volumeButton->ccidPush++] = cid;
 }
 
-/** @sly2-annot addr=0x149808
- * Purpose: SetBtnRsmg
- * Info: proposed name SetVolbtnRsmg (T1); TU button
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void SetVolbtnRsmg(VOLBTNV *pvolbtn, int d, OID e, OID f, OID g)
+// SetBtnRsmg. (inferred)
+extern "C" void SetVolbtnRsmg(VOLBTNV *volumeButton, int d, OID e, OID f, OID g)
 {
-    SetBtnRsmg(&pvolbtn->btn, d, e, f, g);
+    SetBtnRsmg(&volumeButton->btn, d, e, f, g);
 }
 
-/** @sly2-annot addr=0x149828
- * Purpose: 0x148B78
- * Info: proposed name AddVolbtnEventListener (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00149828(VOLBTNV *pvolbtn, int d, int e)
+// 0x148B78. (inferred)
+extern "C" void AddVolbtnEventListener(VOLBTNV *volumeButton, int d, int e)
 {
-    func_00148B78(&pvolbtn->btn, d, e);
+    AddBtnEventListener(&volumeButton->btn, d, e);
 }
 
-/** @sly2-annot addr=0x149848
- * Purpose: build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002)
- * Info: proposed name RefGetVolbtnPushState (T2); TU button
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
+// build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002). (inferred)
 /* The objects inside as a Splice list (otyp 0x2002). */
-extern "C" CRef func_00149848(VOLBTNV *pvolbtn)
+extern "C" CRef GetVolbtnPushStateRef(VOLBTNV *volumeButton)
 {
-    return BuildSpliceListFromUniformValues(pvolbtn->cploInside, 0x2002, pvolbtn->aploInside);
+    return BuildSpliceListFromUniformValues(volumeButton->cploInside, 0x2002, volumeButton->aploInside);
 }
 
-/** @sly2-annot addr=0x149880
- * Purpose: vt12: base, untrigger if pressed
- * Info: proposed name RemoveVolbtnHierarchy (T2); class VOLBTN slot12; TU button
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
- * @end-sly2-annot */
-extern "C" void func_00149880(VOLBTNV *pvolbtn)
+// vtable slot 12: base, untrigger if pressed. (inferred)
+extern "C" void RemoveVolbtnHierarchy(VOLBTNV *volumeButton)
 {
-    RemoveLoHierarchy(pvolbtn);
-    if ((unsigned int)(pvolbtn->btn.state - 1) < 2)
+    RemoveLoHierarchy(volumeButton);
+    if ((unsigned int)(volumeButton->btn.state - 1) < 2)
     {
-        SetVolbtnButtons(pvolbtn, 0);
-        if (pvolbtn->fTrackInside)
+        SetVolbtnButtons(volumeButton, 0);
+        if (volumeButton->fTrackInside)
         {
             VT *e;
-            pvolbtn->cploInside = 0;
-            e = &pvolbtn->pvt[3];   /* HandleSpliceEvent */
-            ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)pvolbtn + e->d, 9, 0, 0, 0, 0);
+            volumeButton->cploInside = 0;
+            e = &volumeButton->pvt[3];   /* HandleSpliceEvent */
+            ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)volumeButton + e->d, 9, 0, 0, 0, 0);
         }
     }
 }
@@ -1125,7 +871,7 @@ extern "C" void func_00149880(VOLBTNV *pvolbtn)
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_button {
-void p_func_00149010() __asm__("func_00149010");
+void p_func_00149010() __asm__("UpdateButtonPlayerPush");
 extern "C" {
 extern const unsigned int D_002A4E80[2];   /* defined below where the ELF has it (.rodata order) */
 }

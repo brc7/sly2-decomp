@@ -1,7 +1,9 @@
 // bomb.cpp -- BOMB (an SO): init/load/clone, priming and detonation (the blast: objects hit within the radii get
 // a 0x1C-style impact message with a push away from the blast; the bomb then moves to the detonation pose and
 // removes itself), custom contacts it adds while flying near marked objects, throwing, absorbing a hit, and the
-// detonation-pose setup. VU0 macro-mode asm with register pins.
+// detonation-pose setup. Entry points: the BOMB vtable (InitBomb, PostBombLoad, HandleMessage, UpdateBomb, ResetBomb,
+// HandleBombContact, AddBombCustomXps, FIgnoreBombIntersection, FAbsorbBombWkr, CloneBomb, ApplyBombThrow), PrimeBomb
+// and DetonateBomb (also used by MISSILE). VU0 macro-mode asm with register pins.
 // TU 0x13A9E8..0x13BDF0 (22 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bomb
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013BDD0
@@ -43,35 +45,35 @@ struct BOMBV
     int grfUnk40;
     char pad44[0xE4 - 0x44];
     XE4 *pxa;                  /* +0xE4 */
-    int xE8;
+    int physics;               /* +0xE8 SO::psophys (non-zero: has physics) */
     XEC *pxp;                  /* +0xEC */
     char padF0[0x150 - 0xF0];
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, FAbsorbBombWkr) */
     float tDetonate;           /* +0x154 */
-    float sv158;               /* +0x158 detonate when slower */
+    float detonateSpeed;       /* +0x158 detonates on impact above this speed (UpdateBomb) */
     float sRadius;             /* +0x15C blast radius */
     float sRadiusHero;         /* +0x160 blast radius against the hero (CID 0x34) */
-    int x164;                  /* no blast */
-    POV *p168;
-    float g16C;
-    int x170;                  /* detonation pose: 0/2 rotate to the hit normal, 1 face the velocity, 3 keep */
-    int x174;                  /* detonation prepared */
+    int noBlast;               /* +0x164 detonation without blast damage */
+    POV *unknown168;
+    float unknown16C;
+    int detonationPoseMode;    /* detonation pose: 0/2 rotate to the hit normal, 1 face the velocity, 3 keep */
+    int isDetonationPrepared;  /* +0x174 */
     int pad178[2];
     qword posDetonate;         /* +0x180 */
     M3 matDetonate;            /* +0x190 */
-    qword v1C0;                /* +0x1C0 velocity at detonation */
-    qword v1D0;                /* +0x1D0 angular velocity at detonation */
+    qword velocityAtDetonation;        /* +0x1C0 */
+    qword angularVelocityAtDetonation; /* +0x1D0 */
     int x1E0;
     int x1E4;
-    union { int x1E8; Q18 *pq1E8; };   /* +0x1E8 the thrower */
+    union { int x1E8; Q18 *thrower; };   /* +0x1E8 the thrower */
     int x1EC;
     int x1F0;
     int fCustomXps;            /* +0x1F4 */
     int cxp;
     CXP *axp;                  /* +0x1FC */
-    BOMBV *pbombOwner;          /* +0x200 */
+    BOMBV *owner;              /* +0x200 the bomb's owner (itself until thrown; contacts with its root are ignored) */
 };
-typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->pbombOwner == 0x200 ? 1 : -1];
+typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->owner == 0x200 ? 1 : -1];
 /* Objects of the SO list D_003E13B4 (UpdateBombCustomXps) and their marker LOs. */
 struct LOV { char pad[0x28]; int x28; signed char x2C; char x2D; long k:4; long :8; unsigned int f:1; char pad2[0xEC - 0x30]; XEC *pxp; };
 struct NV { char pad[0x60]; LOV *plo; };
@@ -82,7 +84,7 @@ struct HITB { qword pos; qword a; qword normal; qword b; qword c; qword d; };
 struct HIT48 { int a[12]; };
 /* AddBombCustomXps's contact request and its object. */
 struct CREQ { int x0; SOV *po; };
-/* A bounding-sphere hit (func_0013B5E8). */
+/* A bounding-sphere hit (CollectBombVictims). */
 struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int x74; };
 struct AREQV { int cb; int cbAlign; };
 /* The hit FAbsorbBombWkr absorbs. */
@@ -151,74 +153,52 @@ int MaxInt(int r, int n);
 void RecalcSwOxfFilterForObject(G *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
 void UpdateBombCustomXps(BOMBV *p);
-int func_0013B1C8(BOMBV *p, SOV *pso);
+int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pso);
 void PrepareBombDetonation(BOMBV *p, qword pos, qword dir);
-void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo);
-int func_0013B7A0(const void *, const void *);
-void func_0013B7B8(BOMBV *p, int *pc, SOV **apo);
-void func_0013BC60(BOMBV *p, BOMBV *pbombOwner);
+void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo);
+int CompareBombVictims(const void *, const void *);
+void SortUniqueBombVictims(BOMBV *p, int *pc, SOV **apo);
+void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 }
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
-/** @sly2-annot addr=0x13A9E8
- * Purpose: BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self
- * Info: proposed name InitBomb (T1); class BOMB slot7; TU bomb
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/gameplay-objects.md#key-functions
- * @end-sly2-annot */
-extern "C" void InitBomb(BOMBV *p) {
+// BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
+extern "C" void InitBomb(BOMBV *bomb) {
     int x;
-    InitSo(p);
-    p->tDetonate = 3.40282346638528859812e+38f;
-    p->sRadius = D_002BC9C8;
-    p->sRadiusHero = D_002BC9C8;
-    p->x1E0 = 1;
-    p->x1EC = 0x100;
-    p->x1F0 = -10;
-    x = p->grfUnk40;
-    p->k = 0;
+    InitSo(bomb);
+    bomb->tDetonate = 3.40282346638528859812e+38f;
+    bomb->sRadius = D_002BC9C8;
+    bomb->sRadiusHero = D_002BC9C8;
+    bomb->x1E0 = 1;
+    bomb->x1EC = 0x100;
+    bomb->x1F0 = -10;
+    x = bomb->grfUnk40;
+    bomb->k = 0;
     if ((x ^ 1) & 1) *(int *)x |= 2;
-    else p->grfUnk40 = x | 2;
-    p->pbombOwner = p;
+    else bomb->grfUnk40 = x | 2;
+    bomb->owner = bomb;
 }
 
-/** @sly2-annot addr=0x13AA70
- * Purpose: BOMB vt76: SO Clone then reset owner to self (0x13BC60)
- * Info: proposed name CloneBomb (T2); class BOMB slot76; TU bomb
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void func_0013AA70(BOMBV *p, BOMBV *pbombBase)
+// BOMB vtable slot 76: SO Clone then reset owner to self (SetBombOwner). (inferred)
+extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 {
-    CloneSo(p, pbombBase);
-    func_0013BC60(p, p);
+    CloneSo(bomb, source);
+    SetBombOwner(bomb, bomb);
 }
 
-/** @sly2-annot addr=0x13AAA0
- * Purpose: BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0)
- * Info: proposed name PostBombLoad (T1); class BOMB slot15; TU bomb
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void PostBombLoad(BOMBV *p) {
-    PostSoLoad(p);
-    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)AllocFromWorldHeap(&k); }
+// BOMB vtable slot 15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0).
+extern "C" void PostBombLoad(BOMBV *bomb) {
+    PostSoLoad(bomb);
+    if (bomb->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; bomb->axp = (CXP *)AllocFromWorldHeap(&k); }
 }
 
-/** @sly2-annot addr=0x13AAE8
- * Purpose: BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0)
- * Info: proposed name HandleBombMessage (T1); class BOMB slot5; TU bomb
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *p = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
-    HandleBasicMessage(p, msg, pm);
-    if (msg == 4 && (BOMBV *)pm->po == p && p->k == 0) PrimeBomb(p, 0.0f);
+// BOMB vtable slot 5: base handler; on msg 4 about itself while not primed, PrimeBomb(0).
+void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *bomb = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
+    HandleBasicMessage(bomb, msg, pm);
+    if (msg == 4 && (BOMBV *)pm->po == bomb && bomb->k == 0) PrimeBomb(bomb, 0.0f);
 }
 
+// Length of a vector as a float (VU0 sqrt).
 static __inline__ float GLength(qword v)
 {
     qword d;
@@ -230,58 +210,38 @@ static __inline__ float GLength(qword v)
     g = VuToFloat(d);
     return g;
 }
-/** @sly2-annot addr=0x13AB58
- * Purpose: BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else
- *   UpdateBombCustomXps when enabled
- * Info: proposed name UpdateBomb (T1); class BOMB slot16; TU bomb
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-/** @sly2-annot addr=0x13AB58
- * Purpose: BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else
- *   UpdateBombCustomXps when enabled
- * Info: proposed name UpdateBomb (T1); class BOMB slot16; TU bomb
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void UpdateBomb(BOMBV *p)
+// BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled.
+extern "C" void UpdateBomb(BOMBV *bomb)
 {
-    UpdateSo(p);
-    if (p->tDetonate <= D_002DDED0.t)
+    UpdateSo(bomb);
+    if (bomb->tDetonate <= D_002DDED0.t)
         goto out;
     {
         VTE *vt;
         qword v;
         int f;
-        vt = p->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
-        v = ((qword (*)(void *))vt[33].pfn)((char *)p + vt[33].d);
-        f = GLength(v) < p->sv158;
+        vt = bomb->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
+        v = ((qword (*)(void *))vt[33].pfn)((char *)bomb + vt[33].d);
+        f = GLength(v) < bomb->detonateSpeed;
         if (f) {
         out:
-            DetonateBomb(p);
-        } else if (p->fCustomXps) {
-            UpdateBombCustomXps(p);
+            DetonateBomb(bomb);
+        } else if (bomb->fCustomXps) {
+            UpdateBombCustomXps(bomb);
         }
     }
 }
 
-/** @sly2-annot addr=0x13AC18
- * Purpose: Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100
- * Info: proposed name UpdateBombCustomXps (T1); TU bomb
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void UpdateBombCustomXps(BOMBV *p)
+// Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100. (inferred)
+extern "C" void UpdateBombCustomXps(BOMBV *bomb)
 {
     int i;
     SOV *pso;
     int unused[4];
     HITB hit;
-    for (i = 0; i < p->cxp; i++)
-        UpdateSwPox(&D_003DD490, p->pxp, p->axp[i].plo->pxp, 2);
-    p->cxp = 0;
+    for (i = 0; i < bomb->cxp; i++)
+        UpdateSwPox(&D_003DD490, bomb->pxp, bomb->axp[i].plo->pxp, 2);
+    bomb->cxp = 0;
     for (pso = (*(SOLIST *)&g_sw.dlTarget).p; pso; pso = pso->pnext) {
         LOV *plo;
         SOV *pp;
@@ -303,15 +263,15 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
         {
             qword a = GetLoWorldPos(pso);
             XEC *px = plo->pxp;
-            qword b = p->pxa->pos;
-            if (ClipEdgeToSphere(a, b, GetLoWorldPos(p), 1, &hit, px->g30)) {
+            qword b = bomb->pxa->pos;
+            if (ClipEdgeToSphere(a, b, GetLoWorldPos(bomb), 1, &hit, px->g30)) {
                 CXP *pe;
                 qword d;
                 register qword vp __asm__("vf2");
                 register qword vn __asm__("vf1");
                 register int n __asm__("$2");
-                UpdateSwPox(&D_003DD490, p->pxp, plo->pxp, 1);
-                pe = &p->axp[p->cxp++];
+                UpdateSwPox(&D_003DD490, bomb->pxp, plo->pxp, 1);
+                pe = &bomb->axp[bomb->cxp++];
                 pe->plo = plo;
                 __asm__("" : "+r"(pe));
                 vp = hit.pos;
@@ -321,44 +281,39 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
                 __asm__("qmfc2.ni %0, %1" : "=r"(n) : "j"(d));
                 pe->normal = vn;
                 pe->n20 = n;
-                if (p->cxp >= 4)
+                if (bomb->cxp >= 4)
                     break;
             }
         }
     }
 }
 
-/** @sly2-annot addr=0x13ADE8
- * Purpose: BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (AddXp
- *   type 9)
- * Info: proposed name AddBombCustomXps (T1); class BOMB slot60; TU bomb
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void AddBombCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5)
+// BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (AddXp type 9). (inferred)
+extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, int a5)
 {
-    AddSoCustomXps(p, ps, a2, a3, a4, a5);
-    if (p->fCustomXps) {
+    AddSoCustomXps(bomb, ps, a2, a3, a4, a5);
+    if (bomb->fCustomXps) {
         CXP *pe;
-        for (pe = p->axp; pe < p->axp + p->cxp; pe++) {
+        for (pe = bomb->axp; pe < bomb->axp + bomb->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                AddXp(&D_003DD490, p->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                AddXp(&D_003DD490, bomb->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
                 return;
             }
         }
     }
 }
 
-typedef struct XPE { BOMBV *p; void *x; int pad[14]; } XPE;
+typedef struct XPE { BOMBV *object; void *x; int pad[14]; } XPE;
 typedef struct XPQ { int x0, x4; XPE ae[2]; char pad88[0x24]; struct XPQ *pqNext; } XPQ;
 #define AE(q) ((q)->ae)
-static inline int IOther(XPQ *pq, BOMBV *p)
+// Index (0/1) of the other end of a contact pair, relative to this bomb.
+static inline int IOther(XPQ *pq, BOMBV *bomb)
 {
-    int i = p != AE(pq)[0].p;
+    int i = bomb != AE(pq)[0].object;
     i = 1 - i;
     return i;
 }
+// Length of a vector, in lane x.
 static inline qword Length(qword a)
 {
     qword r, one;
@@ -367,6 +322,7 @@ static inline qword Length(qword a)
         : "=j"(r), "=j"(one) : "j"(a));
     return r;
 }
+// Length of a vector, in lane x (dot product form).
 static __inline__ qword VLenA(qword c)
 {
     qword l;
@@ -374,12 +330,14 @@ static __inline__ qword VLenA(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Vector divided by lane x of f.
 static inline qword DivQ(qword v, qword f)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
     return r;
 }
+// Lane x of a 128-bit register as a float.
 static inline float GetX(qword q)
 {
     float f;
@@ -387,6 +345,7 @@ static inline float GetX(qword q)
     return f;
 }
 
+// Unit vector of v, or def for a near-zero vector.
 static inline qword NormalizeSafe(qword v, qword def)
 {
     qword len = Length(v);
@@ -400,23 +359,9 @@ static inline qword NormalizeSafe(qword v, qword def)
 // D_002A4B10: a virtual pointer-to-member constant, 8 bytes {delta 0, vtable index, vptr offset 0xC} (tu-merging.md "Data").
 namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B10") = {0x4E0000, 0xC}; }
 namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x13AEB0
- * Purpose: BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine
- *   on +0x170 kinds 0/1/2)
- * Info: proposed name BOMB_VUnk57 (T2); class BOMB slot58; TU bomb
- * Notes: names_v2 C proposed ProjectAloTransform__FP3ALOfi (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-/** @sly2-annot addr=0x13AEB0
- * Purpose: BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine
- *   on +0x170 kinds 0/1/2)
- * Info: proposed name BOMB_VUnk57 (T2); class BOMB slot58; TU bomb
- * Notes: names_v2 C proposed ProjectAloTransform__FP3ALOfi (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void func_0013AEB0(BOMBV *p)
+// BOMB vtable slot 58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
+// 0/1/2). (inferred)
+extern "C" void HandleBombContact(BOMBV *bomb)
 {
     qword pos;
     float gBest;
@@ -424,36 +369,36 @@ extern "C" void func_0013AEB0(BOMBV *p)
     XPL *pl;
     XPQ *pq;
 
-    AdjustSoXps(p);
-    switch (p->k) {
+    AdjustSoXps(bomb);
+    switch (bomb->k) {
     case 0:
     case 2:
-        if (p->x174)
+        if (bomb->isDetonationPrepared)
             return;
         break;
     case 1:
-        if (!p->x1E4)
+        if (!bomb->x1E4)
             return;
-        if (p->x1E8)
+        if (bomb->x1E8)
             return;
         break;
     }
-    pos = p->pxa->pos;
+    pos = bomb->pxa->pos;
     gBest = D_002A4B18;
     pqBest = 0;
-    for (pl = p->pxp->pl; pl; pl = pl->next) {
+    for (pl = bomb->pxp->pl; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
             float g = GetX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
             if (gBest <= g)
                 continue;
             f = 0;
-            switch (p->k) {
+            switch (bomb->k) {
             case 0:
                 f = 1;
                 break;
             case 2: {
-                BOMBV *pOther = AE(pq)[IOther(pq, p)].p;
+                BOMBV *pOther = AE(pq)[IOther(pq, bomb)].object;
                 if (FIsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
                     if (IsPoPlayable(pOther))
@@ -462,7 +407,7 @@ extern "C" void func_0013AEB0(BOMBV *p)
                 break;
             }
             case 1:
-                if (func_0013B1C8(p, (SOV *)AE(pq)[IOther(pq, p)].x))
+                if (IsBombChainFreeOfExcludedClasses(bomb, (SOV *)AE(pq)[IOther(pq, bomb)].x))
                     f = 1;
                 break;
             }
@@ -474,12 +419,12 @@ extern "C" void func_0013AEB0(BOMBV *p)
     }
     if (!pqBest)
         return;
-    switch (p->k) {
+    switch (bomb->k) {
     case 0:
     case 2: {
         qword posT = *(qword *)AE(pqBest)[0].pad;
-        VTEQ *pe = &((VTEQ *)p->vt)[33];
-        qword v = pe->pfn((char *)p + pe->d);
+        VTEQ *pe = &((VTEQ *)bomb->vt)[33];
+        qword v = pe->pfn((char *)bomb + pe->d);
         register qword n __asm__("vf1");
         register qword kDef __asm__("$6");
         qword l;
@@ -494,23 +439,18 @@ extern "C" void func_0013AEB0(BOMBV *p)
             __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(rn) : "j"(v), "j"(l));
             n = rn;
         }
-        PrepareBombDetonation(p, posT, n);
-        PrimeBomb(p, 0.0f);
+        PrepareBombDetonation(bomb, posT, n);
+        PrimeBomb(bomb, 0.0f);
         break;
     }
     case 1:
-        PostSwCallback(&D_003DD490, p, D_002A4B10.l, AE(pqBest)[IOther(pqBest, p)].x);
+        PostSwCallback(&D_003DD490, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].x);
         break;
     }
 }
 
-/** @sly2-annot addr=0x13B1C8
- * Purpose: 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1
- * Info: proposed name FBombChainHasNoExcludedClass (T2); TU bomb
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" int func_0013B1C8(BOMBV *p, SOV *pn) {
+// 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1. (inferred)
+extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
     unsigned int i;
     for (; pn; pn = pn->pparent) {
         for (i = 0; i < 4; i++) {
@@ -520,24 +460,19 @@ extern "C" int func_0013B1C8(BOMBV *p, SOV *pn) {
     return 1;
 }
 
-/** @sly2-annot addr=0x13B250
- * Purpose: BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints,
- *   fire Splice event 0x1B
- * Info: proposed name ApplyBombThrow (T1); class BOMB slot77; TU bomb
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0,
- *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
- * @end-sly2-annot */
-extern "C" void ApplyBombThrow(BOMBV *p, Q18 *q) {
-    p->pq1E8 = q;
-    SetLoParent(p, q->f18 != 1 ? q : 0, 3);
-    SetSoPosXfVelocityLocal(p, D_002A2DD0);
-    SetSoRotXfVelocityLocal(p, D_002A2DD0);
-    SetSoCnstrForce(p, 1);
-    SetSoCnstrTorque(p, 1);
-    ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x1b, 0, 0, 0, 0);
+// BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
+// 0x1B. (inferred)
+extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
+    bomb->thrower = q;
+    SetLoParent(bomb, q->f18 != 1 ? q : 0, 3);
+    SetSoPosXfVelocityLocal(bomb, D_002A2DD0);
+    SetSoRotXfVelocityLocal(bomb, D_002A2DD0);
+    SetSoCnstrForce(bomb, 1);
+    SetSoCnstrTorque(bomb, 1);
+    ((void (*)(void *, int, int, int, int, int))bomb->vt[3].pfn)((char *)bomb + bomb->vt[3].d, 0x1b, 0, 0, 0, 0);
 }
 
+// Length of a vector, in lane x.
 static __inline__ qword VLen(qword c)
 {
     qword l;
@@ -545,26 +480,13 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-/** @sly2-annot addr=0x13B2F0
- * Purpose: BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit
- *   normal
- * Info: proposed name FAbsorbBombWkr (T1); class BOMB slot75; TU bomb
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-/** @sly2-annot addr=0x13B2F0
- * Purpose: BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit
- *   normal
- * Info: proposed name FAbsorbBombWkr (T1); class BOMB slot75; TU bomb
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
+// BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
+extern "C" int FAbsorbBombWkr(BOMBV *bomb, WKR *pm)
 {
     int r;
-    if (p->k == 1)
+    if (bomb->k == 1)
         return 0;
-    r = CanSoTakeDamage(p, pm);
+    r = CanSoTakeDamage(bomb, pm);
     if (r && (pm->x44 & 8)) {
         U u;
         U *pu;
@@ -585,106 +507,75 @@ extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
             n = rn;
         }
         pu->q = n;
-        PrepareBombDetonation(p, GetLoWorldPos(p), u.q);
+        PrepareBombDetonation(bomb, GetLoWorldPos(bomb), u.q);
         if (FIsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
-            PrimeBomb(p, 0.25f);
+            PrimeBomb(bomb, 0.25f);
         else
-            PrimeBomb(p, 0.0f);
+            PrimeBomb(bomb, 0.0f);
     }
     return r;
 }
 
+// 3x3 matrix times vector.
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
     o = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v);
     return o;
 }
-static __inline__ void MulStore(BOMBV *p, M3 *pm)
+// Stores pm times the bomb's world rotation as its detonation orientation (matDetonate).
+static __inline__ void MulStore(BOMBV *bomb, M3 *pm)
 {
     M3 t, u;
-    M3 *pb = GetLoWorldMatrix(p);
+    M3 *pb = GetLoWorldMatrix(bomb);
     u.r[0] = t.r[0] = MulV(pm, pb->r[0]);
     u.r[1] = t.r[1] = MulV(pm, pb->r[1]);
     t.r[2] = u.r[2] = MulV(pm, pb->r[2]);
-    p->matDetonate = t;
+    bomb->matDetonate = t;
 }
-/** @sly2-annot addr=0x13B428
- * Purpose: Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal
- * Info: proposed name PrepareBombDetonation (T1); TU bomb
- * Notes: names_v2 C proposed CalculateAloTransformAdjust__FP3ALOT0P6VECTORP7MATRIX3T2T2 (0.167) | runtime5a
- *   #14: spent darts +0x180 = rest position, +0x1C0 = flight velocity
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); static naming pass; sources:
- *   r2b_rest+runtime
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-/** @sly2-annot addr=0x13B428
- * Purpose: Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal
- * Info: proposed name PrepareBombDetonation (T1); TU bomb
- * Notes: names_v2 C proposed CalculateAloTransformAdjust__FP3ALOT0P6VECTORP7MATRIX3T2T2 (0.167) | runtime5a
- *   #14: spent darts +0x180 = rest position, +0x1C0 = flight velocity
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); static naming pass; sources:
- *   r2b_rest+runtime
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void PrepareBombDetonation(BOMBV *p, qword pos, qword q)
+// Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal.
+extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 {
     M3 m;
-    if (p->x174)
+    if (bomb->isDetonationPrepared)
         return;
-    p->posDetonate = pos;
-    p->x174 = 1;
+    bomb->posDetonate = pos;
+    bomb->isDetonationPrepared = 1;
     {
-        VTE *e = &p->vt[33];
-        p->v1C0 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
+        VTE *e = &bomb->vt[33];
+        bomb->velocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
     {
-        VTE *e = &p->vt[34];
-        p->v1D0 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
+        VTE *e = &bomb->vt[34];
+        bomb->angularVelocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
-    switch (p->x170) {
+    switch (bomb->detonationPoseMode) {
     case 0:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(p)->r[2], q);
-        MulStore(p, &m);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[2], q);
+        MulStore(bomb, &m);
         break;
     case 1:
-        BuildOrthonormalMatrixZ(&m, p->v1C0, D_002A2DC0);
-        p->matDetonate = m;
+        BuildOrthonormalMatrixZ(&m, bomb->velocityAtDetonation, D_002A2DC0);
+        bomb->matDetonate = m;
         break;
     case 2:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(p)->r[0], q);
-        MulStore(p, &m);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[0], q);
+        MulStore(bomb, &m);
         break;
     case 3:
-        p->matDetonate = *GetLoWorldMatrix(p);
+        bomb->matDetonate = *GetLoWorldMatrix(bomb);
         break;
     }
 }
 
-/** @sly2-annot addr=0x13B5C8
- * Purpose: tDetonate = min(tDetonate, now + dt)
- * Info: proposed name PrimeBomb (T1); TU bomb
- * Notes: runtime5a #12: dart tDetonate = fire + 4.0
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+verdicts_followups+runtime
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-void PrimeBomb(BOMBV *p, float f) { p->tDetonate = (p->tDetonate < D_002DDED0.t + f) ? p->tDetonate : D_002DDED0.t + f; }
+// tDetonate = min(tDetonate, now + dt).
+void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < D_002DDED0.t + f) ? bomb->tDetonate : D_002DDED0.t + f; }
 
 // (Claude agent) IntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).
-/** @sly2-annot addr=0x13B5E8
- * Purpose: Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered
- *   by line of sight, sorted/uniqued
- * Info: proposed name CollectBombVictims (T2); TU bomb
- * Notes: names_v2 C proposed LoadAloAloxFromBrx__FP3ALOP18CBinaryInputStream (0.168)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
+// Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of
+// sight, sorted/uniqued. (inferred)
+extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
 {
     AREQV req;
     int c;
@@ -692,7 +583,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
     int n;
     SOV **apo;
     int i;
-    { float a = p->sRadius; float b = p->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, p->posDetonate, ShouldKeepSoNotSelf, p->pxp, b >= a ? b : a, &c, &aps); }
+    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, bomb->posDetonate, ShouldKeepSoNotSelf, bomb->pxp, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;
@@ -708,40 +599,29 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
         void *pso60 = ps->po->pxp->pso60;
         if (ps->xC == 1)
             continue;
-        if (pso60 == p->pxp->pso60)
+        if (pso60 == bomb->pxp->pso60)
             continue;
-        if (ps->x74 && !IntersectSphereBsp(p->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? p->sRadiusHero : p->sRadius, &hit))
+        if (ps->x74 && !IntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;
     }
-    func_0013B7B8(p, &n, apo);
+    SortUniqueBombVictims(bomb, &n, apo);
     *pc = n;
     *papo = apo;
 }
 
-/** @sly2-annot addr=0x13B7A0
- * Purpose: qsort comparator (pointer difference / element size)
- * Info: proposed name CompareBombVictims (T2); TU bomb
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" int func_0013B7A0(const void *pv0, const void *pv1) {
+// qsort comparator (pointer difference / element size). (inferred)
+extern "C" int CompareBombVictims(const void *pv0, const void *pv1) {
     return (int)(((int)pv1 - (int)pv0) * 0x3CF3CF3D) >> 4;
 }
 
-/** @sly2-annot addr=0x13B7B8
- * Purpose: qsort then remove duplicates in place
- * Info: proposed name SortUniqueBombVictims (T2); TU bomb
- * Notes: names_v2 C proposed SetAloRotationMatchesVelocity__FP3ALOff3ACK (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void func_0013B7B8(BOMBV *unused, int *pc, SOV **a) {
+// qsort then remove duplicates in place. (inferred)
+extern "C" void SortUniqueBombVictims(BOMBV *unused, int *pc, SOV **a) {
     int n = *pc;
     SOV **pDst, **pSrc, **pMax;
     if (n < 2) return;
-    qsort(a, n, 4, func_0013B7A0);
+    qsort(a, n, 4, CompareBombVictims);
     pDst = a;
     pMax = a + n;
     for (pSrc = a; pSrc < pMax; pSrc++) {
@@ -752,26 +632,20 @@ extern "C" void func_0013B7B8(BOMBV *unused, int *pc, SOV **a) {
 
 // (Claude agent) frame declared at function scope with explicit init/free calls (free = dtor with in-charge 2) so msg2 reuses msg's slot.
 namespace RO_ORDER { extern const float r_D_002A4B1C __asm__("D_002A4B1C") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x13B860
- * Purpose: If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode
- *   effects, reclaim or remove
- * Info: proposed name DetonateBomb (T1); TU bomb
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void DetonateBomb(BOMBV *p)
+// If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or
+// remove.
+extern "C" void DetonateBomb(BOMBV *bomb)
 {
-    if (((p->fl >> 60) & 1) == 0)
+    if (((bomb->fl >> 60) & 1) == 0)
         return;
-    PrepareBombDetonation(p, GetLoWorldPos(p), D_002A2DC0);
+    PrepareBombDetonation(bomb, GetLoWorldPos(bomb), D_002A2DC0);
     FRAME frame;
-    if (p->x164 == 0) {
+    if (bomb->noBlast == 0) {
         FrameInit(&frame);
         int c;
         SOV **apo;
         int i;
-        func_0013B5E8(p, &c, &apo);
+        CollectBombVictims(bomb, &c, &apo);
         for (i = 0; i < c; i++) {
             SOV *po = apo[i];
             MSG msg;
@@ -779,14 +653,14 @@ extern "C" void DetonateBomb(BOMBV *p)
             qword d, n;
             float l;
             func_002333B4(&msg, 0, 0x60);
-            msg.xC = p->x1EC;
-            msg.x10 = p->x1F0;
-            msg.v20 = p->posDetonate;
-            msg.p = p;
+            msg.xC = bomb->x1EC;
+            msg.x10 = bomb->x1F0;
+            msg.v20 = bomb->posDetonate;
+            msg.p = bomb;
             msg.po = (POV *)po;
             qword pos = GetLoWorldPos(po);
             qword def = D_002A2DC0;
-            d = VuSub(pos, p->posDetonate);
+            d = VuSub(pos, bomb->posDetonate);
             {
                 register qword t __asm__("vf2");
                 t = VuDot(d, d);
@@ -809,81 +683,63 @@ extern "C" void DetonateBomb(BOMBV *p)
         }
         FrameFree(&frame, 2);
     }
-    ((void (*)(BOMBV *, qword))p->vt[29].pfn)((BOMBV *)((char *)p + p->vt[29].d), p->posDetonate);
-    ((void (*)(BOMBV *, void *))p->vt[30].pfn)((BOMBV *)((char *)p + p->vt[30].d), &p->matDetonate);
-    ((void (*)(BOMBV *, qword))p->vt[35].pfn)((BOMBV *)((char *)p + p->vt[35].d), p->v1C0);
-    ((void (*)(BOMBV *, qword))p->vt[36].pfn)((BOMBV *)((char *)p + p->vt[36].d), p->v1D0);
-    if (p->p168) {
+    ((void (*)(BOMBV *, qword))bomb->vt[29].pfn)((BOMBV *)((char *)bomb + bomb->vt[29].d), bomb->posDetonate);
+    ((void (*)(BOMBV *, void *))bomb->vt[30].pfn)((BOMBV *)((char *)bomb + bomb->vt[30].d), &bomb->matDetonate);
+    ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->velocityAtDetonation);
+    ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->angularVelocityAtDetonation);
+    if (bomb->unknown168) {
         MSG2 msg2;
-        POV *po = p->p168;
+        POV *po = bomb->unknown168;
         msg2.k = 9;
-        msg2.g8 = p->g16C;
-        msg2.gC = p->sRadius;
-        msg2.p = p;
+        msg2.g8 = bomb->unknown16C;
+        msg2.gC = bomb->sRadius;
+        msg2.p = bomb;
         ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
     }
-    if (p->x1E0) {
-        POV *po = (POV *)p->pbombOwner;
-        void *pv = p;
-        if (po != (POV *)p && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
+    if (bomb->x1E0) {
+        POV *po = (POV *)bomb->owner;
+        void *pv = bomb;
+        if (po != (POV *)bomb && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        NewNoise(D_003DD490.x402C, GetLoWorldPos(p), pv)[0x54 / 4] = 1;
+        NewNoise(D_003DD490.x402C, GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
     }
-    ((void (*)(BOMBV *))p->vt[9].pfn)((BOMBV *)((char *)p + p->vt[9].d));
-    p->x174 = 0;
-    p->tDetonate = D_002A4B1C;
-    ((void (*)(BOMBV *, int, int, int, int, int))p->vt[3].pfn)((BOMBV *)((char *)p + p->vt[3].d), 5, 0, 0, 0, 0);
+    ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
+    bomb->isDetonationPrepared = 0;
+    bomb->tDetonate = D_002A4B1C;
+    ((void (*)(BOMBV *, int, int, int, int, int))bomb->vt[3].pfn)((BOMBV *)((char *)bomb + bomb->vt[3].d), 5, 0, 0, 0, 0);
 }
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x13BB80
- * Purpose: BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent
- * Info: proposed name ResetBomb (T1); class BOMB slot26; TU bomb
- * Notes: runtime5a #15 CONSISTENT: spent darts out of world, tDetonate FLT_MAX, parent 0
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void ResetBomb(BOMBV *p) {
-    SO_ResetForProxy(p);
-    p->x174 = 0;
-    p->tDetonate = D_002A4B20;
-    func_0013BC60(p, p);
-    SetSoCnstrForce(p, 0);
-    SetSoCnstrTorque(p, 0);
-    SetSoTreeFlag2(p, 0);
-    p->x1E8 = 0;
-    SetLoParent(p, 0, 0xf);
+// BOMB vtable slot 26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
+extern "C" void ResetBomb(BOMBV *bomb) {
+    SO_ResetForProxy(bomb);
+    bomb->isDetonationPrepared = 0;
+    bomb->tDetonate = D_002A4B20;
+    SetBombOwner(bomb, bomb);
+    SetSoCnstrForce(bomb, 0);
+    SetSoCnstrTorque(bomb, 0);
+    SetSoTreeFlag2(bomb, 0);
+    bomb->x1E8 = 0;
+    SetLoParent(bomb, 0, 0xf);
 }
 
-/** @sly2-annot addr=0x13BBF8
- * Purpose: BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root
- * Info: proposed name FIgnoreBombIntersection (T1); class BOMB slot61; TU bomb
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" int FIgnoreBombIntersection(BOMBV *p, SOV *pso)
+// BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
+extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
 {
-    int r = ShouldSoIgnoreIntersection(p, pso);
-    if (pso->ploroot->plo == p->pbombOwner->ploroot->plo) {
+    int r = ShouldSoIgnoreIntersection(bomb, pso);
+    if (pso->ploroot->plo == bomb->owner->ploroot->plo) {
         r = MaxInt(r, 1);
     }
     return r;
 }
 
-/** @sly2-annot addr=0x13BC60
- * Purpose: Set owner (+0x200) and RecalcSwOxfFilterForObject if changed
- * Info: proposed name SetBombOwner (T2); TU bomb
- * Notes: runtime5a #13: owner +0x200 = launcher CID112 for all darts | T2 forced: v2 tier kept (v2 held this
- *   name at T2)
- * Confidence: low (draft) [T2 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
- * @end-sly2-annot */
-extern "C" void func_0013BC60(BOMBV *p, BOMBV *pbombOwner)
+// Set owner (+0x200) and RecalcSwOxfFilterForObject if changed. (inferred)
+extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
-    if (pbombOwner != p->pbombOwner) {
-        p->pbombOwner = pbombOwner;
-        RecalcSwOxfFilterForObject(&D_003DD490, p);
+    if (pbombOwner != bomb->owner) {
+        bomb->owner = pbombOwner;
+        RecalcSwOxfFilterForObject(&D_003DD490, bomb);
     }
 }

@@ -43,7 +43,7 @@ void IsPoCurrent() __asm__("IsPoCurrent");
 void IsJobComplete() __asm__("IsJobComplete");
 void IsEmitterPaused__FP7EMITTER() __asm__("IsEmitterPaused__FP7EMITTER");
 void IsReconTargetDone() __asm__("IsReconTargetDone");
-void FRelayFiring() __asm__("FRelayFiring");
+void IsRelayFiring() __asm__("IsRelayFiring");
 void IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
 void IsSwHandsOff() __asm__("IsSwHandsOff");
 void IsTaskComplete() __asm__("IsTaskComplete");
@@ -56,7 +56,7 @@ void GetSoIceable() __asm__("GetSoIceable");
 void GetSoIgnoreLocked() __asm__("GetSoIgnoreLocked");
 void GetTnFocusX() __asm__("GetTnFocusX");
 void GetWrWavelength() __asm__("GetWrWavelength");
-void IdBootyCur() __asm__("IdBootyCur");
+void GetCurrentBootyEntryId() __asm__("GetCurrentBootyEntryId");
 void GetStepplayerMp() __asm__("GetStepplayerMp");
 void GetTaskStateGoalOid() __asm__("GetTaskStateGoalOid");
 void GetLoProxyOid() __asm__("GetLoProxyOid");
@@ -558,15 +558,15 @@ void func_001108E0() __asm__("func_001108E0");
 void func_00110998() __asm__("func_00110998");
 void EnsureCurrentAmbSound() __asm__("EnsureCurrentAmbSound");
 void GetBasicSelf() __asm__("GetBasicSelf");
-void func_0013BC60() __asm__("func_0013BC60");
-void func_0013C4D8() __asm__("func_0013C4D8");
+void SetBombOwner() __asm__("SetBombOwner");
+void GetCurrentBootyEntry() __asm__("GetCurrentBootyEntry");
 void IsStepplayerPushing() __asm__("IsStepplayerPushing");
 void IsStepplayerJtModeBinocucom() __asm__("IsStepplayerJtModeBinocucom");
 void IsStepplayerJtModeRecon() __asm__("IsStepplayerJtModeRecon");
 void IsStepplayerJtModeKind2() __asm__("IsStepplayerJtModeKind2");
-void func_00149248() __asm__("func_00149248");
-void func_001497E0() __asm__("func_001497E0");
-void func_00149848() __asm__("func_00149848");
+void AddButtonPushClass() __asm__("AddButtonPushClass");
+void AddVolbtnPushClass() __asm__("AddVolbtnPushClass");
+void GetVolbtnPushStateRef() __asm__("GetVolbtnPushStateRef");
 void IsNoiseRemoved() __asm__("IsNoiseRemoved");
 void EnsureExplsSfx() __asm__("EnsureExplsSfx");
 void JobOptionNoOp() __asm__("JobOptionNoOp");
@@ -575,8 +575,8 @@ void AddSpawnerCurve() __asm__("AddSpawnerCurve");
 void AddSpawnerSmallLoSpot() __asm__("AddSpawnerSmallLoSpot");
 void AddSpawnerTemplate() __asm__("AddSpawnerTemplate");
 void AddSpawnerOffset() __asm__("AddSpawnerOffset");
-void func_001813C0() __asm__("func_001813C0");
-void func_001813F0() __asm__("func_001813F0");
+void SetHackenemyScale() __asm__("SetHackenemyScale");
+void SetHackenemyRange() __asm__("SetHackenemyRange");
 void AddGrabspotPlayerMask() __asm__("AddGrabspotPlayerMask");
 void SetGrabspotPlayerClass() __asm__("SetGrabspotPlayerClass");
 void SetLightHighlightColor() __asm__("SetLightHighlightColor");
@@ -592,11 +592,11 @@ void SetLoEulerDegrees() __asm__("SetLoEulerDegrees");
 void GetLoBusyk() __asm__("GetLoBusyk");
 void SetLoOwnVisMask() __asm__("SetLoOwnVisMask");
 void HasLoOwnVisMask() __asm__("HasLoOwnVisMask");
-void func_001B1328() __asm__("func_001B1328");
-void func_001BBA60() __asm__("func_001BBA60");
-void func_001BBA90() __asm__("func_001BBA90");
-void func_001BBB50() __asm__("func_001BBB50");
-void func_001BBB80() __asm__("func_001BBB80");
+void SetCritterState() __asm__("SetCritterState");
+void AddBreakableSetSource() __asm__("AddBreakableSetSource");
+void AddBreakableSendMessage() __asm__("AddBreakableSendMessage");
+void AddBreakableSpliceEvent() __asm__("AddBreakableSpliceEvent");
+void AddBreakableAddObject() __asm__("AddBreakableAddObject");
 void AddRtcamObject() __asm__("AddRtcamObject");
 void AddRtcamObjectShown() __asm__("AddRtcamObjectShown");
 void AddPathlinkEndpointObject() __asm__("AddPathlinkEndpointObject");
@@ -604,15 +604,15 @@ void AddPathlinkEndpointPos() __asm__("AddPathlinkEndpointPos");
 void SetPipeGrabEnabled() __asm__("SetPipeGrabEnabled");
 void IsPoPlayable() __asm__("IsPoPlayable");
 void SetSwPoOverride() __asm__("SetSwPoOverride");
-void func_001C7A40() __asm__("func_001C7A40");
-void func_001C7A58() __asm__("func_001C7A58");
-void func_001C7B10() __asm__("func_001C7B10");
+void GetCurrentLootEntryId() __asm__("GetCurrentLootEntryId");
+void SelectLootEntry() __asm__("SelectLootEntry");
+void GetCurrentLootEntry() __asm__("GetCurrentLootEntry");
 void GetProxyCurrentObject() __asm__("GetProxyCurrentObject");
 void GetProxyCopyObjects() __asm__("GetProxyCopyObjects");
 void GetProxyCopyValue() __asm__("GetProxyCopyValue");
-void func_001E0128() __asm__("func_001E0128");
-void func_001E0158() __asm__("func_001E0158");
-void func_001E01C8() __asm__("func_001E01C8");
+void GetRelaySignalContext() __asm__("GetRelaySignalContext");
+void SetRelaySignalContext() __asm__("SetRelaySignalContext");
+void SetRelayCommandLimit() __asm__("SetRelayCommandLimit");
 void EnsureShapeChain() __asm__("EnsureShapeChain");
 void SetShapeChainStartObject() __asm__("SetShapeChainStartObject");
 void SetShapeChainEndObject() __asm__("SetShapeChainEndObject");
@@ -679,9 +679,9 @@ void SetSwIllumHsv() __asm__("SetSwIllumHsv");
 void SetSwUnknown3EA8() __asm__("SetSwUnknown3EA8");
 void SelectTnCpdForCid() __asm__("SelectTnCpdForCid");
 void GetTnCpdCid() __asm__("GetTnCpdCid");
-void func_00224610() __asm__("func_00224610");
-void func_00224638() __asm__("func_00224638");
-void func_00226370() __asm__("func_00226370");
+void IsThrowableGadget() __asm__("IsThrowableGadget");
+void IsTossableStateBlocking() __asm__("IsTossableStateBlocking");
+void SetTurretActive() __asm__("SetTurretActive");
 void GetExitTargetLevelIndex() __asm__("GetExitTargetLevelIndex");
 }
 
@@ -1127,7 +1127,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x201E, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [394] opt 497, BOMB (+3) */
     {5, 0x92, EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_NONE}, /* [395] opt 498, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_NONE}, /* [396] opt 499, BOMB (+3) */
-    {0x2002, 0x22, EOPID_INT(0x200), EOPID_PMF(func_0013BC60), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
+    {0x2002, 0x22, EOPID_INT(0x200), EOPID_PMF(SetBombOwner), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_NONE}, /* [398] opt 501, BOMB (+3) */
     {0x2030, 2, EOPID_INT(0x1E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [399] opt 502, BOMB (+3) */
     {0x2002, 0x12, EOPID_INT(0x210), EOPID_INT(0x210), EOPID_NONE, EOPID_NONE}, /* [400] opt 503, MISSILE (+2) */
@@ -1148,7 +1148,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [415] opt 517, BUTTON */
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [416] opt 518, BUTTON */
     {0x2030, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushObject), EOPID_PMF(AddButtonPushObject), EOPID_NONE}, /* [417] opt 519, BUTTON */
-    {7, 0x120, EOPID_NONE, EOPID_PMF(func_00149248), EOPID_PMF(func_00149248), EOPID_NONE}, /* [418] opt 520, BUTTON */
+    {7, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushClass), EOPID_PMF(AddButtonPushClass), EOPID_NONE}, /* [418] opt 520, BUTTON */
     {1, 0x92, EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_NONE}, /* [419] opt 521, BUTTON */
     {1, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [420] opt 522, BUTTON */
     {0, 0x92, EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_NONE}, /* [421] opt 523, BUTTON */
@@ -1163,7 +1163,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [430] opt 517, VOLBTN (+1) */
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [431] opt 518, VOLBTN (+1) */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushObject), EOPID_PMF(AddVolbtnPushObject), EOPID_NONE}, /* [432] opt 519, VOLBTN (+1) */
-    {7, 0x120, EOPID_NONE, EOPID_PMF(func_001497E0), EOPID_PMF(func_001497E0), EOPID_NONE}, /* [433] opt 520, VOLBTN (+1) */
+    {7, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushClass), EOPID_PMF(AddVolbtnPushClass), EOPID_NONE}, /* [433] opt 520, VOLBTN (+1) */
     {1, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [434] opt 521, VOLBTN (+1) */
     {1, 0x92, EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_NONE}, /* [435] opt 522, VOLBTN (+1) */
     {0, 0x92, EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_NONE}, /* [436] opt 523, VOLBTN (+1) */
@@ -1174,7 +1174,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2072, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [441] opt 531, VOLBTN (+1) */
     {0x101B, 0x22, EOPID_INT(0x1C0), EOPID_PMF(SetVolbtnButtons), EOPID_NONE, EOPID_NONE}, /* [442] opt 528, VOLBTN (+1) */
     {0, 0x82, EOPID_INT(0x2C8), EOPID_NONE, EOPID_INT(0x2C8), EOPID_NONE}, /* [443] opt 532, VOLBTN (+1) */
-    {0xA002, 4, EOPID_PMF(func_00149848), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [444] opt 533, VOLBTN (+1) */
+    {0xA002, 4, EOPID_PMF(GetVolbtnPushStateRef), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [444] opt 533, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnTRIGGER), EOPID_NONE, EOPID_NONE}, /* [445] opt 235, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [446] opt 530, VOLBTN (+1) */
     {0x2002, 2, EOPID_INT(0x1D8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [447] opt 534, VOLBTN (+1) */
@@ -1346,15 +1346,15 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkRelayTRIGGER), EOPID_INT(1), EOPID_NONE}, /* [613] opt 235, RELAY */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(func_00106710), EOPID_NONE, EOPID_NONE}, /* [614] opt 638, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkRelayUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [615] opt 530, RELAY */
-    {0, 4, EOPID_PMF(FRelayFiring), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [616] opt 639, RELAY */
+    {0, 4, EOPID_PMF(IsRelayFiring), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [616] opt 639, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_EnsureRelayAlarm), EOPID_INT(1), EOPID_NONE}, /* [617] opt 640, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveRelayAlarm), EOPID_INT(1), EOPID_NONE}, /* [618] opt 641, RELAY */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_FRelayHasAlarm), EOPID_INT(1), EOPID_NONE}, /* [619] opt 642, RELAY */
     {0x2002, 2, EOPID_INT(0x6C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [620] opt 643, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ClearRelayAlarms), EOPID_NONE, EOPID_NONE}, /* [621] opt 644, RELAY */
-    {5, 0x102, EOPID_INT(0x58), EOPID_NONE, EOPID_PMF(func_001E01C8), EOPID_NONE}, /* [622] opt 645, RELAY */
+    {5, 0x102, EOPID_INT(0x58), EOPID_NONE, EOPID_PMF(SetRelayCommandLimit), EOPID_NONE}, /* [622] opt 645, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetRelay), EOPID_NONE, EOPID_NONE}, /* [623] opt 646, RELAY */
-    {0x2002, 0x24, EOPID_PMF(func_001E0128), EOPID_PMF(func_001E0158), EOPID_NONE, EOPID_NONE}, /* [624] opt 647, RELAY */
+    {0x2002, 0x24, EOPID_PMF(GetRelaySignalContext), EOPID_PMF(SetRelaySignalContext), EOPID_NONE, EOPID_NONE}, /* [624] opt 647, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayBlockBegin), EOPID_FN(RefThunk_AddRelayBlockBegin), EOPID_INT(1), EOPID_NONE}, /* [625] opt 648, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayBlockEnd), EOPID_FN(RefThunk_AddRelayBlockEnd), EOPID_NONE, EOPID_NONE}, /* [626] opt 649, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayStopBlock), EOPID_FN(RefThunk_AddRelayStopBlock), EOPID_INT(1), EOPID_NONE}, /* [627] opt 650, RELAY */
@@ -1640,8 +1640,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddLootEntry), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [907] opt 828, LOOT */
     {0x12, 0x400, EOPID_FN(func_0010BE70), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [908] opt 829, LOOT */
     {0x12, 0x400, EOPID_FN(RefThunk_AddLootEntryOid), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [909] opt 830, LOOT */
-    {6, 0x24, EOPID_PMF(func_001C7A40), EOPID_PMF(func_001C7A58), EOPID_NONE, EOPID_NONE}, /* [910] opt 831, LOOT */
-    {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001C7B10)}, /* [911] opt 832, LOOT */
+    {6, 0x24, EOPID_PMF(GetCurrentLootEntryId), EOPID_PMF(SelectLootEntry), EOPID_NONE, EOPID_NONE}, /* [910] opt 831, LOOT */
+    {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(GetCurrentLootEntry)}, /* [911] opt 832, LOOT */
     {0xA, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [912] opt 824, LOOT */
     {0xF, 0x92, EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_NONE}, /* [913] opt 771, SW */
     {2, 0xA2, EOPID_INT(0x3E10), EOPID_PMF(SetSwIllumHsv), EOPID_INT(0x3E10), EOPID_NONE}, /* [914] opt 833, SW */
@@ -1705,7 +1705,7 @@ EOPIDROW D_002AC880[1449] = {
     {0xA, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [972] opt 889, CID96 */
     {1, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [973] opt 890, CID96 */
     {1, 0x122, EOPID_INT(0x21C), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_NONE}, /* [974] opt 350, CID96 */
-    {0x1036, 0x22, EOPID_INT(0x220), EOPID_PMF(func_001B1328), EOPID_NONE, EOPID_NONE}, /* [975] opt 891, CID96 */
+    {0x1036, 0x22, EOPID_INT(0x220), EOPID_PMF(SetCritterState), EOPID_NONE, EOPID_NONE}, /* [975] opt 891, CID96 */
     {5, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [976] opt 402, CID96 */
     {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [977] opt 403, CID96 */
     {0, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [978] opt 892, SKY */
@@ -1737,7 +1737,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2030, 2, EOPID_INT(0x1C8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1004] opt 916, TURRET */
     {1, 0x92, EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_NONE}, /* [1005] opt 917, TURRET */
     {1, 0x92, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE}, /* [1006] opt 918, TURRET */
-    {0, 0xA2, EOPID_INT(0x1CC), EOPID_PMF(func_00226370), EOPID_INT(0x1CC), EOPID_NONE}, /* [1007] opt 919, TURRET */
+    {0, 0xA2, EOPID_INT(0x1CC), EOPID_PMF(SetTurretActive), EOPID_INT(0x1CC), EOPID_NONE}, /* [1007] opt 919, TURRET */
     {0x2002, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1008] opt 920, TURRET */
     {0, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1009] opt 921, TURRET */
     {0xA, 0x92, EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_NONE}, /* [1010] opt 922, TURRET */
@@ -1763,13 +1763,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(func_0010C8C8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1030] opt 342, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010C950), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1031] opt 931, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010C9C8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1032] opt 932, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BBA60), EOPID_NONE}, /* [1033] opt 933, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BBA90), EOPID_NONE}, /* [1034] opt 244, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSetSource), EOPID_NONE}, /* [1033] opt 933, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSendMessage), EOPID_NONE}, /* [1034] opt 244, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CA50), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1035] opt 233, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CAD8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1036] opt 234, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CB60), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1037] opt 934, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BBB50), EOPID_NONE}, /* [1038] opt 243, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BBB80), EOPID_NONE}, /* [1039] opt 238, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSpliceEvent), EOPID_NONE}, /* [1038] opt 243, CID98 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAddObject), EOPID_NONE}, /* [1039] opt 238, CID98 */
     {0x12, 0x401, EOPID_FN(func_0010CBE8), EOPID_FN(func_0010CC70), EOPID_INT(1), EOPID_NONE}, /* [1040] opt 110, CID98 */
     {0x12, 0x401, EOPID_FN(func_0010CCF8), EOPID_FN(func_0010CD80), EOPID_INT(1), EOPID_NONE}, /* [1041] opt 112, CID98 */
     {0x12, 0x400, EOPID_FN(func_0010CE08), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1042] opt 239, CID98 */
@@ -1835,8 +1835,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x206F, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [1102] opt 484, CID100 (+2) */
     {0x2088, 2, EOPID_INT(0x168), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, CID100 (+2) */
     {0x1049, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1104] opt 960, CID100 (+2) */
-    {0, 4, EOPID_PMF(func_00224610), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1105] opt 961, CID100 (+2) */
-    {0, 4, EOPID_PMF(func_00224638), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1106] opt 501, CID100 (+2) */
+    {0, 4, EOPID_PMF(IsThrowableGadget), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1105] opt 961, CID100 (+2) */
+    {0, 4, EOPID_PMF(IsTossableStateBlocking), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1106] opt 501, CID100 (+2) */
     {0x1011, 0x92, EOPID_INT(0x174), EOPID_INT(0x174), EOPID_INT(0x174), EOPID_NONE}, /* [1107] opt 962, CID100 (+2) */
     {5, 0x92, EOPID_INT(0x178), EOPID_INT(0x178), EOPID_INT(0x178), EOPID_NONE}, /* [1108] opt 498, CID100 (+2) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010D958), EOPID_INT(1), EOPID_NONE}, /* [1109] opt 963, CID100 (+2) */
@@ -1885,15 +1885,15 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddBootyEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1152] opt 828, BOOTY */
     {0x12, 0x400, EOPID_FN(func_0010E0C0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1153] opt 829, BOOTY */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBootyEntryOid), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1154] opt 830, BOOTY */
-    {6, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMF(func_0013C4D8)}, /* [1155] opt 352, BOOTY */
+    {6, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMF(GetCurrentBootyEntry)}, /* [1155] opt 352, BOOTY */
     {0x201E, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [1156] opt 1005, BOOTY */
     {2, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [1157] opt 1006, BOOTY */
-    {6, 0x24, EOPID_PMF(IdBootyCur), EOPID_PMF(SelectBootyEntry), EOPID_NONE, EOPID_NONE}, /* [1158] opt 831, BOOTY */
-    {6, 0x2002, EOPID_INT(0x14), EOPID_NONE, EOPID_NONE, EOPID_PMF(func_0013C4D8)}, /* [1159] opt 1007, BOOTY */
-    {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(func_0013C4D8)}, /* [1160] opt 832, BOOTY */
-    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(func_0013C4D8)}, /* [1161] opt 1008, BOOTY */
-    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(func_0013C4D8)}, /* [1162] opt 1009, BOOTY */
-    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(func_0013C4D8)}, /* [1163] opt 1010, BOOTY */
+    {6, 0x24, EOPID_PMF(GetCurrentBootyEntryId), EOPID_PMF(SelectBootyEntry), EOPID_NONE, EOPID_NONE}, /* [1158] opt 831, BOOTY */
+    {6, 0x2002, EOPID_INT(0x14), EOPID_NONE, EOPID_NONE, EOPID_PMF(GetCurrentBootyEntry)}, /* [1159] opt 1007, BOOTY */
+    {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(GetCurrentBootyEntry)}, /* [1160] opt 832, BOOTY */
+    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(GetCurrentBootyEntry)}, /* [1161] opt 1008, BOOTY */
+    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(GetCurrentBootyEntry)}, /* [1162] opt 1009, BOOTY */
+    {0, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(GetCurrentBootyEntry)}, /* [1163] opt 1010, BOOTY */
     {0x1042, 2, EOPID_INT(0x184), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1164] opt 342, BOOTY */
     {0x2025, 2, EOPID_INT(0x15C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1165] opt 1011, BOOTY */
     {0x2034, 2, EOPID_INT(0x160), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1166] opt 1012, BOOTY */
@@ -2106,8 +2106,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x207E, 0x92, EOPID_INT(0x2A0), EOPID_INT(0x2A0), EOPID_INT(0x2A0), EOPID_NONE}, /* [1373] opt 1179, HACKSHIP */
     {0xE, 0x92, EOPID_INT(0x2A8), EOPID_INT(0x2A8), EOPID_INT(0x2A8), EOPID_NONE}, /* [1374] opt 1180, HACKSHIP */
     {0x12, 0x400, EOPID_FN(func_0010FE60), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1375] opt 369, HACKENEMY */
-    {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001813C0), EOPID_NONE}, /* [1376] opt 350, HACKENEMY */
-    {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001813F0), EOPID_NONE}, /* [1377] opt 1181, HACKENEMY */
+    {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(SetHackenemyScale), EOPID_NONE}, /* [1376] opt 350, HACKENEMY */
+    {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(SetHackenemyRange), EOPID_NONE}, /* [1377] opt 1181, HACKENEMY */
     {0x2011, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1378] opt 425, HACKENEMY */
     {0x2002, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1379] opt 386, HACKENEMY */
     {0x12, 0x401, EOPID_FN(func_0010FF18), EOPID_FN(func_0010FF18), EOPID_INT(3), EOPID_NONE}, /* [1380] opt 1182, HACKENEMY */

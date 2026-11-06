@@ -1,4 +1,7 @@
-// tu_15DC80.cpp -- a timed screen-colour fade object (an LO that lerps a clear colour through three phases).
+// tu_15DC80.cpp -- CID116, the screen fade: an LO that fills the screen with a colour that fades in, holds, and fades
+// out (three timed phases), then removes itself. Started from a level script (Splice thunk func_0010C6A8) or by the
+// world-entry code in places.cpp (StartScreenFade). Entry points: StartScreenFade and the CID116 vtable (Init,
+// UpdateScreenFade, RenderScreenFade).
 // TU 0x15DC80..0x15E380 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_15DC80
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015E360
@@ -14,20 +17,20 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor is part of RgbaLerp's codegen */
 extern CLOCK D_002DDED0;          /* g_clock */
 
-/* The fade object (offsets CONFIRMED by match; HYPOTHESIS: an LO subclass, vtable at +0xC). */
+/* The fade object, CID116 (an LO, vtable at +0xC; offsets confirmed by the match). */
 struct X
 {
       int a[3];
-      VTE *vt;                  /* +0x0C */
+      VTE *vtable;              /* +0x0C */
       byte pad10[0x28 - 0x10];
-      unsigned long fl;         /* +0x28 bit 60: already started */
+      unsigned long loFlags;    /* +0x28 bit 60: LO::fInWorld (the fade is running) */
       byte pad30[0x40 - 0x30];
-      unsigned int grf40;       /* +0x40 flags, or (bit 0 clear) a pointer to them */
+      unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
       byte pad44[0x50 - 0x44];
-      RGBAV rgba50, rgba54, rgba58;   /* fade from, hold, fade to */
-      float d5C, d60, d64;      /* phase durations */
-      float t68;                /* start time */
-      int k6C;                  /* render kind */
+      RGBAV fadeInFrom, holdColor, fadeOutTo;   /* +0x50 */
+      float fadeInTime, holdTime, fadeOutTime;  /* +0x5C phase durations, seconds */
+      float startTime;          /* +0x68 clock time when the fade started */
+      int renderKind;           /* +0x6C 0: render pass 1, 1: render pass 14 (over the HUD?) */
 };
 
 typedef struct BUF { char ab[0x250]; } __attribute__((aligned(16))) BUF;
@@ -46,129 +49,111 @@ void AddDmaRet__4DMAS(R *);
 Q *AllocRenderListEntry(void);
 }
 
-/** @sly2-annot addr=0x15DC80
- * Purpose: LO::Init, register for update, flags 0xA
- * Info: proposed name InitCid116 (T2); class CID116 slot7; TU tu_15DC80
- * Notes: Cid74->Cid116 (CID 0x74=116, vtable)
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/hud-ui.md#4-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
- * @end-sly2-annot */
+// CID116 vtable slot 7 (Init): LO defaults, busy kind 1, and update flags 0xA (the flag word is either inline,
+// tagged with bit 0, or behind a pointer).
 void CID116::Init()
 {
-    X *p = (X *)this;
-      unsigned int v;
+    X *fade = (X *)this;
+      unsigned int flags;
 
-      InitLo(p);
-      SetLoBusyk(p, 1);
-      v = p->grf40;
-      if ((v ^ 1) & 1)
-            *(int *)v |= 0xA;
+      InitLo(fade);
+      SetLoBusyk(fade, 1);
+      flags = fade->updateFlags;
+      if ((flags ^ 1) & 1)
+            *(int *)flags |= 0xA;
       else
-            p->grf40 = v | 0xA;
+            fade->updateFlags = flags | 0xA;
 }
 
-/** @sly2-annot addr=0x15DCD8
- * Purpose: LO::Update; when clock time - t68 exceeds the sum of three durations (5C+60+64) calls vtable slot
- *   (+0x48/0x4C) to expire itself
- * Info: proposed name UpdateCid116 (T2); class CID116 slot16; TU tu_15DC80
- * Notes: Cid74->Cid116 (CID 0x74=116, vtable)
- * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
- * @end-sly2-annot */
-extern "C" void func_0015DCD8(X *p, float dt)
+// CID116 vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable
+// slot 9, Remove).
+extern "C" void UpdateScreenFade(X *fade, float dt)
 {
-      UpdateLo(p, dt);
-      if (D_002DDED0.t - p->t68 > p->d5C + p->d60 + p->d64) {
-            VTE *pvte = &p->vt[9];
-            ((void (*)(void *))pvte->pfn)((char *)p + pvte->d);
+      UpdateLo(fade, dt);
+      if (D_002DDED0.t - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
+            VTE *entry = &fade->vtable[9];
+            ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
       }
 }
 
-static inline RGBAV RgbaLerp(float t, RGBAV a, RGBAV b)
+// Per-channel linear blend of two colours (t in 0..1).
+static inline RGBAV RgbaLerp(float t, RGBAV from, RGBAV to)
 {
-    RGBAV r;
-    r.r = NLerp(t, a.r, b.r);
-    r.g = NLerp(t, a.g, b.g);
-    r.b = NLerp(t, a.b, b.b);
-    r.a = NLerp(t, a.a, b.a);
-    return r;
+    RGBAV result;
+    result.r = NLerp(t, from.r, to.r);
+    result.g = NLerp(t, from.g, to.g);
+    result.b = NLerp(t, from.b, to.b);
+    result.a = NLerp(t, from.a, to.a);
+    return result;
 }
-static inline void Build(BUF *pbuf, RGBAV rgba)
+// Builds the GIF packet that clears the screen to a colour (3 = clear kind).
+static inline void BuildClearPacket(BUF *packet, RGBAV color)
 {
-    BuildClearGifs__FP2QWG4RGBAi(pbuf, &rgba, 3);
+    BuildClearGifs__FP2QWG4RGBAi(packet, &color, 3);
 }
-/** @sly2-annot addr=0x15DD48
- * Purpose: Draws the timed object (1168-byte body)
- * Info: proposed name RenderCid116Self (T2); class CID116 slot19; TU tu_15DC80
- * Notes: Cid74->Cid116 (CID 0x74=116, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/rendering.md#2-render-list-entries-rpl,
- *   docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
- * @end-sly2-annot */
-extern "C" void func_0015DD48(X *p)
+// CID116 vtable slot 19 (RenderSelf): picks the current phase (fade in: from -> hold, hold, fade out: hold -> to),
+// blends the colour, builds a full-screen clear packet into the DMA chain and queues it as a render-list entry in
+// pass 1 or 14 (by renderKind). Past the last phase the blend inputs are left unset (the update removes the fade).
+extern "C" void RenderScreenFade(X *fade)
 {
-    RGBAV rgba;
-    RGBAV a, b;
-    float d;
-    float dt = D_002DDED0.t - p->t68;
-    R *pr;
-    int x;
-    Q *pq;
-    if (dt < p->d5C) {
-        a = p->rgba50;
-        b = p->rgba54;
-        d = p->d5C;
+    RGBAV color;
+    RGBAV from, to;
+    float phaseTime;
+    float elapsed = D_002DDED0.t - fade->startTime;
+    R *dma;
+    int dmaStart;
+    Q *entry;
+    if (elapsed < fade->fadeInTime) {
+        from = fade->fadeInFrom;
+        to = fade->holdColor;
+        phaseTime = fade->fadeInTime;
     } else {
-        dt -= p->d5C;
-        if (dt < p->d60) {
-            a = p->rgba54;
-            b = p->rgba54;
-            d = p->d60;
+        elapsed -= fade->fadeInTime;
+        if (elapsed < fade->holdTime) {
+            from = fade->holdColor;
+            to = fade->holdColor;
+            phaseTime = fade->holdTime;
         } else {
-            dt -= p->d60;
-            if (dt < p->d64) {
-                a = p->rgba54;
-                d = p->d64;
-                b = p->rgba58;
+            elapsed -= fade->holdTime;
+            if (elapsed < fade->fadeOutTime) {
+                from = fade->holdColor;
+                phaseTime = fade->fadeOutTime;
+                to = fade->fadeOutTo;
             }
         }
     }
-    rgba = RgbaLerp(dt / d, a, b);
+    color = RgbaLerp(elapsed / phaseTime, from, to);
     BUF buf;
-    BUF *pbuf = &buf;
-    Build(pbuf, rgba);
+    BUF *packet = &buf;
+    BuildClearPacket(packet, color);
     {
-    pr = &D_002DEA28;
-    x = pr->xC;
-    AddDmaCnt__4DMAS(pr);
-    AddVifDirect__4VIFSiP2QWi(pr, 0x25, pbuf, 0);
+    dma = &D_002DEA28;
+    dmaStart = dma->xC;
+    AddDmaCnt__4DMAS(dma);
+    AddVifDirect__4VIFSiP2QWi(dma, 0x25, packet, 0);
     }
-    EndDmaCnt__4DMAS(pr);
-    AddDmaRet__4DMAS(pr);
-    pq = AllocRenderListEntry();
-    pq->x8 = x;
-    pq->x4 = -1.0f;
-    switch (p->k6C) {
+    EndDmaCnt__4DMAS(dma);
+    AddDmaRet__4DMAS(dma);
+    entry = AllocRenderListEntry();
+    entry->x8 = dmaStart;
+    entry->x4 = -1.0f;
+    switch (fade->renderKind) {
     case 0:
-        pq->x0 = 1;
+        entry->x0 = 1;
         break;
     case 1:
-        pq->x0 = 0xE;
+        entry->x0 = 0xE;
         break;
     }
 }
 
-/** @sly2-annot addr=0x15E1D8
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU tu_15DC80
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * @end-sly2-annot */
-extern "C" void func_0015E1D8(X *p)
+// Starts the fade unless it is already running: stamps the start time and adds the object to the world (vtable
+// slot 8, Add). Called by the Splice thunk func_0010C6A8 and by places.cpp on world entry.
+extern "C" void StartScreenFade(X *fade)
 {
-      if (((int)(p->fl >> 60) & 1) == 0) {
-            VTE *pvte = &p->vt[8];
-            p->t68 = D_002DDED0.t;
-            ((void (*)(void *))pvte->pfn)((char *)p + pvte->d);
+      if (((int)(fade->loFlags >> 60) & 1) == 0) {
+            VTE *entry = &fade->vtable[8];
+            fade->startTime = D_002DDED0.t;
+            ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
       }
 }

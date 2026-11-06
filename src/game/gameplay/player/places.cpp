@@ -86,7 +86,7 @@ void SetJtAirJump(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void UpdateSoBusy(G *g, LO *a);
 void ChooseJtLanding(void *p, LO *a);
-void func_0015E1D8(int a);
+void StartScreenFade(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
 void ShouldKeepSoPair(void);
@@ -215,7 +215,7 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
                         ChooseJtLanding(jt->air, e.lo);
                     }
                 }
-                func_0015E1D8(D_003DD490.unknown3E60);
+                StartScreenFade(D_003DD490.unknown3E60);
                 return;
             }
         }

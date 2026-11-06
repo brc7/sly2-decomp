@@ -1,5 +1,5 @@
 /* include/sly2/joy.h -- JOY (controller state). g_joy = D_002DFC00 (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
- * is used when g_grfjoyt bit 1 is clear (pine_input README). Layout from src/game/gameplay/cutscene/relay/FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp (Lilly port), with the
+ * is used when g_grfjoyt bit 1 is clear (pine_input README). Layout from src/game/gameplay/cutscene/relay/IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp (Lilly port), with the
  * menu-repeat fields at +0x1024 named from src/game/platform/input/joy/GetJoySelectionStepX.c (matched; reads dirX, dirY, tNextX/Y, tRepX/Y there and
  * gX/gY/gMag = dxLeft/dyLeft/uDeflectLeft at +0x103C..). Tags: [R] runtime / [M] offset used by matched code / [S] static. */
 #ifndef SLY2_JOY_H
@@ -7,7 +7,7 @@
 #include "sly2/basic.h"
 
 /* JOYRUMBLE: the rumble (vibration) state of a controller: the pattern playing and its timers. */
-struct JOYRUMBLE    /* = RUMBLE in FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp, 0x1C bytes */
+struct JOYRUMBLE    /* = RUMBLE in IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp, 0x1C bytes */
 {
       int nPort;   /* controller port */
       int nSlot;   /* multitap slot */

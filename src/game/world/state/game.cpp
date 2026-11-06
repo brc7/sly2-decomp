@@ -512,7 +512,7 @@ extern BANK D_002E65E0;
 
  extern char D_003D4A60[];
  int CploFindSwObjectsByClass(G*,int,int,P*,int,P**);
- int IdBootyCur(void*);
+ int GetCurrentBootyEntryId(void*);
  void*ClearStepplayerBootySave(P*,int);
  void InitGame(P*);
  void ApplyPendingSaveData();
@@ -596,7 +596,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   if(Same(&(*(CHECK *)&g_sw.filerecDest),&D_002A37E8)){
    P*results[3];
    int found=CploFindSwObjectsByClass(&D_003DD490,5,0x34,0,3,results);
-   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)ClearStepplayerBootySave(object,IdBootyCur(object->widget));--count;++cursor;}while(count);}
+   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)ClearStepplayerBootySave(object,GetCurrentBootyEntryId(object->widget));--count;++cursor;}while(count);}
   }
   break;
  }

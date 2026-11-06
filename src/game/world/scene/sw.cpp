@@ -1409,8 +1409,8 @@ struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n47
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
-int CClueCollected(void);
-int func_001C7D00(void);
+int CountCollectedClues(void);
+int GetMaxClueCount(void);
 /** @sly2-annot addr=0x20F710
  * Purpose: Find 4 HUD objects (kind 0x405, OIDs 0x371/0x36D/0x36E/0x36F), init them, record two counters
  * Info: proposed name BindSwTimerHud (T2); TU sw
@@ -1435,8 +1435,8 @@ void BindSwTimerHud(struct S *world)
             world->ae[i].x = x;
         }
     }
-    world->n4764 = CClueCollected();
-    world->n4768 = func_001C7D00();
+    world->n4764 = CountCollectedClues();
+    world->n4768 = GetMaxClueCount();
 }
 } } // namespace M_func_0020F710
 

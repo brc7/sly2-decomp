@@ -1,7 +1,8 @@
 // mpeg.cpp -- the movie player CMpeg (one global, D_002F66B0): the queue of movies to play, Execute (open the movie's file,
 // demux and decode it with libmpeg until it ends or the player skips it), the display thread that sends the decoded frames to
 // the GS (with a subtitle line), the video byte queue drained to the IPU and the audio (CMpegAudio: an ADPCM / PCM stream fed to
-// the IOP through CQueueOutputIop). TU 0x1B2820..0x1B4438 (34 functions, address order).
+// the IOP through CQueueOutputIop). Entry points: StartupMpeg (boot), CMpeg_QueueMovie and CMpeg_ExecuteOids (the level
+// transition plays the queued movies). TU 0x1B2820..0x1B4438 (34 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_mpeg
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B4418
 #include "sly2/slotheap.h"
@@ -182,7 +183,7 @@ void Skip__18CBinaryAsyncStreami(CBinaryAsyncStream *t, int r);
 
 void MpegDisplayThread(void);
 int CQueueOutputIop_Init(CQueueOutputIop *p, MPEGAUDIOREC *pa);
-void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb);
+void StageInterleavedIopAudio(CQueueOutputIop *p, int cb, char *pb);
 int CQueueOutputIop_CbSend(CQueueOutputIop *p, int b, char *c);
 void CQueueOutputIop_Update(CQueueOutputIop *p);
 void Init__10CMpegAudio(CMpegAudio *p);
@@ -196,8 +197,8 @@ int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *p);
 int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *p);
 int FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void);
 void BuildMpegGifs(CMPEG *p);
-void func_001B3700(CMPEG *p);
-SUBT *func_001B2820(K *pe);
+void DrawMpegSubtitles(CMPEG *p);
+SUBT *FindMpegSubtitles(K *pe);
 void Execute__5CMpegPv(CMPEG *p, K *k);
 void CMpeg_Start(CMPEG *p, CBinaryAsyncStream *a);
 void Update__5CMpeg(CMPEG *p);
@@ -205,30 +206,21 @@ void Finish__5CMpeg(CMPEG *p);
 int CbDemuxed__5CMpegi(CMPEG *p, int wait);
 }
 
-/** @sly2-annot addr=0x1B2820
- * Purpose: Returns 0; result stored in CMpeg+0x104 per queued movie by ExecuteOids
- * Info: proposed name MpegStubReturn0 (T2); TU mpeg
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#4-source-files, docs/engine/cutscenes.md#open-questions,
- *   docs/engine/gameplay-objects.md#source-files
- * @end-sly2-annot */
-SUBT *func_001B2820(K *pe) {
+// Subtitle track lookup for a movie entry; returns none in the retail build (the caller stores the result in
+// CMpeg+0x104 and DrawMpegSubtitles skips a null track). (inferred)
+SUBT *FindMpegSubtitles(K *pe) {
     return 0;
 }
 
+// Sends the decoded frame (and the optional subtitle packet x) to the GS and swaps the display buffers.
 static __inline__ void Draw(QW *x, CMPEG *draw)
 {
     SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, (QW *)((unsigned)draw->pb + 0x41BC00));
     if (x) SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
     SwapGsBuffers__Fv();
 }
-/** @sly2-annot addr=0x1B2828
- * Purpose: Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish),
- *   RestoreGsBuffers, time window check
- * Info: proposed name MpegDisplayThread (T1); TU mpeg
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish), RestoreGsBuffers, time window
+// check. (inferred)
 void MpegDisplayThread(void)
 {
     QW *x;
@@ -247,13 +239,7 @@ void MpegDisplayThread(void)
     }
 }
 
-/** @sly2-annot addr=0x1B2940
- * Purpose: Create mpeg semaphore and start the display thread
- * Info: proposed name StartupMpeg (T1); TU mpeg
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/main-loop-startup.md#open-questions,
- *   docs/engine/overview.md#1-boot
- * @end-sly2-annot */
+// Create mpeg semaphore and start the display thread.
 void StartupMpeg()
 {
     ThreadParam tp;
@@ -269,37 +255,27 @@ void StartupMpeg()
     func_002355E0(D_004425DC, 0);
 }
 
-/** @sly2-annot addr=0x1B29D0
- * Purpose: Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8),
- *   Reset
- * Info: proposed name CQueueOutputIop_Init (T1); class CQueueOutputIop; TU mpeg
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int CQueueOutputIop_Init(CQueueOutputIop *p, MPEGAUDIOREC *pa)
+// Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset. (inferred)
+int CQueueOutputIop_Init(CQueueOutputIop *queue, MPEGAUDIOREC *pa)
 {
-    p->x4 = pa->x8;
-    p->x8 = pa->xC;
-    p->xC = pa->x10;
-    p->x10 = pa->x14;
-    if (p->x4 == 0x10) {
-        p->x18 = p->xC << 12;
-        p->x14 = snd_InitMovieSound(0x400, 0x1000, 0x400, 0, 2, 3);
+    queue->x4 = pa->x8;
+    queue->x8 = pa->xC;
+    queue->xC = pa->x10;
+    queue->x10 = pa->x14;
+    if (queue->x4 == 0x10) {
+        queue->x18 = queue->xC << 12;
+        queue->x14 = snd_InitMovieSound(0x400, 0x1000, 0x400, 0, 2, 3);
     } else {
-        p->x18 = 0x6000;
-        p->x14 = snd_InitMovieSound(0x6000, 0, 0x400, 0, 2, 2);
+        queue->x18 = 0x6000;
+        queue->x14 = snd_InitMovieSound(0x6000, 0, 0x400, 0, 2, 2);
     }
-    if (p->x14 < 0)
+    if (queue->x14 < 0)
         return 0;
-    p->Reset();
+    queue->Reset();
     return 1;
 }
 
-/** @sly2-annot addr=0x1B2A80
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// Empties the IOP ring buffer: read/write cursors and counters back to the start.
 void CQueueOutputIop::Reset()
 {
     m_x24 = x18;
@@ -309,30 +285,27 @@ void CQueueOutputIop::Reset()
     m_x2c = 0;
 }
 
+// Inline helper Alloc: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline char *Alloc(int cb, int align) { return AllocFromStack(AREQ(cb, align)); }
-/** @sly2-annot addr=0x1B2AA0
- * Purpose: Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb)
- *   before send
- * Info: proposed name CQueueOutputIop_StageInterleaved (T2); class CQueueOutputIop; TU mpeg
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb)
+// Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb) before send.
+// (inferred)
+void StageInterleavedIopAudio(CQueueOutputIop *queue, int cb, char *pb)
 {
-    int ch = p->x4;
+    int ch = queue->x4;
     if (ch != 0x10) return;
-    if (p->xC == 1) return;
+    if (queue->xC == 1) return;
     STACKSCOPE ctx;
     char *pbCur = pb;
-    int chunk = p->xC << 10;
+    int chunk = queue->xC << 10;
     char *tmp = Alloc(chunk, 0x10);
     int cbCur = cb;
     while (cbCur) {
         int i = 0, k = 0, off;
-        for (off = 0; off < chunk; off += p->x10) {
-            CopyAb__FPvT0Ui(tmp + ((i << 10) + k * p->x10), pbCur + off, p->x10);
+        for (off = 0; off < chunk; off += queue->x10) {
+            CopyAb__FPvT0Ui(tmp + ((i << 10) + k * queue->x10), pbCur + off, queue->x10);
             i++;
-            if (i >= p->xC) {
+            if (i >= queue->xC) {
                 k++;
                 i = 0;
             }
@@ -343,33 +316,28 @@ void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb)
     }
 }
 
-/** @sly2-annot addr=0x1B2BE0
- * Purpose: Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written
- * Info: proposed name CQueueOutputIop_CbWrite (T1); class CQueueOutputIop; TU mpeg
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *p, int cb, char *pb)
+// Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written. (inferred)
+extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
 {
     int c = cb;
     int total = 0;
     int rd;
     int n, r, avail;
     char *dst;
-    if (c <= 0 || p->m_x24 < c) c = p->m_x24;
-    if (p->x4 == 0x10) {
-        c &= -(p->xC << 10);
-        func_001B2AA0(p, c, pb);
+    if (c <= 0 || queue->m_x24 < c) c = queue->m_x24;
+    if (queue->x4 == 0x10) {
+        c &= -(queue->xC << 10);
+        StageInterleavedIopAudio(queue, c, pb);
     } else {
         c &= -0x400;
     }
     if (c) do {
-        avail = p->x18 - p->m_x1c;
+        avail = queue->x18 - queue->m_x1c;
         if (c < avail) n = c; else n = avail;
         dst = pb + total;
-        if (p->x4 == 0x10) {
+        if (queue->x4 == 0x10) {
             n = 0x400;
-            r = p->m_x2c / 1024 / p->xC % 4;
+            r = queue->m_x2c / 1024 / queue->xC % 4;
             if (r == 0) {
                 dst[1] = 6;
                 dst[0x11] = 2;
@@ -377,95 +345,73 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *p, int cb, char *pb)
                 dst[0x3F1] = r;
             }
         }
-        rd = CQueueOutputIop_CbSend(p, n, dst);
+        rd = CQueueOutputIop_CbSend(queue, n, dst);
         c -= rd;
         if (!rd) break;
         total += rd;
-        p->m_x1c += rd;
-        p->m_x1c %= p->x18;
-        p->m_x28 += rd;
-        p->m_x24 -= rd;
-        p->m_x2c += rd;
+        queue->m_x1c += rd;
+        queue->m_x1c %= queue->x18;
+        queue->m_x28 += rd;
+        queue->m_x24 -= rd;
+        queue->m_x2c += rd;
         if (cb <= 0) break;
     } while (c);
     return total;
 }
 
 struct REQ { int a; int b; int c; int d; };
-/** @sly2-annot addr=0x1B2DB8
- * Purpose: FlushCache + sceSifSetDma to IOP buffer at write offset; returns count
- * Info: proposed name CQueueOutputIop_CbSend (T1); class CQueueOutputIop; TU mpeg
- * Notes: names_v2 C proposed CbWrite__15CQueueOutputIopiPv (0.171)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int CQueueOutputIop_CbSend(CQueueOutputIop *p, int b, char *c)
+// FlushCache + sceSifSetDma to IOP buffer at write offset; returns count. (inferred)
+int CQueueOutputIop_CbSend(CQueueOutputIop *queue, int b, char *c)
 {
     REQ req;
     int off, h, n;
-    off = (p->x4 == 0x10) ? 0 : p->m_x1c;
+    off = (queue->x4 == 0x10) ? 0 : queue->m_x1c;
     req.a = (int)c;
-    req.b = p->x14 + off;
+    req.b = queue->x14 + off;
     req.c = b;
     req.d = 0;
     func_00234CA0(0);
     h = func_00234DE0(&req, 1);
     while (func_00234DC0(h) >= 0) ;
-    if (p->x4 == 0x10) {
+    if (queue->x4 == 0x10) {
         int col, row;
-        n = p->m_x2c / 1024;
-        col = n % p->xC;
-        row = (n / p->xC) % 4;
+        n = queue->m_x2c / 1024;
+        col = n % queue->xC;
+        row = (n / queue->xC) % 4;
         func_00232FE8(b, (row << 10) + (col << 12));
     }
     return b;
 }
 
-/** @sly2-annot addr=0x1B2EB8
- * Purpose: Read IOP playback position and update read/write cursors
- * Info: proposed name CQueueOutputIop_Update (T1); class CQueueOutputIop; TU mpeg
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void CQueueOutputIop_Update(CQueueOutputIop *p)
+// Read IOP playback position and update read/write cursors. (inferred)
+void CQueueOutputIop_Update(CQueueOutputIop *queue)
 {
-    if (p->x4 == 0x10) {
-        int pos = func_00233018() * p->xC;
-        if (pos >= 0 && pos <= p->x18) {
-            p->m_x20 = pos % p->x18;
-            if (p->m_x20 == p->m_x1c) p->m_x24 = p->x18;
+    if (queue->x4 == 0x10) {
+        int pos = func_00233018() * queue->xC;
+        if (pos >= 0 && pos <= queue->x18) {
+            queue->m_x20 = pos % queue->x18;
+            if (queue->m_x20 == queue->m_x1c) queue->m_x24 = queue->x18;
             else {
-                p->m_x24 = p->m_x20 - p->m_x1c + p->x18;
-                p->m_x24 %= p->x18;
+                queue->m_x24 = queue->m_x20 - queue->m_x1c + queue->x18;
+                queue->m_x24 %= queue->x18;
             }
         }
-        p->m_x28 = p->x18 - p->m_x24;
+        queue->m_x28 = queue->x18 - queue->m_x24;
     } else {
-        p->m_x24 = (snd_GetTransStatus() & 0xFFFFFF) - p->x14 - p->m_x1c + (p->x18 - 0x400);
-        p->m_x24 %= p->x18;
-        p->m_x28 = p->x18 - p->m_x24;
-        p->m_x20 = p->m_x1c - p->m_x28 + p->x18;
-        p->m_x20 %= p->x18;
+        queue->m_x24 = (snd_GetTransStatus() & 0xFFFFFF) - queue->x14 - queue->m_x1c + (queue->x18 - 0x400);
+        queue->m_x24 %= queue->x18;
+        queue->m_x28 = queue->x18 - queue->m_x24;
+        queue->m_x20 = queue->m_x1c - queue->m_x28 + queue->x18;
+        queue->m_x20 %= queue->x18;
     }
 }
 
-/** @sly2-annot addr=0x1B2FD0
- * Purpose: returns 0
- * Info: proposed name CQueueOutputIop_FAsyncDrain (T1); class CQueueOutputIop; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources:
- *   r5_1AE130+verdicts_A2+names_v2-signature(verified)
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// CQueueOutputIop: no asynchronous drain (returns 0).
 int CQueueOutputIop::FAsyncDrain() {   /* key function */
     return 0;
 }
 
-/** @sly2-annot addr=0x1B2FD8
- * Purpose: Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes
- * Info: proposed name CQueueOutputIpu_CbWrite (T1); class CQueueOutputIpu; TU mpeg
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes.
 extern "C" int CQueueOutputIpu_CbWrite(void *p, unsigned int cb, unsigned int pv)
 {
     int n = cb & 0xFFFFFFF0;
@@ -477,24 +423,13 @@ extern "C" int CQueueOutputIpu_CbWrite(void *p, unsigned int cb, unsigned int pv
     return n;
 }
 
-/** @sly2-annot addr=0x1B3038
- * Purpose: returns 1
- * Info: proposed name CQueueOutputIpu_FAsyncDrain (T1); class CQueueOutputIpu; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources:
- *   r5_1AE130+verdicts_A2+names_v2-signature(verified)
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// CQueueOutputIpu: drains asynchronously (returns 1).
 int CQueueOutputIpu::FAsyncDrain() {   /* key function */
     return 1;
 }
 
-/** @sly2-annot addr=0x1B3040
- * Purpose: Stop game sound/music, allocate IOP voice resources for movie audio
- * Info: proposed name CMpegAudio_Init (T1); class CMpegAudio; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Init__10CMpegAudio(CMpegAudio *p)
+// Stop game sound/music, allocate IOP voice resources for movie audio.
+void Init__10CMpegAudio(CMpegAudio *audio)
 {
     snd_PauseAllSoundsInGroup(0xFFFFFFFF);
     StopDialog(D_003DD040);
@@ -503,190 +438,140 @@ void Init__10CMpegAudio(CMpegAudio *p)
     while (snd_FlushSoundCommands()) ;
     snd_StreamSafeCheckCDIdle(1);
     snd_StreamSafeCdSync(0);
-    p->xA0 = snd_GetMasterVolume(2);
-    p->xA4 = snd_GetMasterVolume(0x10);
+    audio->xA0 = snd_GetMasterVolume(2);
+    audio->xA4 = snd_GetMasterVolume(0x10);
     snd_SetMasterVolume(2, 0x400);
     snd_SetMasterVolume(0x10, 0x400);
-    p->state = 1;
-    p->id = -1;
-    Init__10CByteQueueiPv(&p->qHeader, 0x28, &p->rec);
-    Init__10CByteQueueiPv(&p->qData, 0x18000, D_002F66B0.pb + 0x80000);
+    audio->state = 1;
+    audio->id = -1;
+    Init__10CByteQueueiPv(&audio->qHeader, 0x28, &audio->rec);
+    Init__10CByteQueueiPv(&audio->qData, 0x18000, D_002F66B0.pb + 0x80000);
 }
 
-/** @sly2-annot addr=0x1B3130
- * Purpose: reset byte queues and IOP queue
- * Info: proposed name CMpegAudio_Reset (T1); class CMpegAudio; TU mpeg
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Reset__10CMpegAudio(CMpegAudio *p)
+// reset byte queues and IOP queue.
+void Reset__10CMpegAudio(CMpegAudio *audio)
 {
-    if (p->state) {
+    if (audio->state) {
         snd_ResetMovieSound();
-        p->state = 1;
-        p->id = -1;
-        Reset__10CByteQueue(&p->qHeader);
-        Reset__10CByteQueue(&p->qData);
-        p->out.Reset();
+        audio->state = 1;
+        audio->id = -1;
+        Reset__10CByteQueue(&audio->qHeader);
+        Reset__10CByteQueue(&audio->qData);
+        audio->out.Reset();
     }
 }
 
-/** @sly2-annot addr=0x1B3190
- * Purpose: release IOP resources
- * Info: proposed name CMpegAudio_Close (T1); class CMpegAudio; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Close__10CMpegAudio(CMpegAudio *p)
+// release IOP resources.
+void Close__10CMpegAudio(CMpegAudio *audio)
 {
-    p->state = 0;
+    audio->state = 0;
     snd_CloseMovieSound();
-    snd_SetMasterVolume(2, p->xA0);
-    snd_SetMasterVolume(0x10, p->xA4);
+    snd_SetMasterVolume(2, audio->xA0);
+    snd_SetMasterVolume(0x10, audio->xA4);
     snd_ContinueAllSoundsInGroup(0xFFFFFFFF);
 }
 
-/** @sly2-annot addr=0x1B31E0
- * Purpose: accept demuxed audio packet: pick stream id, init queue from header, CbFill
- * Info: proposed name CMpegAudio_FAccept (T1); class CMpegAudio; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int FAccept__10CMpegAudioiPUc(CMpegAudio *p, int cb, unsigned char *pb)
+// accept demuxed audio packet: pick stream id, init queue from header, CbFill.
+int FAccept__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
 {
     int n;
     int id;
-    if (p->state == 0) return 0;
+    if (audio->state == 0) return 0;
     id = pb[3];
-    if (p->id == -1) p->id = id;
-    if (p->id != id) return 1;
+    if (audio->id == -1) audio->id = id;
+    if (audio->id != id) return 1;
     cb -= 4;
     pb += 4;
-    if (p->state == 1) {
-        n = CbFill__10CByteQueueiPUc(&p->qHeader, cb, pb);
+    if (audio->state == 1) {
+        n = CbFill__10CByteQueueiPUc(&audio->qHeader, cb, pb);
         cb -= n;
         pb += n;
-        if (p->qHeader.cb > 0) return 1;
-        if (CQueueOutputIop_Init(&p->out, &p->rec)) p->state = 2;
-        else p->state = 0;
+        if (audio->qHeader.cb > 0) return 1;
+        if (CQueueOutputIop_Init(&audio->out, &audio->rec)) audio->state = 2;
+        else audio->state = 0;
     }
-    if (p->qData.cb >= cb) {
-        CbFill__10CByteQueueiPUc(&p->qData, cb, pb);
+    if (audio->qData.cb >= cb) {
+        CbFill__10CByteQueueiPUc(&audio->qData, cb, pb);
         return 1;
     }
     return 0;
 }
 
-/** @sly2-annot addr=0x1B32B8
- * Purpose: drain byte queue to IOP per state
- * Info: proposed name CMpegAudio_Update (T1); class CMpegAudio; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Update__10CMpegAudio(CMpegAudio *p)
+// drain byte queue to IOP per state.
+void Update__10CMpegAudio(CMpegAudio *audio)
 {
-    switch (p->state) {
+    switch (audio->state) {
     case 2:
-        CbDrain__10CByteQueueiP12CQueueOutput(&p->qData, p->out.m_x24, &p->out);
-        if (p->out.m_x24 == 0) {
-            if (p->out.x4 == 0x10) snd_StartMovieSound(p->out.x14, 0x1000, 0, p->out.x8, p->out.xC);
-            else snd_StartMovieSound(p->out.x14, p->out.x18, p->out.x14, 0, 0);
-            p->state = 3;
+        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.m_x24, &audio->out);
+        if (audio->out.m_x24 == 0) {
+            if (audio->out.x4 == 0x10) snd_StartMovieSound(audio->out.x14, 0x1000, 0, audio->out.x8, audio->out.xC);
+            else snd_StartMovieSound(audio->out.x14, audio->out.x18, audio->out.x14, 0, 0);
+            audio->state = 3;
         }
         break;
     case 3:
-        CQueueOutputIop_Update(&p->out);
-        CbDrain__10CByteQueueiP12CQueueOutput(&p->qData, p->out.m_x24, &p->out);
+        CQueueOutputIop_Update(&audio->out);
+        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.m_x24, &audio->out);
         break;
     }
 }
 
 /* libmpeg's stream callback data: the bytes at n8, nC of them. */
 struct MCB { int a, b; int n8; unsigned int nC; };
-/** @sly2-annot addr=0x1B3388
- * Purpose: sceMpeg video stream callback: CbFill video queue
- * Info: proposed name FMpegAcceptVideo (T1); TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *p)
+// sceMpeg video stream callback: CbFill video queue.
+int FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player)
 {
-    if (p->qVideo.ucb < pm->nC) return 0;
-    CbFill__10CByteQueueiPUc(&p->qVideo, pm->nC, (void *)pm->n8);
+    if (player->qVideo.ucb < pm->nC) return 0;
+    CbFill__10CByteQueueiPUc(&player->qVideo, pm->nC, (void *)pm->n8);
     return 1;
 }
 
-/** @sly2-annot addr=0x1B33C8
- * Purpose: audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180)
- * Info: proposed name FMpegAcceptAudio (T1); TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *p) {
-    FAccept__10CMpegAudioiPUc(&p->audio, pm->nC, (unsigned char *)pm->n8);
+// audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180).
+void FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player) {
+    FAccept__10CMpegAudioiPUc(&player->audio, pm->nC, (unsigned char *)pm->n8);
 }
 
-/** @sly2-annot addr=0x1B33F0
- * Purpose: decode callback: feed IPU from video queue
- * Info: proposed name FMpegDecodeVideo (T1); TU mpeg
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *p)
+// decode callback: feed IPU from video queue.
+int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *player)
 {
     void *buf[16];
-    while (p->qVideo.cb14 < 0x1000) {
-        int v = CbDemuxed__5CMpegi(p, 1);
+    while (player->qVideo.cb14 < 0x1000) {
+        int v = CbDemuxed__5CMpegi(player, 1);
         if (v == 2) {
             func_002333B4(buf, 0, 0x40);
-            CbFill__10CByteQueueiPUc(&p->qVideo, 0x40 - p->qVideo.cb14 % 32, buf);
+            CbFill__10CByteQueueiPUc(&player->qVideo, 0x40 - player->qVideo.cb14 % 32, buf);
             break;
         }
-        if (v == 1) Update__10CMpegAudio(&p->audio);
+        if (v == 1) Update__10CMpegAudio(&player->audio);
     }
     buf[0] = D_002D4220;
-    FreeDrain__10CByteQueuei(&p->qVideo, 0);
-    CbDrain__10CByteQueueiP12CQueueOutput(&p->qVideo, 0, buf);
+    FreeDrain__10CByteQueuei(&player->qVideo, 0);
+    CbDrain__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
     return 1;
 }
 
-/** @sly2-annot addr=0x1B34D0
- * Purpose: idle callback: spool stream + audio update
- * Info: proposed name FMpegDecoderIdle (T1); TU mpeg
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *p)
+// idle callback: spool stream + audio update. (inferred)
+int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *player)
 {
-    CbDemuxed__5CMpegi(p, 0);
-    Update__10CMpegAudio(&p->audio);
+    CbDemuxed__5CMpegi(player, 0);
+    Update__10CMpegAudio(&player->audio);
     return 1;
 }
 
-/** @sly2-annot addr=0x1B3508
- * Purpose: returns 1
- * Info: proposed name FMpegDecoderError (T1); TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
+// sceMpeg error callback: always continues (returns 1).
 int FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void) {
     return 1;
 }
 
-/** @sly2-annot addr=0x1B3510
- * Purpose: build GIF packets to upload decoded RGB32 picture
- * Info: proposed name BuildMpegGifs (T1); TU mpeg
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void BuildMpegGifs(CMPEG *p)
+// build GIF packets to upload decoded RGB32 picture. (inferred)
+void BuildMpegGifs(CMPEG *player)
 {
-    char *pb = p->pb + 0x285A80;
-    int cx = p->mpeg.width / 16;
-    int cy = p->mpeg.height / 16;
+    char *pb = player->pb + 0x285A80;
+    int cx = player->mpeg.width / 16;
+    int cy = player->mpeg.height / 16;
     int i, j;
     GIFS gifs;
-    gifs.AllocStatic(0x22D6, (QW *)(p->pb + 0x3F8E80));
+    gifs.AllocStatic(0x22D6, (QW *)(player->pb + 0x3F8E80));
     gifs.AddDmaCnt();
     gifs.AddPrimPack(0, 1, 0xE);
     gifs.PackAD(0x50, 0xC180L << 36);
@@ -758,17 +643,11 @@ void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIF
 typedef char CRichText_Size[sizeof(CRichText)==368?1:-1];
 typedef char TB_Size[sizeof(TB)==28?1:-1];
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
-/** @sly2-annot addr=0x1B3700
- * Purpose: Draw movie subtitle/caption text (CRichText/CFont scaling)
- * Info: proposed name DrawMpegSubtitles (T2); TU mpeg
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
- *   docs/engine/cutscenes.md#open-questions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void func_001B3700(CMPEG *p)
+// Draw movie subtitle/caption text (CRichText/CFont scaling). (inferred)
+void DrawMpegSubtitles(CMPEG *player)
 {
     GIFS gifs;
-    gifs.AllocStatic(0x200, (QW *)(p->pb + 0x41BC00));
+    gifs.AllocStatic(0x200, (QW *)(player->pb + 0x41BC00));
     gifs.AddDmaCnt();
     gifs.AddPrimPack(6, 1, 0xE);
     gifs.PackAD(6, 0xAA8031800L);
@@ -779,18 +658,18 @@ void func_001B3700(CMPEG *p)
     gifs.AddPrimPack(0x116, 4, 0x4343);
     gifs.PackUV(8, 8);
     gifs.PackXYZF(0x7000, 0x7900, 0, 0);
-    gifs.PackUV((p->mpeg.width << 4) | 8, (p->mpeg.height << 4) | 8);
+    gifs.PackUV((player->mpeg.width << 4) | 8, (player->mpeg.height << 4) | 8);
     gifs.PackXYZF(0x9000, 0x8700, 0, 0);
     gifs.AddPrimPack(0, 1, 0xE);
     gifs.PackAD(0x61, 0);
     gifs.AddPrimEnd();
     gifs.AddDmaEnd();
     gifs.Detach(0, 0);
-    if (p->psubt) {
-        gifs.AllocStatic(0x200, (QW *)(p->pb + 0x41DC00));
+    if (player->psubt) {
+        gifs.AllocStatic(0x200, (QW *)(player->pb + 0x41DC00));
         gifs.AddDmaCnt();
         PushScaling__5CFontff(D_002DE760, 0.8f, 0.8f);
-        CRichText font(FindKeyedTableValue(&D_003E1C20, p->psubt->idText), D_002DE760);
+        CRichText font(FindKeyedTableValue(&D_003E1C20, player->psubt->idText), D_002DE760);
         float dy = GetRichTextWrappedHeight(&font, 320.0f);
         float dx = DxMaxLine__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
@@ -809,39 +688,28 @@ void func_001B3700(CMPEG *p)
     }
 }
 
-/** @sly2-annot addr=0x1B3A48
- * Purpose: Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid
- * Info: proposed name CMpeg_QueueMovie (T1); class CMpeg; TU mpeg
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#open-questions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-extern "C" void CMpeg_QueueMovie(CMPEG *p, K *pe)
+// Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid. (inferred)
+extern "C" void CMpeg_QueueMovie(CMPEG *player, K *pe)
 {
-    if (pe && pe->x4 != pe->x3C && p->un < 4) {
-        p->ae[p->un++] = *pe;
+    if (pe && pe->x4 != pe->x3C && player->un < 4) {
+        player->ae[player->un++] = *pe;
     }
 }
 
-/** @sly2-annot addr=0x1B3B08
- * Purpose: Play every queued movie (Execute until done), unless GetFreeMemorySize<=0x41FC3F; called during level
- *   transition
- * Info: proposed name CMpeg_ExecuteOids (T1); class CMpeg; TU mpeg
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
- *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-extern "C" int CMpeg_ExecuteOids(CMPEG *p)
+// Play every queued movie (Execute until done), unless GetFreeMemorySize<=0x41FC3F; called during level transition.
+// (inferred)
+extern "C" int CMpeg_ExecuteOids(CMPEG *player)
 {
     int i;
-    if (p->n <= 0) return 0;
-    if (GetFreeMemorySize(1) <= 0x41FC3F) { p->n = 0; return 0; }
-    for (i = 0; i < p->n; i++) {
-        K *pe = &p->ae[i];
-        p->psubt = func_001B2820(pe);
-        do { Execute__5CMpegPv(p, pe); } while (p->fRepeat);
-        p->psubt = 0;
+    if (player->n <= 0) return 0;
+    if (GetFreeMemorySize(1) <= 0x41FC3F) { player->n = 0; return 0; }
+    for (i = 0; i < player->n; i++) {
+        K *pe = &player->ae[i];
+        player->psubt = FindMpegSubtitles(pe);
+        do { Execute__5CMpegPv(player, pe); } while (player->fRepeat);
+        player->psubt = 0;
     }
-    p->n = 0;
+    player->n = 0;
     return 1;
 }
 
@@ -854,6 +722,8 @@ struct X {
 };
 struct CBinaryAsyncStream { char pad[0x1C]; int x1C; int x20; int x24; int x28; char pad2C[0x30 - 0x2C];
     CBinaryAsyncStream(int cb, void *pv) __asm__("__18CBinaryAsyncStreamPv"); ~CBinaryAsyncStream(); };
+// Points the stream at a movie entry: the entry stores its disc offset and length XOR-masked with two key words
+// (x34/x3C); the sector offset is biased by 0xCA0. Returns the length (0 for no entry).
 inline bool X::FSet(K *k)
 {
     if (!k) return 0;
@@ -864,6 +734,7 @@ inline bool X::FSet(K *k)
     x4 = length;
     return length;
 }
+// Whether two movie entries are the same movie (same pointer, or equal XOR-unmasked ids).
 static inline int FMatch(K *a, K *b)
 {
     if (a == b) return 1;
@@ -875,25 +746,17 @@ typedef char K_PrefixSize[sizeof(K)==64?1:-1];
 typedef char STRM_PrefixSize[sizeof(CBinaryAsyncStream)==48?1:-1];
 typedef char MPEG_PrefixSize[sizeof(MPEG)==68?1:-1];
 typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,xFD50)==64848?1:-1];
-/** @sly2-annot addr=0x1B3BD0
- * Purpose: Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode,
- *   Finish
- * Info: proposed name CMpeg_Execute (T1); class CMpeg; TU mpeg
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r5_1AE130+verdicts_tu_r3r5+verdicts_A2+names_v2-signature(verified)
- * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
- *   docs/engine/cutscenes.md#5-key-functions, docs/formats/disc-records.md#3-static-records-in-the-elf
- * @end-sly2-annot */
-void Execute__5CMpegPv(CMPEG *p, K *k)
+// Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish.
+void Execute__5CMpegPv(CMPEG *player, K *k)
 {
     STACKSCOPE ctx;
-    p->pb = (char *)AllocClearedFromStack(AREQ(0x41FC00, 0x40));
-    CBinaryAsyncStream strm(0x80000, p->pb);
+    player->pb = (char *)AllocClearedFromStack(AREQ(0x41FC00, 0x40));
+    CBinaryAsyncStream strm(0x80000, player->pb);
     X x;
     bool ok = x.FSet(k);
     if (ok && OpenBasFromFileKey(&strm, &x)) {
-        CMpeg_Start(p, &strm);
-        while (!sceMpegIsEnd(&p->mpeg)) {
+        CMpeg_Start(player, &strm);
+        while (!sceMpegIsEnd(&player->mpeg)) {
             int f;
             MarkClockTick(&D_002DDED0, 1);
             UpdateJoy__FP3JOY(&D_002DFC00);
@@ -905,7 +768,7 @@ void Execute__5CMpegPv(CMPEG *p, K *k)
                 int fQuit = 0;
                 if (HandleJoyButtons(&D_002DFC00, 0x91F)) fQuit = 1;
                 if (fQuit) {
-                    p->fRepeat = 0;
+                    player->fRepeat = 0;
                     break;
                 }
             }
@@ -913,121 +776,87 @@ void Execute__5CMpegPv(CMPEG *p, K *k)
                 UpdateCd__Fv();
                 if (D_002BD4C0 != 3) break;
             }
-            Update__5CMpeg(p);
+            Update__5CMpeg(player);
         }
         if (FMatch(k, (K *)D_002A39A8)) D_002F68F8 = 1;
-        Finish__5CMpeg(p);
+        Finish__5CMpeg(player);
         Close__18CBinaryAsyncStream(&strm);
     }
-    p->pb = 0;
+    player->pb = 0;
 }
 
-/** @sly2-annot addr=0x1B3EC0
- * Purpose: init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks
- * Info: proposed name CMpeg_Start (T1); class CMpeg; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void CMpeg_Start(CMPEG *p, CBinaryAsyncStream *a)
+// init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks.
+void CMpeg_Start(CMPEG *player, CBinaryAsyncStream *a)
 {
-    p->pstrm = a;
-    p->n10C = 0;
-    Init__10CByteQueueiPv(&p->qVideo, 0x40000, (void *)(((unsigned)p->pb + 0x245A80) | 0x20000000));
-    Init__10CMpegAudio(&p->audio);
+    player->pstrm = a;
+    player->n10C = 0;
+    Init__10CByteQueueiPv(&player->qVideo, 0x40000, (void *)(((unsigned)player->pb + 0x245A80) | 0x20000000));
+    Init__10CMpegAudio(&player->audio);
     sceMpegInit();
-    sceMpegCreate(&p->mpeg, p->pb + 0x98000, 0x1ADA60);
-    sceMpegAddStrCallback(&p->mpeg, 0, 0, (void *)FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, p);
-    sceMpegAddStrCallback(&p->mpeg, 2, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, p);
-    sceMpegAddStrCallback(&p->mpeg, 3, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, p);
-    sceMpegAddStrCallback(&p->mpeg, 2, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, p);
-    sceMpegAddStrCallback(&p->mpeg, 3, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, p);
-    sceMpegAddCallback(&p->mpeg, 1, (void *)FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg, p);
-    sceMpegAddCallback(&p->mpeg, 4, (void *)FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg, p);
-    sceMpegAddCallback(&p->mpeg, 0, (void *)FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg, p);
-    while (!CbDemuxed__5CMpegi(p, 1)) ;
+    sceMpegCreate(&player->mpeg, player->pb + 0x98000, 0x1ADA60);
+    sceMpegAddStrCallback(&player->mpeg, 0, 0, (void *)FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 2, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 3, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 2, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 3, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 1, (void *)FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 4, (void *)FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 0, (void *)FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    while (!CbDemuxed__5CMpegi(player, 1)) ;
     D_002DEDBC = 0;
 }
 
-/** @sly2-annot addr=0x1B4058
- * Purpose: get decoded picture, BuildMpegGifs, subtitles, signal display thread
- * Info: proposed name CMpeg_Update (T1); class CMpeg; TU mpeg
- * Notes: names_v2 v1 proposed FUN_0018f610__5CMpeg (0.000) | superseded: CMpeg_RenderPicture (arbitration) |
- *   arbitration knock-on rename: CONFIRMED static: CbDemuxed loop, sceMpegGetPicture, BuildMpegGifs
- *   (+subtitles), FlushCache, CbDemuxed loop, SignalSema, CMpegAudio::Update = Sly1 CMpeg::Update |
- *   arbitration mangling: compile a declaration in the scratch build and compare before committing
- * Confidence: high [T1 0.80] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass; sources:
- *   r5_1AE130+arbitration
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Update__5CMpeg(CMPEG *p)
+// get decoded picture, BuildMpegGifs, subtitles, signal display thread.
+void Update__5CMpeg(CMPEG *player)
 {
-    while (p->stage == 1) CbDemuxed__5CMpegi(p, 0);
-    if (sceMpegGetPicture(&p->mpeg, p->pb + 0x285A80, 0x5CD) < 0) return;
-    if (p->mpeg.frameCount == 0) {
-        p->t10C = D_002DDED0.t3c;
-        BuildMpegGifs(p);
-        func_001B3700(p);
+    while (player->stage == 1) CbDemuxed__5CMpegi(player, 0);
+    if (sceMpegGetPicture(&player->mpeg, player->pb + 0x285A80, 0x5CD) < 0) return;
+    if (player->mpeg.frameCount == 0) {
+        player->t10C = D_002DDED0.t3c;
+        BuildMpegGifs(player);
+        DrawMpegSubtitles(player);
         func_00234CA0(0);
     }
-    while (p->stage) CbDemuxed__5CMpegi(p, 0);
-    func_00234A40(p->sema);
-    Update__10CMpegAudio(&p->audio);
+    while (player->stage) CbDemuxed__5CMpegi(player, 0);
+    func_00234A40(player->sema);
+    Update__10CMpegAudio(&player->audio);
 }
 
-/** @sly2-annot addr=0x1B4140
- * Purpose: audio reset/close, sceMpegReset/Delete
- * Info: proposed name CMpeg_Finish (T1); class CMpeg; TU mpeg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-void Finish__5CMpeg(CMPEG *p)
+// audio reset/close, sceMpegReset/Delete.
+void Finish__5CMpeg(CMPEG *player)
 {
-    p->pstrm = 0;
-    p->n10C = 0;
-    Reset__10CMpegAudio(&p->audio);
-    Close__10CMpegAudio(&p->audio);
-    func_0024B590(&p->mpeg);
-    sceMpegDelete(&p->mpeg);
-    while (p->stage)
+    player->pstrm = 0;
+    player->n10C = 0;
+    Reset__10CMpegAudio(&player->audio);
+    Close__10CMpegAudio(&player->audio);
+    func_0024B590(&player->mpeg);
+    sceMpegDelete(&player->mpeg);
+    while (player->stage)
         __asm__ __volatile__("");
     D_002DEDBC = 3;
 }
 
-/** @sly2-annot addr=0x1B41D0
- * Purpose: spool async stream and demux into sceMpeg (returns 2 at EOF)
- * Info: proposed name CMpeg_CbDemuxed (T1); class CMpeg; TU mpeg
- * Notes: verifier side finding names it CbDemuxed | superseded: CMpeg_Update (arbitration) | arbitration
- *   adopt verifier: CONFIRMED static: body = Sly1 CMpeg::CbDemuxed(int fBlock): while stream empty Spool,
- *   return 0 if still empty and !fBlock; FlushCache(0); demux (0x24F770 = sceM | arbitration mangling:
- *   compile a declaration in the scratch build and compare before committing
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; arbitration; sources: r5_1AE130+arbitration
- * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-int CbDemuxed__5CMpegi(CMPEG *p, int wait)
+// spool async stream and demux into sceMpeg (returns 2 at EOF).
+int CbDemuxed__5CMpegi(CMPEG *player, int wait)
 {
     int n, r;
-    n = p->pstrm->x1C - p->pstrm->x24;
+    n = player->pstrm->x1C - player->pstrm->x24;
     while (n == 0) {
-        if (!p->pstrm->x28) return 2;
-        Spool__18CBinaryAsyncStream(p->pstrm);
-        n = p->pstrm->x1C - p->pstrm->x24;
+        if (!player->pstrm->x28) return 2;
+        Spool__18CBinaryAsyncStream(player->pstrm);
+        n = player->pstrm->x1C - player->pstrm->x24;
         if (n == 0 && !wait) return 0;
     }
     func_00234CA0(0);
-    r = sceMpegDemuxPss(&p->mpeg, p->pstrm->x20 + p->pstrm->x24, n);
-    Skip__18CBinaryAsyncStreami(p->pstrm, r);
+    r = sceMpegDemuxPss(&player->mpeg, player->pstrm->x20 + player->pstrm->x24, n);
+    Skip__18CBinaryAsyncStreami(player->pstrm, r);
     if (r) return 0;
-    if (p->qVideo.cb >= n && p->audio.qData.cb >= n) return 2;
+    if (player->qVideo.cb >= n && player->audio.qData.cb >= n) return 2;
     return 1;
 }
 
-/** @sly2-annot addr=0x1B42C0
- * Purpose: returns stream(+0x114)!=0
- * Info: proposed name CMpeg_FActive (T2); class CMpeg; TU mpeg
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
- * @end-sly2-annot */
-extern "C" int func_001B42C0(CMPEG *p) {
-    return p->pstrm != 0;
+// returns stream(+0x114)!=0. (inferred)
+extern "C" int IsMpegActive(CMPEG *player) {
+    return player->pstrm != 0;
 }
 

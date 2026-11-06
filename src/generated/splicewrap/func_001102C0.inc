@@ -1,12 +1,12 @@
 #include "splicewrap.h"
-void func_00181728(s32);                         /* extern */
+void ActivateHackshipFromHacklock(s32);                         /* extern */
 CRef *func_001102C0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_00181728(pbasic);
+    ActivateHackshipFromHacklock(pbasic);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

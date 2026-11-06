@@ -1,5 +1,10 @@
 // prize.cpp -- prizes (DPRIZE : SO and its classes: loot, clue bottles, vaults, medicine...): init and load, the
-// prize states and pickup, the loot lists, and the vault. TU 0x1C4E50..0x1C8CC0 (61 functions, address order).
+// prize states and pickup, the loot lists, and the vault. Coins (CID91) and medicine (CID93) are "sprayed" out of
+// smashed objects and guards (SprayDprizes); clue bottles (CLUE) record their pickup in the save (afClue bits, 30 per
+// level); the vault (VAULT) is the safe whose three-digit combination is dialled with the stick. Entry points: the
+// DPRIZE/CID91/CID92/CID93/LOOT/CLUE/CLUEPROXY/VAULT vtables, SprayDprizes, the save queries (IsClueCollected,
+// CountCollectedClues, IsVaultOpened) and the Splice setters (AddLootEntry*, TriggerVault, SetDprizeParams).
+// TU 0x1C4E50..0x1C8CC0 (61 functions, address order).
 //
 // Types: TU-private views over sly2/so.h's SO for the m2c bodies (DPRIZE, LOOT, CLUE, VAULT: the fields they use).
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
@@ -65,11 +70,11 @@ void SetXfRole(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
 int GetCoinCount(void *pv);
 void SetCoinCount(void *pv, int n);
-void func_001C7A08(LOOTV *ploot);
+void ClearCurrentLootEntry(LOOTV *ploot);
 void InitDprize(DPRIZEV *pdprize);
 XF *FindSoXf(SO *pso, int oid, int n);
-int func_001C8110();
-void func_001C8730(VAULTV *pvault, int n);
+int IsVaultOpened();
+void SetVaultState(VAULTV *pvault, int n);
 }
 
 namespace M_InitDprize { extern "C" {
@@ -79,53 +84,41 @@ struct S { char pad[0x40]; int x40; char p1[0x150 - 0x44]; int x150; int x154; i
 extern float D_002A7710;
 void InitSo(struct S *p);
 void SetSoZapResponse(struct S *p, int a, int b);
+// Inline helper FPtr: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int FPtr(int v) { return !(v & 1); }
-/** @sly2-annot addr=0x1C4E50
- * Purpose: DPRIZE::Init (vt7): InitSo + 0x1F7918 setup
- * Info: proposed name InitDprize (T1); class DPRIZE slot7; TU prize
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#7-source-files, docs/engine/game-progression.md#8-key-functions,
- *   docs/engine/gameplay-objects.md#gameplay-object-classes
- * @end-sly2-annot */
-void InitDprize(struct S *p)
+// DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
+void InitDprize(struct S *prize)
 {
     int v;
-    InitSo(p);
-    SetSoZapResponse(p, 0x17E, 8);
-    v = p->x40;
-    p->x21C = 30.0f;
-    p->x1C8 = 1;
-    p->x1CC = D_002A7710;
-    p->x150 = -1;
-    p->x158 = 0;
-    p->x15C = -1;
-    p->x1A4 = -1;
-    p->x1AC = -1;
-    p->x1B4 = -1;
-    p->x204 = -1;
-    p->x20C = -1;
-    p->x214 = -1;
-    p->x224 = -1;
-    if (FPtr(v)) *(int *)v |= 2; else p->x40 = v | 2;
+    InitSo(prize);
+    SetSoZapResponse(prize, 0x17E, 8);
+    v = prize->x40;
+    prize->x21C = 30.0f;
+    prize->x1C8 = 1;
+    prize->x1CC = D_002A7710;
+    prize->x150 = -1;
+    prize->x158 = 0;
+    prize->x15C = -1;
+    prize->x1A4 = -1;
+    prize->x1AC = -1;
+    prize->x1B4 = -1;
+    prize->x204 = -1;
+    prize->x20C = -1;
+    prize->x214 = -1;
+    prize->x224 = -1;
+    if (FPtr(v)) *(int *)v |= 2; else prize->x40 = v | 2;
 }
 } } // namespace M_InitDprize
 
-/** @sly2-annot addr=0x1C4EF8
- * Purpose: DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8)
- * Info: proposed name LoadDprizeFromBrx (T1); class DPRIZE slot14; TU prize
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+parse-verified
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void LoadDprizeFromBrx(DPRIZEV *pdprize, CBinaryInputStream *pbis)
+// DPRIZE::LoadFromBrx (vtable slot 14): LoadSoFromBrx + snip objects (BindLoOidTable).
+extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
-    LoadSoFromBrx(pdprize, pbis);
-    *(int *)((char *)EnsureSoInSwList187(pdprize) + 0xF0) = 1;
-    SetXfRole(pdprize, pdprize->pxfUnk58, 0x15);
-    SetXfRole(pdprize, pdprize->pxfUnk5c, 0x15);
-    BindLoOidTable(pdprize, 1, D_002C0D40);
+    LoadSoFromBrx(prize, pbis);
+    *(int *)((char *)EnsureSoInSwList187(prize) + 0xF0) = 1;
+    SetXfRole(prize, prize->pxfUnk58, 0x15);
+    SetXfRole(prize, prize->pxfUnk5c, 0x15);
+    BindLoOidTable(prize, 1, D_002C0D40);
 }
 
 namespace M_PostDprizeLoad { extern "C" {
@@ -142,28 +135,22 @@ extern char D_003DD490[];
 void PostSoLoad(struct S *p);
 struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
-/** @sly2-annot addr=0x1C4F60
- * Purpose: DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup
- * Info: proposed name PostDprizeLoad (T1); class DPRIZE slot15; TU prize
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void PostDprizeLoad(struct S *p)
+// DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
+void PostDprizeLoad(struct S *prize)
 {
     struct LO *plo;
-    PostSoLoad(p);
-    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, p);
-    p->x16C = plo;
+    PostSoLoad(prize);
+    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
+    prize->x16C = plo;
     if (plo)
         ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
-    if (p->x1A4 != -1) p->x1A8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1A4, p);
-    if (p->x1AC != -1) p->x1B0 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1AC, p);
-    if (p->x1B4 != -1) p->x1B8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1B4, p);
-    if (p->x204 != -1) p->x208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x204, p);
-    if (p->x20C != -1) p->x210 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x20C, p);
-    if (p->x214 != -1) p->x218 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x214, p);
-    ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, p->x158);
+    if (prize->x1A4 != -1) prize->x1A8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1A4, prize);
+    if (prize->x1AC != -1) prize->x1B0 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1AC, prize);
+    if (prize->x1B4 != -1) prize->x1B8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1B4, prize);
+    if (prize->x204 != -1) prize->x208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x204, prize);
+    if (prize->x20C != -1) prize->x210 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x20C, prize);
+    if (prize->x214 != -1) prize->x218 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x214, prize);
+    ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, prize->x158);
 }
 } } // namespace M_PostDprizeLoad
 
@@ -174,24 +161,19 @@ struct A { int c; void *pv; int pad[14]; };
 struct M { int x0; int x4; int x8; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x168 - 0x10]; int x168; char p2[0x218 - 0x16C]; struct LO *x218; };
 void HandleBasicMessage(struct S *p, int n, struct M *pm);
-/** @sly2-annot addr=0x1C5098
- * Purpose: DPRIZE vt5 HandleMessage: base 0x133590 + prize-specific msgs
- * Info: proposed name HandleDprizeMessage (T1); class DPRIZE slot5; TU prize
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void HandleDprizeMessage(struct S *p, int n, struct M *pm)
+// DPRIZE vtable slot 5 HandleMessage: base HandleBasicMessage + prize-specific msgs. (inferred)
+void HandleDprizeMessage(struct S *prize, int n, struct M *pm)
 {
     struct A a;
-    HandleBasicMessage(p, n, pm);
-    if (n == 10 && pm->x0 == p->x168 && pm->x8 == 0x186) {
-        struct LO *plo = p->x218;
+    HandleBasicMessage(prize, n, pm);
+    if (n == 10 && pm->x0 == prize->x168 && pm->x8 == 0x186) {
+        struct LO *plo = prize->x218;
         if (plo) {
             a.c = 1;
-            a.pv = p;
+            a.pv = prize;
             ((void (*)(void *, struct A *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &a);
         }
-        ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, 2);
+        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 2);
     }
 }
 } } // namespace M_HandleDprizeMessage
@@ -252,30 +234,35 @@ struct VU_VECTOR {
     qword q;
     VU_VECTOR(const qword &v) { q = v; }
 };
+// Weighted sum f1*v1 + f2*v2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
 }
+// value + velocity * time.
 static inline qword Advance(qword value, qword velocity, VU_FLOAT time)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(value), "j"(velocity), "j"(time.q));
     return r;
 }
+// Vector difference.
 static inline qword Difference(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Vector sum.
 static inline qword Add(qword a, qword b)
 {
     qword r;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// 3x3 matrix times vector.
 static inline qword RotateVec(const M3 &m, qword value)
 {
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z"
@@ -297,40 +284,36 @@ static inline M3 operator*(const M3 &matL, const M3 &matR) return mat
             : "=j"(v2) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(matR.rows[2]));
     t.rows[2] = v2; mat.rows[2] = v2;
 }
-static inline CHANNEL *GetChannel(P *p, int channel)
+// Motion channel of the prize (vtable slot 51).
+static inline CHANNEL *GetChannel(P *prize, int channel)
 {
-    VTE &e = p->vt[51];
-    return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)p + e.delta), channel);
+    VTE &e = prize->vt[51];
+    return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)prize + e.delta), channel);
 }
+// Samples a motion curve at the animation time: value and velocity (motion vtable slot 3).
 static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, qword *velocity)
 {
     VTE &e = motion->vt[3];
     ((void (*)(MOTION *, float, float, qword *, qword *))e.fn)((MOTION *)((char *)motion + e.delta), animation->time, animation->duration, value, velocity);
 }
 
-/** @sly2-annot addr=0x1C5148
- * Purpose: DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base)
- * Info: proposed name ProjectDprizeTransform (T1); class DPRIZE slot17; TU prize
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void ProjectDprizeTransform(P *p)
+// DPRIZE vtable slot 17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
+extern "C" void ProjectDprizeTransform(P *prize)
 {
-    if (p->state == 6) { UpdateSoXfWorld(p); return; }
+    if (prize->state == 6) { UpdateSoXfWorld(prize); return; }
     float factor;
-    if (p->state == 0 || p->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
+    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
     else factor = 1.0f;
-    p->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(p->velocity), VU_FLOAT(D_002DDED0.dt.bits), VU_VECTOR(p->acceleration));
-    qword newPosition = Advance(p->coordinate, p->velocity, VU_FLOAT(D_002DDED0.dt.bits));
-    CHANNEL *channel = p->position;
-    p->coordinate = newPosition;
+    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.dt.bits), VU_VECTOR(prize->acceleration));
+    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.dt.bits));
+    CHANNEL *channel = prize->position;
+    prize->coordinate = newPosition;
     VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
-    p->position->velocity = p->velocity;
-    { int stamp = ++D_003DD490.stamp; p->position->stamp = stamp; }
-    if (p->holder && p->holder->animation) {
-        ANIM *animation = p->holder->animation;
+    prize->position->velocity = prize->velocity;
+    { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+    if (prize->holder && prize->holder->animation) {
+        ANIM *animation = prize->holder->animation;
         ACTION *action = animation->action;
         MOTION *positionMotion = 0, *orientationMotion = 0;
         int i = 0;
@@ -338,42 +321,42 @@ extern "C" void ProjectDprizeTransform(P *p)
             ENTRY *entry = &action->entries[i];
             unsigned int key = entry->key;
             if (!(key & 0x40000000U)) continue;
-            if (((int)(key << 12) >> 12) != p->id) continue;
+            if (((int)(key << 12) >> 12) != prize->id) continue;
             {
-                CHANNEL *selected = GetChannel(p, (int)(key << 2) >> 22);
-                if (selected == p->position) positionMotion = entry->motion;
-                else if (selected == p->orientation) orientationMotion = entry->motion;
+                CHANNEL *selected = GetChannel(prize, (int)(key << 2) >> 22);
+                if (selected == prize->position) positionMotion = entry->motion;
+                else if (selected == prize->orientation) orientationMotion = entry->motion;
             }
             if (positionMotion && orientationMotion) break;
         }
         if (positionMotion || orientationMotion) {
             U dir, position, velocity, angles, angularVelocity;
             M3 frame, rot;
-            dir.q = Difference(D_002DDF40.position, p->position->position);
+            dir.q = Difference(D_002DDF40.position, prize->position->position);
             dir.words[2] = 0;
             frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
-                channel = p->position;
+                channel = prize->position;
                 VECTOR_opAssign(&channel->position, Add(channel->position, RotateVec(frame, position.q)));
                 *(float *)((char *)channel + 0x3C) = 1.0f;
-                CHANNEL *current = p->position;
+                CHANNEL *current = prize->position;
                 current->velocity = Add(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++D_003DD490.stamp; p->position->stamp = stamp; }
+                { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
                 rot = LoadRotateMatrixEuler(angles.q);
-                CHANNEL *current = p->orientation;
+                CHANNEL *current = prize->orientation;
                 current->matrix = frame * rot;
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
-                CHANNEL *spin = p->orientation;
+                CHANNEL *spin = prize->orientation;
                 spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++D_003DD490.stamp; p->orientation->stamp = stamp; }
+                { int stamp = ++D_003DD490.stamp; prize->orientation->stamp = stamp; }
             }
         }
     }
-    UpdateSoXfWorld(p);
+    UpdateSoXfWorld(prize);
 }
 } // namespace M_ProjectDprizeTransform
 
@@ -382,13 +365,8 @@ struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-/** @sly2-annot addr=0x1C5570
- * Purpose: collision filter callback (FIsCidDerived test)
- * Info: proposed name FFilterDprizeObjects (T1); TU prize
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int FFilterDprizeObjects(void *p, struct Q *q)
+// collision filter callback (FIsCidDerived test). (inferred)
+int FFilterDprizeObjects(void *prize, struct Q *q)
 {
     void *s;
     /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
@@ -397,7 +375,7 @@ int FFilterDprizeObjects(void *p, struct Q *q)
 
 namespace M_CheckDprizeBounce {
 // CheckDprizeBounce: one commented pin (QwNormalizeInto), one allocation-only asm operand (GFromVf), VU one-op asm helpers only.
-// dprize-style collision response (next to matched FCheckDprizeCollect): query the radius box with IntersectSwBoundingBox, find the deepest
+// dprize-style collision response (next to matched TryCollectDprize): query the radius box with IntersectSwBoundingBox, find the deepest
 // sphere / CplaneFromSphere contact that the velocity approaches, then push the position out and rebuild the velocity (floor case:
 // tangent + clamped normal parts, one-shot boost; otherwise normal/tangent split with the two response factors).
 // Keys (wave 4, from w3lane8.v3 at aligned 52): call results passed raw so gcc emits the qmtc2; QwNormalizeInto reads the vector
@@ -436,6 +414,9 @@ struct VU_FLOAT {
     VU_FLOAT(float g) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(g)); }
     VU_FLOAT(int bits) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(bits)); }
 };
+// Inline helpers VuFloat, VuFloatBits, GFromQw: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qword VuFloat(float g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 static inline qword VuFloatBits(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "rV"(g)); return r; }
 
@@ -443,19 +424,24 @@ static inline float GFromQw(qword q) { float g; __asm__("qmfc2.ni %0, %1" : "=r"
 /* the second "j"(q) is allocation-only: it keeps the length qword in a VU register (the "r" use alone ties the class
    costs and puts it in a GPR), so gcc reloads it with its own qmfc2 into v1 like the target. */
 static inline float GFromVf(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q), "j"(q)); return g; }
+// base + vec * scale.
 static inline qword QwAddScaled(qword base, qword dir, qword g)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(base), "j"(dir), "j"(g));
     return r;
 }
+// Weighted sum of two vectors.
 static inline qword QwCombo(VU_FLOAT g1, qword v1, VU_FLOAT g2, qword v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(g1.qw), "j"(v1), "j"(g2.qw), "j"(v2));
     return r;
 }
+// Inline helper QwSub: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Length of a vector, in lane x.
 static inline qword QwLength(qword v)
 {
     qword d, one, len;
@@ -463,12 +449,14 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(d));
     return len;
 }
+// Vector divided by its length.
 static inline qword QwUnit(qword v, qword len)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(len));
     return r;
 }
+// Unit vector (or fallback for a near-zero vector).
 static inline qword QwNormalize(qword v, qword fallback)
 {
     qword len = QwLength(v);
@@ -476,6 +464,7 @@ static inline qword QwNormalize(qword v, qword fallback)
         return fallback;
     return QwUnit(v, len);
 }
+// Unit vector stored through a pointer.
 static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
 {
     register qword g asm("$2") = *(volatile qword *)pv; /* the one pin (as in ProjectLeafTransform): the target reads the vector into $v0, then qmtc2 */
@@ -487,30 +476,27 @@ static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
         *pv = QwUnit(v, len);
     return len;
 }
+// Dot product as a float.
 static inline float GDot(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
     return GFromQw(d);
 }
+// Inline helper GMin: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
 
-/** @sly2-annot addr=0x1C55E0
- * Purpose: query nearby solids (0x20FAA0) and resolve deepest contact (bounce)
- * Info: proposed name CheckDprizeBounce (T1); TU prize
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void CheckDprizeBounce(P *p)
+// query nearby solids (IntersectSwBoundingBox) and resolve deepest contact (bounce). (inferred)
+extern "C" void CheckDprizeBounce(P *prize)
 {
     STACKSCOPE frame;
     U vec;
     float gDeepest = 0.0f;
-    qword pos = GetLoWorldPos(p);
-    qword posMin = (vec.qw = VuFloat(-p->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
-    qword posMax = GetLoWorldPos(p);
-    vec.qw = VuFloatBits(p->sRadius.bits);
+    qword pos = GetLoWorldPos(prize);
+    qword posMin = (vec.qw = VuFloat(-prize->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
+    qword posMax = GetLoWorldPos(prize);
+    vec.qw = VuFloatBits(prize->sRadius.bits);
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
     SOPART **appart;
@@ -521,21 +507,21 @@ extern "C" void CheckDprizeBounce(P *p)
         SOPART *ppart = appart[i];
         if (ppart->grf & (1UL << 49)) {
             qword center = ppart->pxf->pos;
-            qword posCur = GetLoWorldPos(p);
-            float g = GFromQw(QwLength(QwSub(center, posCur))) - ppart->sRadius - p->sRadius.g;
+            qword posCur = GetLoWorldPos(prize);
+            float g = GFromQw(QwLength(QwSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
             if (g < gDeepest) {
-                vec.qw = QwNormalize(QwSub(p->pos, ppart->pxf->pos), D_002A2DA0);
-                if (GDot(p->v, vec.qw) < 0.0f) {
+                vec.qw = QwNormalize(QwSub(prize->pos, ppart->pxf->pos), D_002A2DA0);
+                if (GDot(prize->v, vec.qw) < 0.0f) {
                     gDeepest = g;
                     normal.qw = vec.qw;
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = IntersectSphereBsp(GetLoWorldPos(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
-                if (g < gDeepest && GDot(p->v, pcontact->plane.qw) < 0.0f) {
+                if (g < gDeepest && GDot(prize->v, pcontact->plane.qw) < 0.0f) {
                     normal.qw = pcontact->plane.qw;
                     gDeepest = g;
                 }
@@ -546,27 +532,27 @@ extern "C" void CheckDprizeBounce(P *p)
         U response;
         {
             U primary;
-            if (normal.g[2] > 0.7f && p->state == 4) {
-                float gNormal = func_0011E290(p->v, D_002A2DC0, 0, &primary.qw);
+            if (normal.g[2] > 0.7f && prize->state == 4) {
+                float gNormal = func_0011E290(prize->v, D_002A2DC0, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
-                float gTangent = GMin(p->gTangentResponse.g * gSpeed, D_002C0D74);
-                gNormal = GMin(-p->gNormalResponse * gNormal, D_002C0D78);
+                float gTangent = GMin(prize->gTangentResponse.g * gSpeed, D_002C0D74);
+                gNormal = GMin(-prize->gNormalResponse * gNormal, D_002C0D78);
                 response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(gNormal), D_002A2DC0);
-                if (!p->fRaised) {
-                    int fTrigger = GDot(response.qw, normal.qw) < p->gThreshold;
+                if (!prize->fRaised) {
+                    int fTrigger = GDot(response.qw, normal.qw) < prize->gThreshold;
                     if (fTrigger) {
-                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(p->gBoost.bits), D_002A2DC0);
-                        p->fRaised = 1;
+                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(prize->gBoost.bits), D_002A2DC0);
+                        prize->fRaised = 1;
                     }
                 }
             } else {
                 U secondary;
-                func_0011E290(p->v, normal.qw, &primary.qw, &secondary.qw);
-                response.qw = QwCombo(VU_FLOAT(-p->gNormalResponse), primary.qw, VU_FLOAT(p->gTangentResponse.bits), secondary.qw);
+                func_0011E290(prize->v, normal.qw, &primary.qw, &secondary.qw);
+                response.qw = QwCombo(VU_FLOAT(-prize->gNormalResponse), primary.qw, VU_FLOAT(prize->gTangentResponse.bits), secondary.qw);
             }
         }
-        p->pos = QwAddScaled(p->pos, normal.qw, VU_FLOAT(-gDeepest).qw);
-        p->v = response.qw;
+        prize->pos = QwAddScaled(prize->pos, normal.qw, VU_FLOAT(-gDeepest).qw);
+        prize->v = response.qw;
     }
 }
 } // namespace M_CheckDprizeBounce
@@ -585,23 +571,27 @@ struct Q { int enabled,pad4; float radius; struct SO *so; };
 extern float D_002C0D7C;
 qword GetLoWorldPos(void *);
 int IntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+// Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
 static inline void Trigger(struct S *p)
 {
     struct VTE *m=&p->vt[76];
     m->fn((char *)p+m->d,1);
 }
+// Moves a 128-bit EE register into a VU register.
 static inline qword ToVu(qword a)
 {
     qword b;
     __asm__("qmtc2 %1,%0":"=j"(b):"r"(a));
     return b;
 }
+// Vector difference.
 static inline qword Sub(qword a,qword b)
 {
     qword d;
     __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));
     return d;
 }
+// Squared length of a vector.
 static inline float LenSq(qword a)
 {
     qword d,one;
@@ -610,41 +600,36 @@ static inline float LenSq(qword a)
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
-/** @sly2-annot addr=0x1C5B20
- * Purpose: test one collector (PZI) against the prize: in range -> collect
- * Info: proposed name FCheckDprizeCollect (T1); TU prize
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int FCheckDprizeCollect(struct S *p,struct Q *q)
+// test one collector (PZI) against the prize: in range -> collect. (inferred)
+int TryCollectDprize(struct S *prize,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));
     qword pos;
     int i;
     float distance,maximum;
     if(!q->enabled||!q->so)return 0;
-    pos=ToVu(GetLoWorldPos(p));
+    pos=ToVu(GetLoWorldPos(prize));
     distance=LenSq(Sub(pos,GetLoWorldPos(q->so)));
     maximum=D_002C0D7C;
     if(maximum*maximum<distance)return 0;
     if(distance<q->radius*q->radius) {
-        Trigger(p);
+        Trigger(prize);
         return 1;
     }
     for(i=0;i<q->so->count;i++) {
         struct SHAPE *s=&q->so->shapes[i];
         if(s->flags&(1UL<<50))continue;
         if(s->flags&(1UL<<49)) {
-            float r=p->radius+s->radius;
-            qword here=GetLoWorldPos(p);
+            float r=prize->radius+s->radius;
+            qword here=GetLoWorldPos(prize);
             if(LenSq(Sub(here,s->pos->pos))<r*r) {
-                Trigger(p);
+                Trigger(prize);
                 return 1;
             }
         } else {
-            qword here=GetLoWorldPos(p);
-            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
-                Trigger(p);
+            qword here=GetLoWorldPos(prize);
+            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,prize->radius)) {
+                Trigger(prize);
                 return 1;
             }
         }
@@ -664,27 +649,22 @@ extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int x1C8; float x1CC; };
 int CollectActivePzis(void *pg, int c, void **ap);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-int FCheckDprizeCollect(struct S *p, void *pv);
-/** @sly2-annot addr=0x1C5D18
- * Purpose: for each collector PZI (CppziCur) check collection
- * Info: proposed name CheckDprizeCollect (T1); TU prize
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void CheckDprizeCollect(struct S *p)
+int TryCollectDprize(struct S *p, void *pv);
+// for each collector PZI (CppziCur) check collection. (inferred)
+void CheckDprizeCollect(struct S *prize)
 {
     void *ap[0x10];
     int i, n;
-    if (!p->x1C8) return;
-    if (p->x1CC < D_002DDED0.t) {
-        ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, 1);
+    if (!prize->x1C8) return;
+    if (prize->x1CC < D_002DDED0.t) {
+        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 1);
         return;
     }
     n = CollectActivePzis(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
-        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x5B)) break;
-        if (FCheckDprizeCollect(p, ap[i])) break;
+        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
+        if (TryCollectDprize(prize, ap[i])) break;
     }
 }
 } } // namespace M_CheckDprizeCollect
@@ -693,12 +673,7 @@ namespace M_func_001C5DF0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x1B8]; int n1c8; };
 struct Q { char pad[0x44]; int grf; };
-/** @sly2-annot addr=0x1C5DF0
- * Purpose: DPRIZE new virtual slot 75
- * Info: proposed name DPRIZE_VUnk75 (T2); class DPRIZE slot75; TU prize
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// DPRIZE new virtual slot 75. (inferred)
 } } // namespace M_func_001C5DF0
 int DPRIZE::FTakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
 {
@@ -753,11 +728,12 @@ public:
 };
 extern "C" {
 void UpdateSo(P *p);
-void func_001C6308(P *p);
+void EmitDprizeGlint(P *p);
 void CheckDprizeBounce(P *p);
 void CheckDprizeCollect(P *p);
 void UpdateDprize(P *p);
 }
+// Squared length of a vector.
 static inline float LenSq(qword v)
 {
     float r;
@@ -766,37 +742,31 @@ static inline float LenSq(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(t));
     return r;
 }
-/** @sly2-annot addr=0x1C5E48
- * Purpose: DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect
- * Info: proposed name UpdateDprize (T1); class DPRIZE slot16; TU prize
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void UpdateDprize(P *p)
+// DPRIZE vtable slot 16 Update: base update, sparkle (EmitDprizeGlint), bounce, collect.
+void UpdateDprize(P *prize)
 {
-    UpdateSo(p);
-    func_001C6308(p);
-    switch (p->state) {
+    UpdateSo(prize);
+    EmitDprizeGlint(prize);
+    switch (prize->state) {
     case 0:
-        if (LenSq(p->pos) > 10000.0f)
-            CheckDprizeBounce(p);
+        if (LenSq(prize->pos) > 10000.0f)
+            CheckDprizeBounce(prize);
     case 5:
-        CheckDprizeCollect(p);
+        CheckDprizeCollect(prize);
         break;
     case 3:
-        if (*(float *)((char *)&p->pos + 8) < 0.0f)
-            p->SetState(4);
+        if (*(float *)((char *)&prize->pos + 8) < 0.0f)
+            prize->SetState(4);
         break;
     case 4:
-        if (p->f1c4 && *(float *)((char *)&p->pos + 8) < 25.0f) {
-            p->f1c4 = 0;
-            p->SetState(0);
-        } else if (D_002C0D50 < D_002DDED0.t - p->t154) {
-            p->SetState(2);
+        if (prize->f1c4 && *(float *)((char *)&prize->pos + 8) < 25.0f) {
+            prize->f1c4 = 0;
+            prize->SetState(0);
+        } else if (D_002C0D50 < D_002DDED0.t - prize->t154) {
+            prize->SetState(2);
         } else {
-            CheckDprizeBounce(p);
-            CheckDprizeCollect(p);
+            CheckDprizeBounce(prize);
+            CheckDprizeCollect(prize);
         }
         break;
     case 1:
@@ -826,34 +796,26 @@ void RenderDprizeSelf(LO *p);
 }
 extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
 extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
-/** @sly2-annot addr=0x1C5FA0
- * Purpose: DPRIZE vt19 RenderSelf (bob/spin then SO render)
- * Info: proposed name RenderDprizeSelf (T1); class DPRIZE slot19; TU prize
- * Notes: verifier: purpose partly wrong: DPRIZE slot 19 (RenderSelf): skip in state 2; if the ASEGA at +0x168
- *   has channel 0xC, evaluate it and render with that matrix/scale (0x1A5EE8), else SO RenderSe
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void RenderDprizeSelf(LO *p)
+// DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
+void RenderDprizeSelf(LO *prize)
 {
     Q *q;
     H *ph;
-    if (p->x150 == 2) return;
-    if (p->x168 && (q = p->x168->x30) != 0) {
-        ph = FindAsegChannel(q->x14, p, 0xC, 1);
+    if (prize->x150 == 2) return;
+    if (prize->x168 && (q = prize->x168->x30) != 0) {
+        ph = FindAsegChannel(q->x14, prize, 0xC, 1);
         if (ph) {
             V v;
             OBJ *pobj = ph->pobj;
             ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->x1C, q->x40);
             M4 m;
-            m = LoadMatrixFromPosRotScale(GetLoWorldPos(p), GetLoWorldMatrix(p), &v);
-            RenderLoAtMatrix(p, m, p->x12C, p->x12C);
+            m = LoadMatrixFromPosRotScale(GetLoWorldPos(prize), GetLoWorldMatrix(prize), &v);
+            RenderLoAtMatrix(prize, m, prize->x12C, prize->x12C);
         } else {
-            RenderSoSelf(p);
+            RenderSoSelf(prize);
         }
     } else {
-        RenderSoSelf(p);
+        RenderSoSelf(prize);
     }
 }
 } // namespace M_RenderDprizeSelf
@@ -882,72 +844,66 @@ struct LO *ApplySmToObject(void *a, struct S *p, int anim, int z);
 void SkipSma(struct LO *q, float g);
 void SetSmaGoal(struct LO *q, int anim);
 void RetractSma(struct LO *q);
-/** @sly2-annot addr=0x1C60B8
- * Purpose: DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps)
- * Info: proposed name SetDprizeDprizes (T1); class DPRIZE slot76; TU prize
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void SetDprizeDprizes(struct S *p, int n)
+// DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps).
+void SetDprizeDprizes(struct S *prize, int n)
 {
     int anim = -1;
     struct LO *q;
-    if (p->x150 == n) return;
+    if (prize->x150 == n) return;
     if (n != 0 && n != 5)
-        SetLoParent(p, 0, 0);
-    if (p->x150 == -1 || p->x150 == 2) {
-        struct O *o = p->x58;
-        p->q170 = o->q30;
-        p->q180 = o->qB0;
+        SetLoParent(prize, 0, 0);
+    if (prize->x150 == -1 || prize->x150 == 2) {
+        struct O *o = prize->x58;
+        prize->q170 = o->q30;
+        prize->q180 = o->qB0;
     }
     switch (n) {
     case 0:
-        anim = p->x15C != -1 ? p->x15C : 0x184;
-        p->q190 = D_002A2DD0;
+        anim = prize->x15C != -1 ? prize->x15C : 0x184;
+        prize->q190 = D_002A2DD0;
         break;
     case 3:
     case 4:
         anim = 0x183;
-        p->q190 = D_002C0D60;
+        prize->q190 = D_002C0D60;
         break;
     case 2:
-        p->x1CC = D_002A773C;
-        ((void (*)(void *))p->vt[9].pf)((char *)p + p->vt[9].d);
+        prize->x1CC = D_002A773C;
+        ((void (*)(void *))prize->vt[9].pf)((char *)prize + prize->vt[9].d);
         {
-            struct LO *r = GetProxyCopyValue(p);
+            struct LO *r = GetProxyCopyValue(prize);
             if (r)
-                UnlockProxyObject(r, p);
+                UnlockProxyObject(r, prize);
         }
         break;
     case 5:
         anim = 0x186;
-        p->q190 = D_002A2DD0;
+        prize->q190 = D_002A2DD0;
         break;
     }
     switch(n){
     case 0:case 4:case 5:
-        q=p->x16C;if(q)((void(*)(void*))q->vt[8].pf)((char*)q+q->vt[8].d);
+        q=prize->x16C;if(q)((void(*)(void*))q->vt[8].pf)((char*)q+q->vt[8].d);
         break;
     default:
-        q=p->x16C;if(q)((void(*)(void*))q->vt[9].pf)((char*)q+q->vt[9].d);
+        q=prize->x16C;if(q)((void(*)(void*))q->vt[9].pf)((char*)q+q->vt[9].d);
         break;
     }
-    p->x150 = n;
-    p->x154 = D_002DDED0.t;
+    prize->x150 = n;
+    prize->x154 = D_002DDED0.t;
     if (anim != -1) {
-        if (!p->x168) {
-            p->x168 = ApplySmToObject(p->x164, p, anim, 0);
-            ((void (*)(void *))p->x168->vt[1].pf)((char *)p->x168 + p->x168->vt[1].d);
-            if (p->x160 > 0.0f)
-                SkipSma(p->x168, p->x160);
+        if (!prize->x168) {
+            prize->x168 = ApplySmToObject(prize->x164, prize, anim, 0);
+            ((void (*)(void *))prize->x168->vt[1].pf)((char *)prize->x168 + prize->x168->vt[1].d);
+            if (prize->x160 > 0.0f)
+                SkipSma(prize->x168, prize->x160);
         } else {
-            SetSmaGoal(p->x168, anim);
+            SetSmaGoal(prize->x168, anim);
         }
-    } else if (p->x168) {
-        RetractSma(p->x168);
-        ((void (*)(void *))p->x168->vt[2].pf)((char *)p->x168 + p->x168->vt[2].d);
-        p->x168 = 0;
+    } else if (prize->x168) {
+        RetractSma(prize->x168);
+        ((void (*)(void *))prize->x168->vt[2].pf)((char *)prize->x168 + prize->x168->vt[2].d);
+        prize->x168 = 0;
     }
 }
 } } // namespace M_SetDprizeDprizes
@@ -974,6 +930,7 @@ qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
 struct Q *PripNewRipg(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
+// Dot product.
 static inline float Dot(qword a,qword b)
 {
     qword d,one;
@@ -983,37 +940,32 @@ static inline float Dot(qword a,qword b)
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+// Larger of two floats.
 static inline float Max(float a,float b)
 {
     __asm__("max.s %0,%0,%1":"+f"(a):"f"(b));
     return a;
 }
-/** @sly2-annot addr=0x1C6308
- * Purpose: spawn sparkle rip (PripNewRipg) at prize position periodically
- * Info: proposed name EmitDprizeGlint (T2); TU prize
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C6308(struct S *p)
+// spawn sparkle rip (PripNewRipg) at prize position periodically. (inferred)
+void EmitDprizeGlint(struct S *prize)
 {
     union U scale;
     qword direction;
     int side;
     void *emitter;
     struct Q *q;
-    if(!p->owner||p->probability<=0)return;
-    direction=ConvertAloVec(p,0,D_002C0D80);
+    if(!prize->owner||prize->probability<=0)return;
+    direction=ConvertAloVec(prize,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
-    if(side!=p->previous) {
-        if(GRandInRange__Fff(0,1)<p->probability) {
-            if(D_002C0D90<D_002DDED0.t-p->last) {
-                if(Dot(direction,D_002DDF40.a)<0)emitter=p->left;
-                else emitter=p->right;
+    if(side!=prize->previous) {
+        if(GRandInRange__Fff(0,1)<prize->probability) {
+            if(D_002C0D90<D_002DDED0.t-prize->last) {
+                if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
+                else emitter=prize->right;
                 if(!emitter)goto changed;
                 q=PripNewRipg(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
-                p->last=D_002DDED0.t;
+                prize->last=D_002DDED0.t;
                 {
                     struct VTE *method=&q->vt[1];
                     void *ctx=(char *)q+method->delta;
@@ -1021,52 +973,42 @@ void func_001C6308(struct S *p)
                     method->fn(ctx,pos,1,0);
                 }
                 {
-                    void *owner=p->owner;
+                    void *owner=prize->owner;
                     q->emit=emitter;
                     q->owner=owner;
                 }
-                scale.q=p->lo->scale;
+                scale.q=prize->lo->scale;
                 q->duration=1.5f/Max(1,__builtin_fabsf(scale.f[2]));
             }
         }
 changed:
-        p->previous=side;
+        prize->previous=side;
     }
 }
 } } // namespace M_func_001C6308
 
 namespace M_func_001C64F8 { extern "C" {
 struct S { char pad[0x1A4]; int a; int x; int b; int y; int c; };
-/** @sly2-annot addr=0x1C64F8
- * Purpose: 16-byte helper
- * Info: proposed name Dprize_Stub64F8 (T2); TU prize
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C64F8(struct S *p, int a, int b, int c) { p->a = a; p->b = b; p->c = c; }
+// 16-byte helper. (inferred)
+void SetDprizeParams(struct S *p, int a, int b, int c) { p->a = a; p->b = b; p->c = c; }
 } } // namespace M_func_001C64F8
 
 namespace M_func_001C6508 { extern "C" {
 struct S { char pad[0x1A0]; float a1A0; char p1[0x1D0 - 0x1A4]; float a1D0, a1D4, a1D8, a1DC, a1E0, a1E4; char p2[0x230 - 0x1E8]; float a230, a234; };
 void InitDprize(struct S *p);
-/** @sly2-annot addr=0x1C6508
- * Purpose: CID 91 Init (sprayable pickup; coin?)
- * Info: proposed name InitDprize91 (T2); class COIN slot7; TU prize
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C6508(struct S *p)
+// CID 91 Init (sprayable pickup; coin?). (inferred)
+void InitCoin(struct S *coin)
 {
-    InitDprize(p);
-    p->a1D8 = 45.0f;
-    p->a1DC = 65.0f;
-    p->a1D0 = 250.0f;
-    p->a1D4 = 150.0f;
-    p->a1E0 = 0.5f;
-    p->a1E4 = 0.25f;
-    p->a1A0 = 0.25f;
-    p->a230 = 5.0f;
-    p->a234 = 5.0f;
+    InitDprize(coin);
+    coin->a1D8 = 45.0f;
+    coin->a1DC = 65.0f;
+    coin->a1D0 = 250.0f;
+    coin->a1D4 = 150.0f;
+    coin->a1E0 = 0.5f;
+    coin->a1E4 = 0.25f;
+    coin->a1A0 = 0.25f;
+    coin->a230 = 5.0f;
+    coin->a234 = 5.0f;
 }
 } } // namespace M_func_001C6508
 
@@ -1075,12 +1017,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
-/** @sly2-annot addr=0x1C6588
- * Purpose: CID 91 Update (UpdateDprize + extra)
- * Info: proposed name UpdateDprize91 (T2); class COIN slot16; TU prize
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// CID 91 Update (UpdateDprize + extra). (inferred)
 } } // namespace M_func_001C6588
 void COIN::VUnk15() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
     UpdateDprize(p);
@@ -1113,67 +1050,56 @@ float GRandInRange__Fff(float a, float b);
 struct X *PripNewRipg(void *pg, int a, int b);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
-void func_001C67A0(struct S *p, int n);
+void AwardCoin(struct S *p, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
-/** @sly2-annot addr=0x1C65F8
- * Purpose: CID 91 state setter: on collect play sound, emit rip, award (0x1C67A0)
- * Info: proposed name SetDprize91Dprizes (T2); class COIN slot76; TU prize
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C65F8(struct S *p, int n)
+// CID 91 state setter: on collect play sound, emit rip, award (AwardCoin). (inferred)
+void SetCoinDprizes(struct S *coin, int n)
 {
-    if (p->x150 == n) return;
+    if (coin->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        coin->x238 = GRandInRange__Fff(coin->x230, coin->x234);
         break;
     case 1: {
         struct X *px = PripNewRipg(D_003DD490, 9, 0);
         struct LO *plo;
         if (px) {
             struct VTE *e;
-            px->xF4 = p;
+            px->xF4 = coin;
             px->xF0 = D_002C0DA0;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(p), 0, 1.0f);
-            px->x1C = p;
-            px->mat = *GetLoWorldMatrix(p);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(coin), 0, 1.0f);
+            px->x1C = coin;
+            px->mat = *GetLoWorldMatrix(coin);
         } else {
-            func_001C67A0(p, 0);
+            AwardCoin(coin, 0);
         }
         SetSndSourceLo(PsndStartSound(0x29), 0);
-        plo = p->x210;
+        plo = coin->x210;
         if (plo) {
             struct M m;
             m.n = 1;
-            m.p = p;
+            m.p = coin;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))coin->vt[3].pf)((char *)coin + coin->vt[3].d, 5, 0, 0, 0, 0);
         RestartHudWidget1(D_003DD490);
-        BroadcastGameEvent(D_002DEB30, 0x12, p);
+        BroadcastGameEvent(D_002DEB30, 0x12, coin);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(coin, n);
 }
 } } // namespace M_func_001C65F8
 
-/** @sly2-annot addr=0x1C67A0
- * Purpose: increments a game counter via 0x1617E0/0x161798
- * Info: proposed name AwardDprize91 (T2); TU prize
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#4-collectibles-and-loot-prizecpp-0x1c4e50,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void func_001C67A0()
+// increments a game counter via 0x1617E0/0x161798. (inferred)
+extern "C" void AwardCoin()
 {
     SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + 1);
 }
@@ -1182,28 +1108,21 @@ namespace M_func_001C67D8 { extern "C" {
 struct S { char p0[0x1A0]; float x1A0; char p1[0x1D0 - 0x1A4]; float x1D0, x1D4, x1D8, x1DC, x1E0, x1E4;
     char p2[0x230 - 0x1E8]; float x230, x234; int x238; int x23C; int x240; };
 void InitDprize(struct S *p);
-/** @sly2-annot addr=0x1C67D8
- * Purpose: CID 93 Init (sprayable pickup 0x5D)
- * Info: proposed name InitMedicine (T2); class MEDICINE slot7; TU prize
- * Notes: class identity from whole_game WE names/object strings: InitDprize93 -> InitMedicine
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130+whole_game(class
- *   identity)
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C67D8(struct S *p)
+// CID 93 Init (sprayable pickup 0x5D). (inferred)
+void InitMedicine(struct S *medicine)
 {
-    InitDprize(p);
-    p->x1D8 = 45.0f;
-    p->x1DC = 75.0f;
-    p->x1D0 = 250.0f;
-    p->x1D4 = 50.0f;
-    p->x1E4 = 0.2f;
-    p->x1E0 = 0.65f;
-    p->x1A0 = 0.25f;
-    p->x23C = 10;
-    p->x240 = 20;
-    p->x230 = 4.0f;
-    p->x234 = 5.0f;
+    InitDprize(medicine);
+    medicine->x1D8 = 45.0f;
+    medicine->x1DC = 75.0f;
+    medicine->x1D0 = 250.0f;
+    medicine->x1D4 = 50.0f;
+    medicine->x1E4 = 0.2f;
+    medicine->x1E0 = 0.65f;
+    medicine->x1A0 = 0.25f;
+    medicine->x23C = 10;
+    medicine->x240 = 20;
+    medicine->x230 = 4.0f;
+    medicine->x234 = 5.0f;
 }
 } } // namespace M_func_001C67D8
 
@@ -1212,14 +1131,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
-/** @sly2-annot addr=0x1C6880
- * Purpose: CID 93 Update
- * Info: proposed name UpdateMedicine (T2); class MEDICINE slot16; TU prize
- * Notes: class identity from whole_game WE names/object strings: UpdateDprize93 -> UpdateMedicine
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130+whole_game(class
- *   identity)
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// CID 93 Update. (inferred)
 } } // namespace M_func_001C6880
 void MEDICINE::VUnk15() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
     UpdateDprize(p);
@@ -1259,72 +1171,53 @@ void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
-/** @sly2-annot addr=0x1C68F0
- * Purpose: CID 93 setter (uses GetCurrentPo - gives to current character)
- * Info: proposed name SetMedicineDprizes (T2); class MEDICINE slot76; TU prize
- * Notes: class identity from whole_game WE names/object strings: SetDprize93Dprizes -> SetMedicineDprizes
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
- *   r5_1AE130+verdicts_tu_r3r5+whole_game(class identity)
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C68F0(struct S *p, int n)
+// CID 93 setter (uses GetCurrentPo - gives to current character). (inferred)
+void SetMedicineDprizes(struct S *medicine, int n)
 {
-    if (p->x150 == n) return;
+    if (medicine->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        medicine->x238 = GRandInRange__Fff(medicine->x230, medicine->x234);
         break;
     case 1: {
         struct LO *q = GetHeroPo(D_003DD490);
         struct X *px;
         struct LO *plo;
         if (!((int (*)(void *))q->vt[80].pf)((char *)q + q->vt[80].d)) {
-            n = p->x150;
+            n = medicine->x150;
             break;
         }
         px = PripNewRipg(D_003DD490, 9, 0);
         if (px) {
             struct VTE *e;
-            px->xF4 = p;
+            px->xF4 = medicine;
             px->xF0 = D_002C0E10;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(p), 0, 1.0f);
-            px->x1C = p;
-            px->mat = *GetLoWorldMatrix(p);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(medicine), 0, 1.0f);
+            px->x1C = medicine;
+            px->mat = *GetLoWorldMatrix(medicine);
         } else {
-            OnMedicineSmackDone(p, 0);
+            OnMedicineSmackDone(medicine, 0);
         }
-        ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, p->x23C, p->x240);
-        plo = p->x210;
+        ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, medicine->x23C, medicine->x240);
+        plo = medicine->x210;
         if (plo) {
             struct M m;
             m.n = 1;
-            m.p = p;
+            m.p = medicine;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))medicine->vt[3].pf)((char *)medicine + medicine->vt[3].d, 5, 0, 0, 0, 0);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(medicine, n);
 }
 } } // namespace M_func_001C68F0
 
-/** @sly2-annot addr=0x1C6AB0
- * Purpose: 8-byte helper
- * Info: proposed name OnMedicineSmackDone (T1); class Medicine; TU prize
- * Notes: verifier PLAUSIBLE: Dprize93Stub -> Dprize93::OnSmackDone (no-op) | verifier: purpose partly wrong:
- *   Empty function (jr ra). It is the PMF at SMACKI D_002C0E10+0x60 used by SetDprize93Dprizes, and is called
- *   directly when the rip cannot be allocated. | class identity from whole_game WE names/object strings:
- *   OnDprize93SmackDone -> OnMedicineSmackDone
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources:
- *   r5_1AE130+verdicts_tu_r3r5+whole_game(class identity)
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// Empty callback: nothing to do when the medicine pickup's smack animation ends.
 extern "C" void OnMedicineSmackDone()
 {
 }
@@ -1332,14 +1225,7 @@ extern "C" void OnMedicineSmackDone()
 namespace M_func_001C6AB8 { extern "C" {
 struct S { char pad[0x1A0]; float g1a0; char pad2[0x2C]; float g1d0, g1d4, g1d8, g1dc, g1e0, g1e4; };
 void InitDprize(struct S *p);
-/** @sly2-annot addr=0x1C6AB8
- * Purpose: CID 92 Init
- * Info: proposed name InitKey (T2); class KEY slot7; TU prize
- * Notes: class identity from whole_game WE names/object strings: InitDprize92 -> InitKey
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130+whole_game(class
- *   identity)
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// CID 92 Init. (inferred)
 } } // namespace M_func_001C6AB8
 void KEY::Init() { using namespace M_func_001C6AB8; M_func_001C6AB8::S *p = (M_func_001C6AB8::S *)this;
     InitDprize(p);
@@ -1359,25 +1245,17 @@ void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RequestTaskState(void *p, int n, struct LO *plo);
 void SetDprizeDprizes(struct LO *p, int n);
-/** @sly2-annot addr=0x1C6B28
- * Purpose: CID 92 setter (sound on collect)
- * Info: proposed name SetKeyDprizes (T2); class KEY slot76; TU prize
- * Notes: class identity from whole_game WE names/object strings: SetDprize92Dprizes -> SetKeyDprizes
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
- *   r5_1AE130+verdicts_tu_r3r5+whole_game(class identity)
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C6B28(struct LO *p, int n)
+// CID 92 setter (sound on collect). (inferred)
+void SetKeyDprizes(struct LO *key, int n)
 {
-    if (p->x150 == n) return;
+    if (key->x150 == n) return;
     if (n == 1) {
         SetSndSourceLo(PsndStartSound(0), 0);
-        if (p->x230) RequestTaskState(p->x230, 2, p);
+        if (key->x230) RequestTaskState(key->x230, 2, key);
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))key->vt[3].pf)((char *)key + key->vt[3].d, 5, 0, 0, 0, 0);
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(key, n);
 }
 } } // namespace M_func_001C6B28
 
@@ -1392,6 +1270,7 @@ extern const float D_002A7758;
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x58 - 0x10]; struct X *x58; struct X *x5C; char p2[0x160 - 0x60]; float x160;
     char p3[0x180 - 0x164]; qword x180; char p4[0x1C4 - 0x190]; int x1C4; int x1C8; float x1CC; };
 void SetLoParent(struct S *p, int a, int b);
+// Zeroes a 3-float vector.
 static inline void Zero(struct V3 *pv)
 {
     pv->z = 0.0f;
@@ -1399,29 +1278,20 @@ static inline void Zero(struct V3 *pv)
     pv->x = 0.0f;
 }
 #define VT(o, n) (o)->vt[n]
-/** @sly2-annot addr=0x1C6BD0
- * Purpose: re-parent spawned prize (0x1A58D0) and init motion
- * Info: proposed name LaunchSprayedDprize (T1); TU prize
- * Notes: verifier PLAUSIBLE: AttachSprayedDprize -> LaunchSprayedDprize | names_v2 C proposed
- *   PostAlarmLoad__FP5ALARM (0.167)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
- *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
-void LaunchSprayedDprize(struct S *p, qword q1, qword q2, float f1, float f2)
+// re-parent spawned prize (SetLoParent) and init motion. (inferred)
+void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
 {
-    ((void (*)(void *))VT(p, 8).pf)((char *)p + VT(p, 8).d);
-    SetLoParent(p, 0, 0);
-    ((void (*)(void *, qword))VT(p, 29).pf)((char *)p + VT(p, 29).d, q1);
-    ((void (*)(void *, void *))VT(p, 30).pf)((char *)p + VT(p, 30).d, D_002A2D00);
-    Zero(&p->x58->v);
-    Zero(&p->x5C->v);
-    p->x160 = f1;
-    p->x1C4 = 0;
-    ((void (*)(void *, int))VT(p, 76).pf)((char *)p + VT(p, 76).d, 3);
-    p->x180 = q2;
-    p->x1CC = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.t + f2;
+    ((void (*)(void *))VT(prize, 8).pf)((char *)prize + VT(prize, 8).d);
+    SetLoParent(prize, 0, 0);
+    ((void (*)(void *, qword))VT(prize, 29).pf)((char *)prize + VT(prize, 29).d, q1);
+    ((void (*)(void *, void *))VT(prize, 30).pf)((char *)prize + VT(prize, 30).d, D_002A2D00);
+    Zero(&prize->x58->v);
+    Zero(&prize->x5C->v);
+    prize->x160 = f1;
+    prize->x1C4 = 0;
+    ((void (*)(void *, int))VT(prize, 76).pf)((char *)prize + VT(prize, 76).d, 3);
+    prize->x180 = q2;
+    prize->x1CC = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.t + f2;
 }
 } } // namespace M_LaunchSprayedDprize
 #undef VT
@@ -1432,15 +1302,8 @@ struct LO { char pad[0xC]; struct VTE *vt; };
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
 struct LO *AcquireProxyObject(void *pg, int n);
 void LockProxyObject(void *pg, struct LO *plo);
-/** @sly2-annot addr=0x1C6CE8
- * Purpose: make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject)
- * Info: proposed name PdprizeNewSpray (T1); TU prize
- * Notes: runtime2: coin/medicine copies moved to break site
- * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int PdprizeNewSpray(void *p, int kind, int n, struct LO **aplo)
+// make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
+int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
 {
     int id, i, c;
     void *pg;
@@ -1451,7 +1314,7 @@ int PdprizeNewSpray(void *p, int kind, int n, struct LO **aplo)
     case 0x5D: id = 0x2B4; break;
     default: return 0;
     }
-    pg = PloFindSwObject__FP2SWi3OIDP2LO(p, 5, id, 0);
+    pg = PloFindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
     if (!pg) return 0;
     c = 0;
     for (i = 0; ; i++) {
@@ -1468,7 +1331,7 @@ int PdprizeNewSpray(void *p, int kind, int n, struct LO **aplo)
 } } // namespace M_PdprizeNewSpray
 
 namespace M_func_001C6DE8 {
-// func_001C6DE8: find a landing point on the objects below/above `point` (used three times by SprayDprizes, which sits
+// FindDprizeLanding: find a landing point on the objects below/above `point` (used three times by SprayDprizes, which sits
 // right after it in the same file and shares its FRAME / VU_FLOAT / VV / AddScaled idioms). Casts a line from point up to
 // point + axis * gMax and, failing that, down to point + axis * gMin, against `apcand` (fetched with IntersectSwBoundingBox when the
 // caller passed none); returns the hit position, or point itself when gMin >= 0 and nothing above was found.
@@ -1512,13 +1375,8 @@ static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
     return r;
 }
 
-/** @sly2-annot addr=0x1C6DE8
- * Purpose: find landing point on objects below/above a point
- * Info: proposed name FFindDprizeLanding (T2); TU prize
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" int func_001C6DE8(float gMin, float gMax, float gThreshold, qword point, int ccand, CANDIDATE **apcand,
+// find landing point on objects below/above a point. (inferred)
+extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword point, int ccand, CANDIDATE **apcand,
                              qword *ppos)
 {
     LSG lsg;
@@ -1551,7 +1409,7 @@ extern "C" int func_001C6DE8(float gMin, float gMax, float gThreshold, qword poi
 } // namespace M_func_001C6DE8
 
 namespace M_SprayDprizes {
-// SprayDprizes (wave-3 lane 10): spray up to cRequested objects of a kind (0x5B / 0x5D, made by PdprizeNewSpray) out of a
+// SprayDprizes (wave-3 lane 10): spray up to cRequested objects of a kind (0x5B / 0x5D, made by NewSprayedDprize) out of a
 // point. The seed is dropped to the ground (posOrig), snapped onto the region (posSnap, height from posOrig or from the
 // nearest object) and raised again; then up to 50 candidate landing points are tried on a widening spiral around posSnap.
 // A candidate is used when it is blocked from posSnap and its sideways-pushed partner, and a landing spot is found near it
@@ -1606,14 +1464,14 @@ extern "C" { extern CLQ D_002C0EA0; }
 extern "C" { extern LM D_002C0EB0; }
 extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
 extern "C" {
-int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
+int FindDprizeLanding(float, float, float, qword, int, CANDIDATE **, qword *);
 LO *GetHeroPo(void *);
 REGION *FindPathzoneAtPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
 int IsEdgeBlockedByPathzone(REGION *, qword, qword, int);
 qword GetLoWorldPos(LO *);
 void *AllocFromStack(ALLOCREQ *);
-int PdprizeNewSpray(void *, int, int, LO **);
+int NewSprayedDprize(void *, int, int, LO **);
 int FFilterDprizeObjects(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 float GRandInRange__Fff(float, float);
@@ -1626,17 +1484,22 @@ struct VU_FLOAT {
     qword q;
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
+// Inline helpers PvAllocFrame, GetZ, GFromVf, Add, Sub: small vector/scalar wrappers (a few VU0/EE instructions in asm,
+// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Dot product.
 static inline qword Dot(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
+// Length of a vector as a float.
 static inline qword Length(qword v)
 {
     qword d, one, l;
@@ -1644,6 +1507,7 @@ static inline qword Length(qword v)
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }
+// Length of the xy part of a vector.
 static inline qword LengthXY(qword v)
 {
     qword d, l;
@@ -1651,7 +1515,10 @@ static inline qword LengthXY(qword v)
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }
+// Inline helper Div: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qword Div(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
+// Unit vector of v.
 static inline qword Normalize(qword v)
 {
     qword fallback = D_002A2DA0;
@@ -1662,9 +1529,12 @@ static inline qword Normalize(qword v)
         l = Div(v, l);
     return l;
 }
+// Inline helper Scale: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qword Scale(qword g, qword v) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
 // base + v * g
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
+// base + vec * scale.
 static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
 {
     qword r;
@@ -1678,28 +1548,28 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(ga.q), "j"(b), "j"(gb.q));
     return r;
 }
+// Inline helpers GFromClq, GClampR, GClamp: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline float GClampR(float g, float gMin, float gMax) { if (g < gMin) return gMin; if (gMax < g) return gMax; return g; }
 static inline float GClamp(float g, const LM &lm) { return GClampR(g, lm.gMin, lm.gMax); }
+// The region an object stands in, through its extension's link (or null).
 static inline REGION *PregionFromLo(LO *plo)
 {
     EXT *pext = plo->pext;
     LINK *plink = pext ? pext->plink : 0;
     return plink ? plink->pregion : 0;
 }
+// Inline helper FFartherThan: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
 
-/** @sly2-annot addr=0x1C6FD8
- * Purpose: spray up to cRequested prizes of a kind out of a point onto the ground region
- * Info: proposed name SprayDprizes (T1); TU prize
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#4-collectibles-and-loot-prizecpp-0x1c4e50,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// spray up to cRequested prizes of a kind out of a point onto the ground region. (inferred)
 extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnused, int cRequested)
 {
     VECTOR4 posOrig;
-    if (!func_001C6DE8(0.0f, 300.0f, D_002A775C, posSeed, 0, 0, &posOrig.q))
+    if (!FindDprizeLanding(0.0f, 300.0f, D_002A775C, posSeed, 0, 0, &posOrig.q))
         return;
     LO *plo = GetHeroPo(pworld);
     REGION *pregion = 0;
@@ -1718,11 +1588,11 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     }
     if (FFartherThan(GFromVf(LengthXY(Sub(posOrig.q, posSnap.q))), D_002C0E80))
         return;
-    if (!func_001C6DE8(-250.0f, 1500.0f, D_002A775C, posSnap.q, 0, 0, &posSnap.q))
+    if (!FindDprizeLanding(-250.0f, 1500.0f, D_002A775C, posSnap.q, 0, 0, &posSnap.q))
         return;
     STACKSCOPE frame;
     LO **aplo = (LO **)PvAllocFrame(cRequested * sizeof(LO *), 0x10);
-    int clo = PdprizeNewSpray(pworld, kind, cRequested, aplo);
+    int clo = NewSprayedDprize(pworld, kind, cRequested, aplo);
     if (!clo)
         return;
     float r = D_002C0E84;
@@ -1744,7 +1614,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));
         int fBlocked = !IsEdgeBlockedByPathzone(pregion, posSnap.q, posTrial, 0) && !IsEdgeBlockedByPathzone(pregion, posTrial, posAdjust, 0);
         VECTOR4 posLand;
-        if (fBlocked && func_001C6DE8(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
+        if (fBlocked && FindDprizeLanding(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
             qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->sRadius - 1.0f), D_002A2DC0);
             float t = ComputeMaxBallisticTime(Sub(posTarget, posOrig.q), D_002C0D60, D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC0);
             t += cLaunched * D_002C0EC4;
@@ -1767,23 +1637,18 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
 namespace M_InitLoot { extern "C" {
 struct S { char pad[0x1A0]; float a1A0; char p1[0x1D0 - 0x1A4]; float a1D0, a1D4, a1D8, a1DC, a1E0, a1E4; char p2[0x230 - 0x1E8]; float a230, a234; };
 void InitDprize(struct S *p);
-/** @sly2-annot addr=0x1C7648
- * Purpose: CID 94 Init
- * Info: proposed name InitLoot (T1); class LOOT slot7; TU prize
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void InitLoot(struct S *p)
+// CID 94 Init. (inferred)
+void InitLoot(struct S *loot)
 {
-    InitDprize(p);
-    p->a1D8 = 35.0f;
-    p->a1DC = 40.0f;
-    p->a1D0 = 250.0f;
-    p->a1D4 = 50.0f;
-    p->a1E4 = 0.6f;
-    p->a1E0 = 0.75f;
-    p->a230 = 8.0f;
-    p->a234 = 10.0f;
+    InitDprize(loot);
+    loot->a1D8 = 35.0f;
+    loot->a1DC = 40.0f;
+    loot->a1D0 = 250.0f;
+    loot->a1D4 = 50.0f;
+    loot->a1E4 = 0.6f;
+    loot->a1E0 = 0.75f;
+    loot->a230 = 8.0f;
+    loot->a234 = 10.0f;
 }
 } } // namespace M_InitLoot
 
@@ -1796,18 +1661,9 @@ void *AllocFromStack(struct AL *pal);
 void *AllocCopyFromWorldHeap(struct AL *pal, void *pv);
 void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n) __asm__("_$_10STACKSCOPE");
 void LoadDprizeFromBrx(struct S *p, void *pv);
-void func_001C7A08(struct S *p);
-/** @sly2-annot addr=0x1C76D0
- * Purpose: CID 94 LoadFromBrx (base + copies table on stack heap)
- * Info: proposed name LoadLootFromBrx (T1); class LOOT slot14; TU prize
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
- *   r5_1AE130+verdicts_tu_r3r5+parse-verified
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void LoadLootFromBrx(struct S *p, void *pv)
+void ClearCurrentLootEntry(struct S *p);
+// CID 94 LoadFromBrx (base + copies table on stack heap). (inferred)
+void LoadLootFromBrx(struct S *loot, void *pv)
 {
     struct H h;
     struct AL al;
@@ -1816,12 +1672,12 @@ void LoadLootFromBrx(struct S *p, void *pv)
     pal = &al;
     pal->cb = 0x580;
     pal->cbAlign = 0x10;
-    p->x240 = AllocFromStack(pal);
-    LoadDprizeFromBrx(p, pv);
-    func_001C7A08(p);
-    pal->cb = p->x23C * 0x2C;
+    loot->x240 = AllocFromStack(pal);
+    LoadDprizeFromBrx(loot, pv);
+    ClearCurrentLootEntry(loot);
+    pal->cb = loot->x23C * 0x2C;
     pal->cbAlign = 0x10;
-    p->x240 = AllocCopyFromWorldHeap(pal, p->x240);
+    loot->x240 = AllocCopyFromWorldHeap(pal, loot->x240);
     STACKSCOPE_ctor_1AE4A0(&h, 2);
 }
 } } // namespace M_LoadLootFromBrx
@@ -1831,13 +1687,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
-/** @sly2-annot addr=0x1C7778
- * Purpose: CID 94 Update
- * Info: proposed name UpdateLoot (T2); class LOOT slot16; TU prize
- * Notes: names_v2 C proposed DisableAlarmSensors__FP5ALARM (0.195)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// CID 94 Update. (inferred)
 } } // namespace M_func_001C7778
 void LOOT::VUnk15() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
     UpdateDprize(p);
@@ -1879,62 +1729,47 @@ extern "C" { extern char D_002A7778[]; }
 extern "C" { CRef RefGetSaveVarV(char *a, char *b, char *c, int n); }
 extern "C" { CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n); }
 extern "C" void SetLootDprizes(S *p, int n);
-/** @sly2-annot addr=0x1C77E8
- * Purpose: CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15)
- * Info: proposed name SetLootDprizes (T1); class LOOT slot76; TU prize
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void SetLootDprizes(S *p, int n)
+// CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
+void SetLootDprizes(S *loot, int n)
 {
-    if (p->x150 == n) return;
+    if (loot->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        loot->x238 = GRandInRange__Fff(loot->x230, loot->x234);
         break;
     case 1: {
         CRef ref;
         char buf[0x10];
-        sprintf(buf, D_002A7768, p->x244->x4);
+        sprintf(buf, D_002A7768, loot->x244->x4);
         ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
         RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
-        LO *plo = p->x210;
+        LO *plo = loot->x210;
         if (plo) {
             M m;
             m.n = n;
-            m.p = p;
+            m.p = loot;
             ((void (*)(void *, M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))loot->vt[3].pf)((char *)loot + loot->vt[3].d, 5, 0, 0, 0, 0);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(loot, n);
 }
 } // namespace M_SetLootDprizes
 
-/** @sly2-annot addr=0x1C7988
- * Purpose: calls 0x1C7A08 stub
- * Info: proposed name AddLootEntry (T1); TU prize
- * Notes: names_v2 C proposed NotifyAlarmSensorsOnTrigger__FP5ALARM (0.167) | superseded: LootUnk7988
- *   (arbitration) | arbitration knock-on rename: CONFIRMED static: LOOT twin of AddBootyEntry 0x13C3B8:
- *   entry=+0x240+0x2C*count (count +0x23C<32), stores (a1,a2), -1,-1, oid count 0, sets current entry +0x244.
- * Confidence: mid (draft) [T1 0.70] - evidence: arbitration; static naming pass; sources:
- *   r5_1AE130+arbitration
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void AddLootEntry(LOOTV *ploot, int n0, int n4)
+// calls ClearCurrentLootEntry stub. (inferred)
+extern "C" void AddLootEntry(LOOTV *loot, int n0, int n4)
 {
     int c;
     LOOTE *plootE;
-    func_001C7A08(ploot);
-    c = ploot->clootE;
+    ClearCurrentLootEntry(loot);
+    c = loot->clootE;
     if (c < 0x20) {
-        ploot->clootE = c + 1;
-        plootE = &ploot->alootE[c];
-        ploot->plooteCur = plootE;
+        loot->clootE = c + 1;
+        plootE = &loot->alootE[c];
+        loot->plooteCur = plootE;
         plootE->n0 = n0;
         plootE->n4 = n4;
         plootE->n14 = -1;
@@ -1943,49 +1778,28 @@ extern "C" void AddLootEntry(LOOTV *ploot, int n0, int n4)
     }
 }
 
-/** @sly2-annot addr=0x1C7A08
- * Purpose: 8-byte stub
- * Info: proposed name Dprize_Stub7A08 (T2); TU prize
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void func_001C7A08(LOOTV *ploot)
+// Forgets the loot's current entry.
+extern "C" void ClearCurrentLootEntry(LOOTV *loot)
 {
-    ploot->plooteCur = 0;
+    loot->plooteCur = 0;
 }
 
 namespace M_AddAlarmSensor__FP5ALARM3OID {
 enum OID { OID_0 };
 struct SENSORS { char pad[0x1c]; unsigned int coidSensors; OID aoidSensors[3]; };
 struct ALARM { char pad[0x244]; SENSORS *psensors; };
-/** @sly2-annot addr=0x1C7A10
- * Purpose: Append OID to the list behind this+0x244 (count +0x1C, max 3)
- * Info: proposed name AddLootEntryOid (EXISTING); TU prize
- * Notes: agent/verifier proposes AddLootObject for this existing name (see existing_name_changes.csv) |
- *   DISPUTED (see disputed.csv) | RENAME proposed -> AddLootEntryOid (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.85] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r5_1AE130+arbitration
- * See: docs/engine/game-progression.md#4-collectibles-and-loot-prizecpp-0x1c4e50,
- *   docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void AddAlarmSensor__FP5ALARM3OID(ALARM *palarm, OID oid)
+// Append OID to the list behind this+0x244 (count +0x1C, max 3).
+extern "C" void AddLootEntryObject(ALARM *palarm, OID oid)
 {
     SENSORS *p = palarm->psensors;
     if (p->coidSensors < 3) p->aoidSensors[p->coidSensors++] = oid;
 }
 } // namespace M_AddAlarmSensor__FP5ALARM3OID
 
-/** @sly2-annot addr=0x1C7A40
- * Purpose: small setter
- * Info: proposed name Dprize_7A40 (T2); TU prize
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" int func_001C7A40(LOOTV *ploot)
+// Id of the loot's current entry, or -1.
+extern "C" int GetCurrentLootEntryId(LOOTV *loot)
 {
-    LOOTE *plootE = ploot->plooteCur;
+    LOOTE *plootE = loot->plooteCur;
     int n = -1;
     if (plootE != 0) {
         n = plootE->n0;
@@ -1998,43 +1812,34 @@ struct E { int id; char pad[0x18]; int c; void *a[3]; };
 struct S { char pad[0x23C]; int c; struct E *ae; struct E *pe; };
 void HideSoAllGlobs(struct S *p);
 void ShowSoGlobsById(struct S *p, void *pv);
-/** @sly2-annot addr=0x1C7A58
- * Purpose: helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978)
- * Info: proposed name Clue_7A58 (T2); TU prize
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C7A58(struct S *p, int id)
+// helper used by StageLootPouchLoot (calls SO 0x1F6A68/ShowSoGlobsById). (inferred)
+void SelectLootEntry(struct S *loot, int id)
 {
     int i, n;
     {
     int j; struct E *pe;
-    n = p->c;
+    n = loot->c;
     for (j = 0; ; j++) {
         if (j >= n) {
-            p->pe = p->ae;
+            loot->pe = loot->ae;
             break;
         }
-        pe = &p->ae[j];
+        pe = &loot->ae[j];
         if (id == pe->id) {
-            p->pe = pe;
+            loot->pe = pe;
             break;
         }
     }
     }
-    HideSoAllGlobs(p);
-    for (i = 0; i < p->pe->c; i++) ShowSoGlobsById(p, p->pe->a[i]);
+    HideSoAllGlobs(loot);
+    for (i = 0; i < loot->pe->c; i++) ShowSoGlobsById(loot, loot->pe->a[i]);
 }
 } } // namespace M_func_001C7A58
 
-/** @sly2-annot addr=0x1C7B10
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU prize
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * @end-sly2-annot */
-extern "C" LOOTE *func_001C7B10(LOOTV *ploot)
+// The loot's current entry (or null).
+extern "C" LOOTE *GetCurrentLootEntry(LOOTV *loot)
 {
-    return ploot->plooteCur;
+    return loot->plooteCur;
 }
 
 namespace M_FClueCollected { extern "C" {
@@ -2049,14 +1854,11 @@ int sprintf(char *buf,const char *fmt,...);
 int FindSaveSymbol(struct HT *pt,const char *s);
 struct A *GetLevelListEntry(int h);
 struct A *ConcatSaveKeys(struct A *p, struct A *pa);
+// Inline helper Find: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int Find(struct X *px, const char *s) { return FindSaveSymbol(&px->table,s); }
-/** @sly2-annot addr=0x1C7B18
- * Purpose: query save data for bit n of 'afClue' for the current level
- * Info: proposed name FClueCollected (T1); TU prize
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-struct A *FClueCollected(int input)
+// query save data for bit n of 'afClue' for the current level. (inferred)
+struct A *GetClueSaveKey(int input)
 {
     register int n __asm__("$17")=input;
     int h;
@@ -2079,23 +1881,20 @@ extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
-void *FClueCollected(void *p);
+void *GetClueSaveKey(void *p);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+// Inline helper NFromPv: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
-extern "C" int func_001C7BB8(void *p);
-/** @sly2-annot addr=0x1C7BB8
- * Purpose: wrapper of FClueCollected
- * Info: proposed name FClueCollectedSelf (T2); TU prize
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int func_001C7BB8(void *p)
+extern "C" int IsClueCollected(void *p);
+// wrapper of GetClueSaveKey. (inferred)
+int IsClueCollected(void *clue)
 {
     STACKSCOPE frame;
-    void *pv = FClueCollected(p);
+    void *pv = GetClueSaveKey(clue);
     if (!pv) return 0;
     return NFromPv(pv);
 }
@@ -2107,9 +1906,9 @@ void *STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void __4CRefRC4CRef(void *p, const void *q);
-void *FClueCollected(int n);
-int CClueCollected(void);
-void func_001C7C30(int n, int f);
+void *GetClueSaveKey(int n);
+int CountCollectedClues(void);
+void SetClueCollected(int n, int f);
 }
 struct CRef {
     int m_tagk; int m_tag;
@@ -2128,32 +1927,22 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRef arg(r);
     const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
 }
-/** @sly2-annot addr=0x1C7C30
- * Purpose: set clue bit / count
- * Info: proposed name SetClueCollected (T2); TU prize
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C7C30(int n, int f)
+// set clue bit / count. (inferred)
+void SetClueCollected(int n, int f)
 {
     STACKSCOPE frame;
-    void *pv = FClueCollected(n);
+    void *pv = GetClueSaveKey(n);
     if (!pv) return;
     {
         CRef r(f != 0);
         SetPv(pv, r, D_003D4A60);
     }
-    g_sw.cClue = CClueCollected();
+    g_sw.cClue = CountCollectedClues();
 }
 } // namespace M_func_001C7C30
 
-/** @sly2-annot addr=0x1C7D00
- * Purpose: 8-byte stub
- * Info: proposed name Clue_Stub7D00 (T2); TU prize
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" int func_001C7D00()
+// Number of clue bottles per level: 30.
+extern "C" int GetMaxClueCount()
 {
     return 0x1E;
 }
@@ -2175,13 +1964,8 @@ void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
 void *FindSaveVar(void *a, void *b, struct T *pt);
 short FindSaveSymbol(void *a, char *s);
 unsigned int *GetSaveVarAddress(void *a, void *b, void *c);
-/** @sly2-annot addr=0x1C7D08
- * Purpose: count collected clue bottles: popcount of afClue words over the level's entries
- * Info: proposed name CClueCollected (T1); TU prize
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int CClueCollected(void)
+// count collected clue bottles: popcount of afClue words over the level's entries. (inferred)
+int CountCollectedClues(void)
 {
     int n;
     int c;
@@ -2211,12 +1995,7 @@ int CClueCollected(void)
 }
 } } // namespace M_CClueCollected
 
-/** @sly2-annot addr=0x1C7E38
- * Purpose: CID 95 Init (clue bottle)
- * Info: proposed name InitClue (T1); class CLUE slot7; TU prize
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+// CID 95 Init (clue bottle). (inferred)
 void CLUE::Init()
 {
     CLUEV *pclue = (CLUEV *)this;
@@ -2228,16 +2007,11 @@ namespace M_func_001C7E68 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void SO_ResetForProxy(struct O *p);
-/** @sly2-annot addr=0x1C7E68
- * Purpose: CID 95 vt26: SO::VUnk26Proxy base + extra
- * Info: proposed name ClueVt26 (T2); class CLUE slot26; TU prize
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C7E68(struct O *p)
+// CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
+void ResetClue(struct O *clue)
 {
-    SO_ResetForProxy(p);
-    { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 0); }
+    SO_ResetForProxy(clue);
+    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, 0); }
 }
 } } // namespace M_func_001C7E68
 
@@ -2245,19 +2019,11 @@ namespace M_func_001C7EA8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void SO_Slot27(struct O *p);
-/** @sly2-annot addr=0x1C7EA8
- * Purpose: CID 95 vt27
- * Info: proposed name ClueVt27 (T2); class CLUE slot27; TU prize
- * Notes: verifier: purpose partly wrong: CID 95 slot 27 (proxy-family virtual, base SO slot 27 0x1CB5D0) then
- *   SetDprizeDprizes(-1). Placeholder, 'Clue' unproven; purpose does not describe behaviour.
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C7EA8(struct O *p)
+// CID 95 vtable slot 27. (inferred)
+void ClearClueState(struct O *clue)
 {
-    SO_Slot27(p);
-    { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, -1); }
+    SO_Slot27(clue);
+    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, -1); }
 }
 } } // namespace M_func_001C7EA8
 
@@ -2278,46 +2044,43 @@ qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *GetProxyCopyValue(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
-void func_001C7C30(int n, int f);
+void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
+// Inline helper FTest: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
-/** @sly2-annot addr=0x1C7EE8
- * Purpose: CID 95 setter: sound, proxy-copy value, mark clue collected
- * Info: proposed name SetClueDprizes (T1); class CLUE slot76; TU prize
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void SetClueDprizes(struct S *p, int n)
+// CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
+void SetClueDprizes(struct S *clue, int n)
 {
     struct LO *q;
     char *pg;
     qword qv;
-    if (n == p->x150) return;
+    if (n == clue->x150) return;
     if (n == 1) {
-        struct LO *plo = p->x210;
+        struct LO *plo = clue->x210;
         if (plo) {
             struct M m;
             m.n = n;
-            m.p = p;
+            m.p = clue;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         } else {
             SetSndSourceLo(PsndStartSound(0x29), 0);
         }
         pg = D_003DD490;
         n = 2;
-        qv = GetLoWorldPos(p);
-        EmitSwNoise(pg, 0, qv, p);
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
-        q = GetProxyCopyValue(p);
+        qv = GetLoWorldPos(clue);
+        EmitSwNoise(pg, 0, qv, clue);
+        ((void (*)(void *, int, int, int, int, int))clue->vt[3].pf)((char *)clue + clue->vt[3].d, 5, 0, 0, 0, 0);
+        q = GetProxyCopyValue(clue);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LO *plo = GetProxyCopyValue(p);
-            func_001C7C30(plo->x100, 1);
+            struct LO *plo = GetProxyCopyValue(clue);
+            SetClueCollected(plo->x100, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
             RestartHudWidget2(pg);
         }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(clue, n);
 }
 } } // namespace M_SetClueDprizes
 
@@ -2327,21 +2090,13 @@ struct O { int a[3]; struct VTE *vt; char pad[0xF0]; int n100; };
 struct G { char pad[0x4760]; int n; };
 extern struct G D_003DD490;
 void PostLoLoad(struct O *p);
-int func_001C7BB8(int n);
-/** @sly2-annot addr=0x1C8030
- * Purpose: CID 7 (PROXY child) vt15: base + hide if clue already collected
- * Info: proposed name PostClueproxyLoad (T2); class CLUEPROXY slot15; TU prize
- * Notes: v3 class identity: PostClueProxyLoad -> PostClueproxyLoad | T2 forced: v3: coined class word
- *   (Clueproxy) without descriptor/string backing
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
- *   r5_1AE130+class_review(master_names_v2_1)
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
+int IsClueCollected(int n);
+// CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
 void CLUEPROXY::VUnk14() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
     PostLoLoad(p);
     p->n100 = D_003DD490.n++;
-    if (func_001C7BB8(p->n100)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
+    if (IsClueCollected(p->n100)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
 }
 
 namespace RO_ORDER { extern const float r_D_002A7758 __asm__("D_002A7758") = 3.40282347e+38f; }
@@ -2360,17 +2115,15 @@ extern "C" {
 int IlevelCur__Fv(void);
 void *GetLevelListEntry(int n);
 int ConcatSaveKeys(void *p, X *px);
-int FVaultOpened(void);
+int GetVaultSaveKey(void);
 short FindSaveSymbol(int *p, char *s);
 }
+// Inline helper Find: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
-/** @sly2-annot addr=0x1C8090
- * Purpose: query save-data flag 'fVault' for the level
- * Info: proposed name FVaultOpened (T1); TU prize
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int FVaultOpened(void)
+// Builds the save key of the current level's 'fVault' flag (null outside a level); like GetClueSaveKey, the name of
+// the original (FVaultOpened) suggested a predicate but it returns the key.
+int GetVaultSaveKey(void)
 {
     int n = IlevelCur__Fv();
     X x;
@@ -2388,23 +2141,20 @@ extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
-void *FVaultOpened(void);
+void *GetVaultSaveKey(void);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+// Inline helper NFromPv: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
-extern "C" int func_001C8110(void);
-/** @sly2-annot addr=0x1C8110
- * Purpose: wrapper
- * Info: proposed name FVaultOpenedSelf (T2); TU prize
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-int func_001C8110(void)
+extern "C" int IsVaultOpened(void);
+// Whether the current level's vault has been opened (reads the 'fVault' save flag).
+int IsVaultOpened(void)
 {
     STACKSCOPE frame;
-    void *pv = FVaultOpened();
+    void *pv = GetVaultSaveKey();
     if (!pv) return 0;
     return NFromPv(pv);
 }
@@ -2416,7 +2166,7 @@ void *STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void *__4CRefRC4CRef(void *p, const void *q);
-void *FVaultOpened(void);
+void *GetVaultSaveKey(void);
 void AutosaveGame(void *p, int n);
 }
 struct CRef {
@@ -2434,19 +2184,16 @@ extern char D_002E65E0[];
 extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
 extern "C" RAW *RefGetGlobalSaveVar(RAW *pr, void *pv, void *p);
+// Inline helpers NFromPv, SetPv: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
+// so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline int NFromPv(void *pv,RAW &ref) { int n; RefGetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60); }
-extern "C" void func_001C8188(int f);
-/** @sly2-annot addr=0x1C8188
- * Purpose: set fVault and commit (0x1ABD98 memcard/save)
- * Info: proposed name SetVaultOpened (T2); TU prize
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C8188(int f)
+extern "C" void SetVaultOpened(int f);
+// Records in the save whether the current level's vault is open. (inferred)
+void SetVaultOpened(int f)
 {
     STACKSCOPE frame; RAW ref;
-    void *pv = FVaultOpened();
+    void *pv = GetVaultSaveKey();
     if (!pv) return;
     if (f) {
         if (NFromPv(pv,ref) == 0)
@@ -2457,113 +2204,105 @@ void func_001C8188(int f)
 } // namespace M_func_001C8188
 
 namespace M_InitVault { extern "C" {
-struct S { char pad[0x40]; int x40; char pad2[0x13C]; int n180; char pad3[0x10]; int n194; char pad4[0x58]; int n1f0, n1f4, n1f8, n1fc, n200; };
-void InitPo(struct S *p);
+struct S { char pad[0x40]; int x40; char pad2[0x13C]; int state; char pad3[0x10]; int selectedDigit; char pad4[0x58]; int combination, introDialog, notEnoughCluesDialog, openedDialog, rewardPowerup; };
+void InitPo(struct S *vault);
+// Inline helper FPtr: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int FPtr(int v) { return !(v & 1); }
-/** @sly2-annot addr=0x1C8280
- * Purpose: CID 78 (PO child, 0x230) Init: InitPo + fields
- * Info: proposed name InitVault (T1); class VAULT slot7; TU prize
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void InitVault(struct S *p)
+// VAULT vtable slot 7 (Init): PO defaults; the default combination is 123 (0x7B), no dialogs or reward powerup,
+// state and dial selection off (-1).
+void InitVault(struct S *vault)
 {
     int v;
-    InitPo(p);
-    v = p->x40;
-    p->n1f0 = 0x7B;
-    p->n1fc = -1;
-    p->n1f8 = -1;
-    p->n1f4 = -1;
-    p->n200 = -1;
-    p->n180 = -1;
-    p->n194 = -1;
-    if (FPtr(v)) *(int *)v |= 2; else p->x40 = v | 2;
+    InitPo(vault);
+    v = vault->x40;
+    vault->combination = 0x7B;
+    vault->openedDialog = -1;
+    vault->notEnoughCluesDialog = -1;
+    vault->introDialog = -1;
+    vault->rewardPowerup = -1;
+    vault->state = -1;
+    vault->selectedDigit = -1;
+    if (FPtr(v)) *(int *)v |= 2; else vault->x40 = v | 2;
 }
 } } // namespace M_InitVault
 
-/** @sly2-annot addr=0x1C82F0
- * Purpose: CID 78 vt15
- * Info: proposed name PostVaultLoad (T2); class VAULT slot15; TU prize
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-/* VAULT::PostLoad (slot 15). */
+// VAULT vtable slot 15 (PostLoad): binds its parts by oid, finds the dial timer frame, and starts closed (state 0) or
+// already opened (state 5) from the save.
 void VAULT::VUnk14()
 {
-    VAULTV *pvault = (VAULTV *)this;
-    PostSoLoad(pvault);
-    BindLoOidTable(pvault, 0x18, D_002C0EC8);
-    pvault->pxf204 = FindSoXf(pvault, 0x645, 1);
-    func_001C8730(pvault, (func_001C8110() == 0) ? 0 : 5);
+    VAULTV *vault = (VAULTV *)this;
+    PostSoLoad(vault);
+    BindLoOidTable(vault, 0x18, D_002C0EC8);
+    vault->pxf204 = FindSoXf(vault, 0x645, 1);
+    SetVaultState(vault, (IsVaultOpened() == 0) ? 0 : 5);
 }
 
 namespace M_func_001C8350 { extern "C" {
-struct S { char pad[0x180]; int x180; char p1[0x198 - 0x184]; int x198; void *x19C; char p2[0x1F0 - 0x1A0]; int x1F0; };
-void UpdateSo(struct S *p);
-int FRelayFiring(void *p);
-void func_001C8730(struct S *p, int n);
-void func_001C84D8(struct S *p);
-void func_001C8188(int f);
-/** @sly2-annot addr=0x1C8350
- * Purpose: CID 78 vt16: per-state update (input / open)
- * Info: proposed name UpdateVault (T2); class VAULT slot16; TU prize
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C8350(struct S *p)
+struct S { char pad[0x180]; int state; char p1[0x198 - 0x184]; int enteredCode; void *relay; char p2[0x1F0 - 0x1A0]; int combination; };
+void UpdateSo(struct S *vault);
+int IsRelayFiring(void *vault);
+void SetVaultState(struct S *vault, int n);
+void UpdateVaultInput(struct S *vault);
+void SetVaultOpened(int f);
+// VAULT vtable slot 16 (Update). States: 0 closed, 1 intro relay playing, 2 dialling (UpdateVaultInput) until the
+// relay ends, then 3 if the entered code equals the combination else 4 (wrong code, back to 0), 3 opening (records
+// the vault as opened), 5 open.
+void UpdateVault(struct S *vault)
 {
     int s;
-    UpdateSo(p);
+    UpdateSo(vault);
     do {
-        s = p->x180;
+        s = vault->state;
         switch (s) {
         case 1:
-            if (!p->x19C || !FRelayFiring(p->x19C))
-                func_001C8730(p, 2);
+            if (!vault->relay || !IsRelayFiring(vault->relay))
+                SetVaultState(vault, 2);
             break;
         case 2:
-            if (!p->x19C || !FRelayFiring(p->x19C)) {
-                if (p->x198 == p->x1F0)
-                    func_001C8730(p, 3);
+            if (!vault->relay || !IsRelayFiring(vault->relay)) {
+                if (vault->enteredCode == vault->combination)
+                    SetVaultState(vault, 3);
                 else
-                    func_001C8730(p, 4);
+                    SetVaultState(vault, 4);
             } else {
-                func_001C84D8(p);
+                UpdateVaultInput(vault);
             }
             break;
         case 4:
-            if (!p->x19C || !FRelayFiring(p->x19C))
-                func_001C8730(p, 0);
+            if (!vault->relay || !IsRelayFiring(vault->relay))
+                SetVaultState(vault, 0);
             break;
         case 3:
-            if (!p->x19C || !FRelayFiring(p->x19C)) {
-                func_001C8188(1);
-                func_001C8730(p, 5);
+            if (!vault->relay || !IsRelayFiring(vault->relay)) {
+                SetVaultOpened(1);
+                SetVaultState(vault, 5);
             }
             break;
         }
-    } while (p->x180 != s);
+    } while (vault->state != s);
 }
 } } // namespace M_func_001C8350
 
 namespace M_func_001C84D8 {
-/* (Claude agent) func_001C84D8: VU nearest-of-9 selection state machine. The copy of p->index into a register
+/* (Claude agent) UpdateVaultInput: VU nearest-of-9 selection state machine. The copy of p->index into a register
    variable (a3) reproduces the target's daddu scheduling; register pins as in other VU files. */
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct POINT {char pad[0x10];float x,y;};
 struct TIMER {char pad[0xA8];float end;};
 struct SGG;struct ALARM;
-struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int index,step;SGG*alarms;void*pending;char pad1A4[0x1F0-0x1A4];int target;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
+struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
-extern "C" void func_001C8918(struct S*,int);
+extern "C" void SetVaultDialState(struct S*,int);
 extern "C" int FAsegaRetracted(void*);
+// Inline helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum: small vector/scalar
+// wrappers (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice
+// matches the original; the names say what they compute.
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline qword Sub(qword a,qword b){qword d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return d;}
 static inline float Len(qword a){register qword d __asm__("vf1");register qword one __asm__("vf2");float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
@@ -2571,55 +2310,52 @@ static inline float ClockTime(){float t;__asm__("lwc1 %0,%1":"=f"(t):"m"(D_002DD
 static inline char*MinimumPage(){register char*page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002A7798));return page;}
 static inline char*SelectionTablePage(){register char*page __asm__("$5");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_002C0FF0));return page;}
 static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){register float minimum __asm__("$f1");register qword*table __asm__("$5");__asm__ volatile("lwc1 %0,%%lo(%4)(%2)\n\taddiu %1,%3,%%lo(%5)":"=f"(minimum),"=r"(table):"r"(minimumPage),"r"(tablePage),"i"(&D_002A7798),"i"(D_002C0FF0),"m"(*(const float*)(minimumPage+0x7798)));*out=minimum;return table;}
-/** @sly2-annot addr=0x1C84D8
- * Purpose: read POCTL presses (GrfConsumePressed) to dial the safe combination; EnsureSggAlarm
- * Info: proposed name UpdateVaultInput (T2); TU prize
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-extern "C" void func_001C84D8(struct S*p){
+// Dial input: the stick picks the nearest of nine dial positions (with hysteresis for the current one), a button
+// enters it as the next digit (code = code*10 % 1000 + digit + 1), and when the entered code equals the vault's
+// combination the vault opens; another button aborts. Runs until the sub-state stops changing.
+extern "C" void UpdateVaultInput(struct S*vault){
  union U point;
  int old;
  int divisor=1000;
  do{
-  old=p->state;
-  if(GrfConsumePressed__5POCTLUif(p->input,0x30,0)){
-   func_001E0020(p->alarms,(ALARM*)0x655);
-   func_001C8918(p,3);
+  old=vault->state;
+  if(GrfConsumePressed__5POCTLUif(vault->input,0x30,0)){
+   func_001E0020(vault->relay,(ALARM*)0x655);
+   SetVaultDialState(vault,3);
   }
-  switch(p->state){
+  switch(vault->state){
   case 0:
-   if(GrfConsumePressed__5POCTLUif(p->input,0xC0,0)){func_001C8918(p,2);break;}
+   if(GrfConsumePressed__5POCTLUif(vault->input,0xC0,0)){SetVaultDialState(vault,2);break;}
    {
-    char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=p->index,best;register int comparison __asm__("$7")=current;
+    char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=vault->selectedDigit,best;register int comparison __asm__("$7")=current;
     unsigned i;qword*table;
     float bias,smallest;
-    qword pt=Pack(p->input->x,p->input->y,0),vp;bias=D_002C0FE8;__asm__("qmtc2.ni %2,%0":"=j"(vp),"=m"(point.q):"r"(pt));point.q=pt;table=TableWithMinimum(minimumPage,tablePage,&smallest);best=-1;
+    qword pt=Pack(vault->input->x,vault->input->y,0),vp;bias=D_002C0FE8;__asm__("qmtc2.ni %2,%0":"=j"(vp),"=m"(point.q):"r"(pt));point.q=pt;table=TableWithMinimum(minimumPage,tablePage,&smallest);best=-1;
     for(i=0;i<9;i++){
      float distance=Len(Sub(vp,table[i]));
      if(i==comparison)distance*=bias;
      if(distance<smallest){smallest=distance;best=i;}
     }
-    if(best!=current){p->index=best;func_001C8918(p,1);}
+    if(best!=current){vault->selectedDigit=best;SetVaultDialState(vault,1);}
    }
    break;
   case 1:
-   if(p->timer->end<=ClockTime())func_001C8918(p,0);
+   if(vault->timer->end<=ClockTime())SetVaultDialState(vault,0);
    break;
   case 2:
-   if(!p->pending||FAsegaRetracted(p->pending)){
-    int next=(p->step*10)%divisor;next++;next+=p->index;
-    p->step=next;
-    if(next==p->target){func_001E0020(p->alarms,(ALARM*)0x655);func_001C8918(p,3);}
-    else func_001C8918(p,0);
+   if(!vault->dialAnim||FAsegaRetracted(vault->dialAnim)){
+    int next=(vault->enteredCode*10)%divisor;next++;next+=vault->selectedDigit;
+    vault->enteredCode=next;
+    if(next==vault->combination){func_001E0020(vault->relay,(ALARM*)0x655);SetVaultDialState(vault,3);}
+    else SetVaultDialState(vault,0);
    }
    break;
   }
- }while(p->state!=old);
+ }while(vault->state!=old);
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,index)==0x194 && OFF(S,step)==0x198 && OFF(S,alarms)==0x19C && OFF(S,pending)==0x1A0 && OFF(S,target)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,t)==0 && OFF(CLOCK,dt)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
+typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,selectedDigit)==0x194 && OFF(S,enteredCode)==0x198 && OFF(S,relay)==0x19C && OFF(S,dialAnim)==0x1A0 && OFF(S,combination)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,t)==0 && OFF(CLOCK,dt)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
 } // namespace M_func_001C84D8
 #undef OFF
 
@@ -2629,85 +2365,81 @@ struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 struct S {
     char pad[0xC]; struct VTE *vt;
-    char p0[0x180 - 0x10]; int x180; float x184; int p188[2]; struct LO *x190; int x194; int p198; void *x19C; int p1A0; int x1A4;
-    char p1[0x1F4 - 0x1A8]; void *x1F4; int p1F8; void *x1FC; int x200; int p204[2]; void *a20C[6];
+    char p0[0x180 - 0x10]; int state; float stateTime; int p188[2]; struct LO *user; int selectedDigit; int p198; void *relay; int p1A0; int dialogId;
+    char p1[0x1F4 - 0x1A8]; void *introDialog; int p1F8; void *openedDialog; int rewardPowerup; int p204[2]; void *a20C[6];
 };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];
-void StopDialog(void *p);
-void StopRelay(void *p);
-void func_001C8918(struct S *p, int n);
-void ReleaseSwLetterbox(void *p);
+void StopDialog(void *vault);
+void StopRelay(void *vault);
+void SetVaultDialState(struct S *vault, int n);
+void ReleaseSwLetterbox(void *vault);
 void SetPowerupAcquired(int n, int f);
-int StartDialog(void *p, void *q, int f);
-void IncrementSwInputLock(void *p);
-void AcquireSwLetterbox(void *p);
-void DecrementSwInputLock(void *p);
-void FireRelay(void *p, struct LO *q);
-/** @sly2-annot addr=0x1C8730
- * Purpose: state transition (camera/sound/hands-off)
- * Info: proposed name SetVaultState (T2); TU prize
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C8730(struct S *p, int n)
+int StartDialog(void *vault, void *q, int f);
+void IncrementSwInputLock(void *vault);
+void AcquireSwLetterbox(void *vault);
+void DecrementSwInputLock(void *vault);
+void FireRelay(void *vault, struct LO *q);
+// Vault state change: stops the current dialog and relay, leaves the old state (dialling releases the letterbox; opening
+// grants the reward powerup and plays the opened dialog) and enters the new one (dialling takes the letterbox, resets
+// the dial and plays the intro dialog; other states fire the vault's own events). (inferred)
+void SetVaultState(struct S *vault, int n)
 {
     void *pv;
-    if (n == p->x180) return;
-    if (p->x1A4) {
+    if (n == vault->state) return;
+    if (vault->dialogId) {
         StopDialog(D_003DD040);
-        p->x1A4 = 0;
+        vault->dialogId = 0;
     }
-    if (p->x19C)
-        StopRelay(p->x19C);
-    switch (p->x180) {
+    if (vault->relay)
+        StopRelay(vault->relay);
+    switch (vault->state) {
     case 2:
-        func_001C8918(p, -1);
+        SetVaultDialState(vault, -1);
         ReleaseSwLetterbox(D_003DD490);
         break;
     case 3:
-        if (p->x200 != -1)
-            SetPowerupAcquired(p->x200, 1);
-        if (p->x1FC)
-            p->x1A4 = StartDialog(D_003DD040, p->x1FC, 1);
+        if (vault->rewardPowerup != -1)
+            SetPowerupAcquired(vault->rewardPowerup, 1);
+        if (vault->openedDialog)
+            vault->dialogId = StartDialog(D_003DD040, vault->openedDialog, 1);
         break;
     case 0:
-        if (p->x190)
+        if (vault->user)
             IncrementSwInputLock(D_003DD490);
         break;
     }
-    p->x180 = n;
-    p->x184 = D_002DDED0.t;
+    vault->state = n;
+    vault->stateTime = D_002DDED0.t;
     switch (n) {
     case -1:
         return;
     case 2:
-        p->x194 = 5;
-        func_001C8918(p, 1);
+        vault->selectedDigit = 5;
+        SetVaultDialState(vault, 1);
         AcquireSwLetterbox(D_003DD490);
-        if (p->x1F4)
-            p->x1A4 = StartDialog(D_003DD040, p->x1F4, 0);
+        if (vault->introDialog)
+            vault->dialogId = StartDialog(D_003DD040, vault->introDialog, 0);
         break;
     case 1:
-        ((void (*)(void *, int))p->vt[79].pf)((char *)p + p->vt[79].d, 1);
+        ((void (*)(void *, int))vault->vt[79].pf)((char *)vault + vault->vt[79].d, 1);
         break;
     case 0:
     case 5: {
-        struct LO *q = p->x190;
+        struct LO *q = vault->user;
         if (q) {
             ((void (*)(void *, int))q->vt[79].pf)((char *)q + q->vt[79].d, 1);
-            p->x190 = 0;
+            vault->user = 0;
             DecrementSwInputLock(D_003DD490);
         }
         break;
     }
     }
-    pv = p->a20C[p->x180];
-    p->x19C = pv;
+    pv = vault->a20C[vault->state];
+    vault->relay = pv;
     if (pv)
-        FireRelay(pv, p->x190);
+        FireRelay(pv, vault->user);
 }
 } } // namespace M_func_001C8730
 
@@ -2715,70 +2447,67 @@ namespace M_func_001C8918 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; void *xA0; int pA4; float xA8; int pAC; qword xB0; qword xC0; qword xD0; };
 struct S {
-    char pad[0x188]; int x188; float x18C; void *x190; int x194; int p198[2];
-    char x1A0[8]; void *a1A8[9]; void *a1CC[14]; struct X *x204; void *x208;
+    char pad[0x188]; int dialState; float dialStateTime; void *user; int selectedDigit; int p198[2];
+    char dialAnim[8]; void *digitTargets[9]; void *digitAnims[14]; struct X *dialTimer; void *dialCenter;
 };
 extern struct CLOCK D_002DDED0;
 extern qword D_002C1080;
 extern qword D_002C1090;
-void DropAsegaRef(void *p);
-void SetStepplayerGrabTarget(void *p, void *q);
-qword ConvertAloVec(void *p, void *frame, qword q);
-qword ConvertXfVec(void *frame, void *p, qword q);
-qword GetLoWorldPos(void *p);
-qword TransformXfPos(void *frame, void *p, qword q);
-void SetXfRole(struct S *p, struct X *px, int n);
+void DropAsegaRef(void *vault);
+void SetStepplayerGrabTarget(void *vault, void *q);
+qword ConvertAloVec(void *vault, void *frame, qword q);
+qword ConvertXfVec(void *frame, void *vault, qword q);
+qword GetLoWorldPos(void *vault);
+qword TransformXfPos(void *frame, void *vault, qword q);
+void SetXfRole(struct S *vault, struct X *px, int n);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
-static inline void Selection(const struct S*p,int*index,struct X**timer){
+// Loads the vault dial's selected index and its timer object (register-pinned for the match).
+static inline void Selection(const struct S*vault,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
- __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(p),"m"(p->x194),"m"(p->x204));
+ __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(vault),"m"(vault->selectedDigit),"m"(vault->dialTimer));
  *index=selected;*timer=receiver;
 }
-/** @sly2-annot addr=0x1C8918
- * Purpose: dial/handle orientation update
- * Info: proposed name UpdateVaultDial (T2); TU prize
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C8918(struct S *p, int n)
+// Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
+// animation and timer for the new sub-state. (inferred)
+void SetVaultDialState(struct S *vault, int n)
 {
     struct X *px;
     qword q;
-    if (n == p->x188) return;
-    DropAsegaRef(p->x1A0);
-    p->x188 = n;
-    p->x18C = D_002DDED0.t;
+    if (n == vault->dialState) return;
+    DropAsegaRef(vault->dialAnim);
+    vault->dialState = n;
+    vault->dialStateTime = D_002DDED0.t;
     switch (n) {
     case -1:
-        p->x194 = -1;
-        SetStepplayerGrabTarget(p->x190, 0);
+        vault->selectedDigit = -1;
+        SetStepplayerGrabTarget(vault->user, 0);
         break;
     case 0:
-        SetStepplayerGrabTarget(p->x190, p->a1A8[p->x194]);
+        SetStepplayerGrabTarget(vault->user, vault->digitTargets[vault->selectedDigit]);
         break;
     case 1:
-        SetStepplayerGrabTarget(p->x190, p->x208);
-        p->x204->xA8 = D_002DDED0.t + 0.25f;
-        px = p->x204;
-        q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1080));
+        SetStepplayerGrabTarget(vault->user, vault->dialCenter);
+        vault->dialTimer->xA8 = D_002DDED0.t + 0.25f;
+        px = vault->dialTimer;
+        q = ConvertXfVec(0, px->xA0, ConvertAloVec(vault->user, 0, D_002C1080));
         px->xB0 = q;
-        {int selected;Selection(p,&selected,&px);
-        q=TransformXfPos(0,px->xA0,GetLoWorldPos(p->a1A8[selected]));}
+        {int selected;Selection(vault,&selected,&px);
+        q=TransformXfPos(0,px->xA0,GetLoWorldPos(vault->digitTargets[selected]));}
         px->xC0 = q;
-        px = p->x204;
-        q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1090));
+        px = vault->dialTimer;
+        q = ConvertXfVec(0, px->xA0, ConvertAloVec(vault->user, 0, D_002C1090));
         px->xD0 = q;
-        SetXfRole(p, p->x204, 0x11);
+        SetXfRole(vault, vault->dialTimer, 0x11);
         break;
     case 2:
-        SetStepplayerGrabTarget(p->x190, p->a1A8[p->x194]);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->a1CC[p->x194], p, 0.0f, 1.0f, 0, p->x1A0);
+        SetStepplayerGrabTarget(vault->user, vault->digitTargets[vault->selectedDigit]);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
         break;
     }
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,t)==0 && OFF(struct CLOCK,dt)==4 && OFF(struct X,xA0)==0xA0 && OFF(struct X,xA8)==0xA8 && OFF(struct X,xB0)==0xB0 && OFF(struct X,xC0)==0xC0 && OFF(struct X,xD0)==0xD0 && OFF(struct S,x188)==0x188 && OFF(struct S,x18C)==0x18C && OFF(struct S,x190)==0x190 && OFF(struct S,x194)==0x194 && OFF(struct S,x1A0)==0x1A0 && OFF(struct S,a1A8)==0x1A8 && OFF(struct S,a1CC)==0x1CC && OFF(struct S,x204)==0x204 && OFF(struct S,x208)==0x208)?1:-1];
+typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,t)==0 && OFF(struct CLOCK,dt)==4 && OFF(struct X,xA0)==0xA0 && OFF(struct X,xA8)==0xA8 && OFF(struct X,xB0)==0xB0 && OFF(struct X,xC0)==0xC0 && OFF(struct X,xD0)==0xD0 && OFF(struct S,dialState)==0x188 && OFF(struct S,dialStateTime)==0x18C && OFF(struct S,user)==0x190 && OFF(struct S,selectedDigit)==0x194 && OFF(struct S,dialAnim)==0x1A0 && OFF(struct S,digitTargets)==0x1A8 && OFF(struct S,digitAnims)==0x1CC && OFF(struct S,dialTimer)==0x204 && OFF(struct S,dialCenter)==0x208)?1:-1];
 } } // namespace M_func_001C8918
 #undef OFF
 
@@ -2787,25 +2516,22 @@ struct G { char pad[0x4764]; int a; int b; };
 extern struct G D_003DD490;
 struct H;
 extern struct H D_003DD040;
-struct S { char pad[0x190]; int n190; char pad2[0x64]; int n1f8; };
-void func_001C8730(struct S *p, int n);
+struct S { char pad[0x190]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
+void SetVaultState(struct S *vault, int n);
 void RestartHudWidget2(struct G *pg);
 void StartDialog(struct H *ph, int n, int m);
-/** @sly2-annot addr=0x1C8AF0
- * Purpose: calls SetVaultState
- * Info: proposed name VaultUnk8AF0 (T2); TU prize
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
- * @end-sly2-annot */
-void func_001C8AF0(struct S *p, int n)
+// Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
+// it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
+// not-enough-clues dialog. (inferred)
+void TriggerVault(struct S *vault, int n)
 {
     struct G *pg = &D_003DD490;
     if (pg->a >= pg->b) {
-        p->n190 = n;
-        func_001C8730(p, 1);
+        vault->user = n;
+        SetVaultState(vault, 1);
     } else {
         RestartHudWidget2(pg);
-        if (p->n1f8 != -1) StartDialog(&D_003DD040, p->n1f8, 1);
+        if (vault->notEnoughCluesDialog != -1) StartDialog(&D_003DD040, vault->notEnoughCluesDialog, 1);
     }
 }
 } } // namespace M_func_001C8AF0
@@ -2829,7 +2555,7 @@ float D_002C0D90 = 1.0f;
  * the done callback as a pointer-to-member constant {0xFFFF0000, pfn} at +0x60. */
 namespace PRIZE_DATA {
 struct SMACKI_DEF { float ag[24]; unsigned int pmfDone[2]; int pad[2]; } __attribute__((aligned(16)));
-void p_func_001C67A0() __asm__("func_001C67A0");
+void p_func_001C67A0() __asm__("AwardCoin");
 void p_OnMedicineSmackDone() __asm__("OnMedicineSmackDone");
 extern SMACKI_DEF r_D_002C0DA0 __asm__("D_002C0DA0"), r_D_002C0E10 __asm__("D_002C0E10");
 SMACKI_DEF r_D_002C0DA0 = {{0.83f, 0.75f, 100.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 2.0f, 0.0f, 0.0f, 1.0f, 3.0f, 0.0f, 0.0f,

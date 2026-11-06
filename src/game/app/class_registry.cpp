@@ -2866,7 +2866,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010FE60)
 #include "../../generated/splicewrap/func_0010FE60.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00181330(void *p, int, void *, void *);
+extern "C" void SetHackenemyEntryVectors(void *p, int, void *, void *);
 /** @sly2-annot addr=0x10FF18
  * Purpose: Splice option thunk: optid 1182 on CID73 (g_aeopid[1380] thunkFn/thunkUser, returns Void, crefReq
  *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors
@@ -2889,11 +2889,11 @@ extern "C" CRef func_0010FF18(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00181330(p, v0, &v1, &v2);
+    SetHackenemyEntryVectors(p, v0, &v1, &v2);
     return ref;
 }
 
-extern "C" void func_00181378(void *p, int, void *, void *);
+extern "C" void SetHackenemyEntryVectors2(void *p, int, void *, void *);
 /** @sly2-annot addr=0x10FFE8
  * Purpose: Splice option thunk: optid 1183 on CID73 (g_aeopid[1381] thunkFn/thunkUser, returns Void, crefReq
  *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors2
@@ -2916,7 +2916,7 @@ extern "C" CRef func_0010FFE8(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00181378(p, v0, &v1, &v2);
+    SetHackenemyEntryVectors2(p, v0, &v1, &v2);
     return ref;
 }
 
@@ -2942,7 +2942,7 @@ SLY2_SPLICEWRAP_BEGIN(func_00110478)
 #include "../../generated/splicewrap/func_00110478.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_001D4B48(void *p, int n, void *pu, float g);
+extern "C" void AddRobottankWheel(void *p, int n, void *pu, float g);
 /** @sly2-annot addr=0x1104F0
  * Purpose: Splice option thunk: optid 1215 on CID77 (g_aeopid[1419] thunkUser, returns Void, crefReq 3);
  *   unpacks 3 args (Oid, Float, Lm) -> Void via RefSetArgsFromSplice then calls AddRcCarWheel (0x1D4B48)
@@ -2964,7 +2964,7 @@ extern "C" CRef func_001104F0(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &n, &g, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001D4B48(p, n, &u, g);
+    AddRobottankWheel(p, n, &u, g);
     return ref;
 }
 
@@ -2972,7 +2972,7 @@ SLY2_SPLICEWRAP_BEGIN(func_001105B8)
 #include "../../generated/splicewrap/func_001105B8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_001D4C48(void *p, int n, void *pu);
+extern "C" void AddRobottankAttachment(void *p, int n, void *pu);
 /** @sly2-annot addr=0x110680
  * Purpose: Splice option thunk: optid 1178 on CID77 (g_aeopid[1421] thunkUser, returns Void, crefReq 2);
  *   unpacks 2 args (Oid, Lm) -> Void via RefSetArgsFromSplice then calls AddRcCarAttachment (0x1D4C48)
@@ -2993,7 +2993,7 @@ extern "C" CRef func_00110680(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001D4C48(p, n, &u);
+    AddRobottankAttachment(p, n, &u);
     return ref;
 }
 

@@ -38,7 +38,7 @@ void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis);
 void BindLoOidTable(LO *plo, int c, void *aoid);
 void GetStepplayerCpdefi(STEPPLAYER *pstepplayer, CPDEFI *pcpdefi);
 void GetJtPipeVelocity(JTPIPE *pjtpipe, CPDEFI *pcpdefi);
-int func_00224610(LO *plo);
+int IsThrowableGadget(LO *plo);
 void SetGadgetRecordObject(BENTLEY *pbentley, JTPOCKET *ppocket, LO *plo);
 void UnlockProxyObject(PROXY *pproxy, LO *plo);
 void SetBentleyCrosshairState(BTBLENDS *pbtblends, int n);
@@ -1299,7 +1299,7 @@ struct P { char pad[0x150]; void *controller; char pad0[0x20C - 0x154]; float g2
 extern struct CLOCK D_002DDED0;
 int FAsegaRetracted(void *pv);
 void SetBentleySubState(struct P *p, int n);
-void func_00224258(struct O *po, int n);
+void StickTossable(struct O *po, int n);
 int GetGadgetButtonMask(struct P *p, int n);
 int POCTL_IsButtonDown(void *pv, int n);
 void ReleaseBentleyHeldObject(struct P *p);
@@ -1325,7 +1325,7 @@ void UpdateBentleySubState(struct P *bentley)
         case 2: {
             struct O *object = bentley->po;
             if (object->x158 == 2) {
-                func_00224258(object, object->x1A0);
+                StickTossable(object, object->x1A0);
                 goto common;
             }
             if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->pq->x0) | 0x10)) {
@@ -1353,12 +1353,12 @@ void UpdateBentleySubState(struct P *bentley)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-/* Hands the proxy held at +0x186C back: hooks it to Bentley if func_00224610 allows, then unlocks it in the
+/* Hands the proxy held at +0x186C back: hooks it to Bentley if IsThrowableGadget allows, then unlocks it in the
    current pocket's proxy. */
 // Releases the object at +0x186C back to its manager.
 extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
 {
-    if (func_00224610(PLO186C(bentley)) != 0) {
+    if (IsThrowableGadget(PLO186C(bentley)) != 0) {
         *(BENTLEY **)((char *)PLO186C(bentley) + 0x16C) = bentley;
         SetGadgetRecordObject(bentley, bentley->ppocketCur, PLO186C(bentley));
     }
@@ -1601,7 +1601,7 @@ int CanJtUseGadgetInAir(void *pv, int k);
 int CanJtUseGadgetInGrab(void *pv, int k);
 int CanJtUseGadgetOnPipe(void *pv, int k);
 struct E *GetBentleyGadgetFromId(struct P *p, int k);
-int func_00224590(void *pv);
+int IsTossableActive(void *pv);
 int ChooseProxySpare(void *pv, int n);
 int FActiveCplcy__FP5CPLCY(void *pv);
 /** @sly2-annot addr=0x136870
@@ -1654,7 +1654,7 @@ int CanBentleyUseGadget(struct P *bentley, int k)
         case 4: case 5: case 7: case 9: case 11: case 13: {
             struct E *pe = GetBentleyGadgetFromId(bentley, k);
             if (pe->p8) {
-                if (func_00224590(pe->p8))
+                if (IsTossableActive(pe->p8))
                     return 1;
                 goto fail;
             }
@@ -1724,7 +1724,7 @@ struct E *GetBentleyGadgetFromId(struct P *p, int k);
 void SetJtThrowState(void *pv, int n);
 void SetJtGrabState(void *pv, int n, void *pv2, int m);
 struct O *AcquireProxyObject(void *pv, int n);
-int func_00224610(struct O *po);
+int IsThrowableGadget(struct O *po);
 void SetGadgetRecordObject(struct P *p, struct E *pe, struct O *po);
 void GetGadgetButtonMask(struct P *p, int k);
 void SetBentleyState(struct P *p, int n);
@@ -1760,7 +1760,7 @@ void StartBentleyGadget(struct P *bentley, int k)
             if (!object)
                 return;
             object->x15C = pe->x0;
-            if (func_00224610(object)) {
+            if (IsThrowableGadget(object)) {
                 object->p16C = bentley;
                 SetGadgetRecordObject(bentley, pe, object);
             }

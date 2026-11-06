@@ -1,4 +1,8 @@
-// barrier.cpp -- BARRIER, a solid object that only some objects/classes may pass (or only some are stopped by).
+// barrier.cpp -- BARRIER, a solid object that filters what may pass through it: it names up to four objects and four
+// classes, and either lets exactly those through (fThrough) or stops only those. When something touches it and the
+// level script has bound the impact event (5), it reports each touching object to the script once per frame.
+// Entry points: the BARRIER vtable (Init, PostBarrierLoad, FIgnoreBarrierIntersection, NotifyBarrierImpact) and the
+// Splice setters AddBarrierObject / AddBarrierClass (via RefThunk_* in class_registry.cpp).
 // TU 0x1320C8..0x132570 (9 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_barrier
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00132550
@@ -15,28 +19,28 @@ struct VT { short d; short pad; void *pfn; };
 
 /* Contact graph of a solid object, as SendBarrierImpactMessages walks it (HYPOTHESIS: SO contact lists). */
 struct BARRIERV;
-struct CONTACTEND { int x0; int x4; BARRIERV *pso; char pad[0x34]; };
-struct CONTACT { CONTACTEND aend[2]; char pad[0xAC - 0x80]; CONTACT *pnext; };
-struct CONTACTL { CONTACT *pcontact; CONTACTL *pnext; };
-struct SOTREEV { char pad[0x64]; CONTACTL *pcontactl; };
+struct CONTACTEND { int unknown0; int unknown4; BARRIERV *object; char pad[0x34]; };
+struct CONTACT { CONTACTEND ends[2]; char pad[0xAC - 0x80]; CONTACT *next; };
+struct CONTACTL { CONTACT *firstContact; CONTACTL *next; };
+struct SOTREEV { char pad[0x64]; CONTACTL *contactLists; };
 
 /* BARRIER : SO (sizeof(SO) == 0x150). The SO part is a view of the fields used here, not the sly2/so.h class. */
 struct BARRIERV
 {
-    void *pframe;                       /* +0x0 BASIC::pframe */
+    void *frame;                        /* +0x0 BASIC::pframe (the Splice frame holding script bindings) */
     char pad04[0xC - 0x4];
-    VT *pvt;                            /* +0xC */
+    VT *vtable;                         /* +0xC */
     char pad10[0xE8 - 0x10];
-    int fe8;                            /* +0xE8 */
-    SOTREEV *ptree;                     /* +0xEC */
+    int hasPhysics;                     /* +0xE8 SO::psophys != 0 (inferred) */
+    SOTREEV *tree;                      /* +0xEC */
     char padF0[0x148 - 0xF0];
-    unsigned long grf;                  /* +0x148 SO flag word; bit 34 is SO::fTreeRoot in sly2/so.h */
-    int coid;                           /* +0x150 objects named by the barrier */
-    OID aoid[4];                        /* +0x154 */
-    int ccid;                           /* +0x164 classes named by the barrier */
-    CIDV acid[4];                        /* +0x168 */
-    int fThrough;                       /* +0x178 named objects pass (else: only named objects are stopped) */
-    BARRIERV *psoImpact;                 /* +0x17C */
+    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::fTreeRoot in sly2/so.h */
+    int numObjects;                     /* +0x150 objects named by the barrier */
+    OID objects[4];                     /* +0x154 */
+    int numClasses;                     /* +0x164 classes named by the barrier */
+    CIDV classes[4];                    /* +0x168 */
+    int letsNamedThrough;               /* +0x178 named objects pass (else: only named objects are stopped) */
+    BARRIERV *impactObject;             /* +0x17C the object reported by the current impact event */
 };
 
 /* EnsureSwCallback takes an 8-byte struct by value in one register. The C original loaded it with ldl/ldr straight
@@ -60,143 +64,107 @@ void EnsureSwCallback(void *psw, void *pv, long k, int n);
 int FIsBasicDerivedFrom(struct BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 extern "C" void *PrefFindBinding__6CFrameUii(void *pframe, int a, int b);
 
-/** @sly2-annot addr=0x1320C8
- * Purpose: BARRIER vt7 Init: InitSo then set an SO flag bit (grf |= 1<<34)
- * Info: proposed name InitBarrier (T1); class BARRIER slot7; TU barrier
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/gameplay-objects.md#key-functions
- * @end-sly2-annot */
+// BARRIER vtable slot 7 (Init): initializes the SO part, then sets SO flag bit 34 (fTreeRoot in sly2/so.h), so the
+// barrier is the root of its own physics tree.
 void BARRIER::Init()
 {
-    BARRIERV *pbarrier = (BARRIERV *)this;
-    InitSo(pbarrier);
-    pbarrier->grf |= 0x8000L << 19;
+    BARRIERV *barrier = (BARRIERV *)this;
+    InitSo(barrier);
+    barrier->flags |= 0x8000L << 19;
 }
 
-/** @sly2-annot addr=0x132100
- * Purpose: BARRIER vt15 PostLoad: PostSoLoad, then if it has physics (+0xE8) register it with g_sw (0x134320,
- *   pairs with every other registered SO)
- * Info: proposed name PostBarrierLoad (T1); class BARRIER slot15; TU barrier
- * Notes: names_v2 B proposed CloneBarrier__FP7BARRIERT0 (0.808)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570
- * @end-sly2-annot */
-extern "C" void PostBarrierLoad(BARRIERV *pbarrier)
+// BARRIER vtable slot 15 (PostLoad): finishes the SO load, then, if the barrier has physics, recomputes the world's
+// collision-pair filter for it so the pass/stop rules of FIgnoreBarrierIntersection take effect. (inferred)
+extern "C" void PostBarrierLoad(BARRIERV *barrier)
 {
-    PostSoLoad(pbarrier);
-    if (pbarrier->fe8)
-        RecalcSwOxfFilterForObject(D_003DD490, pbarrier);
+    PostSoLoad(barrier);
+    if (barrier->hasPhysics)
+        RecalcSwOxfFilterForObject(D_003DD490, barrier);
 }
 
-/** @sly2-annot addr=0x132140
- * Purpose: BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else
- *   base; without fAllow matched->2 else 1
- * Info: proposed name FIgnoreBarrierIntersection (T1); class BARRIER slot61; TU barrier
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verify_side
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570
- * @end-sly2-annot */
-extern "C" int FIgnoreBarrierIntersection(BARRIERV *pbarrier, void *pso)
+// BARRIER vtable slot 61 (FIgnoreIntersection): decides how the barrier collides with another object. The other
+// object "is named" when it matches one of the barrier's object names or derives from one of its classes. With
+// letsNamedThrough set, named objects get 3 (pass) and others the SO default; otherwise named objects get 2 and others 1.
+// Return codes follow SO::FIgnoreIntersection (0/1 = collide, higher = ignore in some way). (inferred)
+extern "C" int FIgnoreBarrierIntersection(BARRIERV *barrier, void *other)
 {
     int i, j;
-    int f;
+    int isNamed;
     i = 0;
-    f = 0;
-    for (; i < pbarrier->coid; i++) {
-        if (HasLoOid(pso, pbarrier->aoid[i])) f = 1;
+    isNamed = 0;
+    for (; i < barrier->numObjects; i++) {
+        if (HasLoOid(other, barrier->objects[i])) isNamed = 1;
     }
-    for (j = 0; j < pbarrier->ccid; j++) {
-        if (FIsBasicDerivedFrom((struct BASIC *)pso, pbarrier->acid[j])) f = 1;
+    for (j = 0; j < barrier->numClasses; j++) {
+        if (FIsBasicDerivedFrom((struct BASIC *)other, barrier->classes[j])) isNamed = 1;
     }
     {
-        int r;
-        if (pbarrier->fThrough) {
-            if (f) r = 3;
-            else r = ShouldSoIgnoreIntersection(pbarrier, pso);
-        } else r = f ? 2 : 1;
-        return r;
+        int result;
+        if (barrier->letsNamedThrough) {
+            if (isNamed) result = 3;
+            else result = ShouldSoIgnoreIntersection(barrier, other);
+        } else result = isNamed ? 2 : 1;
+        return result;
     }
 }
 
-/** @sly2-annot addr=0x132238
- * Purpose: BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5,
- *   EnsureSwCallback(g_sw, this, &0x132298)
- * Info: proposed name NotifyBarrierImpact (T1); class BARRIER slot55; TU barrier
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verify_side
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570
- * @end-sly2-annot */
-extern "C" void NotifyBarrierImpact(BARRIERV *pbarrier)
+// BARRIER vtable slot 55 (AdjustNewXp, called when a new contact point is created): runs the SO default, then, if the
+// level script binds the barrier's impact event (5), schedules SendBarrierImpactMessages as a once-per-frame world
+// callback (several contacts in one frame produce one report).
+extern "C" void NotifyBarrierImpact(BARRIERV *barrier)
 {
-    AdjustSoNewXp(pbarrier);
-    if (pbarrier->pframe && PrefFindBinding__6CFrameUii(pbarrier->pframe, 5, 1))
-        EnsureSwCallback(D_003DD490, pbarrier, ((LONGU *)&D_002A4790)->l, 0);
+    AdjustSoNewXp(barrier);
+    if (barrier->frame && PrefFindBinding__6CFrameUii(barrier->frame, 5, 1))
+        EnsureSwCallback(D_003DD490, barrier, ((LONGU *)&D_002A4790)->l, 0);
 }
 
-static inline int IEnd(CONTACT *pcontact, BARRIERV *pso) { return pcontact->aend[0].pso == pso ? 0 : 1; }
+// Which end (0 or 1) of a contact is the given object.
+static inline int GetContactEndIndex(CONTACT *contact, BARRIERV *object) { return contact->ends[0].object == object ? 0 : 1; }
 
-/** @sly2-annot addr=0x132298
- * Purpose: Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso
- *   and HandleSpliceEvent(5) via vt3 (fires the Splice impact event)
- * Info: proposed name SendBarrierImpactMessages (T1); TU barrier
- * Notes: names_v2 A proposed NotifyBarrierImpact__FP7BARRIERP2XPi (0.996)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest+verdicts_A1
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#key-functions,
- *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule
- * @end-sly2-annot */
-extern "C" void SendBarrierImpactMessages(BARRIERV *pbarrier)
+// Deferred world callback scheduled by NotifyBarrierImpact: collects up to 16 distinct objects touching the barrier
+// and, for each, stores it in impactObject and fires the Splice impact event (5) through vtable slot 3
+// (HandleSpliceEvent), so the script can ask which object hit the barrier.
+extern "C" void SendBarrierImpactMessages(BARRIERV *barrier)
 {
-    BARRIERV *apso[16];
-    int c = 0;
-    CONTACTL *pcontactl;
+    BARRIERV *touching[16];
+    int numTouching = 0;
+    CONTACTL *contactList;
     int i;
-    for (pcontactl = pbarrier->ptree->pcontactl; pcontactl; pcontactl = pcontactl->pnext) {
-        CONTACT *pcontact;
-        for (pcontact = pcontactl->pcontact; pcontact; pcontact = pcontact->pnext) {
-            BARRIERV *psoOther = pcontact->aend[1 - IEnd(pcontact, pbarrier)].pso;
-            for (i = 0; i < c; i++)
-                if (psoOther == apso[i])
+    for (contactList = barrier->tree->contactLists; contactList; contactList = contactList->next) {
+        CONTACT *contact;
+        for (contact = contactList->firstContact; contact; contact = contact->next) {
+            BARRIERV *other = contact->ends[1 - GetContactEndIndex(contact, barrier)].object;
+            for (i = 0; i < numTouching; i++)
+                if (other == touching[i])
                     break;
-            if (i >= c) {
-                apso[c++] = psoOther;
-                if (c >= sizeof(apso) / sizeof(apso[0]))
+            if (i >= numTouching) {
+                touching[numTouching++] = other;
+                if (numTouching >= sizeof(touching) / sizeof(touching[0]))
                     goto done;
             }
         }
     }
 done:
-    for (i = 0; i < c; i++) {
-        pbarrier->psoImpact = apso[i];
-        ((void (*)(void *, int, int, int, int, int))pbarrier->pvt[3].pfn)((char *)pbarrier + pbarrier->pvt[3].d,
-                                                                         5, 0, 0, 0, 0);
+    for (i = 0; i < numTouching; i++) {
+        barrier->impactObject = touching[i];
+        ((void (*)(void *, int, int, int, int, int))barrier->vtable[3].pfn)((char *)barrier + barrier->vtable[3].d,
+                                                                           5, 0, 0, 0, 0);
     }
 }
 
 /* The count is signed in FIgnoreBarrierIntersection's loops (slt/blez) and compared unsigned here (sltiu). */
-/** @sly2-annot addr=0x1323C8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570
- * @end-sly2-annot */
-void AddBarrierObject(BARRIERV *pbarrier, OID oid) __asm__("AddBarrierObject__FP7BARRIER3OID");
-void AddBarrierObject(BARRIERV *pbarrier, OID oid)
+// Splice setter: adds an object name to the barrier's list (at most four; extra names are ignored).
+void AddBarrierObject(BARRIERV *barrier, OID oid) __asm__("AddBarrierObject__FP7BARRIER3OID");
+void AddBarrierObject(BARRIERV *barrier, OID oid)
 {
-    if ((unsigned int)pbarrier->coid < 4) pbarrier->aoid[pbarrier->coid++] = oid;
+    if ((unsigned int)barrier->numObjects < 4) barrier->objects[barrier->numObjects++] = oid;
 }
 
-/** @sly2-annot addr=0x1323F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570
- * @end-sly2-annot */
-void AddBarrierClass(BARRIERV *pbarrier, CIDV cid) __asm__("AddBarrierClass__FP7BARRIER3CID");
-void AddBarrierClass(BARRIERV *pbarrier, CIDV cid)
+// Splice setter: adds a class to the barrier's list (at most four; extra classes are ignored).
+void AddBarrierClass(BARRIERV *barrier, CIDV cid) __asm__("AddBarrierClass__FP7BARRIER3CID");
+void AddBarrierClass(BARRIERV *barrier, CIDV cid)
 {
-    if ((unsigned int)pbarrier->ccid < 4) pbarrier->acid[pbarrier->ccid++] = cid;
+    if ((unsigned int)barrier->numClasses < 4) barrier->classes[barrier->numClasses++] = cid;
 }
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has

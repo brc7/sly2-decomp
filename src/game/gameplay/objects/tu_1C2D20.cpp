@@ -1,5 +1,8 @@
-// tu_1C2D20.cpp -- a prize sprayer: an object that launches prizes (its own one, then copies from a prototype)
-// toward the player. VU0 macro-mode asm.
+// tu_1C2D20.cpp -- CID99, the loot pouch a guard carries (the pickpocket dispenser): it holds one item (a prize, a
+// clue bottle or loot, or a proxy that makes copies), draws it at an attach frame, and when the player pickpockets or
+// knocks out the guard launches the item (and copies from the proxy) toward random points around the player.
+// Entry points: the CID99 vtable (PostLoad, RenderLootPouchSelf) and, from pickpocket.cpp, StageLootPouchLoot,
+// ClearLootPouchLoot and LaunchLootPouchLootAtPlayer. VU0 macro-mode asm.
 // TU 0x1C2D20..0x1C3390 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1C2D20
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C3370
@@ -21,14 +24,14 @@ struct SOV { char pad0[0xC]; VTE *vt; char pad10[0x60]; qwordV position; };
 struct SPRAYER
 {
     char pad0[0x150];
-    SOV *pxf;            /* +0x150 the frame prizes start from (FindSoXf) */
-    SOV *psoProto;       /* +0x154 prototype the copies come from (AcquireProxyObject) */
-    SOV *psoFirst;       /* +0x158 the sprayer's own prize */
+    SOV *launchFrame;    /* +0x150 the frame prizes start from (FindSoXf) */
+    SOV *itemProxy;      /* +0x154 prototype the copies come from (AcquireProxyObject) */
+    SOV *heldItem;       /* +0x158 the sprayer's own prize */
     char pad15C[0xC];
-    void *psma;         /* +0x168 */
-    int ismaCur;        /* +0x16C */
+    void *sma;          /* +0x168 */
+    int smaIndex;       /* +0x16C */
 };
-typedef char assert_SPRAYER_ismaCur[(unsigned int)&((SPRAYER *)0)->ismaCur == 0x16C ? 1 : -1];
+typedef char assert_SPRAYER_ismaCur[(unsigned int)&((SPRAYER *)0)->smaIndex == 0x16C ? 1 : -1];
 struct LMV { float gMin, gMax; };
 struct GAME { int dummy; };
 
@@ -43,7 +46,7 @@ void RenderSoSelf(SPRAYER *p);
 void RenderLoAtMatrix(void *p, void *q, float a, float b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
-void func_001C7A58(SOV *plo, int id);
+void SelectLootEntry(SOV *plo, int id);
 SOV *FindSoXf(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
@@ -58,86 +61,64 @@ qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
 qwordV CalculateVelocityToReachPos(qwordV, qwordV, qwordV, float);
 void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
-void func_001C2DB8(SPRAYER *);
+void ClearLootPouchLoot(SPRAYER *);
 }
 
-/** @sly2-annot addr=0x1C2D20
- * Purpose: CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding
- * Info: proposed name PostCid99Load (T2); class CID99 slot15; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/world-sw.md#9-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
+// CID99 vtable slot 15 (PostLoad): finishes the SO load, binds the snip table (its SMA, proxy, held item and attach
+// frame by oid) and starts the SMA.
 void CID99::VUnk14()
 {
-    SPRAYER *p = (SPRAYER *)this;
-    PostSoLoad(p);
-    BindLoOidTable(p, 4, D_002C0CB0);
-    ReplaceSma(p->psma, p, -1, 0, &p->ismaCur);
+    SPRAYER *pouch = (SPRAYER *)this;
+    PostSoLoad(pouch);
+    BindLoOidTable(pouch, 4, D_002C0CB0);
+    ReplaceSma(pouch->sma, pouch, -1, 0, &pouch->smaIndex);
 }
 
-/** @sly2-annot addr=0x1C2D70
- * Purpose: CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel)
- * Info: proposed name RenderCid99Self (T2); class CID99 slot19; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
-extern "C" void func_001C2D70(SPRAYER *p)
+// CID99 vtable slot 19 (RenderSelf): draws the pouch, then places the held item at the attach frame's world matrix.
+extern "C" void RenderLootPouchSelf(SPRAYER *pouch)
 {
-    RenderSoSelf(p);
-    if (p->psoFirst) RenderLoAtMatrix(p->psoFirst, (char *)p->pxf + 0x40, 1.0f, 1.0f);
+    RenderSoSelf(pouch);
+    if (pouch->heldItem) RenderLoAtMatrix(pouch->heldItem, (char *)pouch->launchFrame + 0x40, 1.0f, 1.0f);
 }
 
-/** @sly2-annot addr=0x1C2DB8
- * Purpose: Clear held loot pointer(s)
- * Info: proposed name ClearCid99Loot (T2); class CID99; TU tu_1C2D20
- * Notes: names_v2 v1 proposed FUN_00177828 (0.000)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
-extern "C" void func_001C2DB8(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p->pxf = 0; }
+// Forgets the held item, its proxy and the attach frame (after a launch or when the guard is reset).
+extern "C" void ClearLootPouchLoot(SPRAYER *pouch) { pouch->heldItem = 0; pouch->itemProxy = 0; pouch->launchFrame = 0; }
 
-/** @sly2-annot addr=0x1C2DC8
- * Purpose: Attach loot: from a PROXY (class 6, AcquireProxyObject) or an SO; clue (0x5E) gets id, prize (0x5A)
- *   state 2 else vt9; find attach XF; returns status 0-3
- * Info: proposed name StageCid99Loot (T2); class CID99; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
- *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
- *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
+// Puts an item in the pouch: a PROXY (cid 6) gives a fresh copy, an SO (cid 0x30) is used directly. A clue bottle
+// (cid 0x5E) selects entry `id`; a prize (cid 0x5A) goes to state 2 (held), anything else is removed from the world.
+// Returns 0 if the pouch is already full, 1 if the proxy had no copy left, 2 for an unusable item, 3 on success.
+extern "C" int StageLootPouchLoot(SPRAYER *pouch, SOV *item, int id, void *attachName)
 {
-    if (p->psoFirst) return 0;
-    p->psoProto = 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 6)) {
-        p->psoProto = plo;
-        p->psoFirst = AcquireProxyObject(plo, 0);
-        if (!p->psoFirst) {
-            p->psoProto = 0;
+    if (pouch->heldItem) return 0;
+    pouch->itemProxy = 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(item, 6)) {
+        pouch->itemProxy = item;
+        pouch->heldItem = AcquireProxyObject(item, 0);
+        if (!pouch->heldItem) {
+            pouch->itemProxy = 0;
             return 1;
         }
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x30)) {
-        p->psoFirst = plo;
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(item, 0x30)) {
+        pouch->heldItem = item;
     } else {
         return 2;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->psoFirst, 0x5E)) func_001C7A58(p->psoFirst, id);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->psoFirst, 0x5A))
-        ((void (*)(void *, int))p->psoFirst->vt[76].fn)((char *)p->psoFirst + p->psoFirst->vt[76].delta, 2);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5E)) SelectLootEntry(pouch->heldItem, id);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5A))
+        ((void (*)(void *, int))pouch->heldItem->vt[76].fn)((char *)pouch->heldItem + pouch->heldItem->vt[76].delta, 2);
     else
-        ((void (*)(void *))p->psoFirst->vt[9].fn)((char *)p->psoFirst + p->psoFirst->vt[9].delta);
-    p->pxf = FindSoXf(p, pv, 0xD);
+        ((void (*)(void *))pouch->heldItem->vt[9].fn)((char *)pouch->heldItem + pouch->heldItem->vt[9].delta);
+    pouch->launchFrame = FindSoXf(pouch, attachName, 0xD);
     return 3;
 }
 
-// func_001C2EF0 (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
+// LaunchLootPouchLootAtPlayer: launches `count` objects from an owner's source object towards the player.
 // The first object is the owner's existing one (+0x158), the others come from its factory (AcquireProxyObject); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and CalculateVelocityToReachPos computes the launch velocity.
 // Class 0x5A objects are launched through LaunchSprayedDprize with an index-scaled delay; others are reset, parented to the
-// source and given the velocity through virtual calls.  func_001C2DB8 cleans up the owner on every exit.
+// source and given the velocity through virtual calls.  ClearLootPouchLoot cleans up the owner on every exit.
 // Matching notes:
 //  * `game` is a plain local set before the loop: the address is then a spilled constant that reload rematerializes
 //    as `la a0` at the call (lui/addiu into a0).  Taking &D_003DD490 inside the loop lets loop.c hoist only the HIGH part.
@@ -145,8 +126,11 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
 //    is tied to its first dying input, which gives the original vf numbering.
 //  * `count`, start, target and offset are plain values; the stack slots at sp+0x60..0x90 are their spill slots, and
 //    `dest` is caller-saved around the duration call.
+// Lane x of a VU vector as a float.
 static inline float X(qwordV q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
+// Scales vector v by lane x of s.
 static inline qwordV Scale(qwordV s, qwordV v) { qwordV r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(s), "j"(v)); return r; }
+// Length of a vector, in lane x.
 static inline qwordV Length(qwordV v)
 {
     qwordV d, len;
@@ -154,12 +138,14 @@ static inline qwordV Length(qwordV v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }
+// v divided by len (lane x).
 static inline qwordV Unit(qwordV v, qwordV len)
 {
     qwordV r;
     __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v), "j"(len));
     return r;
 }
+// Unit vector of v, or the fallback for a near-zero vector.
 static inline qwordV Normalize(qwordV v, qwordV fallback)
 {
     qwordV len = Length(v);
@@ -167,41 +153,40 @@ static inline qwordV Normalize(qwordV v, qwordV fallback)
         return fallback;
     return Unit(v, len);
 }
+// 3x3 matrix times vector.
 static inline qwordV Transform(const M3 &m, qwordV q)
 {
     qwordV r;
     r = VuMulMatrix3(m.r[0], m.r[1], m.r[2], q);
     return r;
 }
+// Random float in an LM range.
 static inline float Rand(const LMV &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
-static inline void SetState(SOV *p, int state) { VTE *v = p->vt; ((void (*)(void *, int))v[76].fn)((char *)p + v[76].delta, state); }
-static inline void Reset(SOV *p) { VTE *v = p->vt; ((void (*)(void *))v[8].fn)((char *)p + v[8].delta); }
-static inline void SetParent(SOV *p, SOV *parent) { VTE *v = p->vt; ((void (*)(void *, SOV *))v[39].fn)((char *)p + v[39].delta, parent); }
-static inline void SetVelocity(SOV *p, qwordV velocity) { VTE *v = p->vt; ((void (*)(void *, qwordV))v[35].fn)((char *)p + v[35].delta, velocity); }
+// vtable slot 76 (SetState).
+static inline void SetState(SOV *object, int state) { VTE *v = object->vt; ((void (*)(void *, int))v[76].fn)((char *)object + v[76].delta, state); }
+// vtable slot 8 (Reset).
+static inline void Reset(SOV *object) { VTE *v = object->vt; ((void (*)(void *))v[8].fn)((char *)object + v[8].delta); }
+// vtable slot 39 (SetParent).
+static inline void SetParent(SOV *object, SOV *parent) { VTE *v = object->vt; ((void (*)(void *, SOV *))v[39].fn)((char *)object + v[39].delta, parent); }
+// vtable slot 35 (SetVelocity).
+static inline void SetVelocity(SOV *object, qwordV velocity) { VTE *v = object->vt; ((void (*)(void *, qwordV))v[35].fn)((char *)object + v[35].delta, velocity); }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1C2EF0
- * Purpose: Launch count loot objects (first held, rest from proxy pool) toward random points around the
- *   player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay
- * Info: proposed name LaunchCid99LootAtPlayer (T2); class CID99; TU tu_1C2D20
- * Notes: names_v2 B proposed PqwVifsBitmapUpload__Fi (0.785)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
- *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
+// Launches `count` items (the held one, then copies from the proxy) toward random points around the player and
+// empties the pouch; returns the first item launched. Details below.
+extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
 {
     GAME *game = &D_003DD490;
     SOV *first = 0;
     for (int i = 0; i < count; i++) {
         SOV *node;
         if (i == 0)
-            node = p->psoFirst;
+            node = pouch->heldItem;
         else {
-            node = AcquireProxyObject(p->psoProto, 0);
+            node = AcquireProxyObject(pouch->itemProxy, 0);
             if (node && FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
                 SetState(node, 2);
         }
@@ -209,7 +194,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
             break;
         if (!first)
             first = node;
-        qwordV start = p->pxf->position;
+        qwordV start = pouch->launchFrame->position;
         qwordV target = GetLoWorldPos(GetHeroPo(game));
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
@@ -225,13 +210,13 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
                 lifetime = (float)i * D_002C0CEC;
             else
                 lifetime = D_002A76E8;
-            LaunchSprayedDprize(node, p->pxf->position, velocity, (float)i * D_002C0CE8, lifetime);
+            LaunchSprayedDprize(node, pouch->launchFrame->position, velocity, (float)i * D_002C0CE8, lifetime);
         } else {
             Reset(node);
-            SetParent(node, p->pxf);
+            SetParent(node, pouch->launchFrame);
             SetVelocity(node, velocity);
         }
     }
-    func_001C2DB8(p);
+    ClearLootPouchLoot(pouch);
     return first;
 }

@@ -123,7 +123,7 @@ void SetClockRate(void *, int, float);
 void SetSoundManagerFlags(void *, int, int);
 void ResetCplookZoom(void *);
 void *StartDialog(void *, int, int);
-void func_00147C20(void *, int, int);
+void StartFrameCapture(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, void *);
@@ -589,7 +589,7 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
         Post(reconSel->primary,0x310);
         if(reconSel->resource){
             if(reconSel->actor->key!=-1)StartDialog(D_003DD040,reconSel->actor->key,0);
-            func_00147C20(reconSel->resource,0x608,reconSel->actor->key);
+            StartFrameCapture(reconSel->resource,0x608,reconSel->actor->key);
         }
         SetReconTargetDone(reconSel->actor,1);
         BroadcastGameEvent(D_002DEB30,10,0);

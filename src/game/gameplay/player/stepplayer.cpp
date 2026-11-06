@@ -298,7 +298,7 @@ int GrfPressedWithin__5POCTLUif(struct Q *q, float g, int n);
 void AcknowledgeStepplayerHint(struct P *p);
 void UpdateJtgoal(int *pl);
 int IsJtgoalHolding(int *pl);
-void func_001E46A0(void *p, struct Q *q);
+void UpdateJsgJtControl(void *p, struct Q *q);
 void UpdateStepplayerInteractCandidates(struct P *p);
 void UpdateStepplayerWater(struct P *p);
 void UpdateStepplayerHideBlend(struct P *p);
@@ -337,7 +337,7 @@ void UpdateStepplayer(struct P *player)
                 struct VTE *e = &object->vt[14];
                 e->pfn((char *)object + e->d, player->controller);
             } else if (player->ride) {
-                func_001E46A0(player->ride, player->controller);
+                UpdateJsgJtControl(player->ride, player->controller);
             }
         }
     }
@@ -866,8 +866,8 @@ qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
 qword GetLoWorldPos(void *p);
 void ReleaseJtThrowObject(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int func_00224590(void *p);
-void func_002245B8(void *p);
+int IsTossableActive(void *p);
+void TriggerTossable(void *p);
 void ReleaseAsega(void *p);
 void ChargeGadgetMp(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
@@ -985,8 +985,8 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                 int n;
                 if (F(void *, player, 0x4D4) != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, player, 0x4D4), 100)) {
                     object = F(void *, player, 0x4D4);
-                    if (func_00224590(object))
-                        func_002245B8(object);
+                    if (IsTossableActive(object))
+                        TriggerTossable(object);
                 }
                 n = F(int, player, 0x9BC);
                 if (F(void *, player, 0x130C) != 0) {
@@ -2645,7 +2645,7 @@ void GetStepplayerStunHold(struct O *player, struct S *ps, float g)
 } } // namespace M_GetStepplayerStunHold
 
 namespace M_func_001432E0 { extern "C" {
-int IdBootyCur(void *p);
+int GetCurrentBootyEntryId(void *p);
 void DropStepplayerBooty(void *p);
 void *AcquireProxyObject(void *p, int n);
 void SelectBootyEntry(void *p, int n);
@@ -2662,7 +2662,7 @@ void SpawnStepplayerBootyMarker(char *player, int n)
 {
     void *q = *(void **)(player + 0x11A8);
     char *o;
-    if (q && IdBootyCur(q) == n) return;
+    if (q && GetCurrentBootyEntryId(q) == n) return;
     DropStepplayerBooty(player);
     if (n == -1) return;
     if (!(*(void * *)&g_sw.ploUnk4638)) return;
@@ -2831,8 +2831,8 @@ extern G D_003D4A60;
 extern char D_003DD490[];
 extern char D_002A4DB0[], D_002A4D50[], D_002A4DC0[], D_002A4DC8[];
 void *FindBootySaveVar(void *p);
-int IdBootyCur(void *p);
-void *func_0013D1A8(Q *p);
+int GetCurrentBootyEntryId(void *p);
+void *GetBootyContainerSaveKey(Q *p);
 S *ClearStepplayerBootySave(LO *p, int n);
 int IlevelCur__Fv(void);
 BL *GetLevelListEntry(int);
@@ -2867,7 +2867,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
     STACKSCOPE m;
     switch (n) {
     case 0: {
-        CRef ret = RefSetSaveVarV(CRef(0x15, q->p194 ? IdBootyCur(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
+        CRef ret = RefSetSaveVarV(CRef(0x15, q->p194 ? GetCurrentBootyEntryId(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
         if (lo->booty) {
             if (!q->p194) {
                 int dummy[2];
@@ -2875,11 +2875,11 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
                 CRef16 a0(0x15, -1);
                 SetPv(pv0, a0, &D_003D4A60);
             }
-            void *pv = func_0013D1A8(q);
-            CRef a(0x15, IdBootyCur(lo->booty));
+            void *pv = GetBootyContainerSaveKey(q);
+            CRef a(0x15, GetCurrentBootyEntryId(lo->booty));
             SetPv(pv, a, &D_003D4A60);
         } else {
-            void *pv = func_0013D1A8(q);
+            void *pv = GetBootyContainerSaveKey(q);
             CRef a(0x15, (int)lo->p18);
             SetPv(pv, a, &D_003D4A60);
         }
@@ -2902,7 +2902,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
         break;
     }
     case 2: {
-        S *ps = ClearStepplayerBootySave(lo, IdBootyCur(lo->booty));
+        S *ps = ClearStepplayerBootySave(lo, GetCurrentBootyEntryId(lo->booty));
         int i = IlevelCur__Fv();
         if (ps && i != -1) {
             BL *pb = GetLevelListEntry(i);
@@ -2948,7 +2948,7 @@ void *FindBootySaveVar(void *p);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 CRef RefSetSaveVarV(const CRef &ref, void *o, void *pv, int n);
 }
-/* Same SetPv form as func_0013D328: the unused dummy param makes gcc set up %hi(D_003D4A60)
+/* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)
    before the copy (lui in the copy-ctor jal slot). The copy is made in a raw struct with explicit
    copy/dtor calls: an inlined ~CRef would put &arg in a pseudo that gcse PRE then shares with
    the second CRef temp at the same stack slot. */

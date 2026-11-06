@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001D4D18(s32, s32, s32);               /* extern */
+void SetRobottankSlotValue(s32, s32, s32);               /* extern */
 CRef *func_00110838(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 4197, 5 };
@@ -9,7 +9,7 @@ CRef *func_00110838(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_001D4D18(pbasic, arg0_v, arg1_v);
+    SetRobottankSlotValue(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

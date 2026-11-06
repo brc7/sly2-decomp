@@ -26,11 +26,11 @@ void ExecuteSwTransition(void *);
 void MarkClockTick(void *, int);
 void UpdateSw(void *);
 void UpdateScreens(void *);
-int func_001477B0(void *);
+int IsFrameCaptureInactive(void *);
 void RenderSw(void *);
 void DrawSw(void *);
 void DrawUi(void *);
-void func_001477D8(void *);
+void DrawFrameCaptureScreen(void *);
 }
 /* Callees with mangled symbols, declared as the C++ functions that mangle to them. */
 void __main();
@@ -76,13 +76,13 @@ extern "C" void GameMain(int argc, int argv)
         UpdateSw(D_003DD490);
         UpdateScreens(D_003D9E70);
         OpenFrame();
-        if (!D_002DD644 || func_001477B0(D_002DD644)) {
+        if (!D_002DD644 || IsFrameCaptureInactive(D_002DD644)) {
             RenderSw(D_003DD490);
             DrawSw(D_003DD490);
             DrawUi(D_003D9E70);
         }
         if (D_002DD644)
-            func_001477D8(D_002DD644);
+            DrawFrameCaptureScreen(D_002DD644);
         CloseFrame();
         D_002BE538++;
     }

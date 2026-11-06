@@ -1,5 +1,7 @@
 // tu_17F090.cpp -- the hacking minigame objects (Bentley's hack: HACK : SO and HACKSHIP, HACKENEMY, HACKLOCK,
 // HACKWALL...): health and states, entry tables bound by oid, the ship singleton, scales and ranges, wall segments.
+// Entry points: the HACK/HACKSHIP/HACKBULLET/HACKENEMY/HACKLOCK/HACKWALL vtables, their Splice setters
+// (SetHack*Entry, AddHackwallSegment, AddHacklockRsmg...) and the world callback StartHackDying schedules.
 // TU 0x17F090..0x182C70 (76 functions, address order).
 //
 // Types: TU-private views over sly2/so.h's SO for the m2c bodies (HACK, HACKSHIP, HACKENEMY, HACKLOCK and the
@@ -22,8 +24,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct HACKE
 {
     OID oid;
-    LO *plo6D;              /* +0x4 */
-    LO *plo6F;              /* +0x8 */
+    LO *animation;          /* +0x4 the entry's ASEG (cid 0x6D), if the oid names one */
+    LO *stateMachine;       /* +0x8 or its SM (cid 0x6F) */
     int nC;
 };
 /* HACK (CID 0x47 : SO): the base of the hack objects. */
@@ -71,7 +73,7 @@ struct HACKENEMYV : public SO    /* CID 0x49 */
 struct HACKLOCKV : public SO     /* CID 0x4B */
 {
     HACK_WORDS
-    HACKSHIPV *phackship;    /* +0x1C8 */
+    HACKSHIPV *ship;    /* +0x1C8 */
     int nTarget;            /* +0x1CC */
     HACKE ahacke[3];        /* +0x1D0 */
 };
@@ -90,21 +92,21 @@ extern char D_002DEB30[];       /* the game (event broadcaster) */
 void RemoveSoHierarchy(SO *pso);
 void SO_ResetForProxy(SO *pso, int n);
 void AdjustSoNewXp(SO *pso, XP *pxp);
-void func_0017F090(HACKV *phack);
-void func_0017F3E0(HACKV *phack, int c, HACKE *ahacke);
-void func_0017F110(HACKV *phack);
-int func_0017F170(HACKV *phack, int n);
-void func_0017F138(HACKV *phack);
-void func_0017F6B0(HACKV *phack);
-void func_0017FD08(HACKSHIPV *phackship, int nState);
-void func_00181268(HACKENEMYV *phackenemy, int nState);
-void UpdateHackshipHealthBar(HACKSHIPV *phackship);
+void InitHack(HACKV *hack);
+void InitHackAnimEntries(HACKV *hack, int c, HACKE *ahacke);
+void RemoveHackHierarchy(HACKV *hack);
+int ResetHackHealth(HACKV *hack, int n);
+void PostHackLoad(HACKV *hack);
+void ResetHack(HACKV *hack);
+void SetHackshipState(HACKSHIPV *ship, int nState);
+void SetHackenemyState(HACKENEMYV *enemy, int nState);
+void UpdateHackshipHealthBar(HACKSHIPV *ship);
 int IsPoActive(SO *pso);
-void func_0017F408(HACKV *phack, int c, HACKE *ahacke);
-void func_00181728(HACKLOCKV *phacklock);
-void func_0017F4C0(HACKLOCKV *phacklock, HACKE *phacke);
+void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke);
+void ActivateHackshipFromHacklock(HACKLOCKV *lock);
+void StartHackAnim(HACKLOCKV *lock, HACKE *phacke);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
-void func_00181EB0(SO *pso, HACKSEG *pseg, int n);
+void SetHackwallSegmentState(SO *pso, HACKSEG *pseg, int n);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
@@ -116,96 +118,51 @@ extern qword D_002BE7D0;
 extern struct K D_002BE7E0;
 struct S { char pad[0x40]; int fl40; char pad2[0x13C]; int n180; char pad3[0x1C]; qword q1A0; struct K k1B0; };
 void InitSo(struct S *p);
-/** @sly2-annot addr=0x17F090
- * Purpose: CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf
- * Info: proposed name InitHack (T2); class HACK slot7; TU tu_17F090
- * Notes: Cid47->Cid71 (CID 0x47=71, vtable) | v3 class identity: InitCid71 -> InitHack | T2 forced: v3:
- *   coined class word (Hack) without descriptor/string backing
- * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F090(struct S *p) {
+// HACK (cid 0x47) vtable slot 7: InitSo, max health x180=10, two default vectors, grf. (inferred)
+void InitHack(struct S *hack) {
     int v;
-    InitSo(p);
-    p->n180 = 10;
-    p->q1A0 = D_002BE7D0;
-    p->k1B0 = D_002BE7E0;
-    v = p->fl40;
-    if ((v ^ 1) & 1) *(int *)v |= 2; else p->fl40 = v | 2;
+    InitSo(hack);
+    hack->n180 = 10;
+    hack->q1A0 = D_002BE7D0;
+    hack->k1B0 = D_002BE7E0;
+    v = hack->fl40;
+    if ((v ^ 1) & 1) *(int *)v |= 2; else hack->fl40 = v | 2;
 }
 } } // namespace M_func_0017F090
 
-/** @sly2-annot addr=0x17F110
- * Purpose: vt12: RemoveSoHierarchy then clear dying flag x18C
- * Info: proposed name RemoveHackHierarchy (T2); class HACK slot12; TU tu_17F090
- * Notes: CID47->CID71 (CID 0x47=71, vtable) | v3 class identity: RemoveCid71Hierarchy -> RemoveHackHierarchy
- *   | T2 forced: v3: coined class word (Hack) without descriptor/string backing
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 12: RemoveSoHierarchy then clear dying flag x18C. (inferred)
 /* HACK slot 12. */
 void HACK::RemoveHierarchy()
 {
-    HACKV *phack = (HACKV *)this;
-    RemoveSoHierarchy(phack);
-    phack->fDying = 0;
+    HACKV *hack = (HACKV *)this;
+    RemoveSoHierarchy(hack);
+    hack->fDying = 0;
 }
 
 namespace M_func_0017F138 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct S { char pad[0xC]; struct VTE *vt; };
 void PostSoLoad(struct S *p);
-/** @sly2-annot addr=0x17F138
- * Purpose: vt15: PostSoLoad then own vt83
- * Info: proposed name PostHackLoad (T2); class HACK slot15; TU tu_17F090
- * Notes: names_v2 v1 proposed SetStepguardSgsExternal__FP9STEPGUARD3SGSP4ASEG (0.036) | Cid47->Cid71 (CID
- *   0x47=71, vtable) | v3 class identity: PostCid71Load -> PostHackLoad | T2 forced: v3: coined class word
- *   (Hack) without descriptor/string backing
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F138(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]; e->pfn((char *)p + e->d); }
+// vtable slot 15: PostSoLoad then own vtable slot 83. (inferred)
+void PostHackLoad(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]; e->pfn((char *)p + e->d); }
 } } // namespace M_func_0017F138
 
-/** @sly2-annot addr=0x17F170
- * Purpose: vt26: SO base then health x184 = max x180 (reset)
- * Info: proposed name HACK_vt26 (T2); class HACK slot26; TU tu_17F090
- * Notes: names_v2 C proposed InitVismap__FP6VISMAP (0.177) | CID47->CID71 (CID 0x47=71, vtable) | v3 class
- *   identity: CID71_vt26 -> HACK_vt26 | T2: placeholder token vt26 | T2 forced: v3: coined class word (HACK)
- *   without descriptor/string backing
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 26: SO base then health x184 = max x180 (reset). (inferred)
 /* HACK slot 26: reset the health. */
-extern "C" int func_0017F170(HACKV *phack, int n)
+extern "C" int ResetHackHealth(HACKV *hack, int n)
 {
     int c;
-    SO_ResetForProxy(phack, n);
-    c = phack->cHealthMax;
-    phack->cHealth = c;
+    SO_ResetForProxy(hack, n);
+    c = hack->cHealthMax;
+    hack->cHealth = c;
     return c;
 }
 
-/** @sly2-annot addr=0x17F1A0
- * Purpose: vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust)
- * Info: proposed name AdjustHackXp (T2); class HACK slot55; TU tu_17F090
- * Notes: names_v2 C proposed InitMurray__FP6MURRAY (0.200) | CID47->CID71 (CID 0x47=71, vtable) | v3 class
- *   identity: AdjustCid71Xp -> AdjustHackXp | T2 forced: v3: coined class word (Hack) without
- *   descriptor/string backing
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/engine/minigames.md#21-classes-hack-tu-0x17f090-0x182ab8-ccode-names-cparse-we-names-hack-word-coined-t2,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust). (inferred)
 /* HACK slot 55: clear the contact's adjustment (as pipe.cpp's ResetJtPipeAdjust). */
-extern "C" void func_0017F1A0(HACKV *phack, XP *pxp)
+extern "C" void AdjustHackNewXp(HACKV *hack, XP *pxp)
 {
-    AdjustSoNewXp(phack, pxp);
+    AdjustSoNewXp(hack, pxp);
     *(int *)((char *)pxp + 0x94) = 0;
     *(int *)((char *)pxp + 0x98) = 0;
 }
@@ -225,60 +182,41 @@ extern qword D_002A2DC0,D_002A2DA0;
 qword GetLoWorldPos(struct P*);
 qword LimitVectorLength(qword,float);
 qword ApplyConstr(struct SPS*,struct O*,qword);
+// Inline helpers Sub, Reject, Normal, AddScaled, Clamp: small vector/scalar wrappers (a few VU0/EE instructions in asm,
+// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return Sub(a,d);}
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 static inline float Clamp(float g,float lo,float hi){if(g<lo)return lo;if(hi<g)return hi;return g;}
-/** @sly2-annot addr=0x17F1D0
- * Purpose: vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos
- *   (quadratic gain, limited) through constraint and SetVelocity
- * Info: proposed name HACK_TakeDamage (T2); class HACK slot75; TU tu_17F090
- * Notes: names_v2 v1 proposed OnStepguardExitingSgs__FP9STEPGUARD3SGS (0.000) | CID47->CID71 (CID 0x47=71,
- *   vtable) | v3 class identity: CID71_TakeDamage -> HACK_TakeDamage | T2 forced: v3: coined class word
- *   (HACK) without descriptor/string backing
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/engine/minigames.md#21-classes-hack-tu-0x17f090-0x182ab8-ccode-names-cparse-we-names-hack-word-coined-t2,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int func_0017F1D0(struct P*p,struct MSG*m){
+// vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
+// limited) through constraint and SetVelocity. (inferred)
+int TakeHackDamage(struct P*hack,struct MSG*m){
  qword dir,v;float g,t;
  if(!(m->flags&8))return 0;
- p->n184+=m->delta;
- if(p->n184<=0){struct VT*vt=p->vt;((void(*)(struct P*,int))vt[82].fn)((struct P*)((char*)p+vt[82].d),0);return 1;}
- if(!p->xE8 || p->xE8->s.kind==3)return 1;
- dir=Normal(Reject(Sub(GetLoWorldPos(p),m->pos),D_002A2DC0),D_002A2DA0);
- {float *a=&p->g0;t=-m->delta;g=Clamp(p->g0+t*(a[1]+t*a[2]),p->gMin,p->gMax);}
- {struct VT*vt=p->vt;v=((qword(*)(struct P*))vt[33].fn)((struct P*)((char*)p+vt[33].d));}
- v=LimitVectorLength(AddScaled(v,dir,g),p->gMax);
- v=ApplyConstr(&p->xE8->s,p->x58,v);
- {struct VT*vt=p->vt;((void(*)(struct P*,qword))vt[35].fn)((struct P*)((char*)p+vt[35].d),v);}
+ hack->n184+=m->delta;
+ if(hack->n184<=0){struct VT*vt=hack->vt;((void(*)(struct P*,int))vt[82].fn)((struct P*)((char*)hack+vt[82].d),0);return 1;}
+ if(!hack->xE8 || hack->xE8->s.kind==3)return 1;
+ dir=Normal(Reject(Sub(GetLoWorldPos(hack),m->pos),D_002A2DC0),D_002A2DA0);
+ {float *a=&hack->g0;t=-m->delta;g=Clamp(hack->g0+t*(a[1]+t*a[2]),hack->gMin,hack->gMax);}
+ {struct VT*vt=hack->vt;v=((qword(*)(struct P*))vt[33].fn)((struct P*)((char*)hack+vt[33].d));}
+ v=LimitVectorLength(AddScaled(v,dir,g),hack->gMax);
+ v=ApplyConstr(&hack->xE8->s,hack->x58,v);
+ {struct VT*vt=hack->vt;((void(*)(struct P*,qword))vt[35].fn)((struct P*)((char*)hack+vt[35].d),v);}
  return 1;
 }
 } } // namespace M_func_0017F1D0
 
 namespace M_func_0017F3E0 { extern "C" {
 struct E { int n; int a, b, c; };
-/** @sly2-annot addr=0x17F3E0
- * Purpose: Set n=-1 on c entries
- * Info: proposed name InitCid47Entries (T2); class CID47; TU tu_17F090
- * Notes: names_v2 v1 proposed SggsGetStepguard__FP9STEPGUARD (0.036)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F3E0(int x, int c, struct E *pe) { int i; for (i = 0; i < c; i++) { pe->n = -1; pe++; } }
+// Set n=-1 on c entries. (inferred)
+void InitHackAnimEntries(int x, int c, struct E *pe) { int i; for (i = 0; i < c; i++) { pe->n = -1; pe++; } }
 } } // namespace M_func_0017F3E0
 
-/** @sly2-annot addr=0x17F408
- * Purpose: Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D
- * Info: proposed name BindCid47Entries (T2); class CID47; TU tu_17F090
- * Notes: names_v2 v1 proposed FTakeStepguardDamage__FP9STEPGUARDP3ZPR (0.019)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// Resolves each entry's oid to its animation (an ASEG) or state machine (an SM).
 /* Resolves the entries' oids. */
-extern "C" void func_0017F408(HACKV *phack, int c, HACKE *ahacke)
+extern "C" void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke)
 {
     HACKE *phacke;
     int i;
@@ -288,12 +226,12 @@ extern "C" void func_0017F408(HACKV *phack, int c, HACKE *ahacke)
         i = c;
         do {
             if (phacke->oid != -1) {
-                plo = PloFindSwObject(&D_003DD490, 4, phacke->oid, phack);
+                plo = PloFindSwObject(&D_003DD490, 4, phacke->oid, hack);
                 if (plo != 0) {
                     if (FIsBasicDerivedFrom(plo, (CID)0x6D) != 0) {
-                        phacke->plo6D = plo;
+                        phacke->animation = plo;
                     } else if (FIsBasicDerivedFrom(plo, (CID)0x6F) != 0) {
-                        phacke->plo6F = plo;
+                        phacke->stateMachine = plo;
                     }
                 }
             }
@@ -310,19 +248,13 @@ void ReleaseSma(void *p);
 void ReleaseAsega(void *pp);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
 void ReplaceSma(void *a, struct S *p, int b, int c, void *d);
-/** @sly2-annot addr=0x17F4C0
- * Purpose: Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state
- * Info: proposed name StartCid47Anim (T2); class CID47; TU tu_17F090
- * Notes: names_v2 v1 proposed HandleStepguardGrfsgsc__FP9STEPGUARD (0.052)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F4C0(struct S *p, struct R *r) {
-    ReleaseSma(p->a198);
-    ReleaseAsega(&p->p194);
+// Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state. (inferred)
+void StartHackAnim(struct S *hack, struct R *r) {
+    ReleaseSma(hack->a198);
+    ReleaseAsega(&hack->p194);
     if (r) {
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(r->p4, p, 0.0f, 1.0f, r->nC, &p->p194);
-        ReplaceSma(r->p8, p, -1, r->nC, p->a198);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(r->p4, hack, 0.0f, 1.0f, r->nC, &hack->p194);
+        ReplaceSma(r->p8, hack, -1, r->nC, hack->a198);
     }
 }
 } } // namespace M_func_0017F4C0
@@ -332,14 +264,8 @@ struct S { char pad[0x194]; void *p194; void *p198; };
 int FAsegaRetracted(void *p);
 int GetSmaCurrentState(void *p);
 int GetSmaGoal(void *p);
-/** @sly2-annot addr=0x17F550
- * Purpose: True when the current ASEGA retracted or the SM reached its end state
- * Info: proposed name FCid47AnimDone (T2); class CID47; TU tu_17F090
- * Notes: names_v2 v1 proposed DoStepguardFreefallLanding__FP9STEPGUARD (0.030)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int func_0017F550(struct S *p) { if (p->p194) return FAsegaRetracted(p->p194); { int f = 1; if (p->p198) f = GetSmaCurrentState(p->p198) == GetSmaGoal(p->p198); return f; } }
+// True when the current ASEGA retracted or the SM reached its end state. (inferred)
+int IsHackAnimDone(struct S *p) { if (p->p194) return FAsegaRetracted(p->p194); { int f = 1; if (p->p198) f = GetSmaCurrentState(p->p198) == GetSmaGoal(p->p198); return f; } }
 } } // namespace M_func_0017F550
 
 namespace M_func_0017F5B0 { extern "C" {
@@ -350,13 +276,8 @@ struct G { int a; };
 extern struct G D_003DD490;
 struct S { char pad[0x18C]; int n18C; };
 void PostSwCallback(struct G *g, void *p, long k, int n);
-/** @sly2-annot addr=0x17F5B0
- * Purpose: Once: set dying flag x18C and PostSwCallback(D_002A5630, n)
- * Info: proposed name StartCid47Dying (T2); class CID47; TU tu_17F090
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F5B0(struct S *p, int n) { if (p->n18C) return; p->n18C = 1; PostSwCallback(&D_003DD490, p, D_002A5630.l, n); }
+// Once: set dying flag x18C and PostSwCallback(D_002A5630, n). (inferred)
+void StartHackDying(struct S *p, int n) { if (p->n18C) return; p->n18C = 1; PostSwCallback(&D_003DD490, p, D_002A5630.l, n); }
 } } // namespace M_func_0017F5B0
 
 namespace M_func_0017F5F8 { extern "C" {
@@ -368,34 +289,24 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(void *p);
 void DeliverZapToSo(struct F *pf);
 void func_0015C150(void *p);
-/** @sly2-annot addr=0x17F5F8
- * Purpose: vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its
- *   explosion x190, then vt9 Remove
- * Info: proposed name HACK_Die (T2); class HACK slot82; TU tu_17F090
- * Notes: names_v2 C proposed OnStepguardWaypointActive__FP9STEPGUARD (0.438) | CID47->CID71 (CID 0x47=71,
- *   vtable) | v3 class identity: CID71_Die -> HACK_Die | T2 forced: v3: coined class word (HACK) without
- *   descriptor/string backing
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/engine/minigames.md#21-classes-hack-tu-0x17f090-0x182ab8-ccode-names-cparse-we-names-hack-word-coined-t2,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F5F8(struct S *p, int n) {
-    if (n && p->n188) {
+// vtable slot 82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190,
+// then vtable slot 9 Remove. (inferred)
+void KillHack(struct S *hack, int n) {
+    if (n && hack->n188) {
         struct F f;
         struct VTE *e;
         func_002333B4(&f, 0, sizeof(f));
         f.n8 = n;
-        f.p0 = p;
-        f.q20 = GetLoWorldPos(p);
-        e = &p->vt[0x21];
-        f.q30 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
+        f.p0 = hack;
+        f.q20 = GetLoWorldPos(hack);
+        e = &hack->vt[0x21];
+        f.q30 = ((qword (*)(void *))e->pfn)((char *)hack + e->d);
         f.nC = 0x100;
-        f.n10 = -p->n188;
+        f.n10 = -hack->n188;
         DeliverZapToSo(&f);
     }
-    if (p->p190) func_0015C150(p->p190);
-    { struct VTE *e = &p->vt[9]; ((void (*)(void *))e->pfn)((char *)p + e->d); }
+    if (hack->p190) func_0015C150(hack->p190);
+    { struct VTE *e = &hack->vt[9]; ((void (*)(void *))e->pfn)((char *)hack + e->d); }
 }
 } } // namespace M_func_0017F5F8
 
@@ -406,54 +317,27 @@ extern const struct LONGU D_002A5638;
 extern char D_003DD490[];
 struct S { char pad[0x180]; int n180; int n184; int pad2; int n18C; };
 void ClearSwCallbacks(void *g, int a, void *p, long k, int n);
-/** @sly2-annot addr=0x17F6B0
- * Purpose: Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638)
- * Info: proposed name ResetHack (T2); class HACK slot83; TU tu_17F090
- * Notes: Cid47->Cid71 (CID 0x47=71, vtable) | verifier PLAUSIBLE: Placeholder class. +0x184 = +0x180 (hp =
- *   max: class vtable has CanPoBeHealed/AddPoHpMp), and if +0x18C ClearSwCallbacks(g_sw,1,p,D_002A5638).
- *   Called by 4 subclass Reset overrides. | v3 class identity: ResetCid71 -> ResetHack | T2 forced: v3:
- *   coined class word (Hack) without descriptor/string backing
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_followups+class_review(master_names_v2_1)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/engine/minigames.md#21-classes-hack-tu-0x17f090-0x182ab8-ccode-names-cparse-we-names-hack-word-coined-t2,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F6B0(struct S *p) { p->n184 = p->n180; if (p->n18C) ClearSwCallbacks(D_003DD490, 1, p, D_002A5638.l, 0); }
+// Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
+void ResetHack(struct S *p) { p->n184 = p->n180; if (p->n18C) ClearSwCallbacks(D_003DD490, 1, p, D_002A5638.l, 0); }
 } } // namespace M_func_0017F6B0
 
-/** @sly2-annot addr=0x17F6F8
- * Purpose: CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1
- * Info: proposed name InitHackship (T1); class HACKSHIP slot7; TU tu_17F090
- * Notes: names_v2 v1 proposed UseStepguardAnimation__FP9STEPGUARD3SGS3OID (0.027) | Cid48->Cid72 (CID
- *   0x48=72, vtable) | class identity from whole_game WE names/object strings: InitCid72 -> InitHackship
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void InitHackship(HACKSHIPV *phackship)
+// CID 0x48 vtable slot 7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1. (inferred)
+extern "C" void InitHackship(HACKSHIPV *ship)
 {
-    func_0017F090((HACKV *)phackship);
-    func_0017F3E0((HACKV *)phackship, 5, phackship->ahacke);
-    phackship->nState = -1;
-    D_002DFB80 = phackship;
-    phackship->nSound = -1;
+    InitHack((HACKV *)ship);
+    InitHackAnimEntries((HACKV *)ship, 5, ship->ahacke);
+    ship->nState = -1;
+    D_002DFB80 = ship;
+    ship->nSound = -1;
 }
 
-/** @sly2-annot addr=0x17F740
- * Purpose: vt12: base then state change via SetCid48State
- * Info: proposed name RemoveHackshipHierarchy (T2); class HACKSHIP slot12; TU tu_17F090
- * Notes: CID48->CID72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
- *   RemoveCid72Hierarchy -> RemoveHackshipHierarchy
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 12: base then state change via SetCid48State. (inferred)
 /* HACKSHIP slot 12. */
 void HACKSHIP::RemoveHierarchy()
 {
-    HACKSHIPV *phackship = (HACKSHIPV *)this;
-    func_0017F110((HACKV *)phackship);
-    func_0017FD08(phackship, -1);
+    HACKSHIPV *ship = (HACKSHIPV *)this;
+    RemoveHackHierarchy((HACKV *)ship);
+    SetHackshipState(ship, -1);
 }
 
 namespace M_func_0017F770 { extern "C" {
@@ -467,24 +351,15 @@ int FindSoXf(struct S *p, int a, int b);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int NewPositionAct(struct S *p, int c, int a, int b, int d, qword q);
 int ApplySmToObject(int e, struct S *p, int a, int b);
-/** @sly2-annot addr=0x17F770
- * Purpose: Look up child XFs / objects for entries and create vector actuators
- * Info: proposed name BindHackshipParts (T2); class HACKSHIP; TU tu_17F090
- * Notes: names_v2 C proposed FTakeStepguardDamage__FP9STEPGUARDP3ZPR (0.638) | Cid48->Cid72 (CID 0x48=72,
- *   agent-default(hex)) | class identity from whole_game WE names/object strings: BindCid72Parts ->
- *   BindHackshipParts
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F770(struct S *p) {
+// Look up child XFs / objects for entries and create vector actuators. (inferred)
+void BindHackshipParts(struct S *ship) {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        pe->c = FindSoXf(p, pe->a, 6);
-        pe->e = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->b, p);
-        if (pe->c) pe->d = NewPositionAct(p, pe->c, 0, 7, 2, D_002A2DD0);
-        if (pe->e) pe->f = ApplySmToObject(pe->e, p, -1, 0);
+    for (i = 0; i < ship->c; i++) {
+        struct E *pe = &ship->ae[i];
+        pe->c = FindSoXf(ship, pe->a, 6);
+        pe->e = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->b, ship);
+        if (pe->c) pe->d = NewPositionAct(ship, pe->c, 0, 7, 2, D_002A2DD0);
+        if (pe->e) pe->f = ApplySmToObject(pe->e, ship, -1, 0);
     }
 }
 } } // namespace M_func_0017F770
@@ -492,36 +367,20 @@ void func_0017F770(struct S *p) {
 namespace M_func_0017F850 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0x48]; int n58; int n5C; char pad3[0x168]; int a1C8[1]; };
-void func_0017F138(struct S *p);
+void PostHackLoad(struct S *p);
 void SetXfRole(struct S *p, int a, int b);
-void func_0017F770(struct S *p);
-void func_0017F408(struct S *p, int n, void *pv);
-/** @sly2-annot addr=0x17F850
- * Purpose: vt15: PostCid47Load, bind entries and parts
- * Info: proposed name PostHackshipLoad (T2); class HACKSHIP slot15; TU tu_17F090
- * Notes: names_v2 v1 proposed UseStepguardAnimationImmediate__FP9STEPGUARD3SGS3OID (0.067) | Cid48->Cid72
- *   (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings: PostCid72Load ->
- *   PostHackshipLoad
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F850(struct S *p) { struct VTE *e; func_0017F138(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); SetXfRole(p, p->n58, 2); SetXfRole(p, p->n5C, 2); func_0017F770(p); func_0017F408(p, 5, p->a1C8); }
+void BindHackshipParts(struct S *p);
+void BindHackAnimEntries(struct S *p, int n, void *pv);
+// vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
+void PostHackshipLoad(struct S *p) { struct VTE *e; PostHackLoad(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); SetXfRole(p, p->n58, 2); SetXfRole(p, p->n5C, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->a1C8); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
 struct S { char pad[0x28]; unsigned long fl; };
 void OnPoActive(struct S *p, int f);
-void func_0017FD08(struct S *p, int f);
-/** @sly2-annot addr=0x17F8C8
- * Purpose: vt78: base then SetCid48State
- * Info: proposed name OnHackshipActive (T2); class HACKSHIP slot78; TU tu_17F090
- * Notes: CID48->CID72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
- *   OnCid72Active -> OnHackshipActive
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F8C8(struct S *p, int f) { OnPoActive(p, f); if (f) func_0017FD08(p, 1); else if ((int)(p->fl >> 60) & 1) func_0017FD08(p, 0); }
+void SetHackshipState(struct S *p, int f);
+// vtable slot 78: base then SetCid48State. (inferred)
+void OnHackshipActive(struct S *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
 } } // namespace M_func_0017F8C8
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -546,8 +405,8 @@ struct S {
     char pad4[0x2A4 - 0x234 - 0x18]; struct M *p2A4; int pad5; float g2AC;
 };
 void UpdateSo(struct S *p);
-int func_0017F550(struct S *p);
-void func_0017FD08(struct S *p, int n);
+int IsHackAnimDone(struct S *p);
+void SetHackshipState(struct S *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void SetActPositionGoal(void *p, qword q);
 void SetSmaGoal(void *p, int n);
@@ -556,56 +415,50 @@ void SetSndVolume(struct M *p, float g);
 void ResumeSnd(struct M *p);
 void PauseSnd(struct M *p);
 struct V3 { float x, y, z; };
+// Inline helper Make: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
-/** @sly2-annot addr=0x17F930
- * Purpose: vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals
- * Info: proposed name UpdateHackship (T2); class HACKSHIP slot16; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
- *   UpdateCid72 -> UpdateHackship
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#22-input-and-ship-behaviour,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017F930(struct S *p) {
+// vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
+void UpdateHackship(struct S *ship) {
     int s;
-    UpdateSo(p);
+    UpdateSo(ship);
     do {
-        s = p->n1C0;
-        if (s == 2 && func_0017F550(p)) func_0017FD08(p, 1);
-    } while (p->n1C0 != s);
-    switch (p->n1C0) {
-    case 0: { struct V3 *pv = (struct V3 *)&p->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 2: { struct V3 *pv = (struct V3 *)&p->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 3: { struct V3 *pv = (struct V3 *)&p->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
-    case 4: { struct V3 *pv = (struct V3 *)&p->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
+        s = ship->n1C0;
+        if (s == 2 && IsHackAnimDone(ship)) SetHackshipState(ship, 1);
+    } while (ship->n1C0 != s);
+    switch (ship->n1C0) {
+    case 0: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
+    case 2: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
+    case 3: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
+    case 4: { struct V3 *pv = (struct V3 *)&ship->v220; pv->z = 0; pv->y = 0; pv->x = 0; break; }
     case 1: {
-        struct T *t = p->p150;
+        struct T *t = ship->p150;
         union { qword q; } u; qword v;
         int i;
-        p->g218 = t->g18;
-        p->v220 = SetVectorCylind(t->g18, t->g1C * D_002BE7E8, 0.0f);
-        v = Make(0.0f, 0.0f, p->p150->g28); u.q = v;
-        for (i = 0; i < p->n230; i++) {
-            struct E *e = &p->a234[i];
+        ship->g218 = t->g18;
+        ship->v220 = SetVectorCylind(t->g18, t->g1C * D_002BE7E8, 0.0f);
+        v = Make(0.0f, 0.0f, ship->p150->g28); u.q = v;
+        for (i = 0; i < ship->n230; i++) {
+            struct E *e = &ship->a234[i];
             if (e->pC) SetActPositionGoal(e->pC, v);
             if (e->p14) {
-                if (0.0f < p->p150->g2C) SetSmaGoal(e->p14, 0x68);
+                if (0.0f < ship->p150->g2C) SetSmaGoal(e->p14, 0x68);
                 else SetSmaGoal(e->p14, 0x66);
             }
         }
         break;
     }
     }
-    if (p->p2A4) {
-        float g = (p->n1C0 == 1) ? p->p150->g1C : 0.0f;
-        p->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, p->g2AC, g, D_002DDED0.dt);
-        SetSndVolume(p->p2A4, p->g2AC);
-        if (0.0f < p->g2AC) {
-            if (p->p2A4->s4E > 0) ResumeSnd(p->p2A4);
+    if (ship->p2A4) {
+        float g = (ship->n1C0 == 1) ? ship->p150->g1C : 0.0f;
+        ship->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, ship->g2AC, g, D_002DDED0.dt);
+        SetSndVolume(ship->p2A4, ship->g2AC);
+        if (0.0f < ship->g2AC) {
+            if (ship->p2A4->s4E > 0) ResumeSnd(ship->p2A4);
         } else {
-            if (p->p2A4->s4E <= 0) PauseSnd(p->p2A4);
+            if (ship->p2A4->s4E <= 0) PauseSnd(ship->p2A4);
         }
     }
 }
@@ -621,22 +474,14 @@ extern char D_002BE800[], D_002BE810[];
 MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g);
 void AccelSoTowardMatBounded(S *p, MATRIX3 *pm, void *pv);
 void AccelSoTowardPosSpring(S *p, qword a, int b, qword c, void *pv);
-void func_0017FB50(S *p);
+void PresetHackshipAccel(S *p);
 }
-/** @sly2-annot addr=0x17FB50
- * Purpose: vt70 override
- * Info: proposed name PresetHackshipAccel (T2); class HACKSHIP slot70; TU tu_17F090
- * Notes: CID48->CID72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
- *   PresetCid72Accel -> PresetHackshipAccel
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#22-input-and-ship-behaviour,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017FB50(S *p) {
-    if (p->n1C0 == 3) return;
-    MATRIX3 m; m = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g218);
-    AccelSoTowardMatBounded(p, &m, D_002BE800);
-    AccelSoTowardPosSpring(p, D_002A2DD0, 0, p->q220, D_002BE810);
+// vtable slot 70 override. (inferred)
+void PresetHackshipAccel(S *ship) {
+    if (ship->n1C0 == 3) return;
+    MATRIX3 m; m = BuildAxisAngleRotationMatrix(D_002A2DC0, ship->g218);
+    AccelSoTowardMatBounded(ship, &m, D_002BE800);
+    AccelSoTowardPosSpring(ship, D_002A2DD0, 0, ship->q220, D_002BE810);
 }
 } // namespace M_func_0017FB50
 
@@ -647,51 +492,35 @@ extern int D_002E1E00;
 extern char D_002DEB30[];
 struct S { char pad[0x184]; int n184; char pad2[0x38]; int n1C0; };
 int IsSwHandsOff(struct G *g);
-int func_0017F1D0(struct S *p, int *pn);
+int TakeHackDamage(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
 void BroadcastGameEvent(void *g, int n, int m);
-void func_0017FD08(struct S *p, int n);
-/** @sly2-annot addr=0x17FBE8
- * Purpose: vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game
- *   event 0xF and state 2 (hit) or 4 (defeated)
- * Info: proposed name HACKSHIP_TakeDamage (T1); class HACKSHIP slot75; TU tu_17F090
- * Notes: CID48->CID72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
- *   CID72_TakeDamage -> HACKSHIP_TakeDamage
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#22-input-and-ship-behaviour,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int HACKSHIP_TakeDamage(struct S *p, int *pn) {
-    if (p->n1C0 < 5) { if (p->n1C0 >= 2) return 0; }
+void SetHackshipState(struct S *p, int n);
+// vtable slot 75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and
+// state 2 (hit) or 4 (defeated). (inferred)
+int TakeHackshipDamage(struct S *ship, int *pn) {
+    if (ship->n1C0 < 5) { if (ship->n1C0 >= 2) return 0; }
     if (IsSwHandsOff(&D_003DD490)) return 0;
     if (D_002E1E00 & 1) return 0;
-    if (!func_0017F1D0(p, pn)) return 0;
-    UpdateHackshipHealthBar(p);
-    if (p->n184 > 0) { BroadcastGameEvent(D_002DEB30, 0xF, *pn); func_0017FD08(p, 2); }
-    else func_0017FD08(p, 4);
+    if (!TakeHackDamage(ship, pn)) return 0;
+    UpdateHackshipHealthBar(ship);
+    if (ship->n184 > 0) { BroadcastGameEvent(D_002DEB30, 0xF, *pn); SetHackshipState(ship, 2); }
+    else SetHackshipState(ship, 4);
     return 1;
 }
 } } // namespace M_HACKSHIP_TakeDamage
 
-/** @sly2-annot addr=0x17FCB0
- * Purpose: Reset health and state (ResetCid47 + SetCid48State + health bar)
- * Info: proposed name ResetHackship (T2); class HACKSHIP slot83; TU tu_17F090
- * Notes: names_v2 v1 proposed FUN_001ca6d0 (0.000) | Cid48->Cid72 (CID 0x48=72, vtable) | class identity from
- *   whole_game WE names/object strings: ResetCid72 -> ResetHackship
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// Reset health and state (ResetCid47 + SetCid48State + health bar). (inferred)
 /* HACKSHIP slot 83: reset. */
-extern "C" void func_0017FCB0(HACKSHIPV *phackship)
+extern "C" void ResetHackship(HACKSHIPV *ship)
 {
-    func_0017F6B0((HACKV *)phackship);
-    if (IsPoActive(phackship) != 0) {
-        func_0017FD08(phackship, 1);
+    ResetHack((HACKV *)ship);
+    if (IsPoActive(ship) != 0) {
+        SetHackshipState(ship, 1);
     } else {
-        func_0017FD08(phackship, 0);
+        SetHackshipState(ship, 0);
     }
-    UpdateHackshipHealthBar(phackship);
+    UpdateHackshipHealthBar(ship);
 }
 
 namespace M_func_0017FD08 {
@@ -729,66 +558,58 @@ struct M4 GetRelativeXfMatrix(int a, int b, struct M4 *pm);
 int NewPositionAct(struct S *p, struct N *n, int a, int b, int c, qword v);
 qword DecomposeRotationMatrixToEuler(struct M4 *pm);
 void BroadcastGameEvent(void *a, int n, struct S *p);
-void func_0017F4C0(struct S *p, struct Q *q);
-void func_0017FD08(struct S *p, int n);
+void StartHackAnim(struct S *p, struct Q *q);
+void SetHackshipState(struct S *p, int n);
 }
-/** @sly2-annot addr=0x17FD08
- * Purpose: State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5
- * Info: proposed name SetHackshipState (T2); class HACKSHIP; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, agent-default(hex)) | class identity from whole_game WE names/object
- *   strings: SetCid72State -> SetHackshipState
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#22-input-and-ship-behaviour,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_0017FD08(struct S *p, int n) {
-    int old = p->n1C0;
+// State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5. (inferred)
+void SetHackshipState(struct S *ship, int n) {
+    int old = ship->n1C0;
     if (n == old) return;
     switch (old) {
     case -1:
         {
-            struct O *q = p->p2A0;
+            struct O *q = ship->p2A0;
             if (q) {
                 { struct VTE *e = &q->vt[0x31]; ((void (*)(void *, int))e->pfn)((char *)q + e->d, -1); }
-                PlayWidgetAnim(p->p2A0, 0x34F);
-                UpdateHackshipHealthBar(p);
-                if (p->n2A8 != old) {
-                    void *r = PsndStartSound(p->n2A8);
+                PlayWidgetAnim(ship->p2A0, 0x34F);
+                UpdateHackshipHealthBar(ship);
+                if (ship->n2A8 != old) {
+                    void *r = PsndStartSound(ship->n2A8);
                     SetSndSourceLo(r, 0);
-                    RcPtr_Assign(&p->p2A4, r);
-                    PauseSnd(p->p2A4);
+                    RcPtr_Assign(&ship->p2A4, r);
+                    PauseSnd(ship->p2A4);
                 }
             }
         }
         break;
     case 3:
-        ReleaseAct(&p->n298);
-        ReleaseAct(&p->n29C);
-        SetXfRole(p, p->p58, 2);
-        SetXfRole(p, p->p5C, 2);
-        SetLoParent(p, 0, 0xF);
-        SetSoCnstrForce(p, 5);
-        SetSoCnstrTorque(p, 4);
-        SetSoPartsBit48(p, 0);
-        p->p294 = 0;
+        ReleaseAct(&ship->n298);
+        ReleaseAct(&ship->n29C);
+        SetXfRole(ship, ship->p58, 2);
+        SetXfRole(ship, ship->p5C, 2);
+        SetLoParent(ship, 0, 0xF);
+        SetSoCnstrForce(ship, 5);
+        SetSoCnstrTorque(ship, 4);
+        SetSoPartsBit48(ship, 0);
+        ship->p294 = 0;
         break;
     case 1:
         {
             int i;
-            for (i = 0; i < p->n230; i++) {
-                if (p->a248[i].p0) SetSmaGoal(p->a248[i].p0, 0x66);
+            for (i = 0; i < ship->n230; i++) {
+                if (ship->a248[i].p0) SetSmaGoal(ship->a248[i].p0, 0x66);
             }
         }
         break;
     }
-    p->n1C0 = n;
-    p->f1C4 = D_002DDED0.t;
+    ship->n1C0 = n;
+    ship->f1C4 = D_002DDED0.t;
     switch (n) {
     case -1:
         {
-            struct O *q = p->p2A0;
+            struct O *q = ship->p2A0;
             if (q) { struct VTE *e = &q->vt[0x32]; ((void (*)(void *))e->pfn)((char *)q + e->d); }
-            void **pp = &p->p2A4;
+            void **pp = &ship->p2A4;
             if (*pp) {
                 StopSnd(*pp, 0.0f);
                 RcPtr_Assign(pp, 0);
@@ -800,43 +621,34 @@ void func_0017FD08(struct S *p, int n) {
             struct M4 m;
             int r;
 
-            { struct O *q = p->p294; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
-            m = GetRelativeXfMatrix(p->p54->nA0, p->p58->nA0, &m);
-            { struct VTE *e = &p->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)p + e->d, p->p294->n10, r, 3); }
-            { struct VTE *e = &p->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
-            { struct VTE *e = &p->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
-            p->n298 = NewPositionAct(p, p->p58, 1, 7, 2, m.r[3]);
-            p->n29C = NewPositionAct(p, p->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
-            SetSoCnstrForce(p, 1);
-            SetSoCnstrTorque(p, 1);
-            SetSoPartsBit48(p, 1);
+            { struct O *q = ship->p294; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
+            m = GetRelativeXfMatrix(ship->p54->nA0, ship->p58->nA0, &m);
+            { struct VTE *e = &ship->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)ship + e->d, ship->p294->n10, r, 3); }
+            { struct VTE *e = &ship->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
+            { struct VTE *e = &ship->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
+            ship->n298 = NewPositionAct(ship, ship->p58, 1, 7, 2, m.r[3]);
+            ship->n29C = NewPositionAct(ship, ship->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+            SetSoCnstrForce(ship, 1);
+            SetSoCnstrTorque(ship, 1);
+            SetSoPartsBit48(ship, 1);
         }
         break;
     case 4:
-        BroadcastGameEvent(D_002DEB30, 0x10, p);
+        BroadcastGameEvent(D_002DEB30, 0x10, ship);
         break;
     }
-    func_0017F4C0(p, n == -1 ? 0 : &p->a1C8[n]);
+    StartHackAnim(ship, n == -1 ? 0 : &ship->a1C8[n]);
 }
 } // namespace M_func_0017FD08
 
-/** @sly2-annot addr=0x1800A0
- * Purpose: Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230)
- * Info: proposed name AddHackshipOidPair (EXISTING); class CID72; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, evidence) | agent/verifier proposes AddCid72Entry for this existing name
- *   (see existing_name_changes.csv) | RENAME proposed -> AddHackshipOidPair (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4b_rest+arbitration
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void AddHackshipOidPair(HACKSHIPV *phackship, int n, OID oid)
+// Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230).
+extern "C" void AddHackshipOidPair(HACKSHIPV *ship, int n, OID oid)
 {
-    unsigned int c = phackship->cpair;
+    unsigned int c = ship->cpair;
     if (c < 4) {
         int *ppair;
-        phackship->cpair = c + 1;
-        ppair = (int *)((char *)phackship + (c * 0x18 + 0x234));   /* &apair[c], spelled as the original computes it */
+        ship->cpair = c + 1;
+        ppair = (int *)((char *)ship + (c * 0x18 + 0x234));   /* &apair[c], spelled as the original computes it */
         ppair[0] = n;
         ppair[1] = oid;
     }
@@ -845,19 +657,12 @@ extern "C" void AddHackshipOidPair(HACKSHIPV *phackship, int n, OID oid)
 namespace M_func_001800D8 { extern "C" {
 struct E { int a; int b; int c; int d; };
 struct S { char pad[0x1C8]; struct E ae[5]; };
-/** @sly2-annot addr=0x1800D8
- * Purpose: Set entry i (<5) fields a,d
- * Info: proposed name SetHackshipEntry (T2); class HACKSHIP; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, agent-default(hex)) | class identity from whole_game WE names/object
- *   strings: SetCid72Entry -> SetHackshipEntry
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001800D8(struct S *p, unsigned int i, int a, int d)
+// Set entry i (<5) fields a,d. (inferred)
+void SetHackshipEntry(struct S *ship, unsigned int i, int a, int d)
 {
     if (i < 5) {
-        p->ae[i].a = a;
-        p->ae[i].d = d;
+        ship->ae[i].a = a;
+        ship->ae[i].d = d;
     }
 }
 } } // namespace M_func_001800D8
@@ -865,48 +670,31 @@ void func_001800D8(struct S *p, unsigned int i, int a, int d)
 namespace M_UpdateHackshipHealthBar { extern "C" {
 struct S { char pad[0x180]; int c; int n; char p1[0x118]; void *p2a0; };
 void SetWidgetAnimPhase(void *p, int n, float g);
-/** @sly2-annot addr=0x180100
- * Purpose: Set widget anim 0x34F phase = 1 - health/max (clamped)
- * Info: proposed name UpdateHackshipHealthBar (T1); class HACKSHIP; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, evidence) | class identity from whole_game WE names/object strings:
- *   UpdateCid72HealthBar -> UpdateHackshipHealthBar
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void UpdateHackshipHealthBar(struct S *p)
+// Set widget anim 0x34F phase = 1 - health/max (clamped). (inferred)
+void UpdateHackshipHealthBar(struct S *ship)
 {
-    if (p->p2a0) {
-        int n = p->n;
+    if (ship->p2a0) {
+        int n = ship->n;
         float g;
         if (n <= 0) n = 0;
-        g = 1.0f - (float)n / (float)p->c;
+        g = 1.0f - (float)n / (float)ship->c;
         if (g < 0.0f) g = 0.0f;
         else if (g > 1.0f) g = 1.0f;
-        SetWidgetAnimPhase(p->p2a0, 0x34F, g);
+        SetWidgetAnimPhase(ship->p2a0, 0x34F, g);
     }
 }
 } } // namespace M_UpdateHackshipHealthBar
 
 namespace M_func_00180188 { extern "C" {
 struct S { char pad[0x188]; int n; };
-void func_0017F090(struct S *p);
-/** @sly2-annot addr=0x180188
- * Purpose: CID 0x4A vt7: InitCid47, field = 10
- * Info: proposed name InitHackbullet (T2); class HACKBULLET slot7; TU tu_17F090
- * Notes: Cid4A->Cid74 (CID 0x4A=74, hex-literal) | verifier PLAUSIBLE: Placeholder class. CID 0x4A vtable
- *   slot 7: InitCid47 (0x17F090) then +0x188 = 10. | class identity from whole_game WE names/object strings:
- *   InitCid74 -> InitHackbullet | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources:
- *   r4b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+void InitHack(struct S *p);
+// HACKBULLET (cid 0x4A) vtable slot 7: InitCid47, field = 10. (inferred)
 } } // namespace M_func_00180188
 void HACKBULLET::Init()
 {
     using namespace M_func_00180188;
     M_func_00180188::S *p = (M_func_00180188::S *)this;
-    func_0017F090(p);
+    InitHack(p);
     p->n = 10;
 }
 
@@ -930,10 +718,13 @@ extern "C" float atan2f(float,float);
 extern "C" float RadNormalize__Ff(float);
 extern "C" float GLimitAbs__Fff(float,float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
+// Inline helpers Sub, X, Y, Transform: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float X(qword v){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Y(qword v){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(v));return f;}
 static inline qword Transform(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
+// 3x3 matrix product.
 static inline M3 Mul(const M3&a,const M3&b) return r
 {
  qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
@@ -941,33 +732,24 @@ static inline M3 Mul(const M3&a,const M3&b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
-/** @sly2-annot addr=0x1801B8
- * Purpose: vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn
- *   rate
- * Info: proposed name UpdateHackbullet (T2); class HACKBULLET slot16; TU tu_17F090
- * Notes: Cid4A->Cid74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
- *   UpdateCid74 -> UpdateHackbullet
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#23-enemies-walls-lock,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void func_001801B8(P*p){
- UpdateSo(p);
- if(!p->flag&&p->time<=D_002DDED0.time)((void(*)(void*,P*))p->vt[82].fn)((char*)p+p->vt[82].delta,0);
- if(!p->target||p->turnRate==0.0f)return;
+// vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate. (inferred)
+extern "C" void UpdateHackbullet(P*bullet){
+ UpdateSo(bullet);
+ if(!bullet->flag&&bullet->time<=D_002DDED0.time)((void(*)(void*,P*))bullet->vt[82].fn)((char*)bullet+bullet->vt[82].delta,0);
+ if(!bullet->target||bullet->turnRate==0.0f)return;
  M3 rotation,matrix;
  qword position;
- position=GetLoWorldPos(p->target);
- qword displacement=Sub(position,GetLoWorldPos(p));
+ position=GetLoWorldPos(bullet->target);
+ qword displacement=Sub(position,GetLoWorldPos(bullet));
  float desired=atan2f(Y(displacement),X(displacement));
- qword direction=((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);
+ qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
  float current=atan2f(Y(direction),X(direction));
- float angle=GLimitAbs__Fff(RadNormalize__Ff(desired-current),p->turnRate*D_002DDED0.dt);
+ float angle=GLimitAbs__Fff(RadNormalize__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
- ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,Transform(rotation,direction));
+ ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));
  // The original reads this local matrix before initialization.
  matrix=Mul(rotation,matrix);
- ((void(*)(void*,M3*))p->vt[30].fn)((char*)p+p->vt[30].delta,&matrix);
+ ((void(*)(void*,M3*))bullet->vt[30].fn)((char*)bullet+bullet->vt[30].delta,&matrix);
 }
 } // namespace M_func_001801B8
 
@@ -975,46 +757,32 @@ namespace M_func_001803A8 { extern "C" {
 struct T { char pad[0xEC]; int n; };
 struct S { char pad[0x1C8]; struct T *pt; };
 int ShouldSoIgnoreIntersection(struct S *p, struct T *q);
-/** @sly2-annot addr=0x1803A8
- * Purpose: vt61 override
- * Info: proposed name HACKBULLET_FIgnoreIntersection (T2); class HACKBULLET slot61; TU tu_17F090
- * Notes: CID4A->CID74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
- *   CID74_FIgnoreIntersection -> HACKBULLET_FIgnoreIntersection
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int func_001803A8(struct S *p, struct T *q)
+// vtable slot 61 override. (inferred)
+int FIgnoreHackbulletIntersection(struct S *bullet, struct T *q)
 {
-    if (p->pt && q->n == p->pt->n)
+    if (bullet->pt && q->n == bullet->pt->n)
         return 3;
-    return ShouldSoIgnoreIntersection(p, q);
+    return ShouldSoIgnoreIntersection(bullet, q);
 }
 } } // namespace M_func_001803A8
 
 namespace M_func_001803E0 { extern "C" {
 struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };
 struct S { char pad[0x1CC]; int x1cc; };
-void func_0017F1A0(struct S *p, struct E *ae, int i);
+void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
-void func_0017F5B0(struct S *p, int n);
-/** @sly2-annot addr=0x1803E0
- * Purpose: vt55: CID47::AdjustXp then start dying on contact
- * Info: proposed name AdjustHackbulletXp (T2); class HACKBULLET slot55; TU tu_17F090
- * Notes: CID4A->CID74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
- *   AdjustCid74Xp -> AdjustHackbulletXp
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001803E0(struct S *p, struct E *ae, int i)
+void StartHackDying(struct S *p, int n);
+// vtable slot 55: CID47::AdjustXp then start dying on contact. (inferred)
+void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
 {
     struct E *pe;
     int oid;
-    func_0017F1A0(p, ae, i);
+    AdjustHackNewXp(bullet, ae, i);
     pe = &ae[1 - i];
     oid = pe->xc;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !p->x1cc)
-        func_0017F5B0(p, oid);
-    if (p->x1cc) ae[2].g18 = 1.0f;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->x1cc)
+        StartHackDying(bullet, oid);
+    if (bullet->x1cc) ae[2].g18 = 1.0f;
 }
 } } // namespace M_func_001803E0
 
@@ -1024,116 +792,76 @@ struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float t1c0; float g1c4; 
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 void RecalcSwOxfFilterForObject(void *g, struct S *p);
-/** @sly2-annot addr=0x180478
- * Purpose: Set mode field and recalc object filters (RecalcSwOxfFilterForObject)
- * Info: proposed name SetHackbulletMode (T2); class HACKBULLET; TU tu_17F090
- * Notes: Cid4A->Cid74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
- *   SetCid74Mode -> SetHackbulletMode
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00180478(struct S *p, int n)
+// Set mode field and recalc object filters (RecalcSwOxfFilterForObject). (inferred)
+void SetHackbulletMode(struct S *bullet, int n)
 {
-    if (n != p->n) {
-        p->n = n;
-        if (p->pt->p60 == p) RecalcSwOxfFilterForObject(D_003DD490, p);
+    if (n != bullet->n) {
+        bullet->n = n;
+        if (bullet->pt->p60 == bullet) RecalcSwOxfFilterForObject(D_003DD490, bullet);
     }
-    p->t1c0 = (p->g1c4 == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + p->g1c4;
+    bullet->t1c0 = (bullet->g1c4 == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + bullet->g1c4;
 }
 } } // namespace M_func_00180478
 
 namespace M_InitHackenemy { extern "C" {
 struct S { char pad[0x1C0]; int x1c0; char p0[0x5C]; char x220[0x118]; float x338; int p1; float x340; char p2[0xC]; float x350; char p3[0x10]; float x364; char p4[8]; float x370; float x374; };
-void func_0017F090(struct S *p);
-void func_001813C0(struct S *p, float g);
-void func_001813F0(struct S *p, float g);
-void func_0017F3E0(struct S *p, int n, void *pv);
-/** @sly2-annot addr=0x180500
- * Purpose: CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries
- * Info: proposed name InitHackenemy (T1); class HACKENEMY slot7; TU tu_17F090
- * Notes: names_v2 C proposed LoadStepguardPhys__FP9STEPGUARD (0.438) | Cid49->Cid73 (CID 0x49=73, vtable) |
- *   class identity from whole_game WE names/object strings: InitCid73 -> InitHackenemy
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void InitHackenemy(struct S *p)
+void InitHack(struct S *p);
+void SetHackenemyScale(struct S *p, float g);
+void SetHackenemyRange(struct S *p, float g);
+void InitHackAnimEntries(struct S *p, int n, void *pv);
+// HACKENEMY (cid 0x49) vtable slot 7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
+void InitHackenemy(struct S *enemy)
 {
-    func_0017F090(p);
-    p->x340 = 1.0f;
-    p->x350 = 1.0f;
-    p->x364 = 1.0f;
-    p->x338 = 250.0f;
-    p->x370 = -3.40282346638528859812e+38f;
-    p->x374 = 3.40282346638528859812e+38f;
-    func_001813C0(p, 1.0f);
-    func_001813F0(p, 1.0f);
-    func_0017F3E0(p, 5, p->x220);
-    p->x1c0 = -1;
+    InitHack(enemy);
+    enemy->x340 = 1.0f;
+    enemy->x350 = 1.0f;
+    enemy->x364 = 1.0f;
+    enemy->x338 = 250.0f;
+    enemy->x370 = -3.40282346638528859812e+38f;
+    enemy->x374 = 3.40282346638528859812e+38f;
+    SetHackenemyScale(enemy, 1.0f);
+    SetHackenemyRange(enemy, 1.0f);
+    InitHackAnimEntries(enemy, 5, enemy->x220);
+    enemy->x1c0 = -1;
 }
 } } // namespace M_InitHackenemy
 
-/** @sly2-annot addr=0x180598
- * Purpose: vt12: CID47 RemoveHierarchy + SetCid49State
- * Info: proposed name RemoveHackenemyHierarchy (T2); class HACKENEMY slot12; TU tu_17F090
- * Notes: names_v2 v1 proposed AddSafehouseEntry (0.638) | CID49->CID73 (CID 0x49=73,
- *   vtable) | class identity from whole_game WE names/object strings: RemoveCid73Hierarchy ->
- *   RemoveHackenemyHierarchy
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 12: CID47 RemoveHierarchy + SetCid49State. (inferred)
 /* HACKENEMY slot 12. */
-extern "C" void func_00180598(HACKENEMYV *phackenemy)
+extern "C" void RemoveHackenemyHierarchy(HACKENEMYV *enemy)
 {
-    func_0017F110((HACKV *)phackenemy);
-    func_00181268(phackenemy, -1);
+    RemoveHackHierarchy((HACKV *)enemy);
+    SetHackenemyState(enemy, -1);
 }
 
 namespace M_func_001805C8 { extern "C" {
 struct S { char pad[0x58]; int a; int b; char p2[0x178]; int x1d8; char p3[0x44]; char x220[4]; };
-void func_0017F138(struct S *p);
+void PostHackLoad(struct S *p);
 int NewSampledShape(int a, int b);
 void SetXfRole(struct S *p, int a, int b);
-void func_0017F408(struct S *p, int n, void *pv);
-/** @sly2-annot addr=0x1805C8
- * Purpose: vt15: PostCid47Load + bind entries
- * Info: proposed name PostHackenemyLoad (T2); class HACKENEMY slot15; TU tu_17F090
- * Notes: names_v2 C proposed SetStepguardPathzone__FP9STEPGUARD3OID (0.638) | Cid49->Cid73 (CID 0x49=73,
- *   vtable) | class identity from whole_game WE names/object strings: PostCid73Load -> PostHackenemyLoad
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001805C8(struct S *p)
+void BindHackAnimEntries(struct S *p, int n, void *pv);
+// vtable slot 15: PostCid47Load + bind entries. (inferred)
+void PostHackenemyLoad(struct S *enemy)
 {
-    func_0017F138(p);
-    p->x1d8 = NewSampledShape(0x2C9, 0x10);
-    if (p->a) SetXfRole(p, p->a, 2);
-    if (p->b) SetXfRole(p, p->b, 2);
-    func_0017F408(p, 5, p->x220);
+    PostHackLoad(enemy);
+    enemy->x1d8 = NewSampledShape(0x2C9, 0x10);
+    if (enemy->a) SetXfRole(enemy, enemy->a, 2);
+    if (enemy->b) SetXfRole(enemy, enemy->b, 2);
+    BindHackAnimEntries(enemy, 5, enemy->x220);
 }
 } } // namespace M_func_001805C8
 
-/** @sly2-annot addr=0x180638
- * Purpose: vt26: base + SetCid49State
- * Info: proposed name HACKENEMY_vt26 (T2); class HACKENEMY slot26; TU tu_17F090
- * Notes: names_v2 v1 proposed FUN_001caad0 (0.000) | CID49->CID73 (CID 0x49=73, vtable) | class identity from
- *   whole_game WE names/object strings: CID73_vt26 -> HACKENEMY_vt26
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 26: base + SetCid49State. (inferred)
 /* HACKENEMY slot 26. */
-extern "C" void func_00180638(HACKENEMYV *phackenemy, int n)
+extern "C" void ResetHackenemyState(HACKENEMYV *enemy, int n)
 {
-    func_0017F170((HACKV *)phackenemy, n);
-    func_00181268(phackenemy, 0);
+    ResetHackHealth((HACKV *)enemy, n);
+    SetHackenemyState(enemy, 0);
 }
 
 namespace M_func_00180668 {
-// func_00180668 (Claude agent, lane G19, 2026-10-24): MATCH, no register pins. From laneH9v5 (aligned 3): the case-3 first refresh subtract (target - previousTarget) uses QwSubC, the same vsub with a clobber of the dead vf3. Reload hands out spill regs round-robin over {v0,v1,vf1,vf2,vf3}; after the case 1/2 vsub (target vf1, self vf2) the next VF reload would get vf3; with vf3 clobbered (and prev in vf1) the target reload gets vf2 as in the target.
-// history: func_00180668 laneH9v5 (Claude agent lane H9, from laneH6v1): indexed for loop + const-ref loop helpers (R*): the loop has 96 RTL insns in loop pass 2, so loop.c no longer hoists the D_002A2DA0 high. aligned 3.
+// UpdateHackenemy (Claude agent, lane G19, 2026-10-24): MATCH, no register pins. From laneH9v5 (aligned 3): the case-3 first refresh subtract (target - previousTarget) uses QwSubC, the same vsub with a clobber of the dead vf3. Reload hands out spill regs round-robin over {v0,v1,vf1,vf2,vf3}; after the case 1/2 vsub (target vf1, self vf2) the next VF reload would get vf3; with vf3 clobbered (and prev in vf1) the target reload gets vf2 as in the target.
+// history: UpdateHackenemy laneH9v5 (Claude agent lane H9, from laneH6v1): indexed for loop + const-ref loop helpers (R*): the loop has 96 RTL insns in loop pass 2, so loop.c no longer hoists the D_002A2DA0 high. aligned 3.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 typedef union U{qword q;float f[4];int i[4];}U;
@@ -1153,8 +881,8 @@ extern LM D_002BE850,D_002BBB60;
 extern CLOCK D_002DDED0;
 extern char D_002DE578[],D_003DD490[];
 void UpdateSo(P*);
-int func_0017F550(P*);
-void func_00181268(P*,int);
+int IsHackAnimDone(P*);
+void SetHackenemyState(P*,int);
 qword GetLoWorldPos(void*);
 qword ConvertAloVec(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
@@ -1168,11 +896,17 @@ float GetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
+// Inline helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC: small vector/scalar wrappers (a few VU0/EE instructions in
+// asm, or accessors) written so the compiler's register and instruction choice matches the original; the names say what
+// they compute.
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwSubC(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b):"vf3");return r;} /* clobber of the dead vf3 */
 static inline qword QwDot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
+// Inline helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(qword v,qword len){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len));return r;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
@@ -1180,13 +914,19 @@ static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return GXOfQw(r);}
+// Inline helpers Length, Heading: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
+// so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float Length(qword v){return GXOfQw(QwSqrt(QwDot(v,v)));}
 static inline float Heading(qword v){return atan2f(GYOfQw(v),GXOfQw(v));}
+// Unit vector of v, or the fallback when its length is below eps.
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
  qword r=QwSqrt(QwDot(v,v));float x;
  __asm__("mtc1 %1,%0":"=f"(x):"r"(r),"r"(fallback)); /* allocation-only "r"(fallback): the fallback is held in a GPR */
  if(x<eps)r=fallback;else r=QwDivide(v,r);
  return r;}
+// Inline helpers NormalizeInPlace, RSub, RDot, RAddScaled, REvaluate, RLimit, RGXOfQw, RGXOfVf: small vector/scalar
+// wrappers (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice
+// matches the original; the names say what they compute.
 static inline qword NormalizeInPlace(U*pv,const qword*pfallback,void*own){float eps=0.0001f;qword g=pv->q;qword v;qword d,one;
  __asm__("":"=j"(v):"0"(g),"r"(own)); /* empty asm: v is a VF copy of the GPR load g; allocation-only "r"(own) keeps p ahead of the rule giv in global-alloc priority */
 
@@ -1203,31 +943,26 @@ static inline float RLimit(float f,const LM&p){float low=p.low,high=p.high,r;if(
 static inline float RGXOfQw(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float RGXOfVf(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline VU_FLOAT RVuFloat(const float&g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
+// Inline helpers Alive, Evaluate, Limit, Clamp: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline ulong Alive(NODE*p){return (p->flags>>60)&1;}
 static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
 static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f=low;else if(high<f)f=high;return f;}
 
-/** @sly2-annot addr=0x180668
- * Purpose: vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion
- * Info: proposed name UpdateHackenemy (T2); class HACKENEMY slot16; TU tu_17F090
- * Notes: Cid49->Cid73 (CID 0x49=73, vtable) | class identity from whole_game WE names/object strings:
- *   UpdateCid73 -> UpdateHackenemy
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#23-enemies-walls-lock,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void func_00180668(P*p){
+// vtable slot 16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
+extern "C" void UpdateHackenemy(P*enemy){
  U nearest,direction,unit;
- UpdateSo(p);
- if(p->state==2||p->state==4){if(func_0017F550(p))func_00181268(p,0);}
- if(p->state!=0&&p->state!=4){if(!p->target||!Alive(p->target))func_00181268(p,0);}
- if(!p->active&&p->target&&Alive(p->target)){
-  RULE*rule=&p->rules[p->state];
-  qword target=GetLoWorldPos(p->target);
-  qword delta=QwSub(target,GetLoWorldPos(p));
+ UpdateSo(enemy);
+ if(enemy->state==2||enemy->state==4){if(IsHackAnimDone(enemy))SetHackenemyState(enemy,0);}
+ if(enemy->state!=0&&enemy->state!=4){if(!enemy->target||!Alive(enemy->target))SetHackenemyState(enemy,0);}
+ if(!enemy->active&&enemy->target&&Alive(enemy->target)){
+  RULE*rule=&enemy->rules[enemy->state];
+  qword target=GetLoWorldPos(enemy->target);
+  qword delta=QwSub(target,GetLoWorldPos(enemy));
   float distance=Length(delta);
-  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
+  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,enemy,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->stayDistance,distance);
   if(accept){
@@ -1237,70 +972,70 @@ extern "C" void func_00180668(P*p){
   {
    int state;
    for(state=4;state>0;state--){
-    rule=&p->rules[state];
+    rule=&enemy->rules[state];
     if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->enterDistance,distance);
     if(!accept)continue;
     if(!rule->angleEnabled)break;
     if(FCheckLm__FP2LMf(&rule->enterAngle,heading))break;
    }
-   func_00181268(p,state);
+   SetHackenemyState(enemy,state);
   }
  }
 dispatch:
- switch(p->state){
+ switch(enemy->state){
  case 0:case 4:break;
  case 1:case 2:{
-  if(p->cooldown)break;
-  FRAME*frame=p->node.frame;
-  qword target=GetLoWorldPos(p->target);
-  qword self=GetLoWorldPos(p);
+  if(enemy->cooldown)break;
+  FRAME*frame=enemy->node.frame;
+  qword target=GetLoWorldPos(enemy->target);
+  qword self=GetLoWorldPos(enemy);
   float heading=RadNormalize__Ff(Heading(ConvertXfVec(0,frame->space,QwSub(target,self))));
-  p->heading=Clamp(Evaluate(&p->simpleAngle,heading),&p->simpleClamp);
+  enemy->heading=Clamp(Evaluate(&enemy->simpleAngle,heading),&enemy->simpleClamp);
   break;
  }
  case 3:{
-  qword target=GetLoWorldPos(p->target);
-  qword self=GetLoWorldPos(p);
-  VTE*vte=&p->node.vt[33];
-  vte->fn((char*)p+vte->delta);
+  qword target=GetLoWorldPos(enemy->target);
+  qword self=GetLoWorldPos(enemy);
+  VTE*vte=&enemy->node.vt[33];
+  vte->fn((char*)enemy+vte->delta);
   int refresh=0;
-  if(D_002BE820<Length(QwSubC(target,p->previousTarget)))refresh=1;
-  else if(D_002BE820<Length(QwSub(self,p->previousSelf)))refresh=1;
-  else if(D_002BE824<D_002DDED0.t-p->stamp)refresh=1;
+  if(D_002BE820<Length(QwSubC(target,enemy->previousTarget)))refresh=1;
+  else if(D_002BE820<Length(QwSub(self,enemy->previousSelf)))refresh=1;
+  else if(D_002BE824<D_002DDED0.t-enemy->stamp)refresh=1;
   if(refresh){
-   FindPathzonePathCurve(p->binding,self,target,p->curve);
-   p->progress=0.0f;
-   p->previousTarget=target;
-   p->previousSelf=self;
-   p->stamp=D_002DDED0.t;
+   FindPathzonePathCurve(enemy->binding,self,target,enemy->curve);
+   enemy->progress=0.0f;
+   enemy->previousTarget=target;
+   enemy->previousSelf=self;
+   enemy->stamp=D_002DDED0.t;
   }
-  FindShapeClosestPointFromS(p->curve,self,0,&nearest.q,p->progress,&direction.q,0,&p->progress);
+  FindShapeClosestPointFromS(enemy->curve,self,0,&nearest.q,enemy->progress,&direction.q,0,&enemy->progress);
   {
    float eps=0.0001f;qword d;
    __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(QwAddScaled(nearest.q,direction.q,VuFloatFromMemWord(*(int*)&D_002BE828))),"j"(self),"f"(eps)); /* allocation-only "f"(eps): the epsilon is loaded before the subtract */
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
-  float remaining=SMaxShape(p->curve)-p->progress;
-  float turn=Heading(ConvertAloVec(0,p,unit.q));
+  float remaining=SMaxShape(enemy->curve)-enemy->progress;
+  float turn=Heading(ConvertAloVec(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
-  float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
+  float speed=Limit(Evaluate(&enemy->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
   int n=CploFindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
   for(int i=0;i<n;i++){
    NODE*object=objects[i];
-   if(object!=&p->node&&object->group!=p->node.group){
+   if(object!=&enemy->node&&object->group!=enemy->node.group){
     U scalar;
     scalar.q=RSub(self,GetLoWorldPos(object));
     scalar.f[2]=0.0f;
-    qword len=NormalizeInPlace(&scalar,&D_002A2DA0,p);
+    qword len=NormalizeInPlace(&scalar,&D_002A2DA0,enemy);
     float weight=Limit(REvaluate(D_002BE840,RGXOfVf(len)),&D_002BE850);
     weight*=Limit(REvaluate(D_002BE860,RGXOfQw(RDot(scalar.q,unit.q))),&D_002BBB60);
     force=RAddScaled(force,scalar.q,RVuFloat(weight));
    }
   }
-  p->output=LimitVectorLength(force,speed);
-  p->heading=atan2f(unit.f[1],unit.f[0]);
+  enemy->output=LimitVectorLength(force,speed);
+  enemy->heading=atan2f(unit.f[1],unit.f[0]);
   break;
  }
  }
@@ -1319,39 +1054,33 @@ extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
 extern "C" void AccelSoTowardMatBounded(struct O *p, MATRIX3 *pm, void *pv);
 extern "C" void AddSoAcceleration(struct O *p, qword v);
+// Inline helpers VSub, Bc: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
+// compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
-extern "C" void func_00180EE8(struct O *p);
-/** @sly2-annot addr=0x180EE8
- * Purpose: vt70 override
- * Info: proposed name PresetHackenemyAccel (T2); class HACKENEMY slot70; TU tu_17F090
- * Notes: names_v2 C proposed RebindStepguardEnemy__FP9STEPGUARD (0.638) | CID49->CID73 (CID 0x49=73, vtable)
- *   | class identity from whole_game WE names/object strings: PresetCid73Accel -> PresetHackenemyAccel
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00180EE8(struct O *p)
+extern "C" void PresetHackenemyAccel(struct O *p);
+// vtable slot 70 override. (inferred)
+void PresetHackenemyAccel(struct O *enemy)
 {
-    if (p->n1C0 != 4) {
+    if (enemy->n1C0 != 4) {
         MATRIX3 mat;
-        mat = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g204);
-        if (p->n1C0 != 3)
-            mat = ConvertXfMat(p->p5C->pA0, 0, &mat);
-        AccelSoTowardMatBounded(p, &mat, p->a378);
+        mat = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->g204);
+        if (enemy->n1C0 != 3)
+            mat = ConvertXfMat(enemy->p5C->pA0, 0, &mat);
+        AccelSoTowardMatBounded(enemy, &mat, enemy->a378);
     }
-    if (p->n1C0 == 3) {
-        qword v = p->v210;
-        qword w = p->pvt->a[33].pfn((char *)p + p->pvt->a[33].d);
+    if (enemy->n1C0 == 3) {
+        qword v = enemy->v210;
+        qword w = enemy->pvt->a[33].pfn((char *)enemy + enemy->pvt->a[33].d);
         qword d, s, r;
         union { qword q; float f[4]; } u;
         d = VSub(v, w);
         {
-        s = Bc(*(int *)&p->g384);
+        s = Bc(*(int *)&enemy->g384);
         }
         u.q = s;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(d), "j"(s));
-        AddSoAcceleration(p, r);
+        AddSoAcceleration(enemy, r);
     }
 }
 } // namespace M_func_00180EE8
@@ -1360,24 +1089,16 @@ namespace M_func_00180FF0 { extern "C" {
 struct E { int a; int b; int x8; char pad[0x34]; };
 struct S { char pad[0x188]; int n; };
 extern int D_002DFB80;
-void func_0017F1A0(struct S *p, struct E *ae, int i);
-void func_0017F5B0(struct S *p, int n);
-/** @sly2-annot addr=0x180FF0
- * Purpose: vt55: base then start dying
- * Info: proposed name AdjustHackenemyXp (T2); class HACKENEMY slot55; TU tu_17F090
- * Notes: names_v2 v1 proposed FUN_001cac30 (0.000) | CID49->CID73 (CID 0x49=73, vtable) | class identity from
- *   whole_game WE names/object strings: AdjustCid73Xp -> AdjustHackenemyXp
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00180FF0(struct S *p, struct E *ae, int i)
+void AdjustHackNewXp(struct S *p, struct E *ae, int i);
+void StartHackDying(struct S *p, int n);
+// vtable slot 55: base then start dying. (inferred)
+void AdjustHackenemyNewXp(struct S *enemy, struct E *ae, int i)
 {
-    func_0017F1A0(p, ae, i);
-    if (p->n) {
+    AdjustHackNewXp(enemy, ae, i);
+    if (enemy->n) {
         struct E *pe = &ae[1 - i];
         if (pe->x8 == D_002DFB80)
-            func_0017F5B0(p, pe->x8);
+            StartHackDying(enemy, pe->x8);
     }
 }
 } } // namespace M_func_00180FF0
@@ -1395,43 +1116,36 @@ extern "C" void HandlePoMessage(struct O *p, int msg, struct MSG *pm);
 extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
 extern "C" qword GetStepAsegaTranslation(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
-extern "C" void func_00181060(struct O *p, int msg, struct MSG *pm);
-/** @sly2-annot addr=0x181060
- * Purpose: vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step
- * Info: proposed name HandleHackenemyMessage (T2); class HACKENEMY slot5; TU tu_17F090
- * Notes: Cid49->Cid73 (CID 0x49=73, vtable) | class identity from whole_game WE names/object strings:
- *   HandleCid73Message -> HandleHackenemyMessage
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181060(struct O *p, int msg, struct MSG *pm)
+extern "C" void HandleHackenemyMessage(struct O *p, int msg, struct MSG *pm);
+// vtable slot 5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step. (inferred)
+void HandleHackenemyMessage(struct O *enemy, int msg, struct MSG *pm)
 {
-    HandlePoMessage(p, msg, pm);
+    HandlePoMessage(enemy, msg, pm);
     if (msg == 9) {
-        if (pm->animation == p->x194 || (p->p198 && pm->animation == p->p198->x30)) {
+        if (pm->animation == enemy->x194 || (enemy->p198 && pm->animation == enemy->p198->x30)) {
             switch (pm->kind) {
             case 0x15E: {
                 MATRIX3 m;
                 qword v, r;
-                m = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g204);
-                v = GetStepAsegaTranslation(p, pm->animation, pm->time);
+                m = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->g204);
+                v = GetStepAsegaTranslation(enemy, pm->animation, pm->time);
                 __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                     : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
-                p->v210 = r;
-                p->pvt->a[35].pfn((char *)p + p->pvt->a[35].d, p->v210);
+                enemy->v210 = r;
+                enemy->pvt->a[35].pfn((char *)enemy + enemy->pvt->a[35].d, enemy->v210);
                 break;
             }
             case 0x25:
-                p->x1C8 = 1;
+                enemy->x1C8 = 1;
                 break;
             case 0x26:
-                p->x1C8 = 0;
+                enemy->x1C8 = 0;
                 break;
             case 0x27:
-                p->x1CC = 1;
+                enemy->x1CC = 1;
                 break;
             case 0x28:
-                p->x1CC = 0;
+                enemy->x1CC = 0;
                 break;
             }
         }
@@ -1461,45 +1175,28 @@ typedef char layout_VT_a_35_pfn[((unsigned long)&((VT*)0)->a[35].pfn==0x11c)?1:-
 namespace M_func_001811B8 { extern "C" {
 struct S { char pad[0x184]; int n; char p1[0x38]; int x1c0; };
 extern char D_002DEB30[];
-int func_0017F1D0(struct S *p, void *message);
+int TakeHackDamage(struct S *p, void *message);
 void BroadcastGameEvent(void *g, int n, struct S *p);
-void func_00181268(struct S *p, int n);
-/** @sly2-annot addr=0x1811B8
- * Purpose: vt75: CID47::TakeDamage + state change
- * Info: proposed name HACKENEMY_TakeDamage (T2); class HACKENEMY slot75; TU tu_17F090
- * Notes: names_v2 v1 proposed AdjustStepguardDz__FP9STEPGUARDiP2DZif (0.058) | CID49->CID73 (CID 0x49=73,
- *   vtable) | class identity from whole_game WE names/object strings: CID73_TakeDamage ->
- *   HACKENEMY_TakeDamage
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int func_001811B8(struct S *p, void *message)
+void SetHackenemyState(struct S *p, int n);
+// vtable slot 75: CID47::TakeDamage + state change. (inferred)
+int TakeHackenemyDamage(struct S *enemy, void *message)
 {
-    register int four __asm__("$2") = 4; if (p->x1c0 == four) return 0;
-    if (!func_0017F1D0(p, message)) return 0;
-    if (p->n < 0) return 1;
-    if (p->n <= 0) BroadcastGameEvent(D_002DEB30, 0x18, p);
-    func_00181268(p, 4);
+    register int four __asm__("$2") = 4; if (enemy->x1c0 == four) return 0;
+    if (!TakeHackDamage(enemy, message)) return 0;
+    if (enemy->n < 0) return 1;
+    if (enemy->n <= 0) BroadcastGameEvent(D_002DEB30, 0x18, enemy);
+    SetHackenemyState(enemy, 4);
     return 1;
 }
 } } // namespace M_func_001811B8
 
-/** @sly2-annot addr=0x181238
- * Purpose: Reset health and state
- * Info: proposed name ResetHackenemy (T2); class HACKENEMY slot83; TU tu_17F090
- * Notes: names_v2 v1 proposed AddWarpOidPair (0.638) | Cid49->Cid73 (CID
- *   0x49=73, vtable) | class identity from whole_game WE names/object strings: ResetCid73 -> ResetHackenemy
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// Reset health and state. (inferred)
 /* HACKENEMY slot 83: reset. */
 void HACKENEMY::VSlot83()
 {
-    HACKENEMYV *phackenemy = (HACKENEMYV *)this;
-    func_0017F6B0((HACKV *)phackenemy);
-    func_00181268(phackenemy, 0);
+    HACKENEMYV *enemy = (HACKENEMYV *)this;
+    ResetHack((HACKV *)enemy);
+    SetHackenemyState(enemy, 0);
 }
 
 namespace M_func_00181268 { extern "C" {
@@ -1507,51 +1204,37 @@ struct X { int a; int b; int c; };
 struct E { int a[4]; };
 struct S { char pad[0x180]; int x180; int x184; char p1[0x38]; int n; float t; char p2[0x48]; struct X x; int p3; struct E ae[1]; };
 extern struct CLOCK D_002DDED0;
+// Inline helper ClearX: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static __inline__ void ClearX(struct X *px) { px->a = px->b = px->c = 0; }
-void func_0017F4C0(struct S *p, struct E *pe);
-/** @sly2-annot addr=0x181268
- * Purpose: State switch; from -1 reset health; start state clip (StartCid47Anim)
- * Info: proposed name SetHackenemyState (T2); class HACKENEMY; TU tu_17F090
- * Notes: names_v2 v1 proposed SetStepguardPatrolAnimation__FP9STEPGUARDP4ASEG (0.019) | Cid49->Cid73 (CID
- *   0x49=73, evidence) | class identity from whole_game WE names/object strings: SetCid73State ->
- *   SetHackenemyState
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181268(struct S *p, int n)
+void StartHackAnim(struct S *p, struct E *pe);
+// State switch; from -1 reset health; start state clip (StartCid47Anim). (inferred)
+void SetHackenemyState(struct S *enemy, int n)
 {
-    if (p->n == n) return;
-    if (p->n == -1) p->x184 = p->x180;
-    p->n = n;
-    p->t = D_002DDED0.t;
+    if (enemy->n == n) return;
+    if (enemy->n == -1) enemy->x184 = enemy->x180;
+    enemy->n = n;
+    enemy->t = D_002DDED0.t;
     switch (n) {
     case 0: case 1: case 2: case 4:
-        ClearX(&p->x);
+        ClearX(&enemy->x);
         break;
     case 3:
         break;
     }
-    func_0017F4C0(p, n == -1 ? 0 : &p->ae[n]);
+    StartHackAnim(enemy, n == -1 ? 0 : &enemy->ae[n]);
 }
 } } // namespace M_func_00181268
 
 namespace M_func_00181308 { extern "C" {
 struct E { int a; int b; int c; int d; };
 struct S { char pad[0x220]; struct E ae[5]; };
-/** @sly2-annot addr=0x181308
- * Purpose: Set entry i (<5)
- * Info: proposed name SetHackenemyEntry (T2); class HACKENEMY; TU tu_17F090
- * Notes: Cid49->Cid73 (CID 0x49=73, agent-default(hex)) | class identity from whole_game WE names/object
- *   strings: SetCid73Entry -> SetHackenemyEntry
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181308(struct S *p, unsigned int i, int a, int d)
+// Set entry i (<5). (inferred)
+void SetHackenemyEntry(struct S *enemy, unsigned int i, int a, int d)
 {
     if (i < 5) {
-        p->ae[i].a = a;
-        p->ae[i].d = d;
+        enemy->ae[i].a = a;
+        enemy->ae[i].d = d;
     }
 }
 } } // namespace M_func_00181308
@@ -1560,19 +1243,11 @@ namespace M_func_00181330 { extern "C" {
 struct K { int a; int b; };
 struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
 struct S { char pad[0x270]; struct E ae[5]; };
-/** @sly2-annot addr=0x181330
- * Purpose: Set two 8-byte fields of entry i
- * Info: proposed name SetHackenemyEntryVectors (T2); class HACKENEMY; TU tu_17F090
- * Notes: names_v2 v1 proposed FUN_001cb578 (0.000) | Cid49->Cid73 (CID 0x49=73, agent-default(hex)) | class
- *   identity from whole_game WE names/object strings: SetCid73EntryVectors -> SetHackenemyEntryVectors
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181330(struct S *p, unsigned int i, struct K *pk1, struct K *pk2)
+// Set two 8-byte fields of entry i. (inferred)
+void SetHackenemyEntryVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
 {
     if (i < 5) {
-        struct E *pe = &p->ae[i];
+        struct E *pe = &enemy->ae[i];
         pe->a = 1;
         pe->k1 = *pk1;
         pe->k2 = *pk2;
@@ -1584,18 +1259,11 @@ namespace M_func_00181378 { extern "C" {
 struct K { int a; int b; };
 struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
 struct S { char pad[0x270]; struct E ae[5]; };
-/** @sly2-annot addr=0x181378
- * Purpose: Twin setter
- * Info: proposed name SetHackenemyEntryVectors2 (T2); class HACKENEMY; TU tu_17F090
- * Notes: Cid49->Cid73 (CID 0x49=73, agent-default(hex)) | class identity from whole_game WE names/object
- *   strings: SetCid73EntryVectors2 -> SetHackenemyEntryVectors2
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181378(struct S *p, unsigned int i, struct K *pk1, struct K *pk2)
+// Twin setter. (inferred)
+void SetHackenemyEntryVectors2(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
 {
     if (i < 5) {
-        struct E *pe = &p->ae[i];
+        struct E *pe = &enemy->ae[i];
         pe->b = 1;
         pe->k3 = *pk1;
         pe->k4 = *pk2;
@@ -1603,63 +1271,34 @@ void func_00181378(struct S *p, unsigned int i, struct K *pk1, struct K *pk2)
 }
 } } // namespace M_func_00181378
 
-/** @sly2-annot addr=0x1813C0
- * Purpose: Scale default vector D_002BE870 by g into x378..
- * Info: proposed name SetHackenemyScale (T2); class HACKENEMY; TU tu_17F090
- * Notes: names_v2 v1 proposed InitSgg__FP3SGG (0.002) | Cid49->Cid73 (CID 0x49=73, agent-default(hex)) |
- *   class identity from whole_game WE names/object strings: SetCid73Scale -> SetHackenemyScale
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void func_001813C0(HACKENEMYV *phackenemy, float g)
+// Scale default vector D_002BE870 by g into x378.. (inferred)
+extern "C" void SetHackenemyScale(HACKENEMYV *enemy, float g)
 {
-    phackenemy->aScale[0] = D_002BE870[0] * g;
-    phackenemy->aScale[1] = D_002BE870[1] * g;
-    phackenemy->aScale[2] = D_002BE870[2];
+    enemy->aScale[0] = D_002BE870[0] * g;
+    enemy->aScale[1] = D_002BE870[1] * g;
+    enemy->aScale[2] = D_002BE870[2];
 }
 
-/** @sly2-annot addr=0x1813F0
- * Purpose: x384 = g * D_002BE87C
- * Info: proposed name SetHackenemyRange (T2); class HACKENEMY; TU tu_17F090
- * Notes: Cid49->Cid73 (CID 0x49=73, agent-default(hex)) | class identity from whole_game WE names/object
- *   strings: SetCid73Range -> SetHackenemyRange
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void func_001813F0(HACKENEMYV *phackenemy, float g)
+// x384 = g * D_002BE87C. (inferred)
+extern "C" void SetHackenemyRange(HACKENEMYV *enemy, float g)
 {
-    phackenemy->sRange = g * D_002BE87C;
+    enemy->sRange = g * D_002BE87C;
 }
 
-/** @sly2-annot addr=0x181408
- * Purpose: CID 0x4B vt7: InitCid47 + 3 entries
- * Info: proposed name InitHacklock (T1); class HACKLOCK slot7; TU tu_17F090
- * Notes: Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class identity from whole_game WE names/object strings:
- *   InitCid75 -> InitHacklock
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// HACKLOCK (cid 0x4B) vtable slot 7: InitCid47 + 3 entries. (inferred)
 void HACKLOCK::Init()
 {
-    HACKLOCKV *phacklock = (HACKLOCKV *)this;
-    func_0017F090((HACKV *)phacklock);
-    func_0017F3E0((HACKV *)phacklock, 3, phacklock->ahacke);
+    HACKLOCKV *lock = (HACKLOCKV *)this;
+    InitHack((HACKV *)lock);
+    InitHackAnimEntries((HACKV *)lock, 3, lock->ahacke);
 }
 
-/** @sly2-annot addr=0x181440
- * Purpose: vt15: PostCid47Load + bind entries
- * Info: proposed name PostHacklockLoad (T2); class HACKLOCK slot15; TU tu_17F090
- * Notes: Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class identity from whole_game WE names/object strings:
- *   PostCid75Load -> PostHacklockLoad
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// vtable slot 15: PostCid47Load + bind entries. (inferred)
 /* HACKLOCK slot 15. */
-extern "C" void func_00181440(HACKLOCKV *phacklock)
+extern "C" void PostHacklockLoad(HACKLOCKV *lock)
 {
-    func_0017F138((HACKV *)phacklock);
-    func_0017F408((HACKV *)phacklock, 3, phacklock->ahacke);
+    PostHackLoad((HACKV *)lock);
+    BindHackAnimEntries((HACKV *)lock, 3, lock->ahacke);
 }
 
 namespace M_func_00181478 { extern "C" {
@@ -1667,10 +1306,11 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x1C0]; int n1C0; int x1C4; void *p1C8; void *p1CC; };
 extern void UpdateSo(struct O *p);
 extern qword GetLoWorldPos(void *p);
-extern int func_0017F550(struct O *p);
-extern void func_001815E8(struct O *p, int n);
+extern int IsHackAnimDone(struct O *p);
+extern void SetHacklockState(struct O *p, int n);
 extern void *D_002DFB80;
 extern float D_002BE880;
+// Distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, one;
@@ -1682,123 +1322,92 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Whether g is below the closeness threshold D_002BE880.
 static __inline__ int FClose(float g)
 {
     int f = 1;
     if (g < D_002BE880) {} else f = 0;
     return f;
 }
-/** @sly2-annot addr=0x181478
- * Purpose: vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression
- * Info: proposed name UpdateHacklock (T2); class HACKLOCK slot16; TU tu_17F090
- * Notes: names_v2 v1 proposed BindSgg__FP3SGG (0.011) | Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class
- *   identity from whole_game WE names/object strings: UpdateCid75 -> UpdateHacklock
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/engine/minigames.md#23-enemies-walls-lock,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181478(struct O *p)
+// vtable slot 16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression. (inferred)
+void UpdateHacklock(struct O *lock)
 {
     int s;
-    UpdateSo(p);
+    UpdateSo(lock);
     do {
-        s = p->n1C0;
+        s = lock->n1C0;
         switch (s) {
         case 0:
             if (D_002DFB80) {
-                if (FClose(GDist(GetLoWorldPos(D_002DFB80), GetLoWorldPos(p->p1CC)))) {
-                    p->p1C8 = D_002DFB80;
-                    func_001815E8(p, 1);
+                if (FClose(GDist(GetLoWorldPos(D_002DFB80), GetLoWorldPos(lock->p1CC)))) {
+                    lock->p1C8 = D_002DFB80;
+                    SetHacklockState(lock, 1);
                 }
             }
             break;
         case 1:
-            if (func_0017F550(p))
-                func_001815E8(p, 2);
+            if (IsHackAnimDone(lock))
+                SetHacklockState(lock, 2);
             break;
         }
-    } while (p->n1C0 != s);
+    } while (lock->n1C0 != s);
 }
 } } // namespace M_func_00181478
 
 namespace M_func_00181598 { extern "C" {
 struct S { char pad[0x200]; int a; int b; };
 extern char D_003DD490[];
-void func_0017F6B0(struct S *p);
-void func_001815E8(struct S *p, int n);
+void ResetHack(struct S *p);
+void SetHacklockState(struct S *p, int n);
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
-/** @sly2-annot addr=0x181598
- * Purpose: Reset health + state
- * Info: proposed name ResetHacklock (T2); class HACKLOCK slot83; TU tu_17F090
- * Notes: names_v2 C proposed EnsureSggCallback__FP3SGG (0.438) | Cid4B->Cid75 (CID 0x4B=75, hex-literal) |
- *   class identity from whole_game WE names/object strings: ResetCid75 -> ResetHacklock
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181598(struct S *p)
+// Reset health + state. (inferred)
+void ResetHacklock(struct S *lock)
 {
-    func_0017F6B0(p);
-    func_001815E8(p, 0);
-    TriggerRsmg(D_003DD490, p->a, &p->b, p, 0);
+    ResetHack(lock);
+    SetHacklockState(lock, 0);
+    TriggerRsmg(D_003DD490, lock->a, &lock->b, lock, 0);
 }
 } } // namespace M_func_00181598
 
-/** @sly2-annot addr=0x1815E8
- * Purpose: State switch; drives the CID 0x48 singleton (SetCid48State) and game events
- * Info: proposed name SetHacklockState (T2); class HACKLOCK; TU tu_17F090
- * Notes: Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class identity from whole_game WE names/object strings:
- *   SetCid75State -> SetHacklockState
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// State switch; drives the CID 0x48 singleton (SetCid48State) and game events. (inferred)
 /* Sets the lock's state; state 1 hands the target to the ship. */
-extern "C" void func_001815E8(HACKLOCKV *phacklock, int nState)
+extern "C" void SetHacklockState(HACKLOCKV *lock, int nState)
 {
-    int nStatePrev = phacklock->nState;
+    int nStatePrev = lock->nState;
     HACKE *phacke;
     if (nStatePrev != nState) {
-        if (nStatePrev == 1 && phacklock->phackship != 0) {
-            func_00181728(phacklock);
+        if (nStatePrev == 1 && lock->ship != 0) {
+            ActivateHackshipFromHacklock(lock);
         }
-        phacklock->nState = nState;
-        phacklock->tState = D_002DDED0.t;
+        lock->nState = nState;
+        lock->tState = D_002DDED0.t;
         switch (nState) {
         case 1:
-            phacklock->phackship->nTarget = phacklock->nTarget;
-            func_0017FD08(phacklock->phackship, 3);
+            lock->ship->nTarget = lock->nTarget;
+            SetHackshipState(lock->ship, 3);
             break;
         case 2:
-            BroadcastGameEvent(D_002DEB30, 0x39, phacklock);
+            BroadcastGameEvent(D_002DEB30, 0x39, lock);
             break;
         }
         if (nState != -1) {
-            phacke = &phacklock->ahacke[nState];
+            phacke = &lock->ahacke[nState];
         } else {
             phacke = 0;
         }
-        func_0017F4C0(phacklock, phacke);
+        StartHackAnim(lock, phacke);
     }
 }
 
 namespace M_func_001816C0 { extern "C" {
 struct E { int a; int b; int c; int d; };
 struct S { char pad[0x1D0]; struct E ae[3]; };
-/** @sly2-annot addr=0x1816C0
- * Purpose: Set entry i (<3)
- * Info: proposed name SetHacklockEntry (T2); class HACKLOCK; TU tu_17F090
- * Notes: names_v2 v1 proposed PsoEnemySgg__FP3SGG (0.438) | Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class
- *   identity from whole_game WE names/object strings: SetCid75Entry -> SetHacklockEntry
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001816C0(struct S *p, unsigned int i, int a, int d)
+// Set entry i (<3). (inferred)
+void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
 {
     if (i < 3) {
-        p->ae[i].a = a;
-        p->ae[i].d = d;
+        lock->ae[i].a = a;
+        lock->ae[i].d = d;
     }
 }
 } } // namespace M_func_001816C0
@@ -1807,40 +1416,25 @@ namespace M_func_001816E8 { extern "C" {
 struct S { char pad[0x200]; int a; int b; };
 extern char D_003DD490[];
 void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
-/** @sly2-annot addr=0x1816E8
- * Purpose: FAddRsmg on its RSMG table
- * Info: proposed name AddHacklockRsmg (T2); class HACKLOCK; TU tu_17F090
- * Notes: Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class identity from whole_game WE names/object strings:
- *   AddCid75Rsmg -> AddHacklockRsmg
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001816E8(struct S *p, int x, int y, int z, int w)
+// FAddRsmg on its RSMG table. (inferred)
+void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
 {
-    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &p->b, 4, &p->a, x, y, z, w);
+    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
 }
 } } // namespace M_func_001816E8
 
 namespace M_func_00181728 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
 struct S { char pad[0xC]; struct VTE *vt; char p2[0x1B8]; void *x1c8; };
-void func_0017FD08(void *p, int n);
-/** @sly2-annot addr=0x181728
- * Purpose: SetCid48State(singleton x1C8, 1) and own vt call
- * Info: proposed name TriggerHackshipFromHacklock (T2); class HACKSHIP; TU tu_17F090
- * Notes: Cid48->Cid72 (CID 0x48=72, agent-default(hex)) | Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class
- *   identity from whole_game WE names/object strings: TriggerCid72FromCid75 -> TriggerHackshipFromHacklock
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#23-enemies-walls-lock,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181728(struct S *p)
+void SetHackshipState(void *p, int n);
+// SetCid48State(singleton x1C8, 1) and own vt call. (inferred)
+void ActivateHackshipFromHacklock(struct S *ship)
 {
     struct VTE *e;
-    func_0017FD08(p->x1c8, 1);
-    p->x1c8 = 0;
-    e = &p->vt[3];
-    e->pfn((char *)p + e->d, 6, 0, 0, 0, 0);
+    SetHackshipState(ship->x1c8, 1);
+    ship->x1c8 = 0;
+    e = &ship->vt[3];
+    e->pfn((char *)ship + e->d, 6, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181728
 
@@ -1849,44 +1443,28 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); }
 struct S { char pad[0xC]; struct VTE *vt; char p2[0x1F0]; int a; int b; };
 extern char D_003DD490[];
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
-/** @sly2-annot addr=0x181780
- * Purpose: TriggerRsmg on its table
- * Info: proposed name TriggerHacklockRsmg (T2); class HACKLOCK; TU tu_17F090
- * Notes: names_v2 C proposed UpdateSggCallback__FP3SGG5MSGIDPv (0.438) | Cid4B->Cid75 (CID 0x4B=75,
- *   hex-literal) | class identity from whole_game WE names/object strings: TriggerCid75Rsmg ->
- *   TriggerHacklockRsmg
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181780(struct S *p)
+// TriggerRsmg on its table. (inferred)
+void TriggerHacklockRsmg(struct S *lock)
 {
     struct VTE *e;
-    TriggerRsmg(D_003DD490, p->a, &p->b, p, 1);
-    e = &p->vt[3];
-    e->pfn((char *)p + e->d, 5, 0, 0, 0, 0);
+    TriggerRsmg(D_003DD490, lock->a, &lock->b, lock, 1);
+    e = &lock->vt[3];
+    e->pfn((char *)lock + e->d, 5, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181780
 
 namespace M_InitHackwall { extern "C" {
 struct S { char pad[0x40]; int fl; char p2[0x248]; char dl[0xC]; };
-void func_0017F090(struct S *p);
+void InitHack(struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
-/** @sly2-annot addr=0x1817E8
- * Purpose: CID 0x4C vt7: InitCid47, grf
- * Info: proposed name InitHackwall (T1); class HACKWALL slot7; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   InitCid76 -> InitHackwall
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// HACKWALL (cid 0x4C) vtable slot 7: InitCid47, grf. (inferred)
 } } // namespace M_InitHackwall
 void HACKWALL::Init()
 {
     using namespace M_InitHackwall;
     M_InitHackwall::S *p = (M_InitHackwall::S *)this;
     int v;
-    func_0017F090(p);
+    InitHack(p);
     v = p->fl;
     if ((v ^ 1) & 1) *(int *)v |= 8;
     else p->fl = v | 8;
@@ -1904,27 +1482,20 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-void func_0017F138(struct S *p);
+void PostHackLoad(struct S *p);
 void AddSoParts(struct S *p);
-/** @sly2-annot addr=0x181840
- * Purpose: vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load
- * Info: proposed name PostHackwallLoad (T2); class HACKWALL slot15; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   PostCid76Load -> PostHackwallLoad
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181840(struct S *p)
+// vtable slot 15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load. (inferred)
+void PostHackwallLoad(struct S *wall)
 {
     int i, j;
     struct E *pe;
     struct R *pr;
-    for (i = 0; i < p->c; i++) {
-        pe = &p->ae[i];
-        pe->pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, p);
+    for (i = 0; i < wall->c; i++) {
+        pe = &wall->ae[i];
+        pe->pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
         if (!pe->pv) {
             i--;
-            p->c--;
+            wall->c--;
             continue;
         }
         InitDl__FP2DLi(pe->dl, 0x60);
@@ -1939,14 +1510,14 @@ void func_00181840(struct S *p)
             AppendDlEntry__FP2DLPv(pe->dl, q);
         }
     }
-    func_0017F138(p);
-    pr = &p->ar[p->ce0++];
-    pr->a = p->x60;
+    PostHackLoad(wall);
+    pr = &wall->ar[wall->ce0++];
+    pr->a = wall->x60;
     pr->n = -1;
-    pr->p = p;
+    pr->p = wall;
     pr->fl |= 1UL << 48;
     pr->fl |= 1UL << 49;
-    if ((int)(p->fl >> 60) & 1) AddSoParts(p);
+    if ((int)(wall->fl >> 60) & 1) AddSoParts(wall);
 }
 } } // namespace M_func_00181840
 
@@ -1956,37 +1527,29 @@ struct R { char pad[0x10]; char dl[0xC]; };
 struct Q { char pad[0x20]; struct R *pr; char p1[0x3C]; struct DLE dle; };
 struct E { int a; int b; int c; int d; char p[0xC]; int x1c; float g; int x24; int x28; float h; };
 struct S { char pad[0x1C8]; int c; struct E ae[4]; struct Q *pqFirst; };
-void func_0017F6B0(struct S *p);
+void ResetHack(struct S *p);
 void ClearDle__FP3DLE(struct DLE *pdle);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void ClearDl__FP2DL(void *pdl);
-void func_00181A90(struct S *p, struct E *pe);
-/** @sly2-annot addr=0x1819E0
- * Purpose: Reset all segments
- * Info: proposed name ResetHackwall (T2); class HACKWALL slot83; TU tu_17F090
- * Notes: names_v2 v1 proposed FDetectSgg__FP3SGG (0.638) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class
- *   identity from whole_game WE names/object strings: ResetCid76 -> ResetHackwall
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001819E0(struct S *p)
+void ResetHackwallSegment(struct S *p, struct E *pe);
+// Reset all segments. (inferred)
+void ResetHackwall(struct S *wall)
 {
     struct Q *q;
     int i;
-    func_0017F6B0(p);
-    q = p->pqFirst;
+    ResetHack(wall);
+    q = wall->pqFirst;
     while (q) {
         struct Q *qNext = (struct Q *)q->dle.next;
         ClearDle__FP3DLE(&q->dle);
         AppendDlEntry__FP2DLPv(q->pr->dl, q);
         q = qNext;
     }
-    ClearDl__FP2DL(&p->pqFirst);
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    ClearDl__FP2DL(&wall->pqFirst);
+    for (i = 0; i < wall->c; i++) {
+        struct E *pe = &wall->ae[i];
         pe->d = pe->b;
-        func_00181A90(p, pe);
+        ResetHackwallSegment(wall, pe);
     }
 }
 } } // namespace M_func_001819E0
@@ -1995,28 +1558,20 @@ namespace M_func_00181A90 { extern "C" {
 struct Q { char pad[0x24]; int n; char p1[0x14]; float g3c; int x40; char p2[8]; int x4c; char p3[0x10]; struct Q *next; };
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
 struct S;
-void func_00181B60(struct S *p, struct E *pe);
+void LayoutHackwallPieces(struct S *p, struct E *pe);
 float SMaxShape(int n);
-void func_00181EB0(struct S *p, struct Q *q, int n);
-/** @sly2-annot addr=0x181A90
- * Purpose: Reset one segment's pieces along its shape
- * Info: proposed name ResetHackwallSegment (T2); class HACKWALL; TU tu_17F090
- * Notes: names_v2 v1 proposed FAbandonSggSearch__FP3SGG (0.200) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) |
- *   class identity from whole_game WE names/object strings: ResetCid76Segment -> ResetHackwallSegment
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181A90(struct S *p, struct E *pe)
+void SetHackwallSegmentState(struct S *p, struct Q *q, int n);
+// Reset one segment's pieces along its shape. (inferred)
+void ResetHackwallSegment(struct S *wall, struct E *pe)
 {
     int i = 0;
     float g;
     struct Q *q;
-    func_00181B60(p, pe);
+    LayoutHackwallPieces(wall, pe);
     g = SMaxShape(pe->x24);
     for (q = pe->pqFirst; q; q = q->next) {
         q->n = -1;
-        func_00181EB0(p, q, 0);
+        SetHackwallSegmentState(wall, q, 0);
         q->g3c = g * ((float)i + 0.5f) / (float)pe->d;
         q->x40 = 0;
         q->x4c = pe->x1c;
@@ -2031,16 +1586,8 @@ struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *ne
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
 struct S;
 float SMaxShape(int n);
-/** @sly2-annot addr=0x181B60
- * Purpose: Distribute pieces along the segment shape length (SMaxShape)
- * Info: proposed name LayoutHackwallPieces (T2); class HACKWALL; TU tu_17F090
- * Notes: names_v2 C proposed SggsNextSgg__FP3SGG (0.438) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class
- *   identity from whole_game WE names/object strings: LayoutCid76Pieces -> LayoutHackwallPieces
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181B60(struct S *p, struct E *pe)
+// Distribute pieces along the segment shape length (SMaxShape). (inferred)
+void LayoutHackwallPieces(struct S *wall, struct E *pe)
 {
     float g = SMaxShape(pe->x24);
     int c = pe->d;
@@ -2074,21 +1621,15 @@ struct Q { char pad[0x2C]; float g2c; float g30; float g34; float g38; char p1[8
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; float g28; float h; };
 struct S;
 float SMaxShape(int n);
+// Clamps g to [lo, hi].
 static __inline__ float GClamp(float g, float lo, float hi)
 {
     if (g < lo) return lo;
     if (g > hi) return hi;
     return g;
 }
-/** @sly2-annot addr=0x181CB0
- * Purpose: Per-frame piece placement along shape
- * Info: proposed name UpdateHackwallPieces (T2); class HACKWALL; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   UpdateCid76Pieces -> UpdateHackwallPieces
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181CB0(struct S *p, struct E *pe)
+// Per-frame piece placement along shape. (inferred)
+void UpdateHackwallPieces(struct S *wall, struct E *pe)
 {
     float g = SMaxShape(pe->x24);
     float r0 = g * 0.5f / (float)pe->d;
@@ -2113,22 +1654,15 @@ void func_00181CB0(struct S *p, struct E *pe)
 }
 } } // namespace M_func_00181CB0
 
-/** @sly2-annot addr=0x181E10
- * Purpose: Iterate segments and advance their states
- * Info: proposed name UpdateHackwallSegments (T2); class HACKWALL; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   UpdateCid76Segments -> UpdateHackwallSegments
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// Iterate segments and advance their states. (inferred)
 /* Advances a wall segment's state until it settles. */
-extern "C" void func_00181E10(SO *pso, HACKSEG *pseg)
+extern "C" void UpdateHackwallSegments(SO *pso, HACKSEG *pseg)
 {
     int nState;
     do {
         nState = pseg->nState;
         if (nState == 1 && D_002DDED0.t - pseg->tState > D_002BE884) {
-            func_00181EB0(pso, pseg, 0);
+            SetHackwallSegmentState(pso, pseg, 0);
         }
     } while (pseg->nState != nState);
 }
@@ -2142,16 +1676,9 @@ extern char D_002DEB30[];
 void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void BroadcastGameEvent(void *g, int n, struct S *p);
-void func_00181B60(struct S *p, struct R *r);
-/** @sly2-annot addr=0x181EB0
- * Purpose: Segment state switch: move between DLs, game event, relayout
- * Info: proposed name SetHackwallSegmentState (T2); class HACKWALL; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   SetCid76SegmentState -> SetHackwallSegmentState
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181EB0(struct S *p, struct Q *q, int n)
+void LayoutHackwallPieces(struct S *p, struct R *r);
+// Segment state switch: move between DLs, game event, relayout. (inferred)
+void SetHackwallSegmentState(struct S *wall, struct Q *q, int n)
 {
     struct R *r;
     if (n == q->n) return;
@@ -2161,9 +1688,9 @@ void func_00181EB0(struct S *p, struct Q *q, int n)
     r = q->pr;
     r->c--;
     RemoveDlEntry__FP2DLPv(r->dl, q);
-    AppendDlEntry__FP2DLPv(p->dl, q);
-    if (!r->c) BroadcastGameEvent(D_002DEB30, 0x3A, p);
-    func_00181B60(p, r);
+    AppendDlEntry__FP2DLPv(wall->dl, q);
+    if (!r->c) BroadcastGameEvent(D_002DEB30, 0x3A, wall);
+    LayoutHackwallPieces(wall, r);
 }
 } } // namespace M_func_00181EB0
 
@@ -2183,10 +1710,11 @@ qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
 void FindShapeClosestPointFromS(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
 float GRandInRange__Fff(float lo, float hi);
-void func_00181CB0(struct S *p, struct E *pe);
+void UpdateHackwallPieces(struct S *p, struct E *pe);
 float GSmoothA__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
 void EvaluateShapeS(int oid, struct Q *q, void *pv, float g);
-void func_00181E10(struct S *p, struct Q *q);
+void UpdateHackwallSegments(struct S *p, struct Q *q);
+// One step of constant-acceleration motion: updates velocity *pv by a*dt and position *px by the average velocity.
 static __inline__ void Integrate(float *px, float *pv, float a, float dt)
 {
     float vOld = *pv;
@@ -2198,27 +1726,15 @@ static __inline__ void Integrate(float *px, float *pv, float a, float dt)
 // 0x181F58: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("daddu $2, $4, $0");
 
-/** @sly2-annot addr=0x181F60
- * Purpose: vt16: UpdateSo, per-segment shape tracking and random effects
- * Info: proposed name UpdateHackwall (T2); class HACKWALL slot16; TU tu_17F090
- * Notes: names_v2 C proposed SetSggSggs__FP3SGG4SGGS (0.438) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) |
- *   verifier PLAUSIBLE: Placeholder class. CID 0x4C vtable slot 16: UpdateSo, then per entry (max 4): closest
- *   point on shape to D_002DFB80's position, full search every 0.5-0.75 s (GRandInRange) else from previous
- *   s, piece u | class identity from whole_game WE names/object strings: UpdateCid76 -> UpdateHackwall | T2
- *   forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00181F60(struct S *p)
+// vtable slot 16: UpdateSo, per-segment shape tracking and random effects. (inferred)
+void UpdateHackwall(struct S *wall)
 {
     int i;
     struct V v;
-    UpdateSo(p);
-    if (!p->x1c0) return;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    UpdateSo(wall);
+    if (!wall->x1c0) return;
+    for (i = 0; i < wall->c; i++) {
+        struct E *pe = &wall->ae[i];
         int oid = pe->oid;
         struct Q *q;
         SMaxShape(oid);
@@ -2230,7 +1746,7 @@ void func_00181F60(struct S *p)
         } else {
             FindShapeClosestPointFromS(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->g28, pe->g28);
         }
-        func_00181CB0(p, pe);
+        UpdateHackwallPieces(wall, pe);
         for (q = pe->pqFirst; q; q = q->next) {
             float a, b;
             q->g3c = GSmoothA__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
@@ -2239,14 +1755,14 @@ void func_00181F60(struct S *p)
             b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;
             Integrate(&q->g50, &q->g58, a, D_002DDED0.dt);
             Integrate(&q->g50, &q->g5c, b, D_002DDED0.dt);
-            func_00181E10(p, q);
+            UpdateHackwallSegments(wall, q);
         }
     }
 }
 } } // namespace M_func_00181F60
 
 namespace M_func_001821C0 {
-// func_001821C0 (Claude agent, lane G4): laneG3v1 with the outer loop as `do { if (count<=0) goto done; top: ... if (i<count) goto top; } while (0);`.
+// RenderHackwallSelf (Claude agent, lane G4): laneG3v1 with the outer loop as `do { if (count<=0) goto done; top: ... if (i<count) goto top; } while (0);`.
 // The do/while(0) gives the real loop notes (alignment nop, fall-in entry) while the goto back edge keeps loop.c from hoisting the 0x30 stride.
 // One pin (epsilon in $f1).
 
@@ -2263,9 +1779,12 @@ extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
+// Inline helpers Load, Cross, AddLateral: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qword Load(const qword*p){return *p;}
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
+// 3x3 matrix product.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
@@ -2277,24 +1796,17 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 
-/** @sly2-annot addr=0x1821C0
- * Purpose: vt19: RenderSoSelf then draw each segment piece with its own matrix
- * Info: proposed name RenderHackwallSelf (T2); class HACKWALL slot19; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   RenderCid76Self -> RenderHackwallSelf
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-extern "C" void func_001821C0(P*p){
+// vtable slot 19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
+extern "C" void RenderHackwallSelf(P*wall){
  int i,count;M3 m;M4 mm;qword pos;
- RenderSoSelf(p);
- if(!p->model)return;
- count=p->count;i=0;
+ RenderSoSelf(wall);
+ if(!wall->model)return;
+ count=wall->count;i=0;
  do {
   if(count<=0) goto done;
  top:
   {
-  N*n=((N**)((int)p+i*0x30))[0x1DC/4];
+  N*n=((N**)((int)wall+i*0x30))[0x1DC/4];
   while(n){M4*pm=&mm;
    pos=Load(&n->pos);
    m=BuildOrthonormalMatrixZ(n->dir,D_002A2DC0);
@@ -2304,12 +1816,12 @@ extern "C" void func_001821C0(P*p){
    pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
    pm->r[3].f[3]=1.0f;
-   RenderLoAtMatrix(p->model,pm,1.0f,1.0f);
+   RenderLoAtMatrix(wall->model,pm,1.0f,1.0f);
    n=n->next;
   }
  }
 
-  count=p->count;
+  count=wall->count;
   ++i;
   if(i<count) goto top;
  } while(0);
@@ -2347,7 +1859,7 @@ typedef char U_int_View[((unsigned)&((U*)0)->i[0]==0)?1:-1];
 } // namespace M_func_001821C0
 
 namespace M_func_001823C8 { extern "C" {
-// func_001823C8: contact generator. From lane H3v1 (no pins); the plane distance's scalar leaves the VU via gcc's qmfc2 plus an mtc1 asm (GX), as in Lilly's GXOfQw.
+// AddHackwallXps: contact generator. From lane H3v1 (no pins); the plane distance's scalar leaves the VU via gcc's qmfc2 plus an mtc1 asm (GX), as in Lilly's GXOfQw.
 
 typedef int qword __attribute__((mode(TI)));
 typedef union U{qword q;float f[4];int i[4];}U;
@@ -2366,6 +1878,9 @@ extern qword*InitVuTemp(qword*);
 extern int ClipEdgeToSphere(qword,float,qword,qword,int,SEGMENT*);
 extern void AddXp(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
+// Inline helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword Broadcast(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword BroadcastBits(int b){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(b));return r;}
@@ -2373,6 +1888,7 @@ static inline float Scalar(qword a){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"
 static inline qword MAdd(qword a,qword b,qword s){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(s));return a;}
 static inline qword MAdd2(qword a,qword b,qword s){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
 static inline qword Point(const M4*m,qword p){qword r=m->r[0].q;__asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(p));return r;}
+// Length of the direction's projection on the plane (helper of the wall layout).
 static inline float Planar(U*p){
  qword direction=p->q;
  qword d,root;
@@ -2383,39 +1899,34 @@ static inline float Planar(U*p){
  else{__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(d):"j"(dv),"j"(root));p->q=d;}
  return Scalar(root);
 }
+// Inline helper GX: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline float GX(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
+// Signed distance of a point from a plane, returning the VU temporaries.
 static inline float Distance(U*dot,U*one,qword plane,qword point){
  qword d=point,o;
  __asm__("vmul.xyz %0,%2,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w":"+j"(d),"=&j"(o):"j"(plane));
  one->q=o;dot->q=d;return GX(d);
 }
-/** @sly2-annot addr=0x1823C8
- * Purpose: vt60: SO base then contacts against each segment (AddXp) for requests with flag bit 49
- * Info: proposed name AddHackwallXps (T2); class HACKWALL slot60; TU tu_17F090
- * Notes: names_v2 C proposed AssignSggSearchPoints__FP3SGG (0.638) | CID4C->CID76 (CID 0x4C=76, hex-literal)
- *   | class identity from whole_game WE names/object strings: AddCid76Xps -> AddHackwallXps
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
+// vtable slot 60: SO base then contacts against each segment (AddXp) for requests with flag bit 49. (inferred)
+void AddHackwallXps(P*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
- AddSoCustomXps(p,q,unused2,unused3,unused4,pout);
+ AddSoCustomXps(wall,q,unused2,unused3,unused4,pout);
  if(!(q->flags&0x2000000000000L))return;
  center=q->owner->position;
- count=p->entryCount;i=0;
+ count=wall->entryCount;i=0;
  do{
   if(count<=0)goto done;
  top:
   {
-  ENTRY*entry=&p->entries[i];NODE*n=entry->head;float radius=q->radius+entry->radius;
+  ENTRY*entry=&wall->entries[i];NODE*n=entry->head;float radius=q->radius+entry->radius;
   for(;n;n=n->next){
    float distance;
    w.direction.q=Sub(n->position.q,center);w.direction.i[2]=0;
    distance=Planar(&w.direction);
    if(distance<radius){
     w.newEndpoint.q=Broadcast(-q->radius);
-    AddXp(&D_003DD490,&p->contacts[p->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
+    AddXp(&D_003DD490,&wall->contacts[wall->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
    }else{
     int j;
     for(j=q->start;j<q->count;j++){
@@ -2428,7 +1939,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
       result=MAdd2(point,plane,w.scale.q);
       InitVuTemp(&w.dot.q);InitVuTemp(&w.one.q);
       distance=Distance(&w.dot,&w.one,plane,point)-q->radius;
-      AddXp(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
+      AddXp(&D_003DD490,&wall->contacts[wall->contactCount-1],q,result,plane,10,n,0,out,distance);
       break;
      }
     }
@@ -2436,7 +1947,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
   }
   }
   ++i;
-  if(i<p->entryCount)goto top;
+  if(i<wall->entryCount)goto top;
  }while(0);
  done:;
 }
@@ -2478,39 +1989,25 @@ typedef char WORK_one_Offset[((unsigned)&((WORK*)0)->one==272)?1:-1];
 namespace M_func_00182700 { extern "C" {
 struct E { int a; int b; int x8; int xc; char pad[0x30]; };
 struct S { char pad[0x188]; int n; };
-void func_0017F1A0(struct S *p, struct E *ae, int i);
+void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
-void func_0017F5B0(struct S *p, int n);
-/** @sly2-annot addr=0x182700
- * Purpose: vt55: base then start dying
- * Info: proposed name AdjustHackwallXp (T2); class HACKWALL slot55; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   AdjustCid76Xp -> AdjustHackwallXp
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00182700(struct S *p, struct E *ae, int i)
+void StartHackDying(struct S *p, int n);
+// vtable slot 55: base then start dying. (inferred)
+void AdjustHackwallNewXp(struct S *wall, struct E *ae, int i)
 {
-    func_0017F1A0(p, ae, i);
-    if (p->n) {
+    AdjustHackNewXp(wall, ae, i);
+    if (wall->n) {
         struct E *pe = &ae[1 - i];
         int oid = pe->xc;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47))
-            func_0017F5B0(p, oid);
+            StartHackDying(wall, oid);
     }
 }
 } } // namespace M_func_00182700
 
-/** @sly2-annot addr=0x182778
- * Purpose: vt63: 8-byte override
- * Info: proposed name HACKWALL_vt63 (T2); class HACKWALL slot63; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   CID76_vt63 -> HACKWALL_vt63
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
+// HACKWALL vtable slot 63 (CpartExtra): one extra collision part, for the wall segments. (inferred)
 /* HACKWALL slot 63. */
-extern "C" int func_00182778()
+extern "C" int GetHackwallExtraPartCount()
 {
     return 1;
 }
@@ -2522,24 +2019,18 @@ struct S { char pad[0x1C8]; int c; struct E ae[4]; };
 void UpdateSoTreeBounds(struct S *p);
 void GetShapeBounds(int n, qword *pa, qword *pb);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-/** @sly2-annot addr=0x182780
- * Purpose: vt49 override
- * Info: proposed name HACKWALL_vt49 (T2); class HACKWALL slot49; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   CID76_vt49 -> HACKWALL_vt49
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00182780(struct S *p)
+// HACKWALL vtable slot 49 (tree bounds update): the SO bounds, extended to cover both ends of every wall segment
+// (with the segment radius).
+void UpdateHackwallTreeBounds(struct S *wall)
 {
     int i;
-    UpdateSoTreeBounds(p);
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    UpdateSoTreeBounds(wall);
+    for (i = 0; i < wall->c; i++) {
+        struct E *pe = &wall->ae[i];
         qword a, b;
         GetShapeBounds(pe->x24, &a, &b);
-        ExtendSoTreeBounds(p, a, pe->g);
-        ExtendSoTreeBounds(p, b, pe->g);
+        ExtendSoTreeBounds(wall, a, pe->g);
+        ExtendSoTreeBounds(wall, b, pe->g);
     }
 }
 } } // namespace M_func_00182780
@@ -2549,15 +2040,8 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { qword pos; char pad[0x50]; struct Q *next; };
 struct E { int oid; int c; int c8; int d; struct Q *pqFirst; struct Q *pqLast; int ib; int x1c; float g20; int x24; float g28; float g2c; };
 struct O { char pad[0x1C8]; int ce; struct E ae[4]; };
-/** @sly2-annot addr=0x182810
- * Purpose: Nearest segment record to a world position
- * Info: proposed name PsegFindHackwall (T2); class HACKWALL; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   PsegFindCid76 -> PsegFindHackwall
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-struct Q *func_00182810(struct O *po, qword pos)
+// Nearest segment record to a world position. (inferred)
+struct Q *FindNearestHackwallSegment(struct O *po, qword pos)
 {
     int i;
     struct Q *pqBest = 0;
@@ -2591,29 +2075,21 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { qword pos; qword v10; char pad[0x4C - 0x20]; int n4C; char pad2[0x58 - 0x50]; float g58; float g5C; };
 struct M { char pad[0x10]; int n10; char pad1[0x20 - 0x14]; qword v20; qword v30; char pad2[0x44 - 0x40]; int n44; };
 struct O { char pad[0x190]; void *p190; };
-extern struct Q *func_00182810(struct O *po, qword pos);
+extern struct Q *FindNearestHackwallSegment(struct O *po, qword pos);
 extern float GRandInRange__Fff(float a, float b);
-extern void func_00181EB0(struct O *po, struct Q *pq, int n);
+extern void SetHackwallSegmentState(struct O *po, struct Q *pq, int n);
 extern void ExplodeExplParams(void *p, int k, int n, qword a, qword b, float g, float h);
 extern float D_002BE8A8;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-/** @sly2-annot addr=0x1828A8
- * Purpose: vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and
- *   segment state change
- * Info: proposed name HACKWALL_TakeDamage (T2); class HACKWALL slot75; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   CID76_TakeDamage -> HACKWALL_TakeDamage
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#23-enemies-walls-lock,
- *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-int func_001828A8(struct O *po, struct M *pm)
+// vtable slot 75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state
+// change. (inferred)
+int TakeHackwallDamage(struct O *po, struct M *pm)
 {
     struct Q *pq;
     if (!(pm->n44 & 8))
         return 0;
-    pq = func_00182810(po, pm->v20);
+    pq = FindNearestHackwallSegment(po, pm->v20);
     if (pq) {
         pq->n4C += pm->n10;
         if (pq->n4C > 0) {
@@ -2624,11 +2100,11 @@ int func_001828A8(struct O *po, struct M *pm)
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
             pq->g58 = g * D_002BE8A8;
             pq->g5C = GRandInRange__Fff(-15.0f, 15.0f);
-            func_00181EB0(po, pq, 1);
+            SetHackwallSegmentState(po, pq, 1);
         } else {
             if (po->p190)
                 ExplodeExplParams(po->p190, 4, 0, D_002A2DD0, pq->pos, 0.0f, 0.0f);
-            func_00181EB0(po, pq, 2);
+            SetHackwallSegmentState(po, pq, 2);
         }
     }
     return 1;
@@ -2642,37 +2118,29 @@ struct S { char pad[0x188]; int x188; int x18c; void *x190; };
 struct CTX { struct S *p; int x4; void *pv; int xc; int x10; int pad[3]; qword q; char rest[0x30]; };
 extern qword D_002A2DD0;
 qword GetLoWorldPos(void *p);
-struct Q *func_00182810(struct S *p, qword q);
+struct Q *FindNearestHackwallSegment(struct S *p, qword q);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int DeliverZapToSo(struct CTX *pctx);
 void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
-void func_00181EB0(struct S *p, struct Q *q, int n);
-/** @sly2-annot addr=0x1829D8
- * Purpose: vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state
- *   change
- * Info: proposed name HACKWALL_Die (T2); class HACKWALL slot82; TU tu_17F090
- * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   CID76_Die -> HACKWALL_Die
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_001829D8(struct S *p, void *pv)
+void SetHackwallSegmentState(struct S *p, struct Q *q, int n);
+// vtable slot 82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change. (inferred)
+void KillHackwall(struct S *wall, void *pv)
 {
     struct Q *q;
     struct CTX ctx;
-    if (!pv || !p->x188) return;
-    q = func_00182810(p, GetLoWorldPos(pv));
+    if (!pv || !wall->x188) return;
+    q = FindNearestHackwallSegment(wall, GetLoWorldPos(pv));
     func_002333B4(&ctx, 0, 0x60);
     ctx.pv = pv;
-    ctx.p = p;
+    ctx.p = wall;
     ctx.q = q->pos;
     ctx.xc = 0x100;
-    ctx.x10 = -p->x188;
+    ctx.x10 = -wall->x188;
     if (DeliverZapToSo(&ctx)) {
-        if (p->x190) ExplodeExplParams(p->x190, 4, 0, D_002A2DD0, q->pos, 0.0f, 0.0f);
-        func_00181EB0(p, q, 2);
+        if (wall->x190) ExplodeExplParams(wall->x190, 4, 0, D_002A2DD0, q->pos, 0.0f, 0.0f);
+        SetHackwallSegmentState(wall, q, 2);
     }
-    p->x18c = 0;
+    wall->x18c = 0;
 }
 } } // namespace M_func_001829D8
 
@@ -2680,18 +2148,11 @@ namespace M_func_00182AB8 { extern "C" {
 struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int p2[2]; float h; };
 struct S { char pad[0x1C8]; unsigned int c; struct E ae[4]; };
 extern int D_002BE8AC;
-/** @sly2-annot addr=0x182AB8
- * Purpose: Append a segment record (max 4) {a,b,c,g}
- * Info: proposed name AddHackwallSegment (T2); class HACKWALL; TU tu_17F090
- * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
- *   AddCid76Segment -> AddHackwallSegment
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
- * @end-sly2-annot */
-void func_00182AB8(struct S *p, int a, int b, int c, float g)
+// Append a segment record (max 4) {a,b,c,g}. (inferred)
+void AddHackwallSegment(struct S *wall, int a, int b, int c, float g)
 {
-    if (p->c < 4) {
-        struct E *pe = &p->ae[p->c++];
+    if (wall->c < 4) {
+        struct E *pe = &wall->ae[wall->c++];
         pe->a = a;
         pe->b = b;
         pe->c = c;

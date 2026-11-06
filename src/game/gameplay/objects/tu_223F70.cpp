@@ -1,6 +1,7 @@
 // tu_223F70.cpp -- CID100..102 (0x64..0x66), the gadget objects (docs/engine/gameplay-objects.md): tossables, Bentley's
-// trigger bomb / mines (SetCid100State 0x224EC8: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
-// extractor) and the guard trap; the blast probe that pushes the bodies around it. TU 0x223F70..0x2259D8 (28 functions,
+// trigger bomb / mines (SetCid100State SetTossableState: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
+// extractor) and the guard trap; the blast probe that pushes the bodies around it. Entry points: the CID100 and
+// CID102 vtables, TriggerTossable (gadget button) and the predicates IsThrowableGadget / IsHealthExtractor. TU 0x223F70..0x2259D8 (28 functions,
 // address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_223F70
 // SLY2_ALIAS: _GLOBAL_$I$*=func_002259B8
@@ -180,104 +181,71 @@ int CanSetStepguardSpecial(ACTOR *po, int k);
 void AddSoXa(ACTOR *po, HOOK *node);
 void SendStepguardRootBhvMode6(ACTOR *po, int k);
 
-void func_00223F70(CID100V *p);
-void func_00224258(CID100V *p, SOV *q);
-int func_00224508(CID100V *p, SOV *q);
-int func_00224638(CID100V *p);
-int func_00224688(CID100V *p);
-void func_00224820(SOV *ownerIn, int filter, int channel, qwordV start, qwordV end, int queryCount, COLL **objects, int capacity, int *count, HIT *records);
-void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r);
-void func_00224EC8(CID100V *p, int state);
-void func_002240B0(CID100V *p);
+void InitTossable(CID100V *p);
+void StickTossable(CID100V *p, SOV *q);
+int IsTossableChainFree(CID100V *p, SOV *q);
+int IsTossableStateBlocking(CID100V *p);
+int IsHealthExtractor(CID100V *p);
+void ProbeTossableHit(SOV *ownerIn, int filter, int channel, qwordV start, qwordV end, int queryCount, COLL **objects, int capacity, int *count, HIT *records);
+void SweepTossableProbes(CID100V *p, int a, int b, qwordV pos, float r);
+void SetTossableState(CID100V *p, int state);
+void UpdateTossable(CID100V *p);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");    /* FIsBasicDerivedFrom__FP5BASIC3CID */
 
 #define VCALL(po, slot) (po)->pvt[slot].pfn((char *)(po) + (po)->pvt[slot].d
 
-/** @sly2-annot addr=0x223F70
- * Purpose: InitSo; +0x?=-10, 3000.0, -1, -1; grf|=6
- * Info: proposed name InitCid100 (T2); class CID100 slot7; TU tu_223F70
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#4-source-files, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/gameplay-objects.md#key-functions
- * @end-sly2-annot */
-void func_00223F70(CID100V *p)
+// InitSo; +0x?=-10, 3000.0, -1, -1; grf|=6. (inferred)
+void InitTossable(CID100V *gadget)
 {
     int f;
-    InitSo(p);
-    f = p->grf;
-    p->n178 = -10;
-    p->radius = 3000.0f;
-    p->sentinel = -1;
-    p->state = -1;
+    InitSo(gadget);
+    f = gadget->grf;
+    gadget->n178 = -10;
+    gadget->radius = 3000.0f;
+    gadget->sentinel = -1;
+    gadget->state = -1;
     if (FIsPtr(f)) *(int *)f |= 6;
-    else p->grf = f | 6;
+    else gadget->grf = f | 6;
 }
 
-/** @sly2-annot addr=0x223FE0
- * Purpose: LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0
- * Info: proposed name LoadCid100FromBrx (T2); class CID100 slot14; TU tu_223F70
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r8_21BB88+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00223FE0(CID100V *p, void *pbis) {
+// LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0. (inferred)
+extern "C" void LoadTossableFromBrx(CID100V *gadget, void *pbis) {
     SOPHYSV *psophys;
-    LoadSoFromBrx(p, pbis);
-    psophys = p->psophys;
+    LoadSoFromBrx(gadget, pbis);
+    psophys = gadget->psophys;
     if (psophys != 0) {
         psophys->gD4 = 2.0f;
-        p->psophys->gD8 = 2.0f;
+        gadget->psophys->gD8 = 2.0f;
     }
 }
 
-/** @sly2-annot addr=0x224028
- * Purpose: SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal)
- * Info: proposed name AddCid100Hierarchy (T2); class CID100 slot11; TU tu_223F70
- * Notes: agent qualifier: (slot11)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00224028(CID100V *p)
+// SO slot11 then, if bound SM, ReplaceSma(sm,this,-1,0,goal). (inferred)
+extern "C" void AddTossableHierarchy(CID100V *gadget)
 {
-    AddSoHierarchy(p);
-    if (p->psm) ReplaceSma(p->psm, p, -1, 0, &p->psma);
+    AddSoHierarchy(gadget);
+    if (gadget->psm) ReplaceSma(gadget->psm, gadget, -1, 0, &gadget->psma);
 }
 
-/** @sly2-annot addr=0x224068
- * Purpose: SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8
- * Info: proposed name RemoveCid100Hierarchy (T2); class CID100 slot12; TU tu_223F70
- * Notes: agent qualifier: (slot12)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// SO slot12, SetState(-1) via vtable slot 76, release SM handle ReleaseSma. (inferred)
 void CID100::RemoveHierarchy()
 {
-    CID100V *p = (CID100V *)this;
-    RemoveSoHierarchy(p);
-    VCALL(p, 76), -1);
-    ReleaseSma(&p->psma);
+    CID100V *gadget = (CID100V *)this;
+    RemoveSoHierarchy(gadget);
+    VCALL(gadget, 76), -1);
+    ReleaseSma(&gadget->psma);
 }
 
-/** @sly2-annot addr=0x2240B0
- * Purpose: CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the
- *   owner +0x16C is farther than +0x170 (3000) -> vt75 -> state 3 (auto-fire)
- * Info: proposed name UpdateCid100 (T2); class CID100 slot16; TU tu_223F70
- * Notes: runtime5a #18 CLARIFIED: distance owner(+0x16C) > +0x170 (3000) -> vt75 -> state 3 (auto-fire) | T2:
- *   placeholder token Cid100
- * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void func_002240B0(CID100V *p)
+// CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (StickTossable); if the owner +0x16C is
+// farther than +0x170 (3000) -> vtable slot 75 -> state 3 (auto-fire). (inferred)
+void UpdateTossable(CID100V *gadget)
 {
-    UpdateSo(p);
-    if (p->state == 1 && p->sentinel != -1)
-        func_00224258(p, p->pneighbor);
-    if (p->ptarget) {
-        qwordV a = GetLoWorldPos(p);
-        qwordV b = GetLoWorldPos(p->ptarget);
+    UpdateSo(gadget);
+    if (gadget->state == 1 && gadget->sentinel != -1)
+        StickTossable(gadget, gadget->pneighbor);
+    if (gadget->ptarget) {
+        qwordV a = GetLoWorldPos(gadget);
+        qwordV b = GetLoWorldPos(gadget->ptarget);
         qwordV d, t, l;
         float g;
         int f;
@@ -285,79 +253,53 @@ void func_002240B0(CID100V *p)
         __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(t) : "0"(d));
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-        f = p->radius < g;
+        f = gadget->radius < g;
         if (f)
-            ((int (*)(void *, int))p->pvt[75].pfn)((char *)p + p->pvt[75].d, 0);   /* the slot returns int (v0 busy) */
+            ((int (*)(void *, int))gadget->pvt[75].pfn)((char *)gadget + gadget->pvt[75].d, 0);   /* the slot returns int (v0 busy) */
     }
 }
 
-/** @sly2-annot addr=0x224190
- * Purpose: if state in {1,2} SetState(3); return 1
- * Info: class CID100 slot75; TU tu_223F70
- * Notes: descriptive only: Cid100 state helper: drop to state 3 from 1/2 | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
-extern "C" int func_00224190(CID100V *p)
+// if state in {1,2} SetState(3); return 1. (inferred)
+extern "C" int TakeTossableDamage(CID100V *gadget)
 {
-    switch (p->state) { case 1: case 2: VCALL(p, 76), 3); }
+    switch (gadget->state) { case 1: case 2: VCALL(gadget, 76), 3); }
     return 1;
 }
 
 struct MSG100 { int a; CID100V *o; };
-/** @sly2-annot addr=0x2241D8
- * Purpose: base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3)
- * Info: proposed name HandleCid100Message (T2); class CID100 slot5; TU tu_223F70
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_002241D8(CID100V *p, int k, MSG100 *q)
+// base HandleLoMessage HandleBasicMessage; on msg 4 from self in state 1/2 -> SetState(3). (inferred)
+extern "C" void HandleTossableMessage(CID100V *gadget, int k, MSG100 *q)
 {
-    HandleBasicMessage(p, k, q);
+    HandleBasicMessage(gadget, k, q);
     if (k == 4) {
         CID100V *o = q->o;
-        if (o == p && (unsigned)(o->state - 1) < 2) VCALL(o, 76), 3);
+        if (o == gadget && (unsigned)(o->state - 1) < 2) VCALL(o, 76), 3);
     }
 }
 
-/** @sly2-annot addr=0x224258
- * Purpose: states 0x1A/0x29 -> SetState(3); else SetLoParent(q or 0,3) and SetState(2)
- * Info: TU tu_223F70
- * Notes: descriptive only: Cid100 attach/detach to carrier | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void func_00224258(CID100V *p, SOV *q)
+// states 0x1A/0x29 -> SetState(3); else SetLoParent(q or 0,3) and SetState(2). (inferred)
+void StickTossable(CID100V *gadget, SOV *q)
 {
-    int k = p->kind;
-    if (k == 0x1A || k == 0x29) VCALL(p, 76), 3);
+    int k = gadget->kind;
+    if (k == 0x1A || k == 0x29) VCALL(gadget, 76), 3);
     else {
-        SetLoParent(p, q->oid == 1 ? 0 : q, 3);
-        VCALL(p, 76), 2);
+        SetLoParent(gadget, q->oid == 1 ? 0 : q, 3);
+        VCALL(gadget, 76), 2);
     }
 }
 
-/** @sly2-annot addr=0x2242E0
- * Purpose: base 0x1F4FC8; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310
- * Info: class CID100 slot61; TU tu_223F70
- * Notes: descriptive only: Cid100 filter flags vs player | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
-extern "C" int func_002242E0(CID100V *p, BASIC *q)
+// base FIgnoreSoIntersection; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310. (inferred)
+extern "C" int FIgnoreTossableIntersection(CID100V *gadget, BASIC *q)
 {
-    int v = ShouldSoIgnoreIntersection(p, q);
-    int k = p->state;
+    int v = ShouldSoIgnoreIntersection(gadget, q);
+    int k = gadget->state;
     if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = MaxInt(v, 1); }
     return v;
 }
 
-/** @sly2-annot addr=0x224350
- * Purpose: base 0x1F4FB0 then out->0x98 = 0.25
- * Info: class CID100 slot55; TU tu_223F70
- * Notes: descriptive only: Cid100 slot (sets 0x98 = 0.25 on out struct) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
- * @end-sly2-annot */
-extern "C" float func_00224350(CID100V *p, XP *pxp, int i) {
-    AdjustSoNewXp(p, pxp, i);
+// base 0x1F4FB0 then out->0x98 = 0.25. (inferred)
+extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *pxp, int i) {
+    AdjustSoNewXp(gadget, pxp, i);
     pxp->elasticity = 0.25f;
     return 0.25f;
 }
@@ -367,59 +309,50 @@ struct SIDE { struct { int x0; SOV *p; } *po; int x4; SOV *x8; SOV *pOther; char
 struct EDGE { SIDE as[2]; qwordV v80; char pad[0xC]; int k9C; char pad2[0xC]; EDGE *pNext; };
 struct LN { EDGE *pe; LN *pNext; };
 struct SCALAR {qwordV q;};
+// Inline helpers InitScalar, ScaleS, Neighbor, SideAt, CoefficientAt: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
-/** @sly2-annot addr=0x224380
- * Purpose: walks contact edges, picks neighbouring actor (0x224638, 0x224508)
- * Info: proposed name UpdateCid100Contacts (T2); class CID100 slot58; TU tu_223F70
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00224380(CID100V *p)
+// walks contact edges, picks neighbouring actor (IsTossableStateBlocking, IsTossableChainFree). (inferred)
+extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
     SOV *q;
     EDGE *pe;
     LN *pln;
     SOV *id;
-    AdjustSoXps(p);
-    if (!p->state && D_002DDED0.t - p->time < D_002C42E0) return;
-    pln = p->ptree->pln;
-    id = p->ptree->owner;
+    AdjustSoXps(gadget);
+    if (!gadget->state && D_002DDED0.t - gadget->time < D_002C42E0) return;
+    pln = gadget->ptree->pln;
+    id = gadget->ptree->owner;
     for (; pln; pln = pln->pNext) {
         pe = pln->pe;
         while (pe) {
             int i = pe->as[0].x8 != id;
-            if (pe->as[i].po->p != p) {
+            if (pe->as[i].po->p != gadget) {
                 pe = pe->pNext;
                 continue;
             }
             q = Neighbor(*SideAt(pe,1-i));
-            if (pe->k9C != 8 && func_00224638(p) && func_00224508(p, q)) {
+            if (pe->k9C != 8 && IsTossableStateBlocking(gadget) && IsTossableChainFree(gadget, q)) {
                 SCALAR home;
-                p->pneighbor=q;
-                p->sentinel=2;
+                gadget->pneighbor=q;
+                gadget->sentinel=2;
                 InitScalar(home,*CoefficientAt(D_002C3C60,i));
-                p->direction=ScaleS(pe->v80,home);
-            } else if (!p->state && p->sentinel == -1) {
-                p->sentinel = 4;
+                gadget->direction=ScaleS(pe->v80,home);
+            } else if (!gadget->state && gadget->sentinel == -1) {
+                gadget->sentinel = 4;
             }
             pe = pe->pNext;
         }
     }
 }
 
-/** @sly2-annot addr=0x224508
- * Purpose: returns 0 if any node in list has one of 4 flags D_002C42E8
- * Info: proposed name FCid100ChainFree (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-int func_00224508(CID100V *p, SOV *q)
+// returns 0 if any node in list has one of 4 flags D_002C42E8. (inferred)
+int IsTossableChainFree(CID100V *gadget, SOV *q)
 {
     unsigned i;
     for (; q; q = q->psoParent) {
@@ -429,111 +362,77 @@ int func_00224508(CID100V *p, SOV *q)
     return 1;
 }
 
-/** @sly2-annot addr=0x224590
- * Purpose: returns state in {1,2}
- * Info: proposed name FCid100Active (T2); class CID100; TU tu_223F70
- * Notes: agent qualifier: state 1 or 2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" int func_00224590(CID100V *p)
+// returns state in {1,2}. (inferred)
+extern "C" int IsTossableActive(CID100V *gadget)
 {
-    switch (p->state) { case 1: case 2: return 1; }
+    switch (gadget->state) { case 1: case 2: return 1; }
     return 0;
 }
 
-/** @sly2-annot addr=0x2245B8
- * Purpose: Fire a held/stuck Bentley gadget object: Health Extractor (id 11) -> SetCid100State(5), else
- *   (Trigger Bomb) -> state 3. Caller HandleStepplayerMessage msg 9 kind 0x27C (2nd gadget press, JTGRAB
- *   nState 0xB)
- * Info: proposed name TriggerCid100 (T2); TU tu_223F70
- * Notes: descriptive only: Cid100 release state | no usable identifier; purpose only | runtime5a #17: S51
- *   JTGRAB tEnter 571.17, bomb state 3 at 571.57 | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.60] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime5a
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648
- * @end-sly2-annot */
-extern "C" void func_002245B8(CID100V *p)
+// Fire a held/stuck Bentley gadget object: Health Extractor (id 11) -> SetCid100State(5), else (Trigger Bomb) ->
+// state 3. Caller HandleStepplayerMessage msg 9 kind 0x27C (2nd gadget press, JTGRAB nState 0xB). (inferred)
+extern "C" void TriggerTossable(CID100V *gadget)
 {
-    if (p->kind == 11) VCALL(p, 76), 5);
-    else VCALL(p, 76), 3);
+    if (gadget->kind == 11) VCALL(gadget, 76), 5);
+    else VCALL(gadget, 76), 3);
 }
 
-/** @sly2-annot addr=0x224610
- * Purpose: True if the gadget id (+0x15C) is 7 (Trigger Bomb) or 11 (Health Extractor)
- * Info: proposed name FCid100ThrowableGadget (T2); class CID100; TU tu_223F70
- * Notes: verifier PLAUSIBLE: FCid100Held? (state 7 or 11) -> FCid100State7Or11 | v3: superseded
- *   FCid100State7Or11 | runtime5a #16 CORRECTION: reads +0x15C = gadget id (runtime bomb +0x15C = 7), not the
- *   state +0x150; v2 FCid100State7Or11 | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.70] - evidence: runtime (save-state RAM); sources:
- *   r8_21BB88+verdicts_tu_r7r8+runtime5a
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" int func_00224610(CID100V *p)
+// True if the gadget id (+0x15C) is 7 (Trigger Bomb) or 11 (Health Extractor). (inferred)
+extern "C" int IsThrowableGadget(CID100V *gadget)
 {
-    int x = p->kind; if (x != 7 && x != 11) return 0; return 1;
+    int x = gadget->kind; if (x != 7 && x != 11) return 0; return 1;
 }
 
-/** @sly2-annot addr=0x224638
- * Purpose: state table predicate (4 with flag; 5,7,9,11,13,26,37,41)
- * Info: proposed name FCid100StateBlocks (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-int func_00224638(CID100V *p)
+// state table predicate (4 with flag; 5,7,9,11,13,26,37,41). (inferred)
+int IsTossableStateBlocking(CID100V *gadget)
 {
-    switch (p->kind) {
-    case 4: return p->state == 1;
+    switch (gadget->kind) {
+    case 4: return gadget->state == 1;
     default: return 0;
     case 5: case 7: case 9: case 11: case 13: case 26: case 37: case 41: return 1;
     }
 }
 
-/** @sly2-annot addr=0x224688
- * Purpose: True if the gadget id (+0x15C) is 11 (Health Extractor)
- * Info: proposed name FCid100HealthExtractor (T2); class CID100; TU tu_223F70
- * Notes: v3: superseded FCid100State11 | runtime5a #17: +0x15C is the gadget id; v2 FCid100State11 | T2:
- *   placeholder token Cid100
- * Confidence: low (draft) [T2 0.65] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime5a
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-int func_00224688(CID100V *p) {
-    return p->kind == 0xB;
+// True if the gadget id (+0x15C) is 11 (Health Extractor). (inferred)
+int IsHealthExtractor(CID100V *gadget) {
+    return gadget->kind == 0xB;
 }
 
 // Orient an active linked object toward its target in the horizontal plane.
+// VU helpers of the probes: move/load into VU registers, difference, horizontal projection, length, lane x.
 static inline qwordV ToVF(qwordV a) { qwordV r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
+// Inline helpers Read, Sub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qwordV Read(const qwordV &a) { qwordV r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
 static inline qwordV Sub(qwordV a,qwordV b) { qwordV r;__asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
+// Removes the component of d along the up axis (projects d onto the horizontal plane).
 static inline qwordV Flatten(qwordV d,qwordV up) {
     qwordV t,one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(t),"=&j"(one) : "j"(d),"j"(up));
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(t) : "j"(up),"j"(t));
     return Sub(d,t);
 }
+// Inline helper DotSelf: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline qwordV DotSelf(qwordV d) { qwordV len,one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(len),"=&j"(one) : "j"(d));return len; }
+// Square root of lane x.
 static inline qwordV Sqrt(qwordV len) {
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(len));return len; }
+// Inline helpers X, ScaleQ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float X(qwordV v) { float f;__asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(v));return f; }
 static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
-/** @sly2-annot addr=0x224698
- * Purpose: turns linked active object toward target in horizontal plane
- * Info: proposed name OrientCid100ToTarget (T2); class CID100 slot70; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00224698(CID100V *p) {
+// turns linked active object toward target in horizontal plane. (inferred)
+extern "C" void OrientTossableToTarget(CID100V *gadget) {
     M3 m;
-    if(p->state==0 || p->state==4)return;
-    PresetSoAccel(p);
-    if(p->kind!=0x1A && p->kind!=0x29)return;
-    if(p->nearest) {
-        qwordV a=ToVF(GetLoWorldPos(p->nearest));
-        qwordV b=GetLoWorldPos(p);
+    if(gadget->state==0 || gadget->state==4)return;
+    PresetSoAccel(gadget);
+    if(gadget->kind!=0x1A && gadget->kind!=0x29)return;
+    if(gadget->nearest) {
+        qwordV a=ToVF(GetLoWorldPos(gadget->nearest));
+        qwordV b=GetLoWorldPos(gadget);
         qwordV d=Flatten(Sub(a,b),Read(D_002A2DC0));
         register qwordV fallback __asm__("a1")=D_002A2DA0;
         qwordV len=Sqrt(DotSelf(d));
@@ -542,12 +441,12 @@ extern "C" void func_00224698(CID100V *p) {
         else n=ScaleQ(d,len);
         m=BuildOrthonormalMatrixZ(n,D_002A2DC0);
     } else {
-        TiltMatUpright(&GetLoWorldMatrix(p)->basis,0,&m);
+        TiltMatUpright(&GetLoWorldMatrix(gadget)->basis,0,&m);
     }
-    AccelSoTowardMatSpring(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
+    AccelSoTowardMatSpring(gadget,&m,D_002C4300,D_002A2DD0,D_002C4310);
 }
 
-// func_00224820: trace a probe segment, record the contact in the caller's HIT list, and push the touched body.
+// ProbeTossableHit: trace a probe segment, record the contact in the caller's HIT list, and push the touched body.
 // - Segment start..end goes through PsoHitTestLineObjects; the hit object's eligible actor comes from FindZapResponder.
 // - A new HIT record (deduplicated by object, up to capacity) gets owner/object/filter/channel/point and
 //   impulse = normal * D_002C4334 (the target speed).
@@ -563,15 +462,22 @@ extern "C" void func_00224698(CID100V *p) {
 // - MkVuk*/ScaleK/AddScaledK take their scalar as a by-value struct TEMPORARY: that temp is the shared 0x60($sp)
 //   home of the original (sqc2 vf,0x60 / qmfc2+sq 0x60), so there is no separate `scalar` local.
 static inline qwordV SubP(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Inline helpers AddP, CrossXYZ, QwDot: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline qwordV AddP(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qwordV CrossXYZ(qwordV a,qwordV b){__asm__("vopmula.xyz ACC,%1,%0\n\tvopmsub.xyz %0,%0,%1":"+j"(b):"j"(a));return b;}
 static inline qwordV QwDot(qwordV a, qwordV b){qwordV qw;qwordV vfOne;
  __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));return qw;}
 // the extra "j"(qw) is allocation-only: it makes qw a VU-class pseudo, so the compiler's qmfc2 comes from the dot result (vf1)
 static inline float GXOfQw(qwordV qw){float x;__asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));return x;}
+// Inline helpers DotP, BitsOfFloat: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float DotP(qwordV a,qwordV b){return GXOfQw(QwDot(a,b));}
 static inline int BitsOfFloat(float f){int n;__asm__("mfc1 %0,%1":"=r"(n):"f"(f));return n;}
 struct VUK{qwordV q;};
+// Inline helpers MkVukBits, MkVuk, ScaleK, AddScaledK, Clamp, Get, Set, Pin: small vector/scalar wrappers (a few VU0/EE
+// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
+// the names say what they compute.
 static inline VUK MkVukBits(int n){VUK r;__asm__("qmtc2.ni %1,%0":"=j"(r.q):"r"(n));return r;}
 static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));return r;}
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
@@ -580,13 +486,8 @@ static inline float Clamp(float f,float lo,float hi){float r;if(f<lo)r=lo;else i
 static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
 static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
-/** @sly2-annot addr=0x224820
- * Purpose: traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*)
- * Info: proposed name ProbeCid100Hit (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void func_00224820(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
+// traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*). (inferred)
+void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  SOV *owner=Pin(ownerIn);LSG hit;int bits;
  COLL *collider=FindFirstObjectHitByLine(0,start,end,queryCount,objects,&hit);
  if(!collider)return;
@@ -634,16 +535,13 @@ void func_00224820(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,i
  }
 }
 
+// Inline helpers VAdd, VSub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
+// the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 struct COLLA { XFV *pb; };
-/** @sly2-annot addr=0x224BF8
- * Purpose: builds probe sphere set and calls 0x224820 per probe
- * Info: proposed name SweepCid100Probes (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
+// builds probe sphere set and calls ProbeTossableHit per probe. (inferred)
+void SweepTossableProbes(CID100V *gadget, int a, int b, qwordV pos, float r)
 {
     STACKSCOPEMK mark;
     HIT ax[0x20];
@@ -652,39 +550,37 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
     int cx;
     int i, j, k, m;
     STACKSCOPE_ctor(&mark);
-    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, p->ptree, r, &c, &apa);
+    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, gadget->ptree, r, &c, &apa);
     cx = 0;
     for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
         for (j = 0; j < D_002C4368[i]; j++) {
             qwordV v = SetVectorSphere((float)j * 2.0f * 3.1415927f / (float)D_002C4368[i], D_002C4338[i], r);
-            func_00224820(p, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
+            ProbeTossableHit(gadget, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
         }
     }
     for (k = 0; k < c; k++) {
         qwordV v = LimitVectorLength(VSub(((COLLA *)apa[k])->pb->position.q, pos), r);
-        func_00224820(p, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
+        ProbeTossableHit(gadget, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
     }
     for (m = 0; m < cx; m++)
         DeliverZapToSo(&ax[m]);
-    NewNoise(D_003DD490.x402C, pos, p)->x54 = 1;
+    NewNoise(D_003DD490.x402C, pos, gadget)->x54 = 1;
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
-/** @sly2-annot addr=0x224E70
- * Purpose: SetLoParent(this,0,1) then 0x224BF8 at world pos
- * Info: TU tu_223F70
- * Notes: descriptive only: Cid100 detach+sweep | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
-extern "C" void func_00224E70(CID100V *p, float f)
+// SetLoParent(this,0,1) then SweepTossableProbes at world pos. (inferred)
+extern "C" void DropTossable(CID100V *gadget, float f)
 {
-    SetLoParent(p, 0, 1);
-    func_00224BF8(p, p->n174, p->n178, GetLoWorldPos(p), f);
+    SetLoParent(gadget, 0, 1);
+    SweepTossableProbes(gadget, gadget->n174, gadget->n178, GetLoWorldPos(gadget), f);
 }
 
 // Transition actor controller state.
-/* not volatile, unlike func_00224698's ToVF */
+/* not volatile, unlike OrientTossableToTarget's ToVF */
 static inline qwordV ToVFN(qwordV v){qwordV r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
+// Inline helpers SubT, Normalize, LengthT: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qwordV SubT(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 static inline qwordV Normalize(qwordV v){qwordV len,one,result;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
@@ -694,12 +590,15 @@ static inline float LengthT(qwordV v){qwordV one;float f;
  __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(v),"=j"(one));
  __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(v));
  __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(v));return f;}
+// Zeroes a 3-float vector / an XF velocity.
 static inline void Zero(float *v){v[0]=v[1]=v[2]=0.0f;}static inline void ZeroVelocity(XFV *n){Zero(n->velocity.f);}
-static inline SOV *FindNearest(CID100V *p,int count,SOV **objects,SOV *nearest,float best){
+// Nearest candidate object to the gadget, with the height difference counted double (vertical distance weighs
+// more); starts from the incoming best.
+static inline SOV *FindNearest(CID100V *gadget,int count,SOV **objects,SOV *nearest,float best){
   for(int i=0;i<count;i++){
    SOV *object=objects[i];
    qwordV position=ToVFN(GetLoWorldPos(object));
-   qwordV origin=GetLoWorldPos(p);
+   qwordV origin=GetLoWorldPos(gadget);
    V delta;
    delta.q=SubT(position,origin);
    delta.f[2]+=delta.f[2];
@@ -707,6 +606,8 @@ static inline SOV *FindNearest(CID100V *p,int count,SOV **objects,SOV *nearest,f
    if(distance<best){best=distance;nearest=object;}
   }
 return nearest;}
+// Inline helper MakeBasis: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
  qwordV v=rawUp,len,one,normalized;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
@@ -719,72 +620,57 @@ static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x224EC8
- * Purpose: CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to
- *   surface +0x1A0, 3 detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114
- * Info: proposed name SetCid100State (T2); class CID100 slot76; TU tu_223F70
- * Notes: runtime5a #19 CLARIFIED: states -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health-extract;
- *   SMA goal D_002C4398[state] | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void func_00224EC8(CID100V *p,int state){
- int old=p->state;
+// CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to surface +0x1A0, 3
+// detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114. (inferred)
+void SetTossableState(CID100V *gadget,int state){
+ int old=gadget->state;
  if(state==old)return;
- p->state=state;p->time=D_002DDED0.t;p->sentinel=-1;
- ReleaseAct(&p->positionJob);
- ReleaseAct(&p->rotationJob);
- if(old==0||old==4)RecalcSwOxfFilterForObject(&D_003DD490,p);
- switch(p->state){
+ gadget->state=state;gadget->time=D_002DDED0.t;gadget->sentinel=-1;
+ ReleaseAct(&gadget->positionJob);
+ ReleaseAct(&gadget->rotationJob);
+ if(old==0||old==4)RecalcSwOxfFilterForObject(&D_003DD490,gadget);
+ switch(gadget->state){
  case 0:{
-  SetSoCnstrForce(p,0);SetSoCnstrTorque(p,0);
-  ZeroVelocity(p->pxfPos);ZeroVelocity(p->pxfRot);
-  qwordV position=p->pxfPos->orientation;
-  qwordV rotation=DecomposeRotationMatrixToEuler(p->pxfRot);
-  p->positionJob=NewPositionAct(p,p->pxfPos,0,7,2,position);
-  p->rotationJob=NewPositionAct(p,p->pxfRot,0,7,2,rotation);
-  RecalcSwOxfFilterForObject(&D_003DD490,p);
+  SetSoCnstrForce(gadget,0);SetSoCnstrTorque(gadget,0);
+  ZeroVelocity(gadget->pxfPos);ZeroVelocity(gadget->pxfRot);
+  qwordV position=gadget->pxfPos->orientation;
+  qwordV rotation=DecomposeRotationMatrixToEuler(gadget->pxfRot);
+  gadget->positionJob=NewPositionAct(gadget,gadget->pxfPos,0,7,2,position);
+  gadget->rotationJob=NewPositionAct(gadget,gadget->pxfRot,0,7,2,rotation);
+  RecalcSwOxfFilterForObject(&D_003DD490,gadget);
   break;
  }
  case 2:{
-  SetSoCnstrForce(p,1);SetSoCnstrTorque(p,1);
-  ZeroVelocity(p->pxfPos);ZeroVelocity(p->pxfRot);
-  if(func_00224688(p)&&p->pxfRot){
-   qwordV direction=Normalize(ToVFN(ConvertXfVec(0,p->pxfRot->parent,p->direction)));
-   qwordV rawUp=ConvertXfVec(0,p->pxfRot->parent,D_002A2DC0);
+  SetSoCnstrForce(gadget,1);SetSoCnstrTorque(gadget,1);
+  ZeroVelocity(gadget->pxfPos);ZeroVelocity(gadget->pxfRot);
+  if(IsHealthExtractor(gadget)&&gadget->pxfRot){
+   qwordV direction=Normalize(ToVFN(ConvertXfVec(0,gadget->pxfRot->parent,gadget->direction)));
+   qwordV rawUp=ConvertXfVec(0,gadget->pxfRot->parent,D_002A2DC0);
    M3 basis;basis=MakeBasis(direction,rawUp);
-   p->rotationJob=NewPositionAct(p,p->pxfRot,0,7,2,DecomposeRotationMatrixToEuler(&basis));
+   gadget->rotationJob=NewPositionAct(gadget,gadget->pxfRot,0,7,2,DecomposeRotationMatrixToEuler(&basis));
   }
   break;
  }
  case 1:{
-  SetLoParent(p,0,15);SetSoCnstrForce(p,0);
-  if(p->kind!=0x29){SetSoCnstrTorque(p,0);break;}
-  SetSoCnstrTorque(p,1);
+  SetLoParent(gadget,0,15);SetSoCnstrForce(gadget,0);
+  if(gadget->kind!=0x29){SetSoCnstrTorque(gadget,0);break;}
+  SetSoCnstrTorque(gadget,1);
   SOV *objects[32];
   int count=CploFindSwObjectsByClass(&D_003DD490,0x105,0x38,0,32,objects);
-  p->nearest=FindNearest(p,count,objects,D_002E1E40,D_002A97A8);
+  gadget->nearest=FindNearest(gadget,count,objects,D_002E1E40,D_002A97A8);
   break;
  }
  case 4:
-  RecalcSwOxfFilterForObject(&D_003DD490,p);
-  FadeSoOut(p,0.25f);
+  RecalcSwOxfFilterForObject(&D_003DD490,gadget);
+  FadeSoOut(gadget,0.25f);
   break;
  }
- if(p->psma&&p->state>=0)SetSmaGoalIfReachable(p->psma,D_002C4398[p->state]);
+ if(gadget->psma&&gadget->state>=0)SetSmaGoalIfReachable(gadget->psma,D_002C4398[gadget->state]);
 }
 
-/** @sly2-annot addr=0x2252E0
- * Purpose: calls InitCid100
- * Info: proposed name InitCid102 (T2); class CID102 slot7; TU tu_223F70
- * Notes: names_v2 C proposed ExtendLasen__FP5LASENf (0.200)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-void CID102::Init() { CID100V *p = (CID100V *)this;
-    func_00223F70(p);
+// calls InitCid100. (inferred)
+void CID102::Init() { CID100V *gadget = (CID100V *)this;
+    InitTossable(gadget);
 }
 
 // State-5 update: fade the actor in, hand it control of the source's basis, then drop a prize and leave state 3.
@@ -805,67 +691,58 @@ static inline float LengthL(qwordV d) {
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d)); return f;
 }
+// Clamps *pg to an LM range.
 static inline void ClampLm(float *pg,LMV *plm){float gMax=plm->gMax,gMin=plm->gMin;if(*pg<gMin)*pg=gMin;else if(gMax<*pg)*pg=gMax;}
+// Broadcasts a float to all four lanes.
 static inline qwordV Splat(float f) {
     int b; qwordV r,t;
     __asm__("mfc1 %0,%1" : "=r"(b) : "f"(f));
     __asm__("pextlw %0,%2,%2\n\tpextlw %1,%0,%0" : "=r"(t),"=r"(r) : "r"(b));
     return r;
 }
-/** @sly2-annot addr=0x225300
- * Purpose: state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3
- * Info: proposed name UpdateCid102 (T2); class CID102 slot16; TU tu_223F70
- * Notes: names_v2 C proposed UpdateCamsen__FP6CAMSENf (0.290)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00225300(CID100V *p) {
+// state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3. (inferred)
+extern "C" void UpdateGuardTrap(CID100V *gadget) {
     int old;
-    func_002240B0(p);
+    UpdateTossable(gadget);
     do {
-        old=p->state;
+        old=gadget->state;
         if(old==5) {
             R30 *r;
-            if(!p->actor) {
-                VCALL(p, 76),3);
-            } else if(!(r=FindStepBehavior(p->actor,0xB0)) || IsBhvThrownDone(r)) {
-                VCALL(p, 76),2);
+            if(!gadget->actor) {
+                VCALL(gadget, 76),3);
+            } else if(!(r=FindStepBehavior(gadget->actor,0xB0)) || IsBhvThrownDone(r)) {
+                VCALL(gadget, 76),2);
             } else {
-                M3 m((p->source?GetLoWorldMatrix(p->source):GetLoWorldMatrix(p))->basis);
-                SetStepguardMoverTargetMatrix(&p->actor->basis,&m);
+                M3 m((gadget->source?GetLoWorldMatrix(gadget->source):GetLoWorldMatrix(gadget))->basis);
+                SetStepguardMoverTargetMatrix(&gadget->actor->basis,&m);
                 if(r->state!=4) {
-                    qwordV pos=p->source?GetLoWorldPos(p->source):GetLoWorldPos(p);
+                    qwordV pos=gadget->source?GetLoWorldPos(gadget->source):GetLoWorldPos(gadget);
                     qwordV other;
-                    other=GetLoWorldPos(p->actor);
+                    other=GetLoWorldPos(gadget->actor);
                     if(LengthL(Sub(pos,other))<100.0f)SetBhvThrownState(r,4);
                 }
-                if(p->actor->color) {
-                    float t=(D_002DDED0.t-p->time)/D_002C43B0;
+                if(gadget->actor->color) {
+                    float t=(D_002DDED0.t-gadget->time)/D_002C43B0;
                     float g=D_002C43C0[0]+t*(D_002C43C0[1]+t*D_002C43C0[2]);
                     ClampLm(&g,&D_002BBB60);
-                    SetActPositionGoal(p->actor->color,Splat(g));
+                    SetActPositionGoal(gadget->actor->color,Splat(g));
                 }
-                if(D_002C43B0<D_002DDED0.t-p->time) {
-                    SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(p->source),p,1);
-                    VCALL(p->actor, 9));
+                if(D_002C43B0<D_002DDED0.t-gadget->time) {
+                    SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(gadget->source),gadget,1);
+                    VCALL(gadget->actor, 9));
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
                     register GAME *pgame asm("$4")=&D_002DEB30;
-                    BroadcastGameEvent(pgame,0x18,p->actor);
-                    VCALL(p, 76),3);
+                    BroadcastGameEvent(pgame,0x18,gadget->actor);
+                    VCALL(gadget, 76),3);
                 }
             }
         }
-    } while(p->state!=old);
+    } while(gadget->state!=old);
 }
 
 struct MSGO { int a; SOV *o; };
-/** @sly2-annot addr=0x2255C8
- * Purpose: negated vector -> 0x1FAC30
- * Info: class CID102 slot71; TU tu_223F70
- * Notes: descriptive only: Cid102 impulse helper | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
-extern "C" void func_002255C8(CID100V *p, MSGO *q)
+// negated vector -> AddSoAcceleration. (inferred)
+extern "C" void PushGuardTrapAway(CID100V *gadget, MSGO *q)
 {
     SOV *o = q->o;
     union { qwordV q; float f[4]; } u;
@@ -876,12 +753,13 @@ extern "C" void func_002255C8(CID100V *p, MSGO *q)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(o->psophys->v80), "j"(s));
     u.q = s;
     AddSoAcceleration(o, r);
-    if (p->source) v = GetLoWorldPos(p->source); else v = GetLoWorldPos(p);
+    if (gadget->source) v = GetLoWorldPos(gadget->source); else v = GetLoWorldPos(gadget);
     AccelSoTowardPosSpring(o, v, D_002C43D0, D_002A2DD0, D_002C43E0);
 }
 
 // Change selection state and prepare the nearest eligible actor.
 extern "C" qwordV SourcePosition(void * source) __asm__("GetLoWorldPos");
+// Distance between two points.
 static __inline__ float GDist(qwordV a, qwordV b)
 {
     qwordV d, t;
@@ -907,34 +785,28 @@ static inline qwordV LoadCoefficient(){
     return scalar;
 }
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
-/** @sly2-annot addr=0x225660
- * Purpose: change selection state and prepare nearest eligible actor
- * Info: proposed name SenseCid102 (T2); class CID102 slot76; TU tu_223F70
- * Notes: names_v2 C proposed SenseCamsen__FP6CAMSENP7SENSORS (0.438) | agent qualifier: select nearest actor
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
-extern "C" void func_00225660(CID100V *p, int k)
+// change selection state and prepare nearest eligible actor. (inferred)
+extern "C" void SelectGuardTrapTarget(CID100V *gadget, int k)
 {
-    if (k == p->state)
+    if (k == gadget->state)
         return;
-    if (p->state == 5 && p->actor) {
+    if (gadget->state == 5 && gadget->actor) {
         R30 *pv;
-        RemoveSoXa(p->actor, &p->hook);
-        pv = FindStepBehavior(p->actor, 0xB0);
+        RemoveSoXa(gadget->actor, &gadget->hook);
+        pv = FindStepBehavior(gadget->actor, 0xB0);
         if (pv)
             SetBhvThrownState(pv, 2);
-        if (p->actor->color)
-            SetActPositionGoal(p->actor->color, D_002A2DE0);
-        p->actor = 0;
+        if (gadget->actor->color)
+            SetActPositionGoal(gadget->actor->color, D_002A2DE0);
+        gadget->actor = 0;
     }
-    func_00224EC8(p, k);
+    SetTossableState(gadget, k);
     if (k == 5) {
         ACTOR *apo[0x20];
         int c, i;
         float gBest;
         ACTOR *poBest;
-        Vec pos(p->source?SourcePosition(p->source):GetLoWorldPos(p));
+        Vec pos(gadget->source?SourcePosition(gadget->source):GetLoWorldPos(gadget));
         c = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)apo);
         gBest = 400.0f;
         poBest = 0;
@@ -951,10 +823,10 @@ extern "C" void func_00225660(CID100V *p, int k)
         if (poBest) {
             VU u, v;
             qwordV q, s, r;
-            p->actor = poBest;
-            p->hook.owner = p;
-            p->hook.object = poBest;
-            AddSoXa(poBest, &p->hook);
+            gadget->actor = poBest;
+            gadget->hook.owner = gadget;
+            gadget->hook.object = poBest;
+            AddSoXa(poBest, &gadget->hook);
             q = poBest->pvt[33].get((char *)poBest + poBest->pvt[33].d);
             s=LoadCoefficient();
             u.q = q;

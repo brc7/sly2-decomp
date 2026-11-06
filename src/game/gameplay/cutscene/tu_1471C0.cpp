@@ -1,5 +1,9 @@
-// tu_1471C0.cpp -- a cutscene/hand-off object (an SO): state machine with hands-off and clock scaling, message
-// handling, an animation it applies, and a two-matrix GIF sprite drawn over the screen. VU0 asm (one helper).
+// tu_1471C0.cpp -- CID104, the frame-capture transition: an SO that, when started, copies the current frame buffer
+// into a texture, takes the player's hands off, slows the game clock and plays a sound, then draws the captured frame
+// as two textured quads placed by two child objects (a split/flip screen transition) until its animation ends.
+// D_002DD644 points at the running one; the main loop calls DrawFrameCaptureScreen. Entry points: the CID104 vtable
+// (InitFrameCapture, PostLoad, UpdateFrameCapture, HandleFrameCaptureMessage), StartFrameCapture (Splice) and
+// DrawFrameCaptureScreen / IsFrameCaptureInactive (main loop). VU0 asm (one helper).
 // TU 0x1471C0..0x147E20 (11 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1471C0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00147E00
@@ -34,12 +38,12 @@ struct P
     float tState;       /* +0x154 */
     char *ap158[2];     /* +0x158 the two objects whose matrices (+0x40) place the sprite */
     ASEGA *pasega;      /* +0x160 */
-    int f164;           /* +0x164 */
-    int f168;           /* +0x168 */
-    int f16C;           /* +0x16C */
-    int n170;           /* +0x170 */
+    int drawQuad0;      /* +0x164 per-quad draw flags, toggled by animation events */
+    int drawQuad1;      /* +0x168 */
+    int drawQuad2;      /* +0x16C */
+    int unknown170;     /* +0x170 */
 };
-typedef char assert_P_n170[(unsigned int)&((P *)0)->n170 == 0x170 ? 1 : -1];
+typedef char assert_P_n170[(unsigned int)&((P *)0)->unknown170 == 0x170 ? 1 : -1];
 struct MSG { void *pvSrc; int b; int k; };   /* kind 9: an animation event from pvSrc */
 struct CLOCKV { char pad[0x3C]; float t3C; };
 struct VECTOR4F { float x, y, z, w; };
@@ -66,7 +70,7 @@ extern char D_002DF4B0[];
 extern char D_002DFB00[];
 extern char D_002DFB20[];
 extern float D_002BD398[];
-extern float D_002BD39C[] __asm__("D_002BD398+4");   /* D_002BD398[1..]: a separate symbol to g++ (one base changes func_001477D8) */
+extern float D_002BD39C[] __asm__("D_002BD398+4");   /* D_002BD398[1..]: a separate symbol to g++ (one base changes DrawFrameCaptureScreen) */
 extern VECTOR4F D_002BD3B0[4];   /* quad corners */
 extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
@@ -88,8 +92,8 @@ void AppendDlEntry__FP2DLPv(void *p, X14 *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
-void func_001475C0(P *p);
-void func_00147410(P *p, int n);
+void CaptureFramebufferToTexture(P *p);
+void SetFrameCaptureState(P *p, int n);
 void EndDmaCnt__4DMAS(GIFS *pgifs);
 void AddDmaRefs__4DMASiP2QW(GIFS *pgifs, int n, void *pv);
 void AddDmaCnt__4DMAS(GIFS *pgifs);
@@ -104,151 +108,116 @@ void PackUV__4GIFSii(GIFS *pgifs, int a, int b);
 void PackXYZ__4GIFSiii(GIFS *pgifs, int x, int y, int z);
 }
 
-/** @sly2-annot addr=0x1471C0
- * Purpose: cid 0x68 (SO, 0x180) vt7: InitSo, state -1, flags
- * Info: proposed name InitCid104 (T2); class CID104 slot7; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/cutscenes.md#4-source-files,
- *   docs/engine/player.md#10-source-files
- * @end-sly2-annot */
-extern "C" void func_001471C0(P *p)
+// CID104 vtable slot 7 (Init): SO defaults, idle state (-1) and update flags.
+extern "C" void InitFrameCapture(P *capture)
 {
     unsigned int v;
-    InitSo(p);
-    p->state = -1;
-    SetLoBusyk(p, 1);
-    v = p->nTagged;
+    InitSo(capture);
+    capture->state = -1;
+    SetLoBusyk(capture, 1);
+    v = capture->nTagged;
     if ((v ^ 1) & 1) *(int *)v |= 0x102;
-    else p->nTagged = v | 0x102;
+    else capture->nTagged = v | 0x102;
 }
 
-/** @sly2-annot addr=0x147220
- * Purpose: vt15: PostSoLoad, load class table, state -1, vt9
- * Info: proposed name PostCid104Load (T2); class CID104 slot15; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
+// CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
+// and removes itself from the world until started.
 void CID104::VUnk14()
 {
-    P *p = (P *)this;
+    P *capture = (P *)this;
     VTE *e;
-    PostSoLoad(p);
-    BindLoOidTable(p, 2, D_002BD380);
-    e = &p->vt[9];
-    p->state = -1;
-    e->pfn((char *)p + e->d);
+    PostSoLoad(capture);
+    BindLoOidTable(capture, 2, D_002BD380);
+    e = &capture->vt[9];
+    capture->state = -1;
+    e->pfn((char *)capture + e->d);
 }
 
-/** @sly2-annot addr=0x147278
- * Purpose: vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2
- * Info: proposed name UpdateCid104 (T2); class CID104 slot16; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_00147278(P *p)
+// CID104 vtable slot 16 (Update): state 0 (just captured) moves to 1 (showing); state 3 waits until the sound
+// stream is ready, then moves to 2. (inferred)
+extern "C" void UpdateFrameCapture(P *capture)
 {
-    switch (p->state) {
+    switch (capture->state) {
     case 0:
-        func_00147410(p, 1);
+        SetFrameCaptureState(capture, 1);
         return;
     case 3:
-        if (IsDialogPlaying(D_003DD040, p->n170) == 0) {
-            func_00147410(p, 2);
+        if (IsDialogPlaying(D_003DD040, capture->unknown170) == 0) {
+            SetFrameCaptureState(capture, 2);
             return;
         }
         return;
     case 2:
-        ASEGA *pasega = p->pasega;
+        ASEGA *pasega = capture->pasega;
         if (pasega == 0 || FAsegaRetracted(pasega) != 0) {
-            DropAsegaRef(&p->pasega);
-            func_00147410(p, -1);
+            DropAsegaRef(&capture->pasega);
+            SetFrameCaptureState(capture, -1);
         }
         break;
     }
 }
 
-/** @sly2-annot addr=0x147338
- * Purpose: vt5: msg 9 kinds 0x5FB..0x601 toggle three flags or start (state 3)
- * Info: proposed name HandleCid104Message (T2); class CID104 slot5; TU tu_1471C0
- * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_00147338(P *p, int kind, MSG *pmsg)
+// CID104 vtable slot 5 (HandleMessage): animation events (message 9) 0x5FB..0x601 switch the three per-quad draw
+// flags on/off or start the closing phase (state 3). (inferred)
+extern "C" void HandleFrameCaptureMessage(P *capture, int kind, MSG *pmsg)
 {
-    HandleBasicMessage(p, kind, pmsg);
+    HandleBasicMessage(capture, kind, pmsg);
     if (kind != 9) return;
-    if (pmsg->pvSrc != p->pasega) return;
+    if (pmsg->pvSrc != capture->pasega) return;
     switch (pmsg->k) {
-    case 0x5FB: p->f164 = 1; break;
-    case 0x5FC: p->f164 = 0; break;
-    case 0x5FD: p->f168 = 1; break;
-    case 0x5FE: p->f168 = 0; break;
-    case 0x5FF: p->f16C = 0; break;
-    case 0x600: p->f16C = 1; break;
+    case 0x5FB: capture->drawQuad0 = 1; break;
+    case 0x5FC: capture->drawQuad0 = 0; break;
+    case 0x5FD: capture->drawQuad1 = 1; break;
+    case 0x5FE: capture->drawQuad1 = 0; break;
+    case 0x5FF: capture->drawQuad2 = 0; break;
+    case 0x600: capture->drawQuad2 = 1; break;
     case 0x601:
-        if (p->n170 != -1) func_00147410(p, 3);
+        if (capture->unknown170 != -1) SetFrameCaptureState(capture, 3);
         break;
     }
 }
 
-/** @sly2-annot addr=0x147410
- * Purpose: state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate
- *   change (0x14D1D0 on g_clock), IncrementSwHandsOff, vt8
- * Info: proposed name SetDancerState (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: SetCid68State -> SetDancerState
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_00147410(P *p, int state)
+// State change. Leaving idle (-1) makes this the running capture (D_002DD644), starts the sound stream, slows the game
+// clock, takes the player's hands off and adds the object to the world; returning to idle undoes all of it. (inferred)
+extern "C" void SetFrameCaptureState(P *capture, int state)
 {
-    if (state == p->state) return;
-    switch (p->state) {
+    if (state == capture->state) return;
+    switch (capture->state) {
     case -1:
-        D_002DD644 = p;
+        D_002DD644 = capture;
         SetSoundManagerFlags(D_003DD040, 2, 0);
         SetClockRate(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
-        p->vt[8].pfn((char *)p + p->vt[8].d);
-        if (!IsLoInWorld(p)) {
+        capture->vt[8].pfn((char *)capture + capture->vt[8].d);
+        if (!IsLoInWorld(capture)) {
             LOV *plo;
-            AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, p->px14);
-            plo = p->px14->plo;
+            AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, capture->px14);
+            plo = capture->px14->plo;
             plo->vt[23].pfn((char *)plo + plo->vt[23].d);
         }
         break;
     case 3:
-        if (p->pasega) SetAsegaMasterSpeed(p->pasega, 1.0f);
+        if (capture->pasega) SetAsegaMasterSpeed(capture->pasega, 1.0f);
         break;
     }
-    p->state = state;
-    p->tState = D_002DDED0.t3C;
+    capture->state = state;
+    capture->tState = D_002DDED0.t3C;
     switch (state) {
     case -1:
         D_002DD644 = 0;
         SetClockRate(&D_002DDED0, 8, 1.0f);
         SetSoundManagerFlags(D_003DD040, 2, 1);
         DecrementSwHandsOff(D_003DD490, 0);
-        p->vt[9].pfn((char *)p + p->vt[9].d);
+        capture->vt[9].pfn((char *)capture + capture->vt[9].d);
         break;
     case 3:
-        if (p->pasega) SetAsegaMasterSpeed(p->pasega, 0.0f);
+        if (capture->pasega) SetAsegaMasterSpeed(capture->pasega, 0.0f);
         break;
     }
 }
 
-/** @sly2-annot addr=0x1475C0
- * Purpose: GIF/DMA packet copying the frame buffer into a texture (D_002DECD0)
- * Info: proposed name CaptureFramebufferToTexture (T2); TU tu_1471C0
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_001475C0(P *p)
+// Builds and sends the GIF/DMA packet that copies the frame buffer into the capture texture (D_002DECD0).
+extern "C" void CaptureFramebufferToTexture(P *capture)
 {
     GIFS *g = &D_002DEA00;
     TEX *pg = &D_002DECD0;
@@ -279,18 +248,11 @@ extern "C" void func_001475C0(P *p)
     PackXYZ__4GIFSiii(g, 0x9000, 0x8700, 0);
 }
 
-/** @sly2-annot addr=0x1477B0
- * Purpose: 0 in states 2/3 else 1
- * Info: proposed name FDancerScreenInactive (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: FCid68ScreenInactive ->
- *   FDancerScreenInactive
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" int func_001477B0(P *p)
+// True unless the capture is in its closing states (2 or 3); the main loop uses it to decide whether to draw
+// normally. (inferred)
+extern "C" int IsFrameCaptureInactive(P *capture)
 {
-    switch (p->state) {
+    switch (capture->state) {
     case 2:
     case 3:
         return 0;
@@ -303,40 +265,35 @@ union VECTOR4V;
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } VU_VECTOR(const VECTOR4V &v); };
 struct VU_VECTOR4 { qwordV q; VU_VECTOR4() {} VU_VECTOR4(qwordV a) { q = a; } VU_VECTOR4(const VECTOR4F &v) { q = *(qwordV *)&v; } };
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Inline helper VU_VECTOR: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 inline VU_VECTOR::VU_VECTOR(const VECTOR4V &v) { q = v.q; }
 VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
 static inline qwordV operator*(VU_FLOAT f, VU_VECTOR v)
 { qwordV r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
+// Inline helpers SetStq, SetRgba, SetXyz, IFix, Screen: small vector/scalar wrappers (a few VU0/EE instructions in asm,
+// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
 static inline void SetRgba(GIFS *pgifs, const int &rgba) { PackRGBA__4GIFSUi(pgifs, rgba); }
 static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { PackXYZ__4GIFSiii(pgifs, x, y, z); }
 static inline int IFix(const float &g, const int &off) { return ((int)g + off) << 4; }
 static inline float Screen(const float &g, const float &s) { return (g + 0.5f) * s + 0.5f; }
 
-// MATCH (Claude agent, laneL4, 2026-10-24): laneL3v6 (aligned 10) + a `GIFS *pgifs = &D_002DEA00;` local at the top of the j-loop body. Its loop-moved set-up now precedes the D_002BD3F0 one, so sched1 orders DEA00 before the high(D_002BD3F0) and the reload of &D_002BD398 lands in a0 like the target. No pins.
-// laneL3v6 (Claude agent, 2026-10-24): aligned 10 (11 differing). laneL3v5 + the loop-1 counter i reused for t (i = state & 1): one global pseudo gives s4 for both like the target and lets sched2 put the andi in the call's delay slot. Left: j-preheader order only.
-// laneL2v1 (Claude agent, 2026-10-24): aligned 82 (fresh1 90). C++ VU_VECTOR/VU_FLOAT class helpers in the j loop: pass-1 loop 128 / pass-2 101 insns, so 1.0/512/224 and HIGH(D_002BD410) stay in the loop and only f20 is saved. Left: extra dead VU temp stores at 0xC0, D_002BD3B0[j] still strength-reduced, &rw spilled instead of fp.
-// fresh1 (Claude agent, 2026-10-23): aligned 90 (old 98): unsigned loop counters stop gcc reversing both loops (target uses sltiu). Left: p in s1 vs s3; the target's inner loop does not hoist 1.0/512/224/&D_002BD410 or strength-reduce D_002BD3B0[j]; ours hoists them all (f21-f23).
-// DRAFT (Claude agent): HUD 2-matrix GIF sprite draw (state loop 0..2 over x164/x168/x16C; logic complete, regalloc/frame not yet: extra f21-f23, p in s1 vs s3).
-/** @sly2-annot addr=0x1477D8
- * Purpose: From main loop: draw the captured frame as two textured quads transformed by two child matrices
- *   (screen split/flip transition)
- * Info: proposed name DrawDancerScreen (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: DrawCid68Screen -> DrawDancerScreen
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_001477D8(P *p)
+// Called from the main loop: draws the captured frame as textured quads (one per enabled draw flag), each placed by
+// the world matrix of one of the two child objects (the split/flip transition). (inferred)
+// Matching notes: unsigned loop counters (the target uses sltiu); the loop-1 counter is reused for t (i = state & 1);
+// the `GIFS *pgifs = &D_002DEA00;` local at the top of the j-loop body orders the address set-ups like the target.
+extern "C" void DrawFrameCaptureScreen(P *capture)
 {
     M4 am[2];
     float rw;
     unsigned int i;
     int state, stateNext;
-    switch (p->state) {
+    switch (capture->state) {
     case 1:
-        func_001475C0(p);
-        func_00147410(p, 2);
+        CaptureFramebufferToTexture(capture);
+        SetFrameCaptureState(capture, 2);
         break;
     case 2:
     case 3:
@@ -359,7 +316,7 @@ extern "C" void func_001477D8(P *p)
     PackAD__4GIFSll(&D_002DEA00, 8, 0x3800080000AUL);
     for (i = 0; i < 2; i++) {
         M4 m;
-        GetRelativeXfMatrix(&m, 0, p->p60, p->ap158[i] + 0x40);
+        GetRelativeXfMatrix(&m, 0, capture->p60, capture->ap158[i] + 0x40);
         am[i] = m;
     }
     state = 0;
@@ -367,17 +324,17 @@ extern "C" void func_001477D8(P *p)
         switch (state) {
         case 0:
             stateNext = 1;
-            if (!p->f164 || !p->f16C)
+            if (!capture->drawQuad0 || !capture->drawQuad2)
                 goto next;
             break;
         case 1:
             stateNext = 2;
-            if (!p->f168)
+            if (!capture->drawQuad1)
                 goto next;
             break;
         case 2:
             stateNext = 3;
-            if (!p->f164 || p->f16C)
+            if (!capture->drawQuad0 || capture->drawQuad2)
                 goto next;
             break;
         }
@@ -411,27 +368,21 @@ extern "C" void func_001477D8(P *p)
     } while (state < 3);
 }
 
-/** @sly2-annot addr=0x147C20
- * Purpose: set params and find the aseg object to play
- * Info: proposed name StartDancer (T2); class DANCER; TU tu_1471C0
- * Notes: class identity from whole_game WE names/object strings: StartCid68 -> StartDancer
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
- * @end-sly2-annot */
-extern "C" void func_00147C20(P *p, int oid, int n)
+// Splice entry: sets the capture's parameters and looks up the animation (by oid) it plays while showing. (inferred)
+extern "C" void StartFrameCapture(P *capture, int oid, int n)
 {
     char *aseg;
-    p->n170 = n;
-    p->f16C = 1;
-    p->f168 = 1;
-    p->f164 = 1;
-    aseg = (char *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, p);
+    capture->unknown170 = n;
+    capture->drawQuad2 = 1;
+    capture->drawQuad1 = 1;
+    capture->drawQuad0 = 1;
+    aseg = (char *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
     if (aseg) {
         unsigned int v = *(unsigned int *)(aseg + 0x40);
         if ((v ^ 1) & 1) *(int *)v |= 0x100;
         else *(unsigned int *)(aseg + 0x40) = v | 0x100;
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, p, 0.0f, 1.0f, 4, &p->pasega);
-        func_00147410(p, 0);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, capture, 0.0f, 1.0f, 4, &capture->pasega);
+        SetFrameCaptureState(capture, 0);
     }
 }
 

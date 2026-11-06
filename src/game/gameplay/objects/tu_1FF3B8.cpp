@@ -1,4 +1,7 @@
-// tu_1FF3B8.cpp -- a grab spot object (an XFM with GRABSPOTDATA at +0xE0) kept in a global list. VU0 asm.
+// tu_1FF3B8.cpp -- CID39, a free-standing grab spot: an XFM that embeds a GRABSPOT (see grabspot.cpp) and is kept
+// in the world list g_sw.dlCid39 while active, so the player's grab search finds it like the spots built into
+// poles and ledges. Entry points: the CID39 vtable (Init, PostLoad, OnAdd/OnRemove, Clone) and
+// GetOffsetToObjectPosition. VU0 asm.
 // TU 0x1FF3B8..0x1FF690 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1FF3B8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001FF670
@@ -16,18 +19,18 @@ struct K { int a, b; };
 struct GRABXFM
 {
     char pad0[0x38];
-    float g38;          /* +0x038 1e10 at load means "use the default" (D_002C3C58) */
+    float sBusy;        /* +0x038 LO busy radius; 1e10 at load means "use the default" (D_002C3C58) */
     char pad3C[0xA4];
     char grabspot[0x20];/* +0x0E0 GRABSPOTDATA (0x20) */
-    int x100;
-    K k;                /* +0x104 kept across CloneXfm */
+    int unknown100;
+    K listLink;         /* +0x104 kept across CloneXfm (the list link, inferred) */
 };
-typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->k == 0x104 ? 1 : -1];
+typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->listLink == 0x104 ? 1 : -1];
 /* The object a position is measured from (+0x240). */
-struct P { char pad[0x240]; qword pos; };
+struct P { char pad[0x240]; qword position; };
 
 struct DL;
-float D_002C3C58 = 1250.0f;   /* the default radius */
+float D_002C3C58 = 1250.0f;   /* the default busy radius */
 extern "C" {
 void InitXfm(GRABXFM *p);
 void InitGrabspot(void *pgrabspot);
@@ -40,84 +43,42 @@ qword GetLoWorldPos(void *p);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
-/** @sly2-annot addr=0x1FF3B8
- * Purpose: CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70)
- * Info: proposed name InitCid39 (T2); class CID39 slot7; TU tu_1FF3B8
- * Notes: Cid27->Cid39 (CID 0x27=39, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/sound.md#5-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// CID39 vtable slot 7 (Init): XFM defaults, then the embedded grab spot's defaults (InitGrabspot).
 void CID39::Init()
 {
-    GRABXFM *p = (GRABXFM *)this;
-    InitXfm(p);
-    InitGrabspot(p->grabspot);
+    GRABXFM *grabSpot = (GRABXFM *)this;
+    InitXfm(grabSpot);
+    InitGrabspot(grabSpot->grabspot);
 }
 
-/** @sly2-annot addr=0x1FF3E8
- * Purpose: vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58
- * Info: proposed name PostCid39Load (T2); class CID39 slot15; TU tu_1FF3B8
- * Notes: Cid27->Cid39 (CID 0x27=39, vtable)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
-extern "C" void func_001FF3E8(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) p->g38 = D_002C3C58; }
+// CID39 vtable slot 15 (PostLoad): finishes the LO load; an unset busy radius (1e10) becomes 1250 units.
+extern "C" void PostGrabSpotXfmLoad(GRABXFM *grabSpot) { PostLoLoad(grabSpot); if (grabSpot->sBusy == 1e10f) grabSpot->sBusy = D_002C3C58; }
 
-/** @sly2-annot addr=0x1FF438
- * Purpose: vt23: add to SW update array (0x1A6178) and to global DL g_sw.dlCid39
- * Info: proposed name OnCid39Add (T2); class CID39 slot23; TU tu_1FF3B8
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
-extern "C" void func_001FF438(GRABXFM *p)
+// CID39 vtable slot 23 (OnAdd): enters the active world and the world list g_sw.dlCid39.
+extern "C" void OnGrabSpotXfmAdd(GRABXFM *grabSpot)
 {
-    OnLoAdd(p);
-    AppendDlEntry(&g_sw.dlCid39, p);
+    OnLoAdd(grabSpot);
+    AppendDlEntry(&g_sw.dlCid39, grabSpot);
 }
 
-/** @sly2-annot addr=0x1FF470
- * Purpose: vt22: remove from SW update array (0x1A6150) and from DL g_sw.dlCid39
- * Info: proposed name OnCid39Remove (T2); class CID39 slot22; TU tu_1FF3B8
- * Notes: verifier WRONG: OnCid27Remove -> OnCid39Remove | verifier: purpose partly wrong: Slot 22 (OnRemove)
- *   of CID 0x27 = CID39, not table CID27 (0x1B): the same hex/decimal slip. The body is OnLoRemove 0x1A6150
- *   plus RemoveDlEntry(&g_sw.dlCid39); 0x1A | slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object
- *   leaves/enters the active world, incl. proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
-extern "C" void func_001FF470(GRABXFM *p)
+// CID39 vtable slot 22 (OnRemove): leaves the active world and g_sw.dlCid39.
+extern "C" void OnGrabSpotXfmRemove(GRABXFM *grabSpot)
 {
-    OnLoRemove(p);
-    RemoveDlEntry(&g_sw.dlCid39, p);
+    OnLoRemove(grabSpot);
+    RemoveDlEntry(&g_sw.dlCid39, grabSpot);
 }
 
-/** @sly2-annot addr=0x1FF4A8
- * Purpose: Clone: XFM clone (0x2311B0) preserving a key field
- * Info: proposed name CloneCid39 (T2); class CID39 slot41; TU tu_1FF3B8
- * Notes: verifier WRONG: CloneCid27 -> CloneCid39
- * Confidence: low (draft) [T2 0.80] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
-extern "C" void func_001FF4A8(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
+// CID39 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
+extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot) { K listLink = grabSpot->listLink; CloneXfm(grabSpot); grabSpot->listLink = listLink; }
 
-/** @sly2-annot addr=0x1FF4F0
- * Purpose: *pv = PosLoWorld(a) - p->pos when pv non-NULL
- * Info: proposed name GetCid27VecToLo (T2); class CID27; TU tu_1FF3B8
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
-extern "C" void func_001FF4F0(void *a, P *p, qword *pv)
+// If `offset` is non-null, stores the vector from reference's position (+0x240) to the world position of `object`.
+// Used as a grab-spot helper (the reference is a step/player). (inferred)
+extern "C" void GetOffsetToObjectPosition(void *object, P *reference, qword *offset)
 {
-    qword a0, r;
-    if (pv) {
-        a0 = GetLoWorldPos(a);
-        r = VuSub(a0, p->pos);
-        *pv = r;
+    qword objectPos, result;
+    if (offset) {
+        objectPos = GetLoWorldPos(object);
+        result = VuSub(objectPos, reference->position);
+        *offset = result;
     }
 }

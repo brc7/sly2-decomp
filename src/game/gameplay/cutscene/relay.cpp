@@ -1,5 +1,11 @@
-// relay.cpp -- relays (RELAY, scripted command lists) and the scripts that run them (JSG). TU 0x1DFAD8..0x1E5D60
-// (141 functions, address order).
+// relay.cpp -- relays (RELAY): the level scripts' cutscene/sequence lists. A relay is built at load time by its Splice
+// init (the AddRelay* builders append one RELAYCMD each: blocks, waits, alarms, actor moves, camera, sounds, widgets,
+// hands-off...). Firing it starts a script (JSG, here also called a relay script) per block; each frame
+// UpdateRelayScript steps its script through NextJsgCommand until a command is not yet complete
+// (IsJsgCommandComplete). Entry points: the RELAY vtable (InitRelay, LoadRelayFromBrx, CloneRelay, UpdateRelay),
+// FireRelay / FireRelayFromPlayer / StopRelay / ResetRelay / IsRelayFiring (used by other objects), the AddRelay*
+// Splice builders and the JSG vtable (AddJsgRef, ReleaseJsg, HandleJsgMessage).
+// TU 0x1DFAD8..0x1E5D60 (141 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_relay
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001E5D60
 // The two Lilly ports (NextJsgCommand, FIsJsgCommandComplete) share one set of type copies at file scope (identical
@@ -23,7 +29,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
 
-/* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; PjsgNew builds it by hand): a BASIC with its
+/* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
    JSG). DRAFT name RELAYJSG; the bodies read it through the JSGV view. Defined after RELAY (classes.h): this TU emits
    its vtable before RELAY's. */
@@ -374,7 +380,7 @@ void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 struct JSGV : public BASIC
 {
       int cref;
-      struct RELAYV *prelay;
+      struct RELAYV *relay;
       LO *ploContext;
       LO *ploBlock;
       LO *ploActorDefault;
@@ -420,33 +426,33 @@ struct JSGV : public BASIC
 
 struct JSGREF
 {
-    JSGV *pjsg;
+    JSGV *script;
     JSGREF(JSGV *pjsgHold)
     {
-        pjsg = pjsgHold;
-        pjsg->VUnk00();
+        script = pjsgHold;
+        script->VUnk00();
     }
     ~JSGREF()
     {
-        pjsg->VUnk01();
+        script->VUnk01();
     }
 };
 
-void SetJsgHandsOff(JSGV *pjsg, int fHandsOff, int grfHandsOff) __asm__("func_001E50E0");
+void SetJsgHandsOff(JSGV *script, int fHandsOff, int grfHandsOff) __asm__("SetRelayScriptHandsOff");
 
-void GetJsgLocation(JSGV *pjsg, LO *plo, qword *ppos, float *prad) __asm__("GetJsgTargetPosHeading");
+void GetJsgLocation(JSGV *script, LO *plo, qword *ppos, float *prad) __asm__("GetJsgTargetPosHeading");
 
-void SetJsgJt(JSGV *pjsg, struct RELAYCMD *prelaycmdJt, LO *pjt) __asm__("func_001E4EB8");
+void SetJsgJt(JSGV *script, struct RELAYCMD *prelaycmdJt, LO *pjt) __asm__("SetRelayScriptActor");
 
-void EndJsgJtMode(JSGV *pjsg) __asm__("func_001E54B0");
+void EndJsgJtMode(JSGV *script) __asm__("ClearJsgJtMode");
 
-void SetJsgFocus(JSGV *pjsg, LO *plo) __asm__("func_001E5000");
+void SetJsgFocus(JSGV *script, LO *plo) __asm__("SetRelayScriptFocus");
 
-void SetJsgTn(JSGV *pjsg, TN *ptn) __asm__("SetJsgTunnel");
+void SetJsgTn(JSGV *script, TN *ptn) __asm__("SetJsgTunnel");
 
-void UpdateJsg(JSGV *pjsg) __asm__("func_001E1C40");
+void UpdateJsg(JSGV *script) __asm__("UpdateRelayScript");
 
-LO *PloFindJsgObject(JSGV *pjsg, OID oid) __asm__("func_001E1DB8");
+LO *PloFindJsgObject(JSGV *script, OID oid) __asm__("FindJsgObject");
 
 struct VU_FLOAT
 {
@@ -1022,37 +1028,37 @@ struct PARTLINK
       undefined4 unk_0x10[0xD0 / 4];
 };
 
-JSGV *PjsgStartBlock(RELAYV *prelay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("PjsgNew");
+JSGV *PjsgStartBlock(RELAYV *relay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("NewRelayJsg");
 
-JSGV *PjsgFindRelayBlock(RELAYV *prelay, OID oidLabel, JSGV *pjsgExcept) __asm__("func_001E0180");
+JSGV *PjsgFindRelayBlock(RELAYV *relay, OID oidLabel, JSGV *pjsgExcept) __asm__("FindRelayBlockScript");
 
-void EndJsg(JSGV *pjsg) __asm__("RemoveJsg");
+void EndJsg(JSGV *script) __asm__("RemoveJsg");
 
-extern "C" void AddJsgStepHold(JSGV *pjsg, LO *plo, int n5, int n6);
+extern "C" void AddJsgStepHold(JSGV *script, LO *plo, int n5, int n6);
 
-extern "C" void RemoveJsgStepHold(JSGV *pjsg, LO *plo, int n5, int n6);
+extern "C" void RemoveJsgStepHold(JSGV *script, LO *plo, int n5, int n6);
 
-void StartJsgCamBlend(JSGV *pjsg, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt) __asm__("func_001E57A0");
+void StartJsgCamBlend(JSGV *script, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt) __asm__("StartRelayScriptCamBlend");
 
-void PopJsgCamBlend(JSGV *pjsg, int n) __asm__("func_001E5A98");
+void PopJsgCamBlend(JSGV *script, int n) __asm__("EndJsgCamBlend");
 
-float DtJsgCommand(JSGV *pjsg, RELAYCMD *prelaycmd) __asm__("func_001E4530");
+float DtJsgCommand(JSGV *script, RELAYCMD *prelaycmd) __asm__("GetJsgCommandDuration");
 
-extern "C" void TriggerOneRsmg(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *pjsg, SMA **ppsma);
+extern "C" void TriggerOneRsmg(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *script, SMA **ppsma);
 
 extern "C" int SwStubFalse();
 
 extern "C" void ShowTitleScreen(void *pv);
 
-extern "C" void func_001531A8(LO *plo, int n, int cent, void *aent);
+extern "C" void SetRhythmManagerPrompts(LO *plo, int n, int cent, void *aent);
 
-extern "C" void func_001532D8(LO *plo, LO *ploActor, int n5, int n6, float g);
+extern "C" void PushRhythmManagerCue(LO *plo, LO *ploActor, int n5, int n6, float g);
 
 extern "C" void StartMurrayStruggle(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8);
 
 extern "C" void EnterMurrayThrowAim(MURRAY *pmurray);
 
-void ReleaseJsgSma(JSGV *pjsg) __asm__("ClearJsgSma");
+void ReleaseJsgSma(JSGV *script) __asm__("ClearJsgSma");
 
 extern "C" void StartJtThrowFlight(MOVEREC *pmr, LO *plo);
 
@@ -1210,9 +1216,9 @@ void StopStepClip(STEPPLAYER *pstepplayer) __asm__("StopStepplayerScriptAnim");
 
 void SetJtGoalPos(JTGOAL *pjtgoal, qword qwPos) __asm__("SetJtgoal");
 
-void RemoveRelayAlarm(RELAYV *prelay, ALARM *palarm) __asm__("func_001E0070");
+void RemoveRelayAlarm(RELAYV *relay, ALARM *palarm) __asm__("RemoveAlarmFromRelay");
 
-int FRelayHasAlarm(RELAYV *prelay, ALARM *palarm) __asm__("FWipingAseg__FP4ASEG");
+int FRelayHasAlarm(RELAYV *relay, ALARM *palarm) __asm__("IsRelayAlarm");
 
 int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("IsGuardRunningScript");
 
@@ -1228,15 +1234,15 @@ extern SW D_003DD490;           /* g_sw */
 int FFindDlEntry(DL *pdl, void *pv);
 extern "C" {
 LO *GetHeroPo(SW *psw);
-void FireRelay(RELAYV *prelay, LO *ploFirer);
-void StopRelay(RELAYV *prelay);
-RELAYCMD *PrelaycmdAddRelay(RELAYV *prelay, int relayck, int fAsync);
+void FireRelay(RELAYV *relay, LO *ploFirer);
+void StopRelay(RELAYV *relay);
+RELAYCMD *AddRelayCommand(RELAYV *relay, int relayck, int fAsync);
 void EndJtMode(JTMODE *pjtmode);
-void UnsubscribeLoAll(JSGV *pjsg);
+void UnsubscribeLoAll(JSGV *script);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
-void SetStepplayerRide(LO *pjt, JSGV *pjsg);
+void SetStepplayerRide(LO *pjt, JSGV *script);
 }
 
 // 0x1DFAD8 InitRelay
@@ -1246,14 +1252,7 @@ struct DL { void *a, *b; int ib; };
 struct S { char pad[0x58]; int n58; struct DL dl; };
 void InitLo(struct S *p);
 void InitDl__FP2DLi(struct DL *pdl, int ib);
-/** @sly2-annot addr=0x1DFAD8
- * Purpose: RELAY::Init (vt7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4)
- * Info: proposed name InitRelay (T1); class RELAY slot7; TU relay
- * Notes: superseded r6_1D5150 proposal: InitSgg? (0.35)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#4-source-files, docs/engine/cutscenes.md#5-key-functions,
- *   docs/engine/gameplay-objects.md#source-files
- * @end-sly2-annot */
+// RELAY vtable slot 7 (Init): LO defaults, no private command limit (-1), and an empty list of running scripts.
 } } // namespace M_InitRelay
 void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRelay::S *)this;
     InitLo(p);
@@ -1279,37 +1278,30 @@ extern "C" { void *AllocFromWorldHeap(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
+// Inline helper Max: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static inline int Max(int a, int b) { return a < b ? b : a; }
-/** @sly2-annot addr=0x1DFB10
- * Purpose: RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start
- *   with BlockBegin(-1), fAppendEnd=1, LoadLoFromBrx (the object's Splice init adds commands), then copy into
- *   an exact-size world-heap array
- * Info: proposed name LoadRelayFromBrx (T1); class RELAY slot14; TU relay
- * Notes: superseded r6_1D5150 proposal: LoadSggFromBrx? (0.35) | level_parser CONFIRMED-parse: payload layout
- *   followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest+parse-verified
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
+// RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
+// implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
+// calls append the commands; the result is copied into an exact-size world-heap array.
+extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 {
     STACKSCOPE frame;
     MSG msg;
     MSG *pmsg = &msg;
     pmsg->cb = 0xA000;
     pmsg->nKind = 0x10;
-    p->ae = (ENT *)AllocFromStack(pmsg);
-    AddRelayBlockBegin(p, -1);
-    p->f7C = 1;
-    LoadLoFromBrx(p, x);
+    relay->ae = (ENT *)AllocFromStack(pmsg);
+    AddRelayBlockBegin(relay, -1);
+    relay->f7C = 1;
+    LoadLoFromBrx(relay, x);
     {
-        ENT *aeOld = p->ae;
-        p->cMax = Max(p->c, p->cMax) + 1;
-        pmsg->cb = p->cMax * sizeof(ENT);
+        ENT *aeOld = relay->ae;
+        relay->cMax = Max(relay->c, relay->cMax) + 1;
+        pmsg->cb = relay->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
-        p->ae = (ENT *)AllocFromWorldHeap(pmsg);
-        CopyAb__FPvT0Ui(p->ae, aeOld, p->c * sizeof(ENT));
+        relay->ae = (ENT *)AllocFromWorldHeap(pmsg);
+        CopyAb__FPvT0Ui(relay->ae, aeOld, relay->c * sizeof(ENT));
     }
 }
 } // namespace M_LoadRelayFromBrx
@@ -1321,20 +1313,15 @@ struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
+// Inline helper PvReallocMsg: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
-/** @sly2-annot addr=0x1DFBF8
- * Purpose: RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own
- *   copy of the command array
- * Info: proposed name CloneRelay (T1); class RELAY slot41; TU relay
- * Notes: superseded r6_1D5150 proposal: CloneSgg? (0.3)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void CloneRelay(struct S *p) {
+// RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
+// command array. (inferred)
+void CloneRelay(struct S *relay) {
     struct MSG msg;
-    CloneLo(p);
-    if (p->f80) p->pv = PvReallocMsg(&msg, p->c * 0x50, 0x10, p->pv);
+    CloneLo(relay);
+    if (relay->f80) relay->pv = PvReallocMsg(&msg, relay->c * 0x50, 0x10, relay->pv);
 }
 } } // namespace M_CloneRelay
 
@@ -1355,9 +1342,10 @@ typedef struct {
     int x74;
 } OBJ;
 void UpdateLo(OBJ *);
-void func_001E1C40(void *);
+void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
+// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -1366,41 +1354,35 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Returns the current element and advances the iterator.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
-/** @sly2-annot addr=0x1DFC50
- * Purpose: RELAY::Update (vt16): UpdateLo; while firing advance tFired (real-time dt if grf 0x100), UpdateJsg
- *   on every running script; StopRelay when none remain
- * Info: proposed name UpdateRelay (T1); class RELAY slot16; TU relay
- * Notes: superseded r6_1D5150 proposal: UpdateSgg? (0.3)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void UpdateRelay(OBJ *p)
+// RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
+// update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
+void UpdateRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
     unsigned int fl;
-    UpdateLo(p);
-    if (p->x74 == 0)
+    UpdateLo(relay);
+    if (relay->x74 == 0)
         return;
-    fl = p->x40;
+    fl = relay->x40;
     if ((fl ^ 1) & 1)
         fl = *(unsigned int *)fl;
     if (fl & 0x100)
-        p->t += D_002DDED0.a[16];
+        relay->t += D_002DDED0.a[16];
     else
-        p->t += D_002DDED0.a[1];
-    InitDli(&dli, &p->dl);
+        relay->t += D_002DDED0.a[1];
+    InitDli(&dli, &relay->dl);
     while ((pv = PvNextDli(&dli)) != 0)
-        func_001E1C40(pv);
-    if (FIsDlEmpty__FP2DL(&p->dl))
-        StopRelay(p);
+        UpdateRelayScript(pv);
+    if (FIsDlEmpty__FP2DL(&relay->dl))
+        StopRelay(relay);
     D_002DD2FC = dli.pdliNext;
 }
 } } // namespace M_UpdateRelay
@@ -1428,68 +1410,56 @@ struct OBJ {
     int x7C;
 };
 void AddRelayBlockEnd(OBJ *);
-void *PjsgNew(OBJ *, void *, int);
-void func_001E1C40(void *);
+void *NewRelayJsg(OBJ *, void *, int);
+void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
-/** @sly2-annot addr=0x1DFD58
- * Purpose: Start the relay (if not already firing): ploFirer=arg, fFiring=1, send itself msg 5, append
- *   BlockEnd if fAppendEnd, spawn a JSG for the top block (PjsgNew) and run it; if still running mark the LO
- *   busy (0x1A6CA8(p,1), grf bit 2, fBusy)
- * Info: proposed name FireRelay (T1); TU relay
- * Notes: runtime5b/runtime6: charsel entries fire RELAYs; JSG spawned per fired RELAY (S57-S61)
- * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
- * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void FireRelay(OBJ *p, int n)
+// Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
+// list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
+// still running afterwards the relay marks itself busy.
+void FireRelay(OBJ *relay, int n)
 {
     int fl;
-    if (p->x74)
+    if (relay->x74)
         return;
-    p->x6C = n;
-    p->x74 = 1;
-    p->x78 = 0;
-    p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 5, 0, 0, 0, 0);
-    if (!p->x74)
+    relay->x6C = n;
+    relay->x74 = 1;
+    relay->x78 = 0;
+    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 5, 0, 0, 0, 0);
+    if (!relay->x74)
         return;
-    if (p->x7C) {
-        AddRelayBlockEnd(p);
-        p->x7C = 0;
+    if (relay->x7C) {
+        AddRelayBlockEnd(relay);
+        relay->x7C = 0;
     }
-    func_001E1C40(PjsgNew(p, p->x54, 0));
-    if (!p->x74)
+    UpdateRelayScript(NewRelayJsg(relay, relay->x54, 0));
+    if (!relay->x74)
         return;
-    if (FIsDlEmpty__FP2DL(&p->dl)) {
-        StopRelay(p);
+    if (FIsDlEmpty__FP2DL(&relay->dl)) {
+        StopRelay(relay);
         return;
     }
-    fl = p->x40;
+    fl = relay->x40;
     if ((fl ^ 1) & 1)
         fl = *(int *)fl;
     if (fl & 2)
         return;
-    SetLoBusyk(p, 1);
-    if ((p->x40 ^ 1) & 1)
-        *(int *)p->x40 |= 2;
+    SetLoBusyk(relay, 1);
+    if ((relay->x40 ^ 1) & 1)
+        *(int *)relay->x40 |= 2;
     else
-        p->x40 |= 2;
-    p->x78 = 1;
+        relay->x40 |= 2;
+    relay->x78 = 1;
 }
 } } // namespace M_FireRelay
 
-// 0x1DFE80 func_001DFE80
-/** @sly2-annot addr=0x1DFE80
- * Purpose: FireRelay(prelay, GetCurrentPo())
- * Info: proposed name FireRelayPlayer (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// 0x1DFE80 FireRelayFromPlayer
+// Fires the relay with the current player character as the firer.
 /* Fires the relay with the hero as the firer. */
-extern "C" void func_001DFE80(RELAYV *prelay)
+extern "C" void FireRelayFromPlayer(RELAYV *relay)
 {
-    FireRelay(prelay, GetHeroPo(&D_003DD490));
+    FireRelay(relay, GetHeroPo(&D_003DD490));
 }
 
 // 0x1DFEB8 StopRelay
@@ -1516,6 +1486,7 @@ struct OBJ {
 void RemoveJsg(void *);
 void ClearRelayAlarms(OBJ *);
 void SetLoBusyk(OBJ *, int);
+// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -1524,55 +1495,45 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Returns the current element and advances the iterator.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
-/** @sly2-annot addr=0x1DFEB8
- * Purpose: If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy
- *   (0x1A6CA8(p,2)), send itself msg 6
- * Info: proposed name StopRelay (T1); TU relay
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void StopRelay(OBJ *p)
+// Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
+// the busy mark and tells itself (message 6). (inferred)
+void StopRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
-    if (p->x74 == 0)
+    if (relay->x74 == 0)
         return;
-    p->x6C = 0;
-    p->x70 = 0;
-    p->x74 = 0;
-    InitDli(&dli, &p->dl);
+    relay->x6C = 0;
+    relay->x70 = 0;
+    relay->x74 = 0;
+    InitDli(&dli, &relay->dl);
     while ((pv = PvNextDli(&dli)) != 0)
         RemoveJsg(pv);
-    ClearRelayAlarms(p);
-    if (p->x78) {
-        SetLoBusyk(p, 2);
-        if ((p->x40 ^ 1) & 1)
-            *(int *)p->x40 &= ~2;
+    ClearRelayAlarms(relay);
+    if (relay->x78) {
+        SetLoBusyk(relay, 2);
+        if ((relay->x40 ^ 1) & 1)
+            *(int *)relay->x40 &= ~2;
         else
-            p->x40 &= ~2;
+            relay->x40 &= ~2;
     }
-    p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 6, 0, 0, 0, 0);
+    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
     D_002DD2FC = dli.pdliNext;
 }
 } } // namespace M_StopRelay
 
-// 0x1DFFD8 FRelayFiring
-/** @sly2-annot addr=0x1DFFD8
- * Purpose: return fFiring (+0x74)
- * Info: proposed name FRelayFiring (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" int FRelayFiring(RELAYV *prelay)
+// 0x1DFFD8 IsRelayFiring
+// Whether the relay is firing.
+extern "C" int IsRelayFiring(RELAYV *relay)
 {
-    return prelay->fFiring;
+    return relay->fFiring;
 }
 
 // 0x1DFFE0 ResetRelay
@@ -1581,31 +1542,18 @@ struct S;
 struct S { char p0[0x50]; int n50; char p1[0x7C-0x54]; int n7C; };
 void StopRelay(struct S *p);
 void AddRelayBlockBegin(struct S *p, int n);
-/** @sly2-annot addr=0x1DFFE0
- * Purpose: StopRelay, drop all commands (crelaycmd=0), re-add BlockBegin(-1), fAppendEnd=1
- * Info: proposed name ResetRelay (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void ResetRelay(struct S *p) {
-    StopRelay(p);
-    p->n50 = 0;
-    AddRelayBlockBegin(p, -1);
-    p->n7C = 1;
+// Stops the relay and empties its command list back to the implicit BlockBegin(-1) (used before a script rebuilds
+// it). (inferred)
+void ResetRelay(struct S *relay) {
+    StopRelay(relay);
+    relay->n50 = 0;
+    AddRelayBlockBegin(relay, -1);
+    relay->n7C = 1;
 }
 } } // namespace M_ResetRelay
 
 // 0x1E0020 EnsureSggAlarm__FP3SGGP5ALARM
-/** @sly2-annot addr=0x1E0020
- * Purpose: Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room
- * Info: proposed name EnsureRelayAlarm (EXISTING); TU relay
- * Notes: agent/verifier proposes EnsureRelayAlarm for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> EnsureRelayAlarm (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.75] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r6b_rest+arbitration
- * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
- *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// Adds an alarm to the relay's alarm list (at most eight) unless it is already there.
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm)
 {
     int i;
@@ -1615,18 +1563,13 @@ void EnsureSggAlarm(SGG *psgg, ALARM *palarm)
     if ((unsigned int)psgg->calarm < 8) psgg->apalarm[psgg->calarm++] = palarm;
 }
 
-// 0x1E0070 func_001E0070
+// 0x1E0070 RemoveAlarmFromRelay
 namespace M_func_001E0070 { extern "C" {
 struct SGG;
 struct SGG { char pad[0x84]; int calarm; void *apalarm[8]; };
 void *memmove(void *d, void *s, int cb);
-/** @sly2-annot addr=0x1E0070
- * Purpose: Remove an ALARM from the relay alarm list (memmove down)
- * Info: proposed name RemoveRelayAlarm (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E0070(struct SGG *psgg, void *palarm)
+// Removes an alarm from the relay's alarm list. (inferred)
+void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
 {
     int i;
     for (i = 0; i < psgg->calarm; i++) {
@@ -1639,21 +1582,12 @@ void func_001E0070(struct SGG *psgg, void *palarm)
 }
 } } // namespace M_func_001E0070
 
-// 0x1E00E8 FWipingAseg__FP4ASEG
+// 0x1E00E8 IsRelayAlarm
 namespace M_FWipingAseg__FP4ASEG { extern "C" {
 struct ASEG;
 struct ASEG { char pad[0x84]; int c; int a[1]; };
-/** @sly2-annot addr=0x1E00E8
- * Purpose: Return whether the alarm list (+0x84/+0x88) contains x
- * Info: proposed name FRelayHasAlarm (EXISTING); TU relay
- * Notes: agent/verifier proposes FRelayHasAlarm for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> FRelayHasAlarm (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.75] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r6b_rest+arbitration
- * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
- *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-int FWipingAseg__FP4ASEG(struct ASEG *paseg, int n)
+// Whether the alarm is in the relay's alarm list.
+int IsRelayAlarm(struct ASEG *paseg, int n)
 {
     int i;
     for (i = 0; i < paseg->c; i++) {
@@ -1664,67 +1598,45 @@ int FWipingAseg__FP4ASEG(struct ASEG *paseg, int n)
 } } // namespace M_FWipingAseg__FP4ASEG
 
 // 0x1E0120 ClearRelayAlarms
-/** @sly2-annot addr=0x1E0120
- * Purpose: calarm=0
- * Info: proposed name ClearRelayAlarms (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void ClearRelayAlarms(RELAYV *prelay)
+// Empties the relay's alarm list.
+extern "C" void ClearRelayAlarms(RELAYV *relay)
 {
-    prelay->calarm = 0;
+    relay->calarm = 0;
 }
 
-// 0x1E0128 func_001E0128
-/** @sly2-annot addr=0x1E0128
- * Purpose: If the signal-waiting JSG (+0x68 pjsgSignal) is on a Signal command (kind 9) return its +0x18
- *   (ploContext), else 0
- * Info: proposed name GetRelaySignalContext (T2); TU relay
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// 0x1E0128 GetRelaySignalContext
+// The context object of the script waiting on a Signal command (kind 9), or null. (inferred)
 /* The context object of the relay's signalling script, if it is waiting on a signal command (0 otherwise). */
-extern "C" LO *func_001E0128(RELAYV *prelay)
+extern "C" LO *GetRelaySignalContext(RELAYV *relay)
 {
-    JSGV *pjsg;
-    pjsg = prelay->pjsgSignal;
-    if ((pjsg == 0) || (pjsg->prelaycmdCur->relayck != RELAYCK_Signal)) {
+    JSGV *script;
+    script = relay->pjsgSignal;
+    if ((script == 0) || (script->prelaycmdCur->relayck != RELAYCK_Signal)) {
         return 0;
     }
-    return pjsg->ploContext;
+    return script->ploContext;
 }
 
-// 0x1E0158 func_001E0158
-/** @sly2-annot addr=0x1E0158
- * Purpose: Setter counterpart of 0x1E0128
- * Info: proposed name SetRelaySignalContext (T2); TU relay
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// 0x1E0158 SetRelaySignalContext
+// Sets the context object of the script waiting on a Signal command (counterpart of GetRelaySignalContext). (inferred)
 /* Sets the context object of the relay's signalling script, if it is waiting on a signal command. */
-extern "C" void func_001E0158(RELAYV *prelay, LO *plo)
+extern "C" void SetRelaySignalContext(RELAYV *relay, LO *plo)
 {
-    JSGV *pjsg;
-    pjsg = prelay->pjsgSignal;
-    if ((pjsg != 0) && (pjsg->prelaycmdCur->relayck == RELAYCK_Signal)) {
-        pjsg->ploContext = plo;
+    JSGV *script;
+    script = relay->pjsgSignal;
+    if ((script != 0) && (script->prelaycmdCur->relayck == RELAYCK_Signal)) {
+        script->ploContext = plo;
     }
 }
 
-// 0x1E0180 func_001E0180
+// 0x1E0180 FindRelayBlockScript
 namespace M_func_001E0180 { extern "C" {
 struct T; struct O; struct S;
 struct T { char pad[0x10]; int n; };
 struct O { char pad[0x28]; struct T *pt; char pad2[0xE4-0x2C]; struct O *pNext; };
 struct S { char pad[0x5C]; struct O *pFirst; };
-/** @sly2-annot addr=0x1E0180
- * Purpose: Find a running JSG of this relay whose block label (prelaycmdFirst->oidLabel) == oid, skipping
- *   pjsgSkip
- * Info: proposed name PjsgFindRelayBlock (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-struct O *func_001E0180(struct S *s, int n, struct O *pSkip)
+// Finds a running script of this relay whose block has the given label, ignoring one script. (inferred)
+struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 {
     int unused[4];
     struct O *p;
@@ -1735,43 +1647,32 @@ struct O *func_001E0180(struct S *s, int n, struct O *pSkip)
 }
 } } // namespace M_func_001E0180
 
-// 0x1E01C8 func_001E01C8
+// 0x1E01C8 SetRelayCommandLimit
 namespace M_func_001E01C8 { extern "C" {
 struct S;
 struct S { char pad[0x50]; int n50; int n54; int n58; char pad2[0x80-0x5C]; int n80; };
-/** @sly2-annot addr=0x1E01C8
- * Purpose: If 0<n<0x200 and at most one command so far: crelaycmdMax=n and mark private limit (+0x80)
- * Info: proposed name SetRelayCmdMax (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E01C8(struct S *p, int n)
+// Splice: gives the relay its own command limit n (0 < n < 0x200), allowed only before commands are added. (inferred)
+void SetRelayCommandLimit(struct S *relay, int n)
 {
     if (n > 0) {
-        if (n < 0x200 && p->n50 < 2) {
-            p->n58 = n;
-            p->n80 = 1;
+        if (n < 0x200 && relay->n50 < 2) {
+            relay->n58 = n;
+            relay->n80 = 1;
         }
     }
 }
 } } // namespace M_func_001E01C8
 
-// 0x1E01F8 PrelaycmdAddRelay
+// 0x1E01F8 AddRelayCommand
 namespace M_PrelaycmdAddRelay { extern "C" {
 struct CMD; struct Q;
 struct CMD { int kind; int b; char pad[0x48]; };
 struct Q { char pad[0x50]; int c; struct CMD *a; int cMax; };
 extern struct CMD D_003DA740;
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
-/** @sly2-annot addr=0x1E01F8
- * Purpose: Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200);
- *   on overflow return a scratch command D_003DA740
- * Info: proposed name PrelaycmdAddRelay (T1); TU relay
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-struct CMD *PrelaycmdAddRelay(struct Q *pq, int kind, int b)
+// Appends a zeroed command of the given kind (async flag set as asked) to the relay and returns it for the builder to
+// fill; past the limit it returns a scratch command (D_003DA740) so builders never fail. (inferred)
+struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
 {
     struct CMD *p;
     int cMax = pq->cMax;
@@ -1786,43 +1687,27 @@ struct CMD *PrelaycmdAddRelay(struct Q *pq, int kind, int b)
 } } // namespace M_PrelaycmdAddRelay
 
 // 0x1E0290 AddRelayBlockBegin
-/** @sly2-annot addr=0x1E0290
- * Purpose: Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x0,fAsync)) and fill its args
- * Info: proposed name AddRelayBlockBegin (T1); TU relay
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayBlockBegin(RELAYV *prelay, OID oidLabel)
+// Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay (AddRelayCommand(prelay,0x0,fAsync)) and
+// fill its args.
+extern "C" void AddRelayBlockBegin(RELAYV *relay, OID oidLabel)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_BlockBegin, 1)->blockBegin.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_BlockBegin, 1)->blockBegin.oidLabel = oidLabel;
 }
 
 // 0x1E02C0 AddRelayBlockEnd
-/** @sly2-annot addr=0x1E02C0
- * Purpose: Splice builtin: append a RELAYCK 0x1 (BlockEnd) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1,fAsync)) and fill its args
- * Info: proposed name AddRelayBlockEnd (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayBlockEnd(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x1 (BlockEnd) command to the relay (AddRelayCommand(prelay,0x1,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayBlockEnd(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_BlockEnd, 1);
+    AddRelayCommand(relay, RELAYCK_BlockEnd, 1);
 }
 
 // 0x1E02E0 AddRelayStopBlock
-/** @sly2-annot addr=0x1E02E0
- * Purpose: Splice builtin: append a RELAYCK 0x2 (StopBlock) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2,fAsync)) and fill its args
- * Info: proposed name AddRelayStopBlock (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStopBlock(RELAYV *prelay, OID oidLabel)
+// Splice builtin: append a RELAYCK 0x2 (StopBlock) command to the relay (AddRelayCommand(prelay,0x2,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayStopBlock(RELAYV *relay, OID oidLabel)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StopBlock, 1)->stopBlock.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_StopBlock, 1)->stopBlock.oidLabel = oidLabel;
 }
 
 // 0x1E0310 AddRelayWaitBlocks
@@ -1831,16 +1716,11 @@ struct CRef; struct CMD;
 struct CRef { int tagk; int tag; };
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
 void SetValuesFromSpliceList(struct CRef *pref, void *x, int a, int b, unsigned int *pc, int *pa);
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
 void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb);
 void Decref__4CRef(struct CRef *pref);
-/** @sly2-annot addr=0x1E0310
- * Purpose: Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3,fAsync)) and fill its args
- * Info: proposed name AddRelayWaitBlocks (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay (AddRelayCommand(prelay,0x3,fAsync)) and
+// fill its args. (inferred)
 void AddRelayWaitBlocks(void *pq, void *x)
 {
     int a[8];
@@ -1848,7 +1728,7 @@ void AddRelayWaitBlocks(void *pq, void *x)
     unsigned int c;
     struct CMD *p;
     SetValuesFromSpliceList(&ref, x, 6, 8, &c, a);
-    p = PrelaycmdAddRelay(pq, 3, 0);
+    p = AddRelayCommand(pq, 3, 0);
     if (c > 4) c = 4;
     {
         unsigned int n = c;
@@ -1860,88 +1740,57 @@ void AddRelayWaitBlocks(void *pq, void *x)
 } } // namespace M_AddRelayWaitBlocks
 
 // 0x1E03A0 AddRelayWaitAlarm
-/** @sly2-annot addr=0x1E03A0
- * Purpose: Splice builtin: append a RELAYCK 0x4 (WaitAlarm) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4,fAsync)) and fill its args
- * Info: proposed name AddRelayWaitAlarm (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayWaitAlarm(RELAYV *prelay, int idAlarm, int fForget)
+// Splice builtin: append a RELAYCK 0x4 (WaitAlarm) command to the relay (AddRelayCommand(prelay,0x4,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayWaitAlarm(RELAYV *relay, int idAlarm, int fForget)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_WaitAlarm, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_WaitAlarm, 0);
     prelaycmd->waitAlarm.idAlarm = idAlarm;
     prelaycmd->waitAlarm.fForget = fForget;
 }
 
 // 0x1E03E0 AddRelayRaiseAlarm
-/** @sly2-annot addr=0x1E03E0
- * Purpose: Splice builtin: append a RELAYCK 0x5 (RaiseAlarm) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x5,fAsync)) and fill its args
- * Info: proposed name AddRelayRaiseAlarm (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayRaiseAlarm(RELAYV *prelay, int idAlarm, OID oidRelay)
+// Splice builtin: append a RELAYCK 0x5 (RaiseAlarm) command to the relay (AddRelayCommand(prelay,0x5,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayRaiseAlarm(RELAYV *relay, int idAlarm, OID oidRelay)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_RaiseAlarm, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_RaiseAlarm, 1);
     prelaycmd->raiseAlarm.idAlarm = idAlarm;
     prelaycmd->raiseAlarm.oidRelay = oidRelay;
 }
 
 // 0x1E0420 AddRelayStopRelay
-/** @sly2-annot addr=0x1E0420
- * Purpose: Splice builtin: append a RELAYCK 0x6 (StopRelay) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x6,fAsync)) and fill its args
- * Info: proposed name AddRelayStopRelay (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStopRelay(RELAYV *prelay, OID oidRelay)
+// Splice builtin: append a RELAYCK 0x6 (StopRelay) command to the relay (AddRelayCommand(prelay,0x6,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayStopRelay(RELAYV *relay, OID oidRelay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StopRelay, 1)->stopRelay.oidRelay = oidRelay;
+    AddRelayCommand(relay, RELAYCK_StopRelay, 1)->stopRelay.oidRelay = oidRelay;
 }
 
 // 0x1E0450 AddRelaySetCtlState
-/** @sly2-annot addr=0x1E0450
- * Purpose: Splice builtin: append a RELAYCK 0x7 (SetCtlState) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x7,fAsync)) and fill its args
- * Info: proposed name AddRelaySetCtlState (T1); TU relay
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetCtlState(RELAYV *prelay, OID oidObj)
+// Splice builtin: append a RELAYCK 0x7 (SetCtlState) command to the relay (AddRelayCommand(prelay,0x7,fAsync)) and
+// fill its args.
+extern "C" void AddRelaySetCtlState(RELAYV *relay, OID oidObj)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_SetCtlState, 1)->setCtlState.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_SetCtlState, 1)->setCtlState.oidObj = oidObj;
 }
 
 // 0x1E0480 AddRelaySetActor
-/** @sly2-annot addr=0x1E0480
- * Purpose: Splice builtin: append a RELAYCK 0x8 (SetActor) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x8,fAsync)) and fill its args
- * Info: proposed name AddRelaySetActor (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetActor(RELAYV *prelay, OID oidActor)
+// Splice builtin: append a RELAYCK 0x8 (SetActor) command to the relay (AddRelayCommand(prelay,0x8,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelaySetActor(RELAYV *relay, OID oidActor)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_SetActor, 1)->setActor.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_SetActor, 1)->setActor.oidActor = oidActor;
 }
 
 // 0x1E04B0 AddRelaySignal
-/** @sly2-annot addr=0x1E04B0
- * Purpose: Splice builtin: append a RELAYCK 0x9 (Signal) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x9,fAsync)) and fill its args
- * Info: proposed name AddRelaySignal (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySignal(RELAYV *prelay, int idSignal)
+// Splice builtin: append a RELAYCK 0x9 (Signal) command to the relay (AddRelayCommand(prelay,0x9,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelaySignal(RELAYV *relay, int idSignal)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Signal, 1)->signal.idSignal = idSignal;
+    AddRelayCommand(relay, RELAYCK_Signal, 1)->signal.idSignal = idSignal;
 }
 
 // 0x1E04E0 AddRelayPlayAseg
@@ -1949,48 +1798,33 @@ namespace M_AddRelayPlayAseg { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E04E0
- * Purpose: Splice builtin: append a RELAYCK 0xA (PlayAseg) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xA,fAsync)) and fill its args
- * Info: proposed name AddRelayPlayAseg (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0xA (PlayAseg) command to the relay (AddRelayCommand(prelay,0xA,fAsync)) and fill
+// its args. (inferred)
 void AddRelayPlayAseg(void *pq, int a, int b, int c, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0xA, c);
+    struct CMD *p = AddRelayCommand(pq, 0xA, c);
     p->n10 = a; p->n14 = b; p->n18 = d;
 }
 } } // namespace M_AddRelayPlayAseg
 
 // 0x1E0530 AddRelayFireRelay
-/** @sly2-annot addr=0x1E0530
- * Purpose: Splice builtin: append a RELAYCK 0xB (FireRelay) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xB,fAsync)) and fill its args
- * Info: proposed name AddRelayFireRelay (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayFireRelay(RELAYV *prelay, OID oidRelay, OID oidFirer, int fAsync)
+// Splice builtin: append a RELAYCK 0xB (FireRelay) command to the relay (AddRelayCommand(prelay,0xB,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayFireRelay(RELAYV *relay, OID oidRelay, OID oidFirer, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_FireRelay, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_FireRelay, fAsync);
     prelaycmd->fireRelay.oidRelay = oidRelay;
     prelaycmd->fireRelay.oidFirer = oidFirer;
 }
 
 // 0x1E0570 AddRelaySetContext
-/** @sly2-annot addr=0x1E0570
- * Purpose: Splice builtin: append a RELAYCK 0xC (SetContext) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xC,fAsync)) and fill its args
- * Info: proposed name AddRelaySetContext (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetContext(RELAYV *prelay, OID oidContext)
+// Splice builtin: append a RELAYCK 0xC (SetContext) command to the relay (AddRelayCommand(prelay,0xC,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetContext(RELAYV *relay, OID oidContext)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_SetContext, 1)->setContext.oidContext = oidContext;
+    AddRelayCommand(relay, RELAYCK_SetContext, 1)->setContext.oidContext = oidContext;
 }
 
 // 0x1E05A0 AddRelayApplySm
@@ -1998,135 +1832,89 @@ namespace M_AddRelayApplySm { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E05A0
- * Purpose: Splice builtin: append a RELAYCK 0xD (ApplySm) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xD,fAsync)) and fill its args
- * Info: proposed name AddRelayApplySm (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0xD (ApplySm) command to the relay (AddRelayCommand(prelay,0xD,fAsync)) and fill
+// its args. (inferred)
 void AddRelayApplySm(void *pq, int a, int b, int c, int x, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0xD, x);
+    struct CMD *p = AddRelayCommand(pq, 0xD, x);
     p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
     if (d) p->b = 1;
 }
 } } // namespace M_AddRelayApplySm
 
 // 0x1E0610 AddRelayWidgetShow
-/** @sly2-annot addr=0x1E0610
- * Purpose: Splice builtin: append a RELAYCK 0xE (WidgetShow) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xE,fAsync)) and fill its args
- * Info: proposed name AddRelayWidgetShow (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayWidgetShow(RELAYV *prelay, OID oidWidget, int idLabel, int fAsync)
+// Splice builtin: append a RELAYCK 0xE (WidgetShow) command to the relay (AddRelayCommand(prelay,0xE,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayWidgetShow(RELAYV *relay, OID oidWidget, int idLabel, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_WidgetShow, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_WidgetShow, fAsync);
     prelaycmd->widgetShow.oidWidget = oidWidget;
     prelaycmd->widgetShow.idLabel = idLabel;
 }
 
 // 0x1E0650 AddRelayWidgetHide
-/** @sly2-annot addr=0x1E0650
- * Purpose: Splice builtin: append a RELAYCK 0xF (WidgetHide) command to the relay
- *   (PrelaycmdAddRelay(prelay,0xF,fAsync)) and fill its args
- * Info: proposed name AddRelayWidgetHide (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayWidgetHide(RELAYV *prelay, OID oidWidget)
+// Splice builtin: append a RELAYCK 0xF (WidgetHide) command to the relay (AddRelayCommand(prelay,0xF,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayWidgetHide(RELAYV *relay, OID oidWidget)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_WidgetHide, 1)->widgetHide.oidWidget = oidWidget;
+    AddRelayCommand(relay, RELAYCK_WidgetHide, 1)->widgetHide.oidWidget = oidWidget;
 }
 
 // 0x1E0680 AddRelaySetClockRate
-/** @sly2-annot addr=0x1E0680
- * Purpose: Splice builtin: append a RELAYCK 0x10 (SetClockRate) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x10,fAsync)) and fill its args
- * Info: proposed name AddRelaySetClockRate (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetClockRate(RELAYV *prelay, float rate)
+// Splice builtin: append a RELAYCK 0x10 (SetClockRate) command to the relay (AddRelayCommand(prelay,0x10,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetClockRate(RELAYV *relay, float rate)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_SetClockRate, 1)->setClockRate.rate = rate;
+    AddRelayCommand(relay, RELAYCK_SetClockRate, 1)->setClockRate.rate = rate;
 }
 
 // 0x1E06B0 AddRelaySetTaskState
-/** @sly2-annot addr=0x1E06B0
- * Purpose: Splice builtin: append a RELAYCK 0x11 (SetTaskState) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x11,fAsync)) and fill its args
- * Info: proposed name AddRelaySetTaskState (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetTaskState(RELAYV *prelay, OID oidTask, int nState)
+// Splice builtin: append a RELAYCK 0x11 (SetTaskState) command to the relay (AddRelayCommand(prelay,0x11,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetTaskState(RELAYV *relay, OID oidTask, int nState)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_SetTaskState, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetTaskState, 1);
     prelaycmd->setTaskState.oidTask = oidTask;
     prelaycmd->setTaskState.nState = nState;
 }
 
 // 0x1E06F0 AddRelayHandsOff
-/** @sly2-annot addr=0x1E06F0
- * Purpose: Splice builtin: append a RELAYCK 0x12 (HandsOff) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x12,fAsync)) and fill its args
- * Info: proposed name AddRelayHandsOff (T1); TU relay
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayHandsOff(RELAYV *prelay, int fHandsOff, int grfHandsOff)
+// Splice builtin: append a RELAYCK 0x12 (HandsOff) command to the relay (AddRelayCommand(prelay,0x12,fAsync)) and
+// fill its args.
+extern "C" void AddRelayHandsOff(RELAYV *relay, int fHandsOff, int grfHandsOff)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_HandsOff, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HandsOff, 1);
     prelaycmd->handsOff.fHandsOff = fHandsOff;
     prelaycmd->handsOff.grfHandsOff = grfHandsOff;
 }
 
 // 0x1E0730 AddRelayLabel
-/** @sly2-annot addr=0x1E0730
- * Purpose: Splice builtin: append a RELAYCK 0x13 (Label) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x13,fAsync)) and fill its args
- * Info: proposed name AddRelayLabel (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayLabel(RELAYV *prelay, OID oidLabel)
+// Splice builtin: append a RELAYCK 0x13 (Label) command to the relay (AddRelayCommand(prelay,0x13,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayLabel(RELAYV *relay, OID oidLabel)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Label, 1)->label.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_Label, 1)->label.oidLabel = oidLabel;
 }
 
 // 0x1E0760 AddRelayGotoLabel
-/** @sly2-annot addr=0x1E0760
- * Purpose: Splice builtin: append a RELAYCK 0x14 (GotoLabel) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x14,fAsync)) and fill its args
- * Info: proposed name AddRelayGotoLabel (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayGotoLabel(RELAYV *prelay, OID oidLabel)
+// Splice builtin: append a RELAYCK 0x14 (GotoLabel) command to the relay (AddRelayCommand(prelay,0x14,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayGotoLabel(RELAYV *relay, OID oidLabel)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_GotoLabel, 1)->gotoLabel.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_GotoLabel, 1)->gotoLabel.oidLabel = oidLabel;
 }
 
 // 0x1E0790 AddRelayGotoLabelIf
-/** @sly2-annot addr=0x1E0790
- * Purpose: Splice builtin: append a RELAYCK 0x15 (GotoLabelIf) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x15,fAsync)) and fill its args
- * Info: proposed name AddRelayGotoLabelIf (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayGotoLabelIf(RELAYV *prelay, OID oidLabel, int nValue)
+// Splice builtin: append a RELAYCK 0x15 (GotoLabelIf) command to the relay (AddRelayCommand(prelay,0x15,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayGotoLabelIf(RELAYV *relay, OID oidLabel, int nValue)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_GotoLabelIf, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_GotoLabelIf, 1);
     prelaycmd->gotoLabelIf.oidLabel = oidLabel;
     prelaycmd->gotoLabelIf.nValue = nValue;
 }
@@ -2136,63 +1924,42 @@ namespace M_AddRelayTeleportTo { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E07D0
- * Purpose: Splice builtin: append a RELAYCK 0x16 (TeleportTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x16,fAsync)) and fill its args
- * Info: proposed name AddRelayTeleportTo (T1); TU relay
- * Notes: r0 hint: optid = CUT (Sly 1 AddJsgCut)
- * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x16 (TeleportTo) command to the relay (AddRelayCommand(prelay,0x16,fAsync)) and
+// fill its args. (inferred)
 void AddRelayTeleportTo(void *pq, int a, int b, int c)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x16, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x16, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_AddRelayTeleportTo
 
 // 0x1E0820 AddRelayCutCamera
-/** @sly2-annot addr=0x1E0820
- * Purpose: Splice builtin: append a RELAYCK 0x17 (CutCamera) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x17,fAsync)) and fill its args
- * Info: proposed name AddRelayCutCamera (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayCutCamera(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x17 (CutCamera) command to the relay (AddRelayCommand(prelay,0x17,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayCutCamera(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_CutCamera, 1);
+    AddRelayCommand(relay, RELAYCK_CutCamera, 1);
 }
 
 // 0x1E0840 AddRelaySetTunnel
-/** @sly2-annot addr=0x1E0840
- * Purpose: Splice builtin: append a RELAYCK 0x18 (SetTunnel) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x18,fAsync)) and fill its args
- * Info: proposed name AddRelaySetTunnel (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetTunnel(RELAYV *prelay, OID oidTunnel, OID oidActor)
+// Splice builtin: append a RELAYCK 0x18 (SetTunnel) command to the relay (AddRelayCommand(prelay,0x18,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetTunnel(RELAYV *relay, OID oidTunnel, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_SetTunnel, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetTunnel, 1);
     prelaycmd->setTunnel.oidTunnel = oidTunnel;
     prelaycmd->setTunnel.oidActor = oidActor;
 }
 
 // 0x1E0880 AddRelaySetFocus
-/** @sly2-annot addr=0x1E0880
- * Purpose: Splice builtin: append a RELAYCK 0x19 (SetFocus) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x19,fAsync)) and fill its args
- * Info: proposed name AddRelaySetFocus (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetFocus(RELAYV *prelay, OID oidFocus, OID oidActor)
+// Splice builtin: append a RELAYCK 0x19 (SetFocus) command to the relay (AddRelayCommand(prelay,0x19,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetFocus(RELAYV *relay, OID oidFocus, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_SetFocus, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetFocus, 1);
     prelaycmd->setFocus.oidFocus = oidFocus;
     prelaycmd->setFocus.oidActor = oidActor;
 }
@@ -2202,33 +1969,22 @@ namespace M_AddRelayPipeTo { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E08C0
- * Purpose: Splice builtin: append a RELAYCK 0x1A (PipeTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1A,fAsync)) and fill its args
- * Info: proposed name AddRelayPipeTo (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x1A (PipeTo) command to the relay (AddRelayCommand(prelay,0x1A,fAsync)) and fill
+// its args. (inferred)
 void AddRelayPipeTo(void *pq, int a, int b, int c, float g)
 {
-    struct CMDF *p = (struct CMDF *)PrelaycmdAddRelay(pq, 0x1A, b);
+    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x1A, b);
     p->n10 = a; p->g14 = g; p->n18 = c;
 }
 } } // namespace M_AddRelayPipeTo
 
-// 0x1E0910 func_001E0910
-/** @sly2-annot addr=0x1E0910
- * Purpose: Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1B,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk1B (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E0910(RELAYV *prelay, OID oidActor)
+// 0x1E0910 AddRelayCommand1B
+// Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay (AddRelayCommand(prelay,0x1B,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand1B(RELAYV *relay, OID oidActor)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
 }
 
 // 0x1E0940 AddRelayHeroState
@@ -2236,33 +1992,23 @@ namespace M_AddRelayHeroState { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0940
- * Purpose: Splice builtin: append a RELAYCK 0x1C (HeroState) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1C,fAsync)) and fill its args
- * Info: proposed name AddRelayHeroState (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x1C (HeroState) command to the relay (AddRelayCommand(prelay,0x1C,fAsync)) and
+// fill its args. (inferred)
 void AddRelayHeroState(void *pq, int a, int b, int c, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x1C, c);
+    struct CMD *p = AddRelayCommand(pq, 0x1C, c);
     p->n10 = a; p->n14 = b; p->n18 = d;
 }
 } } // namespace M_AddRelayHeroState
 
 // 0x1E0990 AddRelayStepCmd1D
-/** @sly2-annot addr=0x1E0990
- * Purpose: Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1D,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd1D (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStepCmd1D(RELAYV *prelay, OID oidGoal, OID oidActor)
+// Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay (AddRelayCommand(prelay,0x1D,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStepCmd1D(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_StepCmd1D, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1D, 0);
     prelaycmd->stepCmd1D.oidGoal = oidGoal;
     prelaycmd->stepCmd1D.oidActor = oidActor;
 }
@@ -2272,65 +2018,45 @@ namespace M_AddRelayStepCmd1E { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E09D0
- * Purpose: Splice builtin: append a RELAYCK 0x1E (StepCmd1E) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1E,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd1E (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x1E (StepCmd1E) command to the relay (AddRelayCommand(prelay,0x1E,fAsync)) and
+// fill its args. (inferred)
 void AddRelayStepCmd1E(void *pq, int a, int b, int c)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x1E, 0);
+    struct CMD *p = AddRelayCommand(pq, 0x1E, 0);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_AddRelayStepCmd1E
 
 // 0x1E0A20 AddRelayStepCmd1F
-/** @sly2-annot addr=0x1E0A20
- * Purpose: Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x1F,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd1F (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStepCmd1F(RELAYV *prelay, OID oidGoal, OID oidActor)
+// Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay (AddRelayCommand(prelay,0x1F,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStepCmd1F(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_StepCmd1F, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1F, 0);
     prelaycmd->stepCmd1F.oidGoal = oidGoal;
     prelaycmd->stepCmd1F.oidActor = oidActor;
 }
 
 // 0x1E0A60 AddRelayStepCmd20
-/** @sly2-annot addr=0x1E0A60
- * Purpose: Splice builtin: append a RELAYCK 0x20 (StepCmd20) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x20,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd20 (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStepCmd20(RELAYV *prelay, OID oidGoal, OID oidActor)
+// Splice builtin: append a RELAYCK 0x20 (StepCmd20) command to the relay (AddRelayCommand(prelay,0x20,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStepCmd20(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_StepCmd20, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd20, 0);
     prelaycmd->stepCmd20.oidGoal = oidGoal;
     prelaycmd->stepCmd20.oidActor = oidActor;
 }
 
 // 0x1E0AA0 AddRelayStepCmd21
-/** @sly2-annot addr=0x1E0AA0
- * Purpose: Splice builtin: append a RELAYCK 0x21 (StepCmd21) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x21,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd21 (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStepCmd21(RELAYV *prelay, OID oidGoal, OID oidActor)
+// Splice builtin: append a RELAYCK 0x21 (StepCmd21) command to the relay (AddRelayCommand(prelay,0x21,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStepCmd21(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_StepCmd21, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd21, 0);
     prelaycmd->stepCmd21.oidGoal = oidGoal;
     prelaycmd->stepCmd21.oidActor = oidActor;
 }
@@ -2340,17 +2066,12 @@ namespace M_AddRelayStepCmd22 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0AE0
- * Purpose: Splice builtin: append a RELAYCK 0x22 (StepCmd22) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x22,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd22 (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x22 (StepCmd22) command to the relay (AddRelayCommand(prelay,0x22,fAsync)) and
+// fill its args. (inferred)
 void AddRelayStepCmd22(void *pq, int a, int b, int c, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x22, 0);
+    struct CMD *p = AddRelayCommand(pq, 0x22, 0);
     p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
 }
 } } // namespace M_AddRelayStepCmd22
@@ -2360,19 +2081,12 @@ namespace M_AddRelayFace { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0B40
- * Purpose: Splice builtin: append a RELAYCK 0x23 (Face) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x23,fAsync)) and fill its args
- * Info: proposed name AddRelayFace (T1); TU relay
- * Notes: CONFLICTS #13 / r0 hint: optid 256 = PAUSE (Sly 1 AddJsgPause); kept Lilly RELAYCK 0x23 "Face" name
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x23 (Face) command to the relay (AddRelayCommand(prelay,0x23,fAsync)) and fill
+// its args.
 void AddRelayFace(void *pq, int a, int b, float g)
 {
-    struct CMDF *p = (struct CMDF *)PrelaycmdAddRelay(pq, 0x23, 0);
+    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x23, 0);
     p->g10 = g; ((struct CMD *)p)->n14 = a; p->n18 = b;
 }
 } } // namespace M_AddRelayFace
@@ -2381,18 +2095,12 @@ void AddRelayFace(void *pq, int a, int b, float g)
 namespace M_AddRelayGoTo { extern "C" {
 struct S;
 typedef struct S { char pad[0x10]; int a; float f; float g; int c; int d; int e; } S;
-S *PrelaycmdAddRelay(void *p, int cb);
-/** @sly2-annot addr=0x1E0B90
- * Purpose: Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x24,fAsync)) and fill its args
- * Info: proposed name AddRelayGoTo (T1); TU relay
- * Notes: agent qualifier: fUnk9=1 variant
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void AddRelayGoTo(void *p, int a, int b, int c, int d, float f, float g)
+S *AddRelayCommand(void *p, int cb);
+// Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
+// its args. (inferred)
+void AddRelayGoTo(void *relay, int a, int b, int c, int d, float f, float g)
 {
-    S *s = PrelaycmdAddRelay(p, 0x24);
+    S *s = AddRelayCommand(relay, 0x24);
     s->a = a;
     s->f = f;
     s->g = g;
@@ -2407,64 +2115,42 @@ namespace M_AddRelayGoTo_1E0C08 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0C08
- * Purpose: Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x24,fAsync)) and fill its args
- * Info: proposed name AddRelayGoTo_1E0C08 (T1); TU relay
- * Notes: agent qualifier: fUnk9=0 variant | COLLISION: AddRelayGoTo already used (same name proposed for
- *   0x1E0B90); renamed to AddRelayGoTo_1E0C08
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
+// its args. (inferred)
 void AddRelayGoTo_1E0C08(void *pq, int a, int x, int c, int d, float g, float h)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x24, x);
+    struct CMD *p = AddRelayCommand(pq, 0x24, x);
     p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c; p->a[4].n = d; p->a[5].n = 0;
 }
 } } // namespace M_AddRelayGoTo_1E0C08
 
 // 0x1E0C78 AddRelayRunOn
-/** @sly2-annot addr=0x1E0C78
- * Purpose: Splice builtin: append a RELAYCK 0x25 (RunOn) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x25,fAsync)) and fill its args
- * Info: proposed name AddRelayRunOn (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayRunOn(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x25 (RunOn) command to the relay (AddRelayCommand(prelay,0x25,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayRunOn(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_RunOn, 1);
+    AddRelayCommand(relay, RELAYCK_RunOn, 1);
 }
 
 // 0x1E0C98 AddRelayRunOff
-/** @sly2-annot addr=0x1E0C98
- * Purpose: Splice builtin: append a RELAYCK 0x26 (RunOff) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x26,fAsync)) and fill its args
- * Info: proposed name AddRelayRunOff (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayRunOff(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x26 (RunOff) command to the relay (AddRelayCommand(prelay,0x26,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayRunOff(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_RunOff, 1);
+    AddRelayCommand(relay, RELAYCK_RunOff, 1);
 }
 
 // 0x1E0CB8 AddRelayFollowPath
 namespace M_AddRelayFollowPath { extern "C" {
 struct S;
 typedef struct S { char pad[0x10]; int a; int b; int c; float f; int d; int e; } S;
-S *PrelaycmdAddRelay(void *p, int k, int n);
-/** @sly2-annot addr=0x1E0CB8
- * Purpose: Splice builtin: append a RELAYCK 0x27 (FollowPath) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x27,fAsync)) and fill its args
- * Info: proposed name AddRelayFollowPath (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void AddRelayFollowPath(void *p, int a, int b, int c, int d, int e, float f)
+S *AddRelayCommand(void *p, int k, int n);
+// Splice builtin: append a RELAYCK 0x27 (FollowPath) command to the relay (AddRelayCommand(prelay,0x27,fAsync)) and
+// fill its args. (inferred)
+void AddRelayFollowPath(void *relay, int a, int b, int c, int d, int e, float f)
 {
-    S *s = PrelaycmdAddRelay(p, 0x27, 0);
+    S *s = AddRelayCommand(relay, 0x27, 0);
     s->a = a;
     s->b = b;
     s->c = c;
@@ -2478,17 +2164,12 @@ void AddRelayFollowPath(void *p, int a, int b, int c, int d, int e, float f)
 namespace M_AddRelayWalkTo { extern "C" {
 struct S;
 typedef struct S { char pad[0x10]; int a; float f; int b; float g; int c; int d; } S;
-S *PrelaycmdAddRelay(void *p, int k, int n);
-/** @sly2-annot addr=0x1E0D38
- * Purpose: Splice builtin: append a RELAYCK 0x28 (WalkTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x28,fAsync)) and fill its args
- * Info: proposed name AddRelayWalkTo (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void AddRelayWalkTo(void *p, int a, float f, int b, float g, int c, int d)
+S *AddRelayCommand(void *p, int k, int n);
+// Splice builtin: append a RELAYCK 0x28 (WalkTo) command to the relay (AddRelayCommand(prelay,0x28,fAsync)) and fill
+// its args. (inferred)
+void AddRelayWalkTo(void *relay, int a, float f, int b, float g, int c, int d)
 {
-    S *s = PrelaycmdAddRelay(p, 0x28, 0);
+    S *s = AddRelayCommand(relay, 0x28, 0);
     s->a = a;
     s->f = f;
     s->b = b;
@@ -2503,17 +2184,12 @@ namespace M_AddRelayStepCmd29 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0DB8
- * Purpose: Splice builtin: append a RELAYCK 0x29 (StepCmd29) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x29,fAsync)) and fill its args
- * Info: proposed name AddRelayStepCmd29 (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x29 (StepCmd29) command to the relay (AddRelayCommand(prelay,0x29,fAsync)) and
+// fill its args. (inferred)
 void AddRelayStepCmd29(void *pq, int a, int b, int c, float g, float h)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x29, b);
+    struct CMD *p = AddRelayCommand(pq, 0x29, b);
     p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c;
 }
 } } // namespace M_AddRelayStepCmd29
@@ -2523,17 +2199,12 @@ namespace M_AddRelayRespawn { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0E18
- * Purpose: Splice builtin: append a RELAYCK 0x2A (Respawn) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2A,fAsync)) and fill its args
- * Info: proposed name AddRelayRespawn (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x2A (Respawn) command to the relay (AddRelayCommand(prelay,0x2A,fAsync)) and fill
+// its args. (inferred)
 void AddRelayRespawn(void *pq, int a, int b, int c, int x, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x2A, x);
+    struct CMD *p = AddRelayCommand(pq, 0x2A, x);
     p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
 }
 } } // namespace M_AddRelayRespawn
@@ -2543,144 +2214,97 @@ namespace M_AddRelayLaunchTo { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E0E78
- * Purpose: Splice builtin: append a RELAYCK 0x2B (LaunchTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2B,fAsync)) and fill its args
- * Info: proposed name AddRelayLaunchTo (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x2B (LaunchTo) command to the relay (AddRelayCommand(prelay,0x2B,fAsync)) and
+// fill its args. (inferred)
 void AddRelayLaunchTo(void *pq, int a, int b, int c, float g, float h)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x2B, b);
+    struct CMD *p = AddRelayCommand(pq, 0x2B, b);
     p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c;
 }
 } } // namespace M_AddRelayLaunchTo
 
 // 0x1E0ED8 AddRelayAddObject
-/** @sly2-annot addr=0x1E0ED8
- * Purpose: Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2C,fAsync)) and fill its args
- * Info: proposed name AddRelayAddObject (T1); TU relay
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayAddObject(RELAYV *prelay, OID oidObj, int fAsync, float dtFade)
+// Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay (AddRelayCommand(prelay,0x2C,fAsync)) and
+// fill its args.
+extern "C" void AddRelayAddObject(RELAYV *relay, OID oidObj, int fAsync, float dtFade)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_AddObject, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_AddObject, fAsync);
     prelaycmd->addObject.oidObj = oidObj;
     prelaycmd->addObject.dtFade = dtFade;
 }
 
 // 0x1E0F18 AddRelayRemoveObject
-/** @sly2-annot addr=0x1E0F18
- * Purpose: Splice builtin: append a RELAYCK 0x2D (RemoveObject) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2D,fAsync)) and fill its args
- * Info: proposed name AddRelayRemoveObject (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayRemoveObject(RELAYV *prelay, OID oidObj, int fAsync, float dtFade)
+// Splice builtin: append a RELAYCK 0x2D (RemoveObject) command to the relay (AddRelayCommand(prelay,0x2D,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayRemoveObject(RELAYV *relay, OID oidObj, int fAsync, float dtFade)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_RemoveObject, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_RemoveObject, fAsync);
     prelaycmd->removeObject.oidObj = oidObj;
     prelaycmd->removeObject.dtFade = dtFade;
 }
 
 // 0x1E0F58 AddRelaySetPartFlag
-/** @sly2-annot addr=0x1E0F58
- * Purpose: Splice builtin: append a RELAYCK 0x2E (SetPartFlag) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2E,fAsync)) and fill its args
- * Info: proposed name AddRelaySetPartFlag (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
+// Splice builtin: append a RELAYCK 0x2E (SetPartFlag) command to the relay (AddRelayCommand(prelay,0x2E,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetPartFlag(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_SetPartFlag, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetPartFlag, 1);
     prelaycmd->setPartFlag.oidAseg = oidAseg;
     prelaycmd->setPartFlag.oidPart = oidPart;
 }
 
 // 0x1E0F98 AddRelayClearPartFlag
-/** @sly2-annot addr=0x1E0F98
- * Purpose: Splice builtin: append a RELAYCK 0x2F (ClearPartFlag) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x2F,fAsync)) and fill its args
- * Info: proposed name AddRelayClearPartFlag (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayClearPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
+// Splice builtin: append a RELAYCK 0x2F (ClearPartFlag) command to the relay (AddRelayCommand(prelay,0x2F,fAsync))
+// and fill its args. (inferred)
+extern "C" void AddRelayClearPartFlag(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_ClearPartFlag, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ClearPartFlag, 1);
     prelaycmd->clearPartFlag.oidAseg = oidAseg;
     prelaycmd->clearPartFlag.oidPart = oidPart;
 }
 
 // 0x1E0FD8 AddRelayShowPart
-/** @sly2-annot addr=0x1E0FD8
- * Purpose: Splice builtin: append a RELAYCK 0x30 (ShowPart) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x30,fAsync)) and fill its args
- * Info: proposed name AddRelayShowPart (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayShowPart(RELAYV *prelay, OID oidAseg, OID oidPart)
+// Splice builtin: append a RELAYCK 0x30 (ShowPart) command to the relay (AddRelayCommand(prelay,0x30,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayShowPart(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_ShowPart, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ShowPart, 1);
     prelaycmd->showPart.oidAseg = oidAseg;
     prelaycmd->showPart.oidPart = oidPart;
 }
 
 // 0x1E1018 AddRelayHidePart
-/** @sly2-annot addr=0x1E1018
- * Purpose: Splice builtin: append a RELAYCK 0x31 (HidePart) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x31,fAsync)) and fill its args
- * Info: proposed name AddRelayHidePart (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayHidePart(RELAYV *prelay, OID oidAseg, OID oidPart)
+// Splice builtin: append a RELAYCK 0x31 (HidePart) command to the relay (AddRelayCommand(prelay,0x31,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayHidePart(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_HidePart, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HidePart, 1);
     prelaycmd->hidePart.oidAseg = oidAseg;
     prelaycmd->hidePart.oidPart = oidPart;
 }
 
-// 0x1E1058 func_001E1058
-/** @sly2-annot addr=0x1E1058
- * Purpose: Splice builtin: append a RELAYCK 0x32 (Unk32) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x32,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk32 (T2); TU relay
- * Notes: r0 hint: optid = JOLT | v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1058(RELAYV *prelay, int n, int fAsync)
+// 0x1E1058 AddRelayCommand32
+// Splice builtin: append a RELAYCK 0x32 (Unk32) command to the relay (AddRelayCommand(prelay,0x32,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand32(RELAYV *relay, int n, int fAsync)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
 }
 
 // 0x1E1088 AddRelayRumble
-/** @sly2-annot addr=0x1E1088
- * Purpose: Splice builtin: append a RELAYCK 0x33 (Rumble) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x33,fAsync)) and fill its args
- * Info: proposed name AddRelayRumble (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayRumble(RELAYV *prelay, int rumk, int fAsync, float dtRumble)
+// Splice builtin: append a RELAYCK 0x33 (Rumble) command to the relay (AddRelayCommand(prelay,0x33,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayRumble(RELAYV *relay, int rumk, int fAsync, float dtRumble)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Rumble, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Rumble, fAsync);
     prelaycmd->rumble.dtRumble = dtRumble;
     prelaycmd->rumble.rumk = rumk;
 }
@@ -2690,17 +2314,12 @@ namespace M_AddRelayExplode { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E10C8
- * Purpose: Splice builtin: append a RELAYCK 0x34 (Explode) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x34,fAsync)) and fill its args
- * Info: proposed name AddRelayExplode (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x34 (Explode) command to the relay (AddRelayCommand(prelay,0x34,fAsync)) and fill
+// its args. (inferred)
 void AddRelayExplode(void *pq, int a, int b, int c, float g)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x34, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x34, 1);
     p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].g = g;
 }
 } } // namespace M_AddRelayExplode
@@ -2710,17 +2329,12 @@ namespace M_AddRelayEyes { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1128
- * Purpose: Splice builtin: append a RELAYCK 0x35 (Eyes) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x35,fAsync)) and fill its args
- * Info: proposed name AddRelayEyes (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x35 (Eyes) command to the relay (AddRelayCommand(prelay,0x35,fAsync)) and fill
+// its args. (inferred)
 void AddRelayEyes(void *pq, int a, int b, float g)
 {
-    struct CMDF *p = (struct CMDF *)PrelaycmdAddRelay(pq, 0x35, 1);
+    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x35, 1);
     p->n10 = a; p->n14 = b; p->g18 = g;
 }
 } } // namespace M_AddRelayEyes
@@ -2730,33 +2344,23 @@ namespace M_AddRelaySound { extern "C" {
 union U; struct CMD;
 union U { int n; float g; void *pv; };
 struct CMD { int kind; int b; int n8; int nC; union U a[7]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1178
- * Purpose: Splice builtin: append a RELAYCK 0x36 (Sound) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x36,fAsync)) and fill its args
- * Info: proposed name AddRelaySound (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x36 (Sound) command to the relay (AddRelayCommand(prelay,0x36,fAsync)) and fill
+// its args. (inferred)
 void AddRelaySound(void *pq, int a, int b, int c, int d, float f, float g, float h)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x36, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x36, 1);
     p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
     p->a[4].g = f; p->a[5].g = g; p->a[6].g = h;
 }
 } } // namespace M_AddRelaySound
 
 // 0x1E1208 AddRelayStopSound
-/** @sly2-annot addr=0x1E1208
- * Purpose: Splice builtin: append a RELAYCK 0x37 (StopSound) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x37,fAsync)) and fill its args
- * Info: proposed name AddRelayStopSound (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStopSound(RELAYV *prelay, int idSnd)
+// Splice builtin: append a RELAYCK 0x37 (StopSound) command to the relay (AddRelayCommand(prelay,0x37,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StopSound, 1)->stopSound.idSnd = idSnd;
+    AddRelayCommand(relay, RELAYCK_StopSound, 1)->stopSound.idSnd = idSnd;
 }
 
 // 0x1E1238 AddRelayCamBlendFrom
@@ -2764,21 +2368,17 @@ namespace M_AddRelayCamBlendFrom { extern "C" {
 struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x1E1238
- * Purpose: Splice builtin: append a RELAYCK 0x38 (CamBlendFrom) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x38,fAsync)) and fill its args
- * Info: proposed name AddRelayCamBlendFrom (T1); TU relay
- * Notes: names_v2 C proposed SetJsgFocus__FP3JSGP2LO (0.438)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// Splice builtin: append a RELAYCK 0x38 (CamBlendFrom) command to the relay (AddRelayCommand(prelay,0x38,fAsync)) and
+// fill its args. (inferred)
 void AddRelayCamBlendFrom(void *pq, qword a, qword v, int n, float f, float g)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x38, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x38, 1);
     p->q = a;
     p->x = GetX(v) * 0.017453294f;
     p->y = GetY(v) * 0.017453294f;
@@ -2794,21 +2394,17 @@ namespace M_AddRelayCamBlendTo { extern "C" {
 struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x1E12E0
- * Purpose: Splice builtin: append a RELAYCK 0x39 (CamBlendTo) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x39,fAsync)) and fill its args
- * Info: proposed name AddRelayCamBlendTo (T1); TU relay
- * Notes: names_v2 C proposed SetJsgTn__FP3JSGP2TN (0.438)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// Splice builtin: append a RELAYCK 0x39 (CamBlendTo) command to the relay (AddRelayCommand(prelay,0x39,fAsync)) and
+// fill its args. (inferred)
 void AddRelayCamBlendTo(void *pq, qword a, qword v, int m, int n, float f)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x39, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x39, 1);
     p->q = a;
     p->x = GetX(v) * 0.017453294f;
     p->y = GetY(v) * 0.017453294f;
@@ -2819,18 +2415,12 @@ void AddRelayCamBlendTo(void *pq, qword a, qword v, int m, int n, float f)
 }
 } } // namespace M_AddRelayCamBlendTo
 
-// 0x1E1388 func_001E1388
-/** @sly2-annot addr=0x1E1388
- * Purpose: Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3A,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk3A (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1388(RELAYV *prelay, int n)
+// 0x1E1388 AddRelayCommand3A
+// Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand3A(RELAYV *relay, int n)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
 }
 
 // 0x1E13B8 AddRelayStartJtMode
@@ -2838,58 +2428,38 @@ namespace M_AddRelayStartJtMode { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E13B8
- * Purpose: Splice builtin: append a RELAYCK 0x3B (StartJtMode) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3B,fAsync)) and fill its args
- * Info: proposed name AddRelayStartJtMode (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x3B (StartJtMode) command to the relay (AddRelayCommand(prelay,0x3B,fAsync)) and
+// fill its args. (inferred)
 void AddRelayStartJtMode(void *pq, int a, int b, int c, int d)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x3B, d);
+    struct CMD *p = AddRelayCommand(pq, 0x3B, d);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_AddRelayStartJtMode
 
 // 0x1E1408 AddRelayEndJtMode
-/** @sly2-annot addr=0x1E1408
- * Purpose: Splice builtin: append a RELAYCK 0x3C (EndJtMode) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3C,fAsync)) and fill its args
- * Info: proposed name AddRelayEndJtMode (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayEndJtMode(RELAYV *prelay, int fAsync)
+// Splice builtin: append a RELAYCK 0x3C (EndJtMode) command to the relay (AddRelayCommand(prelay,0x3C,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayEndJtMode(RELAYV *relay, int fAsync)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_EndJtMode, fAsync);
+    AddRelayCommand(relay, RELAYCK_EndJtMode, fAsync);
 }
 
 // 0x1E1428 AddRelayTweenPosObj
-/** @sly2-annot addr=0x1E1428
- * Purpose: Splice builtin: append a RELAYCK 0x3D (TweenPosObj) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3D,fAsync)) and fill its args
- * Info: proposed name AddRelayTweenPosObj (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayTweenPosObj(RELAYV *prelay, OID oidObj, int fAsync)
+// Splice builtin: append a RELAYCK 0x3D (TweenPosObj) command to the relay (AddRelayCommand(prelay,0x3D,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayTweenPosObj(RELAYV *relay, OID oidObj, int fAsync)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_TweenPosObj, fAsync)->tweenPosObj.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_TweenPosObj, fAsync)->tweenPosObj.oidObj = oidObj;
 }
 
 // 0x1E1458 AddRelayTweenAimObj
-/** @sly2-annot addr=0x1E1458
- * Purpose: Splice builtin: append a RELAYCK 0x3E (TweenAimObj) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3E,fAsync)) and fill its args
- * Info: proposed name AddRelayTweenAimObj (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayTweenAimObj(RELAYV *prelay, OID oidObj, int fAsync)
+// Splice builtin: append a RELAYCK 0x3E (TweenAimObj) command to the relay (AddRelayCommand(prelay,0x3E,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayTweenAimObj(RELAYV *relay, OID oidObj, int fAsync)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_TweenAimObj, fAsync)->tweenAimObj.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_TweenAimObj, fAsync)->tweenAimObj.oidObj = oidObj;
 }
 
 // 0x1E1488 AddRelayTweenTarget
@@ -2897,20 +2467,17 @@ namespace M_AddRelayTweenTarget { extern "C" {
 struct CMD;
 typedef int qword __attribute__((mode(TI)));
 struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
+// written so the compiler's register and instruction choice matches the original; the names say what they compute.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x1E1488
- * Purpose: Splice builtin: append a RELAYCK 0x3F (TweenTarget) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x3F,fAsync)) and fill its args
- * Info: proposed name AddRelayTweenTarget (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// Splice builtin: append a RELAYCK 0x3F (TweenTarget) command to the relay (AddRelayCommand(prelay,0x3F,fAsync)) and
+// fill its args. (inferred)
 void AddRelayTweenTarget(void *pq, qword a, qword v, float f)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x3F, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x3F, 1);
     p->q = a;
     p->x = GetX(v) * 0.017453294f;
     p->y = GetY(v) * 0.017453294f;
@@ -2920,29 +2487,19 @@ void AddRelayTweenTarget(void *pq, qword a, qword v, float f)
 } } // namespace M_AddRelayTweenTarget
 
 // 0x1E1510 AddRelayTweenTime
-/** @sly2-annot addr=0x1E1510
- * Purpose: Splice builtin: append a RELAYCK 0x40 (TweenTime) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x40,fAsync)) and fill its args
- * Info: proposed name AddRelayTweenTime (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayTweenTime(RELAYV *prelay, int fAsync, float g)
+// Splice builtin: append a RELAYCK 0x40 (TweenTime) command to the relay (AddRelayCommand(prelay,0x40,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayTweenTime(RELAYV *relay, int fAsync, float g)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_TweenTime, fAsync)->tweenTime.gUnk4 = g;
+    AddRelayCommand(relay, RELAYCK_TweenTime, fAsync)->tweenTime.gUnk4 = g;
 }
 
 // 0x1E1540 AddRelayTweenStart
-/** @sly2-annot addr=0x1E1540
- * Purpose: Splice builtin: append a RELAYCK 0x41 (TweenStart) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x41,fAsync)) and fill its args
- * Info: proposed name AddRelayTweenStart (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayTweenStart(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x41 (TweenStart) command to the relay (AddRelayCommand(prelay,0x41,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayTweenStart(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_TweenStart, 1);
+    AddRelayCommand(relay, RELAYCK_TweenStart, 1);
 }
 
 // 0x1E1560 AddRelayButtonPrompt
@@ -2950,232 +2507,154 @@ namespace M_AddRelayButtonPrompt { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1560
- * Purpose: Splice builtin: append a RELAYCK 0x42 (ButtonPrompt) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x42,fAsync)) and fill its args
- * Info: proposed name AddRelayButtonPrompt (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builtin: append a RELAYCK 0x42 (ButtonPrompt) command to the relay (AddRelayCommand(prelay,0x42,fAsync)) and
+// fill its args. (inferred)
 void AddRelayButtonPrompt(void *pq, int a, int b)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x42, 0);
+    struct CMD *p = AddRelayCommand(pq, 0x42, 0);
     if (a == -1) a = 0x40;
     p->n10 = a; p->n14 = b;
 }
 } } // namespace M_AddRelayButtonPrompt
 
-// 0x1E15B0 func_001E15B0
-/** @sly2-annot addr=0x1E15B0
- * Purpose: Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x43,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk43 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E15B0(RELAYV *prelay, int n, OID oidActor)
+// 0x1E15B0 AddRelayCommand43
+// Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand43(RELAYV *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Unk43, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk43, 0);
     prelaycmd->unk43.nUnk4 = n;
     prelaycmd->unk43.oidActor = oidActor;
 }
 
 // 0x1E15F0 AddRelayStopLine
-/** @sly2-annot addr=0x1E15F0
- * Purpose: Splice builtin: append a RELAYCK 0x44 (StopLine) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x44,fAsync)) and fill its args
- * Info: proposed name AddRelayStopLine (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStopLine(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x44 (StopLine) command to the relay (AddRelayCommand(prelay,0x44,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStopLine(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StopLine, 0);
+    AddRelayCommand(relay, RELAYCK_StopLine, 0);
 }
 
 // 0x1E1610 AddRelayLine
-/** @sly2-annot addr=0x1E1610
- * Purpose: Splice builtin: append a RELAYCK 0x45 (Line) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x45,fAsync)) and fill its args
- * Info: proposed name AddRelayLine (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayLine(RELAYV *prelay, int idLine, int fWait, int fAsync)
+// Splice builtin: append a RELAYCK 0x45 (Line) command to the relay (AddRelayCommand(prelay,0x45,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayLine(RELAYV *relay, int idLine, int fWait, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Line, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Line, fAsync);
     prelaycmd->line.idLine = idLine;
     prelaycmd->line.fWait = fWait;
 }
 
 // 0x1E1650 AddRelayClearSubtitle
-/** @sly2-annot addr=0x1E1650
- * Purpose: Splice builtin: append a RELAYCK 0x46 (ClearSubtitle) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x46,fAsync)) and fill its args
- * Info: proposed name AddRelayClearSubtitle (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayClearSubtitle(RELAYV *prelay)
+// Splice builtin: append a RELAYCK 0x46 (ClearSubtitle) command to the relay (AddRelayCommand(prelay,0x46,fAsync))
+// and fill its args. (inferred)
+extern "C" void AddRelayClearSubtitle(RELAYV *relay)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_ClearSubtitle, 1);
+    AddRelayCommand(relay, RELAYCK_ClearSubtitle, 1);
 }
 
-// 0x1E1670 func_001E1670
+// 0x1E1670 AddRelayStepHold
 namespace M_func_001E1670 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1670
- * Purpose: Splice builtin: append a RELAYCK 0x47 (Unk47) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x47,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk47 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E1670(void *pq, int a, int b, int c)
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builder, relay command 0x47: the actor holds a step (AddJsgStepHold with two parameters) while the script
+// runs. (inferred from NextJsgCommand)
+void AddRelayStepHold(void *pq, int a, int b, int c)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x47, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x47, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E1670
 
-// 0x1E16C0 func_001E16C0
+// 0x1E16C0 AddRelayStepRelease
 namespace M_func_001E16C0 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E16C0
- * Purpose: Splice builtin: append a RELAYCK 0x48 (Unk48) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x48,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk48 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E16C0(void *pq, int a, int b, int c)
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builder, relay command 0x48: releases a step hold taken by command 0x47 (RemoveJsgStepHold). (inferred from
+// NextJsgCommand)
+void AddRelayStepRelease(void *pq, int a, int b, int c)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x48, 1);
+    struct CMD *p = AddRelayCommand(pq, 0x48, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E16C0
 
-// 0x1E1710 func_001E1710
-/** @sly2-annot addr=0x1E1710
- * Purpose: Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x49,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk49 (T2); TU relay
- * Notes: verifier PLAUSIBLE: Placeholder (kind number); PrelaycmdAddRelay(prelay, 0x49, 1), +0x10 = arg. The
- *   Lilly enum also has only Unk49. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.50] - evidence: Sly 1 / Lilly reference; sources: r6b_rest+verdicts_followups
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1710(RELAYV *prelay, int n)
+// 0x1E1710 AddRelayRhythmSequence
+// Splice builder, relay command 0x49: starts a rhythm-game sequence on the rhythm manager (D_002DE570) from the 0x4A
+// cue commands that follow it in the block. (inferred from NextJsgCommand)
+extern "C" void AddRelayRhythmSequence(RELAYV *relay, int n)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
 }
 
-// 0x1E1740 func_001E1740
+// 0x1E1740 AddRelayRhythmCue
 namespace M_func_001E1740 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1740
- * Purpose: Splice builtin: append a RELAYCK 0x4A (Unk4A) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4A,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk4A (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E1740(void *pq, int a, int b, int c, float g)
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builder, relay command 0x4A: one rhythm cue (time, move) for a DANCER actor, collected by the preceding 0x49.
+// (inferred from NextJsgCommand)
+void AddRelayRhythmCue(void *pq, int a, int b, int c, float g)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x4A, 0);
+    struct CMD *p = AddRelayCommand(pq, 0x4A, 0);
     p->a[0].g = g; p->a[1].n = a; p->a[2].n = b; p->a[3].n = c;
 }
 } } // namespace M_func_001E1740
 
 // 0x1E17A0 AddRelayPlayAsegDefault
-/** @sly2-annot addr=0x1E17A0
- * Purpose: Splice builtin: append a RELAYCK 0x4B (PlayAsegDefault) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4B,fAsync)) and fill its args
- * Info: proposed name AddRelayPlayAsegDefault (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayPlayAsegDefault(RELAYV *prelay, OID oidOther, OID oidActor)
+// Splice builtin: append a RELAYCK 0x4B (PlayAsegDefault) command to the relay (AddRelayCommand(prelay,0x4B,fAsync))
+// and fill its args. (inferred)
+extern "C" void AddRelayPlayAsegDefault(RELAYV *relay, OID oidOther, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_PlayAsegDefault, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_PlayAsegDefault, 1);
     prelaycmd->playAsegDefault.oidOther = oidOther;
     prelaycmd->playAsegDefault.oidActor = oidActor;
 }
 
 // 0x1E17E0 AddRelayStartMusic
-/** @sly2-annot addr=0x1E17E0
- * Purpose: Splice builtin: append a RELAYCK 0x4C (StartMusic) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4C,fAsync)) and fill its args
- * Info: proposed name AddRelayStartMusic (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStartMusic(RELAYV *prelay, int idMusic)
+// Splice builtin: append a RELAYCK 0x4C (StartMusic) command to the relay (AddRelayCommand(prelay,0x4C,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStartMusic(RELAYV *relay, int idMusic)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StartMusic, 1)->startMusic.idMusic = idMusic;
+    AddRelayCommand(relay, RELAYCK_StartMusic, 1)->startMusic.idMusic = idMusic;
 }
 
 // 0x1E1810 AddRelayStopMusic
-/** @sly2-annot addr=0x1E1810
- * Purpose: Splice builtin: append a RELAYCK 0x4D (StopMusic) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4D,fAsync)) and fill its args
- * Info: proposed name AddRelayStopMusic (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayStopMusic(RELAYV *prelay, int idMusic)
+// Splice builtin: append a RELAYCK 0x4D (StopMusic) command to the relay (AddRelayCommand(prelay,0x4D,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayStopMusic(RELAYV *relay, int idMusic)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_StopMusic, 1)->stopMusic.idMusic = idMusic;
+    AddRelayCommand(relay, RELAYCK_StopMusic, 1)->stopMusic.idMusic = idMusic;
 }
 
 // 0x1E1840 AddRelayWaitTimer
-/** @sly2-annot addr=0x1E1840
- * Purpose: Splice builtin: append a RELAYCK 0x4E (WaitTimer) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4E,fAsync)) and fill its args
- * Info: proposed name AddRelayWaitTimer (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayWaitTimer(RELAYV *prelay, float dtWait)
+// Splice builtin: append a RELAYCK 0x4E (WaitTimer) command to the relay (AddRelayCommand(prelay,0x4E,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayWaitTimer(RELAYV *relay, float dtWait)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
+    AddRelayCommand(relay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
 }
 
-// 0x1E1870 func_001E1870
+// 0x1E1870 AddRelayMurrayApplySma
 namespace M_func_001E1870 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-/** @sly2-annot addr=0x1E1870
- * Purpose: Splice builtin: append a RELAYCK 0x4F (Unk4F) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x4F,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk4F (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E1870(void *pq, int a, int b, int c, int d, int e, int x)
+struct CMD *AddRelayCommand(void *pq, int kind, int b);
+// Splice builder, relay command 0x4F: Murray applies an SMA found on the named object (func_001B9C00). (inferred from
+// NextJsgCommand)
+void AddRelayMurrayApplySma(void *pq, int a, int b, int c, int d, int e, int x)
 {
-    struct CMD *p = PrelaycmdAddRelay(pq, 0x4F, x);
+    struct CMD *p = AddRelayCommand(pq, 0x4F, x);
     p->a[1].n = a;
     p->a[3].n = b;
     p->a[2].n = c;
@@ -3184,210 +2663,134 @@ void func_001E1870(void *pq, int a, int b, int c, int d, int e, int x)
 }
 } } // namespace M_func_001E1870
 
-// 0x1E18E0 func_001E18E0
-/** @sly2-annot addr=0x1E18E0
- * Purpose: Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x50,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk50 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E18E0(RELAYV *prelay, OID oidActor)
+// 0x1E18E0 AddRelayCommand50
+// Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand50(RELAYV *relay, OID oidActor)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
 }
 
-// 0x1E1910 func_001E1910
-/** @sly2-annot addr=0x1E1910
- * Purpose: Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x51,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk51 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1910(RELAYV *prelay, OID oidActor)
+// 0x1E1910 AddRelayCommand51
+// Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay (AddRelayCommand(prelay,0x51,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand51(RELAYV *relay, OID oidActor)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
 }
 
-// 0x1E1940 func_001E1940
-/** @sly2-annot addr=0x1E1940
- * Purpose: Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x52,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk52 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1940(RELAYV *prelay, float dtWait)
+// 0x1E1940 AddRelayCommand52
+// Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay (AddRelayCommand(prelay,0x52,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand52(RELAYV *relay, float dtWait)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
+    AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
 }
 
 // 0x1E1970 AddRelayHintBox
-/** @sly2-annot addr=0x1E1970
- * Purpose: Splice builtin: append a RELAYCK 0x53 (HintBox) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x53,fAsync)) and fill its args
- * Info: proposed name AddRelayHintBox (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayHintBox(RELAYV *prelay, int idHint, int fAsync, float dtHint)
+// Splice builtin: append a RELAYCK 0x53 (HintBox) command to the relay (AddRelayCommand(prelay,0x53,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayHintBox(RELAYV *relay, int idHint, int fAsync, float dtHint)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_HintBox, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HintBox, fAsync);
     prelaycmd->hintBox.idHint = idHint;
     prelaycmd->hintBox.dtHint = dtHint;
 }
 
 // 0x1E19B0 AddRelayClearHintBox
-/** @sly2-annot addr=0x1E19B0
- * Purpose: Splice builtin: append a RELAYCK 0x54 (ClearHintBox) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x54,fAsync)) and fill its args
- * Info: proposed name AddRelayClearHintBox (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayClearHintBox(RELAYV *prelay, int idHint)
+// Splice builtin: append a RELAYCK 0x54 (ClearHintBox) command to the relay (AddRelayCommand(prelay,0x54,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelayClearHintBox(RELAYV *relay, int idHint)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_ClearHintBox, 1)->clearHintBox.idHint = idHint;
+    AddRelayCommand(relay, RELAYCK_ClearHintBox, 1)->clearHintBox.idHint = idHint;
 }
 
 // 0x1E19E0 AddRelaySetSsgGoal
-/** @sly2-annot addr=0x1E19E0
- * Purpose: Splice builtin: append a RELAYCK 0x55 (SetSsgGoal) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x55,fAsync)) and fill its args
- * Info: proposed name AddRelaySetSsgGoal (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelaySetSsgGoal(RELAYV *prelay, OID oidStep, OID oidSsg, int fAsync)
+// Splice builtin: append a RELAYCK 0x55 (SetSsgGoal) command to the relay (AddRelayCommand(prelay,0x55,fAsync)) and
+// fill its args. (inferred)
+extern "C" void AddRelaySetSsgGoal(RELAYV *relay, OID oidStep, OID oidSsg, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_SetSsgGoal, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetSsgGoal, fAsync);
     prelaycmd->setSsgGoal.oidStep = oidStep;
     prelaycmd->setSsgGoal.oidSsg = oidSsg;
 }
 
 // 0x1E1A20 AddRelayResetStepGoal
-/** @sly2-annot addr=0x1E1A20
- * Purpose: Splice builtin: append a RELAYCK 0x56 (ResetStepGoal) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x56,fAsync)) and fill its args
- * Info: proposed name AddRelayResetStepGoal (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void AddRelayResetStepGoal(RELAYV *prelay, OID oidStep, OID oidUnk5)
+// Splice builtin: append a RELAYCK 0x56 (ResetStepGoal) command to the relay (AddRelayCommand(prelay,0x56,fAsync))
+// and fill its args. (inferred)
+extern "C" void AddRelayResetStepGoal(RELAYV *relay, OID oidStep, OID oidUnk5)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_ResetStepGoal, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ResetStepGoal, 1);
     prelaycmd->resetStepGoal.oidStep = oidStep;
     prelaycmd->resetStepGoal.oidUnk5 = oidUnk5;
 }
 
-// 0x1E1A60 func_001E1A60
-/** @sly2-annot addr=0x1E1A60
- * Purpose: Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x57,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk57 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1A60(RELAYV *prelay, OID oidActor)
+// 0x1E1A60 AddRelayCommand57
+// Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay (AddRelayCommand(prelay,0x57,fAsync)) and fill
+// its args. (inferred)
+extern "C" void AddRelayCommand57(RELAYV *relay, OID oidActor)
 {
-    PrelaycmdAddRelay(prelay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
 }
 
-// 0x1E1A90 func_001E1A90
-/** @sly2-annot addr=0x1E1A90
- * Purpose: Splice builtin: append a RELAYCK 0x58 (Unk58) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x58,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk58 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1A90(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1A90 AddRelayBentleyJumpOnMurray
+// Splice builder, relay command 0x58: Bentley jumps onto Murray (the named object) and the script takes control of him
+// until he lands. (inferred from NextJsgCommand)
+extern "C" void AddRelayBentleyJumpOnMurray(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Unk58, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk58, fAsync);
     prelaycmd->unk58.oidShip = oidShip;
     prelaycmd->unk58.oidActor = oidActor;
 }
 
-// 0x1E1AD0 func_001E1AD0
-/** @sly2-annot addr=0x1E1AD0
- * Purpose: Splice builtin: append a RELAYCK 0x59 (Unk59) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x59,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk59 (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1AD0(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1AD0 AddRelayMurrayMoveTo
+// Splice builder, relay command 0x59: Murray moves to the named object (his move record, when in a movable state).
+// (inferred from NextJsgCommand)
+extern "C" void AddRelayMurrayMoveTo(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Unk59, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk59, fAsync);
     prelaycmd->unk59.oidShip = oidShip;
     prelaycmd->unk59.oidActor = oidActor;
 }
 
-// 0x1E1B10 func_001E1B10
-/** @sly2-annot addr=0x1E1B10
- * Purpose: Splice builtin: append a RELAYCK 0x5A (Unk5A) command to the relay
- *   (PrelaycmdAddRelay(prelay,0x5A,fAsync)) and fill its args
- * Info: proposed name AddRelayUnk5A (T2); TU relay
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E1B10(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1B10 AddRelayMurrayMoveToAndControl
+// Splice builder, relay command 0x5A: like 0x59, and the script keeps control of Murray until he arrives. (inferred
+// from NextJsgCommand)
+extern "C" void AddRelayMurrayMoveToAndControl(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = PrelaycmdAddRelay(prelay, RELAYCK_Unk5A, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk5A, fAsync);
     prelaycmd->unk5A.oidShip = oidShip;
     prelaycmd->unk5A.oidActor = oidActor;
     prelaycmd->unk5A.nUnk6 = 0;
 }
 
 // 0x1E1B58 AddJsgRef
-/** @sly2-annot addr=0x1E1B58
- * Purpose: cref++ (+0x10)
- * Info: proposed name AddJsgRef (T1); class JSG; TU relay
- * Notes: agent qualifier: (IncrefJsg)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// cref++ (+0x10). (inferred)
 void RELAYJSG::VUnk00()   /* key function: RELAYJSG's vtable comes out here */
 {
-    JSGV *pjsg = (JSGV *)this;
-    pjsg->cref = pjsg->cref + 1;
+    JSGV *script = (JSGV *)this;
+    script->cref = script->cref + 1;
 }
 
 // 0x1E1B68 ReleaseJsg
-/** @sly2-annot addr=0x1E1B68
- * Purpose: --cref; at 0 release sound ref, destruct and free to the JSG slot heap g_sw.slotheapJsg
- * Info: proposed name ReleaseJsg (T1); class JSG; TU relay
- * Notes: agent qualifier: (DecrefJsg)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// --cref; at 0 release sound ref, destruct and free to the JSG slot heap g_sw.slotheapJsg. (inferred)
 /* Drops a reference; the last one clears the splice frame and sidebag, unsubscribes and frees the script. */
-extern "C" void ReleaseJsg(JSGV *pjsg)
+extern "C" void ReleaseJsg(JSGV *script)
 {
     int cref;
-    cref = pjsg->cref - 1;
-    pjsg->cref = cref;
+    cref = script->cref - 1;
+    script->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&pjsg->pframe, 0);
-        AssignSidebagRef(&pjsg->psidebag, 0);
-        UnsubscribeLoAll(pjsg);
-        FreeSlotheapSlot(&g_sw.slotheapJsg, pjsg);
+        FramePtr_Assign(&script->pframe, 0);
+        AssignSidebagRef(&script->psidebag, 0);
+        UnsubscribeLoAll(script);
+        FreeSlotheapSlot(&g_sw.slotheapJsg, script);
     }
 }
 
@@ -3398,21 +2801,16 @@ typedef struct T { char pad[0x18]; int x18; } T;
 typedef struct M { int a; int b; int c; } M;
 typedef struct S { char pad[0x30]; T *pt; char pad2[0x24]; int x58; int x5C; } S;
 void HandleBasicMessage(S *p, int a, M *m);
-/** @sly2-annot addr=0x1E1BC8
- * Purpose: BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state ->
- *   fSmaReached(+0x5C)=1
- * Info: proposed name HandleJsgMessage (T1); class JSG; TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void HandleJsgMessage(S *p, int a, M *m)
+// BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
+// (inferred)
+void HandleJsgMessage(S *script, int a, M *m)
 {
-    HandleBasicMessage(p, a, m);
-    if (a == 10 && m->a == p->x58 && m->c == p->pt->x18) p->x5C = 1;
+    HandleBasicMessage(script, a, m);
+    if (a == 10 && m->a == script->x58 && m->c == script->pt->x18) script->x5C = 1;
 }
 } } // namespace M_HandleJsgMessage
 
-// 0x1E1C40 func_001E1C40
+// 0x1E1C40 UpdateRelayScript
 namespace M_func_001E1C40 {
 struct VTE; struct E; struct P; class LOCK;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -3426,36 +2824,29 @@ public:
 };
 extern "C" {
 void NextJsgCommand__FP3JSG(P *p);
-int FJsgRemoved(P *p);
+int IsJsgRemoved(P *p);
 void ReleaseJsgJtIfComplete(P *p);
-int FIsJsgCommandComplete__FP3JSGP8RELAYCMD(P *p, E *pe);
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(P *p, E *pe);
 void RemoveJsg(P *p);
-void func_001E1C40(P *p);
+void UpdateRelayScript(P *p);
 }
-/** @sly2-annot addr=0x1E1C40
- * Purpose: Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while
- *   the current command is fAsync or complete (FIsJsgCommandComplete); release JT if done; remove the JSG
- *   past the block end
- * Info: proposed name UpdateJsg (T1); TU relay
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E1C40(P *p)
+// Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
+// is fAsync or complete (FIsJsgCommandComplete); release JT if done; remove the JSG past the block end.
+void UpdateRelayScript(P *script)
 {
-    LOCK lock(p);
-    if (!p->peCur) {
-        p->peCur = p->peFirst;
-        NextJsgCommand__FP3JSG(p);
-        if (FJsgRemoved(p)) return;
+    LOCK lock(script);
+    if (!script->peCur) {
+        script->peCur = script->peFirst;
+        NextJsgCommand__FP3JSG(script);
+        if (IsJsgRemoved(script)) return;
     }
-    while (p->peCur <= p->peMax && (p->peCur->n4 || FIsJsgCommandComplete__FP3JSGP8RELAYCMD(p, p->peCur))) {
-        ReleaseJsgJtIfComplete(p);
-        NextJsgCommand__FP3JSG(p);
-        if (FJsgRemoved(p)) return;
+    while (script->peCur <= script->peMax && (script->peCur->n4 || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->peCur))) {
+        ReleaseJsgJtIfComplete(script);
+        NextJsgCommand__FP3JSG(script);
+        if (IsJsgRemoved(script)) return;
     }
-    ReleaseJsgJtIfComplete(p);
-    if (p->peCur > p->peMax) RemoveJsg(p);
+    ReleaseJsgJtIfComplete(script);
+    if (script->peCur > script->peMax) RemoveJsg(script);
 }
 } // namespace M_func_001E1C40
 
@@ -3464,27 +2855,21 @@ namespace M_ReleaseJsgJtIfComplete { extern "C" {
 struct O; struct S;
 struct O { int n0; char pad[0xC]; int n10; };
 struct S { char pad[0x40]; struct O *po; };
-int FIsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po);
-void func_001E4EB8(struct S *p, int a, int b);
-/** @sly2-annot addr=0x1E1D48
- * Purpose: If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal
- *   is -1) release it (SetJsgJt(p,0,0))
- * Info: proposed name ReleaseJsgJtIfComplete (T1); TU relay
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void ReleaseJsgJtIfComplete(struct S *p)
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po);
+void SetRelayScriptActor(struct S *p, int a, int b);
+// If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release
+// it (SetJsgJt(p,0,0)). (inferred)
+void ReleaseJsgJtIfComplete(struct S *script)
 {
-    if (p->po && FIsJsgCommandComplete__FP3JSGP8RELAYCMD(p, p->po)) {
+    if (script->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->po)) {
         int f = 1;
-        if (p->po->n0 == 0x1D) f = (p->po->n10 == -1);
-        if (f) func_001E4EB8(p, 0, 0);
+        if (script->po->n0 == 0x1D) f = (script->po->n10 == -1);
+        if (f) SetRelayScriptActor(script, 0, 0);
     }
 }
 } } // namespace M_ReleaseJsgJtIfComplete
 
-// 0x1E1DB8 func_001E1DB8
+// 0x1E1DB8 FindJsgObject
 namespace M_func_001E1DB8 { extern "C" {
 struct S;
 typedef struct S { char pad[0x18]; int x18; } S;
@@ -3492,20 +2877,15 @@ extern struct G D_003DD490;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void *GetProxyCurrentObject(void *p);
-/** @sly2-annot addr=0x1E1DB8
- * Purpose: Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their
- *   current object
- * Info: proposed name PloFindJsgObject (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void *func_001E1DB8(S *p, int id)
+// Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
+// (inferred)
+void *FindJsgObject(S *script, int id)
 {
     void *q;
     if (id == -1) {
         q = 0;
     } else {
-        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p->x18);
+        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->x18);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
     }
     return q;
@@ -3527,6 +2907,8 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP
 extern "C" {
 /* memset: sly2/classes.h's declaration */
 }
+// Inline helper GrfUpdateLo: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -3578,18 +2960,21 @@ extern "C" { extern SW D_003DD490; }
 
 
 
+// Wraps an int-held float bit pattern as a VU_FLOAT.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// Vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// Vector sum.
 static inline qword QwAdd(qword qw0, qword qw1)
 {
     qword qw;
@@ -3606,7 +2991,7 @@ void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float 
 extern "C" { extern SUBTITLE D_004435F0; }
 
 
-extern "C" void RelayFire(RELAYV *prelay, LO *ploFirer) __asm__("FireRelay");
+extern "C" void RelayFire(RELAYV *relay, LO *ploFirer) __asm__("FireRelay");
 extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("PushStepBehavior");
 extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
 extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
@@ -3625,45 +3010,41 @@ extern "C" { extern LO *D_002DE570; }
 extern "C" { extern float D_002A7AD0; }
 extern "C" { extern qword D_002A2DD0; }
 extern "C" { extern qword D_002A2DC0; }
-static inline LO *PloJsgActorDefault(JSGV *pjsg)
+// The script's default actor: the one set on the script, else its block's object, else the relay's firer.
+static inline LO *PloJsgActorDefault(JSGV *script)
 {
-    if (pjsg->ploActorDefault)
+    if (script->ploActorDefault)
     {
-        return pjsg->ploActorDefault;
+        return script->ploActorDefault;
     }
-    if (pjsg->ploBlock)
+    if (script->ploBlock)
     {
-        return pjsg->ploBlock;
+        return script->ploBlock;
     }
-    return pjsg->prelay->ploFirer;
+    return script->relay->ploFirer;
 }
+// base + vec * scale.x.
 static inline qword QwAddScaledX(qword qw, qword qwDir, VU_FLOAT vuScale)
 {
     qword qwSum;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwSum) : "j"(qw), "j"(qwDir), "j"(vuScale.qw));
     return qwSum;
 }
-void NextJsgCommand(JSGV *pjsg) __asm__("NextJsgCommand__FP3JSG");
+void NextJsgCommand(JSGV *script) __asm__("NextJsgCommand__FP3JSG");
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7AD0 __asm__("D_002A7AD0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1E1E30
- * Purpose: Advance the script to the next command and execute it by kind
- * Info: proposed name NextJsgCommand (T1); TU relay
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
- *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void NextJsgCommand(JSGV *pjsg)
+// Advance the script to the next command and execute it by kind.
+void NextJsgCommand(JSGV *script)
 {
-    pjsg->prelaycmdCur++;
-    if (pjsg->prelaycmdCur > pjsg->prelaycmdLast)
+    script->prelaycmdCur++;
+    if (script->prelaycmdCur > script->prelaycmdLast)
     {
         return;
     }
-    JSGREF jsgref(pjsg);
-    RELAYCMD *prelaycmd = pjsg->prelaycmdCur;
+    JSGREF jsgref(script);
+    RELAYCMD *prelaycmd = script->prelaycmdCur;
     OID oidActor;
     switch (prelaycmd->relayck)
     {
@@ -3716,19 +3097,19 @@ void NextJsgCommand(JSGV *pjsg)
     LO *ploActor;
     if (oidActor == OID_Nil)
     {
-        ploActor = PloJsgActorDefault(pjsg);
+        ploActor = PloJsgActorDefault(script);
     }
     else
     {
-        ploActor = PloFindJsgObject(pjsg, oidActor);
+        ploActor = PloFindJsgObject(script, oidActor);
     }
-    pjsg->ploActor = ploActor;
+    script->ploActor = ploActor;
     switch (prelaycmd->relayck)
     {
     case RELAYCK_BlockBegin:
     {
-        JSGV *pjsgBlock = PjsgStartBlock(pjsg->prelay, prelaycmd, pjsg);
-        pjsg->prelaycmdCur = pjsgBlock->prelaycmdLast;
+        JSGV *pjsgBlock = PjsgStartBlock(script->relay, prelaycmd, script);
+        script->prelaycmdCur = pjsgBlock->prelaycmdLast;
         UpdateJsg(pjsgBlock);
         break;
     }
@@ -3737,11 +3118,11 @@ void NextJsgCommand(JSGV *pjsg)
         JSGV *pjsgStop;
         if (prelaycmd->stopBlock.oidLabel == OID_Nil)
         {
-            pjsgStop = pjsg;
+            pjsgStop = script;
         }
         else
         {
-            pjsgStop = PjsgFindRelayBlock(pjsg->prelay, prelaycmd->stopBlock.oidLabel, 0);
+            pjsgStop = PjsgFindRelayBlock(script->relay, prelaycmd->stopBlock.oidLabel, 0);
         }
         if (pjsgStop)
         {
@@ -3754,11 +3135,11 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYV *prelayAlarm;
         if (prelaycmd->raiseAlarm.oidRelay == OID_Nil)
         {
-            prelayAlarm = pjsg->prelay;
+            prelayAlarm = script->relay;
         }
         else
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->raiseAlarm.oidRelay);
+            LO *plo = PloFindJsgObject(script, prelaycmd->raiseAlarm.oidRelay);
             prelayAlarm = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayAlarm)
@@ -3772,11 +3153,11 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYV *prelayStop;
         if (prelaycmd->stopRelay.oidRelay == OID_Nil)
         {
-            prelayStop = pjsg->prelay;
+            prelayStop = script->relay;
         }
         else
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->stopRelay.oidRelay);
+            LO *plo = PloFindJsgObject(script, prelaycmd->stopRelay.oidRelay);
             prelayStop = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayStop)
@@ -3787,7 +3168,7 @@ void NextJsgCommand(JSGV *pjsg)
     }
     case RELAYCK_SetCtlState:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->setCtlState.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->setCtlState.oidObj);
         if (plo && FIsBasicDerivedFrom(plo, (CID)50))
         {
             ((PO *)plo)->SetCtlState(1);
@@ -3795,20 +3176,20 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     }
     case RELAYCK_SetActor:
-        pjsg->ploActorDefault = PloFindJsgObject(pjsg, prelaycmd->setActor.oidActor);
+        script->ploActorDefault = PloFindJsgObject(script, prelaycmd->setActor.oidActor);
         break;
     case RELAYCK_Signal:
     {
         void *apv[1];
         apv[0] = &prelaycmd->signal.idSignal;
-        pjsg->prelay->pjsgSignal = pjsg;
-        pjsg->prelay->HandleSpliceEvent(4, 0, 1, apv, 0);
-        pjsg->prelay->pjsgSignal = 0;
+        script->relay->pjsgSignal = script;
+        script->relay->HandleSpliceEvent(4, 0, 1, apv, 0);
+        script->relay->pjsgSignal = 0;
         break;
     }
     case RELAYCK_PlayAseg:
     {
-        LO *ploRoot = PloFindJsgObject(pjsg, prelaycmd->playAseg.oidRoot);
+        LO *ploRoot = PloFindJsgObject(script, prelaycmd->playAseg.oidRoot);
         if (ploRoot)
         {
             if (FIsBasicDerivedFrom(ploRoot, (CID)52))
@@ -3816,7 +3197,7 @@ void NextJsgCommand(JSGV *pjsg)
                 PlayStepClip((STEPPLAYER *)ploRoot, prelaycmd->playAseg.oidAseg, prelaycmd->playAseg.grfapl | 1, 5);
                 if (!prelaycmd->fAsync)
                 {
-                    pjsg->pstepAseg = (STEP *)ploRoot;
+                    script->pstepAseg = (STEP *)ploRoot;
                 }
                 break;
             }
@@ -3825,13 +3206,13 @@ void NextJsgCommand(JSGV *pjsg)
                 ploRoot = 0;
             }
         }
-        LO *ploAseg = PloFindJsgObject(pjsg, prelaycmd->playAseg.oidAseg);
+        LO *ploAseg = PloFindJsgObject(script, prelaycmd->playAseg.oidAseg);
         if (ploAseg && FIsBasicDerivedFrom(ploAseg, (CID)109))
         {
             ASEGA *pasega = PasegaApplyAseg((ASEG *)ploAseg, (ALO *)ploRoot, 0.0f, 1.0f, prelaycmd->playAseg.grfapl);
             if (!prelaycmd->fAsync)
             {
-                pjsg->pasegaCur = pasega;
+                script->pasegaCur = pasega;
                 pasega->VUnk00();
             }
         }
@@ -3839,22 +3220,22 @@ void NextJsgCommand(JSGV *pjsg)
     }
     case RELAYCK_FireRelay:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->fireRelay.oidRelay);
+        LO *plo = PloFindJsgObject(script, prelaycmd->fireRelay.oidRelay);
         if (plo && FIsBasicDerivedFrom(plo, (CID)114))
         {
             RelayFire((RELAYV *)plo, ploActor);
             if (!prelaycmd->fAsync)
             {
-                pjsg->prelayWait = (RELAYV *)plo;
+                script->prelayWait = (RELAYV *)plo;
             }
         }
         break;
     }
     case RELAYCK_SetContext:
-        pjsg->ploContext = PloFindJsgObject(pjsg, prelaycmd->setContext.oidContext);
-        if (!pjsg->ploContext)
+        script->ploContext = PloFindJsgObject(script, prelaycmd->setContext.oidContext);
+        if (!script->ploContext)
         {
-            pjsg->ploContext = pjsg->prelay;
+            script->ploContext = script->relay;
         }
         break;
     case RELAYCK_ApplySm:
@@ -3865,14 +3246,14 @@ void NextJsgCommand(JSGV *pjsg)
         aoid[2] = prelaycmd->applySm.oidState;
         aoid[3] = OID_Nil;
         int grfSma = prelaycmd->applySm.fUnk7 ? 3 : 1;
-        TriggerOneRsmg(&D_003DD490, aoid, pjsg->ploContext, grfSma, pjsg, &pjsg->psmaCur);
+        TriggerOneRsmg(&D_003DD490, aoid, script->ploContext, grfSma, script, &script->psmaCur);
         if (prelaycmd->fAsync)
         {
-            ReleaseJsgSma(pjsg);
+            ReleaseJsgSma(script);
         }
-        else if (pjsg->psmaCur && !pjsg->fSmaReached && !FIsSmaRetracted(pjsg->psmaCur) && GetSmaCur(pjsg->psmaCur) == prelaycmd->applySm.oidState)
+        else if (script->psmaCur && !script->fSmaReached && !FIsSmaRetracted(script->psmaCur) && GetSmaCur(script->psmaCur) == prelaycmd->applySm.oidState)
         {
-            pjsg->fSmaReached = 1;
+            script->fSmaReached = 1;
         }
         break;
     }
@@ -3887,7 +3268,7 @@ void NextJsgCommand(JSGV *pjsg)
                 ((WIDGETV *)plo)->Show(prelaycmd->widgetShow.idLabel);
                 if (!prelaycmd->fAsync)
                 {
-                    pjsg->ploWidget = plo;
+                    script->ploWidget = plo;
                 }
             }
             else
@@ -3901,36 +3282,36 @@ void NextJsgCommand(JSGV *pjsg)
         SetClockRate(&D_002DDED0, (CRK)6, prelaycmd->setClockRate.rate);
         if (prelaycmd->setClockRate.rate == 0.0f)
         {
-            RELAYV *prelay = pjsg->prelay;
-            int grf = prelay->grfUnk40;
+            RELAYV *relay = script->relay;
+            int grf = relay->grfUnk40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf |= 0x100;
             }
             else
             {
-                prelay->grfUnk40 = grf | 0x100;
+                relay->grfUnk40 = grf | 0x100;
             }
         }
         else
         {
-            RELAYV *prelay = pjsg->prelay;
-            int grf = prelay->grfUnk40;
+            RELAYV *relay = script->relay;
+            int grf = relay->grfUnk40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf &= ~0x100;
             }
             else
             {
-                prelay->grfUnk40 = grf & ~0x100;
+                relay->grfUnk40 = grf & ~0x100;
             }
         }
         break;
     case RELAYCK_SetTaskState:
-        SetTaskStates(&D_002DEB30, 1, (TASKPAIR *)&prelaycmd->setTaskState, pjsg->ploContext);
+        SetTaskStates(&D_002DEB30, 1, (TASKPAIR *)&prelaycmd->setTaskState, script->ploContext);
         break;
     case RELAYCK_HandsOff:
-        SetJsgHandsOff(pjsg, prelaycmd->handsOff.fHandsOff, prelaycmd->handsOff.grfHandsOff);
+        SetJsgHandsOff(script, prelaycmd->handsOff.fHandsOff, prelaycmd->handsOff.grfHandsOff);
         break;
     case RELAYCK_GotoLabel:
     case RELAYCK_GotoLabelIf:
@@ -3942,7 +3323,7 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYCMD *prelaycmdGoto = prelaycmd;
         RELAYCMD *prelaycmdLabel = 0;
         int cBlock = 0;
-        for (prelaycmd = pjsg->prelaycmdFirst + 1; prelaycmd < pjsg->prelaycmdLast; prelaycmd++)
+        for (prelaycmd = script->prelaycmdFirst + 1; prelaycmd < script->prelaycmdLast; prelaycmd++)
         {
             switch (prelaycmd->relayck)
             {
@@ -3956,69 +3337,69 @@ void NextJsgCommand(JSGV *pjsg)
                 if (cBlock == 0 && prelaycmd->label.oidLabel == prelaycmdGoto->gotoLabel.oidLabel)
                 {
                     prelaycmdLabel = prelaycmd;
-                    prelaycmd = pjsg->prelaycmdLast;
+                    prelaycmd = script->prelaycmdLast;
                 }
                 break;
             }
         }
         if (prelaycmdLabel)
         {
-            pjsg->prelaycmdCur = prelaycmdLabel;
+            script->prelaycmdCur = prelaycmdLabel;
         }
         break;
     }
     case RELAYCK_TeleportTo:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->teleportTo.oidWhere);
+        LO *plo = PloFindJsgObject(script, prelaycmd->teleportTo.oidWhere);
         if (plo && FIsBasicDerivedFrom(plo, (CID)41))
         {
             PutSwHeroAtWarp((WARPV *)plo);
             break;
         }
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
         if (plo && FIsBasicDerivedFrom(plo, (CID)27))
         {
-            if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+            if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
             {
-                STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+                STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
                 EnterJtGrabState(&pstepplayer->jtgrab, 8, plo, 0);
                 SetJtGrabPhase(&pstepplayer->jtgrab, 9);
-                SetJsgJt(pjsg, 0, 0);
+                SetJsgJt(script, 0, 0);
             }
             break;
         }
         VECTOR4 pos;
         MATRIX3 mat;
         float rad;
-        GetJsgLocation(pjsg, plo, (qword *)&pos, &rad);
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)51))
+        GetJsgLocation(script, plo, (qword *)&pos, &rad);
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)51))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             pstep->TranslateToPos(QwSub(*(qword *)&pos, pstep->qwUnk240));
             SetStepRadTarget(pstep, rad);
         }
         else
         {
-            pjsg->ploActor->TranslateToPos(*(qword *)&pos);
+            script->ploActor->TranslateToPos(*(qword *)&pos);
         }
         mat = LoadRotateMatrixRad(rad, D_002A2DC0);
-        pjsg->ploActor->RotateToMat((MATRIX4 *)&mat);
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        script->ploActor->RotateToMat((MATRIX4 *)&mat);
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             pstepplayer->qwUnk1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->nUnk1048));
             if (!prelaycmd->teleportTo.fAir && pstepplayer->cUnk12f4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
                 ClearSoXps(pstepplayer);
             }
-            SetJsgJt(pjsg, 0, 0);
+            SetJsgJt(script, 0, 0);
         }
-        pjsg->ploActor->SetVelocity(D_002A2DD0);
-        pjsg->ploActor->SetAngularVelocity(D_002A2DD0);
+        script->ploActor->SetVelocity(D_002A2DD0);
+        script->ploActor->SetAngularVelocity(D_002A2DD0);
         break;
     }
     case RELAYCK_CutCamera:
@@ -4026,45 +3407,45 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_SetTunnel:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->setTunnel.oidTunnel);
+        LO *plo = PloFindJsgObject(script, prelaycmd->setTunnel.oidTunnel);
         if (plo && FIsBasicDerivedFrom(plo, (CID)15))
         {
-            SetJsgTn(pjsg, (TN *)plo);
+            SetJsgTn(script, (TN *)plo);
         }
         break;
     }
     case RELAYCK_SetFocus:
-        SetJsgFocus(pjsg, PloFindJsgObject(pjsg, prelaycmd->setFocus.oidFocus));
+        SetJsgFocus(script, PloFindJsgObject(script, prelaycmd->setFocus.oidFocus));
         break;
     case RELAYCK_PipeTo:
     {
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtpipe.nState == -1)
             {
                 break;
             }
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->pipeTo.oidTarget);
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
-            FindShapeClosestPointAll(pstepplayer->jtpipe.pshape, *(qword *)&pos, 0, 0, 0, 0, &pjsg->sPipe);
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            LO *plo = PloFindJsgObject(script, prelaycmd->pipeTo.oidTarget);
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
+            FindShapeClosestPointAll(pstepplayer->jtpipe.pshape, *(qword *)&pos, 0, 0, 0, 0, &script->sPipe);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     }
     case RELAYCK_HeroState:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)53))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)53))
         {
-            JT *pjt = (JT *)pjsg->ploActor;
+            JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
             {
             case 2:
@@ -4080,74 +3461,74 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_StepCmd1D:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdHoldOn((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd1D.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdHoldOn((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1D.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd1E:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            LO *ploA = PloFindJsgObject(pjsg, prelaycmd->stepCmd1E.oidA);
-            LO *ploB = PloFindJsgObject(pjsg, prelaycmd->stepCmd1E.oidB);
+            STEP *pstep = (STEP *)script->ploActor;
+            LO *ploA = PloFindJsgObject(script, prelaycmd->stepCmd1E.oidA);
+            LO *ploB = PloFindJsgObject(script, prelaycmd->stepCmd1E.oidB);
             StepCmdPutDown((STEPPLAYER *)pstep, ploA, ploB);
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd1F:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdHoldOn9((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd1F.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdHoldOn9((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1F.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd20:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdCarry((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd20.oidGoal));
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdCarry((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd20.oidGoal));
         }
         break;
     case RELAYCK_StepCmd21:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdPlaceHeld((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd21.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdPlaceHeld((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd21.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd22:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             LO *ploTarget = PloFindSwObject(&D_003DD490, (GRFFSO)1, prelaycmd->stepCmd22.oidTarget, pstep);
             LO *ploDir;
             if (prelaycmd->stepCmd22.nMode == 3)
@@ -4159,39 +3540,39 @@ void NextJsgCommand(JSGV *pjsg)
             }
             else
             {
-                ploDir = PloFindJsgObject(pjsg, (OID)prelaycmd->stepCmd22.nMode);
+                ploDir = PloFindJsgObject(script, (OID)prelaycmd->stepCmd22.nMode);
             }
             StepCmdGrab0xC((STEPPLAYER *)pstep, (ASEG *)ploTarget, ploDir, prelaycmd->stepCmd22.nUnk6);
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_Face:
-        if (!PloFindJsgObject(pjsg, prelaycmd->face.oidFace))
+        if (!PloFindJsgObject(script, prelaycmd->face.oidFace))
         {
             break;
         }
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            SetJsgJt(pjsg, prelaycmd, pjsg->ploActor);
+            SetJsgJt(script, prelaycmd, script->ploActor);
         }
         break;
     case RELAYCK_GoTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (prelaycmd->goTo.idClip != -1)
             {
                 PlayStepClip(pstepplayer, (OID)prelaycmd->goTo.idClip, 9, 6);
             }
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->goTo.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->goTo.oidTarget);
             if (plo)
             {
                 if (FIsBasicDerivedFrom(plo, (CID)34) || FIsBasicDerivedFrom(plo, (CID)12) || FIsBasicDerivedFrom(plo, (CID)38) ||
@@ -4216,39 +3597,39 @@ void NextJsgCommand(JSGV *pjsg)
                 {
                     VECTOR4 pos;
                     SHAPE *pshape = (SHAPE *)pstepplayer->jtgrab.plo;
-                    GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
-                    FindShapeClosestPointAll(pshape, *(qword *)&pos, 0, 0, 0, &pjsg->sGoTo, 0);
+                    GetJsgLocation(script, plo, (qword *)&pos, 0);
+                    FindShapeClosestPointAll(pshape, *(qword *)&pos, 0, 0, 0, &script->sGoTo, 0);
                 }
             }
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     case RELAYCK_RunOn:
-        pjsg->fRun = 1;
+        script->fRun = 1;
         break;
     case RELAYCK_RunOff:
-        pjsg->fRun = 0;
+        script->fRun = 0;
         break;
     case RELAYCK_FollowPath:
     {
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             break;
         }
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->followPath.oidPath);
+        LO *plo = PloFindJsgObject(script, prelaycmd->followPath.oidPath);
         if (plo && FIsBasicDerivedFrom(plo, (CID)10))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             if (prelaycmd->followPath.idClip != -1)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->followPath.idClip, 9, 6);
             }
             BHV168 *pbhv = (BHV168 *)PbhvPushStep(pstep, 0xA8);
-            pbhv->nUnk40 = pjsg->fRun;
+            pbhv->nUnk40 = script->fRun;
             pbhv->nUnkcc = prelaycmd->followPath.nUnk6;
             pbhv->gUnkd0 = prelaycmd->followPath.gUnk7;
             SetBhv166Path(pbhv, plo, prelaycmd->followPath.nPathMode == 0);
@@ -4257,22 +3638,22 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     }
     case RELAYCK_WalkTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->walkTo.oidTarget);
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+            LO *plo = PloFindJsgObject(script, prelaycmd->walkTo.oidTarget);
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
             if (prelaycmd->walkTo.idClip != -1)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->walkTo.idClip, 9, 6);
             }
             BHV193V *pbhv = (BHV193V *)PbhvPushStep(pstep, 0xC1);
-            pbhv->nUnk30 = pjsg->fRun;
+            pbhv->nUnk30 = script->fRun;
             pbhv->gUnk34 = prelaycmd->walkTo.gUnk5;
             pbhv->nUnk38 = prelaycmd->walkTo.nUnk6;
             pbhv->gUnk3c = prelaycmd->walkTo.gUnk7;
@@ -4281,32 +3662,32 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_StepCmd29:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtgrab.nKind != -1)
             {
                 if (pstepplayer->jtgrab.nState != 8)
                 {
                     break;
                 }
-                SetJsgJt(pjsg, prelaycmd, pstepplayer);
+                SetJsgJt(script, prelaycmd, pstepplayer);
             }
         }
         break;
     case RELAYCK_Respawn:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->respawn.oidSpot);
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, prelaycmd->respawn.oidSpot);
             JTPLACE place;
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
@@ -4328,7 +3709,7 @@ void NextJsgCommand(JSGV *pjsg)
                 }
                 else
                 {
-                    GetJsgLocation(pjsg, plo, &place.qwPos, 0);
+                    GetJsgLocation(script, plo, &place.qwPos, 0);
                     GuardSpawnerGroundSnap(&place.qwPos, 0, 0, 100.0f, -150.0f);
                 }
             }
@@ -4341,43 +3722,43 @@ void NextJsgCommand(JSGV *pjsg)
             {
                 ((JT *)pstepplayer)->janim.nUnk10 = prelaycmd->respawn.nUnk6;
             }
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     case RELAYCK_LaunchTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->launchTo.oidTarget);
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+            LO *plo = PloFindJsgObject(script, prelaycmd->launchTo.oidTarget);
+            STEP *pstep = (STEP *)script->ploActor;
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
             LaunchJtToPos(pstep, *(qword *)&pos, prelaycmd->launchTo.gUnk5, prelaycmd->launchTo.gUnk6);
         }
         break;
     case RELAYCK_AddObject:
     case RELAYCK_RemoveObject:
     {
-        LO *plo = FadeAsegObjectEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_AddObject, prelaycmd->addObject.oidObj, prelaycmd->addObject.dtFade, pjsg->ploContext,
-                                      (ASEG *)pjsg->prelay);
+        LO *plo = FadeAsegObjectEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_AddObject, prelaycmd->addObject.oidObj, prelaycmd->addObject.dtFade, script->ploContext,
+                                      (ASEG *)script->relay);
         if (plo && !prelaycmd->fAsync && FIsBasicDerivedFrom(plo, (CID)48))
         {
-            pjsg->ploFade = plo;
+            script->ploFade = plo;
         }
         break;
     }
     case RELAYCK_SetPartFlag:
     case RELAYCK_ClearPartFlag:
-        SetAsegPartFlagEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_SetPartFlag, prelaycmd->setPartFlag.oidAseg, prelaycmd->setPartFlag.oidPart, 0, pjsg->ploContext,
-                             (ASEG *)pjsg->prelay);
+        SetAsegPartFlagEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_SetPartFlag, prelaycmd->setPartFlag.oidAseg, prelaycmd->setPartFlag.oidPart, 0, script->ploContext,
+                             (ASEG *)script->relay);
         break;
     case RELAYCK_ShowPart:
     case RELAYCK_HidePart:
-        ShowAsegPartEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_ShowPart, prelaycmd->showPart.oidAseg, prelaycmd->showPart.oidPart, 0, pjsg->ploContext,
-                          (ASEG *)pjsg->prelay);
+        ShowAsegPartEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_ShowPart, prelaycmd->showPart.oidAseg, prelaycmd->showPart.oidPart, 0, script->ploContext,
+                          (ASEG *)script->relay);
         break;
     case RELAYCK_Unk32:
         JoltCm(&D_002DDF40, prelaycmd->unk32.nUnk4);
@@ -4386,18 +3767,18 @@ void NextJsgCommand(JSGV *pjsg)
         TriggerJoyRumbleRumk(&D_002DFC00, (RUMK)prelaycmd->rumble.rumk, prelaycmd->rumble.dtRumble);
         break;
     case RELAYCK_Explode:
-        ExplodeAsegEvent(&D_003DD490, prelaycmd->explode.oidA, prelaycmd->explode.oidB, prelaycmd->explode.oidC, pjsg->ploContext, (ASEG *)pjsg->prelay,
+        ExplodeAsegEvent(&D_003DD490, prelaycmd->explode.oidA, prelaycmd->explode.oidB, prelaycmd->explode.oidC, script->ploContext, (ASEG *)script->relay,
                          prelaycmd->explode.dtDelay);
         break;
     case RELAYCK_Eyes:
-        SetAsegEyesEvent(&D_003DD490, prelaycmd->eyes.oidA, prelaycmd->eyes.oidB, pjsg->ploContext, (ASEG *)pjsg->prelay, prelaycmd->eyes.dtEyes);
+        SetAsegEyesEvent(&D_003DD490, prelaycmd->eyes.oidA, prelaycmd->eyes.oidB, script->ploContext, (ASEG *)script->relay, prelaycmd->eyes.dtEyes);
         break;
     case RELAYCK_Sound:
         PlayAsegSoundEvent(&D_003DD490, prelaycmd->sound.idSnd, prelaycmd->sound.oidA, prelaycmd->sound.nUnk6, prelaycmd->sound.nUnk7, prelaycmd->sound.gUnk8,
-                           prelaycmd->sound.gUnk9, prelaycmd->sound.gUnk10, 0, pjsg->ploContext, (ASEG *)pjsg->prelay, &pjsg->psnd);
+                           prelaycmd->sound.gUnk9, prelaycmd->sound.gUnk10, 0, script->ploContext, (ASEG *)script->relay, &script->psnd);
         break;
     case RELAYCK_StopSound:
-        StopAsegSoundEvent(&D_003DD490, prelaycmd->stopSound.idSnd, (ASEG *)pjsg->prelay, &pjsg->psnd);
+        StopAsegSoundEvent(&D_003DD490, prelaycmd->stopSound.idSnd, (ASEG *)script->relay, &script->psnd);
         break;
     case RELAYCK_CamBlendFrom:
     {
@@ -4415,7 +3796,7 @@ void NextJsgCommand(JSGV *pjsg)
         }
         RELAYCMD *prelaycmdTo = 0;
         int cBlock = 0;
-        for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < pjsg->prelaycmdLast && !prelaycmdTo; prelaycmdT++)
+        for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < script->prelaycmdLast && !prelaycmdTo; prelaycmdT++)
         {
             switch (prelaycmdT->relayck)
             {
@@ -4434,62 +3815,62 @@ void NextJsgCommand(JSGV *pjsg)
             default:
                 if (cBlock == 0 && fSum)
                 {
-                    dtBlend += DtJsgCommand(pjsg, prelaycmdT);
+                    dtBlend += DtJsgCommand(script, prelaycmdT);
                 }
                 break;
             }
         }
         if (prelaycmdTo)
         {
-            StartJsgCamBlend(pjsg, prelaycmd, prelaycmdTo, dtBlend);
+            StartJsgCamBlend(script, prelaycmd, prelaycmdTo, dtBlend);
         }
         break;
     }
     case RELAYCK_CamBlendTo:
-        if (pjsg->tBlendEnd != D_002A7AD0)
+        if (script->tBlendEnd != D_002A7AD0)
         {
             break;
         }
         if (prelaycmd->camBlendTo.nUnk16 != 0)
         {
-            PopJsgCamBlend(pjsg, prelaycmd->camBlendTo.nUnk17);
+            PopJsgCamBlend(script, prelaycmd->camBlendTo.nUnk17);
         }
         else
         {
-            pjsg->fUnk9c = 0;
+            script->fUnk9c = 0;
         }
         break;
     case RELAYCK_Unk3A:
-        PopJsgCamBlend(pjsg, prelaycmd->unk3A.nUnk4);
+        PopJsgCamBlend(script, prelaycmd->unk3A.nUnk4);
         break;
     case RELAYCK_StartJtMode:
     {
-        LO *ploStep = PloFindJsgObject(pjsg, prelaycmd->startJtMode.oidStep);
+        LO *ploStep = PloFindJsgObject(script, prelaycmd->startJtMode.oidStep);
         if (ploStep)
         {
             FIsBasicDerivedFrom(ploStep, (CID)51);
         }
         LO *ploHud = PloFindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->startJtMode.oidUnk6, 0);
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->startJtMode.oidActor);
+        LO *plo = PloFindJsgObject(script, prelaycmd->startJtMode.oidActor);
         if (plo && FIsBasicDerivedFrom(plo, (CID)52))
         {
-            pjsg->pstepplayerMode = (STEPPLAYER *)plo;
+            script->pstepplayerMode = (STEPPLAYER *)plo;
             StartJtMode(&((STEPPLAYER *)plo)->jtmode, 1, (STEP *)ploStep, ploHud);
         }
         break;
     }
     case RELAYCK_EndJtMode:
-        EndJsgJtMode(pjsg);
+        EndJsgJtMode(script);
         break;
     case RELAYCK_TweenPosObj:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->tweenPosObj.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->tweenPosObj.oidObj);
         D_002DDF40.cpzoom.SetOwner(plo);
         break;
     }
     case RELAYCK_TweenAimObj:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->tweenAimObj.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->tweenAimObj.oidObj);
         D_002DDF40.cpzoom.SetFocus(plo);
         break;
     }
@@ -4510,7 +3891,7 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_Line:
         StartDialogueLine(&D_003DD040, prelaycmd->line.idLine, prelaycmd->line.fWait);
-        pjsg->prelaycmdLine = prelaycmd;
+        script->prelaycmdLine = prelaycmd;
         break;
     case RELAYCK_ClearSubtitle:
         ClearSubtitle(&D_004435F0);
@@ -4518,13 +3899,13 @@ void NextJsgCommand(JSGV *pjsg)
     case RELAYCK_Unk47:
         if (ploActor)
         {
-            AddJsgStepHold(pjsg, ploActor, prelaycmd->unk47.nUnk5, prelaycmd->unk47.nUnk6);
+            AddJsgStepHold(script, ploActor, prelaycmd->unk47.nUnk5, prelaycmd->unk47.nUnk6);
         }
         break;
     case RELAYCK_Unk48:
         if (ploActor)
         {
-            RemoveJsgStepHold(pjsg, ploActor, prelaycmd->unk48.nUnk5, prelaycmd->unk48.nUnk6);
+            RemoveJsgStepHold(script, ploActor, prelaycmd->unk48.nUnk5, prelaycmd->unk48.nUnk6);
         }
         break;
     case RELAYCK_Unk49:
@@ -4533,7 +3914,7 @@ void NextJsgCommand(JSGV *pjsg)
             JSGENT aent[6];
             uint cent = 0;
             int cBlock = 0;
-            for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < pjsg->prelaycmdLast; prelaycmdT++)
+            for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < script->prelaycmdLast; prelaycmdT++)
             {
                 switch (prelaycmdT->relayck)
                 {
@@ -4554,35 +3935,35 @@ void NextJsgCommand(JSGV *pjsg)
                 case RELAYCK_Unk49:
                     if (cBlock == 0)
                     {
-                        prelaycmdT = pjsg->prelaycmdLast;
+                        prelaycmdT = script->prelaycmdLast;
                     }
                     break;
                 }
             }
-            func_001531A8(D_002DE570, prelaycmd->unk49.nUnk4, cent, aent);
+            SetRhythmManagerPrompts(D_002DE570, prelaycmd->unk49.nUnk4, cent, aent);
         }
         break;
     case RELAYCK_Unk4A:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)68))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
         {
             if (D_002DE570)
             {
-                func_001532D8(D_002DE570, pjsg->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
+                PushRhythmManagerCue(D_002DE570, script->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
             }
         }
         break;
     case RELAYCK_PlayAsegDefault:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)68))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
         {
-            LO *plo = pjsg->ploActor;
+            LO *plo = script->ploActor;
             LO *ploOther;
             if (prelaycmd->playAsegDefault.oidOther == OID_Nil)
             {
@@ -4602,14 +3983,14 @@ void NextJsgCommand(JSGV *pjsg)
         StopMusic(&D_003DD040, prelaycmd->stopMusic.idMusic);
         break;
     case RELAYCK_Unk4F:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, (OID)prelaycmd->unk4F.nUnk5);
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, (OID)prelaycmd->unk4F.nUnk5);
             if (plo)
             {
                 SMA *psma = PsmaFindOnAlo((ALO *)plo, OID_Nil);
@@ -4622,13 +4003,13 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_Unk50:
     case RELAYCK_Unk51:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)55))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
         {
-            SetJsgJt(pjsg, prelaycmd, pjsg->ploActor);
+            SetJsgJt(script, prelaycmd, script->ploActor);
         }
         break;
     case RELAYCK_HintBox:
@@ -4639,67 +4020,67 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_SetSsgGoal:
     {
-        STEP *pstep = (STEP *)PloFindJsgObject(pjsg, prelaycmd->setSsgGoal.oidStep);
-        SSG *pssg = (SSG *)PloFindJsgObject(pjsg, prelaycmd->setSsgGoal.oidSsg);
+        STEP *pstep = (STEP *)PloFindJsgObject(script, prelaycmd->setSsgGoal.oidStep);
+        SSG *pssg = (SSG *)PloFindJsgObject(script, prelaycmd->setSsgGoal.oidSsg);
         SetStepSsgGoal(pstep, pssg);
         if (!prelaycmd->fAsync)
         {
-            pjsg->pstepSsgGoal = pstep;
-            pjsg->pssgGoal = pssg;
+            script->pstepSsgGoal = pstep;
+            script->pssgGoal = pssg;
         }
         break;
     }
     case RELAYCK_ResetStepGoal:
     {
-        STEP *pstep = (STEP *)PloFindJsgObject(pjsg, prelaycmd->resetStepGoal.oidStep);
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->resetStepGoal.oidUnk5);
+        STEP *pstep = (STEP *)PloFindJsgObject(script, prelaycmd->resetStepGoal.oidStep);
+        LO *plo = PloFindJsgObject(script, prelaycmd->resetStepGoal.oidUnk5);
         ResetStepGoal(pstep, (SSG *)plo);
         break;
     }
     case RELAYCK_Unk57:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
-            EnterMurrayThrowAim((MURRAY *)pjsg->ploActor);
+            EnterMurrayThrowAim((MURRAY *)script->ploActor);
         }
         break;
     case RELAYCK_Unk58:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)55))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
         {
-            BENTLEY *pbentley = (BENTLEY *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk58.oidShip);
+            BENTLEY *pbentley = (BENTLEY *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, prelaycmd->unk58.oidShip);
             if (plo && FIsBasicDerivedFrom(plo, (CID)54))
             {
                 SetJtAirJump(&pbentley->jtair, (pbentley->jtair.nState == 0x11) ? 3 : 1, 0, 0);
-                SetJsgJt(pjsg, prelaycmd, pbentley);
+                SetJsgJt(script, prelaycmd, pbentley);
             }
         }
         break;
     case RELAYCK_Unk59:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
             if (pmurray->moverec.nState < 7)
             {
                 if (pmurray->moverec.nState < 4)
                 {
                     break;
                 }
-                LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk59.oidShip);
+                LO *plo = PloFindJsgObject(script, prelaycmd->unk59.oidShip);
                 if (plo)
                 {
                     StartJtThrowFlight(&pmurray->moverec, plo);
@@ -4708,16 +4089,16 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_Unk5A:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
             if (pmurray->moverec.nState < 7)
             {
                 if (pmurray->moverec.nState < 4)
@@ -4725,33 +4106,33 @@ void NextJsgCommand(JSGV *pjsg)
                     break;
                 }
                 prelaycmd->unk5A.nUnk6 = pmurray->moverec.nUnk00;
-                LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk5A.oidShip);
+                LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
                     StartJtThrowFlight(&pmurray->moverec, plo);
-                    SetJsgJt(pjsg, prelaycmd, pmurray);
+                    SetJsgJt(script, prelaycmd, pmurray);
                 }
             }
         }
         break;
     }
-    if (GrfUpdateLo(pjsg->prelay) & 0x100)
+    if (GrfUpdateLo(script->relay) & 0x100)
     {
-        pjsg->tCommand = D_002DDED0.tReal;
+        script->tCommand = D_002DDED0.tReal;
     }
     else
     {
-        pjsg->tCommand = D_002DDED0.t;
+        script->tCommand = D_002DDED0.t;
     }
 }
 } // namespace M_NextJsgCommand__FP3JSG
 
-// 0x1E3890 FIsJsgCommandComplete__FP3JSGP8RELAYCMD
+// 0x1E3890 IsJsgCommandComplete
 namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // FIsJsgCommandComplete: ported from Lilly's personal Sly 2 decomp (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BD850 (D_002BD850), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DFC00 (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
-// 0x001E3890 FIsJsgCommandComplete__FP3JSGP8RELAYCMD  (T1306, our name; MATCH)
+// 0x001E3890 IsJsgCommandComplete  (T1306, our name; MATCH)
 // Whether the command the script is on has finished, by kind; UpdateJsg asks it of the current command (a command that is fAsync is not asked) and
 // ReleaseJsgJtIfComplete of the one that took the character. A kind with nothing to wait for (and every kind past the table) is complete at once.
 // The waits (the table is in re/notes/relay-commands-t1289.md, "T1306"): WaitBlocks / WaitAlarm / FireRelay / ApplySm / WidgetShow / PlayAseg wait for the thing
@@ -4760,10 +4141,12 @@ namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // since tCommand; Line / StopLine / Unk52 / WaitTimer / ButtonPrompt wait for the dialogue; the camera ones (CamBlendTo, Tween*) for the camera.
 // The result is one variable (the game's s2) assigned in every arm; a command that has several "done at once" exits writes them as `else fComplete = 1`.
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+// Whether the object is in the active world (LO::fInWorld).
 inline int FIsLoInWorld(LO *plo)
 {
     return plo->fInWorld != 0;
 }
+// The object's update flags (inline when tagged with bit 0, else read through the pointer).
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -4816,18 +4199,21 @@ extern "C" { extern SW D_003DD490; }
 
 
 
+// Vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// Lane x of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// Length of the xy part, in lane x.
 static inline qword QwLengthXY(qword v)
 {
     qword qw;
@@ -4835,16 +4221,19 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Length of the xy part as a float.
 static inline float GLengthXY(qword v)
 {
     return GFromVf(QwLengthXY(v));
 }
+// Lane y of a 128-bit register as a float.
 static inline float GYOfQw(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
+// Lane z of a 128-bit register as a float.
 static inline float GZOfQw(qword qw)
 {
     float z;
@@ -4857,6 +4246,7 @@ static inline float GZOfQw(qword qw)
 
 extern "C" { extern SUBTITLE D_004435F0; }
 
+// Lane x of a 128-bit register as a float.
 static inline float GXOfQwAct(qword qw)
 {
     float x;
@@ -4868,7 +4258,7 @@ extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBehavior");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
 extern "C" int IsWidgetIdle(LO *plo);
-extern "C" void func_001E5468(JSGV *pjsg);
+extern "C" void ClearJsgWidget(JSGV *script);
 extern "C" int HandleJoyButtons(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlaying");
@@ -4880,23 +4270,18 @@ extern "C" { extern float D_002C3620; }
 extern "C" { extern float D_002C3624; }
 extern "C" { extern float D_002C3628; }
 extern "C" { extern float D_002C362C; }
-static inline float TJsgNow(JSGV *pjsg)
+// Current time for a script: real time when its relay runs unpaused (update flag 0x100), else game time.
+static inline float TJsgNow(JSGV *script)
 {
-    if (GrfUpdateLo(pjsg->prelay) & 0x100)
+    if (GrfUpdateLo(script->relay) & 0x100)
     {
         return D_002DDED0.tReal;
     }
     return D_002DDED0.t;
 }
-int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd) __asm__("FIsJsgCommandComplete__FP3JSGP8RELAYCMD");
-/** @sly2-annot addr=0x1E3890
- * Purpose: Whether the given command has finished, by kind
- * Info: proposed name FIsJsgCommandComplete (T1); TU relay
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
- *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
+int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+// Whether the given command has finished, by kind.
+int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
 {
     int fComplete;
     MURRAY *pmurray;
@@ -4908,7 +4293,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         fComplete = 1;
         for (i = 0; i < prelaycmd->waitBlocks.coid; i++)
         {
-            if (PjsgFindRelayBlock(pjsg->prelay, (OID)prelaycmd->waitBlocks.aoid[i], pjsg))
+            if (PjsgFindRelayBlock(script->relay, (OID)prelaycmd->waitBlocks.aoid[i], script))
             {
                 fComplete = 0;
                 break;
@@ -4917,60 +4302,60 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_WaitAlarm:
-        fComplete = FRelayHasAlarm(pjsg->prelay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
+        fComplete = FRelayHasAlarm(script->relay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
         if (fComplete && prelaycmd->waitAlarm.fForget)
         {
-            RemoveRelayAlarm(pjsg->prelay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
+            RemoveRelayAlarm(script->relay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
         }
         break;
     case RELAYCK_PlayAseg:
         fComplete = 0;
-        if (pjsg->pstepAseg)
+        if (script->pstepAseg)
         {
-            if (!FStepClipPlaying((STEPPLAYER *)pjsg->pstepAseg))
+            if (!FStepClipPlaying((STEPPLAYER *)script->pstepAseg))
             {
-                pjsg->pstepAseg = 0;
+                script->pstepAseg = 0;
                 fComplete = 1;
             }
         }
         else
         {
-            if (pjsg->pasegaCur && FAsegaStopped(pjsg->pasegaCur))
+            if (script->pasegaCur && FAsegaStopped(script->pasegaCur))
             {
-                pjsg->pasegaCur->VUnk01();
-                pjsg->pasegaCur = 0;
+                script->pasegaCur->VUnk01();
+                script->pasegaCur = 0;
             }
-            fComplete = pjsg->pasegaCur == 0;
+            fComplete = script->pasegaCur == 0;
         }
         break;
     case RELAYCK_FireRelay:
-        if (pjsg->prelayWait && !pjsg->prelayWait->fFiring)
+        if (script->prelayWait && !script->prelayWait->fFiring)
         {
-            pjsg->prelayWait = 0;
+            script->prelayWait = 0;
         }
-        fComplete = pjsg->prelayWait == 0;
+        fComplete = script->prelayWait == 0;
         break;
     case RELAYCK_ApplySm:
-        if (pjsg->psmaCur && (FIsSmaRetracted(pjsg->psmaCur) || pjsg->fSmaReached))
+        if (script->psmaCur && (FIsSmaRetracted(script->psmaCur) || script->fSmaReached))
         {
-            ReleaseJsgSma(pjsg);
+            ReleaseJsgSma(script);
         }
-        fComplete = pjsg->psmaCur == 0;
+        fComplete = script->psmaCur == 0;
         break;
     case RELAYCK_WidgetShow:
-        if (pjsg->ploWidget && IsWidgetIdle(pjsg->ploWidget))
+        if (script->ploWidget && IsWidgetIdle(script->ploWidget))
         {
-            func_001E5468(pjsg);
+            ClearJsgWidget(script);
         }
-        fComplete = pjsg->ploWidget == 0;
+        fComplete = script->ploWidget == 0;
         break;
     case RELAYCK_PipeTo:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
             VECTOR4 vLimits;
-            GetJtPipeLimits(&((STEPPLAYER *)pjsg->pjt)->jtpipe, (float *)&vLimits);
-            float s = GLimitLm((LM *)&vLimits, pjsg->sPipe);
-            fComplete = fabsf(((STEPPLAYER *)pjsg->pjt)->jtpipe.s - s) < prelaycmd->pipeTo.gTolerance;
+            GetJtPipeLimits(&((STEPPLAYER *)script->pjt)->jtpipe, (float *)&vLimits);
+            float s = GLimitLm((LM *)&vLimits, script->sPipe);
+            fComplete = fabsf(((STEPPLAYER *)script->pjt)->jtpipe.s - s) < prelaycmd->pipeTo.gTolerance;
         }
         else
         {
@@ -4978,9 +4363,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk1B:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtair.nState >= 0xB && pstepplayer->jtair.nState <= 0xD)
             {
                 fComplete = 0;
@@ -5001,9 +4386,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_HeroState:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x35))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x35))
         {
-            JT *pjt = (JT *)pjsg->ploActor;
+            JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
             {
             case 2:
@@ -5027,9 +4412,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_StepCmd1D:
     case RELAYCK_StepCmd21:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepHoldArrived((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepHoldArrived((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -5037,9 +4422,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd1E:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepPutDownDone((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepPutDownDone((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -5047,9 +4432,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd1F:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepHoldOn9Done((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepHoldOn9Done((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -5057,9 +4442,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd22:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepGrab0xCDone((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepGrab0xCDone((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -5067,18 +4452,18 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Face:
-        fComplete = prelaycmd->face.dtWait < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->face.dtWait < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_GoTo:
     {
-        LO *pjt = pjsg->pjt;
+        LO *pjt = script->pjt;
         if (pjt)
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->goTo.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->goTo.oidTarget);
             if (plo)
             {
                 qword pos;
-                GetJsgLocation(pjsg, plo, &pos, 0);
+                GetJsgLocation(script, plo, &pos, 0);
                 fComplete = GLengthXY(QwSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
                 SetJtGoalPos(&((STEPPLAYER *)pjt)->jtgoal, pos);
             }
@@ -5098,9 +4483,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_FollowPath:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             BHV166 *pbhv = (BHV166 *)PbhvFindStep(pstep, 0xA8);
             fComplete = 0;
             if (!pbhv || FBhv166NearEnd(pbhv))
@@ -5122,9 +4507,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_WalkTo:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             BHV *pbhv = PbhvFindStep(pstep, 0xC1);
             fComplete = 0;
             if (!pbhv || FBhv193AtGoal((BHV193V *)pbhv))
@@ -5147,14 +4532,14 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_StepCmd29:
     {
-        STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->pjt;
+        STEPPLAYER *pstepplayer = (STEPPLAYER *)script->pjt;
         if (pstepplayer && pstepplayer->jtgrab.nKind != -1 && pstepplayer->jtgrab.nState == 8)
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->stepCmd29.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->stepCmd29.oidTarget);
             if (plo)
             {
                 VECTOR4 pos;
-                GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+                GetJsgLocation(script, plo, (qword *)&pos, 0);
                 fComplete = GLengthXY(QwSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
             }
             else
@@ -5169,9 +4554,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_Respawn:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = ((STEPPLAYER *)pjsg->pjt)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->pjt)->jtair.nState == -1;
         }
         else
         {
@@ -5179,9 +4564,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_LaunchTo:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            fComplete = ((STEPPLAYER *)pjsg->ploActor)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->ploActor)->jtair.nState == -1;
         }
         else
         {
@@ -5190,46 +4575,46 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_AddObject:
     case RELAYCK_RemoveObject:
-        if (pjsg->ploFade)
+        if (script->ploFade)
         {
             if (prelaycmd->relayck == RELAYCK_AddObject)
             {
-                if (FIsLoInWorld(pjsg->ploFade) && ((SO *)pjsg->ploFade)->uAlpha == 1.0f)
+                if (FIsLoInWorld(script->ploFade) && ((SO *)script->ploFade)->uAlpha == 1.0f)
                 {
-                    pjsg->ploFade = 0;
+                    script->ploFade = 0;
                 }
             }
-            else if (!FIsLoInWorld(pjsg->ploFade))
+            else if (!FIsLoInWorld(script->ploFade))
             {
-                pjsg->ploFade = 0;
+                script->ploFade = 0;
             }
         }
-        fComplete = pjsg->ploFade == 0;
+        fComplete = script->ploFade == 0;
         break;
     case RELAYCK_Unk32:
-        fComplete = D_002BD850 < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = D_002BD850 < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_Rumble:
-        fComplete = prelaycmd->rumble.dtRumble < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->rumble.dtRumble < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_CamBlendTo:
-        fComplete = pjsg->tBlendEnd <= D_002DDED0.t;
+        fComplete = script->tBlendEnd <= D_002DDED0.t;
         if (fComplete)
         {
             if (prelaycmd->camBlendTo.nUnk16 != 0)
             {
-                PopJsgCamBlend(pjsg, prelaycmd->camBlendTo.nUnk17);
+                PopJsgCamBlend(script, prelaycmd->camBlendTo.nUnk17);
             }
             else
             {
-                pjsg->fUnk9c = 0;
+                script->fUnk9c = 0;
             }
         }
         break;
     case RELAYCK_StartJtMode:
-        if (pjsg->pstepplayerMode)
+        if (script->pstepplayerMode)
         {
-            fComplete = pjsg->pstepplayerMode->jtmode.hud.nState == 1;
+            fComplete = script->pstepplayerMode->jtmode.hud.nState == 1;
         }
         else
         {
@@ -5237,9 +4622,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_EndJtMode:
-        if (pjsg->pstepplayerMode)
+        if (script->pstepplayerMode)
         {
-            fComplete = pjsg->pstepplayerMode->jtmode.hud.nState == -1;
+            fComplete = script->pstepplayerMode->jtmode.hud.nState == -1;
         }
         else
         {
@@ -5286,10 +4671,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk43:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
-            if (((STEPPLAYER *)pjsg->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
+            if (((STEPPLAYER *)script->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
             {
                 fComplete = 1;
             }
@@ -5308,9 +4693,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
     case RELAYCK_Unk52:
     {
         int idLine = -1;
-        if (pjsg->prelaycmdLine)
+        if (script->prelaycmdLine)
         {
-            idLine = pjsg->prelaycmdLine->line.idLine;
+            idLine = script->prelaycmdLine->line.idLine;
         }
         if (!FCurrentIdMatches(&D_003DD040, idLine))
         {
@@ -5334,9 +4719,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk4F:
         fComplete = 0;
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x36))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)0x36))
         {
-            MURRAY *pmurrayActor = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurrayActor = (MURRAY *)script->ploActor;
             if (pmurrayActor->nState != 6)
             {
                 fComplete = 1;
@@ -5349,34 +4734,34 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk50:
         fComplete = 0;
-        if (!pjsg->pjt || ((BENTLEY *)pjsg->pjt)->nState == 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->nState == 6)
         {
             fComplete = 1;
         }
         break;
     case RELAYCK_Unk51:
         fComplete = 0;
-        if (!pjsg->pjt || ((BENTLEY *)pjsg->pjt)->nState != 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->nState != 6)
         {
             fComplete = 1;
         }
         break;
     case RELAYCK_HintBox:
-        fComplete = prelaycmd->hintBox.dtHint < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->hintBox.dtHint < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_SetSsgGoal:
-        if (pjsg->pssgGoal && !FStepGoalIs(pjsg->pstepSsgGoal, pjsg->pssgGoal))
+        if (script->pssgGoal && !FStepGoalIs(script->pstepSsgGoal, script->pssgGoal))
         {
-            pjsg->pstepSsgGoal = 0;
-            pjsg->pssgGoal = 0;
+            script->pstepSsgGoal = 0;
+            script->pssgGoal = 0;
         }
-        fComplete = pjsg->pssgGoal == 0;
+        fComplete = script->pssgGoal == 0;
         break;
     case RELAYCK_Unk58:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(pjsg, prelaycmd->unk58.oidShip);
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C3620)
+            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(script, prelaycmd->unk58.oidShip);
+            if (TJsgNow(script) - script->tCommand > D_002C3620)
             {
                 fComplete = 1;
             }
@@ -5395,10 +4780,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk59:
-        pmurray = (MURRAY *)pjsg->pjt;
+        pmurray = (MURRAY *)script->pjt;
         if (pmurray)
         {
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C3624)
+            if (TJsgNow(script) - script->tCommand > D_002C3624)
             {
                 fComplete = 1;
             }
@@ -5418,10 +4803,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk5A:
     {
-        pmurray = (MURRAY *)pjsg->pjt;
+        pmurray = (MURRAY *)script->pjt;
         if (pmurray)
         {
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C362C)
+            if (TJsgNow(script) - script->tCommand > D_002C362C)
             {
                 fComplete = 1;
             }
@@ -5452,7 +4837,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
 }
 } // namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD
 
-// 0x1E4530 func_001E4530
+// 0x1E4530 GetJsgCommandDuration
 namespace M_func_001E4530 { extern "C" {
 struct G; union U; struct P; struct C; struct O;
 struct G { int a; };
@@ -5464,28 +4849,25 @@ union U { int n; float g; };
 struct P { int kind; int x4; int pad[2]; union U u10; union U u14; int x18; };
 struct C { char pad[0x18]; int x18; };
 struct O { char pad[0x74]; float g74; float g78; char pad2[0x80 - 0x7C]; float a[3]; int pad3; float gMin; float gMax; };
-struct O *func_001E1DB8(struct C *pc, int n);
+struct O *FindJsgObject(struct C *pc, int n);
 float GetDifficulty(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *FindLiveSma(void *p, int n);
 float DtSmaToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
+// Inline helper GClamp: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// instruction choice matches the original; its name says what it computes.
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
-/** @sly2-annot addr=0x1E4530
- * Purpose: Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
- *   Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if
- *   fAsync
- * Info: proposed name GJsgCommandWait (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-float func_001E4530(struct C *pc, struct P *p)
+// Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
+// Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
+// (inferred)
+float GetJsgCommandDuration(struct C *pc, struct P *script)
 {
     float g = 0.0f;
-    if (p->x4) return g;
-    switch (p->kind) {
+    if (script->x4) return g;
+    switch (script->kind) {
     case 0xA: {
-        struct O *po = func_001E1DB8(pc, p->u10.n);
+        struct O *po = FindJsgObject(pc, script->u10.n);
         if (po) {
             float t = GetDifficulty(&D_002DE578);
             float *pa = po->a; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->gMin, po->gMax);
@@ -5494,11 +4876,11 @@ float func_001E4530(struct C *pc, struct P *p)
         break;
     }
     case 0xD:
-        if (p->x18 != -1) {
-            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, p->u10.n, pc->x18);
+        if (script->x18 != -1) {
+            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, script->u10.n, pc->x18);
             if (px) {
-                void *py = FindLiveSma(px, p->u14.n);
-                if (py) g = DtSmaToState(py, p->x18);
+                void *py = FindLiveSma(px, script->u14.n);
+                if (py) g = DtSmaToState(py, script->x18);
             }
         }
         break;
@@ -5507,22 +4889,22 @@ float func_001E4530(struct C *pc, struct P *p)
         break;
     case 0x23:
     case 0x33:
-        g = p->u10.g;
+        g = script->u10.g;
         break;
     case 0x45:
-        g = GetDialogStreamDuration(&D_003DD040, p->u10.n);
+        g = GetDialogStreamDuration(&D_003DD040, script->u10.n);
         break;
     case 0x2C:
     case 0x2D:
     case 0x53:
-        g = p->u14.g;
+        g = script->u14.g;
         break;
     }
     return g;
 }
 } } // namespace M_func_001E4530
 
-// 0x1E46A0 func_001E46A0
+// 0x1E46A0 UpdateJsgJtControl
 namespace M_func_001E46A0 {
 union U; union ARG; struct PATH; struct PARAM; struct ACTOR; struct P; struct OUTPUT; struct WORK;
 typedef int qword __attribute__((mode(TI)));
@@ -5544,7 +4926,7 @@ qword GetPoctlLateralVector(OUTPUT*,qword);
 float atan2f(float,float);
 float SMaxShape(PATH*),UMaxShape(PATH*);
 float RadNormalize__Ff(float);
-ACTOR *func_001E1DB8(P*,int);
+ACTOR *FindJsgObject(P*,int);
 void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void SetStepTargetHeading(ACTOR*,float);
 void EvaluateShapeU(PATH*,float,qword*,qword*);
@@ -5553,6 +4935,9 @@ qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
 }
+// Inline helpers Sub, ToVU, X, Y, Z, Root, LengthXY: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
+// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
+// compute.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
@@ -5560,6 +4945,7 @@ static inline float Y(qword a){float r;__asm__("prot3w %0,%1":"=r"(r):"r"(a));re
 static inline float Z(qword a){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(a));return r;}
 static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
 static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return X(Root(r));}
+// Normalizes the path tangent in place (fallback for a zero tangent).
 static inline void NormalizeTangent(U &output){
  register qword vector __asm__("vf3");
  register qword length __asm__("vf1");
@@ -5580,6 +4966,7 @@ static inline void NormalizeTangent(U &output){
  else {__asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(length):"j"(vector));}
  __asm__("sqc2 %1,%0":"=m"(output.q):"j"(length));
 }
+// Displacement from the actor to the captured target position.
 static inline void TargetDisplacement(U &output,const qword &captured,qword actorPosition){
  register qword current __asm__("vf3");
  register qword target __asm__("vf2");
@@ -5589,6 +4976,7 @@ static inline void TargetDisplacement(U &output,const qword &captured,qword acto
  __asm__("vsub.xyzw %0,%1,%2":"=j"(delta):"j"(target),"j"(current));
  __asm__("sqc2 %1,%0":"=m"(output.q):"j"(delta));
 }
+// Unit direction of input; also copies the source speed into speed (register-pinned for the match).
 static inline qword NormalizeDirection(qword input,float &speed,const float &sourceSpeed){
  register qword vector __asm__("vf2");
  register qword length __asm__("vf1");
@@ -5600,6 +4988,7 @@ static inline qword NormalizeDirection(qword input,float &speed,const float &sou
  __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(length):"j"(vector));
  speed=scale;return length;
 }
+// Whether the y lanes of two input vectors are within tolerance.
 static inline int NearYInputs(qword previous,qword current,float tolerance){
  register qword currentWord __asm__("$2"),previousWord __asm__("$3");
  register float currentInput __asm__("$f12"),previousInput __asm__("$f13");
@@ -5609,6 +4998,7 @@ static inline int NearYInputs(qword previous,qword current,float tolerance){
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
  return FFloatsNear__Ffff(currentInput,previousInput,tolerance);
 }
+// Whether the z lanes of two input vectors are within tolerance.
 static inline int NearZInputs(qword previous,qword current,float tolerance){
  register qword currentWord __asm__("$2"),previousWord __asm__("$3");
  register float currentInput __asm__("$f12"),previousInput __asm__("$f13");
@@ -5618,15 +5008,10 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
  return FFloatsNear__Ffff(currentInput,previousInput,tolerance);
 }
-/** @sly2-annot addr=0x1E46A0
- * Purpose: Per-frame steering of a script-controlled player character: follow a path/curve or head to a
- *   target and write stick/heading/speed into the step's control output
- * Info: proposed name UpdateJsgJtControl (T2); TU relay
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void func_001E46A0(P *p,OUTPUT *out){
- WORK work;PARAM *param=p->param;ACTOR *actor=p->actor;
+// Per-frame steering of a script-controlled player character: follow a path/curve or head to a target and write
+// stick/heading/speed into the step's control output. (inferred)
+extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
+ WORK work;PARAM *param=script->param;ACTOR *actor=script->actor;
  typedef char layout_local_work[(sizeof(work)==0x60)?1:-1];
  typedef char layout_local_work_align[(__alignof__(work)==16)?1:-1];
 
@@ -5642,10 +5027,10 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
    float forward,backward;
-   if(p->previousCurve<actor->curveTime){forward=actor->curveTime-p->previousCurve;backward=SMaxShape(actor->curve)+p->previousCurve-actor->curveTime;}
-   else {backward=p->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-p->previousCurve;}
+   if(script->previousCurve<actor->curveTime){forward=actor->curveTime-script->previousCurve;backward=SMaxShape(actor->curve)+script->previousCurve-actor->curveTime;}
+   else {backward=script->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-script->previousCurve;}
    if(forward<backward)reverse=1;
-  }else if(p->previousCurve<actor->curveTime)reverse=1;
+  }else if(script->previousCurve<actor->curveTime)reverse=1;
   if(reverse){out->heading=RadNormalize__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
   out->speed=1.0f;break;
  }
@@ -5653,16 +5038,16 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
  stopped:
   out->speed=0.0f;if(actor->active!=-1)out->flags|=0x20;break;
  case 0x23:{
-  ACTOR *target=func_001E1DB8(p,param->value.id);
+  ACTOR *target=FindJsgObject(script,param->value.id);
   if(!target)goto stopped;
-  GetJsgTargetPosHeading(p,target,0,&work.heading);
+  GetJsgTargetPosHeading(script,target,0,&work.heading);
   SetStepTargetHeading(actor,work.heading);out->heading=work.heading;
   goto stopped;
  }
  case 0x24:{
   out->speed=__builtin_fabsf(param->value.gain);
   if(param->flag)out->flags|=8;
-  ACTOR *target=func_001E1DB8(p,param->target);
+  ACTOR *target=FindJsgObject(script,param->target);
   if(!target)goto activityFlags;
   if(actor->active!=-1&&actor->mode==3){
    PATH *motion=actor->motion;
@@ -5672,13 +5057,13 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    if(motion->cyclic){
     float forward,backward;
-    if(p->previousMotion<actor->motionTime){forward=actor->motionTime-p->previousMotion;backward=UMaxShape(motion)+p->previousMotion-actor->motionTime;}
-    else {backward=p->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-p->previousMotion;}
+    if(script->previousMotion<actor->motionTime){forward=actor->motionTime-script->previousMotion;backward=UMaxShape(motion)+script->previousMotion-actor->motionTime;}
+    else {backward=script->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-script->previousMotion;}
     if(forward<backward)reverse=1;
-   }else if(p->previousMotion<actor->motionTime)reverse=1;
+   }else if(script->previousMotion<actor->motionTime)reverse=1;
    if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
   }else{
-   GetJsgTargetPosHeading(p,target,&work.from.q,0);
+   GetJsgTargetPosHeading(script,target,&work.from.q,0);
    work.first=work.from.q;
    TargetDisplacement(work.to,work.first,GetLoWorldPos(actor));
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
@@ -5694,9 +5079,9 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   break;
  case 0x29:{
   out->speed=__builtin_fabsf(param->value.gain);
-  ACTOR *target=func_001E1DB8(p,param->target);
+  ACTOR *target=FindJsgObject(script,param->target);
   if(!target||actor->active==-1||actor->mode!=8)break;
-  GetJsgTargetPosHeading(p,target,&work.from.q,0);
+  GetJsgTargetPosHeading(script,target,&work.from.q,0);
   {register qword captured __asm__("$3")=work.from.q;work.second=captured;}
   {
    qword actorPosition=GetLoWorldPos(actor);
@@ -5734,10 +5119,10 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   out->speed=0.0f;UpdatePoctlPressed(out);break;
  }
  case 0x2A:out->speed=0.0f;break;
- case 0x50:p->blocked=1;break;
- case 0x51:p->blocked=0;break;
+ case 0x50:script->blocked=1;break;
+ case 0x51:script->blocked=0;break;
  }
- if(p->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
+ if(script->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -5806,20 +5191,15 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword GetLoWorldPos(struct O *po);
 void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float atan2f(float y, float x);
-/** @sly2-annot addr=0x1E4D40
- * Purpose: Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER
- *   -> pos+offset; else object pos and its matrix heading)
- * Info: proposed name GetJsgTargetPosHeading (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
+// Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
+// else object pos and its matrix heading). (inferred)
+void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
     float ag[4];
     float g;
-    struct O *px = p->po24;
-    if (!px) px = p->po44;
+    struct O *px = script->po24;
+    if (!px) px = script->po44;
     if (po) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, GetLoWorldPos(px), 0, &uv.q, ag, 0, 0);
@@ -5850,29 +5230,24 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
 }
 } } // namespace M_GetJsgTargetPosHeading
 
-// 0x1E4EB8 func_001E4EB8
-/** @sly2-annot addr=0x1E4EB8
- * Purpose: Set prelaycmdJt (+0x40) and the controlled character pjt (+0x44), detaching the old one and
- *   attaching the new one via 0x143DE8(pjt, pjsg)
- * Info: proposed name SetJsgJt (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// 0x1E4EB8 SetRelayScriptActor
+// Set prelaycmdJt (+0x40) and the controlled character pjt (+0x44), detaching the old one and attaching the new one
+// via 0x143DE8(pjt, pjsg). (inferred)
 /* Sets the script's mode command and the JT it drives, re-linking the JT to the script (SetStepplayerRide). */
-extern "C" void func_001E4EB8(JSGV *pjsg, RELAYCMD *prelaycmdJt, LO *pjt)
+extern "C" void SetRelayScriptActor(JSGV *script, RELAYCMD *prelaycmdJt, LO *pjt)
 {
     LO *pjtOld;
-    if (prelaycmdJt != pjsg->prelaycmdJt) {
-        pjsg->prelaycmdJt = prelaycmdJt;
+    if (prelaycmdJt != script->prelaycmdJt) {
+        script->prelaycmdJt = prelaycmdJt;
     }
-    pjtOld = pjsg->pjt;
+    pjtOld = script->pjt;
     if (pjt != pjtOld) {
         if (pjtOld != 0) {
             SetStepplayerRide(pjtOld, 0);
         }
-        pjsg->pjt = pjt;
+        script->pjt = pjt;
         if (pjt != 0) {
-            SetStepplayerRide(pjt, pjsg);
+            SetStepplayerRide(pjt, script);
         }
     }
 }
@@ -5888,31 +5263,26 @@ struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int 
 void SetTnTnsOverride(struct O *po, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *GetCurrentPo(struct G *pg);
-/** @sly2-annot addr=0x1E4F20
- * Purpose: Switch the script's active tunnel (ptnCur +0x6C): release/hide old (0x221268(tn,-1), vt9),
- *   attach/show new (vt8) with owner = actor or current PO
- * Info: proposed name SetJsgTunnel (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void SetJsgTunnel(struct P *p, struct O *po)
+// Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
+// with owner = actor or current PO. (inferred)
+void SetJsgTunnel(struct P *script, struct O *po)
 {
-    if (p->po) {
-        SetTnTnsOverride(p->po, -1);
-        p->po->pvE0 = 0;
-        if (p->fActive) p->po->vt[9].pfn((char *)p->po + p->po->vt[9].d);
-        p->po = 0;
+    if (script->po) {
+        SetTnTnsOverride(script->po, -1);
+        script->po->pvE0 = 0;
+        if (script->fActive) script->po->vt[9].pfn((char *)script->po + script->po->vt[9].d);
+        script->po = 0;
     }
     if (!po) return;
-    p->po = po;
-    p->fActive = (uchar)po->fBit60 == 0;
-    if (p->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x30)) ? p->p24 : GetCurrentPo(&D_003DD490);
+    script->po = po;
+    script->fActive = (uchar)po->fBit60 == 0;
+    if (script->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
+    po->pvE0 = (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : GetCurrentPo(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel
 
-// 0x1E5000 func_001E5000
+// 0x1E5000 SetRelayScriptFocus
 namespace M_func_001E5000 { extern "C" {
 struct X; struct P;
 typedef int qword __attribute__((mode(TI)));
@@ -5922,21 +5292,16 @@ extern qword D_002A2DD0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(struct X *);
 void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
-/** @sly2-annot addr=0x1E5000
- * Purpose: Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
- *   +0x1044/+0x1060/+0x1070)
- * Info: proposed name SetJsgFocus (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E5000(struct P *p, void *pv)
+// Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
+// +0x1044/+0x1060/+0x1070). (inferred)
+void SetRelayScriptFocus(struct P *script, void *pv)
 {
     struct X *px;
-    if (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x34))
-        px = p->p24;
+    if (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
+        px = script->p24;
     else
         px = 0;
-    if (p->p74) {
+    if (script->p74) {
         if (px) {
             qword v = px->v1060, q, d;
             px->n1044 = 0;
@@ -5945,20 +5310,20 @@ void func_001E5000(struct P *p, void *pv)
             px->v1070 = d;
             ((float *)&px->v1070)[2] = 0.0f;
         }
-        p->p74 = 0;
+        script->p74 = 0;
     }
     if (!pv) return;
     if (px) {
         px->n1044 = 1;
-        GetJsgTargetPosHeading(p, pv, &px->v1060, 0);
+        GetJsgTargetPosHeading(script, pv, &px->v1060, 0);
         ((float *)&px->v1060)[2] += px->f1048;
         px->v1070 = D_002A2DD0;
     }
-    p->p74 = pv;
+    script->p74 = pv;
 }
 } } // namespace M_func_001E5000
 
-// 0x1E50E0 func_001E50E0
+// 0x1E50E0 SetRelayScriptHandsOff
 namespace M_func_001E50E0 { extern "C" {
 struct G; struct P;
 struct G { int a; };
@@ -5968,19 +5333,11 @@ void DecrementSwHandsOff(struct G *pg, int id);
 void DecrementSwNoPause(struct G *pg);
 void IncrementSwHandsOff(struct G *pg, int id);
 void IncrementSwNoPause(struct G *pg);
-/** @sly2-annot addr=0x1E50E0
- * Purpose: Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
- *   (0x20EFC0/0x20F030) + 0x20F0C0/0x20F0F0
- * Info: proposed name SetJsgHandsOff (T1); TU relay
- * Notes: runtime6 C4: JSG +0x38/+0x3C 1/3 -> SW locks [1,1,1,1] (S59)
- * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
- * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
- *   docs/engine/world-sw.md#5-hands-off-and-locks,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E50E0(struct P *p, int fOn, int id)
+// Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
+// (IncrementSwHandsOff/DecrementSwHandsOff) + 0x20F0C0/0x20F0F0. (inferred)
+void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
 {
-if (!fOn) { if (!p->fOn) return; } else { if (p->fOn) { if (id == p->id) return; DecrementSwHandsOff(&D_003DD490, p->id); DecrementSwNoPause(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); IncrementSwNoPause(&D_003DD490); p->fOn = fOn; p->id = id; return; } DecrementSwHandsOff(&D_003DD490, p->id); DecrementSwNoPause(&D_003DD490); p->fOn = fOn; p->id = id;
+if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == script->id) return; DecrementSwHandsOff(&D_003DD490, script->id); DecrementSwNoPause(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); IncrementSwNoPause(&D_003DD490); script->fOn = fOn; script->id = id; return; } DecrementSwHandsOff(&D_003DD490, script->id); DecrementSwNoPause(&D_003DD490); script->fOn = fOn; script->id = id;
 }
 } } // namespace M_func_001E50E0
 
@@ -5991,23 +5348,18 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-/** @sly2-annot addr=0x1E51A0
- * Purpose: Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vt83(a,b)
- * Info: proposed name AddJsgStepHold (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void AddJsgStepHold(struct P *p, struct O *po, int a, int b)
+// Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
+void AddJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for (i = 0; i < p->c; i++)
-        if (p->apo[i] == po) return;
-    if ((unsigned)p->c >= 4) return;
-    p->aB8[p->c] = a;
-    p->aC8[p->c] = b;
-    p->apo[p->c] = po;
-    p->c++;
+    for (i = 0; i < script->c; i++)
+        if (script->apo[i] == po) return;
+    if ((unsigned)script->c >= 4) return;
+    script->aB8[script->c] = a;
+    script->aC8[script->c] = b;
+    script->apo[script->c] = po;
+    script->c++;
     po->vt[0x53].pfn((char *)po + po->vt[0x53].d, a, b);
 }
 } } // namespace M_AddJsgStepHold
@@ -6020,28 +5372,25 @@ struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
+// Inline helper ByteOffset: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
+// and instruction choice matches the original; its name says what it computes.
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
-/** @sly2-annot addr=0x1E5280
- * Purpose: Remove a held STEP and call its vt84(a,b)
- * Info: proposed name RemoveJsgStepHold (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void RemoveJsgStepHold(struct P *p, struct O *po, int a, int b)
+// Remove a held STEP and call its vtable slot 84(a,b). (inferred)
+void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for(i=0;i<p->c;i++) {
-        if(p->apo[i]==po)break;
+    for(i=0;i<script->c;i++) {
+        if(script->apo[i]==po)break;
     }
-    if (i >= p->c) return;
+    if (i >= script->c) return;
     {
-        register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)p;
+        register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)script;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
-        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(p->c-i)*4-4);
+        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->c-i)*4-4);
     }
-    p->c--;
+    script->c--;
     po->vt[0x54].pfn((char *)po + po->vt[0x54].d, a, b);
 }
 
@@ -6065,40 +5414,30 @@ struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
 void RetractAsega(struct O *po);
 void StopStepplayerScriptAnim(void *pv);
-/** @sly2-annot addr=0x1E5370
- * Purpose: Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8)
- * Info: proposed name ClearJsgAseg (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void ClearJsgAseg(struct S *p)
+// Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
+void ClearJsgAseg(struct S *script)
 {
-    if (p->po) {
-        RetractAsega(p->po);
-        { struct O *po = p->po; po->vt[2].pf((char *)po + po->vt[2].d); }
-        p->po = 0;
+    if (script->po) {
+        RetractAsega(script->po);
+        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po = 0;
     }
-    if (p->pv) {
-        StopStepplayerScriptAnim(p->pv);
-        p->pv = 0;
+    if (script->pv) {
+        StopStepplayerScriptAnim(script->pv);
+        script->pv = 0;
     }
 }
 } } // namespace M_ClearJsgAseg
 
 // 0x1E53D8 ClearJsgRelayWait
-/** @sly2-annot addr=0x1E53D8
- * Purpose: Stop the relay this script fired and is waiting on (+0x50) and clear it
- * Info: proposed name ClearJsgRelayWait (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" void ClearJsgRelayWait(JSGV *pjsg)
+// Stop the relay this script fired and is waiting on (+0x50) and clear it. (inferred)
+extern "C" void ClearJsgRelayWait(JSGV *script)
 {
-    RELAYV *prelay;
-    prelay = pjsg->prelayWait;
-    if (prelay != 0) {
-        StopRelay(prelay);
-        pjsg->prelayWait = 0;
+    RELAYV *relay;
+    relay = script->prelayWait;
+    if (relay != 0) {
+        StopRelay(relay);
+        script->prelayWait = 0;
     }
 }
 
@@ -6110,60 +5449,45 @@ struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x58]; struct O *po; int n5C; };
 void UnsubscribeLoObject(struct O *po, struct S *p);
-/** @sly2-annot addr=0x1E5410
- * Purpose: Unregister from and release psmaCur (+0x58), fSmaReached=0
- * Info: proposed name ClearJsgSma (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void ClearJsgSma(struct S *p)
+// Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
+void ClearJsgSma(struct S *script)
 {
-    if (p->po) {
-        UnsubscribeLoObject(p->po, p);
-        { struct O *po = p->po; po->vt[2].pf((char *)po + po->vt[2].d); }
-        p->po = 0;
-        p->n5C = 0;
+    if (script->po) {
+        UnsubscribeLoObject(script->po, script);
+        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po = 0;
+        script->n5C = 0;
     }
 }
 } } // namespace M_ClearJsgSma
 
-// 0x1E5468 func_001E5468
+// 0x1E5468 ClearJsgWidget
 namespace M_func_001E5468 { extern "C" {
 struct VTE; struct O; struct S;
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x64]; struct O *po; };
-/** @sly2-annot addr=0x1E5468
- * Purpose: Call vt50 on ploWidget (+0x64) and clear it
- * Info: proposed name ClearJsgWidget (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E5468(struct S *p)
+// Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
+void ClearJsgWidget(struct S *script)
 {
-    struct O *po = p->po;
+    struct O *po = script->po;
     if (po) {
         po->vt[50].pf((char *)po + po->vt[50].d);
-        p->po = 0;
+        script->po = 0;
     }
 }
 } } // namespace M_func_001E5468
 
-// 0x1E54B0 func_001E54B0
-/** @sly2-annot addr=0x1E54B0
- * Purpose: End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> 0x19CCE8(+0xF00))
- * Info: proposed name ClearJsgJtMode (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// 0x1E54B0 ClearJsgJtMode
+// End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> EndJtMode(+0xF00)). (inferred)
 /* Ends the JT mode the script started on its player. */
-extern "C" void func_001E54B0(JSGV *pjsg)
+extern "C" void ClearJsgJtMode(JSGV *script)
 {
     STEPPLAYER *pstepplayer;
-    pstepplayer = pjsg->pstepplayerMode;
+    pstepplayer = script->pstepplayerMode;
     if (pstepplayer != 0) {
         EndJtMode((JTMODE *)((char *)pstepplayer + 0xF00));
-        pjsg->pstepplayerMode = 0;
+        script->pstepplayerMode = 0;
     }
 }
 
@@ -6173,43 +5497,33 @@ struct S;
 struct O;
 struct S { char pad[0xA4]; int c; struct O *a[4]; int b[4]; int d[4]; };
 void RemoveJsgStepHold(struct S *p, struct O *object, int b, int d);
-/** @sly2-annot addr=0x1E54E8
- * Purpose: RemoveJsgStepHold for every held step
- * Info: proposed name ClearJsgStepHolds (T1); TU relay
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void ClearJsgStepHolds(struct S *p)
+// RemoveJsgStepHold for every held step. (inferred)
+void ClearJsgStepHolds(struct S *script)
 {
-    while (p->c) {
-        RemoveJsgStepHold(p, p->a[p->c - 1], p->b[p->c - 1], p->d[p->c - 1]);
+    while (script->c) {
+        RemoveJsgStepHold(script, script->a[script->c - 1], script->b[script->c - 1], script->d[script->c - 1]);
     }
 }
 } } // namespace M_ClearJsgStepHolds
 
-// 0x1E5570 func_001E5570
+// 0x1E5570 AbortJsgMove
 namespace M_func_001E5570 { extern "C" {
 struct O; struct P;
 struct O { char pad[0x26C]; int a; };
 struct P { char pad[0x24]; struct O *po; int *pnMin; int *pnMax; int *pn; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
 void ClearBhvstk__FP6BHVSTK(void *p);
-/** @sly2-annot addr=0x1E5570
- * Purpose: If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER,
- *   ClearBhvstk on it
- * Info: proposed name AbortJsgMove (T2); TU relay
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E5570(struct P *p)
+// If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER, ClearBhvstk on it.
+// (inferred)
+void AbortJsgMove(struct P *script)
 {
-    if (p->pnMin < p->pn && p->pn < p->pnMax) {
-        switch (*p->pn) {
+    if (script->pnMin < script->pn && script->pn < script->pnMax) {
+        switch (*script->pn) {
         case 0x27:
-            if (p->po && FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) ClearBhvstk__FP6BHVSTK(&p->po->a);
+            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         case 0x28:
-            if (p->po && FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) ClearBhvstk__FP6BHVSTK(&p->po->a);
+            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         }
     }
@@ -6230,74 +5544,63 @@ public:
 };
 extern "C" {
 extern CLOCK D_002DDED0;
-int FJsgRemoved(P *p);
+int IsJsgRemoved(P *p);
 void RemoveDlEntry__FP2DLPv(int *pdl, P *p);
 void ClearJsgAseg(P *p);
 void ClearJsgRelayWait(P *p);
 void ClearJsgSma(P *p);
-void func_001E5468(P *p);
-void func_001E54B0(P *p);
+void ClearJsgWidget(P *p);
+void ClearJsgJtMode(P *p);
 void ClearJsgStepHolds(P *p);
-void func_001E5570(P *p);
+void AbortJsgMove(P *p);
 void SetClockRate(CLOCK *pclock, int n, float g);
-void func_001E4EB8(P *p, int a, int b);
+void SetRelayScriptActor(P *p, int a, int b);
 void SetJsgTunnel(P *p, void *po);
-void func_001E5000(P *p, int a);
-void func_001E50E0(P *p, int a, int b);
+void SetRelayScriptFocus(P *p, int a);
+void SetRelayScriptHandsOff(P *p, int a, int b);
 void StopSnd(void *pv, float g);
 void RcPtr_Assign(void **ppv, int n);
-void func_001E5A98(P *p, int n);
+void EndJsgCamBlend(P *p, int n);
 void RemoveJsg(P *p);
 }
-/** @sly2-annot addr=0x1E5628
- * Purpose: Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA,
- *   widget, JT mode, step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera
- *   blend), then drop the relay's reference
- * Info: proposed name RemoveJsg (T1); TU relay
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/cutscenes.md#5-key-functions,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void RemoveJsg(P *p)
+// Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
+// step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
+// reference. (inferred)
+void RemoveJsg(P *script)
 {
-    if (FJsgRemoved(p)) return;
-    LOCK lock(p);
-    void **ppv = &p->pvEC;
-    RemoveDlEntry__FP2DLPv(&p->pq->dl, p);
-    ClearJsgAseg(p);
-    ClearJsgRelayWait(p);
-    ClearJsgSma(p);
-    func_001E5468(p);
-    func_001E54B0(p);
-    ClearJsgStepHolds(p);
-    func_001E5570(p);
+    if (IsJsgRemoved(script)) return;
+    LOCK lock(script);
+    void **ppv = &script->pvEC;
+    RemoveDlEntry__FP2DLPv(&script->pq->dl, script);
+    ClearJsgAseg(script);
+    ClearJsgRelayWait(script);
+    ClearJsgSma(script);
+    ClearJsgWidget(script);
+    ClearJsgJtMode(script);
+    ClearJsgStepHolds(script);
+    AbortJsgMove(script);
     SetClockRate(&D_002DDED0, 6, 1.0f);
-    func_001E4EB8(p, 0, 0);
-    SetJsgTunnel(p, 0);
-    func_001E5000(p, 0);
-    func_001E50E0(p, 0, 0);
+    SetRelayScriptActor(script, 0, 0);
+    SetJsgTunnel(script, 0);
+    SetRelayScriptFocus(script, 0);
+    SetRelayScriptHandsOff(script, 0, 0);
     if (*ppv) {
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (p->x9C) func_001E5A98(p, 1);
-    p->vt[2].pfn((char *)p + p->vt[2].d);
+    if (script->x9C) EndJsgCamBlend(script, 1);
+    script->vt[2].pfn((char *)script + script->vt[2].d);
 }
 } // namespace M_RemoveJsg
 
-// 0x1E5778 FJsgRemoved
-/** @sly2-annot addr=0x1E5778
- * Purpose: True if the JSG is no longer in its relay's dlJsg
- * Info: proposed name FJsgRemoved (T1); TU relay
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-extern "C" int FJsgRemoved(JSGV *pjsg)
+// 0x1E5778 IsJsgRemoved
+// True if the JSG is no longer in its relay's dlJsg. (inferred)
+extern "C" int IsJsgRemoved(JSGV *script)
 {
-    return FFindDlEntry(&pjsg->prelay->dlJsg, pjsg) == 0;
+    return FFindDlEntry(&script->relay->dlJsg, script) == 0;
 }
 
-// 0x1E57A0 func_001E57A0
+// 0x1E57A0 StartRelayScriptCamBlend
 namespace M_func_001E57A0 { extern "C" {
 struct T; struct A; struct SUB; struct P; struct G2; struct G;
 typedef int qword __attribute__((mode(TI)));
@@ -6317,38 +5620,36 @@ qword DecomposeRotationMatrixToEuler(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
+// Inline helpers X, Y, Z: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
+// compiler's register and instruction choice matches the original; the names say what they compute.
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
+// Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(b), X(a), 0.0001f) && FFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && FFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
 }
-/** @sly2-annot addr=0x1E57A0
- * Purpose: Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm),
- *   tBlendEnd(+0x80)=now+t, and push it into the camera's blend slot
- * Info: proposed name StartJsgCamBlend (T2); TU relay
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
+// Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
+// and push it into the camera's blend slot. (inferred)
+void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
 {
     float tBase;
     int i;
     float *pga, *pgb;
     if (pa->f40 == 0.0f) {
-        p->f80 = D_002A8124;
+        script->f80 = D_002A8124;
     } else {
         pb->n4 = 0;
-        p->f80 = D_002DDED0.t + t;
+        script->f80 = D_002DDED0.t + t;
     }
-    p->sub.apt[0] = &pa->t;
-    p->sub.apt[1] = &pb->t;
-    p->sub.f8C = t;
-    p->sub.n90 = 1;
-    p->sub.n94 = pa->n44;
-    p->sub.p98 = p;
-    p->sub.n9C = 1;
+    script->sub.apt[0] = &pa->t;
+    script->sub.apt[1] = &pb->t;
+    script->sub.f8C = t;
+    script->sub.n90 = 1;
+    script->sub.n94 = pa->n44;
+    script->sub.p98 = script;
+    script->sub.n9C = 1;
     pga = (float *)&pa->t.v10;
     pgb = (float *)&pb->t.v10;
     for (i = 2; i >= 0; i--) {
@@ -6357,7 +5658,7 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
         pgb++;
     }
     {
-        struct T **ppt = p->sub.apt;
+        struct T **ppt = script->sub.apt;
         unsigned j;
         qword *zero=&D_002A2DD0;
         for (j = 0; j < 2; j++, ppt++) {
@@ -6370,35 +5671,30 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
                 pt->f20 = D_002DDF40.f20;
         }
     }
-    if (p->sub.f8C == 0.0f)
-        p->sub.f8C = D_002A8124;
+    if (script->sub.f8C == 0.0f)
+        script->sub.f8C = D_002A8124;
     if (FActiveCplcy__FP5CPLCY(D_002DDF40.m500))
         RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
-    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &p->sub);
+    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &script->sub);
 }
 } } // namespace M_func_001E57A0
 
-// 0x1E5A98 func_001E5A98
+// 0x1E5A98 EndJsgCamBlend
 namespace M_func_001E5A98 { extern "C" {
 struct S;
 struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
 extern char D_002DDF40[];
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
-/** @sly2-annot addr=0x1E5A98
- * Purpose: Stop the camera blend (0x14E4C8 on g_cm)
- * Info: proposed name EndJsgCamBlend (T2); TU relay
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-void func_001E5A98(struct S *p, int n)
+// Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
+void EndJsgCamBlend(struct S *script, int n)
 {
-    p->n90 = n;
-    p->n9C = 0;
-    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, p->a84);
+    script->n90 = n;
+    script->n9C = 0;
+    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, script->a84);
 }
 } } // namespace M_func_001E5A98
 
-// 0x1E5AE0 PjsgNew
+// 0x1E5AE0 NewRelayJsg
 namespace M_PjsgNew { extern "C" {
 struct VTE; struct E; struct A; struct C; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -6412,14 +5708,9 @@ struct S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
-/** @sly2-annot addr=0x1E5AE0
- * Purpose: Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block (find
- *   matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef
- * Info: proposed name PjsgNew (T1); TU relay
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
-struct S *PjsgNew(struct A *pa, struct E *pe, struct C *pc)
+// Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
+// (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
+struct S *NewRelayJsg(struct A *pa, struct E *pe, struct C *pc)
 {
     struct S *p = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapJsg));
     struct E *peLast, *pe2;

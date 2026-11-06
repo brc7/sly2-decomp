@@ -1,7 +1,8 @@
 // sensor.cpp -- SENSOR (an SO with no-trigger object and class lists) and LASEN : SENSOR, the laser sensor: up to 64
 // beams, each between two endpoints that are fixed points or points moving along a path with a 1/2/6-segment motion
-// profile; beams are raycast against objects, cut at the nearest contact and zap it. TU 0x1DE2A0..0x1DFAD8 (21
-// functions, address order).
+// profile; beams are raycast against objects, cut at the nearest contact and zap it. Entry points: the SENSOR and
+// LASEN vtables and the Splice setters (AddSensorNoTrigger*, AddLasenBeam). TU 0x1DE2A0..0x1DFAD8 (21 functions,
+// address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sensor
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001DFAB8
 #include "sly2/slotheap.h"
@@ -285,171 +286,114 @@ float fmodf(float, float);
 void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
 void RenderSoSelf(SOV *pso);
 
-void func_001DE5D8(LASENV *plasen);
-void func_001DEDB0(LASENV *plasen);
+void BuildLasenBeams(LASENV *plasen);
+void BindLasenAnimations(LASENV *plasen);
 void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
-void func_001DF3D0(LASENV *plasen);
+void MoveLasenEndpoints(LASENV *plasen);
 }
 
-/** @sly2-annot addr=0x1DE2A0
- * Purpose: SENSOR::Init (vt7): InitSo; set SO grf bit 34
- * Info: proposed name InitSensor (T1); class SENSOR slot7; TU sensor
- * Notes: superseded r6_1D5150 proposal: InitSensor? (0.3)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/hud-ui.md#4-source-files
- * @end-sly2-annot */
+// SENSOR::Init (vtable slot 7): InitSo; set SO grf bit 34. (inferred)
 void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 {
-    SENSORV *psensor = (SENSORV *)this;
-    InitSo(psensor);
-    psensor->grfSo |= 0x400000000UL;
+    SENSORV *sensor = (SENSORV *)this;
+    InitSo(sensor);
+    sensor->grfSo |= 0x400000000UL;
 }
 
-/** @sly2-annot addr=0x1DE2D8
- * Purpose: SENSOR vt61 (SO ShouldSoIgnoreIntersection override): ignore objects matching the no-trigger oid list
- *   (+0x150, max 7, HasLoOid) or class list (+0x170, FIsBasicDerivedFrom); result combined with
- *   NMaxIgnore
- * Info: proposed name FIgnoreSensorIntersection (T1); class SENSOR slot61; TU sensor
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
+// SENSOR vtable slot 61 (SO ShouldSoIgnoreIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7,
+// HasLoOid) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore. (inferred)
+extern "C" int FIgnoreSensorIntersection(SENSORV *sensor, SOV *pso)
 {
     int i, j;
     int r = 1;
-    for (i = 0; i < psensor->coidNoTrigger; i++) {
-        if (HasLoOid(pso, psensor->aoidNoTrigger[i]))
+    for (i = 0; i < sensor->coidNoTrigger; i++) {
+        if (HasLoOid(pso, sensor->aoidNoTrigger[i]))
             r = MaxInt(r, 2);
     }
-    for (j = 0; j < psensor->ccidNoTrigger; j++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, psensor->acidNoTrigger[j]))
+    for (j = 0; j < sensor->ccidNoTrigger; j++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, sensor->acidNoTrigger[j]))
             r = MaxInt(r, 2);
     }
     return r;
 }
 
-/** @sly2-annot addr=0x1DE3B0
- * Purpose: Append a cid to the no-trigger class list (+0x170, max 7)
- * Info: proposed name AddSensorNoTriggerClass (T1); TU sensor
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest+verdicts_B
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void AddSensorNoTriggerClass(SENSORV *psensor, CID cid)
+// Append a cid to the no-trigger class list (+0x170, max 7). (inferred)
+extern "C" void AddSensorNoTriggerClass(SENSORV *sensor, CID cid)
 {
-    if ((uint)psensor->ccidNoTrigger < 7) {
-        psensor->acidNoTrigger[psensor->ccidNoTrigger++] = cid;
+    if ((uint)sensor->ccidNoTrigger < 7) {
+        sensor->acidNoTrigger[sensor->ccidNoTrigger++] = cid;
     }
 }
 
-/** @sly2-annot addr=0x1DE3D8
- * Purpose: Append an oid to the no-trigger object list (+0x150, max 7)
- * Info: proposed name AddSensorNoTriggerObject (T1); TU sensor
- * Notes: names_v2 B proposed AddSensorTriggerClass__FP6SENSOR3CID (0.872)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void AddSensorNoTriggerObject(SENSORV *psensor, OID oid)
+// Append an oid to the no-trigger object list (+0x150, max 7). (inferred)
+extern "C" void AddSensorNoTriggerObject(SENSORV *sensor, OID oid)
 {
-    if ((uint)psensor->coidNoTrigger < 7) {
-        psensor->aoidNoTrigger[psensor->coidNoTrigger++] = oid;
+    if ((uint)sensor->coidNoTrigger < 7) {
+        sensor->aoidNoTrigger[sensor->coidNoTrigger++] = oid;
     }
 }
 
-/** @sly2-annot addr=0x1DE400
- * Purpose: LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8
- * Info: proposed name InitLasen (T2); class LASEN slot7; TU sensor
- * Notes: superseded r6_1D5150 proposal: InitLasen? (0.25) | names_v2 C proposed SetLightKind__FP5LIGHT6LIGHTK
- *   (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DE400(LASENV *plasen)
+// LASEN::Init (vtable slot 7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8. (inferred)
+extern "C" void InitLasen(LASENV *laser)
 {
     int v;
-    ((SENSOR *)plasen)->SENSOR::Init();
-    plasen->svt = 1.0f;
-    plasen->grfSo &= ~0x800000000UL;
-    v = plasen->grfDirty;
+    ((SENSOR *)laser)->SENSOR::Init();
+    laser->svt = 1.0f;
+    laser->grfSo &= ~0x800000000UL;
+    v = laser->grfDirty;
     if ((v ^ 1) & 1) *(int *)v |= 8;
-    else plasen->grfDirty = v | 8;
+    else laser->grfDirty = v | 8;
 }
 
+// Allocates cb bytes (alignment cbAlign) from the world heap.
 static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocClearedFromStack(preq); }
+// Shrinks or grows a world-heap block.
 static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocCopyFromWorldHeap(preq, pv); }
 
-/** @sly2-annot addr=0x1DE478
- * Purpose: LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds
- *   beams), shrink to count
- * Info: proposed name LoadLasenFromBrx (T1); class LASEN slot14; TU sensor
- * Notes: superseded r6_1D5150 proposal: LoadLasenFromBrx? (0.3) | names_v2 C proposed
- *   SetLightDirection__FP5LIGHTP6VECTOR (0.638) | level_parser CONFIRMED-parse: payload layout followed by
- *   the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r6b_rest+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/guards-ai.md#5-perception,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
- * @end-sly2-annot */
-extern "C" void LoadLasenFromBrx(LASENV *plasen, CBinaryInputStream *pbis)
+// LASEN::LoadFromBrx (vtable slot 14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to
+// count. (inferred)
+extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 {
     STACKSCOPE scope;
     ALLOCREQ req;
-    plasen->abeam = (BEAM *)PvAllocMsg(&req, 64 * sizeof(BEAM), 0x10);
-    LoadSoFromBrx(plasen, pbis);
-    plasen->abeam = (BEAM *)PvReallocMsg(&req, plasen->cbeam * sizeof(BEAM), 0x10, plasen->abeam);
+    laser->abeam = (BEAM *)PvAllocMsg(&req, 64 * sizeof(BEAM), 0x10);
+    LoadSoFromBrx(laser, stream);
+    laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
 }
 
-/** @sly2-annot addr=0x1DE518
- * Purpose: LASEN::Clone (vt41): Clone__2SO then private copy of the beam array
- * Info: proposed name CloneLasen (T1); class LASEN slot41; TU sensor
- * Notes: superseded r6_1D5150 proposal: CloneLasen? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void CloneLasen(LASENV *plasen)
+// LASEN::Clone (vtable slot 41): Clone__2SO then private copy of the beam array. (inferred)
+extern "C" void CloneLasen(LASENV *laser)
 {
     ALLOCREQ req;
-    CloneSo(plasen);
-    plasen->abeam = (BEAM *)PvReallocMsg(&req, plasen->cbeam * sizeof(BEAM), 0x10, plasen->abeam);
+    CloneSo(laser);
+    laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
 }
 
-/** @sly2-annot addr=0x1DE568
- * Purpose: LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations
- *   (0x1DEDB0), initial zap pass (0x1DF260)
- * Info: proposed name PostLasenLoad (T1); class LASEN slot15; TU sensor
- * Notes: superseded r6_1D5150 proposal: PostLasenLoad? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// LASEN::PostLoad (vtable slot 15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
+// initial zap pass (ZapLasenBeams). (inferred)
 void LASEN::VUnk14()
 {
-    LASENV *plasen = (LASENV *)this;
-    PostSoLoad(plasen);
-    func_001DE5D8(plasen);
-    func_001DEDB0(plasen);
-    plasen->ZapBeams(0);
+    LASENV *laser = (LASENV *)this;
+    PostSoLoad(laser);
+    BuildLasenBeams(laser);
+    BindLasenAnimations(laser);
+    laser->ZapBeams(0);
 }
 
-/** @sly2-annot addr=0x1DE5A8
- * Purpose: LASEN vt53: SO::PtreeNew then set tree flag 0x20
- * Info: proposed name LASEN_PtreeNew (T2); class LASEN slot53; TU sensor
- * Notes: names_v2 C proposed SetLightFrustrumUp__FP5LIGHTP6VECTOR (0.167)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" SOTREEV *func_001DE5A8(LASENV *plasen)
+// LASEN vtable slot 53: SO::PtreeNew then set tree flag 0x20. (inferred)
+extern "C" SOTREEV *NewLasenTree(LASENV *laser)
 {
-    SOTREEV *ptree = NewSoTree(plasen);
+    SOTREEV *ptree = NewSoTree(laser);
     ptree->grf |= 0x20;
     return ptree;
 }
 
-/* func_001DE5D8 (BuildLasenBeams): (re)build the endpoint state of every beam and the beams' bounding box. An endpoint
+/* BuildLasenBeams (BuildLasenBeams): (re)build the endpoint state of every beam and the beams' bounding box. An endpoint
    names an object: a path (CID 10) becomes a moving endpoint with a 1/2/6-segment motion profile (mode 8 / 0 / 16,
    the last a trapezoidal accelerate-cruise-decelerate profile); point objects (CID 3 / 0x30) and missing objects
    become fixed points. All points (or the whole transformed path) are accumulated into a min/max box that becomes the
    sensor's single part (CloneGeom copies it to world space). What mattered for the match:
-    - Min/Max take VU_VECTOR (const qword & conversion) parameters as in func_001DF0A0: the extra RTL copies keep the
+    - Min/Max take VU_VECTOR (const qword & conversion) parameters as in AddLasenBeamXps: the extra RTL copies keep the
       endpoint loop large enough that loop.c does not hoist 1.0f and 16 out of it;
     - the min/max initializers are non-const globals (const loads may be scheduled above the spill stores);
     - every segment is addressed as seg = &end->track.motion.segments[k] (the store to the first field folds to an
@@ -457,43 +401,43 @@ extern "C" SOTREEV *func_001DE5A8(LASENV *plasen)
     - the search loop reuses `seg` (set many times, so sched1 does not boost its sets), which lets `next` take $v0;
     - the bound points are written through a block-local pointer so the address is loaded before each call. */
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Per-lane minimum (xyz).
 static inline qword Min(VU_VECTOR a, VU_VECTOR b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a.q), "j"(b.q)); return r; }
+// Per-lane maximum (xyz).
 static inline qword Max(VU_VECTOR a, VU_VECTOR b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a.q), "j"(b.q)); return r; }
-static inline qword Transform(const M4 *m, qword p)
+// 4x4 matrix times point.
+static inline qword Transform(const M4 *m, qword point)
 {
     qword r;
     __asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w"
-            : "=j"(r) : "j"(m->rows[0].q), "j"(m->rows[1].q), "j"(m->rows[2].q), "j"(m->rows[3].q), "j"(p));
+            : "=j"(r) : "j"(m->rows[0].q), "j"(m->rows[1].q), "j"(m->rows[2].q), "j"(m->rows[3].q), "j"(point));
     return r;
 }
+// Clamps f to [low, high].
 static inline float Clamp(float f, float low, float high) { if (f < low) return low; else if (high < f) return high; else return f; }
 /* LO slot 31 (PmatWorld) by hand. */
+// The path's world matrix (LO vtable slot 31).
 static inline M4 *PmatWorld(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
+// Marks the SO's collision data dirty (flag 2 in the tagged flag word).
 static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
 
-/** @sly2-annot addr=0x1DE5D8
- * Purpose: (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a
- *   1/2/6-segment motion profile) and the beams' bounding box as the SO's single part
- * Info: proposed name BuildLasenBeams (T2); TU sensor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DE5D8(LASENV *p)
+// (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion
+// profile) and the beams' bounding box as the SO's single part. (inferred)
+extern "C" void BuildLasenBeams(LASENV *laser)
 {
     int i;
     qword minimum, maximum;
-    RemoveSoParts(p);
+    RemoveSoParts(laser);
     minimum = D_002A2DF0;
     maximum = D_002A2E00;
-    for (i = 0; i < p->cbeam; i++) {
-        BEAM *beam = &p->abeam[i];
+    for (i = 0; i < laser->cbeam; i++) {
+        BEAM *beam = &laser->abeam[i];
         uint j;
         for (j = 0; j < 2; j++) {
             BEAMEND *end = &beam->aend[j];
             end->kind = -1;
             if (end->oid != -1) {
-                LO *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)p);
+                LO *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)laser);
                 if (object) {
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)10)) {
                         SHAPEV *path = (SHAPEV *)object;
@@ -606,7 +550,7 @@ extern "C" void func_001DE5D8(LASENV *p)
                                 break;
                             }
                             }
-                            SetDirty(p);
+                            SetDirty(laser);
                         }
                     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)3) || FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)0x30)) {
                         end->kind = 0;
@@ -616,13 +560,13 @@ extern "C" void func_001DE5D8(LASENV *p)
             }
             if (end->kind == -1) {
                 end->kind = 0;
-                end->pos = GetLoWorldPos(p);
+                end->pos = GetLoWorldPos(laser);
             }
             switch (end->kind) {
             case 0:
                 minimum = Min(minimum, end->pos);
                 maximum = Max(maximum, end->pos);
-                end->pos = TransformXfPos(0, p->pxfRoot, end->pos);
+                end->pos = TransformXfPos(0, laser->pxfRoot, end->pos);
                 break;
             case 1: {
                 // the matrix callback may change the endpoint's path, so it is re-read
@@ -638,16 +582,16 @@ extern "C" void func_001DE5D8(LASENV *p)
             }
         }
     }
-    if (p->cbeam) {
+    if (laser->cbeam) {
         ALLOCREQ request;
-        p->cpart = 1;
+        laser->cpart = 1;
         request.cb = sizeof(SOPARTV);
         request.cbAlign = 16;
         SOPARTV *part = (SOPARTV *)AllocClearedFromWorldHeap(&request);
-        p->apart = part;
-        part->pxf = p->pxfRoot;
-        part->pso = p;
-        part->oid = p->oid;
+        laser->apart = part;
+        part->pxf = laser->pxfRoot;
+        part->pso = laser;
+        part->oid = laser->oid;
         part->grf |= 1UL << 48;
         part->geomLocal.cpos = 2;
         request.cbAlign = 16;
@@ -656,24 +600,18 @@ extern "C" void func_001DE5D8(LASENV *p)
         CloneGeom__FP4GEOMP7MATRIX4T0(&part->geomLocal, 0, &part->geomWorld);
         part->geomWorld.apos[0].q = minimum;
         part->geomWorld.apos[1].q = maximum;
-        { U *out = part->geomLocal.apos; out[0].q = TransformXfPos(0, p->pxfRoot, minimum); }
-        { U *out = part->geomLocal.apos; out[1].q = TransformXfPos(0, p->pxfRoot, maximum); }
+        { U *out = part->geomLocal.apos; out[0].q = TransformXfPos(0, laser->pxfRoot, minimum); }
+        { U *out = part->geomLocal.apos; out[1].q = TransformXfPos(0, laser->pxfRoot, maximum); }
     }
-    if ((int)(p->grfLo >> 60) & 1) AddSoParts(p);
+    if ((int)(laser->grfLo >> 60) & 1) AddSoParts(laser);
 }
 
-/** @sly2-annot addr=0x1DEDB0
- * Purpose: For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key
- * Info: proposed name BindLasenAnims (T2); TU sensor
- * Notes: names_v2 C proposed RebuildLightFrustrum__FP5LIGHT (0.167)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DEDB0(LASENV *plasen)
+// For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key. (inferred)
+extern "C" void BindLasenAnimations(LASENV *laser)
 {
     uint i;
     for (i = 0; i < 2; i++) {
-        LASENCAP *pcap = &plasen->acap[i];
+        LASENCAP *pcap = &laser->acap[i];
         ALO *palo = pcap->palo;
         ASEGV *paseg;
         CHNV *pchn;
@@ -696,23 +634,17 @@ extern "C" void func_001DEDB0(LASENV *plasen)
 }
 
 /* Remove the beams' contacts with pso. */
-/** @sly2-annot addr=0x1DEEA8
- * Purpose: LASEN vt54: drop beam contact links that reference object x and free them
- * Info: proposed name RemoveLasenContacts (T2); class LASEN slot54; TU sensor
- * Notes: agent qualifier: (vt54)
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DEEA8(LASENV *plasen, SOV *pso)
+// LASEN vtable slot 54: drop beam contact links that reference object x and free them. (inferred)
+extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
 {
     XP *list = 0;
     int i;
     OnSoContactFreed();
-    for (i = 0; i < plasen->cbeam; i++) {
-        XP **ppxp = &plasen->abeam[i].pxpFirst;
+    for (i = 0; i < laser->cbeam; i++) {
+        XP **ppxp = &laser->abeam[i].pxpFirst;
         XP *pxp;
         while ((pxp = *ppxp) != 0) {
-            int side = pxp->axps[0].pso == plasen;
+            int side = pxp->axps[0].pso == laser;
             if (pso == pxp->axps[side].pso) {   /* the other side's object */
                 *ppxp = pxp->pxpNext;
                 pxp->pxpNext = list;
@@ -723,24 +655,19 @@ extern "C" void func_001DEEA8(LASENV *plasen, SOV *pso)
         }
     }
     FreeSwXpList__FP2SWP2XP(&D_003DD490, list);
-    EnsureSwCallback(&D_003DD490, plasen, &LASENV::ZapBeams, 0);
+    EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
 }
 
-/** @sly2-annot addr=0x1DEF98
- * Purpose: World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and
- *   optionally their distance
- * Info: proposed name GetLasenBeamEnds (T1); TU sensor
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps)
+// World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their
+// distance. (inferred)
+extern "C" void GetLasenBeamEnds(LASENV *laser, BEAMEND *aend, qword *apos, float *ps)
 {
     uint i;
     BEAMEND *end = aend;
     for (i = 0; i < 2; i++, end++) {
         switch (end->kind) {
         case 0:
-            apos[i] = TransformXfPos(plasen->pxfRoot, 0, end->pos);
+            apos[i] = TransformXfPos(laser->pxfRoot, 0, end->pos);
             break;
         case 1:
             EvaluateShapeS(end->track.path, &apos[i], 0, end->track.cursor);
@@ -754,10 +681,10 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
     }
 }
 
-/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClipEdgeToObject,
+/* AddLasenBeamXps (LASEN vt60): for every beam, find where it hits the request's object (first ClipEdgeToObject,
    else the CID 0x33 test IntersectStepFootprint), add a kind-10 contact there with AddXp, and post ZapLasenBeams through
    EnsureSwCallback. What mattered for the match:
-    - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
+    - the same 6-argument virtual signature as AddHackwallXps / AddBombCustomXps, with every argument passed through to
       the empty base stub AddSoCustomXps (no code, but the call's argument uses fix the prologue schedule);
     - VU helpers taking VU_VECTOR parameters (const qword & conversion): the extra RTL copies keep the loop above
       loop.c's ~95-insn limit, so i * sizeof(BEAM) stays a mult inside the loop as in the target;
@@ -769,25 +696,30 @@ static inline qword Sub(VU_VECTOR a, VU_VECTOR b)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a.q), "j"(b.q));
     return d;
 }
+// Dot product, in lane x.
 static inline qword Dot(VU_VECTOR a, VU_VECTOR b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a.q), "j"(b.q));
     return d;
 }
+// Square root of lane x.
 static inline qword Sqrt(VU_VECTOR d)
 {
     qword l;
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d.q));
     return l;
 }
+// Length of a vector, in lane x.
 static inline qword Len(VU_VECTOR v) { return Sqrt(Dot(v, v)); }
+// Vector divided by lane x of l.
 static inline qword Div(VU_VECTOR v, VU_VECTOR l)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l.q), "j"(v.q));
     return r;
 }
+// Lane x as a float.
 static inline float Scalar(VU_VECTOR v)
 {
     float f;
@@ -795,24 +727,18 @@ static inline float Scalar(VU_VECTOR v)
     return f;
 }
 
-/** @sly2-annot addr=0x1DF0A0
- * Purpose: LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap
- * Info: proposed name UpdateLasenContacts (T2); class LASEN slot60; TU sensor
- * Notes: names_v2 C proposed SetLasenSensors__FP5LASEN7SENSORS (0.438) | agent qualifier: (vt60)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
+// LASEN vtable slot 60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap. (inferred)
+extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
-    AddSoCustomXps(p, q, a2, a3, a4, ppxp);
-    for (i = 0; i < p->cbeam; i++) {
-        BEAM *e = &p->abeam[i];
+    AddSoCustomXps(laser, q, a2, a3, a4, ppxp);
+    for (i = 0; i < laser->cbeam; i++) {
+        BEAM *e = &laser->abeam[i];
         qword seg[2];
         U pos;
         HIT hit;
         int found = 0;
-        GetLasenBeamEnds(p, e->aend, seg, 0);
+        GetLasenBeamEnds(laser, e->aend, seg, 0);
         if (!ClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             SOV *so = *q->psub->ppso;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
@@ -825,30 +751,24 @@ extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP 
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            AddXp(&D_003DD490, p->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->pxpFirst, 0.0f);
-            EnsureSwCallback(&D_003DD490, p, &LASENV::ZapBeams, 0);
+            AddXp(&D_003DD490, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->pxpFirst, 0.0f);
+            EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
         }
     }
 }
 
-/** @sly2-annot addr=0x1DF260
- * Purpose: For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped
- *   (InflictZap kind 0x1000, -10) and the visible length is cut to it
- * Info: proposed name ZapLasenBeams (T1); TU sensor
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
+// For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind
+// 0x1000, -10) and the visible length is cut to it. (inferred)
 void LASENV::ZapBeams(int)
 {
-    LASENV *p = this;
+    LASENV *laser = this;
     int i;
-    for (i = 0; i < p->cbeam; i++) {
+    for (i = 0; i < laser->cbeam; i++) {
         qword apos[2];
         ZAP zap;
         float s;
-        BEAM *beam = &p->abeam[i];
-        GetLasenBeamEnds(p, beam->aend, apos, &s);
+        BEAM *beam = &laser->abeam[i];
+        GetLasenBeamEnds(laser, beam->aend, apos, &s);
         if (beam->pxpFirst == 0) {
             beam->sFull = beam->sVisible = s;
         } else {
@@ -862,7 +782,7 @@ void LASENV::ZapBeams(int)
                 }
             }
             func_002333B4(&zap, 0, sizeof(zap));
-            zap.plasen = p;
+            zap.plasen = laser;
             zap.pv4 = pxpMin->axps[0].pv0;
             zap.pv8 = pxpMin->axps[1].pvC;
             zap.grf = 0x1000;
@@ -874,32 +794,20 @@ void LASENV::ZapBeams(int)
     }
 }
 
-/** @sly2-annot addr=0x1DF3A0
- * Purpose: LASEN::Update (vt16): UpdateSo then move path endpoints
- * Info: proposed name UpdateLasen (T1); class LASEN slot16; TU sensor
- * Notes: superseded r6_1D5150 proposal: UpdateLasen? (0.3)
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void UpdateLasen(LASENV *plasen, float dt)
+// LASEN::Update (vtable slot 16): UpdateSo then move path endpoints. (inferred)
+extern "C" void UpdateLasen(LASENV *laser, float dt)
 {
-    UpdateSo(plasen, dt);
-    func_001DF3D0(plasen);
+    UpdateSo(laser, dt);
+    MoveLasenEndpoints(laser);
 }
 
-/** @sly2-annot addr=0x1DF3D0
- * Purpose: Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark
- *   the tree dirty, recompute length
- * Info: proposed name MoveLasenEndpoints (T2); TU sensor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void func_001DF3D0(LASENV *p)
+// Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty,
+// recompute length. (inferred)
+extern "C" void MoveLasenEndpoints(LASENV *laser)
 {
     int i;
-    for (i = 0; i < p->cbeam; i++) {
-        BEAM *beam = &p->abeam[i];
+    for (i = 0; i < laser->cbeam; i++) {
+        BEAM *beam = &laser->abeam[i];
         int f = 0;
         uint j;
         for (j = 0; j < 2; j++) {
@@ -909,7 +817,7 @@ extern "C" void func_001DF3D0(LASENV *p)
             if (end->kind != 1)
                 continue;
             seg = &end->track.motion.segments[end->track.motion.current];
-            seg->elapsed = t = seg->elapsed + p->svt * D_002DDED0.dt;
+            seg->elapsed = t = seg->elapsed + laser->svt * D_002DDED0.dt;
             if (seg->duration < t) {
                 float r = fmodf(t, seg->duration);
                 end->track.motion.current = (end->track.motion.current + 1) % end->track.motion.count;
@@ -917,16 +825,16 @@ extern "C" void func_001DF3D0(LASENV *p)
                 seg->elapsed = r;
             }
             end->track.cursor = seg->start + seg->speed * seg->elapsed + seg->accel * seg->elapsed * seg->elapsed * 0.5f;
-            if ((p->ptree->grf & 2) == 0) {
-                p->ptree->grf |= 2;
-                AppendDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue2, p->ptree);
+            if ((laser->ptree->grf & 2) == 0) {
+                laser->ptree->grf |= 2;
+                AppendDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue2, laser->ptree);
             }
             f = 1;
         }
         if (f && beam->pxpFirst == 0) {
             qword apos[2];
             float s;
-            GetLasenBeamEnds(p, beam->aend, apos, &s);
+            GetLasenBeamEnds(laser, beam->aend, apos, &s);
             beam->sFull = beam->sVisible = s;
         }
     }
@@ -950,7 +858,7 @@ struct VU_FLOAT {
     qword q;
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
     /* barrier: loads the float's word into a 128-bit GPR value without any instruction of its own */
-    VU_FLOAT(const float *p, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)p)); }
+    VU_FLOAT(const float *laser, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)laser)); }
 };
 extern "C" {
 int FInsideCmFrustum(CAMERA *pcm, qword pos, VU_FLOAT sRadius);
@@ -960,24 +868,28 @@ M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale);
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void RenderLoAtMatrix(ALO *palo, const M4 *pmat, float a, float b);
 }
+// Vector difference.
 static inline qword Subtract(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Vector sum.
 static inline qword Add(qword a, qword b)
 {
     qword r;
     __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Vector scaled by a VU_FLOAT.
 static inline qword Scale(qword a, VU_FLOAT b)
 {
     qword r;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(b.q));
     return r;
 }
+// Length of a vector as a float.
 static inline float Length(qword value)
 {
     qword d, one;
@@ -988,23 +900,17 @@ static inline float Length(qword value)
     __asm__("mtc1 %1,%0" : "=f"(r) : "r"(d));
     return r;
 }
+// World positions of a beam's two endpoints and their distance (GetLasenBeamEnds).
 static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &distance)
 {
     GetLasenBeamEnds(owner, beam->aend, &points[0].q, &distance);
 }
 
-/** @sly2-annot addr=0x1DF5B0
- * Purpose: LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix)
- * Info: proposed name RenderLasenSelf (T1); class LASEN slot19; TU sensor
- * Notes: superseded r6_1D5150 proposal: RenderLasenSelf? (0.3) | names_v2 B proposed
- *   RenderCamsenSelf__FP6CAMSENP2CMP2RO (0.901)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void RenderLasenSelf(LASENV *p)
+// LASEN::RenderSelf (vtable slot 19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
+extern "C" void RenderLasenSelf(LASENV *laser)
 {
-    RenderSoSelf(p);
-    SOTREEV *bound = p->ptree;
+    RenderSoSelf(laser);
+    SOTREEV *bound = laser->ptree;
     if (!bound) return;
     CAMERA *cam = &D_002DDF40;
     qword boundPosition = bound->qwCenter.q;
@@ -1014,20 +920,20 @@ extern "C" void RenderLasenSelf(LASENV *p)
     U points[2];
     M3 basis;
     float dist;
-    for (int i = 0; i < p->cbeam;) {
-        BEAM *beam = &p->abeam[i];
-        Query(p, beam, points, dist);
+    for (int i = 0; i < laser->cbeam;) {
+        BEAM *beam = &laser->abeam[i];
+        Query(laser, beam, points, dist);
         if (beam->sVisible < dist) {
             float ratio = beam->sVisible / dist;
             points[1].q = Add(Scale(points[0].q, VU_FLOAT(1.0f - ratio)), Scale(points[1].q, VU_FLOAT(ratio)));
         }
-        if (p->paloLine) RenderLoAlongSegment(p->paloLine, points[0].q, points[1].q, 1.0f, 1.0f);
+        if (laser->paloLine) RenderLoAlongSegment(laser->paloLine, points[0].q, points[1].q, 1.0f, 1.0f);
         qword dir;
-        if (p->paloStretch || p->acap[0].palo || p->acap[1].palo) {
+        if (laser->paloStretch || laser->acap[0].palo || laser->acap[1].palo) {
             dir = Subtract(points[1].q, points[0].q);
             basis = BuildOrthonormalMatrixZ(dir, D_002A2DC0);
         }
-        if (p->paloStretch) {
+        if (laser->paloStretch) {
             float length = Length(dir);
             if (0.01f < length) {
                 U scale;
@@ -1036,13 +942,13 @@ extern "C" void RenderLasenSelf(LASENV *p)
                 scale.f[2] = 1.0f;
                 M4 render;
                 render = LoadMatrixFromPosRotScale(points[0].q, &basis, &scale);
-                RenderLoAtMatrix(p->paloStretch, &render, 1.0f, 1.0f);
+                RenderLoAtMatrix(laser->paloStretch, &render, 1.0f, 1.0f);
             }
         }
         int next = i + 1;
         M4 matrix;
         for (unsigned int j = 0; j < 2; j++) {
-            LASENCAP *cap = &p->acap[j];
+            LASENCAP *cap = &laser->acap[j];
             if (cap->palo) {
                 if (cap->pscaler) {
                     U scale;
@@ -1064,6 +970,7 @@ extern "C" void RenderLasenSelf(LASENV *p)
     }
 }
 
+// Stores a beam endpoint's load-time parameters.
 static inline void SetParams(BEAMPARAMS *pparams, float fraction, float speed, float duration, int mode)
 {
     pparams->fraction = fraction;
@@ -1071,24 +978,18 @@ static inline void SetParams(BEAMPARAMS *pparams, float fraction, float speed, f
     pparams->duration = duration;
     pparams->mode = mode;
 }
-/** @sly2-annot addr=0x1DF908
- * Purpose: Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40)
- * Info: proposed name AddLasenBeam (T1); TU sensor
- * Notes: names_v2 C proposed FFilterCamsen__FPvP2SO (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
- * @end-sly2-annot */
-extern "C" void AddLasenBeam(LASENV *plasen, OID oid0, float fraction0, float speed0, float duration0, int mode0,
+// Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40). (inferred)
+extern "C" void AddLasenBeam(LASENV *laser, OID oid0, float fraction0, float speed0, float duration0, int mode0,
                              OID oid1, float fraction1, float speed1, float duration1, int mode1)
 {
-    if (plasen->cbeam < 0x40) {
+    if (laser->cbeam < 0x40) {
         BEAMEND *end; BEAMPARAMS *pparams;
-        end = &plasen->abeam[plasen->cbeam].aend[0];
+        end = &laser->abeam[laser->cbeam].aend[0];
         end->oid = oid0;
         pparams = &end->track.params; SetParams(pparams, fraction0, speed0, duration0, mode0);
-        end = &plasen->abeam[plasen->cbeam].aend[1];
+        end = &laser->abeam[laser->cbeam].aend[1];
         end->oid = oid1;
         pparams = &end->track.params; SetParams(pparams, fraction1, speed1, duration1, mode1);
-        plasen->cbeam++;
+        laser->cbeam++;
     }
 }

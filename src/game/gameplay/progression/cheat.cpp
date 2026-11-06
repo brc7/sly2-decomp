@@ -1,4 +1,7 @@
-// cheat.cpp -- cheat codes: button sequences matched against pad input, and the cheat actions they fire.
+// cheat.cpp -- cheat codes: six-button sequences matched against the pad's new presses (only while the pause menu's
+// cheat entry is open, D_003DA0B8), and the cheat actions they fire. Entry points: StartupCodes (registers the 15
+// codes at boot), _MatchCodes and UpdateCodes (called each frame from the pause screen); the Cheat* functions are
+// the codes' actions.
 // TU 0x14BEA8..0x14C548 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cheat
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014C528
@@ -36,6 +39,7 @@ struct CODES
 /* Safe iterator over an SL (the SL counterpart of sly2/dli.h; its own stack at D_002DD2F8). */
 struct SLI { SL *m_psl; void **m_ppv; int m_ibSle; SLI *m_psliNext; };
 extern SLI *D_002DD2F8;
+// Starts a safe iteration over an SL: pushes the iterator on the iterator stack D_002DD2F8.
 static inline void InitSli(SLI *psli, SL *psl)
 {
     psli->m_psl = psl;
@@ -44,6 +48,7 @@ static inline void InitSli(SLI *psli, SL *psl)
     psli->m_psliNext = D_002DD2F8;
     D_002DD2F8 = psli;
 }
+// Returns the current element and advances the iterator to the next one.
 static inline void *PvNextSli(SLI *psli)
 {
     void *pv = *psli->m_ppv;
@@ -65,9 +70,9 @@ extern CODE D_002BD4E0, D_002BD518, D_002BD550, D_002BD588, D_002BD5C0, D_002BD5
 
 extern "C" {
 int IsEntryInSl(CODES *pcodes, CODE *pcode);
-void AppendSlEntry(CODES *pcodes, CODE *pcode);     /* append to the SL */
-void InitSl(CODES *pcodes, int ibSle);       /* init the SL */
-void RemoveSlEntry(CODES *pcodes, CODE *pcode);
+void AppendSlEntry(CODES *codes, CODE *pcode);     /* append to the SL */
+void InitSl(CODES *codes, int ibSle);       /* init the SL */
+void RemoveSlEntry(CODES *codes, CODE *pcode);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetSndmgrMasterVolume(void *psndmgr, float g);
@@ -78,24 +83,17 @@ void SetPowerupAcquired(int n, int f);
 int GetGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
 void RefreshPlayersAfterPowerupChange(void *psw);
-void _ResetCodes(CODES *pcodes);
-int AddCode(CODES *pcodes, CODE *pcode);
+void _ResetCodes(CODES *codes);
+int AddCode(CODES *codes, CODE *pcode);
 }
 
-/** @sly2-annot addr=0x14BEA8
- * Purpose: If not already in the list (0x11A1B8 ? FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur
- *   = (current buttons (*(int *)&g_joy.grfbtn) == ajbc[0])
- * Info: proposed name AddCode (T1); TU cheat
- * Notes: names_v2 C proposed PvAllocUnsafe__10CSplotheap (0.438)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/cheat
- * See: docs/engine/core-library.md#6-source-files, docs/engine/main-loop-startup.md#7-source-files,
- *   docs/engine/main-loop-startup.md#8-key-functions
- * @end-sly2-annot */
-extern "C" int AddCode(CODES *pcodes, CODE *pcode)
+// Adds a code to the list unless it is already there, and starts its match position at 1 if the button currently
+// held is already its first button (else 0).
+extern "C" int AddCode(CODES *codes, CODE *pcode)
 {
-    int r = IsEntryInSl(pcodes, pcode);
+    int r = IsEntryInSl(codes, pcode);
     if (r) return r;
-    AppendSlEntry(pcodes, pcode);
+    AppendSlEntry(codes, pcode);
     if (*pcode->abtn == (*(int *)&g_joy.grfbtn)) pcode->ibtn = 1;
     else pcode->ibtn = 0;
 }
@@ -103,68 +101,45 @@ extern "C" int AddCode(CODES *pcodes, CODE *pcode)
 // 0x14BF10: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sw $2, 0x14($5)");
 
-/** @sly2-annot addr=0x14BF18
- * Purpose: Sets ijbcCur = 0 on every code
- * Info: proposed name _ResetCodes (EXISTING); TU cheat
- * Notes: agent/verifier proposes _ResetCodes for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> _ResetCodes (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.80] - evidence: semantic review; arbitration; pre-existing symbol in
- *   symbol_addrs.txt; sources: semantic_tu_docs/cheat+arbitration
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void _ResetCodes(CODES *pcodes)
+// Resets every code's match position to the start.
+extern "C" void _ResetCodes(CODES *codes)
 {
-    for (CODE *pcode = (CODE *)pcodes->sl.head; pcode; pcode = pcode->pcodeNext)
+    for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext)
         pcode->ibtn = 0;
 }
 
-/** @sly2-annot addr=0x14BF48
- * Purpose: Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is
- *   set: for each unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then
- *   tCheck = g_clock.tUnpaused + 1.0
- * Info: proposed name _MatchCodes (T1); TU cheat
- * Notes: names_v2 v1 proposed FreeGarbage__10CSplotheap (0.013)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void _MatchCodes(CODES *pcodes, JOYV *pjoy, unsigned short btnPrev)
+// Feeds one new button press of the first pad (g_joy) into every unfinished code while the cheat entry is open: a
+// code advances when the press is its next button, otherwise it starts over. Arms a one-second check timer.
+extern "C" void _MatchCodes(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
 {
     CODE *pcode;
     if (pjoy != &D_002DFC00) return;
     if (btnPrev == pjoy->btn) return;
     if (!pjoy->btn) return;
     if (!D_003DA0B8) return;
-    for (pcode = (CODE *)pcodes->sl.head; pcode; pcode = pcode->pcodeNext) {
+    for (pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext) {
         int fDone = pcode->ibtn >= pcode->cbtn;
         if (!fDone) {
             if (pcode->abtn[pcode->ibtn] == pjoy->btn) pcode->ibtn++;
             else pcode->ibtn = 0;
         }
     }
-    pcodes->tMatch = D_002DDED0.tReal + 1.0f;
+    codes->tMatch = D_002DDED0.tReal + 1.0f;
 }
 
-/** @sly2-annot addr=0x14BFF8
- * Purpose: When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc;
- *   StartSound(0x34) via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0
- * Info: proposed name UpdateCodes (T1); TU cheat
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void UpdateCodes(CODES *pcodes)
+// One second after the last press: removes one-shot codes that already fired, picks the longest completed code,
+// plays the confirmation sound (0x34), calls its action with its parameter and resets all codes.
+extern "C" void UpdateCodes(CODES *codes)
 {
     SLI sli;
     CODE *pcode, *pcodeBest;
-    if (pcodes->tMatch == 0.0f) return;
-    if (pcodes->tMatch <= D_002DDED0.tReal) {
-        InitSli(&sli, &pcodes->sl);
+    if (codes->tMatch == 0.0f) return;
+    if (codes->tMatch <= D_002DDED0.tReal) {
+        InitSli(&sli, &codes->sl);
         pcodeBest = 0;
         while ((pcode = (CODE *)PvNextSli(&sli)) != 0) {
             if (pcode->fRemove) {
-                RemoveSlEntry(pcodes, pcode);
+                RemoveSlEntry(codes, pcode);
                 pcode->ibtn = 0;
                 pcode->fRemove = 0;
             } else {
@@ -178,33 +153,24 @@ extern "C" void UpdateCodes(CODES *pcodes)
             SetSndSourceLo(PsndStartSound(0x34), 0);
             pcodeBest->pfn(pcodeBest->pv);
         }
-        _ResetCodes(pcodes);
-        pcodes->tMatch = 0.0f;
+        _ResetCodes(codes);
+        codes->tMatch = 0.0f;
         D_002DD2F8 = sli.m_psliNext;
     }
 }
 
-/** @sly2-annot addr=0x14C140
- * Purpose: 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1)
- * Info: proposed name CheatResetEpisode (T2); TU cheat
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void func_0014C140(void *p)
+// Cheat action: mutes the sound manager and wipes to the current world's warp point `param` (WipeToWorldWarp with no
+// world entry, reason 0x189). (inferred)
+extern "C" void CheatWipeToWarp(void *param)
 {
     SetSndmgrMasterVolume(D_003DD040, 0.0f);
-    WipeToWorldWarp(D_003DD490, 0, 0x189, -1, p, -1);
+    WipeToWorldWarp(D_003DD490, 0, 0x189, -1, param, -1);
 }
 
-/** @sly2-annot addr=0x14C190
- * Purpose: v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1)
- * Info: proposed name CheatWarpEpisode (T2); TU cheat
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void func_0014C190(void *p)
+// Cheat action: wipes to the world entry of episode `param` (or of episode 0 if it has none). (inferred)
+extern "C" void CheatWarpToEpisode(void *param)
 {
-    void *prec = PrecWorldEntry(p);
+    void *prec = PrecWorldEntry(param);
     if (!prec) prec = PrecWorldEntry(0);
     WipeToWorldWarp(D_003DD490, prec, 0x189, -1, 0, -1);
 }
@@ -213,24 +179,12 @@ extern "C" void func_0014C190(void *p)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x14C1F0
- * Purpose: *pf = 1
- * Info: proposed name CheatSetFlag (T1); TU cheat
- * Notes: names_v2 v1 proposed PvFromPsplot__FP5SPLOT (0.027)
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources:
- *   semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// Cheat action: sets the flag the code points at (e.g. an unlock flag).
 extern "C" void CheatSetFlag(int *pf) { *pf = 1; }
 
-/** @sly2-annot addr=0x14C200
- * Purpose: If 0x1D82B8(&(*(char (*)[])&g_sw.savevars), ...) ? 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E
- * Info: proposed name CheatBuyItem1F (T2); TU cheat
- * Confidence: low (draft) [T2 0.65] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
-extern "C" void func_0014C200(void)
+// Cheat action: if the save is 100% complete (NCompletionPercentGs), grants powerup 0x1F; otherwise plays the error
+// sound 0x3E. (inferred)
+extern "C" void CheatUnlockCompletionReward(void)
 {
     if (GetCompletionPercent((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
         SetPowerupAcquired(0x1F, 1);
@@ -239,13 +193,7 @@ extern "C" void func_0014C200(void)
     SetSndSourceLo(PsndStartSound(0x3E), 0);
 }
 
-/** @sly2-annot addr=0x14C258
- * Purpose: If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0)
- * Info: proposed name ClearCheatItems (T1); TU cheat
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// Cheat action: takes powerup 0x1F away again (removes it from the item list D_002E1E40 and clears it). (inferred)
 extern "C" void ClearCheatItems(void)
 {
     if (D_002E1E40) {
@@ -256,47 +204,32 @@ extern "C" void ClearCheatItems(void)
     }
 }
 
-/** @sly2-annot addr=0x14C2B0
- * Purpose: 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh)
- * Info: proposed name CheatGiveGadget (T1); TU cheat
- * Notes: names_v2 v1 proposed FIsPvGarbage__FPv (0.015)
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; static naming pass; sources:
- *   semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
+// Cheat action: grants gadget/powerup `id` (SetPowerupAcquired) and refreshes the player's gadget state.
 extern "C" void CheatGiveGadget(int id)
 {
     SetPowerupAcquired(id, 1);
     RefreshPlayersAfterPowerupChange(D_003DD490);
 }
 
-/** @sly2-annot addr=0x14C2D8
- * Purpose: InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0
- * Info: proposed name StartupCodes (T1); TU cheat
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/cheat
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
-extern "C" void StartupCodes(CODES *pcodes)
+// Boot-time setup: initializes the code list (link at CODE+0x18) and adds the 15 built-in codes.
+extern "C" void StartupCodes(CODES *codes)
 {
-    InitSl(pcodes, 0x18);
-    AddCode(pcodes, &D_002BD4E0);
-    AddCode(pcodes, &D_002BD518);
-    AddCode(pcodes, &D_002BD550);
-    AddCode(pcodes, &D_002BD588);
-    AddCode(pcodes, &D_002BD5C0);
-    AddCode(pcodes, &D_002BD5F8);
-    AddCode(pcodes, &D_002BD630);
-    AddCode(pcodes, &D_002BD668);
-    AddCode(pcodes, &D_002BD6A0);
-    AddCode(pcodes, &D_002BD6D8);
-    AddCode(pcodes, &D_002BD710);
-    AddCode(pcodes, &D_002BD748);
-    AddCode(pcodes, &D_002BD780);
-    AddCode(pcodes, &D_002BD7B8);
-    AddCode(pcodes, &D_002BD7F0);
+    InitSl(codes, 0x18);
+    AddCode(codes, &D_002BD4E0);
+    AddCode(codes, &D_002BD518);
+    AddCode(codes, &D_002BD550);
+    AddCode(codes, &D_002BD588);
+    AddCode(codes, &D_002BD5C0);
+    AddCode(codes, &D_002BD5F8);
+    AddCode(codes, &D_002BD630);
+    AddCode(codes, &D_002BD668);
+    AddCode(codes, &D_002BD6A0);
+    AddCode(codes, &D_002BD6D8);
+    AddCode(codes, &D_002BD710);
+    AddCode(codes, &D_002BD748);
+    AddCode(codes, &D_002BD780);
+    AddCode(codes, &D_002BD7B8);
+    AddCode(codes, &D_002BD7F0);
 }
 
 
@@ -307,10 +240,10 @@ extern "C" void StartupCodes(CODES *pcodes)
 // D_002BE26C, gadget numbers. Asm labels: the declarations above stay as the functions see them.
 namespace CHEAT_CODES {
 struct CODEREC { int *abtn; int cbtn; void (*pfn)(void *); void *pv; int ibtn; int fRemove; void *pcodeNext; int x1C; };
-void p_func_0014C140(void *) __asm__("func_0014C140");
-void p_func_0014C190(void *) __asm__("func_0014C190");
+void p_func_0014C140(void *) __asm__("CheatWipeToWarp");
+void p_func_0014C190(void *) __asm__("CheatWarpToEpisode");
 void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
-void p_func_0014C200(void *) __asm__("func_0014C200");
+void p_func_0014C200(void *) __asm__("CheatUnlockCompletionReward");
 void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
 extern "C" char d_003DD040[] __asm__("D_003DD040");
 extern "C" int k_002BE26C __asm__("D_002BE26C");

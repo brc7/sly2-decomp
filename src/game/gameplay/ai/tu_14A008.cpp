@@ -143,7 +143,7 @@ int SnapToGround(qword *pq, int a, int b, float f, float g);
 int IsSwHandsOff(SW *pg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetStepguardTarget(GUARDV *pw, void *p);
-int func_001BBE48(SOV *p);
+int IsBreakableDone(SOV *p);
 int CploFindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
 qword SetVectorSphere(float a, float b, float c);
 float RadBetweenVectors(qword a, qword b, void *p);
@@ -419,7 +419,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         return;
     }
     for (SOV *object = (*(SOV **)&g_sw.dlCid98); object; object = object->next) {
-        if (!func_001BBE48(object)) {
+        if (!IsBreakableDone(object)) {
             SOV *apso[8];
             qword posT = GetLoWorldPos(object);
             float r = D_002BD478;

@@ -93,9 +93,9 @@ extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
 ulong GetSgfMask(int);
 int GetHeroPo(G *);
-void func_001C2DB8(OWNER *);
-int func_001C2DC8(OWNER *, OBJECT *, int, int);
-void *func_001C2EF0(OWNER *, int);
+void ClearLootPouchLoot(OWNER *);
+int StageLootPouchLoot(OWNER *, OBJECT *, int, int);
+void *LaunchLootPouchLootAtPlayer(OWNER *, int);
 int NWorldCur(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -184,7 +184,7 @@ extern "C" void GenerateStepguardLoot(P *guard)
     TABLE *table;
     ITEM reward;
     int world,total,remaining,slots;unsigned int i;
-    func_001C2DB8(guard->pouch);
+    ClearLootPouchLoot(guard->pouch);
     if(guard->isLootFixed)return;
     world=NWorldCur();if(world==-1)world=1;
     if(FIsBasicDerivedFrom__FP5BASIC3CID(guard,0x3A))table=&D_002C3968[world];else table=&D_002C3748[world];
@@ -252,7 +252,7 @@ extern "C" void StageStepguardLoot(P *guard)
             }
             launchKind = 0x2B1;
         }
-        if (func_001C2DC8(guard->pouch, object, key, launchKind) == 1) guard->isStaged = 1;
+        if (StageLootPouchLoot(guard->pouch, object, key, launchKind) == 1) guard->isStaged = 1;
         break;
     }
     UpdateStepguardPickpocket(guard);
@@ -267,7 +267,7 @@ extern "C" void *PickpocketStepguard(P *guard)
     if (guard->nextLoot >= guard->lootCount) return 0;
     {
         BroadcastGameEvent(&D_002DEB30, 0x19, guard);
-        launched = func_001C2EF0(guard->pouch, (guard->loot + guard->nextLoot)->count);
+        launched = LaunchLootPouchLootAtPlayer(guard->pouch, (guard->loot + guard->nextLoot)->count);
         SetStepguardPickpocketState(guard, -1);
         guard->nextLoot++;
         StageStepguardLoot(guard);

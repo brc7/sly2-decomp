@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001BBD48(s32, s32, s32);               /* extern */
+void AddBreakableTaskStates(s32, s32, s32);               /* extern */
 CRef *func_0010D0B0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 6, 4176 };
@@ -9,7 +9,7 @@ CRef *func_0010D0B0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_001BBD48(pbasic, arg0_v, arg1_v);
+    AddBreakableTaskStates(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

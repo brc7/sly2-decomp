@@ -235,7 +235,7 @@ MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
 void LoadIdentityMatrix4(XFV *, int, MATRIX4V *, MATRIX4V *, float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *, int);                                    // FIsBasicDerivedFrom
-void func_0013BC60(SOV *, LAUNCH *);
+void SetBombOwner(SOV *, LAUNCH *);
 void RecalcSwOxfFilterForObject(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
 void SetSoCnstrTorque(SOV *, void *);
@@ -382,7 +382,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     qwordV posLaunch = AddScaled(posOrigin, VU_FLOAT(offset), Normalize(dpos));
     posAim = QwFromVf(posLaunch);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x4F)) {
-        func_0013BC60(pso, plaunch);
+        SetBombOwner(pso, plaunch);
         RecalcSwOxfFilterForObject(D_003DD490, pso);
     }
     pso->Add();
