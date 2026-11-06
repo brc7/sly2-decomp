@@ -571,7 +571,8 @@ static inline float LengthT(qwordV v){qwordV one;float f;
  __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(v));return f;}
 // Zeroes a 3-float vector / an XF velocity.
 static inline void Zero(float *v){v[0]=v[1]=v[2]=0.0f;}static inline void ZeroVelocity(XFV *n){Zero(n->velocity.f);}
-// Nearest of the candidate objects to the trap that passes the selection test (keeps the incoming best).
+// Nearest candidate object to the gadget, with the height difference counted double (vertical distance weighs
+// more); starts from the incoming best.
 static inline SOV *FindNearest(CID100V *gadget,int count,SOV **objects,SOV *nearest,float best){
   for(int i=0;i<count;i++){
    SOV *object=objects[i];
