@@ -1428,8 +1428,8 @@ typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
 struct CID45 : XFM
 {
     char padE0[0x130 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid45ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001BEA40");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid45ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001BEA88");   /* slot 14 */
     virtual void RenderSelf() __asm__("func_001BEE60");   /* slot 19 */
 };
