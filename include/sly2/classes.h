@@ -1463,8 +1463,8 @@ typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
 struct CID99 : SO
 {
     char pad150[0x170 - 0x150];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_001C2D20");   /* slot 15 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("func_001C2D70");   /* slot 19 */
 };
 typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
