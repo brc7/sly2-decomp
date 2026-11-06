@@ -48,7 +48,7 @@ BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, CID cid);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
-struct S { char pad[0x200]; float g200; char p1[0x10]; float g214; char p2[8]; float g220; char p3[0x3C]; float g260; int n264; char p4[4]; char x26C[4]; };
+struct S { char pad[0x200]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
 void InitPo(struct S *p);
 void ScaleStepSpinSpeed(struct S *p, float g);
 void SetStepTargetHeading(struct S *p, float g);
@@ -69,14 +69,14 @@ void STEP::Init()
     using namespace M_InitStep;
     M_InitStep::S *p = (M_InitStep::S *)this;
     InitPo(p);
-    p->n264 = -1;
-    p->g260 = 1.0f;
-    p->g200 = 1.0f;
+    p->physPartOid = -1;
+    p->gravityRatio = 1.0f;
+    p->unknownRatio200 = 1.0f;
     ScaleStepSpinSpeed(p, 1.0f);
     SetStepTargetHeading(p, 0.0f);
-    p->g220 = 30.0f;
-    p->g214 = -50.0f;
-    InitBhvstk(p->x26C, p);
+    p->baseRadius = 30.0f;
+    p->stepDownHeight = -50.0f;
+    InitBhvstk(p->behaviorStack, p);
 }
 
 /** @sly2-annot addr=0x2039C0
@@ -111,8 +111,8 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad { extern "C" {
-struct S { char pad[0x58]; int n58; int n5C; char pad2[0x294 - 0x60]; int x294; };
-struct O { char pad[0x264]; int oid; void *p268; char x26C[0x28]; int x294; };
+struct S { char pad[0x58]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
+struct O { char pad[0x264]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
 void PostSoLoad(struct O *p);
 int NewSampledShape(int a, int b);
 void func_002303A0(struct O *p, int n, int f);
@@ -134,17 +134,17 @@ void PostBhvstkLoad(void *pv);
 void PostStepLoad(struct O *step)
 {
     PostSoLoad(step);
-    step->x294 = NewSampledShape(0x2C9, 0x10);
-    func_002303A0(step, ((struct S *)step)->n58, 1);
-    func_002303A0(step, ((struct S *)step)->n5C, 1);
+    step->sampledShape = NewSampledShape(0x2C9, 0x10);
+    func_002303A0(step, ((struct S *)step)->childOid0, 1);
+    func_002303A0(step, ((struct S *)step)->childOid1, 1);
     if (step->oid != -1) {
-        step->p268 = FindSoPart(step, step->oid);
-        if (step->p268) {
-            BuildStepPhysPart(step, step->p268);
-            HideSoPart(step, step->p268);
+        step->ownPart = FindSoPart(step, step->oid);
+        if (step->ownPart) {
+            BuildStepPhysPart(step, step->ownPart);
+            HideSoPart(step, step->ownPart);
         }
     }
-    PostBhvstkLoad(step->x26C);
+    PostBhvstkLoad(step->behaviorStack);
 }
 } } // namespace M_PostStepLoad
 
@@ -174,8 +174,8 @@ struct Q0 { char pad[0x40]; char a40[1]; };
 struct Q { struct Q0 *p0; char pad[0x1C - 4]; int c; char pad2[0x78 - 0x20]; char a78[4]; void *p7C; char pad3[0x90 - 0x80]; char a90[4]; char *p94; };
 struct M { char pad[0x1C]; int n1C; char pad2[0x78 - 0x20]; int n78; };
 struct S {
-    char pad0[0x28]; unsigned long fl28; char pad1[0x60 - 0x30]; void *p60; char pad2[0xE0 - 0x64]; int nE0; char *pE4;
-    char pad3[0x210 - 0xE8]; float f210; int n214; char *p218; char *p21C; char pad4[0x240 - 0x220]; qword q240;
+    char pad0[0x28]; unsigned long fl28; char pad1[0x60 - 0x30]; void *p60; char pad2[0xE0 - 0x64]; int numParts; char *parts;
+    char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword q240;
     char pad5[0x258 - 0x250]; struct Q *pq;
 };
 extern const float D_002A85F0;   /* defined below where the ELF has it (.rodata order) */
@@ -206,10 +206,10 @@ void BuildStepPhysPart(struct S *step, struct M *m)
     qword r;
     if ((int)(step->fl28 >> 60) & 1)
         RemoveSoParts(step);
-    n = step->nE0;
-    step->nE0 = n + 1;
+    n = step->numParts;
+    step->numParts = n + 1;
     fl = 0;
-    step->pq = (struct Q *)(step->pE4 + n * 0xB0);
+    step->pq = (struct Q *)(step->parts + n * 0xB0);
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
         fl = m->n1C == m->n78;
     CloneSoPartGeomInserting(m, step->p60, !fl ? 2 : 3, step->pq);
@@ -219,7 +219,7 @@ void BuildStepPhysPart(struct S *step, struct M *m)
         float e = ((struct E *)step->pq->p7C)[i].c;
         mn = (e > mn) ? mn : e;
     }
-    step->f210 = mn;
+    step->baseHeight = mn;
     c = step->pq->c;
     step->pq->c = c + 2;
     {register struct Q *mesh __asm__("$4")=step->pq;
@@ -228,7 +228,7 @@ void BuildStepPhysPart(struct S *step, struct M *m)
     {register int word __asm__("$2");
      register struct Q *mesh __asm__("$3");
      register qword *dst __asm__("$2");
-     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->n214),"m"(step->pq));
+     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->pq));
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
      dst=(qword *)mesh->p7C;
      __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->q240),"j"(D_002A2DC0),"j"(value));
@@ -238,8 +238,8 @@ void BuildStepPhysPart(struct S *step, struct M *m)
     if (fl)
         ((qword *)step->pq->p7C)[c + 2] = D_002A2DD0;
     UpdateGeomWorld(step->pq->p0->a40, step->pq->a78, step->pq->a90);
-    step->p218 = step->pq->p94 + c * 16;
-    step->p21C = step->pq->p94 + (c * 16 + 0x10);
+    step->basePoint = step->pq->p94 + c * 16;
+    step->topPoint = step->pq->p94 + (c * 16 + 0x10);
     if ((int)(step->fl28 >> 60) & 1)
         AddSoParts(step);
 }
@@ -447,9 +447,9 @@ namespace M_UpdateStep { extern "C" {
 struct VT;
 struct S {
     char pad0[0xC]; struct VT *vt;
-    char pad1[0x180 - 0x10]; float f180;
-    char pad2[0x1A4 - 0x184]; int k1A4; float f1A8;
-    char pad3[0x208 - 0x1AC]; int n208; float t20C;
+    char pad1[0x180 - 0x10]; float turnSpeedFactor;
+    char pad2[0x1A4 - 0x184]; int k1A4; float targetHeading;
+    char pad3[0x208 - 0x1AC]; int floorContact; float t20C;
 };
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
@@ -480,7 +480,7 @@ void UpdateStep(struct S *step)
     case 0: {
         float *a = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
         float *b = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
-        float d = RadNormalize__Ff(step->f1A8 - atan2f(a[1], b[0]));
+        float d = RadNormalize__Ff(step->targetHeading - atan2f(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);
@@ -491,15 +491,15 @@ void UpdateStep(struct S *step)
             else if (hi < f)
                 f = hi;
         }
-        step->f180 = f;
+        step->turnSpeedFactor = f;
         break;
     }
     case -1:
     case 1:
-        step->f180 = 1.0f;
+        step->turnSpeedFactor = 1.0f;
         break;
     }
-    if (step->n208)
+    if (step->floorContact)
         step->t20C = D_002DDED0.t;
 }
 } } // namespace M_UpdateStep
@@ -527,7 +527,7 @@ typedef struct { qword row[3]; } M3;
 union FLOATWORD { float value; int bits; };
 extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
-struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float f1F4, f1F8, f1FC, f200; };
+struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int k; char pad3[8]; M3 desired; qword v1E0; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p);
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
@@ -554,10 +554,10 @@ void PresetStepAccel(struct S *step)
     switch (step->k) {
     case 0: {
         VECTOR3 v;
-        float s = step->f200;
-        v.z = step->f1FC;
-        v.x = step->f1F4 * s;
-        v.y = step->f1F8 * s;
+        float s = step->unknownRatio200;
+        v.z = step->spinFastTime;
+        v.x = step->spinFastSpeed * s;
+        v.y = step->spinSlowSpeed * s;
         AccelSoTowardMatBounded(step, &step->desired, &v);
         break;
     }
@@ -1131,7 +1131,7 @@ struct VE { short d; short pad; unsigned int (*pf)(void *); };
 struct EC { char pad[0x60]; void *p60; };
 struct X4 { char pad[0xEC]; struct EC *pec; };
 struct X { int pad; struct X4 *p4; };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; qword *p21C; char pad3[0x258 - 0x220]; void *p258; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword q10; qword normal; qword q30; float t; int n44; int n48; int n4C; char pad[0x10]; };
 extern qword D_002A2DC0;
 extern char D_003DD490[];
@@ -1164,7 +1164,7 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
         return;
     pos = func_001A62E8(step);
-    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? step->p21C : step->p218), 1, &hit) <= 0)
+    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & 8)
@@ -1173,14 +1173,14 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
             n = D_002A2DC0;
         else if (hit.n48)
             n = hit.normal;
-        else if (HasStepFloorNearby(step, *step->p218, x, hit.n4C))
+        else if (HasStepFloorNearby(step, *step->basePoint, x, hit.n4C))
             n = D_002A2DC0;
         else
             n = hit.normal;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->p218), "j"(hit.pos));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->basePoint), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        AddXp(D_003DD490, step->p258, x, *step->p218, n, 0xE, 0, 0, a5, f);
+        AddXp(D_003DD490, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);
     }
 }
 } } // namespace M_AddStepCustomXps
