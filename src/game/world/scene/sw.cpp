@@ -2309,7 +2309,7 @@ extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
 }
 
 namespace M_func_002109D0 { extern "C" {
-struct X { char pad[8]; int x8; char padc[0x2C]; int x38; };
+struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. FOpenSaveIconFile) */
 extern int D_003E1C38;
 struct X *GetLevelFileRecord(int i);
 static inline int FEqual(struct X *a, struct X *b)
@@ -2318,7 +2318,7 @@ static inline int FEqual(struct X *a, struct X *b)
         return 1;
     if (!a || !b)
         return 0;
-    return (a->x8 ^ a->x38) == (b->x8 ^ b->x38);
+    return (a->sectorKey ^ a->sectorXor) == (b->sectorKey ^ b->sectorXor);
 }
 /** @sly2-annot addr=0x2109D0
  * Purpose: Index of level whose file record equals arg, else -1
@@ -2474,12 +2474,12 @@ extern "C" FILEREC *PrecWorldEntry(int nWorld)
 
 namespace M_func_00210BE0 { extern "C" {
 typedef struct { char *pch; char *pchOut; } ENT;
-typedef struct { int c; ENT *a; int x8; int xC; } TBL;
+typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
-extern struct G { char pad[0x4640]; int f; } D_003DD490;
+extern struct G { char pad[0x4640]; int isLocalized; } D_003DD490;   /* (inferred) nonzero when a language table is loaded */
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
 extern char *PchzFindSwLangstr__FP2SWi(struct G *, char *);
-extern int func_0021ED28(char *) __asm__("strlen");
+extern int strlen_(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
 /** @sly2-annot addr=0x210BE0
@@ -2491,16 +2491,16 @@ extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 // Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
 void LocalizeSwStringTable(TBL *table)
 {
-    ALLOC al;
+    ALLOC heap;
     int i;
-    if (D_003DD490.f == 0)
+    if (D_003DD490.isLocalized == 0)
         return;
-    __11CLinearHeapiPUc(&al, table->x8, table->xC);
+    __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
         ENT *e = &table->a[i];
         e->pchOut = PchzFindSwLangstr__FP2SWi(&D_003DD490, e->pch);
-        if (func_0021ED28(e->pchOut))
-            e->pchOut = PchzAllocCopy__FP4HEAPPci(&al, e->pchOut, 4);
+        if (strlen_(e->pchOut))
+            e->pchOut = PchzAllocCopy__FP4HEAPPci(&heap, e->pchOut, 4);
         else
             e->pchOut = 0;
     }
