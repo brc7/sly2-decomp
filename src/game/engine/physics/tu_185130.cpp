@@ -34,7 +34,7 @@ typedef struct MESH
     I3 *neighbors;      /* per triangle edge: the neighbouring triangle or -1 (a boundary edge) */
     char padF4[0x100 - 0xF4];
     K k;                /* +0x100 kept across CloneXfm */
-    float g108;
+    float attachRadius;
     int pad10C;
     void *ptn;          /* +0x110 */
 } MESH;
@@ -469,7 +469,7 @@ void CID9::Init()
 {
     MESH *p = (MESH *)this;
     func_00185130(p);
-    p->g108 = D_002A5690;
+    p->attachRadius = D_002A5690;
 }
 
 /** @sly2-annot addr=0x185C28

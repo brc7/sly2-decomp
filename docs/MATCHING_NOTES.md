@@ -550,6 +550,10 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - Gotos that share tails across switch cases or jump into a common cleanup label (MsgFromMcError, McJobCreateSave,
   load_file_from_disc, SetBentleyState, ChooseJtGroundState): `break` + a re-test of the result, per-case `return`s or a
   duplicated tail reorder blocks (40-90% differ). Case-tail sharing is a layout decision.
+- A `goto out;` to a label right after a loop -> `break` (FindPathzoneSegmentBlocker, BuildConvexHull's inner `while`), or an
+  early `return` instead of `goto leaf` (FindPathzoneAtPos, moves the leaf block): keep such gotos, give the label a meaning,
+  and say why. (A `goto test;` into a rotated `for (;;)` did become a plain `for`: RemoveObstacleEvents.)
+- Dropping a redundant test: `if (r == 3) return; if (r != 4) return;` keeps the first test (PostCid14Load).
 - Merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal: one jump-table target instead of three blocks).
 - `if (a) goto L; if (b) goto L;` -> `if (a || b) goto L` (CanJtUseGadgetInAir).
 - `again: ... goto again` search loops (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)` or a reset of the

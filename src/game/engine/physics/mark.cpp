@@ -1335,27 +1335,27 @@ done:
 namespace M_MarkSoContactsSphereBsp {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; U(); };
-struct S0 { char pad[0x70]; qword x70; };
+struct S0 { char pad[0x70]; qword position; };
 struct LO;struct CONTACT;struct NODE;
-struct S { struct S0 *x0; struct LO *x4; float x8; };
+struct S { struct S0 *transform; struct LO *so; float radius; };
 union DETAIL {void*pointer;int word;};
-struct E {qword x0,x10;int x20;DETAIL detail;};
+struct E {qword point,plane;int kind;DETAIL detail;};
 extern "C" int IntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f);
 extern "C" U*InitVuTemp(U*p);
-extern "C" void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int x20, void*z, void*x24,struct CONTACT**g,float f);
+extern "C" void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int kind, void*z, void*feature,struct CONTACT**g,float f);
 inline U::U() { (void)InitVuTemp(this); }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char Offset_1[FIELD_OFFSET(U,f)==0?1:-1];
 typedef char Offset_2[FIELD_OFFSET(DETAIL,pointer)==0?1:-1];
 typedef char Offset_3[FIELD_OFFSET(DETAIL,word)==0?1:-1];
-typedef char Offset_4[FIELD_OFFSET(S0,x70)==112?1:-1];
-typedef char Offset_5[FIELD_OFFSET(S,x0)==0?1:-1];
-typedef char Offset_6[FIELD_OFFSET(S,x4)==4?1:-1];
-typedef char Offset_7[FIELD_OFFSET(S,x8)==8?1:-1];
-typedef char Offset_8[FIELD_OFFSET(E,x0)==0?1:-1];
-typedef char Offset_9[FIELD_OFFSET(E,x10)==16?1:-1];
-typedef char Offset_10[FIELD_OFFSET(E,x20)==32?1:-1];
+typedef char Offset_4[FIELD_OFFSET(S0,position)==112?1:-1];
+typedef char Offset_5[FIELD_OFFSET(S,transform)==0?1:-1];
+typedef char Offset_6[FIELD_OFFSET(S,so)==4?1:-1];
+typedef char Offset_7[FIELD_OFFSET(S,radius)==8?1:-1];
+typedef char Offset_8[FIELD_OFFSET(E,point)==0?1:-1];
+typedef char Offset_9[FIELD_OFFSET(E,plane)==16?1:-1];
+typedef char Offset_10[FIELD_OFFSET(E,kind)==32?1:-1];
 typedef char Offset_11[FIELD_OFFSET(E,detail)==36?1:-1];
 typedef char Size_0[sizeof(U)==16?1:-1];
 typedef char Size_1[sizeof(DETAIL)==4?1:-1];
@@ -1381,14 +1381,14 @@ extern "C" void MarkSoContactsSphereBsp(void *a, struct S*s,struct S*b,int d,str
 
     int i;
     struct E *pe;
-    i = IntersectSphereBsp(s->x0->x70, bodyOwner, 0x7FFFFFFF, d, e, 0x40, buf, s->x8) - 1;
+    i = IntersectSphereBsp(s->transform->position, bodyOwner, 0x7FFFFFFF, d, e, 0x40, buf, s->radius) - 1;
     if (i >= 0) {
         pe = &buf[i];
         do {
             qword A, B;
             i--;
-            {register qword word __asm__("$2")=pe->x0;A=word;}
-            {register qword word __asm__("$2")=pe->x10;B=word;}
+            {register qword word __asm__("$2")=pe->point;A=word;}
+            {register qword word __asm__("$2")=pe->plane;B=word;}
             U r,one;
             register qword scalar __asm__("vf1"),product __asm__("vf2");
             register void*worldArgument __asm__("$4");register S*shapeArgument __asm__("$5");
@@ -1415,7 +1415,7 @@ extern "C" void MarkSoContactsSphereBsp(void *a, struct S*s,struct S*b,int d,str
                     "mtc1 $2,%4"
                     : "=&r"(bodyArgument),"=&r"(emptyFeature),"=&r"(pointArgument),"=r"(planeArgument),"=f"(separation),"=m"(r.q)
                     : "r"(bodyOwner),"j"(product),"m"(A),"m"(B) : "$2");
-            AddXp(worldArgument, shapeArgument, bodyArgument, pointArgument, planeArgument, pe->x20, emptyFeature, pe->detail.pointer, g, separation);
+            AddXp(worldArgument, shapeArgument, bodyArgument, pointArgument, planeArgument, pe->kind, emptyFeature, pe->detail.pointer, g, separation);
             pe=(E*)((unsigned)pe-sizeof(E));
         } while (i >= 0);
     }
@@ -1428,12 +1428,12 @@ typedef char layout_S_Alignment[(__alignof__(S)==4)?1:-1];
 typedef char layout_DETAIL_Alignment[(__alignof__(DETAIL)==4)?1:-1];
 typedef char layout_E_Alignment[(__alignof__(E)==16)?1:-1];
 typedef char layout_CandidateBuffer_Span[(sizeof(E[64])==0xC00)?1:-1];
-typedef char layout_CandidatePoint_Span[(sizeof(((E*)0)->x0)==16)?1:-1];
-typedef char layout_CandidatePlane_Span[(sizeof(((E*)0)->x10)==16)?1:-1];
-typedef char layout_CandidateKind_Width[(sizeof(((E*)0)->x20)==4)?1:-1];
+typedef char layout_CandidatePoint_Span[(sizeof(((E*)0)->point)==16)?1:-1];
+typedef char layout_CandidatePlane_Span[(sizeof(((E*)0)->plane)==16)?1:-1];
+typedef char layout_CandidateKind_Width[(sizeof(((E*)0)->kind)==4)?1:-1];
 typedef char layout_CandidateFeature_Width[(sizeof(((E*)0)->detail.pointer)==4)?1:-1];
-typedef char layout_OwnerPoint_Span[(sizeof(((S0*)0)->x70)==16)?1:-1];
-typedef char layout_ShapeRadius_Width[(sizeof(((S*)0)->x8)==4)?1:-1];
+typedef char layout_OwnerPoint_Span[(sizeof(((S0*)0)->position)==16)?1:-1];
+typedef char layout_ShapeRadius_Width[(sizeof(((S*)0)->radius)==4)?1:-1];
 typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 } // namespace M_MarkSoContactsSphereBsp
 
@@ -1490,9 +1490,9 @@ namespace M_func_001A9D38 {
 typedef int qword __attribute__((mode(TI)));
 struct M4{qword r[4];};
 struct LO{char pad[0x40];M4 m;};
-struct A{LO*lo;int x4;float radius;int xC;unsigned long flags;int x18,first;M4 m;char pad60[0x18];int count;qword*vertices;char pad80[0x10];int probeCount;qword*probes;};
+struct A{LO*lo;int so;float radius;int oid;unsigned long flags;int zapKinds,first;M4 m;char pad60[0x18];int count;qword*vertices;char pad80[0x10];int probeCount;qword*probes;};
 struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[0x48];int oldGeneration,generation;};
-struct HIT{qword p;char pad10[0x30];float time;int x44,x48,tag;char pad50[0x10];};
+struct HIT{qword p;char pad10[0x30];float time;int unknown44,unknown48,tag;char pad50[0x10];};
 struct W;struct C;
 extern "C" M4 InvertMatrix4Rigid(const M4*);
 extern "C" int ClipEdgeToObject(B*,qword,qword,int,HIT*);

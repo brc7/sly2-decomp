@@ -23,9 +23,9 @@ struct POCTLV;
 /* A PO (player-controllable SO) as this TU reads it. */
 struct POV
 {
-    int x0, x4, x8;
+    int unknown0, unknown4, unknown8;   /* BASIC */
     VTE *vt;                    /* 0x00C */
-    int x10, x14;
+    int parent, root;           /* 0x010: LO psoParent, ploroot */
     int oid;                    /* 0x018 */
     char pad1C[0x28 - 0x1C];
     unsigned long flags;        /* 0x028 */
@@ -36,7 +36,7 @@ struct POV
     int forcedButtons;                 /* 0x154: buttons forced down */
     int pad158;
     int collectEnabled;         /* 0x15C: its pickup info (PZI) starts here: collection enabled */
-    int a160[2];
+    int unknown160[2];
     POV *collector;             /* 0x168: PZI collector (the PO itself) */
     void *cameraTunnel;                  /* 0x16C: its camera tunnel */
     int pad170;
@@ -486,7 +486,7 @@ void ConvertPoctlStick(POCTLV *poctl, float cameraAngle, float *dxInOut, float *
 }
 
 /* A joystick as UpdatePoctl reads it. */
-struct J { char pad[0x103C]; float a, b; char p1[0x1070 - 0x1044]; float c, d; char p2[0x10B4 - 0x1078]; int x10B4; int p3; int x10BC; };
+struct J { char pad[0x103C]; float dxLeft, dyLeft; char p1[0x1070 - 0x1044]; float dxRight, dyRight; char p2[0x10B4 - 0x1078]; int buttons; int buttonsPressed; int buttonsLatched; };
 extern "C" {
 extern int D_002DFBC0;
 extern J D_002DFC00;
@@ -514,11 +514,11 @@ extern "C" void UpdatePoctl(POCTLV *poctl)
         break;
     case 1:
         pj = (D_002DFBC0 & 2) ? &D_002DFC00 : &D_002E0D00;
-        poctl->leftDx = pj->a;
-        poctl->leftDy = pj->b;
-        poctl->rightDx = pj->c;
-        poctl->rightDy = pj->d;
-        poctl->buttons = (pj->x10B4 & ~pj->x10BC) | poctl->po->forcedButtons;
+        poctl->leftDx = pj->dxLeft;
+        poctl->leftDy = pj->dyLeft;
+        poctl->rightDx = pj->dxRight;
+        poctl->rightDy = pj->dyRight;
+        poctl->buttons = (pj->buttons & ~pj->buttonsLatched) | poctl->po->forcedButtons;
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&g_cm.mat, &a, &b);
         break;
     }
