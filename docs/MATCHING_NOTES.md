@@ -520,3 +520,11 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+
+## 2026-11-06 (r2 logic pass, graphics/fx/camera): goto shapes that are codegen
+- A loop whose exit is `goto found;` to a label right after the loop is **not** the same as `break` in gcc 2.95 (UpdateRipt1:
+  15% differ), and `goto done;` to a shared tail is not the same as wrapping the body in `if` — keep those labels.
+- `goto test; loop: ... test: if (i < 8) goto loop;` with an early `goto done` (IgsAllocGsb) does not survive a `for` + `return`
+  rewrite (register choice changes); RenderBlipgSelf's `top:/next:` list walk changes the frame size as a `for`/`do-while`.
+- Plain search loops (`loop: p = t[i]; if (!p || p->id == id) return p; i = (i+1) % N; goto loop;`) and `goto set` chains that
+  all reach one call do convert to `for (;;)` / a single `&&` condition with identical code (FindBitmapInHash, SetTnTns gate).
