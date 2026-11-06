@@ -36,31 +36,31 @@ class GIFS;
 class CFont
 {
 public:
-    int m_ifont;            /* 0x00 index in D_002DE9F0 */
-    int m_dxCharUnscaled;   /* 0x04 */
-    int m_dxSpace;          /* 0x08 */
-    int m_dy;               /* 0x0C unscaled line height */
-    float m_rxScale;        /* 0x10 */
-    float m_ryScale;        /* 0x14 */
-    int m_cscl;             /* 0x18 scaling stack */
-    SCL m_ascl[4];          /* 0x1C */
-    int m_fTex0Alt;         /* 0x3C */
-    unsigned long m_tex0Alt; /* 0x40 */
-    int m_z;                /* 0x48 */
+    int fontIndex;            /* 0x00 index in D_002DE9F0 */
+    int charWidthUnscaled;   /* 0x04 */
+    int spaceWidth;          /* 0x08 */
+    int lineHeight;               /* 0x0C unscaled line height */
+    float xScale;        /* 0x10 */
+    float yScale;        /* 0x14 */
+    int scaleDepth;             /* 0x18 scaling stack */
+    SCL scaleStack[4];          /* 0x1C */
+    int useAltTex0;         /* 0x3C */
+    unsigned long altTex0; /* 0x40 */
+    int depth;                /* 0x48 */
     int pad4C;
-    union { unsigned long m_tex0; TEX0 m_tex0bits; };  /* 0x50 */
-    int m_cqwBmp;           /* 0x58 bitmap upload packet */
-    QW *m_aqwBmp;           /* 0x5C */
-    QW m_aqwBmpGifs[6];     /* 0x60 */
-    int m_cqwBmpData;       /* 0xC0 */
-    QW *m_aqwBmpData;       /* 0xC4 */
-    int m_cqwClut;          /* 0xC8 CLUT upload packet */
-    QW *m_aqwClut;          /* 0xCC */
-    QW m_aqwClutGifs[6];    /* 0xD0 */
-    int m_cqwClutData;      /* 0x130 */
-    QW *m_aqwClutData;      /* 0x134 */
-    int m_cglyph;           /* 0x138 */
-    GLYPH *m_aglyph;        /* 0x13C */
+    union { unsigned long tex0; TEX0 tex0Bits; };  /* 0x50 */
+    int bitmapUploadQwords;           /* 0x58 bitmap upload packet */
+    QW *bitmapUpload;           /* 0x5C */
+    QW bitmapUploadGifs[6];     /* 0x60 */
+    int bitmapDataQwords;       /* 0xC0 */
+    QW *bitmapData;       /* 0xC4 */
+    int clutUploadQwords;          /* 0xC8 CLUT upload packet */
+    QW *clutUpload;          /* 0xCC */
+    QW clutUploadGifs[6];    /* 0xD0 */
+    int clutDataQwords;      /* 0x130 */
+    QW *clutData;      /* 0x134 */
+    int numGlyphs;           /* 0x138 */
+    GLYPH *glyphs;        /* 0x13C */
 
     void PushScaling(float rx, float ry);
     void PopScaling();
@@ -87,16 +87,16 @@ public:
 class CRichText
 {
 public:
-    unsigned char *m_achz;
-    unsigned char *m_pchCur;
-    CFontBrx *m_pfontCur;
-    CFontBrx *m_pfontBase;
-    CFontBrx m_font;        /* 0x10 copy of the font selected by an & escape */
-    int m_fDirty;           /* 0x150 font changed: switch TEX0 before the next character */
-    RGBA m_rgbaCur;         /* 0x154 */
-    RGBA m_rgbaSet;         /* 0x158 */
-    RGBA m_rgbaBase;        /* 0x15C */
-    RGBA m_rgbaFont;        /* 0x160 */
+    unsigned char *text;
+    unsigned char *cursor;
+    CFontBrx *currentFont;
+    CFontBrx *baseFont;
+    CFontBrx escapeFont;        /* 0x10 copy of the font selected by an & escape */
+    int fontChanged;           /* 0x150 font changed: switch TEX0 before the next character */
+    RGBA currentColor;         /* 0x154 */
+    RGBA setColor;         /* 0x158 */
+    RGBA baseColor;        /* 0x15C */
+    RGBA fontColor;        /* 0x160 */
 
     CRichText(char *achz, CFont *pfont);
     void Reset();
@@ -219,25 +219,25 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 SLY2_SCRAP("addiu $sp, $sp, 0xc0");
 
-// Pushes the current scale and sets a new one relative to the font's base scale (m_ascl[0]). Note the saved y scale is
+// Pushes the current scale and sets a new one relative to the font's base scale (scaleStack[0]). Note the saved y scale is
 // the x scale (as in the original), so PopScaling restores rx into both axes.
 void CFont::PushScaling(float rx, float ry)
 {
-    SCL *pscl = &m_ascl[m_cscl++];
-    pscl->rx = m_rxScale;
-    pscl->ry = m_rxScale;
-    m_rxScale = m_ascl[0].rx * rx;
-    m_ryScale = m_ascl[0].ry * ry;
+    SCL *pscl = &scaleStack[scaleDepth++];
+    pscl->rx = xScale;
+    pscl->ry = xScale;
+    xScale = scaleStack[0].rx * rx;
+    yScale = scaleStack[0].ry * ry;
 }
 
 // Restores the scale saved by the matching PushScaling.
 void CFont::PopScaling()
 {
     SCL *pscl;
-    m_cscl--;
-    pscl = &m_ascl[m_cscl];
-    m_rxScale = pscl->rx;
-    m_ryScale = pscl->ry;
+    scaleDepth--;
+    pscl = &scaleStack[scaleDepth];
+    xScale = pscl->rx;
+    yScale = pscl->ry;
 }
 
 // Returns the advance width of a character at the current scale (glyph width + 1 pixel, or the space width when the
@@ -246,8 +246,8 @@ float CFontBrx::DxFromCh(char ch)
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph)
-        return (float)(pglyph->dx + 1) * m_rxScale;
-    return (float)m_dxSpace * m_rxScale;
+        return (float)(pglyph->dx + 1) * xScale;
+    return (float)spaceWidth * xScale;
 }
 
 // Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs,
@@ -256,7 +256,7 @@ int EnsureFontLoaded(CFont *pfont, GIFS *pgifs)
 {
     int fLoad;
     if (pgifs == &D_002DEA00) {
-        int bit = 1 << pfont->m_ifont;
+        int bit = 1 << pfont->fontIndex;
         int grf = ((int *)D_002DEA4C)[0x2C / 4];
         fLoad = (grf & bit) == 0;
         ((int *)D_002DEA4C)[0x2C / 4] = grf | bit;
@@ -265,11 +265,11 @@ int EnsureFontLoaded(CFont *pfont, GIFS *pgifs)
     }
     if (fLoad != 0) {
         pgifs->EndDmaCnt();
-        pgifs->AddDmaRefs(pfont->m_cqwBmp, pfont->m_aqwBmp);
-        pgifs->AddDmaRefs(pfont->m_cqwBmpData, pfont->m_aqwBmpData);
-        if (pfont->m_cqwClut != 0) {
-            pgifs->AddDmaRefs(pfont->m_cqwClut, pfont->m_aqwClut);
-            pgifs->AddDmaRefs(pfont->m_cqwClutData, pfont->m_aqwClutData);
+        pgifs->AddDmaRefs(pfont->bitmapUploadQwords, pfont->bitmapUpload);
+        pgifs->AddDmaRefs(pfont->bitmapDataQwords, pfont->bitmapData);
+        if (pfont->clutUploadQwords != 0) {
+            pgifs->AddDmaRefs(pfont->clutUploadQwords, pfont->clutUpload);
+            pgifs->AddDmaRefs(pfont->clutDataQwords, pfont->clutData);
         }
         pgifs->AddDmaCnt();
     }
@@ -294,9 +294,9 @@ void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
     pgifs->AddPrimPack(6, 1, 0xE);
     if (fFlush)
         pgifs->PackAD(0x3F, 0);
-    pgifs->PackAD(0x47, pfont->m_fTex0Alt ? pfont->m_tex0Alt : 0x31001);
+    pgifs->PackAD(0x47, pfont->useAltTex0 ? pfont->altTex0 : 0x31001);
     pgifs->PackAD(0x42, 0x44);
-    pgifs->PackAD(6, pfont->m_tex0);
+    pgifs->PackAD(6, pfont->tex0);
     pgifs->PackAD(0x14, 0x60);
     pgifs->PackAD(8, 5);
     pgifs->PackAD(0, 0x1D6);
@@ -312,7 +312,7 @@ void CFontBrx::SwitchTex0(GIFS *pgifs)
     pgifs->AddPrimPack(6, 1, 0xe);
     if (f)
         pgifs->PackAD(0x3f, 0);
-    pgifs->PackAD(6, m_tex0);
+    pgifs->PackAD(6, tex0);
     pgifs->PackAD(0, 0x1d6);
     pgifs->AddPrimList(5, 0x43431);
 }
@@ -325,20 +325,20 @@ float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgi
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph) {
-        int dyTex = 1 << m_tex0bits.TH;
-        float xRight = x + (float)pglyph->dx * m_rxScale;
-        float yBottom = y + (float)m_dy * m_ryScale;
+        int dyTex = 1 << tex0Bits.TH;
+        float xRight = x + (float)pglyph->dx * xScale;
+        float yBottom = y + (float)lineHeight * yScale;
         register float zero __asm__("$f12") = 0.0f; // register pin (the 0.0f compare constant)
         if (xRight >= zero && x <= 640.0f && yBottom >= zero && y <= 492.80002f) {
             pgifs->ListRGBAQ((rgba & 0xFFFFFF) | ((((rgba >> 24) + 1) & 0x1FE) << 23), 0);
             pgifs->ListUV(pglyph->u << 4, (dyTex - pglyph->v) << 4);
-            pgifs->ListXYZF((int)((x * 0.8f + 1792.0f) * 16.0f), (int)((y * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
-            pgifs->ListUV((pglyph->u + pglyph->dx) << 4, (dyTex - (pglyph->v + m_dy)) << 4);
-            pgifs->ListXYZF((int)((xRight * 0.8f + 1792.0f) * 16.0f), (int)((yBottom * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
+            pgifs->ListXYZF((int)((x * 0.8f + 1792.0f) * 16.0f), (int)((y * 0.45454547f + 1936.0f) * 16.0f), depth, 0);
+            pgifs->ListUV((pglyph->u + pglyph->dx) << 4, (dyTex - (pglyph->v + lineHeight)) << 4);
+            pgifs->ListXYZF((int)((xRight * 0.8f + 1792.0f) * 16.0f), (int)((yBottom * 0.45454547f + 1936.0f) * 16.0f), depth, 0);
         }
-        return m_rxScale * (float)(pglyph->dx + 1);
+        return xScale * (float)(pglyph->dx + 1);
     }
-    return (float)m_dxSpace * m_rxScale;
+    return (float)spaceWidth * xScale;
 }
 
 // 0x15F700..0x15F70C: 2 dead-code scraps (sly2/scrap.h)
@@ -350,42 +350,42 @@ SLY2_SCRAP("addiu $sp, $sp, 0xf0");
 void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb)
 {
     HDR *phdr = pfd->phdr;
-    pfont->m_ifont = phdr->b7;
+    pfont->fontIndex = phdr->b7;
     RegisterFont(pfont);
-    pfont->m_dxCharUnscaled = phdr->b4;
-    pfont->m_dxSpace = phdr->b5;
-    pfont->m_dy = phdr->b6;
-    pfont->m_rxScale = phdr->g8;
-    pfont->m_ryScale = phdr->g8;
-    pfont->m_cglyph = phdr->hC;
-    pfont->m_aglyph = pfd->aglyph;
+    pfont->charWidthUnscaled = phdr->b4;
+    pfont->spaceWidth = phdr->b5;
+    pfont->lineHeight = phdr->b6;
+    pfont->xScale = phdr->g8;
+    pfont->yScale = phdr->g8;
+    pfont->numGlyphs = phdr->hC;
+    pfont->glyphs = pfd->aglyph;
     GIFS gifs;
     BMP *pbmp = pfd->pbmp;
     CLUT *pclut = pfd->pclut;
     int n = IgsAllocGsb(pgsb, pbmp->hE);
     BuildBmpTex0(pbmp, n);
-    pfont->m_tex0 = pbmp->fl20;
-    gifs.AllocStatic(6, pfont->m_aqwBmpGifs);
+    pfont->tex0 = pbmp->fl20;
+    gifs.AllocStatic(6, pfont->bitmapUploadGifs);
     BuildBmpGifs(pbmp, n, &gifs);
-    gifs.Detach(&pfont->m_cqwBmp, &pfont->m_aqwBmp);
-    pfont->m_cqwBmpData = pbmp->n18;
-    pfont->m_aqwBmpData = (QW *)pbmp->n14;
+    gifs.Detach(&pfont->bitmapUploadQwords, &pfont->bitmapUpload);
+    pfont->bitmapDataQwords = pbmp->n18;
+    pfont->bitmapData = (QW *)pbmp->n14;
     if (pclut) {
         n = IgsAllocGsb(pgsb, pclut->hA);
         BuildClutTex2(pclut, n);
-        pfont->m_tex0 |= pclut->fl18;
-        gifs.AllocStatic(6, pfont->m_aqwClutGifs);
+        pfont->tex0 |= pclut->fl18;
+        gifs.AllocStatic(6, pfont->clutUploadGifs);
         BuildClutGifs(pclut, n, &gifs);
-        gifs.Detach(&pfont->m_cqwClut, &pfont->m_aqwClut);
-        pfont->m_cqwClutData = pclut->n10;
-        pfont->m_aqwClutData = (QW *)pclut->nC;
+        gifs.Detach(&pfont->clutUploadQwords, &pfont->clutUpload);
+        pfont->clutDataQwords = pclut->n10;
+        pfont->clutData = (QW *)pclut->nC;
     }
 }
 
 // Stores the font in the font table D_002DE9F0[font->id]. (inferred)
 void RegisterFont(CFont *pfont)
 {
-    D_002DE9F0[pfont->m_ifont] = (CFontBrx *)pfont;
+    D_002DE9F0[pfont->fontIndex] = (CFontBrx *)pfont;
 }
 
 // Binary-searches the font glyph table for a character (via remap table D_002BE338)
@@ -393,12 +393,12 @@ GLYPH *FindGlyphForChar(CFont *p, unsigned char ch)
 {
     int key = D_002BE338[ch];
     int lo = 0;
-    int hi = p->m_cglyph - 1;
+    int hi = p->numGlyphs - 1;
     while (lo <= hi) {
         int mid = (hi + lo) / 2;
-        int d = key - p->m_aglyph[mid].ch;
+        int d = key - p->glyphs[mid].ch;
         if (d == 0)
-            return &p->m_aglyph[mid];
+            return &p->glyphs[mid];
         if (d > 0)
             lo = mid + 1;
         else
@@ -411,34 +411,34 @@ GLYPH *FindGlyphForChar(CFont *p, unsigned char ch)
 // the GS treats as unmodulated white).
 CRichText::CRichText(char *achz, CFont *pfont)
 {
-    m_achz = (unsigned char *)achz;
-    m_pfontBase = (CFontBrx *)pfont;
-    *(unsigned int *)&m_rgbaFont = 0xFF808080;
-    *(unsigned int *)&m_rgbaBase = 0xFF808080;
-    *(unsigned int *)&m_rgbaSet = 0xFF808080;
-    *(unsigned int *)&m_rgbaCur = 0xFF808080;
+    text = (unsigned char *)achz;
+    baseFont = (CFontBrx *)pfont;
+    *(unsigned int *)&fontColor = 0xFF808080;
+    *(unsigned int *)&baseColor = 0xFF808080;
+    *(unsigned int *)&setColor = 0xFF808080;
+    *(unsigned int *)&currentColor = 0xFF808080;
     Reset();
 }
 
 // Rewinds to the start of the text and the base font and colour.
 void CRichText::Reset()
 {
-    m_pchCur = m_achz;
-    m_pfontCur = m_pfontBase;
-    m_rgbaSet = m_rgbaBase;
-    m_rgbaCur = m_rgbaSet;
-    m_fDirty = 0;
+    cursor = text;
+    currentFont = baseFont;
+    setColor = baseColor;
+    currentColor = setColor;
+    fontChanged = 0;
 }
 
 // Sets the base colour (the colour "~." escapes return to) and makes it current.
 void CRichText::SetBaseColor(RGBA *rgba)
 {
-    m_rgbaBase = *rgba;
-    m_rgbaCur = m_rgbaBase;
+    baseColor = *rgba;
+    currentColor = baseColor;
 }
 
-// (Claude agent, lane E7) MATCH from v2 (1 diff): ONE register pin, `one` in $19 for the three m_fDirty = 1 stores. Without it,
-// the null-font branch's m_fDirty = 1 is CSE'd into fDone's s1 (target keeps the hoisted const-1 in s3).
+// (Claude agent, lane E7) MATCH from v2 (1 diff): ONE register pin, `one` in $19 for the three fontChanged = 1 stores. Without it,
+// the null-font branch's fontChanged = 1 is CSE'd into fDone's s1 (target keeps the hoisted const-1 in s3).
 // Returns the next printable character, consuming the escapes before it: "~RRGGBB" sets the colour (halved to GS
 // range), "~." restores the base colour, "~~" is a literal tilde; "&N" switches to font N (scaled to the base font's
 // line height), "&." restores the base font, "&&" is a literal ampersand; "^" escapes push or pop a text scale.
@@ -446,22 +446,22 @@ void CRichText::SetBaseColor(RGBA *rgba)
 unsigned char CRichText::ChNext()
 {
     int fDone = 0;
-    register int one __asm__("$19") = 1; // register pin (the target's hoisted const-1 reg for the m_fDirty stores)
+    register int one __asm__("$19") = 1; // register pin (the target's hoisted const-1 reg for the fontChanged stores)
     do {
-        unsigned char *pch = m_pchCur;
+        unsigned char *pch = cursor;
         switch (*pch) {
         case '~':
             if (pch[1] == '~') {
-                m_pchCur = pch + 1;
+                cursor = pch + 1;
                 fDone = 1;
             } else if (pch[1] == '.') {
-                m_rgbaSet = m_rgbaBase;
-                m_rgbaCur = m_rgbaSet;
-                m_pchCur += 2;
+                setColor = baseColor;
+                currentColor = setColor;
+                cursor += 2;
             } else {
                 unsigned char *pchT = pch + 1;
                 unsigned int n = 0;
-                while (*pchT && pchT - m_pchCur < 7) {
+                while (*pchT && pchT - cursor < 7) {
                     int d;
                     if (*pchT >= '0' && *pchT <= '9')
                         d = *pchT - '0';
@@ -474,61 +474,61 @@ unsigned char CRichText::ChNext()
                     pchT++;
                     n = n * 16 + d;
                 }
-                if (pchT - m_pchCur >= 7) {
-                    m_rgbaSet.r = (((n >> 16) & 0xFF) + 1) >> 1;
-                    m_rgbaSet.g = (((n & 0xFF00) >> 8) + 1) >> 1;
-                    m_rgbaSet.b = ((n & 0xFF) + 1) >> 1;
-                    m_rgbaCur = m_rgbaSet;
-                    m_pchCur += 7;
+                if (pchT - cursor >= 7) {
+                    setColor.r = (((n >> 16) & 0xFF) + 1) >> 1;
+                    setColor.g = (((n & 0xFF00) >> 8) + 1) >> 1;
+                    setColor.b = ((n & 0xFF) + 1) >> 1;
+                    currentColor = setColor;
+                    cursor += 7;
                 } else {
-                    m_pfontCur = m_pfontBase;
-                    m_rgbaCur = m_rgbaBase;
+                    currentFont = baseFont;
+                    currentColor = baseColor;
                     fDone = 1;
                 }
             }
             break;
         case '&':
             if (pch[1] == '&') {
-                m_pchCur = pch + 1;
+                cursor = pch + 1;
                 fDone = 1;
             } else if (pch[1] == '.') {
-                m_pfontCur = m_pfontBase;
-                m_rgbaCur = m_rgbaSet;
-                m_fDirty = one;
-                m_pchCur += 2;
+                currentFont = baseFont;
+                currentColor = setColor;
+                fontChanged = one;
+                cursor += 2;
             } else {
                 CFontBrx *pfont = GetFontForEscapeChar(pch[1]);
                 if (pfont) {
-                    m_font = *pfont;
-                    m_pchCur += 2;
-                    CFontBrx *pfontNew = &m_font;
-                    float r = ((float)m_pfontBase->m_dy * m_pfontBase->m_ryScale) / ((float)pfontNew->m_dy * pfontNew->m_ryScale);
-                    m_pfontCur = pfontNew;
-                    m_font.m_rxScale *= r;
-                    m_font.m_ryScale *= r;
-                    RGBA rgba = m_rgbaFont;
-                    rgba.a = m_rgbaCur.a;
-                    m_rgbaCur = rgba;
-                    m_fDirty = one;
+                    escapeFont = *pfont;
+                    cursor += 2;
+                    CFontBrx *pfontNew = &escapeFont;
+                    float r = ((float)baseFont->lineHeight * baseFont->yScale) / ((float)pfontNew->lineHeight * pfontNew->yScale);
+                    currentFont = pfontNew;
+                    escapeFont.xScale *= r;
+                    escapeFont.yScale *= r;
+                    RGBA rgba = fontColor;
+                    rgba.a = currentColor.a;
+                    currentColor = rgba;
+                    fontChanged = one;
                 } else {
-                    m_pfontCur = m_pfontBase;
+                    currentFont = baseFont;
                     fDone = 1;
-                    m_rgbaCur = m_rgbaBase;
-                    m_fDirty = one;
+                    currentColor = baseColor;
+                    fontChanged = one;
                 }
             }
             break;
         case '^':
             if (pch[1] == '^') {
-                m_pchCur = pch + 1;
+                cursor = pch + 1;
                 fDone = 1;
             } else if (pch[1] == '.') {
-                m_pfontCur->PopScaling();
-                m_pchCur += 2;
+                currentFont->PopScaling();
+                cursor += 2;
             } else {
                 float s = (float)(pch[1] - '0') + (float)(pch[2] - '0') * 0.1f;
-                m_pfontCur->PushScaling(s * m_pfontCur->m_rxScale, s * m_pfontCur->m_ryScale);
-                m_pchCur += 3;
+                currentFont->PushScaling(s * currentFont->xScale, s * currentFont->yScale);
+                cursor += 3;
             }
             break;
         default:
@@ -536,7 +536,7 @@ unsigned char CRichText::ChNext()
             break;
         }
     } while (!fDone);
-    return *m_pchCur++;
+    return *cursor++;
 }
 
 // 0x15FD58..0x15FD64: 2 dead-code scraps (sly2/scrap.h)
@@ -558,21 +558,21 @@ int CRichText::ClineWrap(float dxMax)
             cline++;
             dx = 0.0f;
         } else {
-            dx += DxFromChI(m_pfontCur, ch);
+            dx += DxFromChI(currentFont, ch);
         }
         if (dxMax != 0.0f && dx > dxMax) {
             unsigned char *pch;
-            for (pch = m_pchCur - 1; pch >= m_achz && *pch != '\n'; pch--) {
+            for (pch = cursor - 1; pch >= text && *pch != '\n'; pch--) {
                 if ((*pch == ' ' || *pch == '\t') && !(D_002AA6A1[pch[1]] & 0x10)) {
                     cline++;
-                    m_pchCur = pch + 1;
+                    cursor = pch + 1;
                     dx = 0.0f;
                     *pch = chNl;
                     break;
                 }
             }
-            if (dx != 0.0f && *m_pchCur) {
-                *m_pchCur = chNl;
+            if (dx != 0.0f && *cursor) {
+                *cursor = chNl;
                 cline++;
                 dx = 0.0f;
             }
@@ -584,7 +584,7 @@ int CRichText::ClineWrap(float dxMax)
 // UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
 extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 {
-    float dy = (float)p->m_pfontBase->m_dy * p->m_pfontBase->m_ryScale;
+    float dy = (float)p->baseFont->lineHeight * p->baseFont->yScale;
     return dy * (float)p->ClineWrap(dx);
 }
 
@@ -600,7 +600,7 @@ float CRichText::DxMaxLine()
             dxMax = GMax(dxMax, dx);
             dx = 0.0f;
         } else {
-            dx += m_pfontCur->DxFromCh(ch);
+            dx += currentFont->DxFromCh(ch);
         }
     }
     dxMax = GMax(dxMax, dx);
@@ -628,13 +628,13 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             if (chT == '\n')
                 iline++;
             else
-                adx[iline] += DxFromChI(m_pfontCur, chT);
+                adx[iline] += DxFromChI(currentFont, chT);
         }
     }
     if (ptb->jv == 0) {
         y = ptb->y;
     } else {
-        float dy = (float)(iline + 1) * ((float)m_pfontBase->m_dy * m_pfontBase->m_ryScale);
+        float dy = (float)(iline + 1) * ((float)baseFont->lineHeight * baseFont->yScale);
         if (ptb->jv == 2)
             y = ptb->y + ptb->dy - dy;
         else
@@ -649,7 +649,7 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
         if (ch == '\n') {
             fNewLine = 1;
             pdx++;
-            y += (float)m_pfontBase->m_dy * m_pfontBase->m_ryScale;
+            y += (float)baseFont->lineHeight * baseFont->yScale;
             continue;
         }
         if (fNewLine) {
@@ -665,13 +665,13 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             fNewLine = 0;
         }
         if (!pfontSetup) {
-            SetupDraw(m_pfontCur, (float *)ptbClip, pgifs);
-            pfontSetup = m_pfontCur;
-        } else if (m_fDirty) {
-            m_pfontCur->SwitchTex0(pgifs);
-            m_fDirty = 0;
+            SetupDraw(currentFont, (float *)ptbClip, pgifs);
+            pfontSetup = currentFont;
+        } else if (fontChanged) {
+            currentFont->SwitchTex0(pgifs);
+            fontChanged = 0;
         }
-        x += DxDrawChI(m_pfontCur, ch, x, y, *(unsigned int *)&m_rgbaCur, pgifs);
+        x += DxDrawChI(currentFont, ch, x, y, *(unsigned int *)&currentColor, pgifs);
     }
-    CleanupDraw(m_pfontCur, ptbClip, pgifs);
+    CleanupDraw(currentFont, ptbClip, pgifs);
 }
