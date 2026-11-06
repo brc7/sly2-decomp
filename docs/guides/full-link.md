@@ -345,6 +345,26 @@ generator emitting the 373 wrappers into the same file as class_registry's funct
 order; C vs C++ codegen of the wrappers to be checked); (3) the junk scraps and the 16-byte alignments. None was
 done on this branch (timebox: diagnosis only).
 
+### Linkonce pools (link/linkonce-pools on integrate/round7 f674c97e, 2026-11-06)
+
+Fix (1) for the first family: the 58 Splice GC pool copies (tu-merging.md, "The Splice GC pool family") are template
+and inline instances again (`CGcObj<T>` in sly2/gc.h, `CRefPtr<T>` in sly2/basic.h, the implicit ~CFrame/~CProc),
+each in its own `.gnu.linkonce.t.<symbol>` section, emitted by splice/gc.cpp (spliceobj and ref emit one each).
+`tools/link.py` on the branch:
+
+| measure | before (round 7) | after |
+|---|---:|---:|
+| TU check with `-ffunction-sections`: objects one section / split | 893 / 38 | 904 / 27 |
+| TU check without `-ffunction-sections`: one run / not | 855 / 76 | 864 / 67 |
+| of the 67: split by other objects' code / junk scraps inside / gap / unplaced | 38 / 33 / 4 / 1 | 27 / 35 / 4 / 1 |
+| sections placed (6 unplaced, 544 bytes, both) | 6,760 | 6,765 |
+| differing bytes | 115 | 115 |
+
+Eleven objects no longer split: gc, spliceutils, eval, frame, sidebag, proc, varb, spliceobj, proxy, and splicemap and
+ref, which now fail only for a junk.csv scrap inside their range (0x1FFA68, 0x129D50: 8 bytes each), hence 33 -> 35.
+bif and basic stay split by copies of the other families (bif's VU math, basic's GetEmitterClassDesc_linkonce). The 27
+left: class_registry (crt0 block) and the EMITTER/EXPLO, accessor, container, math/text-box and "other" families.
+
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
 
 Numbers of the branch alone: integrate/round5 (round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
@@ -382,5 +402,5 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
    copies back into inline/template instances, so `.text` can link without `-ffunction-sections` ("Code order
    (link/contiguous-tus)": 38 objects split, all by linkonce copies, class_registry also by the crt0 block; 38
-   more by junk scraps and alignment).
+   more by junk scraps and alignment). The Splice GC pool family is done ("Linkonce pools": 27 split left).
 4. The SDK objects built on the Mac (118,224 blob bytes of .text today).
