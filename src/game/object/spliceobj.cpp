@@ -632,7 +632,7 @@ extern "C" {
 extern GCNODE6 *D_00452160[4];
 extern unsigned int D_002DD2D4;
 extern GCNODE6 *D_002DD2D0;   /* the pool's node list */
-extern int D_002DD598;        /* g_gc; its first word is the current mark */
+extern int g_gc;        /* g_gc; its first word is the current mark */
 void Collect__3CGc(void *pgc);
 void GcPool6_PushFront(GCNODE6 *pnode, GCNODE6 **ppnodeHead);
 GCNODE6 *GcPool6_InitNode(GCNODE6 *pnode);
@@ -681,7 +681,7 @@ extern "C" GCNODE6 *GcPool6_InitNode(GCNODE6 *p)
 {
     p->cref = 0;
     GcPool6_PushFront(p, &D_002DD2D0);
-    p->fMark = D_002DD598;
+    p->fMark = g_gc;
     return p;
 }
 
@@ -698,7 +698,7 @@ extern "C" CMethod *PvNewPool6(void)
     GCNODE6 *p;
     if (CSlotPool<0x14, 0x100>::s_pool.slotheap.pslotFree == 0) {
         if (!g_sw.fUnk3a14 || D_002DD2D4 >= 4)
-            Collect__3CGc(&D_002DD598);
+            Collect__3CGc(&g_gc);
         if (CSlotPool<0x14, 0x100>::s_pool.slotheap.pslotFree == 0) {
             void *pv = PvAllocSlotheapClear(&CSlotPool<0x14, 0x100>::s_pool.slotheap);
             if (D_002DD2D4)

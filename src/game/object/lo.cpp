@@ -1251,7 +1251,7 @@ typedef char VE_type_Offset[FIELD_OFFSET(VE,type)==4?1:-1];
 typedef char META_bytes_Offset[FIELD_OFFSET(META,bytes)==12?1:-1];
 typedef char G_phase_Offset[FIELD_OFFSET(G,phase)==16144?1:-1];
 extern "C"{
-extern char D_002DD598[],D_004520D0[],D_00452148[];
+extern char g_gc[],D_004520D0[],D_00452148[];
 extern G D_003DD490;
 void CGc_UpdateRecyclable(void*);
 void func_00257250(void*,int) __asm__("_$_8CVarbPtr");
@@ -1289,7 +1289,7 @@ static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delt
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 extern "C" void CloneLo(P*p,const P*source){
-    CGc_UpdateRecyclable(D_002DD598);
+    CGc_UpdateRecyclable(g_gc);
     if(source->field){
         {RF r=CSidebag_CloneTo(source->field,p);func_002580A8(&p->field,r.p);}
         (void)func_00258178(p->field);

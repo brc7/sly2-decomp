@@ -42,7 +42,7 @@ extern char *D_00452138[4];
 extern GCHDR *D_002DD290, *D_002DD298, *D_002DD29C;
 extern GCHDR *D_002DD2C0, *D_002DD2C8, *D_002DD2CC;
 extern unsigned int D_002DD2C4;
-extern int D_002DD598;   /* g_gc (CGc); its first word is the current mark */
+extern int g_gc;   /* g_gc (CGc); its first word is the current mark */
 }
 
 
@@ -212,7 +212,7 @@ extern "C" GCHDR *GcSidebag_InitNode(GCHDR *p)
 {
     p->cref = 0;
     GcSidebag_PushFront(p, &D_002DD2C0);
-    p->fMark = D_002DD598;
+    p->fMark = g_gc;
     return p;
 }
 
@@ -272,7 +272,7 @@ extern "C" CSidebag *PvNewSidebag()
     CSidebag *psb;
     if (CSlotPool<0xC, 0xC8>::s_pool.slotheap.pslotFree == 0) {
         if (!g_sw.fUnk3a14 || D_002DD2C4 >= 4)
-            Collect__3CGc(&D_002DD598);
+            Collect__3CGc(&g_gc);
         if (CSlotPool<0xC, 0xC8>::s_pool.slotheap.pslotFree == 0) {
             void *pv = PvAllocSlotheapClear(&CSlotPool<0xC, 0xC8>::s_pool.slotheap);
             if (D_002DD2C4)

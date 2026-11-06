@@ -84,7 +84,7 @@ struct SPLCS
 struct SZ { int cb; int cbAlign; SZ(int a, int b) { cb = a; cbAlign = b; } };
 
 extern int D_003E1C34;
-extern char D_002DD598[];
+extern char g_gc[];
 extern FRAMEV *D_004520E8[4];
 extern unsigned int D_002DD2A4;
 extern FRAMEV *D_002DD2AC;
@@ -193,7 +193,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
     psw->psplcs = psplcs;
     psplcs->psplcsNext = psw->psplcsHead;
     psw->psplcsHead = psplcs;
-    CGc_UpdateRecyclable(D_002DD598);
+    CGc_UpdateRecyclable(g_gc);
 }
 
 /** @sly2-annot addr=0x1FFA40

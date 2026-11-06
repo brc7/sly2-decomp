@@ -702,7 +702,7 @@ extern unsigned int D_002DD2B4;      /* proc blocks */
 /* GC list heads: frames, procs. */
 extern GCNODE *D_002DD2A0, *D_002DD2A8, *D_002DD2AC;
 extern char D_002DD2B0[];
-extern int D_002DD598;   /* g_gc (CGc); its first word is the current mark */
+extern int g_gc;   /* g_gc (CGc); its first word is the current mark */
 void Collect__3CGc(void *pgc);
 void GcFrame_PushFront(GCNODE *pnode, void *phead);
 void GcProc_PushFront(PROCNODE *pnode, PROCNODE **ppnodeHead);
@@ -718,7 +718,7 @@ extern "C" GCNODE *GcFrame_InitNode(GCNODE *pnode)
 {
     pnode->cref = 0;
     GcFrame_PushFront(pnode, &D_002DD2A0);
-    pnode->fMark = D_002DD598;
+    pnode->fMark = g_gc;
     return pnode;
 }
 
@@ -807,7 +807,7 @@ extern "C" GCNODE *GcProc_InitNode(GCNODE *pnode)
 {
     pnode->cref = 0;
     GcProc_PushFront((PROCNODE *)pnode, (PROCNODE **)D_002DD2B0);
-    pnode->fMark = D_002DD598;
+    pnode->fMark = g_gc;
     return pnode;
 }
 
@@ -826,7 +826,7 @@ extern "C" CFrame *PvNewFrame()
     if (CSlotPool<0x28, 0x200>::s_pool.slotheap.pslotFree == 0)
     {
         if (!g_sw.fUnk3a14 || D_002DD2A4 >= 4)
-            Collect__3CGc(&D_002DD598);
+            Collect__3CGc(&g_gc);
         if (CSlotPool<0x28, 0x200>::s_pool.slotheap.pslotFree == 0)
         {
             void *pv = PvAllocSlotheapClear(&CSlotPool<0x28, 0x200>::s_pool.slotheap);
@@ -866,7 +866,7 @@ extern "C" CProc *PvNewProc()
     if (CSlotPool<0x1C, 0x800>::s_pool.slotheap.pslotFree == 0)
     {
         if (!g_sw.fUnk3a14 || D_002DD2B4 >= 4)
-            Collect__3CGc(&D_002DD598);
+            Collect__3CGc(&g_gc);
         if (CSlotPool<0x1C, 0x800>::s_pool.slotheap.pslotFree == 0)
         {
             void *pv = PvAllocSlotheapClear(&CSlotPool<0x1C, 0x800>::s_pool.slotheap);

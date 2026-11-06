@@ -4189,3 +4189,4 @@ _vt$5WATER = 0x2DCA30; // type:data size:0x268
 _vt$5WAYPT = 0x2DCC98; // type:data size:0x268
 _vt$2WR = 0x2DCF00; // type:data size:0x190
 _vt$3XFM = 0x2DD090; // type:data size:0x1A0
+g_gc = 0x2DD598; // type:data

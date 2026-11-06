@@ -42,7 +42,7 @@ GCNODE *GcBinding_InitNode(GCNODE *pnode);
    D_002DD294 its block count. */
 extern GCNODE *D_004520C0[4];
 extern unsigned int D_002DD294;
-extern int D_002DD598;   /* g_gc (CGc); its first word is the current mark */
+extern int g_gc;   /* g_gc (CGc); its first word is the current mark */
 extern char D_002DD290[];
 }
 
@@ -324,7 +324,7 @@ extern "C" GCNODE *GcBinding_InitNode(GCNODE *pnode)
 {
     pnode->cref = 0;
     GcBinding_PushFront(pnode, (GCNODE **)D_002DD290);
-    pnode->fMark = D_002DD598;
+    pnode->fMark = g_gc;
     return pnode;
 }
 
@@ -356,7 +356,7 @@ extern "C" CVarb *PvNewBinding()
     if (CSlotPool<0x18, 0x800>::s_pool.slotheap.pslotFree == 0)
     {
         if (!g_sw.fUnk3a14 || D_002DD294 >= 4)
-            Collect__3CGc(&D_002DD598);
+            Collect__3CGc(&g_gc);
         if (CSlotPool<0x18, 0x800>::s_pool.slotheap.pslotFree == 0)
         {
             void *pv = PvAllocSlotheapClear(&CSlotPool<0x18, 0x800>::s_pool.slotheap);
