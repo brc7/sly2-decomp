@@ -265,6 +265,7 @@ inline CID17 *func_00259B20(SO *pso)   /* get */
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
 struct BARREL;
 inline void *func_00259A28(BARREL *pbarrel) { return (char *)pbarrel + sizeof(SO); }
+inline void *func_00259A20(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
 
 /* LVO: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct LVO

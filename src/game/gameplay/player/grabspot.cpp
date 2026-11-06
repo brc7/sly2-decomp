@@ -1,13 +1,12 @@
 // grabspot.cpp -- grab spots (GRABSPOT, embedded in the grabbable classes: poles, ledges, barrels, Murray's lift
-// spots...): init, add / remove on the per-class grab lists, grab ranges and scores, player masks, and the
-// identity accessors homed here from the linkonce area. TU 0x182C70..0x1848A8 (74 functions with the linkonce copies
-// at 0x2599F0..0x259C08, address order).
+// spots...): init, add / remove on the per-class grab lists, grab ranges and scores, player masks. TU
+// 0x182C70..0x1848A8 (66 functions, address order; the classes' GRABSPOT owner getters from the linkonce area are
+// inline functions in sly2/xfm.h and so.h now).
 //
 // Types: TU-private views for the m2c bodies (the grabbable classes by CID, with their GRABSPOT at +0xE0, +0x130
 // or +0x150), sly2/stepplayer.h's STEPPLAYER (jtgrab, jtair) for the barrel's intersection filter. The hand-written
 // per-function files keep their views in namespaces named after each function (as jt.cpp does), their C++-named
-// definitions as C-linkage definitions of their literal symbols there. func_00259A70 / func_00259C08 match without
-// their SLY2_CC (ee-gcc 2.9-991111), -G0 and gnu-reorder-db overrides.
+// definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_grabspot
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00184888
 
@@ -1481,104 +1480,6 @@ void *PgrabspotFromLo(char *p)
     return 0;
 }
 } } // namespace M_PgrabspotFromLo
-
-/** @sly2-annot addr=0x2599F0
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_002599F0 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x2599F0): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_002599F0(void *pv)
-{
-    return pv;
-}
-
-/** @sly2-annot addr=0x259A00
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259A00 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x259A00): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_00259A00(void *pv)
-{
-    return pv;
-}
-
-/** @sly2-annot addr=0x259A10
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259A10 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x259A10): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_00259A10(void *pv)
-{
-    return pv;
-}
-
-/** @sly2-annot addr=0x259A20
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259A20 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x259A20): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_00259A20(void *pv)
-{
-    return pv;
-}
-
-/** @sly2-annot addr=0x259A30
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259A30 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x259A30): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_00259A30(void *pv)
-{
-    return pv;
-}
-
-/** @sly2-annot addr=0x259A40
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259A40 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x259A40): an identity accessor (the object is its own GRABSPOT view). */
-extern "C" void *func_00259A40(void *pv)
-{
-    return pv;
-}
-
-namespace M_func_00259A70 { extern "C" {
-/** @sly2-annot addr=0x259A70
- * Purpose: return arg (64-bit) [game linkonce (inline/template)]
- * Info: proposed name Identity64_00259A70 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-long func_00259A70(long a)
-{
-    return a;
-}
-} } // namespace M_func_00259A70
-
-namespace M_func_00259C08 { extern "C" {
-/** @sly2-annot addr=0x259C08
- * Purpose: return arg (64-bit) [game linkonce (inline/template)]
- * Info: proposed name Identity64_00259C08 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-long func_00259C08(long a)
-{
-    return a;
-}
-} } // namespace M_func_00259C08
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

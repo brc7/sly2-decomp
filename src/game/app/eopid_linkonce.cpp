@@ -11,7 +11,9 @@
 // weak linkonce ones included). The owner class of an accessor is the root-most class whose option array in
 // g_mpcidarysplopt (D_00279AD0) lists the record. The EMITTER and EXPLO accessors are function templates
 // (sly2/emitter.h): taking the address of each instance emits it the same way. See docs/guides/tu-merging.md "Inline
-// functions and linkonce copies".
+// functions and linkonce copies". The GRABSPOT owner getters (sly2/xfm.h, so.h) are not option accessors but
+// vtable entries (slot 6 of each class's GRABSPOT vtable); no emitted vtable refers to them, so they are emitted here
+// the same way.
 #include "sly2/cm.h"
 #include "sly2/lo.h"
 #include "sly2/so.h"
@@ -38,19 +40,29 @@ SLY2_EOPID_REF(00256350, &func_00256350)   // get
 // STEPPLAYER
 SLY2_EOPID_REF(00258280, &func_00258280)   // get
 // SHAPE/XFM/VOL/TARGET-derived classes: ensure (the class's own fields)
+SLY2_EOPID_REF(002599F0, &func_002599F0)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(002599F8, &func_002599F8)   // CID12
+SLY2_EOPID_REF(00259A00, &func_00259A00)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A08, &func_00259A08)   // CID34
+SLY2_EOPID_REF(00259A10, &func_00259A10)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A18, &func_00259A18)   // CID38
+SLY2_EOPID_REF(00259A20, &func_00259A20)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A28, &func_00259A28)   // BARREL
+SLY2_EOPID_REF(00259A30, &func_00259A30)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A38, &func_00259A38)   // CID35
+SLY2_EOPID_REF(00259A40, &func_00259A40)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A48, &func_00259A48)   // CID27
+SLY2_EOPID_REF(00259A70, &func_00259A70)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259A78, &func_00259A78)   // HND
 // LO
 SLY2_EOPID_REF(00259AE8, &func_00259AE8)   // get
+SLY2_EOPID_REF(00259AF8, &func_00259AF8)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259B00, &func_00259B00)   // PIPE ensure
+SLY2_EOPID_REF(00259B08, &func_00259B08)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259B10, &func_00259B10)   // RAIL ensure
 // SO
 SLY2_EOPID_REF(00259B20, &func_00259B20)   // get
+SLY2_EOPID_REF(00259C08, &func_00259C08)   // its GRABSPOT owner getter (vtable slot 6)
 SLY2_EOPID_REF(00259C10, &func_00259C10)   // CID39 ensure
 // STEPGUARD (its detector's volumes)
 SLY2_EOPID_REF(00259D38, &func_00259D38)   // set (and setUser)

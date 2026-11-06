@@ -1681,7 +1681,7 @@ Total wave 5: 24 TUs, 161 functions (sprbuf merged after the progress run below)
 `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
 matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
 333 sources as in wave 4 do not build here and are carried over (among them sprbuf's old asm-labelled initializer, merged since, and
-three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08).
+three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08; the last two are inline functions in sly2/xfm.h since link/linkonce-misc).
 
 Wave 6 (the next asm TUs by size, 10..15 functions):
 
