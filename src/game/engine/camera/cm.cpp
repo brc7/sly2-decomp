@@ -1575,15 +1575,19 @@ int FInsideCmMrd(struct P *p, qword v, float g, float *pu)
 
 namespace M_func_00258290 { extern "C" {
 typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
-typedef struct { int pad[3]; VT *vt; } O;
-typedef struct { char pad[0x484]; O *x484; O *x488; char pad2[0x154]; O *x5E0; O *x5E4; } S;
+typedef struct { int pad[3]; VT *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
+/* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
+   psndUnk38 and CPZOOM::psndZoom / psndUnkc4) */
+typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
 void func_00258348(S *, int);
+// The CM destructor (an inline, emitted linkonce): releases the policies' four sound references in reverse member
+// order, then runs the base destructor (func_00258348, shared with SW and the screens) with the in-charge flag.
 inline void func_00258290(S *p, int x)
 {
-    if (p->x5E4) p->x5E4->vt->f((char *)p->x5E4 + p->x5E4->vt->d);
-    if (p->x5E0) p->x5E0->vt->f((char *)p->x5E0 + p->x5E0->vt->d);
-    if (p->x488) p->x488->vt->f((char *)p->x488 + p->x488->vt->d);
-    if (p->x484) p->x484->vt->f((char *)p->x484 + p->x484->vt->d);
+    if (p->zoomSound2) p->zoomSound2->vt->f((char *)p->zoomSound2 + p->zoomSound2->vt->d);
+    if (p->zoomZoomSound) p->zoomZoomSound->vt->f((char *)p->zoomZoomSound + p->zoomZoomSound->vt->d);
+    if (p->lookSound2) p->lookSound2->vt->f((char *)p->lookSound2 + p->lookSound2->vt->d);
+    if (p->lookZoomSound) p->lookZoomSound->vt->f((char *)p->lookZoomSound + p->lookZoomSound->vt->d);
     func_00258348(p, x);
 }
 } } // namespace M_func_00258290
