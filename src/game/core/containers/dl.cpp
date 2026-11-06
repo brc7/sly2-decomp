@@ -130,7 +130,7 @@ extern "C" void InsertSlEntryAfter(SL *list, void *prevEntry, void *entry)
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
 // Unlinks entry from a singly linked list. Finds the predecessor link by a linear walk, retargets any live SLI
-// // iterator that was about to follow the removed link, and fixes the tail when the last element goes.
+// iterator that was about to follow the removed link, and fixes the tail when the last element goes.
 extern "C" void RemoveSlEntry(SL *list, void *entry)
 {
     void **entryLink = PPVNEXT(list, entry);
@@ -303,7 +303,7 @@ void InsertDlEntryBefore(DL *list, void *nextEntry, void *entry)
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
 // Unlinks entry from a doubly linked list in O(1), first retargeting any live DLI iterator (chain at
-// // D_002DD2FC) that points at the removed link to the previous element's link (or the list head).
+// D_002DD2FC) that points at the removed link to the previous element's link (or the list head).
 void RemoveDlEntry(DL *list, void *entry)
 {
     DLE *link = PDLE(list, entry);

@@ -1,5 +1,8 @@
-// crout.cpp -- Crout LU decomposition and solve for small dense systems. TU 0x1195E0..0x119A68 (4 functions,
-// address order).
+// crout.cpp -- Crout LU decomposition and solve for small dense systems (row-major size x size float matrices).
+// Used by the constraint solver (dzgcore.cpp) and hang.cpp for the small linear systems they build. Near-singular pivots
+// (|pivot| < 1e-8) are zeroed rather than divided by, and the solve skips their unknowns, so degenerate systems
+// produce a partial answer instead of NaNs. Entry points: CroutDecomp, CroutSolve.
+// TU 0x1195E0..0x119A68 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_crout
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00119BA0
 #include "sly2/slotheap.h"
@@ -15,46 +18,49 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  *   docs/reference/functions/core-library.md#crout-0x1195e0-0x119bc8,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-void CroutDecomp(int n, float *a, float *lu)
+// LU decomposition of `matrix` into `lu` (both size x size, row-major, may not alias): U on and above the
+// diagonal, L below it with an implied unit diagonal (row 0 of U is row 0 of the matrix). L columns under a
+// near-zero pivot are zeroed. The Sly 1 name says Crout; the loops are the Doolittle arrangement.
+void CroutDecomp(int size, float *matrix, float *lu)
 {
     int i, j, k;
     float sum;
-    if (n == 0)
+    if (size == 0)
         return;
-    for (j = 0; j < n; j++)
-        lu[j] = a[j];
+    for (j = 0; j < size; j++)
+        lu[j] = matrix[j];
     if (GAbs(lu[0]) < 1e-8f) {
-        for (i = 0; i < n; i++)
-            lu[i * n] = 0.0f;
+        for (i = 0; i < size; i++)
+            lu[i * size] = 0.0f;
     } else {
-        for (i = 1; i < n; i++)
-            lu[i * n] = a[i * n] / lu[0];
+        for (i = 1; i < size; i++)
+            lu[i * size] = matrix[i * size] / lu[0];
     }
-    for (i = 1; i < n - 1; i++) {
-        for (j = i; j < n; j++) {
+    for (i = 1; i < size - 1; i++) {
+        for (j = i; j < size; j++) {
             sum = 0.0f;
             for (k = 0; k < i; k++)
-                sum += lu[k * n + j] * lu[i * n + k];
-            lu[i * n + j] = a[i * n + j] - sum;
+                sum += lu[k * size + j] * lu[i * size + k];
+            lu[i * size + j] = matrix[i * size + j] - sum;
         }
-        if (GAbs(lu[i * n + i]) < 1e-8f) {
-            for (k = i; k < n; k++)
-                lu[k * n + i] = 0.0f;
+        if (GAbs(lu[i * size + i]) < 1e-8f) {
+            for (k = i; k < size; k++)
+                lu[k * size + i] = 0.0f;
         } else {
-            for (k = i + 1; k < n; k++) {
+            for (k = i + 1; k < size; k++) {
                 sum = 0.0f;
                 for (j = 0; j < i; j++)
-                    sum += lu[j * n + i] * lu[k * n + j];
-                lu[k * n + i] = (a[k * n + i] - sum) / lu[i * n + i];
+                    sum += lu[j * size + i] * lu[k * size + j];
+                lu[k * size + i] = (matrix[k * size + i] - sum) / lu[i * size + i];
             }
         }
     }
     sum = 0.0f;
-    for (k = 0; k < n - 1; k++)
-        sum += lu[k * n + n - 1] * lu[(n - 1) * n + k];
-    lu[(n - 1) * n + n - 1] = a[(n - 1) * n + n - 1] - sum;
-    if (GAbs(lu[(n - 1) * n + n - 1]) < 1e-8f)
-        lu[(n - 1) * n + n - 1] = 0.0f;
+    for (k = 0; k < size - 1; k++)
+        sum += lu[k * size + size - 1] * lu[(size - 1) * size + k];
+    lu[(size - 1) * size + size - 1] = matrix[(size - 1) * size + size - 1] - sum;
+    if (GAbs(lu[(size - 1) * size + size - 1]) < 1e-8f)
+        lu[(size - 1) * size + size - 1] = 0.0f;
 }
 
 /** @sly2-annot addr=0x1198F8
@@ -62,29 +68,32 @@ void CroutDecomp(int n, float *a, float *lu)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#crout-0x1195e0-0x119bc8
  * @end-sly2-annot */
-void CroutSolve(int n, float *a, float *b, float *x)
+// Solves for `result` from the factors CroutDecomp left in `lu` and the right-hand side `rhs`. The loops read the
+// factors transposed (forward pass down U's columns dividing by the pivots, backward pass down L's columns), i.e. it
+// solves (L U)^T result = rhs. Unknowns whose pivot is exactly 0 are set to 0 and skipped.
+void CroutSolve(int size, float *lu, float *rhs, float *result)
 {
     int i, j;
     float sum;
 
-    for (i = 0; i < n; i++) {
-        if (a[i * n + i] == 0.0f) {
-            x[i] = 0.0f;
+    for (i = 0; i < size; i++) {
+        if (lu[i * size + i] == 0.0f) {
+            result[i] = 0.0f;
             continue;
         }
         sum = 0.0f;
         for (j = 0; j < i; j++)
-            sum += a[j * n + i] * x[j];
-        x[i] = (b[i] - sum) / a[i * n + i];
+            sum += lu[j * size + i] * result[j];
+        result[i] = (rhs[i] - sum) / lu[i * size + i];
     }
 
-    for (i = n - 2; i >= 0; i--) {
-        if (a[i * n + i] == 0.0f)
+    for (i = size - 2; i >= 0; i--) {
+        if (lu[i * size + i] == 0.0f)
             continue;
         sum = 0.0f;
-        for (j = i + 1; j < n; j++)
-            sum += a[j * n + i] * x[j];
-        x[i] -= sum;
+        for (j = i + 1; j < size; j++)
+            sum += lu[j * size + i] * result[j];
+        result[i] -= sum;
     }
 }
 
