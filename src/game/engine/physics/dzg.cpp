@@ -1,6 +1,8 @@
-// dzg.cpp -- the contact solver on top of the DZG constraint solver (core/math/dzgcore.cpp): a DZGXP holds one
-// constraint row per contact (and per friction direction) with its contact data (DZX); rows are filled from the two
-// objects' impulse responses, solved, extended with friction rows, and the impulses applied to the objects.
+// dzg.cpp -- the contact solver built on the DZG constraint solver (core/math/dzgcore.cpp). A DZGXP holds one
+// constraint row (DZ) per contact and per friction direction, plus a parallel contact record (DZX) per row. Rows
+// are filled from the two touching objects' impulse responses, solved, extended with friction rows, and the
+// resulting impulses applied to the objects' linear/angular velocities. Called by SolveSwGroup (solve.cpp).
+// Entry points: InitDzgXp, AppendDzgDz, SolveDzg, SolveDzgFriction, ApplyDzg.
 // TU 0x1585D8..0x159118 (9 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dzg
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001590F8
@@ -87,6 +89,8 @@ static __inline__ int Dot(qword a, qword b)
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
  *   docs/engine/physics-collision.md#2-contacts-and-solving
  * @end-sly2-annot */
+// Initialises a DZGXP for cpxp contacts and cpso objects: base DZG init with two rows per contact, stores the
+// contact/object arrays and allocates one 0x60-byte DZX record per row.
 extern "C" DZGXP *InitDzgXp(DZGXP *pdzgxp, int cpxp, XP **apxp, int cpso, SO **apso)
 {
     AL al;
@@ -109,6 +113,7 @@ extern "C" DZGXP *InitDzgXp(DZGXP *pdzgxp, int cpxp, XP **apxp, int cpso, SO **a
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Appends one constraint row (DZ) and its contact record (DZX) to the group. Sly 1 name.
 extern "C" void AppendDzgDz__FP3DZGP2DZ(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx)
 {
     int i;
@@ -142,6 +147,8 @@ static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return Pv
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Fills one constraint row: each of the two bodies adds its impulse response (virtual call), then the row's
+// coupling terms against the existing rows are computed from the per-object relative vectors.
 extern "C" void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx)
 {
     int i;
@@ -192,6 +199,7 @@ extern "C" void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Returns the contact record (DZX) that parallels constraint row pdz: same index, 0x60-byte stride.
 extern "C" DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz)
 {
     return &pdzgxp->adzx[pdz - pdzgxp->adz];
@@ -209,6 +217,7 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Solves the group's constraint rows for the impulses that stop interpenetration (grf selects the pass). Sly 1 name.
 extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf)
 {
     DLI dli;
@@ -308,6 +317,8 @@ union VEC4 { qword q; float f[4]; };
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Friction pass: repeatedly solves the rows, then adds a friction row for the free contact with the largest
+// tangential push, its limit clamped by the contact's friction coefficient, until no contact slips.
 extern "C" void SolveDzgFriction(DZGXP *pdzgxp, int grf)
 {
     for (;;) {
@@ -397,6 +408,8 @@ static inline qword AddScale(qword a, qword b, const VUF &t)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
+// Applies the solved row impulses to every object's linear (+0xF0) and angular (+0x100) velocity change and clamps
+// both to the maxima gDv and gDw.
 extern "C" void ApplyDzg(DZGXP *pdzgxp, float gDv, float gDw)
 {
     STACKSCOPE scope;
