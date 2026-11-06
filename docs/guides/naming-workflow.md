@@ -195,3 +195,15 @@ data symbol stays byte-identical (matchtool), and every file is re-checked after
 
   i.e. 8.8% of definitions documented in prose (49% carry only an `@sly2-annot` draft), 22.5% still `func_XXXXXXXX`,
   13.8% Hungarian; every file already has a header comment.
+
+**Shared headers (include/sly2/)**
+- Round 1 (names/r1-g9) gave every shared header a role-first header comment and doc comments on its structs and on
+  the fields whose meaning is clear (comments only: no field, type or function was renamed). `(inferred)` marks
+  meanings read from names and usage rather than confirmed by code or runtime; `[R]`/`[S]`/`[H]` tags in existing
+  comments keep their meaning (runtime-confirmed / static / hypothesis).
+- vu0.h was not touched: it holds the only inline asm in the shared headers, and inserting lines above an asm
+  statement moves its line number, which the path-hash quirk feeds into gcse ordering. Edit it only by appending
+  below the last asm line, then re-check its 44 includers.
+- The shared-field rename pass has a draft plan (per header and struct: cryptic or Hungarian field, proposed name,
+  basis, number of member accesses) in the work reports, `reports/names_r1/SHARED_FIELDS.md`. Rename a field
+  together with every TU-private view that spells it, and check nm sets and matchtool for every includer.
