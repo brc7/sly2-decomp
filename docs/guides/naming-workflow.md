@@ -134,3 +134,41 @@ copies in all 37 Lilly-port files (25,064 duplicated lines removed); 43/43 migra
 table and 22 field offsets against runtime findings (a wrong value stops the build). Field offsets were measured by compiling probes with ee-gcc 2.95.3, not read by eye.
 Conflicts (BASIC/CPLCY declared without a vptr in a few files, SM/SMA tail padding, Sly 1 ALARM/AMB text) are listed in `struct_conflicts.csv`. Not yet applied to the repo.
 Names in headers and the rename tool should be applied in the same branch to keep declarations consistent.
+
+## 8. Readable-code conventions (2026-11; supersede the Sucker Punch style for new names)
+
+Goal (the maintainer's): code that programmers, modders and agents can read without this guide — for a faithful port,
+for mods, and for learning from the game's design. Sly 1 names and Sucker Punch style are evidence about meaning, not a
+style to preserve. Spirit over letter. Everything below must keep the match: the object file for every function and
+data symbol stays byte-identical (matchtool), and every file is re-checked after editing.
+
+**Names**
+- Locals, parameters, struct/class fields: descriptive `camelCase` English (`listener`, `noiseType`, `offset`,
+  `heightRange`); booleans read as predicates (`isInWorld`, `hasTarget`, `canJump`); counts `numX` / `xCount`; indices
+  `i`/`j` only for short loops, otherwise `guardIndex`. No Hungarian prefixes (`p`, `c`, `f`, `g`, `pfn`…) in new names.
+- Functions: `PascalCase` verb phrases saying what they do (`CanListenerHearNoise`, `GetWorldPosition`,
+  `UpdateGuardAlertTimer`, `LoadSceneFromBrx`). Predicates start with `Is/Has/Can/Should`. Class members keep the same
+  rule (`GUARD::UpdateAlert`).
+- Existing names: rename when cryptic (Hungarian return-type prefixes like `FCheckLm`, `PloFind`, `GGetX`, `NGetY`;
+  unexplained abbreviations; `func_XXXXXXXX`); keep names that are already clear.
+- Types keep their current names for now (`LISTENER`, `NOISETYPE`; renaming a type changes every mangled symbol that
+  uses it — a later, separate pass). Macros/constants: `UPPER_SNAKE`.
+- Unknowns: give the best descriptive name the evidence supports and mark it `(inferred)` in the doc comment; never
+  leave `func_XXXXXXXX` or `unk_XX` when a reasonable meaning can be read from the code. Offset-coded fields
+  (`x4C8`, `_pad_357`) get a descriptive name or, if truly unknown, `unknown4C8`.
+
+**Doc comments**
+- One `//` comment block before every function: what it does and why it matters (inputs, outputs, side effects, which
+  system calls it) — not a line-by-line paraphrase. Mark inferred meaning with `(inferred)`.
+- A short header comment at the top of each file: the subsystem's role and its main entry points.
+- Comments inside functions only where code alone can't carry the meaning (units, coordinate spaces, magic numbers).
+
+**Matching constraints** (what is not free)
+- Function and global names are linker symbols: rename them with `tools/rename.py` (config + all callers), never by hand.
+  `extern "C"` names are the symbol; C++ names mangle parameter TYPES (not parameter names).
+- Local/parameter/field names never reach the object file. Types (`int` vs `bool`, signedness, widths), control-flow
+  shape and statement order can change codegen: a readability rewrite of logic must still match or be reverted.
+- Line numbers matter for a few functions (path-hash quirk: `#line` pins). Adding comment lines can shift them — re-check
+  the whole file after any edit; keep existing `#line` pins correct.
+- After renames compare each touched object's `nm` symbol set (only the intended renames may differ) — matchtool alone
+  does not see a renamed callee.
