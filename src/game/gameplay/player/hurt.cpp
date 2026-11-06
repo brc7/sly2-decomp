@@ -846,7 +846,8 @@ extern "C" int TakeJtDamage(C *p, RECORD *input)
     RECORD accepted;
     int delta;
     if (ShouldJtVetoDamage(p, input)) {
-        if ((unsigned)p->kind - 8u < 5u)
+        if (p->kind >= 8 && p->kind <= 12)
+
             return 0;
         delta = -32768;
         goto notify;

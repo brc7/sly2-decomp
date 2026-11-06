@@ -3109,7 +3109,7 @@ void UpdateJt(char *p)
     struct X1854 *object;
 
     UpdateStepplayer(p);
-    if ((uchar)((struct LO *)p)->f == 0)
+    if ((uchar)((struct LO *)p)->f == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
