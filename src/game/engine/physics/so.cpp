@@ -33,16 +33,16 @@ extern qword D_002A2DC0;
    query record that tu_1BC050 and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
 struct CPQ
 {
-    qword q0;               /* D_002A2DC0 */
-    int n10;                /* 1 */
+    qword axis;             /* D_002A2DC0 (the up axis) */
+    int unknown10;          /* 1 */
     int pad[3];
     CPQ() { func_002333B4(this, 0, sizeof(CPQ)); }
 };
 static inline CPQ MakeCpq()
 {
     CPQ cpq;
-    cpq.q0 = D_002A2DC0;
-    cpq.n10 = 1;
+    cpq.axis = D_002A2DC0;
+    cpq.unknown10 = 1;
     return cpq;
 }
 CPQ D_003DD020 = MakeCpq();
@@ -168,10 +168,10 @@ struct SOBOUNDS
 {
     SO *pso;                /* +0x00 */
     int pad4[7];
-    float g20;              /* +0x20 */
+    float scale;            /* +0x20 */
 };
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
-struct SOWATCH { char pad0[0x44]; int n44; char pad48[0x6C]; int nB4; };
+struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
 /* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
 struct STEPREC { int n0; float g4; float g8; float gC; };
 /* A transform handle (a BASIC with a reference count at +0x10, the object at +0x20 and its XF at +0x24), freed into
@@ -347,8 +347,8 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int fl
 // 0x1F2468 ReleaseSoBoundsHierarchy
 namespace M_ReleaseSoBoundsHierarchy { extern "C" {
 struct R; struct L;
-struct R { int pad[2]; int c; };
-struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0x134 - 0x74]; struct R *pr; };
+struct R { int pad[2]; int refCount; };
+struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0x134 - 0x74]; struct R *bounds; };
 struct Pool;
 void func_0011CD98(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
@@ -362,12 +362,12 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 void ReleaseSoBoundsHierarchy(struct L *so)
 {
     struct L *q;
-    struct R *pr = so->pr;
+    struct R *pr = so->bounds;
     if (pr) {
-        if (--pr->c == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
-        so->pr = 0;
+        if (--pr->refCount == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
+        so->bounds = 0;
     }
-    for (q = so->first; q != so->end; q = q->next) {
+    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy(q);
     }
 }
@@ -482,7 +482,7 @@ extern "C" void SetSoBoundsScale(SO *so, float g)
     psobounds = so->psobounds;
     so->gUnk13c = g;
     if ((psobounds != 0) && (psobounds->pso == so)) {
-        psobounds->g20 = g;
+        psobounds->scale = g;
     }
 }
 
@@ -541,7 +541,7 @@ int GetSoUnknownBits20(struct S *p) { return p->b; }
 // 0x1F2758 GetSoIgnoreLocked
 namespace M_GetSoIgnoreLocked { extern "C" {
 struct S;
-struct S { char pad[0xD0]; ulong fl; };
+struct S { char pad[0xD0]; ulong globsetFlags; };
 /** @sly2-annot addr=0x1F2758
  * Purpose: Return bit 34 of +0xD0 (fIgnoreLocked)
  * Info: proposed name GetSoIgnoreLocked (T1); TU so
@@ -549,7 +549,7 @@ struct S { char pad[0xD0]; ulong fl; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the ignore-locked flag (bit 34 of +0xD0).
-int GetSoIgnoreLocked(struct S *p) { return (int)(p->fl >> 34) & 1; }
+int GetSoIgnoreLocked(struct S *p) { return (int)(p->globsetFlags >> 34) & 1; }
 } } // namespace M_GetSoIgnoreLocked
 
 // 0x1F2768 SetSoIgnoreLocked__FP2SOi
@@ -570,7 +570,7 @@ namespace M_PsoFindPhysRoot { extern "C" {
 struct Q; struct A;
 typedef unsigned long ulong;
 struct Q { char pad[0xA0]; int a0; char pad2[0x1C]; int c0; };
-struct A { char pad[0x10]; struct A *next; char pad2[0xD4]; struct Q *pq; char pad3[0x5C]; ulong fl; };
+struct A { char pad[0x10]; struct A *parent; char pad2[0xD4]; struct Q *physics; char pad3[0x5C]; ulong flags; };
 /** @sly2-annot addr=0x1F2798
  * Purpose: Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag
  *   +0x148 bit34; returns last visited
@@ -586,11 +586,11 @@ struct A *FindSoPhysRoot(struct A *so)
     struct A *r = 0;
     while (so) {
         r = so;
-        if (so->pq && (so->pq->c0 != 3 || so->pq->a0 != 3))
+        if (so->physics && (so->physics->c0 != 3 || so->physics->a0 != 3))
             break;
-        if (so->fl & (1L << 34))
+        if (so->flags & (1L << 34))
             break;
-        so = so->next;
+        so = so->parent;
     }
     return r;
 }
@@ -740,8 +740,8 @@ extern "C" void ShowSoPart(A *pa, B *pb)
 // 0x1F2AD0 HideSoPart
 namespace M_HideSoPart { extern "C" {
 struct T; struct S;
-struct T { char pad[0x10]; ulong fl; };
-struct S { char pad[0x28]; ulong fl; };
+struct T { char pad[0x10]; ulong flags; };
+struct S { char pad[0x28]; ulong flags; };
 void RemoveSoPartFromTree(struct S *, struct T *);
 /** @sly2-annot addr=0x1F2AD0
  * Purpose: Set part hidden bit50 and, when in world, RemoveSoPartFromTree
@@ -752,9 +752,9 @@ void RemoveSoPartFromTree(struct S *, struct T *);
 // Hides a part (sets flag bit 50) and, when the object is in the world, removes it from the tree.
 void HideSoPart(struct S *so, struct T *pt)
 {
-    if (!(pt->fl & (1UL << 50))) {
-        pt->fl |= 1UL << 50;
-        if ((int)(so->fl >> 60) & 1) RemoveSoPartFromTree(so, pt);
+    if (!(pt->flags & (1UL << 50))) {
+        pt->flags |= 1UL << 50;
+        if ((int)(so->flags >> 60) & 1) RemoveSoPartFromTree(so, pt);
     }
 }
 } } // namespace M_HideSoPart
@@ -763,8 +763,8 @@ void HideSoPart(struct S *so, struct T *pt)
 namespace M_AddSoParts { extern "C" {
 struct E; struct P;
 typedef unsigned long ulong;
-struct E { int pad[4]; ulong fl; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { int pad[4]; ulong flags; char pad2[0xB0 - 0x18]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 void AddSoPartToTree(struct P *, struct E *);
 /** @sly2-annot addr=0x1F2B20
  * Purpose: AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride)
@@ -778,9 +778,9 @@ void AddSoPartToTree(struct P *, struct E *);
 void AddSoParts(struct P *so)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (!(pe->fl & (1L << 50))) AddSoPartToTree(so, pe);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (!(pe->flags & (1L << 50))) AddSoPartToTree(so, pe);
     }
 }
 } } // namespace M_AddSoParts
@@ -789,8 +789,8 @@ void AddSoParts(struct P *so)
 namespace M_RemoveSoParts { extern "C" {
 struct E; struct P;
 typedef unsigned long ulong;
-struct E { int pad[4]; ulong fl; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { int pad[4]; ulong flags; char pad2[0xB0 - 0x18]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 void RemoveSoPartFromTree(struct P *, struct E *);
 /** @sly2-annot addr=0x1F2BA8
  * Purpose: RemoveSoPartFromTree for every visible SOPART
@@ -802,9 +802,9 @@ void RemoveSoPartFromTree(struct P *, struct E *);
 void RemoveSoParts(struct P *so)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (!(pe->fl & (1L << 50))) RemoveSoPartFromTree(so, pe);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (!(pe->flags & (1L << 50))) RemoveSoPartFromTree(so, pe);
     }
 }
 } } // namespace M_RemoveSoParts
@@ -1222,7 +1222,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
 struct T { M3 m; qword v[3]; };
-struct X { char pad[0xE8]; struct T *pt; };
+struct X { char pad[0xE8]; struct T *physics; };
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
 int FInvertMatrix3(struct T *pt, qword *pv);
@@ -1236,7 +1236,7 @@ int FInvertMatrix3(struct T *pt, qword *pv);
 // Scales the inertia matrix by r and recomputes its inverse (zero when singular).
 void AdjustSoMomint(struct X *so, float s)
 {
-    struct T *pt = so->pt;
+    struct T *pt = so->physics;
     M3 m;
     U u;
     M3 r;
@@ -1254,8 +1254,8 @@ void AdjustSoMomint(struct X *so, float s)
     r.r[2] = r2;
     func_0023320C(&m, &r, sizeof(M3));
     pt->m = m;
-    if (!FInvertMatrix3(so->pt, so->pt->v))
-        func_002333B4(so->pt->v, 0, 0x30);
+    if (!FInvertMatrix3(so->physics, so->physics->v))
+        func_002333B4(so->physics->v, 0, 0x30);
 }
 } } // namespace M_AdjustSoMomint
 
@@ -1326,9 +1326,9 @@ void UpdateSo(struct P *so)
 namespace M_func_001F37C8 { extern "C" {
 struct Q; struct O; struct E; struct P;
 struct Q { char pad[0x118]; char dl[1]; };
-struct O { char pad[0x10]; struct Q *pq; char pad2[0x20 - 0x14]; char sub[1]; };
-struct E { char pad[0xDC]; struct O *po; };
-struct P { char pad[0xE8]; struct E *pe; };
+struct O { char pad[0x10]; struct Q *pathzone; char pad2[0x20 - 0x14]; char unknown20[1]; };
+struct E { char pad[0xDC]; struct O *region; };
+struct P { char pad[0xE8]; struct E *physics; };
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
@@ -1342,8 +1342,8 @@ void InitObstacleQueryCursor(struct Q *, void *);
 // Moves the object's region link from its current region's list to region q.
 void SetSoPhysRegion(struct P *so, struct Q *q)
 {
-    struct O *o = so->pe->po;
-    struct Q *old = o->pq;
+    struct O *o = so->physics->region;
+    struct Q *old = o->pathzone;
     if (old == q) return;
     if (old) {
         if (FFindDlEntry__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
@@ -1351,10 +1351,10 @@ void SetSoPhysRegion(struct P *so, struct Q *q)
     if (q) {
         if (!FFindDlEntry__FP2DLPv(q->dl, o)) {
             AppendDlEntry__FP2DLPv(q->dl, o);
-            InitObstacleQueryCursor(q, o->sub);
+            InitObstacleQueryCursor(q, o->unknown20);
         }
     }
-    o->pq = q;
+    o->pathzone = q;
 }
 } } // namespace M_func_001F37C8
 
@@ -1566,10 +1566,10 @@ void SetSoGrfBit8(struct P *so, int enabled)
 // 0x1F3C10 RefreshSoBoundsRecord
 namespace M_func_001F3C10 { extern "C" {
 struct G; struct Q; struct A;
-struct G { char pad[0x3D60]; int n; };
+struct G { char pad[0x3D60]; int nStampLights; };
 extern struct G D_003DD490;
-struct Q { char pad[0xC]; int n; };
-struct A { char pad[0x134]; struct Q *pq; };
+struct Q { char pad[0xC]; int stamp; };
+struct A { char pad[0x134]; struct Q *bounds; };
 void func_001A4478(struct G *pg, int n, struct Q *pq);
 /** @sly2-annot addr=0x1F3C10
  * Purpose: If bounds record (+0x134) stamp != g_sw+0x3D60, recompute via 0x1A4478 and store stamp
@@ -1582,10 +1582,10 @@ void func_001A4478(struct G *pg, int n, struct Q *pq);
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
 void RefreshSoBoundsRecord(struct A *so)
 {
-    struct Q *pq = so->pq;
-    if (pq && pq->n != D_003DD490.n) {
+    struct Q *pq = so->bounds;
+    if (pq && pq->stamp != D_003DD490.nStampLights) {
         func_001A4478(&D_003DD490, 0, pq);
-        so->pq->n = D_003DD490.n;
+        so->bounds->stamp = D_003DD490.nStampLights;
     }
 }
 } } // namespace M_func_001F3C10
@@ -1748,7 +1748,7 @@ MATRIX4 * SO::PmatWorld()
 // 0x1F3FB0 GetSoLocalXf
 namespace M_func_001F3FB0 { extern "C" {
 struct A;
-struct A { char pad[0x60]; int n; };
+struct A { char pad[0x60]; int rootTransform; };
 void func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1F3FB0
  * Purpose: SO vt32: optional identity into M4 out, return +0x60
@@ -1763,7 +1763,7 @@ int GetSoLocalXf(struct A *so, float *pm)
         func_002333B4(pm, 0, 0x40);
         pm[0] = pm[5] = pm[10] = pm[15] = 1.0f;
     }
-    return so->n;
+    return so->rootTransform;
 }
 } } // namespace M_func_001F3FB0
 
@@ -1958,8 +1958,8 @@ namespace M_GetSoVelocity { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x70]; qword v; char pad2[0x14]; int n; };
-struct S { char pad[0x58]; struct T *pt; };
+struct T { char pad[0x70]; qword position; char pad2[0x14]; int kind; };
+struct S { char pad[0x58]; struct T *positionXf; };
 qword GetXfVelocity(struct T *, int, qword);
 /** @sly2-annot addr=0x1F4440
  * Purpose: SO vt33: velocity of position XF (kind 1) in world space, else zero
@@ -1968,7 +1968,7 @@ qword GetXfVelocity(struct T *, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
-qword GetSoVelocity(struct S *p) { struct T *pt = p->pt; if (!pt || pt->n != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, pt->v); }
+qword GetSoVelocity(struct S *p) { struct T *pt = p->positionXf; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, pt->position); }
 } } // namespace M_GetSoVelocity
 
 // 0x1F4488 SetSoVelocity
@@ -2384,8 +2384,8 @@ extern "C" void MarkSoTreeBoundsDirty(SO *so)
 // 0x1F4BA8 ClearSoTreeBoundsDirty
 namespace M_func_001F4BA8 { extern "C" {
 struct T; struct S;
-struct T { char pad[0x70]; ulong fl; };
-struct S { char pad[0xEC]; struct T *pt; };
+struct T { char pad[0x70]; ulong flags; };
+struct S { char pad[0xEC]; struct T *tree; };
 struct DL;
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1F4BA8
@@ -2399,11 +2399,11 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 // Clears the tree's bounds-dirty flag and removes it from g_sw.dlSoTreeQueue1.
 void ClearSoTreeBoundsDirty(struct S *so)
 {
-    struct T *pt = so->pt;
+    struct T *pt = so->tree;
     if (!pt) return;
-    if ((pt->fl & 1) == 0) return;
-    pt->fl &= ~1;
-    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->pt);
+    if ((pt->flags & 1) == 0) return;
+    pt->flags &= ~1;
+    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->tree);
 }
 } } // namespace M_func_001F4BA8
 
@@ -2440,8 +2440,8 @@ extern "C" void InvalidateSoAaox(SO *so)
 // 0x1F4C58 FindSoXf
 namespace M_PxfFindSo { extern "C" {
 struct E; struct S;
-struct E { char pad[0x94]; int b; int pad2; int a; char pad4[0x60]; };
-struct S { char pad[0x50]; int c; struct E *ae; };
+struct E { char pad[0x94]; int kind; int pad2; int oid; char pad4[0x60]; };
+struct S { char pad[0x50]; int numTransforms; struct E *transforms; };
 /** @sly2-annot addr=0x1F4C58
  * Purpose: Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids
  * Info: proposed name FindSoXf (T1); TU so
@@ -2451,10 +2451,10 @@ struct S { char pad[0x50]; int c; struct E *ae; };
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Finds the object's XF whose ids match the given XF's (Sly 1 PxfFindSo).
-struct E *FindSoXf(struct S *so, int a, int b)
+struct E *FindSoXf(struct S *so, int oid, int kind)
 {
     int i;
-    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->a == a && pe->b == b) return pe; }
+    for (i = 0; i < so->numTransforms; i++) { struct E *pe = &so->transforms[i]; if (pe->oid == oid && pe->kind == kind) return pe; }
     return 0;
 }
 } } // namespace M_PxfFindSo
@@ -2517,7 +2517,7 @@ extern "C" void ClearSoTreeDirty(SO *so)
 // 0x1F4DA8 RemoveSoContactsWith
 namespace M_func_001F4DA8 { extern "C" {
 struct N;
-struct N { int pad[2]; void *p8; char pad2[0xAC - 0xC]; struct N *next; };
+struct N { int pad[2]; void *so; char pad2[0xAC - 0xC]; struct N *next; };
 struct G;
 extern struct G D_003DD490;
 void WakeSo(void *);
@@ -2536,8 +2536,8 @@ void RemoveSoContactsWith(void *pa, void *pb, struct N **ppn)
 loop:
     pn = *ppn;
     if (pn) {
-        int i = pn->p8 == pa;
-        if (((struct N *)((char *)pn + (i << 6)))->p8 == pb) {
+        int i = pn->so == pa;
+        if (((struct N *)((char *)pn + (i << 6)))->so == pb) {
             *ppn = pn->next;
             pn->next = pfree;
             pfree = pn;
@@ -2988,8 +2988,8 @@ typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->ppartFirst==0x34)?1:-1]
 namespace M_ExtendSoTreeBounds { extern "C" {
 struct B; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct B { qword min; qword max; qword c; float r; };
-struct P { char pad[0xEC]; struct B *pb; };
+struct B { qword min; qword max; qword center; float radius; };
+struct P { char pad[0xEC]; struct B *tree; };
 /** @sly2-annot addr=0x1F5480
  * Purpose: Grow tree AABB/radius to include sphere (c,r)
  * Info: proposed name ExtendSoTreeBounds (T1); TU so
@@ -3005,16 +3005,16 @@ void ExtendSoTreeBounds(struct P *so, qword c, float r)
     __asm__("pextlw %0, %1, %1\n\tpextlw %0, %0, %0" : "=r"(rr) : "r"(r));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(lo) : "j"(c), "j"(rr));
     qword mn;
-    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->pb->min), "j"(lo));
-    so->pb->min = mn;
+    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->tree->min), "j"(lo));
+    so->tree->min = mn;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(hi) : "j"(c), "j"(rr));
     qword mx;
-    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->pb->max), "j"(hi));
-    so->pb->max = mx;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->pb->c));
+    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->tree->max), "j"(hi));
+    so->tree->max = mx;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->tree->center));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d), "=&j"(one) : "0"(c));
     __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
-    if (so->pb->r < dist) so->pb->r = dist;
+    if (so->tree->radius < dist) so->tree->radius = dist;
 }
 } } // namespace M_ExtendSoTreeBounds
 
@@ -3185,8 +3185,8 @@ namespace M_GetSoDvGravity { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x80]; qword v; };
-struct S { char pad[0xE8]; struct T *pt; };
+struct T { char pad[0x80]; qword gravity; };
+struct S { char pad[0xE8]; struct T *physics; };
 /** @sly2-annot addr=0x1F5860
  * Purpose: SOPHYS+0x80 (gravity vector) or zero
  * Info: proposed name GetSoGravity (T1); TU so
@@ -3195,7 +3195,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // The object's gravity vector, or zero without a physics record.
-qword GetSoGravity(struct S *p) { if (!p->pt) return D_002A2DD0; return p->pt->v; }
+qword GetSoGravity(struct S *p) { if (!p->physics) return D_002A2DD0; return p->physics->gravity; }
 } } // namespace M_GetSoDvGravity
 
 // 0x1F5880 SetSoGravity
@@ -3534,7 +3534,7 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
 namespace M_func_001F5FF8 { extern "C" {
 struct E; struct S;
 struct E { int oid; char pad[0x24]; };
-struct S { char pad[0xB8]; int c; int pad2; struct E *ae; };
+struct S { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 /** @sly2-annot addr=0x1F5FF8
  * Purpose: Find glob (globset +0xB8 array, 0x28 stride) by oid
  * Info: proposed name PglobFindSo (T2); TU so
@@ -3546,7 +3546,7 @@ struct S { char pad[0xB8]; int c; int pad2; struct E *ae; };
 struct E *FindSoGlob(struct S *so, int oid)
 {
     int i;
-    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->numGlobs; i++) { struct E *pe = &so->globs[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_func_001F5FF8
@@ -3555,7 +3555,7 @@ struct E *FindSoGlob(struct S *so, int oid)
 namespace M_PsopartFindSo { extern "C" {
 struct E; struct S;
 struct E { int a[3]; int oid; char pad[0xA0]; };
-struct S { char pad[0xE0]; int c; struct E *ae; };
+struct S { char pad[0xE0]; int numParts; struct E *parts; };
 /** @sly2-annot addr=0x1F6030
  * Purpose: Find SOPART by oid (+0x0C)
  * Info: proposed name FindSoPart (T1); TU so
@@ -3568,7 +3568,7 @@ struct S { char pad[0xE0]; int c; struct E *ae; };
 struct E *FindSoPart(struct S *so, int oid)
 {
     int i;
-    for (i = 0; i < so->c; i++) { struct E *pe = &so->ae[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->numParts; i++) { struct E *pe = &so->parts[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_PsopartFindSo
@@ -3757,7 +3757,7 @@ typedef unsigned long ulong;
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[42]; };
 struct A { char pad[0xC]; struct VT *pvt; };
-struct L { char pad[0x24]; struct L *next; ulong fl; char pad2[0x64 - 0x30]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; };
+struct L { char pad[0x24]; struct L *next; ulong flags; char pad2[0x64 - 0x30]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; };
 void PloCloneLo__FP2LOP2SO(struct L *, struct A *);
 /** @sly2-annot addr=0x1F66F0
  * Purpose: SO vt40: vt41 Clone then PloCloneLo each non-removed child
@@ -3771,18 +3771,18 @@ void CloneSoHierarchy(struct A *pa, struct L *so)
 {
     struct L *q;
     pa->pvt->a[41].pfn((char *)pa + pa->pvt->a[41].d);
-    for (q = so->first; q != so->end; q = q->next)
-        if (!(q->fl & (1L << 57))) PloCloneLo__FP2LOP2SO(q, pa);
+    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
+        if (!(q->flags & (1L << 57))) PloCloneLo__FP2LOP2SO(q, pa);
 }
 } } // namespace M_CloneSoHierarchy
 
 // 0x1F6788 FindAsegaByOid
 namespace M_func_001F6788 { extern "C" {
 struct B; struct N;
-struct B { char pad[0x18]; int n; };
-struct N { char pad[0x14]; struct B *pb; int n; char pad2[8]; struct N *next; };
+struct B { char pad[0x18]; int oid; };
+struct N { char pad[0x14]; struct B *owner; int oid; char pad2[8]; struct N *next; };
 /** @sly2-annot addr=0x1F6788
- * Purpose: Search list (*(struct N * *)&g_sw.dlAsega) for node with n==oid and (m==-1 or owner->n==m)
+ * Purpose: Search list (*(struct N * *)&g_sw.dlAsega) for node with n==oid and (m==-1 or owner->oid==m)
  * Info: proposed name PsmaFindByOidAndSm (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
@@ -3793,8 +3793,8 @@ struct N *FindAsegaByOid(int n, int m)
     struct N *p;
     int unused[4];
     for (p = (*(struct N * *)&g_sw.dlAsega); p; p = p->next) {
-        if (p->n == n) {
-            if (m == -1 || p->pb->n == m)
+        if (p->oid == n) {
+            if (m == -1 || p->owner->oid == m)
                 return p;
         }
     }
@@ -3805,8 +3805,8 @@ struct N *FindAsegaByOid(int n, int m)
 // 0x1F67E0 FindLiveSma
 namespace M_func_001F67E0 { extern "C" {
 struct B; struct N;
-struct B { char pad[0x18]; int n; };
-struct N { char pad[0x1C]; struct N *next; int pad2; struct B *pb; int n; };
+struct B { char pad[0x18]; int oid; };
+struct N { char pad[0x1C]; struct N *next; int pad2; struct B *owner; int oid; };
 /** @sly2-annot addr=0x1F67E0
  * Purpose: Same search over (*(struct N * *)&g_sw.dlSma) (SMA live list per sm.md)
  * Info: proposed name PsmaFindLive (T2); TU so
@@ -3819,8 +3819,8 @@ struct N *FindLiveSma(int n, int m)
     struct N *p;
     int unused[4];
     for (p = (*(struct N * *)&g_sw.dlSma); p; p = p->next) {
-        if (p->n == n) {
-            if (m == -1 || p->pb->n == m)
+        if (p->oid == n) {
+            if (m == -1 || p->owner->oid == m)
                 return p;
         }
     }
@@ -3831,8 +3831,8 @@ struct N *FindLiveSma(int n, int m)
 // 0x1F6838 GetSoTreeFlag2
 namespace M_func_001F6838 { extern "C" {
 struct T; struct S;
-struct T { char pad[0x70]; ulong fl; };
-struct S { char pad[0xEC]; struct T *pt; };
+struct T { char pad[0x70]; ulong flags; };
+struct S { char pad[0xEC]; struct T *tree; };
 /** @sly2-annot addr=0x1F6838
  * Purpose: Bit 2 of tree flags (+0x70), 1 if no tree
  * Info: proposed name FSoTreeFlag2 (T2); TU so
@@ -3840,7 +3840,7 @@ struct S { char pad[0xEC]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Bit 2 of the tree flags; 1 when the object has no tree. (inferred)
-int GetSoTreeFlag2(struct S *p) { if (!p->pt) return 1; return (int)((long)(p->pt->fl << 30) >> 32) & 1; }
+int GetSoTreeFlag2(struct S *p) { if (!p->tree) return 1; return (int)((long)(p->tree->flags << 30) >> 32) & 1; }
 } } // namespace M_func_001F6838
 
 // 0x1F6860 SetSoTreeFlag2
@@ -3901,7 +3901,7 @@ void SetSoIgnoreFixed(struct S *p, int f) { p->b = f; RecalcSwOxfFilterForObject
 // 0x1F6960 GetSoIgnoreFixed
 namespace M_func_001F6960 { extern "C" {
 struct S;
-struct S { char pad[0x148]; ulong fl; };
+struct S { char pad[0x148]; ulong flags; };
 /** @sly2-annot addr=0x1F6960
  * Purpose: Get +0x148 bit26
  * Info: proposed name GetSoFlag26 (T2); TU so
@@ -3909,15 +3909,15 @@ struct S { char pad[0x148]; ulong fl; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the ignore-fixed flag.
-int GetSoIgnoreFixed(struct S *p) { return (int)((long)(p->fl << 6) >> 32) & 1; }
+int GetSoIgnoreFixed(struct S *p) { return (int)((long)(p->flags << 6) >> 32) & 1; }
 } } // namespace M_func_001F6960
 
 // 0x1F6978 ShowSoGlobsById
 namespace M_ShowSoGlobsById { extern "C" {
 struct Q; struct E; struct P;
-struct Q { char pad[0x10]; ulong fl; };
-struct E { int k; int pad[2]; int fl; int pad2[5]; struct Q *pq; };
-struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
+struct Q { char pad[0x10]; ulong flags; };
+struct E { int oid; int pad[2]; int flags; int pad2[5]; struct Q *part; };
+struct P { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 /** @sly2-annot addr=0x1F6978
  * Purpose: For every glob with id k: clear hidden flag 0x800 and clear the linked SOPART hide bit 50
  * Info: proposed name ShowSoGlobsById (T1); TU so
@@ -3932,11 +3932,11 @@ struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
 void ShowSoGlobsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (pe->k == k) {
-            pe->fl &= ~0x800;
-            if (pe->pq) pe->pq->fl &= ~(1L << 50);
+    for (i = 0; i < so->numGlobs; i++) {
+        struct E *pe = &so->globs[i];
+        if (pe->oid == k) {
+            pe->flags &= ~0x800;
+            if (pe->part) pe->part->flags &= ~(1L << 50);
         }
     }
 }
@@ -3945,9 +3945,9 @@ void ShowSoGlobsById(struct P *so, int k)
 // 0x1F69F8 HideSoGlobsById
 namespace M_HideSoGlobsById { extern "C" {
 struct Q; struct E; struct P;
-struct Q { char pad[0x10]; ulong fl; };
-struct E { int k; int pad[2]; int fl; int pad2[5]; struct Q *pq; };
-struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
+struct Q { char pad[0x10]; ulong flags; };
+struct E { int oid; int pad[2]; int flags; int pad2[5]; struct Q *part; };
+struct P { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 /** @sly2-annot addr=0x1F69F8
  * Purpose: For every glob with id k: set hidden flag 0x800 and set the linked SOPART hide bit 50
  * Info: proposed name HideSoGlobsById (T1); TU so
@@ -3961,11 +3961,11 @@ struct P { char pad[0xB8]; int c; int pad2; struct E *ae; };
 void HideSoGlobsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (pe->k == k) {
-            pe->fl |= 0x800;
-            if (pe->pq) pe->pq->fl |= (1L << 50);
+    for (i = 0; i < so->numGlobs; i++) {
+        struct E *pe = &so->globs[i];
+        if (pe->oid == k) {
+            pe->flags |= 0x800;
+            if (pe->part) pe->part->flags |= (1L << 50);
         }
     }
 }
@@ -3978,9 +3978,9 @@ SLY2_SCRAP("nop");
 namespace M_func_001F6A68 { extern "C" {
 struct C; struct E; struct A;
 typedef unsigned long ulong;
-struct C { char pad[0x10]; ulong fl; };
-struct E { char pad[0xC]; int fl; char pad2[0x14]; struct C *pc; };
-struct A { char pad[0xB8]; int c; int pad2; struct E *ae; };
+struct C { char pad[0x10]; ulong flags; };
+struct E { char pad[0xC]; int flags; char pad2[0x14]; struct C *part; };
+struct A { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 /** @sly2-annot addr=0x1F6A68
  * Purpose: Hide every glob and its linked part
  * Info: proposed name HideSoAllGlobs (T2); TU so
@@ -3992,11 +3992,11 @@ struct A { char pad[0xB8]; int c; int pad2; struct E *ae; };
 void HideSoAllGlobs(struct A *so)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        pe->fl |= 0x800;
-        if (pe->pc)
-            pe->pc->fl |= 1L << 50;
+    for (i = 0; i < so->numGlobs; i++) {
+        struct E *pe = &so->globs[i];
+        pe->flags |= 0x800;
+        if (pe->part)
+            pe->part->flags |= 1L << 50;
     }
 }
 } } // namespace M_func_001F6A68
@@ -4004,8 +4004,8 @@ void HideSoAllGlobs(struct A *so)
 // 0x1F6AC8 ShowSoPartsById
 namespace M_ShowSoPartsById { extern "C" {
 struct E; struct P;
-struct E { int pad[3]; int k; char pad2[0xB0 - 0x10]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { int pad[3]; int oid; char pad2[0xB0 - 0x10]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 void ShowSoPart(struct P *, struct E *);
 /** @sly2-annot addr=0x1F6AC8
  * Purpose: ShowSoPart for parts whose id (+0xC) == k
@@ -4019,8 +4019,8 @@ void ShowSoPart(struct P *, struct E *);
 void ShowSoPartsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i]; if (pe->k == k) ShowSoPart(so, pe);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i]; if (pe->oid == k) ShowSoPart(so, pe);
     }
 }
 } } // namespace M_ShowSoPartsById
@@ -4028,8 +4028,8 @@ void ShowSoPartsById(struct P *so, int k)
 // 0x1F6B48 HideSoPartsById
 namespace M_func_001F6B48 { extern "C" {
 struct E; struct P;
-struct E { int pad[3]; int k; char pad2[0xB0 - 0x10]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { int pad[3]; int oid; char pad2[0xB0 - 0x10]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 void HideSoPart(struct P *, struct E *);
 /** @sly2-annot addr=0x1F6B48
  * Purpose: HideSoPart for parts whose id == k
@@ -4043,8 +4043,8 @@ void HideSoPart(struct P *, struct E *);
 void HideSoPartsById(struct P *so, int k)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i]; if (pe->k == k) HideSoPart(so, pe);
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i]; if (pe->oid == k) HideSoPart(so, pe);
     }
 }
 } } // namespace M_func_001F6B48
@@ -4440,7 +4440,7 @@ struct N *FindZapResponder(struct N *lo, void *q)
 // hurts (inferred).
 extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 {
-    return pwatch->n44 != 0;
+    return pwatch->unknown44 != 0;
 }
 
 // 0x1F7598 DeliverZapToSo
@@ -4727,7 +4727,7 @@ void SetSoZapMode(struct P *so, int k)
 // 0x1F7B40 GetSoZapMode
 namespace M_func_001F7B40 { extern "C" {
 struct S;
-struct S { char pad[0x148]; ulong fl; };
+struct S { char pad[0x148]; ulong flags; };
 /** @sly2-annot addr=0x1F7B40
  * Purpose: +0x148 bits 24-25
  * Info: proposed name GetSoZapMode (T2); TU so
@@ -4735,7 +4735,7 @@ struct S { char pad[0x148]; ulong fl; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the zap mode.
-int GetSoZapMode(struct S *p) { return (int)((long)(p->fl << 8) >> 32) & 3; }
+int GetSoZapMode(struct S *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
 } } // namespace M_func_001F7B40
 
 // 0x1F7B58 SetSoHitDamage
@@ -4930,7 +4930,7 @@ void SetSoFadeRate(struct P *so, float g)
 namespace M_func_001F7E08 { extern "C" {
 struct E; struct P;
 struct E { char pad[0xB0]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 /** @sly2-annot addr=0x1F7E08
  * Purpose: Collect parts passing optional predicate into array, return count
  * Info: proposed name CsopartCollectSo (T2); TU so
@@ -4943,8 +4943,8 @@ int CollectSoParts(struct P *so, int (*pfn)(void *, struct E *), void *pv, struc
 {
     int n = 0;
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
         if (!pfn || pfn(pv, pe)) {
             ape[n++] = pe;
         }
@@ -4985,7 +4985,7 @@ int GetSoUnknownBits16(struct S *p) { return p->b; }
 // 0x1F7F08 GetSoNoJtPlace
 namespace M_func_001F7F08 { extern "C" {
 struct S;
-struct S { char pad[0x148]; ulong fl; };
+struct S { char pad[0x148]; ulong flags; };
 /** @sly2-annot addr=0x1F7F08
  * Purpose: Get +0x148 bit29
  * Info: proposed name GetSoFlag29 (T2); TU so
@@ -4994,7 +4994,7 @@ struct S { char pad[0x148]; ulong fl; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the no-JT-place flag (+0x148 bit 29, so.h fNoJtPlace).
-int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->fl << 3) >> 32) & 1; }
+int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
 } } // namespace M_func_001F7F08
 
 // 0x1F7F20 SetSoNoJtPlace
@@ -5036,7 +5036,7 @@ void SetSoTreeRoot(struct A *so, long f)
 // 0x1F7FA0 SetSoScrollerSpeeds
 namespace M_func_001F7FA0 { extern "C" {
 struct P;
-struct P { char pad[0xA4]; int c; void **ap; };
+struct P { char pad[0xA4]; int numSaas; void **saas; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 /** @sly2-annot addr=0x1F7FA0
@@ -5050,8 +5050,8 @@ void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 void SetSoScrollerSpeeds(struct P *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        void *q = so->ap[i];
+    for (i = 0; i < so->numSaas; i++) {
+        void *q = so->saas[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }
@@ -5060,7 +5060,7 @@ void SetSoScrollerSpeeds(struct P *so, float f, float g)
 // 0x1F8038 SetSoSaaParams
 namespace M_func_001F8038 { extern "C" {
 struct P;
-struct P { char pad[0xA4]; int c; void **ap; };
+struct P { char pad[0xA4]; int numSaas; void **saas; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetSaiDuDv(void *, float, float);
 /** @sly2-annot addr=0x1F8038
@@ -5074,8 +5074,8 @@ void SetSaiDuDv(void *, float, float);
 void SetSoSaaParams(struct P *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        void *q = so->ap[i];
+    for (i = 0; i < so->numSaas; i++) {
+        void *q = so->saas[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }
@@ -5084,7 +5084,7 @@ void SetSoSaaParams(struct P *so, float f, float g)
 // 0x1F80D0 SetSoEyesClosed
 namespace M_func_001F80D0 { extern "C" {
 struct L;
-struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xA4 - 0x74]; int c; void **ap; };
+struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xA4 - 0x74]; int numSaas; void **saas; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetEyesClosed(void *, float);
 /** @sly2-annot addr=0x1F80D0
@@ -5101,11 +5101,11 @@ void SetSoEyesClosed(struct L *so, float f)
 {
     int i;
     struct L *q;
-    for (i = 0; i < so->c; i++) {
-        void *pv = so->ap[i];
+    for (i = 0; i < so->numSaas; i++) {
+        void *pv = so->saas[i];
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
     }
-    for (q = so->first; q != so->end; q = q->next)
+    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
 }
 } } // namespace M_func_001F80D0
@@ -5113,8 +5113,8 @@ void SetSoEyesClosed(struct L *so, float f)
 // 0x1F8198 FindSoSaa
 namespace M_PsaaFindSoOid { extern "C" {
 struct T; struct S;
-struct T { char pad[0x18]; int n; };
-struct S { char pad[0xA4]; int c; struct T **apt; };
+struct T { char pad[0x18]; int oid; };
+struct S { char pad[0xA4]; int numSaas; struct T **saas; };
 /** @sly2-annot addr=0x1F8198
  * Purpose: Find SAA in +0xA4 list with +0x18 == n
  * Info: proposed name FindSoSaa (T1); TU so
@@ -5127,7 +5127,7 @@ struct S { char pad[0xA4]; int c; struct T **apt; };
 struct T *FindSoSaa(struct S *so, int n)
 {
     int i;
-    for (i = 0; i < so->c; i++) { struct T *pt = so->apt[i]; if (pt->n == n) return pt; }
+    for (i = 0; i < so->numSaas; i++) { struct T *pt = so->saas[i]; if (pt->oid == n) return pt; }
     return 0;
 }
 } } // namespace M_PsaaFindSoOid
@@ -5135,7 +5135,7 @@ struct T *FindSoSaa(struct S *so, int n)
 // 0x1F81E0 SetSoAnimIndex
 namespace M_func_001F81E0 { extern "C" {
 struct A;
-struct A { char pad[0xAC]; int c; int *a; int n; };
+struct A { char pad[0xAC]; int numAnimIds; int *animIds; int animIndex; };
 /** @sly2-annot addr=0x1F81E0
  * Purpose: +0xB4 = -(index of n in +0xB0 list + 3), or 0
  * Info: proposed name SetSoAnimIndex (T2); TU so
@@ -5147,16 +5147,16 @@ void SetSoAnimIndex(struct A *so, int n)
 {
     int i;
     if (n == -1) {
-        so->n = 0;
+        so->animIndex = 0;
         return;
     }
-    for (i = 0; i < so->c; i++) {
-        if (n == so->a[i]) {
-            so->n = -(i + 3);
+    for (i = 0; i < so->numAnimIds; i++) {
+        if (n == so->animIds[i]) {
+            so->animIndex = -(i + 3);
             return;
         }
     }
-    so->n = 0;
+    so->animIndex = 0;
 }
 } } // namespace M_func_001F81E0
 
@@ -5170,13 +5170,13 @@ void SetSoAnimIndex(struct A *so, int n)
 // Clears the selected animation (+0xB4 = 0). (inferred)
 extern "C" void ClearSoAnimIndex(SOWATCH *pwatch)
 {
-    pwatch->nB4 = 0;
+    pwatch->animIndex = 0;
 }
 
 // 0x1F8240 FindTargetRecordById
 namespace M_func_001F8240 { extern "C" {
 struct T;
-struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
+struct T { int a[3]; int id; char pad[0x10]; struct T *next; };
 /** @sly2-annot addr=0x1F8240
  * Purpose: Search (*(struct T * *)&g_sw.dlTargetrec) list by id
  * Info: proposed name PxxFindGlobalById (T2); TU so
@@ -5184,7 +5184,7 @@ struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds a target record in the world's list by id. (inferred)
-struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
+struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->next) if (pt->id == n) return pt; return 0; }
 } } // namespace M_func_001F8240
 
 // 0x1F8278 EnsureTargetRecordById
@@ -5208,7 +5208,7 @@ extern "C" void EnsureTargetRecordById(LO *plo)
 namespace M_func_001F82B8 { extern "C" {
 struct K; struct T;
 struct K { int a, b; };
-struct T { char pad[0x10]; int x; struct K k; };
+struct T { char pad[0x10]; int value; struct K key; };
 struct T *EnsureTargetRecordById(void *);
 /** @sly2-annot addr=0x1F82B8
  * Purpose: Ensure object then set x and optional 8-byte key
@@ -5222,21 +5222,21 @@ struct T *EnsureTargetRecordById(void *);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Ensures the target record and sets its value and optional 8-byte key. (inferred)
-void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = EnsureTargetRecordById(p); pt->x = x; if (pk) pt->k = *pk; }
+void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = EnsureTargetRecordById(p); pt->value = x; if (pk) pt->key = *pk; }
 } } // namespace M_func_001F82B8
 
 // 0x1F8300 EnsureSoPhysRegionRecord
 namespace M_func_001F8300 { extern "C" {
 struct Q; struct E; struct P; struct CB;
-struct Q { void *p0; int pad; float g8; float gC; };
-struct E { char pad[0xDC]; struct Q *pq; };
-struct P { char pad[0xE8]; struct E *pe; };
+struct Q { void *so; int pad; float unknown8; float unknownC; };
+struct E { char pad[0xDC]; struct Q *region; };
+struct P { char pad[0xE8]; struct E *physics; };
 struct CB { int cb; int n; };
 void *func_001AE2A0(struct CB *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return func_001AE2A0(pcb); }
 /** @sly2-annot addr=0x1F8300
- * Purpose: Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, g8=75 (150 for CID 0x34), gC=1}
+ * Purpose: Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, unknown8=75 (150 for CID 0x34), unknownC=1}
  * Info: proposed name PsowaterEnsure (T2); TU so
  * Notes: names_v2 v1 proposed ApplyConstr__FP6CONSTRP6VECTORN21 (0.028)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r6_1D5150
@@ -5248,17 +5248,17 @@ static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pc
 // (inferred)
 struct Q *EnsureSoPhysRegionRecord(struct P *so)
 {
-    if (!so->pe) return 0;
-    if (!so->pe->pq) {
+    if (!so->physics) return 0;
+    if (!so->physics->region) {
         struct CB cb;
         struct Q *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
-        q->p0 = so;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->g8 = 150.0f;
-        else q->g8 = 75.0f;
-        q->gC = 1.0f;
-        so->pe->pq = q;
+        q->so = so;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown8 = 150.0f;
+        else q->unknown8 = 75.0f;
+        q->unknownC = 1.0f;
+        so->physics->region = q;
     }
-    return so->pe->pq;
+    return so->physics->region;
 }
 } } // namespace M_func_001F8300
 
@@ -5283,9 +5283,9 @@ extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 // 0x1F83E0 GetSoPhysRecordParam8
 namespace M_func_001F83E0 { extern "C" {
 struct U; struct T; struct S;
-struct U { char pad[0x8]; float g; };
-struct T { char pad[0xDC]; struct U *pu; };
-struct S { char pad[0xE8]; struct T *pt; };
+struct U { char pad[0x8]; float value; };
+struct T { char pad[0xDC]; struct U *region; };
+struct S { char pad[0xE8]; struct T *physics; };
 /** @sly2-annot addr=0x1F83E0
  * Purpose: record.g8 or 0
  * Info: proposed name GetSoPhysParam8 (T2); TU so
@@ -5294,7 +5294,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the region record's second float (0 without a record). (inferred)
-float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
 } } // namespace M_func_001F83E0
 
 // 0x1F8410 SetSoPhysRecordParamC
@@ -5318,9 +5318,9 @@ extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 // 0x1F8440 GetSoPhysRecordParamC
 namespace M_func_001F8440 { extern "C" {
 struct U; struct T; struct S;
-struct U { char pad[0xC]; float g; };
-struct T { char pad[0xDC]; struct U *pu; };
-struct S { char pad[0xE8]; struct T *pt; };
+struct U { char pad[0xC]; float value; };
+struct T { char pad[0xDC]; struct U *region; };
+struct S { char pad[0xE8]; struct T *physics; };
 /** @sly2-annot addr=0x1F8440
  * Purpose: record.gC or 0
  * Info: proposed name GetSoPhysParamC (T2); TU so
@@ -5329,7 +5329,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the region record's third float (0 without a record). (inferred)
-float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
 } } // namespace M_func_001F8440
 
 // 0x1F8470 SetSoPhysRecordParam4
@@ -5354,9 +5354,9 @@ extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 // 0x1F84A0 GetSoPhysRecordParam4
 namespace M_func_001F84A0 { extern "C" {
 struct U; struct T; struct S;
-struct U { char pad[0x4]; float g; };
-struct T { char pad[0xDC]; struct U *pu; };
-struct S { char pad[0xE8]; struct T *pt; };
+struct U { char pad[0x4]; float value; };
+struct T { char pad[0xDC]; struct U *region; };
+struct S { char pad[0xE8]; struct T *physics; };
 /** @sly2-annot addr=0x1F84A0
  * Purpose: record.g4 or 0
  * Info: proposed name GetSoPhysParam4 (T2); TU so
@@ -5364,7 +5364,7 @@ struct S { char pad[0xE8]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the region record's first float (0 without a record). (inferred)
-float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->pt) pu = p->pt->pu; if (pu) return pu->g; return 0.0f; }
+float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
 } } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi
@@ -5539,8 +5539,8 @@ extern "C" void DecrefXfHandle(XFH *pxfh)
 // 0x1F87A0 GetXfHandleParamAC
 namespace M_func_001F87A0 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAC]; unsigned short n; };
-struct S { char pad[0x24]; struct T *pt; };
+struct T { char pad[0xAC]; unsigned short unknownAC; };
+struct S { char pad[0x24]; struct T *transform; };
 /** @sly2-annot addr=0x1F87A0
  * Purpose: XF u16 +0xAC * 0.001
  * Info: proposed name GetXfhParamAC (T2); TU so
@@ -5549,14 +5549,14 @@ struct S { char pad[0x24]; struct T *pt; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the XF's 16-bit field +0xAC in thousandths (meaning unknown).
-float GetXfHandleParamAC(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAC(struct S *p) { return p->transform->unknownAC * 0.001f; }
 } } // namespace M_func_001F87A0
 
 // 0x1F87C8 SetXfHandleParamAC
 namespace M_func_001F87C8 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAC]; short n; };
-struct S { char pad[0x20]; void *p; struct T *pt; };
+struct T { char pad[0xAC]; short unknownAC; };
+struct S { char pad[0x20]; void *so; struct T *transform; };
 void SlotUnsettle(void *, struct T *);
 /** @sly2-annot addr=0x1F87C8
  * Purpose: XF +0xAC = g*1000, refresh XF kind
@@ -5566,14 +5566,14 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the XF's field +0xAC (value * 1000) and refreshes its mode.
-void SetXfHandleParamAC(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAC(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
 } } // namespace M_func_001F87C8
 
 // 0x1F8808 GetXfHandleParamAE
 namespace M_func_001F8808 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAE]; unsigned short n; };
-struct S { char pad[0x24]; struct T *pt; };
+struct T { char pad[0xAE]; unsigned short unknownAE; };
+struct S { char pad[0x24]; struct T *transform; };
 /** @sly2-annot addr=0x1F8808
  * Purpose: XF u16 +0xAE * 0.001
  * Info: proposed name GetXfhParamAE (T2); TU so
@@ -5581,14 +5581,14 @@ struct S { char pad[0x24]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the XF's 16-bit field +0xAE in thousandths.
-float GetXfHandleParamAE(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAE(struct S *p) { return p->transform->unknownAE * 0.001f; }
 } } // namespace M_func_001F8808
 
 // 0x1F8830 SetXfHandleParamAE
 namespace M_func_001F8830 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAE]; short n; };
-struct S { char pad[0x20]; void *p; struct T *pt; };
+struct T { char pad[0xAE]; short unknownAE; };
+struct S { char pad[0x20]; void *so; struct T *transform; };
 void SlotUnsettle(void *, struct T *);
 /** @sly2-annot addr=0x1F8830
  * Purpose: XF +0xAE = g*1000, refresh
@@ -5597,14 +5597,14 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the XF's field +0xAE (value * 1000) and refreshes its mode.
-void SetXfHandleParamAE(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAE(struct S *p, float g) { p->transform->unknownAE = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
 } } // namespace M_func_001F8830
 
 // 0x1F8870 GetXfHandleParamAC2
 namespace M_func_001F8870 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAC]; unsigned short n; };
-struct S { char pad[0x24]; struct T *pt; };
+struct T { char pad[0xAC]; unsigned short unknownAC; };
+struct S { char pad[0x24]; struct T *transform; };
 /** @sly2-annot addr=0x1F8870
  * Purpose: duplicate of 0x1F87A0 (different vtable)
  * Info: proposed name GetXfhParamAC2 (T2); TU so
@@ -5615,14 +5615,14 @@ struct S { char pad[0x24]; struct T *pt; };
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Same as GetXfHandleParamAC for the other handle class.
-float GetXfHandleParamAC2(struct S *p) { return p->pt->n * 0.001f; }
+float GetXfHandleParamAC2(struct S *p) { return p->transform->unknownAC * 0.001f; }
 } } // namespace M_func_001F8870
 
 // 0x1F8898 SetXfHandleParamAC2
 namespace M_func_001F8898 { extern "C" {
 struct T; struct S;
-struct T { char pad[0xAC]; short n; };
-struct S { char pad[0x20]; void *p; struct T *pt; };
+struct T { char pad[0xAC]; short unknownAC; };
+struct S { char pad[0x20]; void *so; struct T *transform; };
 void SlotUnsettle(void *, struct T *);
 /** @sly2-annot addr=0x1F8898
  * Purpose: duplicate of 0x1F87C8
@@ -5631,7 +5631,7 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Same as SetXfHandleParamAC for the other handle class.
-void SetXfHandleParamAC2(struct S *p, float g) { p->pt->n = (int)(g * 1000.0f); SlotUnsettle(p->p, p->pt); }
+void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
 } } // namespace M_func_001F8898
 
 // 0x1F88D8 GetXfFromHandle
