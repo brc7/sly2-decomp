@@ -49,9 +49,9 @@ struct DLI {
  void*Next(){void*value=*next;next=(void**)((unsigned int)value+linkOffset);return value;}
 };
 
-/* frm's .bss after the two packet builders (address order; D_002DEA4C..D_002DEB00: medium/low by layout, frm is the
+/* frm's .bss after the two packet builders (address order; g_pfrmOpen..D_002DEB00: medium/low by layout, frm is the
  * code that maintains them). */
-FRM *D_002DEA4C;            /* the frame being built */
+FRM *g_pfrmOpen;            /* the frame being built */
 FRM D_002DEA50[2];
 DL D_002DEAF0;
 DL D_002DEB00;
@@ -134,16 +134,16 @@ void OpenFrame()
     if (!D_003D3980)
         SetPhase__F5PHASE(3);
     func_00234A60(D_002DEB1C);
-    D_002DEA4C = &D_002DEA50[D_002DEB10++];
+    g_pfrmOpen = &D_002DEA50[D_002DEB10++];
     if (D_002DEB10 >= 2)
         D_002DEB10 = 0;
-    ClearPendingFrame(D_002DEA4C);
-    D_002DEA4C->n4C = g_cm.grfvis;
-    D_002DEA4C->n30 = 1;
-    D_002DEA4C->n2C = 0;
-    D_002DEA4C->aqw24 = 0;
-    D_002DEA00.AllocStatic(D_002DEA4C->cqwGifsBuf, D_002DEA4C->aqwGifsBuf);
-    D_002DEA28.AllocStatic(D_002DEA4C->cqwVifsBuf, D_002DEA4C->aqwVifsBuf);
+    ClearPendingFrame(g_pfrmOpen);
+    g_pfrmOpen->n4C = g_cm.grfvis;
+    g_pfrmOpen->n30 = 1;
+    g_pfrmOpen->n2C = 0;
+    g_pfrmOpen->aqw24 = 0;
+    D_002DEA00.AllocStatic(g_pfrmOpen->cqwGifsBuf, g_pfrmOpen->aqwGifsBuf);
+    D_002DEA28.AllocStatic(g_pfrmOpen->cqwVifsBuf, g_pfrmOpen->aqwVifsBuf);
     D_002DEA00.AddDmaRefs(12, D_002DF740);
     D_002DEA00.AddDmaCnt();
 }
@@ -207,14 +207,14 @@ void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw)
  * @end-sly2-annot */
 void CloseFrame()
 {
-    FinalizeFrameVifs(&D_002DEA28, &D_002DEA4C->cqwVifs, &D_002DEA4C->aqwVifs);
-    FinalizeFrameGifs(&D_002DEA00, &D_002DEA4C->cqwGifs, &D_002DEA4C->aqwGifs);
-    D_002DEA4C->cqw20 = D_002DEA4C->aqwVifs + D_002DEA4C->cqwVifs - D_002DEA4C->aqw24;
-    D_002DEA4C->dl34 = D_002DEAF0;
+    FinalizeFrameVifs(&D_002DEA28, &g_pfrmOpen->cqwVifs, &g_pfrmOpen->aqwVifs);
+    FinalizeFrameGifs(&D_002DEA00, &g_pfrmOpen->cqwGifs, &g_pfrmOpen->aqwGifs);
+    g_pfrmOpen->cqw20 = g_pfrmOpen->aqwVifs + g_pfrmOpen->cqwVifs - g_pfrmOpen->aqw24;
+    g_pfrmOpen->dl34 = D_002DEAF0;
     ClearDl__FP2DL(&D_002DEAF0);
-    D_002DEA4C->dl40 = D_002DEB00;
+    g_pfrmOpen->dl40 = D_002DEB00;
     ClearDl__FP2DL(&D_002DEB00);
-    D_002DEA4C = 0;
+    g_pfrmOpen = 0;
     func_00234A40(D_002DEB18);
 }
 

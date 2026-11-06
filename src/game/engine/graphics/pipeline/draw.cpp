@@ -185,7 +185,7 @@ extern "C" void BeginRpForeground(VIFS *pvifs, void *a1, void *a2)
     BeginRpGlob(pvifs, a1, a2);
 }
 
-// g_pfrmOpen: Sly 1 name of the current-frame pointer (symbol_addrs g_pfrmOpen, set in OpenFrame); D_002DEA4C in config.
+// g_pfrmOpen: Sly 1 name of the current-frame pointer (frm.cpp defines it; config/symbol_addrs.txt names 0x2DEA4C so).
 /** @sly2-annot addr=0x157FA0
  * Purpose: Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL
  *   kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL
