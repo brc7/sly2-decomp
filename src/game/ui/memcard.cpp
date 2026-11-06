@@ -143,7 +143,16 @@ extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C __asm__("D_002E65E0+0xFD5C");      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
-extern void *D_002D3750[];      /* CMemcardDialog vtable */
+extern void *D_002D3750[] __asm__("_vt$14CMemcardDialog");      /* CMemcardDialog vtable (emitted here) */
+/* CMemcardDialog (DRAFT name, from its functions' annotations): the memory-card dialog screen, vtable 0x2D3750, emitted
+   here. Defined before CMcStatus (below), whose vtable comes out before it. MCDLG is the view the bodies read. */
+struct CMemcardDialog : SCREEN
+{
+    virtual void PostLoad() __asm__("func_001ACAE8");   /* slot 12; key function */
+    virtual void Update() __asm__("CMemcardDialog_Update");   /* slot 7 */
+    virtual void VSlot13() __asm__("func_001ACB38");   /* slot 13 */
+    virtual void SetMode(int nMode) __asm__("func_001ACC18");   /* slot 14 */
+};
 extern char D_002A38E8[];   /* the icon file */
 void InitGame(void *pgame);
 void *memset(void *pv, int b, unsigned int cb);
@@ -1812,8 +1821,9 @@ extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *pdlg)
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* CMemcardDialog slot 12. */
-extern "C" void func_001ACAE8(MCDLG *pdlg)
+void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes out here */
 {
+    MCDLG *pdlg = (MCDLG *)this;
     MCCHILD *pchild;
     func_001DA770(pdlg);
     pchild = pdlg->pchild;

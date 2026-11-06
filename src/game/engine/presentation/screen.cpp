@@ -1,9 +1,9 @@
-// screen.cpp -- the UI screens (SCREEN widgets: HUD meter, pause menu, notices, gadget menu, thiefnet, job list,
+// screen.cpp -- the UI screens (SCREENV widgets: HUD meter, pause menu, notices, gadget menu, thiefnet, job list,
 // title...): the shown-screen list, post-load and draw of the global screens, screen modes, the gadget menu and its
 // items, the job list texts and the title texts. TU 0x1D93D8..0x1DE2A0 (98 functions with the linkonce copy at
 // 0x258348, address order).
 //
-// Types: TU-private views for the m2c bodies (SCREEN: vtable +0xC, text ids +0x18/+0x20, widget oid +0x20 / object
+// Types: TU-private views for the m2c bodies (SCREENV: vtable +0xC, text ids +0x18/+0x20, widget oid +0x20 / object
 // +0x24, mode +0x28 and when it was set +0x2C; the gadget menu and its 0x20-byte items). The hand-written
 // per-function files keep their views in namespaces named after each function (as jt.cpp does), their C++-named
 // definitions as C-linkage definitions of their literal symbols there.
@@ -18,6 +18,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/screen.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -29,8 +30,8 @@ void *func_001DCC58(void *pv);      /* JOBLIST constructor */
 void *func_001DD648(void *pv);      /* screen 0x52D constructor */
 void *func_001DD7D8(void *pv);      /* title screen constructor */
 void func_00258348(void *pv, int grfDelete);
-extern char D_002D8668[], D_002D37D0[], D_002CA490[] __asm__("_vt$6CID154");   /* vtables of the HUD meter, pause menu and notice */
-extern char D_002D8568[];   /* GADGETMENU vtable */
+extern char D_002D8668[] __asm__("_vt$8HUDMETER"), D_002D37D0[] __asm__("_vt$9PAUSEMENU"), D_002CA490[] __asm__("_vt$6CID154");   /* vtables of the HUD meter, pause menu and notice */
+extern char D_002D8568[] __asm__("_vt$10GADGETMENU");   /* GADGETMENUV vtable */
 }
 struct SCRLIST
 {
@@ -75,7 +76,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A screen as the m2c bodies read it. */
 struct SCRCHILD { char pad0[0xB0]; int fB0; };
-struct SCREEN
+struct SCREENV
 {
     char pad0[0xC];
     void *pvt;              /* +0x0C */
@@ -101,7 +102,7 @@ struct GMITEM
     uint fAcquired : 1;     /* +0x1C bit 2 */
     uint fRest : 29;
 };
-struct GADGETMENU : public SCREEN
+struct GADGETMENUV : public SCREENV
 {
     char pad3C[0x40 - 0x3C];
     int nState;             /* +0x40 */
@@ -109,6 +110,39 @@ struct GADGETMENU : public SCREEN
     char pad48[4];
     int citem;              /* +0x4C */
     GMITEM *aitem;          /* +0x50 */
+};
+/* screen.cpp's screens on sly2/screen.h's SCREEN (DRAFT names after their functions and constructors; vtables
+ * 0x2D8568..0x2D8368). Defined in the reverse of their emission order: g++ emits a TU's vtables in the reverse order
+ * of their classes' definitions, and the ELF has them in ascending order TITLE .. GADGETMENU, SCREEN, HUDMETER,
+ * SCREENBASE. The views above keep the names the m2c bodies use (SCREENV, GADGETMENUV). */
+struct GADGETMENU : SCREEN
+{
+    virtual void VSlot13() __asm__("ResetGadgetMenu");   /* slot 13; key function */
+    virtual void Update() __asm__("UpdateGadgetMenu");   /* slot 7 */
+    virtual void SetMode(int nMode) __asm__("SetGadgetMenuStickDir");   /* slot 14 */
+};
+struct THIEFNET : SCREEN
+{
+    virtual void VSlot13() __asm__("ResetThiefnet");   /* slot 13; key function */
+    virtual void Update() __asm__("UpdateThiefnet");   /* slot 7 */
+    virtual void SetMode(int nMode) __asm__("func_001DC4B0");   /* slot 14 */
+};
+struct JOBLIST : SCREEN
+{
+    virtual void PostLoad() __asm__("PostJobListLoad");   /* slot 12; key function */
+    virtual void Update() __asm__("UpdateJobList");   /* slot 7 */
+    virtual void VSlot13() __asm__("ResetJobList");   /* slot 13 */
+    virtual void SetMode(int nMode) __asm__("SetJobListStickDir");   /* slot 14 */
+};
+struct SCRN52D : SCREEN   /* the screen of text 0x52D (func_001DD648 constructs it) */
+{
+    virtual void PostLoad() __asm__("func_001DD690");   /* slot 12; key function */
+    virtual void SetMode(int nMode) __asm__("func_001DD7B8");   /* slot 14 */
+};
+struct TITLE : SCREEN   /* the title screen */
+{
+    virtual void SetMode(int nMode) __asm__("func_001DDBD0");   /* slot 14; key function */
+    virtual void Update() __asm__("UpdateTitleScreen");   /* slot 7 */
 };
 /* The job list's selected job (+0x6C / +0x70 text ids). */
 struct JOBSEL { char pad0[0x6C]; int ids6C; int ids70; };
@@ -127,25 +161,25 @@ extern char D_003D4A60[];
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
 void func_001A3020(void *pletterbox);
-void func_001DA770(SCREEN *pscreen);
-void PostNoticeLoad(SCREEN *pscreen);
-void PostJobListLoad(SCREEN *pscreen);
+void func_001DA770(SCREENV *pscreen);
+void PostNoticeLoad(SCREENV *pscreen);
+void PostJobListLoad(SCREENV *pscreen);
 void func_001ACAE8(void *pdlg);
-void func_001DD690(SCREEN *pscreen);
+void func_001DD690(SCREENV *pscreen);
 void func_001D9878(void *pscreen);
 void func_001D95B8(DL *pdl);
-void SetHudMeterState(SCREEN *pscreen, int nState);
-void SetNoticeState(SCREEN *pscreen, int nState);
-void func_001DA7D0(SCREEN *pscreen);
-void func_001DA950(SCREEN *pscreen, int n0, int n1);
-SCREEN *func_001DA728(SCREEN *pscreen);
-void ClearGadgetMenu(GADGETMENU *pgm);
+void SetHudMeterState(SCREENV *pscreen, int nState);
+void SetNoticeState(SCREENV *pscreen, int nState);
+void func_001DA7D0(SCREENV *pscreen);
+void func_001DA950(SCREENV *pscreen, int n0, int n1);
+SCREENV *func_001DA728(SCREENV *pscreen);
+void ClearGadgetMenu(GADGETMENUV *pgm);
 int func_001DAE58(int idGadget);
 int FPowerupAcquired(int id);
 LO *PpoHero(SW *psw);
-void SetGadgetMenuState(GADGETMENU *pgm, int nState);
-void ClearThiefnet(SCREEN *pscreen);
-void ClearJobList(SCREEN *pscreen);
+void SetGadgetMenuState(GADGETMENUV *pgm, int nState);
+void ClearThiefnet(SCREENV *pscreen);
+void ClearJobList(SCREENV *pscreen);
 int IdsFromWorld(int nWorld);
 int NWorldCur();
 int NCompletionPercentGs(void *pgs, void *psave);
@@ -252,14 +286,14 @@ extern "C" void func_001D9520()
     PostHudMeterLoad(&D_003D9E80);
     func_001AE928(&D_003D9ED0);
     func_001A3020(D_002E1E60);
-    func_001DA770((SCREEN *)&D_003DA0F0);
-    func_001DA770((SCREEN *)&D_003DA150);
-    PostNoticeLoad((SCREEN *)&D_003DA0C0);
-    PostJobListLoad((SCREEN *)&D_003DA3C0);
+    func_001DA770((SCREENV *)&D_003DA0F0);
+    func_001DA770((SCREENV *)&D_003DA150);
+    PostNoticeLoad((SCREENV *)&D_003DA0C0);
+    PostJobListLoad((SCREENV *)&D_003DA3C0);
     func_001ACAE8(D_002E6550);
-    func_001DA770((SCREEN *)D_002E65A0);
-    func_001DD690((SCREEN *)&D_003DA4F0);
-    func_001DA770((SCREEN *)&D_003DA530);
+    func_001DA770((SCREENV *)D_002E65A0);
+    func_001DD690((SCREENV *)&D_003DA4F0);
+    func_001DA770((SCREENV *)&D_003DA530);
 }
 
 namespace M_func_001D95B8 { extern "C" {
@@ -389,19 +423,19 @@ extern "C" void DrawUi()
 
 /** @sly2-annot addr=0x1D9870
  * Purpose: slot 7 base: empty
- * Info: proposed name UpdateScreen (T2); class SCREEN; TU screen
+ * Info: proposed name UpdateScreen (T2); class SCREENV; TU screen
  * Notes: agent qualifier: (base)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 7 (empty) */
-extern "C" void func_001D9870()
+void SCREENBASE::Update()   /* key function: SCREENBASE's vtable comes out here */
 {
 }
 
 /** @sly2-annot addr=0x1D9878
  * Purpose: slot 8: empty (shared by all 12 screen vtables)
- * Info: proposed name DrawScreen (T2); class SCREEN; TU screen
+ * Info: proposed name DrawScreen (T2); class SCREENV; TU screen
  * Notes: agent qualifier: (base)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
@@ -415,19 +449,19 @@ extern "C" void func_001D9878()
  * Purpose: Return whether the screen is in the shown-screen list D_003D9E70
  * Info: proposed name FScreenShown (T1); TU screen
  * Notes: top50_round (0.65): Body FFindDlEntry(&D_003D9E70,p) (m2c drops the return). ShowScreen 0x1D98B0 /
- *   HideScreen 0x1D9910 (SCREEN slots 10/11) add/remove from the same list. Callers: pause-menu page tests,
+ *   HideScreen 0x1D9910 (SCREENV slots 10/11) add/remove from the same list. Callers: pause-menu page tests,
  *   memcard dialog flow
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r6b_rest+top50_round
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void FScreenShown(SCREEN *pscreen)
+extern "C" void FScreenShown(SCREENV *pscreen)
 {
     FFindDlEntry((DL *)&D_003D9E70, pscreen);
 }
 
 /** @sly2-annot addr=0x1D98A8
  * Purpose: slot 9: empty
- * Info: proposed name SCREEN_vt9 (T2); class SCREEN; TU screen
+ * Info: proposed name SCREEN_vt9 (T2); class SCREENV; TU screen
  * Notes: agent qualifier: (empty)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
@@ -440,13 +474,13 @@ extern "C" void func_001D98A8()
 
 /** @sly2-annot addr=0x1D98B0
  * Purpose: slot 10: move/append the screen to the active list and refocus
- * Info: proposed name ShowScreen (T2); class SCREEN; TU screen
+ * Info: proposed name ShowScreen (T2); class SCREENV; TU screen
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/engine/hud-ui.md#open-questions, docs/open-questions.md#hud--ui,
  *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 /* screen slot 10: (re)insert at the front of the shown list. */
-extern "C" void func_001D98B0(SCREEN *pscreen)
+extern "C" void func_001D98B0(SCREENV *pscreen)
 {
     if (FFindDlEntry((DL *)&D_003D9E70, pscreen) != 0) {
         RemoveDlEntry((DL *)&D_003D9E70, pscreen);
@@ -457,13 +491,13 @@ extern "C" void func_001D98B0(SCREEN *pscreen)
 
 /** @sly2-annot addr=0x1D9910
  * Purpose: slot 11: remove from the active list and refocus
- * Info: proposed name HideScreen (T2); class SCREEN; TU screen
+ * Info: proposed name HideScreen (T2); class SCREENV; TU screen
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 11: take off the shown list. */
-extern "C" void func_001D9910(SCREEN *pscreen)
+extern "C" void func_001D9910(SCREENV *pscreen)
 {
     if (FFindDlEntry((DL *)&D_003D9E70, pscreen) != 0) {
         RemoveDlEntry((DL *)&D_003D9E70, pscreen);
@@ -561,7 +595,7 @@ void PostHudMeterLoad(OBJ *p)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ResetHudMeter(SCREEN *pscreen)
+extern "C" void ResetHudMeter(SCREENV *pscreen)
 {
     SetHudMeterState(pscreen, 0);
     pscreen->n38 = 0;
@@ -715,8 +749,13 @@ void SetWidgetAnimPhase(SUB *, int, float);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-void UpdateHudMeter(OBJ *p)
+} } // namespace M_UpdateHudMeter
+void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the namespace's views) */
 {
+    using namespace M_UpdateHudMeter;
+    using M_UpdateHudMeter::D_003DD490;
+    using M_UpdateHudMeter::D_002DDED0;
+    OBJ *p = (OBJ *)this;
     Q *old;
     Q *q;
     if (!p->x38)
@@ -811,7 +850,6 @@ void UpdateHudMeter(OBJ *p)
         break;
     }
 }
-} } // namespace M_UpdateHudMeter
 
 /** @sly2-annot addr=0x1DA2E0
  * Purpose: Notice banner (global D_003DA0C0): find its widget 0x371
@@ -819,7 +857,7 @@ void UpdateHudMeter(OBJ *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void PostNoticeLoad(SCREEN *pscreen)
+extern "C" void PostNoticeLoad(SCREENV *pscreen)
 {
     PLONOTICE(pscreen) = PloFindSwObject(&D_003DD490, 0x405, (OID)0x371, 0);
 }
@@ -830,7 +868,7 @@ extern "C" void PostNoticeLoad(SCREEN *pscreen)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ResetNotice(SCREEN *pscreen)
+extern "C" void ResetNotice(SCREENV *pscreen)
 {
     pscreen->idText = -1;
     pscreen->idTextQueued = -1;
@@ -972,7 +1010,7 @@ void CancelNotice(struct S *p, int n) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* The text id queued, else the one shown. */
-extern "C" int func_001DA5B0(SCREEN *pscreen)
+extern "C" int func_001DA5B0(SCREENV *pscreen)
 {
     int ids = pscreen->idTextQueued;
     if (ids == -1) {
@@ -1045,12 +1083,12 @@ void SetNoticeState(OBJ *p, int n)
 } } // namespace M_SetNoticeState
 
 namespace M_func_001DA728 { extern "C" {
-extern char D_002D85E8[];
+extern char D_002D85E8[] __asm__("_vt$6SCREEN");
 struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
 void func_001DA7D0(struct S *p);
 /** @sly2-annot addr=0x1DA728
  * Purpose: Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset
- * Info: proposed name SCREEN_ctor (T2); class SCREEN; TU screen
+ * Info: proposed name SCREEN_ctor (T2); class SCREENV; TU screen
  * Notes: agent qualifier: (ctor)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
@@ -1068,26 +1106,27 @@ struct S *func_001DA728(struct S *p) {
 
 /** @sly2-annot addr=0x1DA770
  * Purpose: slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5)
- * Info: proposed name PostScreenLoad (T2); class SCREEN; TU screen
+ * Info: proposed name PostScreenLoad (T2); class SCREENV; TU screen
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* screen slot 12: resolve the widget. */
-extern "C" void func_001DA770(SCREEN *pscreen)
+void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
 {
+    SCREENV *pscreen = (SCREENV *)this;
     pscreen->pchild = (SCRCHILD *)PloFindSwObject(&D_003DD490, 5, (OID)pscreen->idTextQueued, 0);
 }
 
 /** @sly2-annot addr=0x1DA7B0
  * Purpose: slot 13: drop widget pointer and reset mode
- * Info: proposed name ResetScreen (T2); class SCREEN; TU screen
+ * Info: proposed name ResetScreen (T2); class SCREENV; TU screen
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* screen slot 13. */
-extern "C" void func_001DA7B0(SCREEN *pscreen)
+extern "C" void func_001DA7B0(SCREENV *pscreen)
 {
     pscreen->pchild = 0;
     func_001DA7D0(pscreen);
@@ -1100,7 +1139,7 @@ extern "C" void func_001DA7B0(SCREEN *pscreen)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
-extern "C" void func_001DA7D0(SCREEN *pscreen)
+extern "C" void func_001DA7D0(SCREENV *pscreen)
 {
     pscreen->nMode = -1;
     pscreen->tMode = D_002DDED0.tReal;
@@ -1203,7 +1242,7 @@ void func_001DA950(struct S *p, int n, int m) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void func_001DA9E8(SCREEN *pscreen)
+extern "C" void func_001DA9E8(SCREENV *pscreen)
 {
     func_001DA950(pscreen, -1, -1);
 }
@@ -1216,7 +1255,7 @@ extern "C" void func_001DA9E8(SCREEN *pscreen)
  * @end-sly2-annot */
 extern "C" void *GADGETMENU_ctor(void *pv)
 {
-    GADGETMENU *pgm = (GADGETMENU *)pv;
+    GADGETMENUV *pgm = (GADGETMENUV *)pv;
     func_001DA728(pgm);
     pgm->pvt = D_002D8568;
     ClearGadgetMenu(pgm);
@@ -1229,8 +1268,9 @@ extern "C" void *GADGETMENU_ctor(void *pv)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ResetGadgetMenu(GADGETMENU *pgm)
+void GADGETMENU::VSlot13()   /* key function */
 {
+    GADGETMENUV *pgm = (GADGETMENUV *)this;
     func_001DA7B0(pgm);
     ClearGadgetMenu(pgm);
 }
@@ -1241,7 +1281,7 @@ extern "C" void ResetGadgetMenu(GADGETMENU *pgm)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ClearGadgetMenu(GADGETMENU *pgm)
+extern "C" void ClearGadgetMenu(GADGETMENUV *pgm)
 {
     pgm->nState = -1;
     pgm->tState = D_002DDED0.tReal;
@@ -1514,7 +1554,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void RefreshGadgetMenuItems(GADGETMENU *pgm)
+extern "C" void RefreshGadgetMenuItems(GADGETMENUV *pgm)
 {
     int i = 0;
     if (pgm->citem > 0) {
@@ -1724,7 +1764,7 @@ void SelectGadgetMenuItem(OBJ *p, int key)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void OpenGadgetMenuForHero(GADGETMENU *pgm)
+extern "C" void OpenGadgetMenuForHero(GADGETMENUV *pgm)
 {
     LO *ploHero = PpoHero(&D_003DD490);
     if (ploHero != 0) {
@@ -1865,7 +1905,7 @@ void SetGadgetMenuState(OBJ *p, int s)
 #undef VCALL
 
 namespace M_func_001DB7A8 { extern "C" {
-extern char D_002D84E8[];
+extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
 struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
 struct S *func_001DA728(struct S *p);
 void ClearThiefnet(struct S *p);
@@ -1890,8 +1930,9 @@ struct S *func_001DB7A8(struct S *p) {
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ResetThiefnet(SCREEN *pscreen)
+void THIEFNET::VSlot13()   /* key function */
 {
+    SCREENV *pscreen = (SCREENV *)this;
     func_001DA7B0(pscreen);
     ClearThiefnet(pscreen);
 }
@@ -2786,7 +2827,7 @@ void BuildThiefnetInfoText(char *pch)
 } } // namespace M_BuildThiefnetInfoText
 
 namespace M_func_001DCC58 { extern "C" {
-extern char D_002D8468[];
+extern char D_002D8468[] __asm__("_vt$7JOBLIST");
 struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
 struct S *func_001DA728(struct S *p);
 void ClearJobList(struct S *p);
@@ -2811,8 +2852,9 @@ struct S *func_001DCC58(struct S *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void PostJobListLoad(SCREEN *pscreen)
+void JOBLIST::PostLoad()   /* key function */
 {
+    SCREENV *pscreen = (SCREENV *)this;
     func_001DA770(pscreen);
     if (pscreen->pchild != 0) {
         pscreen->pchild->fB0 = 1;
@@ -2825,7 +2867,7 @@ extern "C" void PostJobListLoad(SCREEN *pscreen)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void ResetJobList(SCREEN *pscreen)
+extern "C" void ResetJobList(SCREENV *pscreen)
 {
     func_001DA7B0(pscreen);
     ClearJobList(pscreen);
@@ -3284,7 +3326,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
 } } // namespace M_SetJobListStickDir
 
 namespace M_func_001DD648 { extern "C" {
-extern char D_002D83E8[];
+extern char D_002D83E8[] __asm__("_vt$7SCRN52D");
 struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
 struct S *func_001DA728(struct S *p);
 void func_001DA7D0(struct S *p);
@@ -3309,8 +3351,9 @@ struct S *func_001DD648(struct S *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-extern "C" void func_001DD690(SCREEN *pscreen)
+void SCRN52D::PostLoad()   /* key function */
 {
+    SCREENV *pscreen = (SCREENV *)this;
     func_001DA770(pscreen);
     if (pscreen->pchild != 0) {
         pscreen->pchild->fB0 = 1;
@@ -3393,7 +3436,7 @@ int func_001DD780(struct S *p) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void func_001DD7B8(SCREEN *pscreen, int nMode)
+extern "C" void func_001DD7B8(SCREENV *pscreen, int nMode)
 {
     if (nMode != pscreen->nMode) {
         pscreen->nMode = nMode;
@@ -3402,7 +3445,7 @@ extern "C" void func_001DD7B8(SCREEN *pscreen, int nMode)
 }
 
 namespace M_func_001DD7D8 { extern "C" {
-extern char D_002D8368[];
+extern char D_002D8368[] __asm__("_vt$5TITLE");
 struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
 struct S *func_001DA728(struct S *p);
 void func_001DA7D0(struct S *p);
@@ -3627,8 +3670,9 @@ extern "C" void StartNewGame(void)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void func_001DDBD0(SCREEN *pscreen, int nMode)
+void TITLE::SetMode(int nMode)   /* key function */
 {
+    SCREENV *pscreen = (SCREENV *)this;
     if (nMode != pscreen->nMode) {
         pscreen->nMode = nMode;
         pscreen->tMode = D_002DDED0.tReal;

@@ -4334,3 +4334,14 @@ _vt$3SAA = 0x2D9420; // type:data size:0x60
 _vt$9STREAMSND = 0x2D9BE0; // type:data size:0x90
 _vt$7BANKSND = 0x2D9C70; // type:data size:0x90
 _vt$6CID151 = 0x2D9D00; // type:data size:0x90
+// the screens (sly2/screen.h; screen.cpp, menu.cpp's PAUSEMENU, memcard.cpp's CMemcardDialog; DRAFT class names)
+_vt$9PAUSEMENU = 0x2D37D0; // type:data size:0x68
+_vt$5TITLE = 0x2D8368; // type:data size:0x80
+_vt$7SCRN52D = 0x2D83E8; // type:data size:0x80
+_vt$7JOBLIST = 0x2D8468; // type:data size:0x80
+_vt$8THIEFNET = 0x2D84E8; // type:data size:0x80
+_vt$10GADGETMENU = 0x2D8568; // type:data size:0x80
+_vt$6SCREEN = 0x2D85E8; // type:data size:0x80
+_vt$8HUDMETER = 0x2D8668; // type:data size:0x68
+_vt$10SCREENBASE = 0x2D86D0; // type:data size:0x68
+_vt$14CMemcardDialog = 0x2D3750; // type:data size:0x80
