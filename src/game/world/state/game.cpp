@@ -160,35 +160,41 @@ extern "C" void ClearGameDifficulty()
 }
 
 namespace M_UpdateGameTimers {
-extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
-struct CRefData{int tag;union{int n;float g;};};
-struct CRef:CRefData{
- CRef(float x){tag=0x16;g=x;}
- CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
- ~CRef(){Decref__4CRef(this);}
+extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
+struct CRefData { int tag; union { int n; float g; }; };
+struct CRef : CRefData {
+    CRef(float x) { tag = 0x16; g = x; }
+    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    ~CRef() { Decref__4CRef(this); }
 };
 struct OPT;
-struct JOBTIME{char pad[0x9C];float start,end,elapsed;};
-struct G{char pad[0x3B0C];JOBTIME*currentJob;char pad10[0xC];OPT*playTimeVar;char pad20[0x38];OPT*episodePlayTimeVars[9];};
-struct CLOCK{float time,dt;};
+struct JOBTIME { char pad[0x9C]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
+struct G {
+    char pad[0x3B0C]; JOBTIME *currentJob;
+    char pad10[0xC]; OPT *playTimeVar;
+    char pad20[0x38]; OPT *episodePlayTimeVars[9];
+};
+struct CLOCK { float time, dt; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
-extern "C" { 
- }
-extern "C" { extern char D_003D4A60[],D_002DE578[]; }
-extern "C" CRef RefGetGlobalSaveVar(OPT*,void*);
-extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRefData&,void*);
+extern "C" { extern char D_003D4A60[], D_002DE578[]; }
+extern "C" CRef RefGetGlobalSaveVar(OPT *, void *);
+extern "C" CRef RefSetGlobalSaveVar(OPT *, const CRefData &, void *);
 extern "C" int NWorldCur();
-extern "C" void ChangeDifficulty(void*,float);
-static inline float GetFloat(OPT*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
-static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);}
-static inline void SetFloat(OPT*p,float x,void*context){CRef r(x);SetPv(p,r,context);}
-struct CRefCopy:CRefData{
- CRefCopy(const CRefData&r){__4CRefRC4CRef(this,&r);}
- ~CRefCopy(){Decref__4CRef(this);}
+extern "C" void ChangeDifficulty(void *, float);
+static inline float GetFloat(OPT *p, void *context) { const CRef &r = RefGetGlobalSaveVar(p, context); return r.g; }
+static inline void SetPv(OPT *p, const CRef &r, void *context) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(p, arg, context); }
+static inline void SetFloat(OPT *p, float x, void *context) { CRef r(x); SetPv(p, r, context); }
+struct CRefCopy : CRefData {
+    CRefCopy(const CRefData &r) { __4CRefRC4CRef(this, &r); }
+    ~CRefCopy() { Decref__4CRef(this); }
 };
-static inline void SetPrimaryFloat(OPT*p,float value,void*context){
- CRef r(value);CRefCopy arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);
+/* The play-time write copies through a CRefData base (the episode write through CRef): the two copies differ in the target. */
+static inline void SetPlayTimeFloat(OPT *p, float value, void *context)
+{
+    CRef r(value);
+    CRefCopy arg(r);
+    const CRef &ret = RefSetGlobalSaveVar(p, arg, context);
 }
 /** @sly2-annot addr=0x161478
  * Purpose: Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's
@@ -203,20 +209,26 @@ static inline void SetPrimaryFloat(OPT*p,float value,void*context){
  * @end-sly2-annot */
 // Per-tick timers: adds dt to the total play time and the current episode's play time (save variables), to the current
 // job's elapsed time, and eases the difficulty when the job takes long.
-extern "C" void UpdateGameTimers(){
- if(!D_003DD490.playTimeVar)return;
- float x=GetFloat(D_003DD490.playTimeVar,D_003D4A60);
- SetPrimaryFloat(D_003DD490.playTimeVar,x+D_002DDED0.dt,D_003D4A60);
- unsigned int i=NWorldCur();
- if(i<9){
-  OPT*p=D_003DD490.episodePlayTimeVars[i];
-  if(p){float g=GetFloat(p,D_003D4A60);SetFloat(p,g+D_002DDED0.dt,D_003D4A60);}
- }
- JOBTIME*p=D_003DD490.currentJob;
- if(p&&(float)g_joy.dtIdle<10.0f){
-  p->elapsed+=D_002DDED0.dt;
-  if(p->start<p->elapsed)ChangeDifficulty(D_002DE578,D_002DDED0.dt/(p->end-p->start));
- }
+extern "C" void UpdateGameTimers()
+{
+    if (!D_003DD490.playTimeVar)
+        return;
+    float playTime = GetFloat(D_003DD490.playTimeVar, D_003D4A60);
+    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.dt, D_003D4A60);
+    unsigned int episode = NWorldCur();
+    if (episode < 9) {
+        OPT *var = D_003DD490.episodePlayTimeVars[episode];
+        if (var) {
+            float episodeTime = GetFloat(var, D_003D4A60);
+            SetFloat(var, episodeTime + D_002DDED0.dt, D_003D4A60);
+        }
+    }
+    JOBTIME *job = D_003DD490.currentJob;
+    if (job && (float)g_joy.dtIdle < 10.0f) {   /* only while the player is not idle */
+        job->elapsed += D_002DDED0.dt;
+        if (job->start < job->elapsed)
+            ChangeDifficulty(D_002DE578, D_002DDED0.dt / (job->end - job->start));
+    }
 }
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -296,7 +308,12 @@ extern "C" int GetEpisodePercentComplete()
         return 0;
     if (numComplete == numCounted)
         return 100;
-    int maxPercent = 99; int percent = numComplete * 100 / numCounted; int result = 1; if (percent > 0) result = Min(percent, maxPercent); return result;
+    int maxPercent = 99;
+    int percent = numComplete * 100 / numCounted;
+    int result = 1;
+    if (percent > 0)
+        result = Min(percent, maxPercent);
+    return result;
 }
 } // namespace M_NEpisodePercentComplete
 
@@ -537,9 +554,21 @@ extern BANK D_002E65E0;
  void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-struct OVERRIDE{CONTEXT*context;P*object;int oldSource,oldRequester;
- OVERRIDE(P*p,int source,int requester):context(0),object(p){if(object){oldSource=object->stateSource;object->stateSource=source;oldRequester=object->stateRequester;object->stateRequester=requester;}}
- ~OVERRIDE(){if(context){context->stateSource=oldSource;context->stateRequester=oldRequester;}if(object){object->stateSource=oldSource;object->stateRequester=oldRequester;}}
+/* Sets a task's state source / requester for a scope (the CONTEXT pointer is the unused JOB-layout half). */
+struct OVERRIDE {
+    CONTEXT *context; P *object; int oldSource, oldRequester;
+    OVERRIDE(P *p, int source, int requester) : context(0), object(p)
+    {
+        if (object) {
+            oldSource = object->stateSource; object->stateSource = source;
+            oldRequester = object->stateRequester; object->stateRequester = requester;
+        }
+    }
+    ~OVERRIDE()
+    {
+        if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
+        if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
+    }
 };
 struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefGetGlobalSaveVar(void*,void*);
@@ -590,48 +619,89 @@ typedef char CRef_g_Offset[FIELD_OFFSET(CRef,g)==4?1:-1];
 // The game record's event handler: world teardown (1) saves widget state, reset (3) applies the pending save data and
 // reloads the slots, load (4) restores the tasks, 5 re-resolves the current job, task and pending task from the saved
 // oids.
-extern "C" void HandleGameEvent(P*p,int action){
- switch(action){
- case 1:{
-  if(Same(&(*(CHECK *)&g_sw.filerecDest),&D_002A37E8)){
-   P*results[3];
-   int found=CploFindSwObjectsByClass(&D_003DD490,5,0x34,0,3,results);
-   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)func_00143AF0(object,IdBootyCur(object->widget));--count;++cursor;}while(count);}
-  }
-  break;
- }
- case 3:{
-  if(D_003DD490.transitionFlags&1){InitGame(p);D_002E65E0.selectedSlot=0;}
-  else if(D_003DD490.transitionFlags&0x40)ApplyPendingSaveData();
-  ReloadSaveSlots(&D_002E65E0);
-  if(NWorldCur())break;
-  if(D_002E65E0.mode!=6||D_002E65E0.selectedSlot||!D_002E65E0.currentSlotData)break;
-  if(GetFloat(D_003DD490.playTimeVar,D_003D4A60)!=0.0f)break;
-  if(GetFloat(D_003DD490.playTimeVar,D_002E65E0.currentSlotData)!=0.0f)ApplyGsSettings(D_002E65E0.currentSlotData);
-  break;
- }
- case 4:RestoreTasksAfterLoad(p);break;
- case 5:{
-  int i=0;
-  LEASE mark;
-  int count;
-  P**objects;
-  SortTasksTopologically(&count,&objects);
-  for(;i<count;i++){P*object=objects[i];OVERRIDE temp(object,1,0);RestoreTaskState(object);}
-  G*g=&D_003DD490;
-  SetSwJobCur(g,PloFindSwObject__FP2SWi3OIDP2LO(g,0x105,p->savedOids[0],0));
-  SetSwTaskCur(g,PloFindSwObject__FP2SWi3OIDP2LO(g,0x105,p->savedOids[1],0));
-  SetSwTaskPending(g,PloFindSwObject__FP2SWi3OIDP2LO(g,0x105,p->savedOids[2],0));
-  if(g->currentJob)BeginJob(g->currentJob);
-  if(g->currentTask)BeginTask(g->currentTask);
-  if(g->transitionFlags&4){if(g->pendingTask)AnnounceTaskJob(g->pendingTask);else if(g->currentJob)AnnounceTaskJob(g->currentJob->startTask);}
-  for(int j=0;j<count;j++){P*object=objects[j];OVERRIDE temp(object,0,0);UpdateTaskSaveVars(object);}
-  mark.Release();
-  break;
- }
- case 16:{G*g=&D_003DD490;if(!g->currentJob)WipeToWorldWarp(g,0,g->returnWarpOid,g->returnWarpContext,g->unknown3E38?0x20:0,0x30A);break;}
- case 2:case 6:case 7:case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:break;
- }
+extern "C" void HandleGameEvent(P *game, int action)
+{
+    switch (action) {
+    case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
+        if (Same(&(*(CHECK *)&g_sw.filerecDest), &D_002A37E8)) {
+            P *players[3];
+            int found = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
+            if (found > 0) {
+                P **cursor = players;
+                int count = found;
+                do {
+                    P *player = *cursor;
+                    if (player->widget)
+                        (void)func_00143AF0(player, IdBootyCur(player->widget));
+                    --count;
+                    ++cursor;
+                } while (count);
+            }
+        }
+        break;
+    }
+    case 3: {   /* reset: a new game, or the save data loaded from a slot */
+        if (D_003DD490.transitionFlags & 1) {
+            InitGame(game);
+            D_002E65E0.selectedSlot = 0;
+        } else if (D_003DD490.transitionFlags & 0x40)
+            ApplyPendingSaveData();
+        ReloadSaveSlots(&D_002E65E0);
+        if (NWorldCur())
+            break;
+        if (D_002E65E0.mode != 6 || D_002E65E0.selectedSlot || !D_002E65E0.currentSlotData)
+            break;
+        if (GetFloat(D_003DD490.playTimeVar, D_003D4A60) != 0.0f)
+            break;
+        if (GetFloat(D_003DD490.playTimeVar, D_002E65E0.currentSlotData) != 0.0f)
+            ApplyGsSettings(D_002E65E0.currentSlotData);
+        break;
+    }
+    case 4:
+        RestoreTasksAfterLoad(game);
+        break;
+    case 5: {   /* re-resolve the saved current job / task / pending task */
+        int i = 0;
+        LEASE mark;
+        int count;
+        P **tasks;
+        SortTasksTopologically(&count, &tasks);
+        for (; i < count; i++) {
+            P *task = tasks[i];
+            OVERRIDE restoring(task, 1, 0);
+            RestoreTaskState(task);
+        }
+        G *world = &D_003DD490;
+        SetSwJobCur(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[0], 0));
+        SetSwTaskCur(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[1], 0));
+        SetSwTaskPending(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[2], 0));
+        if (world->currentJob)
+            BeginJob(world->currentJob);
+        if (world->currentTask)
+            BeginTask(world->currentTask);
+        if (world->transitionFlags & 4) {
+            if (world->pendingTask)
+                AnnounceTaskJob(world->pendingTask);
+            else if (world->currentJob)
+                AnnounceTaskJob(world->currentJob->startTask);
+        }
+        for (int j = 0; j < count; j++) {
+            P *task = tasks[j];
+            OVERRIDE gameplay(task, 0, 0);
+            UpdateTaskSaveVars(task);
+        }
+        mark.Release();
+        break;
+    }
+    case 16: {   /* no job: back to the return warp */
+        G *world = &D_003DD490;
+        if (!world->currentJob)
+            WipeToWorldWarp(world, 0, world->returnWarpOid, world->returnWarpContext, world->unknown3E38 ? 0x20 : 0, 0x30A);
+        break;
+    }
+    case 2: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:
+        break;
+    }
 }
 } // namespace M_HandleGameEvent
 #undef FIELD_OFFSET
@@ -1560,6 +1630,15 @@ void FinishJob(struct S *job)
 
 namespace M_func_00162FD0 { extern "C" {
 struct LO { char pad[0x40]; int flags; };
+/* SetLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
+static inline void SetLoFlagsInline(struct LO *plo, int bits)
+{
+    int v = plo->flags;
+    if ((v ^ 1) & 1)
+        *(int *)v |= bits;
+    else
+        plo->flags = v | bits;
+}
 struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
 int func_001A4E70(void *p);
@@ -1583,12 +1662,7 @@ void ContinueAfterJob(struct S *job)
     } else if (job->nextTask) {
         RequestTaskState(job->nextTask, 4, job);
     } else if (job->exitObject) {
-        struct LO *plo = job->exitObject;
-        int v = plo->flags;
-        if ((v ^ 1) & 1)
-            *(int *)v |= 0x100;
-        else
-            plo->flags = v | 0x100;
+        SetLoFlagsInline(job->exitObject, 0x100);
         TakeExit(job->exitObject);
     }
 }
@@ -1596,6 +1670,7 @@ void ContinueAfterJob(struct S *job)
 
 namespace M_UpdateJob { extern "C" {
 struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
+enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };   /* as SetJobCompletionPhase */
 void UpdateLo(struct S *p);
 int FWidgetAnimPlaying(void *p, int n);
 void FinishJob(struct S *p);
@@ -1616,22 +1691,22 @@ void UpdateJob(struct S *job)
 {
     UpdateLo(job);
     switch (job->completionPhase) {
-    case 1:
+    case PHASE_INTRO:
         if (!FWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
             FinishJob(job);
             if (job->nextTask || job->exitObject)
-                SetJobCompletionPhase(job, 3);
+                SetJobCompletionPhase(job, PHASE_SHARED_WIDGET);
             else
-                SetJobCompletionPhase(job, 2);
+                SetJobCompletionPhase(job, PHASE_OUTRO);
         }
         break;
-    case 2:
+    case PHASE_OUTRO:
         if (!FWidgetAnimPlaying(job->completionWidget, job->outroLabel)) {
             ContinueAfterJob(job);
-            SetJobCompletionPhase(job, 0);
+            SetJobCompletionPhase(job, PHASE_NONE);
         }
         break;
-    case 3:
+    case PHASE_SHARED_WIDGET:
         if (!FWidgetAnimPlaying(job->widget379, 0x30F))
             ContinueAfterJob(job);
         break;
@@ -1643,13 +1718,32 @@ namespace M_SetJobCompletionPhase { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct X;
-struct X {
+/* Completion sequence phases of a JOB. */
+enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };
+struct X {   /* a JOB or a TASK */
     char pad[0x40]; int flags;
     char pad1[0x68 - 0x44]; struct X *completeTask;
     char pad2[0x94 - 0x6C]; int numPrerequisites; struct X **prerequisites;
     char pad3[0xA0 - 0x9C]; int numFollowers; struct X **followers;
-    char pad4[0xB0 - 0xA8]; int introLabel; int outroLabel; struct O *completionWidget; struct O *widget379; struct X *nextTask; int completionPhase; float tCompletionPhase;   /* on a task, completionPhase != 0 marks it as the next task (inferred) */
+    char pad4[0xB0 - 0xA8]; int introLabel; int outroLabel; struct O *completionWidget; struct O *widget379; struct X *nextTask; union { int completionPhase; void *exitObject; /* (a task) */ }; float completionPhaseTime;
 };
+/* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
+static inline void SetLoFlagsInline(struct X *plo, int bits)
+{
+    int v = plo->flags;
+    if ((v ^ 1) & 1)
+        *(int *)v |= bits;
+    else
+        plo->flags = v | bits;
+}
+static inline void ClearLoFlagsInline(struct X *plo, int bits)
+{
+    int v = plo->flags;
+    if ((v ^ 1) & 1)
+        *(int *)v &= ~bits;
+    else
+        plo->flags = v & ~bits;
+}
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 int IsTaskComplete(struct X *p);
@@ -1677,62 +1771,53 @@ static __inline__ void ShowWidget(struct O *po, int n)
  * @end-sly2-annot */
 // Sets the completion phase (0 none, 1 intro, 2 outro, 3 shared widget): leaving 0 finds the next task and takes
 // control from the player; returning to 0 hides the widgets and gives control back.
-void SetJobCompletionPhase(struct X *job, int n)
+void SetJobCompletionPhase(struct X *job, int phase)
 {
     int i;
-    if (job->completionPhase == n) return;
-    if (job->completionPhase == 0) {
-        int v;
+    if (job->completionPhase == phase) return;
+    if (job->completionPhase == PHASE_NONE) {
+        /* The next task: the first follower of the end task with an exit, if its other prerequisites are complete. */
         job->nextTask = 0;
         for (i = 0; i < job->completeTask->numFollowers; i++) {
-            struct X *px = job->completeTask->followers[i];
-            if (px->completionPhase) {
-                job->nextTask = px;
+            struct X *follower = job->completeTask->followers[i];
+            if (follower->exitObject) {
+                job->nextTask = follower;
                 break;
             }
         }
         if (job->nextTask) {
             int j;
             for (j = 0; j < job->nextTask->numPrerequisites; j++) {
-                struct X *px = job->nextTask->prerequisites[j];
-                if (px != job->completeTask && !IsTaskComplete(px)) {
+                struct X *prerequisite = job->nextTask->prerequisites[j];
+                if (prerequisite != job->completeTask && !IsTaskComplete(prerequisite)) {
                     job->nextTask = 0;
                     break;
                 }
             }
         }
         SetLoBusyk(job, 1);
-        v = job->flags;
-        if ((v ^ 1) & 1)
-            *(int *)v |= 0x102;
-        else
-            job->flags = v | 0x102;
+        SetLoFlagsInline(job, 0x102);
         IncrementSwHandsOff(D_003DD490, 2);
     }
-    job->completionPhase = n;
-    job->tCompletionPhase = D_002DDED0.t;
-    switch (n) {
-    case 0: {
-        int v;
+    job->completionPhase = phase;
+    job->completionPhaseTime = D_002DDED0.t;
+    switch (phase) {
+    case PHASE_NONE: {
         if (job->widget379) HideWidget(job->widget379);
         if (job->completionWidget) HideWidget(job->completionWidget);
         SetLoBusyk(job, 2);
-        v = job->flags;
-        if ((v ^ 1) & 1)
-            *(int *)v &= ~0x102;
-        else
-            job->flags = v & ~0x102;
+        ClearLoFlagsInline(job, 0x102);
         DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
-    case 1:
+    case PHASE_INTRO:
         ShowWidget(job->completionWidget, -1);
         PlayWidgetAnim(job->completionWidget, job->introLabel);
         break;
-    case 3:
+    case PHASE_SHARED_WIDGET:
         ShowWidget(job->widget379, -1);
         break;
-    case 2:
+    case PHASE_OUTRO:
         PlayWidgetAnim(job->completionWidget, job->outroLabel);
         break;
     }
@@ -1800,7 +1885,7 @@ struct CRef{
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
-struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,savedTimeVar;};
+struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
@@ -1818,10 +1903,28 @@ static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,cont
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Writes the job's count, complete flag and elapsed time into its save variables.
-extern "C" void UpdateJobSaveVars(S*job){
- {OPT*opt=&job->startCountVar;if(opt->kind){SetInt(opt,job->startCount);}}
- {OPT*opt=&job->completeVar;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
- {OPT*opt=&job->savedTimeVar;if(opt->kind){CRef r(job->elapsedTime);SetPv(opt,r);}}
+extern "C" void UpdateJobSaveVars(S *job)
+{
+    {
+        OPT *var = &job->startCountVar;
+        if (var->kind)
+            SetInt(var, job->startCount);
+    }
+    {
+        OPT *var = &job->completeVar;
+        if (var->kind) {
+            void *context = D_003D4A60;
+            int isComplete = IsJobComplete(job);
+            SetBool(var, isComplete != 0, context);
+        }
+    }
+    {
+        OPT *var = &job->elapsedTimeVar;
+        if (var->kind) {
+            CRef r(job->elapsedTime);
+            SetPv(var, r);
+        }
+    }
 }
 } // namespace M_UpdateJobSaveVars
 
@@ -2001,6 +2104,15 @@ struct S {
     char pad3[0x90 - 0x8C]; int *prerequisiteOids; int numPrerequisites; void **prerequisites; int *followerOids; int numFollowers; void **followers; int numVisibility;struct E16*visibility;int numRsmgs;struct E24*rsmgs;
     char pad4[0xC8 - 0xB8]; int startCountKey; int completeKey; int completionCountKey;
 };
+/* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
+static inline void SetLoFlagsInline(struct S *plo, int bits)
+{
+    int v = plo->flags;
+    if ((v ^ 1) & 1)
+        *(int *)v |= bits;
+    else
+        plo->flags = v | bits;
+}
 extern char D_003D4A60[];
 extern char D_003DD490[];
 void PostLoLoad(struct S *p);
@@ -2074,14 +2186,9 @@ void PostTaskLoad(struct S *task)
         task->completionCount = n;
     }
     if (task->timeLimit != 0.0f || task->children.first) {
-        int v;
         if ((int)task->bf.busyk == 2)
             SetLoBusyk(task, 0);
-        v = task->flags;
-        if ((v ^ 1) & 1)
-            *(int *)v |= 2;
-        else
-            task->flags = v | 2;
+        SetLoFlagsInline(task, 2);
     }
 }
 
@@ -2234,6 +2341,15 @@ public:
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
 };
 struct LO { char pad[0x40]; int flags; };
+/* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
+static inline void SetLoFlagsInline(LO *plo, int bits)
+{
+    int v = plo->flags;
+    if ((v ^ 1) & 1)
+        *(int *)v |= bits;
+    else
+        plo->flags = v | bits;
+}
 class O : public OBase {
 public:
     char pad[0x5C - 0x10];
@@ -2291,12 +2407,7 @@ extern "C" void BeginTask(O *task)
             PostNotice(D_003DA0C0, task->noticeId, -1.0f);
         task->Msg(0x13, 0, 0, 0, 0);
         if (task->exitObject) {
-            LO *plo = task->exitObject;
-            int v = plo->flags;
-            if ((v ^ 1) & 1)
-                *(int *)v |= 0x100;
-            else
-                plo->flags = v | 0x100;
+            SetLoFlagsInline(task->exitObject, 0x100);
             TakeExit(task->exitObject);
         }
     }
@@ -2615,14 +2726,43 @@ static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Writes the task's fields into its save variables and refreshes its job's.
-extern "C" void UpdateTaskSaveVars(S*task){
- if(task->stateSource==1||task->state==-1)return;
- {OPT*opt=&task->startCountVar;if(opt->kind){SetInt(opt,task->startCount);}}
- {OPT*opt=&task->completionCountVar;if(opt->kind){SetInt(opt,task->completionCount);}}
- {OPT*opt=&task->completeVar;if(opt->kind){void*key=D_003D4A60;int f=IsTaskComplete(task);{CRef r(f!=0);SetPv(opt,r,key);}}}
- {OPT*opt=&task->stateVar;if(opt->kind){SetInt(opt,task->state);}}
- {OPT*opt=&task->interruptedVar;if(opt->kind){CRef r(false);SetPv(opt,r,D_003D4A60);}}
- if(task->job)UpdateJobSaveVars(task->job);
+extern "C" void UpdateTaskSaveVars(S *task)
+{
+    if (task->stateSource == 1 || task->state == -1)   /* restoring from the save, or never set */
+        return;
+    {
+        OPT *var = &task->startCountVar;
+        if (var->kind)
+            SetInt(var, task->startCount);
+    }
+    {
+        OPT *var = &task->completionCountVar;
+        if (var->kind)
+            SetInt(var, task->completionCount);
+    }
+    {
+        OPT *var = &task->completeVar;
+        if (var->kind) {
+            void *context = D_003D4A60;
+            int isComplete = IsTaskComplete(task);
+            CRef r(isComplete != 0);
+            SetPv(var, r, context);
+        }
+    }
+    {
+        OPT *var = &task->stateVar;
+        if (var->kind)
+            SetInt(var, task->state);
+    }
+    {
+        OPT *var = &task->interruptedVar;
+        if (var->kind) {
+            CRef r(false);
+            SetPv(var, r, D_003D4A60);
+        }
+    }
+    if (task->job)
+        UpdateJobSaveVars(task->job);
 }
 } // namespace M_UpdateTaskSaveVars
 
@@ -3118,8 +3258,13 @@ void CollectTaskCascade(struct X *task, int newState, int *count, struct X **col
 } } // namespace M_CollectTaskCascade
 
 namespace M_SetTaskStateCascade {
-// SetTaskStateCascade: object state change (applies overrides to gathered children, then notifies)
-struct P{char pad[0x54];int state;char pad58[0x24];void*job;char pad80[0x14];int numPrerequisites;char pad98[8];int numFollowers;P**followers;char padA8[0x48];int pendingCascadeState;int stateSource,stateRequester;};
+struct P {
+    char pad[0x54]; int state;
+    char pad58[0x24]; void *job;
+    char pad80[0x14]; int numPrerequisites;
+    char pad98[8]; int numFollowers; P **followers;
+    char padA8[0x48]; int pendingCascadeState; int stateSource, stateRequester;
+};
 struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 struct G{char pad[0x3B7C];void*episodePercentVars[9];};
@@ -3146,9 +3291,21 @@ CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
 }
 static inline void*Allocate(int n){return func_001AE378(REQUEST(n,16));}
-struct OVERRIDE{CONTEXT*context;P*object;int oldSource,oldRequester;
-    OVERRIDE(P*p,int source,int requester):context(0),object(p){if(object){oldSource=object->stateSource;object->stateSource=source;oldRequester=object->stateRequester;object->stateRequester=requester;}}
-    ~OVERRIDE(){if(context){context->stateSource=oldSource;context->stateRequester=oldRequester;}if(object){object->stateSource=oldSource;object->stateRequester=oldRequester;}}
+/* Sets a task's state source / requester for a scope (as in HandleGameEvent). */
+struct OVERRIDE {
+    CONTEXT *context; P *object; int oldSource, oldRequester;
+    OVERRIDE(P *p, int source, int requester) : context(0), object(p)
+    {
+        if (object) {
+            oldSource = object->stateSource; object->stateSource = source;
+            oldRequester = object->stateRequester; object->stateRequester = requester;
+        }
+    }
+    ~OVERRIDE()
+    {
+        if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
+        if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
+    }
 };
 struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefSetGlobalSaveVar(void*,const CRef&,void*);
@@ -3163,44 +3320,65 @@ static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A
  * @end-sly2-annot */
 // The main task state change: propagates to the collected successors, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
-extern "C" void SetTaskStateCascade(P*task,int state){
-    int oldState=task->state;
-    if(state==oldState)return;
-    if(D_002DEB28)return;
-    D_002DEB28=1;
-    int cascadeState=-1;
-    switch(state){case 0:break;case 1:case 2:cascadeState=2;break;case 3:cascadeState=3;break;}
-    if(cascadeState!=-1){
-        int i=0;
+extern "C" void SetTaskStateCascade(P *task, int state)
+{
+    int oldState = task->state;
+    if (state == oldState)
+        return;
+    if (D_002DEB28)   /* re-entrancy guard: a cascade is already running */
+        return;
+    D_002DEB28 = 1;
+    int cascadeState = -1;
+    switch (state) {
+    case 0: break;
+    case 1: case 2: cascadeState = 2; break;
+    case 3: cascadeState = 3; break;
+    }
+    if (cascadeState != -1) {
+        int i = 0;
         STACKSCOPE scope;
-        P**collected;
-        int count=0;
-        collected=(P**)Allocate(g_sw.ctask*4);
-        task->pendingCascadeState=state;
-        CollectTaskCascade(task,cascadeState,&count,collected);
-        for(;i<count;i++){
-            P*object=collected[i];
-            OVERRIDE temporary(object,task->stateSource,task->stateRequester);
-            SetTaskStatePropagate(object,object->pendingCascadeState);
+        P **collected;
+        int count = 0;
+        collected = (P **)Allocate(g_sw.ctask * 4);
+        task->pendingCascadeState = state;
+        CollectTaskCascade(task, cascadeState, &count, collected);
+        for (; i < count; i++) {
+            P *follower = collected[i];
+            OVERRIDE inherited(follower, task->stateSource, task->stateRequester);
+            SetTaskStatePropagate(follower, follower->pendingCascadeState);
         }
-        for(int j=0;j<count;j++)collected[j]->pendingCascadeState=-1;
-        task->pendingCascadeState=-1;
+        for (int j = 0; j < count; j++)
+            collected[j]->pendingCascadeState = -1;
+        task->pendingCascadeState = -1;
     }
-    SetTaskStatePropagate(task,state);
-    D_002DEB28=0;
-    int episode=NWorldCur();
-    if((unsigned)episode<9){
-        void*object=D_003DD490.episodePercentVars[episode];
-        if(object){SetValue(object,GetEpisodePercentComplete(D_002DEB30));}
+    SetTaskStatePropagate(task, state);
+    D_002DEB28 = 0;
+    int episode = NWorldCur();
+    if ((unsigned)episode < 9) {
+        void *percentVar = D_003DD490.episodePercentVars[episode];
+        if (percentVar)
+            SetValue(percentVar, GetEpisodePercentComplete(D_002DEB30));
     }
-    if(IsTaskLive(task)&&oldState!=-1&&oldState<2&&task->state>=2){
-        if(task->job){OnJobTaskComplete(task->job,task);if(task->job)return;}
-        if(task->numPrerequisites){
-            int allHaveJobs=1;
-            for(int i=0;i<task->numFollowers;i++){if(!task->followers[i]->job){allHaveJobs=0;break;}}
-            if(!allHaveJobs)return;
+    /* A live task that just became complete: its job reacts, else autosave (a gating task only once every follower
+       has a job). */
+    if (IsTaskLive(task) && oldState != -1 && oldState < 2 && task->state >= 2) {
+        if (task->job) {
+            OnJobTaskComplete(task->job, task);
+            if (task->job)
+                return;
         }
-        AutosaveGame(D_002E65E0,0);
+        if (task->numPrerequisites) {
+            int allHaveJobs = 1;
+            for (int i = 0; i < task->numFollowers; i++) {
+                if (!task->followers[i]->job) {
+                    allHaveJobs = 0;
+                    break;
+                }
+            }
+            if (!allHaveJobs)
+                return;
+        }
+        AutosaveGame(D_002E65E0, 0);
     }
 }
 } // namespace M_SetTaskStateCascade
