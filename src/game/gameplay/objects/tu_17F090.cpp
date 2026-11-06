@@ -24,8 +24,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct HACKE
 {
     OID oid;
-    LO *plo6D;              /* +0x4 */
-    LO *plo6F;              /* +0x8 */
+    LO *animation;          /* +0x4 the entry's ASEG (cid 0x6D), if the oid names one */
+    LO *stateMachine;       /* +0x8 or its SM (cid 0x6F) */
     int nC;
 };
 /* HACK (CID 0x47 : SO): the base of the hack objects. */
@@ -211,7 +211,7 @@ struct E { int n; int a, b, c; };
 void InitHackAnimEntries(int x, int c, struct E *pe) { int i; for (i = 0; i < c; i++) { pe->n = -1; pe++; } }
 } } // namespace M_func_0017F3E0
 
-// Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D. (inferred)
+// Resolves each entry's oid to its animation (an ASEG) or state machine (an SM).
 /* Resolves the entries' oids. */
 extern "C" void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke)
 {
@@ -226,9 +226,9 @@ extern "C" void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke)
                 plo = PloFindSwObject(&D_003DD490, 4, phacke->oid, hack);
                 if (plo != 0) {
                     if (FIsBasicDerivedFrom(plo, (CID)0x6D) != 0) {
-                        phacke->plo6D = plo;
+                        phacke->animation = plo;
                     } else if (FIsBasicDerivedFrom(plo, (CID)0x6F) != 0) {
-                        phacke->plo6F = plo;
+                        phacke->stateMachine = plo;
                     }
                 }
             }
