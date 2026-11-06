@@ -352,7 +352,7 @@ extern "C" void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f) {
     pe->status = k;
     switch (k) {
     case 0:
-        { GUARDV *o = pe->pguard; VTE *e; pe->tReady = D_002DDED0.t; e = &o->vt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
+        { GUARDV *guard = pe->pguard; VTE *entry; pe->tReady = D_002DDED0.t; entry = &guard->vt[9]; ((void (*)(void *))entry->pfn)((char *)guard + entry->d); }
         if ((f ^ 1) & 1) pe->psel->tUntil = D_002DDED0.t;
         break;
     case 1:
@@ -444,8 +444,8 @@ extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {
     int i;
     for (i = 0; i < p->centMax; i++) {
         ENTRY *e = &p->aent[i];
-        GUARDV *o = e->pguard;
-        if (!o) {
+        GUARDV *guard = e->pguard;
+        if (!guard) {
             if (e->status == 1) {
                 int f = D_002BE5DC < DistXY(VU_VECTOR(e->pos), VU_VECTOR(pos));
                 if (f) {
@@ -453,12 +453,12 @@ extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {
                     e->tReady = D_002DDED0.t;
                 }
             }
-        } else if (o->n330) {
+        } else if (guard->n330) {
             ReleaseSpawnerEntry(p, e, 1, 0);
-        } else if (((int)(o->fl >> 60) & 1) == 0 || ((int)(e->psel->plo->fl >> 60) & 1) == 0) {
+        } else if (((int)(guard->fl >> 60) & 1) == 0 || ((int)(e->psel->plo->fl >> 60) & 1) == 0) {
             ReleaseSpawnerEntry(p, e, 0, 0);
         } else {
-            e->tActive = (e->tActive > o->g84) ? e->tActive : o->g84;
+            e->tActive = (e->tActive > guard->g84) ? e->tActive : guard->g84;
         }
     }
 }
@@ -695,8 +695,8 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pma
         }
         for (i = 0; i < p->ctmpl; i++) {
             LOV *o = p->atmpl[idx[i]];
-            { VTE *e = &o->vt[0x1D]; ((void (*)(void *, qwordV))e->pfn)((char *)o + e->d, *pv); }
-            { VTE *e = &o->vt[0x1E]; ((void (*)(void *, M3 *))e->pfn)((char *)o + e->d, pmat); }
+            { VTE *entry = &o->vt[0x1D]; ((void (*)(void *, qwordV))entry->pfn)((char *)o + entry->d, *pv); }
+            { VTE *entry = &o->vt[0x1E]; ((void (*)(void *, M3 *))entry->pfn)((char *)o + entry->d, pmat); }
             r = PloAcquireProxy(o, 0);
             if (r) break;
         }
