@@ -59,10 +59,10 @@ struct ASEG : public LO
       EA *aeaEnd;
       ASEGSTART *pasegstart;
       uint32_t   _pad_273    [ 3 ] ;
+    virtual void VUnk14() __asm__("PostAsegLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetAsegClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAseg");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAsegFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostAsegLoad");   /* slot 15 */
 };
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
