@@ -55,7 +55,7 @@ struct BARRELV : public SO             /* BARREL (: SO, GRABSPOT at +0x150) */
     char pad15C[0x17C - 0x15C];
     int nState;             /* +0x17C */
     char pad180[0x18C - 0x180];
-    int n18C;               /* +0x18C */
+    int isFree;               /* +0x18C */
 };
 /* The player mask of a stepplayer (+0x1000; jthands.cpp's JTV names it the hand-target mask). */
 #define GRFPLAYER(pstepplayer) (*(int *)((char *)(pstepplayer) + 0x1000))
@@ -186,7 +186,7 @@ extern "C" void AdjustGrabspotScore()
 namespace M_func_00182D78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VT { struct { short d; short pad; void *(*pfn)(void *); } a[8]; };
-struct O { char pad[0x20]; struct VT *pvt; };
+struct O { char pad[0x20]; struct VT *vtable; };
 extern qword func_001A62E8(void *p);
 extern qword SetVectorSphere(float a, float b, float c);
 extern float GRandInRange__Fff(float a, float b);
@@ -202,7 +202,7 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
 void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
 {
-    void *object = grabspot->pvt->a[6].pfn((char *)grabspot + grabspot->pvt->a[6].d);
+    void *object = grabspot->vtable->a[6].pfn((char *)grabspot + grabspot->vtable->a[6].d);
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float t = GRandInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
@@ -275,7 +275,7 @@ extern "C" void OnWallGrabspotRemove(LO *lo)
 }
 
 namespace M_func_00182F28 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0x154]; void *p190; };
+struct S { char pad[0x38]; float g; char p2[0x154]; void *carrier; };
 extern float D_002BE8B4;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
@@ -290,7 +290,7 @@ float func_001E7D90(struct S *p);
 void PostWallGrabspotLoad(struct S *wall)
 {
     PostLoLoad(wall);
-    if (wall->p190) SetTnTnsOverride(wall->p190, 0);
+    if (wall->carrier) SetTnTnsOverride(wall->carrier, 0);
     if (wall->g == 1e10f) wall->g = func_001E7D90(wall) + D_002BE8B4;
 }
 } } // namespace M_func_00182F28
@@ -341,7 +341,7 @@ int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 namespace M_func_00183040 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x218]; qword *pq; };
-struct S { char pad[0xE4]; int xe4; };
+struct S { char pad[0xE4]; int isClosed; };
 struct V { float a[4]; };
 void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
 float SMaxShape(struct S *p);
@@ -356,7 +356,7 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
-    if (!wall->xe4) {
+    if (!wall->isClosed) {
         float lim = SMaxShape(wall) - 30.0f;
         float g = *pg;
         if (g < 30.0f) g = 30.0f;
@@ -369,7 +369,7 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 namespace M_func_001830D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
+struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern void EvaluateShapeS(void *p, float t, VU *ppos, VU *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
@@ -427,16 +427,16 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
         VU u;
         register qword a __asm__("vf2");
         register qword b __asm__("vf3");
-        __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&pj->g103C));
+        __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&pj->playerRadius));
         a = pos.q;
         __asm__ __volatile__("");
-        b = pj->v240;
+        b = pj->pivotOffset;
         __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x\n\tvsub.xyzw %0, %0, %4" : "=j"(a) : "j"(a), "j"(n), "j"(s), "j"(b));
         u.q = s;
         *pv = a;
     }
     if (pg) {
-        if (pj->n1040 == 1) {
+        if (pj->unknown1040 == 1) {
             float m = -1.0f;
             qword s = Bc(*(int *)&m);
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
@@ -546,7 +546,7 @@ extern "C" void OnPoleGrabspotRemove(LO *lo)
 }
 
 namespace M_func_001833E0 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; char p3[0x28]; float g10c; };
+struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; char p3[0x28]; float radius; };
 extern float D_002BE8C0;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
@@ -561,7 +561,7 @@ void PostPoleGrabspotLoad(struct S *pole)
 {
     PostLoLoad(pole);
     if (pole->pe0) SetTnTnsOverride(pole->pe0, 0);
-    if (pole->g == 1e10f) pole->g = pole->g10c + D_002BE8C0;
+    if (pole->g == 1e10f) pole->g = pole->radius + D_002BE8C0;
 }
 } } // namespace M_func_001833E0
 
@@ -628,8 +628,8 @@ void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
 
 namespace M_func_00183540 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x10C]; float g10C; };
-struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
+struct O { char pad[0x10C]; float radius; };
+struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword func_001A62E8(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -643,13 +643,13 @@ static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,
 // The point at angle param / r on the circle of radius r + the player's radius.
 void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *pv, float *pg)
 {
-    float gPan = g / pole->g10C;
-    float gR = pole->g10C + pj->g103C;
+    float gPan = g / pole->radius;
+    float gR = pole->radius + pj->playerRadius;
     if (pv) {
-        *pv = VSub(VAdd(func_001A62E8(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->v240);
+        *pv = VSub(VAdd(func_001A62E8(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
     }
     if (pg) {
-        if (pj->n1040 == 1)
+        if (pj->unknown1040 == 1)
             gPan += 3.14159265f;
         *pg = gPan;
     }
@@ -658,7 +658,7 @@ void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *p
 
 namespace M_func_00183600 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x10C]; float g10C; };
+struct O { char pad[0x10C]; float radius; };
 extern qword func_001A62E8(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float GRandInRange__Fff(float a, float b);
@@ -675,7 +675,7 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
 void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
-    float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + pole->g10C;
+    float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + pole->radius;
     *pv = VAdd(func_001A62E8(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
@@ -767,7 +767,7 @@ void CloneHoldGrabspot(struct S *hold)
 namespace M_func_00183818 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; int n10C; };
-struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
+struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword func_001A62E8(void *p);
 extern qword *func_001A6318(void *p);
 extern float atan2f(float y, float x);
@@ -785,13 +785,13 @@ void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float 
     float g = 0.0f;
     qword d;
     if (hold->n10C == 0)
-        g = pj->g103C;
+        g = pj->playerRadius;
     d = *func_001A6318(hold);
     if (pv) {
         qword a, s, r;
         union { qword q; float f[4]; } u;
         a = func_001A62E8(hold);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(pj->v240));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(pj->pivotOffset));
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
         u.q = s;
         __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(r), "j"(d), "j"(s));
@@ -799,7 +799,7 @@ void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float 
     }
     if (pg) {
         float gAng = atan2f(GetY(d), GetX(d));
-        if (pj->n1040 == 1)
+        if (pj->unknown1040 == 1)
             gAng += 3.14159265f;
         *pg = gAng;
     }
@@ -821,7 +821,7 @@ extern "C" void InitBarrel(BARRELV *barrel)
     InitGrabspot((char *)barrel + 0x150);
     barrel->nState = 0;
     barrel->s158 = 300.0f;
-    barrel->n18C = 1;
+    barrel->isFree = 1;
     func_001F7918(barrel, 0x03FFFFFF, 8);
     func_001F7918(barrel, 0x03188001, 0);
 }
@@ -924,7 +924,7 @@ extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
 namespace M_func_00183B00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { float a[12]; };
-struct S { char pad[0x17C]; int x17c; char p1[0xC]; int x18c; };
+struct S { char pad[0x17C]; int carryState; char p1[0xC]; int isFree; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
 void func_001F9B20(struct S *p);
@@ -943,7 +943,7 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
 void PresetBarrelAccel(struct S *barrel)
 {
     func_001F9B20(barrel);
-    if (barrel->x18c && !barrel->x17c) {
+    if (barrel->isFree && !barrel->carryState) {
         struct M m;
         TiltMatUpright(func_001A6318(barrel), 0, &m);
         AccelSoTowardMatSpring(barrel, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
@@ -955,13 +955,13 @@ namespace M_func_00183B80 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
 struct VTE { short d; short pad; void *pfn; };
-struct X { char pad[0x9A]; short n9A; char pad1[0xA0 - 0x9C]; void *pA0; char pad2[0xC0 - 0xA4]; qword vC0; };
+struct X { char pad[0x9A]; short partFlags; char pad1[0xA0 - 0x9C]; void *pA0; char pad2[0xC0 - 0xA4]; qword vC0; };
 struct XV { int x, y; float z; int w; };
 struct T { char pad[0x60]; void *p60; char pad1[0x10BC - 0x64]; void *p10BC; };
 struct S2 { char pad[0x70]; qword v70; };
 struct O {
-    char pad[0xC]; struct VTE *pvt; char pad1[0x58 - 0x10]; struct X *p58; struct X *p5C;
-    char pad2[0x17C - 0x60]; int n17C; float g180; char pad3[0x18C - 0x184]; int n18C; struct T *p190;
+    char pad[0xC]; struct VTE *vtable; char pad1[0x58 - 0x10]; struct X *partA; struct X *partB;
+    char pad2[0x17C - 0x60]; int carryState; float unknown180; char pad3[0x18C - 0x184]; int isFree; struct T *carrier;
 };
 extern "C" {
 extern struct CLOCK D_002DDED0;
@@ -997,62 +997,62 @@ static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1,
 void SetBarrelState(struct O *barrel, int n)
 {
 
-    if (barrel->n17C == n)
+    if (barrel->carryState == n)
         return;
-    if (barrel->n17C == 2) {
-        if (barrel->n18C != 0) {
+    if (barrel->carryState == 2) {
+        if (barrel->isFree != 0) {
             SetLoParent_1A58D0(barrel, 0, 0xF);
-            func_002303A0(barrel, barrel->p58, 1);
-            barrel->p58->n9A = 0;
-            func_002303A0(barrel, barrel->p5C, 1);
-            barrel->p5C->n9A = 0;
-            { struct VTE *e = &barrel->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
+            func_002303A0(barrel, barrel->partA, 1);
+            barrel->partA->partFlags = 0;
+            func_002303A0(barrel, barrel->partB, 1);
+            barrel->partB->partFlags = 0;
+            { struct VTE *e = &barrel->vtable[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
             SetSoCnstrForce(barrel, 0);
             SetSoCnstrTorque(barrel, 0);
             func_001F68A8(barrel, 0);
         }
-        { struct VTE *e = &barrel->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 6, 0, 0, 0, 0); }
+        { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 6, 0, 0, 0, 0); }
         UpdateSwBusyList(D_003DD490);
-        barrel->p190 = 0;
+        barrel->carrier = 0;
     }
     if (n == 2) {
-        if (barrel->n18C != 0) {
+        if (barrel->isFree != 0) {
             struct S2 *ps;
             MATRIX3 m;
             qword q;
             SetSoCnstrForce(barrel, 1);
             SetSoCnstrTorque(barrel, 1);
-            ps = (struct S2 *)barrel->p190->p10BC;
+            ps = (struct S2 *)barrel->carrier->p10BC;
             if (!ps)
-                ps = (struct S2 *)barrel->p190->p60;
-            { struct VTE *e = &barrel->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)barrel + e->d, barrel->p190, ps, 3); }
+                ps = (struct S2 *)barrel->carrier->p60;
+            { struct VTE *e = &barrel->vtable[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)barrel + e->d, barrel->carrier, ps, 3); }
             TiltMatUpright(func_001A6318(barrel), 0, &m);
-            m = ConvertXfMat(0, barrel->p5C->pA0, &m);
+            m = ConvertXfMat(0, barrel->partB->pA0, &m);
 
             q = func_0011BFF0(&m);
-            func_002303A0(barrel, barrel->p5C, 7);
+            func_002303A0(barrel, barrel->partB, 7);
             {
 
-                struct XV *pv = (struct XV *)&barrel->p5C->vC0;
+                struct XV *pv = (struct XV *)&barrel->partB->vC0;
                 pv->x = 0;
                 pv->z = GetZ(q);
                 pv->y = 0;
             }
-            barrel->p5C->n9A = n;
+            barrel->partB->partFlags = n;
 
             {
-            qword q2 = func_0022FC48(0, barrel->p58->pA0, VAdd(ps->v70, D_002BE8F0));
-            func_002303A0(barrel, barrel->p58, 7);
-            barrel->p58->vC0 = q2;
+            qword q2 = func_0022FC48(0, barrel->partA->pA0, VAdd(ps->v70, D_002BE8F0));
+            func_002303A0(barrel, barrel->partA, 7);
+            barrel->partA->vC0 = q2;
             }
 
-            barrel->p58->n9A = n;
+            barrel->partA->partFlags = n;
             func_001F68A8(barrel, 1);
         }
-        { struct VTE *e = &barrel->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
+        { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
     }
-    barrel->n17C = n;
-    barrel->g180 = D_002DDED0.t;
+    barrel->carryState = n;
+    barrel->unknown180 = D_002DDED0.t;
 }
 } // namespace M_func_00183B80
 
@@ -1061,7 +1061,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char p1[0xEF0]; char xf00[4]; };
 struct Q { char pad[0xC]; char xc[0x38]; int fl; };
-struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int x17c; char p2[0x10]; struct O *x190; };
+struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int carryState; char p2[0x10]; struct O *carrier; };
 struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
 int func_001F7588(struct S *p, struct Q *q);
@@ -1083,13 +1083,13 @@ int HandleBarrelZap(struct S *barrel, struct Q *q)
     struct M m;
     struct VTE *e;
     if (!func_001F7588(barrel, q)) return 0;
-    if (barrel->x17c == 3) return 1;
+    if (barrel->carryState == 3) return 1;
     if (!(q->fl & 8)) return 1;
     EmitSwNoise(D_003DD490, 0, func_001A62E8(barrel), barrel);
-    if (barrel->x190) {
+    if (barrel->carrier) {
         struct O *o;
-        SetJtModeState__FP6JTMODEi(barrel->x190->xf00, -1);
-        o = barrel->x190;
+        SetJtModeState__FP6JTMODEi(barrel->carrier->xf00, -1);
+        o = barrel->carrier;
         e = &o->vt[88];
         ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
     }
@@ -1121,7 +1121,7 @@ extern "C" void InitTriggerGrabspot(GRABSPOT35 *trigger)
 }
 
 namespace M_func_00183F50 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0xC0]; int nfc; };
+struct S { char pad[0x38]; float g; char p2[0xC0]; int playerMask; };
 extern float D_002BE900;
 void PostLoLoad(struct S *p);
 /** @sly2-annot addr=0x183F50
@@ -1135,7 +1135,7 @@ void PostLoLoad(struct S *p);
 void PostTriggerGrabspotLoad(struct S *trigger)
 {
     PostLoLoad(trigger);
-    if (!trigger->nfc) trigger->nfc = 7;
+    if (!trigger->playerMask) trigger->playerMask = 7;
     if (trigger->g == 1e10f) trigger->g = D_002BE900;
 }
 } } // namespace M_func_00183F50
@@ -1311,7 +1311,7 @@ extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *trigger, float *pgScore)
 }
 
 namespace M_func_00184268 { extern "C" {
-struct S { char pad[0xF0]; int f0; char p1[8]; int fc; char p2[0x84]; int x184; int p3; int x18c; int p4; int x194; int p5; int x19c; };
+struct S { char pad[0xF0]; int unknownF0; char p1[8]; int playerMask; char p2[0x84]; int oid0; int p3; int oid1; int p4; int oid2; int p5; int oid3; };
 void InitTriggerGrabspot(struct S *p);
 /** @sly2-annot addr=0x184268
  * Purpose: CID 0x24 (child of CID35) vt7: InitCid35 and four oids -1
@@ -1323,12 +1323,12 @@ void InitTriggerGrabspot(struct S *p);
 void InitCarryGrabspot(struct S *carry)
 {
     InitTriggerGrabspot(carry);
-carry->x184 = -1;
-carry->x18c = -1;
-carry->x194 = -1;
-carry->x19c = -1;
-carry->f0 = -1;
-carry->fc = 4;
+carry->oid0 = -1;
+carry->oid1 = -1;
+carry->oid2 = -1;
+carry->oid3 = -1;
+carry->unknownF0 = -1;
+carry->playerMask = 4;
 }
 } } // namespace M_func_00184268
 
