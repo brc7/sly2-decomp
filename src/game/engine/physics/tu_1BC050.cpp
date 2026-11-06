@@ -561,7 +561,7 @@ static inline qword MulPos(M4 *pm, qword v)
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
 // Walks the polygon's edges against the path zone (IsEdgeBlockedByPathzone) to find the span of the outline that
-// lies inside walkable space.
+// lies inside walkable space. (inferred)
 int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
 {
     int i0, r, pass, k, i1;
@@ -610,7 +610,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-// Finds the parameter range of a shape that lies inside its path zone; returns a status code.
+// Finds the parameter range of a shape that lies inside its path zone; returns a status code. (inferred)
 int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, float param)
 {
     float at[2];
@@ -646,7 +646,7 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-// Searches along a shape for a point inside the path zone; returns 1 and the point when found.
+// Searches along a shape for a point inside the path zone; returns 1 and the point when found. (inferred)
 int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range, float *paramOut, int c)
 {
     float d, t;
@@ -828,7 +828,7 @@ void BuildCid14EdgePlanes(CID14V *polygon)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-// Steps along a shape from a parameter until it leaves the obstacles; returns the free range found.
+// Steps along a shape from a parameter until it leaves the obstacles; returns the free range found. (inferred)
 int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *posOut, float *paramOut, float param)
 {
     qword av[2];
@@ -871,7 +871,7 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-// Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions).
+// Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions). (inferred)
 extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, int direction, CID14V **blockerOut, float *paramOut, float param)
 {
     float t;
@@ -928,7 +928,7 @@ extern "C" int DoCnvosOverlap(CID14V *polygonA, CID14V *polygonB)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
-// Creates a merged obstacle object (a new CID14) that will own several member polygons.
+// Creates a merged obstacle object (a new CID14) that will own several member polygons. (inferred)
 CID14V *NewMergedCid14Obstacle(void)
 {
     CID14V *p;
