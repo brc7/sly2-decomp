@@ -520,3 +520,14 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+
+## 2026-11-06 (readability pass r2, objects/progression/cutscene): what a logic cleanup may and may not change
+- **Free:** field/local names, enums for state numbers and case labels, `static inline` helpers that wrap one repeated
+  statement (LO tagged-flag get/set/clear in relay.cpp, ZeroVector in UpdateHackship), whitespace/reflow of one-line code.
+- **Jump tables keep identical cases apart.** Merging four identical `case` bodies into one label changes the table
+  targets (UpdateHackship); keep one call per case (a helper keeps it short).
+- **A loop's fallback store keeps its reload.** Turning `for (...) { ... goto done; } p->last = p->first; done:` into a
+  helper that returns a pointer reuses the register instead of reloading `p->first`; a helper that does the stores
+  through `p` itself matches (NewRelayJsg's SetBlockEnd).
+- **Duplicated selector branches stay.** `switch (n) { case A: q = x; if (q) q->vt[8](); ... default: ... vt[9] }`
+  does not collapse into a computed slot (SetDprizeDprizes).
