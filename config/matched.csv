@@ -3244,8 +3244,8 @@ FourccFromLanguage,0x1A2CC0,53,match,src/game/core/locale/language.cpp
 SetLanguageFromSystem,0x1A2DA0,73,match,src/game/core/locale/language.cpp
 StaticInit_language,0x1A2EC8,77,match,src/game/core/locale/language.cpp
 func_001A3000,0x1A3000,8,match,src/game/core/locale/language.cpp
-func_001A3020,0x1A3020,19,match,src/game/engine/presentation/letterbox.cpp
-func_001A3070,0x1A3070,2,match,src/game/engine/presentation/letterbox.cpp
+InitLetterbox,0x1A3020,19,match,src/game/engine/presentation/letterbox.cpp
+ResetLetterbox,0x1A3070,2,match,src/game/engine/presentation/letterbox.cpp
 ShowLetterbox,0x1A3078,21,match,src/game/engine/presentation/letterbox.cpp
 HideLetterbox,0x1A30D0,13,match,src/game/engine/presentation/letterbox.cpp
 StaticInit_letterbox,0x1A3108,77,match,src/game/engine/presentation/letterbox.cpp

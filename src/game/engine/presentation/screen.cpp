@@ -160,7 +160,7 @@ extern char D_003D4A60[];
 
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
-void func_001A3020(void *pletterbox);
+void InitLetterbox(void *pletterbox);
 void func_001DA770(SCREENV *pscreen);
 void PostNoticeLoad(SCREENV *pscreen);
 void PostJobListLoad(SCREENV *pscreen);
@@ -222,7 +222,7 @@ extern char D_003D9E80[], D_003D9ED0[], D_002E1E60[], D_003DA0F0[], D_003DA150[]
 extern char D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void ResetHudMeter(void *);
 void func_001AE970(void *);
-void func_001A3070(void *);
+void ResetLetterbox(void *);
 void ResetGadgetMenu(void *);
 void ResetThiefnet(void *);
 void ResetNotice(void *);
@@ -260,7 +260,7 @@ void func_001D9408(DL *pdl)
     D_002DD318 = 0;
     ResetHudMeter(D_003D9E80);
     func_001AE970(D_003D9ED0);
-    func_001A3070(D_002E1E60);
+    ResetLetterbox(D_002E1E60);
     ResetGadgetMenu(D_003DA0F0);
     ResetThiefnet(D_003DA150);
     ResetNotice(D_003DA0C0);
@@ -285,7 +285,7 @@ extern "C" void func_001D9520()
 {
     PostHudMeterLoad(&D_003D9E80);
     func_001AE928(&D_003D9ED0);
-    func_001A3020(D_002E1E60);
+    InitLetterbox(D_002E1E60);
     func_001DA770((SCREENV *)&D_003DA0F0);
     func_001DA770((SCREENV *)&D_003DA150);
     PostNoticeLoad((SCREENV *)&D_003DA0C0);
