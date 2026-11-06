@@ -99,6 +99,27 @@ int IsCurrentTask(TASKV *task);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
+/* Task states (docs/engine/game-progression.md "Task states"); 4 and 5 are only requests (RequestTaskState). */
+enum TASKSTATE {
+    TASK_STATE_UNSET = -1,      /* not restored yet (a freshly loaded world) */
+    TASK_STATE_LOCKED = 0,
+    TASK_STATE_AVAILABLE = 1,   /* on the world's available-task list */
+    TASK_STATE_DONE = 2,        /* complete inside the running job */
+    TASK_STATE_COMPLETE = 3,    /* complete after the job finished */
+    TASK_REQUEST_ACTIVATE = 4,
+    TASK_REQUEST_DEACTIVATE = 5
+};
+/* What drives a state change (a task's stateSource, a job's at +0xF0), set for a scope by StateSourceScope / OVERRIDE.
+   Changes from GO_TO_TASK and LOAD_RESET are silent (IsJobLive / IsTaskLive fail); RESTORE and SCRIPT snap state
+   machines to their goal instead of animating (TriggerStateRsmg). (inferred from the callers) */
+enum STATESOURCE {
+    STATE_SOURCE_GAMEPLAY = 0,
+    STATE_SOURCE_RESTORE = 1,       /* HandleGameEvent 5: the saved states re-applied after a load */
+    STATE_SOURCE_GO_TO_TASK = 2,    /* GoToTask */
+    STATE_SOURCE_LOAD_RESET = 3,    /* RestoreTasksAfterLoad */
+    STATE_SOURCE_SCRIPT = 4         /* the Splice ForceTaskState0..3 */
+};
+
 /** @sly2-annot addr=0x1613A8
  * Purpose: Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game
  *   event 0, init the game sequence queue D_002E1E88
@@ -300,7 +321,7 @@ extern "C" int GetEpisodePercentComplete()
         X *task = tasks[i];
         if (task->numFollowers) {
             numCounted++;
-            if (task->state == 3)
+            if (task->state == TASK_STATE_COMPLETE)
                 numComplete++;
         }
     }
@@ -668,7 +689,7 @@ extern "C" void HandleGameEvent(P *game, int action)
         SortTasksTopologically(&count, &tasks);
         for (; i < count; i++) {
             P *task = tasks[i];
-            OVERRIDE restoring(task, 1, 0);
+            OVERRIDE restoring(task, STATE_SOURCE_RESTORE, 0);
             RestoreTaskState(task);
         }
         G *world = &D_003DD490;
@@ -687,7 +708,7 @@ extern "C" void HandleGameEvent(P *game, int action)
         }
         for (int j = 0; j < count; j++) {
             P *task = tasks[j];
-            OVERRIDE gameplay(task, 0, 0);
+            OVERRIDE gameplay(task, STATE_SOURCE_GAMEPLAY, 0);
             UpdateTaskSaveVars(task);
         }
         mark.Release();
@@ -903,7 +924,7 @@ void TriggerStateRsmg(void *pvUnused, struct E *record, int newState, int source
     void *sma;
     int goal;
     if (record->state != -1 && record->state != newState) return;
-    if (record->restoreOnly && !source) return;
+    if (record->restoreOnly && source == STATE_SOURCE_GAMEPLAY) return;
     if (record->level != -1 && record->level != IlevelCur__Fv()) return;
     if (FindSwObjects(&D_003DD490, 0x205, record->root, 0, 1, &root) != 1) return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(root, 0x30)) return;
@@ -912,14 +933,14 @@ void TriggerStateRsmg(void *pvUnused, struct E *record, int newState, int source
     goal = record->goal;
     if (record->state == -1) {
         switch (newState) {
-        case 0: goal = 0x612; break;
-        case 1: goal = 0x613; break;
-        case 2: goal = 0x614; break;
-        case 3: goal = 0x615; break;
+        case TASK_STATE_LOCKED: goal = 0x612; break;
+        case TASK_STATE_AVAILABLE: goal = 0x613; break;
+        case TASK_STATE_DONE: goal = 0x614; break;
+        case TASK_STATE_COMPLETE: goal = 0x615; break;
         }
     }
     if (goal != -1) {
-        if (source == 1 || source == 4)
+        if (source == STATE_SOURCE_RESTORE || source == STATE_SOURCE_SCRIPT)
             SeekSma(sma, goal);
         else
             SetSmaGoal(sma, goal);
@@ -1094,7 +1115,7 @@ int IsSwTransitionBusy(void *p);
 // True when the job is enabled, its state source is not 2/3 and no world transition is in progress.
 int IsJobLive(struct S *job)
 {
-    if (job->isDisabled == 0 && job->stateSource != 2 && job->stateSource != 3)
+    if (job->isDisabled == 0 && job->stateSource != STATE_SOURCE_GO_TO_TASK && job->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
@@ -1574,7 +1595,7 @@ void EndCurrentJob(struct S *p);
 void AbortJob(struct S *job)
 {
     ResetJobTasks(job);
-    SetTaskStateCascade(job->startTask, 1);
+    SetTaskStateCascade(job->startTask, TASK_STATE_AVAILABLE);
     if ((*(struct T * *)&g_sw.ploTaskCur) && (*(struct T * *)&g_sw.ploTaskCur)->job == job)
         DeactivateTask((*(struct T * *)&g_sw.ploTaskCur));
     BroadcastGameEvent(D_002DEB30, 0x1F, job);
@@ -1620,7 +1641,7 @@ void AutosaveGame(void *p, int n);
 void FinishJob(struct S *job)
 {
     if (!job->isReplay)
-        SetTaskStateCascade(job->completeTask, 3);
+        SetTaskStateCascade(job->completeTask, TASK_STATE_COMPLETE);
     BroadcastGameEvent(D_002DEB30, 0x20, job);
     EndCurrentJob(job);
     if (!job->isReplay)
@@ -1660,7 +1681,7 @@ void ContinueAfterJob(struct S *job)
     if (func_001A4E70(pv)) {
         func_001A4E80(pv);
     } else if (job->nextTask) {
-        RequestTaskState(job->nextTask, 4, job);
+        RequestTaskState(job->nextTask, TASK_REQUEST_ACTIVATE, job);
     } else if (job->exitObject) {
         SetLoFlagsInline(job->exitObject, 0x100);
         TakeExit(job->exitObject);
@@ -1869,7 +1890,7 @@ static inline int Max(int a, int b) { return a > b ? a : b; }
 int GetJobState(struct S *job)
 {
     int state = job->startTask->state;
-    return state < 2 ? state : Max(job->completeTask->state, 1);
+    return state < TASK_STATE_DONE ? state : Max(job->completeTask->state, TASK_STATE_AVAILABLE);
 }
 } } // namespace M_func_00163430
 
@@ -1929,7 +1950,7 @@ extern "C" void UpdateJobSaveVars(S *job)
 } // namespace M_UpdateJobSaveVars
 
 namespace M_InitTask { extern "C" {
-struct S { char pad[0x54]; int state; float stateChangeTime; int noticeId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
+struct S { char pad[0x54]; int state; float stateChangeTime; int objectiveTextId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
 struct G { char pad[0x3AFC]; int numTasks; };
 extern struct G D_003DD490;
 void InitLo(struct S *p);
@@ -1947,7 +1968,7 @@ void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_
     InitLo(p);
     p->state = -1;
     p->pendingCascadeState = -1;
-    p->noticeId = -1;
+    p->objectiveTextId = -1;
     p->warpOid = -1;
     p->level = -1;
     p->playerOid = -1;
@@ -2042,7 +2063,7 @@ int IsSwTransitionBusy(void *p);
 // True when the task is enabled, its state source is not 2/3 and no world transition is in progress.
 int IsTaskLive(struct S *task)
 {
-    if (task->isDisabled == 0 && task->stateSource != 2 && task->stateSource != 3)
+    if (task->isDisabled == 0 && task->stateSource != STATE_SOURCE_GO_TO_TASK && task->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
@@ -2247,14 +2268,14 @@ void UpdateTask(struct S *task)
 {
     struct O *marker;
     UpdateLo(task);
-    if (task->state == 1 && task->timeLimit > 0.0f) {
+    if (task->state == TASK_STATE_AVAILABLE && task->timeLimit > 0.0f) {
         float elapsed = D_002DDED0.t - task->stateChangeTime;
         if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.dt <= elapsed)
             SendTaskTimeout(task, 0);
     }
     marker = task->marker;
     if (marker) {
-        int isShown = task->state == 1; if ((*(int *)&g_sw.ploJobCur)) isShown = 0;
+        int isShown = task->state == TASK_STATE_AVAILABLE; if ((*(int *)&g_sw.ploJobCur)) isShown = 0;
         if (isShown) {
             struct VTE *entry = &marker->vt[8];
             entry->pfn((char *)marker + entry->d);
@@ -2353,8 +2374,8 @@ static inline void SetLoFlagsInline(LO *plo, int bits)
 class O : public OBase {
 public:
     char pad[0x5C - 0x10];
-    int noticeId;
-    int showsNotice;
+    int objectiveTextId;
+    int showsObjective;
     int startCount;
     char pad1[0x7C - 0x68];
     O *job;
@@ -2403,8 +2424,8 @@ extern "C" void BeginTask(O *task)
         BroadcastGameEvent(D_002DEB30, 0x23, task);
         ApplyStateLoVisibility(task, 4, task->numVisibility, task->visibility);
         TriggerStateRsmgs(task, 4, task->numRsmgs, task->rsmgs, task->stateSource);
-        if (task->noticeId != -1 && task->showsNotice)
-            PostNotice(D_003DA0C0, task->noticeId, -1.0f);
+        if (task->objectiveTextId != -1 && task->showsObjective)
+            PostNotice(D_003DA0C0, task->objectiveTextId, -1.0f);
         task->Msg(0x13, 0, 0, 0, 0);
         if (task->exitObject) {
             SetLoFlagsInline(task->exitObject, 0x100);
@@ -2464,8 +2485,8 @@ public:
 class O : public OBase {
 public:
     char pad[0x5C - 0x10];
-    int noticeId;
-    int showsNotice;
+    int objectiveTextId;
+    int showsObjective;
     char pad2[0xA8 - 0x64];
     int numVisibility, visibility, numRsmgs, rsmgs;
     char pad3[0xF4 - 0xB8];
@@ -2495,8 +2516,8 @@ extern "C" void EndTask(O *task)
         BroadcastGameEvent(D_002DEB30, 0x24, task);
         ApplyStateLoVisibility(task, 5, task->numVisibility, task->visibility);
         TriggerStateRsmgs(task, 5, task->numRsmgs, task->rsmgs, task->stateSource);
-        if (task->noticeId != -1 && task->showsNotice)
-            CancelNotice(D_003DA0C0, task->noticeId);
+        if (task->objectiveTextId != -1 && task->showsObjective)
+            CancelNotice(D_003DA0C0, task->objectiveTextId);
         task->Msg(0x14, 0, 0, 0, 0);
     }
 }
@@ -2531,7 +2552,7 @@ void Decref__4CRef(CRef *pref);
 // True when the task is complete (state >= 2; an unset task uses its saved flag).
 int IsTaskComplete(struct S *task)
 {
-    if (task->state == -1 && task->completeKey) {
+    if (task->state == TASK_STATE_UNSET && task->completeKey) {
         CRef ref;
         int value;
         RefGetGlobalSaveVar(&ref, &task->completeKey, D_003D4A60);
@@ -2539,7 +2560,7 @@ int IsTaskComplete(struct S *task)
         Decref__4CRef(&ref);
         return value;
     }
-    return task->state >= 2;
+    return task->state >= TASK_STATE_DONE;
 }
 } } // namespace M_FTaskComplete
 
@@ -2559,10 +2580,10 @@ struct S { char pad[0x54]; int state; };
 int GetTaskStateGoalOid(struct S *task)
 {
     switch (task->state) {
-    case 0: return 0x612;
-    case 1: return 0x613;
-    case 2: return 0x614;
-    case 3: return 0x615;
+    case TASK_STATE_LOCKED: return 0x612;
+    case TASK_STATE_AVAILABLE: return 0x613;
+    case TASK_STATE_DONE: return 0x614;
+    case TASK_STATE_COMPLETE: return 0x615;
     }
     return -1;
 }
@@ -2658,7 +2679,7 @@ void RestoreTaskState(struct X *task)
 {
     CRef ref;
     int *key;
-    int n = 0;
+    int state = TASK_STATE_LOCKED;
     int wasInterrupted;
     key = &task->stateKey;
     wasInterrupted = 0;
@@ -2667,7 +2688,7 @@ void RestoreTaskState(struct X *task)
         RefGetGlobalSaveVar(&ref, key, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
-        n = value;
+        state = value;
     }
     key = &task->interruptedKey;
     if (*key) {
@@ -2677,23 +2698,24 @@ void RestoreTaskState(struct X *task)
         Decref__4CRef(&ref);
         wasInterrupted = value;
     }
-    if (wasInterrupted && task->job && n < 3 && n > 0) {
+    /* A task of a job saved while in progress restarts as available (locked when a prerequisite is open). */
+    if (wasInterrupted && task->job && state < TASK_STATE_COMPLETE && state > TASK_STATE_LOCKED) {
         struct X *job = task->job;
         int i;
         task->startCount = 0;
-        n = 1;
+        state = TASK_STATE_AVAILABLE;
         if (job->startTask == task)
             job->jobStartCount = 0;
         for (i = 0; i < task->numPrerequisites; i++) {
-            if (task->prerequisites[i]->state < 2) {
-                n = 0;
+            if (task->prerequisites[i]->state < TASK_STATE_DONE) {
+                state = TASK_STATE_LOCKED;
                 break;
             }
         }
     }
-    if (!n)
-        n = task->numPrerequisites == 0;
-    SetTaskState(task, n);
+    if (!state)
+        state = task->numPrerequisites == 0;   /* a locked root task is available */
+    SetTaskState(task, state);
 }
 } } // namespace M_RestoreTaskState
 
@@ -2728,7 +2750,7 @@ static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 // Writes the task's fields into its save variables and refreshes its job's.
 extern "C" void UpdateTaskSaveVars(S *task)
 {
-    if (task->stateSource == 1 || task->state == -1)   /* restoring from the save, or never set */
+    if (task->stateSource == STATE_SOURCE_RESTORE || task->state == TASK_STATE_UNSET)
         return;
     {
         OPT *var = &task->startCountVar;
@@ -2783,7 +2805,7 @@ int AreTaskPrereqsMet(struct S *task)
     for (i = 0; met && i < task->numPrerequisites; i++) {
         struct X *prerequisite = task->prerequisites[i];
         met = 0;
-        if (prerequisite->state >= 2 || (prerequisite->state == 1 && prerequisite->isOptional))
+        if (prerequisite->state >= TASK_STATE_DONE || (prerequisite->state == TASK_STATE_AVAILABLE && prerequisite->isOptional))
             met = 1;
     }
     return met;
@@ -2859,45 +2881,45 @@ extern "C" void RequestTaskState(X *task, int newState, int requester)
     StateSourceScope scope(task, task->stateSource, requester);
     StateSourceScope jobScope(task->job, task->stateSource, requester, 1);
     if (newState == -1)
-        newState = 4;
+        newState = TASK_REQUEST_ACTIVATE;
     int current = task->state;
-    if (current != -1) {
+    if (current != TASK_STATE_UNSET) {
         switch (newState) {
-        case 4:
+        case TASK_REQUEST_ACTIVATE:
             switch (current) {
-            case 0:
+            case TASK_STATE_LOCKED:
                 if (AreTaskPrereqsMet(task)) {
-                    SetTaskStateCascade(task, 1);
+                    SetTaskStateCascade(task, TASK_STATE_AVAILABLE);
                     ActivateTask(task);
                 } else {
-                    RejectTaskState(task, 4);
+                    RejectTaskState(task, TASK_REQUEST_ACTIVATE);
                 }
                 break;
-            case 3:
+            case TASK_STATE_COMPLETE:
                 break;
             default:
                 ActivateTask(task);
                 break;
             }
             break;
-        case 5:
+        case TASK_REQUEST_DEACTIVATE:
             DeactivateTask(task);
             break;
-        case 0:
-        case 1:
-        case 2:
-        case 3: {
-            int allowed = (newState - current == 1);
+        case TASK_STATE_LOCKED:
+        case TASK_STATE_AVAILABLE:
+        case TASK_STATE_DONE:
+        case TASK_STATE_COMPLETE: {
+            int allowed = (newState - current == 1);   /* one step up */
             switch (current) {
-            case 0:
-                if (newState == 1)
+            case TASK_STATE_LOCKED:
+                if (newState == TASK_STATE_AVAILABLE)
                     allowed = AreTaskPrereqsMet(task);
                 break;
-            case 1:
-                if (newState == 3)
+            case TASK_STATE_AVAILABLE:
+                if (newState == TASK_STATE_COMPLETE)
                     allowed = 1;
                 break;
-            case 3:
+            case TASK_STATE_COMPLETE:
                 return;
             }
             if (allowed)
@@ -2977,21 +2999,21 @@ extern "C" void ForceTaskState(X *task, int newState, int requester)
     StateSourceScope scope(task, task->stateSource, requester);
     StateSourceScope jobScope(task->job, task->stateSource, requester, 1);
     if (newState == -1)
-        newState = 4;
-    if (task->state != -1) {
+        newState = TASK_REQUEST_ACTIVATE;
+    if (task->state != TASK_STATE_UNSET) {
         switch (newState) {
-        case 4:
-            if (task->state == 0 && AreTaskPrereqsMet(task))
-                SetTaskStateCascade(task, 1);
+        case TASK_REQUEST_ACTIVATE:
+            if (task->state == TASK_STATE_LOCKED && AreTaskPrereqsMet(task))
+                SetTaskStateCascade(task, TASK_STATE_AVAILABLE);
             ActivateTask(task);
             break;
-        case 5:
+        case TASK_REQUEST_DEACTIVATE:
             DeactivateTask(task);
             break;
-        case 0:
-        case 1:
-        case 2:
-        case 3:
+        case TASK_STATE_LOCKED:
+        case TASK_STATE_AVAILABLE:
+        case TASK_STATE_DONE:
+        case TASK_STATE_COMPLETE:
             SetTaskStateCascade(task, newState);
             break;
         }
@@ -3048,7 +3070,7 @@ public:
         task = px;
         if (px) {
             savedSource = px->stateSource;
-            px->stateSource = 4;
+            px->stateSource = STATE_SOURCE_SCRIPT;
             savedRequester = px->stateRequester;
             px->stateRequester = 0;
         }
@@ -3077,7 +3099,7 @@ extern "C" void UpdateCurrentJob();
 extern "C" void ForceTaskState0(X *task)
 {
     StateSourceScope scope(task);
-    ForceTaskState(task, 0, 0);
+    ForceTaskState(task, TASK_STATE_LOCKED, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164AA8
@@ -3096,7 +3118,7 @@ public:
         task = px;
         if (px) {
             savedSource = px->stateSource;
-            px->stateSource = 4;
+            px->stateSource = STATE_SOURCE_SCRIPT;
             savedRequester = px->stateRequester;
             px->stateRequester = 0;
         }
@@ -3125,7 +3147,7 @@ extern "C" void UpdateCurrentJob();
 extern "C" void ForceTaskState1(X *task)
 {
     StateSourceScope scope(task);
-    ForceTaskState(task, 1, 0);
+    ForceTaskState(task, TASK_STATE_AVAILABLE, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164B38
@@ -3144,7 +3166,7 @@ public:
         task = px;
         if (px) {
             savedSource = px->stateSource;
-            px->stateSource = 4;
+            px->stateSource = STATE_SOURCE_SCRIPT;
             savedRequester = px->stateRequester;
             px->stateRequester = 0;
         }
@@ -3173,7 +3195,7 @@ extern "C" void UpdateCurrentJob();
 extern "C" void ForceTaskState2(X *task)
 {
     StateSourceScope scope(task);
-    ForceTaskState(task, 2, 0);
+    ForceTaskState(task, TASK_STATE_DONE, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164BC8
@@ -3192,7 +3214,7 @@ public:
         task = px;
         if (px) {
             savedSource = px->stateSource;
-            px->stateSource = 4;
+            px->stateSource = STATE_SOURCE_SCRIPT;
             savedRequester = px->stateRequester;
             px->stateRequester = 0;
         }
@@ -3221,7 +3243,7 @@ extern "C" void UpdateCurrentJob();
 extern "C" void ForceTaskState3(X *task)
 {
     StateSourceScope scope(task);
-    ForceTaskState(task, 3, 0);
+    ForceTaskState(task, TASK_STATE_COMPLETE, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164C58
@@ -3243,10 +3265,10 @@ void CollectTaskCascade(struct X *task, int newState, int *count, struct X **col
     for (i = 0; i < task->numFollowers; i++) {
         struct X *follower = task->followers[i];
         int followerState = newState;
-        if (newState == 2) {
+        if (newState == TASK_STATE_DONE) {   /* a follower with no job, or in another (non-replay) job, completes fully */
             struct Y *job = follower->job;
             if (!job || (job != task->job && !job->isReplay))
-                followerState = 3;
+                followerState = TASK_STATE_COMPLETE;
         }
         CollectTaskCascade(follower, followerState, count, collected);
     }
@@ -3330,9 +3352,9 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     D_002DEB28 = 1;
     int cascadeState = -1;
     switch (state) {
-    case 0: break;
-    case 1: case 2: cascadeState = 2; break;
-    case 3: cascadeState = 3; break;
+    case TASK_STATE_LOCKED: break;
+    case TASK_STATE_AVAILABLE: case TASK_STATE_DONE: cascadeState = TASK_STATE_DONE; break;
+    case TASK_STATE_COMPLETE: cascadeState = TASK_STATE_COMPLETE; break;
     }
     if (cascadeState != -1) {
         int i = 0;
@@ -3361,7 +3383,7 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     }
     /* A live task that just became complete: its job reacts, else autosave (a gating task only once every follower
        has a job). */
-    if (IsTaskLive(task) && oldState != -1 && oldState < 2 && task->state >= 2) {
+    if (IsTaskLive(task) && oldState != TASK_STATE_UNSET && oldState < TASK_STATE_DONE && task->state >= TASK_STATE_DONE) {
         if (task->job) {
             OnJobTaskComplete(task->job, task);
             if (task->job)
@@ -3553,14 +3575,14 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
     SortTasksTopologically(&numTasks, &tasks);
     for (i = 0; i < numTasks; i++) {
         X *restored = tasks[i];
-        StateSourceScope scope(restored, 3, 0);
+        StateSourceScope scope(restored, STATE_SOURCE_LOAD_RESET, 0);
         RestoreTaskState(restored);
     }
     X *pending = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->pendingTaskOid, 0);
     game->currentJobOid = pending->job->oid;
     game->currentTaskOid = pending->oid;
-    StateSourceScope scope(pending, 3, 0);
-    SetTaskStateCascade(pending, 1);
+    StateSourceScope scope(pending, STATE_SOURCE_LOAD_RESET, 0);
+    SetTaskStateCascade(pending, TASK_STATE_AVAILABLE);
     int playerOid = pending->playerOid;
     if (playerOid != -1) {
         CRef refRet;
@@ -3573,8 +3595,8 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
     }
     for (i = 0; i < numTasks; i++) {
         X *restored = tasks[i];
-        StateSourceScope scope2(restored, 3, 0);
-        SetTaskState(restored, -1);
+        StateSourceScope scope2(restored, STATE_SOURCE_LOAD_RESET, 0);
+        SetTaskState(restored, TASK_STATE_UNSET);
     }
     D_003DD490.warpOid = pending->warpOid;
     D_003DD490.warpContext = -1;
@@ -3657,17 +3679,17 @@ extern "C" void WipeToWorldWarp(G *pg, void *p, int a, int b, int c, int d);
 // warp.
 extern "C" void GoToTask(X *task)
 {
-    StateSourceScope scope(task, 2, 0);
-    StateSourceScope jobScope(task->job, 2, 0, 1);
+    StateSourceScope scope(task, STATE_SOURCE_GO_TO_TASK, 0);
+    StateSourceScope jobScope(task->job, STATE_SOURCE_GO_TO_TASK, 0, 1);
     if (task->job != D_003DD490.currentJob) {
         if (D_003DD490.currentJob) {
-            StateSourceScope currentJobScope(D_003DD490.currentJob, 2, 0, 1);
+            StateSourceScope currentJobScope(D_003DD490.currentJob, STATE_SOURCE_GO_TO_TASK, 0, 1);
             AbortJob(D_003DD490.currentJob);
         }
         if (task->job)
             SetCurrentJob(task->job);
     }
-    SetTaskStateCascade(task, 1);
+    SetTaskStateCascade(task, TASK_STATE_AVAILABLE);
     ActivateTask(task);
     if (task->playerOid != -1) {
         CRef refRet;
@@ -3768,26 +3790,26 @@ extern "C" void SetTaskState(O *task, int n)
         BroadcastGameEvent(D_002DEB30, 0x26, task);
         task->Msg(0x16, 0, 0, 0, 0);
     }
-    if (task->state == 1)
+    if (task->state == TASK_STATE_AVAILABLE)
         RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
     if (IsTaskLive(task)) {
         ApplyStateLoVisibility(task, n, task->numVisibility, task->visibility);
         TriggerStateRsmgs(task, n, task->numRsmgs, task->rsmgs, task->stateSource);
     }
     switch (n) {
-    case 0:
-        if (task->stateSource == 4) {
+    case TASK_STATE_LOCKED:   /* a script reset clears the counters (and the job's start count for its start task) */
+        if (task->stateSource == STATE_SOURCE_SCRIPT) {
             task->startCount = 0;
             task->completionCount = 0;
             if (task->job && task->job->startTask == task)
                 task->job->jobStartCount = 0;
         }
         break;
-    case 1:
+    case TASK_STATE_AVAILABLE:
         AppendDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
         break;
-    case 2:
-        if (task->stateSource == 0)
+    case TASK_STATE_DONE:
+        if (task->stateSource == STATE_SOURCE_GAMEPLAY)
             task->completionCount++;
         break;
     }
@@ -3800,25 +3822,25 @@ extern "C" void SetTaskState(O *task, int n)
         task->V4(0x11, task);
     }
     switch (task->stateSource) {
-    case 1:
-        if (task->state == 1 && task->resumesHere)
+    case STATE_SOURCE_RESTORE:   /* the restored task to resume becomes g_game's current task oid */
+        if (task->state == TASK_STATE_AVAILABLE && task->resumesHere)
             D_002DEB44 = task->oid;
         break;
-    case 0:
-    case 2:
-    case 4:
+    case STATE_SOURCE_GAMEPLAY:
+    case STATE_SOURCE_GO_TO_TASK:
+    case STATE_SOURCE_SCRIPT:
         switch (task->state) {
-        case 1:
+        case TASK_STATE_AVAILABLE:
             if (task->activateWhenAvailable)
                 ActivateTask(task);
             break;
-        case 0:
-        case 3:
+        case TASK_STATE_LOCKED:
+        case TASK_STATE_COMPLETE:
             DeactivateTask(task);
             break;
         }
         break;
-    case 3:
+    case STATE_SOURCE_LOAD_RESET:
         break;
     }
 }
@@ -3897,25 +3919,25 @@ void RecomputeTaskState(struct X *task, int prerequisiteState)
     int newState; int state;
     if (task->pendingCascadeState != -1) return;
     state = task->state; newState = state;
-    if (prerequisiteState >= 0) {
-        if (prerequisiteState < 2) {
-            newState = 0;
-        } else if (prerequisiteState < 4) {
+    if (prerequisiteState >= TASK_STATE_LOCKED) {
+        if (prerequisiteState < TASK_STATE_DONE) {
+            newState = TASK_STATE_LOCKED;
+        } else if (prerequisiteState < TASK_REQUEST_ACTIVATE) {
             int allComplete = 1;
             int i;
             for (i = 0; i < task->numPrerequisites; i++) {
-                if (task->prerequisites[i]->state < 2) {
+                if (task->prerequisites[i]->state < TASK_STATE_DONE) {
                     allComplete = 0;
                     break;
                 }
             }
             if (!allComplete) {
-                newState = 0;
+                newState = TASK_STATE_LOCKED;
             } else {
                 switch (task->state) {
-                case 0: newState = 1; break;
-                case 1: case 2: break;
-                case 3: newState = prerequisiteState; break;
+                case TASK_STATE_LOCKED: newState = TASK_STATE_AVAILABLE; break;
+                case TASK_STATE_AVAILABLE: case TASK_STATE_DONE: break;
+                case TASK_STATE_COMPLETE: newState = prerequisiteState; break;
                 }
             }
         }
