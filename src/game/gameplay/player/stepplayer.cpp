@@ -95,38 +95,38 @@ void func_001F7918(struct P *p, int mask, int n);
  * @end-sly2-annot */
 // STEPPLAYER Init (vtable slot 7), shared by Sly, Bentley and Murray: STEP init, then the embedded components (air
 // +0x2C0, grab +0x4C0, places +0x9E0, hurt +0xDF0, mode +0xF00, pipe +0xF50, throw ...) and the player defaults.
-void InitStepplayer(struct P *p)
+void InitStepplayer(struct P *player)
 {
-    InitStep(p);
-    InitJtAir((char *)p + 0x2C0, p);
-    InitJtGrab((char *)p + 0x4C0, p);
-    InitJtPlaces((char *)p + 0x9E0, p);
-    InitJtHurt((char *)p + 0xDF0, p);
-    InitJtMode((char *)p + 0xF00, p);
-    InitThrow((char *)p + 0x11B0, p);
-    InitJtPipe((char *)p + 0xF50, p);
-    InitJtgoal((char *)p + 0xFD0, p);
+    InitStep(player);
+    InitJtAir((char *)player + 0x2C0, player);
+    InitJtGrab((char *)player + 0x4C0, player);
+    InitJtPlaces((char *)player + 0x9E0, player);
+    InitJtHurt((char *)player + 0xDF0, player);
+    InitJtMode((char *)player + 0xF00, player);
+    InitThrow((char *)player + 0x11B0, player);
+    InitJtPipe((char *)player + 0xF50, player);
+    InitJtgoal((char *)player + 0xFD0, player);
 
 
-    p->x103C = 20.0f;
-    p->x10F0 = 1;
-    p->x1048 = 125.0f;
-    p->x10D4 = p->x10D8 = 1.0f;
-    p->x1138 = 1.5f;
-    p->x113C = 2.5f;
-    p->x1140 = 3.0f;
-    p->x1144 = 5.0f;
-    p->x12F0 = p->x10F0;
-    p->x1020 = 100.0f;
-    p->x1300 = 100;
-    p->x1304 = -60.0f;
-    p->x10EC = -1;
-    p->x10E4 = -1;
-    p->x1318 = -1;
-    p->x10C8 = -1;
+    player->x103C = 20.0f;
+    player->x10F0 = 1;
+    player->x1048 = 125.0f;
+    player->x10D4 = player->x10D8 = 1.0f;
+    player->x1138 = 1.5f;
+    player->x113C = 2.5f;
+    player->x1140 = 3.0f;
+    player->x1144 = 5.0f;
+    player->x12F0 = player->x10F0;
+    player->x1020 = 100.0f;
+    player->x1300 = 100;
+    player->x1304 = -60.0f;
+    player->x10EC = -1;
+    player->x10E4 = -1;
+    player->x1318 = -1;
+    player->x10C8 = -1;
 
-    func_001F7918(p, 0x3FFFFFF, 0);
-    func_001F7918(p, 0x10FF00, 8);
+    func_001F7918(player, 0x3FFFFFF, 0);
+    func_001F7918(player, 0x10FF00, 8);
 }
 } } // namespace M_InitStepplayer
 
@@ -176,72 +176,72 @@ void PostSwCallback(struct G *, struct P *, long, int);
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
-void PostLoadStepplayer(struct P *p)
+void PostLoadStepplayer(struct P *player)
 {
     void *apv[16];
     int c;
     int i;
 
-    PostStepLoad(p);
-    BindLoOidTable(p, 0x35, D_002BC9F0);
-    PostLoadJtAir((char *)p + 0x2C0);
-    PostLoadJtGrab((char *)p + 0x4C0);
-    PostLoadJtPlaces((char *)p + 0x9E0);
-    PostLoadJtHurt((char *)p + 0xDF0);
-    PostLoadJtMode((char *)p + 0xF00);
-    PostJtThrowLoad((char *)p + 0x11B0);
-    PostJtLoadPipe((char *)p + 0xF50);
-    c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
+    PostStepLoad(player);
+    BindLoOidTable(player, 0x35, D_002BC9F0);
+    PostLoadJtAir((char *)player + 0x2C0);
+    PostLoadJtGrab((char *)player + 0x4C0);
+    PostLoadJtPlaces((char *)player + 0x9E0);
+    PostLoadJtHurt((char *)player + 0xDF0);
+    PostLoadJtMode((char *)player + 0xF00);
+    PostJtThrowLoad((char *)player + 0x11B0);
+    PostJtLoadPipe((char *)player + 0xF50);
+    c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, player, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
         preq->cb = c * 8;
-        p->cpo = c;
+        player->cpo = c;
         preq->cbAlign = 0x10;
-        p->apo = (__typeof__(p->apo))func_001AE2A0(preq);
+        player->apo = (__typeof__(player->apo))func_001AE2A0(preq);
         for (i = 0; i < c; i++) {
             struct O *object;
             struct VTE *e;
-            p->apo[i * 2] = (__typeof__(p->apo[i * 2]))apv[i];
-            object = p->apo[i * 2];
+            player->apo[i * 2] = (__typeof__(player->apo[i * 2]))apv[i];
+            object = player->apo[i * 2];
             e = &object->vt[9];
             ((void (*)(void *))e->pfn)((char *)object + e->d);
         }
     }
     {
-        struct VTE *e = &p->vt[79];
-        ((void (*)(void *, int))e->pfn)((char *)p + e->d, 0);
+        struct VTE *e = &player->vt[79];
+        ((void (*)(void *, int))e->pfn)((char *)player + e->d, 0);
     }
     {
-        struct VTE *e = &p->vt[104];
-        ((void (*)(void *))e->pfn)((char *)p + e->d);
+        struct VTE *e = &player->vt[104];
+        ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
-    LoadStepplayerGadgets(p);
-    BindStepplayerHpMp(p, D_003DD490.grf & 4);
-    p->x1088 = func_001F8278(p);
-    SetSoMass(p, 0.25f);
-    if (p->pso->x94 == 0) {
-        qword q = func_001A62E8(p);
-        struct M3 m = *func_001A6318(p);
-        struct SO *so = p->pso;
+    LoadStepplayerGadgets(player);
+    BindStepplayerHpMp(player, D_003DD490.grf & 4);
+    player->x1088 = func_001F8278(player);
+    SetSoMass(player, 0.25f);
+    if (player->pso->x94 == 0) {
+        qword q = func_001A62E8(player);
+        struct M3 m = *func_001A6318(player);
+        struct SO *so = player->pso;
         func_002333B4(so, 0, 0x40);
         so->m[0] = so->m[5] = so->m[10] = so->m[15] = 1.0f;
         D_003DD490.cid++;
-        p->pso->id = D_003DD490.cid;
+        player->pso->id = D_003DD490.cid;
         {
-            struct VTE *e = &p->vt[18];
-            ((void (*)(void *))e->pfn)((char *)p + e->d);
+            struct VTE *e = &player->vt[18];
+            ((void (*)(void *))e->pfn)((char *)player + e->d);
         }
         {
-            struct VTE *e = &p->vt[29];
-            ((void (*)(void *, qword))e->pfn)((char *)p + e->d, q);
+            struct VTE *e = &player->vt[29];
+            ((void (*)(void *, qword))e->pfn)((char *)player + e->d, q);
         }
         {
-            struct VTE *e = &p->vt[30];
-            ((void (*)(void *, struct M3 *))e->pfn)((char *)p + e->d, &m);
+            struct VTE *e = &player->vt[30];
+            ((void (*)(void *, struct M3 *))e->pfn)((char *)player + e->d, &m);
         }
     }
-    PostSwCallback(&D_003DD490, p, D_002A4D10.l, 0);
+    PostSwCallback(&D_003DD490, player, D_002A4D10.l, 0);
 }
 } } // namespace M_PostLoadStepplayer
 
@@ -321,33 +321,33 @@ void UpdateBhvstk(int *p);
  *   docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // STEPPLAYER Update (slot 16): STEP update, input and actions, the ride component, water, gadgets, booty, interact.
-void UpdateStepplayer(struct P *p)
+void UpdateStepplayer(struct P *player)
 {
     int *pl;
-    UpdateStep(p);
-    UpdateStepplayerGadgets(p);
-    if (GrfConsumePressed__5POCTLUif(p->x150, 0.0f, 0x200))
-        AcknowledgeStepplayerHint(p);
-    pl = &p->xFD0;
-    if (p->xDF4 == -1) {
+    UpdateStep(player);
+    UpdateStepplayerGadgets(player);
+    if (GrfConsumePressed__5POCTLUif(player->x150, 0.0f, 0x200))
+        AcknowledgeStepplayerHint(player);
+    pl = &player->xFD0;
+    if (player->xDF4 == -1) {
         UpdateJtgoal(pl);
         if (!IsJtgoalHolding(pl)) {
-            if (p->c270 > 0) {
-                struct O *object = p->a274[p->c270 - 1];
+            if (player->c270 > 0) {
+                struct O *object = player->a274[player->c270 - 1];
                 struct VTE *e = &object->vt[14];
-                e->pfn((char *)object + e->d, p->x150);
-            } else if (p->x1084) {
-                func_001E46A0(p->x1084, p->x150);
+                e->pfn((char *)object + e->d, player->x150);
+            } else if (player->x1084) {
+                func_001E46A0(player->x1084, player->x150);
             }
         }
     }
-    UpdateStepplayerInteractCandidates(p);
-    UpdateStepplayerWater(p);
-    UpdateStepplayerHideBlend(p);
-    PickHeroInteractTarget(p);
-    if (p->xEFC && FAsegaRetracted(p->xEFC))
-        func_001306A8(&p->xEFC);
-    if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && p->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(p->x150, 0.0f, 0x100)) {
+    UpdateStepplayerInteractCandidates(player);
+    UpdateStepplayerWater(player);
+    UpdateStepplayerHideBlend(player);
+    PickHeroInteractTarget(player);
+    if (player->xEFC && FAsegaRetracted(player->xEFC))
+        func_001306A8(&player->xEFC);
+    if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(player->x150, 0.0f, 0x100)) {
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {
             SetJoyBtnHandled(pg, 0x100);
@@ -355,7 +355,7 @@ void UpdateStepplayer(struct P *p)
         }
     }
     if (!IsJtgoalHolding(pl))
-        UpdateBhvstk(&p->x26C);
+        UpdateBhvstk(&player->x26C);
 }
 } } // namespace M_UpdateStepplayer
 
@@ -374,12 +374,12 @@ int GuardEvalInteractMode(struct SO *pso, struct P *p, float *pg);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Unless interaction is locked (+0x10E0), scans the guard list for interact candidates (pickpocket/takedown).
-void UpdateStepplayerInteractCandidates(struct P *p)
+void UpdateStepplayerInteractCandidates(struct P *player)
 {
     struct SO *so, *pso0, *pso1;
     int n0, n1;
     float g0, g1;
-    if (p->x10E0) return;
+    if (player->x10E0) return;
     g1 = D_002A4D18;
     pso1 = 0;
     pso0 = 0;
@@ -388,7 +388,7 @@ void UpdateStepplayerInteractCandidates(struct P *p)
     g0 = g1;
     for (so = (*(struct SO * *)&g_sw.dlStepguard); so; so = so->psoNext) {
         float ag[2];
-        int n = GuardEvalInteractMode(so, p, &ag[1]);
+        int n = GuardEvalInteractMode(so, player, &ag[1]);
         float g = ag[1];
         if (g < g0) {
             g0 = g;
@@ -401,7 +401,7 @@ void UpdateStepplayerInteractCandidates(struct P *p)
             pso1 = so;
         }
     }
-    p->vt[95].pfn((char *)p + p->vt[95].d, n0, pso0, n1, pso1);
+    player->vt[95].pfn((char *)player + player->vt[95].d, n0, pso0, n1, pso1);
 }
 } } // namespace M_UpdateStepplayerInteractCandidates
 
@@ -416,13 +416,13 @@ void ReleaseInteractTargetMark(struct X *p, int a, int b, int c, int d);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 95: stores the interact kind, target, mode and fight target.
-void SetStepplayerPlayerInteractMode(struct X *p, int a, int b, int c, int d)
+void SetStepplayerPlayerInteractMode(struct X *player, int a, int b, int c, int d)
 {
-    if (b != p->b) ReleaseInteractTargetMark(p, a, b, c, d);
-    p->b = b;
-    p->a = a;
-    p->d = d;
-    p->c = c;
+    if (b != player->b) ReleaseInteractTargetMark(player, a, b, c, d);
+    player->b = b;
+    player->a = a;
+    player->d = d;
+    player->c = c;
 }
 } } // namespace M_SetStepplayerPlayerInteractMode
 
@@ -439,11 +439,11 @@ void ClearBhvstk__FP6BHVSTK(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 79: PO control state, then the camera hookup; on becoming the current player refreshes the HUD/camera.
-void SetStepplayerCtlState(char *p, int n)
+void SetStepplayerCtlState(char *player, int n)
 {
-    SetPoCtlState(p, n);
-    func_001F82B8(p, n == 1 ? 0 : -1, 0);
-    if (n == 1) ClearBhvstk__FP6BHVSTK(p + 0x26C);
+    SetPoCtlState(player, n);
+    func_001F82B8(player, n == 1 ? 0 : -1, 0);
+    if (n == 1) ClearBhvstk__FP6BHVSTK(player + 0x26C);
 }
 } } // namespace M_SetStepplayerCtlState
 
@@ -481,40 +481,40 @@ static inline float GMax(float a, float b) { return b > a ? b : a; }
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // If a hide volume set exists (+0x10C4): smooths the hide blend (+0x10CC) toward 1 inside, 0 outside.
-void UpdateStepplayerHideBlend(struct P *p)
+void UpdateStepplayerHideBlend(struct P *player)
 {
     int k;
     float g;
-    if (!p->p10C4) return;
-    switch (TestStepplayerHidden(p)) {
+    if (!player->p10C4) return;
+    switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.dt; p->x10CC = GMin(p->x10CC + D_002BCC6C * dt, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10CC = GMin(player->x10CC + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
-        { float dt = D_002DDED0.dt; p->x10CC = GMax(p->x10CC + D_002BCC70 * dt, 0.0f); }
+        { float dt = D_002DDED0.dt; player->x10CC = GMax(player->x10CC + D_002BCC70 * dt, 0.0f); }
         break;
     case 2:
-        p->x10CC = 0.0f;
+        player->x10CC = 0.0f;
         break;
     }
-    if (p->xDF4 != -1 || (g = p->x10CC) == 0.0f) p->x10C8 = -1;
-    else if (g == 1.0f || (p->x10C8 == 1 && 0.0f < g)) p->x10C8 = 1;
-    else p->x10C8 = 0;
-    k = p->vt[98].pfn((char *)p + p->vt[98].d);
-    if (p->x10C8 != 1 && k == 1) k = 2;
+    if (player->xDF4 != -1 || (g = player->x10CC) == 0.0f) player->x10C8 = -1;
+    else if (g == 1.0f || (player->x10C8 == 1 && 0.0f < g)) player->x10C8 = 1;
+    else player->x10C8 = 0;
+    k = player->vt[98].pfn((char *)player + player->vt[98].d);
+    if (player->x10C8 != 1 && k == 1) k = 2;
     switch (k) {
     case 0:
-        p->x10D0 = 0.0f;
+        player->x10D0 = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; p->x10D0 = GClamp(p->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = GClamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; p->x10D0 = GClamp(p->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = GClamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
-    if (p->x10D0 == 1.0f) func_00156548(p->p10C4, func_001A62E8(p), p, 0);
+    if (player->x10D0 == 1.0f) func_00156548(player->p10C4, func_001A62E8(player), player, 0);
 }
 } } // namespace M_func_00140750
 
@@ -552,16 +552,16 @@ void func_00156780(void *q);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // 2 if in a look mode or no hide query is possible; else 1 if any guard can see the player, 0 otherwise. (inferred)
-int TestStepplayerHidden(struct P *p)
+int TestStepplayerHidden(struct P *player)
 {
     int unused[4];
     void *q;
     int r;
     struct SO *so;
     struct X *px;
-    if (IsStepplayerInJtMode(p)) return 2;
+    if (IsStepplayerInJtMode(player)) return 2;
     q = 0;
-    if (p->p10C4) q = func_00156698(p->p10C4, func_001A62E8(p), p);
+    if (player->p10C4) q = func_00156698(player->p10C4, func_001A62E8(player), player);
     if (!q) return 2;
     r = 0;
     so = (*(struct SO * *)&g_sw.dlStepguard);
@@ -596,15 +596,15 @@ qword func_001A62E8(void *p);
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // True in interact mode 4 (kind != 3) when the target is within reach.
-int IsStepplayerNearInteractTarget(struct P *p, int fX)
+int IsStepplayerNearInteractTarget(struct P *player, int fX)
 {
     float gDist, minValue, maxValue;
     qword a, b, t;
     U d;
     float g;
     int f;
-    if (p->x10EC != 4 || p->x10E4 == 3) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p10E8, 0x3A)) gDist = D_002BCC7C;
+    if (player->x10EC != 4 || player->x10E4 == 3) return 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
     else gDist = D_002BCC80;
     minValue = D_002BCC84;
     maxValue = D_002BCC88;
@@ -613,8 +613,8 @@ int IsStepplayerNearInteractTarget(struct P *p, int fX)
         minValue -= D_002BCC90;
         maxValue += D_002BCC90;
     }
-    a = func_001A62E8(p->p10E8);
-    b = func_001A62E8(p);
+    a = func_001A62E8(player->p10E8);
+    b = func_001A62E8(player);
     f = 0;
     {
         qword qwdqOut;
@@ -643,15 +643,15 @@ void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void StepplayerVirtual82(struct X *p, void *a, struct Y *b, qword v)
+void StepplayerVirtual82(struct X *player, void *a, struct Y *b, qword v)
 {
     qword d;
     if ((((b->fl >> 60) & 1) == 0)) {
-        SetJtAirJump((char *)p + 0x2C0, 0, 0, 0);
+        SetJtAirJump((char *)player + 0x2C0, 0, 0, 0);
         return;
     }
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(p->pos));
-    AddStepAxisXps(p, a, b, d);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->pos));
+    AddStepAxisXps(player, a, b, d);
 }
 } } // namespace M_func_00140C30
 
@@ -690,12 +690,12 @@ void UpdateJtInternalXpsPipe(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
-void StepplayerVirtual59(char *p)
+void StepplayerVirtual59(char *player)
 {
-    func_001F4FA8(p);
-    if (*(int *)(p + 0x2DC) != -1) AddJtWallRunXps(p + 0x2C0);
-    if (*(int *)(p + 0x4CC) != -1) UpdateJtInternalXpsHide(p + 0x4C0);
-    if (*(int *)(p + 0xF54) != -1) UpdateJtInternalXpsPipe(p + 0xF50);
+    func_001F4FA8(player);
+    if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
+    if (*(int *)(player + 0x4CC) != -1) UpdateJtInternalXpsHide(player + 0x4C0);
+    if (*(int *)(player + 0xF54) != -1) UpdateJtInternalXpsPipe(player + 0xF50);
 }
 } } // namespace M_func_00140D00
 
@@ -744,7 +744,7 @@ void func_001FAD00(struct P *p, void *a, struct S *s, void *b, int i);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 68 (contact impulse): special handling when the other body is one of the player characters.
-void HandleStepplayerContactImpulse(struct P *p, void *a, struct S *s, void *b, int i)
+void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void *b, int i)
 {
     U c;
     qword save;
@@ -753,7 +753,7 @@ void HandleStepplayerContactImpulse(struct P *p, void *a, struct S *s, void *b, 
     off = (1 - i) * 64;
     kk = ((struct E *)((char *)s->ae + off))->k;
     if (kk == D_002E1E40 || kk == D_002DD5BC || kk == D_002F7900) {
-        if (p->p150->x80 != 1 || IsStepplayerPushing(p)) {
+        if (player->p150->x80 != 1 || IsStepplayerPushing(player)) {
             qword vo;
             {
                 qword qwcqOut;
@@ -764,7 +764,7 @@ void HandleStepplayerContactImpulse(struct P *p, void *a, struct S *s, void *b, 
             s->v = vo;
         }
     }
-    func_001FAD00(p, a, s, b, i);
+    func_001FAD00(player, a, s, b, i);
     s->v = save;
 }
 } } // namespace M_func_00140DB0
@@ -796,12 +796,12 @@ int ShouldStepplayerIgnoreZap(void *p, int a);
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 76 base: invulnerable while a look mode runs, in air state 0x15, or while the global invulnerability flag is set.
-int IsStepplayerInvulnerable(char *p, int a)
+int IsStepplayerInvulnerable(char *player, int a)
 {
-    if (*(int *)(p + 0xF20) == 1) return 1;
-    if (*(int *)(p + 0x2DC) == 0x15) return 1;
+    if (*(int *)(player + 0xF20) == 1) return 1;
+    if (*(int *)(player + 0x2DC) == 0x15) return 1;
     if (D_003D4A54 && FIsPoCur(D_003D4A54)) return 1;
-    return ShouldStepplayerIgnoreZap(p + 0xDF0, a);
+    return ShouldStepplayerIgnoreZap(player + 0xDF0, a);
 }
 } } // namespace M_STEPPLAYER_FInvulnerable
 
@@ -914,24 +914,24 @@ static inline qword VecSub(qword a, qword b)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // STEPPLAYER message handler (slot 5): message 3 (reset), animation events (message 9 kinds 0x15E/0x161 ...).
-void HandleStepplayerMessage(void *p, int msg, void *pv)
+void HandleStepplayerMessage(void *player, int msg, void *pv)
 {
     switch (msg) {
     case 3:
-        if (pv == F(void *, p, 0x1030) ||
-            (F(void *, p, 0x1034) != 0 && pv == F(void *, F(void *, p, 0x1034), 0x30))) {
-            F(int, p, 0x1038) = -1;
-            if ((unsigned)(F(int, p, 0xDF4) - 8) < 5) {
-                RunJtHurtCallback((char *)p + 0xDF0);
+        if (pv == F(void *, player, 0x1030) ||
+            (F(void *, player, 0x1034) != 0 && pv == F(void *, F(void *, player, 0x1034), 0x30))) {
+            F(int, player, 0x1038) = -1;
+            if ((unsigned)(F(int, player, 0xDF4) - 8) < 5) {
+                RunJtHurtCallback((char *)player + 0xDF0);
             } else {
-                switch (F(int, p, 0x11B4)) {
+                switch (F(int, player, 0x11B4)) {
                 case 5:
                 case 6:
-                    SetJtThrowState((char *)p + 0x11B0, 4);
+                    SetJtThrowState((char *)player + 0x11B0, 4);
                     break;
                 case 1:
                 case 2:
-                    SetJtThrowState((char *)p + 0x11B0, 0);
+                    SetJtThrowState((char *)player + 0x11B0, 0);
                     break;
                 }
             }
@@ -939,12 +939,12 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
         break;
     case 9: {
         struct MSG *message = (struct MSG *)pv;
-        if (message->pso->p18 != p)
+        if (message->pso->p18 != player)
             break;
         switch (message->k) {
         case 0x15E: {
-            qword v = func_00204E38(p, message->pso, message->g);
-            qword *pm = &F(qword, p, 0x1B0);
+            qword v = func_00204E38(player, message->pso, message->g);
+            qword *pm = &F(qword, player, 0x1B0);
             union { qword q; float f[4]; } s; /* home of the -1.0f VU_FLOAT: stored, never read */
             qword sv, r;
             struct VT *vtable;
@@ -954,10 +954,10 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
             {
                 qword qwFqwordp0x190Out;
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwFqwordp0x190Out) : "j"(v), "j"(sv));
-                F(qword, p, 0x190) = qwFqwordp0x190Out;
+                F(qword, player, 0x190) = qwFqwordp0x190Out;
             }
-            vtable = F(struct VT *, p, 0xC);
-            pthis = (char *)p + vtable->a[35].d;
+            vtable = F(struct VT *, player, 0xC);
+            pthis = (char *)player + vtable->a[35].d;
             function = (void (*)(void *, qword))vtable->a[35].pfn;
             __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z"
                 : "=&j"(r) : "j"(pm[0]), "j"(v), "j"(pm[1]), "j"(pm[2]));
@@ -966,42 +966,42 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
             break;
         }
         case 0x161:
-            F(int, p, 0x1044) = 1;
+            F(int, player, 0x1044) = 1;
             break;
         case 0x162: {
-            qword v = F(qword, p, 0x1060);
-            F(int, p, 0x1044) = 0;
-            F(qword, p, 0x1070) = VecSub(v, func_001A62E8(p));
-            F(int, p, 0x1078) = 0;
+            qword v = F(qword, player, 0x1060);
+            F(int, player, 0x1044) = 0;
+            F(qword, player, 0x1070) = VecSub(v, func_001A62E8(player));
+            F(int, player, 0x1078) = 0;
             break;
         }
         case 0x27B:
-            if (F(int, p, 0x11B4) != -1)
-                ReleaseJtThrowObject((char *)p + 0x11B0);
+            if (F(int, player, 0x11B4) != -1)
+                ReleaseJtThrowObject((char *)player + 0x11B0);
             break;
         case 0x27C:
-            if (F(int, p, 0x4C8) == 0xB) {
+            if (F(int, player, 0x4C8) == 0xB) {
                 void *object;
                 int n;
-                if (F(void *, p, 0x4D4) != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, p, 0x4D4), 100)) {
-                    object = F(void *, p, 0x4D4);
+                if (F(void *, player, 0x4D4) != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, player, 0x4D4), 100)) {
+                    object = F(void *, player, 0x4D4);
                     if (func_00224590(object))
                         func_002245B8(object);
                 }
-                n = F(int, p, 0x9BC);
-                if (F(void *, p, 0x130C) != 0) {
+                n = F(int, player, 0x9BC);
+                if (F(void *, player, 0x130C) != 0) {
                     __asm__("" : : : "$3", "$4"); /* clobber of dead v1/a0 (Claude agent): target keeps n in a1 */
-                    if (F(int, p, 0x1314) == n) {
-                        ReleaseAsega((char *)p + 0x1310);
-                        F(int, p, 0x1314) = -1;
+                    if (F(int, player, 0x1314) == n) {
+                        ReleaseAsega((char *)player + 0x1310);
+                        F(int, player, 0x1314) = -1;
                     } else {
-                        ChargeGadgetMp(p);
-                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, p, 0x130C), p, 0.0f, 8, 1.0f, (char *)p + 0x1310);
-                        F(int, p, 0x1314) = F(int, p, 0x9BC);
+                        ChargeGadgetMp(player);
+                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f, (char *)player + 0x1310);
+                        F(int, player, 0x1314) = F(int, player, 0x9BC);
                     }
                 } else if (n != -1) {
-                    ChargeGadgetMp(p);
-                    switch (F(int, p, 0x9BC)) {
+                    ChargeGadgetMp(player);
+                    switch (F(int, player, 0x9BC)) {
                     case 0xE:
                         SetGuardOverride(&D_003DD490, 1);
                         break;
@@ -1016,7 +1016,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                             SetLoParent_1A58D0(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = PvNextDli(&dli)) != 0) {
-                            if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == p)
+                            if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == player)
                                 func_00156780(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
@@ -1025,18 +1025,18 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                     }
                     }
                 }
-                F(void *, p, 0x130C) = 0;
-                F(int, p, 0x9BC) = -1;
+                F(void *, player, 0x130C) = 0;
+                F(int, player, 0x9BC) = -1;
             }
             break;
         case 0x1C8:
-            if (F(int, p, 0x4C8) == 0xC)
-                StartJtHandsCarry((char *)p + 0x900, F(void *, p, 0x4D4));
+            if (F(int, player, 0x4C8) == 0xC)
+                StartJtHandsCarry((char *)player + 0x900, F(void *, player, 0x4D4));
             break;
         case 0x1C7:
-            if (F(int, p, 0x4C8) == 0xC) {
-                SetAsegaSpeed__FP5ASEGAf(F(void *, p, 0x1030), 1.0f);
-                AttachJtHandsObject((char *)p + 0x900, F(void *, p, 0x4D4));
+            if (F(int, player, 0x4C8) == 0xC) {
+                SetAsegaSpeed__FP5ASEGAf(F(void *, player, 0x1030), 1.0f);
+                AttachJtHandsObject((char *)player + 0x900, F(void *, player, 0x4D4));
             }
             break;
         }
@@ -1044,25 +1044,25 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
     }
     case 4: {
         struct MSGB *pm = (struct MSGB *)pv;
-        if (pm->p4 == p) {
+        if (pm->p4 == player) {
             int i;
-            F(void *, p, 0x108C) = pm->p0;
-            for (i = 0; i < F(int, p, 0x1094); i++) {
-                void *object = F(struct ENT *, p, 0x1090)[i].po;
+            F(void *, player, 0x108C) = pm->p0;
+            for (i = 0; i < F(int, player, 0x1094); i++) {
+                void *object = F(struct ENT *, player, 0x1090)[i].po;
                 struct VT *vtable = F(struct VT *, object, 0xC);
                 ((void (*)(void *))vtable->a[8].pfn)((char *)object + vtable->a[8].d);
-                F(struct ENT *, p, 0x1090)[i].x4 = 0;
+                F(struct ENT *, player, 0x1090)[i].x4 = 0;
             }
         }
         break;
     }
     case 5: {
         struct MSGB *pm = (struct MSGB *)pv;
-        if (pm->p4 == p && pm->p0 == F(void *, p, 0x108C)) {
+        if (pm->p4 == player && pm->p0 == F(void *, player, 0x108C)) {
             int i;
-            F(void *, p, 0x108C) = 0;
-            for (i = 0; i < F(int, p, 0x1094); i++) {
-                void *object = F(struct ENT *, p, 0x1090)[i].po;
+            F(void *, player, 0x108C) = 0;
+            for (i = 0; i < F(int, player, 0x1094); i++) {
+                void *object = F(struct ENT *, player, 0x1090)[i].po;
                 struct VT *vtable = F(struct VT *, object, 0xC);
                 ((void (*)(void *))vtable->a[9].pfn)((char *)object + vtable->a[9].d);
             }
@@ -1070,20 +1070,20 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
         break;
     }
     case 1:
-        if (F(int, p, 0x4C8) == 0xB && F(void *, p, 0x4D4) == pv) {
-            UnsubscribeLoObject(pv, p);
-            F(void *, p, 0x4D4) = 0;
+        if (F(int, player, 0x4C8) == 0xB && F(void *, player, 0x4D4) == pv) {
+            UnsubscribeLoObject(pv, player);
+            F(void *, player, 0x4D4) = 0;
         }
         break;
     case 11:
-        if (((struct MSGB *)pv)->p4 == p) {
-            ReleaseAsega((char *)p + 0x1310);
-            F(int, p, 0x1314) = -1;
+        if (((struct MSGB *)pv)->p4 == player) {
+            ReleaseAsega((char *)player + 0x1310);
+            F(int, player, 0x1314) = -1;
         }
         break;
     }
-    HandleBhvstkMessage((char *)p + 0x26C, msg, pv);
-    HandlePoMessage(p, msg, pv);
+    HandleBhvstkMessage((char *)player + 0x26C, msg, pv);
+    HandlePoMessage(player, msg, pv);
 }
 } } // namespace M_HandleStepplayerMessage
 #undef F
@@ -1104,21 +1104,21 @@ qword func_001A62E8(void *p);
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Slot 97: the camera focus point (the pipe hand position on a pipe, else the world position raised in z).
-void GetStepplayerCameraFocusPosition(char *p, struct V *v)
+void GetStepplayerCameraFocusPosition(char *player, struct V *v)
 {
     float z;
-    if (*(int *)(p + 0xF54) != -1) {
-        GetJtPipePosition(p + 0xF50, v);
+    if (*(int *)(player + 0xF54) != -1) {
+        GetJtPipePosition(player + 0xF50, v);
         return;
     }
-    *(qword *)v = func_001A62E8(p);
-    if (*(int *)(p + 0x208)) {
-        z = *(float *)(p + 0x238) + *(float *)(p + 0x1048);
-    } else if (*(int *)(p + 0x2DC) == 0x14 || D_002DDF40.n300 != 0 || D_002DDF40.p260 != p) {
-        v->z += *(float *)(p + 0x248) + *(float *)(p + 0x1048);
+    *(qword *)v = func_001A62E8(player);
+    if (*(int *)(player + 0x208)) {
+        z = *(float *)(player + 0x238) + *(float *)(player + 0x1048);
+    } else if (*(int *)(player + 0x2DC) == 0x14 || D_002DDF40.n300 != 0 || D_002DDF40.p260 != player) {
+        v->z += *(float *)(player + 0x248) + *(float *)(player + 0x1048);
         return;
     } else {
-        z = *(float *)(p + 0x104C);
+        z = *(float *)(player + 0x104C);
     }
     v->z = z;
 }
@@ -1279,23 +1279,23 @@ void SetJtAirJump(void *p, int a, int b, int c);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Splice: computes the ballistic velocity from the player's position toward a target and applies it.
-void LaunchStepplayer(struct P *p, qword v, float g, float h)
+void LaunchStepplayer(struct P *player, qword v, float g, float h)
 {
     UQ pos;
     UQ r;
-    pos.q = func_001A62E8(p);
-    pos.f[2] += p->dz;
-    r.q = func_001D6848(pos.q, v, g, p->pE8->q);
-    p->vt[35].pfn((char *)p + p->vt[35].d, r.q);
-    if (p->xDF4 == -1) {
-        SetJtAirJump((char *)p + 0x2C0, 8, 0, 0);
-        p->k300 = 3;
-        p->v360.q = r.q;
-        p->v360.f[2] = 0.0f;
-        p->g2F4 = h;
-        if (h == p->v360.f[2]) {
-            p->f2E8 = 0;
-            p->f2EC = 0;
+    pos.q = func_001A62E8(player);
+    pos.f[2] += player->dz;
+    r.q = func_001D6848(pos.q, v, g, player->pE8->q);
+    player->vt[35].pfn((char *)player + player->vt[35].d, r.q);
+    if (player->xDF4 == -1) {
+        SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
+        player->k300 = 3;
+        player->v360.q = r.q;
+        player->v360.f[2] = 0.0f;
+        player->g2F4 = h;
+        if (h == player->v360.f[2]) {
+            player->f2E8 = 0;
+            player->f2EC = 0;
         }
     }
 }
@@ -1329,38 +1329,38 @@ void SetGadgetSlotState(struct P *p, struct E *pe, int n);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Per frame for the three gadget slots (buttons 4/1/2): starts, updates and stops held gadgets.
-void UpdateStepplayerGadgets(struct P *p)
+void UpdateStepplayerGadgets(struct P *player)
 {
     int i;
     int *pmask;
-    if (!p->p150) return;
+    if (!player->p150) return;
     i = 0;
     pmask = D_002C3258;
     do {
         int mask = *pmask;
-        struct E *pe = &p->ae[i];
+        struct E *pe = &player->ae[i];
         int id = pe->id;
         switch (pe->state) {
         case 0:
-            if (GrfConsumePressed__5POCTLUif(p->p150, mask, 0.15f)) {
-                if (!p->vt[99].pfn((char *)p + p->vt[99].d, id)) {
+            if (GrfConsumePressed__5POCTLUif(player->p150, mask, 0.15f)) {
+                if (!player->vt[99].pfn((char *)player + player->vt[99].d, id)) {
                     SetSndSourceLo(PsndStartSound(0x2E), 0);
                 } else {
-                    int n = GetStepplayerMp(p);
+                    int n = GetStepplayerMp(player);
                     if (n < D_002BCD00[id].xC) {
                         SetSndSourceLo(PsndStartSound(0x2E), 0);
-                        p->t1304 = D_002DDED0.t;
+                        player->t1304 = D_002DDED0.t;
                     } else {
-                        SetGadgetSlotState(p, pe, D_002BCD00[id].x0);
+                        SetGadgetSlotState(player, pe, D_002BCD00[id].x0);
                     }
                 }
             }
             break;
         case 1:
-            if (!(p->p150->grf & mask) || !((int (*)(void *, int))p->vt[99].pfn)((char *)p + p->vt[99].d, id))
-                SetGadgetSlotState(p, pe, 0);
+            if (!(player->p150->grf & mask) || !((int (*)(void *, int))player->vt[99].pfn)((char *)player + player->vt[99].d, id))
+                SetGadgetSlotState(player, pe, 0);
             else
-                ((void (*)(void *, struct E *))p->vt[101].pfn)((char *)p + p->vt[101].d, pe);
+                ((void (*)(void *, struct E *))player->vt[101].pfn)((char *)player + player->vt[101].d, pe);
             break;
         }
         pmask++;
@@ -1471,14 +1471,14 @@ void DrainStepplayerMp(void *p, float f);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 101: while a gadget is held, drains MP at its per-second rate.
-void UpdateStepplayerGadget(void *p, int *pm)
+void UpdateStepplayerGadget(void *player, int *pm)
 {
     switch (*pm) {
     case 0x1D:
-        DrainStepplayerMp(p, D_002BD260);
+        DrainStepplayerMp(player, D_002BD260);
         break;
     case 0x2A:
-        DrainStepplayerMp(p, D_002BD264);
+        DrainStepplayerMp(player, D_002BD264);
         break;
     }
 }
@@ -1506,10 +1506,10 @@ struct O { char pad[0xC]; struct VTE *vt; };
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 104: sends Splice event 0x1A to itself (after a power-up purchase, see RefreshPlayersAfterPowerupChange).
-void SendStepplayerPowerupEvent(struct O *p)
+void SendStepplayerPowerupEvent(struct O *player)
 {
-    struct VTE *e = &p->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 0x1A, 0, 0, 0, 0);
+    struct VTE *e = &player->vt[3];
+    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)player + e->d, 0x1A, 0, 0, 0, 0);
 }
 } } // namespace M_func_00141E30
 
@@ -1589,7 +1589,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Reads the three gadget slots from the save variables (root.apukCur[i]), then slot 105.
-void LoadStepplayerGadgets(struct P *p)
+void LoadStepplayerGadgets(struct P *player)
 {
     int i;
     for (i = 0; i < 3; i++) {
@@ -1597,14 +1597,14 @@ void LoadStepplayerGadgets(struct P *p)
         struct CRef r;
         struct VTE *e;
         sprintf(ach, D_002A4D50, i);
-        e = &p->vt[103];
-        RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4D58, ach, 0);
-        p->ae[i].id = r.tag;
+        e = &player->vt[103];
+        RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4D58, ach, 0);
+        player->ae[i].id = r.tag;
         Decref__4CRef(&r);
     }
     {
-        struct VTE *e = &p->vt[105];
-        ((void (*)(void *))e->pfn)((char *)p + e->d);
+        struct VTE *e = &player->vt[105];
+        ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
 }
 } } // namespace M_LoadStepplayerGadgets
@@ -1638,27 +1638,27 @@ extern "C" { CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...)
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Assigns a gadget id to slot i: stops the old one, clears duplicates in other slots, writes the save variable.
-extern "C" void SetStepplayerGadget(P *p, unsigned int i, int id)
+extern "C" void SetStepplayerGadget(P *player, unsigned int i, int id)
 {
     if (i < 3) {
-        E *pe = &p->ae[i];
-        SetGadgetSlotState(p, pe, -1);
+        E *pe = &player->ae[i];
+        SetGadgetSlotState(player, pe, -1);
         pe->id = id;
         pe->a = 0;
         pe->g = D_002DDED0.t;
         for (int j = 0; j < 3; j++) {
             char ach[16];
-            E *pe2 = &p->ae[j];
+            E *pe2 = &player->ae[j];
             if (j != i && pe2->id == id) {
-                SetGadgetSlotState(p, pe2, -1);
+                SetGadgetSlotState(player, pe2, -1);
                 pe2->id = -1;
             }
             sprintf(ach, D_002A4D50, j);
-            VTE *e = &p->vt[103];
-            RefSetSaveVarV(CRef(0x15, p->ae[j].id), e->pfn((char *)p + e->d), D_002A4D58, ach, 0);
+            VTE *e = &player->vt[103];
+            RefSetSaveVarV(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
         }
-        VTE *e = &p->vt[105];
-        ((void (*)(void *))e->pfn)((char *)p + e->d);
+        VTE *e = &player->vt[105];
+        ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
 }
 } // namespace M_SetStepplayerGadget
@@ -1730,16 +1730,16 @@ void SetJtThrowState(void *p, int n);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Splice: makes object a the carried object (+0x11C0) aimed at object b's position.
-void StartStepplayerThrowAt(struct P *p, void *a, void *b)
+void StartStepplayerThrowAt(struct P *player, void *a, void *b)
 {
     struct VTE *e;
     FadeSoIn(a, 0.25f);
-    p->p11C0 = a;
-    p->q1290 = func_001A62E8(b);
-    UpdateJtThrowArc(p->sub, 0);
-    e = &p->vt[88];
-    ((void (*)(void *, int))e->pfn)((char *)p + e->d, 7);
-    SetJtThrowState(p->sub, 7);
+    player->p11C0 = a;
+    player->q1290 = func_001A62E8(b);
+    UpdateJtThrowArc(player->sub, 0);
+    e = &player->vt[88];
+    ((void (*)(void *, int))e->pfn)((char *)player + e->d, 7);
+    SetJtThrowState(player->sub, 7);
 }
 } } // namespace M_func_00142278
 
@@ -1763,15 +1763,15 @@ struct X {
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Splice: stores the throw parameters (four floats, a range and two vectors) in the throw controller.
-void SetStepplayerThrowParams(struct X *p, struct S8 *ps, qword q1, qword q2, float a, float b, float c, float d)
+void SetStepplayerThrowParams(struct X *player, struct S8 *ps, qword q1, qword q2, float a, float b, float c, float d)
 {
-    p->f11C4 = a;
-    p->f11C8 = b;
-    p->s11CC = *ps;
-    p->f11D4 = c;
-    p->f11D8 = d;
-    p->q1280 = q1;
-    p->q11E0 = q2;
+    player->f11C4 = a;
+    player->f11C8 = b;
+    player->s11CC = *ps;
+    player->f11D4 = c;
+    player->f11D8 = d;
+    player->q1280 = q1;
+    player->q11E0 = q2;
 }
 } } // namespace M_func_00142310
 
@@ -1835,17 +1835,17 @@ static __inline__ float GDist(qword a, qword b)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Splice predicate: true unless in grab state 5 with a target farther than 5 units from its goal.
-int IsStepplayerGrabReady(struct P *p)
+int IsStepplayerGrabReady(struct P *player)
 {
     struct BUF buf;
     M4 m;
     qword v;
-    if (p->x4C8 != 5 || !p->x4D4) return 1;
-    LoadIdentityMatrix4(p->po->vt[32].pfn((char *)p->po + p->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
+    if (player->x4C8 != 5 || !player->x4D4) return 1;
+    LoadIdentityMatrix4(player->po->vt[32].pfn((char *)player->po + player->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
-    if (5.0f < GDist(func_001A62E8(p->po), v)) return 0;
-    if (p->x9A4 != 1) return 1;
-    if (D_002DDED0.t < p->p994->t) return 0;
+    if (5.0f < GDist(func_001A62E8(player->po), v)) return 0;
+    if (player->x9A4 != 1) return 1;
+    if (D_002DDED0.t < player->p994->t) return 0;
     return 1;
 }
 } } // namespace M_func_001423A0
@@ -1921,13 +1921,13 @@ struct O *func_00205438(void *p, int n);
  *   docs/guides/naming-workflow.md#1-where-things-stand-master_names_v2
  * @end-sly2-annot */
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
-void StartStepplayerFollow(char *p, int a, qword q)
+void StartStepplayerFollow(char *player, int a, qword q)
 {
     struct O *o;
     struct VTE *e;
-    ClearBhvstk__FP6BHVSTK(p + 0x26C);
+    ClearBhvstk__FP6BHVSTK(player + 0x26C);
     if (a) {
-        o = func_00205438(p, 0xC2);
+        o = func_00205438(player, 0xC2);
         o->n30 = a;
         o->q40 = q;
         e = &o->vt[8];
@@ -1960,26 +1960,26 @@ void RenderSoGlobset(void *p, int n, int m, float a, float b);
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Slot 19: renders when visible to the current camera; smooths the transparency.
-void RenderStepplayerSelf(struct P *p)
+void RenderStepplayerSelf(struct P *player)
 {
     float g0, g1;
-    if (!(p->b2D & (*(int *)&g_cm.grfvis))) return;
-    func_001F3C10(p);
-    if (p->xF04 == 1 && p->xF20 != 2) return;
-    if (p->x4C8 == 2) {
+    if (!(player->b2D & (*(int *)&g_cm.grfvis))) return;
+    func_001F3C10(player);
+    if (player->xF04 == 1 && player->xF20 != 2) return;
+    if (player->x4C8 == 2) {
         g0 = D_002BD268;
         g1 = D_002BD26C;
     } else {
         g1 = 1.0f;
         g0 = g1;
     }
-    p->g10D4 = GSmooth__FfffP3SMPPf(p->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
-    p->g10D8 = GSmooth__FfffP3SMPPf(p->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
-    if (p == D_002E1E40) {
-        p->py0->g = p->g10D4;
-        p->py1->g = p->g10D4;
+    player->g10D4 = GSmooth__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
+    player->g10D8 = GSmooth__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
+    if (player == D_002E1E40) {
+        player->py0->g = player->g10D4;
+        player->py1->g = player->g10D4;
     }
-    RenderSoGlobset(p->m80, 0, p->x134, p->g12C * p->g10D4, p->g12C * p->g10D8);
+    RenderSoGlobset(player->m80, 0, player->x134, player->g12C * player->g10D4, player->g12C * player->g10D8);
 }
 } } // namespace M_RenderStepplayerSelf
 
@@ -2017,22 +2017,22 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Finds the start-marker child and places the player relative to it.
-void AttachStepplayerToStartMarker(struct P *p, int x)
+void AttachStepplayerToStartMarker(struct P *player, int x)
 {
-    struct SO *so = PxfFindSo(p, x, 6);
+    struct SO *so = PxfFindSo(player, x, 6);
     M3 m, a;
     if (so) {
-        InvertMatrix3CofactorP(&a, &p->p60->mat);
+        InvertMatrix3CofactorP(&a, &player->p60->mat);
         {
             M3 t;
             M3 *pb = &so->mat;
             t.r[0] = m.r[0] = MulV(&a, pb->r[0]);
             t.r[1] = m.r[1] = MulV(&a, pb->r[1]);
             m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
-            p->mat = t;
+            player->mat = t;
         }
-        p->p10F4 = func_0012DC18(p, so, 3, 7, 2, func_0011BFF0(&p->mat));
-        func_0012D020(p->p10F4);
+        player->p10F4 = func_0012DC18(player, so, 3, 7, 2, func_0011BFF0(&player->mat));
+        func_0012D020(player->p10F4);
     }
 }
 } } // namespace M_func_001426E8
@@ -2068,10 +2068,10 @@ void SetStepplayerLeanTarget(void *p, int a, int b);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Splice: SetStepplayerLeanTarget, then locks it (+0x1100 = 1).
-void ForceStepplayerLeanTarget(char *p, int a, int b)
+void ForceStepplayerLeanTarget(char *player, int a, int b)
 {
-    SetStepplayerLeanTarget(p, a, b);
-    *(int *)(p + 0x1100) = 1;
+    SetStepplayerLeanTarget(player, a, b);
+    *(int *)(player + 0x1100) = 1;
 }
 } } // namespace M_ForceStepplayerLeanTarget
 
@@ -2530,11 +2530,11 @@ struct X { char pad[0x1120]; struct S8 a, b, c; };
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Copies three pairs of idle-timer ranges into the record.
-void SetStepplayerIdleParams(struct X *p, struct S8 *a, struct S8 *b, struct S8 *c)
+void SetStepplayerIdleParams(struct X *player, struct S8 *a, struct S8 *b, struct S8 *c)
 {
-    p->a = *a;
-    p->b = *b;
-    p->c = *c;
+    player->a = *a;
+    player->b = *b;
+    player->c = *c;
 }
 } } // namespace M_func_00143090
 
@@ -2559,12 +2559,12 @@ static __inline__ float GAbs(float g) { return g < 0.0f ? -g : g; }
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Lean flags from the lean target's direction (quadrant in local space) and the lean kind.
-int GetStepplayerLeanFlags(struct P *p)
+int GetStepplayerLeanFlags(struct P *player)
 {
     int n;
     int r;
-    if (p->p10F8) {
-        qword v = ConvertAloPos(0, p, func_001A62E8(p->p10F8));
+    if (player->p10F8) {
+        qword v = ConvertAloPos(0, player, func_001A62E8(player->p10F8));
         float g = atan2f(GetY(v), GetX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
@@ -2573,7 +2573,7 @@ int GetStepplayerLeanFlags(struct P *p)
         else n = 2;
     }
     r = 8;
-    switch (p->x10FC) {
+    switch (player->x10FC) {
     case -1: case 0: break;
     case 1: r = 0x10 << n; break;
     case 2: r = 0x100 << n; break;
@@ -2620,19 +2620,19 @@ qword func_001A62E8(struct O *p);
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
-void GetStepplayerStunHold(struct O *p, struct S *ps, float g)
+void GetStepplayerStunHold(struct O *player, struct S *ps, float g)
 {
-    struct VTE *e = &p->vt[33];
+    struct VTE *e = &player->vt[33];
     qword v, h, pos, s, r;
     VU u;
-    v = e->pfn((char *)p + e->d);
+    v = e->pfn((char *)player + e->d);
     {
         qword d, one, up = D_002A2DC0;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(d), "=&j"(one) : "j"(v), "j"(up));
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(up), "j"(d));
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(h) : "j"(v), "j"(d));
     }
-    pos = func_001A62E8(p);
+    pos = func_001A62E8(player);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(h), "j"(s));
     ps->dir = h;
@@ -2658,17 +2658,17 @@ void SetBootyState(void *p, int n);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // If carrying booty not shown yet: releases the old marker and clones the template.
-void SpawnStepplayerBootyMarker(char *p, int n)
+void SpawnStepplayerBootyMarker(char *player, int n)
 {
-    void *q = *(void **)(p + 0x11A8);
+    void *q = *(void **)(player + 0x11A8);
     char *o;
     if (q && IdBootyCur(q) == n) return;
-    DropStepplayerBooty(p);
+    DropStepplayerBooty(player);
     if (n == -1) return;
     if (!(*(void * *)&g_sw.ploUnk4638)) return;
     o = (__typeof__(o))PloAcquireProxy((*(void * *)&g_sw.ploUnk4638), 1);
     SelectBootyEntry(o, n);
-    *(void **)(o + 0x160) = p;
+    *(void **)(o + 0x160) = player;
     SetBootyState(o, 6);
     SetBootyState(o, 4);
 }
@@ -2998,17 +2998,17 @@ void SpawnStepplayerBootyMarker(struct O *p, int n);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // On load: restores or clears the carried booty depending on the transition flags.
-void RestoreStepplayerBooty(struct O *p)
+void RestoreStepplayerBooty(struct O *player)
 {
     struct CRef r;
     int n;
-    struct VTE *e = &p->vt[103];
-    RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4DB0, 0);
+    struct VTE *e = &player->vt[103];
+    RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
     n = r.tag;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
-    if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(p, n);
-    else SpawnStepplayerBootyMarker(p, n);
+    if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(player, n);
+    else SpawnStepplayerBootyMarker(player, n);
 }
 } } // namespace M_func_00143BD8
 
@@ -3030,16 +3030,16 @@ namespace M_func_00143C78 { extern "C" {
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 85 base: a mode code from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, ...).
-int GetStepplayerModeCode(char *p)
+int GetStepplayerModeCode(char *player)
 {
-    if (*(int *)(p + 0x204)) return 0;
-    switch (*(int *)(p + 0x4C8)) {
+    if (*(int *)(player + 0x204)) return 0;
+    switch (*(int *)(player + 0x4C8)) {
     case 3:
     case 4:
         return 4;
     }
-    if (*(int *)(p + 0x2DC) != -1) return 1;
-    switch (*(int *)(p + 0xDF4)) {
+    if (*(int *)(player + 0x2DC) != -1) return 1;
+    switch (*(int *)(player + 0xDF4)) {
     case -1:
     case 0:
     case 6:
@@ -3115,25 +3115,25 @@ void SetJtModeState__FP6JTMODEi(void *p, int n);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Sets the ridden object (+0x1084): the old one is released (leaving grab states 5/6), the new one notified.
-void SetStepplayerRide(struct P *p, struct LO *lo)
+void SetStepplayerRide(struct P *player, struct LO *lo)
 {
-    struct LO *old = p->plo;
+    struct LO *old = player->plo;
     if (lo == old) return;
     if (old) {
         old->vt[2].pfn((char *)old + old->vt[2].d);
-        switch (p->x4C8) {
+        switch (player->x4C8) {
         case 5: case 6:
-            p->vt[88].pfn((char *)p + p->vt[88].d, 0);
+            player->vt[88].pfn((char *)player + player->vt[88].d, 0);
             break;
         }
     }
-    p->plo = lo;
+    player->plo = lo;
     if (lo) {
         lo->vt[1].pfn((char *)lo + lo->vt[1].d);
-        ClearBhvstk__FP6BHVSTK(p->m26C);
-        if (IsStepplayerInJtMode(p)) SetJtModeState__FP6JTMODEi(p->mF00, -1);
-        if (p->x11B4 != -1 && *p->plo->p40 != 0x1E)
-            p->vt[88].pfn((char *)p + p->vt[88].d, 0);
+        ClearBhvstk__FP6BHVSTK(player->m26C);
+        if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(player->mF00, -1);
+        if (player->x11B4 != -1 && *player->plo->p40 != 0x1E)
+            player->vt[88].pfn((char *)player + player->vt[88].d, 0);
     }
 }
 } } // namespace M_func_00143DE8
@@ -3157,23 +3157,23 @@ void ReplaceSma(void *o, struct P *p, int n, int a, void *b);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // oid -1 stops; otherwise finds the object and plays the scripted animation on the player.
-void PlayStepplayerScriptAnim(struct P *p, int oid, int a, int b)
+void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
 {
     void *o;
     if (oid == -1) {
-        StopStepplayerScriptAnim(p);
+        StopStepplayerScriptAnim(player);
         return;
     }
-    o = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, p);
+    o = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
     if (!o) return;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
-        p->vt[88].pfn((char *)p + p->vt[88].d, b);
-        ReleaseSma(p->m1034);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, p, a, p->m1030, 0.0f, 1.0f);
+        player->vt[88].pfn((char *)player + player->vt[88].d, b);
+        ReleaseSma(player->m1034);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->m1030, 0.0f, 1.0f);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
-        p->vt[88].pfn((char *)p + p->vt[88].d, b);
-        ReleaseAsega(p->m1030);
-        ReplaceSma(o, p, -1, a, p->m1034);
+        player->vt[88].pfn((char *)player + player->vt[88].d, b);
+        ReleaseAsega(player->m1030);
+        ReplaceSma(o, player, -1, a, player->m1034);
     }
 }
 } } // namespace M_func_00143EE0
@@ -3254,18 +3254,18 @@ void SetStepplayerMp(struct P *p, int n);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Binds hp/mp to the save variables hpCur/mpCur under the character's root, with defaults when unset.
-void BindStepplayerHpMp(struct P *p, int f)
+void BindStepplayerHpMp(struct P *player, int f)
 {
-    struct VTE *e = &p->vt[103];
-    p->pnE00 = PvSaveVarV(((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4E18, 0);
+    struct VTE *e = &player->vt[103];
+    player->pnE00 = PvSaveVarV(((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4E18, 0);
     {
-        struct VTE *e2 = &p->vt[103];
-        p->pn12FC = PvSaveVarV(((void *(*)(void *))e2->pfn)((char *)p + e2->d), D_002A4E20, 0);
+        struct VTE *e2 = &player->vt[103];
+        player->pn12FC = PvSaveVarV(((void *(*)(void *))e2->pfn)((char *)player + e2->d), D_002A4E20, 0);
     }
-    if (*p->pnE00 == 0 || f) {
-        SetStepplayerHp(p, p->nDFC);
-        SetStepplayerMp(p, p->n1300);
-        p->n1308 = 0;
+    if (*player->pnE00 == 0 || f) {
+        SetStepplayerHp(player, player->nDFC);
+        SetStepplayerMp(player, player->n1300);
+        player->n1308 = 0;
     }
 }
 } } // namespace M_BindStepplayerHpMp
@@ -3291,10 +3291,10 @@ namespace M_MpStepplayerCur { extern "C" {
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Current MP (the bound value, or the maximum when unbound).
-int GetStepplayerMp(char *p)
+int GetStepplayerMp(char *player)
 {
-    int *q = *(int **)(p + 0x12FC);
-    if (!q) return *(int *)(p + 0x1300);
+    int *q = *(int **)(player + 0x12FC);
+    if (!q) return *(int *)(player + 0x1300);
     return *q;
 }
 } } // namespace M_MpStepplayerCur
@@ -3329,16 +3329,16 @@ struct P { char pad[0x1308]; float g; };
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Accumulates rate * dt and subtracts whole MP units (floored at 0).
-void DrainStepplayerMp(struct P *p, float f)
+void DrainStepplayerMp(struct P *player, float f)
 {
     int n;
-    p->g += f * D_002DDED0.dt;
-    n = (int)p->g;
+    player->g += f * D_002DDED0.dt;
+    n = (int)player->g;
     if (n) {
         int x;
-        p->g -= (float)n;
-        x = GetStepplayerMp(p) - n;
-        SetStepplayerMp(p, x > -1 ? x : 0);
+        player->g -= (float)n;
+        x = GetStepplayerMp(player) - n;
+        SetStepplayerMp(player, x > -1 ? x : 0);
     }
 }
 } } // namespace M_DrainStepplayerMp
@@ -3356,11 +3356,11 @@ void SetStepplayerMp(void *p, int a);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 81: PO base, then adds hp and mp (clamped).
-void AddStepplayerHpMp(char *p, int a, int b)
+void AddStepplayerHpMp(char *player, int a, int b)
 {
-    AddPoHpMp(p, a, b);
-    SetStepplayerHp(p, **(int **)(p + 0xE00) + a);
-    SetStepplayerMp(p, GetStepplayerMp(p) + b);
+    AddPoHpMp(player, a, b);
+    SetStepplayerHp(player, **(int **)(player + 0xE00) + a);
+    SetStepplayerMp(player, GetStepplayerMp(player) + b);
 }
 } } // namespace M_AddStepplayerHpMp
 
@@ -3376,13 +3376,13 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
-void StepplayerVirtual83(char *p, int a, int b)
+void StepplayerVirtual83(char *player, int a, int b)
 {
-    func_00205478(p, a, b);
+    func_00205478(player, a, b);
     if (b) {
-        if (++*(int *)(p + 0x12F4) == 1) {
-            PlayStepplayerScriptAnim(p, 0x60B, 9, 5);
-            SetJtModeState__FP6JTMODEi(p + 0xF00, -1);
+        if (++*(int *)(player + 0x12F4) == 1) {
+            PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
+            SetJtModeState__FP6JTMODEi(player + 0xF00, -1);
         }
     }
 }
@@ -3398,11 +3398,11 @@ void StopStepplayerScriptAnim(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
-void StepplayerVirtual84(char *p, int a, int b)
+void StepplayerVirtual84(char *player, int a, int b)
 {
-    func_00205588(p, a, b);
+    func_00205588(player, a, b);
     if (b) {
-        if (--*(int *)(p + 0x12F4) == 0) StopStepplayerScriptAnim(p);
+        if (--*(int *)(player + 0x12F4) == 0) StopStepplayerScriptAnim(player);
     }
 }
 } } // namespace M_func_00144338
@@ -3493,9 +3493,9 @@ struct Q { char pad[0xC]; int c; int n; };
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 86: vetoes damage below the hp maximum or of certain zap kinds (0, 1, 0x80000, ...). (inferred)
-int ShouldStepplayerVetoDamage(char *p, struct Q *q)
+int ShouldStepplayerVetoDamage(char *player, struct Q *q)
 {
-    if (-q->n < *(int *)(p + 0xDFC)) return 0;
+    if (-q->n < *(int *)(player + 0xDFC)) return 0;
     switch (q->c) {
     case 0:
     case 1:
@@ -3522,15 +3522,15 @@ void ReleaseAsega(void *p);
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 78: PO base, then slot 105; when deactivated stops the current action.
-void OnStepplayerActive(struct O *p, int a)
+void OnStepplayerActive(struct O *player, int a)
 {
     struct VTE *e;
-    OnPoActive(p, a);
-    e = &p->vt[105];
-    ((void (*)(void *))e->pfn)((char *)p + e->d);
+    OnPoActive(player, a);
+    e = &player->vt[105];
+    ((void (*)(void *))e->pfn)((char *)player + e->d);
     if (!a) {
-        ReleaseAsega(p->sub);
-        p->n1314 = -1;
+        ReleaseAsega(player->sub);
+        player->n1314 = -1;
     }
 }
 } } // namespace M_OnStepplayerActive
