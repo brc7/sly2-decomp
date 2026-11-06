@@ -347,9 +347,9 @@ typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 struct CID123 : LO
 {
     char pad50[0x60 - 0x50];
+    virtual void VUnk14() __asm__("func_0014A0A8");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("func_0014A0A8");   /* slot 15 */
 };
 typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 
@@ -357,9 +357,9 @@ typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 struct BHV182 : BHV
 {
     char pad30[0x50 - 0x30];
+    virtual void Start() __asm__("func_0014A200");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv182ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_0014A1B0");   /* slot 7 */
-    virtual void Start() __asm__("func_0014A200");   /* slot 8 */
     virtual void VSlot9() __asm__("func_0014A248");   /* slot 9 */
     virtual void VSlot10() __asm__("func_0014A2A0");   /* slot 10 */
 };
@@ -369,9 +369,9 @@ typedef char assert_BHV182_size[sizeof(BHV182) == 0x50 ? 1 : -1];
 struct CARMELITA : STEPGUARD
 {
     char pad1010[0x1020 - 0x1010];
+    virtual void Init() __asm__("func_0014B1A0");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_0014B218");   /* slot 5 */
-    virtual void Init() __asm__("func_0014B1A0");   /* slot 7 */
     virtual void VUnk14() __asm__("func_0014B1D8");   /* slot 15 */
     virtual int VUnk85(ZPR *pzpr) __asm__("func_0014B460");   /* slot 86 */
     virtual void VSlot87() __asm__("func_0014B290");   /* slot 88 */
