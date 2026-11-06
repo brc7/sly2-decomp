@@ -15,6 +15,38 @@ struct REGIONLANGS
     int *a;
 };
 
+/* The language and region names (.rodata, before the functions' literals: named constants are emitted where they
+   are defined) and their table in .data (14 languages, 7 regions, a null end). No code in the ELF reads them, nor the
+   "#nil" / "#unknown" names (an enum-name table the original's code did not use); defined under their address names
+   where they sit (tu-merging.md "Phase 6", unreferenced literals). */
+namespace LANGNAMES {
+extern const char r_D_002A68A0[] __asm__("D_002A68A0") = "english";
+extern const char r_D_002A68A8[] __asm__("D_002A68A8") = "french";
+extern const char r_D_002A68B0[] __asm__("D_002A68B0") = "italian";
+extern const char r_D_002A68B8[] __asm__("D_002A68B8") = "german";
+extern const char r_D_002A68C0[] __asm__("D_002A68C0") = "spanish";
+extern const char r_D_002A68C8[] __asm__("D_002A68C8") = "dutch";
+extern const char r_D_002A68D0[] __asm__("D_002A68D0") = "portuguese";
+extern const char r_D_002A68E0[] __asm__("D_002A68E0") = "danish";
+extern const char r_D_002A68E8[] __asm__("D_002A68E8") = "finnish";
+extern const char r_D_002A68F0[] __asm__("D_002A68F0") = "norwegian";
+extern const char r_D_002A6900[] __asm__("D_002A6900") = "swedish";
+extern const char r_D_002A6908[] __asm__("D_002A6908") = "japanese";
+extern const char r_D_002A6918[] __asm__("D_002A6918") = "korean";
+extern const char r_D_002A6920[] __asm__("D_002A6920") = "chinese";
+extern const char r_D_002A6928[] __asm__("D_002A6928") = "lang:#nil";
+extern const char r_D_002A6938[] __asm__("D_002A6938") = "lang:#unknown";
+extern const char r_D_002A6948[] __asm__("D_002A6948") = "america";
+extern const char r_D_002A6950[] __asm__("D_002A6950") = "europe1";
+extern const char r_D_002A6958[] __asm__("D_002A6958") = "europe5";
+extern const char r_D_002A6960[] __asm__("D_002A6960") = "europe11";
+extern const char r_D_002A6970[] __asm__("D_002A6970") = "japan";
+extern const char r_D_002A6978[] __asm__("D_002A6978") = "korea";
+extern const char r_D_002A6980[] __asm__("D_002A6980") = "china";
+extern const char r_D_002A6988[] __asm__("D_002A6988") = "region:#nil";
+extern const char r_D_002A6998[] __asm__("D_002A6998") = "region:#unknown";
+}
+
 /* language's .data (address order): each region's language list (8-byte aligned arrays), then the region table. */
 int D_002BFB60[1] = {0};
 int D_002BFB68[1] = {0};
@@ -25,6 +57,7 @@ int D_002BFBC0[1] = {12};
 int D_002BFBC8[1] = {13};
 REGIONLANGS D_002BFBD0[7] = {{1, D_002BFB60}, {1, D_002BFB68}, {5, D_002BFB70}, {11, D_002BFB88}, {1, D_002BFBB8}, {1, D_002BFBC0},
     {1, D_002BFBC8}};
+char *D_002BFC08[22] = {(char *)LANGNAMES::r_D_002A68A0, (char *)LANGNAMES::r_D_002A68A8, (char *)LANGNAMES::r_D_002A68B0, (char *)LANGNAMES::r_D_002A68B8, (char *)LANGNAMES::r_D_002A68C0, (char *)LANGNAMES::r_D_002A68C8, (char *)LANGNAMES::r_D_002A68D0, (char *)LANGNAMES::r_D_002A68E0, (char *)LANGNAMES::r_D_002A68E8, (char *)LANGNAMES::r_D_002A68F0, (char *)LANGNAMES::r_D_002A6900, (char *)LANGNAMES::r_D_002A6908, (char *)LANGNAMES::r_D_002A6918, (char *)LANGNAMES::r_D_002A6920, (char *)LANGNAMES::r_D_002A6948, (char *)LANGNAMES::r_D_002A6950, (char *)LANGNAMES::r_D_002A6958, (char *)LANGNAMES::r_D_002A6960, (char *)LANGNAMES::r_D_002A6970, (char *)LANGNAMES::r_D_002A6978, (char *)LANGNAMES::r_D_002A6980, 0};   /* the names by language, then by region */
 /* language's .bss. */
 int D_002E1E54;                     /* current language */
 unsigned int D_002E1E58;            /* current region, 0..6 */
