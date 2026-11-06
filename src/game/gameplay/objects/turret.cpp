@@ -74,9 +74,9 @@ void SetCmPolicy(void *g, int a, void *h, void *p, int z);
 void RevokeCmPolicy(void *g, int a, int b, void *h, void *p, int z);
 void UpdateSo(TURRETV *p, float dt);
 void UpdateTurretAim(TURRETV *p);
-void func_00225E98(TURRETV *p);
-void func_00226250(TURRETV *p);
-void func_00226370(TURRETV *p, int k);
+void UpdateTurretZoom(TURRETV *p);
+void UpdateTurretFire(TURRETV *p);
+void SetTurretActive(TURRETV *p, int k);
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
 M3 LoadLookAtMatrix(qword);
@@ -152,7 +152,7 @@ void TURRET::VUnk14()
 {
     TURRETV *p = (TURRETV *)this;
     PostSoLoad(p);
-    if (p->output) { p->output = 0; func_00226370(p, 1); }
+    if (p->output) { p->output = 0; SetTurretActive(p, 1); }
 }
 
 /** @sly2-annot addr=0x225AE8
@@ -181,8 +181,8 @@ extern "C" void UpdateTurret(TURRETV *p, float dt)
 {
     UpdateSo(p, dt);
     UpdateTurretAim(p);
-    func_00225E98(p);
-    func_00226250(p);
+    UpdateTurretZoom(p);
+    UpdateTurretFire(p);
 }
 
 // Update target-facing angles or integrate angular input.
@@ -260,7 +260,7 @@ static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range-
  * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
-extern "C" void func_00225E98(TURRETV *p){
+extern "C" void UpdateTurretZoom(TURRETV *p){
     if(p->target && p->follow){
         M4 m;
         V future,offset,local,swapped;
@@ -313,7 +313,7 @@ extern "C" void func_00225E98(TURRETV *p){
  * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
-extern "C" void func_00226250(TURRETV *p)
+extern "C" void UpdateTurretFire(TURRETV *p)
 {
     if (p->control && POCTL_FConsumePressed(p->control, 0xFF)) {
         if (p->pproxy) {
@@ -333,7 +333,7 @@ extern "C" void func_00226250(TURRETV *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
-extern "C" void *func_00226310(TURRETV *p, PROXYSRC *q)
+extern "C" void *FilterTurretProxySource(TURRETV *p, PROXYSRC *q)
 {
     void *v = FIgnoreSoIntersection(p);
     if (p->pproxy && q->k == p->pproxy->k) v = func_00134310(v, 1);
@@ -346,7 +346,7 @@ extern "C" void *func_00226310(TURRETV *p, PROXYSRC *q)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
-extern "C" void func_00226370(TURRETV *p, int k)
+extern "C" void SetTurretActive(TURRETV *p, int k)
 {
     if (p->output != k) {
         p->output = k;

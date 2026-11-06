@@ -62,7 +62,7 @@ void CID39::Init()
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF3E8(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) p->g38 = D_002C3C58; }
+extern "C" void PostGrabSpotXfmLoad(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) p->g38 = D_002C3C58; }
 
 /** @sly2-annot addr=0x1FF438
  * Purpose: vt23: add to SW update array (0x1A6178) and to global DL g_sw.dlCid39
@@ -73,7 +73,7 @@ extern "C" void func_001FF3E8(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) 
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF438(GRABXFM *p)
+extern "C" void OnGrabSpotXfmAdd(GRABXFM *p)
 {
     OnLoAdd(p);
     AppendDlEntry(&g_sw.dlCid39, p);
@@ -90,7 +90,7 @@ extern "C" void func_001FF438(GRABXFM *p)
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF470(GRABXFM *p)
+extern "C" void OnGrabSpotXfmRemove(GRABXFM *p)
 {
     OnLoRemove(p);
     RemoveDlEntry(&g_sw.dlCid39, p);
@@ -104,7 +104,7 @@ extern "C" void func_001FF470(GRABXFM *p)
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF4A8(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
+extern "C" void CloneGrabSpotXfm(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
 
 /** @sly2-annot addr=0x1FF4F0
  * Purpose: *pv = PosLoWorld(a) - p->pos when pv non-NULL
@@ -112,7 +112,7 @@ extern "C" void func_001FF4A8(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
  * @end-sly2-annot */
-extern "C" void func_001FF4F0(void *a, P *p, qword *pv)
+extern "C" void GetOffsetToObjectPosition(void *a, P *p, qword *pv)
 {
     qword a0, r;
     if (pv) {

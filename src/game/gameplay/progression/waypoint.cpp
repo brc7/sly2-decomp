@@ -170,7 +170,7 @@ extern "C" void UpdateWaypt(WAYPTV *p)
     }
 }
 
-// func_0022A220 (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
+// CalculateWayptCurtainDz (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
 // posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by IntersectSwBoundingBox, clip each face edge that
 // crosses the curtain plane against its four side planes and store the largest added slope (scaled by the
 // camera->source XY distance) as po->dz. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
@@ -295,7 +295,7 @@ static inline float LenXYFN(qwordV v, int n)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
  * @end-sly2-annot */
-extern "C" void func_0022A220(O *po)
+extern "C" void CalculateWayptCurtainDz(O *po)
 {
     UQ corner[4];
     UQ side[4];
@@ -447,7 +447,7 @@ extern "C" {
 void RenderSoSelf(WAYPTV *pwaypt);
 int FPowerupAcquired(int ipuk);
 int FJobComplete(void *pcond);
-void func_0022A220(O *po);
+void CalculateWayptCurtainDz(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
 MATRIX4V *func_001A6318(SOV *pso);
 VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
@@ -544,7 +544,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
     if (uShow == 0.0f)
         return;
 
-    func_0022A220((O *)pwaypt);
+    CalculateWayptCurtainDz((O *)pwaypt);
     qwordV posCam = D_002DDF40.pos;
     qwordV pos = func_001A62E8(pwaypt->ploSource);
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pwaypt->sHeight));

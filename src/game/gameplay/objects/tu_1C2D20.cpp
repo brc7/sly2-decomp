@@ -58,7 +58,7 @@ qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
 qwordV func_001D69F0(qwordV, qwordV, qwordV, float);
 void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
-void func_001C2DB8(SPRAYER *);
+void ClearLootPouchLoot(SPRAYER *);
 }
 
 /** @sly2-annot addr=0x1C2D20
@@ -82,7 +82,7 @@ void CID99::VUnk14()
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
  * @end-sly2-annot */
-extern "C" void func_001C2D70(SPRAYER *p)
+extern "C" void RenderLootPouchSelf(SPRAYER *p)
 {
     RenderSoSelf(p);
     if (p->psoFirst) func_001A5EE8(p->psoFirst, (char *)p->pxf + 0x40, 1.0f, 1.0f);
@@ -95,7 +95,7 @@ extern "C" void func_001C2D70(SPRAYER *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
  * @end-sly2-annot */
-extern "C" void func_001C2DB8(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p->pxf = 0; }
+extern "C" void ClearLootPouchLoot(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p->pxf = 0; }
 
 /** @sly2-annot addr=0x1C2DC8
  * Purpose: Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A)
@@ -106,7 +106,7 @@ extern "C" void func_001C2DB8(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p-
  *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
  *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
+extern "C" int StageLootPouchLoot(SPRAYER *p, SOV *plo, int id, void *pv)
 {
     if (p->psoFirst) return 0;
     p->psoProto = 0;
@@ -131,13 +131,13 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
     return 3;
 }
 
-// func_001C2EF0 (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
+// LaunchLootPouchLootAtPlayer (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
 // The first object is the owner's existing one (+0x158), the others come from its factory (PloAcquireProxy); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
 // Class 0x5A objects are launched through LaunchSprayedDprize with an index-scaled delay; others are reset, parented to the
-// source and given the velocity through virtual calls.  func_001C2DB8 cleans up the owner on every exit.
+// source and given the velocity through virtual calls.  ClearLootPouchLoot cleans up the owner on every exit.
 // Matching notes:
 //  * `game` is a plain local set before the loop: the address is then a spilled constant that reload rematerializes
 //    as `la a0` at the call (lui/addiu into a0).  Taking &D_003DD490 inside the loop lets loop.c hoist only the HIGH part.
@@ -192,7 +192,7 @@ namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.4
  * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
  *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
+extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *p, int count)
 {
     GAME *game = &D_003DD490;
     SOV *first = 0;
@@ -232,6 +232,6 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
             SetVelocity(node, velocity);
         }
     }
-    func_001C2DB8(p);
+    ClearLootPouchLoot(p);
     return first;
 }

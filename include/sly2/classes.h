@@ -247,11 +247,11 @@ struct BOMB : SO
     virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
     virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
-    virtual void VUnk57() __asm__("func_0013AEB0");   /* slot 58 */
+    virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBombIntersection");   /* slot 61 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbBombWkr");   /* slot 75 */
-    virtual void VSlot76() __asm__("func_0013AA70");   /* slot 76 */
+    virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
     virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
 };
 typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
@@ -280,9 +280,9 @@ struct CID104 : SO
     char pad150[0x180 - 0x150];
     virtual void VUnk14() __asm__("func_00147220");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid104ClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00147338");   /* slot 5 */
-    virtual void Init() __asm__("func_001471C0");   /* slot 7 */
-    virtual void VUnk15() __asm__("func_00147278");   /* slot 16 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleFrameCaptureMessage");   /* slot 5 */
+    virtual void Init() __asm__("InitFrameCapture");   /* slot 7 */
+    virtual void VUnk15() __asm__("UpdateFrameCapture");   /* slot 16 */
 };
 typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
 
@@ -293,7 +293,7 @@ struct BUTTON : SO
     virtual void Clone(LO *ploBase) __asm__("CloneButton");   /* slot 41 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetButtonClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitButton");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_001492B0");   /* slot 12 */
+    virtual void RemoveHierarchy() __asm__("RemoveButtonHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadButtonFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostButtonLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateButton");   /* slot 16 */
@@ -308,7 +308,7 @@ struct VOLBTN : VOL
     virtual void Clone(LO *ploBase) __asm__("CloneVolbtn");   /* slot 41 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetVolbtnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVolbtn");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_00149880");   /* slot 12 */
+    virtual void RemoveHierarchy() __asm__("RemoveVolbtnHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolbtnFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostVolbtnLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateVolbtn");   /* slot 16 */
@@ -380,9 +380,9 @@ struct DANCER : STEP
     char pad2C0[0x410 - 0x2C0];
     virtual void VUnk14() __asm__("func_00152100");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDancerClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00152250");   /* slot 5 */
-    virtual void RemoveHierarchy() __asm__("func_001520C8");   /* slot 12 */
-    virtual void VUnk15() __asm__("func_00152148");   /* slot 16 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDancerMessage");   /* slot 5 */
+    virtual void RemoveHierarchy() __asm__("RemoveDancerHierarchy");   /* slot 12 */
+    virtual void VUnk15() __asm__("UpdateDancer");   /* slot 16 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetDancerCpdefi");   /* slot 50 */
 };
 typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
@@ -514,8 +514,8 @@ struct CID116 : LO
     char pad50[0x70 - 0x50];
     virtual void Init() __asm__("func_0015DC80");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid116ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("func_0015DCD8");   /* slot 16 */
-    virtual void RenderSelf() __asm__("func_0015DD48");   /* slot 19 */
+    virtual void VUnk15() __asm__("UpdateScreenFade");   /* slot 16 */
+    virtual void RenderSelf() __asm__("RenderScreenFade");   /* slot 19 */
 };
 typedef char assert_CID116_size[sizeof(CID116) == 0x70 ? 1 : -1];
 
@@ -1339,7 +1339,7 @@ struct MISSILE : BOMB
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void VSlot77() __asm__("func_001B1F10");   /* slot 77 */
+    virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
@@ -1360,7 +1360,7 @@ struct CID82 : MISSILE
     char pad270[0x290 - 0x270];
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
-    virtual void VUnk69() __asm__("func_001B2468");   /* slot 70 */
+    virtual void VUnk69() __asm__("PresetSplmissAccel");   /* slot 70 */
     virtual void VSlot78() __asm__("FireSplmiss");   /* slot 78 */
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
@@ -1468,7 +1468,7 @@ struct CID99 : SO
     char pad150[0x170 - 0x150];
     virtual void VUnk14() __asm__("func_001C2D20");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
-    virtual void RenderSelf() __asm__("func_001C2D70");   /* slot 19 */
+    virtual void RenderSelf() __asm__("RenderLootPouchSelf");   /* slot 19 */
 };
 typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
 
@@ -1678,14 +1678,14 @@ struct LASEN : SENSOR
     char pad190[0x1D0 - 0x190];
     virtual void VUnk14() __asm__("PostLasenLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLasenClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_001DE400");   /* slot 7 */
+    virtual void Init() __asm__("InitLasen");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLasenFromBrx");   /* slot 14 */
     virtual void VUnk15() __asm__("UpdateLasen");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderLasenSelf");   /* slot 19 */
     virtual void Clone(LO *ploBase) __asm__("CloneLasen");   /* slot 41 */
-    virtual SOTREE *VUnk52() __asm__("func_001DE5A8");   /* slot 53 */
-    virtual void VUnk53(SO *pso) __asm__("func_001DEEA8");   /* slot 54 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("func_001DF0A0");   /* slot 60 */
+    virtual SOTREE *VUnk52() __asm__("NewLasenTree");   /* slot 53 */
+    virtual void VUnk53(SO *pso) __asm__("RemoveLasenContactsWith");   /* slot 54 */
+    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddLasenBeamXps");   /* slot 60 */
 };
 typedef char assert_LASEN_size[sizeof(LASEN) == 0x1D0 ? 1 : -1];
 
@@ -1792,11 +1792,11 @@ struct CID39 : XFM, GRABSPOT
     char pad104[0x110 - 0x104];
     virtual void Init() __asm__("func_001FF3B8");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid39ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("func_001FF3E8");   /* slot 15 */
-    virtual void Freeze() __asm__("func_001FF470");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_001FF438");   /* slot 23 */
-    virtual void Clone(LO *ploBase) __asm__("func_001FF4A8");   /* slot 41 */
-    virtual void GetGrabPos() __asm__("func_001FF4F0");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void VUnk14() __asm__("PostGrabSpotXfmLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnGrabSpotXfmRemove");   /* slot 22 */
+    virtual void Unfreeze() __asm__("OnGrabSpotXfmAdd");   /* slot 23 */
+    virtual void Clone(LO *ploBase) __asm__("CloneGrabSpotXfm");   /* slot 41 */
+    virtual void GetGrabPos() __asm__("GetOffsetToObjectPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void VtF() __asm__("func_00259C08__FP5CID39");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
@@ -1982,7 +1982,7 @@ struct TURRET : PO
     virtual void Init() __asm__("InitTurret");   /* slot 7 */
     virtual void VUnk15() __asm__("UpdateTurret");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneTurret");   /* slot 41 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("func_00226310");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FilterTurretProxySource");   /* slot 61 */
     virtual void OnActive(int fActive) __asm__("OnTurretActive");   /* slot 78 */
 };
 typedef char assert_TURRET_size[sizeof(TURRET) == 0x1E0 ? 1 : -1];

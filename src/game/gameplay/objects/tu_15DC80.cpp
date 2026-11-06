@@ -76,7 +76,7 @@ void CID116::Init()
  * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
  * @end-sly2-annot */
-extern "C" void func_0015DCD8(X *p, float dt)
+extern "C" void UpdateScreenFade(X *p, float dt)
 {
       UpdateLo(p, dt);
       if (D_002DDED0.t - p->t68 > p->d5C + p->d60 + p->d64) {
@@ -106,7 +106,7 @@ static inline void Build(BUF *pbuf, RGBAV rgba)
  * See: docs/engine/rendering.md#2-render-list-entries-rpl,
  *   docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
  * @end-sly2-annot */
-extern "C" void func_0015DD48(X *p)
+extern "C" void RenderScreenFade(X *p)
 {
     RGBAV rgba;
     RGBAV a, b;
@@ -164,7 +164,7 @@ extern "C" void func_0015DD48(X *p)
  * Info: TU tu_15DC80
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * @end-sly2-annot */
-extern "C" void func_0015E1D8(X *p)
+extern "C" void StartScreenFade(X *p)
 {
       if (((int)(p->fl >> 60) & 1) == 0) {
             VTE *pvte = &p->vt[8];

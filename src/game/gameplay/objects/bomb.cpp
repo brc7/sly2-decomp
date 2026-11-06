@@ -82,7 +82,7 @@ struct HITB { qword pos; qword a; qword normal; qword b; qword c; qword d; };
 struct HIT48 { int a[12]; };
 /* AddBombCustomXps's contact request and its object. */
 struct CREQ { int x0; SOV *po; };
-/* A bounding-sphere hit (func_0013B5E8). */
+/* A bounding-sphere hit (CollectBombVictims). */
 struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int x74; };
 struct AREQV { int cb; int cbAlign; };
 /* The hit FAbsorbBombWkr absorbs. */
@@ -151,12 +151,12 @@ int func_00134310(int r, int n);
 void RecalcSwOxfFilterForObject(G *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
 void UpdateBombCustomXps(BOMBV *p);
-int func_0013B1C8(BOMBV *p, SOV *pso);
+int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pso);
 void PrepareBombDetonation(BOMBV *p, qword pos, qword dir);
-void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo);
-int func_0013B7A0(const void *, const void *);
-void func_0013B7B8(BOMBV *p, int *pc, SOV **apo);
-void func_0013BC60(BOMBV *p, BOMBV *pbombOwner);
+void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo);
+int CompareBombVictims(const void *, const void *);
+void SortUniqueBombVictims(BOMBV *p, int *pc, SOV **apo);
+void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 }
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
@@ -189,10 +189,10 @@ extern "C" void InitBomb(BOMBV *p) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" void func_0013AA70(BOMBV *p, BOMBV *pbombBase)
+extern "C" void CloneBomb(BOMBV *p, BOMBV *pbombBase)
 {
     CloneSo(p, pbombBase);
-    func_0013BC60(p, p);
+    SetBombOwner(p, p);
 }
 
 /** @sly2-annot addr=0x13AAA0
@@ -416,7 +416,7 @@ namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.4
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" void func_0013AEB0(BOMBV *p)
+extern "C" void HandleBombContact(BOMBV *p)
 {
     qword pos;
     float gBest;
@@ -462,7 +462,7 @@ extern "C" void func_0013AEB0(BOMBV *p)
                 break;
             }
             case 1:
-                if (func_0013B1C8(p, (SOV *)AE(pq)[IOther(pq, p)].x))
+                if (IsBombChainFreeOfExcludedClasses(p, (SOV *)AE(pq)[IOther(pq, p)].x))
                     f = 1;
                 break;
             }
@@ -510,7 +510,7 @@ extern "C" void func_0013AEB0(BOMBV *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" int func_0013B1C8(BOMBV *p, SOV *pn) {
+extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pn) {
     unsigned int i;
     for (; pn; pn = pn->pparent) {
         for (i = 0; i < 4; i++) {
@@ -684,7 +684,7 @@ void PrimeBomb(BOMBV *p, float f) { p->tDetonate = (p->tDetonate < D_002DDED0.t 
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
+extern "C" void CollectBombVictims(BOMBV *p, int *pc, SOV ***papo)
 {
     AREQV req;
     int c;
@@ -715,7 +715,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
         apo[n] = ps->po;
         n++;
     }
-    func_0013B7B8(p, &n, apo);
+    SortUniqueBombVictims(p, &n, apo);
     *pc = n;
     *papo = apo;
 }
@@ -726,7 +726,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" int func_0013B7A0(const void *pv0, const void *pv1) {
+extern "C" int CompareBombVictims(const void *pv0, const void *pv1) {
     return (int)(((int)pv1 - (int)pv0) * 0x3CF3CF3D) >> 4;
 }
 
@@ -737,11 +737,11 @@ extern "C" int func_0013B7A0(const void *pv0, const void *pv1) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" void func_0013B7B8(BOMBV *unused, int *pc, SOV **a) {
+extern "C" void SortUniqueBombVictims(BOMBV *unused, int *pc, SOV **a) {
     int n = *pc;
     SOV **pDst, **pSrc, **pMax;
     if (n < 2) return;
-    qsort(a, n, 4, func_0013B7A0);
+    qsort(a, n, 4, CompareBombVictims);
     pDst = a;
     pMax = a + n;
     for (pSrc = a; pSrc < pMax; pSrc++) {
@@ -771,7 +771,7 @@ extern "C" void DetonateBomb(BOMBV *p)
         int c;
         SOV **apo;
         int i;
-        func_0013B5E8(p, &c, &apo);
+        CollectBombVictims(p, &c, &apo);
         for (i = 0; i < c; i++) {
             SOV *po = apo[i];
             MSG msg;
@@ -849,7 +849,7 @@ extern "C" void ResetBomb(BOMBV *p) {
     func_001CB518(p);
     p->x174 = 0;
     p->tDetonate = D_002A4B20;
-    func_0013BC60(p, p);
+    SetBombOwner(p, p);
     SetSoCnstrForce(p, 0);
     SetSoCnstrTorque(p, 0);
     func_001F6860(p, 0);
@@ -880,7 +880,7 @@ extern "C" int FIgnoreBombIntersection(BOMBV *p, SOV *pso)
  * Confidence: low (draft) [T2 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
-extern "C" void func_0013BC60(BOMBV *p, BOMBV *pbombOwner)
+extern "C" void SetBombOwner(BOMBV *p, BOMBV *pbombOwner)
 {
     if (pbombOwner != p->pbombOwner) {
         p->pbombOwner = pbombOwner;

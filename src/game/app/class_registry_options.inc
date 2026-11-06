@@ -558,15 +558,15 @@ void func_001108E0() __asm__("func_001108E0");
 void func_00110998() __asm__("func_00110998");
 void func_0012EE78() __asm__("func_0012EE78");
 void func_00132ED0() __asm__("func_00132ED0");
-void func_0013BC60() __asm__("func_0013BC60");
+void SetBombOwner() __asm__("SetBombOwner");
 void func_0013C4D8() __asm__("func_0013C4D8");
 void func_00144068() __asm__("func_00144068");
 void func_001443E8() __asm__("func_001443E8");
 void func_001443F8() __asm__("func_001443F8");
 void func_00144408() __asm__("func_00144408");
-void func_00149248() __asm__("func_00149248");
-void func_001497E0() __asm__("func_001497E0");
-void func_00149848() __asm__("func_00149848");
+void AddButtonPushClass() __asm__("AddButtonPushClass");
+void AddVolbtnPushClass() __asm__("AddVolbtnPushClass");
+void GetVolbtnPushStateRef() __asm__("GetVolbtnPushStateRef");
 void func_00156870() __asm__("func_00156870");
 void func_0015C650() __asm__("func_0015C650");
 void func_001628B0() __asm__("func_001628B0");
@@ -681,7 +681,7 @@ void func_00221818() __asm__("func_00221818");
 void func_00221948() __asm__("func_00221948");
 void func_00224610() __asm__("func_00224610");
 void func_00224638() __asm__("func_00224638");
-void func_00226370() __asm__("func_00226370");
+void SetTurretActive() __asm__("SetTurretActive");
 void func_00228518() __asm__("func_00228518");
 }
 
@@ -1127,7 +1127,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x201E, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [394] opt 497, BOMB (+3) */
     {5, 0x92, EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_NONE}, /* [395] opt 498, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_NONE}, /* [396] opt 499, BOMB (+3) */
-    {0x2002, 0x22, EOPID_INT(0x200), EOPID_PMF(func_0013BC60), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
+    {0x2002, 0x22, EOPID_INT(0x200), EOPID_PMF(SetBombOwner), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_NONE}, /* [398] opt 501, BOMB (+3) */
     {0x2030, 2, EOPID_INT(0x1E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [399] opt 502, BOMB (+3) */
     {0x2002, 0x12, EOPID_INT(0x210), EOPID_INT(0x210), EOPID_NONE, EOPID_NONE}, /* [400] opt 503, MISSILE (+2) */
@@ -1148,7 +1148,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [415] opt 517, BUTTON */
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [416] opt 518, BUTTON */
     {0x2030, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushObject), EOPID_PMF(AddButtonPushObject), EOPID_NONE}, /* [417] opt 519, BUTTON */
-    {7, 0x120, EOPID_NONE, EOPID_PMF(func_00149248), EOPID_PMF(func_00149248), EOPID_NONE}, /* [418] opt 520, BUTTON */
+    {7, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushClass), EOPID_PMF(AddButtonPushClass), EOPID_NONE}, /* [418] opt 520, BUTTON */
     {1, 0x92, EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_NONE}, /* [419] opt 521, BUTTON */
     {1, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [420] opt 522, BUTTON */
     {0, 0x92, EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_NONE}, /* [421] opt 523, BUTTON */
@@ -1163,7 +1163,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [430] opt 517, VOLBTN (+1) */
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [431] opt 518, VOLBTN (+1) */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushObject), EOPID_PMF(AddVolbtnPushObject), EOPID_NONE}, /* [432] opt 519, VOLBTN (+1) */
-    {7, 0x120, EOPID_NONE, EOPID_PMF(func_001497E0), EOPID_PMF(func_001497E0), EOPID_NONE}, /* [433] opt 520, VOLBTN (+1) */
+    {7, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushClass), EOPID_PMF(AddVolbtnPushClass), EOPID_NONE}, /* [433] opt 520, VOLBTN (+1) */
     {1, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [434] opt 521, VOLBTN (+1) */
     {1, 0x92, EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_NONE}, /* [435] opt 522, VOLBTN (+1) */
     {0, 0x92, EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_NONE}, /* [436] opt 523, VOLBTN (+1) */
@@ -1174,7 +1174,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2072, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [441] opt 531, VOLBTN (+1) */
     {0x101B, 0x22, EOPID_INT(0x1C0), EOPID_PMF(SetVolbtnButtons), EOPID_NONE, EOPID_NONE}, /* [442] opt 528, VOLBTN (+1) */
     {0, 0x82, EOPID_INT(0x2C8), EOPID_NONE, EOPID_INT(0x2C8), EOPID_NONE}, /* [443] opt 532, VOLBTN (+1) */
-    {0xA002, 4, EOPID_PMF(func_00149848), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [444] opt 533, VOLBTN (+1) */
+    {0xA002, 4, EOPID_PMF(GetVolbtnPushStateRef), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [444] opt 533, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnTRIGGER), EOPID_NONE, EOPID_NONE}, /* [445] opt 235, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [446] opt 530, VOLBTN (+1) */
     {0x2002, 2, EOPID_INT(0x1D8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [447] opt 534, VOLBTN (+1) */
@@ -1737,7 +1737,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2030, 2, EOPID_INT(0x1C8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1004] opt 916, TURRET */
     {1, 0x92, EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_NONE}, /* [1005] opt 917, TURRET */
     {1, 0x92, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE}, /* [1006] opt 918, TURRET */
-    {0, 0xA2, EOPID_INT(0x1CC), EOPID_PMF(func_00226370), EOPID_INT(0x1CC), EOPID_NONE}, /* [1007] opt 919, TURRET */
+    {0, 0xA2, EOPID_INT(0x1CC), EOPID_PMF(SetTurretActive), EOPID_INT(0x1CC), EOPID_NONE}, /* [1007] opt 919, TURRET */
     {0x2002, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1008] opt 920, TURRET */
     {0, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1009] opt 921, TURRET */
     {0xA, 0x92, EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_NONE}, /* [1010] opt 922, TURRET */

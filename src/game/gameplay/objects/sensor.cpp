@@ -285,10 +285,10 @@ float fmodf(float, float);
 void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
 void RenderSoSelf(SOV *pso);
 
-void func_001DE5D8(LASENV *plasen);
-void func_001DEDB0(LASENV *plasen);
+void BuildLasenBeams(LASENV *plasen);
+void BindLasenAnimations(LASENV *plasen);
 void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
-void func_001DF3D0(LASENV *plasen);
+void MoveLasenEndpoints(LASENV *plasen);
 }
 
 /** @sly2-annot addr=0x1DE2A0
@@ -365,7 +365,7 @@ extern "C" void AddSensorNoTriggerObject(SENSORV *psensor, OID oid)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DE400(LASENV *plasen)
+extern "C" void InitLasen(LASENV *plasen)
 {
     int v;
     ((SENSOR *)plasen)->SENSOR::Init();
@@ -425,8 +425,8 @@ void LASEN::VUnk14()
 {
     LASENV *plasen = (LASENV *)this;
     PostSoLoad(plasen);
-    func_001DE5D8(plasen);
-    func_001DEDB0(plasen);
+    BuildLasenBeams(plasen);
+    BindLasenAnimations(plasen);
     plasen->ZapBeams(0);
 }
 
@@ -437,19 +437,19 @@ void LASEN::VUnk14()
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" SOTREEV *func_001DE5A8(LASENV *plasen)
+extern "C" SOTREEV *NewLasenTree(LASENV *plasen)
 {
     SOTREEV *ptree = func_001F56F8(plasen);
     ptree->grf |= 0x20;
     return ptree;
 }
 
-/* func_001DE5D8 (BuildLasenBeams): (re)build the endpoint state of every beam and the beams' bounding box. An endpoint
+/* BuildLasenBeams (BuildLasenBeams): (re)build the endpoint state of every beam and the beams' bounding box. An endpoint
    names an object: a path (CID 10) becomes a moving endpoint with a 1/2/6-segment motion profile (mode 8 / 0 / 16,
    the last a trapezoidal accelerate-cruise-decelerate profile); point objects (CID 3 / 0x30) and missing objects
    become fixed points. All points (or the whole transformed path) are accumulated into a min/max box that becomes the
    sensor's single part (CloneGeom copies it to world space). What mattered for the match:
-    - Min/Max take VU_VECTOR (const qword & conversion) parameters as in func_001DF0A0: the extra RTL copies keep the
+    - Min/Max take VU_VECTOR (const qword & conversion) parameters as in AddLasenBeamXps: the extra RTL copies keep the
       endpoint loop large enough that loop.c does not hoist 1.0f and 16 out of it;
     - the min/max initializers are non-const globals (const loads may be scheduled above the spill stores);
     - every segment is addressed as seg = &end->track.motion.segments[k] (the store to the first field folds to an
@@ -479,7 +479,7 @@ static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1)
  * See: docs/engine/guards-ai.md#5-perception,
  *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DE5D8(LASENV *p)
+extern "C" void BuildLasenBeams(LASENV *p)
 {
     int i;
     qword minimum, maximum;
@@ -669,7 +669,7 @@ extern "C" void func_001DE5D8(LASENV *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DEDB0(LASENV *plasen)
+extern "C" void BindLasenAnimations(LASENV *plasen)
 {
     uint i;
     for (i = 0; i < 2; i++) {
@@ -703,7 +703,7 @@ extern "C" void func_001DEDB0(LASENV *plasen)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DEEA8(LASENV *plasen, SOV *pso)
+extern "C" void RemoveLasenContactsWith(LASENV *plasen, SOV *pso)
 {
     XP *list = 0;
     int i;
@@ -754,7 +754,7 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
     }
 }
 
-/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClsgClipEdgeToObject,
+/* AddLasenBeamXps (LASEN vt60): for every beam, find where it hits the request's object (first ClsgClipEdgeToObject,
    else the CID 0x33 test func_00205670), add a kind-10 contact there with PxpAdd, and post ZapLasenBeams through
    EnsureSwCallback. What mattered for the match:
     - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
@@ -802,7 +802,7 @@ static inline float Scalar(VU_VECTOR v)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
+extern "C" void AddLasenBeamXps(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
     func_001F5990(p, q, a2, a3, a4, ppxp);
@@ -884,7 +884,7 @@ void LASENV::ZapBeams(int)
 extern "C" void UpdateLasen(LASENV *plasen, float dt)
 {
     UpdateSo(plasen, dt);
-    func_001DF3D0(plasen);
+    MoveLasenEndpoints(plasen);
 }
 
 /** @sly2-annot addr=0x1DF3D0
@@ -895,7 +895,7 @@ extern "C" void UpdateLasen(LASENV *plasen, float dt)
  * See: docs/engine/guards-ai.md#5-perception,
  *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
  * @end-sly2-annot */
-extern "C" void func_001DF3D0(LASENV *p)
+extern "C" void MoveLasenEndpoints(LASENV *p)
 {
     int i;
     for (i = 0; i < p->cbeam; i++) {

@@ -190,7 +190,7 @@ extern "C" void UpdateCodes(CODES *pcodes)
  * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: semantic_tu_docs/cheat
  * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
  * @end-sly2-annot */
-extern "C" void func_0014C140(void *p)
+extern "C" void CheatWipeToWarp(void *p)
 {
     SetSndmgrMasterVolume(D_003DD040, 0.0f);
     WipeToWorldWarp(D_003DD490, 0, 0x189, -1, p, -1);
@@ -202,7 +202,7 @@ extern "C" void func_0014C140(void *p)
  * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: semantic_tu_docs/cheat
  * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
  * @end-sly2-annot */
-extern "C" void func_0014C190(void *p)
+extern "C" void CheatWarpToEpisode(void *p)
 {
     void *prec = PrecWorldEntry(p);
     if (!prec) prec = PrecWorldEntry(0);
@@ -230,7 +230,7 @@ extern "C" void CheatSetFlag(int *pf) { *pf = 1; }
  * Confidence: low (draft) [T2 0.65] - evidence: semantic review; sources: semantic_tu_docs/cheat
  * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
  * @end-sly2-annot */
-extern "C" void func_0014C200(void)
+extern "C" void CheatUnlockCompletionReward(void)
 {
     if (NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
         SetPowerupAcquired(0x1F, 1);
@@ -307,10 +307,10 @@ extern "C" void StartupCodes(CODES *pcodes)
 // D_002BE26C, gadget numbers. Asm labels: the declarations above stay as the functions see them.
 namespace CHEAT_CODES {
 struct CODEREC { int *abtn; int cbtn; void (*pfn)(void *); void *pv; int ibtn; int fRemove; void *pcodeNext; int x1C; };
-void p_func_0014C140(void *) __asm__("func_0014C140");
-void p_func_0014C190(void *) __asm__("func_0014C190");
+void p_func_0014C140(void *) __asm__("CheatWipeToWarp");
+void p_func_0014C190(void *) __asm__("CheatWarpToEpisode");
 void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
-void p_func_0014C200(void *) __asm__("func_0014C200");
+void p_func_0014C200(void *) __asm__("CheatUnlockCompletionReward");
 void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
 extern "C" char d_003DD040[] __asm__("D_003DD040");
 extern "C" int k_002BE26C __asm__("D_002BE26C");

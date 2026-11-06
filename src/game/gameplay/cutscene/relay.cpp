@@ -1044,9 +1044,9 @@ extern "C" int func_00210B68();
 
 extern "C" void func_001DD820(void *pv);
 
-extern "C" void func_001531A8(LO *plo, int n, int cent, void *aent);
+extern "C" void SetRhythmManagerPrompts(LO *plo, int n, int cent, void *aent);
 
-extern "C" void func_001532D8(LO *plo, LO *ploActor, int n5, int n6, float g);
+extern "C" void PushRhythmManagerCue(LO *plo, LO *ploActor, int n5, int n6, float g);
 
 extern "C" void func_001B9C00(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8);
 
@@ -4559,7 +4559,7 @@ void NextJsgCommand(JSGV *pjsg)
                     break;
                 }
             }
-            func_001531A8(D_002DE570, prelaycmd->unk49.nUnk4, cent, aent);
+            SetRhythmManagerPrompts(D_002DE570, prelaycmd->unk49.nUnk4, cent, aent);
         }
         break;
     case RELAYCK_Unk4A:
@@ -4571,7 +4571,7 @@ void NextJsgCommand(JSGV *pjsg)
         {
             if (D_002DE570)
             {
-                func_001532D8(D_002DE570, pjsg->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
+                PushRhythmManagerCue(D_002DE570, pjsg->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
             }
         }
         break;

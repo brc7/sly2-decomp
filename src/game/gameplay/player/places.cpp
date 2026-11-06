@@ -84,7 +84,7 @@ void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void func_00148300(G *g, LO *a);
 void JtbsChooseJtLanding(void *p, LO *a);
-void func_0015E1D8(int a);
+void StartScreenFade(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
 void FFilterSoPair(void);
@@ -205,7 +205,7 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
                         JtbsChooseJtLanding(p->x2c0, e.plo);
                     }
                 }
-                func_0015E1D8(D_003DD490.x3e60);
+                StartScreenFade(D_003DD490.x3e60);
                 return;
             }
         }

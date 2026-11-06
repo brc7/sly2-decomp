@@ -66,7 +66,7 @@ extern char D_002DF4B0[];
 extern char D_002DFB00[];
 extern char D_002DFB20[];
 extern float D_002BD398[];
-extern float D_002BD39C[] __asm__("D_002BD398+4");   /* D_002BD398[1..]: a separate symbol to g++ (one base changes func_001477D8) */
+extern float D_002BD39C[] __asm__("D_002BD398+4");   /* D_002BD398[1..]: a separate symbol to g++ (one base changes DrawFrameCaptureScreen) */
 extern VECTOR4F D_002BD3B0[4];   /* quad corners */
 extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
@@ -88,8 +88,8 @@ void AppendDlEntry__FP2DLPv(void *p, X14 *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
-void func_001475C0(P *p);
-void func_00147410(P *p, int n);
+void CaptureFramebufferToTexture(P *p);
+void SetFrameCaptureState(P *p, int n);
 void EndDmaCnt__4DMAS(GIFS *pgifs);
 void AddDmaRefs__4DMASiP2QW(GIFS *pgifs, int n, void *pv);
 void AddDmaCnt__4DMAS(GIFS *pgifs);
@@ -112,7 +112,7 @@ void PackXYZ__4GIFSiii(GIFS *pgifs, int x, int y, int z);
  * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/cutscenes.md#4-source-files,
  *   docs/engine/player.md#10-source-files
  * @end-sly2-annot */
-extern "C" void func_001471C0(P *p)
+extern "C" void InitFrameCapture(P *p)
 {
     unsigned int v;
     InitSo(p);
@@ -148,15 +148,15 @@ void CID104::VUnk14()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_00147278(P *p)
+extern "C" void UpdateFrameCapture(P *p)
 {
     switch (p->state) {
     case 0:
-        func_00147410(p, 1);
+        SetFrameCaptureState(p, 1);
         return;
     case 3:
         if (func_001FE848(D_003DD040, p->n170) == 0) {
-            func_00147410(p, 2);
+            SetFrameCaptureState(p, 2);
             return;
         }
         return;
@@ -164,7 +164,7 @@ extern "C" void func_00147278(P *p)
         ASEGA *pasega = p->pasega;
         if (pasega == 0 || FAsegaRetracted(pasega) != 0) {
             func_001306A8(&p->pasega);
-            func_00147410(p, -1);
+            SetFrameCaptureState(p, -1);
         }
         break;
     }
@@ -177,7 +177,7 @@ extern "C" void func_00147278(P *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_00147338(P *p, int kind, MSG *pmsg)
+extern "C" void HandleFrameCaptureMessage(P *p, int kind, MSG *pmsg)
 {
     HandleBasicMessage(p, kind, pmsg);
     if (kind != 9) return;
@@ -190,7 +190,7 @@ extern "C" void func_00147338(P *p, int kind, MSG *pmsg)
     case 0x5FF: p->f16C = 0; break;
     case 0x600: p->f16C = 1; break;
     case 0x601:
-        if (p->n170 != -1) func_00147410(p, 3);
+        if (p->n170 != -1) SetFrameCaptureState(p, 3);
         break;
     }
 }
@@ -205,7 +205,7 @@ extern "C" void func_00147338(P *p, int kind, MSG *pmsg)
  *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
  *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_00147410(P *p, int state)
+extern "C" void SetFrameCaptureState(P *p, int state)
 {
     if (state == p->state) return;
     switch (p->state) {
@@ -248,7 +248,7 @@ extern "C" void func_00147410(P *p, int state)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_001475C0(P *p)
+extern "C" void CaptureFramebufferToTexture(P *p)
 {
     GIFS *g = &D_002DEA00;
     TEX *pg = &D_002DECD0;
@@ -288,7 +288,7 @@ extern "C" void func_001475C0(P *p)
  * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" int func_001477B0(P *p)
+extern "C" int IsFrameCaptureInactive(P *p)
 {
     switch (p->state) {
     case 2:
@@ -327,7 +327,7 @@ static inline float Screen(const float &g, const float &s) { return (g + 0.5f) *
  * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_001477D8(P *p)
+extern "C" void DrawFrameCaptureScreen(P *p)
 {
     M4 am[2];
     float rw;
@@ -335,8 +335,8 @@ extern "C" void func_001477D8(P *p)
     int state, stateNext;
     switch (p->state) {
     case 1:
-        func_001475C0(p);
-        func_00147410(p, 2);
+        CaptureFramebufferToTexture(p);
+        SetFrameCaptureState(p, 2);
         break;
     case 2:
     case 3:
@@ -418,7 +418,7 @@ extern "C" void func_001477D8(P *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
  * @end-sly2-annot */
-extern "C" void func_00147C20(P *p, int oid, int n)
+extern "C" void StartFrameCapture(P *p, int oid, int n)
 {
     char *aseg;
     p->n170 = n;
@@ -431,7 +431,7 @@ extern "C" void func_00147C20(P *p, int oid, int n)
         if ((v ^ 1) & 1) *(int *)v |= 0x100;
         else *(unsigned int *)(aseg + 0x40) = v | 0x100;
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, p, 0.0f, 1.0f, 4, &p->pasega);
-        func_00147410(p, 0);
+        SetFrameCaptureState(p, 0);
     }
 }
 

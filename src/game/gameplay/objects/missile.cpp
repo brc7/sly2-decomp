@@ -1,6 +1,6 @@
 // missile.cpp -- missiles: MISSILE (a BOMB that flies at a target position and runs an action while it flies), and
 // its two kinds ACCMISS (accelerates to a cruise speed, vtable slot 69) and SPLMISS (flies a Bezier path to arrive at
-// the target in a given time). VU0 macro-mode asm; FireSplmiss and func_001B2468 are hand-scheduled (register pins
+// the target in a given time). VU0 macro-mode asm; FireSplmiss and PresetSplmissAccel are hand-scheduled (register pins
 // and fused asm blocks, from their per-function files).
 // TU 0x1B1DB8..0x1B2820 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_missile
@@ -30,7 +30,7 @@ struct BOMB : public SO
       float tDetonate;
       float svDetonate;
       undefined4 unk_0x15c[(0x1e8 - 0x15c) / 4];
-      int nUnk1e8;   /* nonzero: func_001B2468 and PresetAccmissAccel do nothing */
+      int nUnk1e8;   /* nonzero: PresetSplmissAccel and PresetAccmissAccel do nothing */
       undefined4 unk_0x1ec[(0x1f4 - 0x1ec) / 4];
       int fCustomXps;
       undefined4 unk_0x1f8[2];
@@ -42,16 +42,16 @@ struct BOMB : public SO
     virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
     virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
-    virtual void VUnk57() __asm__("func_0013AEB0");   /* slot 58 */
+    virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBombIntersection");   /* slot 61 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbBombWkr");   /* slot 75 */
-    virtual void VSlot76() __asm__("func_0013AA70");   /* slot 76 */
+    virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
     virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
 };
 struct MISSILE : public BOMB
 {
-      LO *ploTarget;         /* +0x210 set by FireMissile; its local transform maps qwTarget (func_001B2398) */
+      LO *ploTarget;         /* +0x210 set by FireMissile; its local transform maps qwTarget (GetMissileTargetPosition) */
       undefined4 unk_0x214[3];
       qword qwTarget;        /* +0x220 the target point, local to ploTarget when there is one */
       ASEG *paseg;           /* +0x230 animation applied while flying */
@@ -69,7 +69,7 @@ struct MISSILE : public BOMB
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void VSlot77() __asm__("func_001B1F10");   /* slot 77 */
+    virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
@@ -96,7 +96,7 @@ struct CID82 : public MISSILE
       qword qwVelTarget;     /* +0x280 velocity at the target */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
-    virtual void VUnk69() __asm__("func_001B2468");   /* slot 70 */
+    virtual void VUnk69() __asm__("PresetSplmissAccel");   /* slot 70 */
     virtual void VSlot78() __asm__("FireSplmiss");   /* slot 78 */
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
@@ -128,7 +128,7 @@ void ApplyBombThrow(BOMB *pbomb);
 int FIgnoreBombIntersection(BOMB *pbomb, SO *pso);
 int func_00134310(int r, int n);
 void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos);
-V func_001B2398(MISSILE *pmissile, float g);
+V GetMissileTargetPosition(MISSILE *pmissile, float g);
 qword LimitVectorLength(qword v, float s);
 qword func_001A62E8(SO *pso);
 int func_0014C748(qword a, qword b, qword c, int n, HIT *phit, float r);
@@ -137,8 +137,8 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *,
 void AddSoAcceleration(SO *pso, qword qwAccel);
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
-/* func_001B2398 as its two callers call it: the hidden result pointer passed by hand. */
-extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("func_001B2398");
+/* GetMissileTargetPosition as its two callers call it: the hidden result pointer passed by hand. */
+extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("GetMissileTargetPosition");
 void ApplyAsegCur(ASEG *paseg, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
 int FFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
@@ -218,7 +218,7 @@ extern "C" void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void func_001B1F10(MISSILE *pmissile)
+extern "C" void ApplyMissileThrow(MISSILE *pmissile)
 {
     ApplyBombThrow(pmissile);
     ReleaseAct(&pmissile->pact);
@@ -253,7 +253,7 @@ int FIgnoreMissileIntersection(MISSILE *pmissile, SO *pso)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void func_001B2020(MISSILE *pmissile, OID oid)
+extern "C" void AddMissileSpecialObject(MISSILE *pmissile, OID oid)
 {
     if ((unsigned int)pmissile->coidIgnore < 4) pmissile->aoidIgnore[pmissile->coidIgnore++] = oid;
 }
@@ -265,7 +265,7 @@ extern "C" void func_001B2020(MISSILE *pmissile, OID oid)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void func_001B2048(MISSILE *pmissile, CID cid)
+extern "C" void AddMissileSpecialClass(MISSILE *pmissile, CID cid)
 {
     if ((unsigned int)pmissile->ccidIgnore < 4) pmissile->acidIgnore[pmissile->ccidIgnore++] = cid;
 }
@@ -428,7 +428,7 @@ static inline qword MulPt(M4 *m, qword v) { qword r; r = VuMulMatrix4(m->r[0], m
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" V func_001B2398(MISSILE *pmissile, float g)
+extern "C" V GetMissileTargetPosition(MISSILE *pmissile, float g)
 {
     V r;
     if (pmissile->ploTarget) {
@@ -459,7 +459,7 @@ static inline int CaptureDestinationAndEqual(CID82*p,const V*output,V*destinatio
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
  * @end-sly2-annot */
-extern "C" void func_001B2468(CID82*p){
+extern "C" void PresetSplmissAccel(CID82*p){
  if(p->nUnk1e8)return;
  WORKA w;
  float remaining;

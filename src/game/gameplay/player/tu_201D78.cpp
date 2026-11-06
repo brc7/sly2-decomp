@@ -121,7 +121,7 @@ void func_0014D1D0(void *, int, float);
 void func_001FE5B8(void *, int, int);
 void func_0014FE28(void *);
 void *StartDialog(void *, int, int);
-void func_00147C20(void *, int, int);
+void StartFrameCapture(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, void *);
@@ -569,7 +569,7 @@ void SetReconSelState(RECONSEL *p,int nextState)
         Post(p->primary,0x310);
         if(p->resource){
             if(p->actor->key!=-1)StartDialog(D_003DD040,p->actor->key,0);
-            func_00147C20(p->resource,0x608,p->actor->key);
+            StartFrameCapture(p->resource,0x608,p->actor->key);
         }
         func_002036E8(p->actor,1);
         BroadcastGameEvent(D_002DEB30,10,0);

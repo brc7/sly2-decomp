@@ -90,9 +90,9 @@ extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
 ulong GrfFromSgf(int);
 int PpoHero(G *);
-void func_001C2DB8(OWNER *);
-int func_001C2DC8(OWNER *, OBJECT *, int, int);
-void *func_001C2EF0(OWNER *, int);
+void ClearLootPouchLoot(OWNER *);
+int StageLootPouchLoot(OWNER *, OBJECT *, int, int);
+void *LaunchLootPouchLootAtPlayer(OWNER *, int);
 int NWorldCur(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -210,7 +210,7 @@ extern "C" void GenerateStepguardLoot(P *p)
     TABLE *table;
     ITEM reward;
     int id,total,remaining,slots;unsigned int i;
-    func_001C2DB8(p->owner);
+    ClearLootPouchLoot(p->owner);
     if(p->busy)return;
     id=NWorldCur();if(id==-1)id=1;
     if(FIsBasicDerivedFrom__FP5BASIC3CID(p,0x3A))table=&D_002C3968[id];else table=&D_002C3748[id];
@@ -284,7 +284,7 @@ extern "C" void StageStepguardLoot(P *p)
             }
             k = 0x2B1;
         }
-        if (func_001C2DC8(p->owner, po, key, k) == 1) p->fStaged = 1;
+        if (StageLootPouchLoot(p->owner, po, key, k) == 1) p->fStaged = 1;
         break;
     }
     UpdateStepguardPickpocket(p);
@@ -304,7 +304,7 @@ extern "C" void *PickpocketStepguard(P *p)
     if (p->iitem >= p->count) return 0;
     {
         BroadcastGameEvent(&D_002DEB30, 0x19, p);
-        r = func_001C2EF0(p->owner, (p->items + p->iitem)->count);
+        r = LaunchLootPouchLootAtPlayer(p->owner, (p->items + p->iitem)->count);
         SetStepguardPickpocketState(p, -1);
         p->iitem++;
         StageStepguardLoot(p);

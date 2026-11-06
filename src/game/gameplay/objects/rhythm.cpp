@@ -131,18 +131,18 @@ float GGetDifficulty(void *p);
 float GLimitLm__FP2LMf(LMV *plm, float g);
 
 void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
-void func_00152390(DANCERV *p, int id, int idNew, int j);
-void *func_00152520(DANCERV *p, int id);
-void func_00152578(DANCERV *p);
-int func_00152628(int k);
-int func_00152680(int k);
-void func_00152B58(RHYTHMMGR *p);
+void PlayDancerMove(DANCERV *p, int id, int idNew, int j);
+void *FindDancerMoveObject(DANCERV *p, int id);
+void BindDancerMoves(DANCERV *p);
+int GradeIndexFromOid(int k);
+int OidFromGradeIndex(int k);
+void UpdateRhythmManagerGrades(RHYTHMMGR *p);
 void SetRhythmMgrState(RHYTHMMGR *p, int s);
-void func_001533B0(RHYTHMMGR *p, DANCERV *po);
-float GRhythmTimingScore(RHYTHMMGR *p, CUE *q);
-float func_00153638(RHYTHMMGR *p, float g);
+void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po);
+float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q);
+float PassThroughFloat(RHYTHMMGR *p, float g);
 void AddRhythmScore(RHYTHMMGR *p, float g);
-float GAverageRhythmScore(RHYTHMMGR *p);
+float GetAverageRhythmScore(RHYTHMMGR *p);
 }
 
 /** @sly2-annot addr=0x1520C8
@@ -152,7 +152,7 @@ float GAverageRhythmScore(RHYTHMMGR *p);
  * See: docs/engine/camera.md#4-source-files, docs/engine/gameplay-objects.md#gameplay-object-classes,
  *   docs/engine/gameplay-objects.md#source-files
  * @end-sly2-annot */
-extern "C" void func_001520C8(DANCERV *p) {
+extern "C" void RemoveDancerHierarchy(DANCERV *p) {
     RemoveSoHierarchy(p);
     ApplyDancerAseg(p, 0, 0);
 }
@@ -171,7 +171,7 @@ void DANCER::VUnk14()
     DANCERV *o = (DANCERV *)this;
     VTE *e;
     PostStepLoad(o);
-    func_00152578(o);
+    BindDancerMoves(o);
     e = &o->vt[79];
     ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
 }
@@ -194,7 +194,7 @@ static inline qwordV VecMul(qwordV v, float g)
  * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_00152148(DANCERV *p)
+extern "C" void UpdateDancer(DANCERV *p)
 {
     int k;
     UpdateStep(p);
@@ -208,10 +208,10 @@ extern "C" void func_00152148(DANCERV *p)
     switch (k) {
     case 0:
         if (!p->f40C)
-            func_00152390(p, -1, -1, 0);
+            PlayDancerMove(p, -1, -1, 0);
         break;
     case 2:
-        func_001533B0(D_002DE570, p);
+        JudgeRhythmPress(D_002DE570, p);
         break;
     }
     if (p->pa408)
@@ -228,7 +228,7 @@ struct MSGD { SOM *pso; float g; int k; };
  * Confidence: low (draft) [T2 0.40] - evidence: semantic review; static naming pass; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_00152250(DANCERV *p, int msgk, MSGD *pmsg)
+extern "C" void HandleDancerMessage(DANCERV *p, int msgk, MSGD *pmsg)
 {
     HandlePoMessage(p, msgk, pmsg);
     if (msgk == 9) {
@@ -276,14 +276,14 @@ extern "C" void GetDancerCpdefi(DANCERV *p, CPDEFIV *pc) {
  * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-void func_00152390(DANCERV *p, int id, int idNew, int j)
+void PlayDancerMove(DANCERV *p, int id, int idNew, int j)
 {
     int i;
     for (i = 0; i < p->c; i++) {
         DMOVE *pe = &p->a[i];
         if ((id == -1 && POCTL_FConsumePressed(p->ppoctl, pe->a)) || pe->a == id) {
             if (idNew != -1) {
-                void *r = func_00152520(p, idNew);
+                void *r = FindDancerMoveObject(p, idNew);
                 if (r)
                     pe->ar[0].res = r;
             }
@@ -332,7 +332,7 @@ extern "C" void AddDancerMove(DANCERV *p, int a, int b, int c, int d, int e)
  * Confidence: low (draft) [T2 0.30] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-void *func_00152520(DANCERV *p, int id) {
+void *FindDancerMoveObject(DANCERV *p, int id) {
     void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p);
     if (po != 0) {
         VTE *pvt = *(VTE **)((char *)po + 0xC);
@@ -347,14 +347,14 @@ void *func_00152520(DANCERV *p, int id) {
  * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-void func_00152578(DANCERV *p)
+void BindDancerMoves(DANCERV *p)
 {
     int i, j;
     for (i = 0; i < p->c; i++) {
         DMOVE *pe = &p->a[i];
         for (j = 0; j < 3; j++) {
             if (pe->ar[j].id != -1)
-                pe->ar[j].res = func_00152520(p, pe->ar[j].id);
+                pe->ar[j].res = FindDancerMoveObject(p, pe->ar[j].id);
         }
     }
 }
@@ -365,7 +365,7 @@ void func_00152578(DANCERV *p)
  * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-int func_00152628(int k)
+int GradeIndexFromOid(int k)
 {
     switch (k) {
     case 0x626: return 0;
@@ -381,7 +381,7 @@ int func_00152628(int k)
  * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-int func_00152680(int k)
+int OidFromGradeIndex(int k)
 {
     switch (k) {
     case 0: return 0x626;
@@ -451,7 +451,7 @@ void CID121::VUnk14()
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_00152810(RHYTHMMGR *p)
+extern "C" void BindRhythmManagerGrades(RHYTHMMGR *p)
 {
     int i, j;
     float d = __builtin_fabsf(p->lm.gMax - p->lm.gMin) / 3.0f;
@@ -467,7 +467,7 @@ extern "C" void func_00152810(RHYTHMMGR *p)
         if (!o2)
             continue;
         ReplaceSma(o2, o, pe->k, 0, &pe->o);
-        pe->kk = func_00152628(pe->k);
+        pe->kk = GradeIndexFromOid(pe->k);
         g = p->lm.gMax;
         for (j = 0; j < 2; j++) {
             g -= d;
@@ -500,7 +500,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
             if (pe->n14)
                 continue;
             if (pe->gC < t) {
-                func_00152390(pe->po, pe->n4, pe->n8, 0);
+                PlayDancerMove(pe->po, pe->n4, pe->n8, 0);
                 pe->n14 = 1;
                 break;
             }
@@ -519,7 +519,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
             if (pe->gC + p->g5C < t) {
                 pe->n20 = 1;
                 if (!pe->n1C) {
-                    func_00152390(pe->po, pe->n4, pe->n8, 2);
+                    PlayDancerMove(pe->po, pe->n4, pe->n8, 2);
                     AddRhythmScore(p, p->g2A4);
                 }
                 break;
@@ -528,7 +528,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
         break;
     }
     { float dt = D_002DDED0.dt; p->g288 = GSmooth__FfffP3SMPPf(p->x28C, p->g288, p->g284, dt, 0); }
-    func_00152B58(p);
+    UpdateRhythmManagerGrades(p);
 }
 
 /** @sly2-annot addr=0x152B58
@@ -537,7 +537,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *p)
  * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-void func_00152B58(RHYTHMMGR *p)
+void UpdateRhythmManagerGrades(RHYTHMMGR *p)
 {
     int i, j;
     for (i = 0; i < p->cSma; i++) {
@@ -550,7 +550,7 @@ void func_00152B58(RHYTHMMGR *p)
         } else {
             for (j = 0; j < 3; j++) {
                 if (pe->ag[j] <= p->g288) {
-                    SetSmaGoal(pe->o, func_00152680(j));
+                    SetSmaGoal(pe->o, OidFromGradeIndex(j));
                     pe->kk = j;
                     break;
                 }
@@ -605,7 +605,7 @@ float D_002BDBE0[3] = {1.2f, -0.6f, 0.0f};
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): the pointer-to-member record precedes the
 // big-glyph string in the ELF; definition order is emission order.
 namespace RO_ORDER {
-void p_func_00152810() __asm__("func_00152810");
+void p_func_00152810() __asm__("BindRhythmManagerGrades");
 extern const unsigned int r_D_002A5010[2] __asm__("D_002A5010") = {0xFFFF0000, (unsigned int)p_func_00152810};
 }
 extern "C" {
@@ -748,7 +748,7 @@ static inline void SetVector(VECTORV *pv, float x, float y, float z)
  * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_001531A8(RHYTHMMGR *p, int q, int c, void *pv)
+extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *p, int q, int c, void *pv)
 {
     p->c = c;
     if (c) {
@@ -777,7 +777,7 @@ extern "C" void func_001531A8(RHYTHMMGR *p, int q, int c, void *pv)
  * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_001532D8(RHYTHMMGR *p, DANCERV *a, int b, int c, float g)
+extern "C" void PushRhythmManagerCue(RHYTHMMGR *p, DANCERV *a, int b, int c, float g)
 {
     CUE *pe;
     if (p->c1C0 == 3) {
@@ -805,7 +805,7 @@ extern "C" void func_001532D8(RHYTHMMGR *p, DANCERV *a, int b, int c, float g)
  * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-void func_001533B0(RHYTHMMGR *p, DANCERV *po)
+void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po)
 {
     void *pv = po->ppoctl;
     int i, j;
@@ -821,19 +821,19 @@ void func_001533B0(RHYTHMMGR *p, DANCERV *po)
             continue;
         BroadcastGameEvent(D_002DEB30, 0x35, p);
         if (TMusicCur(D_003DD040) < pe->gC - p->g58) {
-            func_00152390(po, -1, -1, 1);
+            PlayDancerMove(po, -1, -1, 1);
             AddRhythmScore(p, p->g298);
             return;
         }
         if (pe->n1C) {
-            func_00152390(po, -1, -1, 1);
+            PlayDancerMove(po, -1, -1, 1);
             AddRhythmScore(p, p->g2A0);
             return;
         }
         pe->n1C = 1;
         if (POCTL_FConsumePressed(pv, pe->n4)) {
-            func_00152390(po, pe->n4, pe->n8, 0);
-            AddRhythmScore(p, func_00153638(p, GRhythmTimingScore(p, pe)));
+            PlayDancerMove(po, pe->n4, pe->n8, 0);
+            AddRhythmScore(p, PassThroughFloat(p, GetRhythmTimingScore(p, pe)));
             for (j = 0; j < p->c; j++) {
                 ENT *pq = &p->ae[j];
                 if (FFloatsNear__Ffff(pq->t, pe->gC, 0.1f)) {
@@ -842,7 +842,7 @@ void func_001533B0(RHYTHMMGR *p, DANCERV *po)
                 }
             }
         } else {
-            func_00152390(po, -1, -1, 1);
+            PlayDancerMove(po, -1, -1, 1);
             AddRhythmScore(p, p->g29C);
         }
         return;
@@ -852,13 +852,13 @@ void func_001533B0(RHYTHMMGR *p, DANCERV *po)
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 /** @sly2-annot addr=0x1535A0
  * Purpose: Score = lerp(D_002BBB60 range, 1 - |t - tCue| / window), window = early(+0x58) or late(+0x5C)
- * Info: proposed name GRhythmTimingScore (T1); TU rhythm
+ * Info: proposed name GetRhythmTimingScore (T1); TU rhythm
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-float GRhythmTimingScore(RHYTHMMGR *p, CUE *q)
+float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q)
 { float g = TMusicCur(D_003DD040); float d;
   if (g < q->gC) { d = (q->gC - g) / p->g58; } else { d = (g - q->gC) / p->g5C; }
   return GLerp(D_002BBB60.gMin, D_002BBB60.gMax, 1.0f - d); }
@@ -869,7 +869,7 @@ float GRhythmTimingScore(RHYTHMMGR *p, CUE *q)
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: semantic review; sources: r2_131F70
  * @end-sly2-annot */
-float func_00153638(RHYTHMMGR *p, float g) {
+float PassThroughFloat(RHYTHMMGR *p, float g) {
     return g;
 }
 
@@ -894,19 +894,19 @@ void AddRhythmScore(RHYTHMMGR *p, float g)
         pg = &p->ag[p->cScore++];
     }
     *pg = GLimitLm__FP2LMf(&p->lm, g);
-    p->g284 = GAverageRhythmScore(p);
+    p->g284 = GetAverageRhythmScore(p);
     BroadcastGameEvent(D_002DEB30, 0x36, p);
 }
 
 static inline int Max(int a, int b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x153760
  * Purpose: Average of the last n (+0x280) scores clamped to lm
- * Info: proposed name GAverageRhythmScore (T1); TU rhythm
+ * Info: proposed name GetAverageRhythmScore (T1); TU rhythm
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-float GAverageRhythmScore(RHYTHMMGR *p)
+float GetAverageRhythmScore(RHYTHMMGR *p)
 {
     float sum;
     int i, iMin;
@@ -939,7 +939,7 @@ extern "C" void ResetRhythmScore(RHYTHMMGR *p)
  * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
-extern "C" void func_00153810(RHYTHMMGR *p, int oid, int k) {
+extern "C" void AddRhythmManagerGrade(RHYTHMMGR *p, int oid, int k) {
     unsigned int c = p->ucSma;
     if (c < 0x80U) {
         SMAE *pe;
