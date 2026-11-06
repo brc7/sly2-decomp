@@ -11,12 +11,30 @@ usage: python3 tools/link.py [--no-compile]
      build/link/sly2.ld from tools/link.ld.in
   3. link with ld.lld and compare build/link/sly2.elf with the ELF section by section
 """
-import collections, csv, os, re, shutil, struct, subprocess, sys
+import collections, csv, functools, os, re, shutil, struct, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import matchtool, linkaliases
+
+
+@functools.lru_cache(None)
+def llvm_tool(name):
+    """path of an LLVM tool: $LLVM_BIN, then PATH, then Homebrew's keg-only llvm/lld (not on PATH by default)"""
+    dirs = [os.environ['LLVM_BIN']] if os.environ.get('LLVM_BIN') else []
+    found = shutil.which(name)
+    if found and not dirs:
+        return found
+    for prefix in ('/opt/homebrew/opt', '/usr/local/opt'):
+        dirs += [f'{prefix}/llvm/bin', f'{prefix}/lld/bin']
+    for d in dirs:
+        if os.path.isfile(os.path.join(d, name)):
+            return os.path.join(d, name)
+    if found:
+        return found
+    sys.exit(f'link.py: {name} not found. Install LLVM (macOS: `brew install llvm`; Debian/Ubuntu: `apt install lld llvm`) '
+             f'or set LLVM_BIN to the directory that contains it.')
 
 OUT = os.path.join(ROOT, 'build', 'link')
 ELF = matchtool.ELF
@@ -281,7 +299,7 @@ def fixed(objs):
         p = fix_path(o)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         r = os.path.join(red, o.src.replace('/', '__') + '.redefine')
-        subprocess.run(['llvm-objcopy'] + (['--redefine-syms=' + r] if os.path.exists(r) else []) + [o.path, p], check=True)
+        subprocess.run([llvm_tool('llvm-objcopy')] + (['--redefine-syms=' + r] if os.path.exists(r) else []) + [o.path, p], check=True)
         cut = {o.secs[i][0]: n for i, n in o.size.items() if n != o.secs[i][5]}
         if not (cut or o.align or o.absolute):
             continue
@@ -590,7 +608,7 @@ def main():
     elf = os.path.join(OUT, 'sly2.elf')
     if os.path.exists(elf):
         os.remove(elf)
-    p = subprocess.run(['ld.lld', '-m', 'elf32ltsmip', '-T', ld, '--gc-sections', '--noinhibit-exec',
+    p = subprocess.run([llvm_tool('ld.lld'), '-m', 'elf32ltsmip', '-T', ld, '--gc-sections', '--noinhibit-exec',
                         '--no-check-sections', '-o', elf] + [os.path.join(OUT, 'blobs.o')] + paths,
                        capture_output=True, text=True)
     open(os.path.join(OUT, 'ld.log'), 'w').write(p.stdout + p.stderr)

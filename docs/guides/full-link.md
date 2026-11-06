@@ -150,6 +150,8 @@ key-TU extras discarded.
 
 `python3 tools/link.py [--no-compile]` (one script plus the template tools/link.ld.in). Needs `ld.lld`
 and `llvm-objcopy` (LLVM 18 here; no MIPS GNU binutils were installable in the workspace) and your disc/SCUS_973.16.
+The script finds them via `$LLVM_BIN`, then PATH, then Homebrew's keg-only `llvm`/`lld` (macOS: `brew install llvm`;
+if Homebrew's llvm aborts with `Library not loaded: .../libz3...dylib`, its build is stale against a newer z3: `brew upgrade llvm`).
 Everything it writes goes to build/link/ (ignored): objects, build/link/blobs.o (byte ranges cut from your ELF), the
 linker script sly2.ld, sly2.elf, ld.log, and the diagnostics overlaps.txt, conflicts.txt, unplaced.txt, wrongaddr.txt,
 mismatch.txt. A full run is ~6 min of compiling (932 sources, 2 cores) plus ~20 s; `--no-compile` reuses the objects.
