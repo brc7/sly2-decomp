@@ -335,7 +335,7 @@ dmas, gifs, gs, vifs, shd, clip, shape, hud, stepguard, tu_144B28, tu_20CE28, tu
 cd, slotheap, text, thread, sw); 4 have, besides scraps, 8 zero bytes before a 16-byte-aligned function that our object
 aligns to 8 (language 0x1A2DA0, mat 0x11C500, so 0x1F6A68, joy 0x188330 StaticInit_joy); grab.cpp's local class
 constructor/destructor (func_00192A28's) are code the ELF does not have. For a real link the scraps need source
-(the dead functions or a `.word` block) at their place.
+(the dead functions or a `.word` block) at their place. Done on link/junk-padding: "Junk scraps and padding" below.
 
 **Fixes, in order:** (1) the linkonce copies back to templates/inline functions in headers (tu-merging.md "Inline
 functions and linkonce copies": a non-`inline` function template is emitted per instance as linkonce and never
@@ -343,7 +343,64 @@ inlined into callers, which is why emitter.h's set kept matching; free inline fu
 that now call them), one family at a time, renaming to the mangled names; (2) the crt0 block as one object (the
 generator emitting the 373 wrappers into the same file as class_registry's functions and splice_thunks, in address
 order; C vs C++ codegen of the wrappers to be checked); (3) the junk scraps and the 16-byte alignments. None was
-done on this branch (timebox: diagnosis only).
+done on this branch (timebox: diagnosis only); (3) is done on link/junk-padding (next section).
+
+### Junk scraps and padding (link/junk-padding, 2026-11-06)
+
+The 38 objects that failed the check without `-ffunction-sections` for reasons other than linkonce copies and the
+crt0 block, fixed in their sources (from main f674c97e). `tools/link.py`'s check, before -> after:
+
+| verdict | before | after |
+|---|---:|---:|
+| `.text` links as one run at its ELF address | 855 | 893 |
+| split by other objects' code (linkonce copies, crt0 block: link/linkonce-*, link/crt0-block) | 38 | 38 |
+| dead code (config/junk.csv scraps) inside the object's range | 33 | 0 |
+| gap/padding differs | 4 | 0 |
+| unplaced section (grab.cpp) | 1 | 0 |
+
+Each of the 37 objects, compiled without `-ffunction-sections`, has a `.text` equal to the ELF's at its address
+(relocated words aside; scratch check). Differing bytes stay 115; `.text` from objects 1,282,044 -> 1,282,864 bytes,
+blob bytes for junk.csv 2,136 -> 1,708 and for padding 14,276 -> 13,884 (the five new junk.csv rows moved 40 bytes
+from the second label to the first; four of those nop units sit at the end of a function's section, which link.py cuts
+to the function's symbol when the rest is zeros, so their 32 bytes still come from blobs in this measure); unplaced
+sections 6 -> 4 (544 -> 416 bytes).
+
+**What the scraps are.** Every junk.csv range is a run of 8-byte units, each one instruction followed by a nop to
+the next 8-byte boundary (164 of 168 ranges start 8-aligned; the other four start at the alignment nop before the
+first unit). The instruction is the kind that fills the delay slot of a function's final `jr $ra`: `addiu $sp,$sp,N`
+(267 of the 338 units), `move $2,$4`, `sw $5,N($4)`, `slt $2,$0,$2`, `nop`... Their frame
+sizes do not match the neighbouring functions (dynarray's 0x116D20 says 0x30 between a 0x10 and a 0x20 frame), and
+runs of several units occur (six at dynarray's 0x116EA8). So each unit is what is left of one function that is not in
+the ELF: its last instruction and its alignment padding. Most likely the original toolchain's removal of unused
+functions cut each one an instruction short; that is an inference from the bytes (nothing else in the ELF records the
+removed functions). No C produces an instruction without its return, so the source emits each unit as one
+instruction of assembly: `SLY2_SCRAP("addiu $sp, $sp, 0x30");` (include/sly2/scrap.h: `.align 3` + the instruction,
+in the current text section, no symbol), at the place of the removed function. The asm goes after the previous
+function's code and before any data definition (gcc 2.95 emits top-level asm where it stands, and after a data
+definition the current section is `.rodata`: lo.cpp's first try put its scraps there). With `-ffunction-sections`
+the scrap trails the preceding function's section, which is what link.py's check lays out; matchtool compares
+functions by symbol size, so no function changes.
+
+**The four "gap/padding" objects** (language 0x1A2D98, mat 0x11C4F8, so 0x1F6A60, joy 0x188328) are not 16-byte
+alignment: so's next function (0x1F6A68) is only 8-aligned, and over the whole ELF the 8 gaps of one zero unit before a
+function land 5 times 16-aligned and 3 times not. They are scrap units whose orphaned instruction is a `nop` (a
+removed function ending `jr $ra; nop`): `SLY2_SCRAP("nop")`. slotheap's 0x11CDD0 and util's 0x11E028/0x11E030 are
+more of them inside junk ranges. No aligned attribute or `-falign-functions` is involved.
+
+**grab.cpp:** func_00192A28 kept its frame record as a local class, `struct { char c; STACKSCOPE frame; int i, j; }`;
+g++ 2.95 emits a local class's implicit constructor and destructor out of line (two local functions, the destructor
+with its `__builtin_delete` call) even though the function inlines both. Named at namespace scope (`SCOPEDIJ`, a
+placeholder) they are inline functions with nothing that needs them out of line, so none is emitted.
+
+**config/junk.csv:** the 64 rows inside these objects now end with "; emitted by its TU source (SLY2_SCRAP)"
+(they are still not functions, so progress.py keeps skipping them); five rows for the nop units are new (173 rows).
+The rows at TU boundaries or inside the linkonce/crt0 objects are unchanged. No entry decodes as a function, so none
+moved to functions.csv.
+
+**Checks:** every touched file's functions and data MATCH (the same counts as before); nm symbol sets equal except
+grab's two removed local functions and its `__builtin_delete` reference (and the per-compile `_GLOBAL_$I$` suffixes);
+symcheck: 35 undefined not in config, 0 duplicate definitions (unchanged); relverify: 27,231 relocations OK, 0
+mismatched. No change to codegen was needed or reverted.
 
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
 
@@ -381,6 +438,6 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
    jump-table word. The `D_` names nobody defines stay the work list for the real link.
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
    copies back into inline/template instances, so `.text` can link without `-ffunction-sections` ("Code order
-   (link/contiguous-tus)": 38 objects split, all by linkonce copies, class_registry also by the crt0 block; 38
-   more by junk scraps and alignment).
+   (link/contiguous-tus)": 38 objects split, all by linkonce copies, class_registry also by the crt0 block; the
+   38 more by junk scraps and alignment are done, "Junk scraps and padding").
 4. The SDK objects built on the Mac (118,224 blob bytes of .text today).

@@ -9,7 +9,7 @@
 // aligned, the nop after it is the alignment the next unit or function asks for), written at the place in the source
 // where the removed function stood. It goes into the current text section, so the object's code reproduces the
 // ELF's run without -ffunction-sections and, with it, the scrap trails the preceding function's section; it defines
-// no symbol. See docs/MATCHING_NOTES.md "Dead-code scraps" and docs/guides/full-link.md "Code order".
+// no symbol. See docs/MATCHING_NOTES.md "Dead-code scraps" and docs/guides/full-link.md "Junk scraps and padding".
 #ifndef SLY2_SCRAP_H
 #define SLY2_SCRAP_H
 
