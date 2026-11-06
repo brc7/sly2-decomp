@@ -589,8 +589,9 @@ static inline float HalfAndDelta(float dt,float half,const qword&source,qword*de
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-// Applies the two queued force/torque vectors to an object's transform (rotation built from the torque, then
-// renormalised). Reached through a function pointer (inferred).
+// Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (qwDv/qwDw,
+// accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
+// half a step with them, then clears the deltas.
 extern "C" void ApplySoQueuedForces(SO *input)
 {
     register SO *p __asm__("$18");
@@ -669,8 +670,8 @@ static __inline__ void AddTo(U *out,qword q)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-// If the object has physics data and a nonzero queued force, projects it through the constraint and applies it
-// in the transform's space (inferred).
+// Slot 66, called by SolveSwGroup after an impact (bouncing) solve: adds the solver's velocity changes to the
+// position and rotation XFs' velocities (converted into their parent space) and clears them.
 extern "C" void ProjectSoForce(SO *object)
 {
     if(object->psophys){
@@ -718,7 +719,9 @@ static inline qword Consume(SO*p,XF*object,U&pending){SlotUnsettle(p,object);qwo
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-// Applies a queued translation and rotation (shift and turn) to an object, then refreshes the objects that moved.
+// Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
+// a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
+// hierarchy and the broad-phase box.
 extern "C" void ApplySoQueuedMotion(SO*object)
 {
     M3 final;
