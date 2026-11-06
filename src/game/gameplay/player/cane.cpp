@@ -104,7 +104,7 @@ extern float D_002BF43C;
 extern float D_002BF440;
 extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
-void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void func_001CCAC0(void*,int);
+void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void SetJtHandsTarget(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
@@ -126,12 +126,12 @@ int FCheckLm__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int n50; char pad54[8]; void *p5C; };
 BHV *PbhvFindBhvstk(void *, int);
 void SetJtJts__FP2JT3JTS4JTBS(JT *, int, int);
-int FJtSweepBack(JT *);
-int func_0018F050(JT *);
-int func_0018EE38(JT *);
+int ShouldJtSweepBack(JT *);
+int ChooseJtSweepCaneState(JT *);
+int ChooseJtAttackCaneState(JT *);
 int GrfConsumePressed__5POCTLUif(POCTL *, int, float);
 void func_00195A00(void *, int, int, int);
-void SetJtJtcs__FP2JTi(JT *, int);
+void SetJtCaneState__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
 void func_001384C0(ASEG *);
 void SetStepRadTargetVec(JT *, qword);
@@ -155,13 +155,13 @@ extern U D_002BF4E0;
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#10-source-files,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
-extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
+extern "C" void SetJtCaneState__FP2JTi(JT*p,int state){
  if(p->state==state)return;
  int compatible=0;
  if(state!=-1&&p->state!=-1)compatible=state==D_002BF448[p->state];
  if(!compatible)HideSoPart(p,p->action);
  int exitEffect=-1;
- switch(p->state){case 1:exitEffect=p->target->exitEffect;func_001F4BF8(p);break;case 2:func_001F4BF8(p);break;case 0:func_001CCAC0(p->track,-1);break;case -1:break;}
+ switch(p->state){case 1:exitEffect=p->target->exitEffect;func_001F4BF8(p);break;case 2:func_001F4BF8(p);break;case 0:SetJtHandsTarget(p->track,-1);break;case -1:break;}
  Emit(p,exitEffect);
  register float start __asm__("$f22")=0.0f;
  ASEG*clip=0;
@@ -172,7 +172,7 @@ extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
  case 1:case 2:func_001F4BF8(p);break;
  case 10:func_001F4BF8(p);clip=p->alternate10;break;
  case 11:func_001F4BF8(p);clip=p->alternate11;break;
- case 0:{func_001CCAC0(p->track,0);clip=p->idle;rate=0.0f;
+ case 0:{SetJtHandsTarget(p->track,0);clip=p->idle;rate=0.0f;
   register JT*receiver __asm__("$4");register float half __asm__("$f1"),duration __asm__("$f0");
   __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(p):"$1");
   __asm__("lwc1 %0,%1":"=f"(duration):"m"(clip->duration));start=duration*half;
@@ -411,12 +411,12 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
 /** @sly2-annot addr=0x18ED98
  * Purpose: Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target
  *   behind) -> 1
- * Info: proposed name FJtSweepBack (T1); TU cane
+ * Info: proposed name ShouldJtSweepBack (T1); TU cane
  * Notes: names_v2 C proposed BindAlo__FP3ALO (0.638)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
-extern "C" int FJtSweepBack(JT *p)
+extern "C" int ShouldJtSweepBack(JT *p)
 {
     union { qword q; float f[4]; } u;
     qword a, b, s, d;
@@ -443,7 +443,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
-extern "C" int func_0018EE38(JT *p)
+extern "C" int ChooseJtAttackCaneState(JT *p)
 {
     int n;
     if (p->p10dc) {
@@ -495,7 +495,7 @@ extern "C" int func_0018EE38(JT *p)
     case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
         break;
     default:
-        if (FJtSweepBack(p))
+        if (ShouldJtSweepBack(p))
             n++;
         break;
     }
@@ -503,19 +503,19 @@ extern "C" int func_0018EE38(JT *p)
 }
 
 /** @sly2-annot addr=0x18F050
- * Purpose: Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if FJtSweepBack else 0x16
+ * Purpose: Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if ShouldJtSweepBack else 0x16
  * Info: proposed name JtcsChooseJtSweep (T2); TU cane
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
-extern "C" int func_0018F050(JT *p)
+extern "C" int ChooseJtSweepCaneState(JT *p)
 {
     int r;
     switch (p->state) {
     case 0x16: r = 0x17; break;
     case 0x17: r = 0x16; break;
     default:
-        r = FJtSweepBack(p) ? 0x17 : 0x16;
+        r = ShouldJtSweepBack(p) ? 0x17 : 0x16;
         break;
     }
     return r;
@@ -572,11 +572,11 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
         if (!p->finished) return;
     case -1:
         if (GrfConsumePressed__5POCTLUif(p->pt, 0x10, 0.35f)) {
-            SetJtJtcs__FP2JTi(p, -1);
-            SetJtJtcs__FP2JTi(p, func_0018F050(p));
+            SetJtCaneState__FP2JTi(p, -1);
+            SetJtCaneState__FP2JTi(p, ChooseJtSweepCaneState(p));
         } else if (GrfConsumePressed__5POCTLUif(p->pt, 0x80, 0.35f)) {
-            SetJtJtcs__FP2JTi(p, -1);
-            SetJtJtcs__FP2JTi(p, func_0018EE38(p));
+            SetJtCaneState__FP2JTi(p, -1);
+            SetJtCaneState__FP2JTi(p, ChooseJtAttackCaneState(p));
         }
         break;
     }

@@ -32,7 +32,7 @@ typedef unsigned size_t;
 
 extern "C" {
 void InitGait(GAIT *pgait, STEPPLAYER *pstepplayer, int n);
-void func_001CC158(JTHANDS *phands);
+void ResetJtHands(JTHANDS *phands);
 }
 extern CLOCK D_002DDED0;
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
@@ -392,7 +392,7 @@ extern "C" void InitJtGrab(JTGRAB *pjtgrab, STEPPLAYER *pstepplayer)
     pjtgrab->nUnk4fc = -1;
     InitGait(&pjtgrab->gaitA, pstepplayer, 0x6F);
     InitGait(&pjtgrab->gaitB, pstepplayer, 0x6F);
-    func_001CC158(&pjtgrab->hands);
+    ResetJtHands(&pjtgrab->hands);
 }
 
 /** @sly2-annot addr=0x1910F8
@@ -480,7 +480,7 @@ int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
 int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
 void func_00195A00(void *, int, int, ACTOR *);
-void func_0019CC50(void *, int, int, int);
+void StartJtMode(void *, int, int, int);
 int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
 void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allocation in the current STACKSCOPE
@@ -494,7 +494,7 @@ qword VecMaxArray(int, qword *);                      // max of points
 void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **);
 int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
-void func_001CD098(ATTACH *, ACTOR *);
+void AttachJtHandsObject(ATTACH *, ACTOR *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
 int func_001423A0(ACTOR *);
 int MpStepplayerCur(ACTOR *);
@@ -610,7 +610,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
                 ClearPoctlJoyPressed(pjoy, 0x400);
-                func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
             }
             break;
         case 3:
@@ -621,7 +621,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
                 ClearPoctlJoyPressed(pjoy, 0x400);
-                func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
             }
             break;
         case 7: {
@@ -647,7 +647,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             break;
         case 9:
             if (FWithin(func_001A62E8(p->pactorFocus), func_001A62E8(p->attach.pactor), D_002BF5B4)) {
-                func_001CD098(&p->attach, p->pactorFocus);
+                AttachJtHandsObject(&p->attach, p->pactorFocus);
                 SetControl(p->pactor, 0);
             }
             break;
@@ -695,7 +695,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3) && (p->action == 0 || p->action == 13)) {
                 ClearPoctlJoyPressed(pjoy, 0x400);
-                func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
                 break;
             }
             if (p->fInhibit)
@@ -1188,9 +1188,9 @@ struct P {
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void SetJtGrabKind(struct P *p, int n);
-void SetJtJtcs__FP2JTi(struct O *o, int n);
+void SetJtCaneState__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
-void func_001CCAC0(void *p, int n);
+void SetJtHandsTarget(void *p, int n);
 void func_00192A28(struct P *p);
 /** @sly2-annot addr=0x1928F8
  * Purpose: Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88
@@ -1220,13 +1220,13 @@ void SetJtGrabState(struct P *p, int n, int a, int b)
         struct O *o = p->x0;
         n = 0;
         o->x1854 = a;
-        SetJtJtcs__FP2JTi(o, 0);
+        SetJtCaneState__FP2JTi(o, 0);
         UpdateJtCane__FP2JT(o);
         break;
     }
     case 5: case 9:
         p->x4c4 = p->x14;
-        func_001CCAC0(p->x440, 0);
+        SetJtHandsTarget(p->x440, 0);
         n = 0;
         break;
     case 8:
@@ -1397,9 +1397,9 @@ void FixStepAngularVelocity(ACTOR *);
 void SetStepRadTargetVec(ACTOR *, qword);
 void SetCmPolicy(MANAGER *, int, CAMERA *, ACTOR *, void *);
 void RevokeCmPolicy(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
-void SetJtJtcs__FP2JTi(ACTOR *, int);
-void func_001CCAC0(ATTACH *, int);
-void func_001CD2C0(void *);
+void SetJtCaneState__FP2JTi(ACTOR *, int);
+void SetJtHandsTarget(ATTACH *, int);
+void ReleaseJtHandsActs(void *);
 void StopSnd(EFFECT *, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 void func_00194118(CONTEXT *);
@@ -1612,7 +1612,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         }
         case 6:
             if (!p->pactor->x18D8)
-                SetJtJtcs__FP2JTi(p->pactor, -1);
+                SetJtCaneState__FP2JTi(p->pactor, -1);
             break;
         case 11:
             if (p->focus)
@@ -1622,11 +1622,11 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             break;
         case 5:
         case 9:
-            func_001CCAC0(&p->attach, -1);
+            SetJtHandsTarget(&p->attach, -1);
             break;
         case 12:
             p->pactor->x1318 = -1;
-            func_001CD2C0(p->pactor->secondary);
+            ReleaseJtHandsActs(p->pactor->secondary);
             if (p->pactor == D_002E1E40)
                 p->pactor->x1BCC = 0;
             break;
@@ -1699,7 +1699,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         case 9:
             p->attach.focus = p->focus;
             speed = 0.0f;
-            func_001CCAC0(&p->attach, 0);
+            SetJtHandsTarget(&p->attach, 0);
             clip = p->attach.clip;
             blend = clip->duration * 0.5f;
             break;
@@ -2323,8 +2323,8 @@ struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char x9e0[0x
 struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
-void func_0019FD30(void *p, void *s, float g);
-void func_0019FEB0(void *p, int a, qword q);
+void AddJtPlaceOnCurve(void *p, void *s, float g);
+void AddJtPlaceAtPosition(void *p, int a, qword q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 /** @sly2-annot addr=0x1942F0
@@ -2342,13 +2342,13 @@ void func_001942F0(struct P *p)
         if (p->x14->x19c)
             return;
         g = p->x20;
-        func_0019FD30(p->x0->x9e0, p->x18, g);
+        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
         break;
     case 4:
         if (p->x14->xec)
             return;
         g = 0.0f;
-        func_0019FD30(p->x0->x9e0, p->x18, g);
+        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
         break;
     case 0:
     case 13:
@@ -2356,14 +2356,14 @@ void func_001942F0(struct P *p)
             if (p->x14->x19c)
                 return;
             g = p->x20;
-            func_0019FD30(p->x0->x9e0, p->x18, g);
+            AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
             break;
         }
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x26)) {
             if (p->x14->xec)
                 return;
             g = 0.0f;
-            func_0019FD30(p->x0->x9e0, p->x18, g);
+            AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
             break;
         }
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x22)) {
@@ -2381,14 +2381,14 @@ void func_001942F0(struct P *p)
             d.q = dq;
             g = atan2f(d.f[1], d.f[0]) * s;
         }
-        func_0019FD30(p->x0->x9e0, p->x18, g);
+        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
         break;
     default:
     {
         struct O *o = p->x0;
         struct A *pa = o->x208;
         if (pa && pa->x88 > 0.7f && (pa->x4c->fl & 0x20000000) == 0 && !o->x108c)
-            func_0019FEB0(o->x9e0, pa->x40, pa->x60);
+            AddJtPlaceAtPosition(o->x9e0, pa->x40, pa->x60);
         return;
     }
     }

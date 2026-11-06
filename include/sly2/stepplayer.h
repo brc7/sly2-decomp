@@ -104,8 +104,8 @@ struct JTMODEHUD
       struct WIDGET *pwidgetCur;
       int *pnUnk14;
       float uZoom;
-    void SetState(int nState) __asm__("func_0019D660");
-    void SetWidgetCur(struct WIDGET *pwidget) __asm__("func_0019DCA0");
+    void SetState(int nState) __asm__("SetJtModeHudState");
+    void SetWidgetCur(struct WIDGET *pwidget) __asm__("SetJtModeHudOverride");
 };
 
 /* JTMODE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
@@ -495,7 +495,7 @@ struct STEPPLAYER : public STEP
     virtual void VUnk58() __asm__("func_00140D00");   /* slot 59 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("func_00140DB0");   /* slot 68 */
-    virtual void VUnk71() __asm__("func_001A28B0");   /* slot 72 */
+    virtual void VUnk71() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
     virtual void VUnk87(int n) __asm__("__pure_virtual");
     virtual int VUnk88() __asm__("__pure_virtual");
     virtual void VUnk89() __asm__("__pure_virtual");

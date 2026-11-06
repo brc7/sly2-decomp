@@ -45,7 +45,7 @@ struct VTEJ { short d; short pad; void (*pfn)(); };
 #define QW1FA0(pjt) (*(qword *)((char *)(pjt) + 0x1FA0))
 extern "C" {
 extern const char D_002A5EF0[];
-void func_00190D10V() __asm__("func_00190D10");   /* takes (JT *, CM *): passed through */
+void func_00190D10V() __asm__("RenderJtHangIk");   /* takes (JT *, CM *): passed through */
 void RenderStepplayerSelf1(STEPPLAYER *pstepplayer) __asm__("RenderStepplayerSelf");   /* called with the player only */
 void func_0012CFE0(ACT5 *pact5);
 void func_0012D020(ACT5 *pact5);
@@ -171,7 +171,7 @@ int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("func_0019C8D0");
 
 int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("func_00194558");
 
-int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("func_0019EEF0");
+int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("CanJtUseGadgetOnPipe");
 
 bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("FStepplayerInJtmode");
 
@@ -267,11 +267,11 @@ struct STUNHOLD
       qword qwVel;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
-void HeroHurtPre(JTHURT *pjthurt) __asm__("func_001A12F0");
+void HeroHurtPre(JTHURT *pjthurt) __asm__("UpdateJtHurtInput");
 
-extern "C" void UpdateJtthrow(JTTHROW *pjtthrow);
+extern "C" void UpdateJtThrow(JTTHROW *pjtthrow);
 
 extern "C" void UpdateJtActivePipe(JTPIPE *pjtpipe);
 
@@ -429,7 +429,7 @@ void SetJtRecState(JTREC *prec, int nState) __asm__("func_001375D0");
 
 void SetJtModeState(JTMODE *pjtmode, int nState);
 
-void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("func_0019EAB0");
+void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("SetJtPipeState");
 
 void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
 
@@ -495,7 +495,7 @@ void InitStepplayer(struct S *p);
 void InitGait(void *pv, struct S *p, int n);
 void func_00204D48(struct S *p, float g);
 void func_001371B8(void *pv, struct S *p);
-void func_001CC158(void *pv);
+void ResetJtHands(void *pv);
 static __inline__ void InitLm(struct LM4 *plm, float g8, float gc) { plm->g8 = g8; plm->gc = gc; plm->n = 0; }
 /** @sly2-annot addr=0x188488
  * Purpose: JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits
@@ -537,7 +537,7 @@ void InitJt(struct S *p)
     p->x1000 = 1;
     p->x1020 = 200.0f;
     p->x264 = 0xC7;
-    func_001CC158(p->x17d0);
+    ResetJtHands(p->x17d0);
     D_002E1E40 = p;
 }
 } } // namespace M_InitJt
@@ -780,8 +780,8 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BF298;
 extern float D_002BF29C;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
-extern void func_0019E9C8(void *p, struct A *pa, void *pv);
-extern void func_001A2100(void *p, struct A *pa, void *pv);
+extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
+extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
 extern void func_001374E0(void *p, struct A *pa, void *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
@@ -806,7 +806,7 @@ void func_00188CC8(struct O *p, struct A *pa, void *pv)
     AdjustStepNewXp(p, pa, pv);
     switch (p->n18C8) {
     case 8:
-        func_0019E9C8(p->aF50, pa, pv);
+        ResetJtPipeAdjust(p->aF50, pa, pv);
         break;
     case 7:
         if (pa->n9C == 0xE && p->x4C8 == 3 && p->p4D4->x1BC) {
@@ -824,7 +824,7 @@ void func_00188CC8(struct O *p, struct A *pa, void *pv)
         }
         break;
     case 4:
-        func_001A2100(p->aDF0, pa, pv);
+        AdjustJtHurtXp(p->aDF0, pa, pv);
         break;
     case 6:
         func_001374E0(p->a1FF0, pa, pv);
@@ -900,7 +900,7 @@ extern char D_002BF2A0[];
 extern char D_002BF2B8[];
 
 extern void HandleStepplayerMessage(void *p, int msg, void *pv);
-extern void SetJtJtcs__FP2JTi(void *p, int n);
+extern void SetJtCaneState__FP2JTi(void *p, int n);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00131B10(void *a, void *p, int c);
 extern void func_00131B60(void *a, void *p, int c, void *d);
@@ -933,9 +933,9 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 3:
         if (pv == F(void *, 0x18E0)) {
             if (F(int, 0x18D8) == 10)
-                SetJtJtcs__FP2JTi(p, 2);
+                SetJtCaneState__FP2JTi(p, 2);
             else
-                SetJtJtcs__FP2JTi(p, -1);
+                SetJtCaneState__FP2JTi(p, -1);
             break;
         }
         if (pv != F(void *, 0x1030))
@@ -1057,16 +1057,16 @@ void HandleJtMessage(char *p, int msg, void *pv)
             switch (F(int, 0x18D8)) {
             case 4: case 6: case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
                 SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-                SetJtJtcs__FP2JTi(p, 8);
+                SetJtCaneState__FP2JTi(p, 8);
                 break;
             case 5: case 7: case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
                 SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-                SetJtJtcs__FP2JTi(p, 9);
+                SetJtCaneState__FP2JTi(p, 9);
                 break;
             }
         } else if (k & 4) {
             SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-            SetJtJtcs__FP2JTi(p, 8);
+            SetJtCaneState__FP2JTi(p, 8);
         }
         break;
     }
@@ -1862,7 +1862,7 @@ namespace M_func_0018A428 { extern "C" {
 struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char xf50[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(struct S *p, int *pf);
-void func_0019EA00(void *p, int *pf);
+void GetJtPipeVelocity(void *p, int *pf);
 /** @sly2-annot addr=0x18A428
  * Purpose: JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6
  *   -> *pgrf|=1
@@ -1877,7 +1877,7 @@ void func_0018A428(struct S *p, int *pf)
     GetStepplayerCpdefi(p, pf);
     switch (p->n) {
     case 8:
-        func_0019EA00(p->xf50, pf);
+        GetJtPipeVelocity(p->xf50, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -2280,7 +2280,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                     HeroHurtPre(&pjt->jthurt);
                     break;
                 case JTS_Throw:
-                    UpdateJtthrow(&pjt->jtthrow);
+                    UpdateJtThrow(&pjt->jtthrow);
                     break;
                 case JTS_Interact:
                     JtInteractPre((JTREC *)&pjt->unk_0x1ff0);
@@ -3143,7 +3143,7 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 namespace M_func_0018C060 { extern "C" {
 struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char p1[0x8CC]; char xdf0[0x930]; void *a1720[0x6A]; int n; };
 void *func_001944C8(void *p, int *pn);
-void *func_001A23F8(void *p, int *pn);
+void *GetJtHurtAdjustRecord(void *p, int *pn);
 void *func_0019C870(void *p, int *pn);
 void SetStepPhys(struct S *p, void *pv, int n);
 /** @sly2-annot addr=0x18C060
@@ -3159,7 +3159,7 @@ void func_0018C060(struct S *p)
     void *pv;
     switch (p->n) {
     case 7: pv = func_001944C8(p->x4c0, &n); break;
-    case 4: pv = func_001A23F8(p->xdf0, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(p->xdf0, &n); break;
     case 2: pv = func_0019C870(p->x2c0, &n); break;
     case 21: case 22: pv = p->x520; break;
     default: pv = p->a1720[p->n]; break;
@@ -3259,13 +3259,13 @@ void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
 extern "C" {
-void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
+void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtCaneState__FP2JTi");
 }
 extern "C" {
 void SetJtHurtState(JTHURT *pjthurt, int nState);
 }
 extern "C" {
-void SetJtthrowState(JTTHROW *pjtthrow, int nState);
+void SetJtThrowState(JTTHROW *pjtthrow, int nState);
 }
 extern "C" {
 void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase);
@@ -3295,7 +3295,7 @@ extern "C" {
 void UpdateJtHangPlace(JT *pjt) __asm__("UpdateJtHangIkGoals__FP2JT");
 }
 extern "C" {
-qword func_00190C58(JT *pjt);
+qword GetJtHangHandlePosition(JT *pjt);
 }
 extern "C" {
 void SetSndSourcePos(SND *psnd, qword qwPos);
@@ -3514,7 +3514,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 SetJtHurtState(&pjt->jthurt, -1);
                 break;
             case JTS_Throw:
-                SetJtthrowState(&pjt->jtthrow, -1);
+                SetJtThrowState(&pjt->jtthrow, -1);
                 break;
             case JTS_Interact:
                 SetJtRecState((JTREC *)&pjt->unk_0x1ff0, -1);
@@ -3666,7 +3666,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 tStart = 0.5f;
                 AddXfAct(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
                 qword posHand = PosLoWorld(pjt->psoUnk19a4);
-                pjt->janim.dposHang = QwSub(posHand, func_00190C58(pjt));
+                pjt->janim.dposHang = QwSub(posHand, GetJtHangHandlePosition(pjt));
                 UpdateJtHangPlace(pjt);
                 pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
                 SubscribeLoObject(pjt->phndHang, pjt);
@@ -4271,7 +4271,7 @@ extern void RcPtr_Assign(void *p, void *pv);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00195FB8(void *p, int a, int b);
 extern REC *PgadrecFromJtGadget(void *p, int n);
-extern void SetJtthrowState(void *p, int n);
+extern void SetJtThrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
 extern OBJ *PloAcquireProxy(int oid, int n);
 extern int func_00224610(OBJ *p);
@@ -4329,7 +4329,7 @@ void UseJtGadget(char *p, int n)
         REC *prec = PgadrecFromJtGadget(p, n);
         OBJ *pobj;
         if ((unsigned int)(F(int, 0x11B4) - 4) < 3) {
-            SetJtthrowState(A(0x11B0), 7);
+            SetJtThrowState(A(0x11B0), 7);
             break;
         }
         if (prec->x8) {
@@ -4347,7 +4347,7 @@ void UseJtGadget(char *p, int n)
         F(OBJ *, 0x11C0) = pobj;
         GrfbtnGadget(p, n);
         SetJtJts__FP2JT3JTS4JTBS(p, 0x17, -1);
-        SetJtthrowState(A(0x11B0), 4);
+        SetJtThrowState(A(0x11B0), 4);
         break;
     }
     case 0x22:

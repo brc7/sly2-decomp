@@ -22,7 +22,7 @@ struct SO;
 struct VE {short delta,pad;union {void (*plain)(void *);void (*integer)(void *,int);void (*vector)(void *,qword);void (*evaluate)(void *,int,V *,float,float);} f;};
 struct TRACK {VE *vt;};
 struct TRACKREF {int tag;TRACK *track;};
-/* The controller (POCTL) as UpdateJtthrow reads it. */
+/* The controller (POCTL) as UpdateJtThrow reads it. */
 struct CONTROL {char pad[0x18];float heading,speed;};
 struct O;
 /* The player's target selection record (+0x900). */
@@ -103,7 +103,7 @@ void UpdateJtThrowArc(JTTHROW *,int);
 float atan2f(float,float);
 float RadStepHeading(O *);
 float RadNormalize__Ff(float);
-void SetJtthrowState(JTTHROW *,int);
+void SetJtThrowState(JTTHROW *,int);
 void func_001384C0(ASEG *);
 int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
@@ -114,15 +114,15 @@ int FFilterSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
 qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
-int func_0021FB18(void *,SOPAIR *);
+int FilterJtThrowArcObject(void *,SOPAIR *);
 SO *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,SO **,HIT *);
 int CSolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
 void func_0021C5F8(EFFECT *,qword);
 int func_00134310(int, int);
-void func_001CD098(CTRLSEL *,O *);
-void func_001CD2C0(CTRLSEL *);
+void AttachJtHandsObject(CTRLSEL *,O *);
+void ReleaseJtHandsActs(CTRLSEL *);
 void RecalcSwOxfFilterForObject(SW *,O *);
 void func_00204660(O *,float);
 void SetStepRadTargetVec(O *,qword);
@@ -164,14 +164,14 @@ extern "C" void InitThrow(JTTHROW *p, O *a)
 
 /** @sly2-annot addr=0x21F388
  * Purpose: EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC)
- * Info: proposed name PostJtthrowLoad (T1); TU throw
+ * Info: proposed name PostJtThrowLoad (T1); TU throw
  * Notes: agent qualifier: ensure throw blends
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void PostJtthrowLoad(JTTHROW *p)
+extern "C" void PostJtThrowLoad(JTTHROW *p)
 {
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 2, &p->blend0, 0, 0, 0, &p->animation0);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 4, p->ablB, 0, 0, 0, &p->animation4);
@@ -280,11 +280,11 @@ static inline void CopyRange(RANGE &destination,const RANGE &source){
 /** @sly2-annot addr=0x21F418
  * Purpose: per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70),
  *   state transitions (0x2206C8)
- * Info: proposed name UpdateJtthrow (T1); TU throw
+ * Info: proposed name UpdateJtThrow (T1); TU throw
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void UpdateJtthrow(JTTHROW *s){
+extern "C" void UpdateJtThrow(JTTHROW *s){
  WORK w;
  register CONTROL *control asm("$19")=s->owner->control;
  qword initial=func_001A62E8(s->owner);
@@ -338,23 +338,23 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
    float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
    float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
    float threshold=s->idleThreshold;
-   if(threshold<angle)SetJtthrowState(s,2);
-   else if(angle<-threshold)SetJtthrowState(s,1);
+   if(threshold<angle)SetJtThrowState(s,2);
+   else if(angle<-threshold)SetJtThrowState(s,1);
    else{s->blend1=angle/threshold*0.5f+0.5f;s->blend0=1.0f-s->blend1;func_001384C0(s->animation0);}
    break;
   }
   case 1:case 2:
-   if(!animation||FAsegaRetracted(animation))SetJtthrowState(s,0);
+   if(!animation||FAsegaRetracted(animation))SetJtThrowState(s,0);
    break;
   case 3:
-   if(!animation||FAsegaRetracted(animation)){if(D_002DD5BC->mode==8)SetJtthrowState(s,4);else SetJtthrowState(s,0);}
+   if(!animation||FAsegaRetracted(animation)){if(D_002DD5BC->mode==8)SetJtThrowState(s,4);else SetJtThrowState(s,0);}
    break;
   case 4:case 5:case 6:{
    if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64)&&s->selected->sentinel!=-1){IntCall(s->owner,88,0);break;}
    float margin=0.1f;
-   if(GrfConsumePressed__5POCTLUif(control,0xC0,margin)){SetJtthrowState(s,7);break;}
+   if(GrfConsumePressed__5POCTLUif(control,0xC0,margin)){SetJtThrowState(s,7);break;}
    if(GrfConsumePressed__5POCTLUif(control,0x30,margin)){
-    if(s->animation0)SetJtthrowState(s,0);else IntCall(s->owner,88,0);
+    if(s->animation0)SetJtThrowState(s,0);else IntCall(s->owner,88,0);
     O *selected=s->selected;if(selected==D_002DD5BC&&selected->mode==8){
      w.speed.q=ScalarHome(w.scratch.vector,CPUFloat(400.0f));
      O *positionOwner;w.playerPosition.q=SavedPlayerAndOwner(func_001A62E8(selected),s,positionOwner);
@@ -368,18 +368,18 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
     if(s->effect)EffectCall(s->effect,9);
     return;
    }
-   if(!animation||FAsegaRetracted(animation))SetJtthrowState(s,4);
+   if(!animation||FAsegaRetracted(animation))SetJtThrowState(s,4);
    else if(s->state==4){
     w.scratch.vector.q=ActiveDifference(s->targetWorld,w.ownerPosition);
     float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
     float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
     float threshold=s->activeThreshold;
-    if(threshold<angle)SetJtthrowState(s,6);else if(angle<-threshold)SetJtthrowState(s,5);
+    if(threshold<angle)SetJtThrowState(s,6);else if(angle<-threshold)SetJtThrowState(s,5);
    }
    break;
   }
   case 7:
-   if(!animation||FAsegaRetracted(animation)){if(s->animation0)SetJtthrowState(s,0);else IntCall(s->owner,88,0);}
+   if(!animation||FAsegaRetracted(animation)){if(s->animation0)SetJtThrowState(s,0);else IntCall(s->owner,88,0);}
    break;
   }
   if(s->state==previous||s->state==-1)break;
@@ -401,7 +401,7 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" int func_0021FB18(void *a, SOPAIR *b)
+extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 {
     if (FIsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
         return 1;
@@ -489,7 +489,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  posMax=QwMax(posLaunch,posMax);
  posMin=QwMin(posLaunch,posMin);
  int cso;SO **apso;
- IntersectSwBoundingBox(&D_003DD490,posMin,posMax,func_0021FB18,pjtthrow->selected->pvFilter,&cso,&apso);
+ IntersectSwBoundingBox(&D_003DD490,posMin,posMax,FilterJtThrowArcObject,pjtthrow->selected->pvFilter,&cso,&apso);
  pjtthrow->velocity.q=vLaunch;
  float dt=t*0.034482758f;
  V apos[30];
@@ -597,7 +597,7 @@ float D_002C410C = 300.0f;   /* a plain float: 4-aligned in the ELF, where the F
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void func_00220388(JTTHROW *owner,Q *value){
+extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner,Q *value){
  V plane,scratch;
  register float gain asm("$f1");register G *movementAddress asm("$3");register qword prior asm("vf2"),position asm("vf5");
  asm("lui $2,%%hi(%3)\n\tlui %1,%%hi(%4)\n\tlwc1 %0,%%lo(%3)($2)\n\taddiu %1,%1,%%lo(%4)\n\tlqc2 %2,%5":"=f"(gain),"=&r"(movementAddress),"=j"(prior):"i"(&D_002C4108),"i"(&g_cm.mat),"m"(value->v):"$2","memory");
@@ -635,7 +635,7 @@ extern "C" void func_00220388(JTTHROW *owner,Q *value){
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" int func_00220498(JTTHROW *p, O *po, int n)
+extern "C" int AdjustJtThrowFindFlags(JTTHROW *p, O *po, int n)
 {
     if (po == p->selected) {
         int k = p->state;
@@ -660,7 +660,7 @@ static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void func_00220508(JTTHROW *p, void *q)
+extern "C" void StartJtThrowFlight(JTTHROW *p, void *q)
 {
     int k = p->state;
     if (k < 7) if (k >= 4) {
@@ -688,7 +688,7 @@ extern "C" void func_00220508(JTTHROW *p, void *q)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void func_002205A8(JTTHROW *p)
+extern "C" void ReleaseJtThrowObject(JTTHROW *p)
 {
     O *po;
     if (p->selected == D_002DD5BC) {
@@ -784,18 +784,18 @@ static inline qword SavedPlayerAndOwnerS(qword position,const JTTHROW*state,O*&r
 }
 /** @sly2-annot addr=0x2206C8
  * Purpose: state transitions of the carry/throw controller and selection of the matching animation (0x1305B8)
- * Info: proposed name SetJtthrowState (T1); TU throw
+ * Info: proposed name SetJtThrowState (T1); TU throw
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" void SetJtthrowState(JTTHROW *s,int state){
+extern "C" void SetJtThrowState(JTTHROW *s,int state){
  WORKS w;
  int old=s->state;
  if(state==old)return;
  switch(old){
  case -1:
-  if(s->selected!=D_002DD5BC)func_001CD098(&s->owner->controller,s->selected);
+  if(s->selected!=D_002DD5BC)AttachJtHandsObject(&s->owner->controller,s->selected);
   if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,0);
   ZeroXYZ(s->owner->target);
   break;
@@ -834,7 +834,7 @@ extern "C" void SetJtthrowState(JTTHROW *s,int state){
    if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,4);
    else{SetLoParent_1A58D0(s->selected,0,0xF);FadeSoOut(s->selected,0.25f);}
   }
-  func_001CD2C0(&s->owner->controller);
+  ReleaseJtHandsActs(&s->owner->controller);
   if(s->effect)EffectCall(s->effect,9);
   s->selected=0;
   return;

@@ -64,7 +64,7 @@ extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;SMPV D_002BF928={1500.0f,
 extern int D_002DFBC0;
 TRACKREF *func_0012FF10(ASEGV *o, JT *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(JT *a, int b, int c, void *d, int e, int f, int g, void *h);
-void GetPipeGoalMat(PATH *a, float g, int b, M3 *pm);
+void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
 M3 *func_001A6318(JT *o);
 void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
 M3 MulMatrix3Matrix3(M3 *a, M3 *b);
@@ -73,18 +73,18 @@ float SMinShape(PATH *);
 float SMaxShape(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
-void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void func_0019EAB0(JTPIPE*,int);
+void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
-void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
+void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword func_001A62E8(void*);
-void func_0019FD30(void *pplaces, void *pso, float g);
+void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
 void func_00204F78(JT*,PATH*,int);
 float GLimitLm__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
-void SetJtJtcs__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
+void SetJtCaneState__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
 int FActiveCplcy__FP5CPLCY(void *);
 }
@@ -139,7 +139,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *p)
 
 static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;s = VuFromFloat<qword>(g);u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
 /** @sly2-annot addr=0x19DF70
- * Purpose: Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4
+ * Purpose: Accelerate Sly toward the pipe goal matrix (GetPipeGoalMatrix 0x1C3500 + Bezier frame) in states 0/4
  * Info: proposed name PresetJtAccelPipe (T1); TU pipe_jt
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540,
@@ -151,7 +151,7 @@ extern "C" void PresetJtAccelPipe(JTPIPE *p)
     U vec;
     float f;
     M3 *pm;
-    GetPipeGoalMat(p->path, p->distance, p->descending == 0, &m);
+    GetPipeGoalMatrix(p->path, p->distance, p->descending == 0, &m);
     if (p->state == 0 || p->state == 4) {
         JT *o = p->actor;
         float dt = D_002DDED0.dt;
@@ -175,7 +175,7 @@ extern "C" void PresetJtAccelPipe(JTPIPE *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019E110(JTPIPE *p, LMV *ag) {
+extern "C" void GetJtPipeDistanceRange(JTPIPE *p, LMV *ag) {
     if (p->path->cyclic) {
         ag->low = -3.40282346638528859812e+38f;
         ag->high = 3.40282346638528859812e+38f;
@@ -220,8 +220,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  {register INPUT*input __asm__("$18")=p->actor->input;
  if(!Eligible(p->path)){func_00195A00(p->actor->controller,0,0,0);return;}
  if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){func_00195A00(p->actor->controller,2,0,0);return;}
- if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);func_0019CC50(p->actor->action,0,0,0);}
- int old;do{old=p->state;if((old==0||old==4)&&FAsegaRetracted(p->actor->asega))func_0019EAB0(p,1);}while(p->state!=old);
+ if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);StartJtMode(p->actor->action,0,0,0);}
+ int old;do{old=p->state;if((old==0||old==4)&&FAsegaRetracted(p->actor->asega))SetJtPipeState(p,1);}while(p->state!=old);
  if(p->state==0||p->state==4)return;
  EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
  EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
@@ -234,7 +234,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  if(p->reset>0.4f&&p->descending&&Z(normalized)>-0.3f)goto turn;
  if(p->reset<-0.4f&&!p->descending&&Z(normalized)<0.3f)goto turn;
  goto proceed;
- turn:func_0019EAB0(p,4);return;
+ turn:SetJtPipeState(p,4);return;
  proceed:;
  register qword tangent __asm__("$2")=func_001C4768(input,VuSub(w.ahead.q,w.behind.q));
  __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 $4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni $3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tsq $3,%3\n\tqmfc2.ni $2,$vf1\n\tmtc1 $2,%4":"=f"(amount),"=r"(previous),"=f"(zero),"=m"(w.reuse.input.q),"=f"(dot):"r"(tangent),"r"(input),"r"(p):"$2","$3","$4","$f0","$f1","vf1","vf2","vf3","vf4","memory");
@@ -262,7 +262,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  register float nextMemory __asm__("$f0");register PATH*path __asm__("$3");
  __asm__("abs.s $f5,%2\n\tlwc1 $f2,4(%7)\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%2\n\t.set at\n\tneg.s %0,$f2\n\tlwc1 $f4,0x1c(%8)\n\tsub.s %2,%2,$f2\n\t.set noat\n\tlui $1,0x3e4c\n\tori $1,$1,0xcccd\n\tmtc1 $1,$f3\n\t.set at\n\tswc1 $f5,%3\n\tmul.s %0,%0,%6\n\tswc1 $f3,%4\n\tmul.s %2,%2,$f4\n\tsw $zero,%5\n\tdiv.s %0,%0,$f5\n\tlw %1,0xc(%8)\n\tadd.s %0,%0,%2":"=f"(nextMemory),"=r"(path),"+f"(maximumInput),"=m"(w.reuse.smooth.maximum),"=m"(w.reuse.smooth.duration),"=m"(w.reuse.smooth.minimum):"f"(speed),"r"(clock),"r"(p):"$1","$f2","$f3","$f4","$f5","memory");
  p->reset=nextMemory;
- if(!path->cyclic){func_0019E110(p,&w.limit);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
+ if(!path->cyclic){GetJtPipeDistanceRange(p,&w.limit);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
  register float stopped __asm__("$f21")=0.0f;
  p->speed=-speed;
  if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;func_001F4BF8(p->actor);}
@@ -278,7 +278,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
   p->weight0=complement;
   func_001384C0(animation);
  }
- func_0019EAB0(p,mode);
+ SetJtPipeState(p,mode);
 }
 
 /** @sly2-annot addr=0x19E950
@@ -304,7 +304,7 @@ extern "C" void UpdateJtInternalXpsPipe(JTPIPE *p) {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019E9C8(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 0; }
+extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 0; }
 
 /** @sly2-annot addr=0x19E9D8
  * Purpose: Evaluate the pipe curve at the current s into out
@@ -312,7 +312,7 @@ extern "C" void func_0019E9C8(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 0; }
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019E9D8(JTPIPE *s, U *ppos) { EvaluateShapeS(s->path, s->distance, ppos, 0); }
+extern "C" void GetJtPipePosition(JTPIPE *s, U *ppos) { EvaluateShapeS(s->path, s->distance, ppos, 0); }
 
 struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
 /** @sly2-annot addr=0x19EA00
@@ -322,7 +322,7 @@ struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019EA00(JTPIPE *p, Q *q)
+extern "C" void GetJtPipeVelocity(JTPIPE *p, Q *q)
 {
     U v;
     U s;
@@ -343,11 +343,11 @@ extern "C" void func_0019EA00(JTPIPE *p, Q *q)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019EA60(JTPIPE *p)
+extern "C" void RecordJtPipePlace(JTPIPE *p)
 {
     PATH *ppath = p->path;
     if (ppath->x19c == 0)
-        func_0019FD30(p->actor->places, ppath ? (char *)ppath + 0x190 : 0, p->distance);
+        AddJtPlaceOnCurve(p->actor->places, ppath ? (char *)ppath + 0x190 : 0, p->distance);
 }
 
 /** @sly2-annot addr=0x19EAA0
@@ -356,7 +356,7 @@ extern "C" void func_0019EA60(JTPIPE *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019EAA0(JTPIPE *s, qword a, qword b) { s->offset.q = a; s->offset2.q = b; }
+extern "C" void SetJtPipeVectors(JTPIPE *s, qword a, qword b) { s->offset.q = a; s->offset2.q = b; }
 
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
 static inline qword Vector(qword q){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(q));return v;}
@@ -395,7 +395,7 @@ static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" void func_0019EAB0(JTPIPE*p,int next){
+extern "C" void SetJtPipeState(JTPIPE*p,int next){
  int old=p->state;if(next==old)return;
  WORKB w;
  switch(old){
@@ -406,7 +406,7 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
   EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
   U*axis; qword direction=DirectionB(&w.ahead,&w.behind,axis);
   p->descending=Z(NormalB(direction,axis))<-0.5f;
-  func_0019E110(p,&w.limit);p->distance=GLimitLm__FP2LMf(&w.limit,p->distance);
+  GetJtPipeDistanceRange(p,&w.limit);p->distance=GLimitLm__FP2LMf(&w.limit,p->distance);
   EvaluateShapeS(p->path,p->distance,&w.point,0);
   qword offset=Vector(ConvertAloPos(p->actor,0,p->offset.q));JT*owner;
   qword point=WorldInputs(p,&w.point,&w.world,offset,owner);
@@ -417,7 +417,7 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
   if(p->path->attachEffectId){EFFECT*e=PsndStartSound(p->path->attachEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,w.point.q);}
   break;
  }
- case 0:if(p->actor==D_002E1E40)SetJtJtcs__FP2JTi(p->actor,p->actor->alternate?10:2);break;
+ case 0:if(p->actor==D_002E1E40)SetJtCaneState__FP2JTi(p->actor,p->actor->alternate?10:2);break;
  }
  p->state=next;p->time=D_002DDED0.t;
  ASEGV*clip=0;float position=0.0f,speed=1.0f;int flags=1;
@@ -451,7 +451,7 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" int func_0019EEF0(JTPIPE *p, int k) {
+extern "C" int CanJtUseGadgetOnPipe(JTPIPE *p, int k) {
     if (k == 3) {
         int r = 0;
         if (p->actor->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(&g_cm.part3a0);

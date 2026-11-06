@@ -601,7 +601,7 @@ void func_001BEAA8() __asm__("func_001BEAA8");
 void func_001BEAD0() __asm__("func_001BEAD0");
 void func_001C20E8() __asm__("func_001C20E8");
 void func_001C2148() __asm__("func_001C2148");
-void func_001C3C08() __asm__("func_001C3C08");
+void SetPipeGrabEnabled() __asm__("SetPipeGrabEnabled");
 void func_001C4098() __asm__("func_001C4098");
 void func_001C4A60() __asm__("func_001C4A60");
 void func_001C7A40() __asm__("func_001C7A40");
@@ -1571,7 +1571,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [838] opt 788, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [839] opt 789, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [840] opt 790, PIPE */
-    {0, 0x120, EOPID_NONE, EOPID_PMF(func_001C3C08), EOPID_PMF(func_001C3C08), EOPID_NONE}, /* [841] opt 791, PIPE */
+    {0, 0x120, EOPID_NONE, EOPID_PMF(SetPipeGrabEnabled), EOPID_PMF(SetPipeGrabEnabled), EOPID_NONE}, /* [841] opt 791, PIPE */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259B00)}, /* [842] opt 776, PIPE */
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(func_00259B00)}, /* [843] opt 777, PIPE */
     {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(func_00259B00)}, /* [844] opt 778, PIPE */

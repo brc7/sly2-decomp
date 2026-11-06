@@ -1482,10 +1482,10 @@ struct PIPE : SHAPE, GRABSPOT
     virtual void VUnk14() __asm__("PostPipeLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnPipeRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_001C3BB0");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("func_001C3958");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("func_001C3A08");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("func_001C3A88");   /* GRABSPOT slot 5 (delta -400) */
+    virtual int FGetGrabRange() __asm__("GetPipeGrabRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual void GetClosestParam() __asm__("ClampPipeGrabDistance");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos() __asm__("GetPipeGrabPositionAndMatrix");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetSparklePos() __asm__("GetPipeGrabMatrix");   /* GRABSPOT slot 5 (delta -400) */
     virtual void VtF() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
@@ -1575,10 +1575,10 @@ struct RAIL : SHAPE, GRABSPOT
     virtual void VUnk14() __asm__("PostRailLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnRailRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_001CBA68");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("func_001CBAC0");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("func_001CBB58");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("func_001CBBA8");   /* GRABSPOT slot 5 (delta -400) */
+    virtual int FGetGrabRange() __asm__("GetRailGrabRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual void GetClosestParam() __asm__("ClampRailGrabDistance");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos() __asm__("GetRailGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetSparklePos() __asm__("GetRailGrabMatrix");   /* GRABSPOT slot 5 (delta -400) */
     virtual void VtF() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];

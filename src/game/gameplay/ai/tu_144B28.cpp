@@ -860,7 +860,7 @@ struct O *func_00205438(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
-void func_0019F540(void *p, qword v);
+void ReturnJtToPosition(void *p, qword v);
 int CidBasic(void *p);
 static __inline__ void Activate(struct P *p, int oid)
 {
@@ -897,7 +897,7 @@ void SetBhvfollowState(struct P *p, int state)
         break;
     }
     case 1:
-        func_0019F540(p->p10, p->v80);
+        ReturnJtToPosition(p->p10, p->v80);
         break;
     case 2:
         switch (CidBasic(p->p10)) {

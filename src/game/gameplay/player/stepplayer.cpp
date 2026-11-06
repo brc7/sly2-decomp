@@ -44,16 +44,16 @@ void SetTnTnsOverride(TN *ptn, int f);
 void func_00204768(STEPPLAYER *pstepplayer);
 void func_00199298(JTAIR *pjtair);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
-int FTakeJtDamage(JTHURT *pjthurt, ZPR *pzpr);
-int func_001A23C0(JTHURT *pjthurt);
+int TakeJtDamage(JTHURT *pjthurt, ZPR *pzpr);
+int GetJtHurtStatus(JTHURT *pjthurt);
 void RemoveSoHierarchy(SO *pso);
 void ReleaseAsega(ASEGA **ppasega);
 void ChargeGadgetMp(STEPPLAYER *pstepplayer, int idGadget);
 void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, int n);
 void func_00195A00(JTAIR *pjtair, int jtas, int n, LO *plo);
-void func_001CD098(JTHANDS *pjthands, LO *plo);
-void func_001CD2C0(JTHANDS *pjthands);
-void func_001CD308(JTHANDS *pjthands, LO *plo);
+void AttachJtHandsObject(JTHANDS *pjthands, LO *plo);
+void ReleaseJtHandsActs(JTHANDS *pjthands);
+void SetJtHandsTargetAttached(JTHANDS *pjthands, LO *plo);
 BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int n);
 void UpdateStepplayerBootySave(STEPPLAYER *pstepplayer, int n0, int n1);
 void SetBootyState(LO *pbooty, int nState);
@@ -147,9 +147,9 @@ void BindLoOidTable(struct P *, int, void *);
 void PostLoadJtAir(void *);
 void PostLoadJtGrab(void *);
 void PostLoadJtPlaces(void *);
-void func_001A1098(void *);
+void PostLoadJtHurt(void *);
 void PostLoadJtMode(void *);
-void PostJtthrowLoad(void *);
+void PostJtThrowLoad(void *);
 void PostJtLoadPipe(void *);
 int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
 void *func_001AE2A0(struct AREQ *);
@@ -181,9 +181,9 @@ void PostLoadStepplayer(struct P *p)
     PostLoadJtAir((char *)p + 0x2C0);
     PostLoadJtGrab((char *)p + 0x4C0);
     PostLoadJtPlaces((char *)p + 0x9E0);
-    func_001A1098((char *)p + 0xDF0);
+    PostLoadJtHurt((char *)p + 0xDF0);
     PostLoadJtMode((char *)p + 0xF00);
-    PostJtthrowLoad((char *)p + 0x11B0);
+    PostJtThrowLoad((char *)p + 0x11B0);
     PostJtLoadPipe((char *)p + 0xF50);
     c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
     if (c) {
@@ -293,7 +293,7 @@ void UpdateJtgoal(int *pl);
 int IsJtgoalHolding(int *pl);
 void func_001E46A0(void *p, struct Q *q);
 void UpdateStepplayerInteractCandidates(struct P *p);
-void func_001A2460(struct P *p);
+void UpdateStepplayerWater(struct P *p);
 void func_00140750(struct P *p);
 void func_00142AF8(struct P *p);
 int FAsegaRetracted(int x);
@@ -334,7 +334,7 @@ void UpdateStepplayer(struct P *p)
         }
     }
     UpdateStepplayerInteractCandidates(p);
-    func_001A2460(p);
+    UpdateStepplayerWater(p);
     func_00140750(p);
     func_00142AF8(p);
     if (p->xEFC && FAsegaRetracted(p->xEFC))
@@ -764,7 +764,7 @@ extern "C" void OnStepplayerHeroDied(STEPPLAYER *pstepplayer)
 namespace M_STEPPLAYER_FInvulnerable { extern "C" {
 extern void *D_003D4A54;
 int FIsPoCur(void *p);
-int func_001A2230(void *p, int a);
+int ShouldStepplayerIgnoreZap(void *p, int a);
 /** @sly2-annot addr=0x140ED8
  * Purpose: vt76: invulnerable if jtmode state==1, jtair state 0x15, the D_003D4A54 PO is current, else jthurt
  *   check 0x1A2230(zpk)
@@ -779,7 +779,7 @@ int STEPPLAYER_FInvulnerable(char *p, int a)
     if (*(int *)(p + 0xF20) == 1) return 1;
     if (*(int *)(p + 0x2DC) == 0x15) return 1;
     if (D_003D4A54 && FIsPoCur(D_003D4A54)) return 1;
-    return func_001A2230(p + 0xDF0, a);
+    return ShouldStepplayerIgnoreZap(p + 0xDF0, a);
 }
 } } // namespace M_STEPPLAYER_FInvulnerable
 
@@ -791,7 +791,7 @@ int STEPPLAYER_FInvulnerable(char *p, int a)
  * @end-sly2-annot */
 extern "C" void STEPPLAYER_FTakeDamage(STEPPLAYER *pstepplayer, ZPR *pzpr)
 {
-    FTakeJtDamage(&pstepplayer->jthurt, pzpr);
+    TakeJtDamage(&pstepplayer->jthurt, pzpr);
 }
 
 /** @sly2-annot addr=0x140F70
@@ -802,7 +802,7 @@ extern "C" void STEPPLAYER_FTakeDamage(STEPPLAYER *pstepplayer, ZPR *pzpr)
  * @end-sly2-annot */
 int STEPPLAYER::JthsCurrent()
 {
-    return func_001A23C0(&jthurt);
+    return GetJtHurtStatus(&jthurt);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -837,10 +837,10 @@ extern struct GS D_003DD490;
 extern struct GG *D_002E1E40;
 extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
-void SetJtthrowState(void *p, int n);
+void SetJtThrowState(void *p, int n);
 qword func_00204E38(void *p, struct SO *pso, float g);
 qword func_001A62E8(void *p);
-void func_002205A8(void *p);
+void ReleaseJtThrowObject(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_00224590(void *p);
 void func_002245B8(void *p);
@@ -852,9 +852,9 @@ void SetAllGuardsSpecialState(void *p, int n);
 void *PloAcquireProxy(void *p, int n);
 void SetLoParent_1A58D0(void *p, int a, int b);
 void func_00156780(void *p);
-void func_001CCC88(void *p, void *q);
+void StartJtHandsCarry(void *p, void *q);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
-void func_001CD098(void *p, void *q);
+void AttachJtHandsObject(void *p, void *q);
 void UnsubscribeLoObject(void *p, void *q);
 void HandleBhvstkMessage(void *p, int msg, void *pmsg);
 void HandlePoMessage(void *p, int msg, void *pmsg);
@@ -902,11 +902,11 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                 switch (F(int, p, 0x11B4)) {
                 case 5:
                 case 6:
-                    SetJtthrowState((char *)p + 0x11B0, 4);
+                    SetJtThrowState((char *)p + 0x11B0, 4);
                     break;
                 case 1:
                 case 2:
-                    SetJtthrowState((char *)p + 0x11B0, 0);
+                    SetJtThrowState((char *)p + 0x11B0, 0);
                     break;
                 }
             }
@@ -952,7 +952,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
         }
         case 0x27B:
             if (F(int, p, 0x11B4) != -1)
-                func_002205A8((char *)p + 0x11B0);
+                ReleaseJtThrowObject((char *)p + 0x11B0);
             break;
         case 0x27C:
             if (F(int, p, 0x4C8) == 0xB) {
@@ -1006,12 +1006,12 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
             break;
         case 0x1C8:
             if (F(int, p, 0x4C8) == 0xC)
-                func_001CCC88((char *)p + 0x900, F(void *, p, 0x4D4));
+                StartJtHandsCarry((char *)p + 0x900, F(void *, p, 0x4D4));
             break;
         case 0x1C7:
             if (F(int, p, 0x4C8) == 0xC) {
                 SetAsegaSpeed__FP5ASEGAf(F(void *, p, 0x1030), 1.0f);
-                func_001CD098((char *)p + 0x900, F(void *, p, 0x4D4));
+                AttachJtHandsObject((char *)p + 0x900, F(void *, p, 0x4D4));
             }
             break;
         }
@@ -1068,7 +1068,7 @@ typedef int qword __attribute__((mode(TI)));
 struct G { char pad[0x260]; void *p260; char pad2[0x300 - 0x264]; int n300; };
 extern struct G D_002DDF40;
 struct V { float x, y, z; } __attribute__((aligned(16)));
-void func_0019E9D8(void *p, struct V *v);
+void GetJtPipePosition(void *p, struct V *v);
 qword func_001A62E8(void *p);
 /** @sly2-annot addr=0x141588
  * Purpose: vt97: camera focus point = pipe hand pos if on pipe, else world pos with z from jump start/ground
@@ -1082,7 +1082,7 @@ void GetStepplayerCmFocusPos(char *p, struct V *v)
 {
     float z;
     if (*(int *)(p + 0xF54) != -1) {
-        func_0019E9D8(p + 0xF50, v);
+        GetJtPipePosition(p + 0xF50, v);
         return;
     }
     *(qword *)v = func_001A62E8(p);
@@ -1124,7 +1124,7 @@ float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
 void func_0019C8B0(void *, struct XP *);
 void func_0018A4E8(void *, struct XP *);
-void func_001A2160(void *, struct XP *);
+void AddJtHurtCpdefiFlags(void *, struct XP *);
 
 static __inline__ float GPoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
 static __inline__ float GClamp(float g, float lo, float hi)
@@ -1197,7 +1197,7 @@ void GetStepplayerCpdefi(struct JT *pjt, struct XP *pxp)
     if (pjt->x4CC != -1)
         func_0018A4E8(pjt->ax4C0, pxp);
     if (pjt->xDF4 != -1)
-        func_001A2160(pjt->axDF0, pxp);
+        AddJtHurtCpdefiFlags(pjt->axDF0, pxp);
     {
         struct VTE *e = &pjt->vt[34];
         register qword w __asm__("vf3") = ((qword (*)(void *))e->pfn)((char *)pjt + e->d);
@@ -1647,10 +1647,10 @@ extern "C" void func_001421A0(STEPPLAYER *pstepplayer, LO *plo)
 {
     func_00142140(pstepplayer, 0);
     if (plo != 0) {
-        func_001CD098(&pstepplayer->jtgrab.hands, plo);
+        AttachJtHandsObject(&pstepplayer->jtgrab.hands, plo);
         return;
     }
-    func_001CD2C0(&pstepplayer->jtgrab.hands);
+    ReleaseJtHandsActs(&pstepplayer->jtgrab.hands);
 }
 
 /** @sly2-annot addr=0x1421F8
@@ -1663,7 +1663,7 @@ extern "C" void func_001421F8(STEPPLAYER *pstepplayer, LO *plo)
 {
     if (plo != 0) {
         SetJtGrabState(&pstepplayer->jtgrab, 5, plo, 0);
-        func_001CD308(&pstepplayer->jtgrab.hands, plo);
+        SetJtHandsTargetAttached(&pstepplayer->jtgrab.hands, plo);
     } else if (pstepplayer->jtgrab.nState == 5) {
         pstepplayer->VUnk87(0);
     }
@@ -1676,7 +1676,7 @@ struct P { char pad[0xC]; struct VTE *vt; char pad2[0x11B0 - 0x10]; char sub[0x1
 void FadeSoIn(void *p, float f);
 qword func_001A62E8(void *p);
 void UpdateJtThrowArc(void *p, int n);
-void SetJtthrowState(void *p, int n);
+void SetJtThrowState(void *p, int n);
 /** @sly2-annot addr=0x142278
  * Purpose: Splice: set object a (0x1F7C68 0.25) as carried (+0x11C0) aimed at pos of b (+0x1290),
  *   UpdateJtThrowArc, vt88(7), jtthrow state 7 (0x2206C8)
@@ -1693,7 +1693,7 @@ void func_00142278(struct P *p, void *a, void *b)
     UpdateJtThrowArc(p->sub, 0);
     e = &p->vt[88];
     ((void (*)(void *, int))e->pfn)((char *)p + e->d, 7);
-    SetJtthrowState(p->sub, 7);
+    SetJtThrowState(p->sub, 7);
 }
 } } // namespace M_func_00142278
 
@@ -3150,7 +3150,7 @@ int STEPPLAYER::FCanBeHealed()
     if (FCanPoBeHealed(this) == 0) {
         return 0;
     }
-    return func_001A23C0(&jthurt) != 2;
+    return GetJtHurtStatus(&jthurt) != 2;
 }
 
 namespace M_BindStepplayerHpMp { extern "C" {
@@ -3318,8 +3318,8 @@ void func_00144338(char *p, int a, int b)
 
 namespace M_FIgnoreIntersection__10STEPPLAYERP2SO { extern "C" {
 int FIgnoreSoIntersection(void *p, int a);
-int func_00220498(void *p, int a, int b);
-void func_001CC9A8(void *p, int a, int b);
+int AdjustJtThrowFindFlags(void *p, int a, int b);
+void GetJtHandsIgnoreFlags(void *p, int a, int b);
 /** @sly2-annot addr=0x144388
  * Purpose: vt61: SO base then let jtthrow (0x220498) and jtgrab hands (+0x900, 0x1CC9A8) adjust the result
  * Info: proposed name STEPPLAYER_FIgnoreIntersection (T1); class STEPPLAYER slot61; TU stepplayer
@@ -3331,8 +3331,8 @@ void func_001CC9A8(void *p, int a, int b);
 void FIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
     int x = FIgnoreSoIntersection(p, a);
-    x = func_00220498(p + 0x11B0, a, x);
-    func_001CC9A8(p + 0x900, a, x);
+    x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);
+    GetJtHandsIgnoreFlags(p + 0x900, a, x);
 }
 } } // namespace M_FIgnoreIntersection__10STEPPLAYERP2SO
 

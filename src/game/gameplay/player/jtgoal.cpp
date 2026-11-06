@@ -53,7 +53,7 @@ void FadeSoOut(T *, float);
 qword func_001A62E8(void *p);
 int func_00173610(float, float, qword *, int, int);
 int FSnapPosToSurfaceAbove(qword *);
-void func_0019F540(PO *, qword);
+void ReturnJtToPosition(PO *, qword);
 }
 struct BASIC;
 enum CID { CID_38 = 0x38 };
@@ -159,7 +159,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
         if (goal->lastDistance - distance < D_002BD2D4 * D_002BD2D0) {
             qword snappedPos = goal->goalPos;
             if (func_00173610(100.0f, -150.0f, &snappedPos, 0, 0) || FSnapPosToSurfaceAbove(&snappedPos)) {
-                func_0019F540(goal->player, snappedPos);
+                ReturnJtToPosition(goal->player, snappedPos);
                 goal->isHolding = 1;
             }
         }

@@ -188,13 +188,13 @@ void InitJtModeHud(JTMODEHUD *phud, JTMODE *pjtmode);
 void PostLoadJtModeHud(JTMODEHUD *phud);
 int FAsegaRetracted(ASEGA *pasega);
 void func_00204660(STEPPLAYER *pstepplayer, float g);
-void func_0019DA78(JTMODEHUD *phud);
+void UpdateJtModeHud(JTMODEHUD *phud);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
 void InitReconSel(int *psel, JTMODE *pjtmode);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, int z);
 void PostReconSelLoad(void *p);
-void func_0019DCA0(JTMODEHUD *phud, WIDGET *pwidget);
-void func_0019D948(JTMODEHUD *phud);
+void SetJtModeHudOverride(JTMODEHUD *phud, WIDGET *pwidget);
+void GatherJtModeHudTags(JTMODEHUD *phud);
 void BroadcastGameEvent(void *p, int n, int m);
 void PlayWidgetAnim(WIDGET *p, int n);
 void StopWidgetAnim(WIDGET *p, int n);
@@ -204,7 +204,7 @@ void SetReconSelState(void *p, int n);
 void SetWidgetState(WIDGET *p, int n);
 void SetWidgetRequest(WIDGET *p, int n);
 void UpdateReconSel(SELECTOR *p);
-void func_0019D660(JTMODEHUD *phud, int n);
+void SetJtModeHudState(JTMODEHUD *phud, int n);
 int D_002BF920 = -1;   /* mode's .data: the interact mode the HUD widget last showed (-1: none) */
 }
 extern char D_002DEB30[];
@@ -247,7 +247,7 @@ extern "C" void PostLoadJtMode(JTMODE *p)
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void func_0019CC50(JTMODE *p, int nKind, STEP *pstepOther, WIDGET *pwidget)
+extern "C" void StartJtMode(JTMODE *p, int nKind, STEP *pstepOther, WIDGET *pwidget)
 {
     if (p->nState != -1) {
         if (p->nKind != 1 && nKind == 1) {
@@ -462,12 +462,12 @@ extern "C" void UpdateJtMode(JTMODE *p)
             case 0:
                 func_00204660(p->pstepplayer, ((CMVIEW *)&D_002DDF40)->x460);
                 p->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x470;
-                func_0019DA78(&p->hud);
+                UpdateJtModeHud(&p->hud);
                 break;
             case 1:
                 func_00204660(p->pstepplayer, ((CMVIEW *)&D_002DDF40)->x5c4);
                 p->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x5cc;
-                func_0019DA78(&p->hud);
+                UpdateJtModeHud(&p->hud);
                 break;
             }
             break;
@@ -530,7 +530,7 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
     }
     if (p->pnUnk14)
         PostReconSelLoad(p->pnUnk14);
-    func_0019DCA0(p, p->pwidgetDefault);
+    SetJtModeHudOverride(p, p->pwidgetDefault);
 }
 
 /** @sly2-annot addr=0x19D660
@@ -540,11 +540,11 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void func_0019D660(JTMODEHUD *p, int st)
+extern "C" void SetJtModeHudState(JTMODEHUD *p, int st)
 {
     int old;
     if (p->nState == st) return;
-    if (p->nState == -1) func_0019D948(p);
+    if (p->nState == -1) GatherJtModeHudTags(p);
     old = p->nState;
     p->nState = st;
     switch (st) {
@@ -625,7 +625,7 @@ typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void func_0019D948(JTMODEHUD*p){
+extern "C" void GatherJtModeHudTags(JTMODEHUD*p){
  WIDGET*pt=p->pwidgetHud;
  if(!pt)return;
  pt->tags[0]=pt->tags[1]=-1;
@@ -658,7 +658,7 @@ static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->nState==2)value=1
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void func_0019DA78(JTMODEHUD *p)
+extern "C" void UpdateJtModeHud(JTMODEHUD *p)
 {
 
     if (p->pnUnk14)
@@ -674,7 +674,7 @@ extern "C" void func_0019DA78(JTMODEHUD *p)
             Below(b,p->pwidgetCur);
         }
         if (a && b)
-            func_0019D660(p, -1);
+            SetJtModeHudState(p, -1);
         return;
     }
     case 0:{
@@ -686,7 +686,7 @@ extern "C" void func_0019DA78(JTMODEHUD *p)
             Equal(b,p->pwidgetCur);
         }
         if (a && b)
-            func_0019D660(p, 1);
+            SetJtModeHudState(p, 1);
         break;
     }
     }
@@ -713,4 +713,4 @@ store:
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void func_0019DCA0(JTMODEHUD *s, WIDGET *a) { if (a) s->pwidgetCur = a; else s->pwidgetCur = s->pwidgetDefault; }
+extern "C" void SetJtModeHudOverride(JTMODEHUD *s, WIDGET *a) { if (a) s->pwidgetCur = a; else s->pwidgetCur = s->pwidgetDefault; }

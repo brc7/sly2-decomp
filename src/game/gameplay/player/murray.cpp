@@ -211,7 +211,7 @@ void PostLoadStepplayer(struct S *p);
 void PostJtLoadGait(void *p);
 void InitDirectionalBlend(struct S *p, void *a, void *b);
 void func_0020BD88(void *p, struct S *s);
-void PostJtthrowLoad(void *p);
+void PostJtThrowLoad(void *p);
 void func_001426E8(struct S *p, int n);
 void *PxfFindSo(struct S *p, int a, int b);
 int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
@@ -235,7 +235,7 @@ void PostMurrayLoad(struct S *p)
     PostJtLoadGait(b + 0x1540);
     InitDirectionalBlend(p, b + 0x16F0, b + 0x17F0);
     func_0020BD88(b + 0x1850, p);
-    PostJtthrowLoad(b + 0x1910);
+    PostJtThrowLoad(b + 0x1910);
     func_001426E8(p, 0x16);
     v = PxfFindSo(p, p->x18, 0xC);
     if (v) {
@@ -285,7 +285,7 @@ typedef char P_extra_Offset[FIELD_OFFSET(P,extra)==6416?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" float D_002C08DC,D_002C08E0;
 extern "C" void func_00195A00(void*,int,void*,void*);
-extern "C" void func_0019CC50(void*,int,void*,void*);
+extern "C" void StartJtMode(void*,int,void*,void*);
 extern "C" int FStepplayerNearInteractTarget(P*,int);
 extern "C" void SetMurrayState(P*,int);
 extern "C" unsigned GrfConsumePressed__5POCTLUif(PL*,unsigned,float);
@@ -299,7 +299,7 @@ extern "C" int FJtGrabNearestCandidate(void*,unsigned,int);
 extern "C" void UpdateJtAirInput(void*);
 extern "C" int func_00143D20(P*,float);
 extern "C" void UpdateJtGrabInput(void*);
-extern "C" void func_001A12F0(void*);
+extern "C" void UpdateJtHurtInput(void*);
 extern "C" void func_001B6BA8(P*);
 extern "C" void UpdateMurrayCarry(P*);
 extern "C" void func_001B5820(P*);
@@ -309,7 +309,7 @@ extern "C" int FSmaRetracted(void*);
 extern "C" void UpdateMurrayAttack(P*);
 extern "C" void func_001B5990(P*);
 extern "C" void func_001B8EC0(P*);
-extern "C" void UpdateJtthrow(void*);
+extern "C" void UpdateJtThrow(void*);
 extern "C" void UpdateJtActivePipe(void*);
 extern "C" int GrfbtnGadget(P*,int);
 static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
@@ -350,7 +350,7 @@ extern "C" void UpdateMurrayStateMachine(P*p){
    if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f)){func_00195A00(&p->control,1,0,0);break;}
    if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){
     ClearPoctlJoyPressed(p->input,0x400);
-    func_0019CC50(p->altAction,0,0,0);
+    StartJtMode(p->altAction,0,0,0);
     break;
    }
    if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC)){StartMurrayAltAttack(p);break;}
@@ -380,7 +380,7 @@ extern "C" void UpdateMurrayStateMachine(P*p){
    }
    break;
   case 13:UpdateJtGrabInput(&p->gate);break;
-  case 14:func_001A12F0(p->action);break;
+  case 14:UpdateJtHurtInput(p->action);break;
   case 3:func_001B6BA8(p);break;
   case 5:UpdateMurrayCarry(p);break;
   case 6:func_001B5820(p);break;
@@ -389,7 +389,7 @@ extern "C" void UpdateMurrayStateMachine(P*p){
   case 11:UpdateMurrayAttack(p);break;
   case 9:func_001B5990(p);break;
   case 12:func_001B8EC0(p);break;
-  case 15:UpdateJtthrow(p->extra);break;
+  case 15:UpdateJtThrow(p->extra);break;
   case 20:UpdateJtActivePipe(p->physics);break;
   case 17:
    if(p->animation&&FAsegaRetracted(p->animation))goto idle;
@@ -633,7 +633,7 @@ int GrfConsumePressed__5POCTLUif(struct PL *pl, int k, float g);
 void ClearPoctlJoyPressed(struct PL *pl, int k);
 int FPowerupAcquired(int n);
 void func_00195A00(void *p, int a, int b, int c);
-void func_0019CC50(void *p, int a, int b, int c);
+void StartJtMode(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
 void func_00204660(struct P *p, float g);
 qword func_00204E38(struct P *p,struct PL*pl,float g);
@@ -682,7 +682,7 @@ void UpdateMurrayCarry(struct P *p)
                 SetMurrayState(p, 8);
             } else if (GrfPressedWithin__5POCTLUif(p->pl, 0x400, 0.15f) && ((int (*)(void *, int))p->vt[99].pfn)((char *)p + p->vt[99].d, 3)) {
                 ClearPoctlJoyPressed(p->pl, 0x400);
-                func_0019CC50(p->xF00, 0, 0, 0);
+                StartJtMode(p->xF00, 0, 0, 0);
             } else {
                 struct PL*source=p->pl;
                 struct PL*pl=CopyPL(source);
@@ -904,7 +904,7 @@ int GrfConsumePressed__5POCTLUif(PL*,int,float);
 int GrfPressedWithin__5POCTLUif(PL*,uint,float);
 void ClearPoctlJoyPressed(PL*,int);
 void func_00195A00(void*,int,int,void*);
-void func_0019CC50(void*,int,P*,void*);
+void StartJtMode(void*,int,P*,void*);
 int FTryMurrayTakedown(P*);
 int FJtGrabNearestCandidate(void*,int,int);
 int FMurrayCanAttack(P*);
@@ -978,7 +978,7 @@ extern "C" void func_001B5990(P*p){
    }
    else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC))StartMurrayPunch(p);
    else if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
-    ClearPoctlJoyPressed(p->input,0x400);func_0019CC50(p->requestF00,0,0,0);
+    ClearPoctlJoyPressed(p->input,0x400);StartJtMode(p->requestF00,0,0,0);
    }
    else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC))StartMurrayAltAttack(p);
    else {PL*pl=p->input;float strength=pl->strength;if(p->mainState==0?0.1f<strength:0.0f<strength)func_001B5D30(p,2);else func_001B5D30(p,0);}
@@ -1220,9 +1220,9 @@ void func_001B8D30(P *, int);
 void SetMurrayLiftSubstate(P *, int);
 void SetMurrayCarrySubstate(P *, int);
 void func_001B5D30(P *, int);
-void SetJtthrowState(void *, int);
+void SetJtThrowState(void *, int);
 void SetSoCnstrForce(P *, int);
-void func_0019EAB0(void *, int);
+void SetJtPipeState(void *, int);
 int IsmsFindSmOptional__FP2SM3OID(void *, int);
 int func_001430C8(P *);
 void func_00142868(P *, int);
@@ -1285,10 +1285,10 @@ extern "C" void SetMurrayState(P *p, int next)
     case 4: SetMurrayLiftSubstate(p, -1); break;
     case 5: SetMurrayCarrySubstate(p, -1); break;
     case 9: func_001B5D30(p, -1); break;
-    case 15: Call(p->object15, 9); SetJtthrowState(Block(p, 0x1910), -1); SetSoCnstrForce(p, 0); break;
+    case 15: Call(p->object15, 9); SetJtThrowState(Block(p, 0x1910), -1); SetSoCnstrForce(p, 0); break;
     case 1: case 10: p->phase = p->asega->time / p->asega->clip->duration; break;
     case 6: p->marker = 0; break;
-    case 20: func_0019EAB0(Block(p, 0xF50), -1); break;
+    case 20: SetJtPipeState(Block(p, 0xF50), -1); break;
     case 7: case 8: case 19: break;
     }
     int old = p->state;
@@ -1327,12 +1327,12 @@ extern "C" void SetMurrayState(P *p, int next)
     case 10: clip = p->clip10; activation = Block(p, 0x1540);
     activate: flags = 9; func_0020BD68(activation); break;
     case 15:
-        Call(p->object15, 8); p->stamp15 = D_002DD5BC; SetJtthrowState(Block(p, 0x1910), 0); SetSoCnstrForce(p, 1); SetVelocity(p, D_002A2DD0.q); return;
+        Call(p->object15, 8); p->stamp15 = D_002DD5BC; SetJtThrowState(Block(p, 0x1910), 0); SetSoCnstrForce(p, 1); SetVelocity(p, D_002A2DD0.q); return;
     case 16: source = p->template16;
     case 17: case 18:
         func_002303A0(p, p->first, 1); func_002303A0(p, p->second, 1);
     clear_velocity: p->velocity = D_002A2DD0; break;
-    case 20: func_0019EAB0(Block(p, 0xF50), 0); return;
+    case 20: SetJtPipeState(Block(p, 0xF50), 0); return;
     case 21: { clip = p->clip21; U *velocity = &p->velocity; velocity->i[2] = 0; flags = 9; velocity->i[1] = 0; p->velocity.i[0] = 0; break; }
     case 2: case 11: case 12: case 13: case 19: break;
     }
@@ -1355,8 +1355,8 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int x10E4; char pad3[0x13D0 - 0x10E8]; int k; };
 void GetStepplayerCpdefi(struct S *p, int *pf);
-void func_00220388(void *p, int *pf);
-void func_0019EA00(void *p, int *pf);
+void UpdateJtThrowHoldPosition(void *p, int *pf);
+void GetJtPipeVelocity(void *p, int *pf);
 /** @sly2-annot addr=0x1B6728
  * Purpose: MURRAY vt50: stamp x1080 while moving, base GetStepplayerCpdefi 0x141640, then set flag bit 1 for
  *   flop/strafe/power/takedown states and defer to JTTHROW / +0xF50 component
@@ -1374,8 +1374,8 @@ void GetMurrayCpdefi(struct S *p, int *pf)
     case 3: case 9: case 12:
         *pf |= 1;
         break;
-    case 15: func_00220388((char *)p + 0x1910, pf); break;
-    case 20: func_0019EA00((char *)p + 0xF50, pf); break;
+    case 15: UpdateJtThrowHoldPosition((char *)p + 0x1910, pf); break;
+    case 20: GetJtPipeVelocity((char *)p + 0xF50, pf); break;
     }
 }
 } } // namespace M_GetMurrayCpdefi
@@ -1447,7 +1447,7 @@ qword func_001A62E8(P *p);
 void EmitSwNoise(void *g, int z, qword q, P *p);
 void ThrowMurrayCarried(P *p);
 void func_001B7AE8(P *p);
-void func_002205A8(void *p);
+void ReleaseJtThrowObject(void *p);
 void SetMurrayLiftSubstate(P *p, int k);
 void SetMurrayState(P *p, int s);
 
@@ -1481,7 +1481,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
                 func_001B7AE8(p);
                 break;
             case 15:
-                func_002205A8(p->x1910);
+                ReleaseJtThrowObject(p->x1910);
                 break;
             }
             break;
@@ -2460,7 +2460,7 @@ int GetMurrayPlayerState(struct S *p)
 namespace M_func_001B8008 { extern "C" {
 struct P { char pad[0x268]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int x13F0; char pad3[0x1458 - 0x13F4]; int x1458; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
 int func_001944C8(void *p, int *pk);
-int func_001A23F8(void *p, int *pk);
+int GetJtHurtAdjustRecord(void *p, int *pk);
 int func_0019C870(void *p, int *pk);
 void SetStepPhys(struct P *p, int v, int k);
 /** @sly2-annot addr=0x1B8008
@@ -2476,7 +2476,7 @@ void func_001B8008(struct P *p)
     int v;
     switch (p->k) {
     case 13: v = func_001944C8((char *)p + 0x4C0, &k); break;
-    case 14: v = func_001A23F8((char *)p + 0xDF0, &k); break;
+    case 14: v = GetJtHurtAdjustRecord((char *)p + 0xDF0, &k); break;
     case 2:
         if (p->x13F0) v = p->x1ABC;
         else v = func_0019C870((char *)p + 0x2C0, &k);
@@ -2597,9 +2597,9 @@ typedef int qword __attribute__((mode(TI)));
 struct M { char pad[0x148]; unsigned long f148; };
 struct Q { char pad[0x40]; int x40; char pad2[8]; struct M *pm; char pad3[0x10]; qword q60; char pad4[0x18]; float f88; };
 struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
-void func_0019FEB0(void *p, int a, qword q);
+void AddJtPlaceAtPosition(void *p, int a, qword q);
 void func_001942F0(void *p);
-void func_0019EA60(void *p);
+void RecordJtPipePlace(void *p);
 /** @sly2-annot addr=0x1B82A0
  * Purpose: Per-frame: on flat ground (normal z>0.7, material flag clear) call 0x19FEB0 on +0x9E0; component
  *   hooks for states 13/20
@@ -2614,10 +2614,10 @@ void func_001B82A0(struct S *p)
     case 0: case 1: case 4: case 5: case 7: case 8: case 9: case 10: case 18: case 21:
         pq = p->pq;
         if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !p->x108C)
-            func_0019FEB0((char *)p + 0x9E0, pq->x40, pq->q60);
+            AddJtPlaceAtPosition((char *)p + 0x9E0, pq->x40, pq->q60);
         break;
     case 13: func_001942F0((char *)p + 0x4C0); break;
-    case 20: func_0019EA60((char *)p + 0xF50); break;
+    case 20: RecordJtPipePlace((char *)p + 0xF50); break;
     }
 }
 } } // namespace M_func_001B82A0
@@ -2672,7 +2672,7 @@ struct P { char pad[0x13D0]; int n13D0; char pad1[0x1430 - 0x13D4]; void *p1430;
 int FIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
 int FFindLoParent(void *pv, void *p1);
 int func_00134310(int n, int k);
-int func_00220498(int *pn, void *pv, int n);
+int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
 /** @sly2-annot addr=0x1B8450
  * Purpose: MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently
  *   released one x1430, or defers to JTTHROW filter in state 15
@@ -2689,7 +2689,7 @@ int MURRAY_FIgnoreIntersection(struct P *p, void *pv)
     if (p->p1430 && FFindLoParent(pv, p->p1430))
         n = func_00134310(n, 3);
     else if (p->n13D0 == 15)
-        n = func_00220498(p->a1910, pv, n);
+        n = AdjustJtThrowFindFlags(p->a1910, pv, n);
     return n;
 }
 } } // namespace M_MURRAY_FIgnoreIntersection
@@ -3316,8 +3316,8 @@ extern "C" float D_002C3C60[];
 extern "C" float D_002C0A38;
 extern "C" char D_003DD490[];
 extern "C" void AdjustStepNewXp(P *p, X *px, int i);
-extern "C" void func_001A2100(void *p, X *px, int i);
-extern "C" void func_0019E9C8(void *p, X *px, int i);
+extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
+extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
 extern "C" qword func_0011F198(qword a, qword b);
 extern "C" int func_001AA020(void *g, X *px);
 extern "C" void func_001A9FE0(void *g, int r, void *p);
@@ -3336,7 +3336,7 @@ extern "C" void AdjustMurrayNewXp(P *p, X *px, int i)
     AdjustStepNewXp(p, px, i);
     switch (p->x13D0) {
     case 14:
-        func_001A2100(p->xDF0, px, i);
+        AdjustJtHurtXp(p->xDF0, px, i);
         break;
     case 12:
         n = p->x1840;
@@ -3361,7 +3361,7 @@ extern "C" void AdjustMurrayNewXp(P *p, X *px, int i)
         }
         break;
     case 20:
-        func_0019E9C8(p->xF50, px, i);
+        ResetJtPipeAdjust(p->xF50, px, i);
         break;
     }
 }
@@ -3619,7 +3619,7 @@ extern int D_002DFBC0;
 int FStepplayerInJtmode(struct P *p);
 int func_0019C8D0(void *p, int k);
 int func_00194558(void *p, int k);
-int func_0019EEF0(void *p, int k);
+int CanJtUseGadgetOnPipe(void *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int FActiveCplcy__FP5CPLCY(void *p);
 /** @sly2-annot addr=0x1B98A0
@@ -3642,7 +3642,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
         if (!func_00194558((char *)p + 0x4C0, k)) return 0;
         break;
     case 20:
-        if (!func_0019EEF0((char *)p + 0xF50, k)) return 0;
+        if (!CanJtUseGadgetOnPipe((char *)p + 0xF50, k)) return 0;
         break;
     case 5:
         if (k == 3) return 1;

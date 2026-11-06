@@ -139,7 +139,7 @@ void SubscribeLoObject(LINK *plink, RECONTGT *p);
 void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
 PLAYER *PpoHero(SW *psw);
 void RequestTaskState(LINK *plink, int n, RECONTGT *p);
-void func_0019D948(void *pv);
+void GatherJtModeHudTags(void *pv);
 int FTaskComplete(LINK *plink);
 
 void func_00201E88(RECONSEL *p);
@@ -905,7 +905,7 @@ void func_002036E8(RECONTGT *p, int n)
         PLAYER *o;
         RequestTaskState(p->link, 2, p);
         o = PpoHero(&D_003DD490);
-        if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) func_0019D948(o->abF24);
+        if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
     } else p->fDone = n;
 }
 

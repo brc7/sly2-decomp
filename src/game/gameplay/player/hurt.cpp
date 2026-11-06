@@ -1,15 +1,15 @@
-// hurt.cpp -- the player's hurt state (JTHURT, stepplayer.h): taking damage from a zap (FTakeJtDamage), the hurt
+// hurt.cpp -- the player's hurt state (JTHURT, stepplayer.h): taking damage from a zap (TakeJtDamage), the hurt
 // state machine (SetJtHurtState, its callbacks and per-state handlers), zap reactions (PresetJtAccelZap,
 // UpdateJtActiveZap), knock-back and water-current handling, and the invulnerability tests.
 // TU 0x1A0B18..0x1A2BD0 (28 functions, address order).
 //
 // Types: the functions on named fields use stepplayer.h's JTHURT/ZPR/STEPPLAYER, jt.h's JT and so.h's SO. The others
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
-// do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, func_001A16C8, FTakeJtDamage,
-// func_001A2460, func_001A2788, func_001A28B0: register pins, by-value helper shapes, unions whose stores the match
-// needs), and the ones that read JTHURT bytes stepplayer.h leaves unnamed (func_001A1098 +0x14/+0x18,
-// func_001A15B0 and RunJtHurtCallback the 8-byte callback at +0x1C where the header has an empty HURTEND,
-// func_001A23F8 the table at +0xD4) or a record not identified yet (func_001A2160).
+// do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage,
+// UpdateStepplayerWater, ProbeStepplayerSurface, ResolveStepplayerWaterContact: register pins, by-value helper shapes, unions whose stores the match
+// needs), and the ones that read JTHURT bytes stepplayer.h leaves unnamed (PostLoadJtHurt +0x14/+0x18,
+// SetJtHurtCallback and RunJtHurtCallback the 8-byte callback at +0x1C where the header has an empty HURTEND,
+// GetJtHurtAdjustRecord the table at +0xD4) or a record not identified yet (AddJtHurtCpdefiFlags).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hurt
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A2BB0
 #include "sly2/jt.h"          /* JT; stepplayer.h JTHURT, ZPR, STEPPLAYER */
@@ -30,7 +30,7 @@ extern float D_002BFB20;    /* hurt contact friction (defined below, in address 
 extern float D_002BFB24;    /* hurt contact elasticity */
 int FAsegaRetracted(ASEGA *pasega);
 void RunJtHurtCallback(JTHURT *pjthurt);
-void ReturnJtToSafePlaceCb(JTHURT *pjthurt);
+void ReturnJtToSafePlaceCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, int n);
 void SetJtHurtState(JTHURT *pjthurt, int nState);
 void func_00195A00(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
@@ -287,7 +287,7 @@ int PxfFindSo(int a, int b, int c);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void func_001A1098(struct S *s)
+void PostLoadJtHurt(struct S *s)
 {
     struct D d;
     int i;
@@ -364,7 +364,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
  * @end-sly2-annot */
 /* Runs the hurt callback each time the player's current animation (pasegaUnk1030) has retracted, until the state
    stops changing (or is -1). */
-extern "C" void func_001A12F0(JTHURT *pjthurt)
+extern "C" void UpdateJtHurtInput(JTHURT *pjthurt)
 {
     int nState;
     do {
@@ -460,7 +460,7 @@ struct S { char pad[0x1C]; struct K k; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void func_001A15B0(struct S *p, struct K k) { p->k = k; }
+void SetJtHurtCallback(struct S *p, struct K k) { p->k = k; }
 } } // namespace M_func_001A15B0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -471,7 +471,7 @@ struct O { int x0, x4, x8; struct VTE *vt; };
 struct B { char pad[0x148]; unsigned long x148; };
 struct S { struct O *x0; int x4; char pad[0x14]; struct PMF pmf; char pad2[0xC]; struct B *x30; };
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
-void ReturnJtToSafePlaceCb(struct S *p);
+void ReturnJtToSafePlaceCallback(struct S *p);
 void func_00195A00(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1A15D0
  * Purpose: Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a
@@ -491,7 +491,7 @@ void RunJtHurtCallback(struct S *s)
         struct VTE *e = &o->vt[0x2E8 / 8];
         e->pfn((char *)o + e->d);
     } else if (s->x30 && (s->x30->x148 & 0x200000000UL)) {
-        ReturnJtToSafePlaceCb(s);
+        ReturnJtToSafePlaceCallback(s);
     } else {
         func_00195A00((char *)s->x0 + 0x2C0, 11, 0, 0);
     }
@@ -500,13 +500,13 @@ void RunJtHurtCallback(struct S *s)
 
 /** @sly2-annot addr=0x1A16A8
  * Purpose: Callback thunk: ReturnJtToSafePlace(owner, NULL)
- * Info: proposed name ReturnJtToSafePlaceCb (T1); TU hurt
+ * Info: proposed name ReturnJtToSafePlaceCallback (T1); TU hurt
  * Notes: runtime3: JTHURT PMF callback pfn in S26 (swim)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" void ReturnJtToSafePlaceCb(JTHURT *pjthurt)
+extern "C" void ReturnJtToSafePlaceCallback(JTHURT *pjthurt)
 {
     ReturnJtToSafePlace(pjthurt->pstepplayer, 0);
 }
@@ -576,7 +576,7 @@ static inline qword Difference(U*first,qword target){
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void func_001A16C8(struct P*p){
+void StartJtKnockback(struct P*p){
     U output=p->velocity;
     U scratch,scalar;
     U selfPosition,targetPosition,negative,otherPosition;
@@ -665,10 +665,10 @@ struct W{char pad[0x158];COUNT*count;};
 struct P{char pad0[12];VE*vt;char pad10[0x29C-0x10];int guard;char pad2A0[0x4C8-0x2A0];int mode;char pad4CC[8];P*delegate;char pad4D8[0xFBC-0x4D8];int state;char padFC0[0x11A8-0xFC0];W*widget;};
 struct RECORD{P*object;int pad4,pad8;int flags;int delta;char pad14[0x30-0x14];int a,b,c;char pad3C[0x60-0x3C];}__attribute__((aligned(16)));
 struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;char pad24[0x30-0x24];RECORD record;int mode;float time,changed;char pad9C[0x108-0x9C];void*effect;void*output;
- void Reaction() __asm__("JtHurtEndCb");
- void Special() __asm__("func_001A2028");
- void Stop() __asm__("func_001A1FA8");
- void Finish() __asm__("ReturnJtToSafePlaceCb");
+ void Reaction() __asm__("JtHurtEndCallback");
+ void Special() __asm__("JtHurtShockCallback");
+ void Stop() __asm__("JtHurtFallCallback");
+ void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
 struct CLOCK{float time,dt;};
 struct G{char pad[0x4038];int channel;};
@@ -679,14 +679,14 @@ extern "C"{
  extern qword D_002A2DD0;
  union VQ{float f[4];qword q;};
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
- int func_001A2358(C*,RECORD*);
+ int ShouldJtVetoDamage(C*,RECORD*);
  int func_00155228(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void func_00143380(P*);
  void BroadcastGameEvent(void*,int,P*);
- void func_001A15B0(C*,ACTION);
- void func_001A16C8(C*);
+ void SetJtHurtCallback(C*,ACTION);
+ void StartJtKnockback(C*);
  void SetJtHurtState(C*,int);
  int CidBasic(P*);
  void*PsndStartSound(int);
@@ -747,7 +747,7 @@ typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
 /** @sly2-annot addr=0x1A19A0
  * Purpose: Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty
  *   (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback
- * Info: proposed name FTakeJtDamage (T1); TU hurt
+ * Info: proposed name TakeJtDamage (T1); TU hurt
  * Notes: names_v2 C proposed SetWmWms__FP2WM3WMS (0.438) | runtime3: ZPR record layout
  * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); static naming pass; sources:
  *   r4b_rest+runtime
@@ -755,9 +755,9 @@ typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" int FTakeJtDamage(C*p,RECORD*input){
+extern "C" int TakeJtDamage(C*p,RECORD*input){
  RECORD accepted;int delta;
- if(func_001A2358(p,input)){
+ if(ShouldJtVetoDamage(p,input)){
   if((unsigned)p->kind-8u<5u)return 0;
   delta=-32768;goto notify;
  }
@@ -787,28 +787,28 @@ notify:
   W*widget=p->actor->widget;
   if(widget&&(widget->count->c||Add32(*p->counter,delta)<=0))func_00143380(p->actor);
   BroadcastGameEvent(D_002DEB30,0xF,input->object);
-  p->record=*input;p->record.delta=delta;func_001A15B0(p,0);
+  p->record=*input;p->record.delta=delta;SetJtHurtCallback(p,0);
   int n=Add32(*p->counter,p->record.delta);*p->counter=n>=0?n:0;
   if(*p->counter>0){p->mode=1;p->time=D_002DDED0.time;}
   switch(input->flags){
   case 0x100:case 0x200:{
-   func_001A16C8(p);
+   StartJtKnockback(p);
    if(Z(Vector(p->actor,33))>400.0f){
     int effect=-1;
     switch(CidBasic(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
     P*actor=p->actor;void*created=PsndStartSound(effect);SetSndSourceLo(created,actor);
    }
-   func_001A15B0(p,&C::Reaction);break;
+   SetJtHurtCallback(p,&C::Reaction);break;
   }
-  case 0x8000:SetJtHurtState(p,7);func_001A15B0(p,&C::Special);break;
+  case 0x8000:SetJtHurtState(p,7);SetJtHurtCallback(p,&C::Special);break;
   case 0x800:case 0x1000:
    SetVector(p->actor,35,D_002A2DD0);SetVector(p->actor,36,D_002A2DD0);
-   SetJtHurtState(p,input->flags==0x800?1:2);func_001A15B0(p,&C::Stop);break;
-  case 0x2000:if(*p->counter>0){SetJtHurtState(p,3);func_001A15B0(p,&C::Finish);}else SetJtHurtState(p,10);break;
+   SetJtHurtState(p,input->flags==0x800?1:2);SetJtHurtCallback(p,&C::Stop);break;
+  case 0x2000:if(*p->counter>0){SetJtHurtState(p,3);SetJtHurtCallback(p,&C::Finish);}else SetJtHurtState(p,10);break;
   case 0x400:SetVector(p->actor,35,D_002BFB10.q);if(*p->counter>0)SetJtHurtState(p,4);else SetJtHurtState(p,12);break;
   case 0x4000:
-   if(*p->counter>0){SetJtHurtState(p,5);func_001A15B0(p,&C::Finish);}else SetJtHurtState(p,11);break;
-  case 0x40:func_001A16C8(p);func_001A15B0(p,&C::Reaction);break;
+   if(*p->counter>0){SetJtHurtState(p,5);SetJtHurtCallback(p,&C::Finish);}else SetJtHurtState(p,11);break;
+  case 0x40:StartJtKnockback(p);SetJtHurtCallback(p,&C::Reaction);break;
   }
  }
 sound:
@@ -821,13 +821,13 @@ sound:
 
 /** @sly2-annot addr=0x1A1F68
  * Purpose: Callback: health>0 -> SetJtHurtState(0) else 8 (dead)
- * Info: proposed name JtHurtEndCb (T1); TU hurt
+ * Info: proposed name JtHurtEndCallback (T1); TU hurt
  * Notes: runtime3: JTHURT PMF callback pfn in S27/S28 (knockback)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" void JtHurtEndCb(JTHURT *pjthurt)
+extern "C" void JtHurtEndCallback(JTHURT *pjthurt)
 {
     if (*pjthurt->php > 0) {
         SetJtHurtState(pjthurt, 0);
@@ -846,11 +846,11 @@ extern "C" void JtHurtEndCb(JTHURT *pjthurt)
  * @end-sly2-annot */
 /* With hit points left: back to a safe place when the source respawns the hurt player (SO::fHurtRespawns), else air
    state 11; without: hurt state 8. */
-extern "C" void func_001A1FA8(JTHURT *pjthurt)
+extern "C" void JtHurtFallCallback(JTHURT *pjthurt)
 {
     if (*pjthurt->php > 0) {
         if (pjthurt->zpr.ploSource && ((SO *)pjthurt->zpr.ploSource)->fHurtRespawns)
-            ReturnJtToSafePlaceCb(pjthurt);
+            ReturnJtToSafePlaceCallback(pjthurt);
         else
             func_00195A00(&pjthurt->pstepplayer->jtair, 11, 0, 0);
     } else {
@@ -870,9 +870,9 @@ extern "C" {
 extern const LONGU D_002A6790;
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
-void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("func_001A15B0");   /* sets the hurt callback (+0x1C) */
+void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* sets the hurt callback (+0x1C) */
 }
-extern "C" void func_001A2028(JTHURT *pjthurt)
+extern "C" void JtHurtShockCallback(JTHURT *pjthurt)
 {
     SetSndSourceLo(PsndStartSound(0x6A), 0);
     SetJtHurtState(pjthurt, 6);
@@ -887,11 +887,11 @@ extern "C" void func_001A2028(JTHURT *pjthurt)
  * @end-sly2-annot */
 /* With hit points left: back to a safe place when the source respawns the hurt player (SO::fHurtRespawns), else air
    state 11; without: hurt state 8. */
-extern "C" void func_001A2080(JTHURT *pjthurt)
+extern "C" void JtHurtFallCallback2(JTHURT *pjthurt)
 {
     if (*pjthurt->php > 0) {
         if (pjthurt->zpr.ploSource && ((SO *)pjthurt->zpr.ploSource)->fHurtRespawns)
-            ReturnJtToSafePlaceCb(pjthurt);
+            ReturnJtToSafePlaceCallback(pjthurt);
         else
             func_00195A00(&pjthurt->pstepplayer->jtair, 11, 0, 0);
     } else {
@@ -909,10 +909,10 @@ extern "C" void func_001A2080(JTHURT *pjthurt)
 /* The friction and elasticity of a contact by hurt state (D_002BFB20/D_002BFB24; no bounce in states 4 and 12, the
    contact's own values in 0, 6 and 7). */
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_001A2080() __asm__("func_001A2080");
+void p_func_001A2080() __asm__("JtHurtFallCallback2");
 extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (unsigned int)p_func_001A2080};
 }
-extern "C" void func_001A2100(JTHURT *pjthurt, XP *pxp)
+extern "C" void AdjustJtHurtXp(JTHURT *pjthurt, XP *pxp)
 {
     switch (pjthurt->nState) {
     case 4: case 12:
@@ -938,7 +938,7 @@ struct S { int x0; int x4; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void func_001A2160(struct S *p, struct Q *q)
+void AddJtHurtCpdefiFlags(struct S *p, struct Q *q)
 {
     switch (p->x4) {
     case 5: case 8: case 9: case 10: case 11: case 12: q->x34 = 0; break; case 4: break;
@@ -956,7 +956,7 @@ void func_001A2160(struct S *p, struct Q *q)
  * @end-sly2-annot */
 /* Invulnerable to zap kind zpk in some player states (3, 8, 21, 22: kind 0x4000; 7: whatever the grab allows), else
    as any step player. */
-extern "C" int func_001A21A0(JT *pjt, int zpk)
+extern "C" int ShouldJtIgnoreZap(JT *pjt, int zpk)
 {
     switch (pjt->jts) {
     case 3:
@@ -984,7 +984,7 @@ extern "C" int func_001A21A0(JT *pjt, int zpk)
  * @end-sly2-annot */
 /* Whether the hurt player ignores zap kind zpk: always while nUnk298 is set; kinds 0x2000/0x4000 by the hurt, grab
    and air states; others while hurt, in post-hit mode 1, with D_002E1E00 bit 0 set or with the world's hands off. */
-extern "C" int func_001A2230(JTHURT *pjthurt, int zpk)
+extern "C" int ShouldStepplayerIgnoreZap(JTHURT *pjthurt, int zpk)
 {
     if (pjthurt->pstepplayer->nUnk298)
         return 1;
@@ -1036,7 +1036,7 @@ ret0:
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
 /* STEPPLAYER slot 85 on the hurt player. */
-extern "C" int func_001A2358(JTHURT *pjthurt, ZPR *pzpr)
+extern "C" int ShouldJtVetoDamage(JTHURT *pjthurt, ZPR *pzpr)
 {
     return pjthurt->pstepplayer->VUnk85(pzpr);
 }
@@ -1047,7 +1047,7 @@ extern "C" int func_001A2358(JTHURT *pjthurt, ZPR *pzpr)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" void func_001A2388(STEPPLAYER *pstepplayer)
+extern "C" void OnJtDeath(STEPPLAYER *pstepplayer)
 {
     func_001F80D0(pstepplayer, 1.0f);
     OnStepplayerHeroDied(pstepplayer);
@@ -1061,7 +1061,7 @@ extern "C" void func_001A2388(STEPPLAYER *pstepplayer)
  *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
 /* 0 when not hurt (1 in post-hit mode 1); hurt: 1 with hit points left, else 2. */
-extern "C" int func_001A23C0(JTHURT *pjthurt)
+extern "C" int GetJtHurtStatus(JTHURT *pjthurt)
 {
     if (pjthurt->nState != -1) return *pjthurt->php <= 0 ? 2 : 1;
     return pjthurt->nUnk90 == 1;
@@ -1079,7 +1079,7 @@ struct S { int x0; int x4; char pad[0xCC]; void *a[1]; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void *func_001A23F8(struct S *p, int *pout)
+void *GetJtHurtAdjustRecord(struct S *p, int *pout)
 {
     int i; void *r = 0; for (i = p->x4; i != -1 && (r = p->a[i]) == 0; i = D_002BFB28[i]) ; *pout = 0; return r;
 }
@@ -1103,7 +1103,7 @@ extern "C" CLOCK D_002DDED0;
 extern "C" qword func_001A62E8(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
 extern "C" P*func_001F7598(HIT*);
-extern "C" int func_001A2788(P*,L*,qword*);
+extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
@@ -1116,7 +1116,7 @@ static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*
  * Confidence: low (draft) [T2 0.40] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" void func_001A2460(P*p){
+extern "C" void UpdateStepplayerWater(P*p){
  U point;
  int valid;
  if(p->link){
@@ -1143,7 +1143,7 @@ extern "C" void func_001A2460(P*p){
   }
  }
  if(!p->link->effect)return;
- if(!func_001A2788(p,p->link,&point.q))return;
+ if(!ProbeStepplayerSurface(p,p->link,&point.q))return;
  int i=0;
  if(p->count>0){
  U position;
@@ -1192,7 +1192,7 @@ void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
 int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void func_00229D60(void);
-int func_001A2788(O *po, L *pl, qword *pv);
+int ProbeStepplayerSurface(O *po, L *pl, qword *pv);
 }
 /** @sly2-annot addr=0x1A2788
  * Purpose: Line/part test from the player down to the linked volume's surface; out position
@@ -1200,7 +1200,7 @@ int func_001A2788(O *po, L *pl, qword *pv);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-int func_001A2788(O *po, L *pl, qword *pv)
+int ProbeStepplayerSurface(O *po, L *pl, qword *pv)
 {
     U off, b, a;
     HIT hit;
@@ -1249,7 +1249,7 @@ struct P {
  struct SMP smp10A8;
 };
 extern struct CLOCK D_002DDED0;
-int func_001A2788(struct P *p,void *o,qword *pos);
+int ProbeStepplayerSurface(struct P *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
 void func_002297F8(struct P *p,void *o);
 qword func_001A62E8(struct P *p);
@@ -1268,7 +1268,7 @@ static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-void func_001A28B0(struct P *p,void *o)
+void ResolveStepplayerWaterContact(struct P *p,void *o)
 {
  U origin,vel,pos,local,dir,v50,accel,bcast;
  float z,g;
@@ -1282,7 +1282,7 @@ void func_001A28B0(struct P *p,void *o)
   if(origin.f[2]<0.0f) func_002297F8(p,o);
   break;
  case 3:case 10:
-  if(!func_001A2788(p,o,&pos.q)) break;
+  if(!ProbeStepplayerSurface(p,o,&pos.q)) break;
   local.q=Mul(&p->m1B0,&p->v190);
   CalculateWaterCurrent(o,pos.q,&dir.q,&v50.q);
   v=GetVel(p);
@@ -1312,7 +1312,7 @@ void func_001A28B0(struct P *p,void *o)
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_hurt {
-void p_func_001A2080() __asm__("func_001A2080");
+void p_func_001A2080() __asm__("JtHurtFallCallback2");
 extern "C" {
 }
 } // namespace ANPTR_hurt

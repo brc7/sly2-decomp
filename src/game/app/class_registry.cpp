@@ -1995,7 +1995,7 @@ extern "C" CRef func_0010B230(void *p, int c, void *aref)
     return ref;
 }
 
-extern "C" void func_0019EAA0(void *p, qword a, qword b);
+extern "C" void SetJtPipeVectors(void *p, qword a, qword b);
 /** @sly2-annot addr=0x10B340
  * Purpose: Splice option thunk: optid 749 on STEPPLAYER (g_aeopid[766] thunkFn/thunkUser, returns Void,
  *   crefReq 2); unpacks 2 args (Vector, Vector) -> Void via RefSetArgsFromSplice then calls SetJtPipeVectors
@@ -2014,7 +2014,7 @@ extern "C" CRef func_0010B340(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &u, &v);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0019EAA0((char *)p + 0xF50, u.q, v.q);
+    SetJtPipeVectors((char *)p + 0xF50, u.q, v.q);
     return ref;
 }
 

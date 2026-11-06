@@ -74,9 +74,9 @@ qword func_0022FC48(void *a, void *b, qword q);
 void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(JT *, PLACE *);
-void func_0019FAF8(JTPLACES *p, PLACE *e);
+void ChooseJtSafePlace(JTPLACES *p, PLACE *e);
 JT *PpoHero(G *g);
-qword func_0019F3F8(JT *p, PLACE *e, float g);
+qword GetJtPlacePosition(JT *p, PLACE *e, float g);
 float func_00196928(qword a, qword b, float c, float d, float e, float f);
 void SetStepRadTargetVec(JT *p, qword q);
 void CutCm__FP2CM(D *d);
@@ -96,14 +96,14 @@ VQ D_002BF950[8] = {{{40.0f, 0.0f, 0.0f, 0.0f}}, {{28.3f, 28.3f, 0.0f, 0.0f}}, {
 CLQ D_002BF9D0 = {400.0f, -1.0f, 0.0f};
 LM D_002BF9E0 = {0.0f, 1000.0f};
 int CploFindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
-float func_0019F7D0(JTPLACES *p, PLACE *e, int c, LO2 **apv);
+float ScoreJtPlace(JTPLACES *p, PLACE *e, int c, LO2 **apv);
 qword func_001A62E8(void *p);
-void func_0019FEB0(JTPLACES *p, PLACESPOT *a, qword q);
-void func_0019FD30(JTPLACES *p, PLACESO *b, float g);
+void AddJtPlaceAtPosition(JTPLACES *p, PLACESPOT *a, qword q);
+void AddJtPlaceOnCurve(JTPLACES *p, PLACESO *b, float g);
 void func_001942F0(void *p);
-void func_0019EA60(void *p);
+void RecordJtPipePlace(void *p);
 void *memmove(void *dst, const void *src, unsigned int cb);
-void func_001A0048(JTPLACES *p, LO *a, PLACESPOT *b);
+void RemoveJtPlacesOf(JTPLACES *p, LO *a, PLACESPOT *b);
 }
 
 /** @sly2-annot addr=0x19F3E8
@@ -135,7 +135,7 @@ extern "C" void PostLoadJtPlaces(void)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
+extern "C" qword GetJtPlacePosition(JT *p, PLACE *q, float g)
 {
     U t;
     M4 m;
@@ -168,7 +168,7 @@ extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" void func_0019F540(JT *p, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(p, &f); }
+extern "C" void ReturnJtToPosition(JT *p, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(p, &f); }
 
 /** @sly2-annot addr=0x19F590
  * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
@@ -184,10 +184,10 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
 {
     PLACE e;
     if (!q) {
-        func_0019FAF8(&p->places, &e);
+        ChooseJtSafePlace(&p->places, &e);
         q = &e;
         if (p == PpoHero(&D_003DD490)) {
-            qword r = func_0019F3F8(p, &e, 0.0f);
+            qword r = GetJtPlacePosition(p, &e, 0.0f);
             float g = func_00196928(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = p->places.c;
@@ -222,10 +222,10 @@ static inline float GFromClq(CLQ *pclq, float g) { return pclq->g + g * (pclq->g
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
+extern "C" float ScoreJtPlace(JTPLACES *p, PLACE *q, int n, LO2 **apo)
 {
     float g = 0.0f;
-    qword pos = func_0019F3F8(p->pjt, q, g);
+    qword pos = GetJtPlacePosition(p->pjt, q, g);
     if (q->pspot) {
         STACKSCOPE frame;
         U a, b;
@@ -283,7 +283,7 @@ namespace RO_ORDER { extern const float r_D_002A66A0 __asm__("D_002A66A0") = 3.4
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" void func_0019FAF8(JTPLACES *p, PLACE *pe)
+extern "C" void ChooseJtSafePlace(JTPLACES *p, PLACE *pe)
 {
     LO2 *apv[16];
     int c, i;
@@ -294,7 +294,7 @@ extern "C" void func_0019FAF8(JTPLACES *p, PLACE *pe)
     for (i = 0; i < p->c; i++) {
         float g;
         e = &p->ae[i];
-        g = func_0019F7D0(p, e, c, apv);
+        g = ScoreJtPlace(p, e, c, apv);
         if (g < best) {
             best = g;
             *pe = *e;
@@ -326,21 +326,21 @@ extern "C" void UpdateJtPlaces(JT *p)
     {
         GROUND *pa = p->x208;
         if (pa && pa->x88 > 0.7f && !(pa->x4c->fl & 0x20000000) && !p->x108c)
-            func_0019FEB0(&p->places, pa->pspot, pa->pos);
+            AddJtPlaceAtPosition(&p->places, pa->pspot, pa->pos);
         break;
     }
     case 3: case 22:
     {
         B *pb = p->x18c4;
         if (!pb->x10c)
-            func_0019FD30(&p->places, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
+            AddJtPlaceOnCurve(&p->places, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
         break;
     }
     case 7:
         func_001942F0(p->x4c0);
         break;
     case 8:
-        func_0019EA60(p->xf50);
+        RecordJtPipePlace(p->xf50);
         break;
     }
 }
@@ -353,7 +353,7 @@ extern "C" void UpdateJtPlaces(JT *p)
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
  *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" void func_0019FD30(JTPLACES *p, PLACESO *s, float g)
+extern "C" void AddJtPlaceOnCurve(JTPLACES *p, PLACESO *s, float g)
 {
     int i;
     PLACE *e;
@@ -400,7 +400,7 @@ static __inline__ float Dist(qword a, qword b)
  *   docs/reference/functions/player.md#grab-0x191090-0x195950,
  *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" void func_0019FEB0(JTPLACES *p, PLACESPOT *s, qword q)
+extern "C" void AddJtPlaceAtPosition(JTPLACES *p, PLACESPOT *s, qword q)
 {
     int i;
     PLACE *e;
@@ -437,7 +437,7 @@ extern "C" void func_0019FEB0(JTPLACES *p, PLACESPOT *s, qword q)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
  * @end-sly2-annot */
-extern "C" void func_001A0048(JTPLACES *s, LO *p0, PLACESPOT *p8)
+extern "C" void RemoveJtPlacesOf(JTPLACES *s, LO *p0, PLACESPOT *p8)
 {
     PLACE *dst = s->ae;
     PLACE *src = dst;
@@ -465,11 +465,11 @@ extern "C" void func_001A0048(JTPLACES *s, LO *p0, PLACESPOT *p8)
 extern "C" void RemoveSwPlacesOf(void *g, LO *a, PLACESPOT *b)
 {
     if (D_002E1E40)
-        func_001A0048(&D_002E1E40->places, a, b);
+        RemoveJtPlacesOf(&D_002E1E40->places, a, b);
     if (D_002DD5BC)
-        func_001A0048(&D_002DD5BC->places, a, b);
+        RemoveJtPlacesOf(&D_002DD5BC->places, a, b);
     if (D_002F7900)
-        func_001A0048(&D_002F7900->places, a, b);
+        RemoveJtPlacesOf(&D_002F7900->places, a, b);
     if (a)
         a->fl &= ~0x0800000000000000UL;
     if (b)

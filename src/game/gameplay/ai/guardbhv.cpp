@@ -4180,7 +4180,7 @@ extern "C"{
  float RadNormalize__Ff(float);
  void func_0011B500(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
- void GetPipeGoalMat(P*,int,M3*,float);
+ void GetPipeGoalMatrix(P*,int,M3*,float);
  void func_0017A468(C*);
  int func_00173610(qword*,float,float,int,int(*)(void));
  void StartBhvanim(C*);
@@ -4273,7 +4273,7 @@ extern "C" void StartBhvleap(C*p){
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,11)){
    active|=GrfFromSgf(0x27);
    p->basisValid=1;
-   GetPipeGoalMat(p->target,p->reverse,&p->matrix,work.curve);
+   GetPipeGoalMatrix(p->target,p->reverse,&p->matrix,work.curve);
    func_0017A468(p);
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x13)&&p->target->kind==3){
    active|=GrfFromSgf(0x28);
@@ -6424,7 +6424,7 @@ int FBhvpipeArrived(struct S *p);
 void SetBhvpipeState(struct S *p, int n);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float SWrapShape(int n, float g);
-void GetPipeGoalMat(int a, float g, int b, void *pv);
+void GetPipeGoalMatrix(int a, float g, int b, void *pv);
 /** @sly2-annot addr=0x17CF10
  * Purpose: BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal
  *   matrix
@@ -6460,7 +6460,7 @@ void UpdateBhvpipe(struct S *p) {
     } while (p->n30 != s);
     {
         struct O *o = p->p10;
-        GetPipeGoalMat(o->nF84, o->gF88, o->nF8C, o->a1B0);
+        GetPipeGoalMatrix(o->nF84, o->gF88, o->nF8C, o->a1B0);
     }
 }
 } } // namespace M_UpdateBhvpipe

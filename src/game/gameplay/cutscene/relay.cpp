@@ -338,7 +338,7 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
 
@@ -1054,7 +1054,7 @@ extern "C" void func_001B9880(MURRAY *pmurray);
 
 void ReleaseJsgSma(JSGV *pjsg) __asm__("ClearJsgSma");
 
-extern "C" void func_00220508(MOVEREC *pmr, LO *plo);
+extern "C" void StartJtThrowFlight(MOVEREC *pmr, LO *plo);
 
 void PutSwHeroAtWarp(WARPV *pwarp) __asm__("func_00228170");
 
@@ -1064,7 +1064,7 @@ GRABSPOTV *PspotFromLo(LO *plo) __asm__("PgrabspotFromLo");
 
 extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown) __asm__("func_00173610");
 
-void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
+void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtCaneState__FP2JTi");
 
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
 
@@ -1194,7 +1194,7 @@ int FBhv193AtGoal(BHV193V *pbhv) __asm__("func_00144EE8");
 
 int FBhv166NearEnd(BHV166 *pbhv) __asm__("FBhvpathAtEnd");
 
-void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("func_0019E110");
+void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("GetJtPipeDistanceRange");
 
 int FStepHoldArrived(STEPPLAYER *pstepplayer) __asm__("func_001423A0");
 
@@ -4702,7 +4702,7 @@ void NextJsgCommand(JSGV *pjsg)
                 LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk59.oidShip);
                 if (plo)
                 {
-                    func_00220508(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->moverec, plo);
                 }
             }
         }
@@ -4728,7 +4728,7 @@ void NextJsgCommand(JSGV *pjsg)
                 LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
-                    func_00220508(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->moverec, plo);
                     SetJsgJt(pjsg, prelaycmd, pmurray);
                 }
             }

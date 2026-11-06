@@ -194,7 +194,7 @@ struct JT : public STEPPLAYER
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_00188CC8");   /* slot 55 */
     virtual void VUnk56(XP *pxp, int ixpd) __asm__("func_00188E78");   /* slot 57 */
     virtual void VUnk69() __asm__("func_00188960");   /* slot 70 */
-    virtual int FInvulnerable(ZPK zpk) __asm__("func_001A21A0");   /* slot 76 */
+    virtual int FInvulnerable(ZPK zpk) __asm__("ShouldJtIgnoreZap");   /* slot 76 */
     virtual void OnActive(int fActive) __asm__("func_0018E3A0");   /* slot 78 */
     virtual int VUnk84() __asm__("func_0018DEE0");   /* slot 85 */
     virtual void VUnk86(int fOn) __asm__("func_00189530");   /* slot 87 */
@@ -202,7 +202,7 @@ struct JT : public STEPPLAYER
     virtual int VUnk88() __asm__("GetJtPlayerState");   /* slot 89 */
     virtual void VUnk89() __asm__("func_0018C060");   /* slot 90 */
     virtual int VUnk91() __asm__("JT_FFaceTarget");   /* slot 92 */
-    virtual void OnHeroDied() __asm__("func_001A2388");   /* slot 93 */
+    virtual void OnHeroDied() __asm__("OnJtDeath");   /* slot 93 */
     virtual int VUnk93() __asm__("func_001894F8");   /* slot 94 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("func_0018DE80");   /* slot 96 */
     virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("func_0018A350");   /* slot 97 */

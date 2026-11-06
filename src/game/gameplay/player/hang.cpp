@@ -78,13 +78,13 @@ M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P func_0011B500(qword,float);
 qword func_0011BFF0(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void func_00204660(JT*,float);float atan2f(float,float);
-void SetJtJts__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void func_0019CC50(void*,int,JT*,void*);
+void SetJtJts__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
 void __ml__FRC7MATRIX4T0(M4*,void*,IKJ*);
 void SolveIk(JT*,int);
-qword func_00190C58(JT*);
+qword GetJtHangHandlePosition(JT*);
 void SetActPositionGoal(void*,qword);
 qword PosSmooth(qword,qword,float,float*,int);
 int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, int *pn);
@@ -493,7 +493,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
  }
  SetJtJts__FP2JT3JTS4JTBS(p,3,next);CalculateJtHangAccel__FP2JT(p);
  if(p->link)func_001F5078(p->link->object);
- if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){ClearPoctlJoyPressed(p->input,0x400);func_0019CC50(p->action,0,0,0);}
+ if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){ClearPoctlJoyPressed(p->input,0x400);StartJtMode(p->action,0,0,0);}
  if(p->state==3)return;
  float activeTarget,speedTarget;
  switch(p->state){case 0:activeTarget=1.0f;speedTarget=1.0f;break;case 2:activeTarget=1.0f;speedTarget=0.0f;break;case 1:{register float half __asm__("$f0"),zero __asm__("$f20");const uint halfBits=0x3F000000;const int zeroBits=0;
@@ -566,7 +566,7 @@ typedef char DataPointer_Size[sizeof(NODE*)==4?1:-1];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
-extern "C" qword func_00190C58(JT *p)
+extern "C" qword GetJtHangHandlePosition(JT *p)
 {
     qword q, d, dir, r;
     register qword fallback __asm__("$2");
@@ -608,14 +608,14 @@ extern "C" qword func_00190C58(JT *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
-extern "C" void func_00190D10(JT *p)
+extern "C" void RenderJtHangIk(JT *p)
 {
     IKJ *t;
     qword a, b, d;
     M4 m;
     int n;
 
-    a = VuAdd(func_00190C58(p), p->x1960);
+    a = VuAdd(GetJtHangHandlePosition(p), p->x1960);
     b = func_001A62E8(p->x19a4);
     d = VuSub(a, b);
     a = ConvertXfVec(0, p->x19c4->xa0, d);

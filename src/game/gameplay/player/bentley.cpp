@@ -34,7 +34,7 @@ extern float D_002BC9B4;   /* defined below, in address order */
 void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis);
 void BindLoOidTable(LO *plo, int c, void *aoid);
 void GetStepplayerCpdefi(STEPPLAYER *pstepplayer, CPDEFI *pcpdefi);
-void func_0019EA00(JTPIPE *pjtpipe, CPDEFI *pcpdefi);
+void GetJtPipeVelocity(JTPIPE *pjtpipe, CPDEFI *pcpdefi);
 int func_00224610(LO *plo);
 void func_0018D698(BENTLEY *pbentley, JTPOCKET *ppocket, LO *plo);
 void UnlockProxyPlo(PROXY *pproxy, LO *plo);
@@ -182,14 +182,14 @@ int GrfPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
 void ClearPoctlJoyPressed(struct PO *po, int grf);
 void UpdateJtAirInput(void *pv);
 void UpdateJtGrabInput(void *pv);
-void func_001A12F0(void *pv);
-void func_0019CC50(void *pv, int a, int b, int c);
+void UpdateJtHurtInput(void *pv);
+void StartJtMode(void *pv, int a, int b, int c);
 void FJtGrabNearestCandidate(void *pv, int a, int b);
 int PgadgetBentleyFromId(struct P *p, int n);
 void UpdateJtActivePipe(void *pv);
 void func_00136118(struct P *p);
 void func_001367D8(struct P *p);
-void UpdateJtthrow(void *pv);
+void UpdateJtThrow(void *pv);
 int FAsegaRetracted(void *pv);
 int FSmaRetracted(void *pv);
 void UpdateBentleyAim(struct P *p);
@@ -246,7 +246,7 @@ void UpdateBentleyStateMachine(struct P *p)
                 func_00195A00(p->a2C0, 1, 0, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
                 ClearPoctlJoyPressed(p->p150, 0x400);
-                func_0019CC50(p->aF00, 0, 0, 0);
+                StartJtMode(p->aF00, 0, 0, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->p150, 0x10);
                 p->x16B4 = PgadgetBentleyFromId(p, p->x1870);
@@ -277,7 +277,7 @@ void UpdateBentleyStateMachine(struct P *p)
             UpdateJtGrabInput(&p->x4C0);
             break;
         case 4:
-            func_001A12F0(p->aDF0);
+            UpdateJtHurtInput(p->aDF0);
             break;
         case 5:
             if ((p->p150->x30 & 8) || !FStepplayerNearInteractTarget(p, 1)) {
@@ -286,7 +286,7 @@ void UpdateBentleyStateMachine(struct P *p)
                 func_00195A00(p->a2C0, 1, 0, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
                 ClearPoctlJoyPressed(p->p150, 0x400);
-                func_0019CC50(p->aF00, 0, 0, 0);
+                StartJtMode(p->aF00, 0, 0, 0);
             } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x20, 0.2f)) {
                 FJtGrabNearestCandidate(&p->x4C0, 0xF8FE, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
@@ -305,7 +305,7 @@ void UpdateBentleyStateMachine(struct P *p)
             func_001367D8(p);
             break;
         case 12:
-            UpdateJtthrow(p->a11B0);
+            UpdateJtThrow(p->a11B0);
             break;
         case 10:
             if (p->p1030 && FAsegaRetracted(p->p1030))
@@ -575,11 +575,11 @@ void func_0015C150(struct VO *);
 void func_00195FB8(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
-void func_0019EAB0(void *, int);
+void SetJtPipeState(void *, int);
 void func_00136298(struct P *);
 void func_00136040(struct P *, int);
 void func_00136530(struct P *, int);
-void SetJtthrowState(void *, int);
+void SetJtThrowState(void *, int);
 int IsmsFindSmOptional__FP2SM3OID(void *, int);
 int func_001430C8(struct P *);
 void func_00142868(struct P *, int);
@@ -662,7 +662,7 @@ void SetBentleyState(struct P *p, int k)
         SetJtHurtState(p->aDF0, -1);
         break;
     case 13:
-        func_0019EAB0(p->aF50, -1);
+        SetJtPipeState(p->aF50, -1);
         break;
     case 6:
         if (p->p186C) {
@@ -680,7 +680,7 @@ void SetBentleyState(struct P *p, int k)
         p->g1A0 = p->p1030->g1C / p->p1030->pasega->g74;
         break;
     case 12:
-        SetJtthrowState(p->a11B0, -1);
+        SetJtThrowState(p->a11B0, -1);
         break;
     }
     kOld = p->state;
@@ -733,7 +733,7 @@ void SetBentleyState(struct P *p, int k)
         n = 9;
         break;
     case 13:
-        func_0019EAB0(p->aF50, 0);
+        SetJtPipeState(p->aF50, 0);
         return;
     case 6:
         func_00136040(p, 0);
@@ -877,7 +877,7 @@ extern "C" void GetBentleyCpdefi(BENTLEY *pbentley, CPDEFI *pcpdefi)
     GetStepplayerCpdefi(pbentley, pcpdefi);
     switch (pbentley->nState) {
     case 13:
-        func_0019EA00(&pbentley->jtpipe, pcpdefi);
+        GetJtPipeVelocity(&pbentley->jtpipe, pcpdefi);
         return;
     case 5:
         pcpdefi->grfcpd |= 1;
@@ -942,8 +942,8 @@ namespace M_func_00135A48 { extern "C" {
 struct O { char pad[0x10]; unsigned long grf; };
 struct E { struct O *po; char pad[0x3c]; };
 struct S { char pad[0xdf0]; int fdf0; char pad2[0xf50 - 0xdf4]; int ff50; char pad3[0x13d0 - 0xf54]; int st; };
-void func_001A2100(void *, struct E *);
-void func_0019E9C8(void *, struct E *);
+void AdjustJtHurtXp(void *, struct E *);
+void ResetJtPipeAdjust(void *, struct E *);
 void AdjustStepNewXp(struct S *, struct E *, int);
 /** @sly2-annot addr=0x135A48
  * Purpose: BENTLEY vt55: per-state contact hook (hurt 0x1A2100, pipe 0x19E9C8, else STEP base 0x204250)
@@ -955,8 +955,8 @@ void func_00135A48(struct S *p, struct E *ae, int i) {
     struct E *pe = &ae[i];
     if (pe->po->grf & (0x8000L << 33)) return;
     switch (p->st) {
-    case 4: func_001A2100(&p->fdf0, ae); break;
-    case 13: func_0019E9C8(&p->ff50, ae); break;
+    case 4: AdjustJtHurtXp(&p->fdf0, ae); break;
+    case 13: ResetJtPipeAdjust(&p->ff50, ae); break;
     default: AdjustStepNewXp(p, ae, i); break;
     }
 }
@@ -1073,7 +1073,7 @@ namespace M_func_00135D80 { extern "C" {
 struct S { char pad[0x268]; int f268; char pad1[0x2c0 - 0x26c]; int f2c0; char pad2[0x4c0 - 0x2c4]; int f4c0; char pad3[0xdf0 - 0x4c4]; int fdf0; char pad4[0x13d0 - 0xdf4]; int st; };
 int func_001944C8(void *, int *);
 int func_0019C870(void *, int *);
-int func_001A23F8(void *, int *);
+int GetJtHurtAdjustRecord(void *, int *);
 void SetStepPhys(struct S *, int, int);
 /** @sly2-annot addr=0x135D80
  * Purpose: BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default
@@ -1087,7 +1087,7 @@ void func_00135D80(struct S *p) {
     int r;
     switch (p->st) {
     case 3: r = func_001944C8(&p->f4c0, &n); break;
-    case 4: r = func_001A23F8(&p->fdf0, &n); break;
+    case 4: r = GetJtHurtAdjustRecord(&p->fdf0, &n); break;
     case 2: r = func_0019C870(&p->f2c0, &n); break;
     default: r = 0; break;
     }
@@ -1144,9 +1144,9 @@ struct Q { char pad[0x148]; unsigned long grf; };
 struct A { char pad[0x40]; int f40; char pad1[8]; struct Q *pq; char pad2[0x60 - 0x50]; ti128 v60; char pad3[0x88 - 0x70]; float f88; };
 struct S { char pad[0x208]; struct A *pa; char pad1[0x4c0 - 0x20c]; int f4c0; char pad2[0x9e0 - 0x4c4]; int f9e0;
     char pad3[0xf50 - 0x9e4]; int ff50; char pad4[0x108c - 0xf54]; int f108c; char pad5[0x13d0 - 0x1090]; int st; };
-void func_0019FEB0(void *, int, ti128);
+void AddJtPlaceAtPosition(void *, int, ti128);
 void func_001942F0(void *);
-void func_0019EA60(void *);
+void RecordJtPipePlace(void *);
 /** @sly2-annot addr=0x135EB0
  * Purpose: Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates
  * Info: proposed name UpdateBentleyPlaces (T2); TU bentley
@@ -1159,13 +1159,13 @@ void func_00135EB0(struct S *p) {
     case 0: case 1: case 5: case 6: case 7: case 11: case 12: case 14:
         pa = p->pa;
         if (pa && 0.7f < pa->f88 && !(pa->pq->grf & 0x20000000) && !p->f108c)
-            func_0019FEB0(&p->f9e0, pa->f40, pa->v60);
+            AddJtPlaceAtPosition(&p->f9e0, pa->f40, pa->v60);
         break;
     case 3:
         func_001942F0(&p->f4c0);
         break;
     case 13:
-        func_0019EA60(&p->ff50);
+        RecordJtPipePlace(&p->ff50);
         break;
     }
 }
@@ -1438,7 +1438,7 @@ void func_002303A0(struct P *, struct O *, int);
 float RadStepHeading(struct P *);
 void func_00204660(struct P *, float);
 void FixStepAngularVelocity(struct P *);
-void SetJtthrowState(void *, int);
+void SetJtThrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
@@ -1483,7 +1483,7 @@ void func_00136530(struct P *p, int k)
             return;
         if (pg->k1914 == 7)
             return;
-        SetJtthrowState(&pg->x1910, 0);
+        SetJtThrowState(&pg->x1910, 0);
         return;
     }
     case 0: {
@@ -1555,7 +1555,7 @@ extern int D_002DFBC0;
 int FStepplayerInJtmode();
 int func_0019C8D0(void *pv, int k);
 int func_00194558(void *pv, int k);
-int func_0019EEF0(void *pv, int k);
+int CanJtUseGadgetOnPipe(void *pv, int k);
 struct E *PgadgetBentleyFromId(struct P *p, int k);
 int func_00224590(void *pv);
 int func_001CADE0(void *pv, int n);
@@ -1584,7 +1584,7 @@ int BENTLEY_FCanUseGadget(struct P *p, int k)
             goto inner;
         goto fail;
     case 13:
-        if (func_0019EEF0(p->aF50, k))
+        if (CanJtUseGadgetOnPipe(p->aF50, k))
             goto inner;
     default:
     fail:
@@ -1675,7 +1675,7 @@ struct P { char pad[0x4C0]; char a4C0[0x9BC - 0x4C0]; int x9BC; char pad1[0x11B0
 extern struct G D_002DEB30;
 void BroadcastGameEvent(struct G *pg, int n, struct P *p);
 struct E *PgadgetBentleyFromId(struct P *p, int k);
-void SetJtthrowState(void *pv, int n);
+void SetJtThrowState(void *pv, int n);
 void SetJtGrabState(void *pv, int n, void *pv2, int m);
 struct O *PloAcquireProxy(void *pv, int n);
 int func_00224610(struct O *po);
@@ -1700,7 +1700,7 @@ void StartBentleyGadget(struct P *p, int k)
     case 4: case 5: case 7: case 9: case 11: case 13: {
         struct E *pe = PgadgetBentleyFromId(p, k);
         if ((unsigned int)(p->x11B4 - 4) < 3) {
-            SetJtthrowState(p->a11B0, 7);
+            SetJtThrowState(p->a11B0, 7);
             return;
         }
         if (pe->p8) {
@@ -1720,7 +1720,7 @@ void StartBentleyGadget(struct P *p, int k)
             p->po11C0 = po;
             GrfbtnGadget(p, k);
             SetBentleyState(p, 0xC);
-            SetJtthrowState(p->a11B0, 4);
+            SetJtThrowState(p->a11B0, 4);
             return;
         }
         ChargeGadgetMp(p, k);
