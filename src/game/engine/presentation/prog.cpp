@@ -126,7 +126,7 @@ int func_002355E0(int tid, void *arg) __asm__("StartThread_2355E0");
 void LoadingScreenThread(void *);
 int ReferSemaStatus(int,SEMA *);
 float sinf(float);
-void func_001C93E0(GIFS *,M2 *,float);
+void DrawLoadingScreenLogo(GIFS *,M2 *,float);
 void CloseFrame__Fv(void);
 void MarkClockTick(CLOCK *,int);
 }
@@ -257,7 +257,7 @@ extern "C" void BeginLoadingScreen(float *input)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-extern "C" void func_001C9090(void)
+extern "C" void UpdateLoadingScreen(void)
 {
 }
 
@@ -343,7 +343,7 @@ extern "C" void LoadingScreenThread(void *)
             matrix.a[4]=D_002C10A8;matrix.a[5]=D_002C10AC;
             float alpha=D_002C10C0[0]+t*(D_002C10C0[1]+t*D_002C10C0[2]);
             Clamp(&alpha,D_002BBB60);
-            func_001C93E0(&D_002DEA00,&matrix,alpha);
+            DrawLoadingScreenLogo(&D_002DEA00,&matrix,alpha);
             CloseFrame__Fv();D_002BE538++;
         }
         do{D_002DEA4C->flags&=-2;}while(0);
@@ -360,7 +360,7 @@ extern "C" void LoadingScreenThread(void *)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-extern "C" void func_001C93E0(GIFS *pgs, M2 *pm, float alpha)
+extern "C" void DrawLoadingScreenLogo(GIFS *pgs, M2 *pm, float alpha)
 {
     unsigned int i;
     pgs->AddPrimPack( 0, 1, 0xE);

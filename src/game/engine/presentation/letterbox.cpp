@@ -28,7 +28,7 @@ extern char D_004435F0[];           /* speaker label (HYPOTHESIS) */
 LO *PloFindSwObject(SW *sw, int findFlags, OID oid, LO *context);
 extern "C" {
 void SetWidgetRequest(TIMER *timer, int n);                   /* SetTimerTimers (HYPOTHESIS) */
-void func_00227788(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
+void ClearSubtitle(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
 }
 
 /** @sly2-annot addr=0x1A3020
@@ -73,7 +73,7 @@ extern "C" void ResetLetterbox(LETTERBOX *letterbox)
 extern "C" void ShowLetterbox(LETTERBOX *letterbox)
 {
       if (letterbox->timer) {
-            func_00227788(D_004435F0);
+            ClearSubtitle(D_004435F0);
             letterbox->timer->VUnk48(-1);
       }
 }

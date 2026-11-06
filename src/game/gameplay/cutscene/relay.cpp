@@ -1005,7 +1005,7 @@ struct SUBTITLE
       int grfbtnPrompt;
 };
 
-void ClearSubtitle(SUBTITLE *psubtitle) __asm__("func_00227788");
+void ClearSubtitle(SUBTITLE *psubtitle) __asm__("ClearSubtitle");
 
 void SetStepSsgGoal(STEP *pstep, SSG *pssg) __asm__("func_00171CF8");
 

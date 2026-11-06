@@ -17,7 +17,7 @@ struct RGBA {
 };
 
 /* A speaker label (HYPOTHESIS: the name tag of a talking character): speaker kind or oid (-1 = none), its colour
-   and a flag word rendered as characters by func_00227940. */
+   and a flag word rendered as characters by FormatSubtitleButtonGlyphs. */
 struct SPEAKERLABEL
 {
     int k;          /* +0x0 */
@@ -38,7 +38,7 @@ extern const char D_002A9878[];
 
 extern "C" {
 RGBA RgbaFromSpeakerCid(int k);
-void func_00227788(SPEAKERLABEL *plabel);
+void ClearSubtitle(SPEAKERLABEL *plabel);
 char *strcpy(char *pchDst, const char *pchSrc);
 void strcpy1(void *p, const void *s);
 float func_001FCFD0(void *p, int id);
@@ -80,9 +80,9 @@ extern "C" RGBA RgbaFromSpeakerCid(int k)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227728(SPEAKERLABEL *plabel, int k, int b)
+extern "C" void SetSubtitle(SPEAKERLABEL *plabel, int k, int b)
 {
-    func_00227788(plabel);
+    ClearSubtitle(plabel);
     plabel->k = k;
     plabel->rgba = RgbaFromSpeakerCid(b);
 }
@@ -93,7 +93,7 @@ extern "C" void func_00227728(SPEAKERLABEL *plabel, int k, int b)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227788(SPEAKERLABEL *plabel)
+extern "C" void ClearSubtitle(SPEAKERLABEL *plabel)
 {
     plabel->k = -1;
     plabel->rgba = RgbaFromSpeakerCid(-1);
@@ -108,7 +108,7 @@ extern "C" void func_00227788(SPEAKERLABEL *plabel)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_002277D0(SPEAKERLABEL *plabel, char *pch)
+extern "C" void GetSubtitleText(SPEAKERLABEL *plabel, char *pch)
 {
     int k = plabel->k;
     if (k == -1) {
@@ -124,7 +124,7 @@ extern "C" void func_002277D0(SPEAKERLABEL *plabel, char *pch)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227820(SPEAKERLABEL *plabel, CRichText *prt)
+extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *plabel, CRichText *prt)
 {
     void *pv;
     float f;
@@ -153,7 +153,7 @@ extern "C" void func_00227820(SPEAKERLABEL *plabel, CRichText *prt)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227940(SPEAKERLABEL *plabel, char *pch)
+extern "C" void FormatSubtitleButtonGlyphs(SPEAKERLABEL *plabel, char *pch)
 {
     FLAGCHTABLE t = D_002A97F8;
     unsigned int i;

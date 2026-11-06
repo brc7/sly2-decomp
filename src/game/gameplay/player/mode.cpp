@@ -199,7 +199,7 @@ void BroadcastGameEvent(void *p, int n, int m);
 void PlayWidgetAnim(WIDGET *p, int n);
 void StopWidgetAnim(WIDGET *p, int n);
 void SetWidgetAnimPhase(WIDGET *p, int n, float f);
-void func_00227788(void *p);
+void ClearSubtitle(void *p);
 void SetReconSelState(void *p, int n);
 void SetWidgetState(WIDGET *p, int n);
 void SetWidgetRequest(WIDGET *p, int n);
@@ -559,7 +559,7 @@ extern "C" void func_0019D660(JTMODEHUD *p, int st)
             SetWidgetAnimPhase(p->pwidgetHud, 0x351, p->pjtmode->hud.uZoom);
         }
         if (p->pjtmode->nKind == 1) {
-            func_00227788(D_004435F0);
+            ClearSubtitle(D_004435F0);
             if (p->pwidgetCur) p->pwidgetCur->vt[49].pfn((char *)p->pwidgetCur + p->pwidgetCur->vt[49].d, -1);
         }
         if (p->pnUnk14) SetReconSelState(p->pnUnk14, 0);

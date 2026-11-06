@@ -42,7 +42,7 @@ void CBinaryInputStream_ReadStringSw(BIS *pbis, int *pn, void *pv, int n);
 void CBinaryInputStream_SkipStringSw(BIS *pbis);
 void func_00210BE0(void *pv);
 void BeginLoadingScreen(void *p);
-void func_001C9090(void *p, const void *pv);
+void UpdateLoadingScreen(void *p, const void *pv);
 void EndLoadingScreen(void *p);
 void LoadSoundSectionFromBrx(void *p, BIS *pbis);
 void PostSoundLoad(void *p);
@@ -120,7 +120,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     psw->awe = (WE *)AllocZ(&u.req, psw->cwe * 0x6C, 0x10);
     int h;
     BeginLoadingScreen(&h);
-    func_001C9090(&h, D_002A4BD0);
+    UpdateLoadingScreen(&h, D_002A4BD0);
     for (i = 0; i < psw->cwe; i++) {
         WE *pwe = &psw->awe[i];
         Read__18CBinaryInputStreamiPv(pbis, 0x40, pwe->ab1C);
@@ -181,7 +181,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         ODD odd;
         char ab[0x4040];
         func_00258248(&odd);
-        func_001C9090(&h, func_0014B690(pwe->ab1C));
+        UpdateLoadingScreen(&h, func_0014B690(pwe->ab1C));
         psw->iwe = pwe->x5C ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
         LoadSwSharedHeaderFromBrx(1, pbis);
@@ -221,7 +221,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     func_001ED448();
     psw->iwe = -2;
     PostSoundLoad(D_003DD040);
-    func_001C9090(&h, 0);
+    UpdateLoadingScreen(&h, 0);
     EndLoadingScreen(&h);
 }
 

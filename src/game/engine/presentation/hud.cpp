@@ -67,8 +67,8 @@ char *strcpy(char *, const char *);
 PO *PpoHero(SW *psw);
 char *PchzReconPending(int *pn);
 char *PchzReconSelected(int *pn);
-void func_002277D0(char *pchz, int n);
-void func_00227940(char *pchz, int n);
+void GetSubtitleText(char *pchz, int n);
+void FormatSubtitleButtonGlyphs(char *pchz, int n);
 void SetWidgetRequest(WIDGETV *pwidget, int nRequest);
 void SetWidgetStateW(WIDGETV *pwidget, int nState) __asm__("SetWidgetState");
 int FWidgetObscured(WIDGETV *pwidget);
@@ -341,7 +341,7 @@ void BuildWidgetArgText(void *p, int i, struct T *t)
  * @end-sly2-annot */
 extern "C" void func_00211390(int n)
 {
-    func_002277D0(D_004435F0, n);
+    GetSubtitleText(D_004435F0, n);
 }
 
 // 0x2113B8 func_002113B8
@@ -354,7 +354,7 @@ extern "C" void func_00211390(int n)
  * @end-sly2-annot */
 extern "C" void func_002113B8(int n)
 {
-    func_00227940(D_004435F0, n);
+    FormatSubtitleButtonGlyphs(D_004435F0, n);
 }
 
 // 0x2113E0 BuildTickerText
@@ -3439,7 +3439,7 @@ extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
 extern "C" RT *func_00215BA8(RT *,char *,S *,DATA *);
 extern "C" int func_00215F40(RT *);
-extern "C" void func_00227820(void *,RT *);
+extern "C" void TrimSubtitleToVoiceProgress(void *,RT *);
 extern "C" void func_00215CA8(RT *,char *);
 extern "C" int func_00215D40(RT *);
 extern "C" void func_00215D00(RT *,RGBA *);
@@ -3477,7 +3477,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         style=*data;
         func_00215BA8(&rt,text,p,&style);
         func_00215F40(&rt);
-        func_00227820(D_004435F0,&rt);
+        TrimSubtitleToVoiceProgress(D_004435F0,&rt);
         func_00215CA8(&rt,0);
         while((ch=func_00215D40(&rt))!=0)if(ch=='\n')lines++;
         visible=(int)(p->height/p->scale);

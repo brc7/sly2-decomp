@@ -1877,7 +1877,7 @@ void func_00233048(int, int, int, int, int, int, int);
 int snd_FlushSoundCommands(void);
 void func_00156BE0(int, qword, int, void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void func_00227788(void *);
+void ClearSubtitle(void *);
 void func_00259B48(void *, void *);
 void ResetSlotheap(void *);
 void ClearDl__FP2DL(void *);
@@ -1909,7 +1909,7 @@ void ResetSndmgr(struct P *p)
     p->aEC[5] = 0;
     func_00156BE0(0, D_002A2DD0, 0, p->s74);
     func_002333B4(p->s108, 0, 0xC);
-    func_00227788(D_004435F0);
+    ClearSubtitle(D_004435F0);
     func_00259B48(&p->r200, 0);
     p->n204 = 0;
     func_002333B4(p->s208, 0, 0x20);
@@ -2403,7 +2403,7 @@ extern "C" {
 void StopDialog(P *, int);
 D *func_001FCFA0(P *, int);
 X *PstreamsndNew(D *, int);
-void func_00227728(void *, int, int);
+void SetSubtitle(void *, int, int);
 X *PloFindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int func_001FD0C0(P *, int);
 X *func_001F67E0(X *, int);
@@ -2425,7 +2425,7 @@ extern "C" X *StartDialog(P *p, int k, int f)
     p->n244 = 0;
     p->n248 = 0;
     p->n24C = 0;
-    if (!f) func_00227728(D_004435F0, k, pd->n48);
+    if (!f) SetSubtitle(D_004435F0, k, pd->n48);
     if (pd->n48 != -1 && pd->n54) {
         register X *po __asm__("$19")=PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, pd->n48, 0);
         if (po) {
