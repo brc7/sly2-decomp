@@ -1102,7 +1102,7 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f;};
 struct M3 {U r[3];M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};struct M4 {qword a,b,c,d;};
 struct PHYS {qword accel,axis;float rate,scale;};
-struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float gE0,gE4;};
+struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float touchWord,angularDamping;};   /* +0xE0: the touch object (unused here) */
 extern "C" { extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0; }
 extern "C" {
 int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorterThan5(qword);
@@ -1141,7 +1141,7 @@ static inline void PublishBasisStart(S*p,qword first,qword second){__asm__("sqc2
 void ProjectRipTransform(S*p){
  WORK w;
  if(!IsVectorNearlyZero(p->omega)) {
-  qword omega=Scale(p->omega,Broadcast(&w.shared.math.first,p->gE4*D_002DDED0.dt+1.0f));
+  qword omega=Scale(p->omega,Broadcast(&w.shared.math.first,p->angularDamping*D_002DDED0.dt+1.0f));
   p->omega=omega;
   float length=Float(Sqrt(Sq(omega)));
   if(0.0001f<length){
@@ -1183,8 +1183,8 @@ typedef char layout_cf0a0_16[((unsigned)&((S*)0)->prev==0x80)?1:-1];
 typedef char layout_cf0a0_17[((unsigned)&((S*)0)->vel==0x90)?1:-1];
 typedef char layout_cf0a0_18[((unsigned)&((S*)0)->phys==0xA0)?1:-1];
 typedef char layout_cf0a0_19[((unsigned)&((S*)0)->omega==0xD0)?1:-1];
-typedef char layout_cf0a0_20[((unsigned)&((S*)0)->gE0==0xE0)?1:-1];
-typedef char layout_cf0a0_21[((unsigned)&((S*)0)->gE4==0xE4)?1:-1];
+typedef char layout_cf0a0_20[((unsigned)&((S*)0)->touchWord==0xE0)?1:-1];
+typedef char layout_cf0a0_21[((unsigned)&((S*)0)->angularDamping==0xE4)?1:-1];
 typedef char layout_cf0a0_22[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
 typedef char layout_cf0a0_23[((unsigned)&((CLOCK*)0)->dt==0x4)?1:-1];
 typedef char layout_cf0a0_24[((unsigned)&((CLOCK*)0)->dtbits==0x4)?1:-1];
@@ -1482,7 +1482,7 @@ typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
 struct LM { float gMin, gMax; };
 struct SHRAPNEL {
-    char pad[0x18]; float g18;
+    char pad[0x18]; float duration;
     char pad2[0x90 - 0x1C]; qword v;
     char pad3[0xD0 - 0xA0]; float ag[3];
     char pad4[0xF0 - 0xDC]; V3 dir;
@@ -1517,10 +1517,10 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
     int i;
     PostRipEmit(psh, pemitb);
     float gain=GRandInRange__Fff(D_002C1F78.gMin,D_002C1F78.gMax);
-    float life=psh->g18*gain;
+    float life=psh->duration*gain;
     qword lengthValue=VLen(psh->v);
     char*page;LM*limits;
-    len=ReadLengthAndPublish(lengthValue,&page,&limits,&psh->g18,life);
+    len=ReadLengthAndPublish(lengthValue,&page,&limits,&psh->duration,life);
     CopyDirection(psh,pemitb);
     g = GClamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
     for (i = 0; i < 3; i++)
@@ -1528,26 +1528,26 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
-typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,g18)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
+typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
 namespace M_FBounceShrapnel { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x60]; void *p60; };
-struct B { char pad[0xEC]; struct C *pc; };
+struct C { char pad[0x60]; void *unknown60; };
+struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
 struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-// SHRAPNEL FBounce: HandleRipBounce then remove on condition. (inferred)
+// SHRAPNEL FBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
 } } // namespace M_FBounceShrapnel
 int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_FBounceShrapnel;
     void *p = this;
     M_FBounceShrapnel::A *pa = (M_FBounceShrapnel::A *)pa_m;
-    void *plo = pa->pb->pc->p60;
+    void *plo = pa->pb->unknownEC->unknown60;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
         RemoveRip__FP3RIP(p);
