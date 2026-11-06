@@ -1584,8 +1584,8 @@ typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];
 struct RAJAN : STEPGUARD
 {
     char pad1010[0x1020 - 0x1010];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetRajanClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetRajanClassDesc");   /* slot 6 */
     virtual void VSlot88() __asm__("func_001CBEE0");   /* slot 89 */
     virtual void VSlot90() __asm__("func_001CBF90");   /* slot 90 */
 };
