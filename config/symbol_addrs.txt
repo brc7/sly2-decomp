@@ -4367,3 +4367,8 @@ _vt$7CSwHeap = 0x2CA578; // type:data size:0x28
 _vt$15CMemInputStream = 0x2CA5A0; // type:data size:0x20
 _vt$10CStreamBis = 0x2D2918; // type:data size:0x20
 _vt$8RELAYJSG = 0x2D8C08; // type:data size:0x40
+// tu_119BC8's array class and the class templates of sly2/arrayv.h (DRAFT names, HYPOTHESIS element type char *)
+_vt$12CDynArrayStr = 0x2CA5E0; // type:data size:0x40
+_vt$t10CHashIndex1ZPc = 0x2CA620; // type:data size:0x20
+_vt$t14CArrayListener1ZPc = 0x2CA640; // type:data size:0x20
+_vt$t10CDynArrayV1ZPc = 0x2CA660; // type:data size:0x40

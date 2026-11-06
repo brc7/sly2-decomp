@@ -6,6 +6,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00223F50
 #include "sly2/slotheap.h"
 #include "sly2/basic.h"
+#include "sly2/cm.h"     /* before xfm.h: CMPART2 (cm.h) defined before TN, so TN's vtable comes out first */
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
@@ -13,7 +14,6 @@
 #include "sly2/step.h"
 #include "sly2/aseg.h"
 #include "sly2/stepplayer.h"
-#include "sly2/cm.h"
 #include "sly2/util.h"
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"

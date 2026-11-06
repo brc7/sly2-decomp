@@ -40,8 +40,21 @@ extern "C" int func_00119BC8(int *p) { return *p; }
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
  * @end-sly2-annot */
-extern "C" void func_00119BD0(void *p, void *pOwner)
+/* The array class whose functions these are (DRAFT name CDynArrayStr, vtable 0x2CA5E0, emitted here): a
+   CDynArrayV<char *> of strings with a hash index at +0x34; only its two own slots are declared. g++ 2.95 emits a TU's
+   vtables in the reverse order of the classes' definitions and instantiations: CDynArrayV<char *> (the base), then
+   CArrayListener/CHashIndex<char *> (the member), then this class gives the ELF's order 0x2CA5E0..0x2CA660. */
+class CDynArrayStr : public CDynArrayV<char *>
 {
+public:
+    char pad2C[0x34 - 0x2C];
+    CHashIndex<char *> m_index;       /* +0x34 (instantiating it here also puts the vtables in the ELF's order) */
+    virtual void Init(void *powner) __asm__("func_00119BD0");   /* slot 1; key function */
+    virtual void ReadElement(char **ppchz, CBinaryInputStream *pbis) __asm__("func_00119C08");   /* slot 4 */
+};
+void CDynArrayStr::Init(void *pOwner)   /* key function: CDynArrayStr's vtable comes out here */
+{
+    void *p = this;
     func_002564E0(p, pOwner);
     func_00256528((char *)p + 0x34, p, (void *)func_00119BC8);
 }
@@ -121,3 +134,8 @@ template void CHash<char *, int>::Clear();                              /* 0x256
 template void CHashIndex<char *>::Clear();                              /* 0x2568A0, slot 1 */
 template int *CHash<char *, int>::Insert(char **, int *);               /* 0x2569F8 */
 template void CHashIndex<char *>::OnAdd(char **);                       /* 0x256AF0, slot 2 */
+/* The three class templates' vtables (0x2CA620 CHashIndex, 0x2CA640 CArrayListener, 0x2CA660 CDynArrayV, in this
+   order) come out of these explicit instantiations; CDynArrayVBase, all pure, has none in the ELF either. */
+template class CDynArrayV<char *>;
+template class CArrayListener<char *>;
+template class CHashIndex<char *>;

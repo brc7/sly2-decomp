@@ -171,16 +171,6 @@ struct SAA : BASIC
 };
 typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
 
-/* 147 CID147 (0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots */
-struct CID147 : BASIC
-{
-    char pad10[0x60 - 0x10];
-    virtual void VUnk00() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
-    virtual void VUnk01() __asm__("func_001566C8");   /* slot 2 */
-};
-typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
-
 /* 151 CID151 (0x60): SND (sound instance) and its kinds BANKSND / STREAMSND; vtable 0x2D9D00, 16 slots (sly2/snd.h,
    key TU sound.cpp) */
 #include "sly2/snd.h"
@@ -460,6 +450,16 @@ struct CID117 : LO
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
+
+/* 147 CID147 (0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots; defined between CID117 and CID47: noise.cpp emits CID47, CID147, CID117 */
+struct CID147 : BASIC
+{
+    char pad10[0x60 - 0x10];
+    virtual void VUnk00() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
+    virtual void VUnk01() __asm__("func_001566C8");   /* slot 2 */
+};
+typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 
 /* 47 CID47 (0x110): stimulus listener; vtable 0x2CE118, 50 slots */
 struct CID47 : XFM
