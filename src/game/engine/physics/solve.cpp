@@ -60,7 +60,7 @@ struct SOPHYS
     M3 m;                   /* 0x30 inverse inertia */
     U linear;               /* 0x60 */
     U angular;              /* 0x70 */
-    qword v80;              /* 0x80 constant acceleration */
+    qword constantAccel;              /* 0x80 constant acceleration */
     CONSTR constrRot;       /* 0x90 (kind at 0xA0) */
     CONSTR constrPos;       /* 0xB0 (kind at 0xC0) */
     FLOATWORD mass;         /* 0xD0 */
@@ -87,7 +87,7 @@ struct SO
     U qwDv;                 /* 0xF0 queued velocity change */
     U qwDw;                 /* 0x100 queued angular velocity change */
     char pad110[0x138 - 0x110];
-    int n138;               /* 0x138 */
+    int externalAccelList;               /* 0x138 */
     char pad13C[0x148 - 0x13C];
     ulong grf;              /* 0x148 */
 };
@@ -502,10 +502,10 @@ static inline int FNear(qword a, qword b)
 extern "C" void PresetSoAccel(SO *p)
 {
     int fUpd = 0;
-    int fNear = FNear(D_002A2DD0, p->psophys->v80);
+    int fNear = FNear(D_002A2DD0, p->psophys->constantAccel);
     if (!fNear) fUpd = p->psophys->constrPos.k != 3;
-    if (fUpd) AddSoAcceleration(p, ApplyConstr(&p->psophys->constrPos, p->pxfPos, p->psophys->v80));
-    if (p->n138) ApplySoExternalAccelerations(p);
+    if (fUpd) AddSoAcceleration(p, ApplyConstr(&p->psophys->constrPos, p->pxfPos, p->psophys->constantAccel));
+    if (p->externalAccelList) ApplySoExternalAccelerations(p);
 }
 
 static inline M3C BuildRotation(qword vector) return matrix {func_0011B570(&matrix,vector);}
@@ -1010,9 +1010,9 @@ extern "C" void AddSoAngularAcceleration(SO *object, qword acceleration)
 
 struct Pr { qword a; qword b; };
 struct Q2 { qword pad; qword v; char pad2[0x20]; };
-struct S2 { struct Pr ap[2]; qword v40; struct Q2 *aq; };
+struct S2 { struct Pr ap[2]; qword normal; struct Q2 *aq; };
 /** @sly2-annot addr=0x1FAD00
- * Purpose: Applies an impulse derived from a contact record (v40) when SO has dynamics data
+ * Purpose: Applies an impulse derived from a contact record (normal) when SO has dynamics data
  * Info: proposed name CalculateSoContactResponse (T2); class SO slot68; TU solve
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
@@ -1027,7 +1027,7 @@ extern "C" void CalculateSoContactResponse(SO *object, int unused1, S2 *rowConta
     qword normal;
     struct Pr *effect;
     if (!physics) return;
-    normal = rowContact->v40;
+    normal = rowContact->normal;
     if (side) {
         U u;
         qword u_q;
