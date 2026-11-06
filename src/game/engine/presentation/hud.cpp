@@ -29,28 +29,28 @@ extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_227
 struct WIDGETV : public LO
 {
     char pad50[0x8];
-    int nState;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
-    float tState;           /* +0x5C time of the last state change */
+    int state;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
+    float stateTime;           /* +0x5C time of the last state change */
     char pad60[0x4];
-    int nRequest;           /* +0x64 1 hide, 2 show */
-    float tRequest;         /* +0x68 */
+    int request;           /* +0x64 1 hide, 2 show */
+    float requestTime;         /* +0x68 */
     char pad6C[0x4];
-    int idAnimLoop;         /* +0x70 */
-    int idAnimShow;         /* +0x74 */
-    int idAnimHide;         /* +0x78 */
-    int idAnimMain;         /* +0x7C */
+    int loopAnimId;         /* +0x70 */
+    int showAnimId;         /* +0x74 */
+    int hideAnimId;         /* +0x78 */
+    int mainAnimId;         /* +0x7C */
     char pad80[0x28];
-    int fA8;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
+    int isNonExclusive;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
 };
 /* A sprite group as DrawSprite..GetSpriteMainState read it: 0x18-byte items at +4, 0x18-byte entries at +8 (the
    entry's linked item index at +8), a count at +0x28. */
 struct SPRITEITEM { char pad0[0x18]; };
-struct SPRITEENTRY { char pad0[0x8]; short iItem; char padA[0x6]; int n10; int n14; };
+struct SPRITEENTRY { char pad0[0x8]; short itemIndex; char padA[0x6]; int n10; int n14; };
 struct SPRITEGRP
 {
     int n0;
-    SPRITEITEM *aitem;      /* +0x04 */
-    SPRITEENTRY *aentry;    /* +0x08 */
+    SPRITEITEM *spriteItems;      /* +0x04 */
+    SPRITEENTRY *spriteEntries;    /* +0x08 */
     char padC[0x1C];
     int n28;                /* +0x28 */
 };
@@ -73,13 +73,13 @@ char *PchzReconPending(int *pn);
 char *PchzReconSelected(int *pn);
 void GetSubtitleText(char *pchz, int n);
 void FormatSubtitleButtonGlyphs(char *pchz, int n);
-void SetWidgetRequest(WIDGETV *pwidget, int nRequest);
-void SetWidgetStateW(WIDGETV *pwidget, int nState) __asm__("SetWidgetState");
-int FWidgetObscured(WIDGETV *pwidget);
+void SetWidgetRequest(WIDGETV *widget, int request);
+void SetWidgetStateW(WIDGETV *widget, int state) __asm__("SetWidgetState");
+int FWidgetObscured(WIDGETV *widget);
 void DrawSpriteItems(SPRITEITEM *pitem, int i, int n);
-void StopSpriteSlot(SPRITEGRP *pgrp, int i);
+void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
-int func_002185F8I(SPRITEGRP *pgrp, int i, int n) __asm__("DrawSpriteSlot");
+int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
 void StaticInit_hud(int fInitialize, int nPriority);
 }
 
@@ -862,12 +862,12 @@ struct S *WIDGET_ctor(struct S *p)
  * @end-sly2-annot */
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
 // True when the widget is neither shown nor requested to show.
-extern "C" int IsWidgetIdle(WIDGETV *pwidget)
+extern "C" int IsWidgetIdle(WIDGETV *widget)
 {
     int f;
     f = 0;
-    if (pwidget->nState < 2) {
-        f = pwidget->nRequest < 2;
+    if (widget->state < 2) {
+        f = widget->request < 2;
     }
     return f;
 }
@@ -1276,11 +1276,11 @@ void S::M(int k)
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Requests that a widget hide; without a disappear animation it goes straight to hidden.
-extern "C" void HideWidget(WIDGETV *pwidget)
+extern "C" void HideWidget(WIDGETV *widget)
 {
-    SetWidgetRequest(pwidget, 1);
-    if (pwidget->idAnimHide == -1) {
-        SetWidgetStateW(pwidget, 1);
+    SetWidgetRequest(widget, 1);
+    if (widget->hideAnimId == -1) {
+        SetWidgetStateW(widget, 1);
     }
 }
 
@@ -1295,10 +1295,10 @@ extern "C" void HideWidget(WIDGETV *pwidget)
  * @end-sly2-annot */
 /* Restarts the state timer of a visible widget. */
 // Restarts a visible widget's display timeout.
-extern "C" void ResetWidgetVisibleTime(WIDGETV *pwidget)
+extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 {
-    if (pwidget->nState == 2) {
-        pwidget->tState = D_002DDED0.tReal;
+    if (widget->state == 2) {
+        widget->stateTime = D_002DDED0.tReal;
     }
 }
 
@@ -1314,11 +1314,11 @@ extern "C" void ResetWidgetVisibleTime(WIDGETV *pwidget)
  * @end-sly2-annot */
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
 // Sets the widget's requested state (show / hide), acted on by UpdateWidget.
-extern "C" void SetWidgetRequest(WIDGETV *pwidget, int nRequest)
+extern "C" void SetWidgetRequest(WIDGETV *widget, int request)
 {
-    if (pwidget->nRequest != nRequest) {
-        pwidget->nRequest = nRequest;
-        pwidget->tRequest = D_002DDED0.tReal;
+    if (widget->request != request) {
+        widget->request = request;
+        widget->requestTime = D_002DDED0.tReal;
     }
 }
 
@@ -1592,12 +1592,12 @@ void QueueWidgetRenderSetup(struct S *p){
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // True when the widget's main animation is active and no higher-priority exclusive widget hides it.
-extern "C" int FWidgetVisible(WIDGETV *pwidget)
+extern "C" int FWidgetVisible(WIDGETV *widget)
 {
-    if (pwidget->idAnimMain == -1) {
+    if (widget->mainAnimId == -1) {
         return 0;
     }
-    return FWidgetObscured(pwidget) == 0;
+    return FWidgetObscured(widget) == 0;
 }
 
 // 0x213300 RenderWidget
@@ -2164,17 +2164,17 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
  * @end-sly2-annot */
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 // Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown).
-extern "C" void SetWidgetExclusive(WIDGETV *pwidget, int f)
+extern "C" void SetWidgetExclusive(WIDGETV *widget, int f)
 {
     int fOld;
-    fOld = pwidget->fA8;
+    fOld = widget->isNonExclusive;
     if (fOld != f) {
-        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) != 0)) {
-            RemoveDlEntry(&g_sw.dlWidgetExclusive, pwidget);
+        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) != 0)) {
+            RemoveDlEntry(&g_sw.dlWidgetExclusive, widget);
         }
-        pwidget->fA8 = f;
-        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) == 0)) {
-            AppendDlEntry(&g_sw.dlWidgetExclusive, pwidget);
+        widget->isNonExclusive = f;
+        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) == 0)) {
+            AppendDlEntry(&g_sw.dlWidgetExclusive, widget);
         }
     }
 }
@@ -4283,12 +4283,12 @@ extern "C" void UpdateSpriteSlot(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Draws a sprite group (slot 0).
-extern "C" int DrawSprite(SPRITEGRP *pgrp)
+extern "C" int DrawSprite(SPRITEGRP *spriteGroup)
 {
     int n;
-    n = pgrp->n28;
+    n = spriteGroup->n28;
     if (n != 0) {
-        n = func_002185F8I(pgrp, 0, 0);
+        n = func_002185F8I(spriteGroup, 0, 0);
     }
     return n;
 }
@@ -4302,12 +4302,12 @@ extern "C" int DrawSprite(SPRITEGRP *pgrp)
  * @end-sly2-annot */
 /* Starts entry i's linked item (index at +8 of the 0x18-byte entry; negative for none). */
 // Draws the items of a sprite slot.
-extern "C" void DrawSpriteSlot(SPRITEGRP *pgrp, int i, int n)
+extern "C" void DrawSpriteSlot(SPRITEGRP *spriteGroup, int i, int n)
 {
-    short iItem;
-    iItem = pgrp->aentry[i].iItem;
-    if (iItem >= 0) {
-        DrawSpriteItems(&pgrp->aitem[iItem], i, n);
+    short itemIndex;
+    itemIndex = spriteGroup->spriteEntries[i].itemIndex;
+    if (itemIndex >= 0) {
+        DrawSpriteItems(&spriteGroup->spriteItems[itemIndex], i, n);
     }
 }
 
@@ -4319,10 +4319,10 @@ extern "C" void DrawSpriteSlot(SPRITEGRP *pgrp, int i, int n)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Stops a sprite group (slot 0).
-extern "C" void StopSprite(SPRITEGRP *pgrp)
+extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 {
-    if (pgrp->n28 != 0) {
-        StopSpriteSlot(pgrp, 0);
+    if (spriteGroup->n28 != 0) {
+        StopSpriteSlot(spriteGroup, 0);
     }
 }
 
@@ -4393,9 +4393,9 @@ int FSpriteAnimActive(struct S *p)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // State of the sprite group's main animation.
-extern "C" int GetSpriteMainState(SPRITEGRP *pgrp)
+extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 {
-    return pgrp->aentry->n10;
+    return spriteGroup->spriteEntries->n10;
 }
 
 // 0x218748 FinishSpriteSoundEvent
