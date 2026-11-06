@@ -1330,16 +1330,16 @@ namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
 typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern struct CLOCK { float a[20]; } D_002DDED0;
+extern struct CLOCK { float t; float dt; float pad8[14]; float dtReal; float pad44[3]; } D_002DDED0;
 extern DLI *D_002DD2FC;
 typedef struct {
     char pad[0x40];
-    unsigned int x40;
+    unsigned int taggedFlags;
     char pad44[0x5C - 0x44];
-    DL dl;
+    DL scripts;
     char pad68[0x70 - 0x68];
-    float t;
-    int x74;
+    float firedTime;
+    int isFiring;
 } OBJ;
 void UpdateLo(OBJ *);
 void UpdateRelayScript(void *);
@@ -1361,6 +1361,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
+enum { LO_FLAG_UNPAUSED = 0x100 };   /* runs on real time while the game clock is paused (inferred) */
+// The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
+static inline unsigned int GetLoFlags(OBJ *lo)
+{
+    unsigned int fl = lo->taggedFlags;
+    if ((fl ^ 1) & 1)
+        fl = *(unsigned int *)fl;
+    return fl;
+}
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
 // update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
 void UpdateRelay(OBJ *relay)
@@ -1369,19 +1378,17 @@ void UpdateRelay(OBJ *relay)
     void *pv;
     unsigned int fl;
     UpdateLo(relay);
-    if (relay->x74 == 0)
+    if (relay->isFiring == 0)
         return;
-    fl = relay->x40;
-    if ((fl ^ 1) & 1)
-        fl = *(unsigned int *)fl;
-    if (fl & 0x100)
-        relay->t += D_002DDED0.a[16];
+    fl = GetLoFlags(relay);
+    if (fl & LO_FLAG_UNPAUSED)
+        relay->firedTime += D_002DDED0.dtReal;
     else
-        relay->t += D_002DDED0.a[1];
-    InitDli(&dli, &relay->dl);
+        relay->firedTime += D_002DDED0.dt;
+    InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         UpdateRelayScript(pv);
-    if (FIsDlEmpty__FP2DL(&relay->dl))
+    if (FIsDlEmpty__FP2DL(&relay->scripts))
         StopRelay(relay);
     D_002DD2FC = dli.pdliNext;
 }
@@ -1397,17 +1404,17 @@ struct OBJ {
     char pad[0xC];
     VT *vt;
     char pad10[0x40 - 0x10];
-    int x40;
+    int taggedFlags;
     char pad44[0x54 - 0x44];
-    void *x54;
+    void *topBlock;
     int pad58;
-    DL dl;
+    DL scripts;
     char pad68[0x6C - 0x68];
-    int x6C;
-    int x70;
-    int x74;
-    int x78;
-    int x7C;
+    int firer;
+    int firedTime;
+    int isFiring;
+    int isMarkedBusy;
+    int needsBlockEnd;
 };
 void AddRelayBlockEnd(OBJ *);
 void *NewRelayJsg(OBJ *, void *, int);
@@ -1415,42 +1422,52 @@ void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
+enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by several Init functions; meaning inferred only that far) */
+// The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
+static inline int GetLoFlags(OBJ *lo)
+{
+    int fl = lo->taggedFlags;
+    if ((fl ^ 1) & 1)
+        fl = *(int *)fl;
+    return fl;
+}
+// Sets bits of the LO flag word wherever it lives.
+static inline void SetLoFlags(OBJ *lo, int bits)
+{
+    if ((lo->taggedFlags ^ 1) & 1)
+        *(int *)lo->taggedFlags |= bits;
+    else
+        lo->taggedFlags |= bits;
+}
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
 // still running afterwards the relay marks itself busy.
 void FireRelay(OBJ *relay, int n)
 {
-    int fl;
-    if (relay->x74)
+    if (relay->isFiring)
         return;
-    relay->x6C = n;
-    relay->x74 = 1;
-    relay->x78 = 0;
+    relay->firer = n;
+    relay->isFiring = 1;
+    relay->isMarkedBusy = 0;
     relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 5, 0, 0, 0, 0);
-    if (!relay->x74)
+    if (!relay->isFiring)
         return;
-    if (relay->x7C) {
+    if (relay->needsBlockEnd) {
         AddRelayBlockEnd(relay);
-        relay->x7C = 0;
+        relay->needsBlockEnd = 0;
     }
-    UpdateRelayScript(NewRelayJsg(relay, relay->x54, 0));
-    if (!relay->x74)
+    UpdateRelayScript(NewRelayJsg(relay, relay->topBlock, 0));
+    if (!relay->isFiring)
         return;
-    if (FIsDlEmpty__FP2DL(&relay->dl)) {
+    if (FIsDlEmpty__FP2DL(&relay->scripts)) {
         StopRelay(relay);
         return;
     }
-    fl = relay->x40;
-    if ((fl ^ 1) & 1)
-        fl = *(int *)fl;
-    if (fl & 2)
+    if (GetLoFlags(relay) & LO_FLAG_02)
         return;
     SetLoBusyk(relay, 1);
-    if ((relay->x40 ^ 1) & 1)
-        *(int *)relay->x40 |= 2;
-    else
-        relay->x40 |= 2;
-    relay->x78 = 1;
+    SetLoFlags(relay, LO_FLAG_02);
+    relay->isMarkedBusy = 1;
 }
 } } // namespace M_FireRelay
 
@@ -1474,18 +1491,27 @@ struct OBJ {
     char pad[0xC];
     VT *vt;
     char pad10[0x40 - 0x10];
-    int x40;
+    int taggedFlags;
     char pad44[0x5C - 0x44];
-    DL dl;
+    DL scripts;
     char pad68[0x6C - 0x68];
-    int x6C;
-    int x70;
-    int x74;
-    int x78;
+    int firer;
+    int firedTime;
+    int isFiring;
+    int isMarkedBusy;
 };
 void RemoveJsg(void *);
 void ClearRelayAlarms(OBJ *);
 void SetLoBusyk(OBJ *, int);
+enum { LO_FLAG_02 = 2 };
+// Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
+static inline void ClearLoFlags(OBJ *lo, int bits)
+{
+    if ((lo->taggedFlags ^ 1) & 1)
+        *(int *)lo->taggedFlags &= ~bits;
+    else
+        lo->taggedFlags &= ~bits;
+}
 // Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -1508,21 +1534,18 @@ void StopRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
-    if (relay->x74 == 0)
+    if (relay->isFiring == 0)
         return;
-    relay->x6C = 0;
-    relay->x70 = 0;
-    relay->x74 = 0;
-    InitDli(&dli, &relay->dl);
+    relay->firer = 0;
+    relay->firedTime = 0;
+    relay->isFiring = 0;
+    InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         RemoveJsg(pv);
     ClearRelayAlarms(relay);
-    if (relay->x78) {
+    if (relay->isMarkedBusy) {
         SetLoBusyk(relay, 2);
-        if ((relay->x40 ^ 1) & 1)
-            *(int *)relay->x40 &= ~2;
-        else
-            relay->x40 &= ~2;
+        ClearLoFlags(relay, LO_FLAG_02);
     }
     relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
     D_002DD2FC = dli.pdliNext;
