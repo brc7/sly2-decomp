@@ -5296,17 +5296,6 @@ extern const char D_002A8B88[] = "     ";
 
 
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-// The pool words 0x2DD2E0.. and pools 0x4520A8.. are CSlotPool's template statics (__sn_t9CSlotPool...$s_pool,
-// _t9CSlotPool...$s_pool), which every object including the pool header defines; the declarations above name them.
-struct COMMONS_hud {
-    static int c_002DD318 __asm__("D_002DD318");   /* .sbss 0x4 */
-};
-int COMMONS_hud::c_002DD318;
-
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.

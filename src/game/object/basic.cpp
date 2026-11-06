@@ -565,16 +565,3 @@ extern "C" void SendLoMessage(LO *object, int a, int b) {
 // BASIC's HandleMessage (vtable slot 5): ignores the message; derived classes override it and call it as the base.
 extern "C" void HandleBasicMessage(BASICV *object, int msg, void *pv) {
 }
-
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_basic {
-    static int c_002DD2C4 __asm__("_t6CGcObj1Z8CSidebag$s_cpage");   /* .sbss 0x4 */
-    static int c_002DD2CC __asm__("_t6CGcObj1Z8CSidebag$s_ptRoot");   /* .sbss 0x4 */
-    static int c_00452138[4] __asm__("_t6CGcObj1Z8CSidebag$s_aptPage");   /* .bss 0x10 */
-};
-int COMMONS_basic::c_002DD2C4;
-int COMMONS_basic::c_002DD2CC;
-int COMMONS_basic::c_00452138[4];

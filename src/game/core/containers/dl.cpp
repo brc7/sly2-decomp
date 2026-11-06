@@ -6,8 +6,8 @@
 // TU 0x11A050..0x11A550 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dl
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011A530
-// .bss order: g++ 2.95 emits plain uninitialized objects at the end of the file in first-declaration order, and
-// dli.h declares D_002DD2FC; this declaration comes first so D_002DD2F8 keeps its address below it.
+// D_002DD2F8 (g_psliFirst) and D_002DD2FC (g_pdliFirst, sly2/dli.h) are .sbss in the target, i.e. commons: they
+// are defined in src/game/app/commons.cpp (the commons file, in the original's allocation order), declared here.
 struct SLI;
 extern SLI *D_002DD2F8;
 #include "sly2/dli.h"
@@ -19,8 +19,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Safe iterator over an SL (the SL counterpart of DLI); live iterators form a stack at D_002DD2F8 (g_psliFirst). */
 struct SLI { SL *list; void **link; int linkOffset; SLI *next; };
-SLI *D_002DD2F8;    /* .sbss in the target; ours is .bss (-G0) */
-DLI *D_002DD2FC;    /* g_pdliFirst (sly2/dli.h), likewise */
+/* D_002DD2F8 (g_psliFirst, declared above) and D_002DD2FC (g_pdliFirst): defined in app/commons.cpp. */
+
 
 #define PPVNEXT(list, entry) ((void **)((char *)(entry) + (list)->ibSle))
 #define PDLE(list, entry) ((DLE *)((char *)(entry) + (list)->ibDle))

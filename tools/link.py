@@ -3,9 +3,9 @@
 
 usage: python3 tools/link.py [--no-compile] [--per-function] | --sdk-only | --check-tools
 
-  1. compile every source of config/matched.csv that builds here with matchtool's compile_src, as the original build
-     did: one .text/.data/.rodata/.bss per object plus its .gnu.linkonce.* sections (build/link/obj-tu/).  An object
-     whose .text is not yet one run at its ELF address (linkonce copies kept as plain functions, junk.csv scraps
+  1. compile every source of config/matched.csv and DATA_SOURCES that builds here with matchtool's compile_src, as
+     the original build did: one .text/.data/.rodata/.bss per object plus its .gnu.linkonce.* sections
+     (build/link/obj-tu/).  An object whose .text is not yet one run at its ELF address (linkonce copies kept as plain functions, junk.csv scraps
      inside, padding) falls back to a -ffunction-sections build of the same source (build/link/obj/), each function
      placed on its own; the reason per object goes to build/link/tutext.txt.  --per-function builds every object that
      way (the old prototype mode); --no-compile reuses the objects already there.  The SDK sources that need i386
@@ -29,6 +29,8 @@ OUT = os.path.join(ROOT, 'build', 'link')
 ELF = matchtool.ELF
 LINKONCE = (0x254F00, 0x259DF0)                              # the ELF's .gnu.linkonce.t area (end of .text)
 ADDR_NAME = re.compile(r'(?:D|func)_([0-9A-F]{8})$')          # an address name: the address is in the name
+DATA_SOURCES = ('src/game/app/commons.cpp',)                 # sources without functions (not in config/matched.csv):
+                                                             # the commons file (full-link.md, "Absolute symbols")
 BLOB_SECS = ('.vutext', '.irx')                              # never source (VU microcode, IOP modules): a name that
                                                              # points into them is a label on its blob, not an address
 
@@ -61,7 +63,7 @@ def sources():
     """(buildable here, needing i386 Linux binaries) source paths of config/matched.csv: the SDK sources compiled by
     the native ee-gcc 2.96 (`SLY2_CC:` with a Linux bin/ee-gcc) or assembled by GNU as (`SLY2_ASM: gnu-reorder*`)"""
     ok, sdk = [], []
-    for s in sorted({src for a, src in matched()}):
+    for s in sorted({src for a, src in matched()} | set(DATA_SOURCES)):
         head = open(os.path.join(ROOT, s), errors='ignore').read(2000)
         cc = re.search(r'SLY2_CC:\s*(\S+)', head)
         native = cc and os.path.exists(os.path.join(ROOT, cc.group(1), 'bin', 'ee-gcc'))
@@ -450,7 +452,7 @@ def symbols(objs, img, ext):
     build/link/absolute.txt with its class and the objects that reference it (the address dependencies left)"""
     lines = [f'_gp = 0x{img.gp:X};']
     defined = {s[0] for o in objs for s in o.syms if s[3] and s[5] and s[5] != 0xFFF2}
-    commons = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0xFFF2}
+    commons = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0xFFF2} - defined   # a strong definition wins
     undef = {s[0] for o in objs for s in o.syms if s[3] and s[5] == 0}
     users = collections.defaultdict(set)
     for o in objs:

@@ -26,8 +26,8 @@
  * member names are ours), that PushFront/PtNew/... are members rather than free templates (the mangled names would
  * differ, the code would not), and the static data members: each kind's four list words and its block table are
  * separate small objects in .sbss/.bss (commons in the original, which is what template static data members are);
- * here they are declared only and config/symbol_addrs.txt gives their addresses, while the files that define the
- * address-named commons (COMMONS_<tu>) keep them (a data step can turn those into these definitions).
+ * here they are declared only; src/game/app/commons.cpp defines them (explicit specializations, in the original's
+ * allocation order, with the other commons: docs/guides/tu-merging.md, "Phase 9: the commons file").
  *
  * g++ 2.95 looks names in template bodies up when it instantiates them, so g_sw (sly2/sw.h) and the node types need
  * to be complete only in the files that instantiate the members. */

@@ -7,6 +7,7 @@
 | [`bif.cpp`](bif.cpp) | 1 |
 | [`bif2.cpp`](bif2.cpp) | 1 |
 | [`class_registry.cpp`](class_registry.cpp) | 1 |
+| [`commons.cpp`](commons.cpp) | 1 (data only: the game's commons, not an original TU; docs/guides/tu-merging.md, "Phase 9") |
 | [`main.cpp`](main.cpp) | 1 |
 | [`tu_1A4E08.cpp`](tu_1A4E08.cpp) | 1 |
 

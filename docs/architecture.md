@@ -129,6 +129,9 @@ src/
                                    arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables"); its
                                    records take the addresses of the inline option accessors of the class headers, so class_registry emits
                                    their linkonce copies (formerly game/core/linkonce/unhomed, then app/eopid_linkonce.cpp)
+                                   commons.cpp (not a TU, data only): the game's commons (class/template statics, sentries; all of
+                                   .sbss and the end of .bss) in the original's allocation order; here because only the composition
+                                   root may name every layer's objects (docs/guides/tu-merging.md "Phase 9: the commons file")
   generated/splicewrap/        L11 tools/gen_splicewrap.py output (373 wrappers, .inc); never edit by hand
                                    not a TU: fragments that app/class_registry.cpp (crt0_splicewrap) includes at their addresses
 ```
