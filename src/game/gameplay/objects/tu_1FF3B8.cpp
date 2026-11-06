@@ -40,14 +40,7 @@ qword func_001A62E8(void *p);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
-/** @sly2-annot addr=0x1FF3B8
- * Purpose: CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70)
- * Info: proposed name InitCid39 (T2); class CID39 slot7; TU tu_1FF3B8
- * Notes: Cid27->Cid39 (CID 0x27=39, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/sound.md#5-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70). (inferred)
 void CID39::Init()
 {
     GRABXFM *p = (GRABXFM *)this;
@@ -55,63 +48,27 @@ void CID39::Init()
     InitGrabspot(p->grabspot);
 }
 
-/** @sly2-annot addr=0x1FF3E8
- * Purpose: vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58
- * Info: proposed name PostCid39Load (T2); class CID39 slot15; TU tu_1FF3B8
- * Notes: Cid27->Cid39 (CID 0x27=39, vtable)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58. (inferred)
 extern "C" void PostGrabSpotXfmLoad(GRABXFM *p) { PostLoLoad(p); if (p->g38 == 1e10f) p->g38 = D_002C3C58; }
 
-/** @sly2-annot addr=0x1FF438
- * Purpose: vt23: add to SW update array (0x1A6178) and to global DL g_sw.dlCid39
- * Info: proposed name OnCid39Add (T2); class CID39 slot23; TU tu_1FF3B8
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// vt23: add to SW update array (0x1A6178) and to global DL g_sw.dlCid39. (inferred)
 extern "C" void OnGrabSpotXfmAdd(GRABXFM *p)
 {
     OnLoAdd(p);
     AppendDlEntry(&g_sw.dlCid39, p);
 }
 
-/** @sly2-annot addr=0x1FF470
- * Purpose: vt22: remove from SW update array (0x1A6150) and from DL g_sw.dlCid39
- * Info: proposed name OnCid39Remove (T2); class CID39 slot22; TU tu_1FF3B8
- * Notes: verifier WRONG: OnCid27Remove -> OnCid39Remove | verifier: purpose partly wrong: Slot 22 (OnRemove)
- *   of CID 0x27 = CID39, not table CID27 (0x1B): the same hex/decimal slip. The body is OnLoRemove 0x1A6150
- *   plus RemoveDlEntry(&g_sw.dlCid39); 0x1A | slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object
- *   leaves/enters the active world, incl. proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// vt22: remove from SW update array (0x1A6150) and from DL g_sw.dlCid39. (inferred)
 extern "C" void OnGrabSpotXfmRemove(GRABXFM *p)
 {
     OnLoRemove(p);
     RemoveDlEntry(&g_sw.dlCid39, p);
 }
 
-/** @sly2-annot addr=0x1FF4A8
- * Purpose: Clone: XFM clone (0x2311B0) preserving a key field
- * Info: proposed name CloneCid39 (T2); class CID39 slot41; TU tu_1FF3B8
- * Notes: verifier WRONG: CloneCid27 -> CloneCid39
- * Confidence: low (draft) [T2 0.80] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// Clone: XFM clone (0x2311B0) preserving a key field. (inferred)
 extern "C" void CloneGrabSpotXfm(GRABXFM *p) { K k = p->k; CloneXfm(p); p->k = k; }
 
-/** @sly2-annot addr=0x1FF4F0
- * Purpose: *pv = PosLoWorld(a) - p->pos when pv non-NULL
- * Info: proposed name GetCid27VecToLo (T2); class CID27; TU tu_1FF3B8
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
+// *pv = PosLoWorld(a) - p->pos when pv non-NULL. (inferred)
 extern "C" void GetOffsetToObjectPosition(void *a, P *p, qword *pv)
 {
     qword a0, r;

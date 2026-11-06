@@ -61,13 +61,7 @@ void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
 void ClearLootPouchLoot(SPRAYER *);
 }
 
-/** @sly2-annot addr=0x1C2D20
- * Purpose: CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding
- * Info: proposed name PostCid99Load (T2); class CID99 slot15; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/world-sw.md#9-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
+// CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding. (inferred)
 void CID99::VUnk14()
 {
     SPRAYER *p = (SPRAYER *)this;
@@ -76,36 +70,18 @@ void CID99::VUnk14()
     ReplaceSma(p->psma, p, -1, 0, &p->ismaCur);
 }
 
-/** @sly2-annot addr=0x1C2D70
- * Purpose: CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel)
- * Info: proposed name RenderCid99Self (T2); class CID99 slot19; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
+// CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel). (inferred)
 extern "C" void RenderLootPouchSelf(SPRAYER *p)
 {
     RenderSoSelf(p);
     if (p->psoFirst) func_001A5EE8(p->psoFirst, (char *)p->pxf + 0x40, 1.0f, 1.0f);
 }
 
-/** @sly2-annot addr=0x1C2DB8
- * Purpose: Clear held loot pointer(s)
- * Info: proposed name ClearCid99Loot (T2); class CID99; TU tu_1C2D20
- * Notes: names_v2 v1 proposed FUN_00177828 (0.000)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
- * @end-sly2-annot */
+// Clear held loot pointer(s). (inferred)
 extern "C" void ClearLootPouchLoot(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p->pxf = 0; }
 
-/** @sly2-annot addr=0x1C2DC8
- * Purpose: Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A)
- *   state 2 else vt9; find attach XF; returns status 0-3
- * Info: proposed name StageCid99Loot (T2); class CID99; TU tu_1C2D20
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
- *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
- *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
+// Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A) state 2 else vt9;
+// find attach XF; returns status 0-3. (inferred)
 extern "C" int StageLootPouchLoot(SPRAYER *p, SOV *plo, int id, void *pv)
 {
     if (p->psoFirst) return 0;
@@ -183,15 +159,8 @@ static inline void SetVelocity(SOV *p, qwordV velocity) { VTE *v = p->vt; ((void
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1C2EF0
- * Purpose: Launch count loot objects (first held, rest from proxy pool) toward random points around the
- *   player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay
- * Info: proposed name LaunchCid99LootAtPlayer (T2); class CID99; TU tu_1C2D20
- * Notes: names_v2 B proposed PqwVifsBitmapUpload__Fi (0.785)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
- *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
+// Launch count loot objects (first held, rest from proxy pool) toward random points around the player
+// (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay. (inferred)
 extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *p, int count)
 {
     GAME *game = &D_003DD490;
