@@ -604,118 +604,118 @@ static inline void ProbeGround(CONTEXT *p)
  * @end-sly2-annot */
 // Per-frame input for the current grab action: X jumps off (SetJtAirJump kinds 7/1), the action buttons per state,
 // gadgets.
-extern "C" void UpdateJtGrabInput(CONTEXT *p)
+extern "C" void UpdateJtGrabInput(CONTEXT *grab)
 {
-    JOY *joy = p->pactor->pjoy;
+    JOY *joy = grab->pactor->pjoy;
     int step;
     do {
-        step = p->step;
-        switch (p->action) {
+        step = grab->step;
+        switch (grab->action) {
         case 1:
-            if (0.15f < D_002DDED0.t - p->tHold && GrfConsumePressed__5POCTLUif(joy, 0x40, 0.25f)) {
-                SetJtAirJump((char *)p->pactor + 0x2C0, 7, 0, p->pactorFocus);
+            if (0.15f < D_002DDED0.t - grab->tHold && GrfConsumePressed__5POCTLUif(joy, 0x40, 0.25f)) {
+                SetJtAirJump((char *)grab->pactor + 0x2C0, 7, 0, grab->pactorFocus);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
+            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(grab->pactor, 3)) {
                 ClearPoctlJoyPressed(joy, 0x400);
-                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)grab->pactor + 0xF00, 0, 0, 0);
             }
             break;
         case 3:
         case 4:
             if (GrfConsumePressed__5POCTLUif(joy, 0x40, 0.1f)) {
-                SetJtAirJump((char *)p->pactor + 0x2C0, 1, 0, 0);
+                SetJtAirJump((char *)grab->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
+            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(grab->pactor, 3)) {
                 ClearPoctlJoyPressed(joy, 0x400);
-                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)grab->pactor + 0xF00, 0, 0, 0);
             }
             break;
         case 7: {
-            ACTOR *pactorFocus = p->pactorFocus;
-            SetControl(p->pactor, 0);
-            Notify(pactorFocus, p->pactor);
+            ACTOR *pactorFocus = grab->pactorFocus;
+            SetControl(grab->pactor, 0);
+            Notify(pactorFocus, grab->pactor);
             break;
         }
         case 8:
-            switch (p->step) {
+            switch (grab->step) {
             case 7:
-                if (FAsegaRetracted(p->pactor->pasega))
-                    SetJtGrabKind(p, 9);
+                if (FAsegaRetracted(grab->pactor->pasega))
+                    SetJtGrabKind(grab, 9);
                 break;
             case 8:
-                if (FAsegaRetracted(p->pactor->pasega))
-                    SetControl(p->pactor, 0);
+                if (FAsegaRetracted(grab->pactor->pasega))
+                    SetControl(grab->pactor, 0);
                 break;
             default:
-                ProbeGround(p);
+                ProbeGround(grab);
                 break;
             }
             break;
         case 9:
-            if (FWithin(func_001A62E8(p->pactorFocus), func_001A62E8(p->attach.pactor), D_002BF5B4)) {
-                AttachJtHandsObject(&p->attach, p->pactorFocus);
-                SetControl(p->pactor, 0);
+            if (FWithin(func_001A62E8(grab->pactorFocus), func_001A62E8(grab->attach.pactor), D_002BF5B4)) {
+                AttachJtHandsObject(&grab->attach, grab->pactorFocus);
+                SetControl(grab->pactor, 0);
             }
             break;
         case 10:
-            if (!p->pactor->pasega || FAsegaRetracted(p->pactor->pasega)) {
-                SetControl(p->pactor, 0);
-            } else if (D_002BF5B8 < D_002DDED0.t - p->tStamp) {
-                if (0.0f < p->pactor->pjoy->amount || (p->pactor->pjoy->grfbtn & 0xD0)) {
-                    SetControl(p->pactor, 0);
+            if (!grab->pactor->pasega || FAsegaRetracted(grab->pactor->pasega)) {
+                SetControl(grab->pactor, 0);
+            } else if (D_002BF5B8 < D_002DDED0.t - grab->tStamp) {
+                if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->grfbtn & 0xD0)) {
+                    SetControl(grab->pactor, 0);
                     return;
                 }
             }
             break;
         case 11:
         case 12:
-            if (!p->pactor->pasega || FAsegaRetracted(p->pactor->pasega))
-                SetControl(p->pactor, 0);
+            if (!grab->pactor->pasega || FAsegaRetracted(grab->pactor->pasega))
+                SetControl(grab->pactor, 0);
             break;
         case 5:
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactorFocus, 11) && IsStepplayerGrabReady(p->pactor)) {
-                p->pactor->ptarget = p->pactorFocus;
-                p->pactor->gTarget = p->gParam;
-                SetControl(p->pactor, 8);
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactorFocus, 11) && IsStepplayerGrabReady(grab->pactor)) {
+                grab->pactor->ptarget = grab->pactorFocus;
+                grab->pactor->gTarget = grab->gParam;
+                SetControl(grab->pactor, 8);
             }
             break;
         case 2:
-            if (GetStepplayerMp(p->pactor) <= 0) {
-                SetControl(p->pactor, 0);
+            if (GetStepplayerMp(grab->pactor) <= 0) {
+                SetControl(grab->pactor, 0);
                 break;
             }
-            if (p->pactor->x10EC == 4) {
-                SetControl(p->pactor, 0);
+            if (grab->pactor->x10EC == 4) {
+                SetControl(grab->pactor, 0);
                 break;
             }
             if (D_002DFBC4 & 1)
                 break;
-            if (joy->grfbtn & GetGadgetButtonMask(p->pactor, 0x28))
+            if (joy->grfbtn & GetGadgetButtonMask(grab->pactor, 0x28))
                 break;
-            SetControl(p->pactor, 0);
+            SetControl(grab->pactor, 0);
             break;
         default:
             if (GrfConsumePressed__5POCTLUif(joy, 0x40, 0.1f)) {
-                SetJtAirJump((char *)p->pactor + 0x2C0, 1, 0, 0);
+                SetJtAirJump((char *)grab->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(p->pactor, 3) && (p->action == 0 || p->action == 13)) {
+            if (GrfPressedWithin__5POCTLUif(joy, 0x400, 0.15f) && CanAct(grab->pactor, 3) && (grab->action == 0 || grab->action == 13)) {
                 ClearPoctlJoyPressed(joy, 0x400);
-                StartJtMode((char *)p->pactor + 0xF00, 0, 0, 0);
+                StartJtMode((char *)grab->pactor + 0xF00, 0, 0, 0);
                 break;
             }
-            if (p->fInhibit)
+            if (grab->fInhibit)
                 break;
             if (D_002DFBC4 & 1)
                 break;
             if (joy->grfbtn & 0x20)
                 break;
-            SetControl(p->pactor, 0);
+            SetControl(grab->pactor, 0);
             break;
         }
-    } while (p->step != step && p->step != -1);
+    } while (grab->step != step && grab->step != -1);
 }
 
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
@@ -1215,21 +1215,21 @@ void ClearJtDetectionOutOfSight(struct P *p);
  * @end-sly2-annot */
 // Starts a grab action: resets the kind, stores the state, time, object and grab spot, and switches the player's
 // generic state to 2 (grab).
-void SetJtGrabState(struct P *p, int n, int a, int b)
+void SetJtGrabState(struct P *grab, int n, int a, int b)
 {
-    SetJtGrabKind(p, -1);
-    p->x8 = n;
-    p->x4 = D_002DDED0.t;
-    p->x18 = b;
-    p->x14 = a;
-    p->x0->vt[88].pfn((char *)p->x0 + p->x0->vt[88].d, 2);
+    SetJtGrabKind(grab, -1);
+    grab->x8 = n;
+    grab->x4 = D_002DDED0.t;
+    grab->x18 = b;
+    grab->x14 = a;
+    grab->x0->vt[88].pfn((char *)grab->x0 + grab->x0->vt[88].d, 2);
     switch (n) {
     case 0: case 13:
         n = 5;
         break;
     case 6:
     {
-        struct O *o = p->x0;
+        struct O *o = grab->x0;
         n = 0;
         o->x1854 = a;
         SetJtCaneState__FP2JTi(o, 0);
@@ -1237,27 +1237,27 @@ void SetJtGrabState(struct P *p, int n, int a, int b)
         break;
     }
     case 5: case 9:
-        p->x4c4 = p->x14;
-        SetJtHandsTarget(p->x440, 0);
+        grab->x4c4 = grab->x14;
+        SetJtHandsTarget(grab->x440, 0);
         n = 0;
         break;
     case 8:
         n = 7;
-        ClearJtDetectionOutOfSight(p);
+        ClearJtDetectionOutOfSight(grab);
         break;
     case 1:
         n = 0;
-        ClearJtDetectionOutOfSight(p);
+        ClearJtDetectionOutOfSight(grab);
         break;
     case 11: case 12:
         n = 0;
-        p->x500 = 1;
+        grab->x500 = 1;
         break;
     default:
         n = 0;
         break;
     }
-    SetJtGrabKind(p, n);
+    SetJtGrabKind(grab, n);
 }
 } } // namespace M_SetJtGrabState
 
@@ -1514,51 +1514,51 @@ static inline qword Transform(const M3 &m, qword q)
  * @end-sly2-annot */
 // Sets the grab sub-step (kind, +0xC): leaves the old one (per-kind/per-state cleanup) and enters the new (animation
 // clips, physics, camera).
-extern "C" void SetJtGrabKind(CONTEXT *p, int step)
+extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
 {
-    if (step == p->step)
+    if (step == grab->step)
         return;
 
     // leave the old step
-    switch (p->step) {
+    switch (grab->step) {
     case 1:
-        p->pactor->x1038 = -1;
+        grab->pactor->x1038 = -1;
         break;
     case -1:
-        if (p->focus && FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 10)) {
-            SOURCE *source = p->focus;
-            FindShapeClosestPoint(source, func_001A62E8(p->pactor), 0, 0, 0, &p->param, &p->value);
+        if (grab->focus && FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 10)) {
+            SOURCE *source = grab->focus;
+            FindShapeClosestPoint(source, func_001A62E8(grab->pactor), 0, 0, 0, &grab->param, &grab->value);
         }
-        switch (p->action) {
+        switch (grab->action) {
         case 1: {
-            SOURCE *source = p->focus;
-            source->actor = p->pactor;
+            SOURCE *source = grab->focus;
+            source->actor = grab->pactor;
             SetBarrelState(source, 2);
-            if (p->pactor == D_002E1E40)
-                Notify(p->pactor->first, 9);
+            if (grab->pactor == D_002E1E40)
+                Notify(grab->pactor->first, 9);
             break;
         }
         case 4: {
-            SOURCE *source = p->focus;
+            SOURCE *source = grab->focus;
             SourceState(source, 5);
-            SubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 1);
-            ACTOR *actor = p->pactor;
+            SubscribeLoObject(source, grab->pactor);
+            func_00204F78(grab->pactor, source, 1);
+            ACTOR *actor = grab->pactor;
             actor->position = func_001A62E8(source);
             break;
         }
         case 3: {
-            SOURCE *source = p->focus;
+            SOURCE *source = grab->focus;
             U dir, tangent;
             SourceState(source, 5);
-            SubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 1);
-            p->index = -1;
-            EvaluateShapeU(source, p->param, &p->pactor->position, &tangent.q);
+            SubscribeLoObject(source, grab->pactor);
+            func_00204F78(grab->pactor, source, 1);
+            grab->index = -1;
+            EvaluateShapeU(source, grab->param, &grab->pactor->position, &tangent.q);
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
-            p->reversed = X(Dot(normal, func_001A6318(p->pactor)->row[0])) < D_002BF63C;
+            grab->reversed = X(Dot(normal, func_001A6318(grab->pactor)->row[0])) < D_002BF63C;
             break;
         }
         case 2: {
@@ -1568,31 +1568,31 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             break;
         }
         case 11:
-            if (p->focus)
-                SubscribeLoObject(p->focus, p->pactor);
+            if (grab->focus)
+                SubscribeLoObject(grab->focus, grab->pactor);
             break;
         case 12:
-            if (p->focus)
-                FaceStepToward(p->pactor, p->focus);
-            FixStepAngularVelocity(p->pactor);
+            if (grab->focus)
+                FaceStepToward(grab->pactor, grab->focus);
+            FixStepAngularVelocity(grab->pactor);
             break;
         }
-        p->previous = -1;
-        p->pactor->tStamp = D_002DDED0.t;
+        grab->previous = -1;
+        grab->pactor->tStamp = D_002DDED0.t;
         break;
     case 7:
         if (Less(step, 11) && !Less(step, 9)) {
-            SOURCE *source = p->focus;
+            SOURCE *source = grab->focus;
             if (source->other) {
                 qword pos = func_001A62E8(source->other);
-                SetVector(p->pactor, 29, Sub(pos, p->pactor->posOffset));
-                p->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(p->pactor->height));
-                SetStepRadTargetVec(p->pactor, func_001A6318(source->other)->row[0]);
-                SetPointer(p->pactor, 30, p->pactor->local);
-                SetVector(p->pactor, 35, D_002A2DD0);
-                SetVector(p->pactor, 36, D_002A2DD0);
+                SetVector(grab->pactor, 29, Sub(pos, grab->pactor->posOffset));
+                grab->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(grab->pactor->height));
+                SetStepRadTargetVec(grab->pactor, func_001A6318(source->other)->row[0]);
+                SetPointer(grab->pactor, 30, grab->pactor->local);
+                SetVector(grab->pactor, 35, D_002A2DD0);
+                SetVector(grab->pactor, 36, D_002A2DD0);
             }
-            SetCmPolicy(&D_002DDF40, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), p->pactor, p->pactor->anchor);
+            SetCmPolicy(&D_002DDF40, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), grab->pactor, grab->pactor->anchor);
         }
         break;
     case 9:
@@ -1611,40 +1611,40 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
     float speed = 1.0f;
     switch (step) {
     case -1:
-        p->fInhibit = 0;
-        switch (p->action) {
+        grab->fInhibit = 0;
+        switch (grab->action) {
         case 1:
-            SetBarrelState(p->focus, 0);
-            if (p->pactor == D_002E1E40)
-                Notify(p->pactor->first, 8);
+            SetBarrelState(grab->focus, 0);
+            if (grab->pactor == D_002E1E40)
+                Notify(grab->pactor->first, 8);
             break;
         case 3:
         case 4: {
-            SOURCE *source = p->focus;
+            SOURCE *source = grab->focus;
             SourceState(source, 6);
-            UnsubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 0);
+            UnsubscribeLoObject(source, grab->pactor);
+            func_00204F78(grab->pactor, source, 0);
             break;
         }
         case 6:
-            if (!p->pactor->x18D8)
-                SetJtCaneState__FP2JTi(p->pactor, -1);
+            if (!grab->pactor->x18D8)
+                SetJtCaneState__FP2JTi(grab->pactor, -1);
             break;
         case 11:
-            if (p->focus)
-                UnsubscribeLoObject(p->focus, p->pactor);
-            p->pactor->x130C = 0;
-            p->pactor->x9BC = -1;
+            if (grab->focus)
+                UnsubscribeLoObject(grab->focus, grab->pactor);
+            grab->pactor->x130C = 0;
+            grab->pactor->x9BC = -1;
             break;
         case 5:
         case 9:
-            SetJtHandsTarget(&p->attach, -1);
+            SetJtHandsTarget(&grab->attach, -1);
             break;
         case 12:
-            p->pactor->x1318 = -1;
-            ReleaseJtHandsActs(p->pactor->secondary);
-            if (p->pactor == D_002E1E40)
-                p->pactor->x1BCC = 0;
+            grab->pactor->x1318 = -1;
+            ReleaseJtHandsActs(grab->pactor->secondary);
+            if (grab->pactor == D_002E1E40)
+                grab->pactor->x1BCC = 0;
             break;
         case 2:
             if (D_002E1E40->effect) {
@@ -1653,206 +1653,206 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             }
             break;
         }
-        if (p->pactor->focus) {
-            if (p->pactor->focus == p->aux)
-                SetStepplayerTnOverride(p->pactor, 0);
-            else if (p->pactor->focus == p->setting->focus)
-                SetStepplayerTnOverride(p->pactor, 0);
+        if (grab->pactor->focus) {
+            if (grab->pactor->focus == grab->aux)
+                SetStepplayerTnOverride(grab->pactor, 0);
+            else if (grab->pactor->focus == grab->setting->focus)
+                SetStepplayerTnOverride(grab->pactor, 0);
         }
         // store order: the last uses of -1 and 0.0f (tag, param) are scheduled first, the rest stay in this order
-        p->pactor->x1038 = -1;
-        p->action = -1;
-        p->step = -1;
-        p->focus = 0;
-        p->setting = 0;
-        p->param = p->value = 0.0f;
-        p->changed = 0;
-        p->tag = -1;
+        grab->pactor->x1038 = -1;
+        grab->action = -1;
+        grab->step = -1;
+        grab->focus = 0;
+        grab->setting = 0;
+        grab->param = grab->value = 0.0f;
+        grab->changed = 0;
+        grab->tag = -1;
         break;
     case 0:
     case 5:
-        switch (p->action) {
+        switch (grab->action) {
         case 0:
-            clip = p->clip174;
+            clip = grab->clip174;
             flags = 9;
             break;
         case 13:
-            clip = step == 0 ? p->clip510 : p->clip174;
+            clip = step == 0 ? grab->clip510 : grab->clip174;
             flags = 9;
             break;
         case 2:
-            clip = p->clip514;
+            clip = grab->clip514;
             flags = 9;
             break;
         case 1:
-            script = p->script230;
+            script = grab->script230;
             flags = 1;
             break;
         case 4:
-            clip = p->clip234;
+            clip = grab->clip234;
             flags = 9;
             special = 7;
             break;
         case 3:
-            if (p->focus->enabled) {
-                CLIP *override = p->overrideClip;
+            if (grab->focus->enabled) {
+                CLIP *override = grab->overrideClip;
                 if (override) {
                     clip = override;
-                    p->gain318 = p->gain31C = 0.0f;
+                    grab->gain318 = grab->gain31C = 0.0f;
                 } else
-                    clip = p->clip238;
+                    clip = grab->clip238;
             } else
-                clip = p->clip238;
+                clip = grab->clip238;
             flags = 9;
             special = 31;
             break;
         case 6:
         case 7:
-            clip = p->clip320;
+            clip = grab->clip320;
             flags = 9;
             break;
         case 5:
         case 9:
-            p->attach.focus = p->focus;
+            grab->attach.focus = grab->focus;
             speed = 0.0f;
-            SetJtHandsTarget(&p->attach, 0);
-            clip = p->attach.clip;
+            SetJtHandsTarget(&grab->attach, 0);
+            clip = grab->attach.clip;
             blend = clip->duration * 0.5f;
             break;
         case 10:
-            clip = p->pactor->pjoy->amount >= D_002BF640 ? p->clip4F0 : p->clip4F4;
+            clip = grab->pactor->pjoy->amount >= D_002BF640 ? grab->clip4F0 : grab->clip4F4;
             break;
         case 11:
-            if (p->tag == 21) {
+            if (grab->tag == 21) {
                 clip = D_002F7900->specialClip;
                 if (clip)
                     break;
             }
-            clip = p->clip4F8;
+            clip = grab->clip4F8;
             break;
         case 12:
-            clip = p->clip50C;
+            clip = grab->clip50C;
             break;
         }
-        p->pactor->velocity = D_002A2DD0;
+        grab->pactor->velocity = D_002A2DD0;
         break;
     case 1:
-        switch (p->action) {
+        switch (grab->action) {
         case 0:
-            clip = p->clip170;
-            if (!p->pactor->focus) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 12)) {
-                    SOURCE *source = p->focus;
+            clip = grab->clip170;
+            if (!grab->pactor->focus) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 12)) {
+                    SOURCE *source = grab->focus;
                     if (source->actor)
-                        SetStepplayerTnOverride(p->pactor, source->actor);
+                        SetStepplayerTnOverride(grab->pactor, source->actor);
                     else {
-                        ResetJtGrabTnParams(p);
-                        p->aux->target = source;
-                        SetStepplayerTnOverride(p->pactor, p->aux);
+                        ResetJtGrabTnParams(grab);
+                        grab->aux->target = source;
+                        SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
-                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 34)) {
-                    SOURCE *source = p->focus;
+                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 34)) {
+                    SOURCE *source = grab->focus;
                     if (source->owner)
-                        SetStepplayerTnOverride(p->pactor, source->owner);
+                        SetStepplayerTnOverride(grab->pactor, source->owner);
                     else {
-                        ResetJtGrabTnParams(p);
-                        p->aux->enabled = 1;
-                        AUX *aux = p->aux;
-                        aux->position = ConvertAloPos(0, p->aux, func_001A62E8(source));
-                        p->aux->value = source->parameter;
-                        SetStepplayerTnOverride(p->pactor, p->aux);
+                        ResetJtGrabTnParams(grab);
+                        grab->aux->enabled = 1;
+                        AUX *aux = grab->aux;
+                        aux->position = ConvertAloPos(0, grab->aux, func_001A62E8(source));
+                        grab->aux->value = source->parameter;
+                        SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
-                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 38)) {
-                    SOURCE *source = p->focus;
+                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 38)) {
+                    SOURCE *source = grab->focus;
                     if (source->owner)
-                        SetStepplayerTnOverride(p->pactor, source->owner);
+                        SetStepplayerTnOverride(grab->pactor, source->owner);
                     else {
-                        ResetJtGrabTnParams(p);
+                        ResetJtGrabTnParams(grab);
                         qword v = Transform(*func_001A6318(source), D_002BF650);
-                        SetX(&p->aux->data->x, v);
-                        p->aux->data->y = GetY(v);
-                        p->aux->data->z = GetZ(v);
-                        SetStepplayerTnOverride(p->pactor, p->aux);
+                        SetX(&grab->aux->data->x, v);
+                        grab->aux->data->y = GetY(v);
+                        grab->aux->data->z = GetZ(v);
+                        SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
                 }
             }
             break;
         case 13:
-            clip = p->clip170;
+            clip = grab->clip170;
             break;
         }
         flags = 9;
         break;
     case 4:
-        switch (p->action) {
+        switch (grab->action) {
         case 3:
-            clip = p->program240.clip;
-            ResetGaitFeet(&p->program240);
+            clip = grab->program240.clip;
+            ResetGaitFeet(&grab->program240);
             break;
         case 1:
-            clip = p->program180.clip;
-            ResetGaitFeet(&p->program180);
+            clip = grab->program180.clip;
+            ResetGaitFeet(&grab->program180);
             break;
         case 2:
-            clip = p->pactor->program.clip;
-            ResetGaitFeet(&p->pactor->program);
+            clip = grab->pactor->program.clip;
+            ResetGaitFeet(&grab->pactor->program);
             break;
         }
 
         flags = 9;
         break;
     case 3:
-        clip = p->clip17C;
-        p->pactor->velocity = D_002A2DD0;
+        clip = grab->clip17C;
+        grab->pactor->velocity = D_002A2DD0;
         break;
     case 2:
-        clip = p->clip178;
-        p->pactor->velocity = D_002A2DD0;
+        clip = grab->clip178;
+        grab->pactor->velocity = D_002A2DD0;
         break;
     case 7: {
-        SOURCE *source = p->focus;
-        clip = p->clip324;
+        SOURCE *source = grab->focus;
+        clip = grab->clip324;
         if (source->other) {
             M3 basis = *func_001A6318(source->other);
-            SetStepRadTargetVec(p->pactor, basis.row[0]);
+            SetStepRadTargetVec(grab->pactor, basis.row[0]);
         }
-        p->pactor->velocity = D_002A2DD0;
+        grab->pactor->velocity = D_002A2DD0;
         SourceState(source, 5);
         break;
     }
     case 8:
-        clip = p->clip328;
-        p->pactor->velocity = D_002A2DD0;
-        SourceState(p->focus, 6);
+        clip = grab->clip328;
+        grab->pactor->velocity = D_002A2DD0;
+        SourceState(grab->focus, 6);
         break;
     case 9:
-        script = p->script32C;
-        if (p->step == 7) {
-            AddFlags(&p->pactor->flags, 0x10);
-            if (p->pactor == D_002E1E40) {
-                AddFlags(&p->pactor->first->flags, 0x10);
+        script = grab->script32C;
+        if (grab->step == 7) {
+            AddFlags(&grab->pactor->flags, 0x10);
+            if (grab->pactor == D_002E1E40) {
+                AddFlags(&grab->pactor->first->flags, 0x10);
                 AddFlags(&D_002E1E40->second->flags, 0x10);
             }
         }
-        p->pactor->velocity = D_002A2DD0;
+        grab->pactor->velocity = D_002A2DD0;
         break;
     case 10:
-        clip = p->clip430;
-        p->pactor->x1038 = -1;
+        clip = grab->clip430;
+        grab->pactor->x1038 = -1;
         flags = 9;
-        p->pactor->velocity = D_002A2DD0;
+        grab->pactor->velocity = D_002A2DD0;
         break;
     }
-    p->step = step;
-    p->tStep = D_002DDED0.t;
+    grab->step = step;
+    grab->tStep = D_002DDED0.t;
     if (step != -1) {
-        ReleaseAsega(&p->pactor->animation);
-        ReleaseSma(&p->pactor->component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, p->pactor, blend, speed, flags, &p->pactor->animation);
-        ReplaceSma(script, p->pactor, -1, flags, &p->pactor->component);
-        Notify(p->pactor, 90);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactor, 53))
-            EnableJtLeanActs(p->pactor, special);
+        ReleaseAsega(&grab->pactor->animation);
+        ReleaseSma(&grab->pactor->component);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
+        ReplaceSma(script, grab->pactor, -1, flags, &grab->pactor->component);
+        Notify(grab->pactor, 90);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))
+            EnableJtLeanActs(grab->pactor, special);
     }
 }
 } // namespace M_SetJtGrabKind
@@ -1994,7 +1994,7 @@ static __inline__ float GClamp(float g, float lo, float hi)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 // Advances/clamps the grab parameter along the held curve object (wraps on closed curves, clamps on open ones).
-void ClampJtGrabCurveParam(struct P *p, struct Q *q, void *r)
+void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
 {
     struct O *o;
     float g, lo, hi, t;
@@ -2005,18 +2005,18 @@ void ClampJtGrabCurveParam(struct P *p, struct Q *q, void *r)
         func_0012DA30(r, D_002A2DD0);
         return;
     }
-    o = p->x4d4;
+    o = grab->x4d4;
     g = q->x10.f;
-    if (p->x4e4)
+    if (grab->x4e4)
         g = -g;
     lo = SMinShape(o);
     hi = SMaxShape(o);
     if (o->xe4)
-        t = GModPositive__Fff(p->x4e0 + g, hi);
+        t = GModPositive__Fff(grab->x4e0 + g, hi);
     else
-        t = GClamp(p->x4e0 + g, lo, hi);
+        t = GClamp(grab->x4e0 + g, lo, hi);
     EvaluateShapeS(o, t, &v, 0);
-    v.q = ConvertAloPos(0, p, v.q);
+    v.q = ConvertAloPos(0, grab, v.q);
     if (func_0014C748(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
         func_0012DA30(r, d);
@@ -2359,58 +2359,58 @@ float atan2f(float y, float x);
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 // Per grab state, records the held spot/parameter in the player's safe-place table.
-void RecordJtGrabPlace(struct P *p)
+void RecordJtGrabPlace(struct P *grab)
 {
     float g, s;
-    switch (p->x8) {
+    switch (grab->x8) {
     case 3:
-        if (p->x14->x19c)
+        if (grab->x14->x19c)
             return;
-        g = p->x20;
-        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
+        g = grab->x20;
+        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
         break;
     case 4:
-        if (p->x14->xec)
+        if (grab->x14->xec)
             return;
         g = 0.0f;
-        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
+        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
         break;
     case 0:
     case 13:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0xC)) {
-            if (p->x14->x19c)
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0xC)) {
+            if (grab->x14->x19c)
                 return;
-            g = p->x20;
-            AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
+            g = grab->x20;
+            AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
             break;
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x26)) {
-            if (p->x14->xec)
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x26)) {
+            if (grab->x14->xec)
                 return;
             g = 0.0f;
-            AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
+            AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
             break;
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x22)) {
-            if (p->x14->xec)
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x22)) {
+            if (grab->x14->xec)
                 return;
-            s = p->x14->x10c;
+            s = grab->x14->x10c;
         } else
-            s = p->x14->x184;
+            s = grab->x14->x184;
         {
             qword a;
             U d;
-            a = func_001A62E8(p->x0);
+            a = func_001A62E8(grab->x0);
             qword dq;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(func_001A62E8(p->x14)));
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(func_001A62E8(grab->x14)));
             d.q = dq;
             g = atan2f(d.f[1], d.f[0]) * s;
         }
-        AddJtPlaceOnCurve(p->x0->x9e0, p->x18, g);
+        AddJtPlaceOnCurve(grab->x0->x9e0, grab->x18, g);
         break;
     default:
     {
-        struct O *o = p->x0;
+        struct O *o = grab->x0;
         struct A *pa = o->x208;
         if (pa && pa->x88 > 0.7f && (pa->x4c->fl & 0x20000000) == 0 && !o->x108c)
             AddJtPlaceAtPosition(o->x9e0, pa->x40, pa->x60);
