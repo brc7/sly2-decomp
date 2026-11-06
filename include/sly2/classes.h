@@ -1365,8 +1365,8 @@ typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 /* 49 MS (0x150); vtable 0x2D4260, 75 slots */
 struct MS : SO
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetMsClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitMs");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetMsClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("RenderMsGlobset");   /* slot 19 */
 };
 typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
