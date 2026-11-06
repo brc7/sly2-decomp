@@ -2141,19 +2141,19 @@ int IsBhvguardModeSame(struct S *a, struct S *b) {
 // 0x177E80 InitBhvpath
 namespace M_InitBhvpath { extern "C" {
 struct S;
-struct S { char pad[0x34]; float g34; char pad2[0x10]; float g48; int state; char pad3[0x8]; int n58; char pad4[0x8]; float g64; float g68; float g6C; char pad5[0x30]; int nA0; };
+struct S { char pad[0x34]; float pathParam; char pad2[0x10]; float startParamHint; int state; char pad3[0x8]; int isBlocked; char pad4[0x8]; float arrivalRadius; float nearRadius; float farRadius; char pad5[0x30]; int nA0; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void InitBhv(struct S *p);
 } } // namespace M_InitBhvpath
 // 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
-void BHVPATH::OnPush() { using namespace M_InitBhvpath; M_InitBhvpath::S *p = (M_InitBhvpath::S *)this; InitBhv(p); p->g34 = p->g48 = -1.0f; p->g64 = D_002BE62C; p->g68 = D_002BE624; p->g6C = D_002BE628; p->state = -1; p->n58 = 0; p->nA0 = 1; }
+void BHVPATH::OnPush() { using namespace M_InitBhvpath; M_InitBhvpath::S *p = (M_InitBhvpath::S *)this; InitBhv(p); p->pathParam = p->startParamHint = -1.0f; p->arrivalRadius = D_002BE62C; p->nearRadius = D_002BE624; p->farRadius = D_002BE628; p->state = -1; p->isBlocked = 0; p->nA0 = 1; }
 
 // 0x177EF0 StartBhvpath
 namespace M_StartBhvpath { extern "C" {
 struct VTE; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct S { char pad[0xC]; struct VTE *vt; void *guard; char pad2[0x50]; float g64; float g68; float g6C; char pad3[0x10]; qword q80; };
+struct S { char pad[0xC]; struct VTE *vt; void *guard; char pad2[0x50]; float arrivalRadius; float nearRadius; float farRadius; char pad3[0x10]; qword startPosition; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
@@ -2166,9 +2166,9 @@ void StartBhvpath(struct S *behavior) {
     struct VTE *entry;
     float g;
     StartBhv(behavior);
-    behavior->q80 = func_001A62E8(behavior->guard);
-    g = Max(behavior->g64, D_002BE62C);
-    behavior->g64 = g; behavior->g68 = Min(g * 0.25f, D_002BE624); behavior->g6C = Min(g, D_002BE628);
+    behavior->startPosition = func_001A62E8(behavior->guard);
+    g = Max(behavior->arrivalRadius, D_002BE62C);
+    behavior->arrivalRadius = g; behavior->nearRadius = Min(g * 0.25f, D_002BE624); behavior->farRadius = Min(g, D_002BE628);
     entry = &behavior->vt[0xF];
     entry->pfn((char *)behavior + entry->d, 0);
 }
@@ -2736,9 +2736,9 @@ struct A { char pad[0xE8]; struct X *unknownE8; };
 struct T { char pad[0x28]; unsigned long fl; char pad2[0x1D8 - 0x30]; int n1D8; };
 struct S {
     char pad[0xC]; struct VTE *vt; struct A *guard; char pad1[0x30 - 0x14];
-    void *shape; float pathParam; int n38; char pad2[4]; int n40; char pad3[8]; int state;
-    char pad4[4]; struct T *p54; int n58; float g5C; float g60; char pad5[4]; float g68; float g6C;
-    char pad6[0x80 - 0x70]; qword v80;
+    void *shape; float pathParam; int isReversed; char pad2[4]; int n40; char pad3[8]; int state;
+    char pad4[4]; struct T *blocker; int isBlocked; float blockerParam; float blockerRange; char pad5[4]; float nearRadius; float farRadius;
+    char pad6[0x80 - 0x70]; qword startPosition;
 };
 void UpdateBhv(struct S *p);
 void StepBhvpathAlongShape(struct S *p);
@@ -2779,8 +2779,8 @@ void UpdateBhvpath(struct S *behavior) {
             if (!behavior->n40) {
                 struct X *x = behavior->guard->unknownE8;
                 struct Y *y = x ? x->pDC : 0;
-                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, behavior->shape, behavior->n38 == 0, &behavior->p54, &behavior->g60, behavior->pathParam);
-                behavior->n58 = n;
+                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, behavior->shape, behavior->isReversed == 0, &behavior->blocker, &behavior->blockerRange, behavior->pathParam);
+                behavior->isBlocked = n;
                 switch (n) {
                 case 0:
                     break;
@@ -2790,33 +2790,33 @@ void UpdateBhvpath(struct S *behavior) {
                     break;
                 case 1:
                 case 2: {
-                    FindShapeClosestPoint(behavior->p54, pos, &D_003DD020, 0, 0, 0, &g);
-                    if (80.0f < __builtin_fabsf(func_001E7B38(behavior->p54, g, behavior->g60))) {
-                        behavior->g5C = g;
+                    FindShapeClosestPoint(behavior->blocker, pos, &D_003DD020, 0, 0, 0, &g);
+                    if (80.0f < __builtin_fabsf(func_001E7B38(behavior->blocker, g, behavior->blockerRange))) {
+                        behavior->blockerParam = g;
                         Set(behavior, 1);
                     } else {
-                        behavior->n58 = 0;
+                        behavior->isBlocked = 0;
                     }
                     break;
                 }
                 }
             }
-            if (behavior->n58 == 0) {
-                float r = behavior->state == 0 ? behavior->g68 : behavior->g6C;
-                int f = r < Dist(behavior->v80, pos);
+            if (behavior->isBlocked == 0) {
+                float r = behavior->state == 0 ? behavior->nearRadius : behavior->farRadius;
+                int f = r < Dist(behavior->startPosition, pos);
                 if (f) Set(behavior, 0);
                 else Set(behavior, 2);
             }
             break;
         case 1:
         case 4:
-            if ((((int)(behavior->p54->fl >> 60) & 1) == 0) || behavior->p54->n1D8) {
+            if ((((int)(behavior->blocker->fl >> 60) & 1) == 0) || behavior->blocker->n1D8) {
                 Set(behavior, 0);
-            } else if (__builtin_fabsf(func_001E7B38(behavior->p54, behavior->g5C, behavior->g60)) < 80.0f) {
+            } else if (__builtin_fabsf(func_001E7B38(behavior->blocker, behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
                 Set(behavior, 0);
             } else {
-                float r = behavior->state == 1 ? behavior->g68 : behavior->g6C;
-                int f = r < Dist(behavior->v80, pos);
+                float r = behavior->state == 1 ? behavior->nearRadius : behavior->farRadius;
+                int f = r < Dist(behavior->startPosition, pos);
                 if (f) Set(behavior, 1);
                 else Set(behavior, 4);
             }
@@ -2847,11 +2847,11 @@ struct O {
     char pad[0x10];
     void *guard;
     char pad2[0x3C - 0x14];
-    int f3C;
+    int hasEnd;
     char pad3[0x64 - 0x40];
-    float f64;
+    float arrivalRadius;
     char pad4[0xB0 - 0x68];
-    qword vB0;
+    qword endPoint;
 };
 qword func_001A62E8(void *);
 // VU0 helper: distance between two points.
@@ -2867,9 +2867,9 @@ static inline float Dist(qword a, qword b) {
 // 0x178D00: True if the path end is defined and the guard is within the arrival radius of the end point.
 int IsBhvpathAtEnd(struct O *behavior)
 {
-    if (!behavior->f3C)
+    if (!behavior->hasEnd)
         return 0;
-    return Dist(func_001A62E8(behavior->guard), behavior->vB0) <= behavior->f64;
+    return Dist(func_001A62E8(behavior->guard), behavior->endPoint) <= behavior->arrivalRadius;
 }
 } } // namespace M_FBhvpathAtEnd
 
@@ -2887,7 +2887,7 @@ typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
 struct O { char pad[0xE4]; int nE4; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *po; float pathParam; int n38; int n3C; int pad3; float g44; float g48; char pad4[0xB0 - 0x4C]; char aB0[0x10]; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *po; float pathParam; int isReversed; int hasEnd; int pad3; float endParam; float startParamHint; char pad4[0xB0 - 0x4C]; char endPoint[0x10]; };
 qword func_001A62E8(void *p);
 void FindShapeClosestPointFromS(struct O *po, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(struct O *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
@@ -2897,21 +2897,21 @@ void EvaluateShapeS(struct O *po, float g, void *pv, int n);
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
 void SetBhvpathShape(struct S *behavior, struct O *po, int n) {
-    behavior->n38 = n;
+    behavior->isReversed = n;
     behavior->po = po;
-    if (behavior->g48 >= 0.0f) {
-        FindShapeClosestPointFromS(po, behavior->g48, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
-        behavior->g48 = -1.0f;
+    if (behavior->startParamHint >= 0.0f) {
+        FindShapeClosestPointFromS(po, behavior->startParamHint, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        behavior->startParamHint = -1.0f;
     } else {
         FindShapeClosestPoint(po, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
     }
     if (po->nE4) {
-        behavior->n3C = 0;
+        behavior->hasEnd = 0;
     } else {
-        behavior->n3C = 1;
-        if (behavior->n38) behavior->g44 = SMinShape(po);
-        else behavior->g44 = SMaxShape(po);
-        EvaluateShapeS(po, behavior->g44, behavior->aB0, 0);
+        behavior->hasEnd = 1;
+        if (behavior->isReversed) behavior->endParam = SMinShape(po);
+        else behavior->endParam = SMaxShape(po);
+        EvaluateShapeS(po, behavior->endParam, behavior->endPoint, 0);
     }
 }
 } } // namespace M_SetBhvpathShape
