@@ -21,17 +21,17 @@ struct K { int a, b; };
 struct RAILV
 {
     char pad0[0x38];
-    float g38;              /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C1EC0 */
+    float length;           /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C1EC0 */
     char pad3C[0xA8];
-    int fE4;                /* +0x0E4 non-zero: a closed shape, no range clamp */
+    int isClosed;           /* +0x0E4 non-zero: a closed shape, no range clamp */
     char pad0E8[0xA8];
     char grabspot[0x24];    /* +0x190 GRABSPOTDATA */
     K k;                    /* +0x1B4 kept across CloneShape */
     char pad1BC[4];
-    float g1C0;             /* +0x1C0 1000 at init */
-    float g1C4;             /* +0x1C4 1 at init */
+    float unknown1C0;       /* +0x1C0 1000 at init */
+    float unknown1C4;       /* +0x1C4 1 at init */
 };
-typedef char assert_RAIL_g1C4[(unsigned int)&((RAILV *)0)->g1C4 == 0x1C4 ? 1 : -1];
+typedef char assert_RAIL_unknown1C4[(unsigned int)&((RAILV *)0)->unknown1C4 == 0x1C4 ? 1 : -1];
 /* The object a closest point is measured from (+0x218) and a position is measured from (+0x240). */
 struct T { char pad[0x218]; qword *pq; };
 struct P { char pad[0x240]; VECTORV v; };
@@ -71,8 +71,8 @@ extern "C" void InitRail(RAILV *rail)
 {
     InitShape(rail);
     InitGrabspot(rail->grabspot);
-    rail->g1C4 = 1.0f;
-    rail->g1C0 = 1000.0f;
+    rail->unknown1C4 = 1.0f;
+    rail->unknown1C0 = 1000.0f;
 }
 
 /** @sly2-annot addr=0x1CB950
@@ -86,7 +86,7 @@ extern "C" void InitRail(RAILV *rail)
 extern "C" void PostRailLoad(RAILV *rail)
 {
     PostLoLoad(rail);
-    if (rail->g38 == 1e10f) rail->g38 = func_001E7D90(rail) + D_002C1EC0;
+    if (rail->length == 1e10f) rail->length = func_001E7D90(rail) + D_002C1EC0;
 }
 
 /** @sly2-annot addr=0x1CB9B0
@@ -147,7 +147,7 @@ extern "C" void CloneRail(RAILV *rail)
 // wraps around; open rails return 0.
 extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
 {
-    if (rail->fE4) { pg[0] = SMinShape(rail); pg[1] = SMaxShape(rail); return 1; } return 0;
+    if (rail->isClosed) { pg[0] = SMinShape(rail); pg[1] = SMaxShape(rail); return 1; } return 0;
 }
 
 /** @sly2-annot addr=0x1CBAC0
@@ -163,7 +163,7 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
     qword buf;
     float g, v;
     FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
-    if (rail->fE4 == 0) {
+    if (rail->isClosed == 0) {
         g = SMaxShape(rail) - 50.0f;
         v = *pf;
         if (v < 50.0f) v = 50.0f;
