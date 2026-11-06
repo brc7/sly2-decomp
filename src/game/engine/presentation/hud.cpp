@@ -55,7 +55,7 @@ extern CLOCK D_002DDED0;        /* g_clock */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
-extern "C" char D_C0[];         /* VU1 microprogram entry at 0xC0 */
+extern "C" char D_000000C0[];         /* VU1 microprogram entry at 0xC0 */
 char *PchzFindSwLangstr(SW *psw, int id);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 int FFindDlEntry(DL *pdl, void *pv);
@@ -542,7 +542,7 @@ void BeginRpHud(void *p)
 extern "C" void EndRpHud(VIFS *pvifs)
 {
     pvifs->AddDmaCnt();
-    pvifs->AddVifMscal(D_C0);
+    pvifs->AddVifMscal(D_000000C0);
     pvifs->AddVifFlusha();
     pvifs->EndDmaCnt();
 }

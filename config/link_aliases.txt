@@ -16,4 +16,3 @@ _$_8CPairPtr = _$_t7CRefPtr1Z5CPair;   # sly2/pair.h's CPairPtr: the CRefPtr<CPa
 _$_8CVarbPtr = _$_t7CRefPtr1Z5CVarb;   # sly2/varb.h's CVarbPtr: the CRefPtr<CVarb> view
 
 # other declarations that cannot be bound in source (6)
-D_C0 = 0xC0;   # engine/presentation/hud.cpp: an absolute address used as a symbol (%hi/%lo of 0xC0)
