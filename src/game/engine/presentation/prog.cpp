@@ -1,6 +1,8 @@
 // prog.cpp -- CProg, the loading progress bar (two filled rectangles, colour by retry count), and the loading screen:
 // its render thread drawing a pulsing logo from five triangle lists, start/end and startup. One empty asm helper and
 // register pins. TU 0x1C8CC0..0x1C9940 (13 functions, address order).
+// Entry points: StartupLoadingScreen (boot), BeginLoadingScreen / EndLoadingScreen (around level loads), CProg (the
+// load progress bar, driven by SetRemain).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_prog
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C9920
 #include "vifs.h"
@@ -60,21 +62,21 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* CProg: the progress bar (field roles from SetRemain and Draw). */
 class CProg {
 public:
-    int m_fActive;          /* 0x00 */
-    int m_nMax;             /* 0x04 twice the first count */
-    int m_nTarget;          /* 0x08 the first count */
-    int m_nRemain;          /* 0x0c the current count */
-    char m_f10;             /* 0x10 */
+    int isActive;          /* 0x00 */
+    int maxCount;             /* 0x04 twice the first count */
+    int totalCount;          /* 0x08 the first count */
+    int remaining;          /* 0x0c the current count */
+    char unknown10;             /* 0x10 */
     char pad[0x3f];
-    int m_cRetry;           /* 0x50 how often the same count came again */
-    RGBA m_rgba0, m_rgba1, m_rgba2, m_rgba3;   /* 0x54 done part; rest by retry count 0, 1, more */
+    int repeatCount;           /* 0x50 how often the same count came again */
+    RGBA doneColor, todoColor, todoColorRepeated, todoColorStuck;   /* 0x54 done part; rest by retry count 0, 1, more */
     CProg(RGBA *p0, RGBA *p1, RGBA *p2, RGBA *p3);
     void Begin();
-    void SetRemain(int nRemain);
+    void SetRemain(int remainingCount);
     void End();
     void Draw();
 };
-typedef char assert_CProg_rgba3[(uint)&((CProg *)0)->m_rgba3 == 0x60 ? 1 : -1];
+typedef char assert_CProg_rgba3[(uint)&((CProg *)0)->todoColorStuck == 0x60 ? 1 : -1];
 /* The 2x3 transform of the logo (and two spare words). */
 struct M2 {float a[8];M2(){}void Identity();};
 struct V2 { float x, y; };
@@ -142,11 +144,13 @@ void OpenFrame(void);
  * See: docs/engine/game-progression.md#7-source-files,
  *   docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files
  * @end-sly2-annot */
-CProg::CProg(RGBA *p0, RGBA *p1, RGBA *p2, RGBA *p3)
+// Builds a progress bar with its four colours (done part; remaining part when the count changed, repeated once, or
+// repeated more often) and resets it.
+CProg::CProg(RGBA *done, RGBA *todo, RGBA *todoRepeated, RGBA *todoStuck)
 {
-    m_rgba0 = *p0; m_rgba1 = *p1; m_rgba2 = *p2; m_rgba3 = *p3;
+    doneColor = *done; todoColor = *todo; todoColorRepeated = *todoRepeated; todoColorStuck = *todoStuck;
     /* Begin(), inlined (an inline Begin cannot coexist with its out-of-line definition below in one file) */
-    m_fActive = 0; m_cRetry = 0; m_nRemain = 0; m_nTarget = 0; m_nMax = 0; m_f10 = 0;
+    isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0;
 }
 
 /** @sly2-annot addr=0x1C8D20
@@ -156,7 +160,8 @@ CProg::CProg(RGBA *p0, RGBA *p1, RGBA *p2, RGBA *p3)
  * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-void CProg::Begin() { m_fActive = 0; m_cRetry = 0; m_nRemain = 0; m_nTarget = 0; m_nMax = 0; m_f10 = 0; }
+// Resets the progress bar (inactive, no counts).
+void CProg::Begin() { isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0; }
 
 /** @sly2-annot addr=0x1C8D40
  * Purpose: update remaining count
@@ -165,19 +170,21 @@ void CProg::Begin() { m_fActive = 0; m_cRetry = 0; m_nRemain = 0; m_nTarget = 0;
  * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-void CProg::SetRemain(int nRemain)
+// Reports how many items are left to load: the first report fixes the total (the bar spans twice it) and clears the
+// frame buffers; a repeated count bumps the repeat counter, which changes the colour of the remaining part. Redraws.
+void CProg::SetRemain(int remainingCount)
 {
-    if (m_fActive != 0) {
-        if (m_nTarget == 0) {
-            m_nTarget = nRemain;
-            m_nMax = nRemain << 1;
+    if (isActive != 0) {
+        if (totalCount == 0) {
+            totalCount = remainingCount;
+            maxCount = remainingCount << 1;
             ClearFrameBuffers__Fv();
-        } else if (m_nRemain == nRemain) {
-            m_cRetry = m_cRetry + 1;
+        } else if (remaining == remainingCount) {
+            repeatCount = repeatCount + 1;
         } else {
-            m_cRetry = 0;
+            repeatCount = 0;
         }
-        m_nRemain = nRemain;
+        remaining = remainingCount;
         Draw();
     }
 }
@@ -188,7 +195,8 @@ void CProg::SetRemain(int nRemain)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-void CProg::End() { m_fActive = 0; m_cRetry = 0; m_nRemain = 0; m_nTarget = 0; m_nMax = 0; m_f10 = 0; }
+// Clears the progress bar's state (the same stores as Begin).
+void CProg::End() { isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0; }
 
 /** @sly2-annot addr=0x1C8DD8
  * Purpose: draw progress bar (GIF/DMA packet)
@@ -196,32 +204,34 @@ void CProg::End() { m_fActive = 0; m_cRetry = 0; m_nRemain = 0; m_nTarget = 0; m
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
+// Draws the progress bar immediately (its own GIF packet, sent to both frame buffers): the done part and the remaining
+// part as two rectangles near the bottom of the screen.
 void CProg::Draw()
 {
     QW buf[0x400];
-    GIFS gs;
-    RGBA c;
-    int w, s;
-    gs.AllocStatic(0x400, buf);
-    gs.AddDmaCnt();
-    w = (int)((float)m_nTarget * 620.0f / (float)m_nMax);
-    s = (int)((float)w * ((float)(m_nTarget - m_nRemain) / (float)m_nTarget));
-    c = m_rgba0;
-    FillScreenRect(&c, &gs, 10.0f, GTrunc__Ff(412.909088f) * 1.1f, (float)(s + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
-    if (m_cRetry <= 0)
-        c = m_rgba1;
-    else if (m_cRetry == 1)
-        c = m_rgba2;
+    GIFS gifs;
+    RGBA color;
+    int width, doneWidth;
+    gifs.AllocStatic(0x400, buf);
+    gifs.AddDmaCnt();
+    width = (int)((float)totalCount * 620.0f / (float)maxCount);
+    doneWidth = (int)((float)width * ((float)(totalCount - remaining) / (float)totalCount));
+    color = doneColor;
+    FillScreenRect(&color, &gifs, 10.0f, GTrunc__Ff(412.909088f) * 1.1f, (float)(doneWidth + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
+    if (repeatCount <= 0)
+        color = todoColor;
+    else if (repeatCount == 1)
+        color = todoColorRepeated;
     else
-        c = m_rgba3;
+        color = todoColorStuck;
     {
-        RGBA c2 = c;
-        FillScreenRect(&c2, &gs, (float)(s + 10), GTrunc__Ff(412.909088f) * 1.1f, (float)(w + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
+        RGBA colorCopy = color;
+        FillScreenRect(&colorCopy, &gifs, (float)(doneWidth + 10), GTrunc__Ff(412.909088f) * 1.1f, (float)(width + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
     }
-    gs.AddPrimEnd();
-    gs.AddDmaEnd();
-    gs.EndDmaCnt();
-    gs.Detach(0, 0);
+    gifs.AddPrimEnd();
+    gifs.AddDmaEnd();
+    gifs.EndDmaCnt();
+    gifs.Detach(0, 0);
     BlastAqwGifsBothFrames(buf);
 }
 
@@ -241,13 +251,15 @@ static inline float *Receiver(float *p)
  * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
  *   docs/engine/world-sw.md#2-loading-a-level, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-extern "C" void BeginLoadingScreen(float *input)
+// Starts the loading screen: records the start time (real clock) in the caller's variable, publishes it to the render
+// thread and signals the thread's start semaphore.
+extern "C" void BeginLoadingScreen(float *startTime)
 {
     float now = g_clock.tReal;
-    float *p = Receiver(input);
+    float *startTimeRef = Receiver(startTime);
     int sema = D_003D3A3C;
-    *p = now;
-    D_002DD314 = p;
+    *startTimeRef = now;
+    D_002DD314 = startTimeRef;
     func_00234A40(sema);
 }
 
@@ -257,6 +269,7 @@ extern "C" void BeginLoadingScreen(float *input)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
+// Empty in the release build (inferred: a per-step loading-screen update compiled out).
 extern "C" void UpdateLoadingScreen(void)
 {
 }
@@ -267,6 +280,7 @@ extern "C" void UpdateLoadingScreen(void)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
+// Stops the loading screen: requests the render thread to stop, waits until it has, and clears the start time.
 extern "C" void EndLoadingScreen(void)
 {
     SignalSema(D_003D3A40);
@@ -281,16 +295,18 @@ extern "C" void EndLoadingScreen(void)
  * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
  *   docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Boot-time setup: creates the loading-screen render thread (priority 4, its own 4 KB stack) and the start / end-request /
+// end-done semaphores, and starts the thread (which then waits for BeginLoadingScreen).
 extern "C" void StartupLoadingScreen(void)
 {
-    TP tp;
-    func_002333B4(&tp, 0, sizeof(tp));
-    tp.stack_size = 0x1000;
-    tp.stack = D_003D3A50;
-    tp.gp_reg = D_002E5270;
-    tp.initial_priority = 4;
-    tp.func = (void *)LoadingScreenThread;
-    D_004425D0.tid = func_00234820(&tp);
+    TP threadParams;
+    func_002333B4(&threadParams, 0, sizeof(threadParams));
+    threadParams.stack_size = 0x1000;
+    threadParams.stack = D_003D3A50;
+    threadParams.gp_reg = D_002E5270;
+    threadParams.initial_priority = 4;
+    threadParams.func = (void *)LoadingScreenThread;
+    D_004425D0.tid = func_00234820(&threadParams);
     D_003D3A3C = SemaCreate(0, 1);
     D_003D3A40 = SemaCreate(0, 1);
     D_003D3A44 = SemaCreate(0, 1);
@@ -325,6 +341,9 @@ static inline void BeginFrame()
  * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
  *   docs/engine/main-loop-startup.md#6-threads, docs/guides/port-plan.md#11-known-facts-that-drive-the-design
  * @end-sly2-annot */
+// The loading-screen render thread: per load, waits for the start semaphore, then every frame draws the logo with a
+// sine-pulsing scale and a fade-in opacity (polynomial in time, clamped) until the end request; then finishes the frame,
+// waits for the GS and signals that it is done.
 extern "C" void LoadingScreenThread(void *)
 {
     SEMA status;M2 matrix;
@@ -360,31 +379,33 @@ extern "C" void LoadingScreenThread(void *)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
-extern "C" void DrawLoadingScreenLogo(GIFS *pgs, M2 *pm, float alpha)
+// Adds the loading-screen logo to a GIF packet: its five triangle lists (each with its own colour, opacity scaled by
+// alpha) with every vertex put through the logo's 2x3 screen transform.
+extern "C" void DrawLoadingScreenLogo(GIFS *gifs, M2 *transform, float alpha)
 {
     unsigned int i;
-    pgs->AddPrimPack( 0, 1, 0xE);
-    pgs->PackAD( 0x47, 0x31001);
-    pgs->PackAD( 0x42, 0x44);
+    gifs->AddPrimPack( 0, 1, 0xE);
+    gifs->PackAD( 0x47, 0x31001);
+    gifs->PackAD( 0x42, 0x44);
     for (i = 0; i < 5; i++) {
-        E *pe = &D_003D3A00.ae[i];
-        RGBA c;
+        E *triangleList = &D_003D3A00.ae[i];
+        RGBA color;
         int j;
-        pgs->AddPrimPack( 0, 2, 0xE1);
-        c = pe->c;
-        c.a = (int)(c.a * alpha);
-        pgs->PackRGBA( *(int *)&c);
-        pgs->PackAD( 0, (signed char)c.a >= 0 ? 0x43 : 0x83);
-        pgs->AddPrimList( 1, 4);
-        for (j = 0; j < pe->n; j++) {
-            int *pi = pe->p[j].ai;
+        gifs->AddPrimPack( 0, 2, 0xE1);
+        color = triangleList->c;
+        color.a = (int)(color.a * alpha);
+        gifs->PackRGBA( *(int *)&color);
+        gifs->PackAD( 0, (signed char)color.a >= 0 ? 0x43 : 0x83);
+        gifs->AddPrimList( 1, 4);
+        for (j = 0; j < triangleList->n; j++) {
+            int *vertexIndex = triangleList->p[j].ai;
             int k;
             for (k = 0; k < 3; k++) {
-                V2 v = D_002C10D0[*pi++];
+                V2 v = D_002C10D0[*vertexIndex++];
                 V2 w;
-                w.x = pm->a[0] * v.x + pm->a[2] * v.y + pm->a[4];
-                w.y = pm->a[1] * v.x + pm->a[3] * v.y + pm->a[5];
-                pgs->ListXYZF( (int)((w.x * 0.8f + 1792.0f) * 16.0f), (int)((w.y * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
+                w.x = transform->a[0] * v.x + transform->a[2] * v.y + transform->a[4];
+                w.y = transform->a[1] * v.x + transform->a[3] * v.y + transform->a[5];
+                gifs->ListXYZF( (int)((w.x * 0.8f + 1792.0f) * 16.0f), (int)((w.y * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
             }
         }
     }
