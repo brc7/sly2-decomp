@@ -52,9 +52,9 @@ typedef char assert_RT_size[sizeof(RT) == 0x28 ? 1 : -1];
 
 /* An object the camera renders (+0xE4 list): LO fields used by AcquireRenderTarget. */
 struct LOROOTV { struct LOV *plo; };
-struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long x28; char pad30[0x10]; int x40; };
+struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long loBits; char pad30[0x10]; int flags40; };   /* loBits bit 60: LO::fInWorld; flags40: tagged flag word */
 /* An object of the second list (+0x108). */
-struct RTO { int a, b, c; VTE *vt; char pad[0x15C - 0x10]; int f15c; int f160; };
+struct RTO { int a, b, c; VTE *vt; char pad[0x15C - 0x10]; int unknown15C; int unknown160; };   /* both set to 1 while shown in a target */
 /* The camera object (an XFM, which ends at +0xE0). */
 struct RTCAM
 {
@@ -64,8 +64,8 @@ struct RTCAM
     int c;             /* +0xE0 objects hidden while rendering, with their flags (1 shown again, 2 re-enabled) */
     LOV *ap[4];
     int af[4];
-    int c104;          /* +0x104 */
-    RTO *a108[4];
+    int numShown;      /* +0x104 objects shown only in the target */
+    RTO *shown[4];
     RTCAM *parent;     /* +0x118 */
     float fov, clipFar, clipNear;
     RT *prt;           /* +0x128 the claimed target */
@@ -75,7 +75,7 @@ struct GSB { int x0, x4, ibMax; };
 struct MATRIX4;
 struct SW; struct LO; struct BASIC;
 /* The hero's PO view: a 0x34-derived hero hands on to the object at +0xF40. */
-struct POV { char pad[0xF40]; POV *xF40; };
+struct POV { char pad[0xF40]; POV *controlled; };   /* (inferred) the object the hero currently controls */
 
 /* The two render targets' lookup rows (26 ints each, -1: none), indexed by GetRenderTargetTexture (tu_1BE398's .data). */
 int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
@@ -274,9 +274,9 @@ extern "C" void AddRtcamObjectShown(RTCAM *p, RTO *po)
 {
     if (po) {
         VTE *e;
-        p->a108[p->c104++] = po;
-        po->f160 = 1;
-        po->f15c = 1;
+        p->shown[p->numShown++] = po;
+        po->unknown160 = 1;
+        po->unknown15C = 1;
         e = &po->vt[9];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
     }
@@ -302,7 +302,7 @@ extern "C" RT *AcquireRenderTarget(RTCAM *p)
             LOV *o = p->ap[j];
             int x;
             p->af[j] = 0;
-            if (((int)(o->x28 >> 60) & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
+            if (((int)(o->loBits >> 60) & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
                 p->af[j] = 1;
                 ((void (*)(void *))o->vt[8].pfn)((char *)o + o->vt[8].d);
                 if (!func_001A61A0(o)) {
@@ -312,7 +312,7 @@ extern "C" RT *AcquireRenderTarget(RTCAM *p)
                     ((void (*)(void *))q->vt[23].pfn)((char *)q + q->vt[23].d);
                 }
             }
-            x = o->x40;
+            x = o->flags40;
             if ((x ^ 1) & 1) x = *(int *)x;
             if (x & 8) {
                 p->af[j] |= 2;
@@ -369,7 +369,7 @@ extern "C" void RenderRtcam(RTCAM *p)
     }
 }
 
-static __inline__ POV *Get(POV *po) { return (po && FIsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->xF40 : po; }
+static __inline__ POV *Get(POV *po) { return (po && FIsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
 // Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
 // player object, or what it controls), others in the whole world. (inferred)
 extern "C" void FindObjectForRenderTarget(int id)

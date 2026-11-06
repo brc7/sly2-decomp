@@ -288,7 +288,7 @@ extern char D_002BD9A0[];
 extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
-struct SND { char pad[0x4E]; short c4E; };
+struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 struct JOY { char pad[0x103C]; float g103C; float g1040; char pad2[0x1074 - 0x1044]; float g1074; };
 struct X {
     char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
@@ -341,10 +341,10 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));
         ps = p->zoomSound;
         func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->zoomSpeed) * 0.5f + 0.5f));
-        if (p->zoomSound->c4E > 0)
+        if (p->zoomSound->pauseCount > 0)
             ResumeSnd(p->zoomSound);
     } else {
-        if (p->zoomSound->c4E <= 0)
+        if (p->zoomSound->pauseCount <= 0)
             PauseSnd(p->zoomSound);
     }
     u = 1.0f - p->zoom;
@@ -572,7 +572,7 @@ struct CM;
 extern struct CM D_002DDF40;
 extern char D_002BD9B8[], D_002BD9C8[], D_002BD9D8[], D_002BD9E8[], D_002BD9F8[];
 extern char D_002BBB60[], D_002BBB68[];
-struct SND { char pad[0x4E]; short c4E; };
+struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 struct X {
     char pad0[0x18]; float targetZoom; char pad1[0x20 - 0x1C];
     qword smoothedFocus; qword smoothedEye; void *hasPose; char pad2[0x50 - 0x44];
@@ -630,10 +630,10 @@ void UpdateCpzoom(struct X *p)
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));
         ps = p->zoomSound;
         func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->zoomSpeed) * 0.5f + 0.5f));
-        if (p->zoomSound->c4E > 0)
+        if (p->zoomSound->pauseCount > 0)
             ResumeSnd(p->zoomSound);
     } else {
-        if (p->zoomSound->c4E <= 0)
+        if (p->zoomSound->pauseCount <= 0)
             PauseSnd(p->zoomSound);
     }
     if (p->hasPose) {
