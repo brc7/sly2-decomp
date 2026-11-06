@@ -294,12 +294,15 @@ def check_plain(name):
 # --------------------------------------------------------------------------------------------------------------------
 # repo model
 # --------------------------------------------------------------------------------------------------------------------
+# name tables a rename updates (key -> repo path); units.csv (function,addr,home_tu) is optional
+CFG_PATHS = {'symbol_addrs.txt': 'config/symbol_addrs.txt', 'functions.csv': 'config/functions.csv',
+             'matched.csv': 'config/matched.csv', 'units.csv': 'tools/layout/units.csv'}
 SA_RE = re.compile(r'(\s*)(\S+)(\s*=\s*0x)([0-9A-Fa-f]+)(;.*)?$')
 
 class Repo:
     def __init__(self, root):
         self.root = os.path.abspath(root)
-        self.cfg = {k: self._read(f'config/{k}') for k in ('symbol_addrs.txt', 'functions.csv', 'matched.csv')}
+        self.cfg = {k: self._read(v) for k, v in CFG_PATHS.items() if k != 'units.csv' or os.path.exists(os.path.join(self.root, v))}
         self.files = {}
         for d in SRC_DIRS:
             for dp, dn, fn in os.walk(os.path.join(self.root, d)):
@@ -796,6 +799,10 @@ class Engine:
             p = line.split(',')
             if len(p) >= 5 and (p[0] in r.aliases or p[4] in r.defining):
                 edits.append(f'matched.csv: {p[0]},{p[4]}')
+        for line in R.cfg.get('units.csv', '').splitlines()[1:]:
+            p = line.split(',')
+            if len(p) >= 3 and p[0] in r.aliases and re.fullmatch(r'0x[0-9A-Fa-f]+', p[1]) and int(p[1], 16) == r.addr:
+                edits.append(f'units.csv: {p[0]} -> {r.symbol}')
         return edits
 
     def render_config(self, active):
@@ -841,7 +848,17 @@ class Engine:
                 line = ','.join(p)
             out.append(line)
         mc = '\n'.join(out)
-        return {'symbol_addrs.txt': sa, 'functions.csv': fc, 'matched.csv': mc}
+        out = {'symbol_addrs.txt': sa, 'functions.csv': fc, 'matched.csv': mc}
+        if 'units.csv' in self.orig_cfg:           # function,addr,home_tu: the name column follows the rename
+            rows = []
+            for i, line in enumerate(self.orig_cfg['units.csv'].split('\n')):
+                q = line.split(',')
+                if i and len(q) >= 3 and re.fullmatch(r'0x[0-9A-Fa-f]+', q[1]) and int(q[1], 16) in by_addr \
+                        and q[0] in by_addr[int(q[1], 16)].aliases:
+                    q[0] = by_addr[int(q[1], 16)].symbol; line = ','.join(q)
+                rows.append(line)
+            out['units.csv'] = '\n'.join(rows)
+        return out
 
     # ---- materialize -------------------------------------------------------------------------------------------
     def desired(self, active):
@@ -882,7 +899,7 @@ class Engine:
         cfg = self.render_config(active)
         for k, v in cfg.items():
             if self.repo.cfg[k] != v:
-                _atomic_write(os.path.join(root, 'config', k), v); self.repo.cfg[k] = v
+                _atomic_write(os.path.join(root, CFG_PATHS[k]), v); self.repo.cfg[k] = v
         removals = []
         for p in sorted(touched):
             np_, text = want.get(p, (p, self.orig_files[p]))
@@ -934,6 +951,7 @@ class Engine:
             after = {p: after[self.state.get(p, p)] for p in allf}
             nmap = self.name_map(accepted)
             failed = {p for p in allf if not same_result(baseline[p], after[p], nmap)}
+            failed |= {p for r in accepted for p in self.ground_truth_bad(r, after)}
             for r in accepted: r.verification = {p: dict(before=baseline[p], after=after[p]) for p in r.verify}
             if failed:
                 suspects = [r for r in accepted if failed & set(r.verify)]
@@ -952,9 +970,11 @@ class Engine:
                     res = self.verifier(self.cur(r.verify), self.repo, self.name_map(trial))
                     res = {p: res[self.state.get(p, p)] for p in r.verify}
                     bad = [p for p in r.verify if not same_result(baseline[p], res[p], self.name_map(trial))]
+                    bad += [p for p in self.ground_truth_bad(r, res) if p not in bad]
                     r.verification = {p: dict(before=baseline[p], after=res[p]) for p in r.verify}
                     if bad:
                         r.status = 'reverted'; r.reason = 'match or symbol table changed in ' + ', '.join(bad[:4])
+                        if getattr(r, 'gt_note', None): r.reason += '; ' + r.gt_note
                         sd = {p: symbol_diff(baseline[p], res[p], self.name_map(trial)) for p in bad}
                         sd = {p: d for p, d in sd.items() if d[0] or d[1]}
                         if sd: r.reason += '; symbols (missing, unexpected): ' + '; '.join(
@@ -967,6 +987,20 @@ class Engine:
         for r in renames: r.final_paths = {p: self.state.get(p, p) for p in r.files}
         for r in renames: self.report_line(r)
         return 0 if all(r.status in ('applied', 'already-applied') for r in renames) else 1
+
+    def ground_truth_bad(self, r, results):
+        """Defining files whose compiled object does not define r's new symbol (the object, not the computed mangling,
+        is the ground truth). Only C++ renames: their symbol comes from the compiler, not from the spelling."""
+        if not r.cxx: return []
+        bad = []
+        for p in self.def_sources(r.addr):
+            res = results.get(p) or results.get(self.state.get(p, p))
+            if res is None or res.get('syms') is None: continue          # not rebuilt (e.g. --no-verify stub)
+            if ('D', r.symbol) not in res['syms']:
+                got = sorted(n for k, n in res['syms'] if k == 'D' and n.startswith(r.cxx['new_base'] + '__'))
+                r.gt_note = f'{p} does not define {r.symbol}' + (f' (object has {", ".join(got[:3])})' if got else '')
+                bad.append(p)
+        return bad
 
     def name_map(self, active):
         return {a: r.symbol for r in active for a in r.aliases}
@@ -987,7 +1021,7 @@ class Engine:
         cfg = self.render_config(active)
         for k, v in cfg.items():
             sys.stdout.writelines(difflib.unified_diff(self.orig_cfg[k].splitlines(True), v.splitlines(True),
-                                                       'a/config/' + k, 'b/config/' + k))
+                                                       'a/' + CFG_PATHS[k], 'b/' + CFG_PATHS[k]))
 
 def apply_sites(text, sites):
     """Apply (start, end, replacement) edits given in offsets of `text`."""
@@ -1024,6 +1058,9 @@ def _transparent_depth(text, code):
 
 def map_symbol(name, name_map):
     if name in name_map: return name_map[name]
+    # without a public symbol to borrow, gcc names the stub <path>.cpp + 6 random characters, new on every compile
+    m = re.match(r'(_GLOBAL_\$[ID]\$.*\.(?:c|cpp))[A-Za-z0-9_$]{6}$', name)
+    if m: return m.group(1) + '<random>'
     m = re.match(r'(_GLOBAL_\$[ID]\$)(.+)$', name)     # gcc names a TU's ctor/dtor stub after its first global symbol
     if m and m.group(2) in name_map: return m.group(1) + name_map[m.group(2)]
     return name
@@ -1032,7 +1069,7 @@ def symbol_diff(before, after, name_map):
     """(missing, unexpected): symbols of the old object (renamed through name_map) absent from the new one, and new
     symbols not explained by the renames. Both empty = the symbol tables differ exactly by the intended renames."""
     b = {(k, map_symbol(n, name_map)) for k, n in before.get('syms', ())}
-    a = {tuple(x) for x in after.get('syms', ())}
+    a = {(k, map_symbol(n, {})) for k, n in after.get('syms', ())}
     return sorted(b - a), sorted(a - b)
 
 def same_result(before, after, name_map=None):
