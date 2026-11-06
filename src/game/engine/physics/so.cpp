@@ -3472,7 +3472,7 @@ inline int FIsLoInWorld(LO *plo)
 
 extern XF D_002C44F0;
 void AddSoParts(SO *pso) __asm__("AddSoParts");
-void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase) __asm__("func_0016EA80");
+void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase) __asm__("CloneGlobset");
 void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom) __asm__("func_001191E8");
 inline void *PvAllocSwCopy(int cb, void *pvBase)
 {

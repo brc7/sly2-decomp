@@ -256,7 +256,7 @@ struct CAMMOVE
       int nUnk18;
 };
 
-void JoltCm(CM *pcm, int nUnk61c) __asm__("func_0014F750");
+void JoltCm(CM *pcm, int nUnk61c) __asm__("JoltCamera");
 
 void CutCm(CM *pcm);
 

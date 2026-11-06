@@ -23,7 +23,7 @@
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
-   that func_00159118 (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
+   that InitEmitBlock (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
    guarded local statics). Their initializers hold the non-constant vectors D_002A2DD0 (0,0,0), D_002A2DA0 (1,0,0)
    and D_002A2DC0 (0,0,1), so g++ builds each one in a memset stack temp and block-copies it.
    The three unions are what matched it: store_constructor emits a (clobber (mem:BLK)) for every union initializer.
@@ -106,7 +106,7 @@ void CloneXfm(XFM *pxfm, XFM *pxfmBase);
 void SetRipgEmitb(RIPG *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
 float GRandInRange(float gMin, float gMax);
 
-namespace M_func_00159118 { extern "C" {
+namespace M_InitEmitBlock { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword aq[4]; } M4;
 typedef struct B7 { qword aq[7]; } B7;
@@ -115,7 +115,7 @@ extern B7 D_002DE5F0;
 struct S { int a; int b; int pad[2]; M4 m; B7 b7; char pad2[0x100 - 0xC0]; };
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
-void func_00159118(struct S *p)
+void InitEmitBlock(struct S *p)
 {
     func_002333B4(p, 0, sizeof(struct S));
     p->a = 1;
@@ -123,7 +123,7 @@ void func_00159118(struct S *p)
     p->m = D_002DE5B0;
     p->b7 = D_002DE5F0;
 }
-} } // namespace M_func_00159118
+} } // namespace M_InitEmitBlock
 
 namespace M_InitEmitter { extern "C" {
 struct S { char pad[0x40]; unsigned int fl; char pad2[0xF0 - 0x44]; int nF0; int nF4; float gF8; float gFC; char pad3[0x118 - 0x100]; int n118; char dl[0x148 - 0x11C]; float g148; };
@@ -742,7 +742,7 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // (Lilly's agent, T1683) MATCH, no register pins. Built from the lilly1/v3 drafts (Claude agents, T1679 / lane E20).
 //
 // Sly 2 signature (SO *, WATER *, qword pos, qword v, float dt, float gFrac, float gScale) despite the Sly 1 mangled name.
-// The splash is func_0015BE28(pos, dir, cParticle, EMITP, EMITV, &e, 0, 0) with the EMITP (0x40) and EMITV (0x70) blocks
+// The splash is EmitParticlesAt(pos, dir, cParticle, EMITP, EMITV, &e, 0, 0) with the EMITP (0x40) and EMITV (0x70) blocks
 // passed BY VALUE (EABI: a3 / t0 point at the caller's copies). They are aggregate initializers: g++ builds each one
 // in a memset stack temp and block-copies it, which is the target's memset + stores + lq/sq copy. What matched is the
 // unions in the two types (as in func_0015CAD8): store_constructor emits a (clobber (mem:BLK)) for every union
@@ -817,7 +817,7 @@ void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
 RIP *PripNewRipg(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void func_0015BE28(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
+void EmitParticlesAt(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
 
 static inline qword Length(qword a)
@@ -912,7 +912,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *p, WATER *pwater, qwo
                     e.p8 = pwater->px178;
                     e.pC = pwater->px17C;
                     e.p10 = pwater;
-                    func_0015BE28(posSplash.q, D_002A2DC0, NRandInRange__Fii(4, 6), emitp, emitv, &e, 0, 0);
+                    EmitParticlesAt(posSplash.q, D_002A2DC0, NRandInRange__Fii(4, 6), emitp, emitv, &e, 0, 0);
                 }
             }
         }
@@ -1675,22 +1675,22 @@ void EmitParticles__FiP5EMITBP5EMITG(void *a, B *b, void *c)
 }
 } // namespace M_EmitParticles__FiP5EMITBP5EMITG
 
-namespace M_func_0015BE28 { extern "C" {
+namespace M_EmitParticlesAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword aq[4]; } M4;
 typedef struct B7 { qword aq[7]; } B7;
 struct X { int a; int b; int c; int pad; M4 m; B7 b7; M4 m2; };
 struct Y { int a; int b; int c; };
-void func_00159118(struct X *px);
+void InitEmitBlock(struct X *px);
 void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls EmitParticles.
 // (inferred)
-void func_0015BE28(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2, int n3)
+void EmitParticlesAt(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2, int n3)
 {
     struct X x;
     struct Y y;
-    func_00159118(&x);
+    InitEmitBlock(&x);
     func_002333B4(&y, 0, sizeof(y));
     x.m.aq[2] = q0;
     x.m.aq[3] = q1;
@@ -1702,7 +1702,7 @@ void func_0015BE28(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2,
     x.m2 = *pm;
     EmitParticles__FiP5EMITBP5EMITG(p, &x, &y);
 }
-} } // namespace M_func_0015BE28
+} } // namespace M_EmitParticlesAt
 
 // 0x15BF38: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
@@ -1789,14 +1789,14 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p)
 }
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4
 
-namespace M_func_0015C150 { extern "C" {
+namespace M_ExplodeWithDefaults { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
 struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
-void func_0015C150(struct O *o)
+void ExplodeWithDefaults(struct O *o)
 {
     struct P p = {0};
     struct VTE *vt;
@@ -1804,7 +1804,7 @@ void func_0015C150(struct O *o)
     vt = o->vt;
     vt[51].pfn((char *)o + vt[51].d, &p);
 }
-} } // namespace M_func_0015C150
+} } // namespace M_ExplodeWithDefaults
 
 namespace M_ExplodeExplParams { extern "C" {
 typedef int qword __attribute__((mode(TI)));

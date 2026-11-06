@@ -571,7 +571,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void func_002303A0(struct P *, void *, int);
 void func_00142880(struct P *);
-void func_0015C150(struct VO *);
+void ExplodeWithDefaults(struct VO *);
 void func_00195FB8(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
@@ -649,7 +649,7 @@ void SetBentleyState(struct P *p, int k)
             }
             if (po) {
                 VCALL0(po, 8);
-                func_0015C150(po);
+                ExplodeWithDefaults(po);
                 VCALL0(po, 9);
             }
         }

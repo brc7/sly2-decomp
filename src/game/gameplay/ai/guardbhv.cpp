@@ -341,7 +341,7 @@ struct O *func_00205458(struct A *a, int n);
 void *PpoHero(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 int FFindLoParent(void *n, void *o);
-void func_0014F750(void *p, int n);
+void JoltCamera(void *p, int n);
 void func_001F7A68(struct A *a, int n);
 /** @sly2-annot addr=0x174BD0
  * Purpose: BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation,
@@ -411,7 +411,7 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
             struct O *o = func_00205458(p->p10, 0xA0);
             if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
-                case 0x35: func_0014F750(D_002DDF40, 0); break;
+                case 0x35: JoltCamera(D_002DDF40, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
                 }
             }
@@ -3660,7 +3660,7 @@ struct T { char pad[0x35C]; struct V *p35C; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x9C]; float gB0; float gB4; };
 void UpdateBhvanim(struct S *p);
 qword func_001A62E8(void *p);
-void func_0014F750(void *p, int n);
+void JoltCamera(void *p, int n);
 void func_001F7A68(struct T *t, int n);
 /** @sly2-annot addr=0x1795E8
  * Purpose: BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode
@@ -3676,7 +3676,7 @@ void UpdateBhvhit(struct S *p) {
     UpdateBhvanim(p);
     { struct T *pt = p->pt; struct V *v = pt->p35C; v->q20 = func_001A62E8(pt); }
     t = D_002DDED0.t + 0.0001f;
-    if (p->gB0 < t) { p->gB0 = 3.40282346638528859812e+38f; func_0014F750(D_002DDF40, 0); }
+    if (p->gB0 < t) { p->gB0 = 3.40282346638528859812e+38f; JoltCamera(D_002DDF40, 0); }
     if (p->gB4 < t) { p->gB4 = 3.40282346638528859812e+38f; func_001F7A68(p->pt, 2); }
 }
 } } // namespace M_UpdateBhvhit

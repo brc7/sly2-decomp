@@ -55,7 +55,7 @@ void SetCmFov__FP2CMf(void *a, float g);
 void CutCm__FP2CM(void *pcm);
 qwordV func_001A62E8(CAMERA *pso);
 M3 *func_001A6318(CAMERA *pso);
-void func_0014E1A8(void *pcm, qwordV a, qwordV b, float g, float h);
+void SetCameraLookAt(void *pcm, qwordV a, qwordV b, float g, float h);
 void VECTOR_opAssign(qwordV *p, qwordV v);
 void SetCmMat4(void *pcm, M4 *pm);
 float atanf(float g);
@@ -164,7 +164,7 @@ extern "C" void UpdateCpcamera(CPCAMERAV *policy)
     if (camera->lookAtTarget) {
         qwordV eye = func_001A62E8(camera);
         qwordV target = func_001A62E8(camera->lookAtTarget);
-        func_0014E1A8(D_002DDF40, eye, target, 0.0f, 0.0f);
+        SetCameraLookAt(D_002DDF40, eye, target, 0.0f, 0.0f);
     } else {
         M3 m = *func_001A6318(camera);
         M3 mT;

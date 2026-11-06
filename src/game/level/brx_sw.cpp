@@ -56,9 +56,9 @@ void ResolveSwSaveVars__FP2SW(void *psw);
 void UpdateSwIllum(void *psw);
 void BuildClearGifs__FP2QWG4RGBAi(void *p, void *pv, int c);
 void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
-void func_001ED3A8(void);
-void func_001ED448(void);
-void func_001EA9F0(void *psw, void *pzpr);
+void AllocateTextureHashTables(void);
+void ClearTextureHashTables(void);
+void BuildWorldBackgroundImage(void *psw, void *pzpr);
 void func_00258248(void *p);
 void *func_0014B690(void *p);
 void func_001848A8(void *p, int k, void *pv, int n);
@@ -172,9 +172,9 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     ZPR zpr0;
     ZPR zpr1;
     func_001703F8(&zpr0, 0x1800, 0x4000);
-    func_001ED3A8();
+    AllocateTextureHashTables();
     func_001703F8(&zpr1, 0x1000, 0x1800);
-    func_001EA9F0(psw, &zpr0);
+    BuildWorldBackgroundImage(psw, &zpr0);
     for (i = 0; i < psw->cwe; ) {
         WE *pwe = &psw->awe[i];
         int iNext = i + 1;
@@ -218,7 +218,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         }
         i = iNext;
     }
-    func_001ED448();
+    ClearTextureHashTables();
     psw->iwe = -2;
     PostSoundLoad(D_003DD040);
     func_001C9090(&h, 0);

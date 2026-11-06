@@ -308,7 +308,7 @@ float GLimitAbs__Fff(float g, float gMax);
 float RadNormalize__Ff(float g);
 qword PosCplookEye(struct X *p);
 qword PosCplookAnchor(struct X *p);
-void func_0014E1A8(struct CM *p, qword a, qword b, float c, float d);
+void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
 
 static __inline__ float GClamp(float g, float gMin, float gMax)
 {
@@ -375,7 +375,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     }
     if (6.2831855f <= p->g40 - p->g3C)
         p->g10 = RadNormalize__Ff(p->g10);
-    func_0014E1A8(&D_002DDF40, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
+    SetCameraLookAt(&D_002DDF40, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
     D_003DD490.g4750 = D_002DDED0.t;
 }
 } } // namespace M_UpdateCplook
@@ -598,7 +598,7 @@ void SetCmFov__FP2CMf(struct CM *p, float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(M4 *pm, float *pa, float *pb);
 qword PosCpzoomEye(struct X *p);
 qword PosCpzoomCenter(struct X *p);
-void func_0014E1A8(struct CM *p, qword a, qword b, float c, float d);
+void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
 
 static __inline__ float GClamp(float g, float gMin, float gMax)
 {
@@ -674,7 +674,7 @@ void UpdateCpzoom(struct X *p)
             qword a = p->q20;
             p->q20 = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.dt, D_002BD9F8, 0);
         }
-        func_0014E1A8(&D_002DDF40, p->q30, p->q20, 0.0f, 0.0f);
+        SetCameraLookAt(&D_002DDF40, p->q30, p->q20, 0.0f, 0.0f);
     }
     g_sw.tLookLast = D_002DDED0.t;
 }
@@ -749,7 +749,7 @@ void SnapCpzoom(struct S *p)
 }
 } } // namespace M_SnapCpzoom
 
-namespace M_func_00150F58 { extern "C" {
+namespace M_HasZoomCenterArrived { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword q20; qword q30; };
 qword PosCpzoomCenter(struct S *p);
@@ -774,7 +774,7 @@ static __inline__ float GetZ(qword q)
 }
 static __inline__ int FNear(float a, float b) { return FFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis. (inferred)
-int func_00150F58(struct S *p)
+int HasZoomCenterArrived(struct S *p)
 {
     int f = 0;
     qword a = p->q20;
@@ -785,9 +785,9 @@ int func_00150F58(struct S *p)
                 f = 1;
     return f;
 }
-} } // namespace M_func_00150F58
+} } // namespace M_HasZoomCenterArrived
 
-namespace M_func_00151018 { extern "C" {
+namespace M_HasZoomEyeArrived { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword q20; qword q30; };
 qword PosCpzoomEye(struct S *p);
@@ -812,7 +812,7 @@ static __inline__ float GetZ(qword q)
 }
 static __inline__ int FNear(float a, float b) { return FFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed eye (+0x30) == PosCpzoomEye within 1e-4. (inferred)
-int func_00151018(struct S *p)
+int HasZoomEyeArrived(struct S *p)
 {
     int f = 0;
     qword a = p->q30;
@@ -823,20 +823,20 @@ int func_00151018(struct S *p)
                 f = 1;
     return f;
 }
-} } // namespace M_func_00151018
+} } // namespace M_HasZoomEyeArrived
 
-namespace M_func_001510D8 { extern "C" {
+namespace M_HasZoomReachedTarget { extern "C" {
 struct S { int pad[6]; float g18; char pad2[0xAC - 0x1C]; float gAC; };
 int FFloatsNear__Ffff(float a, float b, float eps);
 // UZoomTarget < 0 or uZoom ~= uZoomTarget (0.01) (inferred)
-int func_001510D8(struct S *p)
+int HasZoomReachedTarget(struct S *p)
 {
     int f = 0;
     if (p->g18 < 0.0f || FFloatsNear__Ffff(p->gAC, p->g18, 0.01f))
         f = 1;
     return f;
 }
-} } // namespace M_func_001510D8
+} } // namespace M_HasZoomReachedTarget
 
 namespace M_DeactivateCpzoom { extern "C" {
 struct A { int pad[4]; int n10; int n14; float g18; char pad2[0x40 - 0x1C]; int n40; char pad3[0xC0 - 0x44]; void *pC0; void *pC4; };
@@ -911,7 +911,7 @@ namespace M_UpdateCphang {
 // Keys: the sibling helper style of UpdateCpcamblend / FindCmClosestClearPos (by-value VU_FLOAT temps -> the sqc2 0(sp) after each qmtc2,
 // VU_VECTOR(const qword &) wrappers, VecCombo(f1, v1, f2, v2)); Sub taking VU_VECTORs makes both p14->pos reads plain MEMs,
 // so cse2 keeps the target's two lqc2 0x20(v0); k is read through a VU_FLOAT(const float *) ctor whose word input has a
-// never-chosen "V" alternative (the func_0014F110 trick: lw instead of lwc1+mfc1).
+// never-chosen "V" alternative (the ClipCameraEye trick: lw instead of lwc1+mfc1).
 typedef int qword __attribute__((mode(TI)));
 extern "C" CLOCK D_002DDED0;
 struct CM;

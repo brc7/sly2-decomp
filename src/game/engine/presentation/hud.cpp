@@ -2458,7 +2458,7 @@ extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 struct X { char pad[0x14]; unsigned long *px14; };
-X *func_001EC880(int);
+X *FindShaderById(int);
 void __4GIFS(void *);
 void AllocSw__4DMASi(void *, int);
 void AddPrimPack__4GIFSiiUl(void *, int, int, int);
@@ -2482,7 +2482,7 @@ void func_002155C0(P *p, Q *q)
     if (q->x4 == 7) {
         q->x1C = 0;
         q->x20 = 0;
-        X *x = func_001EC880(q->x10);
+        X *x = FindShaderById(q->x10);
         if (x) {
             BUF b;
             __4GIFS(&b);

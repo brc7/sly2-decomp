@@ -83,7 +83,7 @@ void func_0012CED8(ACTSEGV *pactseg);
 void func_0012CF30(ACTSEGV *pactseg, qword *pq1, qword *pq2);
 void StartSwAsegSound(SW *, int, int, int, int, ALO *, LO *, ASEG *, CRefPtr<SND> *, float, float, float);
 void StopSwAsegSound(SW *, EASND *, ASEG *, CRefPtr<SND> *);
-void func_0014F750(void *, void *);
+void JoltCamera(void *, void *);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *, void *, float);
 int CidBasic(LO *);
 void FireRelay(LO *, int);
@@ -440,7 +440,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         StopSwAsegSound(&D_003DD490, pev->pesnd, pq, &p->psnd);
         break;
     case 2:
-        func_0014F750(D_002DDF40, pev->pesnd);
+        JoltCamera(D_002DDF40, pev->pesnd);
         break;
     case 3:
         TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pev->pesnd, pev->gC);

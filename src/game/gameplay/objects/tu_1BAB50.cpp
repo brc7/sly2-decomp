@@ -88,7 +88,7 @@ void *PpoHero(SW *psw);
 qword func_001A62E8(void *p);
 void EmitSwNoise(SW *psw, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, TRIG *p);
-void func_0014F750(void *g, int v);
+void JoltCamera(void *g, int v);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *g, int v, float f);
 void func_00154E10(void *g, qword q, int v, int a, TRIG *p);
 void ApplyTaskStates(void *g, int k, int v, TRIG *p);
@@ -488,7 +488,7 @@ void func_001BB648(TRIG *p, E *pe)
             }
             break;
         case 8:
-            if (p->x168 & 2) func_0014F750(D_002DDF40, pi->b);
+            if (p->x168 & 2) JoltCamera(D_002DDF40, pi->b);
             break;
         case 9:
             if (p->x168 & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);

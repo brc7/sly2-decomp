@@ -3255,7 +3255,7 @@ static inline float GZOfQw(qword qw)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
+void ExplodeExpl(EXPL *pexpl) __asm__("ExplodeWithDefaults");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
 extern "C" {
@@ -4277,7 +4277,7 @@ extern OBJ *PloAcquireProxy(int oid, int n);
 extern int func_00224610(OBJ *p);
 extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
 extern void GrfbtnGadget(void *p, int n);
-extern void func_0015C150(int x);
+extern void ExplodeWithDefaults(int x);
 extern void func_00195A00(void *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
@@ -4377,7 +4377,7 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x1F:
         if (F(int, 0x204C))
-            func_0015C150(F(int, 0x204C));
+            ExplodeWithDefaults(F(int, 0x204C));
         ChargeGadgetMp(p, n);
         func_00195A00(A(0x2C0), 9, 0, 0);
         break;

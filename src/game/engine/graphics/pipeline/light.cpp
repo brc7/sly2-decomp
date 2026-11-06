@@ -132,7 +132,7 @@ void TranslateXfmToPos(LIGHTV *p);
 void RotateXfmToMat(LIGHTV *p);
 void func_001A5E80(LIGHTV *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
-void func_001ED2D8(V3 *pv);
+void ColorCorrectVector(V3 *pv);
 qword func_001A62E8(LIGHTV *p);
 void *func_002333B4(void *, int, uint) __asm__("memset");                     /* memset */
 void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
@@ -368,7 +368,7 @@ void RebuildLight(LIGHTV *light)
     coneAngle = (light->midtoneAngle > 30.0f) ? light->midtoneAngle : 30.0f;
     ConvertAngleStrength(coneAngle, 0.0f, 0.0f, strength, &light->duAngle, &light->ruAngle);
     ConvertUserHsvToUserRgb__FP6VECTORT0(&light->highlightHsv, &rgb);
-    func_001ED2D8(&rgb);
+    ColorCorrectVector(&rgb);
     light->agRgba[0] = rgb.x;
     light->agRgba[1] = rgb.y;
     light->agRgba[2] = rgb.z;

@@ -508,7 +508,7 @@ static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(v
 static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return PvAllocSlot__FP8ALLOCREQ(&swalloc); }
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
-// The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in func_0014F110).
+// The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in ClipCameraEye).
 static inline VU_FLOAT VuFloat(const float *pg) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)pg)); return v; }
 static inline qword QwAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }

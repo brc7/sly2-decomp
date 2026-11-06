@@ -183,7 +183,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapSobounds;
       void *pvUnk3e5c;
       CID116 *pcid116Fade;
-      float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp func_001EA9F0); was _pad_283 */
+      float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
       ulong tex2ProjVolume; /* +0x3EA0 [S] draft name: TEX2 register packed by EndRpProjVolume (glob.cpp) */
       uint32_t   _pad_283    [ 1 ] ;

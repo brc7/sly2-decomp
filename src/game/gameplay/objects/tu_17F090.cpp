@@ -367,7 +367,7 @@ struct F { struct S *p0; int n4; int n8; int nC; int n10; int pad[3]; qword q20;
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword func_001A62E8(void *p);
 void func_001F7598(struct F *pf);
-void func_0015C150(void *p);
+void ExplodeWithDefaults(void *p);
 /** @sly2-annot addr=0x17F5F8
  * Purpose: vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its
  *   explosion x190, then vt9 Remove
@@ -394,7 +394,7 @@ void func_0017F5F8(struct S *p, int n) {
         f.n10 = -p->n188;
         func_001F7598(&f);
     }
-    if (p->p190) func_0015C150(p->p190);
+    if (p->p190) ExplodeWithDefaults(p->p190);
     { struct VTE *e = &p->vt[9]; ((void (*)(void *))e->pfn)((char *)p + e->d); }
 }
 } } // namespace M_func_0017F5F8

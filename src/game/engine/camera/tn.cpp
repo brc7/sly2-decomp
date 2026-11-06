@@ -169,8 +169,8 @@ struct CAMMOVE
       int nUnk18;
 };
 extern CM D_002DDF40;
-void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c) __asm__("func_0014E6D0");
-void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt) __asm__("func_0014E1A8");
+void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c) __asm__("ApplyCameraSpring");
+void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt) __asm__("SetCameraLookAt");
 struct VU_FLOAT
 {
     qword qw;
@@ -354,9 +354,9 @@ struct LOREF
 };
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern "C" void GetVectorCylind(qword v, float *prad, float *psXY, float *pz);
-qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("func_0014F110");
+qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("ClipCameraEye");
 void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut) __asm__("AvoidCptnSegmentObstacles");
-void UpdateCmLineOfSight(CMPART2 *pcmpart) __asm__("func_002236E8");
+extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart);
 extern qword D_002A2DA0;
 extern int D_002C4118;
 extern float D_002C41D8;
@@ -961,7 +961,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 // the arms store to the VECTOR4), GMin for min.s, the switch on nMode, the chain assignments, g_clock.dt re-read at every use, the pull-vFocus
 // fallback g_qwZero.
 // What it does, in order:
-//  1. UpdateCmLineOfSight; the tunnel's flags (grftnm: 1 forward view allowed, 2 backward view, 4 the player may turn; no tunnel = 4 only);
+//  1. UpdateCameraLineOfSight; the tunnel's flags (grftnm: 1 forward view allowed, 2 backward view, 4 the player may turn; no tunnel = 4 only);
 //     UpdateCmProgress + CalcCpdFocus give the focus; a player character whose grab record focuses (jtgrab.jtfock Focus, STEPPLAYER+0x4F4: sliding along a
 //     hide outline in the grab's own tunnel, SetJtHfdk 0x1940B0) springs g_cm.dposFocus toward (jtgrab.qwPosFocus (+0x500) - focus);
 //     posHang = focus + g_cm.dposFocus is what the camera looks at.
@@ -1007,7 +1007,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     LO *ploPlayer = 0;
     if (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x34))
         ploPlayer = plo;
-    UpdateCmLineOfSight(this);
+    UpdateCameraLineOfSight(this);
     int grftnm;
     int fPullEnter;
     int fPullIdle;
@@ -1555,7 +1555,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 }
 
 
-// func_002236E8 = UpdateCmLineOfSight__FP7CMPART2 (Sly2Port KB name): the follow camera's line-of-sight test.
+// UpdateCameraLineOfSight = UpdateCmLineOfSight__FP7CMPART2 (Sly2Port KB name): the follow camera's line-of-sight test.
 // Every D_002C4110 (0.5) seconds it looks at five points around the hero (PosLoWorld + back * x + side * y + up * z
 // for the five offsets in D_002C4290; side = normalize(up x (hero - eye)) or (1, 0, 0) when the hero is straight
 // above). Each point is projected onto the screen, moved to the near clip depth and the segment between the two is
@@ -1600,7 +1600,7 @@ static inline qword QwAxesXyz(qword qwV, qword qwBack, qword qwSide, qword qwUp)
     return qw;
 }
 // Every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden. (inferred)
-extern "C" void func_002236E8(CMPART2 *pcmpart)
+extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
 {
     LO *plo = (LO *)pcmpart->pvHero;
     if (D_002DFBC4 & 2)

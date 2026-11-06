@@ -1211,7 +1211,7 @@ extern int D_002DD5BC;
 void func_002303A0(P *, void *, int);
 void func_00142880(P *);
 void SetMurrayFlopSubstate(P *, int);
-void func_0015C150(OBJ *);
+void ExplodeWithDefaults(OBJ *);
 void func_00195FB8(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
@@ -1274,7 +1274,7 @@ extern "C" void SetMurrayState(P *p, int next)
                 break;
             }
             }
-            if (object) { Call(object, 8); func_0015C150(object); Call(object, 9); }
+            if (object) { Call(object, 8); ExplodeWithDefaults(object); Call(object, 9); }
         }
         func_00195FB8(Block(p, 0x2C0), -1, 0); break;
     }
