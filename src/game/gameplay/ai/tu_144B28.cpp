@@ -62,21 +62,21 @@ struct BHVFOLLOWV : public BHVB
 
 extern CLOCK D_002DDED0;
 extern "C" {
-void InitBhv(BHVB *pbhv);
-void StartBhv(BHVB *pbhv);
-void CloseBhv(BHVB *pbhv);
-void SetBhvBusy(BHVB *pbhv);
-void ClearBhvBusy(BHVB *pbhv);
-void InitBhvpath(BHVB *pbhv);
-void StartBhvpath(BHVB *pbhv);
-void UpdateBhvpath(BHVB *pbhv);
+void InitBhv(BHVB *behavior);
+void StartBhv(BHVB *behavior);
+void CloseBhv(BHVB *behavior);
+void SetBhvBusy(BHVB *behavior);
+void ClearBhvBusy(BHVB *behavior);
+void InitBhvpath(BHVB *behavior);
+void StartBhvpath(BHVB *behavior);
+void UpdateBhvpath(BHVB *behavior);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
-void SetBhvfollowState(BHVB *pbhv, int state);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
+void SetBhvfollowState(BHVB *behavior, int state);
+int FIsBasicDerivedFrom__FP5BASIC3CID(SO *object, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
-qword func_001A62E8(SO *pso);
-void SetMurrayState(MURRAY *pmurray, int state);
-void func_001B8D30(MURRAY *pmurray, int n);
+qword func_001A62E8(SO *object);
+void SetMurrayState(MURRAY *murray, int state);
+void func_001B8D30(MURRAY *murray, int n);
 }
 
 // 0x144B28: Walk-goal behaviour (BHVWALKGOAL, BHV168) vtable slot 7 (OnPush): path behaviour base, speed scale 1.
@@ -692,7 +692,7 @@ struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *lea
 struct SO *GetBhvfollowLeaderGround(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
-int func_001C09A0(struct SO *pso, qword pos, int n);
+int func_001C09A0(struct SO *object, qword pos, int n);
 int SnapToGround(qword *ppos, float a, float b, int c, int d);
 // 0x1459C0: True if the leader stands on a different ground object than the follower.
 int IsBhvfollowLeaderOnNewGround(struct P *behavior)

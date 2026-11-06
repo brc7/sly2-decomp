@@ -27,7 +27,7 @@ extern CMVIEW D_002DDF40;
 extern int D_002F7900;
 
 extern "C" {
-void InitStepguard(STEPGUARD *pstepguard);
+void InitStepguard(STEPGUARD *guard);
 int CanStepguardSenseStimulus(void *p, STIMULUS *pstim);
 void SetCmPolicy(CMVIEW *pcm, int n, void *pv, int m, void *p);
 void RevokeCmPolicy(CMVIEW *pcm, int a, int b, void *c, void *d, int e);

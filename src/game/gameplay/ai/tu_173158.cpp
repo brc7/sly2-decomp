@@ -136,10 +136,10 @@ qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *PpoHero(void *g);
 qwordV func_001A62E8(void *p);
 M4 *func_001A6318(void *p);
-EVENT *func_001F8240(LOV *plo);
+EVENT *func_001F8240(LOV *object);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
-void SetDetectorTargetStateById(DETV *pdet,LOV *plo,int k);
+void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
 void func_001B44D8(int *, void ***);
 float SMaxShape(LOV *);
 int func_001EA3B0(void *, float);
@@ -156,7 +156,7 @@ int GetSpawnPointConcealment(CID119V *p, qwordV pos, int count, void **objects, 
 void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f);
 qwordV GetSpawnerFocusPosition(CID119V *p);
 void UpdateSpawnerEntries(CID119V *p, qwordV pos);
-ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *plo);
+ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *object);
 SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip);
 GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip);
 }

@@ -110,23 +110,23 @@ extern const float D_002A5130;   /* defined below where the ELF has it (.rodata 
 extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void *func_001AE2A0(MSG *pmsg);
+void *func_001AE2A0(MSG *message);
 void LoadStepFromBrx(DIMITRIV *p, void *pbis);
 void PostStepguardLoad(DIMITRIV *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRIV *p);
-void InitBhv(void *pbhv);
-void StartBhv(void *pbhv);
-void CloseBhv(void *pbhv);
-void UpdateBhv(void *pbhv);
-int IsBhvBusyAbove(void *pbhv);
-void PopBhv(void *pbhvstk);
-void AddStepguardSgf(DIMITRIV *pguard, int sgf);
-void RemoveStepguardSgf(DIMITRIV *pguard, int sgf);
-void SetStepguardTarget(DIMITRIV *pguard, void *plo);
+void InitBhv(void *behavior);
+void StartBhv(void *behavior);
+void CloseBhv(void *behavior);
+void UpdateBhv(void *behavior);
+int IsBhvBusyAbove(void *behavior);
+void PopBhv(void *stack);
+void AddStepguardSgf(DIMITRIV *guard, int sgf);
+void RemoveStepguardSgf(DIMITRIV *guard, int sgf);
+void SetStepguardTarget(DIMITRIV *guard, void *object);
 qwordV func_001A62E8(void *p);
-BHVO *func_00205438(DIMITRIV *pguard, int n);
+BHVO *func_00205438(DIMITRIV *guard, int n);
 int FCheckVolPoint(void *p, qwordV q);
-void SetStepguardAimAct(DIMITRIV *pso, int a, int b, qwordV q);
+void SetStepguardAimAct(DIMITRIV *object, int a, int b, qwordV q);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
 void MeasureShape(PATHV *p);

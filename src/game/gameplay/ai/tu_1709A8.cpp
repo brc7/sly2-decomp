@@ -70,18 +70,18 @@ void func_0011A050(DL *pdl, int ibDle);       /* InitDl */
 void func_0011A070(DL *pdl, void *pv);        /* AppendDlEntry */
 void PrepareGuardScriptTargets(SSG *script);
 SSGE *PssgeAppend(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
-void StartGuardScript(LO *plo, SSG *script);
-void InitBhv(BHVSSG *pbhv);
-void CloseBhv(BHVSSG *pbhv);
-void UpdateBhv(BHVSSG *pbhv);
-void ClearBhvBusy(BHVSSG *pbhv);
-void PopBhv(void *pbhv);
+void StartGuardScript(LO *object, SSG *script);
+void InitBhv(BHVSSG *behavior);
+void CloseBhv(BHVSSG *behavior);
+void UpdateBhv(BHVSSG *behavior);
+void ClearBhvBusy(BHVSSG *behavior);
+void PopBhv(void *behavior);
 void AddStepguardSgf(STEPGUARD *guard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
-void SetBhvScriptScript(BHVSSG *pbhv, SSG *script, int n, void *pv);
-int IsBhvScriptCommandBusy(BHVSSG *pbhv);
+void SetBhvScriptScript(BHVSSG *behavior, SSG *script, int n, void *pv);
+int IsBhvScriptCommandBusy(BHVSSG *behavior);
 SSGE *FindGuardScriptLabel(SSG *script, int id);
-void *func_00205458(LO *plo, int cid);
+void *func_00205458(LO *object, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

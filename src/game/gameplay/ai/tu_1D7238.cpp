@@ -56,19 +56,19 @@ extern const char D_002A7878[] = "oidPoCurrent";
 
 extern "C" {
 void InitPo(SAFEHOUSEV *ppo);
-void PostSoLoad(SAFEHOUSEV *pso);
-void UpdateSo(SAFEHOUSEV *pso);
+void PostSoLoad(SAFEHOUSEV *object);
+void UpdateSo(SAFEHOUSEV *object);
 int DxSelectionJoy(void *pjoy);
 int GrfHandleJoyBtn(void *pjoy, int grf);
 void *func_001F07E8(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
-void ReplaceSma(SMV *psm, SAFEHOUSEV *plo, int isms, int n, SMA **ppsma);
+void ReplaceSma(SMV *psm, SAFEHOUSEV *object, int isms, int n, SMA **ppsma);
 void func_00162E38(SUBV *p);
 int CploFindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
-void func_001433C8(SOV *pso);
-void BindStepplayerHpMp(SOV *pso, int n);
+void func_001433C8(SOV *object);
+void BindStepplayerHpMp(SOV *object, int n);
 CRef RefGetSaveVarV(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
