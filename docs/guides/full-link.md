@@ -24,6 +24,8 @@ crt0_splicewrap tables (data/crt0-tables)"). Values of `python3 tools/link.py`; 
 | symbols (class_registry, basic) | class_registry defines D_002AC880 (`.data`) and 202 `.rodata.early` objects and references 282 more functions (all config names); basic references D_0027A108 instead of D_0027A10C; nothing else changed | scratch nmcmp.sh / symcheck.py |
 | relocations | class_registry + basic: 3,758 OK, 0 mismatched; every data pointer of the tables also compared by the link (0 differing bytes) | scratch relverify.py |
 | everything else | as link/real-link below (528 objects, 76 in fallback, 0 ld errors, 20 address assignments) | `tools/link.py` |
+| progress | 6,662 / 6,662 (the 329 SDK sources that do not build here carried over); config/matched.csv unchanged | `JOBS=3 tools/progress.py` (cache deleted) |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 The rest of the old "crt0_splicewrap `.rodata`" gap, 0x27A250..0x29A7C0 (132,464 bytes), is not crt0_splicewrap's:
 it is tu_1147D8's built-in font (data work list below).

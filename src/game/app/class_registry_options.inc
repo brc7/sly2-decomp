@@ -4,7 +4,7 @@
  *
  * Not compiled on its own: class_registry.cpp includes it in its data part, after the functions and before the class
  * descriptor table D_002BAAE8 (definition order is section order). Values from the ELF, written once by a converter
- * (docs/guides/full-link.md, "The crt0_splicewrap tables"); this file is the source now and is edited like any other.
+ * (docs/guides/tu-merging.md, "The crt0_splicewrap tables"); this file is the source now and is edited like any other.
  *
  * Layout (spliceobj.cpp's PeopidFind, brx.cpp's LoadOptionsFromBrx, sly2/eopid.h):
  *  - g_aeopid D_002AC880[1449]: one EOPID per option binding (sly2/eopid.h: otyp, grfeopid, then four 8-byte words:
@@ -5303,10 +5303,10 @@ extern const SPLOPTSROW D_00279AD0[199] SPLOPT_RODATA = {
 };
 #undef SPLOPTS
 
-/* HandleBasicSpliceEvent's (basic.cpp) argument types: event k's arguments have the types
-   s_aotypEvtParm[s_aiEvtParm[k]] .. s_aotypEvtParm[s_aiEvtParm[k + 1] - 1]. basic.cpp reads the types from 0x27A10C,
-   one word into this array (an int array is 8-aligned, so 0x27A10C cannot start one): the first word, a BASIC *
-   type (0x2002), is unreferenced (HYPOTHESIS: the type of the event's object, the handler's first parameter). */
+/* s_aotypEvtParm, HandleBasicSpliceEvent's (basic.cpp) argument types: event k's arguments have the types
+   D_0027A108[1 + s_aiEvtParm[k]] .. D_0027A108[s_aiEvtParm[k + 1]]. basic.cpp reads the types from 0x27A10C, one
+   word into this array (an int array is 8-aligned, so 0x27A10C cannot start one): the first word, a BASIC * type
+   (0x2002), is unreferenced (HYPOTHESIS: the type of the event's object, the handler's first parameter). */
 extern const int D_0027A108[52] SPLOPT_RODATA = {
     0x2002, 0x2002, 0x2000, 0x2000, 0x2000, 6, 0x2002, 0x2002, 0x2038, 0x1010, 0x1010, 0x2088, 6,
     6, 0x2018, 0x2030, 0x2030, 0x1011, 0x2030, 0x2030, 0x1011, 0x2002, 5, 5, 0x2032, 0x2002,
