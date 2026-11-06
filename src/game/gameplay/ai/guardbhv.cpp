@@ -7478,12 +7478,13 @@ extern "C" void AdvanceBhvpathlink(BHVPATHLINKV *behavior)
 namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
 struct E; struct S;
 struct E { int a[8]; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; char *pathlink; int segmentIndex; };
+struct P { char pad[0x60]; struct E segments[6]; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct P *pathlink; int segmentIndex; };
 int func_001C1FA0(void *pe, void *p, float g);
 // 0x17E5F0: True if the guard is within 25 of the current segment's end point.
 int IsBhvpathlinkAtSegmentEnd(struct S *behavior)
 {
-    return func_001C1FA0(behavior->pathlink + 0x60 + behavior->segmentIndex * 32, behavior->guard, 25.0f);
+    return func_001C1FA0(&behavior->pathlink->segments[behavior->segmentIndex], behavior->guard, 25.0f);
 }
 } } // namespace M_FBhvpathlinkAtSegmentEnd
 
@@ -7493,7 +7494,9 @@ struct VTE; struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword landingPoint; char pad3[8]; int unknown68; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; char *pathlink; int segmentIndex; };
+struct SEG { qword a; qword b; };
+struct P { char pad[0x60]; struct SEG segments[6]; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct P *pathlink; int segmentIndex; };
 struct O *PushStepBhv(void *p, int n);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(void *pe, qword q);
@@ -7502,7 +7505,7 @@ void PushBhvpathlinkLeap(struct S *behavior) {
     struct O *o = PushStepBhv(behavior->guard, CID_BHVLEAP);
     struct VTE *entry;
     o->unknown68 = 1;
-    o->landingPoint = func_001C1EC0(behavior->pathlink + 0x60 + behavior->segmentIndex * 32, func_001A62E8(behavior->guard));
+    o->landingPoint = func_001C1EC0(&behavior->pathlink->segments[behavior->segmentIndex], func_001A62E8(behavior->guard));
     entry = &o->vt[8];
     entry->pfn((char *)o + entry->d);
 }
@@ -7573,6 +7576,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
     case 1:
         {
             struct O *o = PushStepBhv(behavior->guard, CID_BHV191);
+            /* segments[segmentIndex] (sg[3] == +0x60); the int arithmetic keeps the target's address computation */
             struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)behavior->pathlink);
             o->goalRef = sg[3].a;
             o->u40.goalPos = sg[3].b;
