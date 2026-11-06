@@ -2403,7 +2403,7 @@ void FireExplsExplso(EMITTERV *p, EMITO *po)
 
 
 /* The linkonce copies 0x2584A8..0x2599C8: the EMITTER and EXPLO instances of sly2/emitter.h's member templates
-   (each pair is one template; the accessors between them are instantiated by app/eopid_linkonce.cpp). An explicit
+   (each pair is one template; the accessors between them are instantiated by g_aeopid, class_registry). An explicit
    instantiation emits each in its own .gnu.linkonce.t.<symbol>, as the original's implicit ones were. */
 template void LoadEmitblipColorsFromBrx(EMITTER *, CBinaryInputStream *);   /* 0x2584A8 */
 template void LoadEmitterFromBrx(EMITTER *, CBinaryInputStream *);          /* 0x258598, EMITTER slot 14 */

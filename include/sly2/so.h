@@ -253,7 +253,7 @@ typedef char assert_SO_dlChild[SLY2_OFFSETOF(SO, dlChild) == 0x64 ? 1 : -1];   /
 typedef char assert_SO_gUnk13c[SLY2_OFFSETOF(SO, gUnk13c) == 0x13C ? 1 : -1];   /* holds 400.0f (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
- * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline CID17 *func_00259B20(SO *pso)   /* get */
 {

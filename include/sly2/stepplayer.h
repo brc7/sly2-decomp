@@ -545,7 +545,7 @@ typedef char assert_STEPPLAYER_pmpCur[SLY2_OFFSETOF(STEPPLAYER, pmpCur) == 0x12F
 typedef char assert_STEPPLAYER_idGadgetOverlay[SLY2_OFFSETOF(STEPPLAYER, idGadgetOverlay) == 0x1314 ? 1 : -1];   /* CONFIRMED runtime */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
- * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline int func_00258280(STEPPLAYER *pstepplayer) { return *pstepplayer->jthurt.php; }   /* get; its set is SetStepplayerHp */
 

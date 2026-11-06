@@ -101,8 +101,8 @@ struct STEP : public PO
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1];   /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */
 
-/* Option accessor (inline): a g_aeopid setter (the set PMF of the record at 0x2AEC48); src/game/app/eopid_linkonce.cpp
- * takes its address to emit the out-of-line copy, see docs/guides/tu-merging.md "Inline functions and linkonce
+/* Option accessor (inline): a g_aeopid setter (the set PMF of the record at 0x2AEC48); the record takes its address,
+ * which emits the out-of-line copy in class_registry, see docs/guides/tu-merging.md "Inline functions and linkonce
  * copies". Name is a placeholder. */
 namespace STEP_H { extern "C" void func_00204660(STEP *pstep, float rad); }   /* set the target heading (step.cpp);
    in a namespace because includers declare the C function on their own views (stepguard, mode) */

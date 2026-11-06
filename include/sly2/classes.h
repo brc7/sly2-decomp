@@ -52,8 +52,8 @@ inline PO::PO() { pvUnk174 = 0; }
    whose virtuals the class does not override, which changes the constructor's vptr stores. Every grab-spot class
    overrides slot 6 (an 8-byte function at 0x2599E8..); CID36/CID37 override nothing of GRABSPOT and reuse CID35's
    (0x2D1EA8 in the ELF for all three). Those slot-6 functions are free inline functions of xfm.h/so.h (the owner
-   getters, link/linkonce-misc) emitted once, by app/eopid_linkonce.cpp: the VtF labels below carry a trailing space
-   (dropped by the assembler) so that a key TU emitting the class's vtable does not emit a second copy. */
+   getters, link/linkonce-misc); the VtF labels below name them exactly, so the key TU that emits a class's vtable
+   emits its getter too (.gnu.linkonce.t.<symbol>), the only object that does. */
 struct GRABSPOT
 {
     char abData[0x20];

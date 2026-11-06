@@ -33,7 +33,7 @@ link/real-link's values in brackets where different.
 
 | measure | value | tool |
 |---|---|---|
-| functions matching | 6,662 / 6,662 (100%; 857 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv unchanged by the run) | `tools/progress.py`, cache deleted first |
+| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv unchanged by the run: the 73 moved rows were set by hand to the emitting objects) | `tools/progress.py`, cache deleted first |
 | all game sources (210, eopid_linkonce.cpp gone; every one includes a header some branch touched) | functions 6,017 / 6,017, data symbols 1,932 / 1,932 MATCH | `tools/matchtool.py check` |
 | nm symbol sets (the 211 objects; the 31 splice_thunks objects of the f674c97e-based trees included) | every object's global symbols (defined and undefined) are what the six branches made of them, each against its own base (f674c97e; crt0-tables and vtables against link/real-link), except the references renamed by the fixes above: class_registry's four g_aeopid targets and the vtables' grab-spot slot-6 targets in grabspot, pipe, rail, hnd and tu_1FF3B8 now name linkonce-misc's mangled getters. link/eopid-real-refs against integrate/round8 0bd0ca5f: only U -> W for the 73 linkonce copies (63 in class_registry, which also takes over eopid_linkonce's undefined references; 10 in the five key TUs) and `__4CRef` -> `__7GLOBSET` (glob, rip, class_registry) | scratch nmP.py, nmcmp.py |
 | definitions per symbol | every global or weak function symbol is defined by exactly one object (cplcy's RcPtr_Assign 0x258040 and asega's func_002580A8 stay single definitions next to gc.cpp's CRefPtr<T> instances) | nm over the 211 objects |
