@@ -3933,8 +3933,8 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
 // 0x217BA0 StartSpriteAnimById
 namespace M_func_00217BA0 { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct S { unsigned short c; short pad; struct E *a; char pad8[0x20]; int x28; };
-void StartSpriteAnim(struct S *p, int i);
+struct S { unsigned short numAnims; short pad; struct E *anims; char pad8[0x20]; int isEnabled; };
+void StartSpriteAnim(struct S *group, int i);
 // 0x217B98: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sd $zero, 0x10($4)");
 
@@ -3945,25 +3945,25 @@ SLY2_SCRAP("sd $zero, 0x10($4)");
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts the sprite animation with the given id (0x314 = the first). (inferred)
-void StartSpriteAnimById(struct S *p, int k)
+void StartSpriteAnimById(struct S *group, int animId)
 {
     int i;
-    if (p->x28) {
+    if (group->isEnabled) {
         i = 0;
-        if (k != 0x314) {
-            for (i = 0; i < p->c; i++)
-                if (k == p->a[i].id) break;
-            if (i >= p->c) i = 0;
+        if (animId != 0x314) {
+            for (i = 0; i < group->numAnims; i++)
+                if (animId == group->anims[i].id) break;
+            if (i >= group->numAnims) i = 0;
         }
-        StartSpriteAnim(p, i);
+        StartSpriteAnim(group, i);
     }
 }
 } } // namespace M_func_00217BA0
 
 // 0x217C20 StartSpriteAnim
 namespace M_func_00217C20 {
-struct T { char pad[8]; short h8; };
-struct S { char pad[8]; T *pt; char padc[0x1C]; int x28; };
+struct T { char pad[8]; short animIndex; };   /* slot 0 */
+struct S { char pad[8]; T *slots; char padc[0x1C]; int isEnabled; };
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern "C" char D_002A3A10[];
 extern "C" void StopSprite(S *p, int i);
@@ -3976,13 +3976,13 @@ extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, const RG
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts sprite animation i from time 0 with default colours (stopping it first if instanced). (inferred)
-extern "C" void StartSpriteAnim(S *p, int i)
+extern "C" void StartSpriteAnim(S *group, int animIndex)
 {
-    if (p->x28) {
-        if (p->pt->h8 >= 0)
-            StopSprite(p, i);
+    if (group->isEnabled) {
+        if (group->slots->animIndex >= 0)
+            StopSprite(group, animIndex);
         RGBA c0(0x7F7F7F7F), c1(0xFFFFFFFF);
-        StartSpriteAnimAt(p, i, 0, D_002A3A10, 0.0f, c0, c1);
+        StartSpriteAnimAt(group, animIndex, 0, D_002A3A10, 0.0f, c0, c1);
     }
 }
 } // namespace M_func_00217C20
@@ -3995,7 +3995,7 @@ struct RGBA {
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
-struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
+struct S { unsigned short numAnims; short pad; E *anims; char pad8[8]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };   /* a sprite group (inferred: the main-track restart state) */
 extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217CA8
  * Purpose: start anim k in a reuse slot
@@ -4004,28 +4004,28 @@ extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, RGBA c0,
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts animation k in a reusable sprite slot. (inferred)
-extern "C" void StartSpriteAnimSlot(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimSlot(S *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
 {
     float t = 0.0f;
     int i;
-    if (k == 0x314) {
-        i = p->x20;
+    if (animId == 0x314) {
+        i = group->pendingAnim;
         if (i != -1) {
-            p->x20 = -1;
-        } else if (p->ul10 == (*(unsigned long *)&g_clock.tickFrame)) {
-            t = p->f18;
-            i = p->x1C;
+            group->pendingAnim = -1;
+        } else if (group->lastStartFrame == (*(unsigned long *)&g_clock.tickFrame)) {
+            t = group->lastStartTime;
+            i = group->lastStartAnim;
         } else {
-            p->f18 = t;
+            group->lastStartTime = t;
             i = 0;
-            p->x1C = 0;
+            group->lastStartAnim = 0;
         }
     } else {
-        for (i = 0; i < p->c; i++)
-            if (p->a[i].id == k) break;
-        if (i >= p->c) return;
+        for (i = 0; i < group->numAnims; i++)
+            if (group->anims[i].id == animId) break;
+        if (i >= group->numAnims) return;
     }
-    StartSpriteAnimAt(p, i, z, q, t, c0, c1);
+    StartSpriteAnimAt(group, i, slot, matrix, t, c0, c1);
 }
 } // namespace M_func_00217CA8
 
@@ -4038,9 +4038,9 @@ struct RGBA {
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short h8; short hA; float fC; int x10; void *x14; };
+struct E { char pad[8]; short animIndex; short keyIndex; float time; int isSeeking; void *unknown14; };
 struct F { char pad[0x18]; };
-struct S { int x0; F *af; E *ae; char padc[0x20]; M23 *pm; };
+struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -4062,29 +4062,29 @@ extern "C" void AdvanceSpriteAnim(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Starts a sprite animation at a given frame / time and draws it. (inferred)
-extern "C" void StartSpriteAnimAt(S *p, int i, int z, M23 *pm, float t, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix, float t, RGBA c0, RGBA c1)
 {
-    E *e = &p->ae[z];
+    E *state = &group->slots[slot];
     M23 m;
-    e->h8 = i;
-    e->x10 = 0;
-    e->fC = t;
-    e->hA = 0;
+    state->animIndex = animIndex;
+    state->isSeeking = 0;
+    state->time = t;
+    state->keyIndex = 0;
     M23 *pmUse;
-    if (p->pm) {
-        m = Mul(*pm, *p->pm);
+    if (group->xform) {
+        m = Mul(*matrix, *group->xform);
         pmUse = &m;
     } else {
-        pmUse = pm;
+        pmUse = matrix;
     }
-    AdvanceSpriteAnim(t, &p->af[e->h8], z, pmUse, c0, c1);
+    AdvanceSpriteAnim(t, &group->anims[state->animIndex], slot, pmUse, c0, c1);
 }
 } // namespace M_func_00217D98
 
 // 0x217EF8 IFreeSpriteSlot
 namespace M_IFreeSpriteSlot { extern "C" {
-struct E { char pad[8]; short h; char pad2[14]; };
-struct S { short a; unsigned short c; char pad[4]; struct E *ae; };
+struct E { char pad[8]; short animIndex; char pad2[14]; };
+struct S { short numAnims; unsigned short numSlots; char pad[4]; struct E *slots; };
 /** @sly2-annot addr=0x217EF8
  * Purpose: first reuse slot with h<0
  * Info: proposed name IFreeSpriteSlot (T1); TU hud
@@ -4092,12 +4092,12 @@ struct S { short a; unsigned short c; char pad[4]; struct E *ae; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // First free reusable sprite slot.
-int IFreeSpriteSlot(struct S *p)
+int IFreeSpriteSlot(struct S *group)
 {
     int i;
-    int c = p->c;
-    for (i = 0; i < c; i++) {
-        if (p->ae[i].h < 0)
+    int count = group->numSlots;
+    for (i = 0; i < count; i++) {
+        if (group->slots[i].animIndex < 0   /* free */)
             return i;
     }
     return 0;
@@ -4106,14 +4106,14 @@ int IFreeSpriteSlot(struct S *p)
 
 // 0x217F38 ResetSpriteSlotItems
 namespace M_func_00217F38 { extern "C" {
-struct Y { char pad[0x30]; void *x30; char pad2[0x3C]; };
-struct F { int c; struct Y *ay; char pad[0x10]; };
-struct S { int x0; int x4; struct F *af; };
+struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
+struct F { int numItems; struct Y *items; char pad[0x10]; };
+struct S { int counts; int anims; struct F *slots; };
 void ReleaseSpriteItem(void *p, struct Y *y);
 void InitSpriteItem(struct Y *y);
-static inline void UpdateAy(int n, struct Y *ay)
+static inline void ReleaseItems(int n, struct Y *items)
 {
-    int k; for (k = 0; k < n; k++) { struct Y *y = &ay[k]; if (y->x30) ReleaseSpriteItem(y->x30, y); else InitSpriteItem(y); }
+    int k; for (k = 0; k < n; k++) { struct Y *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
 }
 /** @sly2-annot addr=0x217F38
  * Purpose: reinit / release every item of slot i
@@ -4122,15 +4122,15 @@ static inline void UpdateAy(int n, struct Y *ay)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Resets / releases every item of sprite slot i. (inferred)
-void ResetSpriteSlotItems(struct S *p, int i)
+void ResetSpriteSlotItems(struct S *group, int slot)
 {
-    UpdateAy(p->af[i].c, p->af[i].ay);
+    ReleaseItems(group->slots[slot].numItems, group->slots[slot].items);
 }
 } } // namespace M_func_00217F38
 
 // 0x217FB8 SetSpriteDefaultPhase
 namespace M_func_00217FB8 { extern "C" {
-struct S { char pad[0x28]; int f; };
+struct S { char pad[0x28]; int isEnabled; };
 void SetSpriteAnimPhase(struct S *p, int a, int b);
 /** @sly2-annot addr=0x217FB8
  * Purpose: phase seek of default anim
@@ -4139,18 +4139,18 @@ void SetSpriteAnimPhase(struct S *p, int a, int b);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks the default animation by phase. (inferred)
-void SetSpriteDefaultPhase(struct S *p)
+void SetSpriteDefaultPhase(struct S *group)
 {
-    if (p->f)
-        SetSpriteAnimPhase(p, 0, 0);
+    if (group->isEnabled)
+        SetSpriteAnimPhase(group, 0, 0);
 }
 } } // namespace M_func_00217FB8
 
 // 0x217FE0 SetSpriteAnimPhase
 namespace M_func_00217FE0 { extern "C" {
-struct E { char pad[8]; short h; char pad2[14]; };
-struct F { char pad[8]; float f; char pad2[12]; };
-struct S { int a; struct F *af; struct E *ae; };
+struct E { char pad[8]; short animIndex; char pad2[14]; };
+struct F { char pad[8]; float duration; char pad2[12]; };
+struct S { int counts; struct F *anims; struct E *slots; };
 void SetSpriteAnimTime(struct S *p, int i, int j, float f);
 /** @sly2-annot addr=0x217FE0
  * Purpose: clamp g to [0,1], seek anim to g*duration
@@ -4159,22 +4159,22 @@ void SetSpriteAnimTime(struct S *p, int i, int j, float f);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks a sprite animation to a fraction (clamped to 0..1) of its duration. (inferred)
-void SetSpriteAnimPhase(struct S *p, int i, int j, float f)
+void SetSpriteAnimPhase(struct S *group, int slot, int item, float phase)
 {
-    int h;
-    float c = 0.0f;
+    int animIndex;
+    float clamped = 0.0f;
     float one = 1.0f;
-    c = (f > c) ? f : c;
-    c = (c < one) ? c : one;
-    h = p->ae[i].h;
-    if (h >= 0)
-        SetSpriteAnimTime(p, i, j, p->af[h].f * c);
+    clamped = (phase > clamped) ? phase : clamped;
+    clamped = (clamped < one) ? clamped : one;
+    animIndex = group->slots[slot].animIndex;
+    if (animIndex >= 0)
+        SetSpriteAnimTime(group, slot, item, group->anims[animIndex].duration * clamped);
 }
 } } // namespace M_func_00217FE0
 
 // 0x218038 SetSpriteDefaultTime
 namespace M_func_00218038 { extern "C" {
-struct S { char pad[0x28]; int f; };
+struct S { char pad[0x28]; int isEnabled; };
 void SetSpriteAnimTime(struct S *p, int a, int b);
 /** @sly2-annot addr=0x218038
  * Purpose: time seek of default anim
@@ -4183,10 +4183,10 @@ void SetSpriteAnimTime(struct S *p, int a, int b);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks the default animation by time. (inferred)
-void SetSpriteDefaultTime(struct S *p)
+void SetSpriteDefaultTime(struct S *group)
 {
-    if (p->f)
-        SetSpriteAnimTime(p, 0, 0);
+    if (group->isEnabled)
+        SetSpriteAnimTime(group, 0, 0);
 }
 } } // namespace M_func_00218038
 
@@ -4202,12 +4202,12 @@ struct RGBA {
     RGBA &operator=(const RGBA &c){*(RGBA2 *)this=*(const RGBA2 *)&c;return *this;}
 } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
-struct Y { RGBA2 c0; RGBA2 c1; char pad8[8]; QQ q; };
-struct E { int count;void *items;short h8;short hA;float fC;int x10;void *x14; };
-struct F { char pad[8]; float f8; char padc[0xC]; };
+struct Y { RGBA2 color0; RGBA2 color1; char pad8[8]; QQ matrix; };   /* a frame item */
+struct E { int count;void *items;short animIndex;short keyIndex;float time;int isSeeking;void *unknown14; };
+struct F { char pad[8]; float duration; char padc[0xC]; };
 struct S;
-struct A { int x0; F *af; E *ae; char padc[0x18]; S *ps; char pad28[8]; };
-struct S { char pad[0x84]; A *aa; };
+struct A { int counts; F *anims; E *slots; char padc[0x18]; S *owner; char pad28[8]; };   /* a sprite group */
+struct S { char pad[0x84]; A *spriteGroups; };
 extern "C" int FindSpriteItemPose(S *p, int k, QQ *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
 extern "C" void ResetSpriteSlotItems(A *p, int i);
 // F12 is independent of the integer slots. These pointers address real
@@ -4222,32 +4222,32 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
-extern "C" void SetSpriteAnimTime(A *p, int i, Y *py, float g)
+extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
 {
     QQ q;
     RGBA c0, c1;
-    int h = p->ae[i].h8;
-    if (h < 0)
+    int animIndex = group->slots[slot].animIndex;
+    if (animIndex < 0)
         return;
-    g = GMin(p->af[h].f8, GMax(0.0f, g));
-    if (py) {
-        q = py->q;
-        *(RGBA2 *)&c0 = py->c0;
-        *(RGBA2 *)&c1 = py->c1;
-    } else if (!FindSpriteItemPose(p->ps, p - p->ps->aa, &q, &c0, &c1, 0, 0)) {
+    time = GMin(group->anims[animIndex].duration, GMax(0.0f, time));
+    if (item) {
+        q = item->matrix;
+        *(RGBA2 *)&c0 = item->color0;
+        *(RGBA2 *)&c1 = item->color1;
+    } else if (!FindSpriteItemPose(group->owner, group - group->owner->spriteGroups, &q, &c0, &c1, 0, 0)) {
         return;
     }
-    ResetSpriteSlotItems(p, i);
-    p->ae[i].fC = 0.0f;
-    p->ae[i].hA = 0;
-    p->ae[i].x10 = 0;
+    ResetSpriteSlotItems(group, slot);
+    group->slots[slot].time = 0.0f;
+    group->slots[slot].keyIndex = 0;
+    group->slots[slot].isSeeking = 0;
     // The primary argument object is copied again for the second call.
     RGBA argument0(c0),argument1(c1);
-    UpdateSpriteSlot(0.0f, p, i, &q, &argument0, &argument1);
-    p->ae[i].x10 = 0;
+    UpdateSpriteSlot(0.0f, group, slot, &q, &argument0, &argument1);
+    group->slots[slot].isSeeking = 0;
     argument0=c0;RGBA argument2(c1);
-    UpdateSpriteSlot(g, p, i, &q, &argument0, &argument2);
-    p->ae[i].x10 = 1;
+    UpdateSpriteSlot(time, group, slot, &q, &argument0, &argument2);
+    group->slots[slot].isSeeking = 1;
 }
 } // namespace M_func_00218060
 
@@ -4256,8 +4256,8 @@ namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
 struct M23 {float a[6];} __attribute__((aligned(16)));
-struct O {char pad[0xF4]; void *follow; M23 *pm;};
-struct S {char pad[0x24]; O *owner; int enabled;};
+struct O {char pad[0xF4]; void *followObject; M23 *xform;};   /* the widget: world object to follow (inferred), transform override */
+struct S {char pad[0x24]; O *owner; int isEnabled;};   /* the main sprite group */
 extern "C" M23 D_002A3A10;
 struct G;
 extern "C" G D_002DDF40;
@@ -4285,16 +4285,16 @@ static inline M23 Mul(const M23 &q, const M23 &n)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Advances the widget's main sprite by dt; a world-anchored widget follows its object's screen position. (inferred)
-extern "C" void AdvanceWidgetSprite(S *p,float dt) {
-    if(p->enabled) {
+extern "C" void AdvanceWidgetSprite(S *group,float dt) {
+    if(group->isEnabled) {
         M23 m=D_002A3A10;
-        if(p->owner->follow) {
-            qword pos=func_001A62E8(p->owner->follow); qword q=ConvertCmWorldToScreen(&D_002DDF40,pos);
-            m.a[4] = GetX(q)*320.0f+320.0f;
-            m.a[5] = GetY(q)*-246.40001f+246.40001f;
+        if(group->owner->followObject) {
+            qword worldPos=func_001A62E8(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&D_002DDF40,worldPos);
+            m.a[4] = GetX(screenPos)*320.0f+320.0f;
+            m.a[5] = GetY(screenPos)*-246.40001f+246.40001f;
         }
-        if(p->owner->pm) m=Mul(m,*p->owner->pm);
-        UpdateSpriteSlot(p,0,&m,dt,RGBA(0x7F7F7F7F),RGBA(0xFFFFFFFF));
+        if(group->owner->xform) m=Mul(m,*group->owner->xform);
+        UpdateSpriteSlot(group,0,&m,dt,RGBA(0x7F7F7F7F),RGBA(0xFFFFFFFF));
     }
 }
 } // namespace M_func_00218220
