@@ -8,25 +8,6 @@
 
 # vtables of namespace-scoped view classes -> the real vtable (21 lines, 21 references; the class registry's 191 went with
 # types/views-2: its classes are real, sly2/classes.h, and config/symbol_addrs.txt names their vtables)
-_vt$Q212M_PacNewKind2C0 = D_002CA9A0;   # engine/anim/act.cpp
-_vt$Q212M_PacNewKind2C1 = D_002CA978;   # engine/anim/act.cpp
-_vt$Q212M_PacNewKind2C2 = D_002CA950;   # engine/anim/act.cpp
-_vt$Q212M_PacNewKind2C3 = D_002CA928;   # engine/anim/act.cpp
-_vt$Q212M_PacNewKind2C4 = D_002CA900;   # engine/anim/act.cpp
-_vt$Q212M_PacNewKind2C5 = D_002CB5A8;   # engine/anim/act.cpp
-_vt$Q213M_PacNewKind22C0 = D_002CA8A0;   # engine/anim/act.cpp
-_vt$Q213M_PacNewKind22C1 = D_002CA8C0;   # engine/anim/act.cpp
-_vt$Q213M_PacNewKind22C2 = D_002CB588;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C0 = D_002CAF08;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C1 = D_002CA820;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C2 = D_002CA7E0;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C3 = D_002DB338;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C4 = D_002CA7A0;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C5 = D_002CA760;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C6 = D_002CA720;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C7 = D_002D2E58;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C8 = D_002CA6E0;   # engine/anim/act.cpp
-_vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
 # destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines)
