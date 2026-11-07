@@ -521,26 +521,23 @@ struct E *FindSmDistanceTable(struct S *p, int m)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CsmtDistanceSm { extern "C" {
 struct Q { int a; char *ab; };
-struct A { char pad[0x50]; int c; };
-struct Q *FindSmDistanceTable(struct A *p, int n);
+struct Q *FindSmDistanceTable(SM *p, int n);
 // Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
 // table).
-int CountSmTransitionHops(struct A *p, int n, int y, int x)
+int CountSmTransitionHops(SM *p, int n, int y, int x)
 {
     struct Q *pq = FindSmDistanceTable(p, n);
     int r = 0;
     if (pq)
-        r = pq->ab[y * p->c + x];
+        r = pq->ab[y * p->csms + x];
     return r;
 }
 } } // namespace M_CsmtDistanceSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_OidFromSmIsms { extern "C" {
-struct E { int a; int b; };
-struct S { char pad[0x50]; int c; struct E *ae; };
 // OID of the state at an index, or -1 when out of range.
-int GetSmStateOid(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; return p->ae[n].a; }
+OID GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return (OID)-1; return p->asms[n].oid; }
 } } // namespace M_OidFromSmIsms
 
 // Adds a reference to the activation (slot 1).
