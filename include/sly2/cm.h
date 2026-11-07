@@ -72,8 +72,8 @@ struct CPLCY : public CPLCYDATA
     virtual void Init() __asm__("InitCplcy");
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplcy");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplcy");
-    virtual void Set() __asm__("SetCplcy");
-    virtual void Revoke() __asm__("CPLCY_Revoke");
+    virtual void Set(void *pv) __asm__("SetCplcy");      /* SetCmPolicy passes the entry's argument */
+    virtual void Revoke(void *pv) __asm__("CPLCY_Revoke");   /* RevokeCmPolicy passes the entry's argument */
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
     virtual void ResetPolicy() __asm__("ResetCplcy");
     int FIsTop() __asm__("IsCameraPolicyActive__FP5CPLCY");   /* from CanJtUseGadget__2JTi.cpp */

@@ -643,105 +643,79 @@ SLY2_SCRAP("daddu $2, $0, $0");
 namespace M_SetCmPolicy { extern "C" {
 /* Insert an entry into a priority-sorted array of 8 (Claude agent). memmove goes through an inline helper: its
    parameters get their own pseudos, giving the target's (p + i*16) base copied into a1 then +0x320 / +0x310. */
-struct VTE { short d; short pad; void (*pfn)(void *, ...); };
-struct O { int pad[3]; struct VTE *vt; };
-struct E { int prio; struct O *po; int a; int b; };
-struct P { char pad[0x30C]; int policyCount; struct E policies[8]; char pad2[0x390 - 0x390]; float modeStartTime; };
 extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
 // Insert {cpp,pcplcy,focus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
 // prev vt3 Deactivate, modeStartTime=clock.time, vt2 Activate.
-void SetCmPolicy(struct P *p, int prio, struct O *po, int a, int b)
+void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
 {
     int i;
-    if (p->policyCount >= sizeof(p->policies) / sizeof(p->policies[0]))
+    if (p->numPolicies >= sizeof(p->policyStack) / sizeof(p->policyStack[0]))
         return;     /* the stack is full */
-    for (i = 0; i < p->policyCount; i++) {
-        if (p->policies[i].prio < prio)
+    for (i = 0; i < p->numPolicies; i++) {
+        if (p->policyStack[i].priority < prio)
             break;
     }
-    Move(&p->policies[i + 1], &p->policies[i], (p->policyCount - i) * sizeof(struct E));
-    p->policies[i].prio = prio;
-    p->policies[i].po = po;
-    p->policies[i].a = a;
-    p->policies[i].b = b;
-    p->policyCount++;
-    {
-        struct VTE *e = &po->vt[4];
-        ((void (*)(void *, int))e->pfn)((char *)po + e->d, b);
-    }
+    Move(&p->policyStack[i + 1], &p->policyStack[i], (p->numPolicies - i) * sizeof(CPR));
+    p->policyStack[i].priority = prio;
+    p->policyStack[i].policy = po;
+    p->policyStack[i].focus = a;
+    p->policyStack[i].argument = b;
+    p->numPolicies++;
+    po->Set(b);
     if (i == 0) {
         /* the new top: deactivate the previous top (slot 3), activate this one (slot 2) */
-        if (p->policyCount >= 2) {
-            struct O *o = p->policies[1].po;
-            struct VTE *e = &o->vt[3];
-            ((void (*)(void *, int, int))e->pfn)((char *)o + e->d, p->policies[1].a, p->policies[1].b);
-        }
+        if (p->numPolicies >= 2)
+            p->policyStack[1].policy->Deactivate(p->policyStack[1].focus, p->policyStack[1].argument);
         p->modeStartTime = D_002DDED0.time;
-        {
-            struct VTE *e = &po->vt[2];
-            ((void (*)(void *, int, int))e->pfn)((char *)po + e->d, a, b);
-        }
+        po->Activate(a, b);
     }
 }
 } } // namespace M_SetCmPolicy
 
 namespace M_RevokeCmPolicy { extern "C" {
 /* Matched by Claude agent (2026-10-17): compare against the parameters directly (no local E copy) and `for (i = 0, pe = p->policies; ...)`. */
-struct VTE { short d; short pad; void (*pfn)(void *, ...); };
-struct O { int pad[3]; struct VTE *vt; };
-struct E { int prio; struct O *po; int a; int b; };
-struct P { char pad[0x30C]; int policyCount; struct E policies[8]; char pad2[0x390 - 0x390]; float modeStartTime; };
 extern struct CLOCK D_002DDED0;
 /* which fields of a stack entry a revoke must match */
 enum { REVOKE_BY_PRIO = 1, REVOKE_BY_POLICY = 2, REVOKE_BY_FOCUS = 4, REVOKE_BY_PARAM = 8 };
 // Removes the policy-stack entries that match on every field the mask selects (priority, policy, focus object,
 // parameter), calling each one's Revoke (vtable slot 5); when the top entry went, deactivates it and activates the new
 // top.
-void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
+void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
 {
-    struct E *peOut;
-    struct E *pe;
+    CPR *peOut;
+    CPR *pe;
     int i;
-    struct O *poTop;
-    int aTop;
-    int bTop;
+    CPLCY *poTop;
+    SO *aTop;
+    void *bTop;
     poTop = 0;
     aTop = 0;
     bTop = 0;
-    peOut = p->policies;
-    for (i = 0, pe = p->policies; i < p->policyCount; i++, pe++) {
-        if ((!(grf & REVOKE_BY_PRIO) || prio == pe->prio) &&
-            (!(grf & REVOKE_BY_POLICY) || po == pe->po) &&
-            (!(grf & REVOKE_BY_FOCUS) || a == pe->a) &&
-            (!(grf & REVOKE_BY_PARAM) || b == pe->b)) {
+    peOut = p->policyStack;
+    for (i = 0, pe = p->policyStack; i < p->numPolicies; i++, pe++) {
+        if ((!(grf & REVOKE_BY_PRIO) || prio == pe->priority) &&
+            (!(grf & REVOKE_BY_POLICY) || po == pe->policy) &&
+            (!(grf & REVOKE_BY_FOCUS) || a == pe->focus) &&
+            (!(grf & REVOKE_BY_PARAM) || b == pe->argument)) {
             if (i == 0) {
-                poTop = pe->po;
-                aTop = pe->a;
-                bTop = pe->b;
+                poTop = pe->policy;
+                aTop = pe->focus;
+                bTop = pe->argument;
             }
-            {
-                struct O *o = pe->po;
-                struct VTE *v = &o->vt[5];
-                ((void (*)(void *, int))v->pfn)((char *)o + v->d, pe->b);
-            }
+            pe->policy->Revoke(pe->argument);
         } else {
             *peOut++ = *pe;
         }
     }
-    p->policyCount = peOut - p->policies;
+    p->numPolicies = peOut - p->policyStack;
     if (poTop) {
         /* the top policy went away: deactivate it (slot 3) and activate the new top (slot 2) */
-        struct VTE *v = &poTop->vt[3];
-        ((void (*)(void *, int, int))v->pfn)((char *)poTop + v->d, aTop, bTop);
-        if (p->policyCount > 0) {
-            struct O *o;
-            struct VTE *v;
+        poTop->Deactivate(aTop, bTop);
+        if (p->numPolicies > 0) {
             p->modeStartTime = D_002DDED0.time;
-            o = p->policies[0].po;
-            v = &o->vt[2];
-            ((void (*)(void *, int, int))v->pfn)((char *)o + v->d, p->policies[0].a, p->policies[0].b);
+            p->policyStack[0].policy->Activate(p->policyStack[0].focus, p->policyStack[0].argument);
         }
     }
 }
