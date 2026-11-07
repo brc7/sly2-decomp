@@ -459,28 +459,17 @@ int McSyncResult(void *worker, void *syncState, void *operationKind, int *errorO
 } } // namespace M_McSyncResult
 
 namespace M_InitSave__FP4SAVEii {
-struct SAVE {
-    int port;
-    int slot;
-    int state;
-    int nextState;
-    float tStateChanged;
-    float tNextPoll;
-    int cardType;
-    int freeClusters;
-    int isFormatted;
-};
 extern "C" void sceMcInit(void);
 extern "C" void InitMemcard__FP7MEMCARD(void *);
 // Initializes the save manager: sceMcInit, the worker (MEMCARD) and the SAVE header.
 extern "C" void InitSave__FP4SAVEii(SAVE *saveManager, int port, int slot)
 {
     sceMcInit();
-    InitMemcard__FP7MEMCARD((char *)saveManager + SAVE_MEMCARD_OFFSET);
+    InitMemcard__FP7MEMCARD(&saveManager->memcard);
     saveManager->port = port;
     saveManager->slot = slot;
-    saveManager->state = -1;
-    saveManager->nextState = 0;
+    saveManager->nState = -1;
+    saveManager->nStateNext = 0;
     saveManager->tStateChanged = saveManager->tNextPoll = 0.0f;
     saveManager->cardType = 0;
     saveManager->freeClusters = 0;
@@ -495,23 +484,20 @@ void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThre
 
 namespace M_UpdateSave__FP4SAVE { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
-struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct H { char pad[0x44]; int phase; };   /* the memcard dialog */
-struct S { int port, slot; int state; int nextState; float tStateChanged; float tNextPoll; char pad[0xFD5C - 0x18]; char memcard[1]; };
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
 int IsSwTransitionBusy(void *g);
 int IsMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *t, long pmf);
-void ReloadSaveSlots(struct S *saveManager);
-void SetSaveState(struct S *s, int);
+void ReloadSaveSlots(SAVE *saveManager);
 int IsMpegActive(void *p);
 int IsPauseMenuOnLoadPageB(void *p);
 void SetMcDialogState(struct H *h, int n);
 // Per-frame save state machine: skipped during transitions or while the worker is busy; polls the card (McJobGetInfo)
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
-void UpdateSave__FP4SAVE(struct S *saveManager)
+void UpdateSave__FP4SAVE(SAVE *saveManager)
 {
     if (IsSwTransitionBusy(D_003DD490))
         return;
@@ -519,17 +505,17 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
         return;
     if (D_002E6550.phase == 3)
         return;
-    if (IsMemcardThreadValid__FP7MEMCARD(saveManager->memcard))
+    if (IsMemcardThreadValid__FP7MEMCARD(&saveManager->memcard))
         return;
-    if (saveManager->state == saveManager->nextState) {
+    if (saveManager->nState == saveManager->nStateNext) {
         if (saveManager->tNextPoll <= g_clock.realTime)
-            CreateMemcardThreadJob(saveManager->memcard, &MCJOB::GetInfo);
+            CreateMemcardThreadJob(&saveManager->memcard, &MCJOB::GetInfo);
         else
             ReloadSaveSlots(saveManager);
     } else {
-        SetSaveState(saveManager, saveManager->nextState);
+        SetSaveState(saveManager, saveManager->nStateNext);
     }
-    if (IsMemcardThreadValid__FP7MEMCARD(saveManager->memcard))
+    if (IsMemcardThreadValid__FP7MEMCARD(&saveManager->memcard))
         return;
     if (IsMpegActive(D_002F66B0))
         return;
@@ -537,11 +523,11 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
         return;
     if (0.3f <= g_clock.realTime - saveManager->tStateChanged) {
     if (IsPauseMenuOnLoadPageB(D_003D9ED0)) {
-        if (saveManager->state != 6)
+        if (saveManager->nState != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
         return;
     }
-    switch (saveManager->state) {
+    switch (saveManager->nState) {
     case 1:
         SetMcDialogState(&D_002E6550, 0x11);
         break;
