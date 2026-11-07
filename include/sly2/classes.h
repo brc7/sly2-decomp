@@ -186,7 +186,7 @@ struct SAA : BASIC
     virtual CLASSINFO *GetClassInfo() __asm__("GetSaaClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateSaa");   /* slot 8 */
     virtual void GetCompletion() __asm__("GetSaaCompletion__FP3SAA");   /* slot 9 */
-    virtual void DoesMatchOid() __asm__("DoesSaaMatchOid");   /* slot 10 */
+    virtual int DoesMatchOid(int *poid) __asm__("DoesSaaMatchOid");   /* slot 10: does the animation drive this oid (a shader's; glob.cpp passes &SHD::oid) */
 };
 typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
 typedef char assert_SAA_grf[SLY2_OFFSETOF(SAA, grf) == 0x20 ? 1 : -1];
@@ -2004,7 +2004,7 @@ struct EYES : SAA
     virtual void Update() __asm__("UpdateEyes");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetEyesClassDesc");   /* slot 6 */
     virtual void Init(SAAF *psaaf) __asm__("InitEyes");   /* slot 7 */
-    virtual void DoesMatchOid() __asm__("DoesEyesMatchOid");   /* slot 10 */
+    virtual int DoesMatchOid(int *poid) __asm__("DoesEyesMatchOid");   /* slot 10 */
 };
 typedef char assert_EYES_size[sizeof(EYES) == 0x80 ? 1 : -1];
 
