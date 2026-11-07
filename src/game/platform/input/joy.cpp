@@ -49,7 +49,7 @@ int scePadInfoPressMode(int port, int slot);
 int scePadEnterPressMode(int port, int slot);
 int scePadGetState(int port, int slot);
 int scePadRead(int port, int slot, unsigned char *pb);
-void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
+void MatchCheatCodePress(void *p, JOY *pjoy, int grfbtn);
 int GetHeroPo(void *p);
 void BroadcastGameEvent(SNDV *p, int n, int a);
 int ReadJoy(JOY *pjoy);
@@ -480,7 +480,7 @@ extern "C" int ReadJoy(JOY *joy)
         joy->dydtLeft = (joy->dyLeft - prevLeftY) / D_002DDED0.realDeltaTime;
         joy->dxdtRight = (joy->dxRight - prevRightX) / D_002DDED0.realDeltaTime;
         joy->dydtRight = (joy->dyRight - prevRightY) / D_002DDED0.realDeltaTime;
-        _MatchCodes(D_002DDEC0, joy, prevButtons & 0xFFFF);
+        MatchCheatCodePress(D_002DDEC0, joy, prevButtons & 0xFFFF);
         joy->tRead = D_002DDED0.realTime;
         if (joy->grfbtn != 0 || joy->uDeflectLeft != 0.0f || joy->sRight != 0.0f) {
 

@@ -302,7 +302,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 
 // SENSOR vtable slot 61 (FIgnoreIntersection): collides with nothing (1) except that objects named in the no-trigger
 // lists (by name or class) get 2 (NMaxIgnore). (inferred)
-extern "C" int FIgnoreSensorIntersection(SENSORV *sensor, SOV *pso)
+extern "C" int ShouldSensorIgnoreIntersection(SENSORV *sensor, SOV *pso)
 {
     int i, j;
     int r = 1;

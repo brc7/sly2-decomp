@@ -463,7 +463,7 @@ extern "C" void RecalcSwXpAll(SW *world)
  * Purpose: return max(a,b) for ints; used to merge FIgnore*Intersection results
  * Info: proposed name NMax (T2); TU bbmark
  * Notes: v3: superseded NMaxIgnore | top50_round (0.50): Body (m2c). 12 callers combine ignore codes
- *   (FSwShouldPairObjects, FIgnoreBombIntersection, ShouldMurrayIgnoreIntersection, FIgnoreSensorIntersection: r
+ *   (FSwShouldPairObjects, ShouldBombIgnoreIntersection, ShouldMurrayIgnoreIntersection, ShouldSensorIgnoreIntersection: r
  *   = NMax(r,1)). Out-of-line in bbmark TU; generic name preferred over NMa | mangled withheld (not T1):
  *   NMax__Fii
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r2b_rest+top50_round

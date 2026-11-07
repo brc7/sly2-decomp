@@ -1,6 +1,6 @@
 // cheat.cpp -- cheat codes: six-button sequences matched against the pad's new presses (only while the pause menu's
 // cheat entry is open, D_003DA0B8), and the cheat actions they fire. Entry points: StartupCodes (registers the 15
-// codes at boot), _MatchCodes and UpdateCodes (called each frame from the pause screen); the Cheat* functions are
+// codes at boot), MatchCheatCodePress and UpdateCodes (called each frame from the pause screen); the Cheat* functions are
 // the codes' actions.
 // TU 0x14BEA8..0x14C548 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cheat
@@ -83,7 +83,7 @@ void SetPowerupAcquired(int n, int f);
 int GetGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
 void RefreshPlayersAfterPowerupChange(void *psw);
-void _ResetCodes(CODES *codes);
+void ResetCheatCodeProgress(CODES *codes);
 int AddCode(CODES *codes, CODE *pcode);
 }
 
@@ -102,7 +102,7 @@ extern "C" int AddCode(CODES *codes, CODE *pcode)
 SLY2_SCRAP("sw $2, 0x14($5)");
 
 // Resets every code's match position to the start.
-extern "C" void _ResetCodes(CODES *codes)
+extern "C" void ResetCheatCodeProgress(CODES *codes)
 {
     for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->next)
         pcode->numMatched = 0;
@@ -110,7 +110,7 @@ extern "C" void _ResetCodes(CODES *codes)
 
 // Feeds one new button press of the first pad (g_joy) into every unfinished code while the cheat entry is open: a
 // code advances when the press is its next button, otherwise it starts over. Arms a one-second check timer.
-extern "C" void _MatchCodes(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
+extern "C" void MatchCheatCodePress(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
 {
     CODE *pcode;
     if (pjoy != &D_002DFC00) return;
@@ -153,7 +153,7 @@ extern "C" void UpdateCodes(CODES *codes)
             SetSndSourceLo(CreateSfxSound(0x34), 0);
             pcodeBest->action(pcodeBest->actionArg);
         }
-        _ResetCodes(codes);
+        ResetCheatCodeProgress(codes);
         codes->checkTime = 0.0f;
         D_002DD2F8 = sli.m_psliNext;
     }
@@ -283,7 +283,7 @@ CODEREC b_002BD7F0 __asm__("D_002BD7F0") = {b_002BD7D8, 6, p_CheatGiveGadget, (v
 
 // ---- cheat's .bss (tu-merging.md "Data": .bss gaps): 0x2DDE88..0x2DDED0, between cd's .bss and clock's in TU order.
 // One CODE no code names (0x38 bytes, exactly the gap after cd's words), then the code list g_codes D_002DDEC0
-// (joy's StartupCodes/_MatchCodes and screen's UpdateCodes take its address). Asm-labelled, so the declarations
+// (joy's StartupCodes/MatchCheatCodePress and screen's UpdateCodes take its address). Asm-labelled, so the declarations
 // other files see stay as they are; emitted in this order (first declaration).
 namespace BSS_cheat {
 CODE b_002DDE88 __asm__("D_002DDE88");

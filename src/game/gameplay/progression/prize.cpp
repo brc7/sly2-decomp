@@ -373,18 +373,18 @@ extern "C" void ProjectDprizeTransform(P *prize)
 }
 } // namespace M_ProjectDprizeTransform
 
-namespace M_FFilterDprizeObjects { extern "C" {
+namespace M_IsDprizeCollisionCandidate { extern "C" {
 struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // collision filter callback (FIsCidDerived test). (inferred)
-int FFilterDprizeObjects(void *prize, struct Q *q)
+int IsDprizeCollisionCandidate(void *prize, struct Q *q)
 {
     void *s;
     /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
-} } // namespace M_FFilterDprizeObjects
+} } // namespace M_IsDprizeCollisionCandidate
 
 namespace M_CheckDprizeBounce {
 // CheckDprizeBounce: one commented pin (QwNormalizeInto), one allocation-only asm operand (GFromVf), VU one-op asm helpers only.
@@ -416,7 +416,7 @@ extern float D_002C0D74, D_002C0D78;
 void STACKSCOPE_ctor(STACKSCOPE *);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
 qword GetLoWorldPos(P *);
-int FFilterDprizeObjects(void *, SOPART *);
+int IsDprizeCollisionCandidate(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
 float func_0011E290(qword, qword, qword *, qword *);
@@ -509,7 +509,7 @@ extern "C" void CheckDprizeBounce(P *prize)
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
     SOPART **appart;
-    IntersectSwBoundingBox(D_003DD490, posMin, posMax, FFilterDprizeObjects, 0, &cpart, &appart);
+    IntersectSwBoundingBox(D_003DD490, posMin, posMax, IsDprizeCollisionCandidate, 0, &cpart, &appart);
     U normal;
     CMCONTACT acontact[8];
     for (int i = 0; i < cpart; i++) {
@@ -1374,7 +1374,7 @@ struct VU_FLOAT {
 };
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 extern "C" {
-int FFilterDprizeObjects(void *, CANDIDATE *);
+int IsDprizeCollisionCandidate(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
     __asm__("FindFirstObjectHitByLine");
@@ -1399,7 +1399,7 @@ extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword
     qword posMin = AddScaled(point, VU_FLOAT(gMin), D_002A2DC0);
     register qword posMaxArg __asm__("$6") = posMax;   // pin: the game loads this $a2 argument before the test (see top)
     if (!apcand)
-        IntersectSwBoundingBox(D_003DD490, point, posMaxArg, FFilterDprizeObjects, 0, &ccand, &apcand);
+        IntersectSwBoundingBox(D_003DD490, point, posMaxArg, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
     if (gMax > 0) {
         if (PsoHitTestLineObjects(0, point, posMax, ccand, apcand, &lsg) && lsg.t == 0) {
             if (lsg.u == 1 || lsg.normalB.f[2] < gThreshold)
@@ -1486,7 +1486,7 @@ int IsEdgeBlockedByPathzone(REGION *, qword, qword, int);
 qword GetLoWorldPos(LO *);
 void *AllocFromStack(ALLOCREQ *);
 int NewSprayedDprize(void *, int, int, LO **);
-int FFilterDprizeObjects(void *, CANDIDATE *);
+int IsDprizeCollisionCandidate(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 float GRandInRange__Fff(float, float);
 float RadNormalize__Ff(float);
@@ -1608,7 +1608,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     posMax.q = AddScaled(posSnap.q, VU_FLOAT(r), D_002A2DE0);
     int ccand;
     CANDIDATE **apcand;
-    IntersectSwBoundingBox(D_003DD490, posMin.q, posMax.q, FFilterDprizeObjects, 0, &ccand, &apcand);
+    IntersectSwBoundingBox(D_003DD490, posMin.q, posMax.q, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
     int cLaunched = 0;
     float gAngle = GRandInRange__Fff(-3.1415927f, 3.1415927f);
     float gRadius = D_002C0E8C;

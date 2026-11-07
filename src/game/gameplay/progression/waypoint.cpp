@@ -1,6 +1,6 @@
 // waypoint.cpp -- WAYPT, the waypoint beacon: a marker/beam/base drawn over a target, shown or hidden by mode,
 // trigger radius and job state, with its height clipped by the scenery between it and the camera (VU0 asm).
-// Entry points: the WAYPT vtable (Init, PostLoad, Update, RenderSelf) and CalculateWayptCurtainDz.
+// Entry points: the WAYPT vtable (Init, PostLoad, Update, RenderSelf) and CalculateWayptCurtainExtraHeight.
 // TU 0x229EF0..0x22B040 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_waypoint
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0022B020
@@ -58,7 +58,7 @@ struct WAYPTV
     SOV *base;              /* +0x174 */
     int clipFrame;          /* +0x178 camera frame of the last height clip */
     int hasCurtainHit;      /* +0x17C */
-    float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainDz) */
+    float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
     int requiredPowerup;    /* +0x184 hidden once this powerup is acquired (-1: none) */
     void *jobCondition;     /* +0x188 shown only while this job condition holds */
 };
@@ -168,7 +168,7 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
     }
 }
 
-// CalculateWayptCurtainDz (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
+// CalculateWayptCurtainExtraHeight (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
 // posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by IntersectSwBoundingBox, clip each face edge that
 // crosses the curtain plane against its four side planes and store the largest added slope (scaled by the
 // camera->source XY distance) as po->height. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
@@ -309,7 +309,7 @@ static inline float LenXYFN(qwordV v, int n)
 
 // How much taller the waypoint beam must be to be seen over the scenery from the camera (see the block comment above);
 // computed once per camera frame.
-extern "C" void CalculateWayptCurtainDz(O *waypoint)
+extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
 {
     UQ corner[4];
     UQ side[4];
@@ -461,7 +461,7 @@ extern "C" {
 void RenderSoSelf(WAYPTV *waypoint);
 int IsPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
-void CalculateWayptCurtainDz(O *po);
+void CalculateWayptCurtainExtraHeight(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
 MATRIX4V *GetLoWorldMatrix(SOV *pso);
 VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
@@ -560,7 +560,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
     if (showAlpha == 0.0f)
         return;
 
-    CalculateWayptCurtainDz((O *)waypoint);
+    CalculateWayptCurtainExtraHeight((O *)waypoint);
     qwordV posCam = D_002DDF40.pos;
     qwordV pos = GetLoWorldPos(waypoint->source);
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));

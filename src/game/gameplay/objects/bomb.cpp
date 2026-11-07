@@ -2,7 +2,7 @@
 // a 0x1C-style impact message with a push away from the blast; the bomb then moves to the detonation pose and
 // removes itself), custom contacts it adds while flying near marked objects, throwing, absorbing a hit, and the
 // detonation-pose setup. Entry points: the BOMB vtable (InitBomb, PostBombLoad, HandleMessage, UpdateBomb, ResetBomb,
-// HandleBombContact, AddBombCustomXps, FIgnoreBombIntersection, FAbsorbBombWkr, CloneBomb, ApplyBombThrow), PrimeBomb
+// HandleBombContact, AddBombCustomXps, ShouldBombIgnoreIntersection, TakeBombDamage, CloneBomb, ApplyBombThrow), PrimeBomb
 // and DetonateBomb (also used by MISSILE). VU0 macro-mode asm with register pins.
 // TU 0x13A9E8..0x13BDF0 (22 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bomb
@@ -48,7 +48,7 @@ struct BOMBV
     int physics;               /* +0xE8 SO::psophys (non-zero: has physics) */
     XEC *pxp;                  /* +0xEC */
     char padF0[0x150 - 0xF0];
-    int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, FAbsorbBombWkr) */
+    int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, TakeBombDamage) */
     float tDetonate;           /* +0x154 */
     float detonateSpeed;       /* +0x158 detonates on impact above this speed (UpdateBomb) */
     float sRadius;             /* +0x15C blast radius */
@@ -87,7 +87,7 @@ struct CREQ { int x0; SOV *po; };
 /* A bounding-sphere hit (CollectBombVictims). */
 struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int planeCount; };   /* a SOPART */
 struct AREQV { int cb; int cbAlign; };
-/* The hit FAbsorbBombWkr absorbs. */
+/* The hit TakeBombDamage absorbs. */
 struct WKR { int x0; char pad[0x2C]; qword v30; char pad2[4]; int flags; };
 /* 8 bytes read with ldl/ldr (alignment 1). */
 struct LONGU { long l; } __attribute__((packed));
@@ -481,7 +481,7 @@ static __inline__ qword VLen(qword c)
     return l;
 }
 // BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
-extern "C" int FAbsorbBombWkr(BOMBV *bomb, WKR *pm)
+extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
 {
     int r;
     if (bomb->k == 1)
@@ -726,7 +726,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
 }
 
 // BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
-extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
+extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = ShouldSoIgnoreIntersection(bomb, pso);
     if (pso->ploroot->plo == bomb->owner->ploroot->plo) {

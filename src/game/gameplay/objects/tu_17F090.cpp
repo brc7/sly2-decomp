@@ -758,7 +758,7 @@ struct T { char pad[0xEC]; int n; };
 struct S { char pad[0x1C8]; struct T *pt; };
 int ShouldSoIgnoreIntersection(struct S *p, struct T *q);
 // vtable slot 61 override. (inferred)
-int FIgnoreHackbulletIntersection(struct S *bullet, struct T *q)
+int ShouldHackbulletIgnoreIntersection(struct S *bullet, struct T *q)
 {
     if (bullet->pt && q->n == bullet->pt->n)
         return 3;
@@ -1249,7 +1249,7 @@ struct K { int a; int b; };
 struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
 struct S { char pad[0x270]; struct E ae[5]; };
 // Twin setter. (inferred)
-void SetHackenemyEntryVectors2(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
+void SetHackenemyEntrySecondVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
 {
     if (i < 5) {
         struct E *pe = &enemy->ae[i];

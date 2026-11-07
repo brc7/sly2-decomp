@@ -92,7 +92,7 @@ enum BTN_STATE
 enum BUTTON_PRESS_KIND
 {
     PRESS_CONTACT = 0,      /* an allowed object touching it */
-    PRESS_WORKER = 1,       /* an allowed worker hit (FAbsorbButtonWkr) */
+    PRESS_WORKER = 1,       /* an allowed worker hit (TakeButtonDamage) */
     PRESS_WORKER_TOGGLE = 2,/* a worker hit toggles it up/down */
     PRESS_SLY_INTERACTION = 3 /* Sly in interaction kind 3 with slyInteractionId */
 };
@@ -142,7 +142,7 @@ struct VOLBTNV
     int tracksInside;           /* +0x2C8 */
 };
 
-/* A worker as FAbsorbButtonWkr sees it. */
+/* A worker as TakeButtonDamage sees it. */
 struct WKR { LOV *source; char pad[0x40]; int flags; };
 enum { WKR_FLAG_NO_PRESS = 4 };   /* (inferred: hits with this flag never press buttons) */
 
@@ -557,7 +557,7 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
 
 // BUTTON vtable slot 75 (absorb a worker hit): after the base absorb, an allowed hit presses a worker button that is
 // up, or toggles a toggle button (pressing it only once resetDelay has passed). Returns the base result.
-extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *hit)
+extern "C" void *TakeButtonDamage(BUTTONV *button, WKR *hit)
 {
     void *result = CanSoTakeDamage(button, hit);
     if (result && !(hit->flags & WKR_FLAG_NO_PRESS) && CanObjectPushButton(button, hit->source))

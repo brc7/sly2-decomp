@@ -1,7 +1,7 @@
 // barrier.cpp -- BARRIER, a solid object that filters what may pass through it: it names up to four objects and four
 // classes, and either lets exactly those through (fThrough) or stops only those. When something touches it and the
 // level script has bound the impact event (5), it reports each touching object to the script once per frame.
-// Entry points: the BARRIER vtable (Init, PostBarrierLoad, FIgnoreBarrierIntersection, NotifyBarrierImpact) and the
+// Entry points: the BARRIER vtable (Init, PostBarrierLoad, ShouldBarrierIgnoreIntersection, NotifyBarrierImpact) and the
 // Splice setters AddBarrierObject / AddBarrierClass (via RefThunk_* in class_registry.cpp).
 // TU 0x1320C8..0x132570 (9 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_barrier
@@ -74,7 +74,7 @@ void BARRIER::Init()
 }
 
 // BARRIER vtable slot 15 (PostLoad): finishes the SO load, then, if the barrier has physics, recomputes the world's
-// collision-pair filter for it so the pass/stop rules of FIgnoreBarrierIntersection take effect. (inferred)
+// collision-pair filter for it so the pass/stop rules of ShouldBarrierIgnoreIntersection take effect. (inferred)
 extern "C" void PostBarrierLoad(BARRIERV *barrier)
 {
     PostSoLoad(barrier);
@@ -86,7 +86,7 @@ extern "C" void PostBarrierLoad(BARRIERV *barrier)
 // object "is named" when it matches one of the barrier's object names or derives from one of its classes. With
 // letsNamedThrough set, named objects get 3 (pass) and others the SO default; otherwise named objects get 2 and others 1.
 // Return codes follow SO::FIgnoreIntersection (0/1 = collide, higher = ignore in some way). (inferred)
-extern "C" int FIgnoreBarrierIntersection(BARRIERV *barrier, void *other)
+extern "C" int ShouldBarrierIgnoreIntersection(BARRIERV *barrier, void *other)
 {
     int i, j;
     int isNamed = 0;
@@ -150,7 +150,7 @@ done:
     }
 }
 
-/* The count is signed in FIgnoreBarrierIntersection's loops (slt/blez) and compared unsigned here (sltiu). */
+/* The count is signed in ShouldBarrierIgnoreIntersection's loops (slt/blez) and compared unsigned here (sltiu). */
 // Splice setter: adds an object name to the barrier's list (at most four; extra names are ignored).
 void AddBarrierObject(BARRIERV *barrier, OID oid) __asm__("AddBarrierObject__FP7BARRIER3OID");
 void AddBarrierObject(BARRIERV *barrier, OID oid)

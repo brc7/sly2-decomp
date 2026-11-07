@@ -323,7 +323,7 @@ void StickTossable(CID100V *gadget, SOV *surface)
 
 // CID100 intersection filter: the SO answer, plus (func_00134310 bit 1) the hero (CID 0x34) while the gadget is held
 // or fading, so it does not collide with the one carrying it.
-extern "C" int FIgnoreTossableIntersection(CID100V *gadget, BASIC *other)
+extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
 {
     int ignore = ShouldSoIgnoreIntersection(gadget, other);
     int state = gadget->state;
