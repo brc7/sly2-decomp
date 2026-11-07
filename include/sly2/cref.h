@@ -26,8 +26,10 @@ struct BASIC;
 struct CMethod;
 
 
-/* CRef: a Splice value: a type tag and a one-word payload (a number, or a counted pointer to a heap value). */
-struct CRef
+/* CRefData: a Splice value's data: a type tag and a one-word payload (a number, or a counted pointer to a heap value).
+   A POD: the C-style functions (result passed by hidden pointer by hand, locals set up field by field: bif's former
+   m2c bodies, the save-variable accessors) use it where CRef's inline constructor and destructor would add code. */
+struct CRefData
 {
       int m_tagk;   /* the value's type (TAGK) */
       union
@@ -46,7 +48,12 @@ struct CRef
             BASIC *pbasic;          /* 0x21 */
             CMethod *pmethod;       /* 0x22 */
       } u;
+};
+typedef char assert_CRefData_size[sizeof(CRefData) == 8 ? 1 : -1];
 
+/* CRef: a Splice value with its reference counting: the members of splice/ref.cpp. */
+struct CRef : CRefData
+{
       CRef() { m_tagk = -1; }
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
