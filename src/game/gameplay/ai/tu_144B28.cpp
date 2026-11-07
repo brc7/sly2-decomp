@@ -177,9 +177,9 @@ static __inline__ float LenXY2(qword d)
 }
 
 // Clamps g into a range.
-static __inline__ float GClampR(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
+static __inline__ float Clamp(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
 // True if two points are farther apart (horizontally) than the .data limit.
-static __inline__ int FFar(qword a, qword b)
+static __inline__ int IsFarApart(qword a, qword b)
 {
     qword d;
     float lim = D_002BD2F0;
@@ -196,7 +196,7 @@ static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
         __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
 // Evaluates a quadratic a0 + g (a1 + g a2).
-static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
+static __inline__ float EvaluatePolynomial(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
 // 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
 // (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
 // toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
@@ -213,8 +213,8 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(toGoal) : "j"(pos), "j"(v));
         up = D_002A2DC0;
         v = Perp(toGoal, up);   /* horizontal part of the offset to the goal */
-        speed = GPoly(D_002BD2E0, LenXY(v));
-        clampedSpeed = GClampR(speed, D_002BBB60[0], D_002BBB60[1]);
+        speed = EvaluatePolynomial(D_002BD2E0, LenXY(v));
+        clampedSpeed = Clamp(speed, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < clampedSpeed) {
             poctl->speed = clampedSpeed * behavior->speedScale;
             poctl->heading = atan2f(GetY(v), GetX(v));
@@ -227,7 +227,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
             qword own, other;
             __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(GetLoWorldPos(behavior->guard)));
             __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(GetLoWorldPos(leader)));
-            if (FFar(own, other))
+            if (IsFarApart(own, other))
                 poctl->grfbtn |= 8;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
                 mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
@@ -390,7 +390,7 @@ int StepguardHasSgf(struct SO *guard, int sgf);
 struct TARGETREC *FindTargetRecordById(void *object);
 
 // VU0 helper: distance between two points.
-static __inline__ float GDist(qword a, qword b)
+static __inline__ float Distance(qword a, qword b)
 {
     qword d, t;
     float distance;
@@ -406,7 +406,7 @@ static __inline__ float GDist(qword a, qword b)
     return distance;
 }
 // Evaluates a CLQ quadratic at distance.
-static __inline__ float GFromClq(float distance, struct CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); }
+static __inline__ float EvaluateQuadratic(float distance, struct CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); }
 
 // 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
 // or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown ones; the current threat and striking
@@ -429,11 +429,11 @@ struct SO *PickBhvfollowTarget(struct P *behavior)
         float distance;
         if (ignoreMask & guard->grfsg)
             continue;
-        distance = GDist(pos, GetLoWorldPos(guard));
+        distance = Distance(pos, GetLoWorldPos(guard));
         if (guard == behavior->threat)
-            distance = GFromClq(distance, &D_002BD300);
+            distance = EvaluateQuadratic(distance, &D_002BD300);
         if (StepguardHasSgf(guard, SGF_STRIKE))
-            distance = GFromClq(distance, &D_002BD320);
+            distance = EvaluateQuadratic(distance, &D_002BD320);
         if (distance < bestDistance) {
             best = guard;
             bestDistance = distance;
@@ -446,12 +446,12 @@ struct SO *PickBhvfollowTarget(struct P *behavior)
             float distance;
             if (ignoreMask & guard->grfsg)
                 continue;
-            distance = GDist(pos, GetLoWorldPos(guard));
-            distance = GFromClq(distance, &D_002BD310);
+            distance = Distance(pos, GetLoWorldPos(guard));
+            distance = EvaluateQuadratic(distance, &D_002BD310);
             if (guard == behavior->threat)
-                distance = GFromClq(distance, &D_002BD300);
+                distance = EvaluateQuadratic(distance, &D_002BD300);
             if (StepguardHasSgf(guard, SGF_STRIKE))
-                distance = GFromClq(distance, &D_002BD320);
+                distance = EvaluateQuadratic(distance, &D_002BD320);
             if (distance < bestDistance) {
                 best = guard;
                 bestDistance = distance;
@@ -465,7 +465,7 @@ struct SO *PickBhvfollowTarget(struct P *behavior)
 namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBhvfollow { extern "C" {
-// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline GClamp.
+// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline ClampInPlace.
 typedef int qword __attribute__((mode(TI)));
 struct LM { float gMin, gMax; };
 struct D { char pad[0x10]; void *pathZone; };
@@ -518,9 +518,9 @@ static __inline__ float Len(qword d)
     return g;
 }
 // Clamps *pg into [lo, hi].
-static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
+static __inline__ void ClampInPlace(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
 // True if two points are farther apart (horizontally) than the .data limit.
-static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
+static __inline__ int IsFarApart(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
 // 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
 // standing, walking and running, re-pathing when far. State 0 follows (re-targets the follow point when the leader moved, animation speed
@@ -597,11 +597,11 @@ void UpdateBhvfollow(struct P *behavior)
         void *pathZone = d ? d->pathZone : 0;
         if (!pathZone)
             behavior->child->usesStraightPath = 1;
-        if (FFar(behavior->followPoint, leaderPos))
+        if (IsFarApart(behavior->followPoint, leaderPos))
             UpdateBhvfollowPosition(behavior);
         if (follower->locomotionAsega) {
             float t = (leaderDistanceXY - behavior->distanceNear) / (behavior->distanceFar - behavior->distanceNear);
-            GClamp(&t, 0.0f, 1.0f);
+            ClampInPlace(&t, 0.0f, 1.0f);
             SetAsegaSpeed__FP5ASEGAf(follower->locomotionAsega, (1.0f - t) * behavior->speedNear + t * behavior->speedFar);
         }
     }
@@ -1395,7 +1395,7 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
+// stack: poctl->speed = ClampToLimits(&lm, EvaluateQuadratic(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
 struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
@@ -1421,9 +1421,9 @@ static __inline__ float SqrtQ(qword t)
     return g;
 }
 // Evaluates a CLQ quadratic at g.
-static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+static __inline__ float EvaluateQuadratic(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 // Clamps g to an LM range.
-static __inline__ float GLimitLm(struct LM *plm, float g)
+static __inline__ float ClampToLimits(struct LM *plm, float g)
 {
     float gMin = plm->gMin, gMax = plm->gMax;
     if (g < gMin)
@@ -1434,7 +1434,7 @@ static __inline__ float GLimitLm(struct LM *plm, float g)
 }
 /* b: allocation-only "j" input (Claude agent). It keeps b live past the clamp, so b gets its own early qmtc2 instead of
    staying in v0 until the vsub (then the clq clear can use v0 like the target). */
-static __inline__ float GAtanXY2(qword d, qword b)
+static __inline__ float AngleXYKeepAlive(qword d, qword b)
 {
     register qword r __asm__("v1"); /* register pin (Claude agent) */
     float x;
@@ -1447,7 +1447,7 @@ static __inline__ float GAtanXY2(qword d, qword b)
     }
 }
 /* y via an int + mtc1 (as in CalculateVectorPanTilt): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
-static __inline__ float GAtanR(qword d)
+static __inline__ float AngleXY(qword d)
 {
     int y;
     float fy;
@@ -1464,13 +1464,13 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
     case 1: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         poctl->speed = 1.0f;
-        poctl->heading = GAtanR(d);
+        poctl->heading = AngleXY(d);
         break;
     }
     case 2: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         poctl->speed = 1.0f;
-        poctl->heading = GAtanR(d);
+        poctl->heading = AngleXY(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;
             UpdatePoctlPressed(poctl);
@@ -1490,11 +1490,11 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(t) : "j"(d));
         {
         struct LM lm = {0.1f, 1.0f};
-        s = GLimitLm(&lm, GFromClq(SqrtQ(t), &clq));
+        s = ClampToLimits(&lm, EvaluateQuadratic(SqrtQ(t), &clq));
         }
         }
         poctl->speed = s;
-        poctl->heading = GAtanXY2(d, b);
+        poctl->heading = AngleXYKeepAlive(d, b);
         if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
             poctl->grfbtn |= 0x40;   /* jump (state 3: the jump attack) */
             UpdatePoctlPressed(poctl);
@@ -1504,7 +1504,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
     case 4: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         poctl->speed = 1.0f;
-        poctl->heading = GAtanR(d);
+        poctl->heading = AngleXY(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;
             UpdatePoctlPressed(poctl);
