@@ -4959,23 +4959,18 @@ void InitBhvCircle(BHV179 *behavior)
 
 // 0x17BF08 StartBhvCircle
 namespace M_func_0017BF08 { extern "C" {
-struct C; struct B; struct T; 
-typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x10]; void *pathzone; };
-struct B { char pad[0xDC]; struct C *unknownDC; };
-struct T { char pad[0xE8]; struct B *unknownE8; char pad2[0x294 - 0xEC]; int path; char pad3[0xFE8 - 0x298]; int capabilities; };
 void StartBhv(BHV179 *p);
 qword GetLoWorldPos(void *p);
-void FindPathzonePathCurve(void *p, qword a, qword b, int n);
+void FindPathzonePathCurve(void *p, qword a, qword b, void *path);
 // 0x17BF08: Circle behaviour vtable slot 8 (Start): with the path-zone capability (bit 2) walks to a spacing point,
 // else stands facing the target.
 void StartBhvCircle(BHV179 *behavior) {
     StartBhv(behavior);
-    if (((struct T *)behavior->owner)->capabilities & 4) {
-        struct C *c = ((struct T *)behavior->owner)->unknownE8 ? ((struct T *)behavior->owner)->unknownE8->unknownDC : 0;
+    if (((STEPGUARD *)behavior->owner)->capabilityFlags & 4) {
+        REGENT *c = behavior->owner->physics ? behavior->owner->physics->pregent : 0;
         void *pv = c ? c->pathzone : 0;
-        qword q = GetLoWorldPos(((struct T *)behavior->owner));
-        FindPathzonePathCurve(pv, q, GetLoWorldPos(((struct T *)behavior->owner)), ((struct T *)behavior->owner)->path);
+        qword q = GetLoWorldPos(behavior->owner);
+        FindPathzonePathCurve(pv, q, GetLoWorldPos(behavior->owner), behavior->owner->unknown294);
         SetBhvCircleState(behavior, 1);
     } else {
         SetBhvCircleState(behavior, 0);
@@ -4995,25 +4990,20 @@ void BHV179::Close()
 
 // 0x17BFF8 ChooseBhvCirclePosition
 namespace M_func_0017BFF8 {
-union U; struct LM; struct TUNING; struct SCALE; struct ACTOR; struct P; struct FLOW; struct SEGMENT; struct VU_FLOAT;
+union U; struct SCALE; struct FLOW; struct SEGMENT; struct VU_FLOAT;
 // ChooseBhvCirclePosition MATCH (Claude agent lane H14), no pins: laneH13v2 with the inner loop as `int k=0;int i=hits;do{SEGMENT*base=segments;Closest(target,&base[k],...);...;k++;}while(--i);`. base is its own pseudo inside the do-body (cse block after the loop label, so not shared with the 1C0A40 call arg, which stays `addiu t0,sp,0x50`); loop.c hoists it to the inner preheader, the &base[k] giv is then initialised as a copy of it, and pass 1 hoists base once more into the index-loop preheader (s4), like the target.
 // ChooseBhvCirclePosition laneH13v2 (Claude agent lane H13): inner loop `SEGMENT*segment=base;int i=hits;do{...segment++;}while(--i);` with a function-scope `SEGMENT*base=segments;` so cse cannot share &segments with the 1C0A40 call arg (rematerialized like the target), 22 -> 17. Left: base is set before the mode loop (s6) instead of the index-loop preheader (target s4), which shifts s-reg roles.
 // ChooseBhvCirclePosition laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (VuFromMemWord) into VuMulAddViaScratch(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
 // ChooseBhvCirclePosition laneH11v2 (Claude agent lane H11): laneH6v1 + 11EE08 call via inline Closest(qword,const SEGMENT*,U&,float&) (55->33) + plain VuMulAdd with `U point` declared mid-block before `if(hits>0)` (frame 0x460 exact, 33->26).
 // ChooseBhvCirclePosition laneH6v1 (Claude agent lane H6): fresh Lilly-style rewrite, no pins, VU helper asms only. aligned 55 (old .c 81, which used lw/lqc2 instruction asms).
 // Left: frame 0x480 vs 0x460 (VU_FLOAT temps get their own slot 0x370; target stores them into point at 0x40), region spilled instead of fp, &point/&distance hoisted by loop.c into s-regs (target rematerializes them).
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];int i[4];};
-struct LM{float low,high;};
-struct TUNING{char pad[0x10];int override;float narrow,wide;};
-struct SCALE{char pad[0x20];float value;};
-struct ACTOR{char pad31C[0x31C];LM first,second;char pad32C[0x3CC-0x32C];TUNING*tuning;char pad3D0[0xFBC-0x3D0];int mode;char padFC0[4];SCALE*scale;};
-struct P{char pad[0x10];ACTOR*guard;};
+struct SCALE{char pad[0x20];float value;};   /* STEPGUARD::scale's record (untyped) */
 struct FLOW{float polarAngle,polarLength,candidateAngle,candidateLength,distance;};
 struct SEGMENT{qword a,b;char data[0x40];};
 extern "C"{
 extern float D_002A5600;
-qword GetLoWorldPos(ACTOR*);
+qword GetLoWorldPos(void*);
 void GetVectorCylind(qword,float*,float*,float*);
 float NormalizeAngle__Ff(float);float ClampAbs__Fff(float,float);float ClampToLimits__FP2LMf(LM*,float);
 qword SetVectorCylind(float,float,float);int IsWithinLimits__FP2LMf(LM*,float);
@@ -5048,33 +5038,33 @@ static inline qword VuMulAdd(qword base, qword v, VU_FLOAT g)
 static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){FindClosestPointOnLineSegment(t,s->a,s->b,&pt.q,0,&d);}
 // 0x17BFF8: Chooses a free path-zone point near the target within the guard's close/far distance bands and angle
 // limits (narrow, then wide), sampling 10/10/15 directions.
-extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin, float heading)
+extern "C" qword ChooseBhvCirclePosition(BHV179 *behavior, void *region, qword origin, float heading)
 {
     U closest;
     LM first, second, selected;
     U point;
     SEGMENT segments[8];
     FLOW flow;
-    TUNING *tuning;
-    first = behavior->guard->first;
-    second = behavior->guard->second;
-    if (behavior->guard->mode == 8 || behavior->guard->mode == 13) {
-        SCALE *scale = behavior->guard->scale;
+    TARGETREC *tuning;
+    first = ((STEPGUARD *)behavior->owner)->unknownRange31C;
+    second = ((STEPGUARD *)behavior->owner)->circleDistance;
+    if (((STEPGUARD *)behavior->owner)->specialState == 8 || ((STEPGUARD *)behavior->owner)->specialState == 13) {
+        SCALE *scale = (SCALE *)((STEPGUARD *)behavior->owner)->scale;
         if (scale) {
             float factor = scale->value;
-            first.low *= factor;
-            first.high *= factor;
-            second.low *= factor;
-            second.high *= factor;
+            first.minValue *= factor;
+            first.maxValue *= factor;
+            second.minValue *= factor;
+            second.maxValue *= factor;
         }
     }
-    tuning = behavior->guard->tuning;
-    GetVectorCylind(VuSub(GetLoWorldPos(behavior->guard), origin), &flow.polarAngle, &flow.polarLength, 0);
-    float angle = heading + ClampAbs__Fff(NormalizeAngle__Ff(flow.polarAngle - heading), tuning->narrow);
+    tuning = ((STEPGUARD *)behavior->owner)->pvEngage;
+    GetVectorCylind(VuSub(GetLoWorldPos(behavior->owner), origin), &flow.polarAngle, &flow.polarLength, 0);
+    float angle = heading + ClampAbs__Fff(NormalizeAngle__Ff(flow.polarAngle - heading), tuning->unknown14);
     float length = ClampToLimits__FP2LMf(&first, flow.polarLength);
     if (FindPathzoneClosestFreePoint(region, VuAdd(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
         GetVectorCylind(VuSub(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
-        if (__builtin_fabsf(NormalizeAngle__Ff(flow.candidateAngle - heading)) < tuning->wide
+        if (__builtin_fabsf(NormalizeAngle__Ff(flow.candidateAngle - heading)) < tuning->facingTolerance
             && IsWithinLimits__FP2LMf(&second, flow.candidateLength))
             return closest.q;
     }
@@ -5087,29 +5077,29 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
         case 0:
             selected = first;
             count = 10;
-            limit = tuning->narrow;
+            limit = tuning->unknown14;
             break;
         case 1:
             selected = second;
             count = 10;
-            limit = tuning->wide;
+            limit = tuning->facingTolerance;
             break;
         case 2:
-            selected.low = 0.0f;
-            selected.high = second.high;
+            selected.minValue = 0.0f;
+            selected.maxValue = second.maxValue;
             count = 15;
             limit = 3.14159265f;
             break;
         }
-        if (tuning->override == -1)
+        if (tuning->facingKind == -1)
             limit = 3.14159265f;
         float bestDistance = D_002A5600;
         int index;
         for (index = 0; index < count; index++) {
             qword direction = SetVectorCylind(heading + (-1.0f + index / ((count - 1) * 0.5f)) * limit, 1.0f, 0.0f);
             int hits =
-                FindPathzoneSegmentBlocker(region, VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.low), &point),
-                              VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.high), &point), 8, segments);
+                FindPathzoneSegmentBlocker(region, VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.minValue), &point),
+                              VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.maxValue), &point), 8, segments);
             if (hits > 0) {
                 int k = 0;
                 int i = hits;
