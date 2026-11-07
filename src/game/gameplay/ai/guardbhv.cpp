@@ -3939,7 +3939,7 @@ void UpdateBhvhit(struct S *behavior) {
 }
 } } // namespace M_UpdateBhvhit
 
-// 0x1796A0 func_001796A0
+// 0x1796A0 InitBhvHurt
 namespace M_func_001796A0 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int sgf; };
@@ -3977,7 +3977,7 @@ void StartBhvHurt(struct S *behavior) {
 }
 } } // namespace M_func_001796D0
 
-// 0x179750 func_00179750
+// 0x179750 InitBhvKnockdown
 namespace M_func_00179750 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int sgf; };
@@ -4615,7 +4615,7 @@ void AdjustBhvleapAttachPoint(struct O *behavior)
 }
 } } // namespace M_func_0017A468
 
-// 0x17A4B0 func_0017A4B0
+// 0x17A4B0 InitBhvSleep
 // 0x17A4B0: Sleep behaviour (BHV175) vtable slot 7 (OnPush): BHVANIM OnPush with the sleeping flag (0x10),
 // sub-state -1.
 void BHV175::OnPush()
@@ -4775,7 +4775,7 @@ void StartBhvThrown(struct S *behavior)
 }
 } } // namespace M_func_0017A730
 
-// 0x17A7B8 func_0017A7B8
+// 0x17A7B8 CloseBhvThrown
 // 0x17A7B8: Thrown behaviour vtable slot 9 (Close): state -1, lowers flag 0x16.
 void BHV176::VSlot9()
 {
@@ -5647,7 +5647,7 @@ void InitBhvTargets(struct S *behavior)
 }
 } } // namespace M_func_0017B808
 
-// 0x17B840 func_0017B840
+// 0x17B840 StartBhvTargets
 // 0x17B840: Targets behaviour vtable slot 8 (Start): state 0.
 void BHV178::Start()
 {
@@ -5980,7 +5980,7 @@ void StartBhvCircle(struct S *behavior) {
 }
 } } // namespace M_func_0017BF08
 
-// 0x17BFB8 func_0017BFB8
+// 0x17BFB8 CloseBhvCircle
 // 0x17BFB8: Circle behaviour vtable slot 9 (Close): state -1, lowers flag 0x19.
 void BHV179::VSlot9()
 {
@@ -6250,7 +6250,7 @@ extern "C" void CloseBhvEscort(BHV *behavior)
     RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x26);
 }
 
-// 0x17C6A0 func_0017C6A0
+// 0x17C6A0 StartBhvEscort
 // 0x17C6A0: Escort behaviour vtable slot 8 (Start): state 0.
 void BHV183::Start()
 {
@@ -6722,7 +6722,7 @@ struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; float goalParam; };
 int HasBhvpipeArrived(struct S *behavior) { return __builtin_fabsf(behavior->guard->attachParam - behavior->goalParam) < 50.0f; }
 } } // namespace M_FBhvpipeArrived
 
-// 0x17D1C0 func_0017D1C0
+// 0x17D1C0 InitBhvAttachCid19
 // 0x17D1C0: Attach behaviour for cid 0x13 objects (BHV187) vtable slot 7 (OnPush): raises flag 0x28.
 void BHV187::OnPush()
 {
@@ -6768,7 +6768,7 @@ extern "C" void CloseBhvAttachCid19(BHV *behavior)
     RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS19);
 }
 
-// 0x17D2B0 func_0017D2B0
+// 0x17D2B0 InitBhvAttachCid39
 // 0x17D2B0: Attach behaviour for cid 0x27 objects (BHV188) vtable slot 7 (OnPush): raises flag 0x29.
 void BHV188::OnPush()
 {
@@ -7305,7 +7305,7 @@ void InitBhvStalk(struct S *behavior)
 }
 } } // namespace M_func_0017DD70
 
-// 0x17DDA8 func_0017DDA8
+// 0x17DDA8 StartBhvStalk
 // 0x17DDA8: Stalk behaviour vtable slot 8 (Start): state 0 (alert animation at the target) and sets the target.
 void BHV189::Start()
 {
@@ -7775,7 +7775,7 @@ extern "C" void InitBhvRelocate(BHV *behavior)
     AddStepguardSgf((STEPGUARD *)behavior->pstep, 0x2D);
 }
 
-// 0x17E8B8 func_0017E8B8
+// 0x17E8B8 StartBhvRelocate
 // 0x17E8B8: Relocate behaviour vtable slot 8 (Start): moves to the point.
 void BHV191::Start()
 {

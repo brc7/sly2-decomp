@@ -5497,7 +5497,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
 }
 } } // namespace M_func_001F8668
 
-// 0x1F8730 func_001F8730
+// 0x1F8730 IncrefXfHandle
 /** @sly2-annot addr=0x1F8730
  * Purpose: cref(+0x10)++
  * Info: proposed name IncrefXfh (T2); class CID148 slot1; TU so

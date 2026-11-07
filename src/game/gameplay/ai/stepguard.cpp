@@ -3645,7 +3645,7 @@ void UpdateStepguardAim(struct S *guard)
 }
 } } // namespace M_func_0020ACC0
 
-// 0x20AD38 func_0020AD38
+// 0x20AD38 InitGuardAttack
 namespace M_func_0020AD38 { extern "C" {
 struct S;
 extern float D_002A88C8;
@@ -3955,7 +3955,7 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
     }
 }
 
-// 0x20B4A8 func_0020B4A8
+// 0x20B4A8 InitGuardManager
 namespace M_func_0020B4A8 { extern "C" {
 struct S;
 struct S { char pad[0x40]; int flags40; };

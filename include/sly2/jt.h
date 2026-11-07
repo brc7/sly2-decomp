@@ -190,7 +190,7 @@ struct JT : public STEPPLAYER
       ASEG *pasegPouncePowerUp;   /* pounce animation of the power-up */
       undefined4 unk_0x2054[3];
     JT() __asm__("JT_ctor");   /* inline in the game (linkonce copy at 0x2563E8), called by NewJt: defined in app/class_registry.cpp */
-    virtual void EndMeleeAttack() __asm__("func_0018D548");   /* slot 91 */
+    virtual void EndMeleeAttack() __asm__("EndJtMeleeAttack");   /* slot 91 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetJtClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJtMessage");   /* slot 5 */
     virtual void Init() __asm__("InitJt");   /* slot 7 */

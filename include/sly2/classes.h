@@ -334,7 +334,7 @@ typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 struct CID123 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual void PostLoad() __asm__("func_0014A0A8");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostRouteLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
 };
@@ -344,7 +344,7 @@ typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 struct BHV182 : BHV
 {
     char pad30[0x50 - 0x30];
-    virtual void Start() __asm__("func_0014A200");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvRoute");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv182ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvRoute");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvRoute");   /* slot 9 */
@@ -356,7 +356,7 @@ typedef char assert_BHV182_size[sizeof(BHV182) == 0x50 ? 1 : -1];
 struct CARMELITA : STEPGUARD
 {
     char pad1010[0x1020 - 0x1010];
-    virtual void Init() __asm__("func_0014B1A0");   /* slot 7 */
+    virtual void Init() __asm__("InitCarmelita");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */
     virtual void PostLoad() __asm__("PostCarmelitaLoad");   /* slot 15 */
@@ -368,7 +368,7 @@ typedef char assert_CARMELITA_size[sizeof(CARMELITA) == 0x1020 ? 1 : -1];
 /* 64 CONTESSA (0x1010); vtable 0x2CD0A0, 89 slots */
 struct CONTESSA : STEPGUARD
 {
-    virtual void Init() __asm__("func_0014FAC8");   /* slot 7 */
+    virtual void Init() __asm__("InitContessa");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetContessaClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateContessa");   /* slot 16 */
 };
@@ -422,7 +422,7 @@ typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 struct BHV180 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void OnPush() __asm__("func_00155560");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvDimitriEscape");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvDimitriEscape");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvDimitriEscape");   /* slot 9 */
@@ -434,7 +434,7 @@ typedef char assert_BHV180_size[sizeof(BHV180) == 0x40 ? 1 : -1];
 struct BHV181 : BHV
 {
     char pad30[0x60 - 0x30];
-    virtual void Start() __asm__("func_00155A38");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvDimitriAttack");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvDimitriAttack");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvDimitriAttack");   /* slot 9 */
@@ -446,7 +446,7 @@ typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 struct CID117 : LO
 {
     char pad50[0x70 - 0x50];
-    virtual void Init() __asm__("func_001564E8");   /* slot 7 */
+    virtual void Init() __asm__("InitNoiseType");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
@@ -455,7 +455,7 @@ typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 struct CID147 : BASIC
 {
     char pad10[0x60 - 0x10];
-    virtual void AddRef() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
+    virtual void AddRef() __asm__("RetainNoise");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
@@ -465,7 +465,7 @@ typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 struct CID47 : XFM
 {
     char padE0[0x110 - 0xE0];
-    virtual void AddHierarchy() __asm__("func_00156D20");   /* slot 11 */
+    virtual void AddHierarchy() __asm__("AddListenerHierarchy");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitListener");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveListenerHierarchy");   /* slot 12 */
@@ -531,7 +531,7 @@ typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 struct CID113 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual void PostLoad() __asm__("func_00170A28");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostGuardScriptLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid113ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitGuardScript");   /* slot 7 */
 };
@@ -541,7 +541,7 @@ typedef char assert_CID113_size[sizeof(CID113) == 0x60 ? 1 : -1];
 struct BHV169 : BHV
 {
     char pad30[0x60 - 0x30];
-    virtual void OnPush() __asm__("func_00171228");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvScript");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv169ClassDesc");   /* slot 6 */
     virtual void VSlot9() __asm__("CloseBhvScript");   /* slot 9 */
     virtual void VSlot10() __asm__("UpdateBhvScript");   /* slot 10 */
@@ -553,7 +553,7 @@ typedef char assert_BHV169_size[sizeof(BHV169) == 0x60 ? 1 : -1];
 struct BHV171 : BHV
 {
     char pad30[0xE0 - 0x30];
-    virtual void Start() __asm__("func_00171FA0");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvSearch");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv171ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvSearch");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvSearch");   /* slot 9 */
@@ -565,7 +565,7 @@ typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 struct CID119 : LO
 {
     char pad50[0xB0 - 0x50];
-    virtual void Init() __asm__("func_00173158");   /* slot 7 */
+    virtual void Init() __asm__("InitSpawner");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("RemoveSpawnerHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSpawnerFromBrx");   /* slot 14 */
@@ -614,7 +614,7 @@ typedef char assert_BHVHIT_size[sizeof(BHVHIT) == 0xC0 ? 1 : -1];
 /* 161 BHV161 (0xC0); vtable 0x2D0930, 14 slots */
 struct BHV161 : BHVHIT
 {
-    virtual void OnPush() __asm__("func_001796A0");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvHurt");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv161ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvHurt");   /* slot 8 */
 };
@@ -633,7 +633,7 @@ typedef char assert_BHVKO_size[sizeof(BHVKO) == 0xC0 ? 1 : -1];
 /* 162 BHV162 (0xC0); vtable 0x2D0830, 14 slots */
 struct BHV162 : BHVHIT
 {
-    virtual void OnPush() __asm__("func_00179750");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvKnockdown");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv162ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvKnockdown");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvKnockdown");   /* slot 9 */
@@ -681,7 +681,7 @@ typedef char assert_BHVWALKGOAL_size[sizeof(BHVWALKGOAL) == 0xE0 ? 1 : -1];
 struct BHV193 : BHV
 {
     char pad30[0x50 - 0x30];
-    virtual void OnPush() __asm__("func_00144E20");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvWalkTo");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv193ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvWalkTo");   /* slot 8 */
 };
@@ -703,7 +703,7 @@ typedef char assert_BHVFOLLOW_size[sizeof(BHVFOLLOW) == 0xA0 ? 1 : -1];
 struct BHV195 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void VSlot9() __asm__("func_00145D68");   /* slot 9 */
+    virtual void VSlot9() __asm__("CloseBhvInteract");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv195ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvInteract");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract");   /* slot 8 */
@@ -716,7 +716,7 @@ typedef char assert_BHV195_size[sizeof(BHV195) == 0x40 ? 1 : -1];
 struct BHV196 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void VSlot9() __asm__("func_00146260");   /* slot 9 */
+    virtual void VSlot9() __asm__("CloseBhvInteract2");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv196ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvInteract2");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract2");   /* slot 8 */
@@ -729,7 +729,7 @@ typedef char assert_BHV196_size[sizeof(BHV196) == 0x40 ? 1 : -1];
 struct BHV197 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void VSlot9() __asm__("func_00146758");   /* slot 9 */
+    virtual void VSlot9() __asm__("CloseBhvInteract3");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv197ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvInteract3");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract3");   /* slot 8 */
@@ -742,7 +742,7 @@ typedef char assert_BHV197_size[sizeof(BHV197) == 0x40 ? 1 : -1];
 struct BHV198 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void Start() __asm__("func_00146E98");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvMurray");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv198ClassDesc");   /* slot 6 */
     virtual void VSlot9() __asm__("CloseBhvMurray");   /* slot 9 */
     virtual void VSlot10() __asm__("UpdateBhvMurray");   /* slot 10 */
@@ -814,7 +814,7 @@ typedef char assert_BHVGUARD_size[sizeof(BHVGUARD) == 0xB0 ? 1 : -1];
 struct BHV176 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void VSlot9() __asm__("func_0017A7B8");   /* slot 9 */
+    virtual void VSlot9() __asm__("CloseBhvThrown");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv176ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvThrown");   /* slot 7 */
     virtual void Start() __asm__("StartBhvThrown");   /* slot 8 */
@@ -856,7 +856,7 @@ typedef char assert_BHVLEAP_size[sizeof(BHVLEAP) == 0xA0 ? 1 : -1];
 struct BHV175 : BHV
 {
     char pad30[0x60 - 0x30];
-    virtual void OnPush() __asm__("func_0017A4B0");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvSleep");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv175ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvSleep");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvSleep");   /* slot 9 */
@@ -884,7 +884,7 @@ typedef char assert_BHVSHOOT_size[sizeof(BHVSHOOT) == 0x40 ? 1 : -1];
 struct BHV178 : BHV
 {
     char pad30[0x50 - 0x30];
-    virtual void Start() __asm__("func_0017B840");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvTargets");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv178ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvTargets");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvTargets");   /* slot 9 */
@@ -896,7 +896,7 @@ typedef char assert_BHV178_size[sizeof(BHV178) == 0x50 ? 1 : -1];
 struct BHV179 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void VSlot9() __asm__("func_0017BFB8");   /* slot 9 */
+    virtual void VSlot9() __asm__("CloseBhvCircle");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv179ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvCircle");   /* slot 7 */
     virtual void Start() __asm__("StartBhvCircle");   /* slot 8 */
@@ -908,7 +908,7 @@ typedef char assert_BHV179_size[sizeof(BHV179) == 0x40 ? 1 : -1];
 struct BHV183 : BHV
 {
     char pad30[0x70 - 0x30];
-    virtual void Start() __asm__("func_0017C6A0");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvEscort");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv183ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvEscort");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvEscort");   /* slot 9 */
@@ -943,7 +943,7 @@ typedef char assert_BHVPIPE_size[sizeof(BHVPIPE) == 0x40 ? 1 : -1];
 /* 187 BHV187 (0x30); vtable 0x2CFF20, 14 slots */
 struct BHV187 : BHV
 {
-    virtual void OnPush() __asm__("func_0017D1C0");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvAttachCid19");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv187ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvAttachCid19");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvAttachCid19");   /* slot 9 */
@@ -953,7 +953,7 @@ typedef char assert_BHV187_size[sizeof(BHV187) == 0x30 ? 1 : -1];
 /* 188 BHV188 (0x30); vtable 0x2CFEA0, 14 slots */
 struct BHV188 : BHV
 {
-    virtual void OnPush() __asm__("func_0017D2B0");   /* slot 7 */
+    virtual void OnPush() __asm__("InitBhvAttachCid39");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv188ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvAttachCid39");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvAttachCid39");   /* slot 9 */
@@ -992,7 +992,7 @@ typedef char assert_BHVPATROLPATH_size[sizeof(BHVPATROLPATH) == 0x60 ? 1 : -1];
 struct BHV189 : BHV
 {
     char pad30[0x50 - 0x30];
-    virtual void Start() __asm__("func_0017DDA8");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvStalk");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv189ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvStalk");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvStalk");   /* slot 9 */
@@ -1016,7 +1016,7 @@ typedef char assert_BHVPATHLINK_size[sizeof(BHVPATHLINK) == 0x50 ? 1 : -1];
 struct BHV191 : BHV
 {
     PATHLINKEND end;
-    virtual void Start() __asm__("func_0017E8B8");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvRelocate");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv191ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvRelocate");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvRelocate");   /* slot 9 */
@@ -1130,7 +1130,7 @@ typedef char assert_HACKWALL_size[sizeof(HACKWALL) == 0x2A0 ? 1 : -1];
 struct CID12 : SHAPE, GRABSPOT
 {
     char pad1B4[0x1C0 - 0x1B4];
-    virtual void OnAdd() __asm__("func_00182EB8");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnWallGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWallGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostWallGrabspotLoad");   /* slot 15 */
@@ -1148,7 +1148,7 @@ typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
 struct CID34 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
-    virtual void OnAdd() __asm__("func_00183370");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnPoleGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPoleGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostPoleGrabspotLoad");   /* slot 15 */
@@ -1166,7 +1166,7 @@ typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
 struct CID38 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
-    virtual void OnAdd() __asm__("func_001836F8");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnHoldGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHoldGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostHoldGrabspotLoad");   /* slot 15 */
@@ -1198,7 +1198,7 @@ typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
 struct CID35 : XFM, GRABSPOT
 {
     char pad104[0x180 - 0x104];
-    virtual void OnAdd() __asm__("func_00183FB8");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnTriggerGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid35ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTriggerGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
@@ -1226,7 +1226,7 @@ typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 struct CID36 : CID35
 {
     char pad180[0x1A0 - 0x180];
-    virtual void PostLoad() __asm__("func_001842B0");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostCarryGrabspotLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
     virtual void OnTriggered() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
@@ -1237,7 +1237,7 @@ typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 struct CID27 : VOL, GRABSPOT
 {
     char pad154[0x160 - 0x154];
-    virtual void OnAdd() __asm__("func_001844A0");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnTableGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid27ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTableGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostTableGrabspotLoad");   /* slot 15 */
@@ -1263,7 +1263,7 @@ typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
 struct CID8 : XFM
 {
     char padE0[0x100 - 0xE0];
-    virtual void Init() __asm__("func_00185130");   /* slot 7 */
+    virtual void Init() __asm__("InitCid8");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid8ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCid8FromBrx");   /* slot 14 */
 };
@@ -1273,7 +1273,7 @@ typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
 struct CID9 : CID8
 {
     char pad100[0x120 - 0x100];
-    virtual void Init() __asm__("func_00185BF8");   /* slot 7 */
+    virtual void Init() __asm__("InitCid9");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid9Hierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCid9Hierarchy");   /* slot 12 */
@@ -1378,7 +1378,7 @@ typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
 struct BHV174 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual void Start() __asm__("func_001BA598");   /* slot 8 */
+    virtual void Start() __asm__("StartBhvNeelaChase");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvNeelaChase");   /* slot 7 */
     virtual void VSlot9() __asm__("CloseBhvNeelaChase");   /* slot 9 */
@@ -1417,7 +1417,7 @@ typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 struct CID14 : SHAPE
 {
     char pad190[0x1F0 - 0x190];
-    virtual void Init() __asm__("func_001BC050");   /* slot 7 */
+    virtual void Init() __asm__("InitCid14");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid14ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid14Hierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCid14Hierarchy");   /* slot 12 */
@@ -1655,7 +1655,7 @@ typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
 struct CID112 : LO
 {
     char pad50[0xC0 - 0x50];
-    virtual void Init() __asm__("func_001D6A90");   /* slot 7 */
+    virtual void Init() __asm__("InitCid112");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid112ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
@@ -1664,7 +1664,7 @@ typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
 struct SAFEHOUSE : PO
 {
     char pad180[0x240 - 0x180];
-    virtual void Init() __asm__("func_001D7238");   /* slot 7 */
+    virtual void Init() __asm__("InitSafehouse");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSafehouseClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostSafehouseLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateSafehouse");   /* slot 16 */
@@ -1705,7 +1705,7 @@ typedef char assert_RELAY_size[sizeof(RELAY) == 0xB0 ? 1 : -1];
 struct CID106 : SO
 {
     char pad150[0x160 - 0x150];
-    virtual void RenderSelf() __asm__("func_001E9AC0");   /* slot 19 */
+    virtual void RenderSelf() __asm__("RenderCid106Self");   /* slot 19 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid106ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostCid106Load");   /* slot 15 */
 };
@@ -1817,7 +1817,7 @@ typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
 struct CID125 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual void Init() __asm__("func_0020B4A8");   /* slot 7 */
+    virtual void Init() __asm__("InitGuardManager");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid125ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGuardManagerLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateGuardManager");   /* slot 16 */
@@ -2001,7 +2001,7 @@ typedef char assert_CID5_size[sizeof(CID5) == 0x120 ? 1 : -1];
 struct CID23 : VOL
 {
     char pad130[0x140 - 0x130];
-    virtual void OnAdd() __asm__("func_00227E20");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnCid23Add");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid23ClassDesc");   /* slot 6 */
     virtual void OnRemove() __asm__("FreezeVol");   /* slot 22 */
 };

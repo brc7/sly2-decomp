@@ -567,8 +567,8 @@ class's functions was taken). In that TU one virtual whose function the TU defin
 member definition, and its declaration moves to the front of the class (sly2/classes.h or the class's header):
 
 ```cpp
-// was: extern "C" void func_0014FAC8(GUARD *pguard) { InitStepguard(pguard); pguard->n4A4 = 1; }
-void CONTESSA::Init()                     // header: virtual void Init() __asm__("func_0014FAC8"); declared first
+// was: extern "C" void InitContessa(GUARD *pguard) { InitStepguard(pguard); pguard->n4A4 = 1; }
+void CONTESSA::Init()                     // header: virtual void Init() __asm__("InitContessa"); declared first
 {
       GUARDV *pguard = (GUARDV *)this;    // the TU's view, renamed (see below)
       InitStepguard(pguard);

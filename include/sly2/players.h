@@ -98,7 +98,7 @@ struct MURRAY : public STEPPLAYER
       struct ACT1 *pact1Unk1acc;
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
-    virtual int IsFreeMoving() __asm__("func_001B8180");   /* slot 94 */
+    virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */

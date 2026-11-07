@@ -56,7 +56,7 @@ struct ANIMBINDINGREC
 struct CID120 : LO
 {
     char pad50[0xD0 - 0x50];
-    virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
+    virtual void Init() __asm__("InitGuardAttack");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGuardAttackLoad");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */

@@ -235,7 +235,7 @@ extern "C" BLOCK *PopBlockStack(STACK *pstack)
 //       &fNear, so loop.c no longer folds it: it is hoisted to the while top and spilled to 0x8F0 as in the target (no 0x8F4 shifts).
 //   (2) Both params unpacks (4 words) go through UnpackWords too: the dead odd loop ends gcse's block before the copy, so the PRE
 //       `lui t3` (hi of D_002DEA28) is inserted above the do-while barrier and scheduled early as in the target.
-//   (3) Packet dist is stored by a `sw` asm (SetX, as SetJtGrabKind/func_001E9AC0): reorg never fills a delay slot from an asm,
+//   (3) Packet dist is stored by a `sw` asm (SetX, as SetJtGrabKind/RenderCid106Self): reorg never fills a delay slot from an asm,
 //       giving the target's unfilled bc1f slot; its allocation-only "j" input keeps the Dot result in a VF register.
 struct VU_FLOAT
 {

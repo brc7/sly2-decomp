@@ -513,7 +513,7 @@ struct STEPPLAYER : public STEP
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int nUnk1318;
       float tUnk131c;
-    virtual void AdjustXps() __asm__("func_00140D70");   /* slot 58; key function (stepplayer.cpp) */
+    virtual void AdjustXps() __asm__("AdjustStepplayerXps");   /* slot 58; key function (stepplayer.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepplayer");   /* slot 7 */
