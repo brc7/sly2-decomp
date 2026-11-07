@@ -1778,8 +1778,8 @@ typedef char WORD_value_Offset[((unsigned int)&(((union WORD*)0)->value))==0?1:-
 #undef FIELD_OFFSET
 
 /* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
-   object it holds (the one Murray lifts). */
-struct CARRYSPOTV { char pad[0x180]; LO *plo; };
+   object it holds (the one Murray lifts), +0x190/+0x198 the objects whose transforms are the hands' IK goals. */
+struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
 
 namespace M_StartMurrayLiftGrabspot { extern "C" {
 void SetMurrayState(MURRAY *p, int n);
@@ -1787,7 +1787,7 @@ void FaceStepToward(MURRAY *p, LO *plo);
 // If lifting is allowed: the grab spot becomes the carried target, lift clip 0, state 4, face the object it holds.
 void StartMurrayLiftGrabspot(MURRAY *murray, LO *pspot)
 {
-    if (!murray->fCanLift)
+    if (!murray->psoCarryRoot)
         return;
     murray->ploCarried = pspot;
     murray->liftClip = 0;
@@ -1802,7 +1802,7 @@ void FaceStepToward(MURRAY *p, LO *plo);
 // Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
 void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
 {
-    if (!murray->fCanLift)
+    if (!murray->psoCarryRoot)
         return;
     murray->ploCarried = pspot;
     murray->liftClip = 1;
@@ -3028,206 +3028,143 @@ void UpdateMurrayLift(MURRAY *murray)
 
 namespace M_SetMurrayLiftSubstate {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 union U { qword q; float f[4]; int i[4]; };
 struct M4 { U row[4]; };
-struct VTE { short delta,pad; void *fn; };
+/* A transform (XF) as read here: its role state and parent. */
 struct NODE { M4 local,world; char pad80[0x18]; short state; char pad9A[6]; NODE*parent; };
-struct OWNER { char pad[0xC]; VTE*vt; char pad10[0x18]; ulong flags; char pad30[0x28]; NODE*left,*right; };
 struct EVENT { float time; int kind,tag,pad; };
-struct ROOT { char pad[0x60]; NODE*node; };
-struct PROXY { char pad[0x1C]; int active; };
-struct GOAL { char pad[0xC]; VTE*vt; };
-struct STRETCH { void*frame; NODE*first,*second; char padC[0x94]; U position; char padB0[0x1C]; float tuning; };
+/* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
+struct PROXYV { char pad[0x1C]; int active; };
 struct MOTION;
-struct LINK { char pad[0x180]; OWNER*owner; char pad184[0xC]; GOAL*first; int pad194; GOAL*second; };
-struct P { char pad[0xC]; VTE*vt; char pad10[0x50]; NODE*node; char pad64[0x12C]; U velocity; char pad1A0[0xE90]; ASEGA*anim; char pad1034[0x54]; PROXY*proxy; char pad108C[0x360]; ROOT*root; LINK*link; MOTION*m13F4,*m13F8,*m13FC,*m1400; int oldLeft,oldRight; char pad140C[0x3C]; int flag,pad144C,state; float time; char pad1458[0x19C]; NODE*targetFirst; int pad15F8; NODE*targetSecond; int pad1600; MOTION*m1604; int pad1608; MOTION*m160C; STRETCH*first,*second; MOTION*m1618,*m161C,*m1620,*m1624; };
 struct CLOCK { float time,deltaTime; };
-typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char M4_Size[sizeof(M4)==64?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
-typedef char EVENT_Size[sizeof(EVENT)==16?1:-1];
-typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
-typedef char STRETCH_Size[sizeof(STRETCH)==208?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
-typedef char M4_row_Offset[FIELD_OFFSET(M4,row)==0?1:-1];
-typedef char NODE_state_Offset[FIELD_OFFSET(NODE,state)==152?1:-1];
-typedef char NODE_parent_Offset[FIELD_OFFSET(NODE,parent)==160?1:-1];
-typedef char OWNER_vt_Offset[FIELD_OFFSET(OWNER,vt)==12?1:-1];
-typedef char OWNER_flags_Offset[FIELD_OFFSET(OWNER,flags)==40?1:-1];
-typedef char OWNER_left_Offset[FIELD_OFFSET(OWNER,left)==88?1:-1];
-typedef char OWNER_right_Offset[FIELD_OFFSET(OWNER,right)==92?1:-1];
-typedef char EVENT_time_Offset[FIELD_OFFSET(EVENT,time)==0?1:-1];
-typedef char ROOT_node_Offset[FIELD_OFFSET(ROOT,node)==96?1:-1];
-typedef char PROXY_active_Offset[FIELD_OFFSET(PROXY,active)==28?1:-1];
-typedef char GOAL_vt_Offset[FIELD_OFFSET(GOAL,vt)==12?1:-1];
-typedef char STRETCH_frame_Offset[FIELD_OFFSET(STRETCH,frame)==0?1:-1];
-typedef char STRETCH_first_Offset[FIELD_OFFSET(STRETCH,first)==4?1:-1];
-typedef char STRETCH_second_Offset[FIELD_OFFSET(STRETCH,second)==8?1:-1];
-typedef char STRETCH_position_Offset[FIELD_OFFSET(STRETCH,position)==160?1:-1];
-typedef char STRETCH_tuning_Offset[FIELD_OFFSET(STRETCH,tuning)==204?1:-1];
-typedef char LINK_owner_Offset[FIELD_OFFSET(LINK,owner)==384?1:-1];
-typedef char LINK_first_Offset[FIELD_OFFSET(LINK,first)==400?1:-1];
-typedef char LINK_second_Offset[FIELD_OFFSET(LINK,second)==408?1:-1];
-typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_node_Offset[FIELD_OFFSET(P,node)==96?1:-1];
-typedef char P_velocity_Offset[FIELD_OFFSET(P,velocity)==400?1:-1];
-typedef char P_anim_Offset[FIELD_OFFSET(P,anim)==4144?1:-1];
-typedef char P_proxy_Offset[FIELD_OFFSET(P,proxy)==4232?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_link_Offset[FIELD_OFFSET(P,link)==5104?1:-1];
-typedef char P_m13F4_Offset[FIELD_OFFSET(P,m13F4)==5108?1:-1];
-typedef char P_m13F8_Offset[FIELD_OFFSET(P,m13F8)==5112?1:-1];
-typedef char P_m13FC_Offset[FIELD_OFFSET(P,m13FC)==5116?1:-1];
-typedef char P_m1400_Offset[FIELD_OFFSET(P,m1400)==5120?1:-1];
-typedef char P_oldLeft_Offset[FIELD_OFFSET(P,oldLeft)==5124?1:-1];
-typedef char P_oldRight_Offset[FIELD_OFFSET(P,oldRight)==5128?1:-1];
-typedef char P_flag_Offset[FIELD_OFFSET(P,flag)==5192?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==5200?1:-1];
-typedef char P_time_Offset[FIELD_OFFSET(P,time)==5204?1:-1];
-typedef char P_targetFirst_Offset[FIELD_OFFSET(P,targetFirst)==5620?1:-1];
-typedef char P_targetSecond_Offset[FIELD_OFFSET(P,targetSecond)==5628?1:-1];
-typedef char P_m1604_Offset[FIELD_OFFSET(P,m1604)==5636?1:-1];
-typedef char P_m160C_Offset[FIELD_OFFSET(P,m160C)==5644?1:-1];
-typedef char P_first_Offset[FIELD_OFFSET(P,first)==5648?1:-1];
-typedef char P_second_Offset[FIELD_OFFSET(P,second)==5652?1:-1];
-typedef char P_m1618_Offset[FIELD_OFFSET(P,m1618)==5656?1:-1];
-typedef char P_m161C_Offset[FIELD_OFFSET(P,m161C)==5660?1:-1];
-typedef char P_m1620_Offset[FIELD_OFFSET(P,m1620)==5664?1:-1];
-typedef char P_m1624_Offset[FIELD_OFFSET(P,m1624)==5668?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" M4 D_002A2D30;
 extern "C" float D_002C0A3C,D_002C0A40;
-extern "C" void ReleaseAct(MOTION**);
-extern "C" void SetSoCnstrForce(OWNER*,int);
-extern "C" void SetLoParent(OWNER*,int,int);
-extern "C" void SetSoTreeFlag2(OWNER*,int);
+extern "C" void ReleaseAct(ACT**);
+extern "C" void SetSoCnstrForce(SO*,int);
+extern "C" void SetLoParent(SO*,SO*,int);
+extern "C" void SetSoTreeFlag2(SO*,int);
 extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertMat4BetweenLos(void*,void*,M4*);
-extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
-extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
-extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
-extern "C" void StunStepguardThrownOp1(OWNER*);
-extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
-extern "C" MOTION*NewBezierAct(void*,void*,void*,float,qword,qword);
+extern "C" void GetMurrayGripFrame(MURRAY*,XF*,const M4*,qword*,qword*);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(SO*,int);
+extern "C" void SendStepguardRootBhvMode6(SO*,int);
+extern "C" void StunStepguardThrownOp1(SO*);
+extern "C" void ComputeMurrayLiftLaunch(MURRAY*,qword,float*,float*,qword*,qword*);
+extern "C" ACT*NewBezierAct(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
-extern "C" MOTION*NewPositionAct(void*,void*,void*,int,int,qword);
-extern "C" MOTION*NewIkAct(void*,void*,void*,STRETCH*);
-extern "C" MOTION*NewMatrixAct(void*,void*,void*,void*,int,M4*);
-extern "C" void DetachMurrayCarried(P*);
-extern "C" void SetMurrayState(P*,int);
+extern "C" ACT*NewPositionAct(void*,void*,void*,int,int,qword);
+extern "C" ACT*NewIkAct(void*,void*,void*,PARTLINK*);
+extern "C" ACT*NewMatrixAct(void*,void*,void*,void*,int,M4*);
+extern "C" void DetachMurrayCarried(MURRAY*);
+extern "C" void SetMurrayState(MURRAY*,int);
 // Zero the xyz words of v.
-static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
+static inline void ClearXYZ(VECTOR*v){v->x=v->y=v->z=0.0f;}
 // Lift sub-states: 1 launches the object toward the hands (constraints, velocity), 2 attaches it.
-extern "C" void SetMurrayLiftSubstate(P *murray, int state)
+extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
 {
-    if (murray->state == state)
+    if (murray->liftSubstate == state)
         return;
-    if (murray->state == 1) {
-        ReleaseAct(&murray->m13FC);
-        ReleaseAct(&murray->m1400);
+    if (murray->liftSubstate == 1) {
+        ReleaseAct(&murray->apactCarryA[2]);
+        ReleaseAct(&murray->apactCarryA[3]);
     }
-    murray->state = state;
-    murray->time = D_002DDED0.time;
-    OWNER *owner;
+    murray->liftSubstate = state;
+    murray->liftSubstateTime = D_002DDED0.time;
+    SO *owner;
     switch (state) {
-    case 0: murray->flag = 0; break;
+    case 0: murray->fLiftGrabbed = 0; break;
     case 1: {
-        if (!murray->link)
+        if (!murray->ploCarried)
             goto failed;
-        owner = murray->link->owner;
-        if ((int)(owner->flags >> 60) & 1)
+        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        if ((int)owner->isInWorld & 1)
             goto attach;
         else
             goto failed;
     attach:
         SetSoCnstrForce(owner, 0);
-        murray->oldLeft = owner->left->state;
-        murray->oldRight = owner->right->state;
+        murray->xfRoleA = ((NODE *)owner->unknown58)->state;
+        murray->xfRoleB = ((NODE *)owner->unknown5C)->state;
         SetLoParent(owner, 0, 15);
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
         float duration;
-        EVENT *event = FindAsegLabel(murray->anim->animation, 0x1C7);
-        duration = (event->time - murray->anim->time) / murray->anim->speed;
-        LoadIdentityMatrix4(murray->root->node, murray->node, &predicted, 0, duration);
+        EVENT *event = FindAsegLabel(murray->activeAnimation->animation, 0x1C7);
+        duration = (event->time - murray->activeAnimation->time) / murray->activeAnimation->speed;
+        LoadIdentityMatrix4(murray->psoCarryRoot->rootTransform, murray->rootTransform, &predicted, 0, duration);
         M4 work = ConvertMat4BetweenLos(murray, 0, &predicted);
         predicted = work;
         GetMurrayGripFrame(murray, 0, &predicted, &work.row[0].q, &work.row[1].q);
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             SendStepguardRootBhvMode6(owner, (int)murray);
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
-        murray->m13FC =
-            NewBezierAct(owner, owner->left, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
-        VTE *entry = &owner->vt[35];
-        void *receiver = (char *)owner + entry->delta;
-        qword velocity = ConvertXfVec(owner->left->parent, 0, work.row[2].q);
-        ((void (*)(void *, qword))entry->fn)(receiver, velocity);
-        murray->m1400 = NewPositionAct(owner, owner->right, (void *)5, 7, 2, work.row[0].q);
+        murray->apactCarryA[2] =
+            NewBezierAct(owner, owner->unknown58, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
+        owner->SetVelocity(ConvertXfVec(((NODE *)owner->unknown58)->parent, 0, work.row[2].q));
+        murray->apactCarryA[3] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, work.row[0].q);
         break;
     }
     case 2: {
-        if (!murray->link)
+        if (!murray->ploCarried)
             goto failed;
-        owner = murray->link->owner;
-        if ((int)(owner->flags >> 60) & 1)
+        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        if ((int)owner->isInWorld & 1)
             goto valid;
     failed:
         DetachMurrayCarried(murray);
-        murray->link = 0;
+        murray->ploCarried = 0;
         SetMurrayState(murray, MURRAY_IDLE);
         break;
     valid:
-        ROOT *root = murray->root;
-        SetLoParent(owner, (int)root, 15);
+        SO *root = murray->psoCarryRoot;
+        SetLoParent(owner, root, 15);
         SetSoTreeFlag2(owner, 1);
         U position, rotation;
         M4 frame;
-        GetMurrayGripFrame(murray, root->node, &D_002A2D30, &rotation.q, &position.q);
-        murray->m13F8 = NewPositionAct(owner, owner->right, (void *)5, 7, 2, rotation.q);
-        murray->m13F4 = NewPositionAct(owner, owner->left, (void *)5, 7, 2, position.q);
-        if (murray->link->first) {
-            GOAL *goal = murray->link->first;
-            STRETCH *stretch = murray->first;
-            stretch->frame = ((void *(*)(void *, M4 *))goal->vt[32].fn)((char *)goal + goal->vt[32].delta, &frame);
-            stretch->position = frame.row[3];
-            stretch->tuning = D_002C0A3C;
-            murray->m1618 = NewIkAct(murray, stretch->first, (void *)5, stretch);
-            murray->m161C = NewIkAct(murray, stretch->second, (void *)5, stretch);
-            murray->m1604 =
-                NewMatrixAct(murray, murray->targetFirst, (void *)5, (void *)5, (int)stretch->frame, &frame);
+        GetMurrayGripFrame(murray, root->rootTransform, &D_002A2D30, &rotation.q, &position.q);
+        murray->apactCarryA[1] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, rotation.q);
+        murray->apactCarryA[0] = NewPositionAct(owner, owner->unknown58, (void *)5, 7, 2, position.q);
+        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalA) {
+            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalA;
+            PARTLINK *stretch = murray->ikChainA;
+            stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
+            stretch->posGoal = frame.row[3].q;
+            stretch->gTuning = D_002C0A3C;
+            murray->apactCarryC[0] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
+            murray->apactCarryC[1] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
+            murray->apactCarryB[1] =
+                NewMatrixAct(murray, murray->unknown15F4, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
-        if (murray->link->second) {
-            GOAL *goal = murray->link->second;
-            STRETCH *stretch = murray->second;
-            stretch->frame = ((void *(*)(void *, M4 *))goal->vt[32].fn)((char *)goal + goal->vt[32].delta, &frame);
-            stretch->position = frame.row[3];
-            stretch->tuning = D_002C0A40;
-            murray->m1620 = NewIkAct(murray, stretch->first, (void *)5, stretch);
-            murray->m1624 = NewIkAct(murray, stretch->second, (void *)5, stretch);
-            murray->m160C =
-                NewMatrixAct(murray, murray->targetSecond, (void *)5, (void *)5, (int)stretch->frame, &frame);
+        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalB) {
+            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalB;
+            PARTLINK *stretch = murray->ikChainB;
+            stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
+            stretch->posGoal = frame.row[3].q;
+            stretch->gTuning = D_002C0A40;
+            murray->apactCarryC[2] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
+            murray->apactCarryC[3] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
+            murray->apactCarryB[3] =
+                NewMatrixAct(murray, murray->unknown15FC, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             StunStepguardThrownOp1(owner);
-        ClearXYZ(&murray->velocity);
+        ClearXYZ(&murray->unknown190);
         break;
     }
     default: break;
     }
     do {
-        if (murray->state >= 2)
+        if (murray->liftSubstate >= 2)
             break;
-        if (murray->state < 0)
+        if (murray->liftSubstate < 0)
             break;
-        murray->proxy->active = 1;
+        ((PROXYV *)murray->unknown1088)->active = 1;
         goto end;
     } while (0);
-    murray->proxy->active = 0;
+    ((PROXYV *)murray->unknown1088)->active = 0;
 end:;
 }
 } // namespace M_SetMurrayLiftSubstate

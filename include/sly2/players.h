@@ -17,11 +17,15 @@
    his transforms 0x200..0x202 and 0x203..0x205). Was copied in air.cpp and relay.cpp (Lilly names). */
 struct PARTLINK
 {
-      undefined4 unk_0x00;
+      void *pxfGoal;   /* the goal transform (SetMurrayLiftSubstate: the carried object's grip transform) */
       void *precA;   /* first transform of the chain (FindSoXf kind 6) */
       void *precB;   /* second transform (kind 6) */
       void *precC;   /* end transform (kind 1) */
-      undefined4 unk_0x10[0xD0 / 4];
+      undefined4 unk_0x10[(0xa0 - 0x10) / 4];
+      qword posGoal;   /* +0xA0 the goal position (SetMurrayLiftSubstate) */
+      undefined4 unk_0xb0[(0xcc - 0xb0) / 4];
+      float gTuning;   /* +0xCC IK tuning (D_002C0A3C / D_002C0A40 in SetMurrayLiftSubstate) */
+      undefined4 unk_0xd0[(0xe0 - 0xd0) / 4];
 };
 typedef char assert_PARTLINK_size[sizeof(PARTLINK) == 0xE0 ? 1 : -1];
 
@@ -37,7 +41,8 @@ struct MURRAY : public STEPPLAYER
       int unknown13E0;
       int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
       int unknown13E8;
-      int fCanLift;   /* +0x13EC lifting is allowed (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
+      SO *psoCarryRoot;   /* +0x13EC the object a lifted one is parented to (SetMurrayLiftSubstate); no lift without it
+                             (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
       LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
                            StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (CARRYSPOTV in
                            murray.cpp) */
@@ -57,7 +62,7 @@ struct MURRAY : public STEPPLAYER
       int fLiftGrabbed;   /* +0x1448 the lift animation reached its grab event (UpdateMurrayLift) */
       int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
       int liftSubstate;   /* +0x1450 sub-state of MURRAY_LIFT: 0, 1 reaching (aborts if the object left the world), 2 lifting, -1 none */
-      undefined4 unknown1454;
+      float liftSubstateTime;   /* +0x1454 clock.time liftSubstate was set */
       int carrySubstate;   /* +0x1458 carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); indexes aprecCarry (SetMurrayCarrySubstate) */
       float carrySubstateTime;   /* +0x145C clock.time carrySubstate was set */
       GAIT gaitB;   /* +0x1460 */
