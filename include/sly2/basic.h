@@ -139,6 +139,27 @@ struct MATRIX3
 	float mat[3][4];
 } __attribute__((aligned(16)));
 
+/* QWROW, MATRIX3Q, MATRIX4Q: the quadword forms of a vector / matrix row and of MATRIX3 / MATRIX4, for the VU0 code
+   that moves whole rows (lq/sq, lqc2/sqc2). Same bytes as VECTOR4 / MATRIX3 / MATRIX4; a class keeps both spellings
+   as an anonymous union of the float member and the Q member (STEP::matqTarget, as CM::matq), so a row read whole is
+   not a cast of the float member (g++ 2.95 then folds the offset or schedules the loads differently). */
+union QWROW
+{
+	qword q;
+	float f[4];
+	int i[4];
+};
+struct MATRIX3Q
+{
+	QWROW r[3];
+};
+struct MATRIX4Q
+{
+	QWROW r[4];
+};
+typedef char assert_MATRIX3Q_size[sizeof(MATRIX3Q) == sizeof(MATRIX3) ? 1 : -1];
+typedef char assert_MATRIX4Q_size[sizeof(MATRIX4Q) == sizeof(MATRIX4) ? 1 : -1];
+
 /* SMP: smoothing parameters for a value that chases a target: the speed used far from / near the target and the time
    constant (inferred from Sly 1 SmoothValue).
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */

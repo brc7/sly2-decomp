@@ -61,8 +61,8 @@ struct STEP : public PO
       union
       {
             MATRIX3 matTarget;   /* target orientation */
-            qword aqwTarget[3];   /* the same rows as VU quadwords (jthands.cpp reads them so). Local qword-row form of
-                                     MATRIX3: a candidate for a MATRIX3 union in sly2/basic.h */
+            qword aqwTarget[3];   /* the same rows as VU quadwords (jthands.cpp reads them so) */
+            MATRIX3Q matqTarget;  /* the same rows as basic.h's quadword rows (murray.cpp UpdateMurrayStrafe's Rotate) */
       };
       union
       {

@@ -691,10 +691,6 @@ void UpdateMurrayStruggle(MURRAY *murray)
 namespace M_func_001B5990 {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef unsigned int uint;
-union U{qword q;float f[4];};
-/* The target orientation rows (STEP::aqwTarget) as Rotate reads them (as qword rows the row loads schedule
-   differently). */
-struct M3{U rows[3];};
 extern "C"{
 extern float D_002C08DC;
 int IsStepplayerNearInteractTarget(MURRAY*,int);
@@ -715,15 +711,15 @@ qword SetVectorCylind(float,float,float);
 void UpdateDirectionalBlend(MURRAY*,BLDIR*,ASEGBL*);
 }
 // Load a vector into a VU0 register.
-static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
+static inline qword Load(const QWROW*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
 // XY length of v as a float.
 static inline float LengthXY(qword v){qword q;float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(q):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 // Move a 128-bit GPR value into a VU0 register.
 static inline qword Vector(qword q){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(q));return v;}
 // Rotate vector by the 3x3 matrix m.
-static inline qword Rotate(M3 *m, qword vector)
+static inline qword Rotate(MATRIX3Q *m, qword vector)
 {
-    qword result = Load(&m->rows[0]), row1 = m->rows[1].q, row2 = m->rows[2].q;
+    qword result = Load(&m->r[0]), row1 = m->r[1].q, row2 = m->r[2].q;
     qword a, b, c, one;
     __asm__("vmul.xyzw %2,%0,%7\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%5,%7\n\tvmul.xyzw %4,%6,%7\n\tvadday.x "
             "$ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z "
@@ -783,7 +779,7 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
         qword direction = Vector(
             SetVectorCylind(input->leftStickAngle + 3.1415927f, (input->leftStickDeflection * length) * murray->activeAnimation->speed, 0.0f));
         murray->qwUnknown190 = direction;
-        qword world = Rotate((M3 *)murray->aqwTarget, direction);
+        qword world = Rotate(&murray->matqTarget, direction);
         murray->blendSide = -1;
         murray->qwUnknown190 = world;
         UpdateDirectionalBlend(murray, murray->unknown16F0, murray->unknown17F0);
