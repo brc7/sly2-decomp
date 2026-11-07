@@ -291,33 +291,24 @@ void UpdateShapeXfWorld(struct S *shape)
 } } // namespace M_func_001E6340
 
 namespace M_SFromShapeU { extern "C" {
-struct X { char pad[0xE0]; int mode; char pad1[0xF0 - 0xE4]; float *distances; char pad2[0x14C - 0xF4]; float segmentDistances[11]; };
-int FindShapeSegmentAtParam(struct X *p, float *pa, float *pb);
-void CacheShapeSegment(struct X *p, int i);
+int FindShapeSegmentAtParam(SHAPE *p, float *pa, float *pb);
+void CacheShapeSegment(SHAPE *p, int i);
 static __inline__ float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Arc length at parameter u, interpolated from the distance table (sub-sampled inside curve segments).
-float GetShapeDistanceAtParam(struct X *shape)
+float GetShapeDistanceAtParam(SHAPE *shape)
 {
     float a, b;
     float g;
     int i = FindShapeSegmentAtParam(shape, &a, &b);
-    if (shape->mode == 0) { g = GLerp(shape->distances[i], shape->distances[i + 1], a / b); } else { float u; int j; CacheShapeSegment(shape, i); u = a * 10.0f / b; j = (int)u; g = GLerp(shape->segmentDistances[j], shape->segmentDistances[j + 1], u - j); g += shape->distances[i]; }
+    if (shape->curveKind == 0) { g = GLerp(shape->vertexArcLengths[i], shape->vertexArcLengths[i + 1], a / b); } else { float u; int j; CacheShapeSegment(shape, i); u = a * 10.0f / b; j = (int)u; g = GLerp(shape->segmentLengths[j], shape->segmentLengths[j + 1], u - j); g += shape->vertexArcLengths[i]; }
     return g;
 }
 } } // namespace M_SFromShapeU
 
 namespace M_UFromShapeS { extern "C" {
-struct X {
-    char pad[0xE0];
-    int mode;
-    char pad1[0xEC - 0xE4];
-    float *times;
-    char pad2[0x14C - 0xF0];
-    float segmentDistances[11];
-};
 
-int FindShapeSegmentAtDistance(struct X *p, float *pa, float *pb, float time);
-void CacheShapeSegment(struct X *p, int i);
+int FindShapeSegmentAtDistance(SHAPE *p, float *pa, float *pb, float time);
+void CacheShapeSegment(SHAPE *p, int i);
 
 static __inline__ float GLerp(float a, float b, float t)
 {
@@ -333,30 +324,30 @@ static inline float ReturnValue(float value)
 }
 
 // Parameter u at arc length s (the inverse of GetShapeDistanceAtParam).
-float GetShapeParamAtDistance(struct X *shape, float distance)
+float GetShapeParamAtDistance(SHAPE *shape, float distance)
 {
     float a, b;
     float g;
     int i = FindShapeSegmentAtDistance(shape, &a, &b, distance);
 
-    if (shape->mode == 0) {
+    if (shape->curveKind == 0) {
         {
             float fraction = a / b;
-            float upper = *(volatile float *)&shape->times[i + 1];
-            float lower = *(volatile float *)&shape->times[i];
+            float upper = *(volatile float *)&shape->vertexParams[i + 1];
+            float lower = *(volatile float *)&shape->vertexParams[i];
             g = GLerp(lower, upper, fraction);
         }
     } else {
         int j;
         CacheShapeSegment(shape, i);
         for (j = 1; j < 10; j++)
-            if (a < shape->segmentDistances[j]) break;
+            if (a < shape->segmentLengths[j]) break;
         j--;
         {
-            float part = (a - shape->segmentDistances[j]) / (shape->segmentDistances[j + 1] - shape->segmentDistances[j]);
+            float part = (a - shape->segmentLengths[j]) / (shape->segmentLengths[j + 1] - shape->segmentLengths[j]);
             float index = j;
             part = (index + part) * 0.1f;
-            g = GLerp(shape->times[i], shape->times[i + 1], part);
+            g = GLerp(shape->vertexParams[i], shape->vertexParams[i + 1], part);
         }
     }
     return ReturnValue(g);
@@ -403,29 +394,25 @@ float WrapShapeParam(struct S *shape, float param)
 } } // namespace M_UWrapShape
 
 namespace M_SWrapShape { extern "C" {
-struct S { char pad[0xE4]; int isClosed; int numPoints; int times; float *distances; };
 float ModPositive__Fff(float g, float gMax);
 // On a closed shape wraps s into [0, length]; open shapes return s unchanged.
-float WrapShapeDistance(struct S *shape, float distance)
+float WrapShapeDistance(SHAPE *shape, float distance)
 {
     float gMax;
     if (!shape->isClosed) return distance;
-    gMax = shape->distances[shape->numPoints - 1];
+    gMax = shape->vertexArcLengths[shape->numControlVertices - 1];
     if (0.0f <= distance && distance <= gMax) return distance;
     return ModPositive__Fff(distance, gMax);
 }
 } } // namespace M_SWrapShape
 
 namespace M_SClampShape { extern "C" {
-struct S { char pad[0xE4]; int isClosed; };
-float GetShapeMinDistance(struct S *p);
-float GetShapeMaxDistance(struct S *p);
-float WrapShapeDistance(struct S *p, float g);
+float WrapShapeDistance(SHAPE *p, float g);
 // 0x1E6720: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 // Closed shapes wrap s, open shapes clamp it to [GetShapeMinDistance, GetShapeMaxDistance].
-float ClampShapeDistance(struct S *shape, float distance)
+float ClampShapeDistance(SHAPE *shape, float distance)
 {
     if (shape->isClosed) return WrapShapeDistance(shape, distance);
     return Clamp(distance, GetShapeMinDistance(shape), GetShapeMaxDistance(shape));
