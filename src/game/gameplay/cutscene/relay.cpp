@@ -31,6 +31,7 @@
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/game.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -86,16 +87,7 @@ struct EXC
     DLE dle;
 };
 
-struct GAME
-{
-      float tIdleEvent;
-      float tCmTurned;
-      int nTaskStateDenied;
-      int idGadgetLast;
-      int oidJobCur;
-      int oidTaskCur;
-      int oidTaskPending;
-};
+/* GAME: sly2/game.h */
 
 struct TASKPAIR
 {
