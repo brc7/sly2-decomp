@@ -19,13 +19,6 @@ void func_00236A60(int) __asm__("sceSifInitRpc");
 int func_002370A8(void *, int, int) __asm__("sceSifBindRpc");
 int snd_SendIOPCommandAndWait__FiiPc(int, int, void *);
 
-/** @sly2-annot addr=0x2319E8
- * Purpose: 989snd API
- * Info: proposed name snd_StartSoundSystem (T1); TU 989snd
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
- * See: docs/engine/object-model.md#8-source-files, docs/engine/overview.md#0-the-shape-of-the-program,
- *   docs/engine/sound.md#5-source-files
- * @end-sly2-annot */
 void snd_StartSoundSystem(int flags)
 {
     int i;
