@@ -223,19 +223,17 @@ void InitBhvanim(BHVANIM *behavior)
 
 // 0x174950 StartBhvanim
 namespace M_StartBhvanim { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x28]; int sgf; int binding; };
-void StartBhv(struct S *p);
+
+void StartBhv(BHVANIM *p);
 void AddStepguardSgf(void *p, int n);
-int FindCurrentAnimBinding(void *p);
-void SetBhvanimState(struct S *p, int n);
+ANIMBINDING *FindCurrentAnimBinding(void *p);
 // 0x174950: BHVANIM vtable slot 8 (Start): raises the behaviour's guard flag, picks the animation binding for the
 // guard's current flags and enters state 0 (playing), or state 1 (done) when there is none.
-void StartBhvanim(struct S *behavior) {
+void StartBhvanim(BHVANIM *behavior) {
     StartBhv(behavior);
-    AddStepguardSgf(behavior->guard, behavior->sgf);
+    AddStepguardSgf(behavior->owner, behavior->sgf);
     if (!behavior->binding) {
-        behavior->binding = FindCurrentAnimBinding(behavior->guard);
+        behavior->binding = FindCurrentAnimBinding(behavior->owner);
         if (!behavior->binding) { SetBhvanimState(behavior, 1); return; }
     }
     SetBhvanimState(behavior, 0);
