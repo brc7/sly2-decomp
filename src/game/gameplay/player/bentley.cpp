@@ -511,50 +511,36 @@ void UpdateBentley(struct P *bentley)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBentleyState { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void *pfn; };
+/* The held tossable (classes.h CID100: its slot 76 is not declared there). */
 struct VO { char pad[0xC]; struct VTE *vt; };
-struct ASEGP { int x0; struct ASEG *pasega; };
-struct P {
-    char pad[0xC]; struct VTE *vt; char pad0[0x58 - 0x10]; void *p58; void *p5C;
-    char pad1[0x190 - 0x60]; qword q190; float g1A0; char pad2[0x2C0 - 0x1A4]; char air[0x4C0 - 0x2C0];
-    char grab[8]; int grabState; char pad3[0xDF0 - 0x4CC]; char hurt[0xF00 - 0xDF0]; char aF00[0xF50 - 0xF00];
-    char pipe[0x1028 - 0xF50]; void *p1028; void *p102C; struct ASEGA *action; int x1034;
-    char pad4[0x108C - 0x1038]; int x108C; char pad5[0x11B0 - 0x1090]; char thrower[0x1320 - 0x11B0];
-    struct ASEGP gaitA; char pad6[0x1374 - 0x1328]; struct ASEG *p1374; char pad7[0x13D0 - 0x1378];
-    int state; float t13D4; char pad8[0x14E0 - 0x13D8]; struct ASEG *p14E0; char pad9[0x1600 - 0x14E4];
-    struct ASEGP gaitB; char pad10[0x16D0 - 0x1608]; struct VO *p16D0; struct VO *p16D4;
-    char pad11[0x181C - 0x16D8]; int x181C; struct ASEG *p1820; char pad12[0x186C - 0x1824]; struct VO *heldObject;
-    char pad13[0x1878 - 0x1870]; struct ASEG *p1878;
-};
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void SetXfRole(struct P *, void *, int);
-void ScheduleIdleTimer(struct P *);
-void ExplodeWithDefaults(struct VO *);
-void SetJtAirState(void *, int, int);
-void SetJtGrabKind(void *, int);
-void SetJtHurtState(void *, int);
-void SetJtPipeState(void *, int);
-void ReleaseBentleyHeldObject(struct P *);
-void SetBentleySubState(struct P *, int);
-void SetBentleyHoverState(struct P *, int);
-void SetJtThrowState(void *, int);
+void SetXfRole(BENTLEY *, XF *, int);
+void ScheduleIdleTimer(BENTLEY *);
+void ExplodeWithDefaults(LO *);
+void SetJtAirState(JTAIR *, int, int);
+void SetJtGrabKind(JTGRAB *, int);
+void SetJtHurtState(JTHURT *, int);
+void SetJtPipeState(JTPIPE *, int);
+void ReleaseBentleyHeldObject(BENTLEY *);
+void SetBentleySubState(BENTLEY *, int);
+void SetBentleyHoverState(BENTLEY *, int);
+void SetJtThrowState(JTTHROW *, int);
 int FindSmStateOptional__FP2SM3OID(void *, int);
-int GetStepplayerLeanFlags(struct P *);
-void InitIdleTimer(struct P *, int);
-void ResetGaitFeet(struct ASEGP *);
-void SetJtModeState__FP6JTMODEi(void *, int);
-void ReleaseAsega(void *);
-void ReleaseSma(void *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
-void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
+int GetStepplayerLeanFlags(BENTLEY *);
+void InitIdleTimer(BENTLEY *, int);
+void ResetGaitFeet(GAIT *);
+void SetJtModeState__FP6JTMODEi(JTMODE *, int);
+void ReleaseAsega(ASEGA **);
+void ReleaseSma(SMA **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, BENTLEY *, int, ASEGA **, float, float);
+void ReplaceSmaEx(void *, BENTLEY *, int, int, int, SMA **);
 
-#define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
 
-// Bentley state change (+0x13D0): exit/enter actions, animations and component state changes.
-void SetBentleyState(struct P *p, int k)
+// Bentley state change: exit/enter actions, animations and component state changes.
+void SetBentleyState(BENTLEY *p, int k)
 {
     int kOld;
     struct ASEG *asega;
@@ -564,76 +550,76 @@ void SetBentleyState(struct P *p, int k)
     int n;
     float g;
     float rate;
-    struct ASEGP *pa;
+    GAIT *pa;
 
     if (k == p->state)
         return;
     switch (p->state) {
     case BENTLEY_IDLE:
-        SetXfRole(p, p->p58, 2);
-        SetXfRole(p, p->p5C, 2);
+        SetXfRole(p, p->unknown58, 2);
+        SetXfRole(p, p->unknown5C, 2);
         ScheduleIdleTimer(p);
         break;
     case BENTLEY_PLAYER_STATE_4:
     case BENTLEY_SCRIPT_ANIM:
     case BENTLEY_SCRIPT_SMA:
-        SetXfRole(p, p->p58, 2);
-        SetXfRole(p, p->p5C, 2);
+        SetXfRole(p, p->unknown58, 2);
+        SetXfRole(p, p->unknown5C, 2);
         break;
     case BENTLEY_AIR:
-        if (p->x108C == 0) {
-            struct VO *object = 0;
+        if (p->pwater == 0) {
+            LO *object = 0;
             if (k >= 0) {
                 if (k < 2) {
-                    object = p->p16D0;
+                    object = p->aploLandEffect[0];
                 } else if (k == 3) {
-                    switch (p->grabState) {
+                    switch (p->jtgrab.state) {
                     case 1:
                         break;
                     case 3:
                     case 4:
-                        object = p->p16D4;
+                        object = p->aploLandEffect[1];
                         break;
                     default:
-                        object = p->p16D0;
+                        object = p->aploLandEffect[0];
                         break;
                     }
                 }
             }
             if (object) {
-                VCALL0(object, 8);
+                object->Add();
                 ExplodeWithDefaults(object);
-                VCALL0(object, 9);
+                object->Remove();
             }
         }
-        SetJtAirState(p->air, -1, 0);
+        SetJtAirState(&p->jtair, -1, 0);
         break;
     case BENTLEY_GRAB:
-        SetJtGrabKind(p->grab, -1);
+        SetJtGrabKind(&p->jtgrab, -1);
         break;
     case BENTLEY_HURT:
-        SetJtHurtState(p->hurt, -1);
+        SetJtHurtState(&p->jthurt, -1);
         break;
     case BENTLEY_PIPE:
-        SetJtPipeState(p->pipe, -1);
+        SetJtPipeState(&p->jtpipe, -1);
         break;
     case BENTLEY_GADGET:
-        if (p->heldObject) {
-            VCALL1(p->heldObject, 76, 1);
+        if (p->ploHeld) {
+            VCALL1((struct VO *)p->ploHeld, 76, 1);
             ReleaseBentleyHeldObject(p);
         }
         SetBentleySubState(p, -1);
         break;
     case BENTLEY_HOVER:
         SetBentleyHoverState(p, -1);
-        VCALL1(p, 79, 1);
+        p->SetCtlState(1);
         break;
     case BENTLEY_RUN:
     case BENTLEY_WALK:
-        p->g1A0 = p->action->time / p->action->animation->duration;
+        p->gaitBlend = p->activeAnimation->time / p->activeAnimation->animation->duration;
         break;
     case BENTLEY_THROW:
-        SetJtThrowState(p->thrower, -1);
+        SetJtThrowState(&p->jtthrow, -1);
         break;
     }
     kOld = p->state;
@@ -645,16 +631,16 @@ void SetBentleyState(struct P *p, int k)
     c = 4;
     g = 0.0f;
     rate = 1.0f;
-    p->t13D4 = D_002DDED0.time;
+    p->stateTime = D_002DDED0.time;
     switch (k) {
     case BENTLEY_IDLE:
-        SetXfRole(p, p->p58, 1);
-        SetXfRole(p, p->p5C, 1);
-        if (p->x181C) {
-            asega = p->p1820;
+        SetXfRole(p, p->unknown58, 1);
+        SetXfRole(p, p->unknown5C, 1);
+        if (p->unknown181C) {
+            asega = p->unknown1820;
             n = 9;
         } else {
-            jt = p->p1028;
+            jt = p->unknown1028;
             if (kOld != 2)
                 anim = kOld != 7 ? 0x175 : 0x176;
             else
@@ -662,31 +648,31 @@ void SetBentleyState(struct P *p, int k)
             if (FindSmStateOptional__FP2SM3OID(jt, anim) < 0)
                 anim = -1;
         }
-        p->q190 = D_002A2DD0;
+        p->qwUnknown190 = D_002A2DD0;
         c = GetStepplayerLeanFlags(p);
         InitIdleTimer(p, 1);
         break;
     case BENTLEY_RUN:
-        asega = p->gaitA.pasega;
+        asega = p->gaitA.blendedAnimation;
         pa = &p->gaitA;
         goto L1;
     case BENTLEY_WALK:
-        asega = p->gaitB.pasega;
+        asega = p->gaitB.blendedAnimation;
         pa = &p->gaitB;
     L1:
         n = 9;
-        g = p->g1A0 * asega->duration;
+        g = p->gaitBlend * asega->duration;
         ResetGaitFeet(pa);
         break;
     case BENTLEY_HURT:
-        SetJtModeState__FP6JTMODEi(p->aF00, -1);
+        SetJtModeState__FP6JTMODEi(&p->jtmode, -1);
         break;
     case BENTLEY_NEAR_TARGET:
-        asega = p->p14E0;
+        asega = p->pasegblA;
         n = 9;
         break;
     case BENTLEY_PIPE:
-        SetJtPipeState(p->pipe, 0);
+        SetJtPipeState(&p->jtpipe, 0);
         return;
     case BENTLEY_GADGET:
         SetBentleySubState(p, 0);
@@ -695,17 +681,17 @@ void SetBentleyState(struct P *p, int k)
         SetBentleyHoverState(p, 0);
         return;
     case BENTLEY_PLAYER_STATE_4:
-        jt = p->p102C;
+        jt = p->unknown102C;
     case BENTLEY_SCRIPT_ANIM:
     case BENTLEY_SCRIPT_SMA:
-        SetXfRole(p, p->p58, 1);
-        SetXfRole(p, p->p5C, 1);
-        p->q190 = D_002A2DD0;
+        SetXfRole(p, p->unknown58, 1);
+        SetXfRole(p, p->unknown5C, 1);
+        p->qwUnknown190 = D_002A2DD0;
         break;
     case BENTLEY_ADRENALINE:
-        asega = p->p1878;
+        asega = p->pasegAdrenaline;
         if (!asega) {
-            asega = p->p1374;
+            asega = p->gaitA.abl[1].animation;
             rate = 1.5f;
         }
         n = 9;
@@ -713,11 +699,11 @@ void SetBentleyState(struct P *p, int k)
     case BENTLEY_THROW:
         return;
     }
-    ReleaseAsega(&p->action);
-    ReleaseSma(&p->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->action, g, rate);
-    ReplaceSmaEx(jt, p, anim, n, c, &p->x1034);
-    VCALL0(p, 90);
+    ReleaseAsega(&p->activeAnimation);
+    ReleaseSma(&p->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->activeAnimation, g, rate);
+    ReplaceSmaEx(jt, p, anim, n, c, &p->activeStateMachine);
+    p->ApplyStateStepParams();
 }
 } } // namespace M_SetBentleyState
 
