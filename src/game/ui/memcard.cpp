@@ -726,26 +726,24 @@ void *CreateSaveDir(void *saveManager)
 } } // namespace M_CreateSaveDir
 
 namespace M_McJobCreateSave { extern "C" {
-struct B { char data[0x5464]; };   /* a save slot */
-struct S { int port; int slot; int state; int nextState; int tStateChanged, tNextPoll, cardType; int freeClusters; int isFormatted; struct B slots[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char memcard[1]; };
 extern char D_002A38E8[], D_002E6550[];
 int sceMcGetEntSpace(int a, int b, char *c);
 int McSyncResult(void *p, int a, int b, int *c);
 int GetDiscFileEntrySize(void *p);
-int CreateSaveDir(struct S *s);
-int WriteSaveSlotFileReset(struct S *s, struct B *b);
-void BuildSaveFilePath(struct S *s, struct B *b, char *path);
-void McDelete(struct S *s, char *path);
+int CreateSaveDir(SAVE *s);
+int WriteSaveSlotFileReset(SAVE *s, SAVESLOT *b);
+void BuildSaveFilePath(SAVE *s, SAVESLOT *b, char *path);
+void McDelete(SAVE *s, char *path);
 void SetMcDialogPhase(void *p, int n);
 // Worker job: checks the free space, deletes a stale save, creates the directory and writes the slot files.
-int McJobCreateSave(struct S *saveManager)
+int McJobCreateSave(SAVE *saveManager)
 {
     char path[0x50];
     int entrySpace;
     int clustersNeeded;
     int r;
     int i;
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     clustersNeeded = 1;
     r = McSyncResult(worker, sceMcGetEntSpace(saveManager->port, saveManager->slot, "/"), 0x12, &entrySpace);
     if (r == 0) {
@@ -760,17 +758,17 @@ int McJobCreateSave(struct S *saveManager)
             r = CreateSaveDir(saveManager);
             if (r == 0) {
                 for (i = 0; i < 3; i++) {
-                    r = WriteSaveSlotFileReset(saveManager, &saveManager->slots[i]);
+                    r = WriteSaveSlotFileReset(saveManager, &saveManager->aslot[i]);
                     if (r)
                         goto cleanup;
                 }
-                if (saveManager->nextState < 5)
-                    saveManager->nextState = 5;
+                if (saveManager->nStateNext < 5)
+                    saveManager->nStateNext = 5;
                 goto done;
             }
 cleanup:
             for (i = 0; i < 3; i++) {
-                BuildSaveFilePath(saveManager, &saveManager->slots[i], path);
+                BuildSaveFilePath(saveManager, &saveManager->aslot[i], path);
                 McDelete(saveManager, path);
             }
             McDelete(saveManager, "/BASCUS-97316YAOTWTD!/icon.sys");
@@ -787,16 +785,14 @@ done:
 } } // namespace M_McJobCreateSave
 
 namespace M_McJobGetDir { extern "C" {
-struct B { char data[0x5464]; };
-struct S { int port; int slot; int state; int nextState; int pad[5]; struct B slots[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char memcard[1]; };
 int sceMcGetDir(int a, int b, char *c, int d, int e, int f);
 int McSyncResult(void *p, int a, int b, int *c);
-int McGetInfoSync(struct S *s, int *out);
-int ReadSaveSlotHeaders(struct S *s, struct B *b);
+int McGetInfoSync(SAVE *s, int *out);
+int ReadSaveSlotHeaders(SAVE *s, SAVESLOT *b);
 // Worker job: reads the card info and the save directory, then each slot's header.
-int McJobGetDir(struct S *saveManager)
+int McJobGetDir(SAVE *saveManager)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int numEntries_freeSpace[2];   /* [0]: directory entries found; [1]: free space (McGetInfoSync) */
     int r;
     int i;
@@ -804,25 +800,23 @@ int McJobGetDir(struct S *saveManager)
     if (numEntries_freeSpace[0] <= 0) {
         McGetInfoSync(saveManager, &numEntries_freeSpace[1]);
         if (numEntries_freeSpace[1] <= 0x18FFF)
-            saveManager->nextState = 4;
+            saveManager->nStateNext = 4;
         return 0xE;
     }
     for (i = 0; r == 0 && i < 3; i++)
-        ReadSaveSlotHeaders(saveManager, &saveManager->slots[i]);
-    if (r == 0 && saveManager->nextState < 5)
-        saveManager->nextState = 5;
+        ReadSaveSlotHeaders(saveManager, &saveManager->aslot[i]);
+    if (r == 0 && saveManager->nStateNext < 5)
+        saveManager->nStateNext = 5;
     return r;
 }
 } } // namespace M_McJobGetDir
 
 namespace M_BuildSaveFilePath { extern "C" {
-struct SAVE { char ab[0x5464]; };
-struct M { char pad[0x24]; struct SAVE slots[4]; };
 int sprintf(char *buf, char *fmt, ...);
 // Builds a slot's file path: "/BASCUS-97316YAOTWTD!/save<i>".
-void BuildSaveFilePath(struct M *saveManager, struct SAVE *slot, char *buf)
+void BuildSaveFilePath(SAVE *saveManager, SAVESLOT *slot, char *buf)
 {
-    sprintf(buf, "/%s/%s%d", "BASCUS-97316YAOTWTD!", "save", slot - saveManager->slots + 1);
+    sprintf(buf, "/%s/%s%d", "BASCUS-97316YAOTWTD!", "save", slot - saveManager->aslot + 1);
 }
 } } // namespace M_BuildSaveFilePath
 
