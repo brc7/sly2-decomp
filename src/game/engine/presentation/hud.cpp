@@ -1147,9 +1147,6 @@ extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 namespace M_QueueWidgetRenderSetup { extern "C" {
 // Queue the render initialization payloads in a DMA packet.
 
-typedef unsigned int uint;
-typedef unsigned long ulong;
-struct S {char pad[0xA4];int priority;};
 extern VIFS D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
@@ -1164,9 +1161,10 @@ static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,sour
 static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 // 0x2130B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-
+} } // namespace M_QueueWidgetRenderSetup
 // Queues the DMA packet that sets up rendering before the widget sprites.
-void QueueWidgetRenderSetup(struct S *p){
+extern "C" void QueueWidgetRenderSetup(WIDGET *p){
+    using namespace M_QueueWidgetRenderSetup;
     unsigned char *tag=D_002DEA28.m_pb;
     RPL *e;
     *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
@@ -1181,7 +1179,6 @@ void QueueWidgetRenderSetup(struct S *p){
     e->kind=0x15;e->depth=p->priority<<18;
     e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
-} } // namespace M_QueueWidgetRenderSetup
 
 // 0x2132D0 IsWidgetVisible
 // True when the widget's main animation is active and no higher-priority exclusive widget hides it.
