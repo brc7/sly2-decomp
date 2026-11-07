@@ -1445,24 +1445,18 @@ void SetHackwallSegmentState(HACKWALL *wall, HACKWALLPIECE *ppiece, int n)
 
 namespace M_func_00181F60 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x10]; char x10[0x2C]; float g3c; float g40; float g44; char p1[8]; float g50; float g54; float g58; float g5c; struct Q *next; };
-struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
-struct S : PO { char pad180[0x1C0 - 0x180]; int x1c0; char p0[4]; int c; struct E ae[4]; };
 struct V { float a[4]; };
-extern struct CLOCK D_002DDED0;
-extern void *D_002DFB80;
 extern char D_002BE888[];
 extern float D_002BE898, D_002BE89C, D_002BE8A0, D_002BE8A4;
-void UpdateSo(struct S *p);
-float GetShapeMaxDistance(int oid);
-qword GetLoWorldPos(void *p);
-void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
-void FindShapeClosestPointFromDistance(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
+void UpdateSo(SO *pso);
+float GetShapeMaxDistance(SHAPE *pshape);
+qword GetLoWorldPos(LO *plo);
+void FindShapeClosestPoint(SHAPE *pshape, qword q, int a, int b, struct V *pv, int c, float *pg);
+void FindShapeClosestPointFromDistance(SHAPE *pshape, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
 float RandomFloatInRange__Fff(float lo, float hi);
-void UpdateHackwallPieces(struct S *p, struct E *pe);
+void UpdateHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg);
 float SmoothValueWithAccel__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
-void EvaluateShapeAtDistance(int oid, struct Q *q, void *pv, float g);
-void UpdateHackwallSegments(struct S *p, struct Q *q);
+void EvaluateShapeAtDistance(SHAPE *pshape, void *ppos, void *pdir, float g);
 // One step of constant-acceleration motion: updates velocity *pv by a*dt and position *px by the average velocity.
 static __inline__ void Integrate(float *px, float *pv, float a, float dt)
 {
@@ -1475,36 +1469,38 @@ static __inline__ void Integrate(float *px, float *pv, float a, float dt)
 // 0x181F58: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("daddu $2, $4, $0");
 
-// vtable slot 16: UpdateSo, per-segment shape tracking and random effects. (inferred)
-void UpdateHackwall(struct S *wall)
+// vtable slot 16: UpdateSo, per segment: track the ship's closest point on the shape (searched again at random
+// intervals), move the pieces toward their goals and wobble them (springs). (inferred)
+void UpdateHackwall(HACKWALL *wall)
 {
     int i;
     struct V v;
     UpdateSo(wall);
-    if (!wall->x1c0) return;
-    for (i = 0; i < wall->c; i++) {
-        struct E *pe = &wall->ae[i];
-        int oid = pe->shape;
-        struct Q *q;
-        GetShapeMaxDistance(oid);
-        if (!(D_002DDED0.time <= pe->retargetTime)) {
+    if (!wall->fActive) return;
+    for (i = 0; i < wall->cseg; i++) {
+        HACKWALLSEG *pseg = &wall->aseg[i];
+        SHAPE *pshape = pseg->pshape;
+        HACKWALLPIECE *ppiece;
+        GetShapeMaxDistance(pshape);
+        if (!(D_002DDED0.time <= pseg->tRetarget)) {
             float t;
-            FindShapeClosestPoint(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS);
+            FindShapeClosestPoint(pshape, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pseg->sClosest);
             t = D_002DDED0.time;
-            pe->retargetTime = t + RandomFloatInRange__Fff(0.5f, 0.75f);
+            pseg->tRetarget = t + RandomFloatInRange__Fff(0.5f, 0.75f);
         } else {
-            FindShapeClosestPointFromDistance(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
+            FindShapeClosestPointFromDistance(pshape, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pseg->sClosest, pseg->sClosest);
         }
-        UpdateHackwallPieces(wall, pe);
-        for (q = pe->pqFirst; q; q = q->next) {
+        UpdateHackwallPieces(wall, pseg);
+        for (ppiece = (HACKWALLPIECE *)pseg->dlPiece.head; ppiece; ppiece = (HACKWALLPIECE *)ppiece->dle.next) {
             float a, b;
-            q->g3c = SmoothValueWithAccel__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.deltaTime);
-            EvaluateShapeAtDistance(oid, q, q->x10, q->g3c);
-            a = D_002BE898 * q->g50 + D_002BE89C * q->g58;
-            b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;
-            Integrate(&q->g50, &q->g58, a, D_002DDED0.deltaTime);
-            Integrate(&q->g50, &q->g5c, b, D_002DDED0.deltaTime);
-            UpdateHackwallSegments(wall, q);
+            ppiece->s = SmoothValueWithAccel__FffffP4SMPAPf(D_002BE888, &ppiece->ds, ppiece->s, ppiece->ds, ppiece->sGoal, D_002DDED0.deltaTime);
+            EvaluateShapeAtDistance(pshape, &ppiece->pos, &ppiece->dir, ppiece->s);
+            a = D_002BE898 * ppiece->lateral + D_002BE89C * ppiece->dLateral;
+            b = D_002BE8A0 * ppiece->roll + D_002BE8A4 * ppiece->dRoll;
+            Integrate(&ppiece->lateral, &ppiece->dLateral, a, D_002DDED0.deltaTime);
+            /* the original integrates the roll's speed into the lateral offset too */
+            Integrate(&ppiece->lateral, &ppiece->dRoll, b, D_002DDED0.deltaTime);
+            UpdateHackwallSegments(wall, ppiece);
         }
     }
 }
