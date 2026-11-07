@@ -44,6 +44,85 @@ struct ASEGSTART
       GRFAPL grfapl;   /* apply flag bits */
 };
 
+/* The records an ASEG owns and an ASEGA builds (engine/anim/aseg.cpp's LoadAsegFromBrx / ApplyAsegCore and asega.cpp
+   read them; until types/views the per-file copies lived in aseg.cpp, asega.cpp and the Lilly ports). AC is the
+   animation-curve class of sly2/act.h. */
+struct AC;
+
+/* CHN: ASEG::achn entry: the target object (OID, 20 bits), the sub-object index of the animated XF (10 bits), two
+   flags (bit 30 isStripped: skipped by the stand-alone evaluation, PredictAsegTransform; bit 31 isScalar: the curve
+   is a float curve from PacNewKind2 rather than a vector curve from PacNewKind; Sly 1's fStripped/fScalar) and the
+   curve. The matched code reads the key word three ways (unsigned fields, signed fields, whole word): a union. */
+struct CHN
+{
+    union
+    {
+        struct { unsigned oid : 20; unsigned subIndex : 10; unsigned isStripped : 1; unsigned isScalar : 1; } u;
+        struct { int oid : 20; int subIndex : 10; unsigned isStripped : 1; unsigned isScalar : 1; } s;   /* signed reads */
+        unsigned int grf;
+    };
+    AC *pac;   /* the curve (an ACG when isScalar) */
+};
+typedef char assert_CHN_size[sizeof(CHN) == 0x8 ? 1 : -1];   /* LoadAsegFromBrx allocates cchn * 8 */
+
+/* OVR: ASEG::aovr entry: the override slot (the target's slot 43/44 argument), the target OID and its float curve. */
+struct OVR
+{
+    int slot;
+    OID oid;
+    AC *pac;   /* the float curve (PacNewKind2) */
+};
+typedef char assert_OVR_size[sizeof(OVR) == 0xC ? 1 : -1];   /* LoadAsegFromBrx allocates covr * 12 */
+
+/* OVRA: an override being applied (ASEGA::povraFirst list; AllocOvra(0x14), ApplyAsegCore). */
+struct OVRA
+{
+    AC *pac;   /* the OVR's curve */
+    int targetIndex;   /* what the target's slot 43 resolved the override to */
+    LO *plo;   /* the target object */
+    int slot;   /* the OVR's slot */
+    OVRA *povraNext;   /* next override of the same ASEGA */
+};
+typedef char assert_OVRA_size[sizeof(OVRA) == 0x14 ? 1 : -1];
+
+/* The EA payloads (EA::pesnd, pea17, pea20, pea24), filled by aseg.cpp's LoadAsegEventsFromBrx and read by
+   asega.cpp's HandleAsegaEvent. */
+struct EASND   /* sound event: StartSwAsegSound's arguments (sw.cpp) */
+{
+    int sfxId;
+    OID oid;   /* object the sound is attached to */
+    int rangeNear;
+    int rangeFar;
+    float pitch;
+    float doppler;
+    float volume;
+};
+struct EA17   /* func_00210538's arguments (sw.cpp) */
+{
+    OID oid;
+    OID oid1;
+    OID oid2;
+    float value;
+};
+struct EA20   /* func_00210678's arguments (sw.cpp) */
+{
+    int id0;
+    int id1;
+    float value;
+};
+struct EA24   /* three 8-byte blocks read raw (ReadCb8) */
+{
+    RAW8 a[3];
+};
+
+/* MRSGC: a time-range record of an ASEGBL (ASEGBL::amrsgc): an offset and a list of MRSG windows (sly2/stepplayer.h). */
+struct MRSGC
+{
+    int ib;
+    int cmrsg;   /* number of windows */
+    MRSG *amrsg;   /* the windows */
+};
+
 /* ASEG: an animation segment (clip): per-channel curves for the transforms it animates, overrides, and
    start/frame/end event lists.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
@@ -96,6 +175,49 @@ typedef char assert_ASEGBL_size[sizeof(ASEGBL) == 0xE0 ? 1 : -1];   /* class des
 struct SND
 {
       undefined4 unknown00[3];
+};
+
+/* The SM's level records (SM::LoadFromBrx, sm.cpp). */
+/* SMRT: a route record (SM::asmrt): flag bits and a byte table indexed by state. */
+struct SMRT
+{
+    int grf;
+    signed char *ab;
+};
+
+/* SMINIT: how the machine starts (SM::psminit): the root object, the initial state, the apply flags. */
+struct SMINIT
+{
+    OID oidRoot;
+    OID oidInitialState;
+    GRFAPL grfapl;
+};
+
+/* SMT: a transition (SM::asmt): its segment (a has-segment flag while loading, then the ASEG), the two states, flags
+   and its weight in the random choice. */
+struct SMT
+{
+    union
+    {
+        int fAseg;   /* load time */
+        ASEG *paseg;   /* after PostSmLoad */
+    };
+    int ismsFrom;
+    int ismsTo;
+    GRFSMT grfsmt;
+    GRFSMT grfsmtBreak;
+    float gProbability;
+};
+
+/* SMS: a state (SM::asms): its OID and the next state (an OID while loading, then the state index). */
+struct SMS
+{
+    OID oid;
+    union
+    {
+        OID oidNext;   /* load time */
+        int ismsNext;   /* after PostSmLoad */
+    };
 };
 
 /* SM before SMA: g++ emits a TU's vtables in the reverse order of their classes' definitions, and sm.cpp emits

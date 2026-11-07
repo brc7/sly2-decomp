@@ -23,7 +23,6 @@ struct VTE { short d; short pad; void *pfn; };
     ((void (*)(void *, int, int, int, int, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1, a2, a3, a4, a5)
 
 struct SOV { char pad0[0xC]; VTE *vt; };
-struct SMV { char pad[0x50]; int stateCount; };      /* state machine: c states */
 struct SMA;
 
 /* One joystick binding: in state psm-state pvState, button grfBtn fires relay oid (0x378: open the ThiefNet tab). */
@@ -36,7 +35,7 @@ struct SAFEHOUSEV
     VTE *vt;                /* +0xC */
     char pad10[0x180 - 0x10];
     int state;              /* +0x180 0 idle, 1 selecting */
-    SMV *stateMachine;               /* +0x184 */
+    SM *stateMachine;               /* +0x184 */
     SMA *stateMachineAnim;              /* +0x188 */
     unsigned int bindingCount;    /* +0x18C */
     SHENTRY bindings[12];     /* +0x190 */
@@ -64,16 +63,16 @@ void *GetSmaCurrentState(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
-void ReplaceSma(SMV *psm, SAFEHOUSEV *object, int isms, int n, SMA **ppsma);
+void ReplaceSma(SM *psm, SAFEHOUSEV *object, int isms, int n, SMA **ppsma);
 void FailJob(SUBV *p);
 int FindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
 void DeliverStepplayerBooty(SOV *object);
 void BindStepplayerHpMp(SOV *object, int n);
 CRef GetSaveVarByName(const char *pchz, ...);
-int GetSmStateOid(SMV *psm, int isms);
+int GetSmStateOid(SM *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
-int FindSmStateRequired(SMV *psm, void *pv);
+int FindSmStateRequired(SM *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
 void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
 void StepCharSelect(SAFEHOUSEV *safehouse, int d);
@@ -242,8 +241,8 @@ extern "C" void StepCharSelect(SAFEHOUSEV *safehouse, int delta)
         int choiceIndex;
         index += delta;
         if (index < 0)
-            index = safehouse->stateMachine->stateCount - 1;
-        else if (index >= safehouse->stateMachine->stateCount)
+            index = safehouse->stateMachine->csms - 1;
+        else if (index >= safehouse->stateMachine->csms)
             index = 0;
         stateOid = (void *)GetSmStateOid(safehouse->stateMachine, index);
         for (choiceIndex = 0; choiceIndex < safehouse->choiceCount; choiceIndex++) {

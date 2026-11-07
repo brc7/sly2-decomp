@@ -29,6 +29,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/act.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -84,73 +85,6 @@ struct SWALLOC
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct KEY
-{
-    // Allocate the object zeroed, 16-byte aligned, from the world heap.
-    static void *operator new(uint cb)
-    {
-        SWALLOC swalloc;
-        swalloc.cb = cb;
-        SWALLOC *pswalloc = &swalloc;
-        pswalloc->cbAlign = 0x10;
-        return PvAllocSwClearImpl(pswalloc);
-    }
-};
-
-struct CHN
-{
-      int oid : 20;
-      int ixf : 10;
-      uint fStripped : 1;
-      uint fScalar : 1;
-      KEY *pkey;
-};
-
-struct OVR
-{
-      int id;
-      OID oid;
-      KEY *pkey;
-};
-
-struct EASND
-{
-      int sfxid;
-      OID oid;
-      int sNear;
-      int sFar;
-      float gPitch;
-      float gUnk14;
-      float gUnk18;
-};
-
-struct EA17
-{
-      int n0;
-      int n4;
-      int n8;
-      float gC;
-};
-
-struct EA20
-{
-      int n0;
-      int n4;
-      float g8;
-};
-
-struct EA24
-{
-      RAW8 a[3];
-};
-
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
-
 struct LOREF
 {
       LO *plo;
@@ -189,28 +123,6 @@ struct CID100 : public SO
       undefined4 unk_0x170[16];
 };
 
-struct ACT
-{
-      int ack;
-      SO *pso;
-      XF *transform;
-      int priority;
-      ACT *pactNext;
-      int role;
-    // Uninitialised act.
-    ACT() {}
-    // Act with the given ack value.
-    ACT(int ack) : ack(ack) {}
-};
-
-struct ACT5 : public ACT
-{
-      ACT *pactCur;
-      qword qwOffset;
-    // Act with ack 5.
-    ACT5() { ack = 5; }
-};
-
 struct GRABSPOTDATA
 {
       TN *ptn;
@@ -226,15 +138,6 @@ struct GRABSPOTDATA
 struct GRABSPOT : public GRABSPOTDATA
 {
     virtual void GetClosestParam(JT *pjt, float *psParam);
-};
-
-struct OVRA
-{
-      KEY *pkey;
-      void *pv;
-      LO *plo;
-      int id;
-      OVRA *povraNext;
 };
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
@@ -321,25 +224,6 @@ struct VU_FLOAT
     qword qw;
 };
 
-struct IKREC
-{
-      XF *pxfGoal;
-      XF *pxfS;
-      XF *pxfE;
-      XF *pxfEnd;
-      MATRIX4 matSBind;
-      MATRIX4 matEBind;
-      qword qwAxisElbow;
-      qword qwPosIkh;
-      qword qwPosWrist;
-      float sUpper;
-      float sLower;
-      float radOrig;
-      float radTwist;
-      undefined4 unk_0xd0[2];
-      undefined4 unk_0xd8[2];
-};
-
 struct EDGE
 {
     ushort aipos[2];
@@ -371,14 +255,6 @@ struct LSG
 };
 
 EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("FindAsegLabel");
-
-struct ACT1 : public ACT
-{
-      int phase;
-      qword qwRest;
-    // Act with ack 1 starting in phase 2.
-    ACT1() { ack = 1; phase = 2; }
-};
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
@@ -633,9 +509,8 @@ union U{qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 struct M4{U r[4];};struct VTE{short delta,pad;void*fn;};
-struct MODEL{char pad[0x1C];float base;};
 struct ACTOR{char pad[0x80];qword response;};
-struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];MODEL*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
+struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct CLOCK{float time,deltaTime;};struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
@@ -646,7 +521,7 @@ extern float D_002BF294;
 void PresetSoAccel(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRideVelocity(void*);
-qword GetStepAsegaTranslation(P*,MODEL*,float);float GetAsegLabelTime(void*,int);
+qword GetStepAsegaTranslation(P*,ASEGA*,float);float GetAsegLabelTime(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*GetLoWorldMatrix(P*);float SplitVectorAlongAxis(qword,qword,qword*,qword*);
 M3 BuildAxisAngleRotationMatrix(qword,float);
@@ -689,9 +564,9 @@ extern "C" void PresetJtAccel(P *jt)
     case 14: {
         VTE *e = &jt->vt[33];
         w.a.q = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
-        w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->base);
+        w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->time);
         float cap = GetAsegLabelTime(jt->lookup, 0x16D);
-        if (jt->model->base < cap) {
+        if (jt->model->time < cap) {
             qword resp = jt->actor->response;
             AddSoAcceleration(jt, ScaleVecX(resp, VuFloat(-1.0f)));
         } else
@@ -740,7 +615,6 @@ typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
 //typedef char WORK_Size[(sizeof(WORK)==0x90)?1:-1];
 typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta==0)?1:-1];
 typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn==4)?1:-1];
-typedef char MODEL_base_Offset[((unsigned)&((MODEL*)0)->base==28)?1:-1];
 typedef char ACTOR_response_Offset[((unsigned)&((ACTOR*)0)->response==128)?1:-1];
 typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
 typedef char P_actor_Offset[((unsigned)&((P*)0)->actor==232)?1:-1];
@@ -1486,10 +1360,10 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
-    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->qwPosIkh);
+    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->posIkHandle);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->spherePosition = posSphereCenter;
-    pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->sUpper + ((IKREC *)((XF *)( paloHip ))->reference) ->sLower + 10.0f;
+    pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->upperLength + ((IKREC *)((XF *)( paloHip ))->reference) ->lowerLength + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
     VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
     LSG lsgClip;
@@ -2408,11 +2282,10 @@ typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct SPACE;
 struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};struct CLOCK{float time,deltaTime;};
-struct MODEL{char pad[0x1C];float base;char pad20[0x40-0x20];float scale;};
 struct AIM{char pad[0x150];struct SPACE*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
 struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];struct GROUP*group;};
 struct DV{char pad[0x20];qword value;};
-struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct MODEL*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
+struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct ASEGA*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
 extern float D_002BF380;
 extern float D_002BF3A0;
@@ -2469,8 +2342,8 @@ void UpdateJtAttachCorrection(struct P *jt)
     struct WORK w;
     register float ratio __asm__("$f20");
     {
-        register float height __asm__("$f0") = jt->height, base __asm__("$f1") = jt->model->base,
-                              scale __asm__("$f2") = jt->model->scale;
+        register float height __asm__("$f0") = jt->height, base __asm__("$f1") = jt->model->time,
+                              scale __asm__("$f2") = jt->model->speed;
         height = height - base;
         __asm__("div.s %0,%1,%2" : "=f"(ratio) : "f"(height), "f"(scale));
     }
@@ -2654,8 +2527,6 @@ typedef char LM_Size[(sizeof(struct LM) == 8) ? 1 : -1];
 typedef char CLOCK_Size[(sizeof(struct CLOCK) == 8) ? 1 : -1];
 typedef char DV_Size[(sizeof(struct DV) == 48) ? 1 : -1];
 typedef char WORK_Size[(sizeof(struct WORK) == 240) ? 1 : -1];
-typedef char MODEL_base_Offset[((unsigned)&((struct MODEL *)0)->base == 28) ? 1 : -1];
-typedef char MODEL_scale_Offset[((unsigned)&((struct MODEL *)0)->scale == 64) ? 1 : -1];
 typedef char AIM_frame_Offset[((unsigned)&((struct AIM *)0)->frame == 336) ? 1 : -1];
 typedef char OWNER_aim_Offset[((unsigned)&((struct OWNER *)0)->aim == 1172) ? 1 : -1];
 typedef char GROUP_space_Offset[((unsigned)&((struct GROUP *)0)->space == 160) ? 1 : -1];
@@ -3759,7 +3630,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 svt = 0.0f;
                 jt->janim.hangStartTime = D_002DDED0.time;
                 aseg = jt->pasegHang;
-                ClearXyz((VECTOR *)&pact1->qwRest);
+                ClearXyz((VECTOR *)&pact1->goalValue);
                 tStart = 0.5f;
                 AddXfAct(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
                 qword posHand = PosLoWorld(jt->unknown19A4);

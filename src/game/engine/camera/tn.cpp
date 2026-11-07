@@ -220,65 +220,6 @@ extern float D_002C41DC;
 extern VECTOR D_002A2DC0;
 extern qword D_002A2DC0q __asm__("D_002A2DC0");
 extern qword D_002A2DD0;
-struct KEYV
-{
-    // Allocate the object zeroed, 16-byte aligned, from the world heap.
-    static void *operator new(uint cb)
-    {
-        SWALLOC swalloc;
-        swalloc.cb = cb;
-        SWALLOC *pswalloc = &swalloc;
-        pswalloc->cbAlign = 0x10;
-        return PvAllocSwClearImpl(pswalloc);
-    }
-};
-struct CHN
-{
-      int oid : 20;
-      int ixf : 10;
-      uint fStripped : 1;
-      uint fScalar : 1;
-      KEYV *pkey;
-};
-struct OVR
-{
-      int id;
-      OID oid;
-      KEYV *pkey;
-};
-struct EASND
-{
-      int sfxid;
-      OID oid;
-      int sNear;
-      int sFar;
-      float gPitch;
-      float gUnk14;
-      float gUnk18;
-};
-struct EA17
-{
-      int n0;
-      int n4;
-      int n8;
-      float gC;
-};
-struct EA20
-{
-      int n0;
-      int n4;
-      float g8;
-};
-struct EA24
-{
-      RAW8 a[3];
-};
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
 struct LOREF
 {
       LO *plo;

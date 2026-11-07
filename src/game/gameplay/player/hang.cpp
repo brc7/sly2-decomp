@@ -13,8 +13,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/clock.h"
+#include "sly2/aseg.h"
 #include "player_input.h"
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 union U{qword q;float f[4];int i[4];};
 typedef union { qword q; float f; } UF;
@@ -31,14 +31,8 @@ struct ACCEL{char pad0[0x80];U value;};
 struct LINK{int header;NODE*object;};
 /* The controller (POCTL) as the hang code reads it. */
 struct PL{char pad0[0x18];float angle,amount;};
-struct CURVE{char pad0[0x1C];float value;char pad20[0x20];float slope;};
-struct ANIMATION{char pad0[0x74];float gain;};
 /* An IK joint record (+0x19C0, +0x19C4, +0x19CC): position, world matrix, owner frame, stamp, chain. */
 struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
-struct CLQ{float g0,g1,g2;};
-struct LM{float minValue,maxValue;};
-struct SMP{float values[3];};
-struct SMPA{float a,b,duration,limit;};
 struct STATE{U direction,position,velocity;M3 rotation;};
 struct WORK{U reference,direction,local;M3 matrix,returned;float heading;U target;};
 struct G { char pad[0x3D58]; int xfStamp; };
@@ -49,14 +43,14 @@ struct JT{
  char padEC[0x64];PL*input;             /* +0x150 */
  char pad154[0x54];float angle;         /* +0x1A8 heading */
  char pad1AC[0xF00-0x1AC];char action[0x50];   /* +0xF00 */
- char padF50[0x1030-0xF50];CURVE*curve; /* +0x1030 */
+ char padF50[0x1030-0xF50];ASEGA*curve; /* +0x1030 */
  char pad1034[0x18C4-0x1034];NODE*target;      /* +0x18C4 the hang point */
  char pad18C8[8];int state;float changed;      /* +0x18D0 hang state, time it changed */
  char pad18D8[0x1C];float farTime;int previous,flipped;LINK*link;   /* +0x18F4 */
  char pad1904[0xC];DELTA response[2];   /* +0x1910 the accelerations for the JT and the anchor's owner */
  char pad1950[0x10];qword handIkOffset;  /* +0x1960 IK offset */
  float combined;char pad1974[8];float activeOnly;char pad1980[8];float idle;char pad198C[8];   /* +0x1970 blend weights */
- ANIMATION*animation;float speedBlend,activeBlend;   /* +0x1994 */
+ ASEG*animation;float speedBlend,activeBlend;   /* +0x1994 */
  char pad19A0[4];void*hookChild;        /* +0x19A4 */
  char pad19A8[0x18];IKJ*wristXf;IKJ*handChildXf;int unknown19C8;IKJ*handXf;   /* +0x19C0 */
  char pad19D0[0x30];void*handAct;       /* +0x1A00 hand act */
@@ -82,7 +76,7 @@ M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
-float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float ClampAbs__Fff(float,float);
+float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ASEG*);float ClampAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
 void __ml__FRC7MATRIX4T0(M4*,void*,IKJ*);
@@ -451,10 +445,7 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char PL_Size[sizeof(PL)==32?1:-1];
-typedef char CURVE_Size[sizeof(CURVE)==68?1:-1];
-typedef char ANIMATION_Size[sizeof(ANIMATION)==120?1:-1];
 typedef char LINK_Size[sizeof(LINK)==8?1:-1];
-typedef char SMP_Size[sizeof(SMP)==12?1:-1];
 typedef char WORK_Size[sizeof(WORK)==176?1:-1];
 typedef char JT_vt_Offset[FIELD_OFFSET(JT,vt)==12?1:-1];
 typedef char JT_input_Offset[FIELD_OFFSET(JT,input)==336?1:-1];
@@ -476,9 +467,6 @@ typedef char JT_speedBlend_Offset[FIELD_OFFSET(JT,speedBlend)==6552?1:-1];
 typedef char JT_activeBlend_Offset[FIELD_OFFSET(JT,activeBlend)==6556?1:-1];
 typedef char PL_angle_Offset[FIELD_OFFSET(PL,angle)==24?1:-1];
 typedef char PL_amount_Offset[FIELD_OFFSET(PL,amount)==28?1:-1];
-typedef char CURVE_value_Offset[FIELD_OFFSET(CURVE,value)==28?1:-1];
-typedef char CURVE_slope_Offset[FIELD_OFFSET(CURVE,slope)==64?1:-1];
-typedef char ANIMATION_gain_Offset[FIELD_OFFSET(ANIMATION,gain)==116?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==4?1:-1];
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
@@ -666,9 +654,9 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     jt->activeOnly = activeOnly;
     RecalculateAsegBlend(jt->animation);
     float steering = Clamp(angle / D_002BF58C, -1.0f, 1.0f);
-    float target = jt->animation->gain * (steering + 1.0f);
+    float target = jt->animation->duration * (steering + 1.0f);
     target *= 0.5f;
-    jt->curve->slope = ClampAbs__Fff((target - jt->curve->value) / D_002DDED0.deltaTime, D_002BF590);
+    jt->curve->speed = ClampAbs__Fff((target - jt->curve->time) / D_002DDED0.deltaTime, D_002BF590);
 }
 
 typedef char final_offset_0_0[FIELD_OFFSET(VTE,delta)==0?1:-1];
@@ -680,9 +668,6 @@ typedef char final_offset_1_2[FIELD_OFFSET(U,i)==0?1:-1];
 typedef char final_offset_2_0[FIELD_OFFSET(M3,r[0])==0?1:-1];
 typedef char final_offset_2_1[FIELD_OFFSET(M3,r[1])==16?1:-1];
 typedef char final_offset_2_2[FIELD_OFFSET(M3,r[2])==32?1:-1];
-typedef char final_offset_3_0[FIELD_OFFSET(SMP,values[0])==0?1:-1];
-typedef char final_offset_3_1[FIELD_OFFSET(SMP,values[1])==4?1:-1];
-typedef char final_offset_3_2[FIELD_OFFSET(SMP,values[2])==8?1:-1];
 typedef char final_size_0[sizeof(qword)==16?1:-1];
 typedef char final_size_1[sizeof(int)==4?1:-1];
 typedef char final_size_2[sizeof(uint)==4?1:-1];
@@ -696,10 +681,7 @@ typedef char final_alignment_3[__alignof__(WORK)==16?1:-1];
 typedef char final_alignment_4[__alignof__(JT)==16?1:-1];   /* 16 in the unified view (qword fields) */
 typedef char final_alignment_5[__alignof__(VTE)==4?1:-1];
 typedef char final_alignment_6[__alignof__(PL)==4?1:-1];
-typedef char final_alignment_7[__alignof__(CURVE)==4?1:-1];
-typedef char final_alignment_8[__alignof__(ANIMATION)==4?1:-1];
 typedef char final_alignment_9[__alignof__(LINK)==4?1:-1];
-typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
 #undef FIELD_OFFSET
 
 // Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.

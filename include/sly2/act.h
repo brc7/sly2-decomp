@@ -15,57 +15,114 @@
 #define SLY2_ACT_H
 #include "sly2/basic.h"
 
+/* The key records of the keyed curves (act.cpp's loaders, Find*Key, Prepare*Segment, Evaluate*). Times are in
+   seconds (stored as 1/60 s); a tangent is a 16-byte VU vector read from the level as three floats, so it is held as
+   both (one representation, two views: the loaders write the floats, the VU code moves the quadword). */
+union ACVEC
+{
+    VECTOR vec;
+    qword q;
+};
+struct ACKEYV2   /* AC1: a vector key with in and out tangents (0x30) */
+{
+    VECTOR pos;
+    float t;
+    ACVEC dposIn;
+    ACVEC dposOut;
+};
+struct ACKEYV1   /* AC2: a vector key with one tangent (0x20) */
+{
+    VECTOR pos;
+    float t;
+    ACVEC dpos;
+};
+struct ACKEYG2   /* AC3: one component's key with in and out slopes */
+{
+    float g;
+    float dgIn;
+    float dgOut;
+};
+struct ACKEYG1   /* AC4: one component's key with one slope */
+{
+    float g;
+    float dg;
+};
+struct ACKEYF    /* ACG1: a float key */
+{
+    float t;
+    float g;
+    float dgIn;
+    float dgOut;
+};
+union ACVAL      /* AC3/AC4: the components without keys (their constant values) */
+{
+    float af[4];
+    qword q;
+};
+
 /* AC (vtable 0x2CA9C8, 3 slots): an animation curve; vptr at +0x0. Allocated from the level heap (act.cpp's PacNewKind). */
 struct AC
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCurveFromBrxDefault");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("__pure_virtual");   /* slot 3 (pure) */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("__pure_virtual");   /* slot 3 (pure): the
+                               value (and derivative) at time g; the floats come first (tu_20B840's calls set up their
+                               arguments in this order) */
 };
 
 /* AC0 (0x10; vtable 0x2CA9A0): constant vector curve */
 struct AC0 : AC
 {
-    int an[3];
+    VECTOR vec;             /* +0x04 the constant value */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcConstFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareConstCurveSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateConstCurve");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateConstCurve");   /* slot 3 */
 };
 
 /* AC1 (0xC; vtable 0x2CA978): keyed vector curve */
 struct AC1 : AC
 {
-    int an[2];
+    int ckey;
+    ACKEYV2 *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveASegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveA");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveA");   /* slot 3 */
 };
 
 /* AC2 (0xC; vtable 0x2CA950): keyed vector curve */
 struct AC2 : AC
 {
-    int an[2];
+    int ckey;
+    ACKEYV1 *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveBSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveB");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveB");   /* slot 3 */
 };
 
 /* AC3 (0x30; vtable 0x2CA928): per-component curve */
 struct AC3 : AC
 {
-    int an[11];
+    int ckey;
+    float *at;              /* +0x08 the key times */
+    ACKEYG2 *apkey[3];      /* +0x0C per component (x, y, z): its keys, or 0 for the constant in value */
+    undefined4 unknown18[2];
+    ACVAL value;            /* +0x20 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveASegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveA");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveA");   /* slot 3 */
 };
 
 /* AC4 (0x30; vtable 0x2CA900): per-component curve */
 struct AC4 : AC
 {
-    int an[11];
+    int ckey;
+    float *at;
+    ACKEYG1 *apkey[3];
+    undefined4 unknown18[2];
+    ACVAL value;            /* +0x20 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveBSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveB");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveB");   /* slot 3 */
 };
 
 /* ACG (vtable 0x2CA8E0, 2 slots): a float curve; vptr at +0x0. */
@@ -78,7 +135,8 @@ struct ACG
 /* ACG1 (0xC; vtable 0x2CA8C0): keyed float curve */
 struct ACG1 : ACG
 {
-    int an[2];
+    int ckey;
+    ACKEYF *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatKeysFromBrx");   /* slot 1 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("EvaluateKeyedFloatCurve");   /* slot 2 */
 };
@@ -105,114 +163,218 @@ struct ACT
     virtual void Detach() __asm__("DetachActBase");   /* slot 2 */
     virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */
     virtual void Update() __asm__("UpdateActDefault");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActGoalDefault");   /* slot 5 */
-    virtual void Clone() __asm__("CloneAct");   /* slot 6 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetActGoalDefault");   /* slot 5: the goal value
+                               and velocity dt seconds ahead (UpdatePathAct passes its look-ahead time) */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneAct");   /* slot 6: copy pactSrc's fields onto
+                               this act for another object/transform (CloneAct); NewActFromParams passes a parameter record */
 };
+typedef char assert_ACT_size[sizeof(ACT) == 0x1C ? 1 : -1];
 
-/* ACT1 (0x30; vtable 0x2CA820): a phase and a rest position (act.cpp's ACTPHASE view) */
+/* ACT1 (0x30; vtable 0x2CA820): holds its transform at a goal value (a position or rotation) with a phase
+   (UpdatePositionAct; SetActPositionGoal / SetActRotationGoal move the goal) */
 struct ACT1 : ACT
 {
-    int phase;              /* +0x1C (2 at construction) */
-    char pad20[0x30 - 0x20];
+    int phase;              /* +0x1C copied to XF::phase by Update (2 at construction) */
+    qword goalValue;        /* +0x20 the rest value Update stores */
     virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetPhaseActGoal");   /* slot 5 */
 };
+typedef char assert_ACT1_size[sizeof(ACT1) == 0x30 ? 1 : -1];
 
-/* ACT2 (0x80; vtable 0x2CA7E0): look-at act (UpdateActLookAt) */
+/* ACT2 (0x80; vtable 0x2CA7E0): look-at act: aims its transform (pan/tilt) at a target object, or holds a rest aim
+   when the target is out of range (UpdateActLookAt) */
 struct ACT2 : ACT
 {
-    char pad1C[0x80 - 0x1C];
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetLookAtActGoal");   /* slot 5 */
+    qword restAim;          /* +0x20 the aim held when the target is farther than maxDistance */
+    CLQ panCurve;           /* +0x30 maps the measured pan angle */
+    CLQ tiltCurve;          /* +0x40 maps the measured tilt angle */
+    float panMin;           /* +0x50 */
+    float panMax;
+    float tiltMin;
+    float tiltMax;
+    float maxDistance;      /* +0x60 */
+    int nearPriority;       /* +0x64 the act's priority within maxDistance */
+    int farPriority;        /* +0x68 and beyond it */
+    int oidTarget;          /* +0x6C the target's OID (-1: the closest PO) */
+    void *ptarget;          /* +0x70 the target object, resolved on first update */
+    int hasPreviousAim;     /* +0x74 the aim velocity can be differenced */
+    undefined4 unknown78[2];
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetLookAtActGoal");   /* slot 5 */
     virtual void Detach() __asm__("DetachLookAtAct");   /* slot 2 */
     virtual void Update() __asm__("UpdateActLookAt");   /* slot 4 */
 };
+typedef char assert_ACT2_size[sizeof(ACT2) == 0x80 ? 1 : -1];
+typedef char assert_ACT2_ptarget[SLY2_OFFSETOF(ACT2, ptarget) == 0x70 ? 1 : -1];
 
-/* ACT4 (0x28; vtable 0x2CA7A0) */
+/* ACT4 (0x28; vtable 0x2CA7A0): orients its transform along the motion of a path transform (UpdatePathAct: the
+   nearest ancestor of value kind 1 unless set), looking ahead along that transform's own act */
 struct ACT4 : ACT
 {
-    char pad1C[0x28 - 0x1C];
+    float lookAheadWeight;  /* +0x1C */
+    float lookAheadTime;    /* +0x20 s; the path act's goal this far ahead (slot 5) */
+    XF *pxfPath;            /* +0x24 */
     virtual void Update() __asm__("UpdatePathAct");   /* slot 4 */
 };
+typedef char assert_ACT4_size[sizeof(ACT4) == 0x28 ? 1 : -1];
 
-/* ACT5 (0x30; vtable 0x2CA760): an act over another act and an offset (jt.cpp's ACT5 view) */
+/* ACT5 (0x30; vtable 0x2CA760): an offset act: runs the act after it on the transform (pactNext) and adds an offset
+   to its goal (NewOffsetAct; jt.cpp's foot and hand offsets) */
 struct ACT5 : ACT
 {
-    char pad1C[0x30 - 0x1C];
+    ACT *pactCur;           /* +0x1C the act it currently wraps (Attach/SwitchTarget follow pactNext) */
+    qword offset;           /* +0x20 added to the wrapped act's goal */
     virtual void Attach() __asm__("AttachOffsetAct");   /* slot 1 */
     virtual void Detach() __asm__("DetachOffsetAct");   /* slot 2 */
     virtual void SwitchTarget() __asm__("SwitchOffsetActTarget");   /* slot 3 */
     virtual void Update() __asm__("UpdateOffsetAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetOffsetActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetOffsetActGoal");   /* slot 5 */
 };
+typedef char assert_ACT5_size[sizeof(ACT5) == 0x30 ? 1 : -1];
 
-/* ACT6 (0x60; vtable 0x2CA720): a matrix (identity at construction) */
+/* ACT6 (0x60; vtable 0x2CA720): holds its transform at a matrix relative to another transform (UpdateMatrixAct) */
 struct ACT6 : ACT
 {
-    int unknown1C;
-    float mat[4][4];        /* +0x20 the matrix applied */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetMatrixActGoal");   /* slot 5 */
+    XF *pxfBase;            /* +0x1C the transform whose world matrix the matrix is relative to */
+    float mat[4][4];        /* +0x20 the matrix applied (identity at construction) */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetMatrixActGoal");   /* slot 5 */
     virtual void Update() __asm__("UpdateMatrixAct");   /* slot 4 */
 };
+typedef char assert_ACT6_size[sizeof(ACT6) == 0x60 ? 1 : -1];
 
-/* ACT8 (0x40; vtable 0x2CA6E0): a scale and a rest position (act.cpp's ACTREST view) */
+/* ACT8 (0x40; vtable 0x2CA6E0): moves its transform along a Bezier to a goal pose by an arrival time (UpdateBezierAct,
+   SetRestActPose) */
 struct ACT8 : ACT
 {
-    char pad1C[0x40 - 0x1C];
+    float arrivalTime;      /* +0x1C absolute time (copied to XF +0xA8 by Update) */
+    qword goalPosition;     /* +0x20 */
+    qword goalVelocity;     /* +0x30 */
+    void SetGoal(qword pos, qword vel) __asm__("SetRestActPose");   /* act.cpp's C definition */
     virtual void Update() __asm__("UpdateBezierAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetBezierActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetBezierActGoal");   /* slot 5 */
 };
+typedef char assert_ACT8_size[sizeof(ACT8) == 0x40 ? 1 : -1];
 
-/* ACT9 (0x30; vtable 0x2CA6A0) */
+/* ACT9 (0x30; vtable 0x2CA6A0): gives its transform a velocity when attached (AttachKind9Act) */
 struct ACT9 : ACT
 {
-    char pad1C[0x30 - 0x1C];
+    undefined4 unknown1C;
+    qword velocity;         /* +0x20 copied to the XF's velocity and (normalized) direction */
     virtual void Attach() __asm__("AttachKind9Act");   /* slot 1 */
 };
+typedef char assert_ACT9_size[sizeof(ACT9) == 0x30 ? 1 : -1];
 
 /* The classes whose slot functions other TUs define (their vtables lie in those TUs' part of the linkonce area;
    act.cpp's factories only construct them). */
 
-/* ACTSEG (0x2C; vtable 0x2CAF08, asega.cpp's): an animation segment's act (kind 0) */
+/* ACTSEG (0x2C; vtable 0x2CAF08, asega.cpp's): an animation segment's channel act (kind 0), built by aseg.cpp's
+   ApplyAsegCore (AllocAct(0x2C), vtable stored by hand) for each CHN of the segment and linked on its ASEGA. */
 struct ACTSEG : ACT
 {
-    char pad1C[0x2C - 0x1C];
+    AC *pac;                /* +0x1C the channel's vector curve (a CHN without isScalar), or 0 */
+    ACG *pacg;              /* +0x20 the channel's float curve (CHN::isScalar); Attach binds it and the ASEGA's time
+                               into the reference XF (asega.cpp's "rotation curve"), or 0 */
+    ASEGA *pasega;          /* +0x24 the segment application; DetachXfActById finds an ASEGA's acts by it */
+    ACTSEG *pactsegNext;    /* +0x28 next channel act of the same ASEGA (ASEGA::pactsegFirst list) */
     virtual void Attach() __asm__("AttachActseg");   /* slot 1 */
     virtual void Detach() __asm__("DetachActseg");   /* slot 2 */
     virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetActsegGoal");   /* slot 5 */
 };
+typedef char assert_ACTSEG_size[sizeof(ACTSEG) == 0x2C ? 1 : -1];
+typedef char assert_ACTSEG_pac[SLY2_OFFSETOF(ACTSEG, pac) == 0x1C ? 1 : -1];
 
-/* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): kind 3 */
+/* CHAIN / CHAINLINK: a simulated chain of transforms (tails, ropes), loaded by tail.cpp's LoadSoChainsFromBrx and
+   stepped by UpdateChainLink; each link's XF points back at its link through XF +0xA8 (role 0x10). */
+struct CHAINLINK
+{
+    MATRIX3 restMatrix;     /* +0x00 the XF's rest orientation (copied at load) */
+    qword restSegment;      /* +0x30 the segment to the next link, in link space */
+    qword tipPosition;      /* +0x40 simulated tip (world) */
+    qword tipVelocity;      /* +0x50 */
+    CHAIN *chain;           /* +0x60 */
+    XF *pxf;                /* +0x64 the link's transform */
+    undefined4 unknown68[2];
+};
+typedef char assert_CHAINLINK_size[sizeof(CHAINLINK) == 0x70 ? 1 : -1];   /* the 0x70 link stride (LoadSoChainsFromBrx) */
+
+struct CHAIN
+{
+    int linkCount;
+    CHAINLINK *links;
+    int stepCount;          /* simulation substeps per frame */
+    float bendStiffness;
+    float damping;
+    float relativeDamping;
+    float maxBendAngle;
+    float lastUpdateTime;   /* g_clock time of the last simulation (the first link's call of a frame simulates) */
+    qword gravity;          /* +0x20 */
+    qword lastSegment;      /* +0x30 the last link's continuation */
+    qword previousAnchor;   /* +0x40 */
+};
+typedef char assert_CHAIN_size[sizeof(CHAIN) == 0x50 ? 1 : -1];   /* Alloc(0x50) in LoadSoChainsFromBrx */
+
+/* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): a chain link's act (kind 3, role 0x10), one per CHAINLINK */
 struct ACT3 : ACT
 {
-    int unknown1C;
+    CHAINLINK *pchainlink;  /* +0x1C the link it drives; Attach stores it into its XF's +0xA8 */
     virtual void Attach() __asm__("AttachChainAct");   /* slot 1 */
-    virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneChainAct");   /* slot 6 */
 };
 
-/* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): kind 7 */
+/* IKREC (0xE0): a two-bone IK record, loaded by ik.cpp's LoadSoIkFromBrx (InitIkRecord measures it) and solved by
+   SolveIk; the two bones' XFs point at it through XF +0xA8 (jt.cpp's RebuildJtXmg reads the leg's). */
+struct IKREC
+{
+    XF *pxfGoal;            /* +0x00 the IK handle the chain reaches for */
+    XF *pxfUpper;           /* +0x04 first bone (shoulder/hip) */
+    XF *pxfLower;           /* +0x08 second bone (elbow/knee) */
+    XF *pxfEnd;             /* +0x0C the end's space: its world matrix maps posWrist */
+    MATRIX4 matUpperBind;   /* +0x10 snapshot of the first bone's local matrix (InitIkRecord) */
+    MATRIX4 matLowerBind;   /* +0x50 the second bone's */
+    qword elbowAxis;        /* +0x90 bend axis, in the second bone's parent space */
+    qword posIkHandle;      /* +0xA0 */
+    qword posWrist;         /* +0xB0 */
+    float upperLength;      /* +0xC0 bone lengths (UpdateSoIkBoneLengths re-measures them) */
+    float lowerLength;      /* +0xC4 */
+    float restAngle;        /* +0xC8 angle between the bones at load */
+    float twistAngle;       /* +0xCC written by pacgTwist */
+    ACG *pacgTwist;         /* +0xD0 optional twist curve: SolveIk evaluates it (slot 2) at *pgTwistParam */
+    float *pgTwistParam;    /* +0xD4 */
+    undefined4 unknownD8[2];
+};
+typedef char assert_IKREC_size[sizeof(IKREC) == 0xE0 ? 1 : -1];   /* LoadSoIkFromBrx allocates 0xE0 */
+
+/* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): a bone's IK act (kind 7), one per bone of an IKREC */
 struct ACT7 : ACT
 {
-    int unknown1C;
+    IKREC *pikrec;          /* +0x1C the record it solves; Attach stores it into its XF's +0xA8 */
     virtual void Attach() __asm__("AttachIkAct");   /* slot 1 */
-    virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneIkAct");   /* slot 6 */
 };
 
 /* AC5 (0x20; vtable 0x2CB5A8, emitted by blend.cpp, which declares AC/AC5/ACG/ACG2 itself with its own parameter
    types: its local typedefs clash with sly2/basic.h): blend-channel curve; a new slot 4 (inline, `return 5`) */
 struct AC5 : AC
 {
-    int an[7];
+    ASEGBL *pasegbl;        /* +0x04 the blended segment */
+    MRSGC *pmrsgc;          /* +0x08 its time-range record that keeps this channel in step (tu_20B840's PostJtLoadGait) */
+    AC **apac;              /* +0x0C the blended segments' curves for this channel */
+    qword restValue;        /* +0x10 */
     virtual void Prepare(void *pv) __asm__("BlendChannelPose");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
     virtual int GetKind() __asm__("GetBlendCurveKind");   /* slot 4 */
 };
+typedef char assert_AC5_size[sizeof(AC5) == 0x20 ? 1 : -1];
 
 /* ACG2 (0x14; vtable 0x2CB588, emitted by blend.cpp): blend-channel float curve */
 struct ACG2 : ACG
 {
-    int an[4];
+    ASEGBL *pasegbl;        /* +0x04 */
+    MRSGC *pmrsgc;          /* +0x08 */
+    ACG **apacg;            /* +0x0C */
+    float restValue;        /* +0x10 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("EvaluateBlendFloatCurve");   /* slot 2 */
 };
+typedef char assert_ACG2_size[sizeof(ACG2) == 0x14 ? 1 : -1];
 
 #endif

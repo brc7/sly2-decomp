@@ -26,6 +26,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "sly2/vu0.h"
+#include "sly2/act.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -81,20 +82,6 @@ struct BSP
     SURF *psurf;
 };
 
-struct ACT
-{
-      int ack;
-      SO *pso;
-      XF *transform;
-      int priority;
-      ACT *pactNext;
-      int role;
-    // Uninitialised ACT.
-    ACT() {}
-    // ACT with the given ack value.
-    ACT(int ack) : ack(ack) {}
-};
-
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
 ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("NewActFromParams");
@@ -146,21 +133,6 @@ struct XFLINK
       XF *pxfFrom;
       XF *pxfTo;
       undefined4 unk_0x08[2];
-};
-
-struct CHAINLINK
-{
-      undefined1 unk_0x00[0x60];
-      CHAIN *pchain;
-      XF *pxf;
-      undefined4 unk_0x68[2];
-};
-
-struct CHAIN
-{
-      int clink;
-      CHAINLINK *alink;
-      undefined4 unk_0x08[18];
 };
 
 struct VU_VECTOR4
@@ -3064,15 +3036,15 @@ void SO::Clone(LO *ploBase)
         case 16:
         {
             CHAINLINK *plink = (CHAINLINK *)pxf->reference;
-            CHAIN *pchain = plink->pchain;
-            if (plink == pchain->alink)
+            CHAIN *pchain = plink->chain;
+            if (plink == pchain->links)
             {
                 pchain = (CHAIN *)PvAllocSwCopy(sizeof(CHAIN), pchain);
-                pchain->alink = (CHAINLINK *)PvAllocSwCopy(pchain->clink * sizeof(CHAINLINK), pchain->alink);
-                for (int ilink = 0; ilink < pchain->clink; ilink++)
+                pchain->links = (CHAINLINK *)PvAllocSwCopy(pchain->linkCount * sizeof(CHAINLINK), pchain->links);
+                for (int ilink = 0; ilink < pchain->linkCount; ilink++)
                 {
-                    CHAINLINK *plinkNew = &pchain->alink[ilink];
-                    plinkNew->pchain = pchain;
+                    CHAINLINK *plinkNew = &pchain->links[ilink];
+                    plinkNew->chain = pchain;
                     CloneXfRef(ploBase, &plinkNew->pxf);
                     plinkNew->pxf->reference = (XF *)plinkNew;
                 }

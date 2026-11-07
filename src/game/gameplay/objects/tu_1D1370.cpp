@@ -3,7 +3,7 @@
 // (AddRobottankWheel/Weapon/Attachment, SetRobottankAmmo, SetRobottankTactic...) and the pickup callback
 // CollectRobottankPickup. TU 0x1D1370..0x1D5150 (44 functions, address order).
 //
-// Types: ROBOTTANK, RCPICKUP and small XP/XPLIST/SMS views are TU-private, written for the 9 m2c bodies (aseg.h SMA
+// Types: ROBOTTANK, RCPICKUP and small XP/XPLIST views are TU-private, written for the 9 m2c bodies (aseg.h SMA, SMS
 // and SM for the animation machine); the other functions keep the per-function views they were matched with, each
 // in a namespace named after it (as vec.cpp and mark.cpp do).
 // func_001D3450 is the known path-hash case ("Path-hash quirk" in docs/guides/tu-merging.md): its namespace keeps
@@ -41,8 +41,6 @@ struct ROBOTTANKV
     RTREC arec[1];          /* +0x574 */
 };
 struct RCPICKUP;
-/* A state of a state machine (sm.cpp's Lilly SMS): its oid first. */
-struct SMS { OID oid; int ismsNext; };
 /* A contact list (+8 its first XP) and the two XP fields read (engine/physics/mark.cpp's names). */
 struct XP { char pad0[0x90]; float g; char pad94[0xAC - 0x94]; XP *pxpNext; };
 struct XPLISTV { int pad0[2]; XP *pxpFirst; };

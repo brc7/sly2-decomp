@@ -311,12 +311,10 @@ void StartBhvanim(struct S *behavior) {
 
 // 0x1749C0 SetBhvanimState
 namespace M_SetBhvanimState { extern "C" {
-struct CLOCK; struct A; struct B; struct E; struct O; struct S;
+struct CLOCK; struct E; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct A { char pad[0x74]; float duration; };
-struct B { char pad[0x1C]; float time; };
-struct E { int kind; struct A *aseg; struct B *asega; int flags; };
+struct E { int kind; struct ASEG *aseg; struct ASEGA *asega; int flags; };
 struct O { char pad[0x1A4]; int animGroundFlag; char pad2[0xFD0 - 0x1A8]; char mover[0x20]; float walkPhase; float walkPhaseTime; };
 struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; float stateTime; char pad3[8]; struct E *binding; };
 void SetStepguardMoverDriver(void *p, struct S *ps);

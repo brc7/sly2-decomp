@@ -33,7 +33,6 @@ struct LOV
 };
 typedef char assert_LO_size[sizeof(LOV) == 0x50 ? 1 : -1];
 struct LOROOTV { LOV *plo; };
-struct ASEGV : LOV {};
 struct ALO;
 struct BASIC;
 struct SW
@@ -48,7 +47,7 @@ struct TASKSTATE { int a[2]; };
 /* Animation segments to play: oids at load, resolved to the segments by PostAshLoad. */
 struct ASHE
 {
-    union { OID oid; ASEGV *paseg; } u;
+    union { OID oid; ASEG *paseg; } u;
     int ensureArg;          /* last argument of EnsureAsegPlayer (inferred: a segment flag) */
 };
 struct ASH
@@ -165,7 +164,7 @@ extern SLYV *D_002E1E40;
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */
 
 LOV *FindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
-ASEGV *EnsureAsegPlayer(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi");
+ASEG *EnsureAsegPlayer(ASEG *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi");
 int AddOrUpdateRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
@@ -278,7 +277,7 @@ extern "C" void PostAshLoad(ASH *animList, LOV *context)
         if (segment)
         {
             VT *entry;
-            animList->entries[i].u.paseg = (ASEGV *)segment;
+            animList->entries[i].u.paseg = (ASEG *)segment;
             entry = &segment->pvt[9];   /* Remove */
             ((void (*)(void *))entry->pfn)((char *)segment + entry->d);
         }
@@ -340,7 +339,7 @@ extern "C" void UntriggerBtn(BTN *btn)
 extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
 {
     int j;
-    ASEGV *segment;
+    ASEG *segment;
     for (j = 0; j < btn->animLists[listIndex].count; j++)
     {
         LOV *target;
@@ -348,7 +347,7 @@ extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
         segment = btn->animLists[listIndex].entries[j].u.paseg;
         if (!segment)
             continue;
-        oid = segment->ploroot->plo->oid;
+        oid = segment->root->topObject->oid;
         ensureArg = btn->animLists[listIndex].entries[j].ensureArg;
         if (btn->plo->oid == oid)
             target = btn->plo;

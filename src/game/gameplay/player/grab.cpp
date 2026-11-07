@@ -156,73 +156,6 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct KEY
-{
-    // Allocate the object zeroed, 16-byte aligned, from the world heap.
-    static void *operator new(uint cb)
-    {
-        SWALLOC swalloc;
-        swalloc.cb = cb;
-        SWALLOC *pswalloc = &swalloc;
-        pswalloc->cbAlign = 0x10;
-        return PvAllocSwClearImpl(pswalloc);
-    }
-};
-
-struct CHN
-{
-      int oid : 20;
-      int ixf : 10;
-      uint fStripped : 1;
-      uint fScalar : 1;
-      KEY *pkey;
-};
-
-struct OVR
-{
-      int id;
-      OID oid;
-      KEY *pkey;
-};
-
-struct EASND
-{
-      int sfxid;
-      OID oid;
-      int sNear;
-      int sFar;
-      float gPitch;
-      float gUnk14;
-      float gUnk18;
-};
-
-struct EA17
-{
-      int n0;
-      int n4;
-      int n8;
-      float gC;
-};
-
-struct EA20
-{
-      int n0;
-      int n4;
-      float g8;
-};
-
-struct EA24
-{
-      RAW8 a[3];
-};
-
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
-
 struct LOREF
 {
       LO *plo;
@@ -733,7 +666,6 @@ union U { float f[4]; qword q; int i[4]; };   // floats first, so U globals can 
 struct M3 { U r[3]; };
 struct VTE { short delta, pad; void *fn; };
 struct JOY { char pad0[0x10]; float x, y, heading, amount; };
-struct ANIM { char pad0[0x14]; void *table; char pad18[4]; float phase; char pad20[0x20]; float rate; };
 struct COMPONENT { VTE *vt; };
 struct BINDING { int key; COMPONENT *component; };
 struct SMP { float fastSpeed, slowSpeed, fastDuration; };
@@ -744,7 +676,7 @@ struct FOCUS { char pad0[0xE4]; int cyclic; char padE8[0x18C - 0xE8]; int enable
 struct ACTOR {
     char pad0[0xC]; VTE *vt; char pad10[0x150 - 0x10]; JOY *pjoy; char pad154[0x190 - 0x154]; U velocity;
     char pad1A0[8]; float heading; char pad1AC[4]; M3 local; char pad1E0[0x218 - 0x1E0]; qword *ppos;
-    char pad21C[0x2C0 - 0x21C]; char control[0x1024 - 0x2C0]; void *x1024; char pad1028[0x1030 - 0x1028]; ANIM *anim;
+    char pad21C[0x2C0 - 0x21C]; char control[0x1024 - 0x2C0]; void *x1024; char pad1028[0x1030 - 0x1028]; ASEGA *anim;
     char pad1034[0x1040 - 0x1034]; int role; char pad1044[0x1520 - 0x1044]; char x1520[0x100]; char x1620[0x19D4 - 0x1620];
     void *x19D4, *x19D8, *x19DC, *x19E0; char pad19E4[0x19F0 - 0x19E4]; void *x19F0, *x19F4;
 };
@@ -805,11 +737,11 @@ void ClampJtGrabCurveParam(ACTOR *, void *, void *);
 // The actor's velocity (virtual slot 33).
 static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
 // Evaluate the binding's component (virtual slot 3) for the animation into *out.
-static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
+static inline void ReadBinding(BINDING *b, ASEGA *a, U *out)
 {
     COMPONENT *c = b->component;
     VTE &v = c->vt[3];
-    ((void (*)(void *, int, U *, float, float))v.fn)((char *)c + v.delta, 0, out, a->phase, a->rate);
+    ((void (*)(void *, int, U *, float, float))v.fn)((char *)c + v.delta, 0, out, a->time, a->speed);
 }
 
 // Broadcast a float into a VU0 register.
@@ -882,9 +814,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         GetGrabspotPositionNear(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
         float speedMax;
         if (ctx->actor->role == 1)
-            speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->anim->rate;
+            speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->anim->speed;
         else
-            speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->anim->rate;
+            speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->anim->speed;
         goal.f[2] = pos.f[2];
         SMP smp;
         smp.fastSpeed = speedMax;
@@ -1114,9 +1046,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         v.f[1] = 0.0f;
         v.f[0] = 0.0f;
         ACTOR *actor = ctx->actor;
-        ANIM *anim = actor->anim;
+        ASEGA *anim = actor->anim;
         if (anim) {
-            BINDING *b = FindAsegChannel(anim->table, actor, 1, 1);
+            BINDING *b = FindAsegChannel(anim->animation, actor, 1, 1);
             if (b) {
                 ReadBinding(b, anim, &v);
                 v.q = ScaleVec(v.q, VuFloat(-1.0f));
@@ -1294,23 +1226,21 @@ typedef unsigned int uint;
 
 struct VTE { short delta, pad; void *fn; };
 struct M3 { qword row[3]; };
-struct CLIP { char pad0[0x74]; float duration; };
 struct JOY { char pad0[0x1C]; float amount; };
-struct ANIMATION;
 struct PROGRAM;
 struct EFFECT;
 struct COMPONENT { void *object; };
-struct PROGRAM_ITEM { void *owner; CLIP *clip; char pad8[0xA0 - 8]; };
+struct PROGRAM_ITEM { void *owner; ASEG *clip; char pad8[0xA0 - 8]; };
 struct LO { char pad0[0xC]; VTE *vt; char pad10[0x40 - 0x10]; uint flags; };
 struct ACTOR {
     char pad0[0xC]; VTE *vt; char pad10[0x40 - 0x10]; uint flags; char pad44[0x150 - 0x44]; JOY *pjoy;
     char pad154[0x190 - 0x154]; qword velocity; char pad1A0[0x1B0 - 0x1A0]; char local[0x20C - 0x1B0]; float tStamp;
     char pad210[0x230 - 0x210]; qword position; qword posOffset; char pad250[0x900 - 0x250]; char secondary[0x9BC - 0x900];
-    int x9BC; char pad9C0[0x1024 - 0x9C0]; void *focus; char pad1028[0x1030 - 0x1028]; ANIMATION *animation;
+    int x9BC; char pad9C0[0x1024 - 0x9C0]; void *focus; char pad1028[0x1030 - 0x1028]; ASEGA *animation;
     COMPONENT component; int x1038; char pad103C[0x1048 - 0x103C]; float height; char pad104C[0x1060 - 0x104C];
     qword motion; char pad1070[0x10C0 - 0x1070]; void *anchor; char pad10C4[0x130C - 0x10C4]; int x130C;
     char pad1310[0x1318 - 0x1310]; int x1318; char pad131C[0x18D8 - 0x131C]; int x18D8; char pad18DC[0x19A0 - 0x18DC];
-    LO *first; LO *second; char pad19A8[0x1AF0 - 0x19A8]; CLIP *specialClip; char pad1AF4[0x1BCC - 0x1AF4]; int x1BCC;
+    LO *first; LO *second; char pad19A8[0x1AF0 - 0x19A8]; ASEG *specialClip; char pad1AF4[0x1BCC - 0x1AF4]; int x1BCC;
     char pad1BD0[0x1C30 - 0x1BD0]; PROGRAM_ITEM program; char pad1CD0[0x2048 - 0x1CD0]; EFFECT *effect;
 };
 struct DATA { char pad0[0x10]; float x; char pad14[0xC]; float y; char pad24[0xC]; float z; };
@@ -1324,16 +1254,16 @@ struct AUX {
     int enabled; char pad130[0x150 - 0x130]; qword position; float value;
 };
 struct SETTING { void *focus; };
-struct ATTACH { char pad0[0x30]; CLIP *clip; char pad34[0x84 - 0x34]; SOURCE *focus; char pad88[0xB0 - 0x88]; };
+struct ATTACH { char pad0[0x30]; ASEG *clip; char pad34[0x84 - 0x34]; SOURCE *focus; char pad88[0xB0 - 0x88]; };
 struct CONTEXT {
     ACTOR *pactor; float tStamp; int action; int step; float tStep; SOURCE *focus; SETTING *setting; float param;
     float value; int reversed; int index; int previous; char pad30[4]; int changed; char pad38[0x68 - 0x38]; AUX *aux;
-    char pad6C[0x170 - 0x6C]; CLIP *clip170, *clip174, *clip178, *clip17C; PROGRAM_ITEM program180;
-    char pad220[0x230 - 0x220]; PROGRAM *script230; CLIP *clip234, *clip238; char pad23C[4]; PROGRAM_ITEM program240;
-    char pad2E0[0x314 - 0x2E0]; CLIP *overrideClip; float gain318, gain31C; CLIP *clip320, *clip324, *clip328;
-    PROGRAM *script32C; char pad330[0x430 - 0x330]; CLIP *clip430; char pad434[0x440 - 0x434]; ATTACH attach;
-    CLIP *clip4F0, *clip4F4, *clip4F8; int tag; int fInhibit; char pad504[0x50C - 0x504];
-    CLIP *clip50C, *clip510, *clip514;
+    char pad6C[0x170 - 0x6C]; ASEG *clip170, *clip174, *clip178, *clip17C; PROGRAM_ITEM program180;
+    char pad220[0x230 - 0x220]; PROGRAM *script230; ASEG *clip234, *clip238; char pad23C[4]; PROGRAM_ITEM program240;
+    char pad2E0[0x314 - 0x2E0]; ASEG *overrideClip; float gain318, gain31C; ASEG *clip320, *clip324, *clip328;
+    PROGRAM *script32C; char pad330[0x430 - 0x330]; ASEG *clip430; char pad434[0x440 - 0x434]; ATTACH attach;
+    ASEG *clip4F0, *clip4F4, *clip4F8; int tag; int fInhibit; char pad504[0x50C - 0x504];
+    ASEG *clip50C, *clip510, *clip514;
 };
 struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword q; };
@@ -1371,9 +1301,9 @@ void SetStepplayerTnOverride(ACTOR *, void *);
 void ResetJtGrabTnParams(CONTEXT *);
 qword ConvertPosBetweenLos(void *, void *, qword);
 void ResetGaitFeet(PROGRAM_ITEM *);
-void ReleaseAsega(ANIMATION **);
+void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(CLIP *, ACTOR *, float, float, int, ANIMATION **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, ACTOR *, float, float, int, ASEGA **);
 void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
 void EnableJtLeanActs(ACTOR *, int);
 }
@@ -1547,7 +1477,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
     }
 
     // enter the new one
-    CLIP *clip = 0;
+    ASEG *clip = 0;
     PROGRAM *script = 0;
     int flags = 1;
     int special = 0;
@@ -1639,7 +1569,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             break;
         case 3:
             if (grab->focus->enabled) {
-                CLIP *override = grab->overrideClip;
+                ASEG *override = grab->overrideClip;
                 if (override) {
                     clip = override;
                     grab->gain318 = grab->gain31C = 0.0f;
