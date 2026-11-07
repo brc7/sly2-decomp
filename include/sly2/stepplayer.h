@@ -486,7 +486,8 @@ struct STEPPLAYER : public STEP
       JTMODE jtmode;   /* gadget/recon modes */
       JTPIPE jtpipe;   /* pipe climbing */
       JTGOAL jtgoal;   /* move-to goal */
-      uint unknown1000;   /* possibly grabSpotMask (low-confidence guess: ANDed with GRABSPOT::grfUnk1c to filter spots) */
+      uint grfGrabTarget;   /* +0x1000 the hero's bit (Bentley 2, Murray 4) matched against grab spots (GRABSPOT::grfUnk1c, grab.cpp)
+                               and CID 0x14 hand targets (jthands.cpp) */
       undefined4 unk_0x1004[(0x1010 - 0x1004) / 4];
       qword unknown1010;   /* possibly smoothedOffset (low-confidence guess: PosSmooth-ed toward zero each frame in air.cpp) */
       float unknown1020;

@@ -20,9 +20,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Representation (docs/guides/tu-merging.md "Representation decisions"): every function works on the header JTHANDS
    (the per-file P/S records mapped onto it field for field). Matrices that inline asm moves as quadword rows use the
-   TU-private M3/M4 (qword rows) and are converted at the boundary to the header's float MATRIX3/MATRIX4. The fields
-   of the hero and of a carried object that the headers do not name are views derived from the header classes (JTV :
-   SO, CID20). */
+   TU-private M3/M4 (qword rows) and are converted at the boundary to the header's float MATRIX3/MATRIX4. The hero is
+   the header STEPPLAYER (its target rows through STEP::aqwTarget); the hand target the headers do not name is a view
+   derived from LO (CID20). */
 
 union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
@@ -36,15 +36,6 @@ struct VTE { short delta, pad; void *pfn; };
 
 /* The hero (a JT) as far as this TU reads it beyond SO: the hand-target class mask, the hero's rotation and the ASEGA
    currently playing. */
-struct JTV : SO
-{
-    char pad150[0x1B0 - 0x150];
-    M3 matRot;              /* +0x1B0 */
-    char pad1E0[0x1000 - 0x1E0];
-    uint grfHandTarget;     /* +0x1000 matched against a CID 0x14 object's mask */
-    char pad1004[0x1030 - 0x1004];
-    ASEGA *pasegaCur;       /* +0x1030 */
-};
 
 /* A hand target of CID 0x14 (placeholder name): its class mask at +0xE0. */
 struct CID20 : LO
@@ -126,7 +117,7 @@ void GetClosestPointOnJtHandsCurveB(JTHANDS *phands, qword pos, float *pu, float
 float EvaluateJtHandsCurveA(JTHANDSCTX *pctx, float u);
 float EvaluateJtHandsCurveB(JTHANDSCTX *pctx, float u);
 void UpdateJtHands(JTHANDS *phands);
-CID20 *FindJtHandsTarget(JTV *pjt, LO *plo);
+CID20 *FindJtHandsTarget(STEPPLAYER *pjt, LO *plo);
 void SetJtHandsTarget(JTHANDS *phands, int nMode);
 }
 /* Per-caller views of callees that other callers declare differently (see the mismatch table). */
@@ -424,13 +415,13 @@ extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 }
 
 // The first nearby object of class 0x14 whose flags match the hands' flags.
-extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
+extern "C" CID20 *FindJtHandsTarget(STEPPLAYER *jt, LO *lo)
 {
     CID20 *apcid[4];
     int c = FindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
     int i;
     for (i = 0; i < c; i++) {
-        if (apcid[i]->grfHand & jt->grfHandTarget) return apcid[i];
+        if (apcid[i]->grfHand & jt->grfGrabTarget) return apcid[i];
     }
     return 0;
 }
@@ -455,10 +446,10 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
             LO *shape = hands->ploTarget;
             FindShapeClosestPoint(shape, GetLoWorldPos(hands->owner), 0, 0, 0, 0, &hands->distanceAlong);
             hands->holdKind = 0;
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->owner)->grfHandTarget)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((STEPPLAYER *)hands->owner)->grfGrabTarget)) {
             hands->holdKind = 2;
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
-            CID20 *pcid = FindJtHandsTarget((JTV *)hands->owner, hands->ploTarget);
+            CID20 *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, hands->ploTarget);
             if (pcid) {
                 hands->ploRef = pcid;
                 hands->holdKind = 2;
@@ -483,7 +474,7 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
 /* StartJtHandsCarry (StartJtHandsCarry): create the position and orientation acts that carry the object along the
    predicted clip path to the hand, timed ballistically (ComputeMaxBallisticTime), parented to the world (SetLoParent). The body
    is a transcription of the target's schedule into register-pinned asm blocks (a matching island: this form exists
-   to reproduce the original codegen); its data is the header JTHANDS and SO, the JTV/XFACT views and the work area
+   to reproduce the original codegen); its data is the header JTHANDS and SO, STEPPLAYER, the XFACT view and the work area
    below. */
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
@@ -523,15 +514,15 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     register float zero __asm__("$f21") = 0.0f;
     ReleaseAct(&p->pactHold);
     ReleaseAct(&p->pactTurn);
-    ASEGA *anim = ((JTV *)p->owner)->pasegaCur;
+    ASEGA *anim = ((STEPPLAYER *)p->owner)->activeAnimation;
     ASEG *motion = anim->animation;
     float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->time) / anim->speed;
     XF *space = SourceMatrix(p->ploHand, &work.original);
     register M4 *workingBase __asm__("$19") = &work.sample;
     PredictAsegTransform(motion, time, zero, p->owner, space, p->owner->rootTransform, SampleOutput(workingBase), 0);
-    JTV *owner = (JTV *)p->owner;
+    STEPPLAYER *owner = (STEPPLAYER *)p->owner;
     M4 *start = &work.start;
-    M3 *basis = &owner->matRot;
+    qword *basis = owner->aqwTarget;
     register M4 *product __asm__("$21");
     qword location = GetLoWorldPos(owner);
     VECTOR_opAssign(TranslationSlot(work), location);
@@ -539,7 +530,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         register qword firstRow __asm__("$2");
         register M4 *intermediate __asm__("$16");
         register float homogeneous __asm__("$f0");
-        __asm__("lq %0,%2\n\taddiu %1,%3,0x140" : "=&r"(firstRow), "=r"(product) : "m"(owner->matRot.r[0]), "r"(&work));
+        __asm__("lq %0,%2\n\taddiu %1,%3,0x140" : "=&r"(firstRow), "=r"(product) : "m"(owner->aqwTarget[0]), "r"(&work));
         __asm__(".set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%0\n\t.set at\n\taddiu %1,%3,0x100\n\tsq %4,%2"
                 : "=f"(homogeneous), "=&r"(intermediate), "=m"(work.start.r[0])
                 : "r"(&work), "r"(firstRow)
@@ -567,7 +558,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     {
         register qword first __asm__("$7"), row1 __asm__("$2"), row2 __asm__("$3"), row3 __asm__("$6");
         register SO *objectArgument __asm__("$5");
-        register JTV *ownerArgument __asm__("$4");
+        register STEPPLAYER *ownerArgument __asm__("$4");
         __asm__("lq %0,%2\n\tdaddu %1,%3,$zero"
                 : "=&r"(first), "=r"(objectArgument)
                 : "m"(work.views.matrices.intermediate.r[0]), "r"(object));
@@ -718,7 +709,7 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     XF *xf = hands->ploHand->GetLocalTransform((MATRIX4 *)&buf);
     object->SetParent(hands->owner, xf, 0);
     m = *(M4 *)hands->ploHand->GetWorldMatrix();
-    CID20 *pcid = FindJtHandsTarget((JTV *)hands->owner, object);
+    CID20 *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, object);
     if (pcid) {
         M4 u;
         M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->GetWorldMatrix());

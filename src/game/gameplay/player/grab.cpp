@@ -2358,7 +2358,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         if (lo == ((JT *)player)->unknown1F18)
             return;
     }
-    if (!(player->unknown1000 & spot->grfUnk1c))
+    if (!(player->grfGrabTarget & spot->grfUnk1c))
         return;
     if (D_002E1E4C)
     {
