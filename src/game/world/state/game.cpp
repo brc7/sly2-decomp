@@ -452,7 +452,7 @@ extern "C" void HandleGameEvent(P *game, int action)
 {
     switch (action) {
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
-        if (Same((CHECK *)&g_sw.destinationLevel, &D_002A37E8)) {
+        if (Same((CHECK *)&g_sw.transition.destinationLevel, &D_002A37E8)) {
             P *players[3];
             int found = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
             if (found > 0) {
@@ -470,10 +470,10 @@ extern "C" void HandleGameEvent(P *game, int action)
         break;
     }
     case 3: {   /* reset: a new game, or the save data loaded from a slot */
-        if (D_003DD490.grfTransition & 1) {
+        if (D_003DD490.transition.flags & 1) {
             InitGame(game);
             D_002E65E0.currentSlot = 0;
-        } else if (D_003DD490.grfTransition & 0x40)
+        } else if (D_003DD490.transition.flags & 0x40)
             ApplyPendingSaveData();
         ReloadSaveSlots(&D_002E65E0);
         if (GetCurrentWorld())
@@ -508,7 +508,7 @@ extern "C" void HandleGameEvent(P *game, int action)
             BeginJob(((P *)world->currentJob));
         if (world->currentTask)
             BeginTask(((P *)world->currentTask));
-        if (world->grfTransition & 4) {
+        if (world->transition.flags & 4) {
             if (world->pendingTask)
                 AnnounceTaskJob(((P *)world->pendingTask));
             else if (world->currentJob)
@@ -2851,7 +2851,7 @@ extern "C" void SetTaskState(X *p, int n);
 // picks the current character from it and sets the warp.
 extern "C" void RestoreTasksAfterLoad(GAME *game)
 {
-    if (!(D_003DD490.grfTransition & 8))
+    if (!(D_003DD490.transition.flags & 8))
         return;
     STACKSCOPE fr;
     int numTasks;
@@ -2883,9 +2883,9 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
         StateSourceScope scope2(restored, STATE_SOURCE_LOAD_RESET, 0);
         SetTaskState(restored, TASK_STATE_UNSET);
     }
-    D_003DD490.oidWarpDest = pending->warpOid;
-    D_003DD490.oidWarpContext = -1;
-    D_003DD490.grfTransition = (D_003DD490.grfTransition & ~8) | 4;
+    D_003DD490.transition.oidWarpDest = pending->warpOid;
+    D_003DD490.transition.oidWarpContext = -1;
+    D_003DD490.transition.flags = (D_003DD490.transition.flags & ~8) | 4;
 }
 } // namespace M_RestoreTasksAfterLoad
 

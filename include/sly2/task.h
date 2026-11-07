@@ -18,7 +18,8 @@ struct JOB : public LO
       TASK *finalTask;      /* +0x68 [R] final task (game.cpp IsJobComplete tests it) */
       int labelNameId;      /* +0x6C [S] name-plate string id, -1 none (waypoint.cpp) */
       int unknown70;        /* +0x70 [S] (game.cpp) */
-      undefined4 unk_0x74[(0x7c - 0x74) / 4];
+      int survivesSafehouse; /* +0x74 [S] non-zero: entering the safehouse does not fail the job (tu_1D7238 SetCharSelectState; inferred) */
+      undefined4 unk_0x78;
       int counter;           /* +0x7C [R] counter shown by the job (ram_inspector "count") */
       DL tasks;             /* +0x80 [S] the job's tasks (game.cpp) */
       undefined4 unk_0x8c[(0x9c - 0x8c) / 4];

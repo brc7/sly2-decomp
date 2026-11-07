@@ -9,6 +9,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C4E30
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
+#include "sly2/joy.h"
 #include "sly2/cm.h"
 #include "sly2/po.h"
 #include "sly2/step.h"
@@ -278,19 +279,17 @@ void ConvertPoctlStick(POCTL *poctl, float cameraAngle, float *dxInOut, float *d
     }
 }
 
-/* A joystick as UpdatePoctl reads it. */
-struct J { char pad[0x103C]; float dxLeft, dyLeft; char p1[0x1070 - 0x1044]; float dxRight, dyRight; char p2[0x10B4 - 0x1078]; int buttons; int buttonsPressed; int buttonsLatched; };
 extern "C" {
 extern int D_002DFBC0;
-extern J D_002DFC00;
-extern J D_002E0D00;
+extern JOY D_002DFC00;   /* g_joy */
+extern JOY D_002E0D00;   /* the second JOY */
 }
 // Per-frame controller update: state 0 clears it; state 1 reads the pad (or the alternate pad), masks the buttons,
 // converts both sticks with ConvertPoctlStick and records press times (UpdatePoctlPressed).
 extern "C" void UpdatePoctl(POCTL *poctl)
 {
     float a, b;
-    J *pj;
+    JOY *pj;
     b = 0.0f;
     a = 0.0f;
     switch (poctl->state) {
@@ -299,11 +298,11 @@ extern "C" void UpdatePoctl(POCTL *poctl)
         break;
     case 1:
         pj = (D_002DFBC0 & 2) ? &D_002DFC00 : &D_002E0D00;
-        poctl->dxLeft = pj->dxLeft;
-        poctl->dyLeft = pj->dyLeft;
+        poctl->dxLeft = pj->leftStickX;
+        poctl->dyLeft = pj->leftStickY;
         poctl->dxRight = pj->dxRight;
         poctl->dyRight = pj->dyRight;
-        poctl->buttonsHeld = (pj->buttons & ~pj->buttonsLatched) | poctl->controlled->grfbtnForce;
+        poctl->buttonsHeld = (pj->buttonsHeld & ~pj->grfbtnLatched) | poctl->controlled->grfbtnForce;
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&g_cm.mat, &a, &b);
         break;
     }

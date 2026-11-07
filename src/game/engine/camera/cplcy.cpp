@@ -274,7 +274,6 @@ extern char D_002BD9A0[];
 extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
 void UpdateCplcy(CPLOOK *p, void *pv, struct JOY *pjoy);
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
 float ClampToLimits__FP2LMf(void *p, float g);

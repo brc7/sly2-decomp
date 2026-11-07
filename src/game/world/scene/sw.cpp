@@ -194,7 +194,7 @@ extern "C" SW *SW_ctor(SW *world)
     hsv->y=255.0f;
     hsv->z=255.0f;
     world->loadFilter=-1;
-    world->lightScale=90.0f;
+    world->midtone=90.0f;
     world->agShdLight[0]=128.0f;
     world->agShdLight[1]=96.0f;
     world->agShdLight[2]=160.0f;
@@ -203,7 +203,7 @@ extern "C" SW *SW_ctor(SW *world)
     world->fAaoxUnsorted=1;
     world->lmGuardScale.minValue=upper;
     world->isrcLoading=-2;
-    world->midtone=0;
+    world->shadow=0;
     range->maxValue=lower;
     float slope=(upper-lower)/(end-start);
     float intercept=(end*lower-start*upper)/(end-start);
@@ -219,17 +219,12 @@ extern "C" SW *SW_ctor(SW *world)
 }
 } // namespace M_SW_ctor
 
-namespace M_SetSwTransition { extern "C" {
-typedef struct TRANS { int a[0x4C / 4]; } TRANS;   /* the request: flags, destination FILEREC, warp oid, warp context oid */
-typedef struct SWT { char pad[0x3BF0]; int fTransitionPending; TRANS request; } SWT;   /* SW +0x3BF0, +0x3BF4.. */
-void SetSwTransition(SWT *world, TRANS *request) __asm__("SetSwTransition");
-// Posts a level transition: sets isTransitionPending and copies the request to SW +0x3BF4.. for ExecuteSwTransition.
-void SetSwTransition(SWT *world, TRANS *request)
+// Posts a level transition: sets isTransitionPending and copies the request to SW::transition for ExecuteSwTransition.
+extern "C" void SetSwTransition(SW *world, TRANS *request)
 {
-    world->fTransitionPending = 1;
-    world->request = *request;
+    world->isTransitionPending = 1;
+    world->transition = *request;
 }
-} } // namespace M_SetSwTransition
 
 namespace M_func_0020E040 { extern "C" {
 extern int D_00443740;
@@ -238,31 +233,30 @@ int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; retu
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
-struct S { char pad[0x3B18]; int jobHandle; };   /* the level's running job (AbortJob) (inferred) */
 extern char D_002DEB30[], D_003D9E70[], D_003DD040[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
 void BroadcastGameEvent(void *p, int a, int b);
-void AbortJob(int h);
+void AbortJob(LO *pjob);
 void ResetScreens(void *p);
-void DeleteSwSplice(struct S *p);
+void DeleteSwSplice(SW *psw);
 void ClearGameDifficulty(void *p);
 void ResetCameraPolicies(void *p);
 void ResetSndmgr(void *p);
 void ClearShaderGsState(void);
-void SetRumbleRums__FP6RUMBLE4RUMS(void *p, int n);
+void SetRumbleRums__FP6RUMBLE4RUMS(RUMBLE *prumble, int rums);
 void FreeSw__Fv(void);
 
 // Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
 // manager, clears about 15 global object pointers and frees the world's memory.
-void DeleteSw(struct S *world)
+void DeleteSw(SW *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (world->jobHandle) {
-        AbortJob(world->jobHandle);
-        world->jobHandle = 0;
+    if (world->ploJobFailed) {
+        AbortJob(world->ploJobFailed);
+        world->ploJobFailed = 0;
     }
     ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
@@ -270,7 +264,7 @@ void DeleteSw(struct S *world)
     ResetCameraPolicies(&g_cm);
     ResetSndmgr(D_003DD040);
     ClearShaderGsState();
-    SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
+    SetRumbleRums__FP6RUMBLE4RUMS(&g_joy.rumble, 3);
     D_002E1E40 = 0;
     D_002F7900 = 0;
     D_002DD5BC = 0;
@@ -291,14 +285,6 @@ void DeleteSw(struct S *world)
 
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };
-struct H { int unknown0; int unknown4; int unknown8; int unknownC; int unknown10; int unknown14; char dl[0x10]; };
-struct S {
-    char pad0[0x3BF4]; int levelFlags;
-    char pad1[0x3CD4 - 0x3BF8]; void *workBuffers[3];
-    char pad2[0x3E38 - 0x3CE0]; int unknown3E38;
-    char pad3[0x3F0C - 0x3E3C]; struct H *loadHeader; char pad4[0x3F20 - 0x3F10]; void *largeWorkBuffer;
-    char pad5[0x45E8 - 0x3F24]; char renderTargets[2][0x28];   /* sw.h artgt */
-};
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
 void *AllocFromWorldHeap(struct MSG *pmsg);
@@ -308,9 +294,10 @@ void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2L
 void InitRenderTargets(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
 
-// Sets up a fresh world for loading: the work buffers (3 x 0x4800 and 0x8000 bytes), a list header, two ZPR inits,
+// Sets up a fresh world for loading: the three AAOX buffers (0x4800 bytes each), the update list (0x8000 bytes), the root
+// proxy record, the two render targets (one ZPR init),
 // game callback 2.
-void InitSwLoadBuffers(struct S *world)
+void InitSwLoadBuffers(SW *world)
 {
     struct MSG msg;
     struct ZPR zpr;
@@ -319,34 +306,33 @@ void InitSwLoadBuffers(struct S *world)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        world->workBuffers[i] = AllocFromWorldHeap(&msg);
+        world->aaaox[i] = (struct AAOX *)AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    world->largeWorkBuffer = AllocClearedFromWorldHeap(&msg);
+    world->aloupd = (LOUPD *)AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    world->loadHeader = (__typeof__(world->loadHeader))AllocClearedFromWorldHeap(&msg);
-    world->loadHeader->unknown0 = -1;
-    world->loadHeader->unknown8 = -1;
-    InitSl(world->loadHeader->dl, 0x14);
+    world->ppxrRoot = (PXR *)AllocClearedFromWorldHeap(&msg);
+    world->ppxrRoot->proxyId = -1;
+    world->ppxrRoot->proxyOid = -1;
+    InitSl(&world->ppxrRoot->children, 0x14);   /* linked through PXR::sleSibling */
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        InitRenderTargets(world->renderTargets[j], &zpr);
-    if (world->levelFlags & 0x20)
+        InitRenderTargets(&world->artgt[j], &zpr);
+    if (world->transition.flags & 0x20)
         world->unknown3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
 } } // namespace M_func_0020E180
 
 namespace M_func_0020E2B0 { extern "C" {
-struct O { char pad[0xB8]; int priority; char p2[0xC]; int unknownC8; };   /* an MS object; priority (inferred): the largest wins */
-struct S { char pad[0x3E5C]; int mainMsUnknownC8; };
-int FindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
+struct O { char pad[0xB8]; int priority; char p2[0xC]; struct RENDERBLOCK *pblockRender; };   /* an MS object; priority (inferred): the largest wins */
+int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, struct O **apo);
 void SetLoVisMask(struct O *o, int n);
-// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its +0xC8 and makes
+// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its render block (+0xC8) as SW::pblockRender and makes
 // it visible to every camera mask. (inferred)
-void SelectSwMainMs(struct S *world)
+void SelectSwMainMs(SW *world)
 {
     struct O *found[16];
     int numFound = FindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
@@ -360,7 +346,7 @@ void SelectSwMainMs(struct S *world)
         }
     }
     if (best) {
-        world->mainMsUnknownC8 = best->unknownC8;
+        world->pblockRender = best->pblockRender;
         SetLoVisMask(best, 0xFF);
     }
 }
@@ -488,38 +474,33 @@ void ResolveSwSaveVars(SW *world)
 }
 
 namespace M_PostSwLoad { extern "C" {
-struct S {
-    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; LO **ppoFirst; LO **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
-    char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
-    char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
-};
 extern char D_002DEB30[], D_003D9E70[];
 void PrimeSlotheap(void *p);
-void CreateSwScreenTint(struct S *p);
-void SelectSwMainMs(struct S *p);
-void ClearSwSpliceTable(struct S *p);
-void InitSwProxySpares(struct S *p);
-void BindSwTimerHud(struct S *p);
-void CreateSwNoiseTypes(struct S *p);
-void EnsureSwDefaultLight(struct S *p);
-void PostLoadSwPathzones(struct S *p);
-void BindSwBootyProxy(struct S *p);
-void PostLoadGrabMarker(struct S *p);
+void CreateSwScreenTint(SW *psw);
+void SelectSwMainMs(SW *psw);
+void ClearSwSpliceTable(SW *psw);
+void InitSwProxySpares(SW *psw);
+void BindSwTimerHud(SW *psw);
+void CreateSwNoiseTypes(SW *psw);
+void EnsureSwDefaultLight(SW *psw);
+void PostLoadSwPathzones(SW *psw);
+void BindSwBootyProxy(SW *psw);
+void PostLoadGrabMarker(SW *psw);
 void PostLoadScreens(void *p);
-void ProcessSwCallbacks(struct S *p);
+void ProcessSwCallbacks(SW *psw);
 void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
-void PostSwLoad(struct S *world)
+void PostSwLoad(SW *world)
 {
     LO **ppo;
-    PrimeSlotheap(world->pool403C);
-    PrimeSlotheap(world->pool4054);
-    PrimeSlotheap(world->pool4070);
-    PrimeSlotheap(world->pool4088);
+    PrimeSlotheap(&world->slotheapRipg);
+    PrimeSlotheap(&world->slotheapRip);
+    PrimeSlotheap(&world->slotheapBlipg);
+    PrimeSlotheap(&world->slotheapBlip);
     CreateSwScreenTint(world);
     SelectSwMainMs(world);
     ClearSwSpliceTable(world);
@@ -531,16 +512,16 @@ void PostSwLoad(struct S *world)
     BindSwBootyProxy(world);
     PostLoadGrabMarker(world);
     PostLoadScreens(D_003D9E70);
-    while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
-        for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
+    while (ProcessSwCallbacks(world), world->pploNew != world->aploNew) {
+        for (ppo = world->aploNew; ppo < world->pploNew; ppo++)
             (*ppo)->PostLoad();
-        world->ppoLast = world->ppoFirst;
+        world->pploNew = world->aploNew;
     }
-    world->ppoLast = 0;
-    world->ppoFirst = 0;
-    world->loadBuffer1 = 0;
-    world->loadBuffer0 = 0;
-    BuildPathzoneLinkLists(world->regionTree);
+    world->pploNew = 0;
+    world->aploNew = 0;
+    world->unknown39D8 = 0;
+    world->unknown39D0 = 0;
+    BuildPathzoneLinkLists(world->pregtree);
     SetupCm__FP2CM(&g_cm);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -549,18 +530,14 @@ void PostSwLoad(struct S *world)
 namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
-struct HEADER {int words[16];};
-struct REQUEST {int flags;HEADER header;int objectId,objectKey;};
 struct KEY {int name,tag,kind;char data[0x104];};
 struct WIDGET {char pad0[0x58];int shown;};
 struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
-struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
 struct FRAME;
 struct STREAM;
 extern "C" { extern char D_002DDED0[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
-extern "C" { extern SW D_003DD490; }
 extern "C" {
 void FlushFrames__Fi(int);
 FRAME *STACKSCOPE_ctor(FRAME *);
@@ -576,7 +553,6 @@ void DeleteSw(SW *);
 void ResetClock(void *);
 void AddGrfusr__Fi(int);
 void *func_002333B4(void *,int,uint) __asm__("memset");
-SW *SW_ctor(SW *);
 int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
 void InitSwLoadBuffers(SW *);
@@ -608,10 +584,10 @@ extern "C" CRef GetSaveVarByName(const char *,...);
 // The frame clock's current time.
 static inline float Time(){return *(float *)D_002DDED0;}
 // True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
-static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
+static inline int Same(const FILEREC *a,const FILEREC *b){if(a==b)return true;if(!b)return false;return (a->aw[2]^a->aw[14])==(b->aw[2]^b->aw[14]);}
 // Build the file decryption key from its header (kind 2, name = (w0 ^ w13) + 0xCA0, tag = w1 ^ w15); returns whether
 // it is usable (tag != 0).
-static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
+static inline int SetKey(KEY *key,const FILEREC *header){if(!header)return false;int c=header->aw[0],a=header->aw[13],d=header->aw[15],b=header->aw[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
 // Call the actor's activate virtual (slot 8).
 static inline void Activate(ACTOR *actor){actor->Add();}
 // Call the actor's virtual slot 79 with mode.
@@ -629,14 +605,14 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
 // callback 5. Called once per frame by the main loop.
 extern "C" void ExecuteSwTransition(SW *world)
 {
-    if(!world->pending)return;
+    if(!world->isTransitionPending)return;
     FlushFrames__Fi(1);
-    REQUEST request=world->request;
-    REQUEST *destination=&world->request;
-    world->pending=0;
+    TRANS request=world->transition;
+    TRANS *destination=&world->transition;
+    world->isTransitionPending=0;
     float resume;
     if(request.flags&0xCD)resume=0.0f;
-    else{float remaining=world->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
+    else{float remaining=world->hudTimerEndTime-Time();resume=remaining>0.0f?remaining:0.0f;}
     FRAME frame;
     FRAME *scope=&frame;
     STACKSCOPE_ctor(scope);
@@ -645,9 +621,9 @@ extern "C" void ExecuteSwTransition(SW *world)
     KEY *keyPointer=&key;
     keyPointer->kind=2;
     InitFileKey(keyPointer);
-    int hasFile=NonZero(request.header.words[1]^request.header.words[15]);
-    if(hasFile&&!SetKey(&key,&request.header)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    HEADER *current=&world->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
+    int hasFile=NonZero(request.destinationLevel.aw[1]^request.destinationLevel.aw[15]);
+    if(hasFile&&!SetKey(&key,&request.destinationLevel)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
+    FILEREC *current=&world->currentLevel; const FILEREC *requested=&request.destinationLevel; int changed=!Same(requested,current);
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
@@ -659,21 +635,21 @@ extern "C" void ExecuteSwTransition(SW *world)
     DeleteSw(world);
     ResetClock(D_002DDED0);
     AddGrfusr__Fi(8);
-    func_002333B4(&D_003DD490,0,0x4790);
-    func_002333B4(&D_003DD490,0,0x4790);
-    SW_ctor(&D_003DD490);
+    func_002333B4(&g_sw,0,sizeof(SW));
+    func_002333B4(&g_sw,0,sizeof(SW));
+    SW_ctor(&g_sw);
     if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
     InitCm__FP2CM(&g_cm);
-    world->current=request.header;
+    world->currentLevel=request.destinationLevel;
     *destination=request;
     InitSwLoadBuffers(world);
     if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(world,reader);CStreamBis_Close(reader);}
     PostSwLoad(world);
     if(resume>0.0f)ShowCountdownHud(world,resume);
-    if(changed||(world->request.flags&0x40))ClearCheatItems();
-    CONTEXT *context=FindWarpByOid(world,world->request.objectId,world->request.objectKey);
-    if(context){TriggerWarp(context);world->objectId=world->request.objectId;world->objectKey=world->request.objectKey;}
-    if(!GetHeroPo(world)&&!GetCurrentPo(world)&&world->actorCount>0){
+    if(changed||(world->transition.flags&0x40))ClearCheatItems();
+    CONTEXT *context=FindWarpByOid(world,world->transition.oidWarpDest,world->transition.oidWarpContext);
+    if(context){TriggerWarp(context);world->returnWarpOid=world->transition.oidWarpDest;world->returnWarpContext=world->transition.oidWarpContext;}
+    if(!GetHeroPo(world)&&!GetCurrentPo(world)&&(int)world->cpo>0){
         ACTOR *selected=0;
         int actorId;
         {CRef value=GetSaveVarByName("oidPoCurrent",0);actorId=value.u.n;}
@@ -689,8 +665,8 @@ extern "C" void ExecuteSwTransition(SW *world)
                 for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->oid)break;
                 if(i>=context->count)Attach(selected,context);
             }
-            for(int i=0;i<world->actorCount;i++){
-                ACTOR *actor=world->actors[i];
+            for(int i=0;i<(int)world->cpo;i++){
+                ACTOR *actor=(ACTOR *)world->playerObjects[i];
                 if(actor!=selected&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
@@ -711,34 +687,30 @@ extern "C" void ExecuteSwTransition(SW *world)
 } // namespace M_ExecuteSwTransition
 
 namespace M_IncrementSwHandsOff { extern "C" {
-struct S { char pad[0x3D78]; int c; };
 void AddGrfusr__Fi(int n);
-void AcquireSwLetterbox(struct S *p);
-void IncrementSwInputLock(struct S *p);
+void AcquireSwLetterbox(SW *p);
+void IncrementSwInputLock(SW *p);
 // Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
 // flag 2 also locks input.
-void IncrementSwHandsOff(struct S *world, int fl)
+void IncrementSwHandsOff(SW *world, int fl)
 {
-    if (++world->c == 1) AddGrfusr__Fi(2);
+    if (++world->handsOffCount == 1) AddGrfusr__Fi(2);
     if (fl & 1) AcquireSwLetterbox(world);
     if (fl & 2) IncrementSwInputLock(world);
 }
 } } // namespace M_IncrementSwHandsOff
 
 namespace M_DecrementSwHandsOff { extern "C" {
-struct S { char pad[0x3D78]; int n; };
-struct G;
-extern struct G D_002DFC00;
 void RemoveGrfusr__Fi(int n);
-void ClearJoyButtons(struct G *pg, int n);
-void ReleaseSwLetterbox(struct S *p);
-void DecrementSwInputLock(struct S *p);
+void ClearJoyButtons(JOY *pjoy, int grfbtn);
+void ReleaseSwLetterbox(SW *p);
+void DecrementSwInputLock(SW *p);
 // Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
-void DecrementSwHandsOff(struct S *world, int grf)
+void DecrementSwHandsOff(SW *world, int grf)
 {
-    if (--world->n == 0) {
+    if (--world->handsOffCount == 0) {
         RemoveGrfusr__Fi(2);
-        ClearJoyButtons(&D_002DFC00, 8);
+        ClearJoyButtons(&g_joy, 8);
     }
     if (grf & 1) ReleaseSwLetterbox(world);
     if (grf & 2) DecrementSwInputLock(world);
@@ -811,25 +783,23 @@ extern "C" int IsSwInputLocked(SW *world)
 namespace M_UpdateSwIllum { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-typedef struct { float x, y, z; } V3;
-typedef union { qword q; V3 v; } UV;
+typedef union { qword q; VECTOR v; } UV;
 extern char D_002BBB60[];
-struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
-void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
+void ConvertUserRgbToUserHsv(VECTOR *pin, UV *pout);
 void ColorCorrectVector(UV *pv);
 float ClampToLimits__FP2LMf(void *p, float g);
 // Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
 // the illumination change counter.
-void UpdateSwIllum(struct S *world)
+void UpdateSwIllum(SW *world)
 {
     float k = 1.0f / 255.0f;
-    V3 c;
+    VECTOR c;
     UV out;
     U u;
     qword r;
-    c.x = world->hsv.x;
-    c.y = world->hsv.y * k;
-    c.z = world->hsv.z * k;
+    c.x = world->hsvLight.x;
+    c.y = world->hsvLight.y * k;
+    c.z = world->hsvLight.z * k;
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
@@ -839,11 +809,11 @@ void UpdateSwIllum(struct S *world)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     ColorCorrectVector(&out);
-    world->rgb = out.v;
+    world->vecLightRgb = out.v;
     world->shadowScale = world->shadow * k;
-    if (world->isShadowLimited)
+    if (world->unknown3E38)
         world->shadowScale = ClampToLimits__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
-    world->illumChangeCount++;
+    world->relightStamp++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -857,14 +827,14 @@ extern "C" void SetSwIllumHsv(SW *world, qword hsv)
 // Sets the illumination shadow level and recomputes the ambient light.
 extern "C" void SetSwIllumShadow(SW *world, float g)
 {
-    world->midtone = g;
+    world->shadow = g;
     UpdateSwIllum(world);
 }
 
 // Sets the illumination midtone (default 90) and recomputes the ambient light.
 extern "C" void SetSwIllum(SW *world, float g)
 {
-    world->lightScale = g;
+    world->midtone = g;
     UpdateSwIllum(world);
 }
 
@@ -1035,19 +1005,16 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
 } } // namespace M_LoadSwSharedDataFromBrx
 
 namespace M_func_0020F710 { extern "C" {
-extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
-struct E { int widget; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h numCluesCollected, numClues */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
-void SetWidgetXf(int x, struct L *pl);
+struct WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context);
+void SetWidgetXf(struct WIDGET *widget, struct L *pl);
 int CountCollectedClues(void);
 int GetMaxClueCount(void);
 // Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
 // (inferred)
-void BindSwTimerHud(struct S *world)
+void BindSwTimerHud(SW *world)
 {
     struct L l;
     int i;
@@ -1056,22 +1023,20 @@ void BindSwTimerHud(struct S *world)
     l.d = 1.0f;
     l.a = 1.0f;
     for (i = 0; i < 4; i++) {
-        int widget = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
+        struct WIDGET *widget = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, D_002C3E70[i], 0);
         if (widget) {
             SetWidgetXf(widget, &l);
-            world->ae[i].widget = widget;
+            world->ahudstack[i].widget = widget;
         }
     }
-    world->clueCount = CountCollectedClues();
-    world->clueTotal = GetMaxClueCount();
+    world->numCluesCollected = CountCollectedClues();
+    world->numClues = GetMaxClueCount();
 }
 } } // namespace M_func_0020F710
 
 namespace M_func_0020F7E0 { extern "C" {
 struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
-struct O { char pad[0xF8]; struct F8 *anim; };
-struct E { struct O *widget; float velocity; int isHidden; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float tCountdownEnd; int lastSecond; };
+struct O { char pad[0xF8]; struct F8 *anim; };   /* the HUD widget (HUDSTACK::widget) */
 extern CLOCK D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
@@ -1082,35 +1047,35 @@ void SetSndSourceLo(void *p, void *source);
 
 // Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
 // (0x30/0x31) once a second. (inferred)
-void UpdateSwTimerHud(struct S *world)
+void UpdateSwTimerHud(SW *world)
 {
     float z;
     float t = 0.0f;
     int i;
     z = t;
     for (i = 0; i < 4; i++) {
-        struct E *e = &world->ae[i];
-        struct O *o = e->widget;
+        HUDSTACK *e = &world->ahudstack[i];
+        struct O *o = (struct O *)e->widget;
         if (!o || !IsWidgetVisible(o)) {
-            e->isHidden = 1;
+            e->shouldSnap = 1;
             continue;
         }
-        if (e->isHidden) {
+        if (e->shouldSnap) {
             o->anim->value = t;
-            e->velocity = 0.0f;
-            e->isHidden = 0;
+            e->dyVel = 0.0f;
+            e->shouldSnap = 0;
         } else {
-            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.deltaTime);
+            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->dyVel, t, D_002C3E88, &e->dyVel, D_002DDED0.deltaTime);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float remaining = -D_002DDED0.time + world->tCountdownEnd;
+            float remaining = -D_002DDED0.time + world->hudTimerEndTime;
             int n;
             remaining = (0.0f > remaining) ? 0.0f : remaining;
             n = (int)remaining;
-            if (n != world->lastSecond) {
+            if (n != world->csecHudTimerShown) {
                 SetSndSourceLo(CreateSfxSound((n & 1) ? 0x30 : 0x31), 0);
-                world->lastSecond = n;
+                world->csecHudTimerShown = n;
             }
         }
     }
@@ -1163,14 +1128,13 @@ typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-struct S { char pad[0x3D1C]; struct G *first; };
 void *AllocFromStack(struct MSG *pmsg);
-void FlushSwBoundsUpdates(struct S *p);
-void UpdateSwAaox(struct S *p);
+void FlushSwBoundsUpdates(SW *p);
+void UpdateSwAaox(SW *p);
 
 // Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
 // result is a slot-allocated array.
-void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     U mn, mx;
     struct MSG msg;
@@ -1195,7 +1159,7 @@ void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, st
     ap = (__typeof__(ap))AllocFromStack(&msg);
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = p->first; g; g = g->next) {
+    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
         struct O *o;
         if (g->mn[0] > mx.f[0] || g->mx[0] < mn.f[0] ||
             g->mn[1] > mx.f[1] || g->mx[1] < mn.f[1] ||
@@ -1218,13 +1182,12 @@ typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-struct S { char pad[0x3D1C]; struct G *first; };
 void *AllocFromStack(struct MSG *pmsg);
-void FlushSwBoundsUpdates(struct S *p);
-void UpdateSwAaox(struct S *p);
+void FlushSwBoundsUpdates(SW *p);
+void UpdateSwAaox(SW *p);
 
 // Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
-void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct MSG msg;
     struct O **ap;
@@ -1236,7 +1199,7 @@ void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void 
     c = 0;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = p->first; g; g = g->next) {
+    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
         float rr;
         qword d, e, tmp;
         float f;
@@ -1463,17 +1426,15 @@ struct XB { char pad[0xC];
   virtual void v21(); virtual void v22(); virtual void v23(); virtual void v24();
 };
 struct X : XB { char pad10[0x10]; X *next; };
-struct B { X *first; int a, b; };
-struct S { char pad[0x3038]; B ab[199]; };
-extern "C" void SetSwPoOverride(S *p, int k);
+extern "C" void SetSwPoOverride(SW *p, int k);
 // Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
 // meaning is not known; PROXY uses it to release its spares)
-extern "C" void CallSlot24OnSwObjects(S *world)
+extern "C" void CallSlot24OnSwObjects(SW *world)
 {
     int i;
     SetSwPoOverride(world, 0);
     for (i = 0; i < 199; i++) {
-        X *x = ((struct B *)((char *)world + 0x3038))[i].first;
+        X *x = (X *)((SL *)((char *)world + SLY2_OFFSETOF(SW, objectsByClass)))[i].head;   /* the list base computed once, as the code does */
         for (; x; x = x->next)
             x->v24();
     }

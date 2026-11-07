@@ -102,7 +102,9 @@ struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };
 struct SLOT;
-struct GSAVE { char pad[0xFD50]; SLOT *pendingSlot; };   /* +0xFD50: the save slot being written (inferred; UpdateSave runs while it is null) */
+/* SAVEIsland: save.h's SAVE (currentSlot = the slot in use; UpdateSave runs while it is null). Kept local: save.h needs
+   sly2/basic.h, whose RGBA clashes with this file's RGBA (passed by value to FillScreenRect, so in mangled names). */
+struct SAVEIsland { char pad[0xFD50]; SLOT *currentSlot; };
 struct JOY;
 
 extern "C" {
@@ -123,7 +125,7 @@ extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
-extern GSAVE D_002E65E0;
+extern SAVEIsland D_002E65E0;
 extern JOY D_002DFC00;
 
 int func_00234A60(int n) __asm__("WaitSema");
@@ -170,7 +172,7 @@ int OpenBasFromFileKey(CBinaryAsyncStream *ps, void *px);
 int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
 void UpdateJoy__FP3JOY(JOY *p);
-void UpdateSave__FP4SAVE(GSAVE *g);
+void UpdateSave__FP4SAVE(SAVEIsland *psave);
 uint HandleJoyButtons(JOY *p, uint k);
 void UpdateCd__Fv(void);
 void Close__18CBinaryAsyncStream(CBinaryAsyncStream *ps);
@@ -754,7 +756,7 @@ typedef char X_PrefixSize[sizeof(X)==272?1:-1];
 typedef char K_PrefixSize[sizeof(K)==64?1:-1];
 typedef char STRM_PrefixSize[sizeof(CBinaryAsyncStream)==48?1:-1];
 typedef char MPEG_PrefixSize[sizeof(MPEG)==68?1:-1];
-typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,pendingSlot)==64848?1:-1];
+typedef char G_xFD50_Offset[FIELD_OFFSET(SAVEIsland,currentSlot)==64848?1:-1];
 // Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish.
 void Execute__5CMpegPv(CMPEG *player, K *k)
 {
@@ -769,7 +771,7 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
             int f;
             MarkClockTick(&D_002DDED0, 1);
             UpdateJoy__FP3JOY(&D_002DFC00);
-            if (!D_002E65E0.pendingSlot) UpdateSave__FP4SAVE(&D_002E65E0);
+            if (!D_002E65E0.currentSlot) UpdateSave__FP4SAVE(&D_002E65E0);
             f = 0;
             if (FMatch(k, (K *)D_002A3968) || FMatch(k, (K *)D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;

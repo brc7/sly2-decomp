@@ -37,6 +37,20 @@ struct FILEREC
       uint aw[16];   /* the record words */
 };
 
+/* TRANS: a level-transition request (SW::transition; also the wipe's stored request, wipe.cpp): flags, the level to
+   load and the warp to start at. Moved from wipe.cpp; field comments from sw.h's former SW fields. */
+struct TRANS
+{
+      int flags;                /* +0x0 [S] request flags (0x80 return-to-hideout, 2 TRANS_SAME_LEVEL; 0xCD bits -> no resume
+                                   timer) (slygame SW_REQ_FLAGS, from code); int, not uint: game.cpp RestoreTasksAfterLoad clears
+                                   bit 3 with a sign-extended ~8 */
+      FILEREC destinationLevel; /* +0x4 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == SW::currentLevel after load */
+      int oidWarpDest;          /* +0x44 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
+                                   specific warps) */
+      int oidWarpContext;       /* +0x48 [S] requested warp context oid (-1) */
+};
+typedef char assert_TRANS_size[sizeof(TRANS) == 0x4C ? 1 : -1];
+
 /* SVENT: a save-schema entry (10 bytes): a trie node over the key's symbol ids. kind -1 is an inner node; leaves give
    the slot's type (0..2, 9, 10 int; 3 float; 4 bool, bit-packed when fIndexed; 5 vector, 6 clq: 16 bytes; 7 lm; 8 smp),
    the offset in the save blob (GS), and whether one more key element indexes an array (fIndexed). Moved from save.cpp. */
@@ -133,12 +147,12 @@ struct SW : public BASIC
       uint32_t   _pad_185    [ 1 ] ;
       qword cameraBusyPosition; /* camera position of the last full busy pass (busy.cpp UpdateSwBusyList) */
       qword heroBusyPosition; /* hero position of that pass */
-      void *unknown39D0;
+      void *unknown39D0;    /* +0x39D0 load-time buffer (LoadSwFromBrx); PostSwLoad clears it */
       int unknown39D4;
-      void *unknown39D8;
+      void *unknown39D8;    /* +0x39D8 load-time buffer (LoadSwFromBrx); PostSwLoad clears it */
       int unknown39DC;
       LO **aploNew;   /* objects created during the current load */
-      LO **pploNew;   /* next free entry of aploNew */
+      LO **pploNew;   /* next free entry of aploNew (PostSwLoad runs PostLoad on aploNew..pploNew until it stays empty) */
       SPLCS *psplcs;   /* Splice call sites (inferred) */
       SPLCS *psplcsHead;
       SL slEvent;           /* +0x39F0 [S] the deferred Splice callbacks, sorted by time (basic.cpp ScheduleSwSpliceCallback: its dlCallback) */
@@ -151,7 +165,7 @@ struct SW : public BASIC
       LO *currentJob;       /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
       LO *currentTask;      /* +0x3B10 [R] current TASK (CID 0x85) */
       LO *pendingTask;      /* +0x3B14 [R] pending TASK */
-      LO *ploJobFailed;   /* the job that failed last */
+      LO *ploJobFailed;   /* +0x3B18 the job that failed last (game.cpp FailJob); DeleteSw aborts and clears it */
       SVPATH *psvpDt;   /* save var: total play time (inferred) */
       SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
       SVPATH *psvpWidCurrent;   /* save var: current world id */
@@ -178,14 +192,9 @@ struct SW : public BASIC
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
                                    (request already consumed); was fUnk3bf0 */
-      int grfTransition;        /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
-                                   timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4; int, not uint: game.cpp RestoreTasksAfterLoad
-                                   clears bit 3 with a sign-extended ~8 */
-      FILEREC destinationLevel; /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == currentLevel after load */
-      int oidWarpDest;          /* +0x3C38 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
-                                   specific warps); was nUnk3c38 */
-      int oidWarpContext;       /* +0x3C3C [S] requested warp context oid (-1); was nUnk3c3c */
-      FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to destinationLevel in every state); was _pad_235[16] */
+      TRANS transition;         /* +0x3BF4 [R+S] the request (SetSwTransition copies it in whole, ExecuteSwTransition copies it
+                                   out whole); its flags were grfTransition, destinationLevel/oidWarpDest/oidWarpContext SW fields */
+      FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to transition.destinationLevel in every state); was _pad_235[16] */
       int loadFilter;    /* filter applied to objects while loading (inferred) */
       struct EXIT *pexitTaken; /* +0x3C84 [S] the exit being taken (exit_warp.cpp SetExitExits, game.cpp FailJob); was unknown3C84 */
       int returnWarpOid;
@@ -225,12 +234,13 @@ struct SW : public BASIC
       RGBA rgbaClear;   /* frame clear colour */
       uint32_t   _pad_272    [ 3 ] ;
       VECTOR4 hsvLight;   /* global light colour (hue, saturation, value) */
-      float lightScale;    /* global light intensity scale */
-      float midtone;    /* midtone level */
-      VECTOR vecLightRgb;   /* global light colour (RGB) */
-      float midtoneBlend; /* midtone blend, 0..1 */
+      float midtone;        /* +0x3E20 illumination midtone level, 0..255 (default 90; SetSwIllum); was lightScale */
+      float shadow;         /* +0x3E24 illumination shadow level, 0..255 (SetSwIllumShadow); was midtone */
+      VECTOR vecLightRgb;   /* +0x3E28 ambient light colour (RGB): hsvLight scaled by the midtone, colour corrected (UpdateSwIllum) */
+      float shadowScale;    /* +0x3E34 shadow / 255, clamped when unknown3E38 is set (UpdateSwIllum); was midtoneBlend */
       int unknown3E38;      /* +0x3E38 [S] draw.cpp calls it the stereo flag (it doubles the render passes; cm.cpp, shd.cpp,
-                               frm.cpp test it too); SW_ctor sets it to 1 */
+                               frm.cpp test it too; shd.cpp reads it as colour correction on; UpdateSwIllum clamps
+                               shadowScale when set); SW_ctor sets it to 1 */
       int fForceClear;      /* +0x3E3C [S] clear the frame even when the render list is not empty (draw.cpp); was _pad_279 */
       int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
@@ -331,7 +341,9 @@ struct SW : public BASIC
       float tLookLast;   /* time of the last look-around (inferred) */
       float unknown4754;    /* +0x4754 [S] a game time like tLookLast: both start at -60 (SW_ctor) and RenderWaypt fades the
                                waypoints in from the later of the two (waypoint.cpp); was _pad_352 */
-      float unknown4758;    /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
+      float guardAlertResumeTime; /* +0x4758 [S] game time before which guards in combat emit no alert stimulus (guardbhv.cpp
+                               UpdateBhvcombat); gadget 0x17 sets it to now + D_002BCC94 after removing the player's noises
+                               (stepplayer.cpp); was unknown4758 */
       float unknown475C;
       int iclueNext;        /* +0x4760 [S] index the next loading clue bottle takes (prize.cpp CLUEPROXY::PostLoad); was _pad_354 */
       int numCluesCollected; /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
@@ -362,8 +374,9 @@ typedef char assert_SW_ahudstack[SLY2_OFFSETOF(SW, ahudstack) == 0x3BA0 ? 1 : -1
 typedef char assert_SW_currentJob[SLY2_OFFSETOF(SW, currentJob) == 0x3B0C ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_psvpCcoin[SLY2_OFFSETOF(SW, psvpCcoin) == 0x3B20 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_SW_isTransitionPending[SLY2_OFFSETOF(SW, isTransitionPending) == 0x3BF0 ? 1 : -1]; /* CONFIRMED runtime + code */
-typedef char assert_SW_destinationLevel[SLY2_OFFSETOF(SW, destinationLevel) == 0x3BF8 ? 1 : -1]; /* CONFIRMED runtime + code */
-typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_transition[SLY2_OFFSETOF(SW, transition) == 0x3BF4 ? 1 : -1];
+typedef char assert_SW_destinationLevel[SLY2_OFFSETOF(SW, transition.destinationLevel) == 0x3BF8 ? 1 : -1]; /* CONFIRMED runtime + code */
+typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, transition.oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
 typedef char assert_SW_currentLevel[SLY2_OFFSETOF(SW, currentLevel) == 0x3C40 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_frameCounter[SLY2_OFFSETOF(SW, frameCounter) == 0x3D60 ? 1 : -1];   /* CONFIRMED runtime (frame counter) */
 typedef char assert_SW_handsOffCount[SLY2_OFFSETOF(SW, handsOffCount) == 0x3D78 ? 1 : -1]; /* CONFIRMED runtime */
@@ -405,7 +418,7 @@ typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 
 typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
 typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
 typedef char assert_SW_bootyProxySource[SLY2_OFFSETOF(SW, bootyProxySource) == 0x4638 ? 1 : -1];
-typedef char assert_SW_unknown4758[SLY2_OFFSETOF(SW, unknown4758) == 0x4758 ? 1 : -1];
+typedef char assert_SW_guardAlertResumeTime[SLY2_OFFSETOF(SW, guardAlertResumeTime) == 0x4758 ? 1 : -1];
 typedef char assert_SW_iclueNext[SLY2_OFFSETOF(SW, iclueNext) == 0x4760 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 

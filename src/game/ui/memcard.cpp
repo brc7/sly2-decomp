@@ -377,9 +377,6 @@ void InitMemcard(MEMCARD *worker)
 }
 
 namespace M_MemcardThreadMain { extern "C" {
-struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct S { int sema; int tid; struct PMF pmf; int jobResult; };   /* MEMCARD */
-extern char D_002E65E0[];
 extern int D_004425D8[];
 void func_00234A60(int) __asm__("WaitSema");
 void func_00234A40(int) __asm__("SignalSema");
@@ -387,11 +384,11 @@ void ExitDeleteThread(void);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 // Body of the memory card worker thread: waits on the semaphore, runs the queued SAVE member-function job on g_save,
 // clears it, signals and exits.
-void MemcardThreadMain(struct S *worker)
+void MemcardThreadMain(MEMCARD *worker)
 {
     func_00234A60(worker->sema);
-    worker->jobResult = worker->pmf.pfn(D_002E65E0 + worker->pmf.delta);
-    func_002333B4(&worker->pmf, 0, sizeof(worker->pmf));
+    worker->jobResult = worker->job.pfn((char *)&g_save + worker->job.delta);
+    func_002333B4(&worker->job, 0, sizeof(worker->job));
     worker->tid = -1;
     D_004425D8[0] = -1;
     func_00234A40(worker->sema);
@@ -401,24 +398,21 @@ void MemcardThreadMain(struct S *worker)
 extern SAVE D_002E65E0;
 
 namespace M_CreateMemcardThread { extern "C" {
-struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct S { int sema; int tid; struct PMF pmf; int jobResult; };   /* MEMCARD */
 struct ThreadParam { int attr; void *entry; void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned int attr2; int option; int waitType; int waitId; int wakeupCount; };
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern char D_002E2080[];
 extern int D_004425D8[];
-void MemcardThreadMain(struct S *worker);
-void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *worker);
+void MemcardThreadMain(MEMCARD *worker);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 int func_00234820(struct ThreadParam *tp);
 void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 // Queues a job (a pointer to a SAVE member function) for the worker thread and starts the thread, after waiting for
 // the previous job.
-void CreateMemcardThread(struct S *worker, struct PMF pmf)
+void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
 {
     struct ThreadParam tp;
-    SetMemcardThreadHighPrio__FP7MEMCARD(worker);
-    worker->pmf = pmf;
+    SetMemcardThreadHighPrio(worker);
+    worker->job = pmf;
     worker->jobResult = MC_RESULT_OK;
     func_002333B4(&tp, 0, sizeof(tp));
     tp.entry = MemcardThreadMain;
@@ -471,28 +465,17 @@ int McSyncResult(void *worker, void *syncState, void *operationKind, int *errorO
 } } // namespace M_McSyncResult
 
 namespace M_InitSave__FP4SAVEii {
-struct SAVE {
-    int port;
-    int slot;
-    int state;
-    int nextState;
-    float tStateChanged;
-    float tNextPoll;
-    int cardType;
-    int freeClusters;
-    int isFormatted;
-};
 extern "C" void sceMcInit(void);
 extern "C" void InitMemcard__FP7MEMCARD(void *);
 // Initializes the save manager: sceMcInit, the worker (MEMCARD) and the SAVE header.
 extern "C" void InitSave__FP4SAVEii(SAVE *saveManager, int port, int slot)
 {
     sceMcInit();
-    InitMemcard__FP7MEMCARD((char *)saveManager + SAVE_MEMCARD_OFFSET);
+    InitMemcard__FP7MEMCARD(&saveManager->memcard);
     saveManager->port = port;
     saveManager->slot = slot;
-    saveManager->state = -1;
-    saveManager->nextState = 0;
+    saveManager->nState = -1;
+    saveManager->nStateNext = 0;
     saveManager->tStateChanged = saveManager->tNextPoll = 0.0f;
     saveManager->cardType = 0;
     saveManager->freeClusters = 0;
@@ -507,23 +490,20 @@ void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThre
 
 namespace M_UpdateSave__FP4SAVE { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
-struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct H { char pad[0x44]; int phase; };   /* the memcard dialog */
-struct S { int port, slot; int state; int nextState; float tStateChanged; float tNextPoll; char pad[0xFD5C - 0x18]; char memcard[1]; };
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
 int IsSwTransitionBusy(void *g);
 int IsMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *t, long pmf);
-void ReloadSaveSlots(struct S *saveManager);
-void SetSaveState(struct S *s, int);
+void ReloadSaveSlots(SAVE *saveManager);
 int IsMpegActive(void *p);
 int IsPauseMenuOnLoadPageB(void *p);
 void SetMcDialogState(struct H *h, int n);
 // Per-frame save state machine: skipped during transitions or while the worker is busy; polls the card (McJobGetInfo)
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
-void UpdateSave__FP4SAVE(struct S *saveManager)
+void UpdateSave__FP4SAVE(SAVE *saveManager)
 {
     if (IsSwTransitionBusy(D_003DD490))
         return;
@@ -531,17 +511,17 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
         return;
     if (D_002E6550.phase == 3)
         return;
-    if (IsMemcardThreadValid__FP7MEMCARD(saveManager->memcard))
+    if (IsMemcardThreadValid__FP7MEMCARD(&saveManager->memcard))
         return;
-    if (saveManager->state == saveManager->nextState) {
+    if (saveManager->nState == saveManager->nStateNext) {
         if (saveManager->tNextPoll <= g_clock.realTime)
-            CreateMemcardThreadJob(saveManager->memcard, &MCJOB::GetInfo);
+            CreateMemcardThreadJob(&saveManager->memcard, &MCJOB::GetInfo);
         else
             ReloadSaveSlots(saveManager);
     } else {
-        SetSaveState(saveManager, saveManager->nextState);
+        SetSaveState(saveManager, saveManager->nStateNext);
     }
-    if (IsMemcardThreadValid__FP7MEMCARD(saveManager->memcard))
+    if (IsMemcardThreadValid__FP7MEMCARD(&saveManager->memcard))
         return;
     if (IsMpegActive(D_002F66B0))
         return;
@@ -549,11 +529,11 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
         return;
     if (0.3f <= g_clock.realTime - saveManager->tStateChanged) {
     if (IsPauseMenuOnLoadPageB(D_003D9ED0)) {
-        if (saveManager->state != 6)
+        if (saveManager->nState != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
         return;
     }
-    switch (saveManager->state) {
+    switch (saveManager->nState) {
     case 1:
         SetMcDialogState(&D_002E6550, 0x11);
         break;
@@ -750,26 +730,24 @@ void *CreateSaveDir(void *saveManager)
 } } // namespace M_CreateSaveDir
 
 namespace M_McJobCreateSave { extern "C" {
-struct B { char data[0x5464]; };   /* a save slot */
-struct S { int port; int slot; int state; int nextState; int tStateChanged, tNextPoll, cardType; int freeClusters; int isFormatted; struct B slots[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char memcard[1]; };
 extern char D_002A38E8[], D_002E6550[];
 int sceMcGetEntSpace(int a, int b, char *c);
 int McSyncResult(void *p, int a, int b, int *c);
 int GetDiscFileEntrySize(void *p);
-int CreateSaveDir(struct S *s);
-int WriteSaveSlotFileReset(struct S *s, struct B *b);
-void BuildSaveFilePath(struct S *s, struct B *b, char *path);
-void McDelete(struct S *s, char *path);
+int CreateSaveDir(SAVE *s);
+int WriteSaveSlotFileReset(SAVE *s, SAVESLOT *b);
+void BuildSaveFilePath(SAVE *s, SAVESLOT *b, char *path);
+void McDelete(SAVE *s, char *path);
 void SetMcDialogPhase(void *p, int n);
 // Worker job: checks the free space, deletes a stale save, creates the directory and writes the slot files.
-int McJobCreateSave(struct S *saveManager)
+int McJobCreateSave(SAVE *saveManager)
 {
     char path[0x50];
     int entrySpace;
     int clustersNeeded;
     int r;
     int i;
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     clustersNeeded = 1;
     r = McSyncResult(worker, sceMcGetEntSpace(saveManager->port, saveManager->slot, "/"), 0x12, &entrySpace);
     if (r == 0) {
@@ -784,17 +762,17 @@ int McJobCreateSave(struct S *saveManager)
             r = CreateSaveDir(saveManager);
             if (r == 0) {
                 for (i = 0; i < 3; i++) {
-                    r = WriteSaveSlotFileReset(saveManager, &saveManager->slots[i]);
+                    r = WriteSaveSlotFileReset(saveManager, &saveManager->aslot[i]);
                     if (r)
                         goto cleanup;
                 }
-                if (saveManager->nextState < 5)
-                    saveManager->nextState = 5;
+                if (saveManager->nStateNext < 5)
+                    saveManager->nStateNext = 5;
                 goto done;
             }
 cleanup:
             for (i = 0; i < 3; i++) {
-                BuildSaveFilePath(saveManager, &saveManager->slots[i], path);
+                BuildSaveFilePath(saveManager, &saveManager->aslot[i], path);
                 McDelete(saveManager, path);
             }
             McDelete(saveManager, "/BASCUS-97316YAOTWTD!/icon.sys");
@@ -811,16 +789,14 @@ done:
 } } // namespace M_McJobCreateSave
 
 namespace M_McJobGetDir { extern "C" {
-struct B { char data[0x5464]; };
-struct S { int port; int slot; int state; int nextState; int pad[5]; struct B slots[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char memcard[1]; };
 int sceMcGetDir(int a, int b, char *c, int d, int e, int f);
 int McSyncResult(void *p, int a, int b, int *c);
-int McGetInfoSync(struct S *s, int *out);
-int ReadSaveSlotHeaders(struct S *s, struct B *b);
+int McGetInfoSync(SAVE *s, int *out);
+int ReadSaveSlotHeaders(SAVE *s, SAVESLOT *b);
 // Worker job: reads the card info and the save directory, then each slot's header.
-int McJobGetDir(struct S *saveManager)
+int McJobGetDir(SAVE *saveManager)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int numEntries_freeSpace[2];   /* [0]: directory entries found; [1]: free space (McGetInfoSync) */
     int r;
     int i;
@@ -828,25 +804,23 @@ int McJobGetDir(struct S *saveManager)
     if (numEntries_freeSpace[0] <= 0) {
         McGetInfoSync(saveManager, &numEntries_freeSpace[1]);
         if (numEntries_freeSpace[1] <= 0x18FFF)
-            saveManager->nextState = 4;
+            saveManager->nStateNext = 4;
         return 0xE;
     }
     for (i = 0; r == 0 && i < 3; i++)
-        ReadSaveSlotHeaders(saveManager, &saveManager->slots[i]);
-    if (r == 0 && saveManager->nextState < 5)
-        saveManager->nextState = 5;
+        ReadSaveSlotHeaders(saveManager, &saveManager->aslot[i]);
+    if (r == 0 && saveManager->nStateNext < 5)
+        saveManager->nStateNext = 5;
     return r;
 }
 } } // namespace M_McJobGetDir
 
 namespace M_BuildSaveFilePath { extern "C" {
-struct SAVE { char ab[0x5464]; };
-struct M { char pad[0x24]; struct SAVE slots[4]; };
 int sprintf(char *buf, char *fmt, ...);
 // Builds a slot's file path: "/BASCUS-97316YAOTWTD!/save<i>".
-void BuildSaveFilePath(struct M *saveManager, struct SAVE *slot, char *buf)
+void BuildSaveFilePath(SAVE *saveManager, SAVESLOT *slot, char *buf)
 {
-    sprintf(buf, "/%s/%s%d", "BASCUS-97316YAOTWTD!", "save", slot - saveManager->slots + 1);
+    sprintf(buf, "/%s/%s%d", "BASCUS-97316YAOTWTD!", "save", slot - saveManager->aslot + 1);
 }
 } } // namespace M_BuildSaveFilePath
 
@@ -983,7 +957,7 @@ int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
 
 // Reads a card directory listing (sceMcGetDir) into an array of records (FillMcDirInfo).
-int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
+int ReadMcDir(SAVE *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
 {
     int continueListing;   /* sceMcGetDir mode: 0 new listing, 1 continue the previous one */
     int r;
@@ -1000,7 +974,7 @@ int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *n
         path = D_002E6500;
     }
     memset_(D_002E6080, 0, 0x480);
-    r = McSyncResult((char *)saveManager + SAVE_MEMCARD_OFFSET, sceMcGetDir(saveManager[0], saveManager[1], path, continueListing, maxEntries, D_002E6080), 0xD, numRecords);
+    r = McSyncResult(&saveManager->memcard, sceMcGetDir(saveManager->port, saveManager->slot, path, continueListing, maxEntries, D_002E6080), 0xD, numRecords);
     if (r)
         return r;
     for (i = 0; i < *numRecords; i++)
@@ -1300,37 +1274,36 @@ extern "C" int ResetSaveSlot(SAVE *saveManager, SAVESLOT *pslot)
 }
 
 namespace M_McJobGetInfo { extern "C" {
-struct S { int port; int slot; int state; int nextState; int tStateChanged; float tNextPoll; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
 // Worker job: reads the card info (type, free space, formatted) and records it.
-int McJobGetInfo(struct S *saveManager)
+int McJobGetInfo(SAVE *saveManager)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int syncState;
     int r;
     syncState = sceMcGetInfo(saveManager->port, saveManager->slot, &saveManager->cardType, &saveManager->freeClusters, &saveManager->isFormatted);
     r = McSyncResult(worker, syncState, 1, 0);
     switch (r) {
     case 11:
-        saveManager->nextState = 1;
+        saveManager->nStateNext = 1;
         break;
     case 9:
-        saveManager->nextState = 3;
+        saveManager->nStateNext = 3;
         break;
     case 10:
     case 12:
         r = 12;
-        saveManager->nextState = 2;
+        saveManager->nStateNext = 2;
         break;
     case 0:
-        if (saveManager->isFormatted) { if (saveManager->nextState < 3) saveManager->nextState = 3; } else saveManager->nextState = 2;
+        if (saveManager->isFormatted) { if (saveManager->nStateNext < 3) saveManager->nStateNext = 3; } else saveManager->nStateNext = 2;
         break;
     }
     if (r == 0 || r == 12) {
         if (saveManager->cardType != 2) {
             r = 11;
-            saveManager->nextState = 1;
+            saveManager->nStateNext = 1;
         }
     }
     saveManager->tNextPoll = g_clock.realTime + 0.3f;
@@ -1339,13 +1312,12 @@ int McJobGetInfo(struct S *saveManager)
 } } // namespace M_McJobGetInfo
 
 namespace M_func_001AC6A0 { extern "C" {
-struct S { int port; int slot; int pad[4]; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
 // sceMcGetInfo followed by McSyncResult; returns the result.
-int McGetInfoSync(struct S *saveManager, int *freeBytes)
+int McGetInfoSync(SAVE *saveManager, int *freeBytes)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int syncState;
     int r;
     syncState = sceMcGetInfo(saveManager->port, saveManager->slot, &saveManager->cardType, &saveManager->freeClusters, &saveManager->isFormatted);
@@ -1391,22 +1363,20 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 namespace M_McRead { extern "C" {
 int sceMcRead(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
-struct S { char pad[0xFD5C]; char memcard[4]; };
 // sceMcRead and wait for the result.
-void McRead(struct S *saveManager, int fd, int buffer, int size, int numRead)
+void McRead(SAVE *saveManager, int fd, int buffer, int size, int numRead)
 {
-    McSyncResult(saveManager->memcard, sceMcRead(fd, buffer, size), 5, numRead);
+    McSyncResult(&saveManager->memcard, sceMcRead(fd, buffer, size), 5, numRead);
 }
 } } // namespace M_McRead
 
 namespace M_McWrite { extern "C" {
 int sceMcWrite(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
-struct S { char pad[0xFD5C]; char memcard[4]; };
 // sceMcWrite and wait for the result.
-void McWrite(struct S *saveManager, int fd, int buffer, int size, int numWritten)
+void McWrite(SAVE *saveManager, int fd, int buffer, int size, int numWritten)
 {
-    McSyncResult(saveManager->memcard, sceMcWrite(fd, buffer, size), 6, numWritten);
+    McSyncResult(&saveManager->memcard, sceMcWrite(fd, buffer, size), 6, numWritten);
 }
 } } // namespace M_McWrite
 
@@ -1572,7 +1542,6 @@ extern SAVE D_002E65E0;
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
-extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
 int IsSwTransitionBusy(void *g);
 int GetMcDialogButtonKind(struct S *s);
@@ -1638,16 +1607,16 @@ void CMemcardDialog_Update(struct S *dialog)
         ClearMcDialogState(dialog);
         return;
     case 0x13:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
-            CreateMemcardThread(D_002F633C, D_002A6D88.l);
+            CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
             SetMcDialogState(dialog, 0x16);
         } else
             SetMcDialogState(dialog, 0x14);
         return;
     case 0x16:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
@@ -1656,7 +1625,7 @@ void CMemcardDialog_Update(struct S *dialog)
         SetMcDialogState(dialog, 0x17);
         return;
     case 0x1A:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
@@ -1676,7 +1645,7 @@ void CMemcardDialog_Update(struct S *dialog)
             SetMcDialogState(dialog, 0x1D);
         return;
     case 0x21:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         D_002E65E0.selectedSlot = 0;
         if (!D_002E65E0.memcard.jobResult) {
@@ -1769,7 +1738,6 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int state; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;
-extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 void SaveToCurrentSlot(void);
 void CreateMemcardThread(void *t, long pmf);
 void SetMcDialogState(struct S *s, int n);
@@ -1781,15 +1749,15 @@ void ConfirmMcDialog(struct S *dialog)
         SaveToCurrentSlot();
         break;
     case 0x12:
-        CreateMemcardThread(D_002F633C, D_002A6E88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E88.l);
         SetMcDialogState(dialog, 0x13);
         break;
     case 0x15:
-        CreateMemcardThread(D_002F633C, D_002A6D88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
         SetMcDialogState(dialog, 0x16);
         break;
     case 0x20:
-        CreateMemcardThread(D_002F633C, D_002A6E90.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E90.l);
         SetMcDialogState(dialog, 0x21);
         break;
     }

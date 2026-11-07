@@ -6,17 +6,35 @@
 #define SLY2_JOY_H
 #include "sly2/basic.h"
 
-/* JOYRUMBLE: the rumble (vibration) state of a controller: the pattern playing and its timers. */
-struct JOYRUMBLE    /* = RUMBLE in IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp, 0x1C bytes */
+/* RUMINS: one instruction of a rumble pattern: small motor on/off, large motor power, and how long it lasts. */
+struct RUMINS
 {
-      int port;    /* controller port */
-      int slot;    /* multitap slot */
-      RUMS rums;   /* rumble state */
-      RUMPAT *prumpat;   /* rumble pattern playing */
-      int irumins;   /* current instruction of the pattern */
-      float rumbleTimeLeft; /* time left in the rumble */
-      float instructionTimeLeft; /* time left in the current instruction */
+      byte highSpeedMotorOn;    /* small (high speed) motor on/off */
+      byte lowSpeedMotorPower;  /* large (low speed) motor power, 0..255 */
+      float duration;           /* +0x4 seconds */
 };
+
+/* RUMPAT: a rumble pattern: a looped list of instructions (rumble.cpp's D_002C2260 holds the predefined ones, by RUMK). */
+struct RUMPAT
+{
+      int instructionCount;
+      RUMINS instructions[32];
+};
+typedef char assert_RUMPAT_size[sizeof(RUMPAT) == 0x104 ? 1 : -1];
+
+/* RUMBLE: the rumble (vibration) state of a controller (JOY::rumble): the pattern playing and its timers; rumble.cpp
+   steps it with real (unscaled) time. Moved from rumble.cpp. */
+struct RUMBLE
+{
+      int port;                   /* +0x0 controller port */
+      int slot;                   /* +0x4 multitap slot */
+      RUMS state;                 /* +0x8 */
+      RUMPAT *pattern;            /* +0xC the pattern playing */
+      int instructionIndex;       /* +0x10 current instruction of the pattern */
+      float timeLeft;             /* +0x14 seconds of the pattern left to play */
+      float instructionTimeLeft;  /* +0x18 seconds left on the current instruction */
+};
+typedef char assert_RUMBLE_size[sizeof(RUMBLE) == 0x1C ? 1 : -1];
 
 /* JOY: one controller (DualShock 2): the libpad DMA buffer, decoded sticks and buttons, menu auto-repeat and rumble.
    */
@@ -62,7 +80,7 @@ struct JOY
       uint buttonsPressed;  /* +0x10B8 [R] new presses this frame (cheat-code reader uses it) */
       uint grfbtnLatched;   /* +0x10BC [R] handled / masked buttons */
       byte mpbtnpb[12];     /* +0x10C0 [S] pressure bytes */
-      JOYRUMBLE rumble;     /* +0x10CC [S] rumble state */
+      RUMBLE rumble;         /* +0x10CC [S] rumble state */
       int isRumbleEnabled;  /* +0x10E8 [S] vibration is enabled */
       float uDpad;          /* +0x10EC [S] d-pad as an analog value (inferred) */
       undefined4 unknown10F0[4];  /* +0x10F0 [?] up to the next JOY at +0x1100 */

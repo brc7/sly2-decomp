@@ -206,7 +206,7 @@ void PostLoadStepplayer(struct P *player)
         ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
     LoadStepplayerGadgets(player);
-    BindStepplayerHpMp(player, D_003DD490.grfTransition & 4);
+    BindStepplayerHpMp(player, D_003DD490.transition.flags & 4);
     player->x1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->pso->x94 == 0) {
@@ -236,7 +236,6 @@ void PostLoadStepplayer(struct P *player)
 
 namespace M_func_00140338 { extern "C" {
 extern struct CLOCK D_002DDED0;
-extern char D_003DD490[];
 int GetCurrentWorld(void);
 void RestartHudWidget1(void *p);
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
@@ -248,10 +247,10 @@ void AcknowledgeStepplayerHint(void)
 {
     if (!GetCurrentWorld())
         return;
-    RestartHudWidget1(D_003DD490);
-    if (FindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
+    RestartHudWidget1(&g_sw);
+    if (FindSwObjectsByClass(&g_sw, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(&g_sw);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
-    *(float *)(D_003DD490 + 0x4754) = D_002DDED0.time;
+    g_sw.unknown4754 = D_002DDED0.time;
     g_cm.cplook.numActivations++;   /* the look policy's activation count (ActivateCplook/ActivateCpzoom also bump it) */
 }
 } } // namespace M_func_00140338
@@ -684,10 +683,8 @@ struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
-struct GS { char pad[0x4758]; float g4758; };
 struct GG { char pad[0x2010]; void *p2010; };
 extern struct CLOCK D_002DDED0;
-extern struct GS D_003DD490;
 extern struct GG *D_002E1E40;
 extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
@@ -825,7 +822,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                                 RemoveNoise(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
-                        D_003DD490.g4758 = D_002DDED0.time + D_002BCC94;
+                        g_sw.guardAlertResumeTime = D_002DDED0.time + D_002BCC94;
                         break;
                     }
                     }
@@ -1766,13 +1763,11 @@ struct P {
     LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;
     M3 m1150;
 };
-struct GS { char pad[0x4678]; int c4678; char pad1[0x4690 - 0x467C]; S *ps4690; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern int D_002DD640;
 extern float D_002A4D68;
 extern qword D_002A2DA0;
-extern GS D_003DD490;
 void ScheduleIdleTimer(P *p);
 void SetStepplayerLeanTarget(P *p, int n, S *ps);
 void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
@@ -1864,9 +1859,9 @@ void PickHeroInteractTarget(P *p)
                     nBest = psBest->nF4;
                 }
             }
-            if (D_003DD490.c4678 > 0 && nBest < 3) {
-                __asm__("" : : : "$4"); /* clobber of dead a0 (Claude agent): target keeps &D_003DD490 in a1 */
-                ps = D_003DD490.ps4690;
+            if (g_sw.cjtgrabcand > 0 && nBest < 3) {
+                __asm__("" : : : "$4"); /* clobber of dead a0 (Claude agent): target keeps &g_sw in a1 */
+                ps = (S *)g_sw.ajtgrabcand[0].unknown10;
                 if (ps) {
                     float g3, g4;
                     GetHeroInteractDistance(p, ps, &p->leanTarget, &g3, &g4);
@@ -2156,7 +2151,6 @@ struct BL { int c; void *pv; };
 struct G;
 extern "C" {
 extern G D_003D4A60;
-extern char D_003DD490[];
 extern char D_002A4DB0[], D_002A4D50[], D_002A4DC0[], D_002A4DC8[];
 void *FindBootySaveVar(void *p);
 int GetCurrentBootyEntryId(void *p);
@@ -2233,7 +2227,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
                 SO *apso[15];
-                int c = FindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
+                int c = FindSwObjectsByClass(&g_sw, 5, 0x25, 0, 0xF, apso);
                 for (int j = 0; j < c; j++) {
                     if (apso[j]->x180 == ps->pk->xC) {
                         lo->booty->p15C = apso[j];
@@ -2306,7 +2300,7 @@ void RestoreStepplayerBooty(struct O *player)
     n = r.u.n;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
-    if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(player, n);
+    if (g_sw.transition.flags & 0x40) ClearStepplayerBootySave(player, n);
     else SpawnStepplayerBootyMarker(player, n);
 }
 } } // namespace M_func_00143BD8
@@ -2407,7 +2401,6 @@ void SetStepplayerRide(STEPPLAYER *player, RELAYJSGIsland *lo)
 } } // namespace M_func_00143DE8
 
 namespace M_func_00143EE0 { extern "C" {
-extern char D_003DD490[];
 void StopStepplayerScriptAnim(STEPPLAYER *p);
 void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, STEPPLAYER *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
@@ -2423,7 +2416,7 @@ void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
         StopStepplayerScriptAnim(player);
         return;
     }
-    o = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
+    o = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 1, oid, player);
     if (!o) return;
     if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
         player->SetPlayerState(b);
