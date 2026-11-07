@@ -82,9 +82,13 @@ struct STEP : public PO
       float unknown220;
       undefined4 unknown224[3];
       qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
-      qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets
-                              (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
-                              in the step's frame); was unknown230's "possibly parentOffset" */
+      union
+      {
+            qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets
+                                    (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
+                                    in the step's frame); was unknown230's "possibly parentOffset" */
+            VECTOR vecPivotOffset;   /* the same, by component (LaunchStepplayer and WillStepplayerLand read z) */
+      };
       undefined4 unknown250[2];
       SOPART *psopartBody;   /* +0x258 the body part: its points follow the phys part (step.cpp SetStepPhys/UpdateStepPhys); its
                                 world mesh vertices are the hero's outline (tu_14A008 UpdateBhvRouteChase) */

@@ -1026,38 +1026,28 @@ extern "C" void RemoveStepplayerHierarchy(STEPPLAYER *player)
 }
 
 namespace M_func_00141968 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } UQ;
-struct VTE { short d; short pad; void (*pfn)(void *, qword); };
-struct E8 { char pad[0x80]; qword q; };
-struct P {
-    char pad0[0xC]; struct VTE *vt; char pad1[0xE8 - 0x10]; struct E8 *pE8;
-    char pad2[0x248 - 0xEC]; float dz; char pad3[0x2E8 - 0x24C]; int f2E8; int f2EC; char pad4[0x2F4 - 0x2F0];
-    float g2F4; char pad5[0x300 - 0x2F8]; int k300; char pad6[0x360 - 0x304]; UQ v360;
-    char pad7[0xDF4 - 0x370]; int xDF4;
-};
-qword GetLoWorldPos(struct P *p);
+qword GetLoWorldPos(STEPPLAYER *p);
 qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c);
-void SetJtAirJump(void *p, int a, int b, int c);
+void SetJtAirJump(JTAIR *p, int a, int b, int c);
 // Splice: computes the ballistic velocity from the player's position toward a target and applies it.
-void LaunchStepplayer(struct P *player, qword v, float g, float h)
+void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
 {
-    UQ pos;
-    UQ r;
+    union { qword q; float f[4]; } pos;
+    union { qword q; float f[4]; } r;
     pos.q = GetLoWorldPos(player);
-    pos.f[2] += player->dz;
-    r.q = CalculateBallisticLaunchVelocity(pos.q, v, g, player->pE8->q);
-    player->vt[35].pfn((char *)player + player->vt[35].d, r.q);
-    if (player->xDF4 != -1)
+    pos.f[2] += player->vecPivotOffset.z;
+    r.q = CalculateBallisticLaunchVelocity(pos.q, v, g, *(qword *)&player->physics->gravity);
+    player->SetVelocity(r.q);
+    if (player->jthurt.state != -1)
         return;
-    SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
-    player->k300 = 3;
-    player->v360.q = r.q;
-    player->v360.f[2] = 0.0f;
-    player->g2F4 = h;
-    if (h == player->v360.f[2]) {
-        player->f2E8 = 0;
-        player->f2EC = 0;
+    SetJtAirJump(&player->jtair, 8, 0, 0);
+    player->jtair.unknown40 = 3;
+    player->jtair.unknownA0 = r.q;
+    player->jtair.vecUnknownA0.z = 0.0f;
+    player->jtair.unknown34 = h;
+    if (h == player->jtair.vecUnknownA0.z) {
+        player->jtair.canDoubleJump = 0;
+        player->jtair.unknown2C = 0;
     }
 }
 } } // namespace M_func_00141968
@@ -1355,27 +1345,16 @@ void StartStepplayerThrowAt(STEPPLAYER *player, LO *a, void *b)
 } } // namespace M_func_00142278
 
 namespace M_func_00142310 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct S8 { float a, b; };
-struct X {
-    char pad[0x11C4];
-    float f11C4, f11C8;
-    struct S8 s11CC;
-    float f11D4, f11D8;
-    qword q11E0;
-    char pad2[0x1280 - 0x11F0];
-    qword q1280;
-};
 // Splice: stores the throw parameters (four floats, a range and two vectors) in the throw controller.
-void SetStepplayerThrowParams(struct X *player, struct S8 *ps, qword q1, qword q2, float a, float b, float c, float d)
+void SetStepplayerThrowParams(STEPPLAYER *player, LM *ps, qword q1, qword q2, float a, float b, float c, float d)
 {
-    player->f11C4 = a;
-    player->f11C8 = b;
-    player->s11CC = *ps;
-    player->f11D4 = c;
-    player->f11D8 = d;
-    player->q1280 = q1;
-    player->q11E0 = q2;
+    player->jtthrow.holdTurnAngle = a;
+    player->jtthrow.aimTurnAngle = b;
+    player->jtthrow.lmAim = *ps;
+    player->jtthrow.tPredict = c;
+    player->jtthrow.aimSpeed = d;
+    player->jtthrow.qwPosLaunchLocal = q1;
+    player->jtthrow.qwWLaunchLocal = q2;
 }
 } } // namespace M_func_00142310
 
@@ -2398,20 +2377,15 @@ extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
 }
 
 namespace M_func_00143D20 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct SO;
-typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
-struct G { char pad[0x88]; float g; };
-struct SO { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
-qword GetLoWorldPos(struct SO *p);
+qword GetLoWorldPos(STEPPLAYER *p);
 int SnapToGround(qword *ppos, int a, int b, float f, float g);
 // Predicts the height after dt under gravity; if at or below the ground, tests for ground at that point.
-int WillStepplayerLand(struct SO *so, float dt)
+int WillStepplayerLand(STEPPLAYER *so, float dt)
 {
     union { qword q; float f[4]; } pos;
-    float h = so->z;
-    h += dt * QwordZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
-    h += 0.5f * dt * dt * so->pg->g;
+    float h = so->vecPivotOffset.z;
+    h += dt * QwordZ(so->GetVelocity());
+    h += 0.5f * dt * dt * so->physics->gravity.z;
     if (h > 0.0f)
         return 0;
     pos.q = GetLoWorldPos(so);

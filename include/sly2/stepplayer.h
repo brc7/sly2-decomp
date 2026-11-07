@@ -318,7 +318,11 @@ struct JTAIR
       float unknown48;
       float unknown4C;
       undefined4 unk_0x050[(0xa0 - 0x50) / 4];
-      qword unknownA0;
+      union
+      {
+            qword unknownA0;   /* horizontal launch velocity (LaunchStepplayer: z cleared) */
+            VECTOR vecUnknownA0;
+      };
       float smashAngle; /* smash attack angle */
       float unknownB4;
       float smashDistance; /* smash distance */
