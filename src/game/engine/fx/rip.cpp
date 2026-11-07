@@ -496,7 +496,6 @@ struct R *NewRipInGroup(SW *p, void *a, struct Q *q)
 } } // namespace M_NewRipInGroup
 
 namespace M_InitRip { extern "C" {
-extern float D_002DDED0;   /* g_clock.time as a bare float: reading g_clock.time schedules the stores differently (10/23 off) */
 extern qword D_002C1F50;
 extern RIPM3 D_002A2D00;
 } } // namespace M_InitRip
@@ -504,9 +503,10 @@ extern RIPM3 D_002A2D00;
 // positions at `pos`, identity orientation.
 void RIP::Init(qword pos, float scale, SO *psoTouch)   /* key function: RIP's vtable comes out here */
 {
-    /*B*/touchObject = psoTouch;
+    /*B*/float t = g_clock.time;
+    touchObject = psoTouch;
     duration = 1.0f;
-    startTime = M_InitRip::D_002DDED0;
+    startTime = t;
     scaleStart = scale;
     alpha = M_InitRip::D_002C1F50;
     previousPosition = pos;
