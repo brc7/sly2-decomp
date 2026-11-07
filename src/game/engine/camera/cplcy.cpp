@@ -122,14 +122,14 @@ extern "C" void UpdateCmpart1(CMPART1 *pcmpart1, void *pv, JOY *pjoy)
     UpdateCplcy(pcmpart1, pv, pjoy);
 }
 
-// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndZoomStop = 0.
+// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/zoomStopSound = 0.
 extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
 {
     CPLCY_ctor(pcplook);
     PVTCPLCY(pcplook) = D_002CD4E0;
     pcplook->rZoomMax = 7.0f;
     pcplook->psndZoom.m_p = 0;
-    pcplook->psndZoomStop.m_p = 0;
+    pcplook->zoomStopSound.m_p = 0;
     return pcplook;
 }
 
@@ -228,7 +228,7 @@ void ActivateCplook(CPLOOK *p)
     {
         void *pv2 = CreateSfxSound(0x25);
         SetSndSourceLo(pv2, 0);
-        RcPtr_Assign(&p->psndZoomStop, pv2);
+        RcPtr_Assign(&p->zoomStopSound, pv2);
     }
     PauseSnd(p->psndZoom.m_p);
     pcm = &g_cm;
@@ -359,11 +359,11 @@ void UpdateCplook(CPLOOK *p, void *pv, struct JOY *pjoy)
 } } // namespace M_UpdateCplook
 
 // ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references psndZoomStop and psndZoom. (inferred)
+// sound references zoomStopSound and psndZoom. (inferred)
 void CPLOOK::ResetPolicy()   /* key function */
 {
     CPLOOK *pcplook = this;
-    RcPtr_Assign(&pcplook->psndZoomStop, 0);
+    RcPtr_Assign(&pcplook->zoomStopSound, 0);
     RcPtr_Assign(&pcplook->psndZoom, 0);
 }
 
@@ -384,7 +384,7 @@ static inline void Release(CRefPtr<SND> *pp, float g)
 void DeactivateCplook(CPLOOK *a, int n, void *b)
 {
     Release(&a->psndZoom, 0.0f);
-    Release(&a->psndZoomStop, 0.5f);
+    Release(&a->zoomStopSound, 0.5f);
     if (IsBasicDerivedFrom__FP5BASIC3CID(a->pvHero, 0x34))
         SetCmCut(&g_cm, a->panAngle + 3.1415927f, -a->tiltAngle);
     else
@@ -401,7 +401,7 @@ extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
     pcpzoom->rZoomMax = 7.0f;
     pcpzoom->zoomTarget = -1.0f;
     pcpzoom->psndZoom.m_p = 0;
-    pcpzoom->psndZoomStop.m_p = 0;
+    pcpzoom->zoomStopSound.m_p = 0;
     return pcpzoom;
 }
 
@@ -510,7 +510,7 @@ void ActivateCpzoom(CPZOOM *a, int n)
     RcPtr_Assign(&a->psndZoom, p);
     p = CreateSfxSound(0x25);
     SetSndSourceLo(p, 0);
-    RcPtr_Assign(&a->psndZoomStop, p);
+    RcPtr_Assign(&a->zoomStopSound, p);
     PauseSnd(a->psndZoom.m_p);
     __asm__ __volatile__("" : : : "$6"); /* a2 is dead here: delays the a2 setup like the original */
     pg = &g_cm;
@@ -629,11 +629,11 @@ void UpdateCpzoom(CPZOOM *p)
 } } // namespace M_UpdateCpzoom
 
 // ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references psndZoomStop (+0xC4) and psndZoom (+0xC0). (inferred)
+// sound references zoomStopSound (+0xC4) and psndZoom (+0xC0). (inferred)
 void CPZOOM::ResetPolicy()   /* key function */
 {
     CPZOOM *pcpzoom = this;
-    RcPtr_Assign(&pcpzoom->psndZoomStop, 0);
+    RcPtr_Assign(&pcpzoom->zoomStopSound, 0);
     RcPtr_Assign(&pcpzoom->psndZoom, 0);
 }
 
@@ -757,7 +757,7 @@ static inline void Release(CRefPtr<SND> *pp, float g)
 void DeactivateCpzoom(CPZOOM *a, int n, void *b)
 {
     Release(&a->psndZoom, 0.0f);
-    Release(&a->psndZoomStop, 0.5f);
+    Release(&a->zoomStopSound, 0.5f);
     a->ploOwner = 0;
     a->ploFocus = 0;
     a->hasPose = 0;

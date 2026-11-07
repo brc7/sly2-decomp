@@ -142,7 +142,7 @@ void UpdateCmLast__FP2CM(CM *cm)
     if (cm->nCut) {
         SetCmFov__FP2CMf(cm, cm->targetFieldOfView);
     } else if (cm->targetFieldOfView != cm->fieldOfView) {
-        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->dfov, cm->targetFieldOfView, D_002DDED0.deltaTime, &cm->smpaFov, &cm->dfov);
+        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->dfov, cm->targetFieldOfView, D_002DDED0.deltaTime, &cm->fovSmoothing, &cm->dfov);
         RecalcCmFrustrum(cm);
     }
     cm->nCut = 0;
@@ -197,7 +197,7 @@ extern "C" void InitCm__FP2CM(CM *cm)
     cm->targetFieldOfView = 1.0f;
     cm->fieldOfView = 1.0f;
     *(RGBA *)&cm->rgbaFog = s_rgba;
-    InitSmpa(&cm->smpaFov, 0.5f, 0.1f, 10.0f);
+    InitSmpa(&cm->fovSmoothing, 0.5f, 0.1f, 10.0f);
     float *pm = &cm->mat.mat[0][0];
     func_002333B4(pm, 0, 0x40);
     pm[15] = 1.0f;
@@ -1476,7 +1476,7 @@ namespace M_DestroyCm { extern "C" {
 typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
-   psndZoomStop and CPZOOM::psndZoom / psndZoomStop) */
+   zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
 typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
 void DestroyBasic(S *, int);
 // The CM destructor (an inline, emitted linkonce): releases the policies' four sound references in reverse member
