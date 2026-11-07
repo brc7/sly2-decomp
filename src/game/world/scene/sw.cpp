@@ -556,11 +556,7 @@ struct SAVEDATA
       uint nVersion;
       int nSum;
 };
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 int GetCurrentLevelIndex();
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 union TAG
