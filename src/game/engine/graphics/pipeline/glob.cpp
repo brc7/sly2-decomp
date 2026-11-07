@@ -17,6 +17,7 @@
 #include "sly2/so.h"
 #include "sly2/glob.h"
 #include "sly2/render.h"
+#include "sly2/light.h"
 #include "sly2/cm.h"
 #include "vifs.h"
 #include "gifs.h"
@@ -1031,10 +1032,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX4
-{
-    float mat[4][4];
-} __attribute__((aligned(16)));
 struct VECTOR4
 {
     float x, y, z, w;
@@ -1121,13 +1118,6 @@ struct MODEL
         ulong grf;
         float scale;
     };
-};
-struct SHD
-{
-    uint aw[9];
-    MATRIX4 *pmatClip;
-    uint ibRef;
-    uint cqwRef;
 };
 struct VIEW
 {
@@ -1332,7 +1322,7 @@ static inline int KindOf(SUB *psub)
 }
 // Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader
 // animations, builds/queues VIF packets (0x1681F8/0x1684D0) (inferred)
-extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SHD *pshd)
+extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *pshd)
 {
     SUBDESC *pdesc;
     qword posCam = D_002DDF40.posCam;
@@ -1415,16 +1405,16 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         uchar *pbStart = D_002DEA28.m_pb;
         if (psub->grf & 0x100)
         {
-            *(ulong *)pbStart = (ulong)(int)(pshd->aw[5] | 0x40000000) | ((ulong)(int)pshd->aw[6] << 32);
+            *(ulong *)pbStart = (ulong)(int)(pshd->cqwPacket | 0x40000000) | ((ulong)(int)pshd->pbPacket << 32);
             D_002DEA28.m_pb += 0x10;
         }
         ulong *ptag;
         switch (psub->grf & 7)
         {
         case 2:
-            if (!pshd->cqwRef)
+            if (!pshd->pbVolume)
                 continue;
-            *(ulong *)D_002DEA28.m_pb = (ulong)(int)(pshd->ibRef | 0x40000000) | ((ulong)pshd->cqwRef << 32);
+            *(ulong *)D_002DEA28.m_pb = (ulong)(int)(pshd->cqwVolume | 0x40000000) | ((ulong)(uint)pshd->pbVolume << 32);
             D_002DEA28.m_pb += 0x10;
             ptag = (ulong *)D_002DEA28.m_pb;
             *ptag = 0x10000000;
@@ -1555,10 +1545,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX4
-{
-    float mat[4][4];
-} __attribute__((aligned(16)));
 struct VECTOR4
 {
     float x, y, z, w;
@@ -1577,10 +1563,6 @@ struct OBJ
 {
     char pad[0xC];
     VTENT *pvt;
-};
-struct SHD
-{
-    uint aw[12];
 };
 struct ALO
 {
@@ -1655,7 +1637,7 @@ extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void BuildLightPackets(G *pg, int c, void **apv, SHD *pshd);
+void BuildLightPackets(G *pg, int c, void **apv, SOBOUNDS *pshd);
 int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 int GetRenderTargetTexture(ALO *palo, int n);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
@@ -1735,12 +1717,12 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
 // with its sort distance. (inferred)
 extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 {
-    SHD shd;
+    SOBOUNDS shd;
     MATRIX4 matModel;
-    SHD *pshd;
+    SOBOUNDS *pshd;
     if (palo->cpshd)
     {
-        func_002333B4(&shd, 0, sizeof(SHD));
+        func_002333B4(&shd, 0, sizeof(SOBOUNDS));
         pshd = &shd;
         BuildLightPackets(&D_003DD490, palo->cpshd, palo->apshd, &shd);
     }
@@ -1798,7 +1780,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         uchar *pbStart = D_002DEA28.m_pb;
         if (psub->grf & 0x100)
         {
-            *(ulong *)pbStart = (ulong)(int)(pshd->aw[5] | 0x40000000) | ((ulong)(int)pshd->aw[6] << 32);
+            *(ulong *)pbStart = (ulong)(int)(pshd->cqwPacket | 0x40000000) | ((ulong)(int)pshd->pbPacket << 32);
             D_002DEA28.m_pb += 0x10;
         }
         ulong *ptag = (ulong *)D_002DEA28.m_pb;
