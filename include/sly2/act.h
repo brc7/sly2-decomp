@@ -20,7 +20,9 @@ struct AC
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCurveFromBrxDefault");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("__pure_virtual");   /* slot 3 (pure) */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("__pure_virtual");   /* slot 3 (pure): the
+                               value (and derivative) at time g; the floats come first (tu_20B840's calls set up their
+                               arguments in this order) */
 };
 
 /* AC0 (0x10; vtable 0x2CA9A0): constant vector curve */
@@ -29,7 +31,7 @@ struct AC0 : AC
     VECTOR vec;             /* +0x04 the constant value */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcConstFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareConstCurveSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateConstCurve");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateConstCurve");   /* slot 3 */
 };
 
 /* AC1 (0xC; vtable 0x2CA978): keyed vector curve */
@@ -38,7 +40,7 @@ struct AC1 : AC
     int an[2];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveASegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveA");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveA");   /* slot 3 */
 };
 
 /* AC2 (0xC; vtable 0x2CA950): keyed vector curve */
@@ -47,7 +49,7 @@ struct AC2 : AC
     int an[2];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveBSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveB");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveB");   /* slot 3 */
 };
 
 /* AC3 (0x30; vtable 0x2CA928): per-component curve */
@@ -56,7 +58,7 @@ struct AC3 : AC
     int an[11];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveASegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveA");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveA");   /* slot 3 */
 };
 
 /* AC4 (0x30; vtable 0x2CA900): per-component curve */
@@ -65,7 +67,7 @@ struct AC4 : AC
     int an[11];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveBSegment");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveB");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveB");   /* slot 3 */
 };
 
 /* ACG (vtable 0x2CA8E0, 2 slots): a float curve; vptr at +0x0. */
@@ -298,17 +300,25 @@ struct ACT7 : ACT
    types: its local typedefs clash with sly2/basic.h): blend-channel curve; a new slot 4 (inline, `return 5`) */
 struct AC5 : AC
 {
-    int an[7];
+    ASEGBL *pasegbl;        /* +0x04 the blended segment */
+    MRSGC *pmrsgc;          /* +0x08 its time-range record that keeps this channel in step (tu_20B840's PostJtLoadGait) */
+    AC **apac;              /* +0x0C the blended segments' curves for this channel */
+    qword restValue;        /* +0x10 */
     virtual void Prepare(void *pv) __asm__("BlendChannelPose");   /* slot 2 */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
+    virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
     virtual int GetKind() __asm__("GetBlendCurveKind");   /* slot 4 */
 };
+typedef char assert_AC5_size[sizeof(AC5) == 0x20 ? 1 : -1];
 
 /* ACG2 (0x14; vtable 0x2CB588, emitted by blend.cpp): blend-channel float curve */
 struct ACG2 : ACG
 {
-    int an[4];
+    ASEGBL *pasegbl;        /* +0x04 */
+    MRSGC *pmrsgc;          /* +0x08 */
+    ACG **apacg;            /* +0x0C */
+    float restValue;        /* +0x10 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("EvaluateBlendFloatCurve");   /* slot 2 */
 };
+typedef char assert_ACG2_size[sizeof(ACG2) == 0x14 ? 1 : -1];
 
 #endif

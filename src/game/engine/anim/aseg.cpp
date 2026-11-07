@@ -416,7 +416,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
         for (i = 0; i < px->cchn; i++) {
             pe = &px->achn[i];
             if (py == apy[i] && !pe->u.isScalar) {
-                pe->pac->Evaluate(&aq[0], &aq[1], f, g);
+                pe->pac->Evaluate(f, g, &aq[0], &aq[1]);
                 mA = BuildXfValueMatrix(py, aq[0]);
                 switch (py->valueKind) {
                 case 6: case 7:

@@ -664,7 +664,7 @@ extern "C" void GetActsegGoal(ACTSEG *p, qword *pq1, qword *pq2, float g) {
         dt = po->speed;
         t = po->time + g * dt;
         WrapAsegaTime(po, &t, &dt);
-        p->pac->Evaluate(pq1, pq2, t, dt);
+        p->pac->Evaluate(t, dt, pq1, pq2);
     } else {
         GetActGoalDefault(p, pq1, pq2);
     }
