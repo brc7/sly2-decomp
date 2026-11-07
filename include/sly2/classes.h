@@ -155,7 +155,7 @@ struct WIDGET : LO
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWidgetFromBrx");   /* slot 14 */
     virtual void PostLoad() __asm__("PostWidgetLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateWidget");   /* slot 16 */
-    virtual void Show() __asm__("ShowWidget");   /* slot 49 */
+    virtual void Show(int idLabel) __asm__("ShowWidget");   /* slot 49: shows the widget with an animation label (-1 default; game.cpp ShowCountdownHud, letterbox, relay AddRelayWidgetShow) */
     virtual void Hide() __asm__("HideWidget");   /* slot 50 */
 };
 typedef char assert_WIDGET_size[sizeof(WIDGET) == 0x110 ? 1 : -1];
@@ -1830,7 +1830,14 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 /* 87 RIPG (0x1B0); vtable 0x2D77D8, 75 slots */
 struct RIPG : SO
 {
-    char pad150[0x1B0 - 0x150];
+    int ripgState;          /* +0x150 [S] (rip.cpp RIPGV) */
+    int unknown154;
+    float emitScale;        /* +0x158 [S] */
+    DL ripList;             /* +0x15C [S] the group's RIPs */
+    int unknown168[2];
+    qword boundsData[3];    /* +0x170 [S] the group's bounds (UpdateRipgBounds) */
+    float boundsRadius;     /* +0x1A0 [S] */
+    int unknown1A4[3];
     virtual int IsFixed() __asm__("CanRipgStayAsleep");   /* slot 62 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRipg__FP4RIPG");   /* slot 7 */
@@ -1840,6 +1847,8 @@ struct RIPG : SO
     virtual void RenderSelf() __asm__("RenderRipgSelf__FP4RIPGP2CMP2RO");   /* slot 19 */
     virtual void UpdateBounds() __asm__("UpdateRipgBounds");   /* slot 49 */
 };
+typedef char assert_RIPG_ripList[SLY2_OFFSETOF(RIPG, ripList) == 0x15C ? 1 : -1];
+typedef char assert_RIPG_boundsRadius[SLY2_OFFSETOF(RIPG, boundsRadius) == 0x1A0 ? 1 : -1];
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
 /* 77 ROBOTTANK (0x5D0): single instance; vtable 0x2D7CA8, 81 slots */
@@ -2077,7 +2086,7 @@ struct WIDGET127 : WIDGET
     virtual void Init() __asm__("InitModalBoxWidget");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateModalBoxWidget");   /* slot 16 */
-    virtual void Show() __asm__("ShowModalBoxWidget");   /* slot 49 */
+    virtual void Show(int idLabel) __asm__("ShowModalBoxWidget");   /* slot 49 */
 };
 typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
 
