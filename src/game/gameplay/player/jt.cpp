@@ -3516,7 +3516,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
                 ClearXyz(&jt->unknown190);
-                if (jt->unknown1A54 != 0 && jt->unknown1A70 != 0)
+                if (jt->ablSweep[2].pasegbl != 0 && jt->ablSweep[3].pasegbl != 0)
                 {
                     switch (jt->animState)
                     {

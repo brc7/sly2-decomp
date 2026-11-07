@@ -15,86 +15,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "sly2/aseg.h"
 #include "player_input.h"
+#include "sly2/jt.h"
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct VE{short delta,pad;void*fn;};
-struct EFFECT;struct ACTION;struct SM;struct COMPONENT;struct ALO;
-struct NODE{char pad0[12];VE*vt;};
-struct TARGET{char pad0[0x130];int exitEffect;};
+struct EFFECT;struct ALO;
+/* The hang object (JT::hangHandle, CID19): +0x130 the effect played when leaving the cane state. */
+struct HNDV{char pad0[0x130];int exitEffect;};
+/* An XF (JT::wristXf) as read here: +0x70 its world position. */
 struct POINT{char pad0[0x70];U position;};
-/* The controller (POCTL) as the cane code reads it. */
-struct POCTL{char pad0[0x18];float stickAngle,stickMagnitude;char pad20[0x10];int fl;};
-struct BLEND{float incoming,unknown4,unknown8,outgoing,unknown10,unknown14;ASEG*clip;};
 struct WORK{U average,half,first;};
-/* View of the player (JT); fields named in SetJtCaneState's terms. */
-struct JT{
- char pad0[0xc];
- VE * vt;
- char pad10[0x140];
- POCTL * pt;
- char pad154[0x54];
- float heading;
- char pad1ac[0x114];
- char air[0x208];
- int grabState;
- char pad4cc[0xb5c];
- SM * sm;
- char pad102c[0x8];
- COMPONENT * component;
- char pad1038[0xa4];
- char * interactTarget;
- char pad10e0[0x3f4];
- ASEG * alternate10;
- ASEG * alternate11;
- char pad14dc[0x2f4];
- char track[0x30];
- ASEG * idle;
- char pad1804[0x7c];
- int reset;
- char pad1884[0x3c];
- ALO * surface;
- TARGET * target;
- int mode;
- int x18cc;
- int bodyState;
- char pad18d4[0x4];
- int state;
- float stateTime;
- ASEGA * current;
- int finished;
- int unknown18E8;
- int attack;
- char pad18f0[0xb0];
- NODE * normalNode;
- void * pointObject;
- NODE * alternateNode;
- char pad19ac[0x4];
- float deadline;
- char pad19b4[0xc];
- POINT * point;
- char pad19c4[0x40];
- BLEND blend4;
- BLEND blend5;
- BLEND blend6;
- BLEND blend7;
- ASEG * clip8;
- ASEG * clip9;
- char pad1a7c[0xc];
- ACTION * action;
- char pad1a8c[0x254];
- ASEG * clip12;
- ASEG * clip13;
- ASEG * clip14;
- ASEG * clip15;
- ASEG * clip16;
- ASEG * clip17;
- ASEG * clip18;
- ASEG * clip19;
- ASEG * clip20;
- ASEG * clip21;
- char pad1d08[0xc];
- ASEG * clip22;
- ASEG * clip23;
-};
 extern "C"{
 extern CLOCK D_002DDED0;
 // cane's .data (address order): the attack delays, the clip transition table (state -> compatible clip, -1 none) and,
@@ -106,21 +35,21 @@ extern float D_002BF43C;
 extern float D_002BF440;
 extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
-void HideSoPart(JT*,ACTION*);void InvalidateSoAaox(JT*);void SetJtHandsTarget(void*,int);
+void HideSoPart(JT*,SOPART*);void SetJtHandsTarget(void*,int);
 EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword GetLoWorldPos(void*);qword ConvertPosBetweenLos(void*,void*,qword);
-void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
-int FindSmStateOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
+void ChooseJtSweepTarget(JT*,JTSWEEPBL*,ASEG*);
+int FindSmStateOptional__FP2SM3OID(SM*,int);void SnapSma(SMA*,int);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
 }
 // Play sound effect id at the JT's world position (nothing when id is -1).
 static __inline__ void Emit(JT*jt,int id){if(id!=-1){EFFECT*effect=CreateSfxSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,GetLoWorldPos(jt));}}
 // Call the node's activate virtual (vtable slot 8).
-static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
+static __inline__ void Active(LO*p){p->Add();}
 // Link the node to other (virtual slot 38).
-static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
+static __inline__ void Link(LO*p,LO*other){p->MatchTransform(other);}
 // Call the node's deactivate virtual (vtable slot 9).
-static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}
+static __inline__ void Inactive(LO*p){p->Remove();}
 
 extern "C" {
 qword GetLoWorldPos(void *);
@@ -129,7 +58,8 @@ float atan2f(float, float);
 float NormalizeAngle__Ff(float);
 void UpdateJtHands(void *);
 int IsWithinLimits__FP2LMf(void *, float);
-struct BHV { char pad[0x50]; int kind; char pad54[8]; void *subject; };
+/* The behaviour FindBhvInBhvstk returns for kind 0xB1 (a BHV subclass): its kind and the object it acts on. */
+struct BHVSUBJECT : public BHV { char pad30[0x20]; int kind; char pad54[8]; void *subject; };
 BHV *FindBhvInBhvstk(void *, int);
 void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
 int ShouldJtSweepBack(JT *);
@@ -157,21 +87,21 @@ extern U D_002BF4E0;
 // (blend clip, contact deadline, sounds). -1 ends any cane action.
 extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 {
-    if (jt->state == state)
+    if (jt->animState == state)
         return;
     int compatible = 0;
-    if (state != -1 && jt->state != -1)
-        compatible = state == D_002BF448[jt->state];
+    if (state != -1 && jt->animState != -1)
+        compatible = state == D_002BF448[jt->animState];
     if (!compatible)
-        HideSoPart(jt, jt->action);
+        HideSoPart(jt, jt->unknown1A88);
     int exitEffect = -1;
-    switch (jt->state) {
+    switch (jt->animState) {
     case 1:
-        exitEffect = jt->target->exitEffect;
+        exitEffect = ((HNDV *)jt->hangHandle)->exitEffect;
         InvalidateSoAaox(jt);
         break;
     case 2: InvalidateSoAaox(jt); break;
-    case 0: SetJtHandsTarget(jt->track, -1); break;
+    case 0: SetJtHandsTarget(&jt->hands, -1); break;
     case -1: break;
     }
     Emit(jt, exitEffect);
@@ -183,20 +113,20 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
     register int sharedMode __asm__("$2");
     register char *clockHigh __asm__("$3");
     switch (state) {
-    case -1: jt->surface = 0; break;
+    case -1: jt->attachedTo = 0; break;
     case 1:
     case 2: InvalidateSoAaox(jt); break;
     case 10:
         InvalidateSoAaox(jt);
-        clip = jt->alternate10;
+        clip = jt->unknown14D4;
         break;
     case 11:
         InvalidateSoAaox(jt);
-        clip = jt->alternate11;
+        clip = jt->unknown14D8;
         break;
     case 0: {
-        SetJtHandsTarget(jt->track, 0);
-        clip = jt->idle;
+        SetJtHandsTarget(&jt->hands, 0);
+        clip = jt->hands.blendedAnimation;
         rate = 0.0f;
         register JT *receiver __asm__("$4");
         register float half __asm__("$f1"), duration __asm__("$f0");
@@ -214,13 +144,13 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 
     case 3: {
         WORK work;
-        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
+        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->unknown19A4));
         register POINT *point __asm__("$3");
         register void *world __asm__("$4");
         register JT *receiver __asm__("$5");
         __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero"
                 : "=r"(point), "=r"(world), "=r"(receiver), "=m"(work.first.q)
-                : "m"(jt->point), "r"(first), "r"(jt));
+                : "m"(jt->wristXf), "r"(first), "r"(jt));
         register qword second __asm__("$2") = ConvertPosBetweenLos(world, receiver, point->position.q);
         register qword average __asm__("vf2");
         register int mode __asm__("$3");
@@ -228,7 +158,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                 "$3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw "
                 "%0,$vf4,$vf1x\n\tsqc2 $vf1,%2"
                 : "=j"(average), "=r"(mode), "=m"(work.half.q)
-                : "r"(second), "m"(work.first.q), "m"(jt->mode)
+                : "r"(second), "m"(work.first.q), "m"(jt->state)
                 : "$1", "$f0", "vf1", "vf3", "vf4");
         work.average.q = average;
         if (!mode) {
@@ -264,7 +194,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
     }
     case 4:
     enter4: {
-        ChooseJtSweepTarget(jt, &jt->blend4, jt->blend4.clip);
+        ChooseJtSweepTarget(jt, &jt->ablSweep[0], jt->ablSweep[0].pasegbl);
         enterEffect = 11;
         register float deadline __asm__("$f0"), delay __asm__("$f1");
         __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
@@ -272,13 +202,13 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "=f"(deadline), "=f"(delay), "=f"(stopDelay)
                              : "i"(&D_002BF434), "i"(&D_002DDED0), "i"(&D_002BF430)
                              : "$2", "$3", "$4", "memory");
-        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->blend4.clip));
-        jt->deadline = deadline;
+        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->ablSweep[0].pasegbl));
+        jt->unknown19B0 = deadline;
         break;
     }
     case 5:
     enter5: {
-        ChooseJtSweepTarget(jt, &jt->blend5, jt->blend5.clip);
+        ChooseJtSweepTarget(jt, &jt->ablSweep[1], jt->ablSweep[1].pasegbl);
         enterEffect = 11;
         register float deadline __asm__("$f0"), delay __asm__("$f1");
         __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
@@ -286,21 +216,21 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "=f"(deadline), "=f"(delay), "=f"(stopDelay)
                              : "i"(&D_002BF438), "i"(&D_002DDED0), "i"(&D_002BF430)
                              : "$2", "$3", "$4", "memory");
-        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->blend5.clip));
-        jt->deadline = deadline;
+        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->ablSweep[1].pasegbl));
+        jt->unknown19B0 = deadline;
         break;
     }
     case 6:
     enter6: {
-        ChooseJtSweepTarget(jt, &jt->blend6, jt->blend6.clip);
+        ChooseJtSweepTarget(jt, &jt->ablSweep[2], jt->ablSweep[2].pasegbl);
         enterEffect = 11;
         stopDelay = D_002BF430;
-        clip = jt->blend6.clip;
-        int found = FindSmStateOptional__FP2SM3OID(jt->sm, 0x17B);
+        clip = jt->ablSweep[2].pasegbl;
+        int found = FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B);
         /* Native V1 is rebuilt after the cancellation callback. */
         clockHigh = (char *)0x002e0000;
         if (found >= 0) {
-            SnapSma(jt->component, 0x17B);
+            SnapSma(jt->activeStateMachine, 0x17B);
             clockHigh = (char *)0x002e0000;
         }
         sharedDelay = D_002BF434;
@@ -308,15 +238,15 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
     }
     case 7:
     enter7: {
-        ChooseJtSweepTarget(jt, &jt->blend7, jt->blend7.clip);
+        ChooseJtSweepTarget(jt, &jt->ablSweep[3], jt->ablSweep[3].pasegbl);
         enterEffect = 11;
         stopDelay = D_002BF430;
-        clip = jt->blend7.clip;
-        int found = FindSmStateOptional__FP2SM3OID(jt->sm, 0x17B);
+        clip = jt->ablSweep[3].pasegbl;
+        int found = FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B);
         /* Native V1 is rebuilt after the cancellation callback. */
         clockHigh = (char *)0x002e0000;
         if (found >= 0) {
-            SnapSma(jt->component, 0x17B);
+            SnapSma(jt->activeStateMachine, 0x17B);
             clockHigh = (char *)0x002e0000;
         }
         sharedDelay = D_002BF438;
@@ -327,10 +257,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "r"(clockHigh), "i"(&D_002DDED0)
                              : "memory");
     deadline_add:
-        jt->deadline = sharedDeadline + sharedDelay;
+        jt->unknown19B0 = sharedDeadline + sharedDelay;
         break;
-    case 8: clip = jt->clip8; break;
-    case 9: clip = jt->clip9; break;
+    case 8: clip = jt->unknown1A74; break;
+    case 9: clip = jt->unknown1A78; break;
     case 12: {
         register float deadline __asm__("$f0"), delay __asm__("$f1");
         register int attack __asm__("$5");
@@ -341,10 +271,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "$2", "$3", "$4", "memory");
         sharedDeadline = deadline;
         __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2"
-                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->attack)
-                : "f"(delay), "m"(jt->mode), "r"(attack)
+                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "m"(jt->state), "r"(attack)
                 : "memory");
-        clip = jt->clip12;
+        clip = jt->apasegSwing[0];
         goto attack_ready;
     }
     case 13: {
@@ -357,15 +287,15 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "$2", "$3", "$4", "memory");
         sharedDeadline = deadline;
         __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2"
-                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->attack)
-                : "f"(delay), "m"(jt->mode), "r"(attack)
+                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "m"(jt->state), "r"(attack)
                 : "memory");
-        clip = jt->clip13;
+        clip = jt->apasegSwing[1];
     }
     attack_ready:
-        jt->deadline = sharedDeadline;
-        if (!sharedMode && FindSmStateOptional__FP2SM3OID(jt->sm, 0x17B) >= 0)
-            SnapSma(jt->component, 0x17B);
+        jt->unknown19B0 = sharedDeadline;
+        if (!sharedMode && FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B) >= 0)
+            SnapSma(jt->activeStateMachine, 0x17B);
         break;
     case 14: {
         register float deadline __asm__("$f0"), delay __asm__("$f1");
@@ -376,10 +306,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip14)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[2])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 15: {
@@ -391,10 +321,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip15)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[3])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 16: {
@@ -406,10 +336,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip16)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[4])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 17: {
@@ -421,10 +351,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip17)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[5])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 18: {
@@ -436,10 +366,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip18)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[6])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 19: {
@@ -451,10 +381,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip19)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[7])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 20: {
@@ -466,10 +396,10 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip20)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[8])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 21: {
@@ -481,15 +411,15 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
                              : "$3", "$4", "memory");
         __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
-                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
-                : "f"(delay), "r"(attack), "m"(jt->clip21)
+                : "+f"(deadline), "=r"(clip), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "r"(attack), "m"(jt->apasegSwing[9])
                 : "memory");
-        jt->deadline = deadline;
+        jt->unknown19B0 = deadline;
         break;
     }
     case 22:
     case 23: {
-        clip = state == 22 ? jt->clip22 : jt->clip23;
+        clip = state == 22 ? jt->pasegAttackA : jt->pasegAttackB;
         register float deadline __asm__("$f0"), delay __asm__("$f1");
         __asm__ __volatile__("lui $2,%%hi(%3)\n\tlui $4,%%hi(%4)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
                              "%0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)"
@@ -498,55 +428,55 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                              : "$2", "$3", "$4", "memory");
         register int mode __asm__("$2");
         __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2"
-                : "+f"(deadline), "=r"(mode), "=m"(jt->attack)
-                : "f"(delay), "m"(jt->mode)
+                : "+f"(deadline), "=r"(mode), "=m"(jt->janim.unknown0C)
+                : "f"(delay), "m"(jt->state)
                 : "memory");
-        jt->deadline = deadline;
-        if (!mode && FindSmStateOptional__FP2SM3OID(jt->sm, 0x17B) >= 0)
-            SnapSma(jt->component, 0x17B);
+        jt->unknown19B0 = deadline;
+        if (!mode && FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B) >= 0)
+            SnapSma(jt->activeStateMachine, 0x17B);
         break;
     }
     }
     if (compatible) {
-        register ASEGA *current __asm__("$2") = jt->current;
+        register ASEGA *current __asm__("$2") = jt->janim.animationPlayback;
         enterEffect = -1;
         __asm__("lwc1 $f1,%2\n\tlwc1 $f2,%3\n\tlwc1 $f0,%4\n\tlwc1 %0,%5\n\tdiv.s %0,%0,$f2\n\tmin.s %1,$f0,$f1"
                 : "=f"(rate), "=f"(start)
                 : "m"(clip->duration), "m"(current->masterSpeed), "m"(current->time), "m"(current->speed)
                 : "$f0", "$f1", "$f2");
     } else
-        jt->finished = 0;
+        jt->janim.isInputOpen = 0;
     register int previousState __asm__("$3");
-    __asm__("lw %0,%1" : "=r"(previousState) : "m"(jt->state));
+    __asm__("lw %0,%1" : "=r"(previousState) : "m"(jt->animState));
     int wasAlternate = previousState == 11 || previousState == 2;
     int nowAlternate = state == 11 || state == 2;
     if (wasAlternate != nowAlternate) {
         if (state == 11 || state == 2) {
-            Active(jt->alternateNode);
-            Link(jt->alternateNode, jt->normalNode);
-            Inactive(jt->normalNode);
+            Active(jt->unknown19A8);
+            Link(jt->unknown19A8, jt->unknown19A0);
+            Inactive(jt->unknown19A0);
         } else {
-            Active(jt->normalNode);
-            Link(jt->normalNode, jt->alternateNode);
-            Inactive(jt->alternateNode);
+            Active(jt->unknown19A0);
+            Link(jt->unknown19A0, jt->unknown19A8);
+            Inactive(jt->unknown19A8);
         }
     }
-    jt->state = state;
+    jt->animState = state;
     register ASEG *clipArgument __asm__("$4");
     register float startArgument __asm__("$f12"), rateArgument __asm__("$f13"), now __asm__("$f0");
     __asm__ __volatile__("lui $2,%%hi(%4)\n\tdaddu %0,%5,$zero\n\tmov.s %1,%6\n\tlwc1 %3,%%lo(%4)($2)\n\tmov.s %2,%7"
                          : "=r"(clipArgument), "=f"(startArgument), "=f"(rateArgument), "=f"(now)
                          : "i"(&D_002DDED0), "r"(clip), "f"(start), "f"(rate)
                          : "$2", "memory");
-    jt->reset = 0;
-    jt->stateTime = now;
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clipArgument, jt, startArgument, rateArgument, 1, &jt->current);
+    jt->cposBounds = 0;
+    jt->animStateStartTime = now;
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clipArgument, jt, startArgument, rateArgument, 1, &jt->janim.animationPlayback);
     if (stopDelay != 0.0f) {
         register ASEGA *current __asm__("$4");
         register float stopTime __asm__("$f12");
         __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)"
                              : "=r"(current), "=f"(stopTime)
-                             : "i"(&D_002DDED0), "m"(jt->current)
+                             : "i"(&D_002DDED0), "m"(jt->janim.animationPlayback)
                              : "$3", "memory");
         SetAsegaChannelWeight(current, stopTime + stopDelay);
     }
@@ -557,59 +487,13 @@ typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_U[(sizeof(U)==16)?1:-1];
 typedef char layout_VE[(sizeof(VE)==8)?1:-1];
-typedef char layout_BLEND[(sizeof(BLEND)==0x1C)?1:-1];
 typedef char layout_VE_delta[((unsigned long)&((VE*)0)->delta==0x0)?1:-1];
 typedef char layout_VE_fn[((unsigned long)&((VE*)0)->fn==0x4)?1:-1];
-typedef char layout_NODE_vt[((unsigned long)&((NODE*)0)->vt==0xc)?1:-1];
-typedef char layout_TARGET_exitEffect[((unsigned long)&((TARGET*)0)->exitEffect==0x130)?1:-1];
+typedef char layout_HNDV_exitEffect[((unsigned long)&((HNDV*)0)->exitEffect==0x130)?1:-1];
 typedef char layout_POINT_position[((unsigned long)&((POINT*)0)->position==0x70)?1:-1];
-typedef char layout_BLEND_incoming[((unsigned long)&((BLEND*)0)->incoming==0x0)?1:-1];
-typedef char layout_BLEND_outgoing[((unsigned long)&((BLEND*)0)->outgoing==0xc)?1:-1];
-typedef char layout_BLEND_clip[((unsigned long)&((BLEND*)0)->clip==0x18)?1:-1];
-typedef char layout_JT_sm[((unsigned long)&((JT*)0)->sm==0x1028)?1:-1];
-typedef char layout_JT_component[((unsigned long)&((JT*)0)->component==0x1034)?1:-1];
-typedef char layout_JT_alternate10[((unsigned long)&((JT*)0)->alternate10==0x14d4)?1:-1];
-typedef char layout_JT_alternate11[((unsigned long)&((JT*)0)->alternate11==0x14d8)?1:-1];
-typedef char layout_JT_track[((unsigned long)&((JT*)0)->track==0x17d0)?1:-1];
-typedef char layout_JT_idle[((unsigned long)&((JT*)0)->idle==0x1800)?1:-1];
-typedef char layout_JT_reset[((unsigned long)&((JT*)0)->reset==0x1880)?1:-1];
-typedef char layout_JT_surface[((unsigned long)&((JT*)0)->surface==0x18c0)?1:-1];
-typedef char layout_JT_target[((unsigned long)&((JT*)0)->target==0x18c4)?1:-1];
-typedef char layout_JT_mode[((unsigned long)&((JT*)0)->mode==0x18c8)?1:-1];
-typedef char layout_JT_state[((unsigned long)&((JT*)0)->state==0x18d8)?1:-1];
-typedef char layout_JT_stateTime[((unsigned long)&((JT*)0)->stateTime==0x18dc)?1:-1];
-typedef char layout_JT_current[((unsigned long)&((JT*)0)->current==0x18e0)?1:-1];
-typedef char layout_JT_finished[((unsigned long)&((JT*)0)->finished==0x18e4)?1:-1];
-typedef char layout_JT_attack[((unsigned long)&((JT*)0)->attack==0x18ec)?1:-1];
-typedef char layout_JT_normalNode[((unsigned long)&((JT*)0)->normalNode==0x19a0)?1:-1];
-typedef char layout_JT_pointObject[((unsigned long)&((JT*)0)->pointObject==0x19a4)?1:-1];
-typedef char layout_JT_alternateNode[((unsigned long)&((JT*)0)->alternateNode==0x19a8)?1:-1];
-typedef char layout_JT_deadline[((unsigned long)&((JT*)0)->deadline==0x19b0)?1:-1];
-typedef char layout_JT_point[((unsigned long)&((JT*)0)->point==0x19c0)?1:-1];
-typedef char layout_JT_blend4[((unsigned long)&((JT*)0)->blend4==0x1a04)?1:-1];
-typedef char layout_JT_blend5[((unsigned long)&((JT*)0)->blend5==0x1a20)?1:-1];
-typedef char layout_JT_blend6[((unsigned long)&((JT*)0)->blend6==0x1a3c)?1:-1];
-typedef char layout_JT_blend7[((unsigned long)&((JT*)0)->blend7==0x1a58)?1:-1];
-typedef char layout_JT_clip8[((unsigned long)&((JT*)0)->clip8==0x1a74)?1:-1];
-typedef char layout_JT_clip9[((unsigned long)&((JT*)0)->clip9==0x1a78)?1:-1];
-typedef char layout_JT_action[((unsigned long)&((JT*)0)->action==0x1a88)?1:-1];
-typedef char layout_JT_clip22[((unsigned long)&((JT*)0)->clip22==0x1d14)?1:-1];
-typedef char layout_JT_clip23[((unsigned long)&((JT*)0)->clip23==0x1d18)?1:-1];
-typedef char layout_JT_clip12[((unsigned long)&((JT*)0)->clip12==0x1ce0)?1:-1];
-typedef char layout_JT_clip13[((unsigned long)&((JT*)0)->clip13==0x1ce4)?1:-1];
-typedef char layout_JT_clip14[((unsigned long)&((JT*)0)->clip14==0x1ce8)?1:-1];
-typedef char layout_JT_clip15[((unsigned long)&((JT*)0)->clip15==0x1cec)?1:-1];
-typedef char layout_JT_clip16[((unsigned long)&((JT*)0)->clip16==0x1cf0)?1:-1];
-typedef char layout_JT_clip17[((unsigned long)&((JT*)0)->clip17==0x1cf4)?1:-1];
-typedef char layout_JT_clip18[((unsigned long)&((JT*)0)->clip18==0x1cf8)?1:-1];
-typedef char layout_JT_clip19[((unsigned long)&((JT*)0)->clip19==0x1cfc)?1:-1];
-typedef char layout_JT_clip20[((unsigned long)&((JT*)0)->clip20==0x1d00)?1:-1];
-typedef char layout_JT_clip21[((unsigned long)&((JT*)0)->clip21==0x1d04)?1:-1];
 
-typedef char layout_NODE_prefix_size[(sizeof(NODE)==0x10)?1:-1];
-typedef char layout_TARGET_prefix_size[(sizeof(TARGET)==0x134)?1:-1];
+typedef char layout_HNDV_prefix_size[(sizeof(HNDV)==0x134)?1:-1];
 typedef char layout_POINT_prefix_size[(sizeof(POINT)==0x80)?1:-1];
-typedef char layout_JT_prefix_size[(sizeof(JT)==0x1D1C)?1:-1];
 typedef char layout_WORK_size[(sizeof(WORK)==0x30)?1:-1];
 typedef char layout_WORK_average[((unsigned long)&((WORK*)0)->average==0)?1:-1];
 typedef char layout_WORK_half[((unsigned long)&((WORK*)0)->half==0x10)?1:-1];
@@ -618,8 +502,8 @@ typedef char layout_WORK_first[((unsigned long)&((WORK*)0)->first==0x20)?1:-1];
 // In the reach cane state (0) runs the hand reach tracker (UpdateJtHands on JT+0x17D0).
 extern "C" void UpdateJtCane__FP2JT(JT *jt)
 {
-    if (jt->state == 0)
-        UpdateJtHands(jt->track);
+    if (jt->animState == 0)
+        UpdateJtHands(&jt->hands);
 }
 
 // True if the target lies behind Sly: the midpoint of the hook child and the right-hand transform has y > 0 in Sly's
@@ -633,8 +517,8 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
-    b = ConvertPosBetweenLos(0, jt, jt->point->position.q);
+    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->unknown19A4));
+    b = ConvertPosBetweenLos(0, jt, ((POINT *)jt->wristXf)->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);
     u.q = s;
@@ -663,7 +547,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         if (g < D_002BF4AC)
             f = IsWithinLimits__FP2LMf(D_002BF4B0, QwordZ(d)) != 0;
         if (f) {
-            BHV *pt = FindBhvInBhvstk(jt->interactTarget + 0x26C, 0xB1);
+            BHVSUBJECT *pt = (BHVSUBJECT *)FindBhvInBhvstk((char *)jt->interactTarget + 0x26C, 0xB1);
             if (pt && pt->subject == jt) {
                 int k = pt->kind;
                 if (k < 2) {
@@ -676,9 +560,9 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         }
     }
     if (jt->bodyState == 5) {
-        float *pa = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
-        float *pb = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
-        float d = NormalizeAngle__Ff(jt->pt->stickAngle - atan2f(pa[1], pb[0]));
+        float *pa = (float *)jt->GetWorldMatrix();
+        float *pb = (float *)jt->GetWorldMatrix();
+        float d = NormalizeAngle__Ff(jt->controller->leftStickAngle - atan2f(pa[1], pb[0]));
         float ad = __builtin_fabsf(d);
         if (ad < 0.7853982f)
             n = 0xE;
@@ -690,10 +574,10 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
             n = 0x14;
     } else {
         n = 0xE;
-        if (jt->mode == 0)
+        if (jt->state == 0)
             n = 0xC;
     }
-    switch (jt->state) {
+    switch (jt->animState) {
     case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
         n++;
         break;
@@ -711,7 +595,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
 extern "C" int ChooseJtSweepCaneState(JT *jt)
 {
     int r;
-    switch (jt->state) {
+    switch (jt->animState) {
     case 0x16: r = 0x17; break;
     case 0x17: r = 0x16; break;
     default: r = ShouldJtSweepBack(jt) ? 0x17 : 0x16; break;
@@ -724,25 +608,25 @@ extern "C" int ChooseJtSweepCaneState(JT *jt)
 extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 {
     int f;
-    switch (jt->state) {
+    switch (jt->animState) {
     case 12 ... 21:
-        if (!(jt->pt->fl & 0x80)) jt->attack = 0;
+        if (!(jt->controller->buttonsHeld & 0x80)) jt->janim.unknown0C = 0;
         break;
     }
     f = 0;
-    switch (jt->mode) {
+    switch (jt->state) {
     case 3: case 21: case 22:
-        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.0f))
-            SetJtAirJump(jt->air, 0, 0, 0);
+        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->controller, BUTTON_ATTACK, 0.0f))
+            SetJtAirJump(&jt->jtair, 0, 0, 0);
         break;
     case 7:
-        if (jt->grabState < 5) f = jt->grabState >= 3;
+        if (jt->jtgrab.state < 5) f = jt->jtgrab.state >= 3;
         break;
     case 5:
         switch (jt->bodyState) {
         case 6: case 7:
-            if (!(jt->pt->fl & 0x80)) {
-                if (jt->unknown18E8) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);
+            if (!(jt->controller->buttonsHeld & 0x80)) {
+                if (jt->janim.useAltLanding) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);
                 else SetJtState__FP2JT3JTS4JTBS(jt, 5, 4);
             }
             break;
@@ -758,14 +642,14 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
         break;
     }
     if (!f) return;
-    switch (jt->state) {
+    switch (jt->animState) {
     case 12 ... 23:
-        if (!jt->finished) return;
+        if (!jt->janim.isInputOpen) return;
     case -1:
-        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ALT_ATTACK, 0.35f)) {
+        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->controller, BUTTON_ALT_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtSweepCaneState(jt));
-        } else if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.35f)) {
+        } else if (ConsumeButtonsPressedWithin__5POCTLUif(jt->controller, BUTTON_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtAttackCaneState(jt));
         }
@@ -862,21 +746,21 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
 
 // Finds a sweep target (flags 2, dt 0.15, cone 3.15 rad when standing else 1.6), blends the two sweep clips by the
 // target's height ((z + 50) / 110, clamped) and faces the target when standing.
-extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
+extern "C" void ChooseJtSweepTarget(JT *jt, JTSWEEPBL *blend, ASEG *aseg)
 {
     U v;
     ALO *alo;
     float t;
     float k = 1.6f;
-    if (jt->mode == 0) k = 3.15f;
-    ChooseJtAttackTarget((ALO *)jt, jt->heading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
+    if (jt->state == 0) k = 3.15f;
+    ChooseJtAttackTarget((ALO *)jt, jt->targetHeading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
     if (alo) t = Clamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
     else t = 1.0f;
-    blend->outgoing = t;
-    blend->incoming = 1.0f - t;
+    blend->abl[1].weight = t;
+    blend->abl[0].weight = 1.0f - t;
     RecalculateAsegBlend(aseg);
-    jt->surface = alo;
-    if (alo && jt->mode == 0) {
+    jt->attachedTo = (LO *)alo;
+    if (alo && jt->state == 0) {
         SetStepTargetHeadingFromVector(jt, v.q);
         FixStepAngularVelocity(jt);
     }
@@ -888,10 +772,10 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
     U v;
     ALO *alo;
     float g;
-    if (jt->pt && 0.5f < jt->pt->stickMagnitude) g = jt->pt->stickAngle;
-    else g = jt->heading;
+    if (jt->controller && 0.5f < jt->controller->leftStickDeflection) g = jt->controller->leftStickAngle;
+    else g = jt->targetHeading;
     ChooseJtAttackTarget((ALO *)jt, g, 8, 0.25f, &D_002BF4D0, &alo, &v.q, 1.0f);
-    jt->surface = alo;
+    jt->attachedTo = (LO *)alo;
     if (alo)
         g = atan2f(v.f[1], v.f[0]);
     SetStepTargetHeading(jt, g);
@@ -903,8 +787,8 @@ extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
 {
     U v;
     ALO *alo;
-    ChooseJtAttackTarget((ALO *)jt, jt->heading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
-    jt->surface = alo;
+    ChooseJtAttackTarget((ALO *)jt, jt->targetHeading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
+    jt->attachedTo = (LO *)alo;
     if (alo) {
         SetStepTargetHeadingFromVector(jt, v.q);
         FixStepAngularVelocity(jt);

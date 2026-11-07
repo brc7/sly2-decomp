@@ -59,6 +59,15 @@ struct JTPOCKET
       CID100 *pcid100;   /* the gadget object */
 };
 
+/* JTSWEEPBL: a cane sweep blend: two blend entries (incoming, outgoing) and the blended segment
+   (cane.cpp ChooseJtSweepTarget weights them toward the attack target). */
+struct JTSWEEPBL
+{
+      JTAIRBL abl[2];   /* [0] incoming, [1] outgoing */
+      ASEGBL *pasegbl;   /* the blended segment (played as the state's clip) */
+};
+typedef char assert_JTSWEEPBL_size[sizeof(JTSWEEPBL) == 0x1C ? 1 : -1];
+
 /* JT: Sly Cooper (the player character class inherited from Sly 1's name JT).
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JT : public STEPPLAYER
@@ -119,14 +128,7 @@ struct JT : public STEPPLAYER
       ACT5 *pact5Unk19f8;
       ACT5 *pact5Unk19fc;
       struct ACT *pactHand;   /* +0x1A00 the hand's position actuator (hang IK goal: SetActPositionGoal) */
-      undefined4 unknown1A04[0x18 / 4];
-      ASEGBL *unknown1A1C;
-      undefined4 unknown1A20[0x18 / 4];
-      ASEGBL *unknown1A38;
-      undefined4 unknown1A3C[0x18 / 4];
-      ASEGBL *unknown1A54;
-      undefined4 unknown1A58[0x18 / 4];
-      ASEGBL *unknown1A70;
+      JTSWEEPBL ablSweep[4];   /* +0x1A04 the cane sweep blends of cane states 4..7 (cane.cpp SetJtCaneState) */
       ASEG *unknown1A74;
       ASEG *unknown1A78;
       ASEG *unknown1A7C;
@@ -240,6 +242,7 @@ typedef char assert_JT_stateStartTime[SLY2_OFFSETOF(JT, stateStartTime) == 0x18C
 typedef char assert_JT_animState[SLY2_OFFSETOF(JT, animState) == 0x18D8 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
+typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */
 
