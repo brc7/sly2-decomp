@@ -20,6 +20,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/sw.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -97,12 +98,11 @@ struct CM {
     int cutCount; int pad3[2]; int policyCount; struct E policies[8];
     char pad4[0x620 - 0x390]; float stereoEyeOffset; float stereoFocusDistance;
 };
-struct G { char pad[0x3E38]; int unknown3E38; };
 extern struct CLOCK D_002DDED0;
 extern int D_002DFBC0;
 extern char D_002DFC00[];
 extern char D_002E0D00[];
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern char D_002BD810[];
 void ResetCmAdjust(struct CM *p, void *pv);
 void AdjustCmCpdefi(struct CM *p, struct O *po, void *pv);
