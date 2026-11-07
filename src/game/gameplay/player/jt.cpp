@@ -215,10 +215,10 @@ struct ACT
 {
       int ack;
       SO *pso;
-      XF *pxf;
-      int nPriority;
+      XF *transform;
+      int priority;
       ACT *pactNext;
-      int nRole;
+      int role;
     ACT() {}
     ACT(int ack) : ack(ack) {}
 };
@@ -393,9 +393,9 @@ EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("FindAsegLabel");
 
 struct ACT1 : public ACT
 {
-      int nPhase;
+      int phase;
       qword qwRest;
-    ACT1() { ack = 1; nPhase = 2; }
+    ACT1() { ack = 1; phase = 2; }
 };
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);

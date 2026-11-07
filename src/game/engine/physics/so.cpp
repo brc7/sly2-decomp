@@ -83,10 +83,10 @@ struct ACT
 {
       int ack;
       SO *pso;
-      XF *pxf;
-      int nPriority;
+      XF *transform;
+      int priority;
       ACT *pactNext;
-      int nRole;
+      int role;
     ACT() {}
     ACT(int ack) : ack(ack) {}
 };

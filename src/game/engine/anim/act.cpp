@@ -1741,7 +1741,7 @@ ACT *InitActOfKind(int k)
     ACT *p;
     switch (k) {
     case 0: { ACTSEG *act = SLY2_NEW_ACT(ACTSEG); act->ack = 0; p = act; break; }
-    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->nPhase = 2; p = act; break; }
+    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->phase = 2; p = act; break; }
     case 2: { ACT2 *act = SLY2_NEW_ACT(ACT2); act->ack = 2; p = act; break; }
     case 3: { ACT3 *act = SLY2_NEW_ACT(ACT3); act->ack = 3; p = act; break; }
     case 4: { ACT4 *act = SLY2_NEW_ACT(ACT4); act->ack = 4; p = act; break; }
@@ -1755,7 +1755,7 @@ ACT *InitActOfKind(int k)
     }
     case 7: { ACT7 *act = SLY2_NEW_ACT(ACT7); act->ack = 7; p = act; break; }
     case 8: { ACT8 *act = SLY2_NEW_ACT(ACT8); act->ack = 8; p = act; break; }
-    case 9: { ACT9 *act = SLY2_NEW_ACT(ACT9); act->ack = 9; act->nRole = 0x14; p = act; break; }
+    case 9: { ACT9 *act = SLY2_NEW_ACT(ACT9); act->ack = 9; act->role = 0x14; p = act; break; }
     default: p = 0; break;
     }
     return p;
