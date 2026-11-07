@@ -5887,15 +5887,14 @@ repath:
 
 // 0x17C550 SetBhvCircleState
 namespace M_func_0017C550 { extern "C" {
-struct VTE; struct O; struct X; struct T; struct S;
+struct VTE; struct O; struct X; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; char pad3[0xC0 - 0x3C]; int animSgf; int pad4; int lookAtTarget; };
 struct X { char pad[0xC]; int target; };
-struct T { char pad[0x294]; int pathShape; char pad2[0x3CC - 0x298]; struct X *engagement; };
-struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; };
+struct S { char pad[0x10]; STEPGUARD *guard; int pad2; char childSlot[0x18]; int state; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
-void SetBhvpathShape(struct O *o, int a, int b);
+void SetBhvpathShape(struct O *o, void *a, int b);
 // 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
 void SetBhvCircleState(struct S *behavior, int n)
 {
@@ -5906,14 +5905,14 @@ void SetBhvCircleState(struct S *behavior, int n)
     switch (n) {
     case 0: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-        o->lookAt = behavior->guard->engagement->target;
+        o->lookAt = ((struct X *)behavior->guard->pvEngage)->target;
         StartPushedBhv(o);
     } break;
     case 1: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
-        SetBhvpathShape(o, behavior->guard->pathShape, 0);
+        SetBhvpathShape(o, behavior->guard->unknown294, 0);
         o->animSgf = 8;
-        o->lookAtTarget = behavior->guard->engagement->target;
+        o->lookAtTarget = ((struct X *)behavior->guard->pvEngage)->target;
         StartPushedBhv(o);
     } break;
     }
