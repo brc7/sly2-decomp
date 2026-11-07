@@ -37,6 +37,7 @@ struct CRefData
             int n;   /* 0x15 s32, 0x17 bool, 0x18 symid, 0x19 bifk */
             float g;   /* 0x16 f32 */
             void *pv;   /* any pointer payload */
+            float *ag;  /* the float payloads (vector, matrix, clq, lm, smp) as an array (serialize's reader) */
             /* the payload by tag (spliceobj reads and writes it typed; one word in every case) */
             VECTOR *pvec;           /* 0x1A */
             MATRIX4 *pmat;          /* 0x1B */
@@ -80,6 +81,8 @@ struct CRef : CRefData
       CRef &SetMatrix(const MATRIX4 *pmat) __asm__("CRef_SetMatrix"); /* tag 0x1B */
       CRef &SetProc(CProc *pproc) __asm__("CRef_SetProc");           /* tag 0x20 */
       CRef &SetBasic(BASIC *pbasic) __asm__("CRef_SetBasic");        /* tag 0x21 */
+      CRef &SetSymid(int symid) __asm__("CRef_SetSymid");            /* tag 0x18 */
+      CRef &SetBifk(int bifk) __asm__("CRef_SetBifk");               /* tag 0x19 */
       bool operator==(const CRef &ref);
       void Incref();
       void Decref();
