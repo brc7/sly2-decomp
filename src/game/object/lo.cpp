@@ -835,24 +835,22 @@ typedef char layout_pointer_size[sizeof(void*)==4?1:-1];
 #undef OFFSET
 
 namespace M_func_001A66C8 { extern "C" {
-struct S { char pad[0x40]; unsigned int flags; };
 // vtable slot 47: sets bits in the object's flag word.
-void SetLoFlags(struct S *object, unsigned int fl)
+void SetLoFlags(LO *object, unsigned int fl)
 {
-    unsigned int v = object->flags;
+    unsigned int v = object->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
-    else object->flags = v | fl;
+    else object->unknown40 = v | fl;
 }
 } } // namespace M_func_001A66C8
 
 namespace M_func_001A66F8 { extern "C" {
-struct S { char pad[0x40]; unsigned int flags; };
 // vtable slot 48: clears bits in the object's flag word.
-void ClearLoFlags(struct S *object, unsigned int fl)
+void ClearLoFlags(LO *object, unsigned int fl)
 {
-    unsigned int v = object->flags;
+    unsigned int v = object->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
-    else object->flags = v & ~fl;
+    else object->unknown40 = v & ~fl;
 }
 } } // namespace M_func_001A66F8
 
@@ -979,16 +977,13 @@ extern "C" void CloneLo(P*object,const P*source){
 #undef FIELD_OFFSET
 
 namespace M_CloneLoHierarchy { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
 // vtable slot 40: clones the hierarchy by forwarding to Clone (slot 41).
-void CloneLoHierarchy(struct O *object, int a) { struct VTE *e = &object->vt[41]; e->pfn((char *)object + e->d, a); }
+void CloneLoHierarchy(LO *object, LO *a) { object->Clone(a); }
 } } // namespace M_CloneLoHierarchy
 
 namespace M_FFindLoParent { extern "C" {
-struct O { char pad[0x10]; struct O *parent; };
 // True when other is the object itself or one of its ancestors.
-int IsLoSelfOrDescendantOf(struct O *a, struct O *b)
+int IsLoSelfOrDescendantOf(LO *a, LO *b)
 {
     while (a) {
         if (a == b) break;
