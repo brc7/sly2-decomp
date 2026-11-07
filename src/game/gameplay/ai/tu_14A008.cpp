@@ -44,11 +44,11 @@ struct SCOPE { int a[4]; };
 /* A route station: its kind (0 walk, 1 jump), the oid of its object, the object. */
 struct RTE { int k; int oid; void *object; };
 /* The route (an LO, which ends at +0x50). */
-struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPE *shape; };
+struct ROUTE : LO { int isReversed; int stationCount; RTE *stations; SHAPE *shape; };
 typedef char assert_ROUTE_shape[(unsigned int)&((ROUTE *)0)->shape == 0x5C ? 1 : -1];
 /* The guard's detector: its targets. */
 struct DTE { LO *object; int state; int pad[2]; };
-struct DETV { char pad[0xFC]; int targetCount; DTE targets[8]; };
+struct DETV : XFM { char pad[0xFC - 0xE0]; int targetCount; DTE targets[8]; };
 struct V3 { int x; int y; int z; };
 /* The patrolling guard (a STEPGUARD with a marker object at +0x1010). */
 struct GUARDV
@@ -74,7 +74,7 @@ struct GUARDV
 };
 typedef char assert_GUARDV_marker[(unsigned int)&((GUARDV *)0)->marker == 0x1010 ? 1 : -1];
 /* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
-struct ATKENTRY { char pad[0x60]; LM cooldown; };
+struct ATKENTRY : LO { char pad[0x60 - 0x50]; LM cooldown; };
 /* The behaviour. */
 struct BHVRT
 {
