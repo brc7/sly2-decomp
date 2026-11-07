@@ -721,34 +721,30 @@ extern "C" void ExecuteSwTransition(SW *world)
 } // namespace M_ExecuteSwTransition
 
 namespace M_IncrementSwHandsOff { extern "C" {
-struct S { char pad[0x3D78]; int c; };
 void AddGrfusr__Fi(int n);
-void AcquireSwLetterbox(struct S *p);
-void IncrementSwInputLock(struct S *p);
+void AcquireSwLetterbox(SW *p);
+void IncrementSwInputLock(SW *p);
 // Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
 // flag 2 also locks input.
-void IncrementSwHandsOff(struct S *world, int fl)
+void IncrementSwHandsOff(SW *world, int fl)
 {
-    if (++world->c == 1) AddGrfusr__Fi(2);
+    if (++world->handsOffCount == 1) AddGrfusr__Fi(2);
     if (fl & 1) AcquireSwLetterbox(world);
     if (fl & 2) IncrementSwInputLock(world);
 }
 } } // namespace M_IncrementSwHandsOff
 
 namespace M_DecrementSwHandsOff { extern "C" {
-struct S { char pad[0x3D78]; int n; };
-struct G;
-extern struct G D_002DFC00;
 void RemoveGrfusr__Fi(int n);
-void ClearJoyButtons(struct G *pg, int n);
-void ReleaseSwLetterbox(struct S *p);
-void DecrementSwInputLock(struct S *p);
+void ClearJoyButtons(JOY *pjoy, int grfbtn);
+void ReleaseSwLetterbox(SW *p);
+void DecrementSwInputLock(SW *p);
 // Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
-void DecrementSwHandsOff(struct S *world, int grf)
+void DecrementSwHandsOff(SW *world, int grf)
 {
-    if (--world->n == 0) {
+    if (--world->handsOffCount == 0) {
         RemoveGrfusr__Fi(2);
-        ClearJoyButtons(&D_002DFC00, 8);
+        ClearJoyButtons(&g_joy, 8);
     }
     if (grf & 1) ReleaseSwLetterbox(world);
     if (grf & 2) DecrementSwInputLock(world);
