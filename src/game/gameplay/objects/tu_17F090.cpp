@@ -706,27 +706,20 @@ extern "C" void ResetHackenemyState(HACKENEMY *enemy, int n)
 namespace M_func_00180668 {
 // UpdateHackenemy (Claude agent, lane G19, 2026-10-24): MATCH, no register pins. From laneH9v5 (aligned 3): the case-3 first refresh subtract (target - previousTarget) uses QwSubC, the same vsub with a clobber of the dead vf3. Reload hands out spill regs round-robin over {v0,v1,vf1,vf2,vf3}; after the case 1/2 vsub (target vf1, self vf2) the next VF reload would get vf3; with vf3 clobbered (and prev in vf1) the target reload gets vf2 as in the target.
 // history: UpdateHackenemy laneH9v5 (Claude agent lane H9, from laneH6v1): indexed for loop + const-ref loop helpers (R*): the loop has 96 RTL insns in loop pass 2, so loop.c no longer hoists the D_002A2DA0 high. aligned 3.
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 typedef union U{qword q;float f[4];int i[4];}U;
-struct VTE{short delta,pad;qword(*fn)(void*);};
-struct FRAME{char pad0[0xA0];void*space;};
-struct NODE{char pad0[12];VTE*vt;char pad10[0x18];ulong flags;char pad30[0x2C];FRAME*frame;char pad60[0x8C];void*group;};
-struct LM{float low,high;};
-struct RULE{int distanceEnabled,angleEnabled;LM enterDistance,stayDistance,enterAngle,stayAngle;};
-struct POLY{float a,b,c;};
-struct P{NODE node;char padF0[0xD0];int state;float stateTime;int cooldown,active;void*binding;NODE*target;void*curve;float progress;qword previousSelf,previousTarget;float stamp,heading;char pad208[8];qword output;char pad220[0x50];RULE rules[5];float scale;char pad33C[4];POLY remaining;char pad34C[4];POLY angle;char pad35C[4];POLY simpleAngle;char pad36C[4];LM simpleClamp;};
+/* LO's flag word as one 64-bit value: lo.h's isInWorld bit-field compiles to a different test (matching-only). */
+struct LOIsland{char pad0[0x28];ulong flags;};
 struct VU_FLOAT{qword qw;};
 extern "C"{
 extern qword D_002A2DD0,D_002A2DA0;
 extern float D_002BE820,D_002BE824,D_002BE828;
-extern POLY D_002BE830,D_002BE840,D_002BE860;
+extern CLQ D_002BE830,D_002BE840,D_002BE860;
 extern LM D_002BE850,D_002BBB60;
 extern CLOCK D_002DDED0;
 extern char D_002DE578[],D_003DD490[];
-void UpdateSo(P*);
-int IsHackAnimDone(P*);
-void SetHackenemyState(P*,int);
+void UpdateSo(SO*);
+int IsHackAnimDone(HACK*);
 qword GetLoWorldPos(void*);
 qword ConvertVecBetweenLos(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
@@ -737,7 +730,7 @@ void FindPathzonePathCurve(void*,qword,qword,void*);
 void FindShapeClosestPointFromDistance(void*,qword,void*,qword*,float,qword*,float*,float*);
 float GetShapeMaxDistance(void*);
 float GetDifficulty(void*);
-int FindSwObjectsByClass(void*,int,int,void*,int,NODE**);
+int FindSwObjectsByClass(void*,int,int,void*,int,SO**);
 qword LimitVectorLength(qword,float);
 }
 // Helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC (small asm wrappers/accessors shaped for the match).
@@ -780,9 +773,9 @@ static inline qword RDot(const qword&a,const qword&b){qword r,one;__asm__("vmul.
 // Return base + v * g.
 static inline qword RAddScaled(const qword&base,const qword&v,const VU_FLOAT&g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 // Evaluate the quadratic a + b*t + c*t^2.
-static inline float REvaluate(const POLY&p,const float&t){return p.a+t*(p.b+t*p.c);}
+static inline float REvaluate(const CLQ&p,const float&t){return p.g0+t*(p.g1+t*p.g2);}
 // Clamp f to [low, high].
-static inline float RLimit(float f,const LM&p){float low=p.low,high=p.high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
+static inline float RLimit(float f,const LM&p){float low=p.minValue,high=p.maxValue,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
 // x lane of qw as a float.
 static inline float RGXOfQw(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 // x lane of qw as a float (keeps it in a VF register).
@@ -790,40 +783,40 @@ static inline float RGXOfVf(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x)
 // Broadcast g into a VU0 register.
 static inline VU_FLOAT RVuFloat(const float&g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 // Helpers Alive, Evaluate, Limit, Clamp (small asm wrappers/accessors shaped for the match).
-static inline ulong Alive(NODE*p){return (p->flags>>60)&1;}
+static inline ulong Alive(LO*p){return (((LOIsland*)p)->flags>>60)&1;}
 // Evaluate the quadratic a + b*t + c*t^2.
-static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
+static inline float Evaluate(CLQ*p,float t){return p->g0+t*(p->g1+t*p->g2);}
 // Clamp f to [low, high].
-static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
+static inline float Limit(float f,LM*p){float low=p->minValue,high=p->maxValue,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
 // Clamp f to [low, high].
-static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f=low;else if(high<f)f=high;return f;}
+static inline float Clamp(float f,LM*p){float low=p->minValue,high=p->maxValue;if(f<low)f=low;else if(high<f)f=high;return f;}
 
 // vtable slot 16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
-extern "C" void UpdateHackenemy(P*enemy){
+extern "C" void UpdateHackenemy(HACKENEMY*enemy){
  U nearest,direction,unit;
  UpdateSo(enemy);
  if(enemy->state==2||enemy->state==4){if(IsHackAnimDone(enemy))SetHackenemyState(enemy,0);}
- if(enemy->state!=0&&enemy->state!=4){if(!enemy->target||!Alive(enemy->target))SetHackenemyState(enemy,0);}
- if(!enemy->active&&enemy->target&&Alive(enemy->target)){
-  RULE*rule=&enemy->rules[enemy->state];
-  qword target=GetLoWorldPos(enemy->target);
+ if(enemy->state!=0&&enemy->state!=4){if(!enemy->ploTarget||!Alive(enemy->ploTarget))SetHackenemyState(enemy,0);}
+ if(!enemy->fHoldState&&enemy->ploTarget&&Alive(enemy->ploTarget)){
+  HACKRULE*rule=&enemy->arule[enemy->state];
+  qword target=GetLoWorldPos(enemy->ploTarget);
   qword delta=VuSub(target,GetLoWorldPos(enemy));
   float distance=Length(delta);
   float heading=NormalizeAngle__Ff(Heading(ConvertVecBetweenLos(0,enemy,delta)));
   int accept;
-  if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->stayDistance,distance);
+  if(!rule->fDistance)accept=rule->fAngle;else accept=IsWithinLimits__FP2LMf(&rule->lmStayDistance,distance);
   if(accept){
-   if(!rule->angleEnabled)goto dispatch;
-   if(IsWithinLimits__FP2LMf(&rule->stayAngle,heading))goto dispatch;
+   if(!rule->fAngle)goto dispatch;
+   if(IsWithinLimits__FP2LMf(&rule->lmStayAngle,heading))goto dispatch;
   }
   {
    int state;
    for(state=4;state>0;state--){
-    rule=&enemy->rules[state];
-    if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->enterDistance,distance);
+    rule=&enemy->arule[state];
+    if(!rule->fDistance)accept=rule->fAngle;else accept=IsWithinLimits__FP2LMf(&rule->lmEnterDistance,distance);
     if(!accept)continue;
-    if(!rule->angleEnabled)break;
-    if(IsWithinLimits__FP2LMf(&rule->enterAngle,heading))break;
+    if(!rule->fAngle)break;
+    if(IsWithinLimits__FP2LMf(&rule->lmEnterAngle,heading))break;
    }
    SetHackenemyState(enemy,state);
   }
@@ -832,46 +825,45 @@ dispatch:
  switch(enemy->state){
  case 0:case 4:break;
  case 1:case 2:{
-  if(enemy->cooldown)break;
-  FRAME*frame=enemy->node.frame;
-  qword target=GetLoWorldPos(enemy->target);
+  if(enemy->fHoldAim)break;
+  XF*frame=enemy->unknown5C;
+  qword target=GetLoWorldPos(enemy->ploTarget);
   qword self=GetLoWorldPos(enemy);
-  float heading=NormalizeAngle__Ff(Heading(ConvertXfVec(0,frame->space,VuSub(target,self))));
-  enemy->heading=Clamp(Evaluate(&enemy->simpleAngle,heading),&enemy->simpleClamp);
+  float heading=NormalizeAngle__Ff(Heading(ConvertXfVec(0,frame->parent,VuSub(target,self))));
+  enemy->heading=Clamp(Evaluate(&enemy->clqHeading,heading),&enemy->lmHeading);
   break;
  }
  case 3:{
-  qword target=GetLoWorldPos(enemy->target);
+  qword target=GetLoWorldPos(enemy->ploTarget);
   qword self=GetLoWorldPos(enemy);
-  VTE*vte=&enemy->node.vt[33];
-  vte->fn((char*)enemy+vte->delta);
+  enemy->GetVelocity();
   int refresh=0;
-  if(D_002BE820<Length(QwSubC(target,enemy->previousTarget)))refresh=1;
-  else if(D_002BE820<Length(VuSub(self,enemy->previousSelf)))refresh=1;
-  else if(D_002BE824<D_002DDED0.time-enemy->stamp)refresh=1;
+  if(D_002BE820<Length(QwSubC(target,enemy->posTargetPath)))refresh=1;
+  else if(D_002BE820<Length(VuSub(self,enemy->posSelfPath)))refresh=1;
+  else if(D_002BE824<D_002DDED0.time-enemy->tPath)refresh=1;
   if(refresh){
-   FindPathzonePathCurve(enemy->binding,self,target,enemy->curve);
-   enemy->progress=0.0f;
-   enemy->previousTarget=target;
-   enemy->previousSelf=self;
-   enemy->stamp=D_002DDED0.time;
+   FindPathzonePathCurve(enemy->pvPathzone,self,target,enemy->pshapePath);
+   enemy->sPath=0.0f;
+   enemy->posTargetPath=target;
+   enemy->posSelfPath=self;
+   enemy->tPath=D_002DDED0.time;
   }
-  FindShapeClosestPointFromDistance(enemy->curve,self,0,&nearest.q,enemy->progress,&direction.q,0,&enemy->progress);
+  FindShapeClosestPointFromDistance(enemy->pshapePath,self,0,&nearest.q,enemy->sPath,&direction.q,0,&enemy->sPath);
   {
    float eps=0.0001f;qword d;
    __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(QwAddScaled(nearest.q,direction.q,VuFloatFromMemWord(*(int*)&D_002BE828))),"j"(self),"f"(eps)); /* allocation-only "f"(eps): the epsilon is loaded before the subtract */
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
-  float remaining=GetShapeMaxDistance(enemy->curve)-enemy->progress;
+  float remaining=GetShapeMaxDistance(enemy->pshapePath)-enemy->sPath;
   float turn=Heading(ConvertVecBetweenLos(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
-  float speed=Limit(Evaluate(&enemy->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->scale;
+  float speed=Limit(Evaluate(&enemy->clqSpeedDistance,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->clqSpeedTurn,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->uSpeed;
   qword force=QwScaleX(unit.q,VuFloat(speed));
-  NODE*objects[64];
+  SO*objects[64];
   int n=FindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
   for(int i=0;i<n;i++){
-   NODE*object=objects[i];
-   if(object!=&enemy->node&&object->group!=enemy->node.group){
+   SO*object=objects[i];
+   if(object!=enemy&&object->physicsTree!=enemy->physicsTree){
     U scalar;
     scalar.q=RSub(self,GetLoWorldPos(object));
     scalar.f[2]=0.0f;
@@ -881,7 +873,7 @@ dispatch:
     force=RAddScaled(force,scalar.q,RVuFloat(weight));
    }
   }
-  enemy->output=LimitVectorLength(force,speed);
+  enemy->desiredVelocity=LimitVectorLength(force,speed);
   enemy->heading=atan2f(unit.f[1],unit.f[0]);
   break;
  }
