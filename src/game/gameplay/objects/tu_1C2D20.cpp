@@ -15,16 +15,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
 struct M3 { qwordV r[3]; };
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short delta, pad; void *fn; };
-/* View of the objects handled here: vtable (8 Reset, 9 Remove, 35 SetVelocity, 39 SetParent, 76 SetState) and,
-   for frames, the world position at +0x70 (row 3 of the world matrix at +0x40). */
-struct SOV { char pad0[0xC]; VTE *vt; char pad10[0x60]; qwordV position; };
+/* An item the pouch holds and launches: an SO; prizes (DPRIZE, cid 0x5A) also have slot 76, SetState. */
+struct SOV : SO { virtual void SetState(int state);   /* slot 76 */ };
 /* View of the sprayer (an SO). */
-struct SPRAYER
+struct SPRAYER : SO
 {
-    char pad0[0x150];
-    SOV *launchFrame;    /* +0x150 the frame prizes start from (FindSoXf) */
+    XF *launchFrame;     /* +0x150 the frame prizes start from (FindSoXf) */
     SOV *itemProxy;      /* +0x154 prototype the copies come from (AcquireProxyObject) */
     SOV *heldItem;       /* +0x158 the sprayer's own prize */
     char pad15C[0xC];
@@ -46,7 +42,7 @@ void RenderLoAtMatrix(void *p, void *q, float a, float b);
 int IsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
 void SelectLootEntry(SOV *plo, int id);
-SOV *FindSoXf(SPRAYER *p, void *pv, int n);
+XF *FindSoXf(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
@@ -77,7 +73,7 @@ void CID99::PostLoad()
 extern "C" void RenderLootPouchSelf(SPRAYER *pouch)
 {
     RenderSoSelf(pouch);
-    if (pouch->heldItem) RenderLoAtMatrix(pouch->heldItem, (char *)pouch->launchFrame + 0x40, 1.0f, 1.0f);
+    if (pouch->heldItem) RenderLoAtMatrix(pouch->heldItem, &pouch->launchFrame->worldMatrix, 1.0f, 1.0f);
 }
 
 // Forgets the held item, its proxy and the attach frame (after a launch or when the guard is reset).
@@ -104,9 +100,9 @@ extern "C" int StageLootPouchLoot(SPRAYER *pouch, SOV *item, int id, void *attac
     }
     if (IsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5E)) SelectLootEntry(pouch->heldItem, id);
     if (IsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5A))
-        ((void (*)(void *, int))pouch->heldItem->vt[76].fn)((char *)pouch->heldItem + pouch->heldItem->vt[76].delta, 2);
+        pouch->heldItem->SetState(2);
     else
-        ((void (*)(void *))pouch->heldItem->vt[9].fn)((char *)pouch->heldItem + pouch->heldItem->vt[9].delta);
+        pouch->heldItem->Remove();
     pouch->launchFrame = FindSoXf(pouch, attachName, 0xD);
     return 3;
 }
@@ -160,14 +156,6 @@ static inline qwordV Transform(const M3 &m, qwordV q)
 }
 // Random float in an LM range.
 static inline float Rand(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
-// vtable slot 76 (SetState).
-static inline void SetState(SOV *object, int state) { VTE *v = object->vt; ((void (*)(void *, int))v[76].fn)((char *)object + v[76].delta, state); }
-// vtable slot 8 (Reset).
-static inline void Reset(SOV *object) { VTE *v = object->vt; ((void (*)(void *))v[8].fn)((char *)object + v[8].delta); }
-// vtable slot 39 (SetParent).
-static inline void SetParent(SOV *object, SOV *parent) { VTE *v = object->vt; ((void (*)(void *, SOV *))v[39].fn)((char *)object + v[39].delta, parent); }
-// vtable slot 35 (SetVelocity).
-static inline void SetVelocity(SOV *object, qwordV velocity) { VTE *v = object->vt; ((void (*)(void *, qwordV))v[35].fn)((char *)object + v[35].delta, velocity); }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -186,13 +174,13 @@ extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
         else {
             node = AcquireProxyObject(pouch->itemProxy, 0);
             if (node && IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
-                SetState(node, 2);
+                node->SetState(2);
         }
         if (!node)
             break;
         if (!first)
             first = node;
-        qwordV start = pouch->launchFrame->position;
+        qwordV start = *(qwordV *)pouch->launchFrame->worldMatrix.mat[3];
         qwordV target = GetLoWorldPos(GetHeroPo(game));
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
@@ -208,11 +196,11 @@ extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
                 lifetime = (float)i * D_002C0CEC;
             else
                 lifetime = D_002A76E8;
-            LaunchSprayedDprize(node, pouch->launchFrame->position, velocity, (float)i * D_002C0CE8, lifetime);
+            LaunchSprayedDprize(node, *(qwordV *)pouch->launchFrame->worldMatrix.mat[3], velocity, (float)i * D_002C0CE8, lifetime);
         } else {
-            Reset(node);
-            SetParent(node, pouch->launchFrame);
-            SetVelocity(node, velocity);
+            node->Add();
+            node->SetTransformFromXf(pouch->launchFrame);
+            node->SetVelocity(velocity);
         }
     }
     ClearLootPouchLoot(pouch);

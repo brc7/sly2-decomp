@@ -255,7 +255,7 @@ struct SO : public LO
     virtual void SetAngularVelocity(qword qwW) __asm__("SetSoAngularVelocity");   /* slot 36 */
     virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("ApplySoProxy");   /* slot 37 */
     virtual void MatchTransform(LO *plo) __asm__("MatchSoXf");   /* slot 38 */
-    virtual void SetTransformFromXf() __asm__("SetSoXf");   /* slot 39 */
+    virtual void SetTransformFromXf(XF *pxf) __asm__("SetSoXf");   /* slot 39 */
     virtual void CloneHierarchy(LO *ploBase) __asm__("CloneSoHierarchy");   /* slot 40 */
     virtual void SetBusyDistance(float sBusy) __asm__("SetSoBusyDistance");   /* slot 42 */
     virtual void SetVisMask(uint grfvis) __asm__("SetSoVisMask");   /* slot 46 */
