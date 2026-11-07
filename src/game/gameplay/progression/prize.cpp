@@ -137,9 +137,7 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 
 namespace M_PostDprizeLoad { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x158 - 0x10]; int initialState;
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x158 - 0x150]; int initialState;
     char p1[0x16C - 0x15C]; struct LO *target;
     char p2[0x1A4 - 0x170]; int glintOwnerOid; void *glintOwner; int leftEmitterOid; void *leftEmitter; int rightEmitterOid; void *rightEmitter;
     char p3[0x204 - 0x1BC]; int linkedOid204; void *linked208; int collectListenerOid; void *collectListener; int vanishListenerOid; void *vanishListener;
@@ -163,16 +161,16 @@ void PostDprizeLoad(struct S *prize)
     if (prize->linkedOid204 != -1) prize->linked208 = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->linkedOid204, prize);
     if (prize->collectListenerOid != -1) prize->collectListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->collectListenerOid, prize);
     if (prize->vanishListenerOid != -1) prize->vanishListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->vanishListenerOid, prize);
-    ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, prize->initialState);
+    prize->SetState(prize->initialState);
 }
 } } // namespace M_PostDprizeLoad
 
 namespace M_HandleDprizeMessage { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
+struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* the vanish listener: its slot 51 is called by hand (class not known) */
 struct A { int c; void *pv; int pad[14]; };
 struct M { int sender; int x4; int goalAnim; };
-struct S { char pad[0xC]; struct VTE *vt; char p1[0x168 - 0x10]; int sma; char p2[0x218 - 0x16C]; struct LO *vanishListener; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x168 - 0x150]; int sma; char p2[0x218 - 0x16C]; struct LISTENER *vanishListener; };
 void HandleBasicMessage(struct S *p, int n, struct M *pm);
 // DPRIZE vtable slot 5 HandleMessage: base HandleBasicMessage + prize-specific msgs. (inferred)
 void HandleDprizeMessage(struct S *prize, int n, struct M *pm)
@@ -180,13 +178,13 @@ void HandleDprizeMessage(struct S *prize, int n, struct M *pm)
     struct A a;
     HandleBasicMessage(prize, n, pm);
     if (n == 10 && pm->sender == prize->sma && pm->goalAnim == 0x186) {
-        struct LO *plo = prize->vanishListener;
+        struct LISTENER *plo = prize->vanishListener;
         if (plo) {
             a.c = 1;
             a.pv = prize;
             ((void (*)(void *, struct A *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &a);
         }
-        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 2);
+        prize->SetState(2);
     }
 }
 } } // namespace M_HandleDprizeMessage
@@ -547,7 +545,7 @@ extern "C" void CheckDprizeBounce(P *prize)
 namespace M_FCheckDprizeCollect { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d,pad; void (*fn)(void *,int); };
-struct S { char pad[0xC]; struct VTE *vt; char pad10[0x1DC-0x10]; float radius; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1DC - 0x150]; float radius; };
 struct Q { int enabled,pad4; float radius; SO *so; };
 extern float D_002C0D7C;
 qword GetLoWorldPos(void *);
@@ -555,8 +553,7 @@ int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles
 // Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
 static inline void Trigger(struct S *p)
 {
-    struct VTE *m=&p->vt[76];
-    m->fn((char *)p+m->d,1);
+    p->SetState(1);
 }
 // Moves a 128-bit EE register into a VU register.
 static inline qword ToVu(qword a)
@@ -613,7 +610,7 @@ int TryCollectDprize(struct S *prize,struct Q *q)
 }
 
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
-typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct VTE)==8 && OFF(struct VTE,d)==0 && OFF(struct VTE,fn)==4 && OFF(struct S,vt)==0xC && OFF(struct S,radius)==0x1DC && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
+typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct VTE)==8 && OFF(struct VTE,d)==0 && OFF(struct VTE,fn)==4 && OFF(struct S,radius)==0x1DC && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
 } } // namespace M_FCheckDprizeCollect
 #undef OFF
 
@@ -621,7 +618,7 @@ namespace M_CheckDprizeCollect { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int isCollectable; float expireTime; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1C8 - 0x150]; int isCollectable; float expireTime; };
 int CollectActivePickupInfos(void *pg, int c, void **ap);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int TryCollectDprize(struct S *p, void *pv);
@@ -632,7 +629,7 @@ void CheckDprizeCollect(struct S *prize)
     int i, n;
     if (!prize->isCollectable) return;
     if (prize->expireTime < D_002DDED0.time) {
-        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 1);
+        prize->SetState(1);
         return;
     }
     n = CollectActivePickupInfos(D_003DD490, 0x10, ap);
@@ -1010,11 +1007,9 @@ namespace M_func_001C65F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x150 - 0x10]; int state;
-    char p1[0x210 - 0x154]; struct LO *collectListener;
+struct LISTENER { char pad[0xC]; struct VTE *vt; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
+    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
     char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft;
 };
 struct X {
@@ -1045,7 +1040,7 @@ void SetCoinDprizes(struct S *coin, int n)
         break;
     case 1: {
         struct X *px = NewRipInGroup(D_003DD490, 9, 0);
-        struct LO *plo;
+        struct LISTENER *plo;
         if (px) {
             struct VTE *e;
             px->smackTarget = coin;
@@ -1067,7 +1062,7 @@ void SetCoinDprizes(struct S *coin, int n)
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))coin->vt[3].pf)((char *)coin + coin->vt[3].d, 5, 0, 0, 0, 0);
+        coin->HandleSpliceEvent(5, 0, 0, 0, 0);
         RestartHudWidget1(D_003DD490);
         BroadcastGameEvent(D_002DEB30, 0x12, coin);
         break;
@@ -1124,11 +1119,9 @@ namespace M_func_001C68F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x150 - 0x10]; int state;
-    char p1[0x210 - 0x154]; struct LO *collectListener;
+struct LISTENER { char pad[0xC]; struct VTE *vt; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
+    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
     char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft; int healArg0; int healArg1;
 };
 struct X {
@@ -1141,7 +1134,7 @@ extern char D_002C0E10[];
 extern char D_002DEB30[];
 float RandomFloatInRange__Fff(float a, float b);
 struct X *NewRipInGroup(void *pg, int a, int b);
-struct LO *GetHeroPo(void *pg);
+PO *GetHeroPo(void *pg);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
 void OnMedicineSmackDone(struct S *p, int n);
@@ -1159,10 +1152,10 @@ void SetMedicineDprizes(struct S *medicine, int n)
         medicine->lifetimeLeft = RandomFloatInRange__Fff(medicine->lifetimeMin, medicine->lifetimeMax);
         break;
     case 1: {
-        struct LO *q = GetHeroPo(D_003DD490);
+        PO *q = GetHeroPo(D_003DD490);
         struct X *px;
-        struct LO *plo;
-        if (!((int (*)(void *))q->vt[80].pf)((char *)q + q->vt[80].d)) {
+        struct LISTENER *plo;
+        if (!q->CanBeHealed()) {
             n = medicine->state;
             break;
         }
@@ -1179,7 +1172,7 @@ void SetMedicineDprizes(struct S *medicine, int n)
         } else {
             OnMedicineSmackDone(medicine, 0);
         }
-        ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, medicine->healArg0, medicine->healArg1);
+        q->AddHpMp(medicine->healArg0, medicine->healArg1);
         plo = medicine->collectListener;
         if (plo) {
             struct M m;
@@ -1188,7 +1181,7 @@ void SetMedicineDprizes(struct S *medicine, int n)
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))medicine->vt[3].pf)((char *)medicine + medicine->vt[3].d, 5, 0, 0, 0, 0);
+        medicine->HandleSpliceEvent(5, 0, 0, 0, 0);
         break;
     }
     }
@@ -1659,11 +1652,9 @@ struct CRef {
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct LOOTENTRY { int id; int saveId; };
-struct LO { char pad[0xC]; VTE *vt; };
-struct S {
-    char pad[0xC]; VTE *vt;
-    char p0[0x150 - 0x10]; int state;
-    char p1[0x210 - 0x154]; LO *collectListener;
+struct LISTENER { char pad[0xC]; VTE *vt; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
+    char p1[0x210 - 0x154]; LISTENER *collectListener;
     char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft;
     char p3[0x244 - 0x23C]; LOOTENTRY *currentEntry;
 };
@@ -1688,7 +1679,7 @@ void SetLootDprizes(S *loot, int n)
         sprintf(buf, D_002A7768, loot->currentEntry->saveId);
         ref = GetSaveVarByName(D_002A7770, D_002A7778, buf, 0);
         SetSaveVarByName(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
-        LO *plo = loot->collectListener;
+        LISTENER *plo = loot->collectListener;
         if (plo) {
             M m;
             m.n = n;
@@ -1696,7 +1687,7 @@ void SetLootDprizes(S *loot, int n)
             ((void (*)(void *, M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))loot->vt[3].pf)((char *)loot + loot->vt[3].d, 5, 0, 0, 0, 0);
+        loot->HandleSpliceEvent(5, 0, 0, 0, 0);
         break;
     }
     }
@@ -1973,11 +1964,9 @@ void ClearClueState(struct O *clue)
 namespace M_SetClueDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x100 - 0x10]; int clueIndex; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x150 - 0x10]; int state;
-    char p1[0x210 - 0x154]; struct LO *collectListener;
+struct LISTENER { char pad[0xC]; struct VTE *vt; char p1[0x100 - 0x10]; int clueIndex; };
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
+    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
 };
 struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
@@ -1985,22 +1974,22 @@ void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
-struct LO *GetProxyCopyValue(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
+struct LISTENER *GetProxyCopyValue(struct S *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LISTENER *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { struct LISTENER *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
 {
-    struct LO *q;
+    struct LISTENER *q;
     char *pg;
     qword qv;
     if (n == clue->state) return;
     if (n == 1) {
-        struct LO *plo = clue->collectListener;
+        struct LISTENER *plo = clue->collectListener;
         if (plo) {
             struct M m;
             m.n = n;
@@ -2013,10 +2002,10 @@ void SetClueDprizes(struct S *clue, int n)
         n = 2;
         qv = GetLoWorldPos(clue);
         EmitSwNoise(pg, 0, qv, clue);
-        ((void (*)(void *, int, int, int, int, int))clue->vt[3].pf)((char *)clue + clue->vt[3].d, 5, 0, 0, 0, 0);
+        clue->HandleSpliceEvent(5, 0, 0, 0, 0);
         q = GetProxyCopyValue(clue);
         if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LO *plo = GetProxyCopyValue(clue);
+            struct LISTENER *plo = GetProxyCopyValue(clue);
             SetClueCollected(plo->clueIndex, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
             RestartHudWidget2(pg);
