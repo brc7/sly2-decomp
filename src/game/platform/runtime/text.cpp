@@ -80,7 +80,7 @@ void WriteTft(TFT *, OSTRM *, char **, char *, int);
 int PrintfToStream(OSTRM *out, char *format, char *args);
 void UpperizePchz(char *str);
 
-static inline int FDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
+static inline int IsDecimalDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
 /** @sly2-annot addr=0x21D638
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -98,7 +98,7 @@ int ParseDecimalInt(char *str, int *outValue)
         p++;
         length = 1;
     }
-    for (; FDigit(*p); p++) { value = value * 10 + (*p - '0'); length++; }
+    for (; IsDecimalDigit(*p); p++) { value = value * 10 + (*p - '0'); length++; }
     *outValue = value * sign;
     return length;
 }

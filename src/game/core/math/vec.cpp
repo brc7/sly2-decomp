@@ -768,7 +768,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 /* kept private: the shared GClamp (sly2/util.h) changes FindClosestPointOnLineSegment (60/62 off) */
-static inline float GClamp(float g, float lo, float hi)
+static inline float ClampFloat(float g, float lo, float hi)
 {
     if (g < lo) g = lo;
     else if (g > hi) g = hi;
@@ -791,7 +791,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
-    float t = GClamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
+    float t = ClampFloat(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
     if (outT)
         *outT = t;
     if (outPos || outDistance) {
@@ -904,7 +904,7 @@ namespace V_PosSmooth {
 // (dpos * (SmoothValue's speed / the distance)). Closer than 0.0001: the position is posTarget and *pv is all zero (g_qwZero).
 // Callers: STEPPLAYER::GetCpdefi 0x141640 (the focus offset at JT+0x1070 eases back to zero), UpdateJtAirInput (dposUnk1010).
 // What decided the match (T1258, search over spellings; the first draft, a plain qword dpos, was 4%): dpos is a VU_VECTOR4 VALUE returned by SubPos (a memory
-// temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (QwLengthDot - with QwLength
+// temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (LengthAsQword - with QwLength
 // it is 51%): that gives the pseudo enough references for the register allocator to keep it in vf3 with a caller-save (sqc2 / lqc2 sp+0x40) around the
 // SmoothValue call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
 #include "sly2/basic.h"
@@ -922,25 +922,25 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
+static inline float VfToFloat(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwLengthDot(qword v)
+static inline qword LengthAsQword(qword v)
 {
     qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
+static inline qword ScaleVectorByX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwRow), "j"(gScale.qw));
     return qw;
 }
-static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
+static inline qword AddScaledVector(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
@@ -968,16 +968,16 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);
     qword qwDpos = dpos.qw;
-    float sDist = GFromVf(QwLengthDot(qwDpos));
+    float sDist = VfToFloat(LengthAsQword(qwDpos));
     if (sDist > 0.0001f)
     {
         float svNext;
         float sNext = SmoothValue(0.0f, sDist, dt, smoothParams, &svNext);
         if (outVelocity != 0)
         {
-            *(qword *)outVelocity = QwMulX(qwDpos, VuFloat(svNext / sDist));
+            *(qword *)outVelocity = ScaleVectorByX(qwDpos, VuFloat(svNext / sDist));
         }
-        return QwAddScaled(posCur, qwDpos, VuFloat(sNext / sDist));
+        return AddScaledVector(posCur, qwDpos, VuFloat(sNext / sDist));
     }
     if (outVelocity != 0)
     {

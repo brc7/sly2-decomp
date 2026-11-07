@@ -220,7 +220,7 @@ M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
 }
 
 inline void *operator new(unsigned, void *destination) { return destination; }
-static inline qword QwFromN(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0"(n)); u.q = q; return u.q; }
+static inline qword IntToQword(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0"(n)); u.q = q; return u.q; }
 /* c's conversion. "+r"(a) is allocation-only and the "$4" clobber (a dead argument register) is scheduling-only:
    they put the axis copy (a3) and the hidden return pointer (a0) after this asm, as in the target. */
 #define QWFROMN2(dst, n, a) { UN u; qword q; __asm__("" : "=r"(q), "+r"(a) : "0"(n) : "$4"); dst = q; u.q = q; }
@@ -238,7 +238,7 @@ M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
     int s, c;
     M3 m;
     CalculateSinCos__FfPfT1(rad, (float *)&s, (float *)&c);
-    { qword qs = QwFromN(s), qc; QWFROMN2(qc, c, axis);
+    { qword qs = IntToQword(s), qc; QWFROMN2(qc, c, axis);
       /* LoadRotateMatrixSinCos with its hidden result pointer passed by hand; the empty-move asm makes the a3 and a2
          argument copies come before the a0 set-up, as the C original scheduled them (every plain C++ spelling sets
          a0 first: 2 instructions off). This form exists to reproduce the original codegen. */
@@ -1006,8 +1006,8 @@ void BuildSimpleProjectionMatrix(float xScale, float yScale, float xOffset, floa
 SLY2_SCRAP("nop");
 
 // Gauss-Jordan inverse with column pivoting. Sly 2 takes (stride c, size n, src, dst); the symbol name comes from Sly 1.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
-static inline float GAbs(float g) { return __builtin_fabsf(g); }
+static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
+static inline float AbsFloat(float g) { return __builtin_fabsf(g); }
 /** @sly2-annot addr=0x11C500
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -1022,7 +1022,7 @@ int InvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
     int i, j, k;
     int cb = size * stride * 4;
     MSG msg;
-    float *a = (float *)PvAllocMsg(&msg, cb, 0x10);
+    float *a = (float *)AllocStackBlock(&msg, cb, 0x10);
     float gMax, g, f, t;
     CopyAb__FPvT0Ui(a, src, cb);
     for (i = 0; i < size; i++)
@@ -1030,9 +1030,9 @@ int InvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
             dst[i * stride + j] = (i == j) ? 1.0f : 0.0f;
     for (i = 0; i < size; i++) {
         j = i;
-        gMax = GAbs(a[i * stride + i]);
+        gMax = AbsFloat(a[i * stride + i]);
         for (k = i + 1; k < size; k++) {
-            f = GAbs(a[i * stride + k]);
+            f = AbsFloat(a[i * stride + k]);
             if (gMax < f) {
                 gMax = f;
                 j = k;

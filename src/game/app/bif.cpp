@@ -110,7 +110,7 @@ struct CRef {
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
 
-static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
+static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
 /** @sly2-annot addr=0x11F440
  * Purpose: Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion)
  * Info: proposed name BuiltinAdd (T1); TU bif
@@ -125,7 +125,7 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
     int tagk = args[0].m_tagk;
     NODE *pn;
     if (args[1].m_tagk)
-        pn = PnFromRef(&args[1]);
+        pn = NodeFromRef(&args[1]);
     else
         pn = 0;
     switch (tagk) {
@@ -203,7 +203,7 @@ struct CRef {
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args);
 
-static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
+static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
 /** @sly2-annot addr=0x11F6D0
  * Purpose: Splice builtin "-": n-ary subtract, same shape as +
  * Info: proposed name BuiltinSubtract (T1); TU bif
@@ -217,7 +217,7 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
     int tagk = args[0].m_tagk;
     NODE *pn;
     if (args[1].m_tagk)
-        pn = PnFromRef(&args[1]);
+        pn = NodeFromRef(&args[1]);
     else
         pn = 0;
     switch (tagk) {
@@ -2612,7 +2612,7 @@ namespace M_RefOpVectorDotProduct__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-static __inline__ int GDot(qword *pa, qword *pb)
+static __inline__ int DotProduct3(qword *pa, qword *pb)
 {
     register qword a __asm__("vf1") = *pa;
     register qword b __asm__("vf2") = *pb;
@@ -2635,7 +2635,7 @@ static __inline__ int GDot(qword *pa, qword *pb)
 // Splice builtin "vector-dot-product": VU dot xyz.
 CRef *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int g = GDot((qword *)args[0].m_tag, (qword *)args[1].m_tag);
+    int g = DotProduct3((qword *)args[0].m_tag, (qword *)args[1].m_tag);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->m_tag = g;
     return ret;
@@ -2677,7 +2677,7 @@ namespace M_RefOpVectorLth__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-static __inline__ int GLength(qword *pa)
+static __inline__ int VectorLength3(qword *pa)
 {
     register qword a __asm__("vf1") = *pa;
     register qword t __asm__("vf2");
@@ -2701,7 +2701,7 @@ static __inline__ int GLength(qword *pa)
 // Splice builtin "vector-lth": VU length.
 CRef *BuiltinVectorLength__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
-    int g = GLength((qword *)args[0].m_tag);
+    int g = VectorLength3((qword *)args[0].m_tag);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->m_tag = g;
     return ret;
@@ -3301,7 +3301,7 @@ extern "C" {
 MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-static inline qword VecSub(qword *pb, qword *pa)
+static inline qword SubtractVectors(qword *pb, qword *pa)
 {
     register qword a __asm__("vf2") = *pa;
     register qword b __asm__("vf1") = *pb;
@@ -3323,7 +3323,7 @@ CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     else
         pup = ((W *)args[2].u.pv)->pv;
     union { qword q; } v;
-    v.q = VecSub((qword *)args[1].u.pv, (qword *)args[0].u.pv);
+    v.q = SubtractVectors((qword *)args[1].u.pv, (qword *)args[0].u.pv);
     CRef ref(TAGK_MATRIX);
     MATRIX3 *pmat = (MATRIX3 *)ref.u.pv;
     *pmat = BuildOrthonormalMatrixZ(v.q, *pup);
@@ -3415,7 +3415,7 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct LM { float gMin; float gMax; } LM;
 void Decref__4CRef(CRef *pref);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-static __inline__ float GLimit(float g, float gMin, float gMax)
+static __inline__ float ClampFloat(float g, float gMin, float gMax)
 {
     if (g < gMin)
         return gMin;
@@ -3439,7 +3439,7 @@ CRef *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args
     float g;
     CRef_RefCoerceF32(&ref, &args[2]);
     g = ref.u.g;
-    ret->u.g = GLimit(c[0] + g * (c[1] + g * c[2]), plm->gMin, plm->gMax);
+    ret->u.g = ClampFloat(c[0] + g * (c[1] + g * c[2]), plm->gMin, plm->gMax);
     ret->m_tagk = TAGK_F32;
     Decref__4CRef(&ref);
     return ret;

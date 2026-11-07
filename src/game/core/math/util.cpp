@@ -495,8 +495,8 @@ void Force(void *pv)
 typedef float (*PFNGG)(void *, float);
 struct GG { float g; float gResult; };
 /* std::max / std::min's spelling (compare with `<`, first operand on ties): not util.h's GMax/GMin (see the guide) */
-static inline float GMaxR(float a, float b) { return a < b ? b : a; }
-static inline float GMinR(float a, float b) { return b < a ? b : a; }
+static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
+static inline float MinFloat(float a, float b) { return b < a ? b : a; }
 /** @sly2-annot addr=0x11D9E0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -509,22 +509,22 @@ void MinimizeRange(PFNGG function, void *context, float x, float dx, float min, 
     GG samples[5];
     int i;
     x = GClamp(x, min, max);
-    samples[0].g = GMaxR(min, x - dx);
+    samples[0].g = MaxFloat(min, x - dx);
     samples[0].gResult = function(context, samples[0].g);
     samples[2].g = x;
     samples[2].gResult = function(context, x);
-    samples[4].g = GMinR(max, x + dx);
+    samples[4].g = MinFloat(max, x + dx);
     samples[4].gResult = function(context, samples[4].g);
     for (;;) {
         if (samples[0].gResult < samples[2].gResult) {
             samples[4] = samples[2];
             samples[2] = samples[0];
-            samples[0].g = GMaxR(min, samples[2].g + samples[2].g - samples[4].g);
+            samples[0].g = MaxFloat(min, samples[2].g + samples[2].g - samples[4].g);
             samples[0].gResult = function(context, samples[0].g);
         } else if (samples[4].gResult < samples[2].gResult) {
             samples[0] = samples[2];
             samples[2] = samples[4];
-            samples[4].g = GMinR(max, samples[2].g + samples[2].g - samples[0].g);
+            samples[4].g = MinFloat(max, samples[2].g + samples[2].g - samples[0].g);
             samples[4].gResult = function(context, samples[4].g);
         } else {
             break;

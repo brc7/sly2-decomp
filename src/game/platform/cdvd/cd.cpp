@@ -165,7 +165,7 @@ extern int D_002BD4C0;
 #undef D_003DD0E4
 #define D_003DD0E4 (*(int *)((char *)base_D_003DD040 + 0xA4))   /* the sound manager (SNDMGRG)+0xA4 */
 extern char D_003DA4F0[];
-static inline unsigned int UCrc(unsigned char *data, int size)
+static inline unsigned int ComputeCrc32(unsigned char *data, int size)
 {
     unsigned int *table = (unsigned int *)D_002A2E68;
     unsigned int crc = 0xFFFFFFFF;
@@ -205,7 +205,7 @@ void UpdateCd(void)
         break;
     case 2:
         if (IsCdCommandComplete(0)) {
-            if (UCrc(D_002DD680, 0x800) != D_002A2E60) {
+            if (ComputeCrc32(D_002DD680, 0x800) != D_002A2E60) {
                 D_002BD4C0 = 1;
             } else {
                 HideScreen52D(D_003DA4F0);
