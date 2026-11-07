@@ -36,7 +36,7 @@ extern "C" {
 extern qword D_002C1F90, D_002C1FA0, D_002C1F40;
 void ClearSoTreeBoundsDirty(SO *pso);
 void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
-void UpdateRip(RIP *prip, float dt);
+void UpdateRip(RIP *prip);
 void InitRip(RIP *prip);
 void PostRipEmit(RIP *prip, void *pv);
 qword GetLoWorldPos(LO *plo);   /* the object's world position */
@@ -268,18 +268,13 @@ extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 }
 
 namespace M_UpdateRipg { extern "C" {
-typedef struct DL { void *head; void *tail; int linkOffset; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pf)(); };
-struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; struct VTE *vt; };
-struct RIPGV { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
-void AddRipRef__FP3RIP(struct RIP *prip);
-void ReleaseRip__FP3RIP(struct RIP *prip);
-int IsLoInWorld(struct RIPGV *p);
+void AddRipRef__FP3RIP(RIP *prip);
+int IsLoInWorld(RIPGV *p);
 int IsDlEmpty__FP2DL(DL *pdl);
-void BounceRipgRips__FP4RIPG(struct RIPGV *p);
+void BounceRipgRips__FP4RIPG(RIPGV *p);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -295,19 +290,19 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 // RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active.
-void UpdateRipg(struct RIPGV *ripGroup)
+void UpdateRipg(RIPGV *ripGroup)
 {
     DLI dli;
-    struct RIP *prip;
-    InitDli(&dli, &ripGroup->dl);
-    while ((prip = (struct RIP *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.time <= prip->tStart) continue;
+    RIP *prip;
+    InitDli(&dli, &ripGroup->ripList);
+    while ((prip = (RIP *)PvNextDli(&dli)) != 0) {
+        if (D_002DDED0.time <= prip->startTime) continue;
         AddRipRef__FP3RIP(prip);
-        ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
-        ReleaseRip__FP3RIP(prip);
+        prip->Update();
+        ReleaseRip(prip);
     }
-    if (!IsLoInWorld(ripGroup) || IsDlEmpty__FP2DL(&ripGroup->dl))
-        ((void (*)(void *))ripGroup->vt[9].pf)((char *)ripGroup + ripGroup->vt[9].d);
+    if (!IsLoInWorld(ripGroup) || IsDlEmpty__FP2DL(&ripGroup->ripList))
+        ripGroup->Remove();
     else
         BounceRipgRips__FP4RIPG(ripGroup);
     D_002DD2FC = dli.m_pdliNext;
@@ -1791,10 +1786,10 @@ int FLYING::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the 
 }
 
 // STUCK (RIPT 10) Update: base UpdateRip. (inferred)
-void STUCK::Update(float dt)   /* key function: STUCK's vtable comes out here */
+void STUCK::Update()   /* key function: STUCK's vtable comes out here */
 {
     RIP *prip = this;
-    UpdateRip(prip, dt);
+    UpdateRip(prip);
 }
 
 namespace M_RenderStuck {
@@ -2140,7 +2135,7 @@ void LaunchMatch__FP5MATCH(MATCH *p);
 } } // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
 // render object (vtable slot 8) and removes itself.
-void MATCH::Update(float dt)   /* key function (the namespace's views) */
+void MATCH::Update()   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
     if (D_002DDED0.time >= startTime && shouldLaunch) LaunchMatch__FP5MATCH(this);
@@ -2465,7 +2460,7 @@ struct OBJ {
 extern "C" void RemoveRip__FP3RIP(OBJ *);
 } // namespace M_UpdateSmack
 // SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
-void SMACK::Update(float dt)   /* key function (the namespace's views) */
+void SMACK::Update()   /* key function (the namespace's views) */
 {
     using namespace M_UpdateSmack;
     M_UpdateSmack::OBJ *p = (M_UpdateSmack::OBJ *)this;
@@ -2949,10 +2944,10 @@ typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;   /* the EXPLS: its explode 
 } } // namespace M_UpdateRemit
 // REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
 // with only the origin set).
-void REMIT::Update(float dt)   /* key function */
+void REMIT::Update()   /* key function */
 {
     using namespace M_UpdateRemit;
-    UpdateRip(this, dt);
+    UpdateRip(this);
     if (pexpls) {
         accumulated += g_clock.deltaTime * rate;
         while (accumulated >= 1.0f) {

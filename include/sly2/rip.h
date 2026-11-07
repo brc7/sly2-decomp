@@ -53,7 +53,7 @@ struct RIP
     virtual void PostEmit(EMITB *pemitb) __asm__("PostRipEmit");   /* slot 2 */
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
     virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
-    virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
+    virtual void Update() __asm__("UpdateRip");   /* slot 5: no time step (UpdateRipg passes none; no override reads one) */
     virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
     virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
@@ -80,7 +80,7 @@ struct FLYING : RIP   /* RIPT 3 */
 };
 struct STUCK : RIP   /* RIPT 10 */
 {
-    virtual void Update(float dt) __asm__("UpdateStuck");   /* key function */
+    virtual void Update() __asm__("UpdateStuck");   /* key function */
     virtual void Render(CM *pcm) __asm__("RenderStuck");
 };
 struct SHRAPNEL : RIP   /* RIPT 8 */
@@ -94,7 +94,7 @@ struct MATCH : RIP   /* RIPT 6 */
 {
     char padF0[0x104 - 0xF0];
     int shouldLaunch;          /* +0x104 launch once its start time has come */
-    virtual void Update(float dt) __asm__("UpdateMatch");   /* key function */
+    virtual void Update() __asm__("UpdateMatch");   /* key function */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
     virtual void Project() __asm__("ProjectMatchTransform");
     virtual void Render(CM *pcm) __asm__("RenderMatch");
@@ -107,7 +107,7 @@ struct GLINT : RIP   /* RIPT 4 */
 };
 struct SMACK : RIP   /* RIPT 9 */
 {
-    virtual void Update(float dt) __asm__("UpdateSmack");   /* key function */
+    virtual void Update() __asm__("UpdateSmack");   /* key function */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitSmack");
     virtual void Project() __asm__("ProjectSmackTransform");
     virtual void Render(CM *pcm) __asm__("RenderSmack");
@@ -135,7 +135,7 @@ struct REMIT : RIP   /* RIPT 2 */
     EXPLO *pexpls;             /* +0xF0 the explosion it re-emits (an EXPLS) */
     float rate;                /* +0xF4 explosions per second */
     float accumulated;         /* +0xF8 explosions owed (fractional) */
-    virtual void Update(float dt) __asm__("UpdateRemit");   /* key function */
+    virtual void Update() __asm__("UpdateRemit");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostRemitEmit");
 };
 #endif
