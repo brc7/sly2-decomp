@@ -507,8 +507,8 @@ struct STEPPLAYER : public STEP
       qword unknown1060;
       qword unknown1070;
       float unknown1080;   /* stamped with clock.time while Murray is busy and grabbing (GetMurrayCpdefi) */
-      struct RELAYJSG *pjsgScript;   /* +0x1084 the relay job sequence (RELAYJSG, cutscene/relay.cpp; refcounted) scripting the hero, set by
-                                   SetStepplayerRide; +0x40 of it is its current actor command (jtgoal.cpp, stepplayer.cpp) */
+      struct RELAYJSG *pjsgScript;   /* +0x1084 the relay job sequence (RELAYJSG, sly2/relay.h; refcounted) scripting the hero, set by
+                                   SetStepplayerRide; its prelaycmdJt is the current actor command (jtgoal.cpp, stepplayer.cpp) */
       void *unknown1088;
       int unknown108C;
       LOREF *unknown1090;
