@@ -215,4 +215,27 @@ inline float SqrtFloat(float g)
     return r;
 }
 
+/* FPU max.s / min.s / abs.s as asm (the per-function sites spell these instead of the C comparisons, whose code
+ * differs) */
+inline float FpuMax(float a, float b)
+{
+    float r;
+    __asm__("max.s %0, %1, %2" : "=f"(r) : "f"(a), "f"(b));
+    return r;
+}
+
+inline float FpuMin(float a, float b)
+{
+    float r;
+    __asm__("min.s %0, %1, %2" : "=f"(r) : "f"(a), "f"(b));
+    return r;
+}
+
+inline float FpuAbs(float g)
+{
+    float r;
+    __asm__("abs.s %0, %1" : "=f"(r) : "f"(g));
+    return r;
+}
+
 #endif /* SLY2_VU0_H */
