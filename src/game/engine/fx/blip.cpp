@@ -7,6 +7,7 @@
 #include "gifs.h"
 #include "vifs.h"
 #include "sly2/render.h"
+#include "sly2/shd.h"
 #include "sly2/vu0.h"
 #include "sly2/classes.h"
 
@@ -308,24 +309,23 @@ void BLIPG::Release()
 /* MATCH (Claude agent, laneC16 2026-10-23), from v6 (3): the c-copy empty asm made volatile. A non-volatile asm stayed between the li a0,1 and the branch, which stops reorg backward search; volatile it is a sched barrier so the li follows it. One pin (px) + two commented empty asms. */
 /* v6 (Claude agent, laneC15 2026-10-23): aligned 4 -> 3. ONE pin (px in $9) plus two commented empty asms: `cExtra = 0; asm("" : "+r"(cExtra));` early (gives the target slt/subu/movn) and `c = v; asm("" : "+r"(c));` (gives lw v0 + daddu t0 without a pin on c). Left: li a0,1 (n = 1) scheduled before daddu t0, so reorg fills the loop-guard slot with slt (beql) instead of the li (beqz). n=1 position / for-init: same. */
 /* v5 (Claude agent, laneC11 2026-10-23): aligned 5 -> 4. cExtra = 0 moved before c = v, plus a 2nd pin cExtra in $10 (t2). Left: with cExtra pinned, if-conversion gives bnel+subu instead of slt/subu/movn (v1/v0 swap on the slt). cExtra unpinned with the early init: 13; px pinned to $9 too: 7. */
-/* v4 (Claude agent, laneC9 2026-10-23): aligned 6 -> 5 with ONE register pin (c in $8) plus v = px->c; c = v; v >>= 1 (gives the target's lw v0 + daddu t0,v0). Left: cExtra = 0 (t2) is emitted after the loops; target sets it right after the load (then the loop-head alignment nops line up). cExtra = 0 right after c = v: 13 (px/cExtra swap t1/t2); declaration order: 13. */
-struct SHD { int pad0; int pad4; int flags; unsigned char ab[4]; int c; long *al; };   /* flags bit 0: the second blend packet; ab: colour; c / al: texture frames and their TEX0 words */
+/* v4 (Claude agent, laneC9 2026-10-23): aligned 6 -> 5 with ONE register pin (c in $8) plus v = px->cframe; c = v; v >>= 1 (gives the target's lw v0 + daddu t0,v0). Left: cExtra = 0 (t2) is emitted after the loops; target sets it right after the load (then the loop-head alignment nops line up). cExtra = 0 right after c = v: 13 (px/cExtra swap t1/t2); declaration order: 13. */
 // Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF
 // regs. (inferred)
 extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, int oidShader)
 {
-    register SHD *px asm("$9") = (SHD *)FindShdOrDefault(oidShader); /* register pin (Claude agent): px in t1 */
+    register SHDBLIP *px asm("$9") = (SHDBLIP *)FindShdOrDefault(oidShader); /* register pin (Claude agent): px in t1 */
     int n, v, i, j;
     int cExtra;
     int c;
     GE *pge;
-    blipGroup->gifPacket = (px->flags & 1) ? D_002DD600 : D_002DD5C0;
+    blipGroup->gifPacket = (px->grfshd & 1) ? D_002DD600 : D_002DD5C0;
     if (blipGroup->numColors == 0) {
         blipGroup->numColors = 1;
         for (j = 0; j < 4; j++)
             blipGroup->colors[0][j] = (px->ab[j] + 1) >> 1;
     }
-    v = px->c;
+    v = px->cframe;
     cExtra = 0;
     __asm__("" : "+r"(cExtra)); /* empty asm (Claude agent): emulates the original's early cExtra = 0 */
     c = v;
@@ -341,7 +341,7 @@ extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, int oidShader)
     blipGroup->numFrames = n;
     pge = blipGroup->age;
     for (i = 0; i < c; i++) {
-        pge->s.l = px->al[i];
+        pge->s.l = px->atex0[i];
         pge->s.n = 6;
         if (i < cExtra) {
             pge[1].q = pge[0].q;

@@ -117,7 +117,12 @@ struct SHDBLIP
     int oid;                /* +0x00 */
     int unknown4;           /* +0x04 SHD::unknown06 */
     int grfshd;             /* +0x08 bit 0: the second blend packet */
-    SHDRGBA rgba;           /* +0x0C */
+    union                   /* +0x0C the colour; PropagateBlipgShader indexes its channels (ab[j]: an array member
+                               keeps the address of the colour in a register, as the original code does) */
+    {
+        SHDRGBA rgba;
+        unsigned char ab[4];
+    };
     int cframe;             /* +0x10 */
     unsigned long *atex0;   /* +0x14 one TEX0 word per frame */
     SHDBLIP *pshdblipNext;  /* +0x18 SW::slShd link */
