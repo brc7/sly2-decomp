@@ -82,8 +82,9 @@ struct STEP : public PO
                               (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
                               in the step's frame); was unknown230's "possibly parentOffset" */
       undefined4 unknown250[2];
-      SOPART *unknown258;
-      undefined4 unknown25C;
+      SOPART *psopartBody;   /* +0x258 the body part: its points follow the phys part (step.cpp SetStepPhys/UpdateStepPhys); its
+                                world mesh vertices are the hero's outline (tu_14A008 UpdateBhvRouteChase) */
+      SOPART *psopartPhys;   /* +0x25C the current phys part (step.cpp SetStepPhys) */
       float unknown260;   /* possibly massScale (low-confidence guess: SetSoMass(m * unknown260 / r)) */
       int unknown264;
       SOPART *unknown268;

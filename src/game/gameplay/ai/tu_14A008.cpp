@@ -93,8 +93,6 @@ struct BHVRT
 };
 typedef char assert_BHVRT_lastFastHeroTime[(unsigned int)&((BHVRT *)0)->lastFastHeroTime == 0x48 ? 1 : -1];
 /* The hero (UpdateBhvRouteChase): vtable slot 33, his path while hanging (+0x258), his state (+0x2DC). */
-struct PATH { char pad[0x90]; int c; qword *av; };
-struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *path; char pad2[0x2DC - 0x25C]; int state; };
 /* An object of the hiding-place list (*(SO **)&g_sw.dlCid98) (UpdateBhvRouteChase). */
 struct XEC { char pad[0x20]; qword pos; float radius; };
 struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hidingInfo; char pad2[0x174 - 0xF0]; SOV *next; };
@@ -146,8 +144,8 @@ void RemoveMusicLayer2Request(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
 int IsStepguardHandsOff(GUARDV *p);
-HEROV *GetHeroPo(SW *psw);
-ATKENTRY *ChooseStepguardAttack(GUARDV *p, HEROV *phero, int m);
+PO *GetHeroPo(SW *psw);
+ATKENTRY *ChooseStepguardAttack(GUARDV *p, PO *phero, int m);
 int IsBhvpathAtEnd(void *p);
 int IsBhvanimDone(void *p);
 int IsBhvattackDone(void *p);
@@ -405,27 +403,24 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
 {
     SW *pg = &D_003DD490;
-    HEROV *hero = GetHeroPo(pg);
+    PO *hero = GetHeroPo(pg);
     qword posPlayer = GetLoWorldPos(hero);
     qword posMe = GetLoWorldPos(behavior->guard);
     qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
-    {
-        VTE *entry = &hero->vt[33];
-        v = ((qword (*)(void *))entry->pfn)((char *)hero + entry->d);
-    }
+    v = hero->GetVelocity();
     if (IsLess(D_002BD460, Len(v)))
         behavior->lastFastHeroTime = D_002DDED0.time;
     float dt = D_002DDED0.time - behavior->lastFastHeroTime;
     if (RandomFloatInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
-        if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && hero->state == 0x11) {
-            PATH *ppath = hero->path;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && ((STEPPLAYER *)hero)->jtair.state == 0x11) {
+            SOPART *ppart = ((STEPPLAYER *)hero)->psopartBody;
             pos = GetLoWorldPos(hero);
-            int c = ppath->c;
-            for (int i = 0; i < c; i++) {
-                if (QwordZ(pos) < QwordZ(ppath->av[i]))
-                    pos = ppath->av[i];
+            int c = ppart->meshWorld.numPositions;
+            for (int i = 0; i < c; i++) {   /* the highest vertex of the body mesh */
+                if (QwordZ(pos) < QwordZ(*(qword *)&ppart->meshWorld.positions[i]))
+                    pos = *(qword *)&ppart->meshWorld.positions[i];
             }
             goto moveMarker;
         }
