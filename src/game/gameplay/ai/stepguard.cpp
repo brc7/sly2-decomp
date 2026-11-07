@@ -2696,19 +2696,17 @@ void STEPGUARD::AddExtraXps()
 
 // 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {
-struct MODEREC;
-struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBehavior(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
-// 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
-void SendStepguardRootBhvMode6(void *guard, int value)
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
+// 0x209E28: Sends mode record 6 (thrown) with `value` as its object to the guard's root behaviour (BHVGUARD).
+void SendStepguardRootBhvMode6(void *guard, void *value)
 {
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
-    struct MODEREC mode;
+    BHVGUARDRECDATA mode;
     func_002333B4(&mode, 0, sizeof mode);
     mode.kind = 6;
-    mode.value = value;
+    mode.arg.object = value;
     SetBhvguardMode(bhv, &mode);
 }
 } } // namespace M_func_00209E28
@@ -2953,12 +2951,10 @@ extern "C" void AddStepguardAllowedPathZone(STEPGUARD *guard, int zone)
 
 // 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
-struct MODEREC;
-struct MODEREC { int kind; int rest[27]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(BHV156 *bhv, struct MODEREC *mode);
+void SetBhvguardMode(BHV156 *bhv, BHVGUARDRECDATA *mode);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
-void SetStepguardPatrolScript(STEPGUARD *guard, int script)
+void SetStepguardPatrolScript(STEPGUARD *guard, CID113 *script)
 {
     if (guard->patrolScript == script)
         return;
@@ -2969,7 +2965,7 @@ void SetStepguardPatrolScript(STEPGUARD *guard, int script)
     if (bhv) {
         int modeKind = bhv->mode;
         if (modeKind == 1) {   /* patrolling: leave the mode and re-enter it so the new script starts */
-            struct MODEREC mode;
+            BHVGUARDRECDATA mode;
             func_002333B4(&mode, 0, sizeof(mode));
             mode.kind = -1;
             SetBhvguardMode(bhv, &mode);
@@ -3622,11 +3618,10 @@ void CID125::PostLoad()
 
 // 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
-struct MODEREC { int kind; int rest[27]; };
 extern float D_002C3DBC;
 extern const float D_002A88CC;
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
 void ResetDetectorTargets(DETECTOR *detector);
 } }
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
@@ -3652,7 +3647,7 @@ void CID125::Update()
             case 2: {
                 void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
                 if (bhv) {
-                    struct MODEREC mode;
+                    BHVGUARDRECDATA mode;
                     func_002333B4(&mode, 0, sizeof(mode));
                     mode.kind = 1;
                     SetBhvguardMode(bhv, &mode);

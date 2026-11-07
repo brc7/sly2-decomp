@@ -18,7 +18,8 @@ struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
 struct GUARDLOOT
 {
       OID oid;              /* +0x0 [R] loot object oid */
-      undefined4 unknown04[3]; /* [?] */
+      undefined4 unknown04[2]; /* [?] */
+      int count;            /* +0xC [S] how many (StartBhvko sums the coin entries, oid 0x2B3) */
 };
 
 /* A guard script command (SSGE, from SW::slotheapSsge; tu_1709A8.cpp): its kind (SSGK_*: 0 set the context object,
@@ -236,9 +237,8 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x2c8;
       LM walkTimes;         /* +0x2CC [S] patrol walk duration range (BHVPATROL; script command 1 copies it whole) */
       LM pauseTimes;        /* +0x2D4 [S] patrol pause duration range (BHVPATROL; script command 2) */
-      int scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL) */
-      undefined4 unk_0x2e0[2];
-      int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
+      SSGRESUME scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL saves/restores it) */
+      CID113 *patrolScript; /* +0x2E8 [S] the patrol script (BHVPATROL) */
       CID113 *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
       SSGE *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to: the alternative patrol script's first command (ResetStepguardToHome) */
       undefined4 unk_0x2f4[3];
@@ -281,7 +281,8 @@ struct STEPGUARD : public STEP
       int unknown3D0;       /* +0x3D0 [S] */
       int unknown3D4;       /* +0x3D4 [S] read with pvEngage (FBhvcombatLostTarget) */
       int coinCountOverride; /* +0x3D8 [S] coins dropped when knocked out (-1 default; StartBhvko) */
-      undefined4 unk_0x3dc[(0x3f0 - 0x3dc) / 4];
+      undefined4 unk_0x3dc;
+      qword coinDropPos;    /* +0x3E0 [S] where the coins are sprayed from, in the guard's frame (StartBhvko) */
       int unknown3F0;       /* +0x3F0 [S] (InitStepguard -200) */
       VOL *pickpocketIndicator0; /* +0x3F4 [S] */
       VOL *pickpocketIndicator1; /* +0x3F8 [S] */

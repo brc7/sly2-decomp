@@ -3349,37 +3349,24 @@ void InitBhvko(BHVKO *behavior)
 
 // 0x179898 StartBhvko
 namespace M_StartBhvko { extern "C" {
-struct E; struct A; struct S;
 /* StartBhvko (Claude agent lane G2, 2026-10-24). Count() is an inline whose else arm starts with the
    for-init `n = 0` (keeps the target's bltz/then-first layout). The coinDropPos vector is read into q before the call. */
-typedef int qword __attribute__((mode(TI)));
-struct G;
-extern struct G D_003DD490;
 extern char D_002DEB30[];
 extern char D_002DE578[];
-struct E { int oid; int pad[2]; int count; };
-struct A {
-    char pad[0xEC]; void *unknownEC; char padF0[0x330-0xF0]; int isKO; char pad2[0x3D8 - 0x334]; int coinCountOverride; char pad3[4]; qword coinDropPos; int unknown3F0;
-    char pad4[0x404 - 0x3F4]; struct E loot[(0x484 - 0x404) / 16]; int numLoot; int firstLoot;
-    char pad5[0xC10 - 0x48C]; int koReactions[26][4]; char pad6[0xF64 - 0xDB0]; void *detector;
-};
-struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; int *binding; char pad3[0xC]; void *attacker; char pad4[8]; int zapKind; };
 int GetZapKindIndex(int mask);
-void StartBhvhit(struct S *p);
-void *GetHeroPo(struct G *g);
-void BroadcastGameEvent(void *a, int n, struct A *p);
-qword ConvertPosBetweenLos(struct A *source, void *target, qword v);
-void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
-void RefreshSwObjectCollisionFilter(struct G *g, struct A *p);
-void ResetDetectorTargets(void *p);
+LO *GetHeroPo(SW *psw);
+void BroadcastGameEvent(void *a, int n, STEPGUARD *p);
+qword ConvertPosBetweenLos(LO *source, LO *target, qword v);
+void SprayDifficultyPrizes(void *a, qword v, int n, int m, STEPGUARD *p);
+void ResetDetectorTargets(DETECTOR *p);
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
-static inline int Count(struct A *a) {
+static inline int Count(STEPGUARD *a) {
     int n, i;
     if (a->coinCountOverride >= 0) {
         n = a->coinCountOverride;
     } else {
         for (i = a->firstLoot, n = 0; i < a->numLoot; i++) {
-            struct E *e = &a->loot[i];
+            GUARDLOOT *e = &a->loot[i];
             if (e->oid == 0x2B3) n += e->count;
         }
         n = (n + 1) / 2;
@@ -3388,57 +3375,37 @@ static inline int Count(struct A *a) {
 }
 // 0x179898: BHVKO vtable slot 8 (Start): reaction from the KO table, BHVHIT Start; the first time: marks the guard
 // KO, broadcasts 0x18 (by the hero) or 0x17, drops coins from its loot and resets the detector.
-void StartBhvko(struct S *behavior) {
+void StartBhvko(BHVKO *behavior) {
     int n;
-    struct A *a;
-    int *pe = behavior->guard->koReactions[GetZapKindIndex(behavior->zapKind)];
+    STEPGUARD *a;
+    ANIMBINDING *pe = &((STEPGUARD *)behavior->owner)->koReactions[GetZapKindIndex(behavior->zapKind)];
     behavior->binding = pe;
-    if (*pe == -1) behavior->binding = 0;
+    if (pe->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
-    a = behavior->guard;
-    if (a->isKO != 0)
+    a = ((STEPGUARD *)behavior->owner);
+    if (a->isKnockedOut != 0)
         return;
-    a->isKO = 1;
+    a->isKnockedOut = 1;
     if (behavior->attacker == GetHeroPo(&D_003DD490))
-        BroadcastGameEvent(D_002DEB30, 0x18, behavior->guard);
+        BroadcastGameEvent(D_002DEB30, 0x18, ((STEPGUARD *)behavior->owner));
     else
-        BroadcastGameEvent(D_002DEB30, 0x17, behavior->guard);
-    n = Count(behavior->guard);
+        BroadcastGameEvent(D_002DEB30, 0x17, ((STEPGUARD *)behavior->owner));
+    n = Count(((STEPGUARD *)behavior->owner));
     {
-        qword q = behavior->guard->coinDropPos;
+        qword q = ((STEPGUARD *)behavior->owner)->coinDropPos;
         qword v;
         /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
         __asm__ __volatile__("" : : : "memory");
-        v = ConvertPosBetweenLos(behavior->guard, 0, q);
-        SprayDifficultyPrizes(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
+        v = ConvertPosBetweenLos(((STEPGUARD *)behavior->owner), 0, q);
+        SprayDifficultyPrizes(D_002DE578, v, n, ((STEPGUARD *)behavior->owner)->unknown3F0, ((STEPGUARD *)behavior->owner));
     }
-    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->guard);
-    ResetDetectorTargets(behavior->guard->detector);
+    RefreshSwObjectCollisionFilter(&D_003DD490, ((STEPGUARD *)behavior->owner));
+    ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_int[(sizeof(int)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_E[(sizeof(struct E)==16)?1:-1];
-typedef char layout_A_prefix[(sizeof(struct A)==0xF70)?1:-1];
-typedef char layout_S_prefix[(sizeof(struct S)==0x60)?1:-1];
-typedef char layout_A_align[(__alignof__(struct A)==16)?1:-1];
-typedef char layout_A_pEC[((unsigned)&((struct A*)0)->unknownEC==0xec)?1:-1];
-typedef char layout_A_n330[((unsigned)&((struct A*)0)->isKO==0x330)?1:-1];
-typedef char layout_A_n3D8[((unsigned)&((struct A*)0)->coinCountOverride==0x3d8)?1:-1];
-typedef char layout_A_v3E0[((unsigned)&((struct A*)0)->coinDropPos==0x3e0)?1:-1];
-typedef char layout_A_n3F0[((unsigned)&((struct A*)0)->unknown3F0==0x3f0)?1:-1];
-typedef char layout_A_ae[((unsigned)&((struct A*)0)->loot==0x404)?1:-1];
-typedef char layout_A_n484[((unsigned)&((struct A*)0)->numLoot==0x484)?1:-1];
-typedef char layout_A_n488[((unsigned)&((struct A*)0)->firstLoot==0x488)?1:-1];
-typedef char layout_A_pF64[((unsigned)&((struct A*)0)->detector==0xf64)?1:-1];
-typedef char layout_S_guard[((unsigned)&((struct S*)0)->guard==0x10)?1:-1];
-typedef char layout_S_p40[((unsigned)&((struct S*)0)->binding==0x40)?1:-1];
-typedef char layout_S_p50[((unsigned)&((struct S*)0)->attacker==0x50)?1:-1];
-typedef char layout_S_mask5C[((unsigned)&((struct S*)0)->zapKind==0x5c)?1:-1];
-typedef char layout_E_n0[((unsigned)&((struct E*)0)->oid==0x0)?1:-1];
-typedef char layout_E_nC[((unsigned)&((struct E*)0)->count==0xc)?1:-1];
-typedef char layout_A_entry_capacity[(sizeof(((struct A*)0)->loot)/sizeof(struct E)==8)?1:-1];
 } } // namespace M_StartBhvko
 
 // 0x179A20 CloseBhvko
@@ -3472,7 +3439,7 @@ typedef int qword __attribute__((mode(TI)));
 void StartBhv(BHVPATROL *p);
 void SetBhvpatrolState(BHVPATROL *p, int n);
 qword GetLoWorldPos(void *p);
-void ChooseGuardScriptNearestCommand(int n, qword q, void *pv);
+void ChooseGuardScriptNearestCommand(CID113 *script, qword q, SSGRESUME *presume);
 int IsStepguardHandsOff(STEPGUARD *t);
 // 0x179AA0: BHVPATROL vtable slot 8 (Start): takes the patrol script (or the alternate one with capability 2),
 // resumes at the nearest script point, then walks (0), stands (2) or is hands-off (3).
@@ -3481,9 +3448,9 @@ void StartBhvpatrol(BHVPATROL *behavior) {
     StartBhv(behavior);
     t = ((STEPGUARD *)behavior->owner);
     if (t->patrolScript) behavior->script = t->patrolScript;
-    else if (t->capabilityFlags & 2) behavior->script = (int)t->altPatrolScript;
+    else if (t->capabilityFlags & 2) behavior->script = t->altPatrolScript;
     else { behavior->script = 0; SetBhvpatrolState(behavior, 2); return; }
-    if (((STEPGUARD *)behavior->owner)->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
+    if (((STEPGUARD *)behavior->owner)->scriptResumePoint.command) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
 }
 } } // namespace M_StartBhvpatrol
@@ -3542,48 +3509,42 @@ void UpdateBhvpatrol(BHVPATROL *behavior) {
 
 // 0x179D30 SetBhvpatrolState
 namespace M_SetBhvpatrolState { extern "C" {
-struct VTE; struct O; 
-extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
-struct T { char pad[0x2DC]; char scriptResumePoint[4]; };
-void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SaveBhvScriptResumeState(void *p, void *q);
-void SetBhvScriptScript(struct O *o, int t, int a, void *u);
+BHV *PushStepBehavior(void *p, int n);
+void SaveBhvScriptResumeState(BHV *p, SSGRESUME *presume);
+void SetBhvScriptScript(BHV169 *o, CID113 *script, int a, SSGRESUME *presume);
 void ArmBhvpatrolPauseTimer(BHVPATROL *p);
 void ArmBhvpatrolWalkTimer(BHVPATROL *p);
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3
 // hands-off idle.
 void SetBhvpatrolState(BHVPATROL *behavior, int n) {
     if (n == behavior->state) return;
-    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->pbhvNext, ((struct T *)behavior->owner)->scriptResumePoint);
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->pbhvNext, &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1: case 2:
         {
-            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHVIDLE);
-            StartPushedBhv(o);
+            BHV *o = PushStepBehavior(behavior->owner, CID_BHVIDLE);
+            o->Start();
         }
         ArmBhvpatrolPauseTimer(behavior);
         behavior->walkEndTime = 3.40282346638528859812e+38f;
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHV169);
-            SetBhvScriptScript(o, behavior->script, 0, ((struct T *)behavior->owner)->scriptResumePoint);
-            StartPushedBhv(o);
+            BHV169 *o = (BHV169 *)PushStepBehavior(behavior->owner, CID_BHV169);
+            SetBhvScriptScript(o, behavior->script, 0, &((STEPGUARD *)behavior->owner)->scriptResumePoint);
+            o->Start();
         }
         ArmBhvpatrolWalkTimer(behavior);
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
         break;
     case 3:
         {
-            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHVIDLE);
+            BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
             o->sgf = 1;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }

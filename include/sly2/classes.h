@@ -938,7 +938,7 @@ struct BHVPATROL : BHV
     float pauseEndTime;     /* +0x34 */
     int state;              /* +0x38 */
     float stateTime;        /* +0x3C */
-    int script;             /* +0x40 the patrol script being run */
+    CID113 *script;         /* +0x40 the patrol script being run */
     int unknown44[3];
     virtual void Close() __asm__("CloseBhvpatrol");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpatrolClassDesc");   /* slot 6 */
