@@ -1215,14 +1215,13 @@ void SetCmPos(CM *cm, qword pos)
 
 namespace M_SetCmMat { extern "C" {
 #include "mat.h"
-struct CM { char pad[0x90]; struct VECTOR pos; };
-void SetCmMat4(struct CM *p, struct MATRIX4 *m);
+void SetCmMat4(CM *p, struct MATRIX4 *m);
 // Set rotation from MATRIX3, keep pos, SetCmMat4. (inferred)
-void SetCmMat(struct CM *cm, struct MATRIX3 *pmat)
+void SetCmMat(CM *cm, struct MATRIX3 *pmat)
 {
     struct MATRIX4 m;
     *(struct MATRIX3 *)&m = *pmat;
-    *(struct VECTOR *)m.mat[3] = cm->pos;
+    *(struct VECTOR *)m.mat[3] = *(struct VECTOR *)&cm->pos;
     m.mat[2][3] = 0.0f;
     m.mat[1][3] = 0.0f;
     m.mat[0][3] = 0.0f;
@@ -1392,7 +1391,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
-struct CM { char pad[0x60]; M3 mat; qword pos; char pad2[0x100 - 0xA0]; char projection[0x520]; float stereoEyeOffset; };
 void VECTOR_opAssign(qword *p, qword v);
 void CombineEyeLookAtProj(M4 *pm, void *pv, int n);
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
@@ -1407,7 +1405,7 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 }
 // Builds a view-proj from CM::mat with pos offset along the right axis by +/- stereoEyeOffset (k=1/2) via CombineEyeLookAtProj
 // into pm (proj = pv or matProj) (inferred)
-void BuildStereoEyeViewProj(struct CM *cm, int k, void *pv, int n, M4 *pm)
+void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 {
     U r, g;
     float f = 0.0f;
@@ -1422,12 +1420,12 @@ void BuildStereoEyeViewProj(struct CM *cm, int k, void *pv, int n, M4 *pm)
     }
     {
         qword qwrqOut;
-        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwrqOut) : "j"(cm->pos), "j"(cm->mat.r[1]), "j"(g.q));
+        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwrqOut) : "j"(*(qword *)&cm->pos), "j"(((M3 *)&cm->mat)->r[1]), "j"(g.q));
         r.q = qwrqOut;
     }
     VECTOR_opAssign(&pm->r[3], r.q);
-    LoadM4(pm, &cm->mat);
-    CombineEyeLookAtProj(pm, pv ? pv : cm->projection, n);
+    LoadM4(pm, (M3 *)&cm->mat);
+    CombineEyeLookAtProj(pm, pv ? pv : (void *)&cm->matProj, n);
 }
 } } // namespace M_BuildStereoEyeViewProj
 
