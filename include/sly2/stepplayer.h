@@ -495,7 +495,8 @@ struct STEPPLAYER : public STEP
       int unknown108C;
       LOREF *unknown1090;
       int unknown1094;
-      float unknown1098[4];
+      float waterProbe[4];   /* +0x1098 water-surface probe: [0]/[1] the line's bottom/top offsets above the hero (ProbeStepplayerSurface),
+                                [2] the height offset and [3] the current factor of ResolveStepplayerWaterContact */
       SMPA unknown10A8;
       void *unknown10B8;
       undefined4 unk_0x10bc[(0x10c4 - 0x10bc) / 4];

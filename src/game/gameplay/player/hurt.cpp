@@ -1191,7 +1191,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct HIT { qword pos; char pad[0x5F0]; };
-struct O { char pad[0x1098]; float x1098; float x109C; };
 struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
@@ -1200,10 +1199,10 @@ void *AllocFromStack(MSG *pmsg);
 int CollectSoParts(L *pl, void *pfn, int n, void *pv);
 int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void CanWaterInflictZap(void);
-int ProbeStepplayerSurface(O *po, L *pl, qword *pv);
+int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv);
 }
 // Line test from the player down to the linked volume's surface; writes the hit position.
-int ProbeStepplayerSurface(O *object, L *pl, qword *pv)
+int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 {
     U off, b, a;
     HIT hit;
@@ -1215,8 +1214,8 @@ int ProbeStepplayerSurface(O *object, L *pl, qword *pv)
         a.q = d;
         b.q = d;
     }
-    a.f[2] += object->x109C;
-    b.f[2] += object->x1098;
+    a.f[2] += object->waterProbe[1];
+    b.f[2] += object->waterProbe[0];
     STACKSCOPE frame;
     MSG msg;
     MSG *message = &msg;
