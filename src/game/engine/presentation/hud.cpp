@@ -267,15 +267,14 @@ void BuildMenuCarouselText(char *dst, int k)
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
-struct T { char pad[0xCC]; int argTextIds[1]; };
-extern SW D_003DD490;
 void strcpy(void *p, int v);
+} } // namespace M_BuildWidgetArgText
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
-void BuildWidgetArgText(void *text, int i, struct T *widget)
+extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 {
+    using namespace M_BuildWidgetArgText;
     strcpy(text, (int)FindSwLocalizedString(&D_003DD490, widget->argTextIds[i]));
 }
-} } // namespace M_BuildWidgetArgText
 
 // 0x211390 BuildSubtitleText
 // HUD text 0x2EF: the current subtitle's text. (inferred)
@@ -1632,22 +1631,22 @@ extern "C" void SetWidgetExclusive(WIDGET *widget, int isNonExclusive)
 
 // 0x214398 LoadSpriteTable
 namespace M_LoadSpriteTable { extern "C" {
-struct S { char pad[0xC4]; void *spriteHeap; };
 extern int D_002C40A4;
 int U16Read__18CBinaryInputStream(void *a);
 int AllocZeroedFromHeap__FP4HEAPii(void *heap, int cb, int k);
-void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
+void LoadSpriteDescriptor(WIDGET *p, void *a, void *b, int n, int m);
+} } // namespace M_LoadSpriteTable
 // Loads a sprite table: the count, then each sprite descriptor.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
+extern "C" void LoadSpriteTable(WIDGET *p, void *a, void *b, int *pn, int *pm)
 {
+    using namespace M_LoadSpriteTable;
     int i;
     *pn = U16Read__18CBinaryInputStream(a);
     *pm = AllocZeroedFromHeap__FP4HEAPii(p->spriteHeap, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
     for (i = 1; i <= *pn; i++)
         LoadSpriteDescriptor(p, a, b, *pn, *pm);
 }
-} } // namespace M_LoadSpriteTable
 
 // 0x214460 LoadSpriteGroups
 namespace M_LoadSpriteGroups {
