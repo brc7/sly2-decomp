@@ -31,29 +31,23 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the addres
    The three unions are what matched it: store_constructor emits a (clobber (mem:BLK)) for every union initializer.
    - EMITV+0x60 is a CLQ (Sly 1 util.h: union of {g0, g1, g2, gUnused} and ag[4]) = {1, 0, -1}. Its clobber is a
      scheduler barrier, so its two stores issue last and 1.0 / -1 die only there (the game's store order).
-   - the union at EMITO+0x20 sits inside the live ranges of the first sentry %hi's only, which breaks their
+   - the union at EMITO+0x20 (sly2/emitter.h's EMITO, the point position / data word) sits inside the live ranges of the first sentry %hi's only, which breaks their
      global-alloc ties (s4/s3, s6/s5), and it fixes the D_002A2DD0 / D_002A2DA0 v0/v1 choice.
    - the union at EMITV+0x00 fixes the FPU numbers of 1.0 / -1500, the 200 / loop-end registers and the s1/a2 order.
    (Lilly's agent, T1656; the per-function file needed the gnu-reorder-db assembler mode and an asm label, which
-   the merged file does not.) */
+   the merged file does not.)
+   The EMITO default uses the header type; the EMITVEL default keeps this initializer view (EMITDEF::EMITVELIsland, a matching
+   island): sly2/emitter.h's EMITVEL has no union at +0x00 and holds the added velocity as one quadword, so it cannot
+   take this initializer (ints 0, 0, float -1500, int 0) with the same unions. */
 namespace EMITDEF {
 union CLQU {
     struct { float g0, g1, g2, gUnused; };
     float ag[4];
 };
-union QWV { qword qw; float ag[4]; };
 union G4V { struct { float g0, g4, g8, gC; }; float ag[4]; };
-/* The origin record (EMITB+0x10; Sly 1's EMITO starts the same way). */
-struct EMITO {
-    int kind[4];            /* +0x00 EMITOK (0 here: a point), padding */
-    int originOid;          /* +0x10 the origin object (-1: none) */
-    int pad14[3];
-    QWV position;           /* +0x20 point origin (other kinds: their data pointer) */
-    qword direction;        /* +0x30 emission direction (default +x) */
-};
 /* The velocity record (EMITB+0x50); meanings from Sly 1's EMITV and its InitEmitb defaults, which have the same
-   values in the same order. */
-struct EMITV {
+   values in the same order. Island view of sly2/emitter.h's EMITVEL (see above). */
+struct EMITVELIsland {
     G4V speed;              /* +0x00 g0/g4: speed range; g8: velocity damping (-1); gC: z speed ratio (1: the
                                emission direction's component is scaled by it, ChooseEmitvVelocityAge) */
     int addedVelocityX, addedVelocityY;   /* +0x10 added to every particle's velocity (default 0,0,-1500: gravity) */
@@ -66,12 +60,11 @@ struct EMITV {
     int tiltSkipBirth[8];   /* +0x40 tilt range (radians), skip and birth time ranges */
     CLQU alpha;             /* +0x60 alpha over the particle's life */
 };
-typedef char check_emito[(sizeof(EMITO) == 0x40) ? 1 : -1];
-typedef char check_emitv[(sizeof(EMITV) == 0x70) ? 1 : -1];
+typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 }
 extern "C" qword D_002A2DD0, D_002A2DA0, D_002A2DC0;
-EMITDEF::EMITO D_002DE5B0 = { {0, 0, 0, 0}, -1, {0, 0, 0}, {D_002A2DD0}, D_002A2DA0 };
-EMITDEF::EMITV D_002DE5F0 = { {{750.0f, 750.0f, -1.0f, 1.0f}}, 0, 0, -1500.0f, 0, D_002A2DC0, 0, 200, 1.0f, 1.0f,
+EMITO D_002DE5B0 = { 0, 0, 0, 0, -1, {0, 0}, {0}, {D_002A2DD0}, D_002A2DA0 };
+EMITDEF::EMITVELIsland D_002DE5F0 = { {{750.0f, 750.0f, -1.0f, 1.0f}}, 0, 0, -1500.0f, 0, D_002A2DC0, 0, 200, 1.0f, 1.0f,
                               {0, 0, 0, 0, 0, 0, 0, 0}, {{1.0f, 0.0f, -1.0f}} };
 
 // 0x15CAD8 static initializer (after the defaults) and its _GLOBAL_$I$ stub func_0015CD48: the six slot pools.
