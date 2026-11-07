@@ -505,7 +505,8 @@ struct STEPPLAYER : public STEP
       float unknown10D4;
       float unknown10D8;
       LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
-      int unknown10E0;
+      int interactBlockFlags;   /* +0x10E0 nonzero: no interaction candidates are scanned (UpdateStepplayerInteractCandidates);
+                                   bit 0 while an AI interact behaviour runs (ai/tu_144B28), bits 1/2 set and cleared by jt.cpp */
       int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in ChooseJtGroundState). Not
                                renamed: STEPPLAYER already has an interactMode member further down */
 

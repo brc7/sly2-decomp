@@ -3598,7 +3598,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 RollHeroIdleTimer(jt);
                 break;
             case JTS_Pickpocket:
-                jt->unknown10E0 &= ~2;
+                jt->interactBlockFlags &= ~2;
                 break;
             case JTS_Run:
             case JTS_Unk0A:
@@ -3609,7 +3609,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 if (jt->activeAnimation != 0 && !FAsegaStopped(jt->activeAnimation))
                     GuardCapVelocityForPounce((STEPGUARD *)jt->interactTarget);
                 jt->unknown1D2C = 0;
-                jt->unknown10E0 &= ~4;
+                jt->interactBlockFlags &= ~4;
                 break;
             case JTS_Unk12:
             case JTS_Unk13:
@@ -3795,7 +3795,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
                 *(qword *)&jt->unknown190 = D_002A2DD0;
-                jt->unknown10E0 |= 2;
+                jt->interactBlockFlags |= 2;
                 grf = 100;
                 jt->unknown1BD4 = 0;
                 break;
@@ -3806,7 +3806,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
                 break;
             case JTS_Pounce:
-                jt->unknown10E0 |= 4;
+                jt->interactBlockFlags |= 4;
                 if (FPowerUpAcquired(0x1C))
                 {
                     aseg = jt->pasegPouncePowerUp;

@@ -19,6 +19,7 @@
 #include "sly2/po.h"
 #include "sly2/step.h"
 #include "sly2/stepplayer.h"
+#include "sly2/guard.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -334,25 +335,22 @@ void UpdateStepplayer(struct P *player)
 } } // namespace M_UpdateStepplayer
 
 namespace M_UpdateStepplayerInteractCandidates { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, void *, int, void *); };
-struct SO { char pad[0xFE0]; struct SO *psoNext; };
-struct P { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int x10E0; };
 extern float D_002A4D18;
-int GuardEvalInteractMode(struct SO *pso, struct P *p, float *pg);
+int GuardEvalInteractMode(STEPGUARD *pso, STEPPLAYER *p, float *pg);
 // Unless interaction is locked (+0x10E0), scans the guard list for interact candidates (pickpocket/takedown).
-void UpdateStepplayerInteractCandidates(struct P *player)
+void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
 {
-    struct SO *so, *pso0, *pso1;
+    STEPGUARD *so, *pso0, *pso1;
     int n0, n1;
     float g0, g1;
-    if (player->x10E0) return;
+    if (player->interactBlockFlags) return;
     g1 = D_002A4D18;
     pso1 = 0;
     pso0 = 0;
     n1 = -1;
     n0 = -1;
     g0 = g1;
-    for (so = (*(struct SO * *)&g_sw.dlStepguard); so; so = so->psoNext) {
+    for (so = (STEPGUARD *)g_sw.dlStepguard.head; so; so = (STEPGUARD *)so->dleGuard.next) {
         float ag[2];
         int n = GuardEvalInteractMode(so, player, &ag[1]);
         float g = ag[1];
@@ -367,7 +365,7 @@ void UpdateStepplayerInteractCandidates(struct P *player)
             pso1 = so;
         }
     }
-    player->vt[95].pfn((char *)player + player->vt[95].d, n0, pso0, n1, pso1);
+    player->SetPlayerInteractMode(n0, pso0, n1, pso1);
 }
 } } // namespace M_UpdateStepplayerInteractCandidates
 
@@ -1366,23 +1364,19 @@ extern "C" void SetStepplayerGrabTargetAlt(STEPPLAYER *player, LO *lo)
 
 namespace M_func_00142278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct P { char pad[0xC]; struct VTE *vt; char pad2[0x11B0 - 0x10]; char sub[0x10]; void *p11C0; char pad3[0x1290 - 0x11C4]; qword q1290; };
 void FadeSoIn(void *p, float f);
 qword GetLoWorldPos(void *p);
-void UpdateJtThrowArc(void *p, int n);
-void SetJtThrowState(void *p, int n);
+void UpdateJtThrowArc(JTTHROW *p, int n);
+void SetJtThrowState(JTTHROW *p, int n);
 // Splice: makes object a the carried object (+0x11C0) aimed at object b's position.
-void StartStepplayerThrowAt(struct P *player, void *a, void *b)
+void StartStepplayerThrowAt(STEPPLAYER *player, LO *a, void *b)
 {
-    struct VTE *e;
     FadeSoIn(a, 0.25f);
-    player->p11C0 = a;
-    player->q1290 = GetLoWorldPos(b);
-    UpdateJtThrowArc(player->sub, 0);
-    e = &player->vt[88];
-    ((void (*)(void *, int))e->pfn)((char *)player + e->d, 7);
-    SetJtThrowState(player->sub, 7);
+    player->jtthrow.ploCarried = a;
+    player->jtthrow.holdPosition = GetLoWorldPos(b);
+    UpdateJtThrowArc(&player->jtthrow, 0);
+    player->SetPlayerState(7);
+    SetJtThrowState(&player->jtthrow, 7);
 }
 } } // namespace M_func_00142278
 
@@ -2520,18 +2514,16 @@ void SetStepplayerRide(struct P *player, struct LO *lo)
 } } // namespace M_func_00143DE8
 
 namespace M_func_00143EE0 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct P { char pad[0xC]; struct VTE *vt; char pad2[0x1030 - 0x10]; char action[4]; char m1034[4]; };
 extern char D_003DD490[];
-void StopStepplayerScriptAnim(struct P *p);
-void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
+void StopStepplayerScriptAnim(STEPPLAYER *p);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, STEPPLAYER *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, STEPPLAYER *p, int a, void *b, float f, float g);
 void ReleaseAsega(void *p);
-void ReplaceSma(void *o, struct P *p, int n, int a, void *b);
+void ReplaceSma(void *o, STEPPLAYER *p, int n, int a, void *b);
 // oid -1 stops; otherwise finds the object and plays the scripted animation on the player.
-void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
+void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
 {
     void *o;
     if (oid == -1) {
@@ -2541,13 +2533,13 @@ void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
     o = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
     if (!o) return;
     if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
-        player->vt[88].pfn((char *)player + player->vt[88].d, b);
-        ReleaseSma(player->m1034);
-        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->action, 0.0f, 1.0f);
+        player->SetPlayerState(b);
+        ReleaseSma(&player->activeStateMachine);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, &player->activeAnimation, 0.0f, 1.0f);
     } else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
-        player->vt[88].pfn((char *)player + player->vt[88].d, b);
-        ReleaseAsega(player->action);
-        ReplaceSma(o, player, -1, a, player->m1034);
+        player->SetPlayerState(b);
+        ReleaseAsega(&player->activeAnimation);
+        ReplaceSma(o, player, -1, a, &player->activeStateMachine);
     }
 }
 } } // namespace M_func_00143EE0

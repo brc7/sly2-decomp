@@ -80,10 +80,8 @@ struct BHVFOLLOWV : public BHVB
     char pad14[0x30 - 0x14];
     SO *leader;             /* +0x30 */
 };
-/* Owner words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and, on a
-   player, a flag word whose bit 0 is set while one of the AI interact behaviours runs (+0x10E0, inferred). */
+/* Owner word the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL). */
 #define PJTGOAL(guard) ((JTGOAL *)((char *)(guard) + 0xFD0))
-#define AI_INTERACT_FLAGS(player) (*(int *)((char *)(player) + 0x10E0))
 
 extern CLOCK D_002DDED0;
 extern "C" {
@@ -870,7 +868,7 @@ void BHV195::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
+    ((STEPPLAYER *)behavior->owner)->interactBlockFlags &= ~1;
 }
 
 // 0x145DA0: True if the interact behaviour is idle (state -1).
@@ -1061,7 +1059,7 @@ void BHV196::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
+    ((STEPPLAYER *)behavior->owner)->interactBlockFlags &= ~1;
 }
 
 // 0x146298: True if the second interact behaviour is idle (state -1).
@@ -1250,7 +1248,7 @@ void BHV197::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
+    ((STEPPLAYER *)behavior->owner)->interactBlockFlags &= ~1;
 }
 
 // 0x146790: True if the third interact behaviour is idle (state -1).
