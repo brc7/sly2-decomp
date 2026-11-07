@@ -599,13 +599,13 @@ float CRichText::GetMaxLineWidth()
     Reset();
     while ((ch = ReadNextCharSigned(this)) != 0) {
         if (ch == '\n') {
-            dxMax = GMax(dxMax, dx);
+            dxMax = Max(dxMax, dx);
             dx = 0.0f;
         } else {
             dx += currentFont->GetCharWidth(ch);
         }
     }
-    dxMax = GMax(dxMax, dx);
+    dxMax = Max(dxMax, dx);
     return dxMax;
 }
 

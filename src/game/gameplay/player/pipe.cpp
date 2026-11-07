@@ -272,7 +272,7 @@ extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
 {
     FindShapeClosestPoint(pipe, GetLoWorldPos(q), 0, 0, 0, 0, pf);
     if (pipe->isCyclic == 0) {
-        *pf = GClamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
+        *pf = Clamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
     }
 }
 
@@ -313,7 +313,6 @@ extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float 
     *pvec = r;
 }
 
-static inline float Abs(float g) { return g<0.0f?-g:g; }
 static inline qword Bc(float g) {
     union { qword q; float f; } u;
     qword q;

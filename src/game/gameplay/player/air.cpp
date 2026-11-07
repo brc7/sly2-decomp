@@ -23,6 +23,7 @@
 #include "sly2/classes.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -1100,7 +1101,6 @@ typedef union { qword q; float f[4]; } U;
 int SolveQuadratic__FfffPf(float a, float b, float c, float *roots);
 
 static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; }
-static inline float Max(float a, float b) { return a < b ? b : a; }
 /* v.z as a float; Zin overwrites its (copied) input, Z reads it */
 static inline float Zin(qword v) { float f; __asm__("pextuw %0,$zero,%0" : "=r"(f) : "0"(v)); return f; }
 /* length of the xy part through VU0.  The duplicated "j"(v) input is allocation-only: it makes v prefer
@@ -1131,14 +1131,14 @@ float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slo
     int n;
     vz = Zin(v);
     n = SolveQuadratic__FfffPf(naz, -low, vz, r0.f);
-    if (n > 0) best = Max(r0.f[n - 1], best);
+    if (n > 0) best = StdMax(r0.f[n - 1], best);
     n = SolveQuadratic__FfffPf(az, -high, vz, r1.f);
-    if (n > 0) best = Max(r1.f[n - 1], best);
+    if (n > 0) best = StdMax(r1.f[n - 1], best);
     l = LenXY(v);
     t = (slope0 * l - vz) / naz;
-    if (t > 0.0f) best = Max(Sqrt(t), best);
+    if (t > 0.0f) best = StdMax(Sqrt(t), best);
     t = (slope1 * l - vz) / az;
-    if (t > 0.0f) best = Max(Sqrt(t), best);
+    if (t > 0.0f) best = StdMax(Sqrt(t), best);
     return best;
 }
 } } // namespace M_func_00196928
@@ -1781,10 +1781,6 @@ extern "C" int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
 extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 extern "C" void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot);
 extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
-static inline float MinOf(float a, float b)
-{
-    return (a < b) ? a : b;
-}
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
     qword qw;
@@ -2050,7 +2046,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
                 {
-                    qword targetPos = QwPosOfJtPlace(MinOf(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
+                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
                     air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->pxfUnk58->pxfParent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
@@ -2194,7 +2190,6 @@ static inline float LengthSqXYOfGpr(qword v)
 static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(VuSqrtX(r)); }
 static inline float LengthOfGpr(qword v) { return QwordX(VuSqrtX(VuDot(v, v))); }
 static inline float LengthOf(qword v) { return VuToFloat(VuSqrtX(VuDot(v, v))); }
-static inline float MinF(float a, float b) { return b < a ? b : a; }
 
 static inline qword Transform(const M4 &m, qword v)
 {
@@ -2232,7 +2227,6 @@ static inline float NormalizeInPlace(U &v, const qword &vDefault)
     return QwordX(l);
 }
 static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
-static inline float ClampF(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
 static inline int IsMoving(qword v) { return D_002BF848 < LengthXYOf(v); }
 
 /** @sly2-annot addr=0x197F98
@@ -2305,7 +2299,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             U rel;
             rel.q = VuSub(v, GetVelocity(src));
             U end;
-            end.q = AddScaledVec(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
+            end.q = AddScaledVec(delta.q, rel.q, VuFloat(StdMin(0.25f, t)));
 
             delta.f[2] = end.f[2] = 0.0f;
             FindClosestPointOnLineSegment(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
@@ -2335,7 +2329,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             U rel;
             rel.q = VuSub(vel.q, velObj.q);
             U end;
-            end.q = AddScaledVec(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
+            end.q = AddScaledVec(delta.q, rel.q, VuFloat(StdMin(0.25f, t)));
 
             delta.f[2] = end.f[2] = 0.0f;
 
@@ -2530,7 +2524,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             break;
         case 5:
             if (0.2f < input->amount) {
-                p->blend = ClampF(cosf(input->heading - p->lastHeading), 0.0f, p->blend);
+                p->blend = Clamp(cosf(input->heading - p->lastHeading), 0.0f, p->blend);
 
             }
             if (D_002BF730 < p->speedLimit)
@@ -3489,7 +3483,6 @@ static __inline__ unsigned LenXY1(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(bits) : "j"(v));
     return bits;
 }
-static inline float MaxF(float a, float b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x19A4A0
  * Purpose: Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g,
  *   predicted pos/velocity
@@ -3526,7 +3519,7 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
         float g = p->pb->pc->g88;
         float t1 = -dz / g;
         float h;
-        t1 = MaxF(0.0f, t1);
+        t1 = Max(0.0f, t1);
         { register float height __asm__("$f6") = QwordZ(pos);
           register float end __asm__("$f4") = QwordZ(b);
           float th = t1 * 0.5f;
@@ -3645,28 +3638,12 @@ int SolveQuadratic(float a, float b, float c, float *ax) __asm__("SolveQuadratic
 
 
 
-static inline float MaxOf(float a, float b)
-{
-    return (a > b) ? a : b;
-}
-static inline float MinOf(float a, float b)
-{
-    return (a < b) ? a : b;
-}
-static inline float ClampToRange(float g, float minValue, float maxValue)
-{
-    if (g < minValue)
-        return minValue;
-    if (maxValue < g)
-        return maxValue;
-    return g;
-}
 static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
     float g = EvaluateClq(clq, x);
     float minValue = range->gMin;
     float maxValue = range->gMax;
-    return ClampToRange(g, minValue, maxValue);
+    return Clamp(g, minValue, maxValue);
 }
 extern "C" { extern float D_002BF8C8; }
 extern "C" { extern float D_002BF8CC; }
@@ -3738,7 +3715,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(MaxOf((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
             break;
         }
         case 4:
@@ -3749,7 +3726,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
             float vJump = SqrtfEarly(g * -2.0f * D_002BF738);
             float tApex = -vJump / g;
             float vzMin = QwordZ(air->pstepplayer->GetVelocity());
-            vzMin = MinOf(vzMin, vJump);
+            vzMin = Min(vzMin, vJump);
             float tElapsed = (vzMin - vJump) / g;
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);
             float ax[4];
@@ -3772,7 +3749,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
             vzNew = vel.z;
             break;
     }
-    vel.z = MaxOf(vel.z, vzNew);
+    vel.z = Max(vel.z, vzNew);
     return *(qword *)&vel;
 }
 } // namespace M_func_0019A750
@@ -4304,7 +4281,6 @@ static inline float Length(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(l));
     return r;
 }
-static inline float MinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
  * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
@@ -4357,7 +4333,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             vBest = vHit;
             kind = 9;
             ploBest = shape;
-            bestScore = MinOf(g, bestScore);
+            bestScore = Min(g, bestScore);
             tBest = t;
         }
 
@@ -4394,7 +4370,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                                                            pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 continue;
             ploBest = curve;
-            bestScore = MinOf(g, bestScore);
+            bestScore = Min(g, bestScore);
             kind = 10;
             posBest = posHit;
             vBest = vHit;
@@ -4442,7 +4418,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ploBest = phook;
             posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            bestScore = MinOf(bestScore, g);
+            bestScore = Min(bestScore, g);
             tBest = t;
         }
 
@@ -4477,7 +4453,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ploBest = pmesh;
             posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            bestScore = MinOf(bestScore, gMesh);
+            bestScore = Min(bestScore, gMesh);
             tBest = t;
             tri = triHit;
         }
@@ -4509,7 +4485,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         kind = 18;
         ploBest = D_002F7900->ploPartnerTarget;
         tBest = t;
-        bestScore = MinOf(g, bestScore);
+        bestScore = Min(g, bestScore);
     }
 LPartnerDone:
 
@@ -4551,7 +4527,7 @@ LPartnerDone:
         ploBest = curve;
         posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
         vBest = vHit;
-        bestScore = MinOf(bestScore, gCurve);
+        bestScore = Min(bestScore, gCurve);
         tBest = t;
         sBest = s;
     }
@@ -4591,7 +4567,7 @@ LPartnerDone:
         ploBest = shape;
         posBest = posHit;
         vBest = vHit;
-        bestScore = MinOf(bestScore, g);
+        bestScore = Min(bestScore, g);
         tBest = t;
         sBest = u;
     }
@@ -4629,7 +4605,7 @@ LPartnerDone:
         ploBest = curve;
         posBest = posHit;
         vBest = vHit;
-        bestScore = MinOf(bestScore, g);
+        bestScore = Min(bestScore, g);
         tBest = t;
         sBest = u;
     }
@@ -4654,7 +4630,7 @@ LPartnerDone:
         }
         kind = 13;
         ploBest = shape;
-        bestScore = MinOf(g, bestScore);
+        bestScore = Min(g, bestScore);
         posBest = posHit;
         vBest = vHit;
         tBest = t;

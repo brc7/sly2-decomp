@@ -25,6 +25,7 @@
 #include "sly2/cm.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -468,16 +469,7 @@ int TestStepplayerHidden(struct P *p);
 qword GetLoWorldPos(struct P *p);
 void CreateNoise(void *a, qword pos, struct P *p, int n);
 
-static inline float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo) r = lo;
-    else if (hi < g) r = hi;
-    else r = g;
-    return r;
-}
 
-static inline float MinF(float a, float b) { return b < a ? b : a; }
 static inline float MaxF(float a, float b) { return b > a ? b : a; }
 
 /** @sly2-annot addr=0x140750
@@ -495,7 +487,7 @@ void UpdateStepplayerHideBlend(struct P *player)
     if (!player->hideVolumes) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.dt; player->hideBlend = MinF(player->hideBlend + D_002BCC6C * dt, 1.0f); }
+        { float dt = D_002DDED0.dt; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
         { float dt = D_002DDED0.dt; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
@@ -514,11 +506,11 @@ void UpdateStepplayerHideBlend(struct P *player)
         player->x10D0 = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
     if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
@@ -1150,17 +1142,6 @@ void SmoothJtCameraCurveTarget(void *, struct XP *);
 void AddJtHurtCpdefiFlags(void *, struct XP *);
 
 static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
-static __inline__ float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo)
-        r = lo;
-    else if (hi < g)
-        r = hi;
-    else
-        r = g;
-    return r;
-}
 
 /** @sly2-annot addr=0x141640
  * Purpose: STEPPLAYER vt50 GetCpdefi: base 0x1F58F0, then camera focus height (posBase.z) clamped/smoothed by
@@ -1195,14 +1176,14 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             lo = D_002BCCA8;
             hi = D_002BCCAC;
         }
-        g = ClampF(v.f[2], z + lo, z + hi);
+        g = Clamp(v.f[2], z + lo, z + hi);
         jt->x104C = g;
         if (D_002DDF40.x300 != 0 || D_002DDF40.p260 != jt) {
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
             xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
-            xp->pos.f[2] = ClampF(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
+            xp->pos.f[2] = Clamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
         xp->pos.f[1] = v.f[1];
@@ -1232,7 +1213,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l1) : "j"(l1));
         { int t; __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(l1)); __asm__("mtc1 %1, %0" : "=f"(s) : "r"(t)); }
         k = EvaluatePoly(s, D_002BCCF0.a, D_002BCCF0.b, D_002BCCF0.c);
-        xp->g34 *= ClampF(k, D_002BBB60.lo, D_002BBB60.hi);
+        xp->g34 *= Clamp(k, D_002BBB60.lo, D_002BBB60.hi);
     }
 }
 } } // namespace M_GetStepplayerCpdefi

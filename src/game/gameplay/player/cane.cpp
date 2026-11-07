@@ -927,7 +927,7 @@ extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
     float k = 1.6f;
     if (jt->mode == 0) k = 3.15f;
     ChooseJtAttackTarget((ALO *)jt, jt->heading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
-    if (alo) t = GClamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
+    if (alo) t = Clamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
     else t = 1.0f;
     blend->outgoing = t;
     blend->incoming = 1.0f - t;

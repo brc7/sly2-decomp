@@ -182,7 +182,7 @@ extern "C" RPL *AllocRenderListEntry(void)
 static inline int Flags(LO *object)
 {
     int flags = object->flagsOrPointer;
-    if (FIsPtr(flags)) flags = *(int *)flags;
+    if (IsPointer(flags)) flags = *(int *)flags;
     return flags;
 }
 

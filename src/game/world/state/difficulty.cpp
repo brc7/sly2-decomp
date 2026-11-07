@@ -202,13 +202,13 @@ extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, int c, int dn, void *source)
 {
     if (difficulty->countdownA <= 0) {
-        int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[0], difficulty->params->countdownRanges[2]);
-        int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[1], difficulty->params->countdownRanges[3]);
+        int nMin = LerpInt(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[0], difficulty->params->countdownRanges[2]);
+        int nMax = LerpInt(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[1], difficulty->params->countdownRanges[3]);
         difficulty->countdownA = RandomIntInRange(nMin, nMax);
     }
     if (difficulty->countdownB <= 0) {
-        int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[4], difficulty->params->countdownRanges[6]);
-        int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[5], difficulty->params->countdownRanges[7]);
+        int nMin = LerpInt(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[4], difficulty->params->countdownRanges[6]);
+        int nMax = LerpInt(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[5], difficulty->params->countdownRanges[7]);
         difficulty->countdownB = RandomIntInRange(nMin, nMax);
     }
     {

@@ -370,7 +370,7 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
             {
                 float ga = VuXToFloat(la);
                 float gb = VuXToFloat(lb);
-                g = GMin(ga, gb);
+                g = Min(ga, gb);
             }
             if (gBest < g) {
                 gBest = g;

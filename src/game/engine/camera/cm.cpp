@@ -19,6 +19,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -365,7 +366,6 @@ extern "C" float tanf(float);
 void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
 void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");
-static inline float GMax(float a, float b) { return a > b ? a : b; }
 // Recomputes everything that depends on the field of view: the half-fov tangents, the cull scale, the near-plane
 // corner distance, the projection matrix (512x224 half-screen, near/far clip), the fog/LOD fit coefficients
 // (BuildCmFgfn), then the view matrices (UpdateCmMat4).
@@ -376,7 +376,7 @@ extern "C" void RecalcCmFrustrum__FP2CM(CM *pcm)
     float c = pcm->rAspect;
     pcm->gTanHalfY = t;
     pcm->gTanHalfX = t * c;
-    pcm->rCullScale = GMax(pcm->rFovCullRef * r, 1.0f);
+    pcm->rCullScale = Max(pcm->rFovCullRef * r, 1.0f);
     pcm->sNearCorner = t * SqrtFloat(c * c + 1.0f) * pcm->sNearClip + 1.0f;
     BuildProj(&pcm->matProj, 512.0f / (pcm->gTanHalfX * 4096.0f), 224.0f / (pcm->gTanHalfY * 4096.0f), 0.0f, 0.0f, pcm->sNearClip, pcm->sFarClip);
     SetCmLookAt(pcm, 1.0f, pcm->agRecipFit);

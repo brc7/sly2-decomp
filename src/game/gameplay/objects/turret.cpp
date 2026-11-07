@@ -241,7 +241,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         float angle = atanf(radius / (Length(VuSub(scratch.q, GetLoWorldPos(turret->target))) * 0.5f));
         angle = angle + angle;
         CLOCK *clock = &D_002DDED0;
-        angle = GMax(angle, turret->range.lo);
+        angle = Max(angle, turret->range.lo);
         LoadIdentityMatrix4(turret->target->component, 0, &m, 0, clock->dt);
         scratch.q = LoadVF(m.r[3]);
         future.q = scratch.q;
@@ -255,16 +255,16 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         swapped.f[2] = local.f[0];
         float desired;
         if (local.f[0] > 0.0001f) {
-            float horizontal = atanf((GAbs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.rAspect));
+            float horizontal = atanf((Abs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.rAspect));
             horizontal = horizontal + horizontal;
-            float vertical = atanf((GAbs(swapped.f[1]) + extent) / swapped.f[2]);
+            float vertical = atanf((Abs(swapped.f[1]) + extent) / swapped.f[2]);
             vertical = vertical + vertical;
-            desired = GMin(GMax(horizontal, vertical), turret->range.hi);
+            desired = Min(Max(horizontal, vertical), turret->range.hi);
         } else desired = turret->range.hi;
-        desired = GMax(desired, angle);
+        desired = Max(desired, angle);
         /* spring the blend toward it, faster for bigger changes (D_002C4418) */
         float target = ClampToLimits__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
-        float delta = GAbs(target - turret->blend);
+        float delta = Abs(target - turret->blend);
         spring = D_002A97B0;
         float rate = (1.0f - delta) * D_002C4418[0] + delta * D_002C4418[1];
         spring.d *= rate;
@@ -274,7 +274,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
     } else {
         if (turret->control) {
             float blend = turret->blend, zoom = turret->control->zoom;
-            turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * GAbs(zoom);
+            turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * Abs(zoom);
             turret->blend = ClampToLimits__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.dt);
         }
     }

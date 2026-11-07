@@ -394,8 +394,8 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  WORKA w;
  float remaining;
  {register float deadline __asm__("$f1")=missile->arrivalTime;register float now __asm__("$f2")=D_002DDED0.t;
- deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=GMax(deadline,0.0f)+frameStep;}
- func_001B2398Ret(&w.output,missile,GMin(remaining,0.5f));
+ deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=Max(deadline,0.0f)+frameStep;}
+ func_001B2398Ret(&w.output,missile,Min(remaining,0.5f));
  int stationary=CaptureDestinationAndEqual(missile,&w.output,&w.destination);
  if(stationary){
   register qword scaleWord __asm__("$2");

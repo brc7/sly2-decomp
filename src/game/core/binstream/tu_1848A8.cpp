@@ -147,7 +147,7 @@ extern "C" void RefillStreamFromCd(CBinaryInputStream *stream)
     }
     do {
         if (stream->readRequested > 0) {
-            int readPos = NMin(sceCdGetReadPos() + stream->reissueOffset, stream->readRequested);
+            int readPos = MinInt(sceCdGetReadPos() + stream->reissueOffset, stream->readRequested);
             if (stream->readDone < readPos) {
                 stream->readDone = readPos;
             } else if (func_00241E88(1) == 0) {
@@ -171,7 +171,7 @@ extern "C" void RefillStreamFromCd(CBinaryInputStream *stream)
             }
         }
         if (stream->fullBuffers < stream->bufferCount && stream->readRequested == 0 && stream->fileBytesLeft > 0) {
-            int size = NMin(stream->fileBytesLeft, bufferSize);
+            int size = MinInt(stream->fileBytesLeft, bufferSize);
             stream->readDone = 0;
             stream->readRequested = size;
             stream->fillBuffer = (stream->fillBuffer + 1) % stream->bufferCount;
@@ -187,7 +187,7 @@ extern "C" void RefillStreamFromCd(CBinaryInputStream *stream)
         } else {
             int size = (stream->fullBuffers == 1) ? stream->readDone : bufferSize;
             int v = size - (stream->rawData - (stream->spoolBuffer + stream->readBuffer * bufferSize));
-            stream->rawSize = NMin(v, 0x1000);
+            stream->rawSize = MinInt(v, 0x1000);
         }
     } while (stream->rawSize == 0 && stream->fileBytesLeft > 0);
 }

@@ -235,8 +235,8 @@ extern "C" float GetNoiseRadius(NOISE *noise)
     NOISETYPE *type = noise->type;
     float rampTime, progress;
     if (0.0f < type->duration) {
-        rampTime = GMin(D_002BDCE0, type->duration);
-        progress = GMin((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
+        rampTime = Min(D_002BDCE0, type->duration);
+        progress = Min((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
         return type->range * (D_002BDCF0[0] + progress * (D_002BDCF0[1] + progress * D_002BDCF0[2]));
     }
     return type->range;

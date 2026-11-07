@@ -249,7 +249,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
         if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit) || hit.unknown40 == 0.0f || hit.normalZ < 0.7f)
-            g = GMax(g, 2000.0f);
+            g = Max(g, 2000.0f);
         else
             pos = hit.pos;
         b.q = pos;
@@ -257,7 +257,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         a.f[2] += 180.0f;
         b.f[2] += 5.0f;
         if (FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit))
-            g = GMax(g, 2000.0f);
+            g = Max(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(D_002BF950[k].q));
@@ -266,7 +266,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
             a.f[2] += 50.0f;
             b.f[2] -= 30.0f;
             if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit)) {
-                g = GMax(g, 1500.0f);
+                g = Max(g, 1500.0f);
                 break;
             }
         }
@@ -280,7 +280,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         dist = VuToFloat(d);
-        g = GMax(g, GClamp(EvaluateClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
+        g = Max(g, Clamp(EvaluateClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
     }
     return g;
 }

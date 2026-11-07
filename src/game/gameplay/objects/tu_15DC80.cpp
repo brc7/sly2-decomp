@@ -80,10 +80,10 @@ extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 static inline RGBAV RgbaLerp(float t, RGBAV from, RGBAV to)
 {
     RGBAV result;
-    result.r = NLerp(t, from.r, to.r);
-    result.g = NLerp(t, from.g, to.g);
-    result.b = NLerp(t, from.b, to.b);
-    result.a = NLerp(t, from.a, to.a);
+    result.r = LerpInt(t, from.r, to.r);
+    result.g = LerpInt(t, from.g, to.g);
+    result.b = LerpInt(t, from.b, to.b);
+    result.a = LerpInt(t, from.a, to.a);
     return result;
 }
 // Builds the GIF packet that clears the screen to a colour (3 = clear kind).

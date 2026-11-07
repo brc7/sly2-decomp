@@ -315,7 +315,7 @@ void SplitSwGroup(SW*world,int flags,int count,SO**objects)
      i=0;
      for(;i<n;i++){
        XP*candidate=contacts[i];
-       if(candidate->kind==11){if(0.1f<GAbs(candidate->value))break;}
+       if(candidate->kind==11){if(0.1f<Abs(candidate->value))break;}
        else {if(candidate->value<-2.0f)break;}
      }
      if(i>=n)flags&=~4;
@@ -326,7 +326,7 @@ void SplitSwGroup(SW*world,int flags,int count,SO**objects)
      do{
        XP*candidate=contacts[i];
        qword normal=candidate->normal.q;
-       if(candidate->kind==11){if(5.0f<GAbs(DotF(candidate->velocity.q,normal)))break;}
+       if(candidate->kind==11){if(5.0f<Abs(DotF(candidate->velocity.q,normal)))break;}
        else {if(DotF(candidate->velocity.q,normal)<-5.0f)break;}
      }while(++i<n);
      if(i<n)goto applyFlags;

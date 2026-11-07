@@ -21,6 +21,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -471,14 +472,6 @@ float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void SetStepTargetHeading(struct LO *po, float g);
 int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
-static inline float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo) r = lo;
-    else if (hi < g) r = hi;
-    else r = g;
-    return r;
-}
 /** @sly2-annot addr=0x1A1358
  * Purpose: jts 4 per-frame update: smooth heading (SmoothAngle), timers, run pending callback, IsJtStuck
  *   escape
@@ -507,8 +500,8 @@ void UpdateJtActiveZap(struct S *s)
             u = 0.0f;
         }
         w = cosf((D_002DDED0.t - s->x94) * 10.0f);
-        a = ClampF(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
-        s->po->xD0 = a * ClampF(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
+        a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
+        s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
 done:
     switch (s->x4) {
@@ -619,7 +612,6 @@ qword GetLoWorldPos(struct O*);
 struct M3*GetLoWorldMatrix(struct O*);
 qword ConvertVecBetweenLos(struct O*,struct O*,qword);
 void SetJtHurtState(struct P*,int);
-static inline float Max(float a,float b){return a>b?a:b;}
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}

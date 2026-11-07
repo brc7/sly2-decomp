@@ -10,6 +10,7 @@
 #include "sly2/clock.h"
 #include "sly2/sw.h"
 #include "sly2/screen.h"
+#include "sly2/util.h"
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's
    SCREENBASE), vtable 0x2D37D0, emitted here. PMENU below is the view the m2c bodies read. */
@@ -615,7 +616,6 @@ void EnterPauseMenuState11(PMENU *menu) {
     }
 }
 
-static __inline__ float GClampM(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 /** @sly2-annot addr=0x1AF6D0
  * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (GetJoySelectionStepX),
  *   SetSndmgrChannelVolume, update meter
@@ -655,8 +655,8 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float v;
         if (x == 0.0f && y == 0.0f)
             return;
-        D_002F6468 = GClampM(D_002F6468 + x * D_002C01C8, 424.0f, 848.0f);
-        v = GClampM(D_002F646C + y * D_002C01CC, 10.0f, 90.0f);
+        D_002F6468 = Clamp(D_002F6468 + x * D_002C01C8, 424.0f, 848.0f);
+        v = Clamp(D_002F646C + y * D_002C01CC, 10.0f, 90.0f);
         D_002F646C = v;
         {
         GSV *pgs = &D_002DEB80;

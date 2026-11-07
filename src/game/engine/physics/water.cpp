@@ -193,7 +193,7 @@ extern "C" void InitWater(SOW *water)
     water->unknown180 = 1;
     water->unknown184 = -10;
     water->zapKind = 0x2000;
-    if (FIsPtr(flags)) *(int *)flags |= 2;
+    if (IsPointer(flags)) *(int *)flags |= 2;
     else water->loFlags = flags | 2;
 }
 
@@ -308,7 +308,6 @@ extern "C" void UpdateSwXaList(SOW *unused, N **link)
 // Track collider membership and emit contact and impact events.
 static inline qwordV Add(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 static inline REQ*Fields(REQ*p){register REQ*copy __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(p));return copy;}
-static inline float Min(float a,float b){return b<a?b:a;}
 static inline qwordV Velocity(SOW *o){VE *v=o->vt;return v[33].f.velocity((char *)o+v[33].delta);}
 static inline void Impact(SOW *o,EVENT *e){VE *v=o->vt;v[51].f.event((char *)o+v[51].delta,e);}
 static inline void Signal(SOW *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal((char *)o+v[4].delta,event,pair);}
@@ -352,7 +351,7 @@ extern "C" void UpdateWater(SOW *water){
    work.start.f[2]+=dz;work.end.f[2]+=dz;
    if(ClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
     qwordV normal;
-    float fall=Min(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
+    float fall=StdMin(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
     float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.5f;
     void *effect=CreateSfxSound(0x13);
     SetSndSourceLo(effect,object);

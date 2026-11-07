@@ -21,6 +21,7 @@
 #include "sly2/emitter.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -354,7 +355,6 @@ static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
     return AllocCopyFromWorldHeap(&req, pv);
 }
 
-static __inline__ int FPtr(int n) { return !(n & 1); }
 
 // Post-load setup of an EMITTER: runs the shared emitter template, schedules a callback when it emits from an object,
 // infers the emission mode when the level left it unset (intermittent when it can pause, constant count when it has
@@ -448,7 +448,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
         }
         pemitter->isDirty = 0;
         AppendDlEntry__FP2DLPv((char *)group + 0x11C /* group list */, pemitter);
-        if (FPtr(pemitter->flags40))
+        if (IsPointer(pemitter->flags40))
             *(int *)pemitter->flags40 &= ~2;
         else
             pemitter->flags40 &= ~2;
@@ -939,14 +939,6 @@ static inline qword Length(qword a)
         : "=j"(r), "=j"(one) : "j"(a));
     return r;
 }
-static inline float GClamp(float g, float lo, float hi)
-{
-    if (g < lo)
-        return lo;
-    if (hi < g)
-        return hi;
-    return g;
-}
 
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale) __asm__("WakeSoWater__FP2SOP5WATERfP6VECTORT3ff");
 // Makes an object's wake in water: by distance from its last wake point and a random chance per dt, emits splash
@@ -964,7 +956,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         soundObject = (SND *)so;
     if (distance > 10.0f || shouldWake) {
         interval = (distance - 10.0f) * 0.0012658228f;  /* 1/790: full strength at 800 units */
-        strength = GClamp(interval, volume, 1.0f);
+        strength = Clamp(interval, volume, 1.0f);
         if (soundObject && water->hasWakeSound) {
             void **soundSlot = &soundObject->wakeSound;
             volume = strength * 0.9f + 0.1f;

@@ -29,6 +29,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -1280,7 +1281,6 @@ extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
 // The larger of two values.
-static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
 // calls append the commands; the result is copied into an exact-size world-heap array.
@@ -1297,7 +1297,7 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
     LoadLoFromBrx(relay, x);
     {
         ENT *aeOld = relay->ae;
-        relay->cMax = Max(relay->c, relay->cMax) + 1;
+        relay->cMax = StdMaxInt(relay->c, relay->cMax) + 1;
         pmsg->cb = relay->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
         relay->ae = (ENT *)AllocFromWorldHeap(pmsg);
@@ -4646,7 +4646,6 @@ void *FindLiveSma(void *p, int n);
 float EstimateSmaTimeToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
 // Clamps g to [lo, hi].
-static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
@@ -4659,7 +4658,7 @@ float GetJsgCommandDuration(struct C *script, struct P *command)
         struct O *po = FindJsgObject(script, command->u10.n);
         if (po) {
             float t = GetDifficulty(&D_002DE578);
-            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->speedMin, po->speedMax);
+            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = Clamp(s, po->speedMin, po->speedMax);
             g = po->duration / (po->speed * s);
         }
         break;

@@ -18,6 +18,7 @@
 #include "sly2/classes.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
 // docs/engine/player.md section 7 except where marked.
@@ -1967,14 +1968,6 @@ void RecalculateAsegBlend(void *);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void DetachXfActById(void *, struct PO *, int);
 void SetAsegaChannelWeight(void *, float);
-static __inline__ float Clamp(float g, float minValue, float maxValue)
-{
-    if (g < minValue)
-        return minValue;
-    if (maxValue < g)
-        return maxValue;
-    return g;
-}
 /** @sly2-annot addr=0x136F48
  * Purpose: helper state change
  * Info: proposed name SetBentleyCrosshairState (T2); TU bentley

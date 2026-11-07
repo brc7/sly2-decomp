@@ -29,7 +29,7 @@ void CroutDecomp(int size, float *matrix, float *lu)
         return;
     for (j = 0; j < size; j++)
         lu[j] = matrix[j];
-    if (GAbs(lu[0]) < 1e-8f) {
+    if (Abs(lu[0]) < 1e-8f) {
         for (i = 0; i < size; i++)
             lu[i * size] = 0.0f;
     } else {
@@ -43,7 +43,7 @@ void CroutDecomp(int size, float *matrix, float *lu)
                 sum += lu[k * size + j] * lu[i * size + k];
             lu[i * size + j] = matrix[i * size + j] - sum;
         }
-        if (GAbs(lu[i * size + i]) < 1e-8f) {
+        if (Abs(lu[i * size + i]) < 1e-8f) {
             for (k = i; k < size; k++)
                 lu[k * size + i] = 0.0f;
         } else {
@@ -59,7 +59,7 @@ void CroutDecomp(int size, float *matrix, float *lu)
     for (k = 0; k < size - 1; k++)
         sum += lu[k * size + size - 1] * lu[(size - 1) * size + k];
     lu[(size - 1) * size + size - 1] = matrix[(size - 1) * size + size - 1] - sum;
-    if (GAbs(lu[(size - 1) * size + size - 1]) < 1e-8f)
+    if (Abs(lu[(size - 1) * size + size - 1]) < 1e-8f)
         lu[(size - 1) * size + size - 1] = 0.0f;
 }
 

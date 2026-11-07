@@ -396,7 +396,7 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
     if (behavior->state == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
         float d = Dist(GetLoWorldPos(behavior->guard), GetLoWorldPos(D_002E1E40));
         NEELAV *neela = behavior->guard;
-        float r = GClamp(EvaluateQuadratic(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
+        float r = Clamp(EvaluateQuadratic(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
         Q1 *q1 = (Q1 *)FindStepBehavior(behavior->guard, CID_BHVWALKPATH);
         Q2 *q2 = (Q2 *)FindStepBehavior(behavior->guard, CID_BHVRAIL);
         if (q1)

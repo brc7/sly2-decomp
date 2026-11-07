@@ -28,6 +28,7 @@
 #include "sly2/scrap.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -813,12 +814,6 @@ extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
 extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
 extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv);
-static __inline__ float ClampF(float g, float lo, float hi)
-{
-    if (g < lo) return lo;
-    if (g > hi) return hi;
-    return g;
-}
 static __inline__ float ReplaceIfBelow(float g, float lo, float v)
 {
     if (g < lo) return v;
@@ -850,7 +845,7 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
                 __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(l) : "j"(*(qword *)&pa->x80));
                 __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
                 __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-                pa->g94 = ClampF(g / pa->g88 + 0.5f, 0.5f, 1.5f);
+                pa->g94 = Clamp(g / pa->g88 + 0.5f, 0.5f, 1.5f);
             }
         }
         break;
@@ -1313,22 +1308,6 @@ extern "C" float D_002BF300;
 extern "C" { extern CLQ D_002BF310; }
 extern "C" { extern SMPA D_002BF320; }
 extern "C" { extern CLQ D_002BF330; }
-static inline float MaxOf(float a, float b)
-{
-    return (a > b) ? a : b;
-}
-static inline float MinOf(float a, float b)
-{
-    return (a < b) ? a : b;
-}
-static inline float ClampToRange(float g, float minValue, float maxValue)
-{
-    if (g < minValue)
-        return minValue;
-    if (maxValue < g)
-        return maxValue;
-    return g;
-}
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
     qword qw;
@@ -1421,7 +1400,7 @@ void UpdateJtLean(JT *jt)
                         VECTOR4 vecAcross;
                         *(qword *)&vecAcross = NormalizeVecViaDot(VuCross(D_002A2DC0, *(qword *)&vecDir));
                         float gAcross = SProjectVector(*(qword *)&vecDv, *(qword *)&vecAcross, 0, (qword *)&vecDv);
-                        float g = ClampToRange(gAcross / D_002BF2D4, -1.0f, 1.0f);
+                        float g = Clamp(gAcross / D_002BF2D4, -1.0f, 1.0f);
                         if (jt->jtgrab.fFlip)
                             g = -g;
                         float gLean = SmoothValueWithAccel(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
@@ -1429,8 +1408,8 @@ void UpdateJtLean(JT *jt)
                         jt->jtgrab.gLean = gLean;
                         float gZero = 0.0f;
                         float gOne = 1.0f;
-                        jt->jtgrab.ablC[0].gWeight = MaxOf(gZero, gLean);
-                        jt->jtgrab.ablC[2].gWeight = MaxOf(gZero, -gLean);
+                        jt->jtgrab.ablC[0].gWeight = Max(gZero, gLean);
+                        jt->jtgrab.ablC[2].gWeight = Max(gZero, -gLean);
                         jt->jtgrab.ablC[1].gWeight = (gOne - jt->jtgrab.ablC[0].gWeight) - jt->jtgrab.ablC[2].gWeight;
                         ReblendAsegbl(jt->jtgrab.pasegblC);
                     }
@@ -1449,7 +1428,7 @@ lComputeLean:
     *(qword *)&vecLocal = MulMatrixRows(&jt->matTarget, *(qword *)&vecDir);
     float gLen = LengthXYOf(*(qword *)&vecLocal);
     if (gLen > 0.0001f) {
-        float k = ClampToRange(EvaluateClq(&D_002BF310, MinOf(gLen / D_002BF300, 1.0f)), D_002BBB60.gMin, D_002BBB60.gMax);
+        float k = Clamp(EvaluateClq(&D_002BF310, Min(gLen / D_002BF300, 1.0f)), D_002BBB60.gMin, D_002BBB60.gMax);
         float gX = vecLocal.x * D_002BF2D8 * k / gLen;
         float gY = vecLocal.y * D_002BF2D8 * k / gLen;
         float gR = ({
@@ -1897,8 +1876,6 @@ extern "C" qword GetLoWorldPos(A *p);
 extern "C" M *GetLoWorldMatrix(A *p);
 extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
-static __inline__ float MinF(float a,float b){return a<b?a:b;}
-static __inline__ float MaxF(float a,float b){return a>b?a:b;}
 
 static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
 {
@@ -1952,7 +1929,7 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
                     float h = GetShapeMaxDistance(pb);
                     if (pb->x1BC & 2)
                         h += 100.0f;
-                    g = MinF(g, h);
+                    g = Min(g, h);
                 }
             } else {
                 g = ps->g20 - (ps->g50 * 125.0f) * ps->g50;
@@ -1960,7 +1937,7 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
                     float h = GetShapeMinDistance(pb);
                     if (pb->x1BC & 1)
                         h -= 100.0f;
-                    g = MaxF(g, h);
+                    g = Max(g, h);
                 }
             }
             EvaluateShapeAtDistance(pb, &ps->v40, 0, g);

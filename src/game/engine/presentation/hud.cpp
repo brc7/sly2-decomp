@@ -23,6 +23,7 @@
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
 
@@ -1100,7 +1101,6 @@ extern "C" {
 extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
-static inline int Max(int a,int b) {return a<b?b:a;}
 static inline int SetKey(KEY *key,N *load) {
     if(!load)return 0;
     {int k2=load->key2,k0=load->key0,k3=load->key3,k1=load->key1;
@@ -1134,7 +1134,7 @@ extern "C" void LoadWidgetSprites(S *widget) {
         owner=load->owner;
         if(owner->state==0)continue;
         if(owner->state==1 && D_002BE538-owner->stateFrame>=2)continue;
-        priority=Max(priority,load->lastPriority);
+        priority=StdMaxInt(priority,load->lastPriority);
     }
     /* ... evicts every loaded widget loaded at or above it, since the sprite heap is reset to that point */
     for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
@@ -1691,11 +1691,9 @@ void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
 static inline void Align(R *r){while((uint)r->cur&63){*(uint *)r->cur=0;r->cur+=4;}}
-static inline float Min(float x,float y){return y<x?y:x;}
-static inline float Max(float x,float y){return x<y?y:x;}
 static inline void Offset(V4 &v,float x,float y,float z,float w){v.x=x-127.0f;v.y=y-127.0f;v.z=z-127.0f;v.w=w-127.0f;}
 static inline void SetOffset(V4 &v,const uchar *c){Offset(v,c[0],c[1],c[2],c[3]);}
-static inline float ColorScale(int c,float upper){return Max(Min((c-127)*0.007874016f,upper),-1.0f);}
+static inline float ColorScale(int c,float upper){return StdMax(StdMin((c-127)*0.007874016f,upper),-1.0f);}
 static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=ColorScale(a,upper),y=ColorScale(b,upper),z=ColorScale(d,upper),w=ColorScale(e,upper);v.x=x;v.y=y;v.z=z;v.w=w;}
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
@@ -3225,13 +3223,6 @@ struct S {
     float color0R, color0G, color0B, color0W, color1R, color1G, color1B, color1A;
     float baseColor0R, baseColor0G, baseColor0B, baseColor0W, baseColor1R, baseColor1G, baseColor1B, baseColor1A;
 };
-static inline float MinFloat(float a, float b) { return b < a ? b : a; }
-static inline float ClampFloat(float g, float gMin, float gMax)
-{
-    if (g < gMin) return gMin;
-    if (gMax < g) return gMax;
-    return g;
-}
 /** @sly2-annot addr=0x2160D8
  * Purpose: convert current RGBA to clamped float colours
  * Info: proposed name CRichText_UpdateColor (T2); class CRichText; TU hud
@@ -3244,14 +3235,14 @@ void UpdateRichText2Color(struct S *rt)
     float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
     float alpha;
     alpha = alphaScale * (float)rt->color.a;
-    rt->color0R = MinFloat(rt->baseColor0R + (float)rt->color.r, 255.0f);
-    rt->color0G = MinFloat(rt->baseColor0G + (float)rt->color.g, 255.0f);
-    rt->color0B = MinFloat(rt->baseColor0B + (float)rt->color.b, 255.0f);
+    rt->color0R = StdMin(rt->baseColor0R + (float)rt->color.r, 255.0f);
+    rt->color0G = StdMin(rt->baseColor0G + (float)rt->color.g, 255.0f);
+    rt->color0B = StdMin(rt->baseColor0B + (float)rt->color.b, 255.0f);
     rt->color0W = rt->baseColor0W;
     rt->color1R = rt->baseColor1R;
     rt->color1G = rt->baseColor1G;
     rt->color1B = rt->baseColor1B;
-    rt->color1A = ClampFloat(alpha, 0.0f, 1.0f);
+    rt->color1A = Clamp(alpha, 0.0f, 1.0f);
 }
 } } // namespace M_func_002160D8
 
@@ -3626,7 +3617,6 @@ extern "C" float CRichText_GetWidth(RT *);
 extern "C" float ModPositive__Fff(float,float);
 extern "C" void SetNoticeState(SCROLL *,int);
 extern "C" void DrawRichText2AtXf(RT *,T *,DATA *);
-static inline float Max(float a,float b){return a<b?b:a;}
 enum { TEXT_SOURCE_LANGSTR = 0, TEXT_SOURCE_TABLE = 1 };
 enum { TEXT_ID_SUBTITLE = 0x2EF, TEXT_ID_TICKER = 0x2F1 };   /* BuildSubtitleText, BuildTickerText */
 
@@ -3695,7 +3685,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
             period=textWidth*0.01f;
             position=ModPositive__Fff(elapsed,period);
             if(D_003DA0C0.finish>=0.0f){
-                float finish=Max(D_003DA0C0.finish,(textWidth+Max(0.0f,textWidth-p->width*scale)+paddingWidth)*0.01f);
+                float finish=StdMax(D_003DA0C0.finish,(textWidth+StdMax(0.0f,textWidth-p->width*scale)+paddingWidth)*0.01f);
                 if(elapsed>=finish)SetNoticeState(&D_003DA0C0,3);
             }
             t->a[4]-=position/period*textWidth;
@@ -3822,7 +3812,6 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *AllocRenderListEntry(void);
-static inline int Min(int a,int b){return a<b?a:b;}
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
@@ -3850,7 +3839,7 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
         float old=data->fade;
         data->fade=1.0f;
         if(old<1.0f){
-            int n=Min((int)(p->count*old),p->count);
+            int n=MinInt((int)(p->count*old),p->count);
             data->limit=n>=3?n:3;
             if(data->limit>0x7FFFU)data->limit=0x7FFF;
         }
@@ -4216,8 +4205,6 @@ extern "C" void ResetSpriteSlotItems(A *p, int i);
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
 extern "C" void UpdateSpriteSlot(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
-static inline float MinFloat(float a, float b) { return b < a ? b : a; }
-static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x218060
  * Purpose: refresh reused sprite at t=0 then at clamped time
  * Info: proposed name SetSpriteAnimTime (T2); TU hud
@@ -4232,7 +4219,7 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
     int animIndex = group->slots[slot].animIndex;
     if (animIndex < 0)
         return;
-    time = MinFloat(group->anims[animIndex].duration, MaxFloat(0.0f, time));
+    time = StdMin(group->anims[animIndex].duration, StdMax(0.0f, time));
     if (item) {
         q = item->matrix;
         *(RGBA2 *)&c0 = item->color0;
@@ -4499,8 +4486,6 @@ void FinishSpriteSoundEvent(struct S *p, int slot)
 
 // 0x218790 CombineSpriteColors
 namespace M_CombineSpriteColors { extern "C" {
-static inline float MinFloat(float a, float b) { return b < a ? b : a; }
-static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x218790
  * Purpose: combine parent/child additive and multiplicative RGBA
  * Info: proposed name CombineSpriteColors (T1); TU hud
@@ -4513,12 +4498,12 @@ void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc
 {
     int i;
     for (i = 0; i < 4; i++) {
-        float x = MaxFloat(MinFloat((float)(pa[i] - 127) * 0.007874016f, 1.0f), -1.0f);
-        float y = MaxFloat(MinFloat((float)(pc[i] - 127) * 0.007874016f, 1.0f), -1.0f);
+        float x = StdMax(StdMin((float)(pa[i] - 127) * 0.007874016f, 1.0f), -1.0f);
+        float y = StdMax(StdMin((float)(pc[i] - 127) * 0.007874016f, 1.0f), -1.0f);
         float e = (float)pb[i] - 127.0f;
         float d = (float)pd[i] - 127.0f;
-        pout0[i] = (int)(MaxFloat(MinFloat(x * y, 1.0f), -1.0f) * 127.0f + 128.0f);
-        pout1[i] = (int)(MaxFloat(MinFloat(x * d + e, 128.0f), -127.0f) + 127.0f);
+        pout0[i] = (int)(StdMax(StdMin(x * y, 1.0f), -1.0f) * 127.0f + 128.0f);
+        pout1[i] = (int)(StdMax(StdMin(x * d + e, 128.0f), -127.0f) + 127.0f);
     }
 }
 } } // namespace M_CombineSpriteColors

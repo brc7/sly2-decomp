@@ -248,7 +248,7 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
 extern "C" int CollectEdgesAtGeomPoint(GEOM*geom,GEOMTREE*tree,int index,int max,EDGE**out){
  FRAME scope;int capacity,numFound,count,i;Entry*hits,*hitsEnd;
  STACKSCOPE_ctor(&scope);
- capacity=NMin(tree->count,0x1555);numFound=capacity;REQ req(capacity*12,16);
+ capacity=MinInt(tree->count,0x1555);numFound=capacity;REQ req(capacity*12,16);
  hitsEnd=hits=(Entry*)AllocFromStack(&req);
  if(PruneBspBySphere(tree->tree,0x7FFFFFFF,geom->points[index],&numFound,&hitsEnd,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&scope,2);return 0;}
  int numHits=hitsEnd-hits;

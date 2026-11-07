@@ -218,14 +218,6 @@ void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ
 extern "C" {
 float atanf(float x);
 }
-static inline float GLimitRange(float g, float gMin, float gMax)
-{
-    if (g < gMin)
-        return gMin;
-    if (gMax < g)
-        return gMax;
-    return g;
-}
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
@@ -523,7 +515,7 @@ extern "C" void InitTn(TN *p)
     p->grftnm = 7; /*P*/
     SetLoBusyKind(p, 1);
     f = p->grfUnk40;
-    if (FIsPtr(f)) *(int *)f |= 2;
+    if (IsPointer(f)) *(int *)f |= 2;
     else p->grfUnk40 = f | 2;
 }
 
@@ -1111,8 +1103,8 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             float dradMax = D_002C41EC * dt;
             float dradPanWant = pjoy->dxRight * fabsf(pjoy->dxRight) * D_002C41E4;
             float dradTiltWant = pjoy->dyRight * fabsf(pjoy->dyRight) * D_002C41E8;
-            dradPan = GLimitRange(dradPanWant, dradPan - dradMax, dradPan + dradMax);
-            dradTilt = GLimitRange(dradTiltWant, dradTilt - dradMax, dradTilt + dradMax);
+            dradPan = Clamp(dradPanWant, dradPan - dradMax, dradPan + dradMax);
+            dradTilt = Clamp(dradTiltWant, dradTilt - dradMax, dradTilt + dradMax);
             float radStick = atan2f(fabsf(pjoy->dyRight), fabsf(pjoy->dxRight));
             if (radStick < 0.2617994f)
                 dradTilt = 0.0f;
@@ -1200,9 +1192,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * uTunnel;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
-        dradPanFree *= GLimitRange(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
+        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.dt);
-        float uSpeed = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+        float uSpeed = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
         SMP smp;
         if (uSpeed > 0.1f)
@@ -1287,9 +1279,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             if (ploPlayer != 0)
             {
                 if ((*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4CC )))  != -1 && (*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4C8 )))  == 0)
-                    gPull = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
+                    gPull = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
                 else
-                    gPull = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+                    gPull = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
             }
             else
             {
@@ -1649,7 +1641,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
             w.offset.q=off;
             w.rayEnd.q=VuAdd(begin,off);
             FindCameraClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
-            float cost=(1.25f-w.high)*(GAbs(angle)+0.47123894f);
+            float cost=(1.25f-w.high)*(Abs(angle)+0.47123894f);
             if(cost<bestCost){
                 float left=1.0f-w.high;
                 bestCost=cost;
@@ -1660,7 +1652,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
             float next=-angle;
             if(angle<=minGap)next+=0.28559935f;
             angle=next;
-            if(bestCost<(GAbs(next)+0.47123894f)*0.25f)break;
+            if(bestCost<(Abs(next)+0.47123894f)*0.25f)break;
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;

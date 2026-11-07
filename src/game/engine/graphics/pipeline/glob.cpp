@@ -22,6 +22,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -610,7 +611,6 @@ extern "C" { extern char D_0025E668[]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
-static inline int Min(int a, int b) { return a < b ? a : b; }
 // Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
 // up to 256 lights x 3 qw. (inferred)
 extern "C" void BeginRpRelight(VIFS *pvifs)
@@ -643,7 +643,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
         if (px->isDisabled)
             continue;
         if (n >= iEnd) {
-            iEnd = n + Min(cActive - n, 32);
+            iEnd = n + MinInt(cActive - n, 32);
             pvifs->UnpackHelper(UPK_V4_32, (iEnd - n) * 3, n * 3 + 1, 0, &pb);
         }
         CopyAb__FPvT0Ui(pb, px->amat, 0x30);
@@ -2844,7 +2844,6 @@ static inline char *RelocatePointer(char *pbOld, int cb, char *pbNew, char *pb)
 }
 struct RGBA5551 { ushort r : 5; ushort g : 5; ushort b : 5; ushort a : 1; };
 struct UVLINK { short u, v; ushort link; } __attribute__((packed));
-static inline int Min(int a, int b) { return a < b ? a : b; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -3371,7 +3370,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         for (int iofs = 0; iofs < pbatch->cvtx; iofs += 0x27)
                         {
-                            int n = Min(0x27, pbatch->cvtx - iofs);
+                            int n = MinInt(0x27, pbatch->cvtx - iofs);
                             uint *pun;
                             vifsLit.UnpackHelper(UPK_V4_32, 3, 0x307, 0, &pun);
                             pun[0] = 0x30a;

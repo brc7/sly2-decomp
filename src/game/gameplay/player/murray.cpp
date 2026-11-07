@@ -20,6 +20,7 @@
 #include "sly2/classes.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -3280,7 +3281,6 @@ struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
-static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline void Blend(qword value,float g,qword*velocity,U*scalar){
     register qword input __asm__("vf1"),strength __asm__("vf5"),negative __asm__("vf2"),other __asm__("vf4"),complement __asm__("vf3"),current __asm__("vf1");

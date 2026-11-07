@@ -393,7 +393,7 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
         }
         if (gMax < r) gMax = r;
     }
-    r = GClamp((gMax - 0.35f) * 2.0f, 0.0f, 1.0f);
+    r = Clamp((gMax - 0.35f) * 2.0f, 0.0f, 1.0f);
     *outDeflection = r;
     g = SqrtF(x * x + y * y);
     {
@@ -632,7 +632,7 @@ extern "C" int GetJoySelectionStepX(JOY *joy)
         if (!fHeld) {
             joy->dirX = 0;
         } else if (joy->tNextX <= D_002DDED0.realTime) {
-            g = GClamp(2.0f * joy->tRepX / 3.0f, 0.1f, 0.3333f);
+            g = Clamp(2.0f * joy->tRepX / 3.0f, 0.1f, 0.3333f);
             joy->tRepX = g;
             joy->tNextX = D_002DDED0.realTime + g;
         } else {
@@ -680,7 +680,7 @@ extern "C" int GetJoySelectionStepY(JOY *joy)
         if (!fHeld) {
             joy->dirY = 0;
         } else if (joy->tNextY <= D_002DDED0.realTime) {
-            g = GClamp(2.0f * joy->tRepY / 3.0f, 0.1f, 0.3333f);
+            g = Clamp(2.0f * joy->tRepY / 3.0f, 0.1f, 0.3333f);
             joy->tRepY = g;
             joy->tNextY = D_002DDED0.realTime + g;
         } else {

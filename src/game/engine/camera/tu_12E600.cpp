@@ -195,7 +195,7 @@ extern "C" void UpdateCpcamera(CPCAMERAV *policy)
     }
     if (camera->fovRequests > 0) {
         float g = atanf(17.995901107788086f / camera->focalLength);
-        g = GClamp(g + g, 0.01f, 3.0f);
+        g = Clamp(g + g, 0.01f, 3.0f);
         SetCmFov__FP2CMf(D_002DDF40, g);
     }
 }

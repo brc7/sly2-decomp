@@ -399,8 +399,8 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     qword w0, w1, w2, w3, n, l;
     qword *pdef;
     FindClosestPointBetweenLines(a, b, c, pos, outParams, outDistance, outNormal);
-    outParams[0] = GClamp(outParams[0], 0.0f, 1.0f);
-    v = GClamp(outParams[1], 0.0f, 1.0f);
+    outParams[0] = Clamp(outParams[0], 0.0f, 1.0f);
+    v = Clamp(outParams[1], 0.0f, 1.0f);
     outParams[1] = v;
     w0 = VF(outParams[0] - 1.0f);
     w1 = VF(-outParams[0]);
@@ -716,7 +716,8 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 /* kept private: the shared GClamp (sly2/util.h) changes FindClosestPointOnLineSegment (60/62 off) */
-static inline float ClampFloat(float g, float lo, float hi)
+// Same idiom as sly2/util.h Clamp; kept local because the shared template changes FindClosestPointOnLineSegment (60/62 instructions off).
+static inline float Clamp(float g, float lo, float hi)
 {
     if (g < lo) g = lo;
     else if (g > hi) g = hi;
@@ -739,7 +740,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
-    float t = ClampFloat(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
+    float t = Clamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
     if (outT)
         *outT = t;
     if (outPos || outDistance) {

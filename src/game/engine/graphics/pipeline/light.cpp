@@ -14,6 +14,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 struct VTE {
     short d;
@@ -354,7 +355,6 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
     FitLinearFunction(strength0, g0 * kStrengthScale, strength1, g1 * kStrengthScale, pdu, pru);
 }
 
-static inline float Max1(float a, float b) { return (a > b) ? a : b; }
 // Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position;
 // then InvalidateLight. (inferred)
 void RebuildLight(LIGHTV *light)
@@ -362,7 +362,7 @@ void RebuildLight(LIGHTV *light)
     V3 rgb;
     float strength;
     float coneAngle;
-    strength = Max1(light->midtoneStrength, light->highlightHsvComponents[2]);
+    strength = Max(light->midtoneStrength, light->highlightHsvComponents[2]);
     coneAngle = (light->midtoneAngle > 30.0f) ? light->midtoneAngle : 30.0f;
     ConvertAngleStrength(coneAngle, 0.0f, 0.0f, strength, &light->duAngle, &light->ruAngle);
     ConvertUserHsvToUserRgb__FP6VECTORT0(&light->highlightHsv, &rgb);
@@ -398,7 +398,7 @@ void RebuildLight(LIGHTV *light)
         light->weight = light->ruFall;
         break;
     }
-    strength = Max1(light->highlightHsvComponents[2], light->midtoneStrength);
+    strength = Max(light->highlightHsvComponents[2], light->midtoneStrength);
     light->bias = light->bias * strength;
     light->weight = light->weight * strength;
     InvalidateLight(light);

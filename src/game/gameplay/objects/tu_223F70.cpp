@@ -232,7 +232,7 @@ void InitTossable(CID100V *gadget)
     gadget->maxThrowerDistance = 3000.0f;
     gadget->pendingContact = -1;
     gadget->state = TOSSABLE_POOLED;
-    if (FIsPtr(flags)) *(int *)flags |= 6;
+    if (IsPointer(flags)) *(int *)flags |= 6;
     else gadget->taggedFlags = flags | 6;
 }
 
@@ -524,7 +524,6 @@ static inline VUK MkVukBits(int n){VUK r;__asm__("qmtc2.ni %1,%0":"=j"(r.q):"r"(
 static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));return r;}
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
 static inline qwordV AddScaledK(qwordV old,qwordV v,VUK k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%1x":"+j"(old):"j"(k.q),"j"(v));return old;}
-static inline float Clamp(float f,float lo,float hi){float r;if(f<lo)r=lo;else if(hi<f)r=hi;else r=f;return r;}
 static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
 static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}

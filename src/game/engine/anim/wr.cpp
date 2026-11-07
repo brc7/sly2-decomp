@@ -209,7 +209,7 @@ void WR::Init()
     InitSl(&p->warpGroups, 0xA0);
     SetLoBusyKind(p, 1);
     f = p->flags;
-    if (FIsPtr(f)) *(int *)f |= 2;
+    if (IsPointer(f)) *(int *)f |= 2;
     else p->flags = f | 2;
 }
 
@@ -281,8 +281,8 @@ static inline qwordV VuLength(qwordV v)
 
 static inline void SetLm(LMV *plm, const float &g0, const float &g1)
 {
-    plm->minValue = GMin(g0, g1);
-    plm->maxValue = GMax(g0, g1);
+    plm->minValue = Min(g0, g1);
+    plm->maxValue = Max(g0, g1);
 }
 
 // The line through (s0, u0) and (s1, u1)
@@ -438,7 +438,7 @@ void UpdateWrStateVectors(WRV *warp)
                     *pu = 1.0f;
                     continue;
                 }
-                *pu = GClamp(clq.g0 + s * (clq.g1 + s * clq.g2), lm.minValue, lm.maxValue);
+                *pu = Clamp(clq.g0 + s * (clq.g1 + s * clq.g2), lm.minValue, lm.maxValue);
             }
 
             MATRIX4V matWorld = group->glob->pxf->matWorld;

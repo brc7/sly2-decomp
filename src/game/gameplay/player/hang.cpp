@@ -286,7 +286,6 @@ static inline float LaneXKeepVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"
 static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VuSqrtX(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
 static inline float LengthOf(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
 static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
-static inline float MinOf(float a,float b){return(b<a)?b:a;}
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
 static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
@@ -324,7 +323,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     U secondAxis, angularSecond;
     secondAxis.q = NormalizeVec(VuCross(axis.q, projected.q), D_002A2DB0.q);
     angularSecond.q = ScaleVecX(secondAxis.q, VuFloat(LengthOf(projected.q) / distance));
-    float drag = GClamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
+    float drag = Clamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
     float bias;
     if (jt->state == 0 || jt->state == 2)
         bias = D_002BF508;
@@ -357,7 +356,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     float speedOut;
     float next = SmoothValueWithAccel__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->dt,
                                          &D_002BF530, &speedOut);
-    angular.q = ScaleVecX(angular.q, VuFloat(MinOf(D_002BF544, distance) / MaxOf(D_002BF540, next)));
+    angular.q = ScaleVecX(angular.q, VuFloat(StdMin(D_002BF544, distance) / MaxOf(D_002BF540, next)));
     U velocity;
     STATE state;
     if (jt->link) {
@@ -443,12 +442,10 @@ extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->o
 
 // Update target-facing movement modes and animation weights.
 extern "C" float fabsf(float);
-static inline float Abs(float a){return fabsf(a);}
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
 static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
 static inline qword Velocity(JT*jt){return ((qword(*)(void*))jt->vt[33].fn)((char*)jt+jt->vt[33].delta);}
 static inline int Can(JT*jt,int mode){return ((int(*)(void*,int))jt->vt[99].fn)((char*)jt+jt->vt[99].delta,mode);}
-static inline float Clamp(float f,float low,float high){if(f<low)return low;else if(f>high)return high;return f;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];

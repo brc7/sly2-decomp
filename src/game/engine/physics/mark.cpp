@@ -1649,7 +1649,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
         if (cnodeMax < ppart->bspc.cbspFull)
             cnodeMax = ppart->bspc.cbspFull;
     SCOPE2 stackscope;
-    cnodeMax = NMin(cnodeMax, 0x1555);
+    cnodeMax = MinInt(cnodeMax, 0x1555);
     BSP *absp = (BSP *)AllocFromStack(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
     for (ppart = PPART_FIRST(largeTree); ppart; ppart = PPART_NEXT(ppart)) {
         int fFilter = ppart->grfzpk != 0;

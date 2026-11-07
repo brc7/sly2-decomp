@@ -365,7 +365,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         __ml__FRC7MATRIX4T0(&mat, &pxf->matWorld, &matParent);
         dpos = VuSub(Point(mat, plaunch->posTarget), posStart);
         dist = QwordX(Length(dpos));
-        float t = GClamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
+        float t = Clamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
         if (t != 0.0f) {
             MATRIX4V matPredict;
             LoadIdentityMatrix4(pxf, 0, &mat, 0, t);
@@ -374,7 +374,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         }
     }
     dist = QwordX(Length(dpos));
-    float offset = GClamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.gMin, plaunch->lmOffset.gMax);
+    float offset = Clamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.gMin, plaunch->lmOffset.gMax);
     qwordV posAim;
     qwordV posLaunch = AddScaled(posOrigin, VU_FLOAT(offset), Normalize(dpos));
     posAim = QwFromVf(posLaunch);

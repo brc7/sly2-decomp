@@ -96,7 +96,7 @@ extern "C" void InitWaypt(WAYPTV *waypoint)
     waypoint->activeRadius = 500.0f;
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
-    if (FIsPtr(flags)) *(int *)flags |= 0xA;
+    if (IsPointer(flags)) *(int *)flags |= 0xA;
     else waypoint->taggedFlags = flags | 0xA;
     waypoint->soFlags &= ~(1L << 35);
 }
@@ -472,7 +472,8 @@ static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 // Clamps g to [gMin, gMax].
-static inline float GLimitG(float g, float gMin, float gMax)
+// Same idiom as sly2/util.h Clamp; kept local because the shared template changes RenderWaypt (312/376 instructions off).
+static inline float ClampLocal(float g, float gMin, float gMax)
 {
     float gRet;
     if (g < gMin)
@@ -532,10 +533,10 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
-    float fadeStart = GMax(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float fadeStart = Max(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     fadeStart = D_003DD490.unknown4750 + D_002C449C;
-    float labelAlpha = GLimitG(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     switch (waypoint->mode)
     {
     case 0:
@@ -562,7 +563,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
-    float scale = GLimitG(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
+    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
     qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;

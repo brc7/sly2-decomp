@@ -144,7 +144,7 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
         {
             int capacity = vol->bspc.numNodesFull;
             MSG *requestPtr = &request;
-            capacity = NMin(capacity, 0x1555);
+            capacity = MinInt(capacity, 0x1555);
             numLeaves = capacity;
             requestPtr->cb = capacity * 12;
             requestPtr->nKind = 0x10;

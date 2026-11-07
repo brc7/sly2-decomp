@@ -28,6 +28,7 @@
 #include "sly2/cm.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -537,7 +538,6 @@ static inline float LengthOf(const qword &v)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(qw) : "0"(qw));
     return VuToFloat(qw);
 }
-static inline int Min(int a, int b) { return a < b ? a : b; }
 static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(VuSub(a, b)) < s; }
 
 static inline void ProbeGround(CONTEXT *p)
@@ -568,7 +568,7 @@ static inline void ProbeGround(CONTEXT *p)
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)
             cbspMax = apso[i]->cbsp;
-    cbspMax = Min(cbspMax, 0x1555);
+    cbspMax = MinInt(cbspMax, 0x1555);
     BSP *absp = (BSP *)AllocStack(cbspMax * sizeof(BSP));
     qword posMid = CombineVec(posMin, posMax, VuFloat(0.5f), VuFloat(0.5f));
     float sRadius = LengthOf(VuSub(posMid, posMin));
@@ -871,9 +871,6 @@ static inline qword MulM3Vec(M3 *pm, qword v)
     return r;
 }
 static inline void SetXYZ(U *p, float x, float y, float z) { p->f[0] = x; p->f[1] = y; p->f[2] = z; }
-static inline float ClampF(float g, float lo, float hi) { if (g < lo) return lo; else if (hi < g) return hi; else return g; }
-static inline float MinF(float a, float b) { return b < a ? b : a; }
-static inline float MaxF(float a, float b) { return a < b ? b : a; }
 
 /** @sly2-annot addr=0x191A10
  * Purpose: Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind,
@@ -931,19 +928,19 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             side.q = SetVectorCylind(angle, 1.0f, 0.0f);
             U input;
             input.q = SetVectorCylind(joy->heading, 1.0f, 0.0f);
-            float g = ClampF(D_002BF5BC * QwordX(DotVec(side.q, input.q)), -1.0f, 1.0f);
+            float g = Clamp(D_002BF5BC * QwordX(DotVec(side.q, input.q)), -1.0f, 1.0f);
             g *= joy->amount;
             if (__builtin_fabsf(g) < 0.2f)
                 g = 0.0f;
             lateral = g * speedMax;
-            lateral = MinF(SqrtFloat(speedMax * speedMax - QwordX(DotVec(vel.q, vel.q))), lateral);
+            lateral = StdMin(SqrtFloat(speedMax * speedMax - QwordX(DotVec(vel.q, vel.q))), lateral);
             float s;
             FOCUS *focus;
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
                 SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
                 SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
-                s = ClampF(lateral, lo, hi);
+                s = Clamp(lateral, lo, hi);
             } else {
                 s = lateral;
             }
@@ -1165,9 +1162,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             case 1:
             case 2:
                 if (ctx->x2C == 1)
-                    ctx->maximum = MaxF(ctx->maximum, ctx->axes[1].weight);
+                    ctx->maximum = StdMax(ctx->maximum, ctx->axes[1].weight);
                 else
-                    ctx->maximum = MaxF(ctx->maximum, ctx->axes[0].weight);
+                    ctx->maximum = StdMax(ctx->maximum, ctx->axes[0].weight);
                 break;
             }
         }
@@ -1990,14 +1987,6 @@ float ModPositive__Fff(float g, float hi);
 void EvaluateShapeAtDistance(struct O *o, float g, U *pv, int n);
 qword ConvertPosBetweenLos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
-static __inline__ float ClampF(float g, float lo, float hi)
-{
-    if (g < lo)
-        return lo;
-    if (g > hi)
-        return hi;
-    return g;
-}
 /** @sly2-annot addr=0x193C98
  * Purpose: Advance/clamp the grab param along the held curve object (wrap with ModPositive if closed, else
  *   clamp to [sMin,sMax]) and line-test the new point
@@ -2026,7 +2015,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     if (o->xe4)
         t = ModPositive__Fff(grab->x4e0 + g, hi);
     else
-        t = ClampF(grab->x4e0 + g, lo, hi);
+        t = Clamp(grab->x4e0 + g, lo, hi);
     EvaluateShapeAtDistance(o, t, &v, 0);
     v.q = ConvertPosBetweenLos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
@@ -2255,14 +2244,6 @@ extern struct SMP D_002BF700;
 void EvaluateShapeAtParam(struct S *s, U *position, U *direction, float g);
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
 void AddSoAcceleration(struct O *o, qword q);
-static __inline__ float ClampF(float g, float lo, float hi)
-{
-    if (g < lo)
-        return lo;
-    if (g > hi)
-        return hi;
-    return g;
-}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char E8_x80_Offset[FIELD_OFFSET(E8,x80)==128?1:-1];
 typedef char O_vt_Offset[FIELD_OFFSET(O,vt)==12?1:-1];
@@ -2342,7 +2323,7 @@ void PresetJtAccelHide(struct P *p)
     (void)SmoothValue__FfffP3SMPPf(d1, goal, dt, psmp, &a);
     }
     (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.dt, psmp, &b);
-    x = ClampF(s->x1c4 * d2, b, a) - d2;
+    x = Clamp(s->x1c4 * d2, b, a) - d2;
     qword kq, rq;
     __asm__("qmtc2.ni %1, %0" : "=j"(kq) : "r"(x));
     k.q = kq;
