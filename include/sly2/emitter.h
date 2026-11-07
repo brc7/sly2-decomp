@@ -201,6 +201,34 @@ typedef char assert_EMITTER_groupLink[SLY2_OFFSETOF(EMITTER, groupLink) == 0x128
 typedef char assert_EMITTER_tUnpause[SLY2_OFFSETOF(EMITTER, tUnpause) == 0x148 ? 1 : -1];
 typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class descriptor cb */
 
+/* EXPLSO flags: which of the explode request's fields the caller set (Sly 1's GRFEXPLSO) */
+enum EXPLSO_FLAGS {
+    EXPLSO_HAS_REFERENCE = 0x01,
+    EXPLSO_HAS_VECTOR = 0x02,
+    EXPLSO_HAS_ORIGIN = 0x04,
+    EXPLSO_HAS_SCALE = 0x08,
+    EXPLSO_HAS_RIP_SCALE = 0x10,    /* rips: the scale is their fixed initial scale */
+    EXPLSO_HAS_TOUCH = 0x20,
+    EXPLSO_HAS_XF = 0x40,           /* a local transform for the origin */
+    EXPLSO_HAS_COUNT = 0x80,
+};
+/* EXPLSO: what an explosion is asked to explode with (EXPL slot 51, ExplodeExplso; EXPLSO_* flags say which fields
+   the caller set) */
+struct EXPLSO
+{
+    int grf;                /* +0x00 EXPLSO_* flags */
+    LO *ploReference;       /* +0x04 reference object (the origin and the velocities follow it) */
+    float scale;            /* +0x08 */
+    float radius;           /* +0x0C (a scale of 0: the scale is radius / 100) */
+    qword vector;           /* +0x10 emission direction */
+    qword origin;           /* +0x20 origin point */
+    LO *ploTouch;           /* +0x30 the rips' touch object */
+    XF *pxf;                /* +0x34 a local transform for the origin */
+    int count;              /* +0x38 particle count */
+    int pad3C;
+};
+typedef char assert_EXPLSO_size[sizeof(EXPLSO) == 0x40 ? 1 : -1];
+
 /* EXPL: the explosion base class (an XFM; no own fields known here). */
 struct EXPL : public XFM
 {

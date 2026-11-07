@@ -104,17 +104,6 @@ enum EMIT_VELOCITY {
    (classes.h is included) stay as aliases of the real types, so the mangled names do not change. */
 typedef EMITB EMITBV;
 typedef EMITTER EMITTERV;
-/* EXPLSO flags: which of the explode request's fields the caller set (Sly 1's GRFEXPLSO) */
-enum EXPLSO_FLAGS {
-    EXPLSO_HAS_REFERENCE = 0x01,
-    EXPLSO_HAS_VECTOR = 0x02,
-    EXPLSO_HAS_ORIGIN = 0x04,
-    EXPLSO_HAS_SCALE = 0x08,
-    EXPLSO_HAS_RIP_SCALE = 0x10,    /* rips: the scale is their fixed initial scale */
-    EXPLSO_HAS_TOUCH = 0x20,
-    EXPLSO_HAS_XF = 0x40,           /* a local transform for the origin */
-    EXPLSO_HAS_COUNT = 0x80,
-};
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
 struct EXPLGV : public XFM
 {
@@ -1693,12 +1682,11 @@ namespace M_ExplodeWithDefaults { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
-struct P { int flags; int reference; float scale; float radius; qword vector; qword origin; qword rest; };   /* EXPLSO */
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
 void ExplodeWithDefaults(struct O *o)
 {
-    struct P p = {0};
+    EXPLSO p = {0};
     struct VTE *vt;
 
     vt = o->vt;
@@ -1707,18 +1695,16 @@ void ExplodeWithDefaults(struct O *o)
 } } // namespace M_ExplodeWithDefaults
 
 namespace M_ExplodeExplParams { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
-struct P { int flags; int reference; float scale; float radius; qword vector; qword origin; qword rest; };   /* EXPLSO */
 // Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
 // (inferred)
-void ExplodeExplParams(struct O *o, int flags, int reference, float scale, float radius, qword vector, qword origin)
+void ExplodeExplParams(struct O *o, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
 {
-    struct P p;
+    EXPLSO p;
     struct VTE *e;
-    p.flags = flags;
-    p.reference = reference;
+    p.grf = flags;
+    p.ploReference = reference;
     p.scale = scale;
     p.radius = radius;
     p.vector = vector;
