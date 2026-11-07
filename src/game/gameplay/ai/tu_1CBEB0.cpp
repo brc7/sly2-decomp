@@ -22,7 +22,7 @@ struct STIMOWNER { byte pad[0x18]; int id; };
 struct STIMULUS { byte pad[0x14]; STIMSRC *noiseType; byte pad1[0x40 - 0x18]; STIMOWNER *emitter; };
 
 /* Camera manager as seen here (g_cm, 0x2DDF40). */
-struct CMVIEW { byte pad[0x600]; int a600; };
+struct CMVIEW { byte pad[0x600]; int policy600; };   /* a camera policy record at +0x600 (meaning unknown) */
 extern CMVIEW D_002DDF40;
 extern int D_002F7900;
 
@@ -74,7 +74,7 @@ extern "C" void SetRajanCameraFocus(RAJANV *rajan, int enable)
             return;
       rajan->hasCameraPolicy = enable;
       if (enable)
-            SetCmPolicy(&D_002DDF40, 6, &D_002DDF40.a600, D_002F7900, rajan);
+            SetCmPolicy(&D_002DDF40, 6, &D_002DDF40.policy600, D_002F7900, rajan);
       else
             RevokeCmPolicy(&D_002DDF40, 1, 6, 0, 0, 0);
 }

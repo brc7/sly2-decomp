@@ -52,6 +52,10 @@ enum {
     CID_BHV176 = 0xB0,
     CID_BHVJUGGLED = 0xB1,
 };
+/* Object ids used here. */
+enum {
+    OID_DEFAULT_ATTACK = 0x2CC,     /* the attack a guard without attack oids gets (GetStepguardDefaultAttack) */
+};
 /* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
    section 2). Only the identified flags are named. */
 enum {
@@ -61,37 +65,61 @@ enum {
     SGF_JUGGLED = 0x17,
     SGF_COMBAT = 0x1D,
 };
+/* Special states (STEPGUARD +0xFBC, -1 none): the values are the ids of the gadgets that cause them
+   (docs/engine/guards-ai.md section 4). */
+enum {
+    SPECIAL_NONE = -1,
+    SPECIAL_SIZE_DESTABILIZER = 0x8,
+    SPECIAL_GADGET_0B = 0xB,            /* not identified; bosses are immune */
+    SPECIAL_REDUCTION_BOMB = 0xD,
+    SPECIAL_TEMPORAL_LOCK = 0xE,
+    SPECIAL_GUTTURAL_ROAR = 0x15,
+    SPECIAL_INSANITY_STRIKE = 0x22,
+    SPECIAL_RAGE_BOMB = 0x25,
+};
+/* Animation binding kinds (ANIMBINDING::kind): what the bound oid resolved to and how StartAnimBinding plays it.
+   Word +0x4 holds the oid until resolved, then the resource or the kind's payload; +0x8 the running instance. */
+enum {
+    BINDING_NONE = -1,
+    BINDING_ASEG = 0,       /* an animation segment, played as an ASEGA */
+    BINDING_SM = 1,         /* a state machine, played as an SMA */
+    BINDING_LEAP = 2,       /* a leap payload, played on the guard's LEAP (+0xDB0) */
+    BINDING_DIRANIM = 3,    /* a four-animation payload, played on the guard's DIRANIM (+0xE20) */
+};
 
 /* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
-   JTGOAL): a lock flag and the owning guard at +0xC. */
+   JTGOAL): the driver (the behaviour whose motion update moves the guard), a heading lock and the owning guard. */
 struct GUARDMOVER
 {
-    int n0;
-    int fLocked;            /* +0x04 */
-    int n8;
-    STEPGUARD *pstepguard;  /* +0x0C */
+    int driver;             /* +0x00 BHV * */
+    int isHeadingLocked;    /* +0x04 */
+    int unknown8;           /* +0x08 */
+    STEPGUARD *guard;       /* +0x0C */
 };
-#define PMOVER(pstepguard) ((GUARDMOVER *)((char *)(pstepguard) + 0xFD0))
-/* A target record (STEPGUARD::pvEngage; EnsureTargetRecordById finds the one of a target): the time the first guard engaged,
-   the target, and the engaged guards from +0x2C. */
+#define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
+/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
+   that target: when the first guard engaged, the record's state and its time, the target, how the engagement token
+   is granted (DoesTargetRecordAllowGuard: facing kind and tolerance) and the engaged guards from +0x2C. */
 struct TARGETREC
 {
-    float t;                /* +0x00 */
-    int n4;
-    int n8;                 /* +0x08 */
-    LO *plo;                /* +0x0C */
-    int n10;                /* +0x10 */
-    float g14;              /* +0x14 */
-    float g18;              /* +0x18 */
-    char pad1C[0xC];
-    int cpstepguard;        /* +0x28 */
-    STEPGUARD *apstepguard[1];  /* +0x2C */
+    float firstEngageTime;  /* +0x00 */
+    float stateTime;        /* +0x04 */
+    int state;              /* +0x08 -1 none */
+    LO *target;             /* +0x0C */
+    int facingKind;         /* +0x10 -1 none, 0 camera heading, 1 target facing */
+    float unknown14;        /* +0x14 */
+    float facingTolerance;  /* +0x18 radians */
+    int isDisabled;         /* +0x1C */
+    char pad20[0x8];
+    int guardCount;         /* +0x28 */
+    STEPGUARD *guards[1];   /* +0x2C */
 };
-/* An object with an animation binding at +0xB0 for its guard at +0xAC (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
+/* A guard attack (CID120) as its binding functions see it: the owning guard at +0xAC and the attack animation's
+   binding at +0xB0 (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
 struct ANIMLO
 {
     char pad0[0xAC];
-    STEPGUARD *pstepguard;  /* +0xAC */
+    STEPGUARD *guard;       /* +0xAC */
     ANIMBINDING binding;    /* +0xB0 */
 };
 /* The sub-behaviour of the guard's root behaviour in mode 0x10, as SetStepguardEscortPoint fills it. */
@@ -125,33 +153,33 @@ void *FindStepBehavior(STEPGUARD *guard, int cid);
 void SetBhvThrownState(void *behavior, int n);
 BHV *FindBhvInBhvstk(BHVSTK *stack, int cid);
 int IsStepguardTargetValid(LO *object, LO *ploOther, int n);
-int FindTargetRecordGuardIndex(TARGETREC *ptargetrec, STEPGUARD *guard);
-void SetTargetRecordState(TARGETREC *ptargetrec, int n);
+int FindTargetRecordGuardIndex(TARGETREC *record, STEPGUARD *guard);
+void SetTargetRecordState(TARGETREC *record, int n);
 TARGETREC *EnsureTargetRecordById(LO *object);
 void WakeSo(STEPGUARD *guard);
 void SetStepTargetHeading(STEPGUARD *guard);
 int GetSgfMaskFromSpliceList(int n);
 ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, int i);
-void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
-void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
-void CloneAnimBinding(ANIMBINDING *pbinding);
-void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void CloneAnimBinding(ANIMBINDING *binding);
+void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void FreeLeap(int h);
 void FreeDirAnim(int h);
 void AddStepguardAttackOid(STEPGUARD *guard);
 void ResolveStepguardAttacks(STEPGUARD *guard);
-void SetGuardAttackBindingKind2(ANIMLO *panimlo);
-void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC);
-void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
-void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void SetGuardAttackBindingKind2(ANIMLO *attack);
+void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags);
+void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table);
+void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void CloneStepguardAnimBindings(STEPGUARD *guard);
 void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget);
 void ClearStepguardIgnoreClasses(STEPGUARD *guard);
 void ClearStepguardForceClasses(STEPGUARD *guard);
-void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard);
+void CloneStepguardMover(GUARDMOVER *mover, STEPGUARD *guard);
 int StepguardHasSgf(STEPGUARD *guard, int sgf);
-void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
-void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
+void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard);
+void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard);
 }
 
 // 0x205E70 EnsureStepguardManager
@@ -312,7 +340,7 @@ struct S {
     char pad0[0x18]; int oid; char pad1[0x3C - 0x1C]; struct C3 *unknown3C; char pad2[0x58 - 0x40]; int xfRolesIdle; int xfRolesUngrounded;
     char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int unknown2F0;
     char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *stuckWatch; void *hazardWatch;
-    char pad7[0xFC4 - 0x4A0]; void *unknownFC4;
+    char pad7[0xFC4 - 0x4A0]; void *scaleAct;
 };
 extern char D_002C3CF8[];
 extern char D_003DD490[];
@@ -361,7 +389,7 @@ void PostStepguardLoad(struct S *guard)
         guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
     x = FindSoXf(guard, guard->oid, 0xC);
     if (x)
-        guard->unknownFC4 = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
+        guard->scaleAct = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
 }
 } } // namespace M_PostStepguardLoad
 
@@ -374,38 +402,38 @@ extern "C" DETECTOR *GetStepguardDetector(STEPGUARD *guard)
 
 // 0x206380 ShouldStepguardIgnoreIntersection
 namespace M_FIgnoreStepguardIntersection { extern "C" {
-struct Q; struct T; struct O; struct S;
+struct SOV; struct HOLDER; struct BHVJUGGLED; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct Q { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *pEC; };
-struct T { char pad[0xEC]; void *pEC; };
-struct O { char pad[0x50]; int k; char pad2[8]; struct T *pt; };
+struct SOV { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *collisionGroup; };
+struct HOLDER { char pad[0xEC]; void *collisionGroup; };
+struct BHVJUGGLED { char pad[0x50]; int state; char pad2[8]; struct HOLDER *holder; };
 struct S { char pad[0x26C]; char behaviorStack[4]; };
-int ShouldSoIgnoreIntersection(struct S *p, struct Q *q);
+int ShouldSoIgnoreIntersection(struct S *p, struct SOV *other);
 int StepguardHasSgf(struct S *p, int n);
-struct O *FindBhvInBhvstk(void *p, int n);
-int MaxInt(int a, int b);
-// 0x206380: STEPGUARD vtable slot 61 (should an intersection with `q` be ignored): the step test, plus, while dead
+struct BHVJUGGLED *FindBhvInBhvstk(void *stack, int cid);
+int MaxInt(int ignore, int b);
+// 0x206380: STEPGUARD vtable slot 61 (should an intersection with `other` be ignored): the step test, plus, while dead
 // (flag 7), objects whose vtable slot 62 test fails, and, while juggled/carried (flag 0x17), objects of its holder's
 // group in juggled states 0/4/5.
-int ShouldStepguardIgnoreIntersection(struct S *guard, struct Q *q)
+int ShouldStepguardIgnoreIntersection(struct S *guard, struct SOV *other)
 {
-    int r = ShouldSoIgnoreIntersection(guard, q);
+    int ignore = ShouldSoIgnoreIntersection(guard, other);
     if (StepguardHasSgf(guard, SGF_KO)) {
-        if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
-            r = MaxInt(r, 1);
+        if (!((int (*)(void *))other->vt[62].pfn)((char *)other + other->vt[62].d))
+            ignore = MaxInt(ignore, 1);
     } else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-        struct O *o = FindBhvInBhvstk(guard->behaviorStack, CID_BHVJUGGLED);
-        if (q->pEC == o->pt->pEC) {
-            switch (o->k) {
+        struct BHVJUGGLED *juggled = FindBhvInBhvstk(guard->behaviorStack, CID_BHVJUGGLED);
+        if (other->collisionGroup == juggled->holder->collisionGroup) {
+            switch (juggled->state) {
             case 0:
             case 4:
             case 5:
-                r = MaxInt(r, 1);
+                ignore = MaxInt(ignore, 1);
                 break;
             }
         }
     }
-    return r;
+    return ignore;
 }
 } } // namespace M_FIgnoreStepguardIntersection
 
@@ -462,9 +490,9 @@ typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
 struct HOMEREC { char pad[8]; qword *position; float f; };
-struct F64 { char pad[0xE0]; void *owner; void *unknownE4; };
+struct F64 { char pad[0xE0]; void *owner; void *collisionGroup; };
 struct S {
-    char pad0[0xEC]; void *unknownEC; char pad1[0x26C - 0xF0]; char bhvstk[0x2F0 - 0x26C]; struct HOMEREC *homeRecord;
+    char pad0[0xEC]; void *collisionGroup; char pad1[0x26C - 0xF0]; char bhvstk[0x2F0 - 0x26C]; struct HOMEREC *homeRecord;
     char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int staggerCapacity; int staggerProgress;
     char pad4[0x494 - 0x348]; int lootEnabled; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
     int sleepDartCapacity; int sleepDartProgress; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char mover[0xFE8 - 0xFD0];
@@ -537,7 +565,7 @@ void ResetStepguardToHome(struct S *guard)
     o->vt[8].pf((char *)o + o->vt[8].d);
     SetLoParent(guard->detector, guard, 0xF);
     guard->detector->owner = guard;
-    guard->detector->unknownE4 = guard->unknownEC;
+    guard->detector->collisionGroup = guard->collisionGroup;
 }
 } } // namespace M_ResetStepguardToHome
 
@@ -548,11 +576,11 @@ extern float D_002A8610;
 extern int D_002C3CF0;
 struct F { char pad[0xF0]; int unknownF0; int unknownF4; };
 struct S {
-    char p0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
-    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char p5[0x4A0 - 0x494]; int unknown4A0;
-    char p6[0xE94 - 0x4A4]; int unknownE94; char p7[0xF64 - 0xE98]; struct F *detector; int escortObject; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
-    char p9[0xFA8 - 0xF98]; int avoidObjectCount; char p10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char p11[0xFF4 - 0xFD0]; float unknownFF4;
-    char p12[0x1000 - 0xFF8]; int removalMode;
+    char pad0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char pad1[0x330 - 0x2EC]; int isKnockedOut; char pad2[0x360 - 0x334]; float pulseStartTime;
+    char pad3[0x390 - 0x364]; int forcedTarget; char pad4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char pad5[0x4A0 - 0x494]; int unknown4A0;
+    char pad6[0xE94 - 0x4A4]; int unknownE94; char pad7[0xF64 - 0xE98]; struct F *detector; int escortObject; char pad8[0xF94 - 0xF6C]; int designatedTargetCount;
+    char pad9[0xFA8 - 0xF98]; int avoidObjectCount; char pad10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char pad11[0xFF4 - 0xFD0]; float unknownFF4;
+    char pad12[0x1000 - 0xFF8]; int removalMode;
 };
 void SO_Slot27(struct S *p);
 void DetachStepguard(struct S *p);
@@ -592,7 +620,7 @@ void ClearStepguardState(struct S *guard)
     guard->unknownFF4 = D_002A8610;
     guard->removalMode = D_002C3CF0;
     SetStepguardPickpocketState(guard, -1);
-    SetStepguardSpecial(guard, -1);
+    SetStepguardSpecial(guard, SPECIAL_NONE);
 }
 } } // namespace M_ClearStepguardState
 
@@ -853,7 +881,7 @@ namespace RO_ORDER { extern const float r_D_002A8614 __asm__("D_002A8614") = -3.
 // 0x206EB0 CanSetStepguardSpecial
 namespace M_func_00206EB0 { extern "C" {
 struct X;
-struct X { char pad[0x4C]; int n4C; };
+struct X { char pad[0x4C]; int isScriptBusy; /* (inferred) */ };
 int StepguardHasSgf(void *p, int n);
 struct X *FindStepBehavior(void *p, int n);
 int IsStepguardRageImmune(void *p);
@@ -861,30 +889,30 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
 // 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
 // some states not for bosses or rage-immune guards).
-int CanSetStepguardSpecial(void *p, int k)
+int CanSetStepguardSpecial(void *guard, int special)
 {
-    struct X *x;
-    if (k == -1)
+    struct X *bhv;
+    if (special == -1)
         return 1;
-    if (StepguardHasSgf(p, SGF_KO))
+    if (StepguardHasSgf(guard, SGF_KO))
         return 0;
-    x = FindStepBehavior(p, CID_BHV169);
-    if (x && x->n4C)
+    bhv = FindStepBehavior(guard, CID_BHV169);
+    if (bhv && bhv->isScriptBusy)
         return 0;
-    switch (k) {
-    case 8:
-    case 0xD:
-    case 0xE:
+    switch (special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+    case SPECIAL_TEMPORAL_LOCK:
         return 1;
-    case 0x15:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEARCUB));
-    case 0x22:
-    case 0x25:
-        return !IsStepguardRageImmune(p);
-    case 0xB:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_DIMITRI) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_RAJAN) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_CONTESSA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_ARPEGGIO) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_CARMELITA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_NEELA) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEARCUB));
+    case SPECIAL_GUTTURAL_ROAR:
+        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
+        return !IsStepguardRageImmune(guard);
+    case SPECIAL_GADGET_0B:
+        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_DIMITRI) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_RAJAN) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CONTESSA) ||
+                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_ARPEGGIO) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CARMELITA) ||
+                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_NEELA) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
     }
     return 0;
 }
@@ -893,14 +921,14 @@ int CanSetStepguardSpecial(void *p, int k)
 namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
-struct V3; struct Y14; struct Y; struct X; struct Z; struct S;
+struct V3; struct ASEG; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct Y14 { char pad[0x78]; float f78; };
-struct Y { char pad[0x14]; struct Y14 *p14; };
-struct X { char pad[0x40]; void *p40; };
-struct Z { char pad[0x30]; int k30; char pad2[0x40 - 0x34]; int n40; float f44; };
-struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int k; float t; void *unknownFC4; };
+struct ASEG { char pad[0x78]; float defaultSpeed; };
+struct ASEGA { char pad[0x14]; struct ASEG *aseg; };
+struct BHVANIM { char pad[0x40]; void *binding; };
+struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
+struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
 extern struct { float t; float dt; } D_002DDED0;
 extern qword D_002A2DE0;
 extern qword D_002C3D30;
@@ -913,83 +941,83 @@ void RemoveStepguardRageIgnoreClasses(struct S *p);
 void AddStepguardPreferClass(struct S *p, int n);
 void AddStepguardRageIgnoreClasses(struct S *p);
 void *FindStepBehavior(struct S *p, int n);
-struct Y *GetAnimBindingInstance(void *p);
-void SetAsegaMasterSpeed(struct Y *y, float f);
+struct ASEGA *GetAnimBindingInstance(void *p);
+void SetAsegaMasterSpeed(struct ASEGA *y, float f);
 int GetHeroPo(void *p);
-void ResumeBhvguard(struct Z *z);
+void ResumeBhvguard(struct BHVGUARD *bhv);
 
 // 0x207030: Sets the gadget/status special state (+0xFBC, time +0xFC0): 8/0xD shrink, 0xE time-frozen, 0x22/0x25
 // rage (attack other guards), 0x15 and 0xB others; leaving a state undoes it.
-void SetStepguardSpecial(struct S *guard, int k)
+void SetStepguardSpecial(struct S *guard, int special)
 {
     int old;
-    if (k == guard->k)
+    if (special == guard->special)
         return;
-    if (!CanSetStepguardSpecial(guard, k))
+    if (!CanSetStepguardSpecial(guard, special))
         return;
-    old = guard->k;
-    guard->k = k;
-    guard->t = D_002DDED0.t;
+    old = guard->special;
+    guard->special = special;
+    guard->specialStartTime = D_002DDED0.t;
     switch (old) {
-    case 8:
-    case 0xD:
-        if (guard->unknownFC4)
-            SetActPositionGoal(guard->unknownFC4, D_002A2DE0);
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (guard->scaleAct)
+            SetActPositionGoal(guard->scaleAct, D_002A2DE0);
         break;
-    case 0x22:
-    case 0x25:
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
         RemoveStepguardPreferClass(guard, CID_STEPGUARD);
         RemoveStepguardRageIgnoreClasses(guard);
         break;
-    case 0xE: {
-        struct X *x = (__typeof__(x))FindStepBehavior(guard, CID_BHVANIM);
-        if (x) {
-            struct Y *y = GetAnimBindingInstance(x->p40);
-            if (y)
-                SetAsegaMasterSpeed(y, y->p14->f78);
+    case SPECIAL_TEMPORAL_LOCK: {
+        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
+        if (bhv) {
+            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            if (asega)
+                SetAsegaMasterSpeed(asega, asega->aseg->defaultSpeed);
         }
         break;
     }
-    case 0x15: {
-        struct Z *z = (__typeof__(z))FindStepBehavior(guard, CID_BHVGUARD);
-        if (z && z->k30 == 0x12 && z->n40 == GetHeroPo(D_003DD490) && z->f44 == D_002A8698)
-            ResumeBhvguard(z);
+    case SPECIAL_GUTTURAL_ROAR: {
+        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
+        if (bhv && bhv->modeKind == 0x12 && bhv->modeObject == GetHeroPo(D_003DD490) && bhv->modeAmount == D_002A8698)
+            ResumeBhvguard(bhv);
         break;
     }
     }
-    switch (k) {
-    case 8:
-    case 0xD:
-        if (guard->unknownFC4)
-            SetActPositionGoal(guard->unknownFC4, D_002C3D30);
+    switch (special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (guard->scaleAct)
+            SetActPositionGoal(guard->scaleAct, D_002C3D30);
         break;
-    case 0x22:
-    case 0x25:
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
         AddStepguardPreferClass(guard, CID_STEPGUARD);
         AddStepguardRageIgnoreClasses(guard);
         break;
-    case 0xE: {
-        struct X *x = (__typeof__(x))FindStepBehavior(guard, CID_BHVANIM);
-        if (x) {
-            struct Y *y = GetAnimBindingInstance(x->p40);
-            if (y)
-                SetAsegaMasterSpeed(y, 0.0f);
+    case SPECIAL_TEMPORAL_LOCK: {
+        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
+        if (bhv) {
+            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            if (asega)
+                SetAsegaMasterSpeed(asega, 0.0f);
         }
         {
-            struct V3 *pv = &guard->desiredVelocity;
-            pv->z = 0;
-            pv->y = 0;
-            pv->x = 0;
+            struct V3 *velocity = &guard->desiredVelocity;
+            velocity->z = 0;
+            velocity->y = 0;
+            velocity->x = 0;
         }
         break;
     }
-    case 0x15: {
-        struct Z *z = (__typeof__(z))FindStepBehavior(guard, CID_BHVGUARD);
-        if (z) {
-            switch (z->k30) {
+    case SPECIAL_GUTTURAL_ROAR: {
+        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
+        if (bhv) {
+            switch (bhv->modeKind) {
             case 1: case 2: case 3: case 4:
             case 0xC: case 0x10: case 0x11: case 0x12:
-                ResumeBhvguard(z);
+                ResumeBhvguard(bhv);
                 break;
             }
         }
@@ -1003,26 +1031,26 @@ void SetStepguardSpecial(struct S *guard, int k)
 namespace M_UpdateStepguardSpecial { extern "C" {
 struct S;
 extern struct { float t; float dt; } D_002DDED0;
-extern float D_002C3D40[3];
-struct S { char pad[0xFBC]; int k; float t; };
+extern float D_002C3D40[3];    /* special-state durations: 10 s shrink, 30 s rage, 5 s roar */
+struct S { char pad[0xFBC]; int special; float specialStartTime; };
 void SetStepguardSpecial(struct S *p, int n);
 // 0x207288: Ends the special state after its duration (10 s shrink, 30 s rage, 5 s state 0x15).
 void UpdateStepguardSpecial(struct S *guard)
 {
-    switch (guard->k) {
-    case 8:
-    case 13:
-        if (D_002DDED0.t - guard->t > D_002C3D40[0])
-            SetStepguardSpecial(guard, -1);
+    switch (guard->special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[0])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
-    case 34:
-    case 37:
-        if (D_002DDED0.t - guard->t > D_002C3D40[1])
-            SetStepguardSpecial(guard, -1);
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[1])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
-    case 21:
-        if (D_002DDED0.t - guard->t > D_002C3D40[2])
-            SetStepguardSpecial(guard, -1);
+    case SPECIAL_GUTTURAL_ROAR:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[2])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
     }
 }
@@ -1030,24 +1058,24 @@ void UpdateStepguardSpecial(struct S *guard)
 
 // 0x207350 UpdateStepguard
 namespace M_UpdateStepguard { extern "C" {
-struct O; struct S;
+struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0xC0]; void *pc; };
+struct ATTACK { char pad[0xC0]; void *activeBinding; };
 struct S {
-    char pad0[0x28]; unsigned long fl28;
-    char pad1[0x208 - 0x30]; int n208; char pad1b[0x218 - 0x20C]; qword *pq218;
+    char pad0[0x28]; unsigned long loFlags; /* bit 60: in the world */
+    char pad1[0x208 - 0x30]; void *groundSurface; char pad1b[0x218 - 0x20C]; qword *groundPosition;
     char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
     char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *stuckWatch; void *hazardWatch;
-    char pad5[0x4A4 - 0x4A0]; int n4A4; char pad6[0x4B0 - 0x4A8]; qword q4B0;
-    char pad7[0xF00 - 0x4C0]; struct O *po; char pad8[0xF0C - 0xF04]; int hF0C;
-    char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
+    char pad5[0x4A4 - 0x4A0]; int tracksRelocatePoint; char pad6[0x4B0 - 0x4A8]; qword relocatePoint;
+    char pad7[0xF00 - 0x4C0]; struct ATTACK *currentAttack; char pad8[0xF0C - 0xF04]; int aimAct;
+    char pad9[0xFBC - 0xF10]; int special; char padA[0xFD0 - 0xFC0]; char mover[0x10];
 };
 extern qword D_002A2DD0;
 void UpdateStep(struct S *p);
 void UpdateStepguardSpecial(struct S *p);
 void UpdateStepguardDetectTargets(struct S *p);
-int IsAnimBindingDone(void *pc);
-void SetStepguardAttack(struct S *p, struct O *po, int n, qword v);
+int IsAnimBindingDone(void *binding);
+void SetStepguardAttack(struct S *p, struct ATTACK *attack, int aimTarget, qword aimOffset);
 void UpdateStepguardAim(struct S *p);
 void StageStepguardLoot(struct S *p);
 void UpdateStuckWatch(void *p);
@@ -1059,73 +1087,74 @@ void DropAsegaRef(int *ph);
 
 // 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
 // timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
-// finished animations.
+// finished animations; guards that track a relocation point (named guards, inferred) record their last grounded
+// position there for the relocate behaviour.
 void UpdateStepguard(struct S *guard)
 {
     UpdateStep(guard);
-    if (((guard->fl28 >> 60) & 1) == 0)
+    if (((guard->loFlags >> 60) & 1) == 0)
         return;
-    if (guard->kFBC == 0xE)
+    if (guard->special == SPECIAL_TEMPORAL_LOCK)
         return;
     UpdateStepguardSpecial(guard);
     UpdateStepguardDetectTargets(guard);
-    if (guard->po && IsAnimBindingDone(guard->po->pc))
+    if (guard->currentAttack && IsAnimBindingDone(guard->currentAttack->activeBinding))
         SetStepguardAttack(guard, 0, 0, D_002A2DD0);
-    if (guard->hF0C)
+    if (guard->aimAct)
         UpdateStepguardAim(guard);
     if (guard->isLootStaged)
         StageStepguardLoot(guard);
     UpdateStuckWatch(guard->stuckWatch);
     UpdateHazardWatch(guard->hazardWatch);
     UpdateBhvstk(guard->behaviorStack);
-    UpdateStepguardMover(guard->xFD0);
+    UpdateStepguardMover(guard->mover);
     if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
         DropAsegaRef(&guard->heldAnimation);
-    if (guard->n4A4 && guard->n208)
-        guard->q4B0 = *guard->pq218;
+    if (guard->tracksRelocatePoint && guard->groundSurface)
+        guard->relocatePoint = *guard->groundPosition;
 }
 } } // namespace M_UpdateStepguard
 
 // 0x207468 TakeStepguardDamage
 namespace M_FTakeStepguardDamage { extern "C" {
-struct T; struct A; struct Q; struct S;
+struct LOROOTED; struct BOMB; struct ZAP; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct T { char pad[0x14]; int n14; };
-struct A { char pad[0x200]; struct T *pt; };
-struct Q { struct A *pa; int pad[2]; int nC; };
-struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
-int CanSoTakeDamage(struct S *p, struct Q *q);
-void HandleBhvstkMessage(void *p, int k, struct Q *q);
+struct LOROOTED { char pad[0x14]; void *root; };
+struct BOMB { char pad[0x200]; struct LOROOTED *thrower; };
+struct ZAP { struct BOMB *source; int pad[2]; int kind; };
+struct S { char pad[0xC]; VTE *vt; char pad2[4]; void *root; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct BOMB *object, int cid);
+int CanSoTakeDamage(struct S *p, struct ZAP *zap);
+void HandleBhvstkMessage(void *stack, int message, struct ZAP *zap);
 // 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
 // its own team's bomb (cid 0x4F) or rejected by the base; then forwards it to the behaviour stack (message 0xC).
-int TakeStepguardDamage(struct S *guard, struct Q *q)
+int TakeStepguardDamage(struct S *guard, struct ZAP *zap)
 {
     if (!((int (*)(void *))guard->vt[86].pfn)((char *)guard + guard->vt[86].d)) {
-        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, q->nC))
+        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, zap->kind))
             return 1;
-        if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, CID_BOMB) && q->pa->pt->n14 == guard->n14)
+        if (zap->source && FIsBasicDerivedFrom__FP5BASIC3CID(zap->source, CID_BOMB) && zap->source->thrower->root == guard->root)
             return 1;
-        if (!CanSoTakeDamage(guard, q))
+        if (!CanSoTakeDamage(guard, zap))
             return 0;
     }
-    HandleBhvstkMessage(guard->behaviorStack, 0xC, q);
+    HandleBhvstkMessage(guard->behaviorStack, 0xC, zap);
     return 1;
 }
 } } // namespace M_FTakeStepguardDamage
 
 // 0x207530 IsStepguardZapLethal
 namespace M_func_00207530 { extern "C" {
-struct Q; struct S;
-struct Q { char pad[0xC]; int k; int n; };
-struct S { char pad[0x338]; int n; };
+struct ZAP; struct S;
+struct ZAP { char pad[0xC]; int kind; int hpDelta; };
+struct S { char pad[0x338]; int hpMax; };
 // 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
 // one of the harmless kinds (0, 1, 0x80000, 0x100000).
-int IsStepguardZapLethal(struct S *guard, struct Q *q)
+int IsStepguardZapLethal(struct S *guard, struct ZAP *zap)
 {
-    if (-q->n < guard->n)
+    if (-zap->hpDelta < guard->hpMax)
         return 0;
-    switch (q->k) {
+    switch (zap->kind) {
     case 0:
     case 1:
     case 0x80000:
@@ -1139,42 +1168,43 @@ int IsStepguardZapLethal(struct S *guard, struct Q *q)
 // 0x207598 IsStepguardInvulnerable
 namespace M_FInvulnerableStepguard { extern "C" {
 struct S;
-struct S { char pad[0x298]; int a; char pad2[0x90]; int b; };
+struct S { char pad[0x298]; int isInvulnerable298; char pad2[0x90]; int isInvulnerable32C; };
 int StepguardHasSgf(struct S *p, int n);
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
 int IsStepguardInvulnerable(struct S *guard)
 {
-    if (guard->b || guard->a) return 1;
+    if (guard->isInvulnerable32C || guard->isInvulnerable298)
+        return 1;
     return StepguardHasSgf(guard, 0x2A) != 0;
 }
 } } // namespace M_FInvulnerableStepguard
 
 // 0x2075D0 HandleStepguardMessage
 namespace M_HandleStepguardMessage { extern "C" {
-struct A; struct B; struct Q; struct S;
-struct A { char pad[0x184]; int n184; };
-struct B { char pad[0xC]; struct A *pa; };
-struct Q { struct A *pa; void *p; };
-struct S { char pad[0x26C]; char behaviorStack[0x49C - 0x26C]; struct B *pb; };
-void HandlePoMessage(struct S *p, int k, struct Q *q);
-void SetHazardWatchTarget(struct B *pb, struct A *pa);
-void HandleBhvstkMessage(void *p, int k, struct Q *q);
-// 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 attach/detach an object on component
-// +0x49C; every message is then offered to the behaviour stack.
-void HandleStepguardMessage(struct S *guard, int k, struct Q *q)
+struct OBJ; struct HAZARDWATCH; struct ATTACHMSG; struct S;
+struct OBJ { char pad[0x184]; int isHazard; /* (inferred) */ };
+struct HAZARDWATCH { char pad[0xC]; struct OBJ *target; };
+struct ATTACHMSG { struct OBJ *object; void *attachedTo; };
+struct S { char pad[0x26C]; char behaviorStack[0x49C - 0x26C]; struct HAZARDWATCH *hazardWatch; };
+void HandlePoMessage(struct S *p, int message, struct ATTACHMSG *arg);
+void SetHazardWatchTarget(struct HAZARDWATCH *watch, struct OBJ *target);
+void HandleBhvstkMessage(void *stack, int message, struct ATTACHMSG *arg);
+// 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 (an object attached to / detached from the
+// guard) point the hazard watch (+0x49C) at an attached hazard or clear it; every message is then offered to the behaviour stack.
+void HandleStepguardMessage(struct S *guard, int message, struct ATTACHMSG *arg)
 {
-    HandlePoMessage(guard, k, q);
-    switch (k) {
+    HandlePoMessage(guard, message, arg);
+    switch (message) {
     case 4:
-        if (q->p == guard && q->pa->n184)
-            SetHazardWatchTarget(guard->pb, q->pa);
+        if (arg->attachedTo == guard && arg->object->isHazard)
+            SetHazardWatchTarget(guard->hazardWatch, arg->object);
         break;
     case 5:
-        if (q->p == guard && q->pa == guard->pb->pa)
-            SetHazardWatchTarget(guard->pb, 0);
+        if (arg->attachedTo == guard && arg->object == guard->hazardWatch->target)
+            SetHazardWatchTarget(guard->hazardWatch, 0);
         break;
     }
-    HandleBhvstkMessage(guard->behaviorStack, k, q);
+    HandleBhvstkMessage(guard->behaviorStack, message, arg);
 }
 } } // namespace M_HandleStepguardMessage
 
@@ -1287,8 +1317,8 @@ extern "C" void RenderStepguardSelf(P *guard)
 namespace M_OnStepguardRemove { extern "C" {
 struct DL; struct S;
 extern struct CLOCK D_002DDED0;
-struct DL { void *a, *b; int c; };
-struct S { char pad[0xFF8]; float t; };
+struct DL { void *head, *tail; int count; };
+struct S { char pad[0xFF8]; float removalTime; };
 void OnSoRemove(struct S *p);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
@@ -1297,7 +1327,7 @@ void OnStepguardRemove(struct S *guard)
 {
     OnSoRemove(guard);
     RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard);
-    guard->t = D_002DDED0.t;
+    guard->removalTime = D_002DDED0.t;
 }
 } } // namespace M_OnStepguardRemove
 
@@ -1305,8 +1335,8 @@ void OnStepguardRemove(struct S *guard)
 namespace M_OnStepguardAdd { extern "C" {
 struct DL; struct S;
 extern float D_002A8868;
-struct DL { void *a, *b; int c; };
-struct S { char pad[0xFF8]; float t; };
+struct DL { void *head, *tail; int count; };
+struct S { char pad[0xFF8]; float removalTime; };
 void OnSoAdd(struct S *p);
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
@@ -1314,7 +1344,7 @@ void OnStepguardAdd(struct S *guard)
 {
     OnSoAdd(guard);
     AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard);
-    guard->t = D_002A8868;
+    guard->removalTime = D_002A8868;
 }
 } } // namespace M_OnStepguardAdd
 
@@ -1328,13 +1358,13 @@ unsigned long GetSgfMask(int n) { if (n == -1) return 0; return 1L << n; }
 namespace M_GrfFromSgfArray { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207A40: Returns the OR of the masks of an array of guard flags.
-unsigned long GetSgfArrayMask(int c, int *a)
+unsigned long GetSgfArrayMask(int count, int *sgfs)
 {
-    unsigned long m = 0;
+    unsigned long mask = 0;
     int i;
-    for (i = 0; i < c; i++)
-        m |= GetSgfMask(a[i]);
-    return m;
+    for (i = 0; i < count; i++)
+        mask |= GetSgfMask(sgfs[i]);
+    return mask;
 }
 } } // namespace M_GrfFromSgfArray
 
@@ -1342,16 +1372,16 @@ unsigned long GetSgfArrayMask(int c, int *a)
 namespace M_CsgfFromGrf { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207AA0: Lists the guard flags set in a mask (from 46 down to 0) into an array; returns the count.
-int ListSgfsInMask(unsigned long m, int *a)
+int ListSgfsInMask(unsigned long mask, int *sgfs)
 {
-    int c = 0;
-    int i;
-    for (i = 0x2E; i >= 0; i--)
-        if (m & GetSgfMask(i)) {
-            *a++ = i;
-            c++;
+    int count = 0;
+    int sgf;
+    for (sgf = 0x2E; sgf >= 0; sgf--)
+        if (mask & GetSgfMask(sgf)) {
+            *sgfs++ = sgf;
+            count++;
         }
-    return c;
+    return count;
 }
 } } // namespace M_CsgfFromGrf
 
@@ -1359,222 +1389,222 @@ int ListSgfsInMask(unsigned long m, int *a)
 namespace M_func_00207B10 { extern "C" {
 struct CRef;
 struct CRef { int tagk; int tag; };
-void SetValuesFromSpliceList(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
-unsigned long GetSgfArrayMask(int c, int *a);
+void SetValuesFromSpliceList(struct CRef *ref, void *list, int type, int capacity, int *count, int *values);
+unsigned long GetSgfArrayMask(int count, int *sgfs);
 void Decref__4CRef(struct CRef *pref);
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
-unsigned long GetSgfMaskFromSpliceList(void *p)
+unsigned long GetSgfMaskFromSpliceList(void *list)
 {
-    int an[16];
+    int sgfs[16];
     struct CRef ref;
-    int c;
-    unsigned long m;
-    SetValuesFromSpliceList(&ref, p, 0x1010, 0x10, &c, an);
-    m = GetSgfArrayMask(c, an);
+    int count;
+    unsigned long mask;
+    SetValuesFromSpliceList(&ref, list, 0x1010, 0x10, &count, sgfs);
+    mask = GetSgfArrayMask(count, sgfs);
     Decref__4CRef(&ref);
-    return m;
+    return mask;
 }
 } } // namespace M_func_00207B10
 
 // 0x207B70 SetStepguardAnimBinding
 // 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
 // needed.
-extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
+extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
-    pbinding->h = h;
-    pbinding->nC = nC;
+    ANIMBINDING *binding;
+    binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    binding->h = oid;
+    binding->nC = flags;
 }
 
 // 0x207BC8 SetAndResolveStepguardAnimBinding
 // 0x207BC8: SetStepguardAnimBinding, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
+extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
-    SetStepguardAnimBinding(guard, n, h, nC);
-    ResolveAnimBinding(pbinding, guard);
+    ANIMBINDING *binding;
+    binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    SetStepguardAnimBinding(guard, sgfList, oid, flags);
+    ResolveAnimBinding(binding, guard);
 }
 
 // 0x207C48 SetStepguardAnimBindingKind3
 namespace M_func_00207C48 { extern "C" {
-struct X; struct E;
-struct X { int a; char p0[0x2C]; int b; char p1[0x2C]; int c; char p2[0x2C]; int d; };
-struct E { int k; struct X *px; int pad; int n; };
-long GetSgfMaskFromSpliceList(int a);
-struct E *EnsureAnimBinding(void *p, long id);
-struct X *AllocDirAnim(int cb);
-void InvalidateDirAnims(struct X *px);
-// 0x207C48: Splice option: binds a flag set to a kind-3 payload (a new 0xD0-byte object with four parameters).
-void SetStepguardAnimBindingKind3(void *p, int id, int a, int b, int c, int d)
+struct PAYLOAD3; struct BINDING;
+struct PAYLOAD3 { int anim0; char pad0[0x2C]; int anim1; char pad1[0x2C]; int anim2; char pad2[0x2C]; int anim3; };
+struct BINDING { int kind; struct PAYLOAD3 *payload; int pad; int flags; };
+long GetSgfMaskFromSpliceList(int list);
+struct BINDING *EnsureAnimBinding(void *guard, long sgfMask);
+struct PAYLOAD3 *AllocDirAnim(int cb);
+void InvalidateDirAnims(struct PAYLOAD3 *payload);
+// 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
+void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
-    struct E *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(id));
-    pe->k = 3;
-    pe->px = AllocDirAnim(0xD0);
-    InvalidateDirAnims(pe->px);
-    pe->px->a = a;
-    pe->px->b = b;
-    pe->px->c = c;
-    pe->px->d = d;
-    pe->n = 8;
+    struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    binding->kind = BINDING_DIRANIM;
+    binding->payload = AllocDirAnim(0xD0);
+    InvalidateDirAnims(binding->payload);
+    binding->payload->anim0 = anim0;
+    binding->payload->anim1 = anim1;
+    binding->payload->anim2 = anim2;
+    binding->payload->anim3 = anim3;
+    binding->flags = 8;
 }
 } } // namespace M_func_00207C48
 
 // 0x207CF8 SetAndResolveStepguardAnimBindingKind3
 namespace M_func_00207CF8 { extern "C" {
-long GetSgfMaskFromSpliceList(int a);
-void *EnsureAnimBinding(void *p, long id);
-void SetStepguardAnimBindingKind3(void *p, int a, int b, int c, int d, int e);
-void ResolveAnimBinding(void *pe, void *p);
+long GetSgfMaskFromSpliceList(int list);
+void *EnsureAnimBinding(void *guard, long sgfMask);
+void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3);
+void ResolveAnimBinding(void *binding, void *guard);
 // 0x207CF8: SetStepguardAnimBindingKind3, then resolves the binding.
-void SetAndResolveStepguardAnimBindingKind3(void *p, int a, int b, int c, int d, int e)
+void SetAndResolveStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
-    void *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(a));
-    SetStepguardAnimBindingKind3(p, a, b, c, d, e);
-    ResolveAnimBinding(pe, p);
+    void *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    SetStepguardAnimBindingKind3(guard, sgfList, anim0, anim1, anim2, anim3);
+    ResolveAnimBinding(binding, guard);
 }
 } } // namespace M_func_00207CF8
 
 // 0x207D98 SetStepguardAnimBindingKind2
 namespace M_func_00207D98 { extern "C" {
-struct X; struct S;
-struct X { int a; };
-struct S { int n; struct X *px; int b; int c; };
-unsigned long GetSgfMaskFromSpliceList(void *p);
-struct S *EnsureAnimBinding(void *p, unsigned long m);
-struct X *AllocLeap(int cb);
-void InitAsegArc(struct X *px);
-// 0x207D98: Splice option: binds a flag set to a kind-2 payload (a new 0x40-byte object with one parameter).
-void SetStepguardAnimBindingKind2(void *p, void *q, int a)
+struct PAYLOAD2; struct BINDING;
+struct PAYLOAD2 { int parameter; };
+struct BINDING { int kind; struct PAYLOAD2 *payload; int pad; int flags; };
+unsigned long GetSgfMaskFromSpliceList(void *list);
+struct BINDING *EnsureAnimBinding(void *guard, unsigned long sgfMask);
+struct PAYLOAD2 *AllocLeap(int cb);
+void InitAsegArc(struct PAYLOAD2 *payload);
+// 0x207D98: Splice option: binds a flag set to a LEAP payload (a new 0x40-byte object with one parameter).
+void SetStepguardAnimBindingKind2(void *guard, void *sgfList, int parameter)
 {
-    struct S *s = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(q));
-    s->n = 2;
-    s->px = AllocLeap(0x40);
-    InitAsegArc(s->px);
-    s->px->a = a;
-    s->c = 0;
+    struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    binding->kind = BINDING_LEAP;
+    binding->payload = AllocLeap(0x40);
+    InitAsegArc(binding->payload);
+    binding->payload->parameter = parameter;
+    binding->flags = 0;
 }
 } } // namespace M_func_00207D98
 
 // 0x207E08 SetAndResolveStepguardAnimBindingKind2
 namespace M_func_00207E08 { extern "C" {
-long GetSgfMaskFromSpliceList(int a);
-void *EnsureAnimBinding(void *p, long id);
-void SetStepguardAnimBindingKind2(void *p, int a, int b, float c, float d, float e, float f);
-void ResolveAnimBinding(void *pe, void *p);
+long GetSgfMaskFromSpliceList(int list);
+void *EnsureAnimBinding(void *guard, long sgfMask);
+void SetStepguardAnimBindingKind2(void *guard, int sgfList, int b, float c, float d, float e, float f);
+void ResolveAnimBinding(void *binding, void *guard);
 // 0x207E08: SetStepguardAnimBindingKind2, then resolves the binding.
-void SetAndResolveStepguardAnimBindingKind2(void *p, int a, int b, float c, float d, float e, float f)
+void SetAndResolveStepguardAnimBindingKind2(void *guard, int sgfList, int b, float c, float d, float e, float f)
 {
-    void *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(a));
-    SetStepguardAnimBindingKind2(p, a, b, c, d, e, f);
-    ResolveAnimBinding(pe, p);
+    void *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    SetStepguardAnimBindingKind2(guard, sgfList, b, c, d, e, f);
+    ResolveAnimBinding(binding, guard);
 }
 } } // namespace M_func_00207E08
 
 // 0x207EB8 SetZapReactionBindings
 namespace M_func_00207EB8 { extern "C" {
-struct E;
-struct E { int a; int b; int c; int d; };
-void ReleaseAnimBinding(struct E *pe, void *p);
-// 0x207EB8: Sets the binding (oid, argument) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
-void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *pe)
+struct BINDING;
+struct BINDING { int kind; int oid; int instance; int flags; };
+void ReleaseAnimBinding(struct BINDING *binding, void *guard);
+// 0x207EB8: Sets the binding (oid, flags) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
 {
     int i;
     int bit = 1;
     for (i = 25; i >= 0; i--) {
-        if (mask & bit) {
-            ReleaseAnimBinding(pe, p);
-            pe->b = b;
-            pe->d = d;
+        if (zapMask & bit) {
+            ReleaseAnimBinding(table, guard);
+            table->oid = oid;
+            table->flags = flags;
         }
         bit <<= 1;
-        pe++;
+        table++;
     }
 }
 } } // namespace M_func_00207EB8
 
 // 0x207F50 SetAndResolveZapReactionBindings
 namespace M_func_00207F50 { extern "C" {
-struct E;
-struct E { int a; int b; int c; int d; };
-void ReleaseAnimBinding(struct E *pe, void *p);
-void ResolveAnimBinding(struct E *pe, void *p);
+struct BINDING;
+struct BINDING { int kind; int oid; int instance; int flags; };
+void ReleaseAnimBinding(struct BINDING *binding, void *guard);
+void ResolveAnimBinding(struct BINDING *binding, void *guard);
 // 0x207F50: SetZapReactionBindings, then resolves each binding.
-void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *pe)
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
 {
     int i;
     int bit = 1;
     for (i = 25; i >= 0; i--) {
-        if (mask & bit) {
-            ReleaseAnimBinding(pe, p);
-            pe->b = b;
-            pe->d = d;
-            ResolveAnimBinding(pe, p);
+        if (zapMask & bit) {
+            ReleaseAnimBinding(table, guard);
+            table->oid = oid;
+            table->flags = flags;
+            ResolveAnimBinding(table, guard);
         }
         bit <<= 1;
-        pe++;
+        table++;
     }
 }
 } } // namespace M_func_00207F50
 
 // 0x207FF8 SetStepguardKoReactions
 namespace M_func_00207FF8 { extern "C" {
-struct E;
-struct E { int a, b, c, d; };
-void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+struct BINDING;
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x207FF8: Splice option: sets KO reactions (table +0xC10, used by the KO behaviour).
-void SetStepguardKoReactions(char *p, int mask, int b, int d)
+void SetStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xC10));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
 }
 } } // namespace M_func_00207FF8
 
 // 0x208018 SetAndResolveStepguardKoReactions
 namespace M_func_00208018 { extern "C" {
-struct E;
-struct E { int a, b, c, d; };
-void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+struct BINDING;
+struct BINDING { int kind, oid, instance, flags; };
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208018: Splice option: sets and resolves KO reactions.
-void SetAndResolveStepguardKoReactions(char *p, int mask, int b, int d)
+void SetAndResolveStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xC10));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
 }
 } } // namespace M_func_00208018
 
 // 0x208038 SetStepguardHurtReactions
 namespace M_func_00208038 { extern "C" {
-struct E;
-struct E { int a, b, c, d; };
-void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+struct BINDING;
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208038: Splice option: sets hurt reactions (table +0xA70).
-void SetStepguardHurtReactions(char *p, int mask, int b, int d)
+void SetStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xA70));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
 }
 } } // namespace M_func_00208038
 
 // 0x208058 SetAndResolveStepguardHurtReactions
 namespace M_func_00208058 { extern "C" {
-struct E;
-struct E { int a, b, c, d; };
-void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+struct BINDING;
+struct BINDING { int kind, oid, instance, flags; };
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208058: Splice option: sets and resolves hurt reactions.
-void SetAndResolveStepguardHurtReactions(char *p, int mask, int b, int d)
+void SetAndResolveStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xA70));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
 }
 } } // namespace M_func_00208058
 
 // 0x208078 SetStepguardKnockdownReactions
 namespace M_func_00208078 { extern "C" {
-struct E;
-struct E { int a, b, c, d; };
-void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+struct BINDING;
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208078: Splice option: sets knockdown reactions (table +0x8D0).
-void SetStepguardKnockdownReactions(char *p, int mask, int b, int d)
+void SetStepguardKnockdownReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0x8D0));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0x8D0));
 }
 } } // namespace M_func_00208078
 
@@ -1583,16 +1613,16 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x2080A0 ResolveZapReactions
 // 0x2080A0: Resolves all 26 entries of a zap-reaction table.
-extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
+extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 {
-    ANIMBINDING *pbinding;
+    ANIMBINDING *binding;
     int i;
-    pbinding = abinding;
+    binding = table;
     i = 25;
     do {
-        ResolveAnimBinding(pbinding, guard);
+        ResolveAnimBinding(binding, guard);
         i -= 1;
-        pbinding++;
+        binding++;
     } while (i >= 0);
 }
 
@@ -1610,9 +1640,9 @@ extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
 
 // 0x208178 ReleaseZapReactions
 // 0x208178: Releases all 26 entries of a zap-reaction table.
-extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
+extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 {
-    ANIMBINDING *binding = abinding;
+    ANIMBINDING *binding = table;
     int i;
     for (i = 25; i >= 0; i--) {   // 26 zap kinds
         ReleaseAnimBinding(binding, guard);
@@ -1631,16 +1661,16 @@ extern "C" void ReleaseStepguardZapReactions(STEPGUARD *guard)
 
 // 0x208208 CloneZapReactions
 namespace M_func_00208208 { extern "C" {
-struct E;
-struct E { int a[4]; };
-void CloneAnimBinding(struct E *pe);
+struct BINDING;
+struct BINDING { int words[4]; };
+void CloneAnimBinding(struct BINDING *binding);
 // 0x208208: Deep-copies all 26 entries of a zap-reaction table.
-void CloneZapReactions(void *p, struct E *pe)
+void CloneZapReactions(void *guard, struct BINDING *table)
 {
     int i;
     for (i = 25; i >= 0; i--) {
-        CloneAnimBinding(pe);
-        pe++;
+        CloneAnimBinding(table);
+        table++;
     }
 }
 } } // namespace M_func_00208208
@@ -1659,15 +1689,15 @@ extern "C" void CloneStepguardAnimBindings(STEPGUARD *guard)
 
 // 0x2082D0 ChooseStepguardTarget
 namespace M_PloChooseStepguardTarget {
-union U; struct O; struct ENTRY; struct GROUP; struct P;
+union U; struct O; struct ENTRY; struct DETECTORV; struct P;
 // Choose an eligible actor using lock state, priority and weighted distance.
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct O {char pad28[0x28];ulong flags;};
-struct ENTRY {O *object;int available;int x8,xC;};
-struct GROUP {char padFC[0xFC];int count;ENTRY entries[1];};
-struct P {char pad38C[0x38C];O *previous,*current;char pad394[0xBD0];GROUP *group;char padF68[0x54];int mode;};
+struct ENTRY {O *object;int state;float stateTime;int pad;};
+struct DETECTORV {char padFC[0xFC];int count;ENTRY entries[1];};
+struct P {char pad38C[0x38C];O *currentTarget,*forcedTarget;char pad394[0xBD0];DETECTORV *detector;char padF68[0x54];int special;};
 extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
 extern "C" qword GetLoWorldPos(void *);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
@@ -1701,21 +1731,21 @@ static inline float Weight(float distance,const float *k){return k[0]+distance*(
 extern "C" O *ChooseStepguardTarget(P *guard)
 {
     O *best = 0;
-    if (guard->current && (((unsigned int)(guard->current->flags >> 60)) & 1)) {
-        best = guard->current;   // keep the current target while it is in the world
+    if (guard->forcedTarget && (((unsigned int)(guard->forcedTarget->flags >> 60)) & 1)) {
+        best = guard->forcedTarget;   // keep the forced target while it is in the world
         goto done;               // (single exit: a direct return does not match)
     }
     {
         float bestDistance = D_002A886C;
         U origin;
         origin.q = GetLoWorldPos(guard);
-        for (int i = 0; i < guard->group->count; i++) {
-            ENTRY *entry = &guard->group->entries[i];
+        for (int i = 0; i < guard->detector->count; i++) {
+            ENTRY *entry = &guard->detector->entries[i];
             O *candidate = entry->object;
             if (!candidate)
                 continue;
-            if (!entry->available
-                && (!(guard->mode == 0x22 || guard->mode == 0x25)
+            if (!entry->state
+                && (!(guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
                     || !FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD)))
                 continue;
             if (IsStepguardIgnoreClass(guard, candidate))
@@ -1723,11 +1753,11 @@ extern "C" O *ChooseStepguardTarget(P *guard)
             if (IsStepguardForceClass(guard, candidate))
                 return candidate;
             qword delta = Sub(origin.q, GetLoWorldPos(candidate));
-            O *previous = guard->previous;
+            O *currentTarget = guard->currentTarget;
             float distance = Length(delta);
-            if (candidate == previous)
+            if (candidate == currentTarget)
                 distance = Weight(distance, D_002C3D70);
-            if ((guard->mode == 0x22 || guard->mode == 0x25)
+            if ((guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
                 && FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD))
                 distance = Weight(distance, D_002C3D80);
             if (IsStepguardPreferClass(guard, candidate)) {
@@ -1764,7 +1794,7 @@ extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, int n)
 extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 {
     LO *ploOld;
-    TARGETREC *ptargetrec;
+    TARGETREC *record;
     ploOld = guard->ploTarget;
     if (ploTarget == ploOld)
         return;
@@ -1774,9 +1804,9 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
     }
     guard->ploTarget = ploTarget;
     if (ploTarget != 0) {
-        ptargetrec = EnsureTargetRecordById(ploTarget);
-        guard->pvEngage = ptargetrec;
-        AddTargetRecordGuard(ptargetrec, guard);
+        record = EnsureTargetRecordById(ploTarget);
+        guard->pvEngage = record;
+        AddTargetRecordGuard(record, guard);
     }
 }
 
@@ -1927,24 +1957,24 @@ int IsStepguardPreferClass(struct S *guard, void *object)
 
 // 0x208860 RemoveStepguardDetectTarget
 namespace M_func_00208860 { extern "C" {
-struct QW; struct O; struct S;
+struct QW; struct DETECTORV; struct S;
 typedef struct QW { int a[4]; } QW;
-struct O { char pad[0xFC]; int c; QW a[1]; };
-struct S { char pad[0x3A4]; int n; char p2[0xF64 - 0x3A8]; struct O *o; };
-QW *FindDetectorTarget(struct O *o);
+struct DETECTORV { char pad[0xFC]; int count; QW targets[1]; };
+struct S { char pad[0x3A4]; int generatedTargetCount; char p2[0xF64 - 0x3A8]; struct DETECTORV *detector; };
+QW *FindDetectorTarget(struct DETECTORV *detector);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 // 0x208860: Removes a designated (non-generated) detector target, compacting the list.
 void RemoveStepguardDetectTarget(struct S *guard)
 {
-    QW *pq = FindDetectorTarget(guard->o);
-    struct O *o = guard->o;
-    int c = o->c;
-    QW *pqEnd = &o->a[c - guard->n];
-    if (pq && pq < pqEnd) {
-        int i;
-        o->c = c - 1;
-        i = pq - o->a;
-        CopyAb__FPvT0Ui(pq, pq + 1, (guard->o->c - i) * 16);
+    QW *entry = FindDetectorTarget(guard->detector);
+    struct DETECTORV *detector = guard->detector;
+    int count = detector->count;
+    QW *generatedStart = &detector->targets[count - guard->generatedTargetCount];
+    if (entry && entry < generatedStart) {
+        int index;
+        detector->count = count - 1;
+        index = entry - detector->targets;
+        CopyAb__FPvT0Ui(entry, entry + 1, (guard->detector->count - index) * 16);
     }
 }
 } } // namespace M_func_00208860
@@ -2067,64 +2097,63 @@ float GetRandomStepguardDelay(void) { return GRandInRange__Fff(5.0f, 7.0f); }
 
 // 0x208BE0 CanStepguardSenseStimulus
 namespace M_FStepguardSenseStimulus {
-struct L; struct T; struct F64; struct S2; struct O;
+struct VOL; struct STIMTEMPLATE; struct DETECTORV; struct GUARD; struct STIMULUS;
 typedef int qword __attribute__((mode(TI)));
-struct L { char pad[0x28]; unsigned long fl28; };
-struct T { char pad[0x50]; int k; };
-struct F64 { char pad[0xE8]; L *pl; };
-struct O;
-struct S2 { char pad[0xEC]; void *pEC; char pad2[0xE68 - 0xF0]; int nE68; char pad3[0xF64 - 0xE6C]; F64 *pF64; };
-struct O { char pad[0x14]; T *pt; char pad1[0x20 - 0x18]; qword pos; char pad2[0x40 - 0x30]; S2 *p40; void *p44; char pad3[0x54 - 0x48]; int k54; };
+struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
+struct STIMTEMPLATE { char pad[0x50]; int kind; };
+struct DETECTORV { char pad[0xE8]; VOL *nearVolume; };
+struct STIMULUS;
+struct GUARD { char pad[0xEC]; void *collisionGroup; char pad2[0xE68 - 0xF0]; int minStimulusLevel; char pad3[0xF64 - 0xE6C]; DETECTORV *detector; };
+struct STIMULUS { char pad[0x14]; STIMTEMPLATE *stimTemplate; char pad1[0x20 - 0x18]; qword pos; char pad2[0x40 - 0x30]; GUARD *source; void *subject; char pad3[0x54 - 0x48]; int level; };
 extern "C" {
-int AreStepguardSensesEnabled(S2 *p);
-void *FindDetectorTarget(F64 *p, void *x);
+int AreStepguardSensesEnabled(GUARD *guard);
+void *FindDetectorTarget(DETECTORV *detector, void *object);
 qword GetLoWorldPos(void *p);
-int IsPositionInNoise(O *o, qword q);
-int IsPointInVol(L *pl, qword q);
+int IsPositionInNoise(STIMULUS *stimulus, qword pos);
+int IsPointInVol(VOL *volume, qword pos);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, void *phit);
 void ShouldKeepSoNotSelf();
 extern char D_003DD490[];
-int CanStepguardSenseStimulus(S2 *p, O *o);
+int CanStepguardSenseStimulus(GUARD *guard, STIMULUS *stimulus);
 }
 
 // 0x208BE0: STEPGUARD vtable slot 89 (sense a stimulus): senses enabled, the stimulus loud enough (>= +0xE68) and
 // not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
 // per kind.
-int CanStepguardSenseStimulus(S2 *p, O *o)
+int CanStepguardSenseStimulus(GUARD *guard, STIMULUS *stimulus)
 {
-    int k;
-    T *pt;
-    qword pos, tpos;
-    if (!AreStepguardSensesEnabled(p))
+    STIMTEMPLATE *stimTemplate;
+    qword guardPos, stimulusPos;
+    if (!AreStepguardSensesEnabled(guard))
         return 0;
-    if (o->k54 < p->nE68)
+    if (stimulus->level < guard->minStimulusLevel)
         return 0;
-    if (o->p40 && o->p40 == p)
+    if (stimulus->source && stimulus->source == guard)
         return 0;
-    if (o->k54 == 4) {
-        void *x = o->p44;
-        void *e = FindDetectorTarget(p->pF64, x);
-        if (x != p && !e)
+    if (stimulus->level == 4) {
+        void *subject = stimulus->subject;
+        void *entry = FindDetectorTarget(guard->detector, subject);
+        if (subject != guard && !entry)
             return 0;
     }
-    pt = o->pt;
-    pos = GetLoWorldPos(p);
-    tpos = o->pos;
-    switch (pt->k) {
+    stimTemplate = stimulus->stimTemplate;
+    guardPos = GetLoWorldPos(guard);
+    stimulusPos = stimulus->pos;
+    switch (stimTemplate->kind) {
     case 0:
-        return IsPositionInNoise(o, GetLoWorldPos(p));
+        return IsPositionInNoise(stimulus, GetLoWorldPos(guard));
     case 1: {
-        L *pl = p->pF64->pl;
-        if (!pl || ((pl->fl28 >> 60) & 1) == 0)
+        VOL *nearVolume = guard->detector->nearVolume;
+        if (!nearVolume || ((nearVolume->loFlags >> 60) & 1) == 0)
             return 0;
-        if (!IsPointInVol(pl, tpos))
+        if (!IsPointInVol(nearVolume, stimulusPos))
             return 0;
         {
             STACKSCOPE frame;
-            int i, j;
-            IntersectSwBoundingBox(D_003DD490, pos, tpos, (void *)ShouldKeepSoNotSelf, p->pEC, &i, &j);
-            if (!FindFirstObjectHitByLine(0, pos, tpos, i, j, 0))
+            int numObjects, objectList;
+            IntersectSwBoundingBox(D_003DD490, guardPos, stimulusPos, (void *)ShouldKeepSoNotSelf, guard->collisionGroup, &numObjects, &objectList);
+            if (!FindFirstObjectHitByLine(0, guardPos, stimulusPos, numObjects, objectList, 0))
                 return 1;
             return 0;
         }
@@ -2153,70 +2182,70 @@ int AreStepguardSensesEnabled(struct S *guard)
 
 // 0x208E70 GuardEvalInteractMode
 namespace M_GuardEvalInteractMode { extern "C" {
-struct L; struct Y; struct X; struct S;
+struct VOL; struct BHVHOLD; struct PLAYER; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct L { char pad[0x28]; unsigned long fl28; };
-struct Y { char pad[0x50]; void *p50; char pad2[0x5C - 0x54]; void *p5C; };
-struct X { char pad[0x10DC]; void *p10DC; int pad2; int n10E4; char pad3[0x10F0 - 0x10E8]; int n10F0; };
+struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
+struct BHVHOLD { char pad[0x50]; void *target; char pad2[0x5C - 0x54]; void *holder; };
+struct PLAYER { char pad[0x10DC]; void *interactTarget; int pad2; int interactMode; char pad3[0x10F0 - 0x10E8]; int fightEnabled; /* (inferred) */ };
 struct S {
     char pad0[0x2C0]; unsigned long guardFlags; char pad1[0x364 - 0x2C8]; int unknown364; char closeAngleRangeHeld[8]; char closeAngleRange[8]; float closeRange; int canInteract;
-    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct L *pickpocketIndicator0; struct L *pickpocketIndicator1;
+    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct VOL *pickpocketIndicator0; struct VOL *pickpocketIndicator1;
 };
 extern float D_002C3D90;
 extern float D_002C3D94;
-void GetHeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
+void GetHeroInteractDistance(struct PLAYER *player, struct S *guard, void *target, float *distance, float *angle);
 unsigned long GetSgfMask(int n);
 int StepguardHasSgf(struct S *p, int n);
-struct Y *FindStepBehavior(struct S *p, int n);
+struct BHVHOLD *FindStepBehavior(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword GetLoWorldPos(void *p);
-int IsPointInVol(struct L *pl, qword q);
+int IsPointInVol(struct VOL *volume, qword pos);
 int IsWithinLimits__FP2LMf(void *p, float f);
 
 // 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
 // holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
-// interaction range, 0 none. Also returns the distance through `pout`.
-int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
+// interaction range, 0 none. Also returns the distance through `distanceOut`.
+int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanceOut)
 {
-    float d, ang;
-    void *o;
-    struct L *pl;
-    void *pv;
-    GetHeroInteractDistance(x, guard, &x->p10DC, &d, &ang);
-    if (pout)
-        *pout = d;
+    float distance, angle;
+    void *opponent;
+    struct VOL *indicator;
+    void *angleRange;
+    GetHeroInteractDistance(player, guard, &player->interactTarget, &distance, &angle);
+    if (distanceOut)
+        *distanceOut = distance;
     if (!(guard->guardFlags & GetSgfMask(1))) {
-        if (guard->unknown364 && x->n10F0) {
+        if (guard->unknown364 && player->fightEnabled) {
             if (StepguardHasSgf(guard, SGF_COMBAT))
-                o = guard->target;
+                opponent = guard->target;
             else if (StepguardHasSgf(guard, 5))
-                o = FindStepBehavior(guard, CID_BHV161)->p50;
+                opponent = FindStepBehavior(guard, CID_BHV161)->target;
             else if (StepguardHasSgf(guard, 6))
-                o = FindStepBehavior(guard, CID_BHV162)->p50;
+                opponent = FindStepBehavior(guard, CID_BHV162)->target;
             else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-                o = FindStepBehavior(guard, CID_BHVJUGGLED)->p5C;
-                if (o == x)
-                    *pout += D_002C3D90;
+                opponent = FindStepBehavior(guard, CID_BHVJUGGLED)->holder;
+                if (opponent == player)
+                    *distanceOut += D_002C3D90;
             } else
-                o = 0;
-            if (o) {
-                if (o == x)
+                opponent = 0;
+            if (opponent) {
+                if (opponent == player)
                     return 4;
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(o, CID_STEPPLAYER))
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(opponent, CID_STEPPLAYER))
                     return 4;
             }
         }
-        if (guard == x->p10DC && x->n10E4 == 3)
-            pl = guard->pickpocketIndicator1;
+        if (guard == player->interactTarget && player->interactMode == 3)
+            indicator = guard->pickpocketIndicator1;
         else
-            pl = guard->pickpocketIndicator0;
-        if (pl && !!((pl->fl28 >> 60) & 1) && IsPointInVol(pl, GetLoWorldPos(x)))
+            indicator = guard->pickpocketIndicator0;
+        if (indicator && !!((indicator->loFlags >> 60) & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
             return 3;
     }
-    pv = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
-    if (d <= guard->closeRange * D_002C3D94 && IsWithinLimits__FP2LMf(pv, ang) && guard->unknown364)
+    angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
+    if (distance <= guard->closeRange * D_002C3D94 && IsWithinLimits__FP2LMf(angleRange, angle) && guard->unknown364)
         return 2;
-    if (d <= guard->interactRange && IsWithinLimits__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
+    if (distance <= guard->interactRange && IsWithinLimits__FP2LMf(guard->interactAngleRange, angle) && guard->canInteract)
         return 1;
     return 0;
 }
@@ -2227,12 +2256,13 @@ namespace M_func_00209098 { extern "C" {
 struct S;
 struct G;
 extern struct G D_003DD490;
-struct S { char pad[0xFC8]; int n; };
+struct S { char pad[0xFC8]; int isHandsOff; };
 int IsSwInputLocked(struct G *p);
 // 0x209098: True while the guard is hands-off (+0xFC8) or world input is locked.
 int IsStepguardHandsOff(struct S *guard)
 {
-    if (guard->n != 0) return 1;
+    if (guard->isHandsOff != 0)
+        return 1;
     return IsSwInputLocked(&D_003DD490);
 }
 } } // namespace M_func_00209098
@@ -2243,8 +2273,8 @@ int IsStepguardHandsOff(struct S *guard)
 extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
 {
     int kind = binding->kind;
-    if (kind != 2) {   // (tested in this order for the match)
-        if (kind == 3) {
+    if (kind != BINDING_LEAP) {   // (tested in this order for the match)
+        if (kind == BINDING_DIRANIM) {
             FreeDirAnim(binding->h);
             binding->h = 0;
         }
@@ -2253,73 +2283,73 @@ extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
         binding->h = 0;
     }
     binding->h = -1;
-    binding->kind = -1;
+    binding->kind = BINDING_NONE;
 }
 
 // 0x209130 ResolveAnimBinding
 namespace M_ResolveAnimBinding { extern "C" {
-struct H; union PAYLOAD; struct E;
-struct H { int id; void *table; };
-struct DIRECTION_STATE;
+struct LEAPPAYLOAD; union PAYLOAD; struct E;
+struct LEAPPAYLOAD { int id; void *aseg; };
+struct DIRANIMPAYLOAD;
 struct MARKER;
 union PAYLOAD {
     int oid;
-    struct H *curvature;
-    struct DIRECTION_STATE *direction;
+    struct LEAPPAYLOAD *leap;
+    struct DIRANIMPAYLOAD *diranim;
     void *resource;
 };
-struct E { int kind; union PAYLOAD value; int n8, nC; };
+struct E { int kind; union PAYLOAD value; int instance, flags; };
 extern char D_003DD490[];
-void PostAsegArcLoad(struct H *, void *);
-void InitDirAnims(struct DIRECTION_STATE *, void *);
+void PostAsegArcLoad(struct LEAPPAYLOAD *, void *);
+void InitDirAnims(struct DIRANIMPAYLOAD *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int GetBasicCid(void *);
 struct MARKER *FindAsegLabel(void *, int);
-struct H *AllocLeap(int);
-void InitAsegArc(struct H *);
+struct LEAPPAYLOAD *AllocLeap(int);
+void InitAsegArc(struct LEAPPAYLOAD *);
 
-// 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; kind 2 if it has label 0x22) or an SM (cid 0x6F, kind 1);
-// else empty.
-void ResolveAnimBinding(struct E *e, void *context)
+// 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; wrapped in a new leap payload if it has label
+// 0x22) or an SM (cid 0x6F); else empty. Leap and DIRANIM payloads resolve their own oids.
+void ResolveAnimBinding(struct E *binding, void *context)
 {
     void *resource;
-    if (e->kind != 2) {
-        if (e->kind == 3) {
-            InitDirAnims(e->value.direction, context);
+    if (binding->kind != BINDING_LEAP) {
+        if (binding->kind == BINDING_DIRANIM) {
+            InitDirAnims(binding->value.diranim, context);
             return;
         }
     } else {
-        PostAsegArcLoad(e->value.curvature, context);
+        PostAsegArcLoad(binding->value.leap, context);
         return;
     }
-    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, e->value.oid, context);
+    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->value.oid, context);
     if (!resource) {
-        e->kind = -1;
+        binding->kind = BINDING_NONE;
         return;
     }
     switch (GetBasicCid(resource)) {
     case 0x6D:
         if (FindAsegLabel(resource, 0x22)) {
-            e->kind = 2;
-            e->value.curvature = AllocLeap(0x40);
-            InitAsegArc(e->value.curvature);
-            e->value.curvature->table = resource;
-            PostAsegArcLoad(e->value.curvature, context);
-            if (e->nC == -1)
-                e->nC = 0;
+            binding->kind = BINDING_LEAP;
+            binding->value.leap = AllocLeap(0x40);
+            InitAsegArc(binding->value.leap);
+            binding->value.leap->aseg = resource;
+            PostAsegArcLoad(binding->value.leap, context);
+            if (binding->flags == -1)
+                binding->flags = 0;
         } else {
-            e->value.resource = resource;
-            e->kind = 0;
+            binding->value.resource = resource;
+            binding->kind = BINDING_ASEG;
         }
         break;
     case 0x6F:
-        e->kind = 1;
-        e->value.resource = resource;
-        if (e->nC == -1)
-            e->nC = 0;
+        binding->kind = BINDING_SM;
+        binding->value.resource = resource;
+        if (binding->flags == -1)
+            binding->flags = 0;
         break;
     default:
-        e->kind = -1;
+        binding->kind = BINDING_NONE;
         break;
     }
 }
@@ -2329,38 +2359,38 @@ namespace RO_ORDER { extern const float r_D_002A8868 __asm__("D_002A8868") = 3.4
 namespace RO_ORDER { extern const float r_D_002A886C __asm__("D_002A886C") = 3.40282347e+38f; }
 // 0x209278 StartAnimBinding
 namespace M_StartAnimBinding { extern "C" {
-struct O; struct E;
+struct INSTANCE; struct BINDING;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct E { int k; int h; struct O *po; };
-void ApplyAsegCore(int h, char *p, int fl, struct O **ppo, float g, float f);
-void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
-void StartLeap(int h, char *p, int fl, struct O *po);
-void StartDirAnim(int h, char *p, int fl, struct O *po);
-#define VC1(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
-// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the kind-2/3 payload.
-void StartAnimBinding(struct E *pe, char *p, int fl, float g)
+struct INSTANCE { char pad[0xC]; VTE *vt; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+void ApplyAsegCore(int aseg, char *guard, int flags, struct INSTANCE **instance, float start, float speed);
+void PsmaApplySmOut(int sm, char *guard, int a, int flags, struct INSTANCE **instance);
+void StartLeap(int leap, char *guard, int flags, struct INSTANCE *instance);
+void StartDirAnim(int diranim, char *guard, int flags, struct INSTANCE *instance);
+#define START_INSTANCE(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
+// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the leap/DIRANIM payload on the guard's own LEAP / DIRANIM.
+void StartAnimBinding(struct BINDING *binding, char *guard, int flags, float start)
 {
-    switch (pe->k) {
-    case -1:
+    switch (binding->kind) {
+    case BINDING_NONE:
         break;
-    case 0:
-        ApplyAsegCore(pe->h, p, fl, &pe->po, g, 1.0f);
-        VC1(pe->po);
+    case BINDING_ASEG:
+        ApplyAsegCore(binding->resource, guard, flags, &binding->instance, start, 1.0f);
+        START_INSTANCE(binding->instance);
         break;
-    case 1:
-        PsmaApplySmOut(pe->h, p, -1, fl, &pe->po);
-        VC1(pe->po);
+    case BINDING_SM:
+        PsmaApplySmOut(binding->resource, guard, -1, flags, &binding->instance);
+        START_INSTANCE(binding->instance);
         break;
-    case 2:
-        pe->po = (struct O *)(p + 0xDB0);
-        StartLeap(pe->h, p, fl, pe->po);
-        VC1(pe->po);
+    case BINDING_LEAP:
+        binding->instance = (struct INSTANCE *)(guard + 0xDB0);   /* STEPGUARD::leap */
+        StartLeap(binding->resource, guard, flags, binding->instance);
+        START_INSTANCE(binding->instance);
         break;
-    case 3:
-        pe->po = (struct O *)(p + 0xE20);
-        StartDirAnim(pe->h, p, fl, pe->po);
-        VC1(pe->po);
+    case BINDING_DIRANIM:
+        binding->instance = (struct INSTANCE *)(guard + 0xE20);   /* STEPGUARD::cid146 */
+        StartDirAnim(binding->resource, guard, flags, binding->instance);
+        START_INSTANCE(binding->instance);
         break;
     }
 }
@@ -2368,47 +2398,47 @@ void StartAnimBinding(struct E *pe, char *p, int fl, float g)
 
 // 0x209360 StopAnimBinding
 namespace M_StopAnimBinding { extern "C" {
-struct O; struct S;
+struct INSTANCE; struct BINDING;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { int k; int pad; struct O *po; };
-void RetractAsega(struct O *po);
-void RetractSma(struct O *po);
-void StopLeap(struct O *po);
-void StopDirAnim(struct O *po);
-#define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
+struct INSTANCE { char pad[0xC]; VTE *vt; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+void RetractAsega(struct INSTANCE *instance);
+void RetractSma(struct INSTANCE *instance);
+void StopLeap(struct INSTANCE *instance);
+void StopDirAnim(struct INSTANCE *instance);
+#define DELETE_INSTANCE(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
 // 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it.
-void StopAnimBinding(struct S *p)
+void StopAnimBinding(struct BINDING *binding)
 {
-    switch (p->k) {
-    case -1:
+    switch (binding->kind) {
+    case BINDING_NONE:
         break;
-    case 0:
-        if (p->po) {
-            RetractAsega(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_ASEG:
+        if (binding->instance) {
+            RetractAsega(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 1:
-        if (p->po) {
-            RetractSma(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_SM:
+        if (binding->instance) {
+            RetractSma(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 2:
-        if (p->po) {
-            StopLeap(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_LEAP:
+        if (binding->instance) {
+            StopLeap(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 3:
-        if (p->po) {
-            StopDirAnim(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_DIRANIM:
+        if (binding->instance) {
+            StopDirAnim(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
     }
@@ -2417,52 +2447,53 @@ void StopAnimBinding(struct S *p)
 
 // 0x209430 IsAnimBindingDone
 namespace M_FAnimBindingDone { extern "C" {
-struct O; struct E;
-struct O { char pad[0x30]; int n30; };
-struct E { int k; int h; struct O *po; };
-int FAsegaRetracted(struct O *po);
-int FSmaRetracted(struct O *po);
-int IsLeapDone(struct O *po);
-int IsDirAnimStopped(struct O *po);
+struct INSTANCE; struct BINDING;
+struct INSTANCE { char pad[0x30]; int isActive; /* SMA: (inferred) */ };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+int FAsegaRetracted(struct INSTANCE *instance);
+int FSmaRetracted(struct INSTANCE *instance);
+int IsLeapDone(struct INSTANCE *instance);
+int IsDirAnimStopped(struct INSTANCE *instance);
 // 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
-int IsAnimBindingDone(struct E *pe)
+// (`done = 0; if (...) done = 1;` per case: the boolean-expression and early-return forms do not match.)
+int IsAnimBindingDone(struct BINDING *binding)
 {
-    int f;
-    switch (pe->k) {
-    case 0:
-        f = 0;
-        if (!pe->po || FAsegaRetracted(pe->po))
-            f = 1;
+    int done;
+    switch (binding->kind) {
+    case BINDING_ASEG:
+        done = 0;
+        if (!binding->instance || FAsegaRetracted(binding->instance))
+            done = 1;
         break;
-    case 1:
-        f = 0;
-        if (!pe->po || FSmaRetracted(pe->po) || !pe->po->n30)
-            f = 1;
+    case BINDING_SM:
+        done = 0;
+        if (!binding->instance || FSmaRetracted(binding->instance) || !binding->instance->isActive)
+            done = 1;
         break;
-    case 2:
-        f = 0;
-        if (!pe->po || IsLeapDone(pe->po))
-            f = 1;
+    case BINDING_LEAP:
+        done = 0;
+        if (!binding->instance || IsLeapDone(binding->instance))
+            done = 1;
         break;
-    case 3:
-        f = 0;
-        if (!pe->po || IsDirAnimStopped(pe->po))
-            f = 1;
+    case BINDING_DIRANIM:
+        done = 0;
+        if (!binding->instance || IsDirAnimStopped(binding->instance))
+            done = 1;
         break;
-    case -1:
+    case BINDING_NONE:
     default:
-        f = 1;
+        done = 1;
         break;
     }
-    return f;
+    return done;
 }
 } } // namespace M_FAnimBindingDone
 
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
-struct B; struct S;
+struct INSTANCE; struct BINDING;
 struct ANIMATION;
-struct B {
+struct INSTANCE {
     char pad[0x24];
     struct ANIMATION *animation24;
     char pad2[8];
@@ -2470,16 +2501,16 @@ struct B {
     int pad3;
     struct ANIMATION *animation38;
 };
-struct S { int n; int a; struct B *pb; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
 
-// 0x209518: Returns the binding's running animation instance for its kind.
-struct ANIMATION *GetAnimBindingInstance(struct S *p)
+// 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
+struct ANIMATION *GetAnimBindingInstance(struct BINDING *binding)
 {
-    switch (p->n) {
-    case 0: return (struct ANIMATION *)p->pb;
-    case 1: return p->pb->animation30;
-    case 2: return p->pb->animation38;
-    case 3: return p->pb->animation24;
+    switch (binding->kind) {
+    case BINDING_ASEG: return (struct ANIMATION *)binding->instance;
+    case BINDING_SM: return binding->instance->animation30;
+    case BINDING_LEAP: return binding->instance->animation38;
+    case BINDING_DIRANIM: return binding->instance->animation24;
     }
     return 0;
 }
@@ -2487,25 +2518,26 @@ struct ANIMATION *GetAnimBindingInstance(struct S *p)
 
 // 0x209590 CloneAnimBinding
 namespace M_func_00209590 { extern "C" {
-struct S;
-struct S { int k; void *pv; };
+struct BINDING;
+struct BINDING { int kind; void *payload; };
 void *AllocLeap(int cb);
 void *AllocDirAnim(int cb);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-// 0x209590: Deep-copies a binding's kind-2 (0x40) or kind-3 (0xD0) payload.
-void CloneAnimBinding(struct S *p)
+// 0x209590: Deep-copies a binding's leap (0x40 bytes) or DIRANIM (0xD0 bytes) payload, so a
+// cloned guard does not share it.
+void CloneAnimBinding(struct BINDING *binding)
 {
-    void *pv;
-    switch (p->k) {
-    case 2:
-        pv = AllocLeap(0x40);
-        CopyAb__FPvT0Ui(pv, p->pv, 0x40);
-        p->pv = pv;
+    void *copy;
+    switch (binding->kind) {
+    case BINDING_LEAP:
+        copy = AllocLeap(0x40);
+        CopyAb__FPvT0Ui(copy, binding->payload, 0x40);
+        binding->payload = copy;
         break;
-    case 3:
-        pv = AllocDirAnim(0xD0);
-        CopyAb__FPvT0Ui(pv, p->pv, 0xD0);
-        p->pv = pv;
+    case BINDING_DIRANIM:
+        copy = AllocDirAnim(0xD0);
+        CopyAb__FPvT0Ui(copy, binding->payload, 0xD0);
+        binding->payload = copy;
         break;
     }
 }
@@ -2513,23 +2545,24 @@ void CloneAnimBinding(struct S *p)
 
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 { extern "C" {
-struct E; struct A; struct B; struct Entry; union FLOATWORD; struct Param; struct S;
+struct ASEGA; struct INSTANCE; struct LEAP; struct BINDING; union FLOATWORD; struct ACT; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct E { char pad[0x1C]; float radius; };
-struct A { char pad[0x10]; qword v10; char pad2[0x30 - 0x20]; struct E *pe30; };
-struct B { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct E *pe38; };
-struct Entry { int kind; int unused; void *object; };
+struct ASEGA { char pad[0x1C]; float localTime; };
+struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 - 0x20]; struct ASEGA *asega; /* SMA */ };
+struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *asega; };
+struct BINDING { int kind; int resource; void *instance; };
 union FLOATWORD { float value; int bits; };
-struct Param { int pad[2]; union FLOATWORD *value; };
-struct S { char pad[0x190]; qword v190; char pad2[0x1E0 - 0x1A0]; qword v1E0; char pad3[0xFC4 - 0x1F0]; struct Param *param; };
+struct ACT { int pad[2]; union FLOATWORD *scale; };
+struct S { char pad[0x190]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0;
-qword GetStepAsegaTranslation(struct S *, struct E *, float);
-qword GetStepAsegaRotation(struct S *, struct E *, float);
-void UpdateLeap(struct B *);
-// 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding's
-// root motion.
-void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
+qword GetStepAsegaTranslation(struct S *, struct ASEGA *, float);
+qword GetStepAsegaRotation(struct S *, struct ASEGA *, float);
+void UpdateLeap(struct LEAP *);
+// 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding'guard
+// root motion (scaled by the special-state scale act when there is one); a leap drives
+// it only outside its airborne states.
+void DriveStepguardFromAnim(struct BINDING *binding, struct S *guard)
 {
     U factor, value;
     register qword scalar __asm__("vf1");
@@ -2541,41 +2574,41 @@ void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
      __asm__("sq %1,%0":"=m"(value.q):"r"(zero));}
     extra=value.q;
     { register int kind __asm__("v1");
-      __asm__("lw %0,%1":"=r"(kind):"m"(entry->kind));
+      __asm__("lw %0,%1":"=r"(kind):"m"(binding->kind));
     switch (kind) {
-    case 0:
-    case 1:
+    case BINDING_ASEG:
+    case BINDING_SM:
         {
-            struct E *e;
-            if (kind == 0) e = (struct E *)entry->object;
-            else e = ((struct A *)entry->object)->pe30;
-            if (e) {
-                value.q = GetStepAsegaTranslation(s, e, e->radius);
-                extra = GetStepAsegaRotation(s, e, e->radius);
+            struct ASEGA *asega;
+            if (kind == BINDING_ASEG) asega = (struct ASEGA *)binding->instance;
+            else asega = ((struct INSTANCE *)binding->instance)->asega;
+            if (asega) {
+                value.q = GetStepAsegaTranslation(guard, asega, asega->localTime);
+                extra = GetStepAsegaRotation(guard, asega, asega->localTime);
             }
         }
         break;
-    case 2:
+    case BINDING_LEAP:
         {
-            struct B *b;
-            UpdateLeap((struct B *)entry->object);
-            b = (struct B *)entry->object;
-            if (b->state > 0 && (b->state < 3 || b->state == 4)) break;
-            value.q = GetStepAsegaTranslation(s, b->pe38, b->pe38->radius);
+            struct LEAP *leap;
+            UpdateLeap((struct LEAP *)binding->instance);
+            leap = (struct LEAP *)binding->instance;
+            if (leap->state > 0 && (leap->state < 3 || leap->state == 4)) break;
+            value.q = GetStepAsegaTranslation(guard, leap->asega, leap->asega->localTime);
         }
         break;
-    case 3: {
-        register struct A *object __asm__("v0")=(struct A *)entry->object;
+    case BINDING_DIRANIM: {
+        register struct INSTANCE *object __asm__("v0")=(struct INSTANCE *)binding->instance;
         register qword vector __asm__("v0");
-        __asm__("lq %0,16(%1)":"=r"(vector):"r"(object),"m"(object->v10));
+        __asm__("lq %0,16(%1)":"=r"(vector):"r"(object),"m"(object->velocity));
         value.q=vector; }
         break;
     }
     }
     {
       register qword current __asm__("vf2")=value.q;
-      if (s->param) {
-        register union FLOATWORD *wordAddress __asm__("v0")=s->param->value;
+      if (guard->scaleAct) {
+        register union FLOATWORD *wordAddress __asm__("v0")=guard->scaleAct->scale;
         register int parameterWord __asm__("v0");
         __asm__("lw %0,0(%2)\n\tqmtc2.ni %0,%1":"=r"(parameterWord),"=j"(scalar):"r"(wordAddress),"m"(wordAddress->bits));
         factor.q=scalar;
@@ -2583,74 +2616,74 @@ void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
         value.q=current;
       }
     }
-    s->v1E0 = extra;
+    guard->desiredAngularVelocity = extra;
     __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(scalar) : "r"(-1.0f));
     factor.q=scalar;
     { register qword source __asm__("vf3")=value.q;
       __asm__("vmulx.xyzw %0,%1,%2x":"=j"(neg):"j"(source),"j"(factor.q)); }
-    s->v190 = neg;
+    guard->desiredVelocity = neg;
 }
 } } // namespace M_func_00209618
 
 // 0x209768 InitStepguardMover
 // 0x209768: Initializes the guard's mover (+0xFD0): owner = guard.
-extern "C" void InitStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
+extern "C" void InitStepguardMover(GUARDMOVER *mover, STEPGUARD *guard)
 {
-    pmover->pstepguard = guard;
+    mover->guard = guard;
 }
 
 // 0x209770 CloneStepguardMover
 // 0x209770: Clone fix-up of the mover: owner = guard.
-extern "C" void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
+extern "C" void CloneStepguardMover(GUARDMOVER *mover, STEPGUARD *guard)
 {
-    pmover->pstepguard = guard;
+    mover->guard = guard;
 }
 
 // 0x209778 ClearStepguardMover
 namespace M_func_00209778 { extern "C" {
 // 0x209778: Clears the mover (driver, lock, third word).
-void ClearStepguardMover(int *p)
+void ClearStepguardMover(GUARDMOVER *mover)
 {
-    p[0] = 0;
-    p[1] = 0;
-    p[2] = 0;
+    mover->driver = 0;
+    mover->isHeadingLocked = 0;
+    mover->unknown8 = 0;
 }
 } } // namespace M_func_00209778
 
 // 0x209788 SetStepguardMoverDriver
 // 0x209788: Sets the mover's driver: the behaviour whose motion update moves the guard.
-extern "C" void SetStepguardMoverDriver(int *pn, int n)
+extern "C" void SetStepguardMoverDriver(int *driverSlot, int driver)
 {
-    *pn = n;
+    *driverSlot = driver;
 }
 
 // 0x209790 ResetStepguardMover
 // 0x209790: Resets the mover: no driver, unlocked, zero desired velocity.
-extern "C" void ResetStepguardMover(GUARDMOVER *pmover)
+extern "C" void ResetStepguardMover(GUARDMOVER *mover)
 {
     STEPGUARD *guard;
-    pmover->n0 = 0;
-    guard = pmover->pstepguard;
-    pmover->fLocked = 0;
-    VECTOR *pv = &guard->vUnk190;
-    pv->z = 0.0f;
-    pv->y = 0.0f;
-    pv->x = 0.0f;
-    WakeSo(pmover->pstepguard);
+    mover->driver = 0;
+    guard = mover->guard;
+    mover->isHeadingLocked = 0;
+    VECTOR *velocity = &guard->vUnk190;
+    velocity->z = 0.0f;
+    velocity->y = 0.0f;
+    velocity->x = 0.0f;
+    WakeSo(mover->guard);
 }
 
 // 0x2097C8 LockStepguardMover
 // 0x2097C8: Locks the mover's heading.
-extern "C" void LockStepguardMover(GUARDMOVER *pmover)
+extern "C" void LockStepguardMover(GUARDMOVER *mover)
 {
-    pmover->fLocked = 1;
+    mover->isHeadingLocked = 1;
 }
 
 // 0x2097D8 UnlockStepguardMover
 // 0x2097D8: Unlocks the mover's heading.
-extern "C" void UnlockStepguardMover(GUARDMOVER *pmover)
+extern "C" void UnlockStepguardMover(GUARDMOVER *mover)
 {
-    pmover->fLocked = 0;
+    mover->isHeadingLocked = 0;
 }
 
 // 0x2097E0 UpdateStepguardMover
@@ -2659,27 +2692,34 @@ struct VTE; struct O;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int a, b, c; struct VTE *vt; };
 // 0x2097E0: Per-frame mover update: calls the driver's motion update (vtable slot 11).
-void UpdateStepguardMover(struct O **pp) { struct O *o = *pp; if (o) { struct VTE *entry = &o->vt[11]; entry->pfn((char *)o + entry->d); } }
+void UpdateStepguardMover(struct O **mover)
+{
+    struct O *driver = *mover;
+    if (driver) {
+        struct VTE *entry = &driver->vt[11];
+        entry->pfn((char *)driver + entry->d);
+    }
+}
 } } // namespace M_func_002097E0
 
 // 0x209818 SetStepguardMoverRadTarget
 // 0x209818: Unless the heading is locked, sets the guard's target heading.
-extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *pmover)
+extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *mover)
 {
-    if (pmover->fLocked == 0) {
-        SetStepTargetHeading(pmover->pstepguard);
+    if (mover->isHeadingLocked == 0) {
+        SetStepTargetHeading(mover->guard);
     }
 }
 
 // 0x209840 SetStepguardMoverTargetMatrix
 // 0x209840: Unless the heading is locked, sets the guard's target orientation matrix.
 /* Sets the guard's target orientation unless the mover is locked. */
-extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *pmover, MATRIX3 *pmat)
+extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *mover, MATRIX3 *matrix)
 {
     STEPGUARD *guard;
-    if (pmover->fLocked == 0) {
-        guard = pmover->pstepguard;
-        guard->matTarget = *pmat;
+    if (mover->isHeadingLocked == 0) {
+        guard = mover->guard;
+        guard->matTarget = *matrix;
     }
 }
 
@@ -2693,33 +2733,33 @@ extern "C" void SetStepguardGrfsgf(STEPGUARD *guard, unsigned long grfsg)
 
 // 0x209890 AddStepguardSgf
 namespace M_AddStepguardSgf { extern "C" {
-struct T; struct S; struct L;
+struct SGFEVENT; struct S; struct ARGS;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct T { int a; int b; };
-extern struct T D_002C3D98[2];
+struct SGFEVENT { int sgf; int gameEvent; };
+extern struct SGFEVENT D_002C3D98[2];
 extern char D_002DEB30[];
-struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long fl; };
-struct L { int *pa; int *pb; };
+struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long grfsg; };
+struct ARGS { int *sgf; int *state; };
 long GetSgfMask(int n);
-void SetStepguardGrfsgf(struct S *p, long fl);
-int MaskHasSgf(long m, int a);
-void BroadcastGameEvent(void *p, int b, struct S *ps);
+void SetStepguardGrfsgf(struct S *p, long grfsg);
+int MaskHasSgf(long mask, int sgf);
+void BroadcastGameEvent(void *p, int gameEvent, struct S *source);
 // 0x209890: Raises guard flag `sgf`: sends itself message 7 (raised, -1) and broadcasts the game event tied to some
 // flags (attacking 0x14, flag 0xC 0x16).
-void AddStepguardSgf(struct S *guard, int n)
+void AddStepguardSgf(struct S *guard, int sgf)
 {
-    long m = GetSgfMask(n);
-    struct L l;
-    int b;
+    long mask = GetSgfMask(sgf);
+    struct ARGS args;
+    int state;
     unsigned int i;
-    SetStepguardGrfsgf(guard, guard->fl | m);
-    b = -1;
-    l.pa = &n;
-    l.pb = &b;
-    ((void (*)(void *, int, int, int, struct L *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &l, 0);
+    SetStepguardGrfsgf(guard, guard->grfsg | mask);
+    state = -1;
+    args.sgf = &sgf;
+    args.state = &state;
+    ((void (*)(void *, int, int, int, struct ARGS *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &args, 0);
     for (i = 0; i < 2; i++) {
-        if (MaskHasSgf(m, D_002C3D98[i].a))
-            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].b, guard);
+        if (MaskHasSgf(mask, D_002C3D98[i].sgf))
+            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].gameEvent, guard);
     }
 }
 } } // namespace M_AddStepguardSgf
@@ -2728,19 +2768,19 @@ void AddStepguardSgf(struct S *guard, int n)
 namespace M_RemoveStepguardSgf {
 class OBase; class O;
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
-class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long fl; };
+class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long grfsg; };
 extern "C" unsigned long GetSgfMask(int n);
-extern "C" void SetStepguardGrfsgf(O *p, unsigned long fl);
+extern "C" void SetStepguardGrfsgf(O *p, unsigned long grfsg);
 // 0x209970: Lowers guard flag `sgf` and sends itself message 7 (-1, lowered).
-extern "C" void RemoveStepguardSgf(O *guard, int n)
+extern "C" void RemoveStepguardSgf(O *guard, int sgf)
 {
-    int m;
-    void *apv[2];
-    SetStepguardGrfsgf(guard, guard->fl & ~GetSgfMask(n));
-    m = -1;
-    apv[0] = &m;
-    apv[1] = &n;
-    guard->Msg(7, 0, 2, apv, 0);
+    int state;
+    void *args[2];
+    SetStepguardGrfsgf(guard, guard->grfsg & ~GetSgfMask(sgf));
+    state = -1;
+    args[0] = &state;
+    args[1] = &sgf;
+    guard->Msg(7, 0, 2, args, 0);
 }
 } // namespace M_RemoveStepguardSgf
 
@@ -2748,18 +2788,21 @@ extern "C" void RemoveStepguardSgf(O *guard, int n)
 namespace M_FGrfHasSgf { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x2099F0: True if flag `sgf` is set in a mask.
-int MaskHasSgf(unsigned long fl, int n) { return (fl & GetSgfMask(n)) != 0; }
+int MaskHasSgf(unsigned long mask, int sgf) { return (mask & GetSgfMask(sgf)) != 0; }
 } } // namespace M_FGrfHasSgf
 
 // 0x209A28 CountSgfMatch
 namespace M_func_00209A28 { extern "C" {
 // 0x209A28: Returns the number of flags in `subset` if it is a subset of `mask`, else 0.
-int CountSgfMatch(unsigned long a, unsigned long b) {
-    unsigned long x = a & b;
-    int c;
-    if (x != a) return 0;
-    for (c = 0; x != 0; c++) x &= x - 1;
-    return c;
+int CountSgfMatch(unsigned long subset, unsigned long mask)
+{
+    unsigned long common = subset & mask;
+    int count;
+    if (common != subset)
+        return 0;
+    for (count = 0; common != 0; count++)
+        common &= common - 1;   // clear the lowest set bit
+    return count;
 }
 } } // namespace M_func_00209A28
 
@@ -2774,45 +2817,50 @@ extern "C" int StepguardHasSgf(STEPGUARD *guard, int sgf)
 namespace M_func_00209A88 { extern "C" {
 struct CRef; struct S;
 struct CRef { int tagk; int tag; };
-struct S { char pad[0x2C0]; long n; };
-void *ListSgfsInMask(long n, char *ab);
-void BuildSpliceListFromUniformValues(struct CRef *ret, void *p, int n, char *ab);
+struct S { char pad[0x2C0]; long grfsg; };
+void *ListSgfsInMask(long mask, char *sgfs);
+void BuildSpliceListFromUniformValues(struct CRef *ret, void *count, int type, char *values);
 // 0x209A88: Splice getter: the guard's set flags as a list.
-struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *p) { char ab[0xC0]; BuildSpliceListFromUniformValues(ret, ListSgfsInMask(p->n, ab), 0x1010, ab); return ret; }
+struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *guard)
+{
+    char sgfs[0xC0];
+    BuildSpliceListFromUniformValues(ret, ListSgfsInMask(guard->grfsg, sgfs), 0x1010, sgfs);
+    return ret;
+}
 } } // namespace M_func_00209A88
 
 // 0x209AD0 FindBestAnimBinding
 namespace M_PanimbindBest { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 long GetSgfMask(int n);
-int CountSgfMatch(long id, long mask);
+int CountSgfMatch(long subset, long mask);
 // 0x209AD0: Finds the animation binding whose flag set is the largest subset of `mask` and contains its lowest
 // flag.
-struct E *FindBestAnimBinding(struct S *p, long mask)
+struct BINDINGREC *FindBestAnimBinding(struct S *guard, long mask)
 {
     int i;
-    int k = 0;
-    long m = 0;
-    int best = 0;
-    struct E *pbest = 0;
-    struct E *pe;
-    for (; k < 0x30; k++) {
-        m = GetSgfMask(k);
-        if (mask & m)
+    int sgf = 0;
+    long lowestMask = 0;
+    int bestCount = 0;
+    struct BINDINGREC *best = 0;
+    struct BINDINGREC *rec;
+    for (; sgf < 0x30; sgf++) {
+        lowestMask = GetSgfMask(sgf);
+        if (mask & lowestMask)
             break;
     }
-    for (i = 0; i < p->c; i++) {
-        int r;
-        pe = &p->a[i];
-        r = CountSgfMatch(pe->id, mask);
-        if (r && (pe->id & m) && best < r) {
-            best = r;
-            pbest = pe;
+    for (i = 0; i < guard->bindingCount; i++) {
+        int count;
+        rec = &guard->bindings[i];
+        count = CountSgfMatch(rec->sgfMask, mask);
+        if (count && (rec->sgfMask & lowestMask) && bestCount < count) {
+            bestCount = count;
+            best = rec;
         }
     }
-    return pbest;
+    return best;
 }
 } } // namespace M_PanimbindBest
 
@@ -2820,42 +2868,51 @@ struct E *FindBestAnimBinding(struct S *p, long mask)
 namespace M_func_00209BC0 { extern "C" {
 struct S;
 struct ENTRY;
-struct S { char pad[0x2C0]; long mask; };
-struct ENTRY *FindBestAnimBinding(struct S *p, long mask);
+struct S { char pad[0x2C0]; long grfsg; };
+struct ENTRY *FindBestAnimBinding(struct S *guard, long mask);
 // 0x209BC0: Finds the best animation binding for the guard's current flags.
-struct ENTRY *FindCurrentAnimBinding(struct S *p)
+struct ENTRY *FindCurrentAnimBinding(struct S *guard)
 {
-    return FindBestAnimBinding(p, p->mask);
+    return FindBestAnimBinding(guard, guard->grfsg);
 }
 } } // namespace M_func_00209BC0
 
 // 0x209BE0 FindAnimBinding
 namespace M_func_00209BE0 { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 // 0x209BE0: Finds the animation binding with exactly this flag set.
-struct E *FindAnimBinding(struct S *p, long id) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->a[i]; if (pe->id == id) return pe; } return 0; }
+struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask)
+{
+    int i;
+    for (i = 0; i < guard->bindingCount; i++) {
+        struct BINDINGREC *rec = &guard->bindings[i];
+        if (rec->sgfMask == sgfMask)
+            return rec;
+    }
+    return 0;
+}
 } } // namespace M_func_00209BE0
 
 // 0x209C18 EnsureAnimBinding
 namespace M_func_00209C18 { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
-struct E *FindAnimBinding(struct S *p, long id);
-void ReleaseAnimBinding(struct E *pe, struct S *p);
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
+struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask);
+void ReleaseAnimBinding(struct BINDINGREC *rec, struct S *guard);
 // 0x209C18: Finds or appends (released) the animation binding for a flag set.
-struct E *EnsureAnimBinding(struct S *p, long id)
+struct BINDINGREC *EnsureAnimBinding(struct S *guard, long sgfMask)
 {
-    struct E *pe = FindAnimBinding(p, id);
-    if (!pe) {
-        struct E *pn = &p->a[p->c++];
-        pn->id = id;
-        pe = pn;
+    struct BINDINGREC *rec = FindAnimBinding(guard, sgfMask);
+    if (!rec) {
+        struct BINDINGREC *added = &guard->bindings[guard->bindingCount++];
+        added->sgfMask = sgfMask;
+        rec = added;
     }
-    ReleaseAnimBinding(pe, p);
-    return pe;
+    ReleaseAnimBinding(rec, guard);
+    return rec;
 }
 } } // namespace M_func_00209C18
 
@@ -2865,10 +2922,10 @@ struct VE; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct S;
 struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qword); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; char pad3[0xF80 - 0x21C]; int k; void *attachObject; float attachParam; int pad4; void *pF90; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *groundPosition; char pad3[0xF80 - 0x21C]; int attachKind; void *attachObject; float attachParam; int pad4; void *attachAnchor; /* (inferred) */ };
 extern qword D_002A2DA0;
 void IgnoreSoSlot59(struct S *p);
-void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
+void EvaluateShapeS(void *shape, qword *pos, qword *tangent, float s);
 qword GetLoWorldPos(void *p);
 qword *GetLoWorldMatrix(void *p);
 
@@ -2876,32 +2933,32 @@ qword *GetLoWorldMatrix(void *p);
 // object.
 void AddStepguardAttachContacts(struct S *guard)
 {
-    qword a, b;
+    qword pos, tangent;
     IgnoreSoSlot59(guard);
-    switch (guard->k) {
+    switch (guard->attachKind) {
     case 0:
-        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
-        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, a, b, *guard->p218);
+        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
+        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, pos, tangent, *guard->groundPosition);
         break;
     case 1: {
         struct VE *entry;
-        void *pthis;
-        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
+        void *self;
+        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
         entry = &guard->vt[82];
-        pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, a, b, GetLoWorldPos(guard->pF90));
+        self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, pos, tangent, GetLoWorldPos(guard->attachAnchor));
         break;
     }
     case 2: {
         struct VE *entry = &guard->vt[82];
-        void *pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), *GetLoWorldMatrix(guard->attachObject), GetLoWorldPos(guard->pF90));
+        void *self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), *GetLoWorldMatrix(guard->attachObject), GetLoWorldPos(guard->attachAnchor));
         break;
     }
     case 3: {
         struct VE *entry = &guard->vt[82];
-        void *pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->p218);
+        void *self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->groundPosition);
         break;
     }
     }
@@ -2910,20 +2967,20 @@ void AddStepguardAttachContacts(struct S *guard)
 
 // 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {
-struct F;
-struct F { int a[0x1C]; };
+struct MODEREC;
+struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBehavior(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void SetBhvguardMode(void *p, struct F *pf);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
 // 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
-void SendStepguardRootBhvMode6(void *p, int n)
+void SendStepguardRootBhvMode6(void *guard, int value)
 {
-    void *o = FindStepBehavior(p, CID_BHVGUARD);
-    struct F f;
-    func_002333B4(&f, 0, sizeof f);
-    f.a[0] = 6;
-    f.a[4] = n;
-    SetBhvguardMode(o, &f);
+    void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
+    struct MODEREC mode;
+    func_002333B4(&mode, 0, sizeof mode);
+    mode.kind = 6;
+    mode.value = value;
+    SetBhvguardMode(bhv, &mode);
 }
 } } // namespace M_func_00209E28
 
@@ -2938,35 +2995,35 @@ extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 
 // 0x209EE0 StunStepguardThrownOp2
 namespace M_func_00209EE0 { extern "C" {
-struct O; struct S;
+struct BHVJUGGLED; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef struct { short d; short pad; void *pfn; } VTE;
 extern float D_002C3DA8;
-struct O { char pad[0x50]; int k; };
+struct BHVJUGGLED { char pad[0x50]; int state; };
 struct S { char pad[0xC]; VTE *vt; };
 int StepguardHasSgf(struct S *p, int n);
-struct O *FindStepBehavior(struct S *p, int n);
-void SetBhvThrownState(struct O *o, int n);
-void SetBhvjuggledState(struct O *o, int n);
+struct BHVJUGGLED *FindStepBehavior(struct S *p, int n);
+void SetBhvThrownState(struct BHVJUGGLED *o, int n);
+void SetBhvjuggledState(struct BHVJUGGLED *o, int n);
 qword LimitVectorLength(qword v, float g);
 // 0x209EE0: Thrown-behaviour operation 2 (flags 0x12/0x13), or juggled-behaviour operation 2 while stunned; then
-// scales the velocity (inferred).
+// clamps the velocity's length (inferred).
 void StunStepguardThrownOp2(struct S *guard)
 {
     if (StepguardHasSgf(guard, 0x12) || StepguardHasSgf(guard, 0x13)) {
         SetBhvThrownState(FindStepBehavior(guard, CID_BHV176), 2);
     } else {
-        struct O *o;
+        struct BHVJUGGLED *juggled;
         if (!StepguardHasSgf(guard, SGF_JUGGLED))
             return;
-        o = FindStepBehavior(guard, CID_BHVJUGGLED);
-        if (o->k != 3 && o->k != 6)
-            SetBhvjuggledState(o, 2);
+        juggled = FindStepBehavior(guard, CID_BHVJUGGLED);
+        if (juggled->state != 3 && juggled->state != 6)
+            SetBhvjuggledState(juggled, 2);
     }
     {
-        qword v = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);
-        v = LimitVectorLength(v, D_002C3DA8);
-        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, v);
+        qword velocity = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);   /* get velocity */
+        velocity = LimitVectorLength(velocity, D_002C3DA8);
+        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, velocity);   /* set velocity */
     }
 }
 } } // namespace M_func_00209EE0
@@ -2982,14 +3039,15 @@ extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 
 // 0x20A010 GetStepguardJuggledValue
 namespace M_func_0020A010 { extern "C" {
-struct O;
-struct O { char pad[0x58]; int n; };
+struct BHVJUGGLED;
+struct BHVJUGGLED { char pad[0x58]; int unknown58; };
 int StepguardHasSgf(void *p, int n);
-struct O *FindStepBehavior(void *p, int oid);
+struct BHVJUGGLED *FindStepBehavior(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p)
+int GetStepguardJuggledValue(void *guard)
 {
-    if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBehavior(p, CID_BHVJUGGLED)->n;
+    if (StepguardHasSgf(guard, SGF_JUGGLED))
+        return FindStepBehavior(guard, CID_BHVJUGGLED)->unknown58;
     return 0;
 }
 } } // namespace M_func_0020A010
@@ -2998,23 +3056,23 @@ int GetStepguardJuggledValue(void *p)
 namespace M_func_0020A058 { extern "C" {
 struct S;
 typedef struct { int tagk; int tag; } CRef;
-void SetValuesFromSpliceList(CRef *pr, int a, int b, int c, void *d, void *e);
+void SetValuesFromSpliceList(CRef *ref, int list, int type, int capacity, void *count, void *values);
 void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
-void Decref__4CRef(CRef *pr);
-struct S { char pad[0xF94]; int a; int b; char pad2[0xFA8 - 0xF9C]; int c; int d; };
+void Decref__4CRef(CRef *ref);
+struct S { char pad[0xF94]; int designatedTargetCount; int designatedTargets; char pad2[0xFA8 - 0xF9C]; int avoidObjectCount; int avoidObjects; };
 // 0x20A058: Splice option: sets the designated target list and the avoid-object list (two typed reference lists).
-void SetStepguardTargetLists(struct S *guard, int x, int y)
+void SetStepguardTargetLists(struct S *guard, int targetList, int avoidList)
 {
-    CRef r;
-    CRef t;
-    r.tagk = -1;
-    SetValuesFromSpliceList(&t, x, 0x2002, 4, &guard->a, &guard->b);
-    func_00129658(&r, &t);
-    Decref__4CRef(&t);
-    SetValuesFromSpliceList(&t, y, 0x2002, 4, &guard->c, &guard->d);
-    func_00129658(&r, &t);
-    Decref__4CRef(&t);
-    Decref__4CRef(&r);
+    CRef result;
+    CRef list;
+    result.tagk = -1;
+    SetValuesFromSpliceList(&list, targetList, 0x2002, 4, &guard->designatedTargetCount, &guard->designatedTargets);
+    func_00129658(&result, &list);
+    Decref__4CRef(&list);
+    SetValuesFromSpliceList(&list, avoidList, 0x2002, 4, &guard->avoidObjectCount, &guard->avoidObjects);
+    func_00129658(&result, &list);
+    Decref__4CRef(&list);
+    Decref__4CRef(&result);
 }
 } } // namespace M_func_0020A058
 
@@ -3041,44 +3099,44 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
 
 // 0x20A168 CompareStepguardStimuli
 namespace M_func_0020A168 { extern "C" {
-struct K; struct E; struct E2;
+struct STIMTEMPLATE; struct STIMULUS;
 typedef int qword __attribute__((mode(TI)));
-struct K { char pad[0x50]; int n50; };
-struct E { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; int n54x; };
-struct E2 { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; char pad4[4]; int n54; char pad5[0x60 - 0x58]; };
+struct STIMTEMPLATE { char pad[0x50]; int kind; };
+struct STIMULUS { char pad[0x14]; struct STIMTEMPLATE *stimTemplate; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float time; char pad4[4]; int level; char pad5[0x60 - 0x58]; };
 qword GetLoWorldPos(void *p);
 
 // VU0 helper: squared distance from an object's position to a point.
-static inline float DistSq(void *p, qword *pq)
+static inline float DistSq(void *object, qword *point)
 {
-    qword a = GetLoWorldPos(p), d, r, t;
+    qword a = GetLoWorldPos(object), d, r, t;
     float f;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(*pq));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(*point));
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(r), "=&j"(t) : "0"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(r));
     return f;
 }
 
-// 0x20A168: Compares two stimuli for priority: type priority, loudness, time, then distance.
-int CompareStepguardStimuli(void *p, struct E2 *a, struct E2 *b)
+// 0x20A168: Compares two stimuli for priority: template kind (lower first), level (higher first),
+// time (later first), then distance (nearer first); finally address order.
+int CompareStepguardStimuli(void *guard, struct STIMULUS *a, struct STIMULUS *b)
 {
-    int n;
-    float d, d2;
-    n = a->pk->n50 - b->pk->n50;
-    if (n)
-        return n;
-    n = b->n54 - a->n54;
-    if (n)
-        return n;
-    if (a->f4C > b->f4C)
+    int diff;
+    float distA, distB;
+    diff = a->stimTemplate->kind - b->stimTemplate->kind;
+    if (diff)
+        return diff;
+    diff = b->level - a->level;
+    if (diff)
+        return diff;
+    if (a->time > b->time)
         return -1;
-    if (a->f4C < b->f4C)
+    if (a->time < b->time)
         return 1;
-    d = DistSq(p, &a->pos);
-    d2 = DistSq(p, &b->pos);
-    if (d < d2)
+    distA = DistSq(guard, &a->pos);
+    distB = DistSq(guard, &b->pos);
+    if (distA < distB)
         return -1;
-    if (d2 > d)
+    if (distB > distA)
         return 1;
     return a - b;
 }
@@ -3086,30 +3144,30 @@ int CompareStepguardStimuli(void *p, struct E2 *a, struct E2 *b)
 
 // 0x20A298 IsStepguardTargetValid
 namespace M_func_0020A298 { extern "C" {
-struct X; struct S;
+struct ENTRY; struct S;
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DAC;
-struct X { int pad; int n4; int pad2; float tC; };
-struct S { char pad[0x2C0]; long fl; char pad2[0x3D0 - 0x2C8]; int n3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
+struct ENTRY { void *object; int state; float stateTime; float lastSeenTime; /* (inferred) */ };
+struct S { char pad[0x2C0]; long grfsg; char pad2[0x3D0 - 0x2C8]; int unknown3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 long GetSgfMask(int n);
-struct X *FindDetectorTarget(void *p, void *q);
+struct ENTRY *FindDetectorTarget(void *detector, void *object);
 // 0x20A298: True if a target is still valid for this guard (Murray special case, detector entry age and mask)
 // (inferred).
-int IsStepguardTargetValid(struct S *guard, void *q, long mask)
+int IsStepguardTargetValid(struct S *guard, void *target, long mask)
 {
-    struct X *x;
+    struct ENTRY *entry;
     // (Shared return labels: direct returns reorder the blocks and do not match.)
-    if (guard->n3D0)
+    if (guard->unknown3D0)
         goto ret0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(q, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->fl & GetSgfMask(6)))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->grfsg & GetSgfMask(6)))
         goto ret1;
-    x = FindDetectorTarget(guard->detector, q);
-    if (!x)
+    entry = FindDetectorTarget(guard->detector, target);
+    if (!entry)
         goto ret1;
-    if (!x->n4 || D_002DDED0.t - x->tC < D_002C3DAC)
+    if (!entry->state || D_002DDED0.t - entry->lastSeenTime < D_002C3DAC)
         goto ret1;
-    if (!(guard->fl & mask))
+    if (!(guard->grfsg & mask))
         goto ret0;
 ret1:
     return 1;
@@ -3131,44 +3189,44 @@ extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 
 // 0x20A408 ChooseStepguardStimulus
 namespace M_func_0020A408 { extern "C" {
-struct O; struct S; struct VE; struct VT; struct X;
-struct O { char pad[0x44]; int n44; char pad2[0x54 - 0x48]; int k54; struct O *next; };
+struct STIMULUS; struct S; struct VE; struct VT; struct ENTRY;
+struct STIMULUS { char pad[0x44]; int subject; char pad2[0x54 - 0x48]; int level; struct STIMULUS *next; };
 struct VT;
-struct S { char pad[0xC]; struct VT *vt; char pad2[0xF04 - 0x10]; float tF04; char pad3[0xF64 - 0xF08]; void *pF64; };
-struct VE { short d; short pad; int (*pf)(void *, struct O *); };
+struct S { char pad[0xC]; struct VT *vt; char pad2[0xF04 - 0x10]; float tAttackNext; char pad3[0xF64 - 0xF08]; void *detector; };
+struct VE { short d; short pad; int (*pf)(void *, struct STIMULUS *); };
 struct VT { struct VE e[90]; };
-struct X { int a; int b; };
-struct STIMLIST_VIEW { char pad[0x148C]; struct O *first; };   /* first at g_sw+0x3FFC */
+struct ENTRY { int object; int state; };
+struct STIMLIST_VIEW { char pad[0x148C]; struct STIMULUS *first; };   /* first at g_sw+0x3FFC */
 extern float D_002DDED0;
 extern float D_002C3DB0;
-int AreStepguardSensesEnabled(struct S *p);
-int CompareStepguardStimuli(struct S *p, struct O *a, struct O *b);
-struct X *FindDetectorTarget(void *p, int n);
-void SetDetectorTargetState(void *p, struct X *x, int n);
+int AreStepguardSensesEnabled(struct S *guard);
+int CompareStepguardStimuli(struct S *guard, struct STIMULUS *a, struct STIMULUS *b);
+struct ENTRY *FindDetectorTarget(void *detector, int object);
+void SetDetectorTargetState(void *detector, struct ENTRY *entry, int state);
 
 // 0x20A408: Chooses the most important stimulus this guard can sense from the world's stimulus list; a stimulus
 // already tracked re-marks the detector entry lost.
-struct O *ChooseStepguardStimulus(struct S *p, struct O *def)
+struct STIMULUS *ChooseStepguardStimulus(struct S *guard, struct STIMULUS *fallback)
 {
-    struct O *o, *best;
+    struct STIMULUS *stimulus, *best;
     int unused[4];
-    if (!AreStepguardSensesEnabled(p))
-        return def;
-    best = def;
-    for (o = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; o; o = o->next) {
-        if (p->vt->e[89].pf((char *)p + p->vt->e[89].d, o)) {
-            if (!best || CompareStepguardStimuli(p, o, best) < 0)
-                best = o;
+    if (!AreStepguardSensesEnabled(guard))
+        return fallback;
+    best = fallback;
+    for (stimulus = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; stimulus; stimulus = stimulus->next) {
+        if (guard->vt->e[89].pf((char *)guard + guard->vt->e[89].d, stimulus)) {   /* CanStepguardSenseStimulus */
+            if (!best || CompareStepguardStimuli(guard, stimulus, best) < 0)
+                best = stimulus;
         }
     }
-    if (best && best->k54 == 4) {
-        struct X *x = FindDetectorTarget(p->pF64, best->n44);
-        if (x) {
-            if (!x->b) {
-                SetDetectorTargetState(p->pF64, x, 2);
-                p->tF04 = D_002DDED0 + D_002C3DB0;
+    if (best && best->level == 4) {
+        struct ENTRY *entry = FindDetectorTarget(guard->detector, best->subject);
+        if (entry) {
+            if (!entry->state) {
+                SetDetectorTargetState(guard->detector, entry, 2);
+                guard->tAttackNext = D_002DDED0 + D_002C3DB0;
             }
-            return def;
+            return fallback;
         }
     }
     return best;
@@ -3178,39 +3236,43 @@ struct O *ChooseStepguardStimulus(struct S *p, struct O *def)
 // 0x20A518 AddStepguardClassE94
 namespace M_func_0020A518 { extern "C" {
 struct S;
-struct S { char pad[0xE94]; unsigned int c; int a[8]; };
+struct S { char pad[0xE94]; unsigned int count; int classes[8]; };
 // 0x20A518: Adds a class to the +0xE94 list (at most 8; meaning unknown).
-void AddStepguardClassE94(struct S *guard, int n) { if (guard->c < 8) guard->a[guard->c++] = n; }
+void AddStepguardClassE94(struct S *guard, int cid)
+{
+    if (guard->count < 8)
+        guard->classes[guard->count++] = cid;
+}
 } } // namespace M_func_0020A518
 
 // 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
-struct O; struct L; struct S;
-struct O { char pad[0x30]; int n30; };
-struct L { int k; int rest[27]; };
-struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int unknown2DC[3]; int patrolScript; };
+struct BHVGUARD; struct MODEREC; struct S;
+struct BHVGUARD { char pad[0x30]; int modeKind; };
+struct MODEREC { int kind; int rest[27]; };
+struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int scriptResumePoint[3]; int patrolScript; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct O *FindBhvInBhvstk(void *p, int n);
-void SetBhvguardMode(struct O *po, struct L *pl);
+struct BHVGUARD *FindBhvInBhvstk(void *stack, int cid);
+void SetBhvguardMode(struct BHVGUARD *bhv, struct MODEREC *mode);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
-void SetStepguardPatrolScript(struct S *guard, int n)
+void SetStepguardPatrolScript(struct S *guard, int script)
 {
-    if (guard->patrolScript == n)
+    if (guard->patrolScript == script)
         return;
-    struct O *po;
-    guard->patrolScript = n;
-    func_002333B4(guard->unknown2DC, 0, 0xC);
-    po = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
-    if (po) {
-        int k = po->n30;
-        if (k == 1) {
-            struct L l;
-            func_002333B4(&l, 0, sizeof(l));
-            l.k = -1;
-            SetBhvguardMode(po, &l);
-            func_002333B4(guard->unknown2DC, 0, 0xC);
-            l.k = k;
-            SetBhvguardMode(po, &l);
+    struct BHVGUARD *bhv;
+    guard->patrolScript = script;
+    func_002333B4(guard->scriptResumePoint, 0, 0xC);
+    bhv = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
+    if (bhv) {
+        int modeKind = bhv->modeKind;
+        if (modeKind == 1) {   /* patrolling: leave the mode and re-enter it so the new script starts */
+            struct MODEREC mode;
+            func_002333B4(&mode, 0, sizeof(mode));
+            mode.kind = -1;
+            SetBhvguardMode(bhv, &mode);
+            func_002333B4(guard->scriptResumePoint, 0, 0xC);
+            mode.kind = modeKind;
+            SetBhvguardMode(bhv, &mode);
         }
     }
 }
@@ -3219,27 +3281,27 @@ void SetStepguardPatrolScript(struct S *guard, int n)
 // 0x20A5F8 InitTargetRecord
 // 0x20A5F8: Initializes a shared per-target engagement record (0xAC bytes) and links it on the world's list.
 /* Initialises a target record for plo and appends it to the record list g_sw.dlTargetrec. */
-extern "C" TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *object)
+extern "C" TARGETREC *InitTargetRecord(TARGETREC *record, LO *object)
 {
-    ptargetrec->plo = object;
-    ptargetrec->g14 = 1.0f;
-    ptargetrec->g18 = 2.0f;
-    ptargetrec->n10 = -1;
-    ptargetrec->n8 = -1;
-    AppendDlEntry(&g_sw.dlTargetrec, ptargetrec);
-    return ptargetrec;
+    record->target = object;
+    record->unknown14 = 1.0f;
+    record->facingTolerance = 2.0f;
+    record->facingKind = -1;
+    record->state = -1;
+    AppendDlEntry(&g_sw.dlTargetrec, record);
+    return record;
 }
 
 // 0x20A658 FindTargetRecordGuardIndex
 namespace M_func_0020A658 { extern "C" {
-struct S;
-struct S { char pad[0x28]; int c; int a[1]; };
+struct TARGETREC;
+struct TARGETREC { char pad[0x28]; int guardCount; int guards[1]; };
 // 0x20A658: Returns the guard's index in an engagement record's guard list (-1 if absent).
-int FindTargetRecordGuardIndex(struct S *guard, int n)
+int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
 {
     int i;
-    for (i = 0; i < guard->c; i++)
-        if (n == guard->a[i])
+    for (i = 0; i < record->guardCount; i++)
+        if (guard == record->guards[i])
             return i;
     return -1;
 }
@@ -3247,90 +3309,89 @@ int FindTargetRecordGuardIndex(struct S *guard, int n)
 
 // 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
-struct O; struct S; struct G;
+struct LOV; struct TARGETREC; struct CAMERA;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0xC]; struct O *po; int k; };
-struct G { char pad[0x60]; float x; float y; };
-extern struct G D_002DDF40;
+struct LOV { char pad[0xC]; VTE *vt; };
+struct TARGETREC { char pad[0xC]; struct LOV *target; int facingKind; };
+struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
+extern struct CAMERA D_002DDF40;
 float atan2f(float y, float x);
 #define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
-float GetTargetRecordFacing(struct S *p)
+float GetTargetRecordFacing(struct TARGETREC *record)
 {
-    float r = 0.0f;
-    switch (p->k) {
+    float heading = 0.0f;
+    switch (record->facingKind) {
     case 0:
-        r = atan2f(D_002DDF40.y, D_002DDF40.x);
+        heading = atan2f(D_002DDF40.y, D_002DDF40.x);
         break;
     case 1: {
-        float *a = VCALL31(p->po);
-        float *b = VCALL31(p->po);
-        r = atan2f(a[1], b[0]);
+        float *forwardY = VCALL31(record->target);   /* the target's facing direction (vtable slot 31) */
+        float *forwardX = VCALL31(record->target);
+        heading = atan2f(forwardY[1], forwardX[0]);
         break;
     }
     case -1:
         break;
     }
-    return r;
+    return heading;
 }
 } } // namespace M_func_0020A690
 
 // 0x20A730 AddTargetRecordGuard
 // 0x20A730: Adds a guard to an engagement record (the first one stamps the time and resets the state).
 /* Adds a guard to a target record (stamping the time when it is the first). */
-extern "C" void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
+extern "C" void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
-    int c;
-    if (ptargetrec->cpstepguard == 0) {
-        ptargetrec->t = D_002DDED0.t;
-        SetTargetRecordState(ptargetrec, 0);
+    int count;
+    if (record->guardCount == 0) {
+        record->firstEngageTime = D_002DDED0.t;
+        SetTargetRecordState(record, 0);
     }
-    c = ptargetrec->cpstepguard;
-    ptargetrec->apstepguard[c] = guard;
-    ptargetrec->cpstepguard = c + 1;
+    count = record->guardCount;
+    record->guards[count] = guard;
+    record->guardCount = count + 1;
 }
 
 // 0x20A790 RemoveTargetRecordGuard
 // 0x20A790: Removes a guard from an engagement record.
 /* Removes a guard from a target record (FindTargetRecordGuardIndex finds its index). */
-extern "C" void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
+extern "C" void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
-    int i;
-    int c;
-    STEPGUARD **ppstepguard;
-    i = FindTargetRecordGuardIndex(ptargetrec, guard);
-    c = ptargetrec->cpstepguard - 1;
-    ppstepguard = &ptargetrec->apstepguard[i];
-    ptargetrec->cpstepguard = c;
-    CopyAb(ppstepguard, ppstepguard + 1, (c - i) * 4);
+    int index;
+    int count;
+    STEPGUARD **slot;
+    index = FindTargetRecordGuardIndex(record, guard);
+    count = record->guardCount - 1;
+    slot = &record->guards[index];
+    record->guardCount = count;
+    CopyAb(slot, slot + 1, (count - index) * 4);
 }
 
 // 0x20A7E0 IsTargetRecordStale
 namespace M_func_0020A7E0 { extern "C" {
-struct S;
+struct TARGETREC;
 extern struct CLOCK D_002DDED0;
 extern float D_002C3DB4;
-struct S { int a; float t; };
+struct TARGETREC { float firstEngageTime; float stateTime; };
 // 0x20A7E0: True if the engagement record has not been refreshed for longer than the timeout.
-int IsTargetRecordStale(struct S *p) { return D_002DDED0.t - p->t > D_002C3DB4; }
+int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.t - record->stateTime > D_002C3DB4; }
 } } // namespace M_func_0020A7E0
 
 // 0x20A818 DoesTargetRecordAllowGuard
 namespace M_func_0020A818 {
-union U; struct Actor; struct P; struct Camera;
-// Test actor availability, camera eligibility and heading tolerance.
+union U; struct GUARD; struct TARGETREC; struct Camera;
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-struct Actor { char pad[0xF30]; int blocked,ready,padF38,busy; };
-struct P { char pad[0xC]; Actor *target; int kind; float unused,tolerance; int disabled; char pad20[8]; int count; Actor *actors[1]; };
+struct GUARD { char pad[0xF30]; int ignoresBusyGuards,ready,padF38,isStriking; /* (inferred) */ };
+struct TARGETREC { char pad[0xC]; GUARD *target; int facingKind; float unknown14,facingTolerance; int isDisabled; char pad20[8]; int guardCount; GUARD *guards[1]; };
 struct Camera { char pad[0x90]; qword position; };
 extern "C" { extern Camera D_002DDF40; }
 extern "C" {
-qword GetLoWorldPos(Actor *);
+qword GetLoWorldPos(GUARD *);
 int FInsideCmFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
-float GetTargetRecordFacing(P *);
+float GetTargetRecordFacing(TARGETREC *);
 float RadNormalize__Ff(float);
 }
 // Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
@@ -3351,26 +3412,28 @@ static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m
 // VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
 // 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
-// guard busy; kind 0 also requires the guard ready or in view of the camera).
-extern "C" int DoesTargetRecordAllowGuard(P *guard, Actor *a)
+// guard striking; facing kind 0 needs the guard ready, or in view of the camera and within the tolerance of
+// the camera heading as seen from the target; kind 1 within the tolerance of the target's facing).
+// (The failures share one `return 0` inside case 0 through `goto fail`: separate returns do not match.)
+extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
 {
     U scalar;
     float angle[2];
     U position0, position1;
-    if (guard->disabled)
+    if (record->isDisabled)
         goto fail;
-    if (!a->blocked) {
-        int i, n = guard->count;
+    if (!guard->ignoresBusyGuards) {
+        int i, n = record->guardCount;
         for (i = 0; i < n; i++)
-            if (guard->actors[i]->busy)
+            if (record->guards[i]->isStriking)
                 goto fail;
     }
-    switch (guard->kind) {
+    switch (record->facingKind) {
     case 0: {
-        if (a->ready)
+        if (guard->ready)
             return 1;
         qword returned;
-        returned = GetLoWorldPos(a);
+        returned = GetLoWorldPos(guard);
         register Camera *camera __asm__("$4");
         __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&D_002DDF40));
         qword threshold, point;
@@ -3378,20 +3441,20 @@ extern "C" int DoesTargetRecordAllowGuard(P *guard, Actor *a)
         if (!FInsideCmFrustum(camera, point, threshold))
             goto fail;
         qword other;
-        other = GetLoWorldPos(guard->target);
+        other = GetLoWorldPos(record->target);
         GetVectorCylind(Sub(position0.q, other), &angle[0], 0, 0);
-        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(guard)))) {
+        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(record)))) {
 fail:
             return 0;
         }
         return 1;
     }
     case 1: {
-        position1.q = GetLoWorldPos(a);
+        position1.q = GetLoWorldPos(guard);
         qword other;
-        other = GetLoWorldPos(guard->target);
+        other = GetLoWorldPos(record->target);
         GetVectorCylind(Sub(position1.q, other), &angle[1], 0, 0);
-        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(guard))))
+        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(record))))
             return 0;
         return 1;
     }
@@ -3406,48 +3469,54 @@ fail:
 
 // 0x20A9A8 SetTargetRecordState
 namespace M_func_0020A9A8 { extern "C" {
-struct S;
+struct TARGETREC;
 extern struct CLOCK D_002DDED0;
-struct S { int a; float t; int n; };
+struct TARGETREC { float firstEngageTime; float stateTime; int state; };
 // 0x20A9A8: Sets an engagement record's state and its time.
-void SetTargetRecordState(struct S *p, int n)
+void SetTargetRecordState(struct TARGETREC *record, int state)
 {
-    p->t = D_002DDED0.t;
-    p->n = n;
+    record->stateTime = D_002DDED0.t;
+    record->state = state;
 }
 } } // namespace M_func_0020A9A8
 
 // 0x20A9C0 GetStepguardDefaultAttack
 namespace M_func_0020A9C0 { extern "C" {
 struct S;
-struct S { char pad[0xEB8]; int aEB8[8]; int cED8; int aEDC[8]; int cEFC; };
-int PloNew__F3CIDP2SO3OIDi(int a, struct S *p, int b, int c);
+struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
+int PloNew__F3CIDP2SO3OIDi(int cid, struct S *parent, int oid, int n);
 // Appends an attack (oid and resolved object) to the guard's two attack lists.
-static __inline__ void Push(struct S *p, int id, int v)
+static __inline__ void Push(struct S *guard, int oid, int attack)
 {
-    p->aEDC[p->cEFC++] = v;
-    p->aEB8[p->cED8++] = id;
+    guard->attacks[guard->attackCount++] = attack;
+    guard->attackOids[guard->attackOidCount++] = oid;
 }
 // 0x20A9C0: Returns the guard's first attack object, creating the default one (cid 0x78, oid 0x2CC) if it has none.
 int GetStepguardDefaultAttack(struct S *guard)
 {
-    int v;
-    if (guard->cED8 == 0) {
-        v = PloNew__F3CIDP2SO3OIDi(0x78, guard, 0x2CC, -1);
-        Push(guard, 0x2CC, v);
+    int attack;
+    if (guard->attackOidCount == 0) {
+        attack = PloNew__F3CIDP2SO3OIDi(0x78, guard, OID_DEFAULT_ATTACK, -1);
+        Push(guard, OID_DEFAULT_ATTACK, attack);
     } else {
-        v = guard->aEDC[0];
+        attack = guard->attacks[0];
     }
-    return v;
+    return attack;
 }
 } } // namespace M_func_0020A9C0
 
 // 0x20AA40 AddStepguardAttackOid
 namespace M_func_0020AA40 { extern "C" {
 struct S;
-struct S { char pad[0xEB8]; int a[8]; unsigned int c; };
+struct S { char pad[0xEB8]; int attackOids[8]; unsigned int attackOidCount; };
 // 0x20AA40: Splice option: adds an attack oid (at most 8).
-void AddStepguardAttackOid(struct S *guard, int n) { if (n != -1) { if (guard->c < 8) guard->a[guard->c++] = n; } }
+void AddStepguardAttackOid(struct S *guard, int oid)
+{
+    if (oid != -1) {
+        if (guard->attackOidCount < 8)
+            guard->attackOids[guard->attackOidCount++] = oid;
+    }
+}
 } } // namespace M_func_0020AA40
 
 // 0x20AA78 AddAndResolveStepguardAttackOid
@@ -3462,17 +3531,17 @@ extern "C" void AddAndResolveStepguardAttackOid(STEPGUARD *guard)
 namespace M_func_0020AAA8 { extern "C" {
 struct S;
 extern char D_003DD490[];
-struct S { char pad[0xEB8]; int a[8]; int n; int b[8]; int c; };
-int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int x, struct S *ps);
+struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
+int PloFindSwObject__FP2SWi3OIDP2LO(void *sw, int k, int oid, struct S *context);
 // 0x20AAA8: Resolves the attack oids into attack objects.
 void ResolveStepguardAttacks(struct S *guard)
 {
     int i;
-    guard->c = 0;
-    for (i = 0; i < guard->n; i++) {
-        int r = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->a[i], guard);
-        if (r)
-            guard->b[guard->c++] = r;
+    guard->attackCount = 0;
+    for (i = 0; i < guard->attackOidCount; i++) {
+        int attack = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->attackOids[i], guard);
+        if (attack)
+            guard->attacks[guard->attackCount++] = attack;
     }
 }
 } } // namespace M_func_0020AAA8
@@ -3480,94 +3549,97 @@ void ResolveStepguardAttacks(struct S *guard)
 // 0x20AB58 ClearStepguardAttacks
 namespace M_func_0020AB58 { extern "C" {
 // 0x20AB58: Clears both attack lists.
-void ClearStepguardAttacks(char *p)
+struct S { char pad[0xED8]; int attackOidCount; char pad2[0xEFC - 0xEDC]; int attackCount; };
+void ClearStepguardAttacks(struct S *guard)
 {
-    *(int *)(p + 0xED8) = 0;
-    *(int *)(p + 0xEFC) = 0;
+    guard->attackOidCount = 0;
+    guard->attackCount = 0;
 }
 } } // namespace M_func_0020AB58
 
 // 0x20AB68 SetStepguardAttack
 namespace M_func_0020AB68 { extern "C" {
-struct C; struct O; struct S;
+struct BINDING; struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002A88C4;
-struct C { char pad[0xC]; int fl; };
-struct O { char pad[0x60]; float f60; float f64; char pad2[0xC0 - 0x68]; struct C *pc; };
-struct S { char pad[0xF00]; struct O *po; float t; };
-void StopAnimBinding(struct C *pc);
+struct BINDING { char pad[0xC]; int flags; };
+struct ATTACK { char pad[0x60]; float cooldownMin; float cooldownMax; char pad2[0xC0 - 0x68]; struct BINDING *activeBinding; };
+struct S { char pad[0xF00]; struct ATTACK *currentAttack; float tAttackNext; };
+void StopAnimBinding(struct BINDING *binding);
 float GRandInRange__Fff(float a, float b);
-void StartAnimBinding(struct C *pc, struct S *p, int fl, float g);
-void SetStepguardAimAct(struct S *p, struct O *po, int n, qword v);
+void StartAnimBinding(struct BINDING *binding, struct S *guard, int flags, float start);
+void SetStepguardAimAct(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset);
 // 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
 // range), starts the new animation and its aim.
-void SetStepguardAttack(struct S *guard, struct O *po, int n, qword v)
+void SetStepguardAttack(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset)
 {
-    if (guard->po) {
-        float t;
-        StopAnimBinding(guard->po->pc);
-        t = D_002DDED0.t;
-        t += GRandInRange__Fff(guard->po->f60, guard->po->f64);
-        guard->po = 0;
-        guard->t = t;
+    if (guard->currentAttack) {
+        float next;
+        StopAnimBinding(guard->currentAttack->activeBinding);
+        next = D_002DDED0.t;
+        next += GRandInRange__Fff(guard->currentAttack->cooldownMin, guard->currentAttack->cooldownMax);
+        guard->currentAttack = 0;
+        guard->tAttackNext = next;
     }
-    guard->po = po;
-    if (po) {
-        StartAnimBinding(po->pc, guard, po->pc->fl | 1, 0.0f);
-        guard->t = D_002A88C4;
+    guard->currentAttack = attack;
+    if (attack) {
+        StartAnimBinding(attack->activeBinding, guard, attack->activeBinding->flags | 1, 0.0f);
+        guard->tAttackNext = D_002A88C4;   /* no next attack while this one runs */
     }
-    SetStepguardAimAct(guard, po, n, v);
+    SetStepguardAimAct(guard, attack, aimTarget, aimOffset);
 }
 } } // namespace M_func_0020AB68
 
 // 0x20AC28 SetStepguardAimAct
 namespace M_func_0020AC28 { extern "C" {
-struct A; struct S;
+struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct A { char pad[0xA0]; int nA0; };
-struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
-void ReleaseAct(int *ph);
-int NewPositionAct(struct S *p, int a, int b, int c, int d, qword q);
-// 0x20AC28: Releases and re-creates the aim act of the current attack.
-void SetStepguardAimAct(struct S *guard, struct A *pa, int n, qword v)
+struct ATTACK { char pad[0xA0]; int aimObject; };
+struct S { char pad[0xF08]; struct ATTACK *aimAttack; int aimAct; int aimTarget; char pad2[0xC]; qword aimOffset; };
+void ReleaseAct(int *act);
+int NewPositionAct(struct S *guard, int object, int b, int c, int d, qword q);
+// 0x20AC28: Releases and re-creates the aim act (the act that turns the attack's aim object, e.g. a gun
+// arm, toward the target) of the current attack.
+void SetStepguardAimAct(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset)
 {
-    if (guard->pa) {
-        ReleaseAct(&guard->h);
-        guard->h = 0;
-        guard->pa = 0;
+    if (guard->aimAttack) {
+        ReleaseAct(&guard->aimAct);
+        guard->aimAct = 0;
+        guard->aimAttack = 0;
     }
-    guard->pa = pa;
-    if (pa && pa->nA0) {
-        guard->h = NewPositionAct(guard, pa->nA0, 5, 8, 3, D_002A2DD0);
-        guard->n = n;
-        guard->v = v;
+    guard->aimAttack = attack;
+    if (attack && attack->aimObject) {
+        guard->aimAct = NewPositionAct(guard, attack->aimObject, 5, 8, 3, D_002A2DD0);
+        guard->aimTarget = aimTarget;
+        guard->aimOffset = aimOffset;
     }
 }
 } } // namespace M_func_0020AC28
 
 // 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 { extern "C" {
-struct MATRIX3; struct A; struct B; struct D; struct S;
+struct MATRIX3; struct AIMOBJECT; struct ATTACK; struct ACT; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
-struct A { char pad[0x30]; qword pos; char pad2[0x60]; int nA0; };
-struct B { char pad[0x90]; qword v; struct A *pa; };
-struct D { char pad[0x20]; qword v; };
-struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]; qword vF20; };
-qword TransformXfPos(int a, int b, qword v);
-void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
-qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
-// 0x20ACC0: Aims the attack: rotation toward the predicted target point, as Euler angles.
+struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
+struct ATTACK { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };
+struct ACT { char pad[0x20]; qword goal; };
+struct S { char pad[0xF08]; struct ATTACK *aimAttack; struct ACT *aimAct; int aimTarget; char pad2[0xC]; qword aimOffset; };
+qword TransformXfPos(int target, int a, qword offset);
+void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *matrix, qword from, qword to);
+qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix);
+// 0x20ACC0: Aims the attack: the rotation that turns the attack's precomputed strike offset toward the
+// predicted target point, stored as the aim act's goal (Euler angles).
 void UpdateStepguardAim(struct S *guard)
 {
-    MATRIX3 m;
-    qword v, d;
-    v = TransformXfPos(guard->nF10, guard->pb->pa->nA0, guard->vF20);
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(guard->pb->pa->pos));
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, guard->pb->v, d);
-    { struct D *pd = guard->pd; pd->v = DecomposeRotationMatrixToEuler(&m); }
+    MATRIX3 rotation;
+    qword aimPoint, direction;
+    aimPoint = TransformXfPos(guard->aimTarget, guard->aimAttack->aimObject->unknownA0, guard->aimOffset);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(direction) : "j"(aimPoint), "j"(guard->aimAttack->aimObject->pos));
+    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&rotation, guard->aimAttack->strikeOffset, direction);
+    { struct ACT *act = guard->aimAct; act->goal = DecomposeRotationMatrixToEuler(&rotation); }
 }
 } } // namespace M_func_0020ACC0
 
@@ -3575,74 +3647,75 @@ void UpdateStepguardAim(struct S *guard)
 namespace M_func_0020AD38 { extern "C" {
 struct S;
 extern float D_002A88C8;
-struct S { char pad[0x50]; int n50; float f54, f58, f5C, f60, f64, f68, f6C; char pad2[0x7C - 0x70]; int n7C; int n80; int n84; char pad3[0xA8 - 0x88]; int nA8; void *pAC; char eB0[4]; };
-void InitLo(struct S *p);
-void ReleaseAnimBinding(void *pe, void *p);
+struct S { char pad[0x50]; int unknown50; float range, heightMin, heightMax, cooldownMin, cooldownMax, angle, unknown6C; char pad2[0x7C - 0x70]; int aimObjectOid; int effectorOid; int strikeLabel; char pad3[0xA8 - 0x88]; int unknownA8; void *guard; char binding[4]; };
+void InitLo(struct S *attack);
+void ReleaseAnimBinding(void *binding, void *guard);
 } } // namespace M_func_0020AD38
 // 0x20AD38: Guard attack (CID120, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
 // cooldown 0.2..0.5 s, angle 10 degrees, no oids, empty binding.
-void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *p = (M_func_0020AD38::S *)this;
-    InitLo(p);
-    p->n50 = 0;
-    p->f54 = 300.0f;
-    p->f58 = -5000.0f;
-    p->f5C = 5000.0f;
-    p->f60 = 0.2f;
-    p->f64 = 0.5f;
-    p->f68 = 0.17453295f;
-    p->nA8 = 1;
-    p->n7C = -1;
-    p->n80 = -1;
-    p->n84 = -1;
-    p->f6C = D_002A88C8;
-    ReleaseAnimBinding(p->eB0, p->pAC);
+void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *attack = (M_func_0020AD38::S *)this;
+    InitLo(attack);
+    attack->unknown50 = 0;
+    attack->range = 300.0f;
+    attack->heightMin = -5000.0f;
+    attack->heightMax = 5000.0f;
+    attack->cooldownMin = 0.2f;
+    attack->cooldownMax = 0.5f;
+    attack->angle = 0.17453295f;   /* 10 degrees */
+    attack->unknownA8 = 1;
+    attack->aimObjectOid = -1;
+    attack->effectorOid = -1;
+    attack->strikeLabel = -1;
+    attack->unknown6C = D_002A88C8;
+    ReleaseAnimBinding(attack->binding, attack->guard);
 }
 
 // 0x20ADE8 CloneGuardAttack
 // 0x20ADE8: Guard attack vtable slot 41 (Clone): LO clone plus a copy of its binding.
-extern "C" void CloneGuardAttack(ANIMLO *panimlo)
+extern "C" void CloneGuardAttack(ANIMLO *attack)
 {
     CloneLoV();
-    CloneAnimBinding(&panimlo->binding);
+    CloneAnimBinding(&attack->binding);
 }
 
 // 0x20AE18 PostGuardAttackLoad
 namespace M_func_0020AE18 { extern "C" {
-struct A; struct O; struct L; struct S;
+struct SOV; struct LOV; struct EVAL; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct A { char pad[0xA0]; int nA0; };
-struct O { char pad[0x10]; struct O *pParent; };
-struct L { char pad[0x30]; qword v; };
-struct S { char pad[0x10]; struct O *pParent; int pad14; int cid; char pad2[0x7C - 0x1C]; int a, b, c; char pad3[0x90 - 0x88]; qword v90;
-           struct A *pa; int nA4; int pad4[1]; struct O *pAC; char eB0[4]; int hB4; char pad5[0xC0 - 0xB8]; void *pC0; };
-void PostLoLoad(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
-void ResolveAnimBinding(void *pe, struct O *o);
-void *FindSoXf(struct O *o, int a, int b);
-float *FindAsegLabel(int h, int a);
-void PredictAsegTransform(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
+struct SOV { char pad[0xA0]; int unknownA0; };
+struct LOV { char pad[0x10]; struct LOV *parent; };
+struct EVAL { char pad[0x30]; qword pos; };
+struct S { char pad[0x10]; struct LOV *parent; int pad14; int oid; char pad2[0x7C - 0x1C]; int aimObjectOid, effectorOid, strikeLabel; char pad3[0x90 - 0x88]; qword strikeOffset;
+           struct SOV *aimObject; int effector; int pad4[1]; struct LOV *guard; char binding[4]; int bindingResource; char pad5[0xC0 - 0xB8]; void *activeBinding; };
+void PostLoLoad(struct S *attack);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct LOV *object, int cid);
+void ResolveAnimBinding(void *binding, struct LOV *guard);
+void *FindSoXf(struct LOV *root, int oid, int b);
+float *FindAsegLabel(int aseg, int label);
+void PredictAsegTransform(int aseg, struct LOV *root, int so, int relativeTo, struct EVAL *result, int c, float t, float g);
 // 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
-// resolves its binding and precomputes its animation effect.
-void PostGuardAttackLoad(struct S *guard)
+// resolves its binding and, when it has an aim object, precomputes the strike offset: where the
+// effector is, relative to the aim object, at the strike label of the attack animation (inferred).
+void PostGuardAttackLoad(struct S *attack)
 {
-    struct O *o;
-    PostLoLoad(guard);
-    for (o = guard->pParent; o && !FIsBasicDerivedFrom__FP5BASIC3CID(o, CID_STEPGUARD); o = o->pParent)
+    struct LOV *object;
+    PostLoLoad(attack);
+    for (object = attack->parent; object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
         ;
-    guard->pAC = o;
-    ResolveAnimBinding(guard->eB0, o);
-    if (guard->cid != 0x2CC)
-        guard->pC0 = guard->eB0;
-    if (guard->a != -1) {
-        struct L l;
-        int h;
-        float *pf;
-        guard->pa = (__typeof__(guard->pa))FindSoXf(guard->pAC, guard->a, 6);
-        guard->nA4 = (int)FindSoXf(guard->pAC, guard->b, 6);
-        h = guard->hB4;
-        pf = FindAsegLabel(h, guard->c);
-        PredictAsegTransform(h, guard->pAC, guard->nA4, guard->pa->nA0, &l, 0, *pf, 1.0f);
-        guard->v90 = l.v;
+    attack->guard = object;
+    ResolveAnimBinding(attack->binding, object);
+    if (attack->oid != OID_DEFAULT_ATTACK)
+        attack->activeBinding = attack->binding;
+    if (attack->aimObjectOid != -1) {
+        struct EVAL eval;
+        int aseg;
+        float *labelTime;
+        attack->aimObject = (__typeof__(attack->aimObject))FindSoXf(attack->guard, attack->aimObjectOid, 6);
+        attack->effector = (int)FindSoXf(attack->guard, attack->effectorOid, 6);
+        aseg = attack->bindingResource;
+        labelTime = FindAsegLabel(aseg, attack->strikeLabel);
+        PredictAsegTransform(aseg, attack->guard, attack->effector, attack->aimObject->unknownA0, &eval, 0, *labelTime, 1.0f);
+        attack->strikeOffset = eval.pos;
     }
 }
 } } // namespace M_func_0020AE18
@@ -3650,182 +3723,183 @@ void PostGuardAttackLoad(struct S *guard)
 // 0x20AF08 SetGuardAttackAngleDegrees
 namespace M_func_0020AF08 { extern "C" {
 struct S;
-struct S { char pad[0x68]; float g; };
+struct S { char pad[0x68]; float angle; };
 // 0x20AF08: Splice option: sets the attack angle (given in degrees, stored in radians).
-void SetGuardAttackAngleDegrees(struct S *guard, float g) { guard->g = g * 0.01745329424738884f; }
+void SetGuardAttackAngleDegrees(struct S *attack, float degrees) { attack->angle = degrees * 0.01745329424738884f; }
 } } // namespace M_func_0020AF08
 
 // 0x20AF28 SetGuardAttackOids
 namespace M_func_0020AF28 { extern "C" {
 struct S;
-struct S { char pad[0x7C]; int a, b, c; };
-// 0x20AF28: Splice option: sets the attack's three oids.
-void SetGuardAttackOids(struct S *guard, int a, int b, int c)
+struct S { char pad[0x7C]; int aimObjectOid, effectorOid, strikeLabel; };
+// 0x20AF28: Splice option: sets the attack's aim object, effector and strike label (inferred).
+void SetGuardAttackOids(struct S *attack, int aimObjectOid, int effectorOid, int strikeLabel)
 {
-    guard->a = a;
-    guard->b = b;
-    guard->c = c;
+    attack->aimObjectOid = aimObjectOid;
+    attack->effectorOid = effectorOid;
+    attack->strikeLabel = strikeLabel;
 }
 } } // namespace M_func_0020AF28
 
 // 0x20AF38 SetGuardAttackBinding
 // 0x20AF38: Splice option: sets the attack's animation binding.
-extern "C" void SetGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
+extern "C" void SetGuardAttackBinding(ANIMLO *attack, int oid, int flags)
 {
-    ReleaseAnimBinding(&panimlo->binding, panimlo->pstepguard);
-    panimlo->binding.h = h;
-    panimlo->binding.nC = nC;
+    ReleaseAnimBinding(&attack->binding, attack->guard);
+    attack->binding.h = oid;
+    attack->binding.nC = flags;
 }
 
 // 0x20AF88 SetAndResolveGuardAttackBinding
 // 0x20AF88: Sets and resolves the attack's animation binding.
-extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
+extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *attack, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = &panimlo->binding;
-    ReleaseAnimBinding(pbinding, panimlo->pstepguard);
-    panimlo->binding.h = h;
-    panimlo->binding.nC = nC;
-    ResolveAnimBinding(pbinding, panimlo->pstepguard);
+    ANIMBINDING *binding;
+    binding = &attack->binding;
+    ReleaseAnimBinding(binding, attack->guard);
+    attack->binding.h = oid;
+    attack->binding.nC = flags;
+    ResolveAnimBinding(binding, attack->guard);
 }
 
 // 0x20AFF0 SetGuardAttackBindingKind2
 namespace M_func_0020AFF0 { extern "C" {
-struct X; struct E; struct S;
-struct X { int a; };
-struct E { int n; struct X *px; int b; int c; };
-struct S { char pad[0xAC]; int nAC; struct E e; };
-void ReleaseAnimBinding(struct E *pe, int n);
-struct X *AllocLeap(int cb);
-void InitAsegArc(struct X *px);
-// 0x20AFF0: Splice option: sets the attack's binding to a kind-2 payload.
-void SetGuardAttackBindingKind2(struct S *guard, int a)
+struct PAYLOAD2; struct BINDING; struct S;
+struct PAYLOAD2 { int parameter; };
+struct BINDING { int kind; struct PAYLOAD2 *payload; int instance; int flags; };
+struct S { char pad[0xAC]; int guard; struct BINDING binding; };
+void ReleaseAnimBinding(struct BINDING *binding, int guard);
+struct PAYLOAD2 *AllocLeap(int cb);
+void InitAsegArc(struct PAYLOAD2 *payload);
+// 0x20AFF0: Splice option: sets the attack's binding to a leap payload.
+void SetGuardAttackBindingKind2(struct S *attack, int parameter)
 {
-    struct E *pe = &guard->e;
-    ReleaseAnimBinding(pe, guard->nAC);
-    guard->e.n = 2;
-    pe->px = AllocLeap(0x40);
-    InitAsegArc(pe->px);
-    pe->px->a = a;
-    pe->c = 0;
+    struct BINDING *binding = &attack->binding;
+    ReleaseAnimBinding(binding, attack->guard);
+    attack->binding.kind = BINDING_LEAP;
+    binding->payload = AllocLeap(0x40);
+    InitAsegArc(binding->payload);
+    binding->payload->parameter = parameter;
+    binding->flags = 0;
 }
 } } // namespace M_func_0020AFF0
 
 // 0x20B060 SetAndResolveGuardAttackBindingKind2
 // 0x20B060: Sets and resolves the attack's kind-2 binding.
-extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *panimlo)
+extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *attack)
 {
-    SetGuardAttackBindingKind2(panimlo);
-    ResolveAnimBinding(&panimlo->binding, panimlo->pstepguard);
+    SetGuardAttackBindingKind2(attack);
+    ResolveAnimBinding(&attack->binding, attack->guard);
 }
 
 // 0x20B090 GetStepguardGroundProbeFlags
 namespace M_func_0020B090 { extern "C" {
-struct O; struct S;
+struct DRIVER; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0x2C0]; long fl; char pad2[0xFD0 - 0x2C8]; struct O *po; };
+struct DRIVER { char pad[0xC]; VTE *vt; };
+struct S { char pad[0x2C0]; long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
 long GetSgfMask(int n);
 int GetStepGroundProbeFlags(struct S *p);
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
 // else the mover driver's or the step's.
 int GetStepguardGroundProbeFlags(struct S *guard)
 {
-    long m;
-    if (guard->fl & GetSgfMask(0x14))
+    long thrownMask;
+    if (guard->grfsg & GetSgfMask(0x14))
         return 1;
-    m = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
-    if (guard->fl & m)
+    thrownMask = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
+    if (guard->grfsg & thrownMask)
         return 0;
-    if (guard->po)
-        return ((int (*)(void *))guard->po->vt[12].pfn)((char *)guard->po + guard->po->vt[12].d);
+    if (guard->moverDriver)
+        return ((int (*)(void *))guard->moverDriver->vt[12].pfn)((char *)guard->moverDriver + guard->moverDriver->vt[12].d);
     return GetStepGroundProbeFlags(guard);
 }
 } } // namespace M_func_0020B090
 
 // 0x20B140 EmitStepguardStimulus
 namespace M_func_0020B140 { extern "C" {
-struct X; struct S;
+struct STIMULUS; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DB8;
-extern struct { char pad[0x4030]; int n4030; } D_003DD490;
-struct X { char pad[0x30]; qword v; char pad2[4]; void *p44; char pad3[0xC]; int n54; };
-struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float t; };
+extern struct { char pad[0x4030]; int defaultNoiseType; } D_003DD490;
+struct STIMULUS { char pad[0x30]; qword targetPos; char pad2[4]; void *subject; char pad3[0xC]; int level; };
+struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float alertCooldownEnd; /* (inferred) */ };
 qword GetLoWorldPos(void *p);
-void CreateNoise(int a, qword v, struct S *p, struct X **ppx);
-struct X *NewNoise(int a, qword v, struct S *p);
+void CreateNoise(int noiseType, qword pos, struct S *source, struct STIMULUS **result);
+struct STIMULUS *NewNoise(int noiseType, qword pos, struct S *source);
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
-void EmitStepguardStimulus(struct S *guard, void *q)
+void EmitStepguardStimulus(struct S *guard, void *target)
 {
-    struct X *px;
-    qword v = GetLoWorldPos(q);
-    px = 0;
+    struct STIMULUS *stimulus;
+    qword targetPos = GetLoWorldPos(target);
+    stimulus = 0;
     if (guard->noiseType)
-        CreateNoise(guard->noiseType, GetLoWorldPos(guard), guard, &px);
+        CreateNoise(guard->noiseType, GetLoWorldPos(guard), guard, &stimulus);
     else
-        px = NewNoise(D_003DD490.n4030, GetLoWorldPos(guard), guard);
-    px->v = v;
-    px->p44 = q;
-    px->n54 = 4;
-    guard->t = D_002DDED0.t + D_002C3DB8;
+        stimulus = NewNoise(D_003DD490.defaultNoiseType, GetLoWorldPos(guard), guard);
+    stimulus->targetPos = targetPos;
+    stimulus->subject = target;
+    stimulus->level = 4;
+    guard->alertCooldownEnd = D_002DDED0.t + D_002C3DB8;
 }
 } } // namespace M_func_0020B140
 
 // 0x20B210 DetachStepguard
 namespace M_func_0020B210 { extern "C" {
 struct S;
-struct S { char pad[0xF80]; int state; int arg; };
-void LinkStepAttachment(struct S *p, int a, int b);
+struct S { char pad[0xF80]; int attachKind; int attachObject; };
+void LinkStepAttachment(struct S *guard, int object, int attach);
 // 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
+// (One case per attach kind, each with its own call: merging the identical cases changes the jump table.)
 void DetachStepguard(struct S *guard)
 {
-    switch (guard->state) {
+    switch (guard->attachKind) {
     case 0:
-        LinkStepAttachment(guard, guard->arg, 0);
+        LinkStepAttachment(guard, guard->attachObject, 0);
         break;
     case 1:
-        LinkStepAttachment(guard, guard->arg, 0);
+        LinkStepAttachment(guard, guard->attachObject, 0);
         break;
     case 2:
-        LinkStepAttachment(guard, guard->arg, 0);
+        LinkStepAttachment(guard, guard->attachObject, 0);
         break;
     case 3:
-        LinkStepAttachment(guard, guard->arg, 0);
+        LinkStepAttachment(guard, guard->attachObject, 0);
         break;
     }
-    guard->arg = 0;
-    guard->state = -1;
+    guard->attachObject = 0;
+    guard->attachKind = -1;
 }
 } } // namespace M_func_0020B210
 
 // 0x20B2A8 AttachStepguard
 namespace M_func_0020B2A8 { extern "C" {
-struct A; struct S;
+struct ATTACHOBJ; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct A { char pad[0x124]; int k124; };
-struct S { char pad[0xF80]; int attachKind; struct A *attachObject; int attachParam; int nF8C; void *pF90; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
+struct ATTACHOBJ { char pad[0x124]; int unknown124; };
+struct S { char pad[0xF80]; int attachKind; struct ATTACHOBJ *attachObject; int attachParam; int attachArg; void *attachAnchor; };
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct ATTACHOBJ *object, int cid);
 qword GetLoWorldPos(void *p);
-void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
-void LinkStepAttachment(struct S *p, struct A *pa, int n);
+void FindShapeClosestPoint(struct ATTACHOBJ *shape, qword pos, int a, int b, int c, int d, int *param);
+void LinkStepAttachment(struct S *guard, struct ATTACHOBJ *object, int attach);
 
 // 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid
 // 0x13, cid 0x27 (inferred nouns).
-void AttachStepguard(struct S *guard, struct A *pa, int n)
+void AttachStepguard(struct S *guard, struct ATTACHOBJ *object, int arg)
 {
-    guard->attachObject = pa;
-    guard->nF8C = n;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pa, CID_PIPE)) {
+    guard->attachObject = object;
+    guard->attachArg = arg;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_PIPE)) {
         guard->attachKind = 1;
-        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->pF90), 0, 0, 0, 0, &guard->attachParam);
+        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->attachAnchor), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_RAIL)) {
         guard->attachKind = 0;
         FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->k124 == 3) {
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->unknown124 == 3) {
         guard->attachKind = 2;
         LinkStepAttachment(guard, guard->attachObject, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS39)) {
@@ -3841,13 +3915,13 @@ void AttachStepguard(struct S *guard, struct A *pa, int n)
 namespace M_JthsCurrentStepguard { extern "C" {
 struct S;
 unsigned long GetSgfMask(int n);
-struct S { char pad[0x2C0]; unsigned long m; };
+struct S { char pad[0x2C0]; unsigned long grfsg; };
 // 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
 int GetStepguardHealthState(struct S *guard)
 {
-    if (guard->m & GetSgfMask(SGF_KO))
+    if (guard->grfsg & GetSgfMask(SGF_KO))
         return 2;
-    if (guard->m & (GetSgfMask(5) | GetSgfMask(6)))
+    if (guard->grfsg & (GetSgfMask(5) | GetSgfMask(6)))
         return 1;
     return 0;
 }
@@ -3858,23 +3932,23 @@ int GetStepguardHealthState(struct S *guard)
 /* Busy count up; the first marks the guard busy. */
 extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
-    int c;
+    int count;
     if (guard->cBusy == 0) {
         SetLoBusyk(guard, 1);
     }
-    c = guard->cBusy + 1;
-    guard->cBusy = c;
-    return c;
+    count = guard->cBusy + 1;
+    guard->cBusy = count;
+    return count;
 }
 
 // 0x20B478 DecrementStepguardBusy
 // 0x20B478: Decrements the busy count; at 0 it is no longer busy.
 extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 {
-    int c;
-    c = guard->cBusy - 1;
-    guard->cBusy = c;
-    if (c == 0) {
+    int count;
+    count = guard->cBusy - 1;
+    guard->cBusy = count;
+    if (count == 0) {
         SetLoBusyk(guard, 0);
     }
 }
@@ -3882,20 +3956,20 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 // 0x20B4A8 func_0020B4A8
 namespace M_func_0020B4A8 { extern "C" {
 struct S;
-struct S { char pad[0x40]; int fl; };
-void InitLo(struct S *p);
-void SetLoBusyk(struct S *p, int n);
+struct S { char pad[0x40]; int flags40; };
+void InitLo(struct S *manager);
+void SetLoBusyk(struct S *manager, int busyk);
 } } // namespace M_func_0020B4A8
 // 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
-void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (M_func_0020B4A8::S *)this;
-    int v;
-    InitLo(p);
-    v = p->fl;
-    if (!(v & 1))
-        *(int *)v |= 2;   // (bit 0 clear: the word points at the real flags)
+void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *manager = (M_func_0020B4A8::S *)this;
+    int flags;
+    InitLo(manager);
+    flags = manager->flags40;
+    if (!(flags & 1))
+        *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else
-        p->fl = v | 2;
-    SetLoBusyk(p, 1);
+        manager->flags40 = flags | 2;
+    SetLoBusyk(manager, 1);
 }
 
 // 0x20B500 PostGuardManagerLoad
@@ -3904,74 +3978,74 @@ struct ALLOCREQ; struct S;
 struct G;
 extern struct G D_003DD490;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
-struct S { char pad[0x50]; int c; void **apv; };
-void PostLoLoad(struct S *p);
-int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int cMax, void **apv);
-void *AllocFromWorldHeap(ALLOCREQ *preq);
+struct S { char pad[0x50]; int guardCount; void **guards; };
+void PostLoLoad(struct S *manager);
+int CploFindSwObjectsByClass(struct G *sw, int a, int cid, int c, int maxCount, void **objects);
+void *AllocFromWorldHeap(ALLOCREQ *request);
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
-void PostGuardManagerLoad(struct S *guard)
+void PostGuardManagerLoad(struct S *manager)
 {
-    ALLOCREQ req;
-    PostLoLoad(guard);
-    guard->c = CploFindSwObjectsByClass(&D_003DD490, 0x605, 0x38, 0, 0, 0);
-    req.cb = guard->c * 4;
-    req.nKind = 0x10;
-    guard->apv = (__typeof__(guard->apv))AllocFromWorldHeap(&req);
-    CploFindSwObjectsByClass(&D_003DD490, 0x405, 0x38, 0, guard->c, guard->apv);
+    ALLOCREQ request;
+    PostLoLoad(manager);
+    manager->guardCount = CploFindSwObjectsByClass(&D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
+    request.cb = manager->guardCount * 4;
+    request.nKind = 0x10;
+    manager->guards = (__typeof__(manager->guards))AllocFromWorldHeap(&request);
+    CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
 }
 } } // namespace M_func_0020B500
 
 // 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
-struct VE; struct O; struct S; struct L;
+struct VE; struct GUARD; struct S; struct MODEREC;
 struct VE { short d; short pad; void (*pf)(void *); };
-struct O {
-    char pad0[0xC]; struct VE *vt; char pad1[0x28 - 0x10]; unsigned long fl28;
-    char pad2[0xF64 - 0x30]; void *pF64; char pad3[0xFF8 - 0xF68]; float tFF8; int pad4; int k1000;
+struct GUARD {
+    char pad0[0xC]; struct VE *vt; char pad1[0x28 - 0x10]; unsigned long loFlags; /* bit 60: in the world */
+    char pad2[0xF64 - 0x30]; void *detector; char pad3[0xFF8 - 0xF68]; float removalTime; int pad4; int removalMode;
 };
-struct S { char pad[0x50]; int c; struct O **apo; };
-struct L { int k; int rest[27]; };
+struct S { char pad[0x50]; int guardCount; struct GUARD **guards; };
+struct MODEREC { int kind; int rest[27]; };
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
-void UpdateLo(struct S *p);
-void *FindStepBehavior(struct O *po, int n);
+void UpdateLo(struct S *manager);
+void *FindStepBehavior(struct GUARD *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *p, struct L *pl);
-void ResetDetectorTargets(void *p);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void ResetDetectorTargets(void *detector);
 
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
 // removes them, mode 2 restarts their root behaviour and resets their detector.
-void UpdateGuardManager(struct S *guard)
+void UpdateGuardManager(struct S *manager)
 {
-    int i, c;
-    struct O **apo;
-    UpdateLo(guard);
-    c = guard->c;
-    apo = guard->apo;
-    for (i = 0; i < c; i++) {
-        struct O *o = apo[i];
-        if (((int)(o->fl28 >> 60) & 1) && D_002DDED0.t - o->tFF8 > D_002C3DBC) {
-            switch (o->k1000) {
+    int i, count;
+    struct GUARD **guards;
+    UpdateLo(manager);
+    count = manager->guardCount;
+    guards = manager->guards;
+    for (i = 0; i < count; i++) {
+        struct GUARD *guard = guards[i];
+        if (((int)(guard->loFlags >> 60) & 1) && D_002DDED0.t - guard->removalTime > D_002C3DBC) {
+            switch (guard->removalMode) {
             case 0:
                 break;
             case 1:
-                o->vt[9].pf((char *)o + o->vt[9].d);
+                guard->vt[9].pf((char *)guard + guard->vt[9].d);
                 break;
             case 2: {
-                void *x = FindStepBehavior(o, CID_BHVGUARD);
-                if (x) {
-                    struct L l;
-                    func_002333B4(&l, 0, sizeof(l));
-                    l.k = 1;
-                    SetBhvguardMode(x, &l);
+                void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
+                if (bhv) {
+                    struct MODEREC mode;
+                    func_002333B4(&mode, 0, sizeof(mode));
+                    mode.kind = 1;
+                    SetBhvguardMode(bhv, &mode);
                 }
-                if (o->pF64)
-                    ResetDetectorTargets(o->pF64);
+                if (guard->detector)
+                    ResetDetectorTargets(guard->detector);
                 break;
             }
             }
-            o->tFF8 = D_002A88CC;
+            guard->removalTime = D_002A88CC;
         }
     }
 }

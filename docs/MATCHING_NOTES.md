@@ -574,6 +574,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   call (StartPushedBhv).
 - Macros for flag bits, volume channels and virtual slots; `sizeof(field)` for memset sizes; splitting a `char sNN[]` view
   field into named fields; an array for three consecutive same-typed fields (sound.cpp).
+- `~x == 0` -> `x == -1`; an m2c temp chain -> `return a ? b->c : 0;` (GetBhvfollowLeaderGround); file-local enums for
+  switch cases and magic ids (gadget special states, binding kinds, script command kinds, oids).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
@@ -644,3 +646,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - Not codegen but a compile error: a global enum constant passed as a call argument makes g++'s argument-dependent lookup
   see the file-scope declaration next to a per-function `extern "C"` redeclaration (ambiguous overload); use a macro for
   constants passed to such calls (sound.cpp SUKR_*).
+- `done = 0; if (...) done = 1;` per case -> `done = expr` or `return expr` (IsAnimBindingDone); dropping a `!!` inside
+  `&&` (GuardEvalInteractMode); merging identical switch cases (DetachStepguard) and the two-if range test (SteerBhvInteract)
+  as above.
+- Renaming-tool hazard: a token replace of a one-letter struct name (`Q`) also rewrote `vsqrt Q` inside inline asm, and the
+  compiler then fails with no message; skip string literals.

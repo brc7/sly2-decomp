@@ -25,7 +25,13 @@ enum {
     CID_PO = 0x32,
     CID_STEP = 0x33,
     CID_STEPPLAYER = 0x34,
+    CID_JT = 0x35,          /* Sly */
+    CID_MURRAY = 0x36,
+    CID_BENTLEY = 0x37,
     CID_BHV168 = 0xA8,
+    CID_BHVINTERACT = 0xC3,     /* BHV195 (Murray) */
+    CID_BHVINTERACT2 = 0xC4,    /* BHV196 (Bentley) */
+    CID_BHVINTERACT3 = 0xC5,    /* BHV197 (Sly) */
 };
 /* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
    section 2). Only the identified flags are named. */
@@ -58,23 +64,24 @@ struct BHVWALKGOALV : public BHVB
     char pad90[0xD0 - 0x90];
     float speedScale;              /* +0xD0 */
 };
+/* The walk-to behaviour (BHV193): the parameters it hands its walk-goal child. */
 struct BHV144E20 : public BHVB
 {
     char pad14[0x34 - 0x14];
-    float g34;
-    int n38;
-    float g3C;
+    float arrivalRadius;    /* +0x34 */
+    int forcesButton8;      /* +0x38 */
+    float speedScale;       /* +0x3C */
 };
 /* The follow behaviour's followed object (+0x30). */
 struct BHVFOLLOWV : public BHVB
 {
     char pad14[0x30 - 0x14];
-    SO *pso;                /* +0x30 */
+    SO *leader;             /* +0x30 */
 };
-/* Guard words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and a flag
-   word (+0x10E0). */
+/* Owner words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and, on a
+   player, a flag word whose bit 0 is set while one of the AI interact behaviours runs (+0x10E0, inferred). */
 #define PJTGOAL(guard) ((JTGOAL *)((char *)(guard) + 0xFD0))
-#define GRFSG(guard) (*(int *)((char *)(guard) + 0x10E0))
+#define AI_INTERACT_FLAGS(player) (*(int *)((char *)(player) + 0x10E0))
 
 extern CLOCK D_002DDED0;
 extern "C" {
@@ -121,24 +128,24 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 namespace M_UpdateBhvwalkgoalPoctl { extern "C" {
 // NEAR MISS (Claude agent): 4/150. Hard-reg VF vars in Dot fixed the first block; remaining: 2nd block vsub scheduled before the lui of D_002BD2F0 (target lui first).
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
-struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
+struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int grfbtn; char pad3[0x7C - 0x34]; struct O *po; };   /* a POCTL (+0x30 buttons, +0x7C its PO) or a PO */
 struct P {
-    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
-    qword q80; char pad3[0xC0 - 0x90]; struct O *xC0; int xC4; float xC8; int xCC; float xD0;
+    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int pathState; float pathStateTime; char pad2[0x80 - 0x54];
+    qword goal; char pad3[0xC0 - 0x90]; struct O *mirrorPoctl; int mirrorButtonMask; float mirrorDelay; int forcesButton8; float speedScale;
 };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
-void UpdatePoctlPressed(struct Q *q);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
@@ -191,40 +198,42 @@ static __inline__ qword Perp(qword d, qword axis) { qword v, r;
 // Evaluates a quadratic a0 + g (a1 + g a2).
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
 // 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
-// (states 0/1) sets the speed from the horizontal distance to the goal (scaled) and the heading toward it.
-void UpdateBhvwalkgoalPoctl(struct P *behavior, struct Q *q)
+// (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
+// toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
+// buttons (an AI partner copying the player's presses, inferred).
+void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
-    if (behavior->x4C < 2) if (behavior->x4C >= 0) {
+    ResetBhvSteering(behavior, poctl);
+    if (behavior->pathState < 2) if (behavior->pathState >= 0) {
         qword pos;
-        qword d, v, t, axis;
-        float g, s;
-        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->q80));
+        qword toGoal, v, t, up;
+        float speed, clampedSpeed;
+        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->goal));
         v = GetLoWorldPos(behavior->guard);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(v));
-        axis = D_002A2DC0;
-        v = Perp(d, axis);
-        g = GPoly(D_002BD2E0, LenXY(v));
-        s = GClampR(g, D_002BBB60[0], D_002BBB60[1]);
-        if (0.0f < s) {
-            q->x1C = s * behavior->xD0;
-            q->x18 = atan2f(GetY(v), GetX(v));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toGoal) : "j"(pos), "j"(v));
+        up = D_002A2DC0;
+        v = Perp(toGoal, up);   /* horizontal part of the offset to the goal */
+        speed = GPoly(D_002BD2E0, LenXY(v));
+        clampedSpeed = GClampR(speed, D_002BBB60[0], D_002BBB60[1]);
+        if (0.0f < clampedSpeed) {
+            poctl->speed = clampedSpeed * behavior->speedScale;
+            poctl->heading = atan2f(GetY(v), GetX(v));
         }
-        if (behavior->xCC)
-            q->x30 |= 8;
-        if (behavior->xC0 && behavior->xC8 < D_002DDED0.t - behavior->x50) {
-            int f = 1;
-            struct O *po = behavior->xC0->x7C;
-            qword a, b;
-            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(behavior->guard)));
-            __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(GetLoWorldPos(po)));
-            if (FFar(a, b))
-                q->x30 |= 8;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(po, CID_STEPPLAYER))
-                f = po->vt->pfn((struct O *)((char *)po + po->vt->d)) != 0;
-            if (f) {
-                q->x30 |= behavior->xC0->x30 & behavior->xC4;
-                UpdatePoctlPressed(q);
+        if (behavior->forcesButton8)
+            poctl->grfbtn |= 8;
+        if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.t - behavior->pathStateTime) {
+            int mirror = 1;
+            struct O *leader = behavior->mirrorPoctl->po;
+            qword own, other;
+            __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(GetLoWorldPos(behavior->guard)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(GetLoWorldPos(leader)));
+            if (FFar(own, other))
+                poctl->grfbtn |= 8;
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
+                mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
+            if (mirror) {
+                poctl->grfbtn |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
+                UpdatePoctlPressed(poctl);
             }
         }
     }
@@ -237,106 +246,109 @@ void BHV193::OnPush()
 {
     BHV144E20 *behavior = (BHV144E20 *)this;
     InitBhv(behavior);
-    behavior->g34 = 40.0f;
-    behavior->n38 = 1;
-    behavior->g3C = 1.0f;
+    behavior->arrivalRadius = 40.0f;
+    behavior->forcesButton8 = 1;
+    behavior->speedScale = 1.0f;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
-struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
-void StartBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SetBhvWalkToGoal(struct P *p, qword q);
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int usesStraightPath; char pad3[0x64 - 0x44]; float arrivalRadius; char pad4[0xCC - 0x68]; int forcesButton8; float speedScale; };
+struct P { char pad[0x10]; void *guard; char pad2[0x30 - 0x14]; int usesStraightPath; float arrivalRadius; int forcesButton8; float speedScale; qword goal; };
+void StartBhv(void *behavior);
+struct O *PushStepBehavior(void *guard, int cid);
+void SetBhvWalkToGoal(struct P *behavior, qword goal);
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
 void StartBhvWalkTo(struct P *behavior)
 {
-    struct O *o;
+    struct O *child;
     struct VTE *entry;
     StartBhv(behavior);
-    o = PushStepBehavior(behavior->o10, CID_BHV168);
-    o->n40 = behavior->n30;
-    o->g64 = behavior->g34;
-    o->nCC = behavior->n38;
-    o->speedScale = behavior->g3C;
-    SetBhvWalkToGoal(behavior, behavior->q40);
-    entry = &o->vt[8];
-    ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+    child = PushStepBehavior(behavior->guard, CID_BHV168);
+    child->usesStraightPath = behavior->usesStraightPath;
+    child->arrivalRadius = behavior->arrivalRadius;
+    child->forcesButton8 = behavior->forcesButton8;
+    child->speedScale = behavior->speedScale;
+    SetBhvWalkToGoal(behavior, behavior->goal);
+    entry = &child->vt[8];
+    ((void (*)(void *))entry->pfn)((char *)child + entry->d);   /* Start */
 }
 } } // namespace M_func_00144E68
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144EE8 { extern "C" {
-int IsBhvpathAtEnd(void *p);
+int IsBhvpathAtEnd(void *path);
 // 0x144EE8: True if the walk-to child has reached the end of its path or its state is 2.
-int IsBhvWalkToDone(char *p)
+struct CHILD { char pad[0x4C]; int pathState; };
+struct BHVWALKTO { char pad[0x18]; struct CHILD *child; };
+int IsBhvWalkToDone(struct BHVWALKTO *behavior)
 {
-    char *q = *(char **)(p + 0x18);
-    int r = 0;
-    if (IsBhvpathAtEnd(q) || *(int *)(q + 0x4C) == 2) r = 1;
-    return r;
+    struct CHILD *child = behavior->child;
+    int done = 0;
+    if (IsBhvpathAtEnd(child) || child->pathState == 2)
+        done = 1;
+    return done;
 }
 } } // namespace M_func_00144EE8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144F48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E;
-struct D { char pad[0x10]; struct E *pe; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
-struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
-struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
-qword GetLoWorldPos(struct A *pa);
-void FindPathzonePathCurve(struct E *pe, qword r, qword v, struct B *pb);
-void MeasureShape(struct B *pb);
-void SetBhvpathShape(void *p, struct B *pb, int n);
+struct PATHZONE;
+struct D { char pad[0x10]; struct PATHZONE *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
+struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
+struct GUARD { char pad[0xE8]; struct C *physics; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
+struct P { char pad[0x10]; struct GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int usesStraightPath; char pad3[0x40 - 0x34]; qword goal; };
+qword GetLoWorldPos(struct GUARD *guard);
+void FindPathzonePathCurve(struct PATHZONE *pathZone, qword start, qword goal, struct SHAPE *path);
+void MeasureShape(struct SHAPE *shape);
+void SetBhvpathShape(void *path, struct SHAPE *shape, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x144F48: Stores the goal and builds the child's route to it: a straight line, or a path through the navigation
-// graph.
-void SetBhvWalkToGoal(struct P *behavior, qword v)
+// graph (the guard's own path shape is rewritten either way).
+void SetBhvWalkToGoal(struct P *behavior, qword goal)
 {
-    behavior->v = v;
+    behavior->goal = goal;
     if (!behavior->child)
         return;
-    struct A *pa = behavior->pa;
-    struct B *pb = pa->pb;
-    struct D *pd = pa->pc ? pa->pc->pd : 0;
-    struct E *pe = pd ? pd->pe : 0;
-    qword r = GetLoWorldPos(pa);
-    if (!pe || behavior->f30) {
-        pb->k = 2;
-        pb->pq[0] = r;
-        pb->pq[1] = behavior->v;
-        MeasureShape(pb);
+    struct GUARD *guard = behavior->guard;
+    struct SHAPE *path = guard->pathShape;
+    struct D *d = guard->physics ? guard->physics->region : 0;
+    struct PATHZONE *pathZone = d ? d->pathZone : 0;
+    qword start = GetLoWorldPos(guard);
+    if (!pathZone || behavior->usesStraightPath) {
+        path->pointCount = 2;
+        path->points[0] = start;
+        path->points[1] = behavior->goal;
+        MeasureShape(path);
     } else {
-        FindPathzonePathCurve(pe, r, behavior->v, pb);
+        FindPathzonePathCurve(pathZone, start, behavior->goal, path);
     }
-    SetBhvpathShape(behavior->child, pb, 0);
+    SetBhvpathShape(behavior->child, path, 0);
 }
 } } // namespace M_func_00144F48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
-struct X { char pad[0x60]; int n; int pad2; float a, b, c, d, e; };
+struct X { char pad[0x60]; int state; int pad2; float velocityLeadTime, distanceNear, distanceFar, speedNear, speedFar; };
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
-void InitBhvfollow(struct X *p)
+void InitBhvfollow(struct X *behavior)
 {
-    InitBhv(p);
-    p->n = -1;
-    p->a = 0.25f;
-    p->b = 250.0f;
-    p->c = 350.0f;
-    p->d = 1.0f;
-    p->e = 1.2f;
+    InitBhv(behavior);
+    behavior->state = -1;
+    behavior->velocityLeadTime = 0.25f;
+    behavior->distanceNear = 250.0f;
+    behavior->distanceFar = 350.0f;
+    behavior->speedNear = 1.0f;
+    behavior->speedFar = 1.2f;
 }
 } } // namespace M_InitBhvfollow
 
@@ -364,24 +376,24 @@ namespace M_func_001450E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct CLQ { float g0, g1, g2, gPad; };
-struct SO { char pad[0x2C0]; ulong grf; };
-struct LIST { char pad[0x28]; int c; struct SO *a[1]; };
-struct PO { char pad[0x1088]; struct LIST *plist; };
-struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; void *p30; char pad3[0x90 - 0x34]; struct SO *p90; };
+struct SO { char pad[0x2C0]; ulong grfsg; };   /* a guard */
+struct TARGETREC { char pad[0x28]; int guardCount; struct SO *guards[1]; };   /* stepguard.cpp's engagement record */
+struct PO { char pad[0x1088]; struct TARGETREC *engagement; };
+struct P { char pad[0x10]; struct PO *follower; char pad2[0x30 - 0x14]; void *leader; char pad3[0x90 - 0x34]; struct SO *threat; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword GetLoWorldPos(void *p);
 ulong GetSgfMask(int n);
-int StepguardHasSgf(struct SO *p, int n);
-struct LIST *FindTargetRecordById(void *p);
+int StepguardHasSgf(struct SO *guard, int sgf);
+struct TARGETREC *FindTargetRecordById(void *object);
 
 // VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, t;
-    float g;
+    float distance;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     __asm__("vmul.xyz %0, %0, %0\n"
         "vaddw.x %1, $vf0, $vf0w\n"
@@ -390,79 +402,80 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
-    return g;
+    __asm__("qmfc2.ni %0, %1" : "=r"(distance) : "j"(d));
+    return distance;
 }
-// Evaluates a CLQ quadratic at g.
-static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+// Evaluates a CLQ quadratic at distance.
+static __inline__ float GFromClq(float distance, struct CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); }
 
-// 0x1450E0: Picks the nearest object of several guard-state classes around the followed object (its current threat,
-// inferred).
-struct SO *PickBhvfollowTarget(struct P *p)
+// 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
+// or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown ones; the current threat and striking
+// guards get their own distance weights (inferred: who the partner should fight).
+struct SO *PickBhvfollowTarget(struct P *behavior)
 {
-    struct SO *psoBest = 0;
-    float gBest = D_002A4E30;
+    struct SO *best = 0;
+    float bestDistance = D_002A4E30;
     qword pos;
-    ulong grf;
-    struct LIST *plist;
+    ulong ignoreMask;
+    struct TARGETREC *record;
     int i;
-    GetLoWorldPos(p->p10);
-    pos = GetLoWorldPos(p->p30);
-    grf = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
+    GetLoWorldPos(behavior->follower);
+    pos = GetLoWorldPos(behavior->leader);
+    ignoreMask = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
           GetSgfMask(0x2A) | GetSgfMask(0x2B);
-    plist = p->p10->plist;
-    for (i = 0; i < plist->c; i++) {
-        struct SO *pso = plist->a[i];
-        float g;
-        if (grf & pso->grf)
+    record = behavior->follower->engagement;
+    for (i = 0; i < record->guardCount; i++) {
+        struct SO *guard = record->guards[i];
+        float distance;
+        if (ignoreMask & guard->grfsg)
             continue;
-        g = GDist(pos, GetLoWorldPos(pso));
-        if (pso == p->p90)
-            g = GFromClq(g, &D_002BD300);
-        if (StepguardHasSgf(pso, SGF_STRIKE))
-            g = GFromClq(g, &D_002BD320);
-        if (g < gBest) {
-            psoBest = pso;
-            gBest = g;
+        distance = GDist(pos, GetLoWorldPos(guard));
+        if (guard == behavior->threat)
+            distance = GFromClq(distance, &D_002BD300);
+        if (StepguardHasSgf(guard, SGF_STRIKE))
+            distance = GFromClq(distance, &D_002BD320);
+        if (distance < bestDistance) {
+            best = guard;
+            bestDistance = distance;
         }
     }
-    plist = FindTargetRecordById(p->p30);
-    if (plist) {
-        for (i = 0; i < plist->c; i++) {
-            struct SO *pso = plist->a[i];
-            float g;
-            if (grf & pso->grf)
+    record = FindTargetRecordById(behavior->leader);
+    if (record) {
+        for (i = 0; i < record->guardCount; i++) {
+            struct SO *guard = record->guards[i];
+            float distance;
+            if (ignoreMask & guard->grfsg)
                 continue;
-            g = GDist(pos, GetLoWorldPos(pso));
-            g = GFromClq(g, &D_002BD310);
-            if (pso == p->p90)
-                g = GFromClq(g, &D_002BD300);
-            if (StepguardHasSgf(pso, SGF_STRIKE))
-                g = GFromClq(g, &D_002BD320);
-            if (g < gBest) {
-                psoBest = pso;
-                gBest = g;
+            distance = GDist(pos, GetLoWorldPos(guard));
+            distance = GFromClq(distance, &D_002BD310);
+            if (guard == behavior->threat)
+                distance = GFromClq(distance, &D_002BD300);
+            if (StepguardHasSgf(guard, SGF_STRIKE))
+                distance = GFromClq(distance, &D_002BD320);
+            if (distance < bestDistance) {
+                best = guard;
+                bestDistance = distance;
             }
         }
     }
-    return psoBest;
+    return best;
 }
 } } // namespace M_func_001450E0
 
 namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBhvfollow { extern "C" {
-// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1), inline GClamp.
+// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline GClamp.
 typedef int qword __attribute__((mode(TI)));
 struct LM { float gMin, gMax; };
-struct D { char pad[0x10]; void *p10; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct PO { char pad[0xE8]; struct C *pc; char pad2[0x2DC - 0xEC]; int x2DC; char pad3[0x1030 - 0x2E0]; void *p1030; };
-struct X { char pad[0x40]; int x40; };
+struct D { char pad[0x10]; void *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
+struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
+struct X { char pad[0x40]; int usesStraightPath; };
 struct SO;
 struct P {
     char pad[0x10]; struct PO *guard; char pad1[4]; struct X *child; char pad2[0x30 - 0x1C]; void *leader; char pad3[0x50 - 0x34];
-    qword q50; int x60; char pad4[0x6C - 0x64]; float g6C; float g70; float g74; float g78; char pad5[0x90 - 0x7C]; struct SO *p90;
+    qword followPoint; int state; char pad4[0x6C - 0x64]; float distanceNear; float distanceFar; float speedNear; float speedFar; char pad5[0x90 - 0x7C]; struct SO *threat;
 };
 extern const float D_002A4E34;   /* defined below where the ELF has it (.rodata order) */
 struct LM D_002BD330 = {0.0f, 600.0f};
@@ -473,7 +486,7 @@ int IsBhvBusyAbove(struct P *p);
 qword GetLoWorldPos(void *p);
 struct SO *PickBhvfollowTarget(struct P *p);
 int IsBhvfollowLeaderOnNewGround(struct P *p);
-int IsWithinLimits__FP2LMf(struct LM *plm, float g);
+int IsWithinLimits__FP2LMf(struct LM *range, float g);
 void SetBhvfollowState(struct P *p, int n);
 int GetBasicCid(void *p);
 int IsBhvInteractIdle(struct X *px);
@@ -510,63 +523,65 @@ static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
 // 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
-// standing, walking and running, re-pathing when far.
+// standing, walking and running, re-pathing when far. State 0 follows (re-targets the follow point when the leader moved, animation speed
+// from the leader distance), 1 waits for the leader to land on new ground, 2 fights the threat until the partner's
+// interact behaviour goes idle or the threat leaves the band.
 void UpdateBhvfollow(struct P *behavior)
 {
-    struct PO *po;
-    qword a, b;
-    float gXY, g;
-    struct SO *object;
-    void *pv30;
+    struct PO *follower;
+    qword followerPos, leaderPos;
+    float leaderDistanceXY, threatDistance;
+    struct SO *threat;
+    void *leader;
     UpdateBhv(behavior);
-    po = behavior->guard;
-    pv30 = behavior->leader;
-    a = GetLoWorldPos(po);
-    b = GetLoWorldPos(pv30);
-    gXY = LenXY(Sub(a, b));
-    object = PickBhvfollowTarget(behavior);
-    if (object) {
-        qword c = GetLoWorldPos(object);
-        float dA = Len(Sub(c, a));
-        float dB = Len(Sub(c, b));
-        g = dA < dB ? dA : dB;
+    follower = behavior->guard;
+    leader = behavior->leader;
+    followerPos = GetLoWorldPos(follower);
+    leaderPos = GetLoWorldPos(leader);
+    leaderDistanceXY = LenXY(Sub(followerPos, leaderPos));
+    threat = PickBhvfollowTarget(behavior);
+    if (threat) {
+        qword threatPos = GetLoWorldPos(threat);
+        float toFollower = Len(Sub(threatPos, followerPos));
+        float toLeader = Len(Sub(threatPos, leaderPos));
+        threatDistance = toFollower < toLeader ? toFollower : toLeader;
     } else {
-        g = D_002A4E34;
+        threatDistance = D_002A4E34;
     }
     while (!IsBhvBusyAbove(behavior)) {
-        int state = behavior->x60;
-        int f;
+        int state = behavior->state;
+        int onNewGround;
         switch (state) {
         case 0:
-            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
-            if (f)
+            onNewGround = IsBhvfollowLeaderOnNewGround(behavior) != 0;
+            if (onNewGround)
                 SetBhvfollowState(behavior, 1);
-            else if (IsWithinLimits__FP2LMf(&D_002BD330, g)) {
-                behavior->p90 = object;
+            else if (IsWithinLimits__FP2LMf(&D_002BD330, threatDistance)) {
+                behavior->threat = threat;
                 SetBhvfollowState(behavior, 2);
             }
             break;
         case 1:
-            if (behavior->guard->x2DC == -1)
+            if (behavior->guard->airState == -1)
                 SetBhvfollowState(behavior, 0);
             break;
         case 2:
-            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
-            if (f)
+            onNewGround = IsBhvfollowLeaderOnNewGround(behavior) != 0;
+            if (onNewGround)
                 SetBhvfollowState(behavior, 1);
-            else if (!IsWithinLimits__FP2LMf(&D_002BD338, g))
+            else if (!IsWithinLimits__FP2LMf(&D_002BD338, threatDistance))
                 SetBhvfollowState(behavior, 0);
             else {
                 switch (GetBasicCid(behavior->guard)) {
-                case 0x36:
+                case CID_MURRAY:
                     if (IsBhvInteractIdle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
-                case 0x37:
+                case CID_BENTLEY:
                     if (IsBhvInteract2Idle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
-                case 0x35:
+                case CID_JT:
                     if (IsBhvInteract3Idle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
@@ -574,20 +589,20 @@ void UpdateBhvfollow(struct P *behavior)
             }
             break;
         }
-        if (behavior->x60 == state)
+        if (behavior->state == state)
             break;
     }
-    if (behavior->x60 == 0) {
-        struct D *pd = behavior->guard->pc ? behavior->guard->pc->pd : 0;
-        void *pv = pd ? pd->p10 : 0;
-        if (!pv)
-            behavior->child->x40 = 1;
-        if (FFar(behavior->q50, b))
+    if (behavior->state == 0) {
+        struct D *d = behavior->guard->physics ? behavior->guard->physics->region : 0;
+        void *pathZone = d ? d->pathZone : 0;
+        if (!pathZone)
+            behavior->child->usesStraightPath = 1;
+        if (FFar(behavior->followPoint, leaderPos))
             UpdateBhvfollowPosition(behavior);
-        if (po->p1030) {
-            float t = (gXY - behavior->g6C) / (behavior->g70 - behavior->g6C);
+        if (follower->locomotionAsega) {
+            float t = (leaderDistanceXY - behavior->distanceNear) / (behavior->distanceFar - behavior->distanceNear);
             GClamp(&t, 0.0f, 1.0f);
-            SetAsegaSpeed__FP5ASEGAf(po->p1030, (1.0f - t) * behavior->g74 + t * behavior->g78);
+            SetAsegaSpeed__FP5ASEGAf(follower->locomotionAsega, (1.0f - t) * behavior->speedNear + t * behavior->speedFar);
         }
     }
 }
@@ -603,17 +618,17 @@ namespace M_func_001457A8 {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
-struct E;
-struct D { char pad[0x10]; E *pe; };
-struct C { char pad[0xDC]; D *pd; };
-struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
-struct A { char pad[0xE8]; C *pc; char pad2[0x294 - 0xEC]; B *pb; };
+struct PATHZONE;
+struct D { char pad[0x10]; PATHZONE *pathZone; };
+struct C { char pad[0xDC]; D *region; };
+struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
+struct GUARD { char pad[0xE8]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
 struct O;
-struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };
-struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
+struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };   /* slot 33: velocity */
+struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword velocity; char pad3[0x1A8 - 0x1A0]; float heading; };
 struct P {
-    char pad[0x10]; A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *po; char pad3[0x40 - 0x34];
-    qword q40; qword q50; char pad4[0x68 - 0x60]; float g68;
+    char pad[0x10]; GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *leader; char pad3[0x40 - 0x34];
+    qword followOffset; qword followPoint; char pad4[0x68 - 0x60]; float velocityLeadTime;
 };
 extern "C" {
 extern qword D_002A2DC0;
@@ -621,10 +636,10 @@ qword GetLoWorldPos(void *p);
 M3 *GetLoWorldMatrix(void *p);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-E *GetBhvfollowLeaderGround(P *p);
-int FindPathzonePathCurve(E *pe, qword r, qword v, B *pb);
-void MeasureShape(B *pb);
-void SetBhvpathShape(void *p, B *pb, int n);
+PATHZONE *GetBhvfollowLeaderGround(P *behavior);
+int FindPathzonePathCurve(PATHZONE *pathZone, qword start, qword goal, SHAPE *path);
+void MeasureShape(SHAPE *shape);
+void SetBhvpathShape(void *path, SHAPE *shape, int n);
 void UpdateBhvfollowPosition(P *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
@@ -668,39 +683,41 @@ static inline qword Add(qword a, qword b)
     return r;
 }
 
-// 0x1457A8: Computes the follow position behind the leader (using its facing when it is a step).
+// 0x1457A8: Computes the follow position: the leader's position offset by its velocity (lead time
+// +0x68) and by the follow offset (+0x40) in the leader's frame (its heading for a step, its orientation otherwise),
+// then routes the walk-goal child there through the follower's path zone (or straight when it has none).
 void UpdateBhvfollowPosition(P *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
-    behavior->q50 = GetLoWorldPos(behavior->po);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->po, CID_STEP)) {
-        O *po = behavior->po;
-        u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, po->g1A8);
-        u.s.pos = AddScaled(behavior->q50, VU_FLOAT(-behavior->g68), MulM3(u.s.m, po->q190));
+    behavior->followPoint = GetLoWorldPos(behavior->leader);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
+        O *leader = behavior->leader;
+        u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, leader->heading);
+        u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->velocity));
     } else {
-        O *po;
-        u.s.m = *GetLoWorldMatrix(behavior->po);
-        po = behavior->po;
-        u.s.pos = AddScaled(behavior->q50, VU_FLOATM(behavior->g68), po->vt->pfn((O *)((char *)po + po->vt->d)));
+        O *leader;
+        u.s.m = *GetLoWorldMatrix(behavior->leader);
+        leader = behavior->leader;
+        u.s.pos = AddScaled(behavior->followPoint, VU_FLOATM(behavior->velocityLeadTime), leader->vt->pfn((O *)((char *)leader + leader->vt->d)));
     }
-    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->q40));
+    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->followOffset));
     {
-        A *pa = behavior->pa;
-        B *pb = pa->pb;
-        D *pd = pa->pc ? pa->pc->pd : 0;
-        E *pe = pd ? pd->pe : 0;
-        qword r = GetLoWorldPos(pa);
-        if (!pe) {
-            pb->k = 2;
-            pb->pq[0] = r;
-            pb->pq[1] = u.s.pos;
-            MeasureShape(pb);
-        } else if (GetBhvfollowLeaderGround(behavior) != pe) {
-            FindPathzonePathCurve(pe, r, r, pb);
-        } else if (!FindPathzonePathCurve(pe, r, u.s.pos, pb)) {
-            FindPathzonePathCurve(pe, r, r, pb);
+        GUARD *guard = behavior->guard;
+        SHAPE *path = guard->pathShape;
+        D *d = guard->physics ? guard->physics->region : 0;
+        PATHZONE *pathZone = d ? d->pathZone : 0;
+        qword start = GetLoWorldPos(guard);
+        if (!pathZone) {
+            path->pointCount = 2;
+            path->points[0] = start;
+            path->points[1] = u.s.pos;
+            MeasureShape(path);
+        } else if (GetBhvfollowLeaderGround(behavior) != pathZone) {
+            FindPathzonePathCurve(pathZone, start, start, path);   /* leader in another zone: stay */
+        } else if (!FindPathzonePathCurve(pathZone, start, u.s.pos, path)) {
+            FindPathzonePathCurve(pathZone, start, start, path);
         }
-        SetBhvpathShape(behavior->child, pb, 0);
+        SetBhvpathShape(behavior->child, path, 0);
     }
 }
 } // namespace M_func_001457A8
@@ -708,35 +725,42 @@ void UpdateBhvfollowPosition(P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001459C0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E;
-struct D { char pad[0x10]; struct E *pe; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct A { char pad[0xE8]; struct C *pc; };
-struct SO { char pad[0x18]; int k; };
-struct X30 { char pad[0x2DC]; int x2DC; };
-struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *leader; char pad3[0x80 - 0x34]; qword pos; };
-struct SO *GetBhvfollowLeaderGround(struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+struct PATHZONE;
+struct D { char pad[0x10]; struct PATHZONE *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
+struct GUARD { char pad[0xE8]; struct C *physics; };
+struct SO { char pad[0x18]; int oid; };
+struct LEADER { char pad[0x2DC]; int airState; };
+struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
+struct SO *GetBhvfollowLeaderGround(struct P *behavior);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 qword GetLoWorldPos(void *p);
-int IsPosFreeInPathzone(struct SO *object, qword pos, int n);
-int SnapToGround(qword *ppos, float a, float b, int c, int d);
-// 0x1459C0: True if the leader stands on a different ground object than the follower.
+int IsPosFreeInPathzone(struct SO *ground, qword pos, int n);
+int SnapToGround(qword *pos, float above, float below, int c, int d);
+// 0x1459C0: True if the leader has landed on a different path zone than the follower's (not zone oid
+// 0x2CA); stores the snapped landing point (+0x80) for state 1.
 int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 {
-    struct SO *object = GetBhvfollowLeaderGround(behavior);
-    struct D *pd;
-    struct E *pe;
+    struct SO *ground = GetBhvfollowLeaderGround(behavior);
+    struct D *d;
+    struct PATHZONE *pathZone;
     qword pos;
-    if (!object) return 0;
-    pd = behavior->pa->pc ? behavior->pa->pc->pd : 0;
-    pe = pd ? pd->pe : 0;
-    if ((struct E *)object == pe) return 0;
-    if (object->k == 0x2CA) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->x2DC != -1) return 0;
+    if (!ground)
+        return 0;
+    d = behavior->guard->physics ? behavior->guard->physics->region : 0;
+    pathZone = d ? d->pathZone : 0;
+    if ((struct PATHZONE *)ground == pathZone)
+        return 0;
+    if (ground->oid == 0x2CA)
+        return 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->airState != -1)
+        return 0;   /* still in the air */
     pos = GetLoWorldPos(behavior->leader);
-    if (!IsPosFreeInPathzone(object, pos, 0)) return 0;
-    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
-    behavior->pos = pos;
+    if (!IsPosFreeInPathzone(ground, pos, 0))
+        return 0;
+    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0))
+        return 0;
+    behavior->landingPoint = pos;
     return 1;
 }
 } } // namespace M_func_001459C0
@@ -746,77 +770,69 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
-    CID17 *pcid17;
-    SOPHYS *psophys;
-    REGENT *pregent;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->pso, CID_SO) != 0) {
-        psophys = behavior->pso->psophys;
-        pregent = 0;
-        if (psophys != 0) {
-            pregent = psophys->pregent;
-        }
-        pcid17 = 0;
-        if (pregent != 0) {
-            return pregent->pcid17;
-        }
-        return pcid17;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
+        SOPHYS *physics = behavior->leader->psophys;
+        REGENT *region = physics ? physics->pregent : 0;
+        return region ? region->pcid17 : 0;
     }
-    pcid17 = FindPathzoneAtPos(GetLoWorldPos(behavior->pso), 1);
-    return pcid17;
+    return FindPathzoneAtPos(GetLoWorldPos(behavior->leader), 1);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBhvfollowState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int x38; char pad2[0xC0 - 0x3C]; int xC0; int xC4; float gC8; };
-struct X30 { char pad[0x150]; int x150; };
+struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
+struct LEADER { char pad[0x150]; int poctl; };
 struct P {
-    char pad[0x10]; void *guard; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *leader; char pad2[0x60 - 0x34];
-    int state; float stateTime; char pad3[0x80 - 0x68]; qword v80; int x90;
+    char pad[0x10]; void *guard; char pad1[4]; char childSlot[0x30 - 0x18]; struct LEADER *leader; char pad2[0x60 - 0x34];
+    int state; float stateTime; char pad3[0x80 - 0x68]; qword landingPoint; int threat;
 };
 extern struct CLOCK D_002DDED0;
-void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int oid);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+void PopBhv(void *slot);
+struct O *PushStepBehavior(void *guard, int cid);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 float GRandInRange__Fff(float a, float b);
-void UpdateBhvfollowPosition(struct P *p);
-void ReturnJtToPosition(void *p, qword v);
-int GetBasicCid(void *p);
-// Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
-static __inline__ void Activate(struct P *p, int oid)
+void UpdateBhvfollowPosition(struct P *behavior);
+void ReturnJtToPosition(void *guard, qword pos);
+int GetBasicCid(void *object);
+// Matching helper: pushes the interact behaviour of class `cid` on the owner, hands it the threat (+0x90) as its target
+// and starts it (vtable slot 8).
+static __inline__ void Activate(struct P *behavior, int cid)
 {
-    struct O *po = PushStepBehavior(p->guard, oid);
-    po->x38 = p->x90;
-    po->vt[8].pfn((char *)po + po->vt[8].d);
+    struct O *child = PushStepBehavior(behavior->guard, cid);
+    child->target = behavior->threat;
+    child->vt[8].pfn((char *)child + child->vt[8].d);
 }
-// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position.
+// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position
+// (mirroring the leader's button 8), 1 moves the follower to the leader's landing point, 2 pushes the partner's
+// interact behaviour (by class) against the threat.
 void SetBhvfollowState(struct P *behavior, int state)
 {
     if (state == behavior->state) return;
-    PopBhv(behavior->m18);
+    PopBhv(behavior->childSlot);
     behavior->state = state;
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = PushStepBehavior(behavior->guard, CID_BHV168);
+        struct O *child = PushStepBehavior(behavior->guard, CID_BHV168);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
-            po->xC0 = behavior->leader->x150;
-            po->xC4 = 8;
-            po->gC8 = GRandInRange__Fff(0.1f, 0.3f);
+            child->mirrorPoctl = behavior->leader->poctl;   /* copy the leader's button 8 after 0.1..0.3 s */
+            child->mirrorButtonMask = 8;
+            child->mirrorDelay = GRandInRange__Fff(0.1f, 0.3f);
         }
         UpdateBhvfollowPosition(behavior);
-        po->vt[8].pfn((char *)po + po->vt[8].d);
+        child->vt[8].pfn((char *)child + child->vt[8].d);
         break;
     }
     case 1:
-        ReturnJtToPosition(behavior->guard, behavior->v80);
+        ReturnJtToPosition(behavior->guard, behavior->landingPoint);
         break;
     case 2:
         switch (GetBasicCid(behavior->guard)) {
-        case 0x36: Activate(behavior, 0xC3); break;
-        case 0x37: Activate(behavior, 0xC4); break;
-        case 0x35: Activate(behavior, 0xC5); break;
+        case CID_MURRAY: Activate(behavior, CID_BHVINTERACT); break;
+        case CID_BENTLEY: Activate(behavior, CID_BHVINTERACT2); break;
+        case CID_JT: Activate(behavior, CID_BHVINTERACT3); break;
         }
         break;
     }
@@ -825,33 +841,35 @@ void SetBhvfollowState(struct P *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145CD0 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x145CD0: Interact behaviour (BHV195) vtable slot 7 (OnPush): base, state -1.
-void InitBhvInteract(char *p)
+void InitBhvInteract(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_00145CD0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145D00 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteractState(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteractState(struct BHVINTERACTV *behavior, int state);
 // 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
 // (SetPlayerInteractMode) and sets the owner's +0x10E0 bit 1.
-void StartBhvInteract(char *p)
+void StartBhvInteract(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteractState(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteractState(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_00145D00
 
@@ -860,13 +878,13 @@ void BHV195::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x145DA0: True if the interact behaviour is idle (state -1).
 extern "C" int IsBhvInteractIdle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -875,80 +893,81 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
-struct { float a; float b; } D_002BD348 = {250.0f, 350.0f};
+struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct Q { char pad[0x330]; int x330; };
-struct R { char pad[0xDF4]; int xDF4; char pad2[0x1810 - 0xDF8]; int x1810; };
-struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1810 - 0xDF8]; int attackState; };
+struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
-int IsLoInWorld(struct Q *);
+int IsLoInWorld(struct TARGET *);   /* object still valid/in the world (inferred) */
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
 void SetBhvInteractState(struct P *, int);
 
 // 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38) and interacts; aborts when
-// hurt or the target is gone.
+// the owner is busy (+0xDF4 action state) or the target is gone or knocked out. State 0 walks up and interacts
+// (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
 void UpdateBhvInteract(struct P *behavior)
 {
-    VU d;
-    qword a, b, c, l, one, n;
-    float g;
+    VU toTarget;
+    qword targetPos, ownerPos, delta, length, one, normalized;
+    float distance;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !IsLoInWorld(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteractState(behavior, -1);
         return;
     }
-    a = GetLoWorldPos(behavior->target);
-    b = GetLoWorldPos(behavior->owner);
-    { qword *pk = &D_002A2DA0;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
-    d.q = c;
-    d.f[2] = 0.0f;
+    targetPos = GetLoWorldPos(behavior->target);
+    ownerPos = GetLoWorldPos(behavior->owner);
+    { qword *fallback = &D_002A2DA0;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(targetPos), "j"(ownerPos));
+    toTarget.q = delta;
+    toTarget.f[2] = 0.0f;   /* horizontal direction */
     {
         register qword l1 __asm__("vf1");
         register qword r2 __asm__("vf2");
         float gl;
-        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(d.q));
+        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(toTarget.q));
         __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(r2), "+j"(l1));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(r2) : "j"(l1));
-        l = r2;
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        length = r2;
+        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(length));
         if (gl < 1e-4f) {
-        d.q = *pk;
-    } else {
-        __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(n) : "j"(d.q), "j"(l));
-        d.q = n;
+            toTarget.q = *fallback;
+        } else {
+            __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(normalized) : "j"(toTarget.q), "j"(length));
+            toTarget.q = normalized;
+        }
     }
     }
-    }
-    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
+    __asm__("mtc1 %1, %0" : "=f"(distance) : "r"(length)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
         int state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD344) {
-                qword *pm = GetLoWorldMatrix(behavior->owner);
+            if (distance < D_002BD344) {
+                qword *forward = GetLoWorldMatrix(behavior->owner);   /* first row of the owner's orientation */
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
-                t = *pm;
-                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(d.q));
+                t = *forward;
+                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(toTarget.q));
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
                     SetBhvInteractState(behavior, 2);
-            } else if (D_002BD348.b < g) {
+            } else if (D_002BD348.far < distance) {
                 SetBhvInteractState(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD348.a)
+            if (distance < D_002BD348.near)
                 SetBhvInteractState(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x1810 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteractState(behavior, -1);
             break;
         }
@@ -962,34 +981,35 @@ void UpdateBhvInteract(struct P *behavior)
 namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
-void SteerBhvInteract(struct P *behavior, struct Q *q)
+void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
-    if (behavior->state < 3) if (behavior->state >= 0) {
-        qword a, b, d;
-        float g;
-        a = GetLoWorldPos(behavior->target);
-        b = GetLoWorldPos(behavior->owner);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        g = 1.0f;
-        if (behavior->state == 0) g = 0.1f;
-        q->x1C = g;
-        q->x18 = atan2f(GetY(d), GetX(d));
+    ResetBhvSteering(behavior, poctl);
+    if (behavior->state < 3) if (behavior->state >= 0) {   // (two ifs, upper bound first: `&&` reorders the tests)
+        qword targetPos, ownerPos, toTarget;
+        float speed;
+        targetPos = GetLoWorldPos(behavior->target);
+        ownerPos = GetLoWorldPos(behavior->owner);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toTarget) : "j"(targetPos), "j"(ownerPos));
+        speed = 1.0f;
+        if (behavior->state == 0)
+            speed = 0.1f;
+        poctl->speed = speed;
+        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            UpdatePoctlPressed(poctl);
         }
     }
 }
@@ -999,11 +1019,11 @@ void SteerBhvInteract(struct P *behavior, struct Q *q)
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 {
-    int nStatePrev;
-    nStatePrev = behavior->state;
-    if (state == nStatePrev)
+    int previous;
+    previous = behavior->state;
+    if (state == previous)
         return;
-    if (nStatePrev == 2) {
+    if (previous == 2) {
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
@@ -1015,32 +1035,34 @@ extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461C8 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x1461C8: Second interact behaviour (BHV196, the same shape as BHV195) vtable slot 7 (OnPush).
-void InitBhvInteract2(char *p)
+void InitBhvInteract2(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_001461C8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteract2State(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteract2State(struct BHVINTERACTV *behavior, int state);
 // 0x1461F8: Second interact behaviour vtable slot 8 (Start).
-void StartBhvInteract2(char *p)
+void StartBhvInteract2(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteract2State(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteract2State(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001461F8
 
@@ -1049,13 +1071,13 @@ void BHV196::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x146298: True if the second interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract2Idle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1064,13 +1086,13 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
-struct { float a; float b; } D_002BD358 = {250.0f, 350.0f};
+struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct Q { char pad[0x330]; int x330; };
-struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
-struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1714 - 0xDF8]; int attackState; };
+struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
-int IsLoInWorld(struct Q *);
+int IsLoInWorld(struct TARGET *);   /* object still valid/in the world (inferred) */
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
 void SetBhvInteract2State(struct P *, int);
@@ -1078,65 +1100,65 @@ void SetBhvInteract2State(struct P *, int);
 // 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions.
 void UpdateBhvInteract2(struct P *behavior)
 {
-    VU d;
-    qword a, b, c, l, one, n;
-    float g;
+    VU toTarget;
+    qword targetPos, ownerPos, delta, length, one, normalized;
+    float distance;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !IsLoInWorld(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteract2State(behavior, -1);
         return;
     }
-    a = GetLoWorldPos(behavior->target);
-    b = GetLoWorldPos(behavior->owner);
-    { qword *pk = &D_002A2DA0;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
-    d.q = c;
-    d.f[2] = 0.0f;
+    targetPos = GetLoWorldPos(behavior->target);
+    ownerPos = GetLoWorldPos(behavior->owner);
+    { qword *fallback = &D_002A2DA0;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(targetPos), "j"(ownerPos));
+    toTarget.q = delta;
+    toTarget.f[2] = 0.0f;   /* horizontal direction */
     {
         register qword l1 __asm__("vf1");
         register qword r2 __asm__("vf2");
         float gl;
-        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(d.q));
+        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(toTarget.q));
         __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(r2), "+j"(l1));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(r2) : "j"(l1));
-        l = r2;
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        length = r2;
+        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(length));
         if (gl < 1e-4f) {
-        d.q = *pk;
-    } else {
-        __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(n) : "j"(d.q), "j"(l));
-        d.q = n;
+            toTarget.q = *fallback;
+        } else {
+            __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(normalized) : "j"(toTarget.q), "j"(length));
+            toTarget.q = normalized;
+        }
     }
     }
-    }
-    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
+    __asm__("mtc1 %1, %0" : "=f"(distance) : "r"(length)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
         int state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD350) {
-                qword *pm = GetLoWorldMatrix(behavior->owner);
+            if (distance < D_002BD350) {
+                qword *forward = GetLoWorldMatrix(behavior->owner);   /* first row of the owner's orientation */
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
-                t = *pm;
-                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(d.q));
+                t = *forward;
+                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(toTarget.q));
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
                     SetBhvInteract2State(behavior, 2);
-            } else if (D_002BD358.b < g) {
+            } else if (D_002BD358.far < distance) {
                 SetBhvInteract2State(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD358.a)
+            if (distance < D_002BD358.near)
                 SetBhvInteract2State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x1714 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteract2State(behavior, -1);
             break;
         }
@@ -1150,34 +1172,35 @@ void UpdateBhvInteract2(struct P *behavior)
 namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
-void SteerBhvInteract2(struct P *behavior, struct Q *q)
+void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
-    if (behavior->state < 3) if (behavior->state >= 0) {
-        qword a, b, d;
-        float g;
-        a = GetLoWorldPos(behavior->target);
-        b = GetLoWorldPos(behavior->owner);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        g = 1.0f;
-        if (behavior->state == 0) g = 0.1f;
-        q->x1C = g;
-        q->x18 = atan2f(GetY(d), GetX(d));
+    ResetBhvSteering(behavior, poctl);
+    if (behavior->state < 3) if (behavior->state >= 0) {   // (two ifs, upper bound first: `&&` reorders the tests)
+        qword targetPos, ownerPos, toTarget;
+        float speed;
+        targetPos = GetLoWorldPos(behavior->target);
+        ownerPos = GetLoWorldPos(behavior->owner);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toTarget) : "j"(targetPos), "j"(ownerPos));
+        speed = 1.0f;
+        if (behavior->state == 0)
+            speed = 0.1f;
+        poctl->speed = speed;
+        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            UpdatePoctlPressed(poctl);
         }
     }
 }
@@ -1187,11 +1210,11 @@ void SteerBhvInteract2(struct P *behavior, struct Q *q)
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 {
-    int nStatePrev;
-    nStatePrev = behavior->state;
-    if (state == nStatePrev)
+    int previous;
+    previous = behavior->state;
+    if (state == previous)
         return;
-    if (nStatePrev == 2) {
+    if (previous == 2) {
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
@@ -1203,32 +1226,34 @@ extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466C0 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x1466C0: Third interact behaviour (BHV197) vtable slot 7 (OnPush).
-void InitBhvInteract3(char *p)
+void InitBhvInteract3(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_001466C0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466F0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteract3State(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteract3State(struct BHVINTERACTV *behavior, int state);
 // 0x1466F0: Third interact behaviour vtable slot 8 (Start).
-void StartBhvInteract3(char *p)
+void StartBhvInteract3(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteract3State(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteract3State(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001466F0
 
@@ -1237,33 +1262,33 @@ void BHV197::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x146790: True if the third interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001467A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct PO { char pad[0x2DC]; int x2DC; float g2E0; char pad2[0xDF4 - 0x2E4]; int xDF4; char pad3[0x18C8 - 0xDF8]; int x18C8; char pad4[0x18D8 - 0x18CC]; int x18D8; };
-struct T { char pad[0x330]; int x330; };
-struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct T *target; };
+struct PO { char pad[0x2DC]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
-float D_002BD360 = 450.0f;
-float D_002BD368 __attribute__((aligned(8))) = 400.0f;
-float D_002BD36C = 550.0f;
-float D_002BD370 = 0.2f;
+float D_002BD360 = 450.0f;                                  /* attack distance */
+float D_002BD368 __attribute__((aligned(8))) = 400.0f;    /* band: near */
+float D_002BD36C = 550.0f;                                  /* band: far */
+float D_002BD370 = 0.2f;                                    /* air time before the air attack */
 void UpdateBhv(struct P *p);
-int IsLoInWorld(struct T *p);
+int IsLoInWorld(struct TARGET *object);
 qword GetLoWorldPos(void *p);
 struct M3 *GetLoWorldMatrix(void *p);
-void SetBhvInteract3State(struct P *p, int n);
+void SetBhvInteract3State(struct P *behavior, int state);
 float GRandInRange__Fff(float gMin, float gMax);
 
 // VU0 helper: dot product.
@@ -1299,58 +1324,59 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     return g;
 }
 
-// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states (3/4).
+// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states: when close and facing
+// the target, 30% of the time it jumps (3) and attacks in the air after 0.2 s (4) instead of the ground attack (2).
 void UpdateBhvInteract3(struct P *behavior)
 {
-    union { qword q; float f[4]; } d;
-    float g;
+    union { qword q; float f[4]; } toTarget;
+    float distance;
     int state;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !IsLoInWorld(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteract3State(behavior, -1);
         return;
     }
     {
-        qword a = GetLoWorldPos(behavior->target);
-        qword b = GetLoWorldPos(behavior->owner);
+        qword targetPos = GetLoWorldPos(behavior->target);
+        qword ownerPos = GetLoWorldPos(behavior->owner);
         qword dq;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(b));
-        d.q = dq;
-        d.f[2] = 0.0f;
-        g = SafeNormalize(&d.q, &D_002A2DA0);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(targetPos), "j"(ownerPos));
+        toTarget.q = dq;
+        toTarget.f[2] = 0.0f;
+        distance = SafeNormalize(&toTarget.q, &D_002A2DA0);
     }
     do {
         state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD360) {
-                struct M3 *pm = GetLoWorldMatrix(behavior->owner);
-                if (0.8f < Dot(pm->r[0], d.q)) {
+            if (distance < D_002BD360) {
+                struct M3 *orientation = GetLoWorldMatrix(behavior->owner);
+                if (0.8f < Dot(orientation->r[0], toTarget.q)) {   /* facing the target */
                     if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
                         SetBhvInteract3State(behavior, 3);
                     else
                         SetBhvInteract3State(behavior, 2);
                 }
-            } else if (D_002BD36C < g) {
+            } else if (D_002BD36C < distance) {
                 SetBhvInteract3State(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD368)
+            if (distance < D_002BD368)
                 SetBhvInteract3State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x18D8 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteract3State(behavior, -1);
             break;
         case 3: {
             float t = D_002DDED0.t;
             if (0.1f < t - behavior->stateTime) {
-                struct PO *po = behavior->owner;
-                if (po->x2DC != -1) {
-                    if (po->x2DC == 1 && D_002BD370 < t - po->g2E0)
+                struct PO *owner = behavior->owner;
+                if (owner->airState != -1) {
+                    if (owner->airState == 1 && D_002BD370 < t - owner->airStateTime)
                         SetBhvInteract3State(behavior, 4);
                 } else
                     SetBhvInteract3State(behavior, -1);
@@ -1358,7 +1384,7 @@ void UpdateBhvInteract3(struct P *behavior)
             break;
         }
         case 4:
-            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->x18C8 != 13)
+            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->jtState != 13)
                 SetBhvInteract3State(behavior, -1);
             break;
         }
@@ -1369,24 +1395,24 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: q->x1C = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), q->x18 = atan2(d.y, d.x) with d = pos(p->p38) - pos(p->p10).
+// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
-struct PO { char pad[0x2DC]; int x2DC; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct PO { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-// VU0 helper: square root through the Q register.
+// VU0 helper: square root through the POCTL register.
 static __inline__ float SqrtQ(qword t)
 {
     float g;
@@ -1430,24 +1456,24 @@ static __inline__ float GAtanR(qword d)
     return atan2f(fy, GetX(d));
 }
 // 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
-// toward the target.
-void SteerBhvInteract3(struct P *behavior, struct Q *q)
+// toward the target; states 2 and 4 press the attack button (0x80) and state 3 jumps (0x40) for their first 0.1 s.
+void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
+    ResetBhvSteering(behavior, poctl);
     switch (behavior->state) {
     case 1: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         break;
     }
     case 2: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
@@ -1467,21 +1493,21 @@ void SteerBhvInteract3(struct P *behavior, struct Q *q)
         s = GLimitLm(&lm, GFromClq(SqrtQ(t), &clq));
         }
         }
-        q->x1C = s;
-        q->x18 = GAtanXY2(d, b);
-        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->x2DC == -1) {
-            q->x30 |= 0x40;
-            UpdatePoctlPressed(q);
+        poctl->speed = s;
+        poctl->heading = GAtanXY2(d, b);
+        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
+            poctl->grfbtn |= 0x40;   /* jump (state 3: the jump attack) */
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
     case 4: {
         qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
@@ -1524,68 +1550,71 @@ void BHV198::Start()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146EE0 { extern "C" {
-void CloseBhv(void *p);
-void SetMurrayState(void *p, int n);
+struct MURRAYV { char pad[0x1AC0]; int unknown1AC0; };
+struct BHVMURRAYV { char pad[0x10]; struct MURRAYV *owner; };
+void CloseBhv(struct BHVMURRAYV *behavior);
+void SetMurrayState(struct MURRAYV *murray, int state);
 // 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
-void CloseBhvMurray(char *p)
+void CloseBhvMurray(struct BHVMURRAYV *behavior)
 {
-    CloseBhv(p);
-    *(int *)(*(char **)(p + 0x10) + 0x1AC0) = 0;
-    SetMurrayState(*(void **)(p + 0x10), 0);
+    CloseBhv(behavior);
+    behavior->owner->unknown1AC0 = 0;
+    SetMurrayState(behavior->owner, 0);
 }
 } } // namespace M_func_00146EE0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146F18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0x1A8]; float g1A8; char pad2[0x1840 - 0x1AC]; int x1840; };
-struct P { char pad[0x10]; struct X *px; char pad2[0x30 - 0x14]; float g30; };
+struct MURRAYV { char pad[0x1A8]; float targetHeading; char pad2[0x1840 - 0x1AC]; int subState; };
+struct P { char pad[0x10]; struct MURRAYV *murray; char pad2[0x30 - 0x14]; float startHeading; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
-float D_002BD374 = 0.5f, D_002BD378 = 15.0f;
-void UpdateBhv(struct P *p);
-qword GetLoWorldPos(void *p);
-void SetStepTargetHeadingFromVector(struct X *px, qword v);
+float D_002BD374 = 0.5f, D_002BD378 = 15.0f;   /* heading window (rad), turn rate (rad/s) */
+void UpdateBhv(struct P *behavior);
+qword GetLoWorldPos(void *object);
+void SetStepTargetHeadingFromVector(struct MURRAYV *step, qword direction);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
-float GetStepHeading(struct X *px);
+float GetStepHeading(struct MURRAYV *step);
 float GLimitAbs__Fff(float g, float dg);
-void SetStepTargetHeading(struct X *px, float g);
+void SetStepTargetHeading(struct MURRAYV *step, float heading);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840) relative to the current
-// player.
+// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
+// (the current player, inferred) and remembers that heading; in 1 he keeps turning toward it (at most 15 rad/s) while
+// it stays within 0.5 rad of the remembered heading.
 void UpdateBhvMurray(struct P *behavior)
 {
     UpdateBhv(behavior);
-    switch (behavior->px->x1840) {
+    switch (behavior->murray->subState) {
     case 0:
         if (D_002E1E40) {
-            qword a, b, d;
-            a = GetLoWorldPos(D_002E1E40);
-            b = GetLoWorldPos(behavior->px);
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            SetStepTargetHeadingFromVector(behavior->px, d);
+            qword playerPos, murrayPos, toPlayer;
+            playerPos = GetLoWorldPos(D_002E1E40);
+            murrayPos = GetLoWorldPos(behavior->murray);
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
+            SetStepTargetHeadingFromVector(behavior->murray, toPlayer);
         }
-        behavior->g30 = behavior->px->g1A8;
+        behavior->startHeading = behavior->murray->targetHeading;
         break;
     case 1:
         if (D_002E1E40) {
-            qword a, b, d;
-            float g, gCur;
-            a = GetLoWorldPos(D_002E1E40);
-            b = GetLoWorldPos(behavior->px);
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            g = atan2f(GetY(d), GetX(d));
-            if (__builtin_fabsf(RadNormalize__Ff(g - behavior->g30)) < D_002BD374) {
-                gCur = GetStepHeading(behavior->px);
+            qword playerPos, murrayPos, toPlayer;
+            float headingToPlayer, heading;
+            playerPos = GetLoWorldPos(D_002E1E40);
+            murrayPos = GetLoWorldPos(behavior->murray);
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
+            headingToPlayer = atan2f(GetY(toPlayer), GetX(toPlayer));
+            if (__builtin_fabsf(RadNormalize__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
+                heading = GetStepHeading(behavior->murray);
                 {
-                    float d = RadNormalize__Ff(g - gCur);
+                    float turn = RadNormalize__Ff(headingToPlayer - heading);
                     float dt = D_002DDED0.dt;
-                    float k = D_002BD378;
-                    SetStepTargetHeading(behavior->px, gCur + GLimitAbs__Fff(d, k * dt));
+                    float turnRate = D_002BD378;
+                    SetStepTargetHeading(behavior->murray, heading + GLimitAbs__Fff(turn, turnRate * dt));
                 }
             }
         }
