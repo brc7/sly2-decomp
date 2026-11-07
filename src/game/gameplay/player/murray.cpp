@@ -21,6 +21,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/game.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -3549,8 +3550,7 @@ int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
 } } // namespace M_FCanUseGadget__6MURRAYi
 
 namespace M_UseMurrayGadget { extern "C" {
-struct G { char pad[0xC]; int xC; };
-extern struct G D_002DEB30;
+extern GAME D_002DEB30;
 struct P { char pad[0x9BC]; int x9BC; char pad1[0x10DC - 0x9C0]; int interactTarget; char pad2[0x130C - 0x10E0]; int x130C; char pad3[0x13E8 - 0x1310]; int x13E8; char pad4[0x143C - 0x13EC]; int x143C; char pad5[0x1AC4 - 0x1440]; int x1AC4; };
 void BroadcastGameEvent(void *p, int a, struct P *b);
 void ChargeGadgetMp(struct P *p, int k);
@@ -3562,7 +3562,7 @@ void SetJtGrabState(void *p, int a, int b, int c);
 // ...
 void UseMurrayGadget(struct P *murray, int k)
 {
-    D_002DEB30.xC = k;
+    D_002DEB30.idGadgetLast = k;
     BroadcastGameEvent(&D_002DEB30, 0x3C, murray);
     switch (k) {
     case 20:
