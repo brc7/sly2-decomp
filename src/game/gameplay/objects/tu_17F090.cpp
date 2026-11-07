@@ -53,21 +53,18 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 
 namespace M_func_0017F090 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct K { int a, b; };
 extern qword D_002BE7D0;
-extern struct K D_002BE7E0;
-struct S { char pad[0x40]; int taggedFlags; char pad2[0x13C]; int maxHealth; char pad3[0x1C]; qword knockbackGains; struct K knockbackRange; };
-void InitSo(struct S *p);
+extern LM D_002BE7E0;
+void InitSo(SO *pso);
 // HACK (cid 0x47) vtable slot 7: InitSo, max health 10, the default knockback gains and range. (inferred)
-void InitHack(struct S *hack) {
+void InitHack(HACK *hack) {
     int v;
     InitSo(hack);
-    hack->maxHealth = 10;
-    hack->knockbackGains = D_002BE7D0;
-    hack->knockbackRange = D_002BE7E0;
-    v = hack->taggedFlags;
-    if ((v ^ 1) & 1) *(int *)v |= 2; else hack->taggedFlags = v | 2;
+    hack->cHealthMax = 10;
+    hack->qwKnockback = D_002BE7D0;
+    hack->lmKnockback = D_002BE7E0;
+    v = hack->unknown40;
+    if ((v ^ 1) & 1) *(int *)v |= 2; else hack->unknown40 = v | 2;
 }
 } } // namespace M_func_0017F090
 
@@ -137,9 +134,8 @@ int TakeHackDamage(HACK*hack,ZPR*pzpr){
 } } // namespace M_func_0017F1D0
 
 namespace M_func_0017F3E0 { extern "C" {
-struct E { int n; int a, b, c; };
-// Set n=-1 on c entries. (inferred)
-void InitHackAnimEntries(int x, int c, struct E *pe) { int i; for (i = 0; i < c; i++) { pe->n = -1; pe++; } }
+// Set oid -1 on c entries. (inferred)
+void InitHackAnimEntries(HACK *hack, int c, HACKE *phacke) { int i; for (i = 0; i < c; i++) { phacke->oid = OID_Nil; phacke++; } }
 } } // namespace M_func_0017F3E0
 
 // Resolves each entry's oid to its animation (an ASEG) or state machine (an SM).
@@ -170,79 +166,67 @@ extern "C" void BindHackAnimEntries(HACK *hack, int c, HACKE *ahacke)
 }
 
 namespace M_func_0017F4C0 { extern "C" {
-struct R { int oid; void *animation; void *stateMachine; int flags; };
-struct S : PO { char pad180[0x194 - 0x180]; void *asega; int sma[1]; };
-void ReleaseSma(void *p);
-void ReleaseAsega(void *pp);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
-void ReplaceSma(void *a, struct S *p, int b, int c, void *d);
-// Retract the current ASEGA / SMA and apply the record's clip and SM state. (inferred)
-void StartHackAnim(struct S *hack, struct R *r) {
-    ReleaseSma(hack->sma);
-    ReleaseAsega(&hack->asega);
-    if (r) {
-        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(r->animation, hack, 0.0f, 1.0f, r->flags, &hack->asega);
-        ReplaceSma(r->stateMachine, hack, -1, r->flags, hack->sma);
+void ReleaseSma(SMA **ppsma);
+void ReleaseAsega(ASEGA **ppasega);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *paseg, LO *plo, float t, float svt, int grf, ASEGA **ppasega);
+void ReplaceSma(SM *psm, LO *plo, int n, int grf, SMA **ppsma);
+// Retract the current ASEGA / SMA and apply the entry's clip and SM state. (inferred)
+void StartHackAnim(HACK *hack, HACKE *phacke) {
+    ReleaseSma(&hack->psma);
+    ReleaseAsega(&hack->pasega);
+    if (phacke) {
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(phacke->paseg, hack, 0.0f, 1.0f, phacke->grf, &hack->pasega);
+        ReplaceSma(phacke->psm, hack, -1, phacke->grf, &hack->psma);
     }
 }
 } } // namespace M_func_0017F4C0
 
 namespace M_func_0017F550 { extern "C" {
-struct S : PO { char pad180[0x194 - 0x180]; void *asega; void *sma; };
-int IsAsegaRetracted(void *p);
-int GetSmaCurrentState(void *p);
-int GetSmaGoal(void *p);
+int IsAsegaRetracted(ASEGA *pasega);
+int GetSmaCurrentState(SMA *psma);
+int GetSmaGoal(SMA *psma);
 // True when the current ASEGA retracted or the SM reached its end state. (inferred)
-int IsHackAnimDone(struct S *p) { if (p->asega) return IsAsegaRetracted(p->asega); { int f = 1; if (p->sma) f = GetSmaCurrentState(p->sma) == GetSmaGoal(p->sma); return f; } }
+int IsHackAnimDone(HACK *hack) { if (hack->pasega) return IsAsegaRetracted(hack->pasega); { int f = 1; if (hack->psma) f = GetSmaCurrentState(hack->psma) == GetSmaGoal(hack->psma); return f; } }
 } } // namespace M_func_0017F550
 
 namespace M_func_0017F5B0 { extern "C" {
-struct K { short x; short y; int i; };
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5630;
-extern SW D_003DD490;
-struct S : PO { char pad180[0x18C - 0x180]; int isDying; };
 void PostSwCallback(SW *g, void *p, long k, int n);
-// Once: set the dying flag and PostSwCallback(D_002A5630, n). (inferred)
-void StartHackDying(struct S *p, int n) { if (p->isDying) return; p->isDying = 1; PostSwCallback(&D_003DD490, p, D_002A5630.l, n); }
+// Once: set the dying flag and post the Kill callback (D_002A5630: a pointer to HACK's slot 82) with n. (inferred)
+void StartHackDying(HACK *hack, int n) { if (hack->fDying) return; hack->fDying = 1; PostSwCallback(&D_003DD490, hack, D_002A5630.l, n); }
 } } // namespace M_func_0017F5B0
 
 namespace M_func_0017F5F8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct S : PO { char pad180[0x188 - 0x180]; int blastDamage; int pad3; void *explosion; };
-struct F { struct S *source; int unknown4; int zapKind; int zapFlags; int damage; int pad[3]; qword position; qword velocity; qword pad2[2]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-qword GetLoWorldPos(void *p);
-void DeliverZapToSo(struct F *pf);
-void ExplodeWithDefaults(void *p);
-// vtable slot 82: if it carries a blast damage, InflictZap area damage at its position; ExplodeExpl its explosion,
+qword GetLoWorldPos(LO *plo);
+void DeliverZapToSo(ZPR *pzpr);
+void ExplodeWithDefaults(EXPL *pexpl);
+// vtable slot 82: if it carries a damage, area damage at its position (credited to the killer); play its explosion,
 // then vtable slot 9 Remove. (inferred)
-void KillHack(struct S *hack, int n) {
-    if (n && hack->blastDamage) {
-        struct F f;
-        func_002333B4(&f, 0, sizeof(f));
-        f.zapKind = n;
-        f.source = hack;
-        f.position = GetLoWorldPos(hack);
-        f.velocity = hack->GetVelocity();
-        f.zapFlags = 0x100;
-        f.damage = -hack->blastDamage;
-        DeliverZapToSo(&f);
+void KillHack(HACK *hack, LO *ploKiller) {
+    if (ploKiller && hack->cDamage) {
+        ZPR zpr;
+        func_002333B4(&zpr, 0, sizeof(zpr));
+        zpr.unknown08 = ploKiller;
+        zpr.ploSource = hack;
+        zpr.position = GetLoWorldPos(hack);
+        zpr.velocity = hack->GetVelocity();
+        zpr.zpk = 0x100;
+        zpr.dhp = -hack->cDamage;
+        DeliverZapToSo(&zpr);
     }
-    if (hack->explosion) ExplodeWithDefaults(hack->explosion);
+    if (hack->pexpl) ExplodeWithDefaults(hack->pexpl);
     hack->Remove();
 }
 } } // namespace M_func_0017F5F8
 
 namespace M_func_0017F6B0 { extern "C" {
-struct K { short x; short y; int i; };
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5638;
-extern char D_003DD490[];
-struct S : PO { int maxHealth; int health; int pad2; int isDying; };
-void ClearSwCallbacks(void *g, int a, void *p, long k, int n);
-// Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
-void ResetHack(struct S *p) { p->health = p->maxHealth; if (p->isDying) ClearSwCallbacks(D_003DD490, 1, p, D_002A5638.l, 0); }
+void ClearSwCallbacks(SW *g, int a, void *p, long k, int n);
+// Health = max; cancel a pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
+void ResetHack(HACK *hack) { hack->cHealth = hack->cHealthMax; if (hack->fDying) ClearSwCallbacks(&D_003DD490, 1, hack, D_002A5638.l, 0); }
 } } // namespace M_func_0017F6B0
 
 // CID 0x48 vtable slot 7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1. (inferred)
