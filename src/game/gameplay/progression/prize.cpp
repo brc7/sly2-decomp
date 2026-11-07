@@ -136,7 +136,7 @@ namespace M_ProjectDprizeTransform {
 // ProjectDprizeTransform (w2lane4, wave 2): per-frame update of an animated object (state 6 only forwards to UpdateSoXfWorld).
 // Step 1: damped velocity/position integration of the object's own coordinate (VU: velocity = velocity * damping + acceleration * dt,
 //         coordinate += velocity * dt) which is pushed into the position channel.
-// Step 2: if the object's holder has an animation, find the position/orientation motions of this object in the animation's action
+// Step 2: if the prize's state machine (SMA) has a current animation, find the position/orientation motions of this object in the animation's action
 //         (entries keyed by id + channel via virtual slot 51), sample them (virtual slot 3) and apply them in the frame that
 //         BuildOrthonormalMatrixZ builds from (camera position - channel position, z = 0).
 // Matching notes:
@@ -150,15 +150,9 @@ namespace M_ProjectDprizeTransform {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int words[4]; };
 union M3 { qword rows[3]; float values[12]; };
-struct VTE { short delta, pad; void *fn; };
+/* The prize's two XFs (SO unknown58 / unknown5C: the position and orientation channels) as this function moves them:
+   the local rotation rows, the local position (row 3), the world stamp and the velocity as quadwords. */
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
-struct HOLDER { char pad30[0x30]; ASEGA *animation; };
-struct P {
-    char padC[0xC]; VTE *vt; char pad10[8]; int id; char pad1C[0x3C];
-    CHANNEL *position, *orientation;
-    char pad60[0xF0]; int state; char pad154[0x14]; HOLDER *holder; char pad16C[4];
-    qword coordinate, velocity, acceleration;
-};
 union FLOATWORD { float value; int bits; };
 struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 extern "C" {
@@ -166,7 +160,7 @@ extern CLOCKIsland D_002DDED0;
 extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
-void UpdateSoXfWorld(P *);
+void UpdateSoXfWorld(DPRIZE *);
 qword *VECTOR_opAssign(qword *, qword);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 M3 LoadRotateMatrixEuler(qword);
@@ -224,10 +218,9 @@ static inline M3 operator*(const M3 &matL, const M3 &matR) return mat
     t.rows[2] = v2; mat.rows[2] = v2;
 }
 // Motion channel of the prize (vtable slot 51).
-static inline CHANNEL *GetChannel(P *prize, int channel)
+static inline CHANNEL *GetChannel(DPRIZE *prize, int channel)
 {
-    VTE &e = prize->vt[51];
-    return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)prize + e.delta), channel);
+    return (CHANNEL *)prize->GetXfFromIndex(channel);
 }
 // Samples a motion curve at the animation time: value and velocity (motion vtable slot 3).
 static inline void Sample(AC *motion, const ASEGA *animation, qword *value, qword *velocity)
@@ -236,22 +229,22 @@ static inline void Sample(AC *motion, const ASEGA *animation, qword *value, qwor
 }
 
 // DPRIZE vtable slot 17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
-extern "C" void ProjectDprizeTransform(P *prize)
+extern "C" void ProjectDprizeTransform(DPRIZE *prize)
 {
     if (prize->state == 6) { UpdateSoXfWorld(prize); return; }
     float factor;
     if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.deltaTime.value;
     else factor = 1.0f;
     prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.deltaTime.bits), VU_VECTOR(prize->acceleration));
-    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.deltaTime.bits));
-    CHANNEL *channel = prize->position;
-    prize->coordinate = newPosition;
+    qword newPosition = Advance(prize->position, prize->velocity, VU_FLOAT(D_002DDED0.deltaTime.bits));
+    CHANNEL *channel = (CHANNEL *)prize->unknown58;
+    prize->position = newPosition;
     VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
-    prize->position->velocity = prize->velocity;
-    { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
-    if (prize->holder && prize->holder->animation) {
-        ASEGA *animation = prize->holder->animation;
+    ((CHANNEL *)prize->unknown58)->velocity = prize->velocity;
+    { int stamp = ++D_003DD490.transformStamp; ((CHANNEL *)prize->unknown58)->stamp = stamp; }
+    if (prize->sma && prize->sma->pasegaCur) {
+        ASEGA *animation = prize->sma->pasegaCur;
         ASEG *action = animation->animation;
         AC *positionMotion = 0, *orientationMotion = 0;
         int i = 0;
@@ -259,38 +252,38 @@ extern "C" void ProjectDprizeTransform(P *prize)
             CHN *entry = &action->achn[i];
             unsigned int key = entry->grf;
             if (!(key & 0x40000000U)) continue;
-            if (((int)(key << 12) >> 12) != prize->id) continue;
+            if (((int)(key << 12) >> 12) != prize->oid) continue;
             {
                 CHANNEL *selected = GetChannel(prize, (int)(key << 2) >> 22);
-                if (selected == prize->position) positionMotion = entry->pac;
-                else if (selected == prize->orientation) orientationMotion = entry->pac;
+                if (selected == (CHANNEL *)prize->unknown58) positionMotion = entry->pac;
+                else if (selected == (CHANNEL *)prize->unknown5C) orientationMotion = entry->pac;
             }
             if (positionMotion && orientationMotion) break;
         }
         if (positionMotion || orientationMotion) {
             U dir, position, velocity, angles, angularVelocity;
             M3 frame, rot;
-            dir.q = VuSub<qword>(g_cm.matq.pos, prize->position->position);
+            dir.q = VuSub<qword>(g_cm.matq.pos, ((CHANNEL *)prize->unknown58)->position);
             dir.words[2] = 0;
             frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
-                channel = prize->position;
+                channel = (CHANNEL *)prize->unknown58;
                 VECTOR_opAssign(&channel->position, VuAdd(channel->position, RotateVec(frame, position.q)));
                 *(float *)((char *)channel + 0x3C) = 1.0f;
-                CHANNEL *current = prize->position;
+                CHANNEL *current = (CHANNEL *)prize->unknown58;
                 current->velocity = VuAdd(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; ((CHANNEL *)prize->unknown58)->stamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
                 rot = LoadRotateMatrixEuler(angles.q);
-                CHANNEL *current = prize->orientation;
+                CHANNEL *current = (CHANNEL *)prize->unknown5C;
                 current->matrix = frame * rot;
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
-                CHANNEL *spin = prize->orientation;
+                CHANNEL *spin = (CHANNEL *)prize->unknown5C;
                 spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++D_003DD490.transformStamp; prize->orientation->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; ((CHANNEL *)prize->unknown5C)->stamp = stamp; }
             }
         }
     }
@@ -777,19 +770,13 @@ namespace M_func_001C6308 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct VTE { short delta,pad; void (*fn)(void *,qword,float,int); };
-struct LO { char pad[0xB0]; qword scale; };
-struct S {
-    char pad[0x5C]; struct LO *lo;
-    char pad60[0xEC-0x60]; struct VTE *vt; void *emit;
-    char padF4[0x1A0-0xF4]; float probability; int pad1A4; void *owner;
-    int pad1AC; void *left; int pad1B4; void *right; int previous; float last;
-};
+struct XFS { char pad[0xB0]; qword scale; };   /* the prize's second XF (SO unknown5C) as the glint reads it */
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; struct VTE *vt; void *emit; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
-qword ConvertVecBetweenLos(struct S *,void *,qword);
+qword ConvertVecBetweenLos(DPRIZE *,void *,qword);
 float RandomFloatInRange__Fff(float,float);
 struct Q *NewRipInGroup(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
@@ -810,25 +797,25 @@ static inline float Max(float a,float b)
     return a;
 }
 // spawn sparkle rip (NewRipInGroup) at prize position periodically. (inferred)
-void EmitDprizeGlint(struct S *prize)
+void EmitDprizeGlint(DPRIZE *prize)
 {
     union U scale;
     qword direction;
     int side;
     void *emitter;
     struct Q *q;
-    if(!prize->owner||prize->probability<=0)return;
+    if(!prize->glintOwner||prize->glintChance<=0)return;
     direction=ConvertVecBetweenLos(prize,0,D_002C0D80);
     side=Dot(direction,g_cm.matq.rot[1])<0;
-    if(side!=prize->previous) {
-        if(RandomFloatInRange__Fff(0,1)<prize->probability) {
-            if(D_002C0D90<D_002DDED0.time-prize->last) {
-                if(Dot(direction,g_cm.matq.rot[0])<0)emitter=prize->left;
-                else emitter=prize->right;
+    if(side!=prize->glintSide) {
+        if(RandomFloatInRange__Fff(0,1)<prize->glintChance) {
+            if(D_002C0D90<D_002DDED0.time-prize->glintTime) {
+                if(Dot(direction,g_cm.matq.rot[0])<0)emitter=prize->leftEmitter;
+                else emitter=prize->rightEmitter;
                 if(!emitter)goto changed;
                 q=NewRipInGroup(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
-                prize->last=D_002DDED0.time;
+                prize->glintTime=D_002DDED0.time;
                 {
                     struct VTE *method=&q->vt[1];
                     void *ctx=(char *)q+method->delta;
@@ -836,16 +823,16 @@ void EmitDprizeGlint(struct S *prize)
                     method->fn(ctx,pos,1,0);
                 }
                 {
-                    void *owner=prize->owner;
+                    void *owner=prize->glintOwner;
                     q->emit=emitter;
                     q->owner=owner;
                 }
-                scale.q=prize->lo->scale;
+                scale.q=((struct XFS *)prize->unknown5C)->scale;
                 q->duration=1.5f/Max(1,__builtin_fabsf(scale.f[2]));
             }
         }
 changed:
-        prize->previous=side;
+        prize->glintSide=side;
     }
 }
 } } // namespace M_func_001C6308
