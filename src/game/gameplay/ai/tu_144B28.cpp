@@ -330,10 +330,9 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
-struct X { char pad[0x60]; int state; int pad2; float velocityLeadTime, distanceNear, distanceFar, speedNear, speedFar; };
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
-void InitBhvfollow(struct X *behavior)
+void InitBhvfollow(BHVFOLLOW *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
