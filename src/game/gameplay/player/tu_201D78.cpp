@@ -99,11 +99,6 @@ extern PLAYER *D_002E1E40;
 extern char D_003DD040[], D_002DEB30[];
 
 extern int D_002C3588[];
-/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen
-   (FadeReconTargetMarkers reads it at base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
-struct CMIsland { char pad[0x90]; qword pos; };
-#undef D_002DDFA0
-extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separate symbol to g++: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
 int FindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
@@ -263,7 +258,7 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
         if (!o->plo100)
             continue;
         a = GetLoWorldPos(o);
-        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(((CMIsland *)&g_cm)->pos));
+        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(g_cm.matq.pos));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
         if (o->rFade < f && ((o->plo100->fl28 >> 60) & 1) == 0)
             FadeSoIn(o->plo100, 0.25f);
@@ -309,7 +304,7 @@ int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int
 /* UpdateReconTargetVisibility (Lilly / Claude agent, T1560): four-ray visibility of an actor from the selector's origin (p+0x20, the caller
  * SelectReconTarget raises it by 20). Collects the objects between the two points (IntersectSwBoundingBox with the FilterReconOccluder filter),
  * then casts rays from the origin to the actor's centre (pulled radius 0xE4 towards the viewer) and to that centre moved by
- * the radius along the camera's up row (D_002DDFA0[1]) and along the side direction up x view. Every ray that hits an object
+ * the radius along the camera's up row (g_cm.matq.rot[1]) and along the side direction up x view. Every ray that hits an object
  * counts: none -> state 1, all four -> state 2 (SelectReconTarget drops those), some -> state 3. No register pins.
  * What made it match: the actor position is a plain qword across the call (spilled to 0x70 by the compiler), the scale-by-radius
  * multiplies are in place on direction/up (so they wait for the cross product), the side vector's dot product names its
@@ -342,7 +337,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
     IntersectSwBoundingBox(&D_003DD490, origin, reconSel->position.q, FilterReconOccluder, 0, &query.count,
                            &query.objects);
     {
-        qword up = D_002DDFA0[1];
+        CMMATQ *pm = &g_cm.matq; qword up = pm->rot[1];
         qword direction = Normalize(VuSub(reconSel->position.q, origin));
         qword k, side;
         __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(radius));

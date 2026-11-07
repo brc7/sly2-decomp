@@ -3568,8 +3568,6 @@ struct M23 {float a[6];} __attribute__((aligned(16)));
 struct O {char pad[0xF4]; void *followObject; M23 *xform;};   /* the widget: world object to follow (inferred), transform override */
 struct S {char pad[0x24]; O *owner; int isEnabled;};   /* the main sprite group */
 extern "C" M23 D_002A3A10;
-struct G;
-extern "C" G D_002DDF40;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
@@ -3591,7 +3589,7 @@ extern "C" void AdvanceWidgetSprite(S *group,float dt) {
     if(group->isEnabled) {
         M23 m=D_002A3A10;
         if(group->owner->followObject) {
-            qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&D_002DDF40,worldPos);
+            qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&g_cm,worldPos);
             m.a[4] = QwordX(screenPos)*320.0f+320.0f;
             m.a[5] = QwordY(screenPos)*-246.40001f+246.40001f;
         }

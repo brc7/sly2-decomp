@@ -1653,13 +1653,11 @@ struct S {
     int pad2;
     POLY alpha;
 };
-struct G { char pad[0x90]; qword pos; };
-extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK { float time,deltaTime; } D_002DDED0; }
 extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
-int IsInCameraFrustum(G*,qword,qword);
-int IsWithinCameraRenderDistance(G*,qword,float,float*);
+int IsInCameraFrustum(CM*,qword,qword);
+int IsWithinCameraRenderDistance(CM*,qword,float,float*);
 M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void RenderLoAtMatrix(LO*,const M4&,float,float);
 int RenderRipAtPose(S*,qword,const M3&);
@@ -1693,8 +1691,8 @@ int RenderRipAtPose(S *p, qword pos, const M3 &mat)
     float t = (D_002DDED0.time - p->start) / p->duration;
     float alpha = Clamp(Poly(&p->alpha, t), D_002BBB60.lo, D_002BBB60.hi);
     float size = Poly(&p->size, t);
-    G *pg = &D_002DDF40;
-    __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->pos));
+    CM *pg = &g_cm;
+    __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->matq.pos));
     if (!IsInCameraFrustum(pg, delta, BcG(size * 100.0f)))
         return 1;
     if (!IsWithinCameraRenderDistance(pg, delta, p->lo->radius, &proj))
@@ -1766,8 +1764,6 @@ namespace M_RenderFlying {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
 struct S { char pad[0x70]; qword position; char p1[0x90 - 0x80]; qword velocity; char p2[0xF4 - 0xA0]; int facesCamera; };
-struct G { char pad[0x60]; qword matRow0; };   /* CM: first row of its matrix (inferred: the view axis) */
-extern "C" { extern G D_002DDF40; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 M BuildOrthonormalMatrixZ(qword a, qword b);
@@ -1783,7 +1779,7 @@ void RenderFlying(S *p)
         union { qword q; float f; } s; qword k;
         __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
         s.q = k;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(D_002DDF40.matRow0), "j"(k));
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(g_cm.matq.rot[0]), "j"(k));
     } else {
         v = D_002A2DC0;
     }
@@ -2410,21 +2406,16 @@ struct RIP {
     char pad3C[0x34];
     qword position;
 };
-struct CAMERA {
-    char pad0[0x90];
-    qword position;
-};
 struct CLOCK {
     float time, deltaTime;
 };
-extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0; }
 extern "C" { extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2]; }
 extern "C" { extern const qword D_002A2DA0,D_002A2DC0; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *);
-int IsInCameraFrustum(CAMERA *,qword,qword);
+int IsInCameraFrustum(CM *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 BuildAxisAngleRotationMatrix(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
@@ -2486,11 +2477,11 @@ extern "C" void RenderGlint(RIP *rip)
 {
     M3 basis, rotation, product;
     M4 transform;
-    qword direction = VuSub(D_002DDF40.position, rip->position);
+    qword direction = VuSub<qword>(g_cm.matq.pos, rip->position);
     float time = (D_002DDED0.time - rip->start) / rip->duration;
     float distance = Length(direction) * 0.001f;
     float size = Evaluate(rip->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
-    if (!IsInCameraFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
+    if (!IsInCameraFrustum(&g_cm, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
         RemoveRip__FP3RIP(rip);
         return;
     }
@@ -2536,7 +2527,6 @@ typedef struct {
     char padf4[0x100 - 0xF4];
     qword screenPos;        /* position in screen space */
 } OBJ;   /* SMACK */
-extern char D_002DDF40[];
 extern float D_002C2000;
 extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
@@ -2550,7 +2540,7 @@ void InitSmack(OBJ *object, qword q)
     float x, y;
     InitRip(object, q);
     d = object->def;
-    object->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
+    object->screenPos = ConvertCmWorldToScreen(&g_cm, q);
     x = RandomFloatInRange__Fff(d->spinMin[0], d->spinMax[0]);
     y = RandomFloatInRange__Fff(d->spinMin[1], d->spinMax[1]);
     {
@@ -2569,7 +2559,6 @@ void InitSmack(OBJ *object, qword q)
 namespace M_ProjectSmackTransform { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
-extern char D_002DDF40[];
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
     char pad0[0x14];
@@ -2592,7 +2581,7 @@ void ProjectSmackTransform(OBJ *object)
 {
     EvaluateBezierPos(StdMax(object->startTime + object->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
     object->previousPosition = object->position;
-    object->position = ConvertCmScreenToWorld(D_002DDF40, object->screenPos);
+    object->position = ConvertCmScreenToWorld(&g_cm, object->screenPos);
 }
 } } // namespace M_ProjectSmackTransform
 
@@ -2600,7 +2589,6 @@ namespace M_RenderSmack {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union U { qword q; float f; };
-struct G { char pad[0x60]; M3 mat; };
 struct SPIN { char pad[0x40]; qword axis; };
 struct S {
     char pad[0x14];
@@ -2612,10 +2600,9 @@ struct S {
     char padF4[0x100 - 0xF4];
     qword pos;
 };
-extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
 extern "C" {
-qword ConvertCmScreenToWorld(G*,qword);
+qword ConvertCmScreenToWorld(CM*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*);
 M3 BuildAxisAngleRotationMatrix(qword,float);
@@ -2641,9 +2628,9 @@ void RenderSmack(S *p)
     M3 camera, fade, spin, render;
     U axis;
     float angle;
-    G *pg = &D_002DDF40;
+    CM *pg = &g_cm;
     qword view = ConvertCmScreenToWorld(pg, p->pos);
-    camera = MulMatrix3Matrix3(p->mat, pg->mat);
+    camera = MulMatrix3Matrix3(p->mat, *(M3 *)pg->matq.rot);   /* the rotation rows as the TU's qword-row M3 */
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera, &angle, &axis.q);
     float t = (D_002DDED0.time - p->start) / p->duration;
     fade = BuildAxisAngleRotationMatrix(axis.q, angle * t);

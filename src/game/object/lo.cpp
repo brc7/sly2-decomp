@@ -64,10 +64,6 @@ void SetLoXfFromMat(LO *plo, MATRIX4 *matrix);
 void RemoveDlEntry(DL *pdl, void *pv);
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
-/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
-   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
-typedef int qwordI __attribute__((mode(TI)));   /* the signed quadword the namespaces below use */
-struct CMIsland { char pad[0x60]; qwordI amatRow[3]; qwordI pos; };
 namespace M_InitLo { extern "C" {
 struct S {
     int frame, sidebag, firstRefNode, xC;
@@ -586,7 +582,7 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
  qword d,n,t,k;
  float len;
  d=VuSub(b,a);
- n=VuCross(VuSub(a,((CMIsland *)&g_cm)->pos),d);
+ n=VuCross(VuSub<qword>(a,g_cm.matq.pos),d);
  y.q=n;
  len=VuToFloat(LenV(n));
  if(0.01f<len) {

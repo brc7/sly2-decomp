@@ -562,11 +562,6 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
 }
 } // namespace M_ModifyEmitterParticles__FP7EMITTER
 
-/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
-   codegen (EmitBlips reads row 1 at base &g_cm + 0x70; a cast of CM::mat folds the offset into the base).
-   qwordI: the namespaces' signed quadword. */
-typedef int qwordI __attribute__((mode(TI)));
-struct CMIsland { char pad[0x60]; qwordI amatRow[3]; qwordI pos; };
 
 namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
@@ -1598,7 +1593,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
             if (pprg->renderKind == 2) {
                 float g = GRand(&emitter->rollSpeed);
                 pd->rollSpeed = g;
-                if (!emitter->rollKind && 0.0f < Dot(((CMIsland *)&g_cm)->amatRow[1], pfr->av[i]))
+                if (!emitter->rollKind && 0.0f < Dot(g_cm.matq.rot[1], pfr->av[i]))
                     pd->rollSpeed = -g;
                 if (emitter->hasRandomRoll)
                     pd->rollAngle = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);

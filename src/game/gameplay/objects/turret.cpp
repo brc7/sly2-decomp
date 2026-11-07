@@ -61,7 +61,6 @@ typedef char assert_TURRET_pact[(unsigned int)&((TURRETV *)0)->rotationAct == 0x
 LMV D_002C4400 = {0.1f, 1.0f};
 float D_002C4408[3] = {5.0f, 0.0f, 0.5f};          /* damping */
 float D_002C4418[2] = {1.0f, 4.0f}, D_002C4420[3] = {2.0f, 0.0f, -1.0f};
-extern char D_002DDF40[];
 extern CLOCK D_002DDED0;
 extern char D_003D4A60[];
 extern LMV D_002BBB60;
@@ -142,8 +141,8 @@ void TURRET::PostLoad()
 extern "C" void OnTurretActive(TURRETV *turret, int b)
 {
     OnPoActive(turret, b);
-    if (b) SetCmPolicy(D_002DDF40, 9, D_002DDF40 + 0x5F0, turret, 0);
-    else RevokeCmPolicy(D_002DDF40, 0xF, 9, D_002DDF40 + 0x5F0, turret, 0);
+    if (b) SetCmPolicy(&g_cm, 9, &g_cm.turretPolicy, turret, 0);
+    else RevokeCmPolicy(&g_cm, 0xF, 9, &g_cm.turretPolicy, turret, 0);
 }
 
 // TURRET vtable slot 16 (Update): SO update, then aim, zoom and fire.

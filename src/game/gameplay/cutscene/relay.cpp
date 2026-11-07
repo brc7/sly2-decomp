@@ -2769,7 +2769,6 @@ extern "C" { extern JOY D_002DFC00; }
 
 
 
-extern "C" { extern CM D_002DDF40; }
 
 
 extern "C" { extern SW D_003DD490; }
@@ -3212,7 +3211,7 @@ void NextJsgCommand(JSGV *script)
         break;
     }
     case RELAYCK_CutCamera:
-        CutCm(&D_002DDF40);
+        CutCm(&g_cm);
         break;
     case RELAYCK_SetTunnel:
     {
@@ -3342,7 +3341,7 @@ void NextJsgCommand(JSGV *script)
             LO *ploDir;
             if (prelaycmd->stepCmd22.nMode == 3)
             {
-                CM *pcm = &D_002DDF40;
+                CM *pcm = &g_cm;
                 qword qwCm = *(qword *)&pcm->pos;
                 SetStepRadTowardDir(pstep, VuSub(qwCm, PosLoWorld(pstep)));
                 ploDir = 0;
@@ -3570,7 +3569,7 @@ void NextJsgCommand(JSGV *script)
                           (ASEG *)script->relay);
         break;
     case RELAYCK_Unk32:
-        JoltCm(&D_002DDF40, prelaycmd->unk32.nUnk4);
+        JoltCm(&g_cm, prelaycmd->unk32.nUnk4);
         break;
     case RELAYCK_Rumble:
         TriggerJoyRumbleRumk(&D_002DFC00, (RUMK)prelaycmd->rumble.rumk, prelaycmd->rumble.dtRumble);
@@ -3674,23 +3673,23 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_TweenPosObj:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->tweenPosObj.oidObj);
-        D_002DDF40.cpzoom.SetOwner(plo);
+        g_cm.cpzoom.SetOwner(plo);
         break;
     }
     case RELAYCK_TweenAimObj:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->tweenAimObj.oidObj);
-        D_002DDF40.cpzoom.SetFocus(plo);
+        g_cm.cpzoom.SetFocus(plo);
         break;
     }
     case RELAYCK_TweenTarget:
-        D_002DDF40.cpzoom.SetPose(prelaycmd->tweenTarget.qwPos, *(qword *)&prelaycmd->tweenTarget.radX, prelaycmd->tweenTarget.gFov);
+        g_cm.cpzoom.SetPose(prelaycmd->tweenTarget.qwPos, *(qword *)&prelaycmd->tweenTarget.radX, prelaycmd->tweenTarget.gFov);
         break;
     case RELAYCK_TweenTime:
-        D_002DDF40.cpzoom.SetZoom(prelaycmd->tweenTime.gUnk4);
+        g_cm.cpzoom.SetZoom(prelaycmd->tweenTime.gUnk4);
         break;
     case RELAYCK_TweenStart:
-        D_002DDF40.cpzoom.Reset();
+        g_cm.cpzoom.Reset();
         break;
     case RELAYCK_ButtonPrompt:
         D_004435F0.grfbtnPrompt = prelaycmd->buttonPrompt.grfbtn & 0xF0;
@@ -3994,7 +3993,6 @@ extern "C" { extern JOY D_002DFC00; }
 
 
 
-extern "C" { extern CM D_002DDF40; }
 
 
 
@@ -4404,13 +4402,13 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_TweenPosObj:
-        fComplete = D_002DDF40.cpzoom.FAtTargetFocus();
+        fComplete = g_cm.cpzoom.FAtTargetFocus();
         break;
     case RELAYCK_TweenAimObj:
-        fComplete = D_002DDF40.cpzoom.FAtTargetEye();
+        fComplete = g_cm.cpzoom.FAtTargetEye();
         break;
     case RELAYCK_TweenTime:
-        fComplete = D_002DDF40.cpzoom.FAtTargetZoom();
+        fComplete = g_cm.cpzoom.FAtTargetZoom();
         break;
     case RELAYCK_ButtonPrompt:
         if (prelaycmd->buttonPrompt.oidWho == -1)
@@ -5369,23 +5367,18 @@ extern "C" int IsJsgRemoved(JSGV *script)
 
 // 0x1E57A0 StartRelayScriptCamBlend
 namespace M_func_001E57A0 { extern "C" {
-struct T; struct A; struct SUB; struct P; struct G2; struct G;
+struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct T { qword v0; qword v10; float f20; };
-struct A { int n0; int n4; int pad8[2]; struct T t; float f40; int n44; };
-struct SUB { struct T *apt[2]; float f8C; int n90; int n94; void *p98; int n9C; };
-struct P { char pad[0x80]; float f80; struct SUB sub; };
-struct G2 { char pad[0x30]; qword v30; };
-struct G { char pad[0x20]; float f20; char pad24[0x60 - 0x24]; struct G2 m60; char pad2[0x500 - 0xA0]; char m500[0x10]; int n510; };
+struct A { int n0; int n4; int pad8[2]; CAMPOSE t; float f40; int n44; };
+struct P { char pad[0x80]; float f80; CAMMOVE sub; };
 extern qword D_002A2DD0;
 extern float D_002A8124;
 extern struct { float t; float dt; } D_002DDED0;
-extern struct G D_002DDF40;
 int AreFloatsNear__Ffff(float, float, float);
 float NormalizeAngle__Ff(float);
 qword DecomposeRotationMatrixToEuler(void *);
 int IsCameraPolicyActive__FP5CPLCY(void *);
-void RevokeCmPolicy(void *, int, int, void *, int, int);
+void RevokeCmPolicy(void *, int, int, void *, int, void *);
 void SetCmPolicy(void *, int, void *, int, void *);
 // Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
@@ -5405,39 +5398,42 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
         pb->n4 = 0;
         script->f80 = D_002DDED0.t + t;
     }
-    script->sub.apt[0] = &pa->t;
-    script->sub.apt[1] = &pb->t;
-    script->sub.f8C = t;
-    script->sub.n90 = 1;
-    script->sub.n94 = pa->n44;
-    script->sub.p98 = script;
-    script->sub.n9C = 1;
-    pga = (float *)&pa->t.v10;
-    pgb = (float *)&pb->t.v10;
+    script->sub.pposeFrom = &pa->t;
+    script->sub.pposeTo = &pb->t;
+    script->sub.dt = t;
+    script->sub.fCutOnLeave = 1;
+    script->sub.iCurve = pa->n44;
+    script->sub.pevent = (CAMEVENT *)script;
+    script->sub.nUnk18 = 1;
+    pga = &pa->t.eul.x;
+    pgb = &pb->t.eul.x;
     for (i = 2; i >= 0; i--) {
         *pgb = *pga + NormalizeAngle__Ff(*pgb - *pga);
         pga++;
         pgb++;
     }
     {
-        struct T **ppt = script->sub.apt;
+        CAMPOSE **ppt = &script->sub.pposeFrom;
         unsigned j;
         qword *zero=&D_002A2DD0;
         for (j = 0; j < 2; j++, ppt++) {
-            struct T *pt = *ppt;
-            if (FNear(pt->v0, *zero))
-                pt->v0 = (*(struct G2 *)&g_cm.mat).v30;
-            if (FNear(pt->v10, *zero))
-                pt->v10 = DecomposeRotationMatrixToEuler(&(*(struct G2 *)&g_cm.mat));
-            if (pt->f20 == 0.0f)
-                pt->f20 = D_002DDF40.f20;
+            CAMPOSE *pt = *ppt;
+            if (FNear(*(qword *)&pt->pos, *zero))
+            {
+                CMMATQ *pmatq = &g_cm.matq;   /* through a pointer: read at base &g_cm.mat, offset 0x30 */
+                *(qword *)&pt->pos = pmatq->pos;
+            }
+            if (FNear(*(qword *)&pt->eul, *zero))
+                *(qword *)&pt->eul = DecomposeRotationMatrixToEuler(&g_cm.matq);
+            if (pt->radFov == 0.0f)
+                pt->radFov = g_cm.fieldOfView;
         }
     }
-    if (script->sub.f8C == 0.0f)
-        script->sub.f8C = D_002A8124;
-    if (IsCameraPolicyActive__FP5CPLCY(D_002DDF40.m500))
-        RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
-    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &script->sub);
+    if (script->sub.dt == 0.0f)
+        script->sub.dt = D_002A8124;
+    if (IsCameraPolicyActive__FP5CPLCY(&g_cm.cpcamblend))
+        RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, g_cm.cpcamblend.pcammove);
+    SetCmPolicy(&g_cm, 10, &g_cm.cpcamblend, 0, &script->sub);
 }
 } } // namespace M_func_001E57A0
 
@@ -5445,14 +5441,13 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
 namespace M_func_001E5A98 { extern "C" {
 struct S;
 struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
-extern char D_002DDF40[];
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
 void EndJsgCamBlend(struct S *script, int n)
 {
     script->n90 = n;
     script->n9C = 0;
-    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, script->a84);
+    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->a84);
 }
 } } // namespace M_func_001E5A98
 

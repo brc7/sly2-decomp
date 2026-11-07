@@ -63,7 +63,6 @@ typedef void (TRIG::*PMF)();
 extern SW D_003DD490;
 extern "C" {
 extern char D_002DEB30[];
-extern char D_002DDF40[];
 extern char D_002DFC00[];
 extern char D_002DE578[];
 extern const char D_002A76B8[];   /* defined below where the ELF has it (.rodata order) */
@@ -430,7 +429,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             }
             break;
         case 8:
-            if (breakable->reactionMask & 2) JoltCamera(D_002DDF40, pi->b);
+            if (breakable->reactionMask & 2) JoltCamera(&g_cm, pi->b);
             break;
         case 9:
             if (breakable->reactionMask & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);

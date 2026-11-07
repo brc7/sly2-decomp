@@ -50,9 +50,6 @@ struct CLOCKV { float t; float dt; char pad08[0x40 - 0x08]; float dtReal; };
 extern "C" CLOCKV D_002DDED0;
 
 
-/* CMIsland: g_cm's position as a qword member (CM::pos is a VECTOR4); this form exists to reproduce the original
-   codegen (through a cast of the VECTOR4, RenderBlipgSelf schedules differently: 169/296 off). */
-struct CMIsland { char pad[0x90]; qwordV pos; };
 struct VIFS { int pad[3]; int writeOffset; };   /* (inferred) where the next packet starts */
 extern "C" VIFS D_002DEA28;
 
@@ -789,7 +786,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 //    the lw is written inside the VU_FLOATR asm with an allocation-only "r"(pcm) input.
 //  * The boundsCenter barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
 //    ranks the boundsCenter chain above mat.r[2] (boundsCenter vf1 instead of vf2).
-//  * Plain VuSub (2 refs on ((CMIsland *)pcm)->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
+//  * Plain VuSub (2 refs on pcm->matq.pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
 //  * The empty "=r"(z) asm only exists for sched2 (see the comment there).
 struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };   /* one place to draw the blips at: rotation rows, then position (x30..w30) */
 extern "C" LIGHTM D_002A2D30;
@@ -867,7 +864,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             /* empty asm, emits nothing: z depends on pcm and feeds the Rot and the Add, so in sched2 it takes the
                second issue slot next to the lw and the mat.r[1] lqc2 waits a cycle (target order lw, lqc2, por, Rot) */
             int z; __asm__("" : "=r"(z) : "r"(pcm));
-            qwordV d = VuSub(AddZ(RotKZ(mat, v, vf.q, z), pos, z), ((CMIsland *)pcm)->pos);
+            qwordV d = VuSub<qwordV>(AddZ(RotKZ(mat, v, vf.q, z), pos, z), pcm->matq.pos);
             __asm__("" : "+j"(d)); /* empty asm: extra refs so d is caller-saved in vf1 */
             if (!IsInCameraFrustum(&g_cm, d, vf))
                 goto next;
@@ -894,7 +891,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
         qwordV v = blipGroup->boundsCenter;
         __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(blipGroup->boundsRadius);
-        if (!IsInCameraFrustum(pcm, SubE(v, ((CMIsland *)pcm)->pos), vf))
+        if (!IsInCameraFrustum(pcm, SubE(v, pcm->matq.pos), vf))
             goto none;
         cLight = 1;
         aLight = &D_002A2D30;

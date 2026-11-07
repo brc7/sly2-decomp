@@ -266,6 +266,16 @@ struct CMBASE : public BASIC
 {
 };
 
+/* CMMATQ: the camera matrix (CM::mat) as quadword rows: the three rotation rows, then the position. The VU0 code moves
+ * the rows as 128-bit members (lq 0x90(base), base &g_cm), which a cast of the float members does not give (g++ folds
+ * the offset into the address constant); a read at base &g_cm.mat goes through a local CMMATQ pointer. See
+ * docs/decisions.md 1.8 and docs/guides/tu-merging.md "Views unified (names/vu-f5-camera-2)". */
+struct CMMATQ
+{
+    qword rot[3];   /* rotation rows (row 0 the view direction, rows 1/2 the other two axes) */
+    qword pos;      /* the camera position (CM::pos) */
+};
+
 /* CM: the camera: the policy stack, the view matrix, projection and frustum, fog, and the embedded policy objects.
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CM : public CMBASE
@@ -293,9 +303,10 @@ struct CM : public CMBASE
             MATRIX3 matRot;
             VECTOR4 pos;
         };
+        CMMATQ matq;   /* the same matrix as quadword rows (the VU0 register view; see CMMATQ) */
     };
-      float agFrustumXyz[12];   /* frustum corner coordinates */
-      float agFrustumWideXyz[12];   /* wide frustum corner coordinates */
+      float agFrustumXyz[12];   /* the four side planes' normals transposed: x of the four, then y, then z (three VU0 registers, the cull microprogram's vf10-vf12) */
+      float agFrustumWideXyz[12];   /* the same for the wide frustum (follows agFrustumXyz directly: UpdateCmMat4's copy loop) */
       MATRIX4 matProj;   /* projection matrix */
       MATRIX4 matViewProj;   /* view-projection matrix */
       MATRIX4 matViewProjInv;   /* its inverse */
@@ -351,6 +362,7 @@ typedef char assert_CM_cpzoom[SLY2_OFFSETOF(CM, cpzoom) == 0x520 ? 1 : -1];   /*
 typedef char assert_CM_grfvis[SLY2_OFFSETOF(CM, grfvis) == 0x14 ? 1 : -1];   /* match (so.cpp / frm.cpp visibility mask) */
 typedef char assert_CM_aspectRatio[SLY2_OFFSETOF(CM, aspectRatio) == 0x3C ? 1 : -1]; /* match (turret.cpp) */
 typedef char assert_CM_mat[SLY2_OFFSETOF(CM, mat) == 0x60 ? 1 : -1];   /* match (camera matrix, pos at +0x90) */
+typedef char assert_CM_matq_pos[SLY2_OFFSETOF(CM, matq.pos) == 0x90 ? 1 : -1];   /* match (the qword position reads) */
 typedef char assert_CM_rgbaFog[SLY2_OFFSETOF(CM, rgbaFog) == 0x24C ? 1 : -1];   /* match (shd.cpp) */
 typedef char assert_CM_cplook_rZoomMax[SLY2_OFFSETOF(CM, cplook.rZoomMax) == 0x478 ? 1 : -1];   /* match (hud.cpp) */
 typedef char assert_CM_cpzoom_rZoomMax[SLY2_OFFSETOF(CM, cpzoom.rZoomMax) == 0x5D4 ? 1 : -1];   /* match (hud.cpp) */

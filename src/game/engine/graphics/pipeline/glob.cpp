@@ -1165,16 +1165,6 @@ struct SHD
     uint ibRef;
     uint cqwRef;
 };
-struct VIEW
-{
-    char pad[0x1C];
-    float sGain;
-    char pad20[0x28];
-    float sNear;
-    char pad4C[0x44];
-    qword posCam;
-    qword aqwPlane[3];
-};
 struct CLOCK
 {
     float time, deltaTime;
@@ -1200,7 +1190,6 @@ struct RPL
 };
 extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
-extern "C" { extern VIEW D_002DDF40; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
@@ -1212,7 +1201,7 @@ void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius);
-int IsWithinCameraRenderDistance(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
+int IsWithinCameraRenderDistance(CM *pcm, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
 RPL *AllocRenderListEntry(void);
 }
@@ -1289,12 +1278,12 @@ struct VU_FLOATS
 // Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers.
 static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
 {
-    qword *aqwPlane = D_002DDF40.aqwPlane;
+    qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
     register qword qwPlane1 __asm__("vf11") = aqwPlane[1];
     register qword qwPlane2 __asm__("vf12") = aqwPlane[2];
     register qword qwCam __asm__("vf13") = posCam;
-    register qword qwGain __asm__("vf14") = VU_FLOATM(D_002DDF40.sGain).qw;
+    register qword qwGain __asm__("vf14") = VU_FLOATM(g_cm.rCullScale).qw;
     register qword qwPos __asm__("vf15") = pos;
     register qword qwRadius __asm__("vf16") = VU_FLOATM(sRadius).qw;
     register qword qwRange __asm__("vf17") = VU_FLOATS(psph).qw;
@@ -1312,12 +1301,12 @@ static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph
 // Same cull, with the VU0 sync as its own statement and the visibility moved out through a GPR.
 static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
 {
-    qword *aqwPlane = D_002DDF40.aqwPlane;
+    qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
     register qword qwPlane1 __asm__("vf11") = aqwPlane[1];
     register qword qwPlane2 __asm__("vf12") = aqwPlane[2];
     register qword qwCam __asm__("vf13") = posCam;
-    register qword qwGain __asm__("vf14") = VU_FLOATM(D_002DDF40.sGain).qw;
+    register qword qwGain __asm__("vf14") = VU_FLOATM(g_cm.rCullScale).qw;
     register qword qwPos __asm__("vf15") = pos;
     register qword qwRadius __asm__("vf16") = VU_FLOATM(sRadius).qw;
     register qword qwRange __asm__("vf17") = VU_FLOATS(psph).qw;
@@ -1398,7 +1387,7 @@ static inline int KindOf(SUB *psub)
 extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SHD *pshd)
 {
     SUBDESC *pdesc;
-    qword posCam = D_002DDF40.posCam;
+    qword posCam = g_cm.matq.pos;
     qword pos = TransformPointRef(pmodel->powner->pxf->localMatrix, *(qword *)&pmodel->posCenter);
     float sRadius = pmodel->rad;
     if (pmatWorld)
@@ -1472,7 +1461,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         else
         {
             dposSub = VuSub(posSub, posCam);
-            if (!IsWithinCameraRenderDistance(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
+            if (!IsWithinCameraRenderDistance(&g_cm, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
         uchar *pbStart = D_002DEA28.pb;
@@ -1498,7 +1487,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             ptag = (ulong *)D_002DEA28.pb;
             *ptag = 0x10000000;
             float g = SqDist(posCam, posSub);
-            float sNear = sRadiusSub + D_002DDF40.sNear;
+            float sNear = sRadiusSub + g_cm.nearCornerDistance;
             D_002DEA28.pb += 0x10;
             int fNear = g < sNear * sNear;
             UnpackWords(0x6001C012, &fNear, 1);
@@ -2686,7 +2675,6 @@ struct GLOBSET
       void *pbatchrecsFirst;
 };
 struct ACT;
-struct CM;
 struct XF
 {
       MATRIX4 localMatrix;
@@ -2711,7 +2699,6 @@ struct XF
       qword unknownE0;
       qword acceleration;
 };
-extern "C" { extern CM D_002DDF40; }
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 struct SWALLOCC
 {
@@ -2931,7 +2918,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     }
     float *pgFit;
     vifs.UnpackHelper(UPK_V4_32, 1, 9, 0, (uint **)&pgFit);
-    CalcRecipFitParams(psgl->fogIntensity, &D_002DDF40, pgFit);
+    CalcRecipFitParams(psgl->fogIntensity, &g_cm, pgFit);
 
     psubglob->cbnd = pbis->U8Read();
     pglob->abnd = (BND *)AllocClearedFromWorldHeap16(psubglob->cbnd * sizeof(BND));
@@ -4625,10 +4612,6 @@ extern "C" void EndRpCutout(VIFS *pvifs)
 namespace M_LoadSubglobType1FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 struct P;struct SPHERE;struct FACE;
-struct ENV {
-    char pad[0x240];
-    float width, height, fade;
-};
 struct PARAM {
     float value;
     int pad, kind;
@@ -4664,10 +4647,9 @@ extern "C"{
 void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*AllocClearedFromWorldHeap(const REQUEST&);
-void BuildCmFgfn(ENV*,float*,float);
+void BuildCmFgfn(CM*,float*,float);
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-extern ENV D_002DDF40;
 extern uint D_002DEB50;
 extern QW D_002DEB60;
 extern uint D_002BE540[];
@@ -4721,9 +4703,6 @@ typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
-typedef char ENV_width_Offset[FIELD_OFFSET(ENV,width)==576?1:-1];
-typedef char ENV_height_Offset[FIELD_OFFSET(ENV,height)==580?1:-1];
-typedef char ENV_fade_Offset[FIELD_OFFSET(ENV,fade)==584?1:-1];
 // Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader.
 extern "C" void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
@@ -4735,7 +4714,7 @@ extern "C" void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, S
     vifs.AddDmaCnt();
     float *environment;
     vifs.UnpackHelper(UPK_V4_32, 1, 9, 0, (uint **)&environment);
-    BuildCmFgfn(&D_002DDF40, environment, param->value);
+    BuildCmFgfn(&g_cm, environment, param->value);
     int count = stream->U8Read();
     desc->count = count;
     entry->bones = (BONE *)Allocate((char)count * sizeof(BONE));

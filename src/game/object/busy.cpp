@@ -15,9 +15,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/cm.h"
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
-/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen (read at
-   base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
-struct CMIsland { char pad[0x90]; qword pos; };
 struct VTE { short d; short pad; void *pfn; };
 /* View of an SO: vtable (22 leave, 23 enter), its busy-list entry (+0x14), zone kind in bits 52..55 of the flags
    at +0x28 (0 camera, 1 always in, 2 always out, 3 hero), the zone mask byte (+0x2D) and the zone radius (+0x38). */
@@ -128,7 +125,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
     int cameraMask;
     void *hero;
     void *entry;
-    cameraPos = ((CMIsland *)&g_cm)->pos;
+    cameraPos = g_cm.matq.pos;
     cameraMask = g_cm.grfvis;
     hero = GetHeroPo();
     if (hero)
@@ -216,7 +213,7 @@ extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
     void *hero;
     int isInZone, entry;
     if ((*(int *)&g_sw.aploNew)) return;
-    cameraPos = ((CMIsland *)&g_cm)->pos;
+    cameraPos = g_cm.matq.pos;
     cameraMask = g_cm.grfvis;
     hero = GetHeroPo();
     if (hero) heroPos = GetLoWorldPos(hero);

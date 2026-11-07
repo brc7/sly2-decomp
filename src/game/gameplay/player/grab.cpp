@@ -1299,8 +1299,6 @@ struct JOY { char pad0[0x1C]; float amount; };
 struct ANIMATION;
 struct PROGRAM;
 struct EFFECT;
-struct MANAGER;
-struct CAMERA;
 struct COMPONENT { void *object; };
 struct PROGRAM_ITEM { void *owner; CLIP *clip; char pad8[0xA0 - 8]; };
 struct LO { char pad0[0xC]; VTE *vt; char pad10[0x40 - 0x10]; uint flags; };
@@ -1345,7 +1343,6 @@ extern "C" {
 extern CLOCK D_002DDED0;          // g_clock
 extern ACTOR *D_002E1E40;         // the player
 extern ACTOR *D_002F7900;
-extern MANAGER D_002DDF40;
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
 extern float D_002BF63C;
 extern float D_002BF640;
@@ -1364,8 +1361,8 @@ void RcPtr_Assign(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
 void FixStepAngularVelocity(ACTOR *);
 void SetStepTargetHeadingFromVector(ACTOR *, qword);
-void SetCmPolicy(MANAGER *, int, CAMERA *, ACTOR *, void *);
-void RevokeCmPolicy(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
+void SetCmPolicy(CM *, int, CPLCY *, ACTOR *, void *);
+void RevokeCmPolicy(CM *, int, int, CPLCY *, ACTOR *, void *);
 void SetJtCaneState__FP2JTi(ACTOR *, int);
 void SetJtHandsTarget(ATTACH *, int);
 void ReleaseJtHandsActs(void *);
@@ -1539,13 +1536,13 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
                 SetVector(grab->pactor, 35, D_002A2DD0);
                 SetVector(grab->pactor, 36, D_002A2DD0);
             }
-            SetCmPolicy(&D_002DDF40, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), grab->pactor, grab->pactor->anchor);
+            SetCmPolicy(&g_cm, 10, &g_cm.hangPolicy, grab->pactor, grab->pactor->anchor);
         }
         break;
     case 9:
     case 10:
         if (!(Less(step, 11) && !Less(step, 9)))
-            RevokeCmPolicy(&D_002DDF40, 2, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), 0, 0);
+            RevokeCmPolicy(&g_cm, 2, 10, &g_cm.hangPolicy, 0, 0);
         break;
     }
 

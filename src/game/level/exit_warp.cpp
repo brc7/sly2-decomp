@@ -82,7 +82,6 @@ struct MEMREQ { int cb; int cbAlign; };
 
 extern SW D_003DD490;           /* g_sw */
 extern char D_002DEB30[];
-extern char D_002DDF40[];       /* g_cm */
 extern char D_002F66B0[];       /* the movie player */
 extern CLOCK D_002DDED0;        /* g_clock */
 
@@ -277,8 +276,8 @@ extern "C" void TakeExit(EXITV *exitVolume)
         return;
     }
     ApplyTaskStates(D_002DEB30, exitVolume->taskStateCount, exitVolume->taskStates, exitVolume);
-    RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x450, 0, 0);
-    RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x520, 0, 0);
+    RevokeCmPolicy(&g_cm, 2, -1, &g_cm.cplook, 0, 0);
+    RevokeCmPolicy(&g_cm, 2, -1, &g_cm.cpzoom, 0, 0);
     SetExitExits(exitVolume, 4);
     exitVolume->wipeTime = D_002DDED0.time + exitVolume->wipeDelay;
     ((void (*)(void *, int, int, int, int, int))exitVolume->vtable[3].pfn)((char *)exitVolume + exitVolume->vtable[3].d, 5, 0, 0, 0, 0);
@@ -386,7 +385,7 @@ extern "C" void TriggerWarp(WARPV *warp)
         if (exitList[j]->state != 2)
             SetExitExits(exitList[j], 0);
     }
-    CutCm((CM *)D_002DDF40);
+    CutCm(&g_cm);
     ((void (*)(void *, int, int, int, int, int))warp->vtable[3].pfn)((char *)warp + warp->vtable[3].d, 5, 0, 0, 0, 0);
 }
 

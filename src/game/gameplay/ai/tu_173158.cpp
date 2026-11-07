@@ -31,10 +31,6 @@ struct LMV { float gMin, gMax; };
 struct VTE { short d; short pad; void *pfn; };
 struct SCOPE { int a[4]; };
 struct AI { int cb; int align; };
-/* CMIsland: g_cm (sly2/cm.h CM) with its matrix as qword rows (row 0 the direction, row 3 the position); this form
-   exists to reproduce the original codegen (the rows are read at g_cm+0x60/+0x90 from base &g_cm, which a cast of
-   CM::mat does not give: it folds the matrix offset into the base). */
-struct CMIsland { char pad[0x60]; M4 mat; };
 
 /* An LO view: vtable, flags word (fInWorld = bit 60), radius (+0x38), the curve's path data (+0x180). */
 struct LOV { char pad0[0xC]; VTE *vt; char pad10[0x18]; unsigned long flags; char pad30[8]; float radius; char pad3C[0x144]; void *curveData; };
@@ -136,7 +132,6 @@ float D_002BE5E4=1500.0f;
 float D_002BE5E8=200.0f;
 float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
-extern CMIsland D_002DDF40;
 extern const float D_002A53E0;   /* defined below where the ELF has it (.rodata order) */
 extern LMV D_002BBB60;
 void InitLo(CID119V *p);
@@ -156,7 +151,7 @@ void AddGuardScriptFollowPath(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
-qwordV ConvertCmWorldToScreen(CMIsland*,qwordV);
+qwordV ConvertCmWorldToScreen(CM*,qwordV);
 LOV *GetHeroPo(void *g);
 qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
@@ -402,11 +397,11 @@ static inline float Len2(qwordV input)
     return f;
 }
 // Loads the camera and position operands (register-pinned asm for the match).
-static inline void ReadInputs(CMIsland *source, const U &position, qwordV &cpu, qwordV &point, qwordV &vector)
+static inline void ReadInputs(CM *source, const U &position, qwordV &cpu, qwordV &point, qwordV &vector)
 {
-    register CMIsland *p asm("$2") = source;
+    register CM *p asm("$2") = source;
     register qwordV r asm("$5"), v asm("vf1"), o asm("vf2");
-    __asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2" : "=r"(r), "=j"(v), "=j"(o) : "m"(p->mat.r[3]), "m"(position.q));
+    __asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2" : "=r"(r), "=j"(v), "=j"(o) : "m"(p->matq.pos), "m"(position.q));
     cpu = r;
     point = v;
     vector = o;
@@ -433,7 +428,7 @@ extern "C" int GetSpawnPointConcealment(CID119V *spawner, qwordV pos, int count,
     register int numObjects asm("$19") = count;
     register void **objectList asm("$18") = objects;
     U raised, origin, position, difference;
-    register CMIsland *camera asm("$2") = &D_002DDF40;
+    register CM *camera asm("$2") = &g_cm;
     position.q = pos;
     qwordV cpu, point, vector;
     ReadInputs(camera, position, cpu, point, vector);
@@ -498,7 +493,7 @@ extern "C" qwordV GetSpawnerFocusPosition(CID119V *spawner)
     void *world = D_003DD490;
     if (GetHeroPo(world))
         return GetLoWorldPos(GetHeroPo(world));
-    return D_002DDF40.mat.r[3];   // the camera position
+    return g_cm.matq.pos;   // the camera position
 }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
@@ -805,7 +800,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 if (distance < D_002BE5E4 || bestDistance < distance)
                     continue;
                 // Face along the curve, toward the camera's x axis.
-                int isFlipped = QwordX(VuDot(D_002DDF40.mat.r[0], curveDirection.q)) < 0.0f;
+                int isFlipped = QwordX(VuDot<qwordV>(g_cm.matq.rot[0], curveDirection.q)) < 0.0f;
                 if (!isFlipped)
                 {
                     VU_FLOAT minusOne = VuFloatFromMemWord(0xBF800000);   // -1.0f

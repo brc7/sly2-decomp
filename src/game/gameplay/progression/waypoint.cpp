@@ -14,9 +14,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
-/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen (read at
-   base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
-struct CMIsland { char pad[0x90]; qwordV pos; };
 typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned long ulong;
@@ -561,7 +558,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
         return;
 
     CalculateWayptCurtainExtraHeight((O *)waypoint);
-    qwordV posCam = ((CMIsland *)&g_cm)->pos;
+    qwordV posCam = g_cm.matq.pos;
     qwordV pos = GetLoWorldPos(waypoint->source);
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;

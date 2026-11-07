@@ -768,7 +768,6 @@ struct S { char pad[0xec]; int fec; char pad2[0x16f0 - 0xf0]; ti128 v16f0; };
 union VQ { float af[4]; ti128 q; };
 extern VQ D_002BC970;    /* screen points for ConvertCmScreenToWorld */
 extern VQ D_002BC980;
-extern char D_002DDF40[];
 extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
@@ -783,8 +782,8 @@ void UpdateBentleyAimPoint(struct S *bentley) {
     struct LSG lsg;
     int cso;
     int aso;
-    ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970.q);
-    ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
+    ti128 v1 = ConvertCmScreenToWorld(&g_cm, D_002BC970.q);
+    ti128 v2 = ConvertCmScreenToWorld(&g_cm, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
     IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, bentley->fec, &cso, &aso);
     if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->v16f0 = lsg.pos;
@@ -1495,7 +1494,7 @@ int CanBentleyUseGadget(struct P *bentley, int k)
         case 3: {
             int r = 0;
             if (bentley->x12F0 && (D_002DFBC0 & 2))
-                r = IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) == 0;
+                r = IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0) == 0;
             return r;
         }
         case 1: case 2: case 8: case 10: case 12: case 14:
