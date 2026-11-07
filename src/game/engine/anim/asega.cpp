@@ -208,7 +208,7 @@ void RetractAsega(ASEGA *player)
         RcPtr_Assign(&player->sound, 0);
         player->HandleSpliceEvent(3, 0, 0, 0, 0);
         if (player->rootObject)
-            ((LO *)player->rootObject)->HandleMessage((MSGID)2, player);
+            player->rootObject->HandleMessage((MSGID)2, player);
         SendLoMessage(player, 2, player);
         player->Release();
         End(&g);
@@ -341,7 +341,7 @@ void HandleAsegaEventsFastForward(ASEGA *player)
 }
 
 // The object events of this player act on: its root object if bound, otherwise the segment itself. (inferred)
-LO *GetAsegaEventTarget(ASEGA *player) { if (player->rootObject) return (LO *)player->rootObject; return player->animation; }
+LO *GetAsegaEventTarget(ASEGA *player) { if (player->rootObject) return player->rootObject; return player->animation; }
 
 struct MSG { ASEGA *p; float g; int n; };
 // Executes one segment event: sounds, rumble, hands-off, applying / seeking / retracting other segments, splice script
@@ -460,7 +460,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         SetSoAnimIndex(player->rootObject, -1);
         break;
     case 24:
-        if (player->rootObject && IsBasicDerivedFrom((BASIC *)player->rootObject, (CID)0x34)) {
+        if (player->rootObject && IsBasicDerivedFrom(player->rootObject, (CID)0x34)) {
             char *pb = (char *)event->pea24;
             SetStepplayerIdleParams(player->rootObject, pb, pb + 8, pb + 0x10);
         }
@@ -475,7 +475,7 @@ extern "C" void SendAsegaMessage(ASEGA *player, int message, ASEGA *argument) {
     GVOL volatile g;
     g.po = player;
     player->AddRef();
-    if (player->rootObject) ((LO *)player->rootObject)->HandleMessage((MSGID)message, argument);
+    if (player->rootObject) player->rootObject->HandleMessage((MSGID)message, argument);
     SendLoMessage(player, message, argument);
     { ASEGA *po = g.po; po->Release(); }
 }

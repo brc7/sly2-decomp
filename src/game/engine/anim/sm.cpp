@@ -247,7 +247,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
                 continue;
             }
         }
-        grfAll |= psmt->grfsmt & 0xfffc;
+        grfAll |= psmt->grfsmt & fsmtRouteMask;
     }
     asmt = (SMT *)AllocWorldHeapCopy(csmt * sizeof(SMT), 16, asmt);
     LoadOptionsFromBrx(this, pbis);
@@ -310,7 +310,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
                             psmrt->ab[i * csms + psmt->ismsTo] = cstep;
                             fChanged = 1;
                         }
-                        else if ((psmt->grfsmt & 1) && psmrt->ab[i * csms + psmt->ismsTo] == cstep - 1 &&
+                        else if ((psmt->grfsmt & fsmtReversible) && psmrt->ab[i * csms + psmt->ismsTo] == cstep - 1 &&
                                  psmrt->ab[i * csms + psmt->ismsFrom] < 0)
                         {
                             psmrt->ab[i * csms + psmt->ismsFrom] = cstep;
@@ -554,7 +554,7 @@ extern "C" void SetSmaGoal(SMA *p, int n)
         Lock l(p);
         p->goalState = n;
         if (p->pasegaCur) {
-            if (p->psmtCur->grfsmt & 2) RetractAsega(p->pasegaCur);
+            if (p->psmtCur->grfsmt & fsmtRetractable) RetractAsega(p->pasegaCur);
         } else ChooseSmaTransition(p, 0);
     }
 }
@@ -738,7 +738,7 @@ int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
             ap[c++] = pe;
             continue;
         }
-        if ((pe->grfsmt & 1) && pe->ismsTo == a && CountSmTransitionHops(p, mask, pe->ismsFrom, b) == n - 1)
+        if ((pe->grfsmt & fsmtReversible) && pe->ismsTo == a && CountSmTransitionHops(p, mask, pe->ismsFrom, b) == n - 1)
             ap[c++] = pe;
     }
     if (c == 0) return 0;
@@ -757,7 +757,7 @@ int ChooseRandomSmTransition(SM *p, int mask, int k)
     int i;
     for (i = 0; i < p->csmt; i++) {
         SMT *pe = &p->asmt[i];
-        if ((pe->grfsmt & mask) && (pe->ismsFrom == k || ((pe->grfsmt & 1) && pe->ismsTo == k)))
+        if ((pe->grfsmt & mask) && (pe->ismsFrom == k || ((pe->grfsmt & fsmtReversible) && pe->ismsTo == k)))
             ape[n++] = pe;
     }
     if (n == 0) return 0;
@@ -898,7 +898,7 @@ struct Lock {
 extern "C" void SendSmaMessage(SMA *p, int a, int b)
 {
     Lock l(p);
-    LO *q = (LO *)p->paloRoot;   /* ALO is incomplete here */
+    ALO *q = p->paloRoot;
     if (q) q->HandleMessage((MSGID)a, (void *)b);
     SendLoMessage(p, a, b);
 }
@@ -977,7 +977,7 @@ float EstimateSmaTimeToState(SMA *p, int k)
         cur = p->currentState;
     } else {
         ASEGA *pq = p->pasegaCur;
-        if (!(p->psmtCur->grfsmt & 2)) {
+        if (!(p->psmtCur->grfsmt & fsmtRetractable)) {
             float d = pq->speed;
             float x;
             if (d < 0.0f) x = -pq->time;

@@ -11,6 +11,16 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
+/* ALO: Sly 1's "actor level object" (an LO with a transform and children). Sly 2 has no such class (docs/systems/
+   object-model.md: it was split into LO + XFM, the child list moved to SO), but the animation code's Sly 1 symbols
+   still say ALO (ApplyAsegCore__FP4ASEGP3ALO..., ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA), so the name stays for
+   the root object a segment or a state machine animates (SMA::paloRoot, ASEGA::rootObject, ACT::animatedObject): any
+   LO, in practice the SO at the root of a hierarchy. An empty derived struct keeps those mangled names and lets the
+   code use the object as the LO it is (its virtual calls, GetLoWorldPos...) without casts. */
+struct ALO : public LO
+{
+};
+
 /* EA: an animation event: something a segment triggers at a local time (sound, effect, message...), with a
    kind-dependent payload.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
@@ -206,12 +216,20 @@ struct SMT
         int fAseg;   /* load time */
         ASEG *paseg;   /* after PostSmLoad */
     };
-    int ismsFrom;
-    int ismsTo;
-    GRFSMT grfsmt;
-    GRFSMT grfsmtBreak;
-    float gProbability;
+    int ismsFrom;   /* +0x04 */
+    int ismsTo;   /* +0x08 */
+    GRFSMT grfsmt;   /* +0x0C fsmt* bits below, plus the route-group bits 0x4..0x1000 (LoadSmFromBrx builds one SMRT per group) */
+    GRFSMT grfsmtBreak;   /* +0x10 route bits that break the transition off: SetSmaMask aborts a running transition whose
+                             break bits meet the new route mask */
+    float gProbability;   /* +0x14 weight in the random choice (ChooseWeightedSmTransition) */
 };
+typedef char assert_SMT_size[sizeof(SMT) == 0x18 ? 1 : -1];   /* LoadSmFromBrx allocates csmt * 0x18 */
+typedef char assert_SMT_grfsmt[SLY2_OFFSETOF(SMT, grfsmt) == 0xC ? 1 : -1];
+/* GRFSMT bits (sm.cpp): */
+#define fsmtReversible 0x1   /* the transition can also be taken backwards (ismsTo -> ismsFrom): route BFS, ChooseSm* */
+#define fsmtRetractable 0x2   /* a new goal retracts the running segment rather than waiting for it (SetSmaGoal,
+                                 HandleSmaMessage) */
+#define fsmtRouteMask 0xfffc   /* the route-group bits LoadSmFromBrx collects */
 
 /* SMS: a state (SM::asms): its OID and the next state (an OID while loading, then the state index). */
 struct SMS
