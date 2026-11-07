@@ -2522,7 +2522,6 @@ union U {qword q;float f[4];int i[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {U r[4];};
-struct P {char pad[0x108];float ax,ay,az,bx,by,bz;};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Pack x, y, z into a 128-bit value.
@@ -2535,17 +2534,17 @@ static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz AC
 static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
-extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, U *out)
+extern "C" void BuildJtEdgeProbeArc(JTAIR *p, const M4 *world, int count, U *out)
 {
     M3 m;
     U *cursor = out, *v;
-    Set(cursor++, p->bx, p->bz);
-    Set(cursor++, p->bx, p->by);
-    Set(cursor++, p->ax, p->az);
+    Set(cursor++, p->unknown114, p->unknown11C);
+    Set(cursor++, p->unknown114, p->unknown118);
+    Set(cursor++, p->unknown108, p->unknown110);
     v = cursor++;
-    Set(v, p->bx, p->bz);
-    float x = p->ax, y = v->f[1];
-    qword a = Pack(x, y, p->az), b = Pack(x, y, p->ay);
+    Set(v, p->unknown114, p->unknown11C);
+    float x = p->unknown108, y = v->f[1];
+    qword a = Pack(x, y, p->unknown110), b = Pack(x, y, p->unknown10C);
     int i;
     for (i = 8; i >= 0; i--) {
         m = BuildAxisAngleRotationMatrix(D_002A2DC0, (i - 4) * 0.261799395084381103515625f);
@@ -2583,38 +2582,30 @@ struct M4 { M3 m; U pos; };
 struct PLANE { qword q; };
 // HIT is cleared 0x60 bytes at a time by the collision routines; the original frame reserves 0x70 for it.
 struct HIT { U point[2]; U plane[2]; float parameter[2]; int kind; PLANE *face[2]; int unk54[5]; };
-struct BSP;
-struct S0 { char pad[0x10]; long x10; char pad2[0x60 - 0x18]; S0 *x60; char pad64[0x10]; BSP *tree; };
-struct EC2 { char pad[0x34]; struct S0 *x34; char pad2[0x70 - 0x38]; long x70; };
-struct C { char pad[0xEC]; struct EC2 *xec; };
-struct L { int x0; struct L *x4; int x8; struct C *xc; };
-struct EC { char pad[0x64]; struct L *x64; };
-struct O { char pad[0xEC]; struct EC *xec; };
-struct P { struct O *x0; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" { extern qword D_002A2DB0; }
 extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *VECTOR_opAssign(qword *pq, qword q);
-void BuildJtEdgeProbeArc(struct P *p, const M4 *pm, int n, U *apt);
-int ClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
+void BuildJtEdgeProbeArc(JTAIR *p, const M4 *pm, int n, U *apt);
+int ClipEdgeToObject(SOPART *s, qword a, qword b, int n, HIT *ph);
 }
 
 // Clip the segment (a, b) against the object; returns the hit count and fills h.
-static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *h)
+static inline int HitSegment(SOPART *s, const qword *a, const qword *b, HIT *h)
 {
     return ClipEdgeToObject(s, *a, *b, 1, h);
 }
 
 // Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
 // ledge normal).
-extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
+extern "C" int IsJtEdgeNormalValid(JTAIR *p, qword q1, qword q2)
 {
     M3 m;
     M4 m4;
     qword apt[22];
     HIT hit;
-    struct L *l;
+    XPLIST *l;
     int c = 0;
     m.r[0].q = q2;
     GetNormalVectors(q2, D_002A2DC0, D_002A2DB0, &m.r[1].q);
@@ -2624,14 +2615,14 @@ extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
     m4.m.r[0].i[3] = m4.m.r[1].i[3] = m4.m.r[2].i[3] = 0;
     pm->pos.f[3] = 1.0f;
     BuildJtEdgeProbeArc(p, &m4, 22, (U *)apt);
-    for (l = p->x0->xec->x64; l; l = l->x4) {
+    for (l = p->player->physicsTree->pxplistFirst; l; l = l->pxplistNext) {
         int i;
-        if (l->xc->xec->x70 & 4)
+        if (l->psoOther->physicsTree->skipsUpdate)
             continue;
         for (i = 0; i < sizeof apt / sizeof *apt; i += 2) {
-            struct S0 *s;
-            for (s = l->xc->xec->x34; s; s = s->x60) {
-                if (s->x10 & (1L << 48))
+            SOPART *s;
+            for (s = (SOPART *)l->psoOther->physicsTree->parts.head; s; s = (SOPART *)s->dle.next) {
+                if (s->unknownFlag10A)
                     continue;
                 if (HitSegment(s, &apt[i], &apt[i + 1], &hit) <= 0)
                     continue;
@@ -2647,10 +2638,6 @@ extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
     return c >= 2;
 }
 
-typedef char guard_S0_x10[(unsigned)&((S0 *)0)->x10 == 16 ? 1 : -1];
-typedef char guard_S0_x60[(unsigned)&((S0 *)0)->x60 == 96 ? 1 : -1];
-typedef char guard_EC2_x34[(unsigned)&((EC2 *)0)->x34 == 52 ? 1 : -1];
-typedef char guard_EC2_x70[(unsigned)&((EC2 *)0)->x70 == 112 ? 1 : -1];
 typedef char guard_M4_pos[(unsigned)&((M4 *)0)->pos == 48 ? 1 : -1];
 typedef char guard_HIT_param[(unsigned)&((HIT *)0)->parameter == 64 ? 1 : -1];
 typedef char guard_size_HIT[sizeof(HIT) == 112 ? 1 : -1];
