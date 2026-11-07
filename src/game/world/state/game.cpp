@@ -2459,42 +2459,28 @@ extern "C" void SetTaskStateCascade(TASK *task, int state)
 } // namespace M_SetTaskStateCascade
 
 namespace M_func_00165118 {
-class O {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-extern "C" int IsTaskLive(O *p);
+extern "C" int IsTaskLive(TASK *p);
 // When live, sends the task's timeout Splice event (0x17).
-extern "C" void SendTaskTimeout(O *task, int n)
+extern "C" void SendTaskTimeout(TASK *task, int n)
 {
     if (IsTaskLive(task)) {
         void *apv[1];
         apv[0] = &n;
-        task->Msg(0x17, 0, 1, apv, 0);
+        task->HandleSpliceEvent(0x17, 0, 1, apv, 0);
     }
 }
 } // namespace M_func_00165118
 
 namespace M_SendTaskGameEvent {
-class O {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-extern "C" int IsTaskLive(O *p);
+extern "C" int IsTaskLive(TASK *p);
 // When live, forwards a game event to the task (Splice event 0x11).
-extern "C" void SendTaskGameEvent(O *task, int n, int m)
+extern "C" void SendTaskGameEvent(TASK *task, int n, int m)
 {
     if (IsTaskLive(task)) {
         void *apv[2];
         apv[0] = &n;
         apv[1] = &m;
-        task->Msg(0x11, 0, 2, apv, 0);
+        task->HandleSpliceEvent(0x11, 0, 2, apv, 0);
     }
 }
 } // namespace M_SendTaskGameEvent
@@ -2523,25 +2509,17 @@ void StartTaskByOid(void *pv, int worldEntry, int oid)
 } } // namespace M_func_001651D8
 
 namespace M_RestoreTasksAfterLoad {
-struct X;
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    inline StateSourceScope(X *pending, int source, int requester);
-    inline StateSourceScope(X *pending, int source, int requester, int isJob);
+    inline StateSourceScope(TASK *pending, int source, int requester);
+    inline StateSourceScope(JOB *pending, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad00[0x18]; int oid;
-    char pad[0x54 - 0x1C]; int state;
-    char pad1[0x7C - 0x58]; X *job;
-    char pad2[0xB8 - 0x80]; int warpOid; int level; int playerOid;
-    char pad3[0xF0 - 0xC4]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
-};
-inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
 {
     job = 0;
     task = px;
@@ -2552,22 +2530,22 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
-inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
 {
     job = owner;
     task = 0;
     if (owner) {
-        savedSource = owner->jobStateSource;
-        owner->jobStateSource = source;
-        savedRequester = job->jobStateRequester;
-        job->jobStateRequester = requester;
+        savedSource = owner->stateSource;
+        owner->stateSource = source;
+        savedRequester = job->stateRequester;
+        job->stateRequester = requester;
     }
 }
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
-        job->jobStateSource = savedSource;
-        job->jobStateRequester = savedRequester;
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
     }
     if (task) {
         task->stateSource = savedSource;
@@ -2577,13 +2555,13 @@ inline StateSourceScope::~StateSourceScope()
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
-extern "C" void SortTasksTopologically(int *pc, X ***papx);
-extern "C" void RestoreTaskState(X *p);
-extern "C" X *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
-extern "C" void SetTaskStateCascade(X *p, int n);
+extern "C" void SortTasksTopologically(int *pc, TASK ***papx);
+extern "C" void RestoreTaskState(TASK *p);
+extern "C" TASK *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
+extern "C" void SetTaskStateCascade(TASK *p, int n);
 extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
-extern "C" void SetTaskState(X *p, int n);
+extern "C" void SetTaskState(TASK *p, int n);
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
 // picks the current character from it and sets the warp.
 extern "C" void RestoreTasksAfterLoad(GAME *game)
@@ -2592,20 +2570,20 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
         return;
     STACKSCOPE fr;
     int numTasks;
-    X **tasks;
+    TASK **tasks;
     int i;
     SortTasksTopologically(&numTasks, &tasks);
     for (i = 0; i < numTasks; i++) {
-        X *restored = tasks[i];
+        TASK *restored = tasks[i];
         StateSourceScope scope(restored, STATE_SOURCE_LOAD_RESET, 0);
         RestoreTaskState(restored);
     }
-    X *pending = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->oidTaskPending, 0);
-    game->oidJobCur = pending->job->oid;
+    TASK *pending = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->oidTaskPending, 0);
+    game->oidJobCur = pending->pjob->oid;
     game->oidTaskCur = pending->oid;
     StateSourceScope scope(pending, STATE_SOURCE_LOAD_RESET, 0);
     SetTaskStateCascade(pending, TASK_STATE_AVAILABLE);
-    int playerOid = pending->playerOid;
+    int playerOid = pending->nCharacter;
     if (playerOid != -1) {
         CRef refRet;
         CRef ref;
@@ -2616,7 +2594,7 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
         Decref__4CRef(&ref);
     }
     for (i = 0; i < numTasks; i++) {
-        X *restored = tasks[i];
+        TASK *restored = tasks[i];
         StateSourceScope scope2(restored, STATE_SOURCE_LOAD_RESET, 0);
         SetTaskState(restored, TASK_STATE_UNSET);
     }
@@ -2627,24 +2605,17 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
 } // namespace M_RestoreTasksAfterLoad
 
 namespace M_GoToTask {
-struct X;
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    inline StateSourceScope(X *px, int source, int requester);
-    inline StateSourceScope(X *px, int source, int requester, int isJob);
+    inline StateSourceScope(TASK *px, int source, int requester);
+    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
-    char pad1[0x7C - 0x58]; X *job;
-    char pad2[0xB8 - 0x80]; int warpOid; int level; int playerOid;
-    char pad3[0xF0 - 0xC4]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
-};
-inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
 {
     job = 0;
     task = px;
@@ -2655,22 +2626,22 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
-inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
 {
     job = owner;
     task = 0;
     if (owner) {
-        savedSource = owner->jobStateSource;
-        owner->jobStateSource = source;
-        savedRequester = job->jobStateRequester;
-        job->jobStateRequester = requester;
+        savedSource = owner->stateSource;
+        owner->stateSource = source;
+        savedRequester = job->stateRequester;
+        job->stateRequester = requester;
     }
 }
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
-        job->jobStateSource = savedSource;
-        job->jobStateRequester = savedRequester;
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
     }
     if (task) {
         task->stateSource = savedSource;
@@ -2680,10 +2651,9 @@ inline StateSourceScope::~StateSourceScope()
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
-extern "C" void AbortJob(X *p);
-extern "C" void SetCurrentJob(X *p);
-extern "C" void SetTaskStateCascade(X *p, int n);
-extern "C" void ActivateTask(X *p);
+extern "C" void AbortJob(JOB *p);
+extern "C" void SetTaskStateCascade(TASK *p, int n);
+extern "C" void ActivateTask(TASK *p);
 extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
 extern "C" int GetCurrentLevelIndex__Fv();
@@ -2691,25 +2661,25 @@ extern "C" void *GetLevelFileRecord(int n);
 extern "C" void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d);
 // Goes to a task: switches to its job, makes it available and current, picks its character and wipes to its level and
 // warp.
-extern "C" void GoToTask(X *task)
+extern "C" void GoToTask(TASK *task)
 {
     StateSourceScope scope(task, STATE_SOURCE_GO_TO_TASK, 0);
-    StateSourceScope jobScope(task->job, STATE_SOURCE_GO_TO_TASK, 0, 1);
-    if (task->job != ((X *)D_003DD490.currentJob)) {
+    StateSourceScope jobScope(task->pjob, STATE_SOURCE_GO_TO_TASK, 0, 1);
+    if (task->pjob != (JOB *)D_003DD490.currentJob) {
         if (D_003DD490.currentJob) {
-            StateSourceScope currentJobScope(((X *)D_003DD490.currentJob), STATE_SOURCE_GO_TO_TASK, 0, 1);
-            AbortJob(((X *)D_003DD490.currentJob));
+            StateSourceScope currentJobScope((JOB *)D_003DD490.currentJob, STATE_SOURCE_GO_TO_TASK, 0, 1);
+            AbortJob((JOB *)D_003DD490.currentJob);
         }
-        if (task->job)
-            SetCurrentJob(task->job);
+        if (task->pjob)
+            SetCurrentJob(task->pjob);
     }
     SetTaskStateCascade(task, TASK_STATE_AVAILABLE);
     ActivateTask(task);
-    if (task->playerOid != -1) {
+    if (task->nCharacter != -1) {
         CRef refRet;
         CRef ref;
         ref.m_tagk = 0x15;
-        ref.m_tag = task->playerOid;
+        ref.m_tag = task->nCharacter;
         SetSaveVarByName(&refRet, &ref, D_002A5238, 0);
         Decref__4CRef(&refRet);
         Decref__4CRef(&ref);
