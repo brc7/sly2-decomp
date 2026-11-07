@@ -111,10 +111,10 @@ typedef char assert_SO_size[sizeof(SOV) == 0x150 ? 1 : -1];
 /* SENSOR : SO: objects and classes that do not trigger it (at most 7 each). */
 struct SENSORV : SOV
 {
-    int coidNoTrigger;      /* 0x150 */
-    OID aoidNoTrigger[7];
-    int ccidNoTrigger;      /* 0x170 */
-    CID acidNoTrigger[7];
+    int numNoTriggerObjects;      /* 0x150 */
+    OID noTriggerObjects[7];
+    int numNoTriggerClasses;      /* 0x170 */
+    CID noTriggerClasses[7];
 };
 typedef char assert_SENSOR_size[sizeof(SENSORV) == 0x190 ? 1 : -1];
 
@@ -154,10 +154,10 @@ typedef char assert_BEAMEND_size[sizeof(BEAMEND) == 0xA0 ? 1 : -1];
    beam's contact list. */
 struct BEAM
 {
-    BEAMEND aend[2];
-    float sFull;            /* 0x140 */
-    float sVisible;         /* 0x144 */
-    XP *pxpFirst;           /* 0x148 */
+    BEAMEND ends[2];
+    float fullLength;            /* 0x140 */
+    float visibleLength;         /* 0x144 */
+    XP *firstContact;           /* 0x148 */
     int pad14C;
 };
 typedef char assert_BEAM_size[sizeof(BEAM) == 0x150 ? 1 : -1];
@@ -170,7 +170,7 @@ struct ASEGAV { char pad0[0x1C]; float tLocal; char pad20[0x20]; float svt; };
 struct SCALER;
 struct SCALERVTE { short delta, pad; void (*fn)(SCALER *, U *, int, float, float); };
 struct SCALER { SCALERVTE *pvt; };
-struct CHNV { int x0; SCALER *pscaler; };
+struct CHNV { int unknown0; SCALER *pscaler; };
 
 /* An end cap: an object drawn at one end of every beam. */
 struct LASENCAP
@@ -184,17 +184,17 @@ struct LASENCAP
 /* LASEN : SENSOR (0x1C4). */
 struct LASENV : SENSORV
 {
-    ALO *paloLine;          /* 0x190 drawn along each beam */
-    ALO *paloStretch;       /* 0x194 scaled to each beam's length */
-    int cbeam;              /* 0x198 */
-    BEAM *abeam;            /* 0x19C */
-    LASENCAP acap[2];       /* 0x1A0 */
-    float svt;              /* 0x1C0 speed of the moving endpoints */
+    ALO *lineObject;          /* 0x190 drawn along each beam */
+    ALO *stretchObject;       /* 0x194 scaled to each beam's length */
+    int numBeams;              /* 0x198 */
+    BEAM *beams;            /* 0x19C */
+    LASENCAP caps[2];       /* 0x1A0 */
+    float endpointSpeed;    /* 0x1C0 time scale of the moving endpoints */
 
     void ZapBeams(int) __asm__("ZapLasenBeams");
 };
-typedef char assert_LASEN_cbeam[(int)(char *)&(((LASENV *)0)->cbeam) == 0x198 ? 1 : -1];
-typedef char assert_LASEN_svt[(int)(char *)&(((LASENV *)0)->svt) == 0x1C0 ? 1 : -1];
+typedef char assert_LASEN_cbeam[(int)(char *)&(((LASENV *)0)->numBeams) == 0x198 ? 1 : -1];
+typedef char assert_LASEN_endpointSpeed[(int)(char *)&(((LASENV *)0)->endpointSpeed) == 0x1C0 ? 1 : -1];
 
 /* A contact (XP) between a beam and an object, as far as this TU reads it (the same shape as dzg.cpp's view): two
    0x40-byte sides, each with its object at +0x08 and its contact position at +0x10. */
@@ -213,7 +213,7 @@ struct XP
     char pad80[0xA0 - 0x80];
     float s;                /* 0xA0 distance from the beam's first endpoint */
     char padA4[0xAC - 0xA4];
-    XP *pxpNext;            /* 0xAC */
+    XP *nextContact;            /* 0xAC */
 };
 
 /* Zap message (0x60). */
@@ -288,11 +288,11 @@ void RenderSoSelf(SOV *pso);
 
 void BuildLasenBeams(LASENV *plasen);
 void BindLasenAnimations(LASENV *plasen);
-void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
+void GetLasenBeamEnds(LASENV *plasen, BEAMEND *ends, qword *apos, float *ps);
 void MoveLasenEndpoints(LASENV *plasen);
 }
 
-// SENSOR::Init (vtable slot 7): InitSo; set SO grf bit 34. (inferred)
+// SENSOR::Init (vtable slot 7): SO init; sets SO flag bit 34 (fTreeRoot in sly2/so.h: its own physics tree root).
 void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 {
     SENSORV *sensor = (SENSORV *)this;
@@ -300,49 +300,49 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
     sensor->grfSo |= 0x400000000UL;
 }
 
-// SENSOR vtable slot 61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7,
-// FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore. (inferred)
+// SENSOR vtable slot 61 (FIgnoreIntersection): collides with nothing (1) except that objects named in the no-trigger
+// lists (by name or class) get 2 (NMaxIgnore). (inferred)
 extern "C" int FIgnoreSensorIntersection(SENSORV *sensor, SOV *pso)
 {
     int i, j;
     int r = 1;
-    for (i = 0; i < sensor->coidNoTrigger; i++) {
-        if (FMatchesLoName(pso, sensor->aoidNoTrigger[i]))
+    for (i = 0; i < sensor->numNoTriggerObjects; i++) {
+        if (FMatchesLoName(pso, sensor->noTriggerObjects[i]))
             r = func_00134310(r, 2);
     }
-    for (j = 0; j < sensor->ccidNoTrigger; j++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, sensor->acidNoTrigger[j]))
+    for (j = 0; j < sensor->numNoTriggerClasses; j++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, sensor->noTriggerClasses[j]))
             r = func_00134310(r, 2);
     }
     return r;
 }
 
-// Append a cid to the no-trigger class list (+0x170, max 7). (inferred)
+// Splice: adds a class that does not trigger the sensor (at most 7).
 extern "C" void AddSensorNoTriggerClass(SENSORV *sensor, CID cid)
 {
-    if ((uint)sensor->ccidNoTrigger < 7) {
-        sensor->acidNoTrigger[sensor->ccidNoTrigger++] = cid;
+    if ((uint)sensor->numNoTriggerClasses < 7) {
+        sensor->noTriggerClasses[sensor->numNoTriggerClasses++] = cid;
     }
 }
 
-// Append an oid to the no-trigger object list (+0x150, max 7). (inferred)
+// Splice: adds an object that does not trigger the sensor (at most 7).
 extern "C" void AddSensorNoTriggerObject(SENSORV *sensor, OID oid)
 {
-    if ((uint)sensor->coidNoTrigger < 7) {
-        sensor->aoidNoTrigger[sensor->coidNoTrigger++] = oid;
+    if ((uint)sensor->numNoTriggerObjects < 7) {
+        sensor->noTriggerObjects[sensor->numNoTriggerObjects++] = oid;
     }
 }
 
-// LASEN::Init (vtable slot 7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8. (inferred)
+// LASEN::Init (vtable slot 7): the SENSOR init; endpoint speed 1; clears SO flag bit 35; LO flag 8.
 extern "C" void InitLasen(LASENV *laser)
 {
-    int v;
+    int flags;
     ((SENSOR *)laser)->SENSOR::Init();
-    laser->svt = 1.0f;
+    laser->endpointSpeed = 1.0f;
     laser->grfSo &= ~0x800000000UL;
-    v = laser->grfDirty;
-    if ((v ^ 1) & 1) *(int *)v |= 8;
-    else laser->grfDirty = v | 8;
+    flags = laser->grfDirty;
+    if ((flags ^ 1) & 1) *(int *)flags |= 8;
+    else laser->grfDirty = flags | 8;
 }
 
 // Allocates cb bytes (alignment cbAlign) from the world heap.
@@ -350,27 +350,27 @@ static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb =
 // Shrinks or grows a world-heap block.
 static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE238(preq, pv); }
 
-// LASEN::LoadFromBrx (vtable slot 14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to
-// count. (inferred)
+// LASEN::LoadFromBrx (vtable slot 14): room for 64 beams, the SO load (its Splice init adds the beams), then the array
+// shrunk to the beams added.
 extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 {
     STACKSCOPE scope;
     ALLOCREQ req;
-    laser->abeam = (BEAM *)PvAllocMsg(&req, 64 * sizeof(BEAM), 0x10);
+    laser->beams = (BEAM *)PvAllocMsg(&req, 64 * sizeof(BEAM), 0x10);
     LoadSoFromBrx(laser, stream);
-    laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
+    laser->beams = (BEAM *)PvReallocMsg(&req, laser->numBeams * sizeof(BEAM), 0x10, laser->beams);
 }
 
-// LASEN::Clone (vtable slot 41): Clone__2SO then private copy of the beam array. (inferred)
+// LASEN::Clone (vtable slot 41): SO clone, then its own copy of the beam array.
 extern "C" void CloneLasen(LASENV *laser)
 {
     ALLOCREQ req;
     CloneSo(laser);
-    laser->abeam = (BEAM *)PvReallocMsg(&req, laser->cbeam * sizeof(BEAM), 0x10, laser->abeam);
+    laser->beams = (BEAM *)PvReallocMsg(&req, laser->numBeams * sizeof(BEAM), 0x10, laser->beams);
 }
 
-// LASEN::PostLoad (vtable slot 15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
-// initial zap pass (ZapLasenBeams). (inferred)
+// LASEN::PostLoad (vtable slot 15): SO post-load, builds the beams and their bounds, binds the end-cap animations and
+// runs a first ray pass (ZapLasenBeams(0)).
 void LASEN::VUnk14()
 {
     LASENV *laser = (LASENV *)this;
@@ -380,7 +380,7 @@ void LASEN::VUnk14()
     laser->ZapBeams(0);
 }
 
-// LASEN vtable slot 53: SO::PtreeNew then set tree flag 0x20. (inferred)
+// LASEN vtable slot 53 (PtreeNew): the SO tree node, flagged 0x20. (inferred: beams use their own contacts)
 extern "C" SOTREEV *NewLasenTree(LASENV *laser)
 {
     SOTREEV *ptree = func_001F56F8(laser);
@@ -430,11 +430,11 @@ extern "C" void BuildLasenBeams(LASENV *laser)
     RemoveSoParts(laser);
     minimum = D_002A2DF0;
     maximum = D_002A2E00;
-    for (i = 0; i < laser->cbeam; i++) {
-        BEAM *beam = &laser->abeam[i];
+    for (i = 0; i < laser->numBeams; i++) {
+        BEAM *beam = &laser->beams[i];
         uint j;
         for (j = 0; j < 2; j++) {
-            BEAMEND *end = &beam->aend[j];
+            BEAMEND *end = &beam->ends[j];
             end->kind = -1;
             if (end->oid != -1) {
                 LO *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)laser);
@@ -582,7 +582,7 @@ extern "C" void BuildLasenBeams(LASENV *laser)
             }
         }
     }
-    if (laser->cbeam) {
+    if (laser->numBeams) {
         ALLOCREQ request;
         laser->cpart = 1;
         request.cb = sizeof(SOPARTV);
@@ -606,12 +606,13 @@ extern "C" void BuildLasenBeams(LASENV *laser)
     if ((int)(laser->grfLo >> 60) & 1) AddSoParts(laser);
 }
 
-// For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key. (inferred)
+// Binds each end cap's animation: the first ASEG (class 0x6D) on the cap object, the ASEGA playing it (started if
+// none), and the channel that scales the cap (func_0012FF10 kind 0xC). (inferred)
 extern "C" void BindLasenAnimations(LASENV *laser)
 {
     uint i;
     for (i = 0; i < 2; i++) {
-        LASENCAP *pcap = &laser->acap[i];
+        LASENCAP *pcap = &laser->caps[i];
         ALO *palo = pcap->palo;
         ASEGV *paseg;
         CHNV *pchn;
@@ -634,23 +635,23 @@ extern "C" void BindLasenAnimations(LASENV *laser)
 }
 
 /* Remove the beams' contacts with pso. */
-// LASEN vtable slot 54: drop beam contact links that reference object x and free them. (inferred)
+// LASEN vtable slot 54: unlinks and frees the beams' contacts with the object and queues a new ray pass.
 extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
 {
     XP *list = 0;
     int i;
     func_001F5988();
-    for (i = 0; i < laser->cbeam; i++) {
-        XP **ppxp = &laser->abeam[i].pxpFirst;
+    for (i = 0; i < laser->numBeams; i++) {
+        XP **ppxp = &laser->beams[i].firstContact;
         XP *pxp;
         while ((pxp = *ppxp) != 0) {
             int side = pxp->axps[0].pso == laser;
             if (pso == pxp->axps[side].pso) {   /* the other side's object */
-                *ppxp = pxp->pxpNext;
-                pxp->pxpNext = list;
+                *ppxp = pxp->nextContact;
+                pxp->nextContact = list;
                 list = pxp;
             } else {
-                ppxp = &pxp->pxpNext;
+                ppxp = &pxp->nextContact;
             }
         }
     }
@@ -658,12 +659,12 @@ extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
     EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
 }
 
-// World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their
-// distance. (inferred)
-extern "C" void GetLasenBeamEnds(LASENV *laser, BEAMEND *aend, qword *apos, float *ps)
+// World positions of a beam's two endpoints (a fixed point from the sensor's root space, or the point on the path)
+// and, when ps is given, their distance.
+extern "C" void GetLasenBeamEnds(LASENV *laser, BEAMEND *ends, qword *apos, float *ps)
 {
     uint i;
-    BEAMEND *end = aend;
+    BEAMEND *end = ends;
     for (i = 0; i < 2; i++, end++) {
         switch (end->kind) {
         case 0:
@@ -732,13 +733,13 @@ extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a
 {
     int i;
     func_001F5990(laser, q, a2, a3, a4, ppxp);
-    for (i = 0; i < laser->cbeam; i++) {
-        BEAM *e = &laser->abeam[i];
+    for (i = 0; i < laser->numBeams; i++) {
+        BEAM *e = &laser->beams[i];
         qword seg[2];
         U pos;
         HIT hit;
         int found = 0;
-        GetLasenBeamEnds(laser, e->aend, seg, 0);
+        GetLasenBeamEnds(laser, e->ends, seg, 0);
         if (!ClsgClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             SOV *so = *q->psub->ppso;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
@@ -751,7 +752,7 @@ extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            PxpAdd(&D_003DD490, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->pxpFirst, 0.0f);
+            PxpAdd(&D_003DD490, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->firstContact, 0.0f);
             EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
         }
     }
@@ -763,19 +764,19 @@ void LASENV::ZapBeams(int)
 {
     LASENV *laser = this;
     int i;
-    for (i = 0; i < laser->cbeam; i++) {
+    for (i = 0; i < laser->numBeams; i++) {
         qword apos[2];
         ZAP zap;
         float s;
-        BEAM *beam = &laser->abeam[i];
-        GetLasenBeamEnds(laser, beam->aend, apos, &s);
-        if (beam->pxpFirst == 0) {
-            beam->sFull = beam->sVisible = s;
+        BEAM *beam = &laser->beams[i];
+        GetLasenBeamEnds(laser, beam->ends, apos, &s);
+        if (beam->firstContact == 0) {
+            beam->fullLength = beam->visibleLength = s;
         } else {
             float sMin = s;
             XP *pxpMin = 0;
             XP *pxp;
-            for (pxp = beam->pxpFirst; pxp; pxp = pxp->pxpNext) {
+            for (pxp = beam->firstContact; pxp; pxp = pxp->nextContact) {
                 if (pxp->s < sMin) {
                     sMin = pxp->s;
                     pxpMin = pxp;
@@ -789,7 +790,7 @@ void LASENV::ZapBeams(int)
             zap.dhp = -10;
             zap.pos = pxpMin->axps[0].qwPos;
             func_001F7598(&zap);
-            beam->sVisible = sMin;
+            beam->visibleLength = sMin;
         }
     }
 }
@@ -806,18 +807,18 @@ extern "C" void UpdateLasen(LASENV *laser, float dt)
 extern "C" void MoveLasenEndpoints(LASENV *laser)
 {
     int i;
-    for (i = 0; i < laser->cbeam; i++) {
-        BEAM *beam = &laser->abeam[i];
+    for (i = 0; i < laser->numBeams; i++) {
+        BEAM *beam = &laser->beams[i];
         int f = 0;
         uint j;
         for (j = 0; j < 2; j++) {
-            BEAMEND *end = &beam->aend[j];
+            BEAMEND *end = &beam->ends[j];
             SEGMENT *seg;
             float t;
             if (end->kind != 1)
                 continue;
             seg = &end->track.motion.segments[end->track.motion.current];
-            seg->elapsed = t = seg->elapsed + laser->svt * D_002DDED0.dt;
+            seg->elapsed = t = seg->elapsed + laser->endpointSpeed * D_002DDED0.dt;
             if (seg->duration < t) {
                 float r = fmodf(t, seg->duration);
                 end->track.motion.current = (end->track.motion.current + 1) % end->track.motion.count;
@@ -831,11 +832,11 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
             }
             f = 1;
         }
-        if (f && beam->pxpFirst == 0) {
+        if (f && beam->firstContact == 0) {
             qword apos[2];
             float s;
-            GetLasenBeamEnds(laser, beam->aend, apos, &s);
-            beam->sFull = beam->sVisible = s;
+            GetLasenBeamEnds(laser, beam->ends, apos, &s);
+            beam->fullLength = beam->visibleLength = s;
         }
     }
 }
@@ -903,7 +904,7 @@ static inline float Length(qword value)
 // World positions of a beam's two endpoints and their distance (GetLasenBeamEnds).
 static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &distance)
 {
-    GetLasenBeamEnds(owner, beam->aend, &points[0].q, &distance);
+    GetLasenBeamEnds(owner, beam->ends, &points[0].q, &distance);
 }
 
 // LASEN::RenderSelf (vtable slot 19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
@@ -920,20 +921,20 @@ extern "C" void RenderLasenSelf(LASENV *laser)
     U points[2];
     M3 basis;
     float dist;
-    for (int i = 0; i < laser->cbeam;) {
-        BEAM *beam = &laser->abeam[i];
+    for (int i = 0; i < laser->numBeams;) {
+        BEAM *beam = &laser->beams[i];
         Query(laser, beam, points, dist);
-        if (beam->sVisible < dist) {
-            float ratio = beam->sVisible / dist;
+        if (beam->visibleLength < dist) {
+            float ratio = beam->visibleLength / dist;
             points[1].q = Add(Scale(points[0].q, VU_FLOAT(1.0f - ratio)), Scale(points[1].q, VU_FLOAT(ratio)));
         }
-        if (laser->paloLine) func_001A5FB8(laser->paloLine, points[0].q, points[1].q, 1.0f, 1.0f);
+        if (laser->lineObject) func_001A5FB8(laser->lineObject, points[0].q, points[1].q, 1.0f, 1.0f);
         qword dir;
-        if (laser->paloStretch || laser->acap[0].palo || laser->acap[1].palo) {
+        if (laser->stretchObject || laser->caps[0].palo || laser->caps[1].palo) {
             dir = Subtract(points[1].q, points[0].q);
             basis = BuildOrthonormalMatrixZ(dir, D_002A2DC0);
         }
-        if (laser->paloStretch) {
+        if (laser->stretchObject) {
             float length = Length(dir);
             if (0.01f < length) {
                 U scale;
@@ -942,13 +943,13 @@ extern "C" void RenderLasenSelf(LASENV *laser)
                 scale.f[2] = 1.0f;
                 M4 render;
                 render = LoadMatrixFromPosRotScale(points[0].q, &basis, &scale);
-                func_001A5EE8(laser->paloStretch, &render, 1.0f, 1.0f);
+                func_001A5EE8(laser->stretchObject, &render, 1.0f, 1.0f);
             }
         }
         int next = i + 1;
         M4 matrix;
         for (unsigned int j = 0; j < 2; j++) {
-            LASENCAP *cap = &laser->acap[j];
+            LASENCAP *cap = &laser->caps[j];
             if (cap->palo) {
                 if (cap->pscaler) {
                     U scale;
@@ -982,14 +983,14 @@ static inline void SetParams(BEAMPARAMS *pparams, float fraction, float speed, f
 extern "C" void AddLasenBeam(LASENV *laser, OID oid0, float fraction0, float speed0, float duration0, int mode0,
                              OID oid1, float fraction1, float speed1, float duration1, int mode1)
 {
-    if (laser->cbeam < 0x40) {
+    if (laser->numBeams < 0x40) {
         BEAMEND *end; BEAMPARAMS *pparams;
-        end = &laser->abeam[laser->cbeam].aend[0];
+        end = &laser->beams[laser->numBeams].ends[0];
         end->oid = oid0;
         pparams = &end->track.params; SetParams(pparams, fraction0, speed0, duration0, mode0);
-        end = &laser->abeam[laser->cbeam].aend[1];
+        end = &laser->beams[laser->numBeams].ends[1];
         end->oid = oid1;
         pparams = &end->track.params; SetParams(pparams, fraction1, speed1, duration1, mode1);
-        laser->cbeam++;
+        laser->numBeams++;
     }
 }
