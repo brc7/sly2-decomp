@@ -111,7 +111,8 @@ struct GLOBSET
       GLOB *pieces;  /* the GLOBs */
       SUBGLOBX *asubglobx;   /* per-sub-mesh extra data */
       POSESET *aposeset;   /* the pose sets */
-      int unknown4C;
+      int relightStamp;   /* +0x4C world relight stamp (g_sw +0x3D5C) the model was last relit for; -1: never relit (render.cpp
+                             SubmitSwRelightAll, glob.cpp BindGlobset) */
       union
     {
         float unknown50;
@@ -126,7 +127,7 @@ struct GLOBSET
     };
       WRBG *pwrbgFirst;   /* first warp/bend record */
       void *pbatchrecsFirst;   /* first render batch record */
-    /* Out of line at 0x167310 (glob.cpp): stores -1 into unknown4C. Called by every constructor of an SO-derived class
+    /* Out of line at 0x167310 (glob.cpp): stores -1 into relightStamp. Called by every constructor of an SO-derived class
        (the New<Class> factories of class_registry.cpp, rip.cpp's NewRipGroup). */
     GLOBSET();
 };

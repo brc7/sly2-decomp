@@ -116,7 +116,7 @@ struct SWALLOC
 /* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
 GLOBSET::GLOBSET()
 {
-    unknown4C = -1;
+    relightStamp = -1;
 }
 
 // LoadGlobsetFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/glob.c), reduced to the declarations it needs.

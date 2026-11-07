@@ -1081,7 +1081,7 @@ void SO_ResetForProxy(SO *object, LO *n)
     REGENT *pregent;
     LO_ResetForProxy(object, n);
     SetSoZapMode(object, 0);
-    object->model.unknown4C = -1;
+    object->model.relightStamp = -1;
     pregent = 0;
     if (object->physics) pregent = object->physics->pregent;
     if (pregent) {
