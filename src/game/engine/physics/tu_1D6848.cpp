@@ -186,8 +186,7 @@ struct SOV : LOV {
     virtual void V73(); virtual void V74(); virtual void V75(); virtual void V76(); virtual void V77();
     virtual void SetTarget(SOV *psoSource, const VECTOR4V &posTarget); // 78
 };
-struct LAUNCH {
-    char pad0[0x50];
+struct LAUNCH : LO {
     qwordV posTarget;            // 0x50
     SOV *psoSource;              // 0x60
     char pad64[0xC];
