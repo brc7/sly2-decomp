@@ -247,8 +247,8 @@ qword DecomposeRotationMatrixToEuler(float *m);
  * Info: proposed name QwXfValueFromMat (T2); TU xf
  * Notes: descriptive only: xf: build matrix/vector from kind | no usable identifier; purpose only |
  *   top50_round (0.50): Body switch on +0x94 with the same kind groups SlotSetRole uses when it captures the
- *   current value; callers UpdateAct, UpdateActXform, SlotCurrentMatrix, LoadSoXfsFromBrx, QwSlotValue.
- *   Sibling naming QwSlotValue 0x230CF0
+ *   current value; callers UpdateAct, UpdateActXform, SlotCurrentMatrix, LoadSoXfsFromBrx, GetSlotValue.
+ *   Sibling naming GetSlotValue 0x230CF0
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r8_21BB88+top50_round
  * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
@@ -957,7 +957,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //               same angular step (LoadRotateMatrix, renormalized); when the new and the old velocity are both ~0 the velocity is cleared and role 1 -> 3 (role 2 stays awake)
 //   role 0x14   xfk 6: continuous rotation, angle in qwRestUnkE0.x += rate (qwUnkD0.x) * dt about the axis qwRest
 //   role 4      the position row = minus the position row of the reference XF (pxfRef), same stamp
-//   roles 5 6   the actuator's value (QwSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 qwRest, 5 the 3 rows of a rotation in qwRest/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
+//   roles 5 6   the actuator's value (GetSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 qwRest, 5 the 3 rows of a rotation in qwRest/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
 //   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with GSmooth under an SMP built from the XF's speed limit nUnkAc (+ the target
 //               speed along the direction); role 9 must arrive by the time stored in pxfRef (as a float); role 0xB also limits the change of velocity (nUnkAc * gain per second);
 //               xfk 6 / 7 do the same with rotations (MulMatrix3Matrix3 -> axis + angle, LoadRotateMatrixRad about the axis) and angular velocities (QwRotRateFromEulerRate);
@@ -972,7 +972,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //  - every 128-bit read through a cast (`*(qword *)&pxf->vUnkB0`, `*(qword *)&pxf->qwUnkF0`, the position row) is an alias-everything load that cannot move
 //    across the VU_FLOAT home stores: the game reads vUnkB0 / the position row BEFORE the VuFloat and qwUnkF0 after it (hence the qwV0 / qwPos0 locals);
 //  - the value / rate switches are open-coded (macros below, as in SlotCurrentMatrix) with the T1074 join-copy trick (`qword qw0 = qw` + `qwVel = qw = g_qwZero`);
-//    their Hermite arms call tiny inline helpers (QwHermitePos/Vel) so the VECTOR4 lives in an inline frame whose address is a pseudo - otherwise gcse CSEs it
+//    their Hermite arms call tiny inline helpers (EvaluateHermitePos/Vel) so the VECTOR4 lives in an inline frame whose address is a pseudo - otherwise gcse CSEs it
 //    with the SlotStoreValue temporary at the same offset (s0 = sp+0xD0 in the 0x12 rotation arm);
 //  - the chase arms (roles 7 8 9 0xB) leave the limited case of role 0xB with `goto LChaseDone` (no flag in the game; inline functions with `return` match
 //    the code too but their frames do not share stack slots like the game's);
@@ -982,16 +982,16 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //  (T1137, each verified on the diff; scratch decomp/build/scratch/t1137/ - var.py/opperm.py/rtlsum.py/pri.py, notes re/notes/decomp-compiler-quirks.md section 62)
 //  - case 5/6 FALLS THROUGH into case 0x15 (`fIdle = 0; break;`): one `fIdle = 0` fewer = n_refs 21 instead of 23 = global.c priority 1157 < the g_qwZero hi copy's 1200,
 //    which gives the copy $s7 and fIdle $fp like the game (the "knife-edge" of T1113 was a missing fall-through);
-//  - the asm OPERAND ORDER decides which input local-alloc ties the output to (the first local input that dies): the scalar first for the rotation chase's QwMulAddX
-//    (QwSMulAddX), (S, A, B, T) for the 0x12 rotation arm's QwMulXMulX; an output that is also an input variable (`qwDir = qwDir / g`, `qwDV = QwSub(qwDV, ..)`, the limited
-//    `qwDV = QwMulAddX(qwV0, qwDV, ..)`) is ONE pseudo set twice = global, gets a vf register from global alloc instead of being tied (pos chase);
+//  - the asm OPERAND ORDER decides which input local-alloc ties the output to (the first local input that dies): the scalar first for the rotation chase's VuMulAddX
+//    (VuSMulAddX), (S, A, B, T) for the 0x12 rotation arm's VuMulXMulX; an output that is also an input variable (`qwDir = qwDir / g`, `qwDV = SubtractVectors(qwDV, ..)`, the limited
+//    `qwDV = VuMulAddX(qwV0, qwDV, ..)`) is ONE pseudo set twice = global, gets a vf register from global alloc instead of being tied (pos chase);
 //  - the position chase reads vUnkB0 before its VU_FLOAT only in the limited path (qwV0), the rotation chase's gMax is computed first; `MATRIX3 matRot; matRot = LoadRotateMatrix(..);`
 //    then `matTurn = matRot * matOld` gives the game's frame slots and the copy of the rows to 0xB0; pointers `pmatTarget` / `pmatStored` make the rows 1 and 2 load through a0 / s0;
 //  - `int ixf;` declared before fSnap (frame slots 0x190 / 0x194), qwRate before qwOmega0 in the 0x12 rotation arm, qwTurn as a separate statement there, ClearXyz in role 0x11,
-//    the tail keeps `pxfParent` but reads `pxf->pxfParent->nStampWorld` again, gDist = FloatOfVf(QwLength(..)) (the bits are not CSE'd: the game has a fresh mfc1 before the divide).
+//    the tail keeps `pxfParent` but reads `pxf->pxfParent->nStampWorld` again, gDist = FloatOfVf(VuLength(..)) (the bits are not CSE'd: the game has a fresh mfc1 before the divide).
 // MATCH (T1641, Lilly's team decomp). The personal draft (xf.c, #if 0) was 14 lines off; with the team toolchain it took three changes to close it:
 //  - Near()'s Y word is ONE float-out asm (`prot3w %0,%1` "=r"(float)) like the X/Z words, not a TI temp + asm mtc1: that alone moved the z `pextuw` pairs to $a0/$a1;
-//  - the position chase's distance goes through GXOfQwAct(QwLength(..)) (compiler qmfc2 + asm mtc1): the divide gets a fresh `mfc1 v1,f21` and a plain bc1f;
+//  - the position chase's distance goes through GXOfQwAct(VuLength(..)) (compiler qmfc2 + asm mtc1): the divide gets a fresh `mfc1 v1,f21` and a plain bc1f;
 //  - the position chase's rate switch fills a short-lived local (qwR) and copies it into qwTargetVel through PassQ (empty tied asm, an opaque copy): the arms are plain
 //    $v0 loads, the spill `sq v0,0x1C0(sp)` is shared, and the goal reload becomes $vf4; a bare `asm("")` after it keeps the `sq` ahead of the argument moves of the next call.
 //  - the world-matrix tail is written with asm text (loads + vcallms in one output-less asm, the result rows as cfc2.i outputs) and ONE register pin instead of
@@ -1042,25 +1042,25 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword QwSub(qword qw0, qword qw1)
+static inline qword SubtractVectors(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwAdd(qword qw0, qword qw1)
+static inline qword AddVectors(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline float GFromVf(qword qw)
+static inline float FloatFromVu(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwLength(qword v)
+static inline qword VuLength(qword v)
 {
     qword qw;
     qword vfOne;
@@ -1069,11 +1069,11 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline float GLength(qword v)
+static inline float VectorLength(qword v)
 {
-    return GFromVf(QwLength(v));
+    return FloatFromVu(VuLength(v));
 }
-static inline qword QwDot(qword a, qword b)
+static inline qword VuDotXyz(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -1099,7 +1099,7 @@ static inline float GYOfQwAct(qword qw)
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
-static inline int FQwNearXyz(qword qwA, qword qwB)
+static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
     return FFloatsNear(GXOfQwAct(qwA), GXOfQwAct(qwB), 0.0001f) && FFloatsNear(GYOfQwAct(qwA), GYOfQwAct(qwB), 0.0001f) &&
            FFloatsNear(GZOfQw(qwA), GZOfQw(qwB), 0.0001f);
@@ -1141,67 +1141,67 @@ static float s_gKpPos = 0.015000001f;
 static float s_gKdPos = 0.0025000001f;
 static float s_gKpRot = 0.015000001f;
 static float s_gKdRot = 0.0025000001f;
-static inline qword QwMulAddX(qword qwA, qword qwB, qword qwS)
+static inline qword VuMulAddX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
     return qw;
 }
-static inline qword QwSMulAddX(qword qwS, qword qwB, qword qwA)
+static inline qword VuSMulAddX(qword qwS, qword qwB, qword qwA)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %3, $vf0\n\tvmaddx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwB), "j"(qwA));
     return qw;
 }
-static inline qword QwMulXMulX(qword qwA, qword qwS, qword qwB, qword qwT)
+static inline qword VuMulXMulX(qword qwA, qword qwS, qword qwB, qword qwT)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwS), "j"(qwB), "j"(qwT));
     return qw;
 }
-static inline qword QwAddMulXMulX(qword qwA, qword qwB, qword qwC, qword qwS)
+static inline qword VuAddMulXMulX(qword qwA, qword qwB, qword qwC, qword qwS)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddax.xyzw $ACC, %2, %4x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwC), "j"(qwS));
     return qw;
 }
-static inline qword QwMulXAddMulX(qword qwA, qword qwB, qword qwS)
+static inline qword VuMulXAddMulX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
     return qw;
 }
-static inline qword QwDivX(qword qwV, qword qwS)
+static inline qword VuDivX(qword qwV, qword qwS)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(qwV), "j"(qwS));
     return qw;
 }
-static inline qword QwZero()
+static inline qword VuZero()
 {
     qword qw;
     __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(qw));
     return qw;
 }
-static inline qword QwMulX(qword qwA, qword qwS)
+static inline qword VuMulX(qword qwA, qword qwS)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwA), "j"(qwS));
     return qw;
 }
-static inline qword QwXMul(qword qwS, qword qwA)
+static inline qword VuXMul(qword qwS, qword qwA)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwA));
     return qw;
 }
-static inline qword QwMulXMulX_P2134(qword q1, qword q2, qword q3, qword q4)
+static inline qword VuMulXMulXSwapped(qword q1, qword q2, qword q3, qword q4)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(q2), "j"(q1), "j"(q3), "j"(q4));
     return qw;
 }
-static inline qword QwSlotValue(XF *xf)
+static inline qword GetSlotValue(XF *xf)
 {
     qword qw;
     switch (xf->nPhase)
@@ -1230,13 +1230,13 @@ static inline qword QwSlotValue(XF *xf)
     }
     return qw;
 }
-static inline qword QwHermitePos(XF *xf)
+static inline qword EvaluateHermitePos(XF *xf)
 {
     VECTOR4 vec;
     EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, &vec, 0, 0);
     return *(qword *)&vec;
 }
-static inline qword QwHermiteVel(XF *xf)
+static inline qword EvaluateHermiteVel(XF *xf)
 {
     VECTOR4 vec;
     EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, 0, &vec, 0);
@@ -1250,7 +1250,7 @@ static inline qword QwHermiteVel(XF *xf)
             qw = SlotRestValue(xf, &(xf)->mat); \
             break; \
         case 1: \
-            qw = QwHermitePos(xf); \
+            qw = EvaluateHermitePos(xf); \
             break; \
         case 2: \
         case 3: \
@@ -1272,7 +1272,7 @@ static inline qword QwHermiteVel(XF *xf)
             qwVel = (xf)->qwUnkD0; \
             break; \
         case 1: \
-            qwVel = QwHermiteVel(xf); \
+            qwVel = EvaluateHermiteVel(xf); \
             break; \
         case 0: \
         case 2: \
@@ -1335,17 +1335,17 @@ void UpdateSoSlots(SO *so)
                     qword qwV0 = *(qword *)&xf->vUnkB0;
                     VU_FLOAT vfDt = VuFloat(dt);
                     qword qwF0 = *(qword *)&xf->qwUnkF0;
-                    qword qwVel = QwMulAddX(qwV0, qwF0, vfDt.qw);
+                    qword qwVel = VuMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
+                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
                         qword qwPos0 = *(qword *)xf->mat.mat[3];
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = QwAdd(qwVel, *(qword *)&xf->vUnkB0);
-                        qword qwPos = QwMulAddX(qwPos0, qwSum, vfHalf.qw);
+                        qword qwSum = AddVectors(qwVel, *(qword *)&xf->vUnkB0);
+                        qword qwPos = VuMulAddX(qwPos0, qwSum, vfHalf.qw);
                         VECTOR_opAssign(xf->mat.mat[3], qwPos);
                         *(qword *)&xf->vUnkB0 = qwVel;
                         xf->mat.mat[3][3] = 1.0f;
@@ -1367,16 +1367,16 @@ void UpdateSoSlots(SO *so)
                     qword qwV0 = *(qword *)&xf->vUnkB0;
                     VU_FLOAT vfDt = VuFloat(dt);
                     qword qwF0 = *(qword *)&xf->qwUnkF0;
-                    qword qwVel = QwMulAddX(qwV0, qwF0, vfDt.qw);
+                    qword qwVel = VuMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
+                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = QwAdd(*(qword *)&xf->vUnkB0, qwVel);
-                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, QwMulX(qwSum, vfHalf.qw));
+                        qword qwSum = AddVectors(*(qword *)&xf->vUnkB0, qwVel);
+                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, VuMulX(qwSum, vfHalf.qw));
                         *(qword *)&xf->vUnkB0 = qwVel;
                         xf->nStampWorld = ++D_003DD490.nStampXf;
                     }
@@ -1426,7 +1426,7 @@ void UpdateSoSlots(SO *so)
                 }
                 else
                 {
-                    qword qwVal = QwSlotValue(xf);
+                    qword qwVal = GetSlotValue(xf);
                     xf->mat = SlotStoreValue(xf, qwVal);
                 }
                 xf->nStampWorld = ++D_003DD490.nStampXf;
@@ -1473,7 +1473,7 @@ void UpdateSoSlots(SO *so)
                     }
                     matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&xf->mat);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
-                    float gRateAlong = GFromVf(QwDot(qwRotRate, *(qword *)&vecAxis));
+                    float gRateAlong = FloatFromVu(VuDotXyz(qwRotRate, *(qword *)&vecAxis));
                     SMP smp;
                     if (xf->nPhase == 3)
                     {
@@ -1501,16 +1501,16 @@ void UpdateSoSlots(SO *so)
                             case 0xb:
                             {
                                 float gMax = (float)(ushort)xf->nUnkAc * s_gAccelRot;
-                                qword qwNewOmega = QwSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
+                                qword qwNewOmega = VuSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
                                 qword qwV0 = *(qword *)&xf->vUnkB0;
-                                qword qwDOmega = QwSub(qwNewOmega, qwV0);
-                                float gNeed = GLength(qwDOmega) / D_002DDED0.dt;
+                                qword qwDOmega = SubtractVectors(qwNewOmega, qwV0);
+                                float gNeed = VectorLength(qwDOmega) / D_002DDED0.dt;
                                 if (gMax < gNeed)
                                 {
-                                    qword qwLimited = QwMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
+                                    qword qwLimited = VuMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
                                     MATRIX3 matRot;
                                     MATRIX3 matTurn;
-                                    matRot = LoadRotateMatrix(QwXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, QwAdd(*(qword *)&xf->vUnkB0, qwLimited)));
+                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, AddVectors(*(qword *)&xf->vUnkB0, qwLimited)));
                                     matTurn = matRot * matOld;
                                     NormalizeRotateMatrix3(&matTurn);
                                     *(qword *)&xf->vUnkB0 = qwLimited;
@@ -1564,7 +1564,7 @@ void UpdateSoSlots(SO *so)
                             xf->mat.mat[2][3] = 0.0f;
                             xf->mat.mat[0][3] = 0.0f;
                             VU_FLOAT vfRate = VuFloat(dgNext - gRateAlong);
-                            *(qword *)&xf->vUnkB0 = QwMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
+                            *(qword *)&xf->vUnkB0 = VuMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
                         }
                     }
                     break;
@@ -1580,17 +1580,17 @@ void UpdateSoSlots(SO *so)
                     qwTargetVel = PassQ(qwR);
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
                     qword qwCur = SlotRestValue(xf, &xf->mat);
-                    qword qwDir = QwSub(qwTarget, qwCur);
-                    float gDist = GXOfQwAct(QwLength(qwDir));
+                    qword qwDir = SubtractVectors(qwTarget, qwCur);
+                    float gDist = GXOfQwAct(VuLength(qwDir));
                     if (gDist > 0.0001f)
                     {
-                        qwDir = QwDivX(qwDir, VuFloat(gDist).qw);
+                        qwDir = VuDivX(qwDir, VuFloat(gDist).qw);
                     }
                     else
                     {
                         qwDir = D_002A2DA0;
                     }
-                    float gVelAlong = GFromVf(QwDot(qwTargetVel, qwDir));
+                    float gVelAlong = FloatFromVu(VuDotXyz(qwTargetVel, qwDir));
                     SMP smp;
                     if (xf->xfk < 13)
                     {
@@ -1627,9 +1627,9 @@ void UpdateSoSlots(SO *so)
                             case 0xb:
                             {
                                 VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
-                                qword qwDV = QwMulAddX(qwTargetVel, qwDir, vfRate.qw);
-                                qwDV = QwSub(qwDV, *(qword *)&xf->vUnkB0);
-                                float gNeed = GLength(qwDV) / D_002DDED0.dt;
+                                qword qwDV = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
+                                qwDV = SubtractVectors(qwDV, *(qword *)&xf->vUnkB0);
+                                float gNeed = VectorLength(qwDV) / D_002DDED0.dt;
                                 float gMax;
                                 if (xf->xfk < 13)
                                 {
@@ -1645,10 +1645,10 @@ void UpdateSoSlots(SO *so)
                                     qword qwV0 = *(qword *)&xf->vUnkB0;
                                     VU_FLOAT vfLimit = VuFloat(gMax / gNeed);
                                     VU_FLOAT vfHalf = VuFloat(D_002DDED0.dt * 0.5f);
-                                    qwDV = QwMulAddX(qwV0, qwDV, vfLimit.qw);
-                                    qword qwSum = QwAdd(*(qword *)&xf->vUnkB0, qwDV);
+                                    qwDV = VuMulAddX(qwV0, qwDV, vfLimit.qw);
+                                    qword qwSum = AddVectors(*(qword *)&xf->vUnkB0, qwDV);
                                     *(qword *)&xf->vUnkB0 = qwDV;
-                                    xf->mat = SlotStoreValue(xf, QwMulAddX(qwCur, qwSum, vfHalf.qw));
+                                    xf->mat = SlotStoreValue(xf, VuMulAddX(qwCur, qwSum, vfHalf.qw));
                                     goto LChaseDone;
                                 }
                                 break;
@@ -1671,7 +1671,7 @@ void UpdateSoSlots(SO *so)
                     }
                     {
                         VU_FLOAT vfOut = VuFloat(gOut);
-                        xf->mat = SlotStoreValue(xf, QwMulAddX(qwCur, qwDir, vfOut.qw));
+                        xf->mat = SlotStoreValue(xf, VuMulAddX(qwCur, qwDir, vfOut.qw));
                         if (gDist <= gOut)
                         {
                             if (xf->nRole != 8)
@@ -1686,7 +1686,7 @@ void UpdateSoSlots(SO *so)
                         else
                         {
                             VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
-                            *(qword *)&xf->vUnkB0 = QwMulAddX(qwTargetVel, qwDir, vfRate.qw);
+                            *(qword *)&xf->vUnkB0 = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
                         }
                     }
                     break;
@@ -1741,26 +1741,26 @@ void UpdateSoSlots(SO *so)
                     float gKd = (float)(ushort)xf->nUnkAe * s_gKdPos;
                     float dt = D_002DDED0.dt;
                     qword qwV0 = *(qword *)&xf->vUnkB0;
-                    qword qwDV = QwSub(qwTargetVel, qwV0);
-                    qword qwDPos = QwSub(qwTarget, *(qword *)xf->mat.mat[3]);
-                    qword qwAccel = QwMulXMulX(qwDPos, VuFloat(gKp).qw, qwDV, VuFloat(gKd).qw);
-                    qword qwV1 = QwMulAddX(qwV0, qwAccel, VuFloat(dt).qw);
+                    qword qwDV = SubtractVectors(qwTargetVel, qwV0);
+                    qword qwDPos = SubtractVectors(qwTarget, *(qword *)xf->mat.mat[3]);
+                    qword qwAccel = VuMulXMulX(qwDPos, VuFloat(gKp).qw, qwDV, VuFloat(gKd).qw);
+                    qword qwV1 = VuMulAddX(qwV0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
                     if (xf->nPhase == 2)
                     {
-                        if (GFromVf(QwDot(qwV1, qwV1)) < 25.0f)
+                        if (FloatFromVu(VuDotXyz(qwV1, qwV1)) < 25.0f)
                         {
-                            if (GFromVf(QwDot(qwDPos, qwDPos)) < 4.0f)
+                            if (FloatFromVu(VuDotXyz(qwDPos, qwDPos)) < 4.0f)
                                 fSettled = 1;
                         }
                     }
                     if (fSettled)
                     {
-                        qwV1 = QwZero();
+                        qwV1 = VuZero();
                         SlotSetRole(so, xf, 0x13);
                     }
                     qword qwPos0 = *(qword *)xf->mat.mat[3];
-                    VECTOR_opAssign(xf->mat.mat[3], QwAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
+                    VECTOR_opAssign(xf->mat.mat[3], VuAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
                     *(qword *)&xf->vUnkB0 = qwV1;
                     xf->mat.mat[3][3] = 1.0f;
                     break;
@@ -1798,21 +1798,21 @@ void UpdateSoSlots(SO *so)
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
                     float gKp = (float)(ushort)xf->nUnkAc * s_gKpRot;
                     float gKd = (float)(ushort)xf->nUnkAe * s_gKdRot;
-                    qword qwDV = QwSub(qwRate, qwOmega0);
-                    qword qwAccel = QwMulXMulX_P2134(*(qword *)&vecAxis, VuFloat(gKp * gAngle).qw, qwDV, VuFloat(gKd).qw);
-                    qword qwOmega1 = QwMulAddX(qwOmega0, qwAccel, VuFloat(dt).qw);
+                    qword qwDV = SubtractVectors(qwRate, qwOmega0);
+                    qword qwAccel = VuMulXMulXSwapped(*(qword *)&vecAxis, VuFloat(gKp * gAngle).qw, qwDV, VuFloat(gKd).qw);
+                    qword qwOmega1 = VuMulAddX(qwOmega0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
                     if (xf->nPhase == 2)
                     {
-                        if (GFromVf(QwDot(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
+                        if (FloatFromVu(VuDotXyz(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
                             fSettled = 1;
                     }
                     if (fSettled)
                     {
-                        qwOmega1 = QwZero();
+                        qwOmega1 = VuZero();
                         SlotSetRole(so, xf, 0x13);
                     }
-                    qword qwTurn = QwMulXAddMulX(qwOmega0, qwOmega1, VuFloat(dt * 0.5f).qw);
+                    qword qwTurn = VuMulXAddMulX(qwOmega0, qwOmega1, VuFloat(dt * 0.5f).qw);
                     matNew = LoadRotateMatrix(qwTurn) * matOld;
                     NormalizeRotateMatrix3(&matNew);
                     *(MATRIX3 *)&xf->mat = matNew;
@@ -2742,7 +2742,7 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *,
 
 /** @sly2-annot addr=0x230CF0
  * Purpose: evaluates an actuator value (Bezier/limits)
- * Info: proposed name QwSlotValue (T2); TU xf
+ * Info: proposed name GetSlotValue (T2); TU xf
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
