@@ -255,7 +255,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         swapped.f[2] = local.f[0];
         float desired;
         if (local.f[0] > 0.0001f) {
-            float horizontal = atanf((Abs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.rAspect));
+            float horizontal = atanf((Abs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.aspectRatio));
             horizontal = horizontal + horizontal;
             float vertical = atanf((Abs(swapped.f[1]) + extent) / swapped.f[2]);
             vertical = vertical + vertical;

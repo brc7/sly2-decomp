@@ -479,7 +479,7 @@ void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
     __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(t));
     __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(1.0f - t));
     u.q = b;
-    __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(r) : "j"(*(qword *)&pa->posBase), "j"(b), "j"(*(qword *)&pa->posAdjust), "j"(a));
+    __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(r) : "j"(*(qword *)&pa->basePosition), "j"(b), "j"(*(qword *)&pa->adjustedPosition), "j"(a));
     *ppos = r;
     u.q = a;
     if (ps) {
@@ -590,7 +590,7 @@ void SetTnTns(TN *p, int k)
     if (k == p->state) return;
     switch (k) {
     case 1:
-        SetCmPolicy(&D_002DDF40, p->priority + 2, &D_002DDF40.part3b0, p->hero, p);
+        SetCmPolicy(&D_002DDF40, p->priority + 2, &D_002DDF40.tunnelPolicy, p->hero, p);
         PVT(p)[3].pfn((char *)p + PVT(p)[3].d, 5, 1, 0, 0, 0);
         break;
     case 0:
@@ -800,8 +800,8 @@ extern "C" void InitCptn(CMPART2 *p)
     InitCplcy(p);
     D_002C41A8.minValue = D_002A96F8;
     D_002C41A8.maxValue = D_002A96FC;
-    p->ptn = 0;
-    p->pcpd = 0;
+    p->cameraTunnel = 0;
+    p->cameraDefinition = 0;
 }
 
 // Base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) (inferred)
@@ -812,62 +812,62 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
     qword closestPoint;
     qword a;
     ActivateCplcy(p, pj, pt);
-    p->ptn = pt;
+    p->cameraTunnel = pt;
     if (!pt) {
-        p->pcpd = &D_002C4120;
+        p->cameraDefinition = &D_002C4120;
     } else {
         CPD *pe = pt->cameraDefinitions;
         int i;
-        for (i = 1; i < p->ptn->numCameraDefinitions; i++) {
-            CPD *peT = &p->ptn->cameraDefinitions[i];
+        for (i = 1; i < p->cameraTunnel->numCameraDefinitions; i++) {
+            CPD *peT = &p->cameraTunnel->cameraDefinitions[i];
             if (IsBasicDerivedFrom__FP5BASIC3CID(pj, peT->cid) && IsCidDerivedFrom(peT->cid, pe->cid))
                 pe = peT;
         }
-        p->pcpd = pe;
+        p->cameraDefinition = pe;
     }
-    p->fEntered = 1;
-    InitTnDefaultAngles(p->pcpd);
+    p->hasEntered = 1;
+    InitTnDefaultAngles(p->cameraDefinition);
     GetCmCpdefi(&D_002DDF40, pj, &cpdefi);
-    BlendTnFocusPos(p->pcpd, (CPDEFI *)&cpdefi, &focusPos, 0);
-    if (p->ptn) {
-        TN *ptT = p->ptn;
+    BlendTnFocusPos(p->cameraDefinition, (CPDEFI *)&cpdefi, &focusPos, 0);
+    if (p->cameraTunnel) {
+        TN *ptT = p->cameraTunnel;
         if (ptT->path)
             FindShapeClosestPoint(ptT->path, focusPos, 0, &closestPoint, 0, 0, &ptT->progress);
         else if (ptT->fCircle)
             UpdateCptnTarget(p, (CPDEFI *)&cpdefi);
-        BlendTnFocusPos(p->pcpd, (CPDEFI *)&cpdefi, &focusPos, p->ptn);
+        BlendTnFocusPos(p->cameraDefinition, (CPDEFI *)&cpdefi, &focusPos, p->cameraTunnel);
     }
     { qword *pq = &D_002DDF40.dposFocus; a = VuAdd(focusPos, *pq);
-    GetVectorSphere(VuSub(pq[-0x25], a), &p->radPan, &p->radTilt, &p->sDist); }
-    p->sDist = p->sDist - D_002DDF40.sNearClip;
-    p->posEye = VuAdd(a, SetVectorSphere(p->radPan, p->radTilt, p->sDist));
-    p->uFrameY = p->pcpd->uFrameY;
-    p->nMode = 0;
-    if (p->ptn && p->ptn->unknown184)
+    GetVectorSphere(VuSub(pq[-0x25], a), &p->panAngle, &p->tiltAngle, &p->distance); }
+    p->distance = p->distance - D_002DDF40.nearClip;
+    p->eyePosition = VuAdd(a, SetVectorSphere(p->panAngle, p->tiltAngle, p->distance));
+    p->verticalFraming = p->cameraDefinition->uFrameY;
+    p->mode = 0;
+    if (p->cameraTunnel && p->cameraTunnel->unknown184)
         CutCm__FP2CM(&D_002DDF40);
-    p->tLastSeen = D_002DDED0.time;
-    p->tMoveLast = D_002DDED0.time;
-    p->tManual = D_002DDED0.time - D_002C41DC;
-    p->fArrived = 0;
-    if (p->ptn && p->ptn->fieldOfView != 0.0f)
-        D_002DDF40.fovTarget = p->ptn->fieldOfView;
+    p->lastSeenTime = D_002DDED0.time;
+    p->lastMoveTime = D_002DDED0.time;
+    p->lastManualInputTime = D_002DDED0.time - D_002C41DC;
+    p->hasArrived = 0;
+    if (p->cameraTunnel && p->cameraTunnel->fieldOfView != 0.0f)
+        D_002DDF40.targetFieldOfView = p->cameraTunnel->fieldOfView;
 }
 
 // Clears tn/ppo (0x10,0x14) then base 0x14FCE8. (inferred)
 extern "C" void DeactivateCptn(CMPART2 *p) {
-    p->ptn = 0;
-    p->pcpd = 0;
+    p->cameraTunnel = 0;
+    p->cameraDefinition = 0;
     DeactivateCplcy(p);
 }
 
 // Positions tn target via FillCrvcCache or atan2 heading. (inferred)
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 {
-    TN *ps = p->ptn;
+    TN *ps = p->cameraTunnel;
     qword q;
     if (!ps) return;
     if (!ps->path && !ps->fCircle) return;
-    BlendTnFocusPos(p->pcpd, b, &q, 0);
+    BlendTnFocusPos(p->cameraDefinition, b, &q, 0);
     if (ps->path) {
         FindShapeClosestPointFromDistance(ps->path, q, ps->progress, 0, 0, 0, 0, &ps->progress);
     } else {
@@ -893,54 +893,54 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //    shortens plo's life to 491 -> 162 = tie -> plo gets $fp and every clock read re-does lui / addiu, as in the game.
 //  - Then: `CM *pcm = &g_cm` + a fallback pointer for vecView (the game's early `addiu v1, s1, 0x2DA0`); `qword *pdposFocus = &g_cm.dposFocus`
 //    (lqc2 0(v0) after addiu -0x1DE0); the pull's length through GXOfQw (reload's qmfc2 + asm mtc1 schedule after the clqPull address);
-//    ptn->pshape read only after the fEntered test; tManual stored before fArrived; the idle ramp's 0 in an else arm; the enter ramp's product
+//    ptn->pshape read only after the hasEntered test; lastManualInputTime stored before hasArrived; the idle ramp's 0 in an else arm; the enter ramp's product
 //    in its own variable (gEnter); the time-since-manual factor through GLimitRange (gMin in f6, gMax in f7).
 // Everything else was found in T1146 / T1203: the two normalise shapes (A: register result, fallback lq before the branch, QwLengthUntied; B: MoveToVu,
-// the arms store to the VECTOR4), GMin for min.s, the switch on nMode, the chain assignments, g_clock.deltaTime re-read at every use, the pull-vFocus
+// the arms store to the VECTOR4), GMin for min.s, the switch on mode, the chain assignments, g_clock.deltaTime re-read at every use, the pull-vFocus
 // fallback g_qwZero.
 // What it does, in order:
 //  1. UpdateCameraLineOfSight; the tunnel's flags (grftnm: 1 forward view allowed, 2 backward view, 4 the player may turn; no tunnel = 4 only);
 //     UpdateCmProgress + CalcCpdFocus give the focus; a player character whose grab record focuses (jtgrab.jtfock Focus, STEPPLAYER+0x4F4: sliding along a
 //     hide outline in the grab's own tunnel, SetJtHfdk 0x1940B0) springs g_cm.dposFocus toward (jtgrab.focusPosition (+0x500) - focus);
 //     posHang = focus + g_cm.dposFocus is what the camera looks at.
-//  2. uTunnel (how much the tunnel steers) smooths toward CPD::uTunnel, or 0 while the focus is not moving by itself (CPDEFI bit 1; a tunnel with
-//     ploPull forces the bit off); tMoveLast keeps the focus's latest tMoveLast.
+//  2. tunnelProgress (how much the tunnel steers) smooths toward CPD::uTunnel, or 0 while the focus is not moving by itself (CPDEFI bit 1; a tunnel with
+//     ploPull forces the bit off); lastMoveTime keeps the focus's latest lastMoveTime.
 //  3. In a tunnel with a forward / backward view: CalculateTnCrv gives the focus's offsets from the curve (cylindrical: the pan is carried from last
 //     frame limited by TN::panLimitAngle); CalculateTnPos with the CPD's offsets (ahead by dsOffset / behind) gives the two views as pan / tilt /
-//     distance from posHang (GetVectorSphere) -> radPanFwd.. / radPanRev..
-//  4. A cut (g_cm.nCut): nCut 2 (CutCmPanTilt) continues from g_cm.radCutPan / radCutTilt (less the framing tilt); outside a tunnel view the pan is
-//     CPDEFI::radHome (the hero's heading) and the tilt CPD::lmTilt.minValue; else the nearer tunnel view becomes the mode (1 / 2). A mode its tunnel
+//     distance from posHang (GetVectorSphere) -> forwardPanAngle.. / reversePanAngle..
+//  4. A cut (g_cm.nCut): nCut 2 (CutCmPanTilt) continues from g_cm.cutPanAngle / cutTiltAngle (less the framing tilt); outside a tunnel view the pan is
+//     CPDEFI::homeHeading (the hero's heading) and the tilt CPD::lmTilt.minValue; else the nearer tunnel view becomes the mode (1 / 2). A mode its tunnel
 //     does not allow falls back to 4 (free).
 //  5. vFocus = the focus's velocity (CPDEFI::vBase), or for a tunnel with ploPull the unit direction to that object (z dropped) scaled by
 //     clqPull(distance) limited by lmPull.
 //  6. Player control (grftnm & 4) when the right stick is pushed or still turning or recentering: the stick's x|x| * speed and y|y| * speed become
 //     the turn rates, changing at most damping * dt per frame; a stick within 15 deg of horizontal does not tilt, within 15 deg of vertical does not
-//     pan; game event 6 at most every 5 s (GAME::tCmTurned, 0x2DEB34). fRecenter: SmoothAngleWithAccel toward radPanRecenter / radTiltRecenter (SMPA 0x2C4250 while the
-//     player's +0x10E4 is 4, else 0x2C4240) until both arrive. Taking over from a tunnel view plays sound 3. Then nMode = 4, fArrived, tManual = now.
-//  7. Otherwise, in the free mode (4): the hero's movement turns the camera: vFocus dotted with the turn axis (TN::turnAxis / CPDEFI::nTurnAxis: 0 = up x
+//     pan; game event 6 at most every 5 s (GAME::tCmTurned, 0x2DEB34). isRecentering: SmoothAngleWithAccel toward recenterPanAngle / recenterTiltAngle (SMPA 0x2C4250 while the
+//     player's +0x10E4 is 4, else 0x2C4240) until both arrive. Taking over from a tunnel view plays sound 3. Then mode = 4, hasArrived, lastManualInputTime = now.
+//  7. Otherwise, in the free mode (4): the hero's movement turns the camera: vFocus dotted with the turn axis (TN::turnAxis / CPDEFI::turnAxis: 0 = up x
 //     the direction camera -> posHang with its z scaled by 0.3, 1 = that direction; both normalised, (1,0,0) when degenerate), over |that direction|,
-//     limited to 2.5, times uTunnel, times CLQ {1,-2,-2}(left stick y) in 1..2, times the ramp 0..1 of the seconds since the player let go, times dt.
+//     limited to 2.5, times tunnelProgress, times CLQ {1,-2,-2}(left stick y) in 1..2, times the ramp 0..1 of the seconds since the player let go, times dt.
 //     The tilt eases back into CPD::lmTilt (SmoothAngle, SMP {0.75,0,2} x speed) once the hero moves faster than 60 u/s (speed / 600 capped at 1 > 0.1).
 //     With tunnel views: the view to pull toward is the forward one (plain zones, mode 1; the player's own tunnel +0x528 with blend 3.0), the backward
 //     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (ConvertVecBetweenLos): blend = g^2 (3 - 2|g|),
 //     backward when the backward view is allowed and g <= 0. The pull strength = (speed / 600, or / 200 while +0x4CC == -1 / +0x4C8, capped at 1)
-//     x CPD::gTurn; pullsWhileIdle raises it to idlePullStrength x ramps of (idle 0.75 s, no player turn 10 s) over idlePullDuration; pullsOnEnter (until fArrived) to
+//     x CPD::gTurn; pullsWhileIdle raises it to idlePullStrength x ramps of (idle 0.75 s, no player turn 10 s) over idlePullDuration; pullsOnEnter (until hasArrived) to
 //     enterPullStrength x the ramp since the tunnel was entered (stateStartTime) over enterPullDuration. The pulled pan / tilt = SmoothAngle toward the view (SMP {0.5,0,0.5} x
 //     strength), or the free turn's if that is already nearer; the result blends free -> pulled by the blend. Reaching the view (crossing it, within
-//     90 deg) sets nMode 1 / 2 and fArrived (not on the first frame, nor in a shape tunnel with +0xE0 == 0 and +0xE8 > 2).
+//     90 deg) sets mode 1 / 2 and hasArrived (not on the first frame, nor in a shape tunnel with +0xE0 == 0 and +0xE8 > 2).
 //  8. The output pan / tilt / distance / framing: mode 1 / 2 take the tunnel view and CPD::uFrameX (negated backward); mode 4 the turned pan / tilt with
 //     |CPD::dsOffset| as the distance outside tunnel views, else distance / uFrameX interpolated between the backward and forward views by where the
-//     pan lies between their pans (smoothstep, pans unwrapped). The distance and uFrameY spring to the wanted values (k = CPD::kDist * 15 * dt,
+//     pan lies between their pans (smoothstep, pans unwrapped). The distance and verticalFraming spring to the wanted values (k = CPD::kDist * 15 * dt,
 //     c = CPD::cDist * -8 * dt + 1) unless cutting (velocities zeroed).
 //  9. posEyeWant = posHang + SetVectorSphere(pan, tilt, dist); FreeCamClip on a cut, ClipCmEye normally (D_002C4118 = no clipping; a tunnel's disablesCameraCollision
-//     skips both); the angles are re-derived from the clipped eye; the eye handed to SetCmPanTilt is pushed back by sNearClip along the view;
-//     the framing offsets atan(uFrameX * gTanHalfX) / -atan(uFrameY * gTanHalfY) plus the look offsets (first frame: the difference between the camera's
+//     skips both); the angles are re-derived from the clipped eye; the eye handed to SetCmPanTilt is pushed back by nearClip along the view;
+//     the framing offsets atan(uFrameX * tanHalfFovX) / -atan(verticalFraming * tanHalfFovY) plus the look offsets (first frame: the difference between the camera's
 //     current pan / tilt (DecomposeRotateMatrixPanTilt of g_cm.matRot) and the new view, so there is no jump; later sprung back to 0 with k -10, c -5).
-// 10. The members keep the frame's pan / tilt / distance / framing and the two tunnel views; fEntered is cleared.
+// 10. The members keep the frame's pan / tilt / distance / framing and the two tunnel views; hasEntered is cleared.
 void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 {
     LO *plo = (LO *)pvHero;
-    TN *ptnCur = ptn;
+    TN *ptnCur = cameraTunnel;
     float dt = D_002DDED0.cameraDeltaTime;
     LO *ploPlayer = 0;
     if (IsBasicDerivedFrom((BASIC *)plo, (CID)0x34))
@@ -963,7 +963,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     }
     UpdateCmProgress(this, pcpdefi);
     VECTOR4 posFocus;
-    CalcCpdFocus(pcpd, pcpdefi, (qword *)&posFocus, ptnCur);
+    CalcCpdFocus(cameraDefinition, pcpdefi, (qword *)&posFocus, ptnCur);
     if (ploPlayer != 0 && ((STEPPLAYER *)ploPlayer)->jtgrab.jtfock == JTFOCK_Focus)
         SpringCm(&D_002DDF40, &D_002DDF40.dposFocus, &D_002DDF40.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.focusPosition, *(qword *)&posFocus), 8.0f, -6.0f);
     VECTOR4 posHang;
@@ -973,11 +973,11 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         pcpdefi->grfcpd &= ~1;
     float uTunnelWant;
     if ((pcpdefi->grfcpd & 1) == 0)
-        uTunnelWant = pcpd->uTunnel;
+        uTunnelWant = cameraDefinition->uTunnel;
     else
         uTunnelWant = 0.0f;
-    uTunnel = SmoothValue(uTunnel, uTunnelWant, D_002DDED0.deltaTime, &D_002C4230, 0);
-    tMoveLast = tMoveLast > pcpdefi->tMoveLast ? tMoveLast : pcpdefi->tMoveLast;
+    tunnelProgress = SmoothValue(tunnelProgress, uTunnelWant, D_002DDED0.deltaTime, &D_002C4230, 0);
+    lastMoveTime = lastMoveTime > pcpdefi->lastMoveTime ? lastMoveTime : pcpdefi->lastMoveTime;
     float radPanFwdNew = 0.0f;
     float radTiltFwdNew = 0.0f;
     float sDistFwd;
@@ -992,67 +992,67 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         if (ptnCur->fCylind)
         {
             GetVectorCylind(*(qword *)&dposCrv, &dposCrv.x, &dposCrv.y, &dposCrv.z);
-            if (!fEntered)
-                dposCrv.x += ClampAbs(NormalizeAngle(radPanCrv - dposCrv.x), ptnCur->panLimitAngle);
-            radPanCrv = dposCrv.x;
+            if (!hasEntered)
+                dposCrv.x += ClampAbs(NormalizeAngle(curvePanAngle - dposCrv.x), ptnCur->panLimitAngle);
+            curvePanAngle = dposCrv.x;
         }
         if (grftnm & 1)
         {
             VECTOR4 posView;
-            CalculateTnPos(ptnCur, &dposCrv, ptnCur->progress, pcpd->dsOffset, pcpd->aclqOffset, pcpd->almOffset, FTND_Forward, (qword *)&posView);
+            CalculateTnPos(ptnCur, &dposCrv, ptnCur->progress, cameraDefinition->dsOffset, cameraDefinition->aclqOffset, cameraDefinition->almOffset, FTND_Forward, (qword *)&posView);
             GetVectorSphere(VuSub(*(qword *)&posView, *(qword *)&posHang), &radPanFwdNew, &radTiltFwdNew, &sDistFwd);
         }
         if (grftnm & 2)
         {
             VECTOR4 posView;
-            CalculateTnPos(ptnCur, &dposCrv, ptnCur->progress, pcpd->dsOffset, pcpd->aclqOffset, pcpd->almOffset, FTND_Reverse, (qword *)&posView);
+            CalculateTnPos(ptnCur, &dposCrv, ptnCur->progress, cameraDefinition->dsOffset, cameraDefinition->aclqOffset, cameraDefinition->almOffset, FTND_Reverse, (qword *)&posView);
             GetVectorSphere(VuSub(*(qword *)&posView, *(qword *)&posHang), &radPanRevNew, &radTiltRevNew, &sDistRev);
         }
     }
-    if (fEntered)
-        nMode = 4;
+    if (hasEntered)
+        mode = 4;
     if (D_002DDF40.nCut != 0)
     {
         if (D_002DDF40.nCut == 2)
         {
-            nMode = 4;
-            radPan = D_002DDF40.radCutPan;
-            float radTiltCut = D_002DDF40.radCutTilt - atanf(pcpd->uFrameY * D_002DDF40.gTanHalfY);
-            radTilt = ClampToLimits(&D_002C41B0, radTiltCut);
+            mode = 4;
+            panAngle = D_002DDF40.cutPanAngle;
+            float radTiltCut = D_002DDF40.cutTiltAngle - atanf(cameraDefinition->uFrameY * D_002DDF40.tanHalfFovY);
+            tiltAngle = ClampToLimits(&D_002C41B0, radTiltCut);
         }
         else if ((grftnm & 3) == 0)
         {
-            nMode = 4;
-            radPan = pcpdefi->radHome;
-            radTilt = pcpd->lmTilt.minValue;
+            mode = 4;
+            panAngle = pcpdefi->homeHeading;
+            tiltAngle = cameraDefinition->lmTilt.minValue;
         }
         else if ((grftnm & 2) == 0)
         {
-            nMode = 1;
+            mode = 1;
         }
         else if ((grftnm & 1) == 0)
         {
-            nMode = 2;
+            mode = 2;
         }
         else
         {
-            float dradFwd = NormalizeAngle(radPanFwdNew - pcpdefi->radHome);
-            float dradRev = NormalizeAngle(radPanRevNew - pcpdefi->radHome);
+            float dradFwd = NormalizeAngle(radPanFwdNew - pcpdefi->homeHeading);
+            float dradRev = NormalizeAngle(radPanRevNew - pcpdefi->homeHeading);
             if (fabsf(dradFwd) < fabsf(dradRev))
-                nMode = 1;
+                mode = 1;
             else
-                nMode = 2;
+                mode = 2;
         }
-        tMoveLast = D_002DDED0.time;
-        tManual = D_002DDED0.time - D_002C41DC;
+        lastMoveTime = D_002DDED0.time;
+        lastManualInputTime = D_002DDED0.time - D_002C41DC;
     }
-    if ((nMode & grftnm) == 0 && nMode > 0 && nMode < 3)
-        nMode = 4;
+    if ((mode & grftnm) == 0 && mode > 0 && mode < 3)
+        mode = 4;
     VECTOR4 vFocus;
     if (ptnCur != 0 && ptnCur->ploPull != 0)
     {
         VECTOR4 dpos;
-        *(qword *)&dpos = VuSub(PosLoWorld(ptnCur->ploPull), *(qword *)&pcpdefi->posBase);
+        *(qword *)&dpos = VuSub(PosLoWorld(ptnCur->ploPull), *(qword *)&pcpdefi->basePosition);
         dpos.z = 0.0f;
         qword *pqwFallback = &D_002A2DD0;
         qword qwDir = MoveToVu(*(qword *)&dpos);
@@ -1075,28 +1075,28 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     {
         *(qword *)&vFocus = *(qword *)&pcpdefi->vBase;
     }
-    float radPanNew = radPan;
-    float radTiltNew = radTilt;
-    if ((grftnm & 4) != 0 && (fRecenter != 0 || pjoy->rightStickDeflection > 0.0f || dradPan != 0.0f || dradTilt != 0.0f))
+    float radPanNew = panAngle;
+    float radTiltNew = tiltAngle;
+    if ((grftnm & 4) != 0 && (isRecentering != 0 || pjoy->rightStickDeflection > 0.0f || dradPan != 0.0f || dradTilt != 0.0f))
     {
-        if (nMode != 4)
+        if (mode != 4)
         {
             SND *psnd = CreateSfxSound(3);
             SetSndSourceLo(psnd, 0);
         }
         if (pjoy->rightStickDeflection > 0.0f)
-            fRecenter = 0;
-        if (fRecenter != 0)
+            isRecentering = 0;
+        if (isRecentering != 0)
         {
             SMPA *psmpa;
             if (ploPlayer != 0 && (*(  int  *)((uint8_t *)( ploPlayer ) + (  0x10E4 )))  == 4)
                 psmpa = &D_002C4250;
             else
                 psmpa = &D_002C4240;
-            radPanNew = SmoothAngleWithAccel(radPanNew, dradPan, radPanRecenter, dt, psmpa, &dradPan);
-            radTiltNew = SmoothAngleWithAccel(radTiltNew, dradTilt, radTiltRecenter, dt, psmpa, &dradTilt);
-            if (radPanNew == radPanRecenter && radTiltNew == radTiltRecenter)
-                fRecenter = 0;
+            radPanNew = SmoothAngleWithAccel(radPanNew, dradPan, recenterPanAngle, dt, psmpa, &dradPan);
+            radTiltNew = SmoothAngleWithAccel(radTiltNew, dradTilt, recenterTiltAngle, dt, psmpa, &dradTilt);
+            if (radPanNew == recenterPanAngle && radTiltNew == recenterTiltAngle)
+                isRecentering = 0;
         }
         else
         {
@@ -1119,11 +1119,11 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 BroadcastGameEvent(&D_002DEB30, 6, 0);
             }
         }
-        nMode = 4;
-        tManual = D_002DDED0.time;
-        fArrived = 1;
+        mode = 4;
+        lastManualInputTime = D_002DDED0.time;
+        hasArrived = 1;
     }
-    else if (nMode == 4)
+    else if (mode == 4)
     {
         VECTOR4 vecStick;
         vecStick.x = pjoy->leftStickX;
@@ -1165,7 +1165,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         if (ptnCur != 0 && ptnCur->turnAxis != -1)
             nTurnAxis = ptnCur->turnAxis;
         else
-            nTurnAxis = pcpdefi->nTurnAxis;
+            nTurnAxis = pcpdefi->turnAxis;
         VECTOR4 vecAxis;
         switch (nTurnAxis)
         {
@@ -1190,9 +1190,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         *(qword *)&vecAxis = qwAxis;
         float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
-        float dradPanFree = gTurn * uTunnel;
+        float dradPanFree = gTurn * tunnelProgress;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
-        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, D_002DDED0.time - tManual), D_002BBB60.minValue, D_002BBB60.maxValue);
+        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, D_002DDED0.time - lastManualInputTime), D_002BBB60.minValue, D_002BBB60.maxValue);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.deltaTime);
         float uSpeed = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
@@ -1202,7 +1202,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             smp.fastSpeed = D_002C4260.fastSpeed * uSpeed;
             smp.slowSpeed = D_002C4260.slowSpeed * uSpeed;
             smp.fastDuration = D_002C4260.fastDuration;
-            radTiltFree = SmoothAngle(radTiltNew, ClampToLimits(&pcpd->lmTilt, radTiltNew), D_002DDED0.deltaTime, &smp, 0);
+            radTiltFree = SmoothAngle(radTiltNew, ClampToLimits(&cameraDefinition->lmTilt, radTiltNew), D_002DDED0.deltaTime, &smp, 0);
         }
         else
         {
@@ -1230,13 +1230,13 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 radPanView = radPanFwdNew;
                 radTiltView = radTiltFwdNew;
             }
-            else if (nMode == 1)
+            else if (mode == 1)
             {
                 gBlend = 1.0f;
                 radPanView = radPanFwdNew;
                 radTiltView = radTiltFwdNew;
             }
-            else if (nMode == 2)
+            else if (mode == 2)
             {
                 gBlend = 1.0f;
                 radPanView = radPanRevNew;
@@ -1287,12 +1287,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             {
                 gPull = 0.0f;
             }
-            gPull *= pcpd->gTurn;
+            gPull *= cameraDefinition->gTurn;
             if (fPullIdle)
             {
                 float gRamp;
-                float dtIdle = D_002DDED0.time - (tMoveLast + D_002C41D8);
-                float dtQuiet = D_002DDED0.time - (tManual + D_002C41DC);
+                float dtIdle = D_002DDED0.time - (lastMoveTime + D_002C41D8);
+                float dtQuiet = D_002DDED0.time - (lastManualInputTime + D_002C41DC);
                 if (ptnCur->idlePullDuration > 0.0f)
                     gRamp = ClampToLimits(&D_002BBB60, dtIdle / ptnCur->idlePullDuration) * ClampToLimits(&D_002BBB60, dtQuiet / ptnCur->idlePullDuration);
                 else if (dtIdle > 0.0f && dtQuiet > 0.0f)
@@ -1306,7 +1306,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                     gPull = gRamp;
                 }
             }
-            if (fPullEnter && fArrived == 0)
+            if (fPullEnter && hasArrived == 0)
             {
                 float gRamp;
                 if (ptnCur->enterPullDuration > 0.0f)
@@ -1332,25 +1332,25 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 radTiltPull = radTiltFree;
             radPanNew = NormalizeAngle(radPanNew + (1.0f - gBlend) * NormalizeAngle(radPanFree - radPanNew) + gBlend * NormalizeAngle(radPanPull - radPanNew));
             radTiltNew = NormalizeAngle(radTiltNew + (1.0f - gBlend) * NormalizeAngle(radTiltFree - radTiltNew) + gBlend * NormalizeAngle(radTiltPull - radTiltNew));
-            if (!fEntered && !(ptn->path != 0 && (*(  int  *)((uint8_t *)( ptn->path ) + (  0xE0 )))  == 0 && (*(  int  *)((uint8_t *)( ptn->path ) + (  0xE8 )))  > 2))
+            if (!hasEntered && !(cameraTunnel->path != 0 && (*(  int  *)((uint8_t *)( cameraTunnel->path ) + (  0xE0 )))  == 0 && (*(  int  *)((uint8_t *)( cameraTunnel->path ) + (  0xE8 )))  > 2))
             {
                 if ((grftnm & 1) != 0 &&
-                    (NormalizeAngle(radPan - radPanFwd) * NormalizeAngle(radPanNew - radPanFwdNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanFwdNew)) < 0.0001f) &&
+                    (NormalizeAngle(panAngle - forwardPanAngle) * NormalizeAngle(radPanNew - radPanFwdNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanFwdNew)) < 0.0001f) &&
                     fabsf(NormalizeAngle(radPanNew - radPanFwdNew)) < 1.5707964f &&
-                    (NormalizeAngle(radTilt - radTiltFwd) * NormalizeAngle(radTiltNew - radTiltFwdNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltFwdNew)) < 0.0001f) &&
+                    (NormalizeAngle(tiltAngle - forwardTiltAngle) * NormalizeAngle(radTiltNew - radTiltFwdNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltFwdNew)) < 0.0001f) &&
                     fabsf(NormalizeAngle(radTiltNew - radTiltFwdNew)) < 1.5707964f)
                 {
-                    nMode = 1;
-                    fArrived = 1;
+                    mode = 1;
+                    hasArrived = 1;
                 }
                 else if ((grftnm & 2) != 0 &&
-                         (NormalizeAngle(radPan - radPanRev) * NormalizeAngle(radPanNew - radPanRevNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanRevNew)) < 0.0001f) &&
+                         (NormalizeAngle(panAngle - reversePanAngle) * NormalizeAngle(radPanNew - radPanRevNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanRevNew)) < 0.0001f) &&
                          fabsf(NormalizeAngle(radPanNew - radPanRevNew)) < 1.5707964f &&
-                         (NormalizeAngle(radTilt - radTiltRev) * NormalizeAngle(radTiltNew - radTiltRevNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltRevNew)) < 0.0001f) &&
+                         (NormalizeAngle(tiltAngle - reverseTiltAngle) * NormalizeAngle(radTiltNew - radTiltRevNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltRevNew)) < 0.0001f) &&
                          fabsf(NormalizeAngle(radTiltNew - radTiltRevNew)) < 1.5707964f)
                 {
-                    nMode = 2;
-                    fArrived = 1;
+                    mode = 2;
+                    hasArrived = 1;
                 }
             }
         }
@@ -1361,30 +1361,30 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     float sDistOut;
     float uFrameYWant;
     float uFrameXWant;
-    switch (nMode)
+    switch (mode)
     {
     case 1:
         radPanOut = radPanFwdNew;
         radTiltOut = radTiltFwdNew;
         sDistOut = sDistFwd;
-        uFrameXWant = pcpd->uFrameX;
-        uFrameYWant = pcpd->uFrameY;
+        uFrameXWant = cameraDefinition->uFrameX;
+        uFrameYWant = cameraDefinition->uFrameY;
         break;
     case 2:
         radPanOut = radPanRevNew;
         radTiltOut = radTiltRevNew;
         sDistOut = sDistRev;
-        uFrameXWant = -pcpd->uFrameX;
-        uFrameYWant = pcpd->uFrameY;
+        uFrameXWant = -cameraDefinition->uFrameX;
+        uFrameYWant = cameraDefinition->uFrameY;
         break;
     case 4:
         radPanOut = radPanNew;
         radTiltOut = radTiltNew;
         if ((grftnm & 3) == 0)
         {
-            uFrameYWant = pcpd->uFrameY;
-            sDistOut = fabsf(pcpd->dsOffset);
-            uFrameXWant = pcpd->uFrameX;
+            uFrameYWant = cameraDefinition->uFrameY;
+            sDistOut = fabsf(cameraDefinition->dsOffset);
+            uFrameXWant = cameraDefinition->uFrameX;
         }
         else
         {
@@ -1399,26 +1399,26 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             }
             else
             {
-                if (radPanFwdNew > radPan && radPanRevNew > radPan)
+                if (radPanFwdNew > panAngle && radPanRevNew > panAngle)
                 {
                     if (radPanRevNew < radPanFwdNew)
                         radPanFwdNew -= 6.2831855f;
                     else
                         radPanRevNew -= 6.2831855f;
                 }
-                else if (radPanFwdNew < radPan && radPanRevNew < radPan)
+                else if (radPanFwdNew < panAngle && radPanRevNew < panAngle)
                 {
                     if (radPanFwdNew < radPanRevNew)
                         radPanFwdNew += 6.2831855f;
                     else
                         radPanRevNew += 6.2831855f;
                 }
-                u = (radPan - radPanRevNew) / (radPanFwdNew - radPanRevNew);
+                u = (panAngle - radPanRevNew) / (radPanFwdNew - radPanRevNew);
                 u = SmoothStep(u);
             }
-            uFrameYWant = pcpd->uFrameY;
+            uFrameYWant = cameraDefinition->uFrameY;
             sDistOut = u * sDistFwd + (1.0f - u) * sDistRev;
-            uFrameXWant = u * pcpd->uFrameX + (1.0f - u) * -pcpd->uFrameX;
+            uFrameXWant = u * cameraDefinition->uFrameX + (1.0f - u) * -cameraDefinition->uFrameX;
         }
         break;
     }
@@ -1428,12 +1428,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     }
     else
     {
-        float c = pcpd->cDist * D_002C426C * D_002DDED0.deltaTime + 1.0f;
-        float k = pcpd->kDist * D_002C4270 * D_002DDED0.deltaTime;
-        dsDist = c * dsDist + (sDistOut - sDist) * k;
-        sDistOut = sDist + dsDist * D_002DDED0.deltaTime;
-        duFrameY = c * duFrameY + (uFrameYWant - uFrameY) * k;
-        uFrameYWant = uFrameY + duFrameY * D_002DDED0.deltaTime;
+        float c = cameraDefinition->cDist * D_002C426C * D_002DDED0.deltaTime + 1.0f;
+        float k = cameraDefinition->kDist * D_002C4270 * D_002DDED0.deltaTime;
+        dsDist = c * dsDist + (sDistOut - distance) * k;
+        sDistOut = distance + dsDist * D_002DDED0.deltaTime;
+        duFrameY = c * duFrameY + (uFrameYWant - verticalFraming) * k;
+        uFrameYWant = verticalFraming + duFrameY * D_002DDED0.deltaTime;
     }
     VECTOR4 dposEye;
     *(qword *)&dposEye = SetVectorSphere(radPanOut, radTiltOut, sDistOut);
@@ -1444,19 +1444,19 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         if (D_002DDF40.nCut != 0)
             FreeCamClip(this, *(qword *)&posHang, *(qword *)&posEyeWant, (qword *)&posEyeWant);
         else if (D_002C4118 == 0)
-            *(qword *)&posEyeWant = ClipCmEye(&D_002DDF40, posEye, *(qword *)&posEyeWant);
+            *(qword *)&posEyeWant = ClipCmEye(&D_002DDF40, eyePosition, *(qword *)&posEyeWant);
     }
     *(qword *)&dposEye = VuSub(*(qword *)&posEyeWant, *(qword *)&posHang);
     GetVectorSphere(*(qword *)&dposEye, &radPanOut, &radTiltOut, &sDistOut);
-    posEye = *(qword *)&posEyeWant;
-    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.sNearClip) / sDistOut)));
-    float radLookX = atanf(uFrameXWant * D_002DDF40.gTanHalfX);
-    float radLookY = -atanf(uFrameYWant * D_002DDF40.gTanHalfY);
-    if (fEntered)
+    eyePosition = *(qword *)&posEyeWant;
+    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.nearClip) / sDistOut)));
+    float radLookX = atanf(uFrameXWant * D_002DDF40.tanHalfFovX);
+    float radLookY = -atanf(uFrameYWant * D_002DDF40.tanHalfFovY);
+    if (hasEntered)
     {
         if (D_002DDF40.nCut != 0)
         {
-            radPanLook = radTiltLook = 0.0f;
+            lookPanAngle = lookTiltAngle = 0.0f;
         }
         else
         {
@@ -1468,28 +1468,28 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             DecomposeRotateMatrixPanTilt(&D_002DDF40.matRot, &radPanCm, &radTiltCm);
             float radPanView = NormalizeAngle(radPanOut + 3.1415927f + radLookX);
             float radTiltView = NormalizeAngle(atan2f(-z, sXY) + radLookY);
-            radPanLook = NormalizeAngle(radPanCm - radPanView);
-            radTiltLook = NormalizeAngle(radTiltCm - radTiltView);
+            lookPanAngle = NormalizeAngle(radPanCm - radPanView);
+            lookTiltAngle = NormalizeAngle(radTiltCm - radTiltView);
         }
         dradPanLook = dradTiltLook = 0.0f;
     }
     else
     {
-        dradPanLook += (radPanLook * D_002C4274 + dradPanLook * D_002C4278) * D_002DDED0.deltaTime;
-        dradTiltLook += (radTiltLook * D_002C427C + dradTiltLook * D_002C4280) * D_002DDED0.deltaTime;
-        radPanLook += dradPanLook * D_002DDED0.deltaTime;
-        radTiltLook += dradTiltLook * D_002DDED0.deltaTime;
+        dradPanLook += (lookPanAngle * D_002C4274 + dradPanLook * D_002C4278) * D_002DDED0.deltaTime;
+        dradTiltLook += (lookTiltAngle * D_002C427C + dradTiltLook * D_002C4280) * D_002DDED0.deltaTime;
+        lookPanAngle += dradPanLook * D_002DDED0.deltaTime;
+        lookTiltAngle += dradTiltLook * D_002DDED0.deltaTime;
     }
-    SetCmPanTilt(&D_002DDF40, *(qword *)&posEyeWant, *(qword *)&posHang, radLookX + radPanLook, radLookY + radTiltLook);
-    uFrameY = uFrameYWant;
-    radPan = radPanOut;
-    radTilt = radTiltOut;
-    sDist = sDistOut;
-    radPanFwd = radPanFwdNew;
-    radTiltFwd = radTiltFwdNew;
-    radPanRev = radPanRevNew;
-    radTiltRev = radTiltRevNew;
-    fEntered = 0;
+    SetCmPanTilt(&D_002DDF40, *(qword *)&posEyeWant, *(qword *)&posHang, radLookX + lookPanAngle, radLookY + lookTiltAngle);
+    verticalFraming = uFrameYWant;
+    panAngle = radPanOut;
+    tiltAngle = radTiltOut;
+    distance = sDistOut;
+    forwardPanAngle = radPanFwdNew;
+    forwardTiltAngle = radTiltFwdNew;
+    reversePanAngle = radPanRevNew;
+    reverseTiltAngle = radTiltRevNew;
+    hasEntered = 0;
 }
 
 
@@ -1497,7 +1497,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 // Every D_002C4110 (0.5) seconds it looks at five points around the hero (PosLoWorld + back * x + side * y + up * z
 // for the five offsets in D_002C4290; side = normalize(up x (hero - eye)) or (1, 0, 0) when the hero is straight
 // above). Each point is projected onto the screen, moved to the near clip depth and the segment between the two is
-// tested against the camera hulls (FindCameraClearInterval). The first visible point resets tLastSeen; when the hero
+// tested against the camera hulls (FindCameraClearInterval). The first visible point resets lastSeenTime; when the hero
 // has been hidden for more than D_002C4114 (2.0) seconds the camera cuts (CutCm).
 // MATCH notes (Lilly's agent, T1578): STACKSCOPE needs its real out-of-line ctor/dtor (an inline wrapper calling
 // STACKSCOPE_ctor makes gcc keep hi(g_clock) in $fp). Loop 1 keeps a pointer to the current sample and loop 2 starts
@@ -1525,14 +1525,14 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     LO *plo = (LO *)pcmpart->pvHero;
     if (D_002DFBC4 & 2)
     {
-        pcmpart->tLastSeen = D_002DDED0.time;
+        pcmpart->lastSeenTime = D_002DDED0.time;
         return;
     }
-    if (pcmpart->ptn != 0 && pcmpart->ptn->disablesCameraCollision != 0)
+    if (pcmpart->cameraTunnel != 0 && pcmpart->cameraTunnel->disablesCameraCollision != 0)
         return;
     if (D_002C4118 != 0)
         return;
-    if (D_002DDED0.time - pcmpart->tLastSeen < D_002C4110)
+    if (D_002DDED0.time - pcmpart->lastSeenTime < D_002C4110)
         return;
     if (D_002DDF40.nCut != 0)
         return;
@@ -1573,16 +1573,16 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     for (i = 0; i < 5; i++, pqw++)
     {
         aqw[2] = ConvertCmWorldToScreen(&D_002DDF40, *pqw);
-        ((VECTOR4 *)&aqw[2])->z = D_002DDF40.sNearClip;
+        ((VECTOR4 *)&aqw[2])->z = D_002DDF40.nearClip;
         aqw[2] = ConvertCmScreenToWorld(&D_002DDF40, aqw[2]);
         float uExit;
         if (FindCameraClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
         {
-            pcmpart->tLastSeen = D_002DDED0.time;
+            pcmpart->lastSeenTime = D_002DDED0.time;
             break;
         }
     }
-    if (D_002DDED0.time - pcmpart->tLastSeen > D_002C4114)
+    if (D_002DDED0.time - pcmpart->lastSeenTime > D_002C4114)
         CutCm__FP2CM(&D_002DDF40);
 }
 
@@ -1656,7 +1656,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
+    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.nearCornerDistance,D_002DDF40.nearCornerDistance));
     FindCameraClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;

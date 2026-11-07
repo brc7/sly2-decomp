@@ -16,16 +16,16 @@
 struct CPDEFI
 {
       int grfcpd;   /* camera definition flag bits */
-      undefined4 field1_0x4;
-      undefined4 field2_0x8;
-      undefined4 field3_0xc;
-      VECTOR4 posBase;   /* base (pivot) position */
+      undefined4 unknown04;
+      undefined4 unknown08;
+      undefined4 unknown0C;
+      VECTOR4 basePosition; /* base (pivot) position */
       VECTOR4 vBase;   /* base direction */
-      float radHome;   /* home heading (radians) */
-      float sAdjust;   /* adjustment distance */
-      float tMoveLast;   /* time of the last focus move */
-      int nTurnAxis;   /* axis the camera turns about */
-      VECTOR4 posAdjust;   /* adjusted position */
+      float homeHeading; /* home heading (radians) */
+      float adjustDistance; /* adjustment distance */
+      float lastMoveTime; /* time of the last focus move */
+      int turnAxis;    /* axis the camera turns about */
+      VECTOR4 adjustedPosition; /* adjusted position */
 };
 
 /* CPLCYDATA: the data every camera policy has: the hero it follows and the FOV/near clip it saved on activation
@@ -34,8 +34,8 @@ struct CPDEFI
 struct CPLCYDATA
 {
     void *pvHero;   /* the followed hero */
-    float gFovTargetSaved;   /* FOV target saved on activation */
-    float sNearClipSaved;   /* near clip distance saved on activation */
+    float savedTargetFieldOfView; /* FOV target saved on activation */
+    float savedNearClip;    /* near clip distance saved on activation */
 };
 
 /* CPLCY: a camera policy: one strategy for placing the camera (vtable: Init / Activate / Deactivate / Update ...).
@@ -70,22 +70,22 @@ struct CPLOOK : public CPLCY
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplook");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplook");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplook");
-      float radPan;   /* pan angle (radians) */
-      float radTilt;   /* tilt angle (radians) */
+      float panAngle; /* pan angle (radians) */
+      float tiltAngle; /* tilt angle (radians) */
       float swPan;   /* pan angular speed */
       float swTilt;   /* tilt angular speed */
-      float uZoom;   /* zoom, 0..1 */
+      float zoom;    /* zoom, 0..1 */
       float svuZoom;   /* zoom speed */
       float rZoomMax;   /* maximum zoom ratio */
-      float radFovZoom;   /* FOV fully zoomed */
-      float radFovWide;   /* FOV fully wide */
+      float zoomedFieldOfView; /* FOV fully zoomed */
+      float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> psndUnk38;
+      CRefPtr<SND> unknown38;   /* possibly sound (low-confidence guess: SND reference released on exit) */
       LM lmPan;   /* pan limits */
       LM lmTilt;   /* tilt limits */
-      float radPanStart;   /* pan at activation */
-      float radTiltStart;   /* tilt at activation */
-      int cEnter;   /* number of activations */
+      float panStartAngle; /* pan at activation */
+      float tiltStartAngle; /* tilt at activation */
+      int numActivations; /* number of activations */
 };
 
 /* CPZOOM: the zoom/recon camera policy (binocucom): the camera blends to a pose and zooms on a focus object.
@@ -98,28 +98,28 @@ struct CPZOOM : public CPLCY
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpzoom");
       LO *ploOwner;   /* object that owns the policy */
       LO *ploFocus;   /* object looked at */
-      float uZoomTarget;   /* requested zoom, 0..1 */
+      float zoomTarget;    /* requested zoom, 0..1 */
       uint32_t   _pad_224    [ 1 ] ;
-      VECTOR4 posFocusSmooth;   /* smoothed focus position */
-      VECTOR4 posEyeSmooth;   /* smoothed eye position */
-      int fPose;   /* an explicit pose was set (SetCpzoomPose) */
+      VECTOR4 smoothedFocusPosition; /* smoothed focus position */
+      VECTOR4 smoothedEyePosition; /* smoothed eye position */
+      int hasPose; /* an explicit pose was set (SetCpzoomPose) */
       uint32_t   _pad_228    [ 3 ] ;
       VECTOR4 pos;   /* current eye position */
       VECTOR4 eul;   /* current orientation (Euler angles) */
-      float radFov;   /* current FOV */
+      float fieldOfView; /* current FOV */
       uint32_t   _pad_232    [ 3 ] ;
-      VECTOR4 posTarget;   /* target eye position */
+      VECTOR4 targetEyePosition; /* target eye position */
       VECTOR4 eulTarget;   /* target orientation */
-      float radFovTarget;   /* target FOV */
-      float radPan;   /* pan angle */
-      float radTilt;   /* tilt angle */
-      float uZoom;   /* zoom, 0..1 */
+      float targetFieldOfView; /* target FOV */
+      float panAngle; /* pan angle */
+      float tiltAngle; /* tilt angle */
+      float zoom;    /* zoom, 0..1 */
       float svuZoom;   /* zoom speed */
       float rZoomMax;   /* maximum zoom ratio */
-      float radFovZoom;   /* FOV fully zoomed */
-      float radFovWide;   /* FOV fully wide */
+      float zoomedFieldOfView; /* FOV fully zoomed */
+      float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> psndUnkc4;
+      CRefPtr<SND> unknownC4;   /* possibly sound (low-confidence guess: SND reference released on exit) */
       uint32_t   _pad_245    [ 2 ] ;
     void Reset() __asm__("SnapCpzoom");
     void SetOwner(LO *plo) __asm__("SetCpzoomOwner");
@@ -140,9 +140,9 @@ struct CPHANG : public CPLCY
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCphang");
       XF *pxfCam;   /* camera transform */
       ACT1 *pact1;   /* actuator that drives the sway */
-      float tNext;   /* time of the next sway change */
+      float nextSwayTime; /* time of the next sway change */
       uint32_t   _pad_434    [ 1 ] ;
-      VECTOR4 posSway;   /* sway offset */
+      VECTOR4 swayOffset; /* sway offset */
       VECTOR4 vecVel;   /* sway velocity */
 };
 
@@ -188,44 +188,44 @@ struct CPTWOSHOT : public CPLCY
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPR
 {
-    CPP cpp;   /* priority (higher wins) */
-    CPLCY *pcplcy;   /* the policy */
-    SO *psoFocus;   /* object the policy focuses on */
-    void *pv;   /* policy argument */
+    CPP priority; /* priority (higher wins) */
+    CPLCY *policy;   /* the policy */
+    SO *focus;      /* object the policy focuses on */
+    void *argument; /* policy argument */
 };
 
 /* CMPART2: the tunnel camera policy (CPTN): follows the hero through a TN with pan/tilt recentring and look-around.
    Layout from src/game/engine/camera/tn/UpdateCptn.cpp (6 copies in Lilly ports) */
 struct CMPART2 : public CPLCY
 {
-      TN *ptn;   /* the active tunnel */
-      CPD *pcpd;   /* its camera definition */
-      float radPan;   /* pan angle */
-      float radTilt;   /* tilt angle */
-      float sDist;   /* distance from the focus */
-      float uFrameY;   /* vertical framing, 0..1 */
-      int fRecenter;   /* recentring is in progress */
-      float radPanRecenter;   /* pan to recentre to */
-      float radTiltRecenter;   /* tilt to recentre to */
-      int nMode;   /* mode */
-      int fEntered;   /* the hero entered the tunnel */
-      int fArrived;   /* the camera arrived at its tunnel position */
+      TN *cameraTunnel; /* the active tunnel */
+      CPD *cameraDefinition; /* its camera definition */
+      float panAngle; /* pan angle */
+      float tiltAngle; /* tilt angle */
+      float distance; /* distance from the focus */
+      float verticalFraming; /* vertical framing, 0..1 */
+      int isRecentering; /* recentring is in progress */
+      float recenterPanAngle; /* pan to recentre to */
+      float recenterTiltAngle; /* tilt to recentre to */
+      int mode;    /* mode */
+      int hasEntered; /* the hero entered the tunnel */
+      int hasArrived; /* the camera arrived at its tunnel position */
       float dradPan;   /* pan speed */
       float dradTilt;   /* tilt speed */
-      float tManual;   /* time of the last manual camera input */
-      float radPanCrv;   /* pan from the tunnel curve */
-      float radPanFwd;   /* pan facing forward */
-      float radTiltFwd;   /* tilt facing forward */
-      float radPanRev;   /* pan facing backward */
-      float radTiltRev;   /* tilt facing backward */
-      float tMoveLast;   /* time of the last focus move */
-      float uTunnel;   /* progress through the tunnel, 0..1 */
+      float lastManualInputTime; /* time of the last manual camera input */
+      float curvePanAngle; /* pan from the tunnel curve */
+      float forwardPanAngle; /* pan facing forward */
+      float forwardTiltAngle; /* tilt facing forward */
+      float reversePanAngle; /* pan facing backward */
+      float reverseTiltAngle; /* tilt facing backward */
+      float lastMoveTime; /* time of the last focus move */
+      float tunnelProgress; /* progress through the tunnel, 0..1 */
       float dsDist;   /* distance change speed */
       float duFrameY;   /* framing change speed */
-      qword posEye;   /* eye position */
-      float tLastSeen;   /* time the hero was last visible */
-      float radPanLook;   /* look-around pan */
-      float radTiltLook;   /* look-around tilt */
+      qword eyePosition; /* eye position */
+      float lastSeenTime; /* time the hero was last visible */
+      float lookPanAngle; /* look-around pan */
+      float lookTiltAngle; /* look-around tilt */
       float dradPanLook;   /* look-around pan speed */
       float dradTiltLook;   /* look-around tilt speed */
       uint32_t   _pad_510    [ 3 ] ;
@@ -249,19 +249,19 @@ struct CM : public CMBASE
       uint grfvis;   /* visibility mask of the camera */
       float rFovCullRef;   /* reference FOV ratio for culling */
       float rCullScale;   /* culling distance scale */
-      float fov;   /* field of view */
-      float fovTarget;   /* FOV the camera moves toward */
+      float fieldOfView; /* field of view */
+      float targetFieldOfView; /* FOV the camera moves toward */
       float dfov;   /* FOV change speed */
-      float rUnk2c;
-      float rUnk30;
-      float rUnk34;
-      float rUnk38;
-      float rAspect;   /* aspect ratio */
-      float gTanHalfX;   /* tan of half the horizontal FOV */
-      float gTanHalfY;   /* tan of half the vertical FOV */
-      float sNearCorner;   /* distance to the near-plane corners */
-      float sNearClip;   /* near clip distance */
-      float sFarClip;   /* far clip distance */
+      float unknown2C;
+      float unknown30;
+      float unknown34;
+      float unknown38;
+      float aspectRatio; /* aspect ratio */
+      float tanHalfFovX; /* tan of half the horizontal FOV */
+      float tanHalfFovY; /* tan of half the vertical FOV */
+      float nearCornerDistance; /* distance to the near-plane corners */
+      float nearClip;    /* near clip distance */
+      float farClip;    /* far clip distance */
       uint32_t   _pad_558    [ 3 ] ;
       union
     {
@@ -279,12 +279,12 @@ struct CM : public CMBASE
       MATRIX4 matViewProjInv;   /* its inverse */
       qword aplaneFrustum[4];   /* the four side planes of the frustum */
       qword aplaneFrustumWide[4];   /* the wide frustum's side planes */
-      float sNearFog;   /* fog start distance */
-      float sFarFog;   /* fog end distance */
-      float uFogMax;   /* maximum fog, 0..1 */
+      float nearFogDistance; /* fog start distance */
+      float farFogDistance; /* fog end distance */
+      float maxFog;    /* maximum fog, 0..1 */
       RGBA rgbaFog;   /* fog colour */
       float agRecipFit[4];   /* reciprocal fit factors (inferred) */
-      SO *psoAdjust;        /* +0x260 [R] camera focus SO = the current player in gameplay (runtime3/6) */
+      SO *focus;            /* +0x260 [R] camera focus SO = the current player in gameplay (runtime3/6) */
       uint32_t   _pad_581    [ 3 ] ;
       CPDEFI cpdefi;   /* camera definition of the focus */
       qword dposAdjust;   /* position adjustment */
@@ -294,40 +294,40 @@ struct CM : public CMBASE
       VECTOR vFocus;   /* focus velocity */
       uint32_t   _pad_588    [ 1 ] ;
       int nCut;   /* camera cut counter (inferred) */
-      float radCutPan;   /* pan after the cut */
-      float radCutTilt;   /* tilt after the cut */
-      int ccpr;             /* +0x30C [R] depth of the policy stack acpr (ram_inspector "policy stack count"); was cmodeHero */
-      CPR acpr[8];          /* +0x310 [R] policy stack {prio, pcplcy, psoFocus, pv}, 16 bytes each; top = highest prio */
-      float tModeStart;   /* time the current mode started */
+      float cutPanAngle; /* pan after the cut */
+      float cutTiltAngle; /* tilt after the cut */
+      int numPolicies;             /* +0x30C [R] depth of the policy stack acpr (ram_inspector "policy stack count"); was cmodeHero */
+      CPR policyStack[8];   /* +0x310 [R] policy stack {prio, pcplcy, focus, pv}, 16 bytes each; top = highest prio */
+      float modeStartTime; /* time the current mode started */
       uint32_t   _pad_595    [ 3 ] ;
       CMPART1 part3a0;   /* embedded policy at +0x3A0 */
-      CMPART2 part3b0;   /* the tunnel policy (CPTN) */
+      CMPART2 tunnelPolicy; /* the tunnel policy (CPTN) */
       CPLOOK cplook;        /* +0x450 [R] look-around policy (prio 7, focus JT in S31; vptr 0x2CD4E0) */
-      CPCAMERA part4a8;     /* +0x4A8 [R] fixed-camera policy (prio 10 on a CID 0x2C marker, runtime7a) */
-      CPHANG part4c0;       /* +0x4C0 [R offset / S type] embedded policy pushed at prio 10 */
+      CPCAMERA fixedCameraPolicy; /* +0x4A8 [R] fixed-camera policy (prio 10 on a CID 0x2C marker, runtime7a) */
+      CPHANG hangPolicy;    /* +0x4C0 [R offset / S type] embedded policy pushed at prio 10 */
       CPCAMBLEND cpcamblend;  /* +0x500 [R] cutscene blend policy (prio 10, pv = a CAMMOVE in the JSG); was part500 */
       CPZOOM cpzoom;        /* +0x520 [R] recon camera (prio 8 while JT mode kind 1, binocucom) */
 
-      CPTURRET part5f0;   /* the turret policy */
-      CPTWOSHOT part600;   /* the two-shot policy */
-      float tJolt;   /* time of the last camera jolt (shake) */
-      int nUnk61c;
-      float rUnk620;
-      float rUnk624;
+      CPTURRET turretPolicy; /* the turret policy */
+      CPTWOSHOT twoShotPolicy; /* the two-shot policy */
+      float joltTime; /* time of the last camera jolt (shake) */
+      int unknown61C;
+      float unknown620;
+      float unknown624;
     CM() __asm__("CM_ctor");   /* out of line: camera/cm/CM_ctor.c */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCmClassDesc");   /* slot 6 */
 };
 typedef char assert_CM_size[sizeof(CM) == 0x630 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
-typedef char assert_CM_acpr[SLY2_OFFSETOF(CM, acpr) == 0x310 ? 1 : -1];   /* policy stack acpr[8] of 16-byte CPR (CONFIRMED runtime) */
+typedef char assert_CM_policyStack[SLY2_OFFSETOF(CM, policyStack) == 0x310 ? 1 : -1]; /* policy stack acpr[8] of 16-byte CPR (CONFIRMED runtime) */
 typedef char assert_CM_part3a0[SLY2_OFFSETOF(CM, part3a0) == 0x3A0 ? 1 : -1];   /* bottom policy CMPART1 (CONFIRMED runtime) */
-typedef char assert_CM_part3b0[SLY2_OFFSETOF(CM, part3b0) == 0x3B0 ? 1 : -1];   /* upper policy with TN pv (CONFIRMED runtime) */
-typedef char assert_CM_psoAdjust[SLY2_OFFSETOF(CM, psoAdjust) == 0x260 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_CM_ccpr[SLY2_OFFSETOF(CM, ccpr) == 0x30C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_CM_tunnelPolicy[SLY2_OFFSETOF(CM, tunnelPolicy) == 0x3B0 ? 1 : -1]; /* upper policy with TN pv (CONFIRMED runtime) */
+typedef char assert_CM_focus[SLY2_OFFSETOF(CM, focus) == 0x260 ? 1 : -1];           /* CONFIRMED runtime */
+typedef char assert_CM_numPolicies[SLY2_OFFSETOF(CM, numPolicies) == 0x30C ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_CM_cplook[SLY2_OFFSETOF(CM, cplook) == 0x450 ? 1 : -1];   /* CONFIRMED runtime (vptr seen in policy stack) */
 typedef char assert_CM_cpcamblend[SLY2_OFFSETOF(CM, cpcamblend) == 0x500 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CM_cpzoom[SLY2_OFFSETOF(CM, cpzoom) == 0x520 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CM_grfvis[SLY2_OFFSETOF(CM, grfvis) == 0x14 ? 1 : -1];   /* match (so.cpp / frm.cpp visibility mask) */
-typedef char assert_CM_rAspect[SLY2_OFFSETOF(CM, rAspect) == 0x3C ? 1 : -1];   /* match (turret.cpp) */
+typedef char assert_CM_aspectRatio[SLY2_OFFSETOF(CM, aspectRatio) == 0x3C ? 1 : -1]; /* match (turret.cpp) */
 typedef char assert_CM_mat[SLY2_OFFSETOF(CM, mat) == 0x60 ? 1 : -1];   /* match (camera matrix, pos at +0x90) */
 typedef char assert_CM_rgbaFog[SLY2_OFFSETOF(CM, rgbaFog) == 0x24C ? 1 : -1];   /* match (shd.cpp) */
 typedef char assert_CM_cplook_rZoomMax[SLY2_OFFSETOF(CM, cplook.rZoomMax) == 0x478 ? 1 : -1];   /* match (hud.cpp) */
