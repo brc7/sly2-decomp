@@ -1590,7 +1590,7 @@ namespace M_func_00197370 { extern "C" {
 struct S60 { char pad[0x40]; float x40; float x44; };
 struct S150 { char pad[0x18]; float x18; };
 struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
+struct O : LO { char pad[0x60 - 0x50]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
@@ -3726,7 +3726,7 @@ namespace M_func_0019AC88 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct X { char pad[0x80]; qword v80; };
-struct O { char pad[0xE8]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
+struct O : LO { char pad[0xE8 - 0x50]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
 struct A { struct O *p; };
 struct P { struct A *a; void *p4; int pad[2]; qword v10; };
 qword GetLoWorldPos(void *p);
@@ -3954,9 +3954,8 @@ class PAD_E0 { public: char ab[0xE0]; };
 class PAD_190 { public: char ab[0x190]; };
 struct SHAPE : PAD_E0, TARGET { SHAPE *pshapeNext; int pad108; float rAngle; };
 struct CURVE : PAD_190, TARGET { CURVE *pcurveNext; };
-struct HOOK
+struct HOOK : XFM
 {
-    char pad0[0xE0];
     HOOK *phookNext;            // 0xE0
     int padE4;
     uint grfHook;               // 0xE8
@@ -4712,7 +4711,7 @@ extern "C" void LandJtAir(JTAIR *air)
 
 //////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 { extern "C" {
-struct O { char pad[0x520]; int x520; };
+struct O : STEP { char pad[0x520 - 0x2C0]; int x520; };
 struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
 int GetJtAirAdjustRecord(struct S *s, int *pn) {
@@ -4738,7 +4737,7 @@ extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 
 //////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 { extern "C" {
-struct O { char pad[0x12F0]; int x12f0; };
+struct O : STEP { char pad[0x12F0 - 0x2C0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
 int IsCameraPolicyActive__FP5CPLCY(void *);
@@ -4800,7 +4799,7 @@ extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 //////// 0x19CA58 CloneJmt
 namespace M_CloneJmt { extern "C" {
 struct K { int a, b; };
-struct S { char pad[0xE0]; struct K k; };
+struct S : XFM { struct K k; };
 void CloneXfm(struct S *);
 // JMT Clone (slot 41): clones the transform but keeps its own list entry.
 void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
