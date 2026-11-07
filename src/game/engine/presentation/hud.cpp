@@ -2892,7 +2892,6 @@ namespace M_func_00217298 { extern "C" {
 // Queue the selected VU microprogram pair in a DMA packet.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct S {char pad[0xA4];int priority;};
 extern VIFS D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
 RPL *AllocRenderListEntry(void);
@@ -2903,7 +2902,7 @@ static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3)
 // Pad the packet with zero words to a quadword boundary.
 static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
-void QueueSpriteVuProgram(struct S *p,int mode,float priority){
+void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
     unsigned char *tag=D_002DEA28.m_pb;
     RPL *e;
     *(ulong *)tag=0x10000000UL;
@@ -2932,9 +2931,7 @@ namespace M_RenderSpriteGeometry { extern "C" {
 // Queue transformed sprite parameters with optional fade limiting.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct POSITION {char pad[0x9C];float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
-struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct POSITION *ownerWidget;};
-struct S {char pad[8];struct OWNER *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
+struct S {char pad[8];WIDGET *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
@@ -2990,10 +2987,8 @@ namespace M_func_002177E0 { extern "C" {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct POSITION {char pad[0x9C];float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
-struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct POSITION *ownerWidget;};
 struct GEO {char pad[0x18];int count;void *data;};
-struct S {int pad,type;struct OWNER *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
+struct S {int pad,type;WIDGET *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
