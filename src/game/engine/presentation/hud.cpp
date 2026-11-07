@@ -3204,22 +3204,15 @@ struct RGBA {
     // Assign a color as one word.
     RGBA &operator=(const RGBA &c){*(RGBA2 *)this=*(const RGBA2 *)&c;return *this;}
 } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Y { RGBA2 color0; RGBA2 color1; char pad8[8]; QQ matrix; };   /* a frame item */
-struct E { int count;void *items;short animIndex;short keyIndex;float time;int isFinished;void *unknown14; };
-struct F { char pad[8]; float duration; char padc[0xC]; };
-struct S;
-struct A { int counts; F *anims; E *slots; char padc[0x18]; S *owner; char pad28[8]; };   /* a sprite group */
-struct S { char pad[0x84]; A *spriteGroups; };
-extern "C" int FindSpriteItemPose(S *p, int k, QQ *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
-extern "C" void ResetSpriteSlotItems(A *p, int i);
+extern "C" int FindSpriteItemPose(WIDGET *p, int k, SPRITEXF *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
+extern "C" void ResetSpriteSlotItems(SPRITEGRP *p, int i);
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
-extern "C" void UpdateSpriteSlot(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
+extern "C" void UpdateSpriteSlot(float g, SPRITEGRP *p, int i, SPRITEXF *pq, const RGBA *c0, const RGBA *c1);
 // Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
-extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
+extern "C" void SetSpriteAnimTime(SPRITEGRP *group, int slot, SPRITEITEM *item, float time)
 {
-    QQ q;
+    SPRITEXF q;
     RGBA c0, c1;
     int animIndex = group->slots[slot].animIndex;
     if (animIndex < 0)
@@ -3227,8 +3220,8 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
     time = StdMin(group->anims[animIndex].duration, StdMax(0.0f, time));
     if (item) {
         q = item->matrix;
-        *(RGBA2 *)&c0 = item->color0;
-        *(RGBA2 *)&c1 = item->color1;
+        *(::RGBA *)&c0 = item->color0;
+        *(::RGBA *)&c1 = item->color1;
     } else if (!FindSpriteItemPose(group->owner, group - group->owner->spriteGroups, &q, &c0, &c1, 0, 0)) {
         return;
     }
