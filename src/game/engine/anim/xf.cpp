@@ -320,28 +320,19 @@ namespace M_func_0022CDC0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 {qword r[3];};
-union FRAME {M4 matrix;M3 basis;};
-struct O;
-union SOURCE {O *object;float deadline;};
-union MOTIONDATA {qword r[4];M3 rotation;};
-struct O {
- FRAME local;M4 world;float segmentStartTime,segmentEndTime;float *currentTimePtr,*curveScalePtr;ACT *job;int valueKind;
- short role,segmentKind;unsigned tag;O *parent;int priority;SOURCE source;
- unsigned short force,damping;qword velocity;MOTIONDATA data;
-};
 extern "C" { extern qword D_002A2DD0; }
 extern "C" void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
-extern "C" M4 *BuildRotationDerivativeMatrix(M4 *pm, struct O *pa, const M3 *basis, qword v);
-extern "C" M4 *BuildEulerDerivativeMatrix(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
-extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, struct O *po, qword v);
-extern "C" qword GetXfValueFromMatrix(struct O *pa, const M4 *matrix);
+extern "C" M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M3 *basis, qword v);
+extern "C" M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M3 *basis, qword c, qword d);
+extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v);
+extern "C" qword GetXfValueFromMatrix(XF *pa, const M4 *matrix);
 extern "C" qword DecomposeRotationMatrixToEuler(const M3 *rotation);
 extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
 // Evaluate the object's Bezier segment position at the current time into the three outputs.
-static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
+static __inline__ void Eval(XF *po, qword *pa, qword *pb, qword *pc)
 {
-    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->currentTimePtr - po->segmentStartTime, *po->curveScalePtr, po->data.r[0], po->data.r[1], po->data.r[2], po->data.r[3], pa, pb, pc);
+    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->unknownE0, po->acceleration, pa, pb, pc);
 }
 // Copy a 128-bit GPR value (por with zero).
 static inline qword SelectedValue(qword input){qword value;__asm__("por %0,$zero,%1":"=r"(value):"r"(input));return value;}
@@ -353,7 +344,7 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
 // Formerly EvaluateXfSlotMatrix: despite that name the body computes the matrix's time derivative, which is how
 // SetXfRole reads velocities off it. Callers: itself (mirrored slots), GetXfAngularVelocity, GetXfVelocity and
 // SetXfRole.
-extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
+extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 {
     M4 m, m2;
     switch (po->role) {
@@ -361,11 +352,11 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
         func_002333B4(pr, 0, 0x40);
         break;
     default:
-        switch (po->valueKind) {
+        switch (po->kind) {
         case 0: case 2: case 3: case 13: case 15:
             break;
         case 8: case 14: {
-            EvaluateXfSlotMatrixDerivative(&m, po->source.object);
+            EvaluateXfSlotMatrixDerivative(&m, po->reference);
             func_0023320C(pr, &m, 0x40);
             pr->m[3][0] = -pr->m[3][0];
             pr->m[3][1] = -pr->m[3][1];
@@ -375,38 +366,38 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
         case 6: case 7:
             switch (po->role) {
             case 1: case 2: case 7: case 8: case 9: case 11: case 17: case 18: case 20: case 21: {
-                BuildRotationDerivativeMatrix(&m, po, &po->local.basis, po->velocity);
+                BuildRotationDerivativeMatrix(&m, po, (M3 *)&po->localMatrix, *(qword *)&po->velocity);
                 func_0023320C(pr, &m, 0x40);
                 break;
             }
             case 5: case 6:
-                if (po->segmentKind == 5) {
+                if (po->phase == 5) {
                     func_002333B4(pr, 0, 0x40);
                 } else {
                     qword q, t;
                     register qword initial __asm__("$2");
-                    switch (po->segmentKind) {
+                    switch (po->phase) {
                     case 0:
-                        initial = GetXfValueFromMatrix(po, &po->local.matrix);
+                        initial = GetXfValueFromMatrix(po, (M4 *)&po->localMatrix);
                         break;
                     case 1:
                         Eval(po, &m.r[0], 0, 0);
                         initial = m.r[0];
                         break;
                     case 2: case 3: case 4:
-                        initial = po->data.r[0];
+                        initial = po->restValue;
                         break;
                     case 5:
-                        initial = DecomposeRotationMatrixToEuler(&po->data.rotation);
+                        initial = DecomposeRotationMatrixToEuler((M3 *)&po->restValue);
                         break;
                     default:
                         initial = DefaultPoint();
                         break;
                     }
                     q=SelectedValue(initial);
-                    switch (po->segmentKind) {
+                    switch (po->phase) {
                     case 3: case 4:
-                        t = po->data.r[1];
+                        t = po->rate;
                         break;
                     case 1:
                         Eval(po, 0, &m.r[0], 0);
@@ -416,7 +407,7 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
                         t = D_002A2DD0;
                         break;
                     }
-                    BuildEulerDerivativeMatrix(&m, po, &po->local.basis, q, t);
+                    BuildEulerDerivativeMatrix(&m, po, (M3 *)&po->localMatrix, q, t);
                     func_0023320C(pr, &m, 0x40);
                 }
                 break;
@@ -425,13 +416,13 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
         case 1: case 4: case 5: case 9: case 10: case 11: case 12: {
             switch (po->role) {
             case 1: case 2: case 7: case 8: case 9: case 11: case 17: case 18: case 20: case 21:
-                m.r[0] = po->velocity;
+                m.r[0] = *(qword *)&po->velocity;
                 break;
             case 5: case 6:
                 {qword *output=&m.r[0];qword value;
-                switch (po->segmentKind) {
+                switch (po->phase) {
                 case 3: case 4:
-                    value = po->data.r[1];
+                    value = po->rate;
                     break;
                 case 1:
                     Eval(po, 0, &m.r[1], 0);
@@ -528,12 +519,11 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 union V {qword q;float f[4];};
 union SOURCE {void *object;float deadline;};
-struct O {M4 local,world;float t0,t1;float *time,*dt;ACT *hook;int kind;short mode,state;unsigned int tag;O *parent;int priority;SOURCE source;unsigned short force,damping;qword velocity,v0,v1,v2,v3;};
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 M4 InvertMatrix4Rigid(const M4 *);
-M4 EvaluateXfSlotMatrixDerivative(O *);
-void UpdateXfJobRange(void *,O *);
+M4 EvaluateXfSlotMatrixDerivative(XF *);
+void UpdateXfJobRange(void *,XF *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
 // Transform point v by the 4x4 matrix m.
@@ -561,45 +551,45 @@ static inline qword ParentRotate(const M4 &m,qword v) {register qword row0 __asm
 static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%3x\n\tvmadday.xyz ACC,%1,%3y\n\tvmaddz.xyz %0,%2,%3z":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
 // Evaluate the object's Bezier position at its current time into *v.
-static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p->t0,*p->dt,p->v0,p->v1,p->v2,p->v3,0,v,0);}
+static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->unknownE0,p->acceleration,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 // Runtime-checked: XF+0xB0 holds the velocity.
-extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
+extern "C" qword GetXfVelocity(XF *p,XF *stop,qword in) {
     qword sum;
     qword delta;
     M4 m;
     qword input=in;
     sum=VuZero<qword>();
     for(;p!=stop;p=p->parent) {
-        switch(p->mode) {
+        switch(p->role) {
         case 0:case 3:case 10:case 12:case 15:case 19:break;
         default:
             switch(p->kind) {
             case 1:case 4:case 5:case 9:case 10: {
-                switch(p->mode) {
-                case 1:case 2:case 7:case 8:case 9:case 11:case 17:case 18:case 20:case 21:delta=p->velocity;break;
+                switch(p->role) {
+                case 1:case 2:case 7:case 8:case 9:case 11:case 17:case 18:case 20:case 21:delta=*(qword *)&p->velocity;break;
                 case 5:case 6:
-                    if(p->hook)UpdateXfJobRange(p->hook->animatedObject,p);
-                    switch(p->state) {
-                    case 3:case 4:delta=p->v1;break;
+                    if(p->firstActuator)UpdateXfJobRange(p->firstActuator->animatedObject,p);
+                    switch(p->phase) {
+                    case 3:case 4:delta=p->rate;break;
                     case 1:{V tmp;Eval(p,&tmp.q);delta=tmp.q;break;}
                     case 0:case 2:case 5:default:delta=D_002A2DD0;break;
                     }
                     break;
                 }
-                if(p->parent)sum=VuAdd(sum,RotateRow(p->parent->world,delta));
+                if(p->parent)sum=VuAdd(sum,RotateRow(*(M4 *)&p->parent->worldMatrix,delta));
                 else sum=VuAdd(sum,delta);
                 break;
             }
             default: {
-                if(p->hook)UpdateXfJobRange(p->hook->animatedObject,p);
+                if(p->firstActuator)UpdateXfJobRange(p->firstActuator->animatedObject,p);
                 m=EvaluateXfSlotMatrixDerivative(p);
-                O *parent=p->parent;
+                XF *parent=p->parent;
                 if(parent) {
-                    M4 inverse=InvertMatrix4Rigid(&p->world);
-                    sum=VuAdd(sum,ParentRotate(parent->world,Transform(m,InverseTransform(inverse,input))));
+                    M4 inverse=InvertMatrix4Rigid((M4 *)&p->worldMatrix);
+                    sum=VuAdd(sum,ParentRotate(*(M4 *)&parent->worldMatrix,Transform(m,InverseTransform(inverse,input))));
                 } else {
-                    M4 inverse=InvertMatrix4Rigid(&p->world);
+                    M4 inverse=InvertMatrix4Rigid((M4 *)&p->worldMatrix);
                     sum=VuAdd(sum,Transform(m,InverseTransform(inverse,input)));
                 }
                 break;
@@ -608,7 +598,7 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
             break;
         }
     }
-    if(stop) {M4 inverse=InvertMatrix4Rigid(&stop->world);sum=RotatePointerRows(inverse,sum);}
+    if(stop) {M4 inverse=InvertMatrix4Rigid((M4 *)&stop->worldMatrix);sum=RotatePointerRows(inverse,sum);}
     return sum;
 }
 } // namespace M_GetXfVelocity
@@ -2165,21 +2155,18 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 { qword r[3]; };
 struct VT { short d; short pad; void (*pfn)(...); };   /* the C file's unprototyped pointer */
-struct OB { char pad[0x18]; VT *vt; };
-struct O {
-    M4 local; char pad40[0x90 - 0x40]; OB *pob; int valueKind; short role; short segmentKind; char pad9C[0xB0 - 0x9C]; qword velocity;
-};
+struct OB { char pad[0x18]; VT *vt; };   /* the XF's act (act.h ACT) as the slot-5 call reads it: GetGoal called without its dt */
 extern "C" {
 int IsXfRoleMoving(int);
-M4 *BuildXfValueMatrix(M4 *pm, O *po, qword v);
-M4 *BuildEulerDerivativeMatrix(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
-void BuildXfValueDerivativeMatrix(M4 *pm, O *po, qword v);
-M4 *BuildRotationDerivativeMatrix(M4 *pm, O *pa, const M4 *basis, qword v);
+M4 *BuildXfValueMatrix(M4 *pm, XF *po, qword v);
+M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M4 *basis, qword c, qword d);
+void BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v);
+M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M4 *basis, qword v);
 M3 *BuildRotationMatrixFromVector(M3 *, qword);
-qword GetXfValueFromMatrix(O *pa, const M4 *matrix);
+qword GetXfValueFromMatrix(XF *pa, const M4 *matrix);
 qword *VECTOR_opAssign(qword *, qword);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g);
+void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g);
 }
 // Float broadcast into a VU0 register (passed through an FPU register first).
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -2214,11 +2201,11 @@ static inline void SetM4(M4 *pm, const M3 &mat, qword pos)
     pm->m[0][3] = 0.0f;
 }
 // The transform's value matrix for v (BuildXfValueMatrix).
-static inline M4 C8c0(O *po, const qword &v) return r { BuildXfValueMatrix(&r, po, v); }
+static inline M4 C8c0(XF *po, const qword &v) return r { BuildXfValueMatrix(&r, po, v); }
 // The transform's value-derivative matrix for v (BuildXfValueDerivativeMatrix).
-static inline M4 Cc00(O *po, const qword &v) return r { BuildXfValueDerivativeMatrix(&r, po, v); }
+static inline M4 Cc00(XF *po, const qword &v) return r { BuildXfValueDerivativeMatrix(&r, po, v); }
 // The rotation-derivative matrix of pm for v (BuildRotationDerivativeMatrix).
-static inline M4 Ccd0(O *po, const M4 *pm, qword v) return r { BuildRotationDerivativeMatrix(&r, po, pm, v); }
+static inline M4 Ccd0(XF *po, const M4 *pm, qword v) return r { BuildRotationDerivativeMatrix(&r, po, pm, v); }
 // Return v scaled by f.
 static inline qword Scale(qword v, const VUF &f)
 {
@@ -2237,16 +2224,16 @@ static inline qword AddScale(qword a, qword v, const VUF &f)
 }
 // A slot's current matrix and its time derivative, from its driving action's goal (value and rate) or its own
 // velocity role. (inferred)
-void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g)
+void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g)
 {
-    if (po->pob) {
+    if (po->firstActuator) {
         qword q[2];
         M4 t;
-        OB *pob = po->pob;
+        OB *pob = (OB *)po->firstActuator;
         ((void (*)(void *, qword *, qword *))pob->vt[5].pfn)((char *)pob + pob->vt[5].d, &q[0], &q[1]);
         BuildXfValueMatrix(&t, po, q[0]);
         *pm = t;
-        switch (po->valueKind) {
+        switch (po->kind) {
         case 6: case 7:
             BuildEulerDerivativeMatrix(&t, po, pm, q[0], q[1]);
             *pm2 = t;
@@ -2257,27 +2244,27 @@ void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g)
             break;
         }
     } else if (IsXfRoleMoving(po->role)) {
-        switch (po->valueKind) {
+        switch (po->kind) {
         case 6: case 7: {
             M3 mat;
-            mat = MulM3(BuildRotationS(VUF2(g), po->velocity), *(M3 *)&po->local);
-            SetM4(pm, mat, po->local.r[3]);
-            *pm2 = Ccd0(po, pm, po->velocity);
+            mat = MulM3(BuildRotationS(VUF2(g), *(qword *)&po->velocity), *(M3 *)&po->localMatrix);
+            SetM4(pm, mat, ((M4 *)&po->localMatrix)->r[3]);
+            *pm2 = Ccd0(po, pm, *(qword *)&po->velocity);
             break;
         }
         default: {
             qword v[1];
-            v[0] = AddScale(GetXfValueFromMatrix(po, &po->local), po->velocity, VUF(g));
+            v[0] = AddScale(GetXfValueFromMatrix(po, (M4 *)&po->localMatrix), *(qword *)&po->velocity, VUF(g));
             M4 t;
             BuildXfValueMatrix(&t, po, v[0]);
             *pm = t;
-            BuildXfValueDerivativeMatrix(&t, po, po->velocity);
+            BuildXfValueDerivativeMatrix(&t, po, *(qword *)&po->velocity);
             *pm2 = t;
             break;
         }
         }
     } else {
-        *pm = po->local;
+        *pm = *(M4 *)&po->localMatrix;
         func_002333B4(pm2, 0, 0x40);
     }
 }
