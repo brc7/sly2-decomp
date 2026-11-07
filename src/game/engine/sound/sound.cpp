@@ -24,13 +24,12 @@
 #include "sly2/vu0.h"
 
 /* g_sndmgr's static construction and destruction. */
-struct VTESND { short d; short pad; void (*pfn)(void *); };
-struct SNDOBJ { char pad0[0xC]; VTESND *vtable; };
+struct VTESND { short d; short pad; void (*pfn)(void *); };   /* a vtable entry (SNDV's hand-made calls) */
 /* A counted pointer to a sound object: released through its vtable slot 2. */
 struct SNDREF
 {
-    SNDOBJ *p;
-    ~SNDREF() { if (p) p->vtable[2].pfn((char *)p + p->vtable[2].d); }
+    CID151 *p;
+    ~SNDREF() { if (p) p->Release(); }
 };
 struct SNDMGRG;
 extern "C" {
@@ -556,20 +555,18 @@ void OnBankSoundStarted(int voiceHandle, long context) { struct S *sound = (stru
 } } // namespace M_func_001FBAF8
 
 namespace M_func_001FBB30 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct A { char pad[0xC]; struct VTE *vt; };
-void StopSnd(struct A *sound, float fadeTime);
-void SetSndFlags(struct A *sound, int mask, int value);
+void StopSnd(CID151 *sound, float fadeTime);
+void SetSndFlags(CID151 *sound, int mask, int value);
 // Async "is it still playing" callback: a finished sound is stopped, a playing one gets its next status query armed;
 // drops the callback's reference. (inferred)
 void OnBankSoundStatus(int isPlaying, long context)
 {
-    struct A *sound = (struct A *)context;
+    CID151 *sound = (CID151 *)context;
     if (!isPlaying)
         StopSnd(sound, 0.0f);
     else
         SetSndFlags(sound, SND_QUERY_PLAYING, SND_QUERY_PLAYING);
-    sound->vt[2].pfn((char *)sound + sound->vt[2].d);
+    sound->Release();
 }
 } } // namespace M_func_001FBB30
 
@@ -2016,19 +2013,16 @@ void ApplyDialogEvent(struct P *soundManager, struct E *event)
 } } // namespace M_func_001FE0E8
 
 namespace M_PushMusic {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *vtable; };   /* a STREAMSND */
 struct Ref;
-extern "C" void InitSoundRef(Ref *, X *);
-extern "C" void AssignSoundRef(Ref *, X *);
+extern "C" void InitSoundRef(Ref *, STREAMSND *);
+extern "C" void AssignSoundRef(Ref *, STREAMSND *);
 struct Ref {
-    X *px;
-    Ref(X *sound) { InitSoundRef(this, sound); }
+    STREAMSND *px;
+    Ref(STREAMSND *sound) { InitSoundRef(this, sound); }
     Ref(const Ref &r) { InitSoundRef(this, r.px); }
     Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
-    Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
-    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
+    Ref &operator=(STREAMSND *sound) { AssignSoundRef(this, sound); return *this; }
+    ~Ref() { if (px) px->Release(); }
 };
 struct S { int count; Ref entries[8]; };   /* the music stack */
 struct P { char pad[0x204]; S musicStack; };   /* SNDMGR */
@@ -2037,10 +2031,10 @@ extern "C" { extern int D_002F7900; }   /* Murray */
 extern "C" { extern int D_002E1E40; }   /* Sly (g_pjt) */
 extern "C" {
 Ref FindMusic(P *, int);
-void StopSnd(X *, float);
-X *FindMusicStream(P *, int);
-X *PstreamsndNew(X *, int);
-void AddStreamGroupSource(X *, int, int, float, float *);   /* (sound, group, object, gain, range): the float travels in $f12 */
+void StopSnd(STREAMSND *, float);
+STREAMSND *FindMusicStream(P *, int);
+STREAMSND *PstreamsndNew(STREAMSND *, int);
+void AddStreamGroupSource(STREAMSND *, int, int, float, float *);   /* (sound, group, object, gain, range): the float travels in $f12 */
 }
 struct RANGE { float near, far; };
 static inline void Set(RANGE *range, float near, float far) { range->near = near; range->far = far; }
@@ -2049,15 +2043,15 @@ static inline void Set(RANGE *range, float near, float far) { range->near = near
 // Starts a music track: stops the current one, then either restarts the track if it is already on the stack (moving it to
 // the top) or creates a looping stream for it whose sub-groups 3 and 4 follow Bentley / Murray and Sly (positional
 // layers, 2000..5000 units), and pushes it on the 8-deep music stack. Returns the stream (0: unknown id or full stack).
-extern "C" X *PushMusic(P *soundManager, int id)
+extern "C" STREAMSND *PushMusic(P *soundManager, int id)
 {
     Ref music = FindMusic(soundManager, id);
-    X *current = soundManager->musicStack.count > 0 ? (soundManager->musicStack.entries + soundManager->musicStack.count - 1)->px : 0;
+    STREAMSND *current = soundManager->musicStack.count > 0 ? (soundManager->musicStack.entries + soundManager->musicStack.count - 1)->px : 0;
     if (current) StopSnd(current, 0.0f);
     if (music.px) {
-        music.px->vtable->a[7].pfn((char *)music.px + music.px->vtable->a[7].d);   /* Start */
+        music.px->Start();
     } else {
-        X *file = FindMusicStream(soundManager, id);
+        STREAMSND *file = FindMusicStream(soundManager, id);
         if (!file || soundManager->musicStack.count == MUSIC_STACK_DEPTH) return 0;
         float gain = 1.0f;
         music = PstreamsndNew(file, STREAM_KIND_LOOPING);
@@ -2225,15 +2219,12 @@ extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
 } // namespace M_StartDialog
 
 namespace M_StopDialog { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *vtable; };
 struct A { int a, b; };   /* a dialog event */
 struct E { char pad[0x54]; int numEvents; struct A *events; };   /* SNDSTREAM */
 struct Y { char pad[0x60]; struct E *record; };   /* the dialog STREAMSND */
 struct Ref { struct Y *px; };
 /* SNDMGR (layout: see SNDMGRV) */
-struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; struct X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
+struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; BASIC *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
 #define SM_STATE_MOUTH_REST 0x611   /* (inferred: the speaker's idle mouth) */
 void ApplyDialogEvent(struct P *, struct A *);
 void SetSmaGoal(void *, int);
@@ -2265,8 +2256,8 @@ void StopDialog(struct P *soundManager)
     soundManager->dialogEventTime = 0;
     soundManager->dialogElapsed = 0.0f;
     for (role = 0; role < 6; role++) {
-        struct X *object = soundManager->dialogRoleObjects[role];
-        if (object) object->vtable->a[2].pfn((char *)object + object->vtable->a[2].d);   /* release */
+        BASIC *object = soundManager->dialogRoleObjects[role];
+        if (object) object->Release();
     }
     func_002333B4(soundManager->dialogRoleObjects, 0, sizeof(soundManager->dialogRoleObjects));
 }
