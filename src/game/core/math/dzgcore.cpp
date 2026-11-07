@@ -40,18 +40,8 @@ void CroutDecomp(int n, float *a, float *lu);
 void CroutSolve(int n, float *lu, float *b, float *x);
 void EnforceDzgDz(DZG *pdzg, DZ *pdz);
 
-/** @sly2-annot addr=0x11A550
- * Purpose: Allocates DZ array and matrices for c constraints, inits the constraint DLs
- * Info: proposed name InitDzg (T1); TU dzgcore
- * Notes: arbitration keep master: CONFIRMED static: body = Sly1 InitDzg (4x InitDl dlPos/dlZero/dlMax/dlUncat
- *   + per-cdzMax matrices). Called by SolveInequalities 0x11AD30 (Sly1 SolveInequalities
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; arbitration; sources:
- *   r1_116918+verdicts_tu_r1r2+arbitration
- * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
- *   docs/engine/physics-collision.md#2-contacts-and-solving
- * @end-sly2-annot */
 // Sets up a solver for at most maxConstraints constraints: allocates the DZ array and the matrices from the
-// current allocator and initialises the four constraint lists.
+// current allocator and initialises the four constraint lists. Same body as Sly 1's InitDzg.
 extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
 {
     MSG msg;
@@ -85,12 +75,6 @@ extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
     return dzg;
 }
 
-/** @sly2-annot addr=0x11A6B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name ClearDzgSolution__FP3DZG (EXISTING); TU dzgcore
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
- * @end-sly2-annot */
 // Clears the previous solution (every constraint's value and state) so the solver can be refilled.
 void ClearDzgSolution(DZG *dzg)
 {
@@ -116,11 +100,6 @@ void ClearDzgSolution(DZG *dzg)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4120 __asm__("D_002A4120") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A4124 __asm__("D_002A4124") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x11A770
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
- * @end-sly2-annot */
 // Makes constraint dz hold (Sly 1's EnforceDzgDz): adds it to the active set, re-decomposes the active system and
 // moves constraints that would violate their bounds to the bound lists, repeating until consistent.
 void EnforceDzgDz(DZG *dzg, DZ *dz)
@@ -260,21 +239,8 @@ static inline void *NextDliEntry(DLI *pdli)
     return pv;
 }
 
-/** @sly2-annot addr=0x11ABF8
- * Purpose: Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the
- *   most-violated constraint
- * Info: proposed name SolveDzgFilled (T1); TU dzgcore
- * Notes: COLLISION: SolveDzg already used (existing symbol at 0x158988); renamed to SolveDzg_11ABF8 |
- *   superseded: SolveDzg_11ABF8 (arbitration) | arbitration other name: CONFIRMED static: Sly1 SolveDzg loop
- *   (equality rows Uncat->Pos, EnforceDzgDz(0), add most-violated row) WITHOUT the lazy FillDzgDz; only
- *   caller SolveInequalitie
- * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; arbitration; sources:
- *   r1_116918+arbitration
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
- * @end-sly2-annot */
 // Solves a filled DZG: moves equality constraints into the active list, enforces them, then repeatedly enforces
-// the most violated remaining constraint until none is violated.
+// the most violated remaining constraint until none is violated. Sly 1's SolveDzg loop without its lazy FillDzgDz.
 extern "C" void SolveDzgFilled(DZG *dzg)
 {
     DLI dli;
@@ -310,13 +276,6 @@ extern "C" void SolveDzgFilled(DZG *dzg)
 
 static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
 
-/** @sly2-annot addr=0x11AD30
- * Purpose: Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln
- * Info: proposed name SolveInequalities (T1); TU dzgcore
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
- * @end-sly2-annot */
 // Solves `count` inequality constraints with a temporary DZG on the stack: row i of the count x count matrix A
 // and rhs[i] define constraint i, each bounded above by maxValue; writes the solved values to outX.
 extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *outX, float maxValue)

@@ -17,49 +17,24 @@ void *func_0023320C(void *pvDst, const void *pvSrc, unsigned int cb) __asm__("me
 }
 
 /* 0x116CA0..0x116D00: memcmp of 4/8/12/16 bytes (comparators for fixed-size keys). */
-/** @sly2-annot addr=0x116CA0
- * Purpose: memcmp(a,b,4) (tail-returns result)
- * Info: proposed name NCmpAb4 (T2); TU dynarray
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
- *   docs/engine/core-library.md#open-questions
- * @end-sly2-annot */
 // Compares two 4-byte keys bytewise (memcmp); a comparator for sorted/hashed containers of fixed-size keys.
 extern "C" int CompareKeys4(const void *a, const void *b)
 {
     return memcmp(a, b, 4);
 }
 
-/** @sly2-annot addr=0x116CC0
- * Purpose: memcmp(a,b,8)
- * Info: proposed name NCmpAb8 (T2); TU dynarray
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Compares two 8-byte keys bytewise (memcmp).
 extern "C" int CompareKeys8(const void *a, const void *b)
 {
     return memcmp(a, b, 8);
 }
 
-/** @sly2-annot addr=0x116CE0
- * Purpose: memcmp(a,b,12)
- * Info: proposed name NCmpAb12 (T2); TU dynarray
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Compares two 12-byte keys bytewise (memcmp).
 extern "C" int CompareKeys12(const void *a, const void *b)
 {
     return memcmp(a, b, 0xC);
 }
 
-/** @sly2-annot addr=0x116D00
- * Purpose: memcmp(a,b,16)
- * Info: proposed name NCmpAb16 (T2); TU dynarray
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Compares two 16-byte keys bytewise (memcmp).
 extern "C" int CompareKeys16(const void *a, const void *b)
 {
@@ -69,14 +44,6 @@ extern "C" int CompareKeys16(const void *a, const void *b)
 // 0x116D20: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x116D28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name Free__9CDynArray (EXISTING); TU dynarray
- * Notes: names_v2 v1 hint not used: __18CBinaryInputStreamPvii
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: static naming pass; pre-existing symbol
- *   in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Releases the storage to the heap and empties the array.
 void CDynArray::Free()
 {
@@ -86,11 +53,6 @@ void CDynArray::Free()
     m_c = 0;
 }
 
-/** @sly2-annot addr=0x116D70
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Ensures room for `count` elements: below 512 the capacity doubles (starting at 8) until it fits, above it rounds
 // up to a multiple of 1024; storage is reallocated through the heap (see heap.cpp: Realloc does not copy).
 void CDynArray::Reserve(int count)
@@ -113,13 +75,6 @@ void CDynArray::Reserve(int count)
     }
 }
 
-/** @sly2-annot addr=0x116E30
- * Purpose: Reserve(c+n) then copy n elements of cb bytes at the end; c += n
- * Info: proposed name CDynArray_Append (T1); class CDynArray; TU dynarray
- * Notes: names_v2 v1 proposed OpenCdSectors__18CBinaryInputStreamUiUi (0.002)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
- * @end-sly2-annot */
 // Appends `count` elements copied from `elements` (growing the array first).
 extern "C" void CDynArray_Append(CDynArray *array, void *elements, int count)
 {

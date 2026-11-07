@@ -125,13 +125,6 @@ static inline void *AllocZeroedGeomBlock(int cb)
     return AllocClearedFromWorldHeap(&msg);
 }
 
-/** @sly2-annot addr=0x1177A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name __18CBinaryInputStream (EXISTING); TU bis
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Constructs an empty, closed stream (no flags, no data).
 CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
 {
@@ -148,11 +141,6 @@ CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
     m_unk28 = 0;
 }
 
-/** @sly2-annot addr=0x1177F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Closes the stream: drops the raw and current windows and any pending decompression state.
 void CBinaryInputStream::Close()
 {
@@ -164,14 +152,6 @@ void CBinaryInputStream::Close()
     m_cbPending = 0;
 }
 
-/** @sly2-annot addr=0x117810
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name Refill__18CBinaryInputStream (EXISTING); TU bis
- * Notes: names_v2 v1 hint not used: Pump__18CBinaryInputStream
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: static naming pass; pre-existing symbol
- *   in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Makes new data current when the window is empty: decompresses the next chunk, or takes the next raw block from
 // Fill(). Counts the bytes made available.
 void CBinaryInputStream::Refill()
@@ -194,11 +174,6 @@ void CBinaryInputStream::Refill()
     m_cbConsumed += m_cb;
 }
 
-/** @sly2-annot addr=0x117898
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Copies up to `size` bytes into dest (null dest: skips them), refilling as needed; on running out of data marks the
 // stream exhausted. Returns the bytes actually read (0 once exhausted).
 int CBinaryInputStream::CbRead(int size, void *dest)
@@ -234,30 +209,14 @@ int CBinaryInputStream::CbRead(int size, void *dest)
     return size - remaining;
 }
 
-/** @sly2-annot addr=0x117968
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // Reads exactly `size` bytes into dest (CbRead ignoring the count).
 void CBinaryInputStream::Read(int size, void *dest)
 {
     CbRead(size, dest);
 }
 
-/** @sly2-annot addr=0x117988
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name Align__18CBinaryInputStreami (EXISTING); TU bis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: name high [EXISTING 0.45]; purpose not reviewed - evidence: pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
- *   docs/formats/world-file.md#3-head-layout-loadswfrombrx-func_0013da18
- * @end-sly2-annot */
 // Advances the read position to the next multiple of `alignment` bytes (a power of two).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void CBinaryInputStream::Align(int alignment)
 {
     int aligned = ((int)m_pb + (alignment - 1)) & -alignment;
@@ -265,24 +224,12 @@ void CBinaryInputStream::Align(int alignment)
     m_pb = (byte *)aligned;
 }
 
-/** @sly2-annot addr=0x1179B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Skips `size` bytes.
 void CBinaryInputStream::Skip(int size)
 {
     Read(size, NULL);
 }
 
-/** @sly2-annot addr=0x1179D8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/engine/overview.md#3-world--level-lifecycle,
- *   docs/formats/compression-lzss.md#compression-whole-file-lzss
- * @end-sly2-annot */
 // Turns on LZSS decompression of the following data, using `buffer` (0x2000 bytes plus look-back) for output.
 void CBinaryInputStream::SetDecompress(int unknown, byte *buffer)
 {
@@ -294,12 +241,6 @@ void CBinaryInputStream::SetDecompress(int unknown, byte *buffer)
 /* LZSS: 8K window, flag byte per 8 tokens (bit set = literal), references are
  * 13-bit offset + 3-bit length (copies length + 3 bytes). */
 
-/** @sly2-annot addr=0x1179F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/formats/compression-lzss.md#compression-whole-file-lzss, docs/formats/world-file.md#1-container
- * @end-sly2-annot */
 // Decompresses the next 0x2000-byte chunk of LZSS data from the raw blocks into the decompression buffer and makes it
 // current. A flag byte announces eight items (bit set: a literal byte; clear: a 16-bit reference whose low 13 bits
 // are a position in the 8 KB output window and whose top 3 bits plus 3 are the length). Output past 0x2000 bytes is
@@ -386,11 +327,6 @@ void CBinaryInputStream::Decompress()
 // 0x117BC8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x50");
 
-/** @sly2-annot addr=0x117BD0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads an unsigned byte.
 uchar CBinaryInputStream::U8Read()
 {
@@ -407,11 +343,6 @@ uchar CBinaryInputStream::U8Read()
     return b;
 }
 
-/** @sly2-annot addr=0x117C20
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a little-endian unsigned 16-bit value.
 ushort CBinaryInputStream::U16Read()
 {
@@ -429,11 +360,6 @@ ushort CBinaryInputStream::U16Read()
     return v;
 }
 
-/** @sly2-annot addr=0x117C80
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a little-endian unsigned 32-bit value.
 uint CBinaryInputStream::U32Read()
 {
@@ -453,11 +379,6 @@ uint CBinaryInputStream::U32Read()
 // 0x117CF8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
-/** @sly2-annot addr=0x117D00
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a signed byte.
 char CBinaryInputStream::S8Read()
 {
@@ -474,11 +395,6 @@ char CBinaryInputStream::S8Read()
     return b;
 }
 
-/** @sly2-annot addr=0x117D50
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a little-endian signed 16-bit value.
 short CBinaryInputStream::S16Read()
 {
@@ -496,11 +412,6 @@ short CBinaryInputStream::S16Read()
     return v;
 }
 
-/** @sly2-annot addr=0x117DB8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a little-endian signed 32-bit value.
 int CBinaryInputStream::S32Read()
 {
@@ -520,11 +431,6 @@ int CBinaryInputStream::S32Read()
 // 0x117E30: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
-/** @sly2-annot addr=0x117E38
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 32-bit float.
 float CBinaryInputStream::F32Read()
 {
@@ -540,22 +446,12 @@ float CBinaryInputStream::F32Read()
     return f;
 }
 
-/** @sly2-annot addr=0x117EB0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 3-float vector (12 bytes).
 void CBinaryInputStream::ReadVector(VECTOR *outVector)
 {
     Read(sizeof(float) * 3, outVector);
 }
 
-/** @sly2-annot addr=0x117ED0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 3x3 matrix (nine floats, row by row).
 void CBinaryInputStream::ReadMatrix(MATRIX3 *outMatrix)
 {
@@ -564,12 +460,6 @@ void CBinaryInputStream::ReadMatrix(MATRIX3 *outMatrix)
     ReadVector((VECTOR *)outMatrix->mat[2]);
 }
 
-/** @sly2-annot addr=0x117F18
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/level-objects.md#world-file-part-2-world-entries-and-object-records-all-classes,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 4x4 matrix (sixteen floats).
 void CBinaryInputStream::ReadMatrix4(MATRIX4 *outMatrix)
 {
@@ -581,51 +471,26 @@ void CBinaryInputStream::ReadMatrix4(MATRIX4 *outMatrix)
     outMatrix->mat[3][3] = 1.0f;
 }
 
-/** @sly2-annot addr=0x117F70
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 4-float vector (16 bytes).
 void CBinaryInputStream::ReadVector4(VECTOR4 *outVector)
 {
     Read(sizeof(VECTOR4), outVector);
 }
 
-/** @sly2-annot addr=0x117F90
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads 12 raw bytes.
 void CBinaryInputStream::ReadCb12(void *dest)
 {
     Read(12, dest);
 }
 
-/** @sly2-annot addr=0x117FB0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads 8 raw bytes.
 void CBinaryInputStream::ReadCb8(void *dest)
 {
     Read(8, dest);
 }
 
-/** @sly2-annot addr=0x117FD0
- * Purpose: Reads a GEOM: positions, faces (planes), edges with twin links
- * Info: proposed name CBinaryInputStream_ReadGeom (T1); class CBinaryInputStream; TU bis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources:
- *   r1_116918+verdicts_A1+names_v2-signature(verified)+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a collision GEOM: positions, surfaces (with their planes) and edges with their twin links, allocating the
-// arrays from the level heap.
+// arrays from the level heap. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void CBinaryInputStream::ReadGeom(GEOM *geom)
 {
     int i;
@@ -671,18 +536,9 @@ void CBinaryInputStream::ReadGeom(GEOM *geom)
 // 0x118218: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x50");
 
-/** @sly2-annot addr=0x118220
- * Purpose: Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children
- *   indices
- * Info: proposed name CBinaryInputStream_ReadBspc (T1); class CBinaryInputStream; TU bis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a BSP collision tree for `owner`: the node count, then per node 16-bit plane and child indexes that are
 // turned into pointers into the freshly allocated (zeroed) node array.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void CBinaryInputStream_ReadBspc(CBinaryInputStream *stream, OWNER *owner, TREE *tree)
 {
     int i;
@@ -718,16 +574,8 @@ extern "C" void CBinaryInputStream_ReadBspc(CBinaryInputStream *stream, OWNER *o
 // 0x118378: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x118380
- * Purpose: Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds
- *   allocator + kind args)
- * Info: proposed name CBinaryInputStream_ReadStringSw (T1); class CBinaryInputStream; TU bis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Reads a 16-bit-length-prefixed string into a NUL-terminated buffer allocated from `heap` (kind/alignment n).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char **outString, HEAP *heap, int alignment)
 {
     int cch = stream->U16Read();
@@ -743,30 +591,13 @@ extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char
     *outString = pchz;
 }
 
-/** @sly2-annot addr=0x118420
- * Purpose: Skips a U16-length-prefixed string (Read(U16Read(),NULL))
- * Info: proposed name CBinaryInputStream_SkipStringSw (T1); class CBinaryInputStream; TU bis
- * Notes: names_v2 B proposed Unknown1__18CBinaryInputStream (0.881) | level_parser CONFIRMED-parse: payload
- *   layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918+parse-verified
- * See: docs/engine/core-library.md#7-key-functions, docs/engine/player.md#11-key-functions,
- *   docs/engine/world-sw.md#10-key-functions
- * @end-sly2-annot */
-// Skips a 16-bit-length-prefixed string.
+// Skips a 16-bit-length-prefixed string. Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream)
 {
     stream->Read(stream->U16Read(), 0);
 }
 
-/** @sly2-annot addr=0x118458
- * Purpose: Read(0x40 bytes) into buffer
- * Info: proposed name CBinaryInputStream_ReadCb64 (T1); class CBinaryInputStream; TU bis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
-// Reads 64 raw bytes.
+// Reads 64 raw bytes. Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *stream, void *dest)
 {
     stream->Read(0x40, dest);
@@ -775,14 +606,6 @@ extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *stream, void *de
 // 0x118478: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sw $0, 0x28($4)");
 
-/** @sly2-annot addr=0x118480
- * Purpose: Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0
- * Info: proposed name CMemInputStream_ctor_118480 (T2); class CMemInputStream; TU bis
- * Notes: COLLISION: CMemInputStream_dtor already used (same name proposed for 0x1184B8); renamed to
- *   CMemInputStream_ctor_118480
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // CMemInputStream constructor: base constructor, then this class's vtable.
 extern "C" CMemInputStreamV *CMemInputStream_ctor(CMemInputStreamV *stream)
 {
@@ -791,12 +614,6 @@ extern "C" CMemInputStreamV *CMemInputStream_ctor(CMemInputStreamV *stream)
     return stream;
 }
 
-/** @sly2-annot addr=0x1184B8
- * Purpose: Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1
- * Info: proposed name CMemInputStream_dtor (T1); class CMemInputStream; TU bis
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // CMemInputStream deleting destructor: restores the vtable and frees the object when asked to (flag bit 0).
 extern "C" void CMemInputStream_dtor(CMemInputStreamV *stream, int flags)
 {
@@ -805,13 +622,6 @@ extern "C" void CMemInputStream_dtor(CMemInputStreamV *stream, int flags)
         operator delete(stream);
 }
 
-/** @sly2-annot addr=0x1184E8
- * Purpose: vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once,
- *   then empties it
- * Info: proposed name CMemInputStream_Refill (T2); class CMemInputStream; TU bis
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // CMemInputStream::Fill: hands the whole memory buffer over as one raw block, then has nothing more.
 void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes out here */
 {
@@ -821,12 +631,6 @@ void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes o
     pmis->memSize = 0;
 }
 
-/** @sly2-annot addr=0x118500
- * Purpose: Stores buffer pointer/size (+0x34/+0x38) and +0 state
- * Info: proposed name CMemInputStream_SetBuffer (T2); class CMemInputStream; TU bis
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
- * @end-sly2-annot */
 // Points a memory stream at `size` bytes at `data`, with stream flags `flags` (e.g. compressed).
 extern "C" void SetMemInputStreamBuffer(CMemInputStreamV *stream, int size, byte *data, int flags)
 {

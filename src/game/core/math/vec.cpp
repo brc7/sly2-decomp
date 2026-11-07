@@ -38,14 +38,6 @@ float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x11E1A0
- * Purpose: Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value
- * Info: proposed name SetVectorCylind (T1); TU vec
- * Notes: names_v2 v1 proposed ConvertUserRgbToUserHsv__FP6VECTORT0 (0.000)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
 extern "C" qword SetVectorCylind(float rad, float radius, float z)
 {
@@ -56,12 +48,6 @@ extern "C" qword SetVectorCylind(float rad, float radius, float z)
 //////// 0x11E208 SetVectorSphere
 namespace V_SetVectorSphere {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x11E208
- * Purpose: Vector from spherical (pan, tilt, r)
- * Info: proposed name SetVectorSphere (T1); TU vec
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Builds a vector from spherical coordinates: pan around z, tilt above the xy plane, length r.
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 {
@@ -77,12 +63,6 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 //////// 0x11E290 SplitVectorAlongAxis
 namespace V_SplitVectorAlongAxis {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x11E290
- * Purpose: Scalar projection of a on b; optionally returns parallel and perpendicular components
- * Info: proposed name SProjectVector (T1); TU vec
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
 // perpendicular part a - (a . b) b.
 extern "C" float SplitVectorAlongAxis(qword a, qword b, qword *outParallel, qword *outPerpendicular)
@@ -110,13 +90,6 @@ namespace V_GetNormalVectors {
 typedef int qword __attribute__((mode(TI)));
 #define CROSS(r, a, b) __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b))
 #define DOT(d, one, v) __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=j"(one), "=j"(d) : "j"(v))
-/** @sly2-annot addr=0x11E2D8
- * Purpose: Two unit vectors perpendicular to a normal (basis rows)
- * Info: proposed name GetNormalVectors (T1); TU vec
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918+verdicts_B
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Builds two unit vectors perpendicular to `a` (outBasis[0] = normalize(b x a), or c x a when b is parallel to a;
 // outBasis[1] = normalize(a x outBasis[0])): a tangent frame around a normal.
 extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
@@ -171,13 +144,6 @@ static inline qword Normalize(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-/** @sly2-annot addr=0x11E390
- * Purpose: A unit vector perpendicular to v (picks smallest component axis)
- * Info: proposed name GetNormalVector (T1); TU vec
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Returns some unit vector perpendicular to v (crosses v with the axis of its smallest component).
 extern "C" qword GetNormalVector(qword v)
 {
@@ -251,13 +217,6 @@ static inline qword Scale(qword v, qword g)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(u.q));
     return r;
 }
-/** @sly2-annot addr=0x11E4B0
- * Purpose: Angle between two vectors (acosf) and optional normalised rotation axis
- * Info: proposed name AngleBetweenVectors (T1); TU vec
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Returns the angle between a and b (acos of the normalised dot product) and optionally the unit rotation axis
 // a x b.
 extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
@@ -306,13 +265,6 @@ static inline float DotG(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
     return f;
 }
-/** @sly2-annot addr=0x11E630
- * Purpose: Closest points between two infinite lines
- * Info: proposed name FindClosestPointBetweenLines (T1); TU vec
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Closest points between the infinite lines through a, b and through c, pos: writes the two line parameters, the
 // distance between the lines (along the normal) and the unit common normal, oriented from the first line toward
 // the second. Parallel lines give parameters 0 and the normal of c - a. All three outputs are required.
@@ -385,12 +337,6 @@ static inline qword Len(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
-/** @sly2-annot addr=0x11E7C8
- * Purpose: Closest points between two segments (clamped line solution)
- * Info: proposed name FindClosestPointBetweenLineSegments (T1); TU vec
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Closest points between two segments (the line solution clamped to the segments); outputs as for
 // FindClosestPointBetweenLines.
 extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword pos, float *outParams, float *outDistance, qword *outNormal)
@@ -425,13 +371,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x11E958
- * Purpose: pan = atan2(y,x), tilt = atan2(z, |xy|), each RadNormalized, optional outputs
- * Info: proposed name CalculateVectorPanTilt (T1); TU vec
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Returns v's pan (atan2(y, x)) and tilt (atan2(z, |xy|)), each normalised to (-pi, pi]; both optional.
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
@@ -446,14 +385,6 @@ extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 namespace V_LimitVectorLength {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-/** @sly2-annot addr=0x11E9F8
- * Purpose: Scales v down to length gMax if longer
- * Info: proposed name LimitVectorLength (T1); TU vec
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 // Returns v scaled down to maxLength if it is longer, else v.
 extern "C" qword LimitVectorLength(qword v, float maxLength)
 {
@@ -520,12 +451,6 @@ static inline float DotS(qword a, qword b)
 {
     return F3(DotQ(a, b));
 }
-/** @sly2-annot addr=0x11EA60
- * Purpose: Vector geometry helper (edge cross products and dot readbacks against a triangle/segment)
- * Info: proposed name FClipLineToTriangle (T2); TU vec
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Closest points of the infinite lines through a, b and c, d: writes the two line parameters to outParams[0..1]
 // and the unit common normal (oriented away from a towards c) to outNormal; returns 0 if the lines are parallel.
 // Used for edge/edge contacts (mark.cpp).
@@ -599,12 +524,6 @@ static inline float DotS(qword a, qword b)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x11EBB0
- * Purpose: Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v)
- * Info: proposed name IntersectRayTriangle (T1); TU vec
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Ray/triangle intersection (Moller-Trumbore, determinant epsilon 1e-6): returns whether the ray from orig along
 // dir hits triangle v0 v1 v2, with the ray parameter in *outT and barycentrics in outUv.
 extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
@@ -656,15 +575,6 @@ static inline float Dot(qword a, qword b)
 // 0x11ED38: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
-/** @sly2-annot addr=0x11ED40
- * Purpose: Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance
- * Info: proposed name FindClosestPointOnLine (T1); TU vec
- * Notes: v3: superseded ClosestPointOnSegment | top50_round (0.65): [extra: knock-on fix] FIX of current
- *   ClosestPointOnSegment: body has no clamp (0x11EE08 is the clamped segment version) | v2 draft was
- *   ClosestPointOnSegment
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Closest point to pos on the infinite line through p0 and p1: optional point, parameter (unclamped) and distance.
 extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
@@ -723,16 +633,6 @@ static inline float Clamp(float g, float lo, float hi)
     else if (g > hi) g = hi;
     return g;
 }
-/** @sly2-annot addr=0x11EE08
- * Purpose: Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t,
- *   distance
- * Info: proposed name FindClosestPointOnLineSegment (T1); TU vec
- * Notes: v3: superseded ClosestPointOnSegmentT | top50_round (0.80): Body clamps t to [0,1] (GClamp) before
- *   forming p0+t*d; 0x11ED40 is the same code without the clamp (infinite line). Callers: path/pathzone
- *   nearest point, FindMeshClosestPoint, GetClosestPointOnNavTriangle (triangle edges), RenderWa
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Closest point to pos on the segment p0-p1 (parameter clamped to 0..1): optional point, parameter and distance.
 extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
@@ -772,12 +672,6 @@ typedef int qword __attribute__((mode(TI)));
 // 0x11EF00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x11EF08
- * Purpose: Inverse of SetVectorCylind: angle, radius, z of v
- * Info: proposed name GetVectorCylind (T1); TU vec
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Inverse of SetVectorCylind: v's angle around z, xy radius and height (each optional).
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
@@ -805,13 +699,6 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("" : "=r"(x) : "0"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%0" : "=r"(y) : "0"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r"(z) : "0"(q)); return z; }
-/** @sly2-annot addr=0x11EFB0
- * Purpose: Inverse of SetVectorSphere: pan, tilt, length of v
- * Info: proposed name GetVectorSphere (T1); TU vec
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Inverse of SetVectorSphere: v's pan, tilt and length (each optional).
 extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
 {
@@ -892,16 +779,6 @@ static inline VU_VECTOR4 SubPos(qword a, qword b)
     r.qw = VuSub(a, b);
     return r;
 }
-/** @sly2-annot addr=0x11F088
- * Purpose: Smooth a position toward a target (existing name)
- * Info: proposed name PosSmooth (EXISTING); TU vec
- * Notes: arbitration: keep existing name (Name correct; args a0/a1 are 128-bit VU_VECTORs (dmtc2), f12 dt, a2
- *   psmp, a3 pv = Sly1 signature. Proposed mangling "FUx)
- * Confidence: high [EXISTING 0.85] - evidence: Sly 1 / Lilly reference; arbitration; pre-existing symbol in
- *   symbol_addrs.txt; sources: r1_116918+arbitration
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Moves posCur toward posTarget along the line between them by one SmoothValue step (smoothParams over dt);
 // optionally returns the resulting velocity. Returns the target (velocity 0) when within 1e-4 of it.
 extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothParams, VECTOR *outVelocity)
@@ -949,12 +826,6 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u_q) : "f"(g)); u.q = u_q; return u.q; }
-/** @sly2-annot addr=0x11F198
- * Purpose: Returns an angle-like float between a and b, 0 if either is shorter than 1e-4
- * Info: proposed name RadBetweenVectorsSafe (T2); TU vec
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Returns the cosine of the angle between a and b (dot / (|a| |b|)) as a quadword; 0 if either is shorter than
 // 1e-4.
 extern "C" qword GetCosineBetweenVectors(qword a, qword b)
@@ -983,12 +854,6 @@ typedef int qword __attribute__((mode(TI)));
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 SLY2_SCRAP("addiu $sp, $sp, 0x90");
 
-/** @sly2-annot addr=0x11F288
- * Purpose: Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0)
- * Info: proposed name VecMinArray (T1); TU vec
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Componentwise minimum of `count` vectors.
 extern "C" qword VecMinArray(int count, qword *vectors)
 {
@@ -1006,12 +871,6 @@ extern "C" qword VecMinArray(int count, qword *vectors)
 namespace V_VecMaxArray {
 typedef int qword __attribute__((mode(TI)));
 
-/** @sly2-annot addr=0x11F2B8
- * Purpose: Component-wise maximum over c vectors
- * Info: proposed name VecMaxArray (T1); TU vec
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
- * @end-sly2-annot */
 // Componentwise maximum of `count` vectors.
 extern "C" qword VecMaxArray(int count, qword *vectors)
 {

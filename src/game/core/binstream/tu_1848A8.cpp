@@ -73,16 +73,6 @@ void RefillStreamFromCd(CBinaryInputStream *p);
 }
 
 
-/** @sly2-annot addr=0x1848A8
- * Purpose: Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf,
- *   64-byte-aligned spool buffer from (cb, pv)
- * Info: proposed name CStreamBis_ctor_1848A8 (T2); class CStreamBis; TU tu_1848A8
- * Notes: COLLISION: CStreamBis_ctor already used (same name proposed for 0x184950); renamed to
- *   CStreamBis_ctor_1848A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
- *   docs/engine/player.md#10-source-files
- * @end-sly2-annot */
 // Constructs a CStreamBis over the caller's memory (size bytes): base constructor, this vtable, the spool buffer
 // is the 64-byte aligned part of the memory rounded down to 64 bytes; neither a file nor a sector stream yet.
 extern "C" CBinaryInputStream *CStreamBis_ctor(CBinaryInputStream *stream, int size, char *memory, int flags)
@@ -101,13 +91,6 @@ extern "C" CBinaryInputStream *CStreamBis_ctor(CBinaryInputStream *stream, int s
     return stream;
 }
 
-/** @sly2-annot addr=0x184950
- * Purpose: Destructor: reset vptr, Close (0x184CF0), delete if flag&1
- * Info: proposed name CStreamBis_ctor (T2); class CStreamBis; TU tu_1848A8
- * Notes: names_v2 B proposed _$_18CBinaryInputStream (0.889)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // CStreamBis destructor: closes the stream and frees the object when asked to (flag bit 0).
 /* CStreamBis's destructor (in-charge flag grf; DRAFT class name), config symbol _$_10CStreamBis. */
 extern "C" void DestroyCStreamBis(CBinaryInputStream *p, int grf) __asm__("_$_10CStreamBis");
@@ -119,13 +102,6 @@ extern "C" void DestroyCStreamBis(CBinaryInputStream *stream, int flags)
         __builtin_delete(stream);
 }
 
-/** @sly2-annot addr=0x1849A0
- * Purpose: Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling
- *   (0x14BC78)
- * Info: proposed name CStreamBis_RefillCd (T2); class CStreamBis; TU tu_1848A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // Refills a CD-sector stream: retires the consumed sub-buffer, tracks the read in flight (completing it, or
 // reissuing the unread part after an error), starts the next read when a sub-buffer is free and file bytes remain,
 // and exposes up to 0x1000 bytes of the oldest full sub-buffer. Loops until data is available or the file ends.
@@ -192,12 +168,6 @@ extern "C" void RefillStreamFromCd(CBinaryInputStream *stream)
     } while (stream->rawSize == 0 && stream->fileBytesLeft > 0);
 }
 
-/** @sly2-annot addr=0x184C60
- * Purpose: Refill from host file: sceRead(fd x3C, buf, cb)
- * Info: proposed name CStreamBis_RefillFile (T2); class CStreamBis; TU tu_1848A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // Refills a host-file stream: one blocking sceRead of a whole spool buffer.
 extern "C" void RefillStreamFromFile(CBinaryInputStream *stream)
 {
@@ -206,12 +176,6 @@ extern "C" void RefillStreamFromFile(CBinaryInputStream *stream)
     stream->rawSize = sceRead(stream->fd, buffer, stream->spoolSize);
 }
 
-/** @sly2-annot addr=0x184CA0
- * Purpose: Virtual Refill: host file if fd>=0, CD if sector stream active, else empty
- * Info: proposed name CStreamBis_Refill (T1); class CStreamBis; TU tu_1848A8
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // CStreamBis::Fill (vtable slot 1): refills from the host file or the CD, or reports end of data.
 void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
 {
@@ -224,12 +188,6 @@ void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
     }
 }
 
-/** @sly2-annot addr=0x184CF0
- * Purpose: Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close
- * Info: proposed name CStreamBis_Close (T1); class CStreamBis; TU tu_1848A8
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // Closes the stream: closes the host file, cancels a CD read in flight, then the base Close.
 extern "C" void CStreamBis_Close(CBinaryInputStream *stream)
 {
@@ -246,13 +204,6 @@ extern "C" void CStreamBis_Close(CBinaryInputStream *stream)
     CBinaryInputStream_Close(stream);
 }
 
-/** @sly2-annot addr=0x184D60
- * Purpose: If the file record kind is 2 (disc sector), OpenCdSectors(rec sector, size)
- * Info: proposed name FOpenStreamFileRec (T2); TU tu_1848A8
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/formats/disc-records.md#2-the-read-path,
- *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // Opens the stream on a file key if it names a disc file (kind 2: sector range); returns whether it did.
 extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
 {
@@ -262,15 +213,8 @@ extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
     return opened;
 }
 
-/** @sly2-annot addr=0x184D98
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/formats/disc-records.md#2-the-read-path,
- *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
- * @end-sly2-annot */
 // Opens a CD-sector stream on `size` bytes from `firstSector`: resets the read state and divides the spool buffer
-// into max(2, spoolSize / 1 MB) sub-buffers. Returns 1.
+// into max(2, spoolSize / 1 MB) sub-buffers. Returns 1. (Sly 1-derived name: CBinaryInputStream::FOpenSector.)
 int CBinaryInputStream::OpenCdSectors(uint firstSector, uint size)
 {
     sector = firstSector;

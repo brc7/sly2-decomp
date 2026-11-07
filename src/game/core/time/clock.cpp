@@ -23,15 +23,6 @@ void RecalcClockRate(CLOCK *pclock);
 void UpdateGameTimers(void *p);
 }
 
-/** @sly2-annot addr=0x14CFE0
- * Purpose: Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and
- *   rDt/rDtReal to 1, calls ResetClock
- * Info: proposed name StartupClock (T1); TU clock
- * Notes: names_v2 v1 proposed ClsgClipCylinderToObject__FP2SOP6VECTORT1fiP3LSG (0.638)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/engine/main-loop-startup.md#open-questions
- * @end-sly2-annot */
 // Boot step: seeds the tick history from the COUNT register, sets every rate slot and both rates to 1 and resets
 // the clock.
 extern "C" void StartupClock(void)
@@ -51,13 +42,6 @@ extern "C" void StartupClock(void)
 }
 
 /* Clears clock->t but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
-/** @sly2-annot addr=0x14D068
- * Purpose: t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate
- * Info: proposed name ResetClock (T1); TU clock
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#clock-0x14cfe0-0x14d3d8
- * @end-sly2-annot */
 // Resets `clock`'s game time to 0 and g_clock's rate slots to 1, except slot 3 (the real-time scale survives
 // resets), then recomputes the rates.
 extern "C" void ResetClock(CLOCK *clock)
@@ -76,15 +60,6 @@ extern "C" void ResetClock(CLOCK *clock)
 
 
 /* Ticks are COUNT-register cycles (294.912 MHz: 3.3908420e-9 s each); the frame delta is clamped to 1/60..1/30 s. */
-/** @sly2-annot addr=0x14D0B8
- * Purpose: dt = clamp(?tick?1/294.912MHz, 1/60, 1/30); dtReal = dt?rDtReal, tReal += dtReal; dt40 =
- *   dt?slot[3]; if not paused, dt = dt40?rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40
- * Info: proposed name MarkClockTick (T1); TU clock
- * Notes: names_v2 v1 proposed ClsgClipCylinderToSphere__FP6VECTORfT0T0fiP3LSG (0.037)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
- * @end-sly2-annot */
 // Advances the clock by one frame: frame time from the ticks since the last call (294.912 MHz COUNT, clamped to
 // 1/60..1/30 s); camera time scaled by rtCm; real time scaled by slot 3; unless paused, game time = real time x rt,
 // and the game timers (D_002DEB30) advance.
@@ -107,13 +82,6 @@ extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
     clock->realTime += clock->realDeltaTime;
 }
 
-/** @sly2-annot addr=0x14D1D0
- * Purpose: slot[islot] = r; RecalcClockRate()
- * Info: proposed name SetClockRate (T1); TU clock
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/guides/live-pine.md#4-clock-experiment
- * @end-sly2-annot */
 // Sets rate slot `slot` to `rate` and recomputes the combined rates.
 extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
 {
@@ -121,14 +89,6 @@ extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
     RecalcClockRate(clock);
 }
 
-/** @sly2-annot addr=0x14D1F8
- * Purpose: rDt = ? slot[0..8], rDtReal = slot[8]
- * Info: proposed name RecalcClockRate (T1); TU clock
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
- *   docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/guides/live-pine.md#3-confirmed-addresses-2026-11-01
- * @end-sly2-annot */
 // Recomputes the combined rates: rt = the product of all nine slots, rtCm = slot 8.
 extern "C" void RecalcClockRate(CLOCK *clock)
 {
@@ -140,13 +100,6 @@ extern "C" void RecalcClockRate(CLOCK *clock)
     clock->rtCm = clock->art[8];
 }
 
-/** @sly2-annot addr=0x14D240
- * Purpose: 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58)
- * Info: proposed name TickNow (T1); TU clock
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/clock
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#clock-0x14cfe0-0x14d3d8
- * @end-sly2-annot */
 // Returns a 64-bit tick count from the 32-bit COUNT register, counting wraparounds.
 extern "C" TICK TickNow(CLOCK *clock)
 {

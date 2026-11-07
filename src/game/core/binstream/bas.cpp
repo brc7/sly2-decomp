@@ -55,12 +55,6 @@ void ReadCdDirect(uint isector, uint csector, void *pv, int n);
 
 /* The constructor takes (cbSpool, pvSpool) although its current symbol mangles to (void *) only (Sly 1's signature);
    it is defined under that symbol as a C-linkage function until the symbol is renamed. */
-/** @sly2-annot addr=0x132570
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
- *   docs/engine/gameplay-objects.md#source-files
- * @end-sly2-annot */
 // Constructs a closed stream over the caller's spool buffer (spoolSize bytes at spoolMemory).
 extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stream, int spoolSize, void *spoolMemory)
 {
@@ -78,22 +72,9 @@ extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stre
     return stream;
 }
 
-/** @sly2-annot addr=0x1325B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Destructor: closes the stream.
 CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
 
-/** @sly2-annot addr=0x132600
- * Purpose: If the file record kind (+8) == 2 open the async stream on its sector range (OpenSector(+0,+4)),
- *   else 0
- * Info: proposed name FOpenBasFromCdFile (T2); TU bas
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/formats/disc-records.md#2-the-read-path,
- *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Opens the stream on a file key if it names a disc file (kind 2: sector range); returns whether it did.
 extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *stream, CDFILE *fileKey)
 {
@@ -106,13 +87,8 @@ extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *stream, CDFILE *fileKey)
 // 0x132638: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x132640
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/disc-records.md#2-the-read-path,
- *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Opens the stream on `size` bytes starting at disc sector `sector` and starts the first read; returns 1.
+// (Sly 1-derived name: CBinaryAsyncStream::FOpenSector.)
 int CBinaryAsyncStream::OpenSector(uint firstSector, uint size)
 {
     sector = firstSector;
@@ -126,11 +102,6 @@ int CBinaryAsyncStream::OpenSector(uint firstSector, uint size)
     return 1;
 }
 
-/** @sly2-annot addr=0x132688
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Closes the stream: closes the host file, or waits out a CD read in flight.
 void CBinaryAsyncStream::Close()
 {
@@ -151,12 +122,6 @@ void CBinaryAsyncStream::Close()
     kind = BASK_Nil;
 }
 
-/** @sly2-annot addr=0x132710
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/formats/disc-records.md#2-the-read-path,
- *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Starts reading the next piece (at most half the spool buffer) into the half the consumer is not using, unless a
 // read is in flight or the file is exhausted.
 void CBinaryAsyncStream::StartSpooling()
@@ -178,24 +143,15 @@ void CBinaryAsyncStream::StartSpooling()
     }
 }
 
-/** @sly2-annot addr=0x1327D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
-// Returns whether a read is in flight.
+// Returns whether a read is in flight. (Sly 1-derived name: CBinaryAsyncStream::FSpooling.)
 bool CBinaryAsyncStream::IsSpooling()
 {
     return pendingSize != 0;
 }
 
-/** @sly2-annot addr=0x1327E0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Returns whether the read in flight has completed, polled without blocking, and only once the consumer has used
 // the current half; a read error abandons the read (returns false).
+// (Sly 1-derived name: CBinaryAsyncStream::FSpoolingComplete.)
 bool CBinaryAsyncStream::IsSpoolingComplete()
 {
     int status = 0;
@@ -231,11 +187,6 @@ bool CBinaryAsyncStream::IsSpoolingComplete()
     return isComplete;
 }
 
-/** @sly2-annot addr=0x1328A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // If the read in flight has completed: makes it the current half (advancing the sector and the bytes left) and
 // rewinds the consumer to its start.
 void CBinaryAsyncStream::FinishSpooling()
@@ -263,11 +214,6 @@ void CBinaryAsyncStream::FinishSpooling()
     currentPos = 0;
 }
 
-/** @sly2-annot addr=0x132930
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Keeps the stream going (call regularly): host reads are started then completed; CD reads completed then the
 // next one started.
 void CBinaryAsyncStream::Spool()
@@ -284,11 +230,6 @@ void CBinaryAsyncStream::Spool()
     }
 }
 
-/** @sly2-annot addr=0x132998
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
- * @end-sly2-annot */
 // Advances the consumer's position in the current half by `size` bytes.
 void CBinaryAsyncStream::Skip(int size)
 {

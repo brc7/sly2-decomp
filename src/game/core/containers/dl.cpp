@@ -30,48 +30,21 @@ void PrependSlEntry(SL *list, void *entry);
 void AppendSlEntry(SL *list, void *entry);
 }
 
-/** @sly2-annot addr=0x11A050
- * Purpose: Singly linked list init: stores ibNext at +8
- * Info: proposed name InitSl (T1); TU dl
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Sets up a singly linked list whose elements keep their next pointer linkOffset bytes in.
 extern "C" void InitSl(SL *list, int linkOffset)
 {
     list->ibSle = linkOffset;
 }
 
-/** @sly2-annot addr=0x11A058
- * Purpose: Clears a singly-linked entry (next = NULL)
- * Info: proposed name ClearSle (T1); TU dl
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Clears one singly linked element's next pointer.
 extern "C" void ClearSle(SLE *link)
 {
     link->next = 0;
 }
 
-/** @sly2-annot addr=0x11A060
- * Purpose: pvFirst = pvLast = NULL
- * Info: proposed name ClearSl (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Empties a singly linked list (does not touch the elements).
 extern "C" void ClearSl(SL *list) { list->tail = 0; list->head = 0; }
 
-/** @sly2-annot addr=0x11A070
- * Purpose: Append to singly linked list (tail pointer)
- * Info: proposed name AppendSlEntry (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Appends entry at the tail of a singly linked list.
 extern "C" void AppendSlEntry(SL *list, void *entry)
 {
@@ -84,12 +57,6 @@ extern "C" void AppendSlEntry(SL *list, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A098
- * Purpose: Prepend to singly linked list
- * Info: proposed name PrependSlEntry (T1); TU dl
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Prepends entry at the head of a singly linked list.
 extern "C" void PrependSlEntry(SL *list, void *entry)
 {
@@ -103,12 +70,6 @@ extern "C" void PrependSlEntry(SL *list, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A0C0
- * Purpose: Insert after pvPrev (NULL -> prepend, last -> append)
- * Info: proposed name InsertSlEntryAfter (T1); TU dl
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Inserts entry after prevEntry (null prevEntry: at the head; the tail: appended).
 extern "C" void InsertSlEntryAfter(SL *list, void *prevEntry, void *entry)
 {
@@ -123,12 +84,6 @@ extern "C" void InsertSlEntryAfter(SL *list, void *prevEntry, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A118
- * Purpose: Unlink entry (linear search for predecessor) and fix up active iterators
- * Info: proposed name RemoveSlEntry (T1); TU dl
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Unlinks entry from a singly linked list. Finds the predecessor link by a linear walk, retargets any live SLI
 // iterator that was about to follow the removed link, and fixes the tail when the last element goes.
 extern "C" void RemoveSlEntry(SL *list, void *entry)
@@ -153,13 +108,6 @@ extern "C" void RemoveSlEntry(SL *list, void *entry)
     *entryLink = 0;
 }
 
-/** @sly2-annot addr=0x11A1B8
- * Purpose: True if entry is linked (next != NULL or it is the tail)
- * Info: proposed name IsEntryInSl (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Returns whether entry is currently in the list (it has a successor or is the tail). O(1).
 extern "C" int IsEntryInSl(SL *list, void *entry)
 {
@@ -170,40 +118,18 @@ extern "C" int IsEntryInSl(SL *list, void *entry)
     return isLinked;
 }
 
-/** @sly2-annot addr=0x11A1E8
- * Purpose: pvFirst == NULL
- * Info: proposed name IsSlEmpty (T1); TU dl
- * Notes: names_v2 v1 proposed InitDl__FP2DLi (0.008)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Returns whether the singly linked list is empty.
 extern "C" int IsSlEmpty(SL *list)
 {
     return list->head == 0;
 }
 
-/** @sly2-annot addr=0x11A1F8
- * Purpose: DL init: ibDle at +8
- * Info: proposed name InitDl (T1); TU dl
- * Notes: names_v2 v1 proposed ClearDl__FP2DL (0.000)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Sets up a doubly linked list whose elements keep their DLE link linkOffset bytes in.
 void InitDl(DL *list, int linkOffset)
 {
     list->ibDle = linkOffset;
 }
 
-/** @sly2-annot addr=0x11A200
- * Purpose: pvFirst = pvLast = NULL
- * Info: proposed name ClearDl (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources:
- *   r1_116918+verdicts_tu_r1r2+verdicts_A1+verify_side
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Empties a doubly linked list (does not touch the elements).
 void ClearDl(DL *list)
 {
@@ -211,13 +137,6 @@ void ClearDl(DL *list)
     list->head = 0;
 }
 
-/** @sly2-annot addr=0x11A210
- * Purpose: pvNext = pvPrev = NULL
- * Info: proposed name ClearDle (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_A1+verify_side
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Clears one element's DLE link (prev and next).
 void ClearDle(DLE *link)
 {
@@ -225,13 +144,6 @@ void ClearDle(DLE *link)
     link->next = 0;
 }
 
-/** @sly2-annot addr=0x11A220
- * Purpose: Append to doubly linked list
- * Info: proposed name AppendDlEntry (T1); TU dl
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918+verify_side
- * See: docs/engine/core-library.md#2-containers,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Appends entry at the tail of a doubly linked list.
 void AppendDlEntry(DL *list, void *entry)
 {
@@ -247,13 +159,6 @@ void AppendDlEntry(DL *list, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A250
- * Purpose: Prepend
- * Info: proposed name PrependDlEntry (T1); TU dl
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Prepends entry at the head of a doubly linked list.
 void PrependDlEntry(DL *list, void *entry)
 {
@@ -269,13 +174,6 @@ void PrependDlEntry(DL *list, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A280
- * Purpose: Insert before pvNext (NULL -> append, first -> prepend)
- * Info: proposed name InsertDlEntryBefore (T1); TU dl
- * Notes: names_v2 v1 proposed PrependDlEntry__FP2DLPv (0.013)
- * Confidence: high [T1 0.88] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Inserts entry before nextEntry (null: appended; the head: prepended).
 void InsertDlEntryBefore(DL *list, void *nextEntry, void *entry)
 {
@@ -295,13 +193,6 @@ void InsertDlEntryBefore(DL *list, void *nextEntry, void *entry)
     }
 }
 
-/** @sly2-annot addr=0x11A2E8
- * Purpose: Unlink and fix up iterators on g_pdliFirst chain
- * Info: proposed name RemoveDlEntry (T1); TU dl
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918+verify_side
- * See: docs/engine/core-library.md#2-containers,
- *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Unlinks entry from a doubly linked list in O(1), first retargeting any live DLI iterator (chain at
 // D_002DD2FC) that points at the removed link to the previous element's link (or the list head).
 void RemoveDlEntry(DL *list, void *entry)
@@ -336,37 +227,19 @@ void RemoveDlEntry(DL *list, void *entry)
     link->prev = 0;
 }
 
-/** @sly2-annot addr=0x11A380
- * Purpose: True if pv is linked (next or tail)
- * Info: proposed name IsEntryInDl (T1); TU dl
- * Notes: names_v2 C proposed AdaptAct__FP3ACT (0.438)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Returns whether entry is currently in the list (it has a successor or is the tail).
 int IsEntryInDl(DL *list, void *entry)
 {
     return PDLE(list, entry)->next || list->tail == entry;
 }
 
-/** @sly2-annot addr=0x11A3B0
- * Purpose: pvFirst == NULL
- * Info: proposed name IsDlEmpty (T1); TU dl
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
 // Returns whether the doubly linked list is empty.
 int IsDlEmpty(DL *list)
 {
     return list->head == 0;
 }
 
-/** @sly2-annot addr=0x11A3C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
- * @end-sly2-annot */
-// Counts the elements of a doubly linked list (walks it).
+// Counts the elements of a doubly linked list (walks it). (Sly 1-derived name: CPvDl.)
 int CountDlEntries(DL *list)
 {
     void *entry = list->head;

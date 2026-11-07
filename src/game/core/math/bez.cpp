@@ -55,15 +55,6 @@ static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
     t.r[2] = r2; pm->r[2] = r2;
 }
 
-/** @sly2-annot addr=0x117030
- * Purpose: Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at
- *   time t; writes value and slope
- * Info: proposed name EvaluateBezierFloat (T1); TU bez
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/core-library.md#6-source-files,
- *   docs/reference/functions/core-library.md#bez-0x117030-0x1177a8,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // Evaluates a scalar Hermite segment from (value0, slope0) to (value1, slope1) over dt at time t: writes the
 // value and/or the slope (the slope multiplied by dtScale), each optional.
 extern "C" void EvaluateBezierFloat(float *outValue, float *outSlope, float dt, float t, float dtScale, float value0, float slope0, float value1, float slope1)
@@ -89,13 +80,6 @@ extern "C" void EvaluateBezierFloat(float *outValue, float *outSlope, float dt, 
 
 /* EvaluateBezierPos: the body is exact; 0x117120..0x117128 holds the two nops the toolchain puts before its entry
    div.s (formerly listed as junk). It loads its weights with VuFromFloat<qword> (no dead VU-float store). */
-/** @sly2-annot addr=0x117120
- * Purpose: Cubic Hermite position/velocity/acceleration along a curve segment
- * Info: proposed name EvaluateBezierPos (T1); TU bez
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
- *   docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#junk-list-correction
- * @end-sly2-annot */
 // Evaluates a position Hermite segment from (pos0, vel0) to (pos1, vel1) over dt at time t; writes the position, velocity
 // and acceleration through the optional out-pointers.
 extern "C" void EvaluateBezierPos(qword pos0, qword vel0, qword pos1, qword vel1, float dt, float t, float dtScale, qword *outPos, qword *outVel, qword *outAcc)
@@ -165,14 +149,6 @@ extern "C" void EvaluateBezierPos(qword pos0, qword vel0, qword pos1, qword vel1
  *  - The trailing "j"(k) is an allocation-only operand (see AGENT_GUIDE "Allocation-only asm operands").
  *  - kb's dead VU-float store is written after the result store; ka keeps it inside VF().
  *  - ScaleT's asm is volatile to emulate the toolchain's scheduling of the trailing stores. */
-/** @sly2-annot addr=0x117308
- * Purpose: Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular
- *   velocity
- * Info: proposed name EvaluateBezierMat (T1); TU bez
- * Notes: names_v2 C proposed LimitBezierMulti__Fie (0.356)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bez-0x117030-0x1177a8
- * @end-sly2-annot */
 // Interpolates an orientation from (mat0, angular velocity w0) to (mat1, w1) over dt at time t (Hermite in the
 // relative rotation's angle about its axis); writes the blended matrix and/or the angular velocity.
 extern "C" void EvaluateBezierMat(float dt, float t, float scale, M3 *mat0, qword w0, M3 *mat1, qword w1, M3 *outMatrix, qword *outAngularVelocity)

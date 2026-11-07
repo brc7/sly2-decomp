@@ -84,23 +84,11 @@ MATRIX4 *InvertMatrix4RigidP(MATRIX4 *pmatRet, void *pv) __asm__("InvertMatrix4R
 MATRIX4 *MulMatrix4Matrix4P(MATRIX4 *pmatRet, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec);
 
-/** @sly2-annot addr=0x11B318
- * Purpose: InvertMatrix(stride 4, n 3, src, dst)
- * Info: proposed name InvertMatrix3 (T1); TU mat
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Inverts a 3x3 matrix stored with a 4-float row stride (InvertMatrix, Gauss-Jordan).
 extern "C" void InvertMatrix3(float *src, float *dst) {
     InvertMatrix__FiPfT1(4, 3, src, dst);
 }
 
-/** @sly2-annot addr=0x11B340
- * Purpose: 3x3 inverse by cofactors (row cross products / determinant) returned by value
- * Info: proposed name InvertMatrix3Cofactor (T1); TU mat
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Returns the inverse of a 3x3 matrix by cofactors (row cross products over the determinant).
 extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
 {
@@ -150,12 +138,6 @@ static inline qword NormalizeN(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-/** @sly2-annot addr=0x11B3D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name NormalizeRotateMatrix3__FP7MATRIX3 (EXISTING); TU mat
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Re-orthonormalises a rotation matrix in place (Gram-Schmidt through cross products, keeping row 0's
 // direction), removing drift from repeated multiplication.
 void NormalizeRotateMatrix3(MATRIX3 *matrix)
@@ -173,12 +155,6 @@ void NormalizeRotateMatrix3(MATRIX3 *matrix)
 SLY2_SCRAP("addiu $sp, $sp, 0x80");
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
-/** @sly2-annot addr=0x11B480
- * Purpose: Rotation matrix about an axis from (sin, cos)
- * Info: proposed name LoadRotateMatrixSinCos (T1); TU mat
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Returns the rotation about the unit `axis` whose angle has sine s and cosine c (Rodrigues' formula).
 M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
 {
@@ -220,14 +196,6 @@ static inline qword IntToQword(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0
 /* c's conversion. "+r"(a) is allocation-only and the "$4" clobber (a dead argument register) is scheduling-only:
    they put the axis copy (a3) and the hidden return pointer (a0) after this asm, as in the target. */
 #define QWFROMN2(dst, n, a) { UN u; qword q; __asm__("" : "=r"(q), "+r"(a) : "0"(n) : "$4"); dst = q; u.q = q; }
-/** @sly2-annot addr=0x11B500
- * Purpose: Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480)
- * Info: proposed name LoadRotateMatrixRad (T1); TU mat
- * Notes: names_v2 B proposed CalculateDmat__FP7MATRIX3N20 (0.856)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Builds the rotation of `rad` radians about the unit `axis` into *outMatrix and returns it.
 M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
 {
@@ -247,13 +215,6 @@ M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
     return outMatrix;
 }
 
-/** @sly2-annot addr=0x11B570
- * Purpose: Rotation matrix from a rotation vector (angle = |v|, axis = v/|v|)
- * Info: proposed name LoadRotateMatrix (T1); TU mat
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
- * @end-sly2-annot */
 // Builds the rotation given by a rotation vector (angle = |v|, axis = v / |v|; identity for a tiny v).
 extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
 {
@@ -277,15 +238,6 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
     return outMatrix;
 }
 
-/** @sly2-annot addr=0x11B628
- * Purpose: Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products)
- * Info: proposed name LoadRotateMatrixEuler (T1); TU mat
- * Notes: names_v2 C proposed LoadRotateMatrixRad__FfP6VECTORP7MATRIX3 (0.638)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Builds a rotation matrix from Euler angles (x, y, z components of v).
 extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *outMatrix, qword v)
 {
@@ -326,13 +278,6 @@ static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
     pd->r[1] = m.r[1];
     pd->r[2] = m.r[2];
 }
-/** @sly2-annot addr=0x11B720
- * Purpose: R = Rz(pan) * Ry(-tilt)
- * Info: proposed name LoadRotateMatrixPanTilt (T1); TU mat
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds the rotation for a pan (about z) and a tilt (about the panned y, positive up): Rz(pan) * Ry(-tilt).
 extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
 {
@@ -346,12 +291,6 @@ extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
     return outMatrix;
 }
 
-/** @sly2-annot addr=0x11B7E0
- * Purpose: BuildOrthonormalMatrixZ(dir, default up)
- * Info: proposed name LoadLookAtMatrix (T1); TU mat
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds a look-at rotation whose x axis points along `vec` (BuildOrthonormalMatrixZ with the default up).
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *outMatrix, qword vec)
 {
@@ -387,13 +326,6 @@ static inline qword Div1(qword v, qword l)
 // 0x11B828: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x70");
 
-/** @sly2-annot addr=0x11B830
- * Purpose: Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback
- *   0x11E390)
- * Info: proposed name BuildOrthonormalMatrixZ (T1); TU mat
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds an orthonormal basis from a primary direction and an up hint (crosses and normalises; falls back to
 // any perpendicular when they are parallel).
 M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
@@ -437,14 +369,6 @@ static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
     m.r[1] = r1; pd->r[1] = m.r[1];
     m.r[2] = r2; pd->r[2] = m.r[2];
 }
-/** @sly2-annot addr=0x11B938
- * Purpose: Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted
- *   matrix
- * Info: proposed name TiltMatUpright (T1); TU mat
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Computes the rotation that takes the matrix's local z onto world z: optionally returns it (outDelta) and the
 // matrix with it applied (outUpright).
 extern "C" void TiltMatUpright(M3 *matrix, M3 *outDelta, M3 *outUpright)
@@ -483,22 +407,9 @@ struct MAT3 { float m[3][4]; };
 // 0x11BA00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xd0");
 
-/** @sly2-annot addr=0x11BA08
- * Purpose: Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b)
- *   with perpendicular fallback, clamped cos
- * Info: proposed name BuildRotateVectorsMatrix (T1); TU mat
- * Notes: names_v2 A proposed BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3 (0.923) [verified CORRECT] |
- *   CONFLICT: verified tier-A name differs from TU name; orchestrator: verified name
- *   BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3 restored over LoadRotateVectorMatrix (verified >
- *   unverified) | arbitration adopt verified: Verifier matched Sly1 body; caller 0x11B938 = Sly1
- *   TiltMatUpright.
- * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
- *   sources: r1_116918+verdicts_A1;verified_A+arbitration
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds the minimal rotation taking direction a onto direction b (identity if either is shorter than 1e-4;
 // axis a x b, or any perpendicular when they are opposite; cosine clamped).
+// Same body as Sly 1's; its caller 0x11B938 is Sly 1's TiltMatUpright.
 M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword b)
 {
     VU_FLOAT la, lb;
@@ -560,13 +471,6 @@ static inline M3 MulM3MM(M3 *pa, M3 *pb, M3 *pd) return m
     m.r[1] = v4;
     m.r[2] = v8;
 }
-/** @sly2-annot addr=0x11BC00
- * Purpose: 3x3 matrix product into *pm (VU rows)
- * Info: proposed name MulMatrix3Matrix3 (T1); TU mat
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Multiplies two 3x3 matrices (a * b) into *outMatrix and returns it.
 M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
 {
@@ -578,11 +482,6 @@ M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
     return outMatrix;
 }
 
-/** @sly2-annot addr=0x11BC88
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Extracts pan and tilt from a rotation matrix's row 0 (its x axis): pan = atan2(y, x), tilt = atan2(z, |xy|).
 void DecomposeRotateMatrixPanTilt(MATRIX3 *matrix, float *outPan, float *outTilt)
 {
@@ -590,12 +489,6 @@ void DecomposeRotateMatrixPanTilt(MATRIX3 *matrix, float *outPan, float *outTilt
     *outTilt = atan2f(matrix->mat[0][2], SqrtFloat(matrix->mat[0][0] * matrix->mat[0][0] + matrix->mat[0][1] * matrix->mat[0][1]));
 }
 
-/** @sly2-annot addr=0x11BCF8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR (EXISTING); TU mat
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Decomposes a rotation matrix into an angle (from the trace) and a unit axis (from the diagonal, signs from the
 // off-diagonal terms); a near-identity matrix gives angle 0 and a default axis, a half turn is handled apart.
 void DecomposeRotateMatrixRad(MATRIX3 *matrix, float *outRad, VECTOR *outAxis)
@@ -659,12 +552,6 @@ void DecomposeRotateMatrixRad(MATRIX3 *matrix, float *outRad, VECTOR *outAxis)
     }
 }
 
-/** @sly2-annot addr=0x11BFB8
- * Purpose: DecomposeRotateMatrixRad then returns rad*normal as a vector
- * Info: proposed name DecomposeRotateMatrixVector (T2); TU mat
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Returns the rotation vector (axis * angle) of a rotation matrix.
 extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
 {
@@ -680,14 +567,6 @@ extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
     return r;
 }
 
-/** @sly2-annot addr=0x11BFF0
- * Purpose: Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock
- *   branch)
- * Info: proposed name DecomposeRotateMatrixEuler (T1); TU mat
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Returns the Euler angles of a rotation matrix (asin of the clamped -m02, atan2 for the others, with a
 // gimbal-lock branch); the inverse of LoadRotateMatrixEuler.
 extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
@@ -721,15 +600,7 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
     mat.r[3] = Mulx(m.r[3], s.q);
 }
 
-/** @sly2-annot addr=0x11C168
- * Purpose: 4x4 matrix product
- * Info: proposed name MultiplyMatrix4Matrix4 (T1); TU mat
- * Notes: operator* on MATRIX4 (4x4 by 4x4); Sly1 symbol __ml__FRC7MATRIX4T0 (was operator)
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: verify_A1+verdicts_A1
- * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01,
- *   docs/engine/animation.md#animation-format-summary-anim_lab-v31, docs/engine/core-library.md#3-math
- * @end-sly2-annot */
-// MATRIX4 operator*: 4x4 product a * b into *outMatrix.
+// MATRIX4 operator*: 4x4 product a * b into *outMatrix. Sly 1 symbol __ml__FRC7MATRIX4T0.
 M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
 {
     register qword v1 __asm__("vf1") = a->r[0];
@@ -749,11 +620,6 @@ M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
 }
 
 qword ml(const M4 *m, qword v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
-/** @sly2-annot addr=0x11C1A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Transforms a 4-vector by a 4x4 matrix (v * M, all four components).
 qword ml(const M4 *m, qword v)
 {
@@ -763,15 +629,6 @@ qword ml(const M4 *m, qword v)
     return r;
 }
 
-/** @sly2-annot addr=0x11C1D8
- * Purpose: Transpose (0x11C8E8 with 4,4)
- * Info: proposed name TransposeMatrix4 (T1); TU mat
- * Notes: names_v2 v1 proposed LoadMatrixFromPosRot__FP6VECTORP7MATRIX3P7MATRIX4 (0.638)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Transposes a 4x4 matrix (TransposeMatrix with stride 4); returns dst.
 extern "C" float *TransposeMatrix4(float *dst, float *src) {
     TransposeMatrix(4, 4, src, dst);
@@ -800,13 +657,6 @@ static inline qword Q0(int g, qword *pu)
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g), "m"(*pu)); /* "m": ordering-only operand */
     return s;
 }
-/** @sly2-annot addr=0x11C210
- * Purpose: 4x4 from 3x3 rotation with per-row scale vector plus position
- * Info: proposed name LoadMatrixFromPosRotScale (T1); TU mat
- * Notes: names_v2 v1 proposed CalculateDmat4__FP7MATRIX4N20 (0.200)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds a 4x4 transform from a position, a 3x3 rotation and a per-axis scale (each rotation row scaled).
 extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotation, int *scale)
 {
@@ -836,13 +686,6 @@ static inline qword MulxS(qword a, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s.q));
     return r;
 }
-/** @sly2-annot addr=0x11C288
- * Purpose: 4x4 from 3x3 rotation uniformly scaled by g plus position
- * Info: proposed name LoadMatrixFromPosRotScalar (T1); TU mat
- * Notes: names_v2 v1 proposed DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1 (0.001)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds a 4x4 transform from a position, a 3x3 rotation and a uniform scale.
 extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *outMatrix, qword pos, M3 *rotation, float scale)
 {
@@ -855,27 +698,11 @@ extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *outMatrix, qword pos, M3 *rotati
     return outMatrix;
 }
 
-/** @sly2-annot addr=0x11C2F0
- * Purpose: InvertMatrix(4,4,src,dst)
- * Info: proposed name FInvertMatrix4 (T1); TU mat
- * Notes: names_v2 v1 proposed LoadLookAtMatrix__FP6VECTORP7MATRIX3 (0.002)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Inverts a general 4x4 matrix (InvertMatrix, Gauss-Jordan).
 extern "C" void InvertMatrix4(float *src, float *dst) {
     InvertMatrix__FiPfT1(4, 4, src, dst);
 }
 
-/** @sly2-annot addr=0x11C318
- * Purpose: Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value
- * Info: proposed name InvertMatrix4Rigid (T1); TU mat
- * Notes: names_v2 v1 proposed TiltMatUpright__FP7MATRIX3N20 (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the inverse of a rigid 4x4 transform (transposed rotation, translation -t * R^T).
 M4 InvertMatrix4Rigid(M4 *matrix)
 {
@@ -927,13 +754,6 @@ M4 InvertMatrix4Rigid(M4 *matrix)
     return m;
 }
 
-/** @sly2-annot addr=0x11C3D0
- * Purpose: dmat = inverse(a) * b
- * Info: proposed name CalculateDmat4 (T1); TU mat
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Computes the relative transform a matrix makes with a reference: outMatrix = matrix * inverse(reference)
 // (reference assumed rigid).
 extern "C" void CalculateDmat4(void *reference, MATRIX4 *matrix, MATRIX4 *outMatrix)
@@ -945,11 +765,6 @@ extern "C" void CalculateDmat4(void *reference, MATRIX4 *matrix, MATRIX4 *outMat
     *outMatrix = matRes;
 }
 
-/** @sly2-annot addr=0x11C448
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Builds a perspective projection: x and y scales, the projection centre offsets, and a depth mapping from the
 // near/far distances (w = z).
 void BuildSimpleProjectionMatrix(float xScale, float yScale, float xOffset, float yOffset, float farDistance, float nearDistance, MATRIX4 *outMatrix)
@@ -971,13 +786,9 @@ SLY2_SCRAP("nop");
 
 // Gauss-Jordan inverse with column pivoting. Sly 2 takes (stride c, size n, src, dst); the symbol name comes from Sly 1.
 static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
-/** @sly2-annot addr=0x11C500
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Inverts the n x n matrix src (row stride `stride` floats) into dst by Gauss-Jordan elimination with partial
 // pivoting, using a scratch copy on the stack. Returns whether the matrix was invertible.
+// (Sly 1-derived name: FInvertMatrix.)
 int InvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
 {
     int isInvertible = 0;
@@ -1036,12 +847,6 @@ done:
     return isInvertible;
 }
 
-/** @sly2-annot addr=0x11C8E8
- * Purpose: Generic c x c transpose with stride
- * Info: proposed name TransposeMatrix (T1); TU mat
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Transposes an n x n matrix with a row stride of `stride` floats (src and dst may be the same).
 void TransposeMatrix(int stride, int size, float *src, float *dst)
 {
@@ -1072,16 +877,6 @@ static inline M3 MulM3S(const M3 &a, M3 *pb) return m
 // 0x11C948: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $2, $zero, 0x1");
 
-/** @sly2-annot addr=0x11C950
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name SmoothMatrix (EXISTING); TU mat
- * Notes: arbitration: keep existing name (Name correct (Sly1 util SmoothMatrix). Proposed mangling
- *   SmoothMatrix__FP7MATRIX3T0P3SMPfT0P6VECTOR is plausible but unv)
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: Sly 1 / Lilly reference; arbitration;
- *   pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Smoothly rotates from prev toward goal: decomposes the remaining rotation into angle and axis, advances the
 // angle with SmoothValue (params, dt) and optionally returns the new matrix and the angular velocity (axis * speed).
 extern "C" void SmoothMatrix(M3 *prev, M3 *goal, SMP *params, float dt, M3 *outNext, qword *outAngularVelocity)
@@ -1119,12 +914,6 @@ static inline float DotSq(qword v)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
-/** @sly2-annot addr=0x11CAB0
- * Purpose: Largest row length (max of the three row dot products, then sqrt)
- * Info: proposed name SMaxRowMatrix3 (T2); TU mat
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
- * @end-sly2-annot */
 // Returns the length of the longest row of a 3x3 matrix (its largest axis scale), e.g. to scale bounding spheres.
 extern "C" float GetMaxRowLengthMatrix3(M3 *matrix)
 {

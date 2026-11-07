@@ -55,13 +55,6 @@ public:
 typedef char assert_CByteQueue_size[sizeof(CByteQueue) == 0x20 ? 1 : -1];
 
 
-/** @sly2-annot addr=0x13D558
- * Purpose: Store buffer size (+4) and buffer (+0) then Reset
- * Info: proposed name CByteQueue_Init (T1); class CByteQueue; TU bq
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
- *   docs/engine/core-library.md#7-key-functions
- * @end-sly2-annot */
 // Attaches the queue to a caller-owned buffer of bufferSize bytes and empties it.
 void CByteQueue::Init(int bufferSize, void *bufferMemory)
 {
@@ -70,11 +63,6 @@ void CByteQueue::Init(int bufferSize, void *bufferMemory)
     Reset();
 }
 
-/** @sly2-annot addr=0x13D580
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Empties the queue: the whole buffer becomes free and both ring offsets return to 0.
 void CByteQueue::Reset()
 {
@@ -86,14 +74,9 @@ void CByteQueue::Reset()
     totalFilled = 0;
 }
 
-/** @sly2-annot addr=0x13D5A0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Fills the queue from `input`, reading into the free part of the ring (wrapping at the end). byteCount <= 0
 // means "one read of whatever fits"; otherwise reads until byteCount bytes arrived, the queue is full or the input
-// returns 0. Returns the number of bytes added.
+// returns 0. Returns the number of bytes added. (Sly 1-derived name: CByteQueue::CbFill.)
 int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
 {
     int filled = 0;
@@ -118,14 +101,9 @@ int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
     return filled;
 }
 
-/** @sly2-annot addr=0x13D6A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Drains up to byteCount filled bytes into `output` (byteCount <= 0: a single write). Bytes handed to an output
 // whose IsAsyncDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
-// Returns the number of bytes written.
+// Returns the number of bytes written. (Sly 1-derived name: CByteQueue::CbDrain.)
 int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
 {
     int drained = 0;
@@ -152,12 +130,8 @@ int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
     return drained;
 }
 
-/** @sly2-annot addr=0x13D7D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Fills the queue from a memory block (wraps it in a temporary CQueueInputMemory). Returns the bytes added.
+// (Sly 1-derived name: CByteQueue::CbFill.)
 int CByteQueue::FillFromMemory(int byteCount, byte *data)
 {
     int result;
@@ -170,11 +144,6 @@ int CByteQueue::FillFromMemory(int byteCount, byte *data)
     return result;
 }
 
-/** @sly2-annot addr=0x13D818
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Releases byteCount drained bytes back to the free space (0: all of them).
 void CByteQueue::FreeDrain(int byteCount)
 {
@@ -186,13 +155,6 @@ void CByteQueue::FreeDrain(int byteCount)
     }
 }
 
-/** @sly2-annot addr=0x13D850
- * Purpose: Copy min(cb, remaining) bytes from memory source and advance
- * Info: proposed name CQueueInputMemory_CbRead (T1); class CQueueInputMemory; TU bq
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // Memory input: copies up to byteCount bytes from the block into dest and advances. Returns the bytes copied.
 int CQueueInputMemory::ReadBytes(int byteCount, void *dest)
 {
@@ -203,13 +165,6 @@ int CQueueInputMemory::ReadBytes(int byteCount, void *dest)
     return chunk;
 }
 
-/** @sly2-annot addr=0x13D8B8
- * Purpose: Stub returning 0 (file input unused in retail)
- * Info: proposed name CQueueInputFile_CbRead (T1); class CQueueInputFile; TU bq
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
- * @end-sly2-annot */
 // File input: compiled out in the retail build, always reports end of input (0 bytes).
 int CQueueInputFile::ReadBytes(int byteCount, void *dest)
 {

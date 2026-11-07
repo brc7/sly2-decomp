@@ -127,13 +127,6 @@ static inline qword BlendVectors(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
     return qw;
 }
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("func_00118668");
-/** @sly2-annot addr=0x118668
- * Purpose: Clips an edge against a BSP volume; returns inside segments (LSG list)
- * Info: proposed name ClsgClipEdgeToBsp (T1); TU bsp
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/camera.md#5-key-functions, docs/engine/core-library.md#6-source-files,
- *   docs/engine/core-library.md#7-key-functions
- * @end-sly2-annot */
 // Clips the edge pos1-pos2 against a BSP volume and writes the pieces inside it to alsg (at most clsgMax);
 // returns their count. See the long comment above for the algorithm.
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg)
@@ -255,14 +248,6 @@ static inline BSP *NodeOrNullPastLimit(BSP *p, BSP *pnodeMax)
         p = 0;
     return p;
 }
-/** @sly2-annot addr=0x118A88
- * Purpose: Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree
- * Info: proposed name PruneBsp (T1); TU bsp
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0,
- *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
- * @end-sly2-annot */
 // Builds a reduced copy of a BSP for queries near pos: planes farther than eps from pos are skipped (the walk
 // follows the side pos is on), and only the planes within eps are copied as new nodes into *outNodes (capacity
 // *capacity, both advanced). Returns 0 or 1 when the result is a plain leaf (the two leaf kinds), 2 when a subtree
@@ -324,14 +309,6 @@ extern "C" int PruneBspBySphere(BSP *node, BSP *nodeLimit, qword pos, float eps,
     return g > 0.0f;
 }
 
-/** @sly2-annot addr=0x118D08
- * Purpose: Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points,
- *   recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf)
- * Info: proposed name FClassifyPolyBsp (T2); TU bsp
- * Notes: names_v2 C proposed PbspPointInBspQuick__FP6VECTORP3BSP (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Walks a BSP with a polygon (pointCount points): uses the min/max plane distance over the points to descend into
 // the children it straddles, collecting the surfaces of the nodes it touches into (*outCount, *outSurfaces).
 extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int pointCount, qword *points, int *outCount, SURF ***outSurfaces)
@@ -410,15 +387,6 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int 
 SLY2_SCRAP("nop");
 
 // FindBspLeafContainingPointFast (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the negative child clipped into a separate `child = 0; if (negChild < nodeLimit) child = negChild;` (gives the target v1->v0 copy), the positive one straight into node. oq pinned to vf2.
-/** @sly2-annot addr=0x118FB0
- * Purpose: Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the
- *   leaf node
- * Info: proposed name FindBspLeafContainingPointFast (T1); TU bsp
- * Notes: names_v2 C proposed CloneBspc__FP4GEOMP4BSPCT0T1 (0.638)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70,
- *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Returns the BSP leaf containing pos; points within 1e-4 of a plane go to the negative child (fast version).
 extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword pos)
 {
@@ -461,12 +429,6 @@ extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword 
 
 // (Claude agent, lane A9, 2026-10-23) BSP point search. On the on-plane path ONE local p holds the checked right child, the
 // recursive result and then the checked left child, so it stays in v0 (no if-conversion straight into a0).
-/** @sly2-annot addr=0x119090
- * Purpose: Point location with on-plane case: if |dist|<=1e-4 try both children recursively
- * Info: proposed name PbspPointInBsp (T1); TU bsp
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Returns the BSP leaf containing pos; a point within 1e-4 of a plane tries both children (positive first).
 extern "C" BSP *FindBspLeafContainingPoint(BSP *node, BSP *nodeLimit, qword pos)
 {
@@ -515,12 +477,6 @@ typedef struct TREE { int nodeCount; int unknown4; int unknown8; BSP *nodes; } T
 extern "C" void *AllocFromWorldHeap(MSG *pmsg);
 extern char D_002BBAF0[];
 #define REBASE(p, baseSrc, baseDst) ((void *)((char *)(baseDst) + ((char *)(p) - (char *)(baseSrc))))
-/** @sly2-annot addr=0x1191E8
- * Purpose: Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers
- * Info: proposed name CloneBspc (T1); TU bsp
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Copies a BSP collection from one geometry to another, rebasing every internal node and plane pointer from the
 // source owner's storage to the destination's.
 extern "C" void CloneBspc(TREE *srcTree, OWNER *srcOwner, TREE *dstTree, OWNER *dstOwner)
@@ -557,13 +513,6 @@ static inline qword Normalize(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-/** @sly2-annot addr=0x119308
- * Purpose: Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a
- * Info: proposed name InitPlaneFromPositions (T1); TU bsp
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Initialises a plane through three points: normal = normalize((b - a) x (c - a)), distance = normal . a.
 extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword c)
 {
@@ -576,12 +525,6 @@ extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword 
     { float tx = u.v.x, ty = u.v.y, tz = u.v.z; outPlane->y = ty; outPlane->z = tz; outPlane->x = tx; }
 }
 
-/** @sly2-annot addr=0x119390
- * Purpose: Plane from normal and a point on it (d = n.pos), VU asm
- * Info: proposed name InitPlaneFromNormalPos (T1); TU bsp
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Initialises a plane from a unit normal and a point on it (distance = normal . point).
 extern "C" void InitPlaneFromNormalPos(PLANE *outPlane, qword normal, qword point)
 {
@@ -598,13 +541,6 @@ extern "C" void InitPlaneFromNormalPos(PLANE *outPlane, qword normal, qword poin
         : : "r"(outPlane), "r"(normal), "r"(point) : "$2", "memory");
 }
 
-/** @sly2-annot addr=0x1193C0
- * Purpose: Stores normal qword and d at +0xC
- * Info: proposed name SetPlane (T1); TU bsp
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Sets a plane from a normal and its distance.
 extern "C" void SetPlane(PLANE *outPlane, qword normal, float distance)
 {
@@ -623,12 +559,6 @@ inline qword *AssignQword(qword *p, qword v);   /* inline, defined after its cal
 /* A VECTOR held in a qword with its out-of-line empty constructor (DefaultConstructVector). */
 struct VECTORQ { qword q; VECTORQ() { (void)DefaultConstructVector(this); } };
 struct MAT { qword r[4]; };
-/** @sly2-annot addr=0x1193D8
- * Purpose: Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d)
- * Info: proposed name ConvertPlane (T2); TU bsp
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
- * @end-sly2-annot */
 // Returns `plane` transformed by a matrix: the normal rotated, a point on the plane moved, and the distance
 // recomputed.
 extern "C" qword TransformPlane(MAT *matrix, qword plane)
@@ -657,24 +587,10 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
 // defined after their callers, so g++ calls them and emits the out-of-line copies (linkonce), as the original did.
 // 0x2564B8 keeps its C symbol (tu_1BC050, cm and path call it by that name, and VUF/VU_QWORD's constructors are
 // bound to it).
-/** @sly2-annot addr=0x2564A8
- * Purpose: *p = qword v; return p [game linkonce (inline/template)]
- * Info: proposed name VECTOR4_opAssign (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // Stores a quadword through a pointer and returns the pointer (an inline assignment kept out of line in the
 // linkonce area).
 inline qword *AssignQword(qword *p, qword v) { *p = v; return p; }
 
-/** @sly2-annot addr=0x2564B8
- * Purpose: return arg0 (out-of-line inline accessor/cast in the linkonce block)
- * Info: proposed name Identity_002564B8 (T2); TU game_linkonce
- * Notes: top50_round (0.15): Body only; 4 BSP/light/plane callers (FindBspLeafContainingPointFast, InsertLightInTree,
- *   GetPlaneDistance). No evidence for a better name; leave as draft
- * Confidence: low (draft) [T2 0.15] - evidence: semantic review; sources: sdk_names+top50_round
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // The empty constructor of the VU temporaries VUF / VU_QWORD: returns its argument (an out-of-line inline copy).
 extern "C" inline void *InitVuTemp(void *p)
 {

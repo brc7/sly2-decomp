@@ -68,13 +68,6 @@ unsigned int D_002E1E58;            /* current region, 0..6 */
 
 extern "C" void GetRegionLanguages(int *outCount, int **outLanguages);
 
-/** @sly2-annot addr=0x1A2BD0
- * Purpose: Set current language D_002E1E54 = n, or for -1 the first language of the current region
- * Info: proposed name SetLanguage (T1); TU language
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
- *   docs/engine/player.md#10-source-files
- * @end-sly2-annot */
 // Selects a game language (0..13); -1 selects the current region's default (its first language).
 extern "C" void SetLanguage(int language)
 {
@@ -91,12 +84,6 @@ extern "C" void SetLanguage(int language)
 // 0x1A2C18: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x1A2C20
- * Purpose: Set region index D_002E1E58 (-1 -> 0)
- * Info: proposed name SetRegion (T1); TU language
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
- * @end-sly2-annot */
 // Selects the region (0..6); -1 selects region 0 (america).
 extern "C" void SetRegion(int region)
 {
@@ -110,12 +97,6 @@ extern "C" void SetRegion(int region)
 // 0x1A2C40: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x1A2C48
- * Purpose: Out count and pointer to the language index list of the current region (index clamped to <7)
- * Info: proposed name GetRegionLanguages (T1); TU language
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
- * @end-sly2-annot */
 // Returns the current region's language list through the optional out-pointers (count, array of language
 // indexes). An out-of-range region is reset to 0 first.
 extern "C" void GetRegionLanguages(int *outCount, int **outLanguages)
@@ -127,12 +108,6 @@ extern "C" void GetRegionLanguages(int *outCount, int **outLanguages)
     if (outLanguages) *outLanguages = regionLangs->languages;
 }
 
-/** @sly2-annot addr=0x1A2C98
- * Purpose: Return number of languages available in the region
- * Info: proposed name CountRegionLanguages (T1); TU language
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
- * @end-sly2-annot */
 // Returns how many languages the current region offers.
 extern "C" int CountRegionLanguages(void)
 {
@@ -141,14 +116,6 @@ extern "C" int CountRegionLanguages(void)
     return count;
 }
 
-/** @sly2-annot addr=0x1A2CC0
- * Purpose: Map language index 0..13 to the 4CC 'FK$x' with x = e f i g s d p a h n w j k c (English, French,
- *   Italian, German, Spanish, Dutch, Portuguese, ..., Japanese, Korean, Chinese)
- * Info: proposed name FourccFromLanguage (T1); TU language
- * Notes: names_v2 C proposed PeaFindAsegLabel__FP4ASEG3OID (0.438)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
- * @end-sly2-annot */
 // Maps a game language index to its localisation fourcc 'FK$x' (x = e f i g s d p a h n w j k c, in index
 // order: English .. Chinese); 0 for an unknown index.
 extern "C" int FourccFromLanguage(unsigned int language)
@@ -175,13 +142,6 @@ extern "C" int FourccFromLanguage(unsigned int language)
 // 0x1A2D98: dead-code scrap, a nop unit (sly2/scrap.h)
 SLY2_SCRAP("nop");
 
-/** @sly2-annot addr=0x1A2DA0
- * Purpose: Map the PS2 system language (sceScf code: 0 ja,1 en,2 fr,3 es,4 de,5 it,6 nl,7 pt) to a game
- *   language index and select it if the region offers it, else region default
- * Info: proposed name SetLanguageFromSystem (T1); TU language
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
- * @end-sly2-annot */
 // Selects the game language matching the console's system language (sceScf code: 0 ja, 1 en, 2 fr, 3 es, 4 de,
 // 5 it, 6 nl, 7 pt) if the current region offers it; otherwise the region default.
 extern "C" void SetLanguageFromSystem(int systemLanguage)

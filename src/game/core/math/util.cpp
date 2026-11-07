@@ -26,13 +26,6 @@ float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext
 float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
 extern "C" int GetRandomInt();
 
-/** @sly2-annot addr=0x11CF60
- * Purpose: Wraps an angle into [-pi, pi) using ModPositive
- * Info: proposed name NormalizeAngle (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Wraps an angle into [-pi, pi).
 float NormalizeAngle(float rad)
 {
@@ -43,12 +36,7 @@ float NormalizeAngle(float rad)
     return rad;
 }
 
-/** @sly2-annot addr=0x11CFE0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
-// Clamps value to [-limit, limit].
+// Clamps value to [-limit, limit]. (Sly 1-derived name: GLimitAbs.)
 float ClampAbs(float value, float limit)
 {
     if (value > limit) {
@@ -61,13 +49,6 @@ float ClampAbs(float value, float limit)
 
 /* SmoothValue (Sly 1 util.c). Code-identical except ONE toolchain nop: target has `sub.s; nop; div.s` at 0x11D0B8
    (div.s is the 2nd insn of a basic block -> original assembler pads it to position 2 with 1 nop; asfix only pads position 0). */
-/** @sly2-annot addr=0x11D018
- * Purpose: Critically-damped style smoothing of a scalar toward a target with SMP limits
- * Info: proposed name SmoothValue (T1); TU util
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#gsmooth-prototype-2026-10-16,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Moves `current` toward `target` over dt: at params->svFast while far away, then decelerating linearly to
 // params->svSlow over the final stretch (the distance covered while slowing for params->dtFast seconds), never
 // overshooting. Returns the new value and optionally its rate of change. The engine's standard easing.
@@ -126,13 +107,8 @@ LDone:
     return newDistance;
 }
 
-/** @sly2-annot addr=0x11D1C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // SmoothValue with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->sdvMax
-// * dt, and the value follows the constant-acceleration path when the limit applies.
+// * dt, and the value follows the constant-acceleration path when the limit applies. (Sly 1-derived name: GSmoothA.)
 float SmoothValueWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float nextRate;
@@ -157,12 +133,8 @@ float SmoothValueWithAccel(float current, float currentRate, float target, float
 // 0x11D2C8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
-/** @sly2-annot addr=0x11D2D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // SmoothValue for angles: eases along the shorter way round and keeps the result normalised.
+// (Sly 1-derived name: RadSmooth.)
 float SmoothAngle(float current, float target, float dt, SMP *params, float *outRate)
 {
     float rad;
@@ -172,12 +144,7 @@ float SmoothAngle(float current, float target, float dt, SMP *params, float *out
     return rad;
 }
 
-/** @sly2-annot addr=0x11D340
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
-// SmoothValueWithAccel for angles (shorter way round, normalised result).
+// SmoothValueWithAccel for angles (shorter way round, normalised result). (Sly 1-derived name: RadSmoothA.)
 float SmoothAngleWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float rad;
@@ -187,25 +154,12 @@ float SmoothAngleWithAccel(float current, float currentRate, float target, float
     return rad;
 }
 
-/** @sly2-annot addr=0x11D3C0
- * Purpose: rand() % 905010707
- * Info: proposed name GetRandomInt (T1); TU util
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Returns a pseudo-random non-negative int (rand() mod 905010707).
 int GetRandomInt()
 {
     return rand() % 905010707;
 }
 
-/** @sly2-annot addr=0x11D3F8
- * Purpose: Uniform int in [nLow, nHi]
- * Info: proposed name RandomIntInRange (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Returns a uniform random int in [low, high].
 int RandomIntInRange(int low, int high)
 {
@@ -214,13 +168,6 @@ int RandomIntInRange(int low, int high)
     return low + nRand % (high - nBase);
 }
 
-/** @sly2-annot addr=0x11D448
- * Purpose: Uniform float in [gMin, gMax]
- * Info: proposed name RandomFloatInRange (T1); TU util
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Returns a uniform random float in [min, max].
 float RandomFloatInRange(float min, float max)
 {
@@ -229,12 +176,8 @@ float RandomFloatInRange(float min, float max)
     return min + (max - min) * (float)(GetRandomInt() % 0x16A1B) * 1.078760305972537e-05f;
 }
 
-/** @sly2-annot addr=0x11D4D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Returns whether a and b are equal within a relative tolerance: |a - b| / max(|a|, 1) < epsilon.
+// (Sly 1-derived name: FFloatsNear.)
 int AreFloatsNear(float a, float b, float epsilon)
 {
     b = a - b;
@@ -246,14 +189,6 @@ int AreFloatsNear(float a, float b, float epsilon)
 }
 
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
-/** @sly2-annot addr=0x11D508
- * Purpose: Real roots of a x^2 + b x + c (count returned, roots written)
- * Info: proposed name SolveQuadratic (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r1_116918+verdicts_tu_r1r2+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
 int SolveQuadratic(float a, float b, float c, float *roots)
 {
@@ -279,11 +214,6 @@ int SolveQuadratic(float a, float b, float c, float *roots)
     return 2;
 }
 
-/** @sly2-annot addr=0x11D5B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Rewrites a CLQ for a substituted argument: dst(u) = src(scale * u + offset).
 void PrescaleClq(CLQ *src, float scale, float offset, CLQ *dst)
 {
@@ -292,15 +222,6 @@ void PrescaleClq(CLQ *src, float scale, float offset, CLQ *dst)
     dst->g0 = (src->g2 * offset * offset) + (src->g1 * offset) + src->g0;
 }
 
-/** @sly2-annot addr=0x11D608
- * Purpose: sin and cos of an angle (polynomial, clamped)
- * Info: proposed name CalculateSinCos (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r1_116918+verdicts_tu_r1r2+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Computes sine and cosine of an angle together (range reduction to [-pi/2, pi/2], a degree-9 polynomial for the
 // sine, the cosine from sqrt(1 - sin^2) with the right sign). The engine's fast sincos.
 void CalculateSinCos(float rad, float *outSin, float *outCos)
@@ -339,12 +260,8 @@ union DBL {
         ulong sign : 1;
     } bits;
 };
-/** @sly2-annot addr=0x11D740
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Truncates a double toward zero by masking mantissa bits (with a carry fix when all masked bits are set).
+// (Sly 1-derived name: GTrunc.)
 double TruncateDouble(double g)
 {
     DBL *pconv = (DBL *)&g;
@@ -365,16 +282,7 @@ double TruncateDouble(double g)
     return g;
 }
 
-/** @sly2-annot addr=0x11D7F0
- * Purpose: Truncate a float toward zero via exponent bit manipulation
- * Info: proposed name TruncateFloat (T1); TU util
- * Notes: Sly 1 named both truncations GTrunc (overloads GTrunc__Fd / GTrunc__Ff); renamed apart to TruncateDouble /
- *   TruncateFloat (0x11D740 is the double one)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
-// Truncates a float toward zero by masking mantissa bits.
+// Truncates a float toward zero by masking mantissa bits. Sly 1 named this and TruncateDouble GTrunc (two overloads).
 float TruncateFloat(float g)
 {
     uint u = *(uint *)&g;
@@ -395,13 +303,6 @@ float TruncateFloat(float g)
     return g;
 }
 
-/** @sly2-annot addr=0x11D898
- * Purpose: fmod returning a non-negative result
- * Info: proposed name ModPositive (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Returns dividend mod divisor in [0, divisor) (fmod made non-negative).
 float ModPositive(float dividend, float divisor)
 {
@@ -412,11 +313,6 @@ float ModPositive(float dividend, float divisor)
     return result;
 }
 
-/** @sly2-annot addr=0x11D8D8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Fits a CLQ through value0 at u=0, value1 at u=1 and value3 at u=u3 (FitClq(g0, g1, u, g3)).
 void FitClq(float g0, float g1, float u, float g3, CLQ *outClq)
 {
@@ -429,12 +325,7 @@ void FitClq(float g0, float g1, float u, float g3, CLQ *outClq)
     outClq->g1 = dg - g2;
 }
 
-/** @sly2-annot addr=0x11D910
- * Purpose: True (1) if g lies strictly inside the open range (plm->gMin, plm->gMax); Sly 1 name FCheckLm.
- * Confidence: high - evidence: the body is the whole definition (two strict compares)
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
-// Returns whether value lies strictly inside the range (min < value < max).
+// Returns whether value lies strictly inside the range (min < value < max). Sly 1 name: FCheckLm.
 int IsWithinLimits(LM *range, float value)
 {
     int isInside;
@@ -448,12 +339,7 @@ int IsWithinLimits(LM *range, float value)
 // 0x11D940: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x50");
 
-/** @sly2-annot addr=0x11D948
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
-// Clamps value into the range [min, max].
+// Clamps value into the range [min, max]. (Sly 1-derived name: GLimitLm.)
 float ClampToLimits(LM *range, float value)
 {
     if (value < range->gMin) {
@@ -465,13 +351,6 @@ float ClampToLimits(LM *range, float value)
     return value;
 }
 
-/** @sly2-annot addr=0x11D978
- * Purpose: Clamps an angle into the angular range plm (around its midpoint, wrap-aware)
- * Info: proposed name ClampAngleToRange (T1); TU util
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Clamps an angle into an angular range, measuring around the range's midpoint so wrap-around is handled.
 extern "C" float ClampAngleToRange(LM *range, float rad)
 {
@@ -480,13 +359,6 @@ extern "C" float ClampAngleToRange(LM *range, float rad)
     return NormalizeAngle(radMid + ClampAbs(NormalizeAngle(rad - radMid), radHalf));
 }
 
-/** @sly2-annot addr=0x11D9D8
- * Purpose: Empty function taking a pointer (keeps a value alive / forces evaluation)
- * Info: proposed name Force (T1); TU util
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Does nothing with its argument; calling it keeps a value alive or forces it to memory (a compiler barrier).
 void Force(void *pv)
 {
@@ -495,11 +367,6 @@ void Force(void *pv)
 typedef float (*PFNGG)(void *, float);
 struct GG { float g; float gResult; };
 /* std::max / std::min's spelling (compare with `<`, first operand on ties): not util.h's GMax/GMin (see the guide) */
-/** @sly2-annot addr=0x11D9E0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Minimises function(context, x) over [min, max] starting at x with step dx: walks downhill in steps of the
 // current bracket, then refines by halving (inferred from the loop); returns the best x and its value.
 void MinimizeRange(PFNGG function, void *context, float x, float dx, float min, float max, float *outX, float *outValue)
@@ -558,13 +425,6 @@ void MinimizeRange(PFNGG function, void *context, float x, float dx, float min, 
 // 0x11DCD0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xc0");
 
-/** @sly2-annot addr=0x11DCD8
- * Purpose: RGBA bytes -> floats /255
- * Info: proposed name ConvertRgbaToVector (T2); TU util
- * Notes: names_v2 v1 proposed Tex0FromTexIframeCtk__FP3TEXi3CTK (0.004)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Converts RGBA bytes to four floats in 0..1 (each byte / 255).
 extern "C" void ConvertRgbaToFloats(RGBA *rgba, float *outFloats)
 {
@@ -573,14 +433,6 @@ extern "C" void ConvertRgbaToFloats(RGBA *rgba, float *outFloats)
     outFloats[2] = rgba->bBlue * (1.0f / 255.0f);
 }
 
-/** @sly2-annot addr=0x11DD30
- * Purpose: floats*255+0.5 -> RGBA bytes
- * Info: proposed name ConvertVectorToRgba (T1); TU util
- * Notes: names_v2 v1 proposed LoadClutFromBrx__FP18CBinaryInputStreamP4CLUT (0.001)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Converts a float colour vector (0..1) to RGBA bytes (x 255, rounded), with the given alpha byte.
 extern "C" void ConvertVectorToRgba(VECTOR *color, int a, RGBA *outRgba)
 {
@@ -590,13 +442,6 @@ extern "C" void ConvertVectorToRgba(VECTOR *color, int a, RGBA *outRgba)
     outRgba->bAlpha = a;
 }
 
-/** @sly2-annot addr=0x11DD90
- * Purpose: RGB -> HSV (floorf), clamps
- * Info: proposed name ConvertUserRgbToUserHsv (T1); TU util
- * Notes: names_v2 C proposed ConvertHsvToRgb__FP6VECTORT0 (0.438)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Despite its (Sly 1) name, converts HSV to RGB: hsv = (hue in degrees 0..360, negative for none, saturation 0..1,
 // value 0..1) in, rgb (0..1) out. Its "Q" wrapper below is the 0..255 user-facing variant.
 void ConvertUserRgbToUserHsv(VECTOR *hsv, VECTOR *outRgb)
@@ -647,11 +492,6 @@ void ConvertUserRgbToUserHsv(VECTOR *hsv, VECTOR *outRgb)
    definition keeps its symbol through an asm label on an aligned view. */
 struct VECTORQ { float x, y, z; } __attribute__((aligned(16)));
 void ConvertUserHsvToUserRgbQ(VECTORQ *pvecHsv, VECTORQ *pvecRgb) __asm__("ConvertUserHsvToUserRgb__FP6VECTORT0");
-/** @sly2-annot addr=0x11DFA0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
- * @end-sly2-annot */
 // Converts a user HSV colour (hue in degrees, saturation and value 0..255) to user RGB (0..255) through the
 // function above.
 void ConvertUserHsvToUserRgbQ(VECTORQ *hsv, VECTORQ *outRgb)

@@ -25,24 +25,9 @@ void func_002564E0(void *pa, void *pb) __asm__("Init__t10CDynArrayV1ZPcPv");    
 void func_00256528(void *pa, void *pb, void *pfnKey) __asm__("Init__t10CHashIndex1ZPcPt10CDynArrayV1ZPcPv");      /* CHashIndex<char *>::Init */
 }
 
-/** @sly2-annot addr=0x119BC8
- * Purpose: Returns *p (key-extraction callback passed by the class below)
- * Info: proposed name PvKeyFromPtr (T2); TU tu_119BC8
- * Notes: names_v2 C proposed RostsNextRost__FP4ROST (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r1_116918
- * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#open-questions,
- *   docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
- * @end-sly2-annot */
 // Key callback of the hash index: returns the element itself (the string pointer) as its key.
 extern "C" int GetElementKey(int *element) { return *element; }
 
-/** @sly2-annot addr=0x119BD0
- * Purpose: vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn
- *   0x119BC8
- * Info: proposed name CUnk2CA5E0_Init (T2); class CUnk2CA5E0; TU tu_119BC8
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
- * @end-sly2-annot */
 /* The array class whose functions these are (DRAFT name CDynArrayStr, vtable 0x2CA5E0, emitted here): a
    CDynArrayV<char *> of strings with a hash index at +0x34; only its two own slots are declared. g++ 2.95 emits a TU's
    vtables in the reverse order of the classes' definitions and instantiations: CDynArrayV<char *> (the base), then
@@ -67,12 +52,6 @@ void CDynArrayStr::Init(void *owner)   /* key function: CDynArrayStr's vtable co
 struct HEAPHOLDER { ALLOC *palloc; };
 struct STRREADER { HEAPHOLDER *pheap; };
 
-/** @sly2-annot addr=0x119C08
- * Purpose: vtable slot 4: ReadStringSw(pbis, ppchz, this->pheap->palloc, kind 7)
- * Info: proposed name CUnk2CA5E0_ReadString (T2); class CUnk2CA5E0; TU tu_119BC8
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
- * @end-sly2-annot */
 // Reads one element: a string from the stream, allocated from the owner's heap (kind 7).
 extern "C" void CDynArrayStr_ReadElement(STRREADER *reader, char **outString, CBinaryInputStream *stream)
 {
@@ -93,12 +72,6 @@ SLY2_SCRAP("addiu $sp, $sp, 0x60");
    branch gets the other one (2 of 78 instructions off); a specialization is compiled where it is defined, like a
    plain function, and MATCHes. Being a specialization it would be a strong .text function, so the declaration gives
    it what an instance gets: a weak symbol in .gnu.linkonce.t.<symbol>. */
-/** @sly2-annot addr=0x2568C0
- * Purpose: rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)]
- * Info: proposed name CHash_Resize (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <> void CHash<char *, int>::Resize(int bucketCount)
     __attribute__((weak, section(".gnu.linkonce.t.Resize__t5CHash2ZPcZii")));
 // Rehashes every entry into `bucketCount` buckets: chains all entries into one list, reallocates the bucket array
