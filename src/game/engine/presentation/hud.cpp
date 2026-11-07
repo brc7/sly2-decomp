@@ -3224,8 +3224,8 @@ struct S {
     float color0R, color0G, color0B, color0W, color1R, color1G, color1B, color1A;
     float baseColor0R, baseColor0G, baseColor0B, baseColor0W, baseColor1R, baseColor1G, baseColor1B, baseColor1A;
 };
-static inline float GMin(float a, float b) { return b < a ? b : a; }
-static inline float GClamp(float g, float gMin, float gMax)
+static inline float MinFloat(float a, float b) { return b < a ? b : a; }
+static inline float ClampFloat(float g, float gMin, float gMax)
 {
     if (g < gMin) return gMin;
     if (gMax < g) return gMax;
@@ -3243,14 +3243,14 @@ void UpdateRichText2Color(struct S *rt)
     float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
     float alpha;
     alpha = alphaScale * (float)rt->color.a;
-    rt->color0R = GMin(rt->baseColor0R + (float)rt->color.r, 255.0f);
-    rt->color0G = GMin(rt->baseColor0G + (float)rt->color.g, 255.0f);
-    rt->color0B = GMin(rt->baseColor0B + (float)rt->color.b, 255.0f);
+    rt->color0R = MinFloat(rt->baseColor0R + (float)rt->color.r, 255.0f);
+    rt->color0G = MinFloat(rt->baseColor0G + (float)rt->color.g, 255.0f);
+    rt->color0B = MinFloat(rt->baseColor0B + (float)rt->color.b, 255.0f);
     rt->color0W = rt->baseColor0W;
     rt->color1R = rt->baseColor1R;
     rt->color1G = rt->baseColor1G;
     rt->color1B = rt->baseColor1B;
-    rt->color1A = GClamp(alpha, 0.0f, 1.0f);
+    rt->color1A = ClampFloat(alpha, 0.0f, 1.0f);
 }
 } } // namespace M_func_002160D8
 
@@ -4215,8 +4215,8 @@ extern "C" void ResetSpriteSlotItems(A *p, int i);
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
 extern "C" void UpdateSpriteSlot(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
-static inline float GMin(float a, float b) { return b < a ? b : a; }
-static inline float GMax(float a, float b) { return a < b ? b : a; }
+static inline float MinFloat(float a, float b) { return b < a ? b : a; }
+static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x218060
  * Purpose: refresh reused sprite at t=0 then at clamped time
  * Info: proposed name SetSpriteAnimTime (T2); TU hud
@@ -4231,7 +4231,7 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
     int animIndex = group->slots[slot].animIndex;
     if (animIndex < 0)
         return;
-    time = GMin(group->anims[animIndex].duration, GMax(0.0f, time));
+    time = MinFloat(group->anims[animIndex].duration, MaxFloat(0.0f, time));
     if (item) {
         q = item->matrix;
         *(RGBA2 *)&c0 = item->color0;
@@ -4500,8 +4500,8 @@ void FinishSpriteSoundEvent(struct S *p, int slot)
 
 // 0x218790 CombineSpriteColors
 namespace M_CombineSpriteColors { extern "C" {
-static inline float GMin(float a, float b) { return b < a ? b : a; }
-static inline float GMax(float a, float b) { return a < b ? b : a; }
+static inline float MinFloat(float a, float b) { return b < a ? b : a; }
+static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x218790
  * Purpose: combine parent/child additive and multiplicative RGBA
  * Info: proposed name CombineSpriteColors (T1); TU hud
@@ -4514,12 +4514,12 @@ void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc
 {
     int i;
     for (i = 0; i < 4; i++) {
-        float x = GMax(GMin((float)(pa[i] - 127) * 0.007874016f, 1.0f), -1.0f);
-        float y = GMax(GMin((float)(pc[i] - 127) * 0.007874016f, 1.0f), -1.0f);
+        float x = MaxFloat(MinFloat((float)(pa[i] - 127) * 0.007874016f, 1.0f), -1.0f);
+        float y = MaxFloat(MinFloat((float)(pc[i] - 127) * 0.007874016f, 1.0f), -1.0f);
         float e = (float)pb[i] - 127.0f;
         float d = (float)pd[i] - 127.0f;
-        pout0[i] = (int)(GMax(GMin(x * y, 1.0f), -1.0f) * 127.0f + 128.0f);
-        pout1[i] = (int)(GMax(GMin(x * d + e, 128.0f), -127.0f) + 127.0f);
+        pout0[i] = (int)(MaxFloat(MinFloat(x * y, 1.0f), -1.0f) * 127.0f + 128.0f);
+        pout1[i] = (int)(MaxFloat(MinFloat(x * d + e, 128.0f), -127.0f) + 127.0f);
     }
 }
 } } // namespace M_CombineSpriteColors
@@ -4544,14 +4544,14 @@ void ClearSle(int *);
 void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
 void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
 }
-static inline int NLerp(float t,int previous,int next){
+static inline int LerpInt(float t,int previous,int next){
  if(previous==next)return next;
  if(previous<next)return previous+(int)(t*((float)next+0.999f-(float)previous));
  return next+(int)((1.0f-t)*((float)previous+0.999f-(float)next));
 }
 static inline RGBA BlendColors(float t,RGBA previous,RGBA next){
  RGBA result;
- result.r=NLerp(t,previous.r,next.r);result.g=NLerp(t,previous.g,next.g);result.b=NLerp(t,previous.b,next.b);result.a=NLerp(t,previous.a,next.a);
+ result.r=LerpInt(t,previous.r,next.r);result.g=LerpInt(t,previous.g,next.g);result.b=LerpInt(t,previous.b,next.b);result.a=LerpInt(t,previous.a,next.a);
  return result;
 }
 static inline M23 BlendMatrix(float t,const M23 &previous,const M23 &next){
@@ -4811,7 +4811,7 @@ void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("Up
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
-static inline int NLerp(float t, int previous, int next)
+static inline int LerpInt(float t, int previous, int next)
 {
     if (previous == next)
         return next;
@@ -4823,10 +4823,10 @@ static inline int NLerp(float t, int previous, int next)
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {
     RGBA result;
-    result.r = NLerp(t, previous.r, next.r);
-    result.g = NLerp(t, previous.g, next.g);
-    result.b = NLerp(t, previous.b, next.b);
-    result.a = NLerp(t, previous.a, next.a);
+    result.r = LerpInt(t, previous.r, next.r);
+    result.g = LerpInt(t, previous.g, next.g);
+    result.b = LerpInt(t, previous.b, next.b);
+    result.a = LerpInt(t, previous.a, next.a);
     return result;
 }
 
@@ -5074,7 +5074,7 @@ void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
-static inline int NLerp(float t, int previous, int next)
+static inline int LerpInt(float t, int previous, int next)
 {
     if (previous == next)
         return next;
@@ -5086,10 +5086,10 @@ static inline int NLerp(float t, int previous, int next)
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {
     RGBA result;
-    result.r = NLerp(t, previous.r, next.r);
-    result.g = NLerp(t, previous.g, next.g);
-    result.b = NLerp(t, previous.b, next.b);
-    result.a = NLerp(t, previous.a, next.a);
+    result.r = LerpInt(t, previous.r, next.r);
+    result.g = LerpInt(t, previous.g, next.g);
+    result.b = LerpInt(t, previous.b, next.b);
+    result.a = LerpInt(t, previous.a, next.a);
     return result;
 }
 
