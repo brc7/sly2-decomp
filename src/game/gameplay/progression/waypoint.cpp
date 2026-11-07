@@ -159,7 +159,7 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
 // camera->source XY distance) as po->height. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef unsigned short ushort;
 union UQ { qwordV q; float f[4]; };
-/* The BSP of a solid object, as func_00118D08 walks it: edges (xfm.h EDGE), faces (xfm.h SURF read with the plane as one
+/* The BSP of a solid object, as func_00118D08 walks it: edges (xfm.h EDGE), faces (FACE: xfm.h SURF's layout, the plane read as one
    quadword and its flags as a visit mark), nodes, and the tree. */
 struct FACE { qwordV plane; EDGE *firstEdge; int unknown14; int flags; int unknown1C; };
 enum { FACE_FLAG_CANDIDATE = 0x4000 };   /* set on the faces func_00118D08 collects; cleared after the edge test */
