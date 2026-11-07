@@ -1046,10 +1046,9 @@ extern "C" void RemoveStepplayerHierarchy(STEPPLAYER *player)
 namespace M_func_00141968 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } UQ;
-struct VTE { short d; short pad; void (*pfn)(void *, qword); };
 struct E8 { char pad[0x80]; qword q; };
-struct P {
-    char pad0[0xC]; struct VTE *vt; char pad1[0xE8 - 0x10]; struct E8 *pE8;
+struct P : LO {
+    char pad1[0xE8 - 0x50]; struct E8 *pE8;
     char pad2[0x248 - 0xEC]; float dz; char pad3[0x2E8 - 0x24C]; int f2E8; int f2EC; char pad4[0x2F4 - 0x2F0];
     float g2F4; char pad5[0x300 - 0x2F8]; int k300; char pad6[0x360 - 0x304]; UQ v360;
     char pad7[0xDF4 - 0x370]; int xDF4;
@@ -1065,7 +1064,7 @@ void LaunchStepplayer(struct P *player, qword v, float g, float h)
     pos.q = GetLoWorldPos(player);
     pos.f[2] += player->dz;
     r.q = CalculateBallisticLaunchVelocity(pos.q, v, g, player->pE8->q);
-    player->vt[35].pfn((char *)player + player->vt[35].d, r.q);
+    player->SetVelocity(r.q);
     if (player->xDF4 != -1)
         return;
     SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
@@ -2480,18 +2479,16 @@ extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
 
 namespace M_func_00143D20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct SO;
-typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
-struct SO { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
-qword GetLoWorldPos(struct SO *p);
+struct P : LO { char pad[0xE8 - 0x50]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
+qword GetLoWorldPos(struct P *p);
 int SnapToGround(qword *ppos, int a, int b, float f, float g);
 // Predicts the height after dt under gravity; if at or below the ground, tests for ground at that point.
-int WillStepplayerLand(struct SO *so, float dt)
+int WillStepplayerLand(struct P *so, float dt)
 {
     union { qword q; float f[4]; } pos;
     float h = so->z;
-    h += dt * QwordZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
+    h += dt * QwordZ(so->GetVelocity());
     h += 0.5f * dt * dt * so->pg->g;
     if (h > 0.0f)
         return 0;
