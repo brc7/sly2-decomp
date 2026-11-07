@@ -354,10 +354,22 @@ struct CID20 : XFM
 };
 typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 
-/* 123 CID123 (0x60): 256-point route; vtable 0x2CCF10, 48 slots */
+/* A station of a CID123 route (12 bytes): its kind (0 walk to it, 1 leap to it), the oid of its object, the object. */
+struct ROUTESTATION
+{
+    int kind;               /* +0x0 */
+    int oid;                /* +0x4 */
+    LO *object;             /* +0x8 (PostRouteLoad) */
+};
+typedef char assert_ROUTESTATION_size[sizeof(ROUTESTATION) == 0xC ? 1 : -1];
+
+/* 123 CID123 (0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, tu_14A008.cpp); vtable 0x2CCF10, 48 slots */
 struct CID123 : LO
 {
-    char pad50[0x60 - 0x50];
+    int isReversed;         /* +0x50 1: distances along the route count the other way */
+    int stationCount;       /* +0x54 */
+    ROUTESTATION *stations; /* +0x58 (AddRoutePoint; at most 256) */
+    SHAPE *shape;           /* +0x5C the path through the stations (PostRouteLoad) */
     virtual void PostLoad() __asm__("PostRouteLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
@@ -367,9 +379,14 @@ typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 /* 182 BHV182 (0x50): keep pace on route; vtable 0x2CCE90, 14 slots */
 struct BHV182 : BHV
 {
-    char pad30[0x38 - 0x30];
-    LO *target;             /* +0x38 [S] the mode's object (SetBhvguardMode) */
-    char pad3C[0x50 - 0x3C];
+    int state;              /* +0x30 0 at a station, 1 walking, 2 leaping/recovering, 3 attacking, 4 hands-off */
+    float stateTime;        /* +0x34 */
+    CID123 *route;          /* +0x38 [S] the mode's object (SetBhvguardMode): the route */
+    int currentStation;     /* +0x3C the station the guard is at */
+    int targetStation;      /* +0x40 the station to go to */
+    CID120 *attack;         /* +0x44 */
+    float lastFastHeroTime; /* +0x48 last time the hero moved fast */
+    int unknown4C;
     virtual void Start() __asm__("StartBhvRoute");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv182ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvRoute");   /* slot 7 */
@@ -381,7 +398,8 @@ typedef char assert_BHV182_size[sizeof(BHV182) == 0x50 ? 1 : -1];
 /* 63 CARMELITA (0x1020); vtable 0x2CCBB8, 89 slots */
 struct CARMELITA : STEPGUARD
 {
-    char pad1010[0x1020 - 0x1010];
+    LO *marker;             /* +0x1010 the position marker (oid 0x62B) she targets while chasing on her route */
+    int unknown1014[3];
     virtual void Init() __asm__("InitCarmelita");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */

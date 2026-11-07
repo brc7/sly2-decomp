@@ -1500,7 +1500,7 @@ extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
     case GUARD_MODE_BHV182:
         {
             BHV182 *o = (BHV182 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV182);
-            o->target = (LO *)m->arg.object;
+            o->route = (CID123 *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
