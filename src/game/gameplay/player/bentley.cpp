@@ -17,6 +17,8 @@
 #include "sly2/slotheap.h"
 #include "sly2/classes.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
 // docs/engine/player.md section 7 except where marked.
@@ -1966,14 +1968,6 @@ void RecalculateAsegBlend(void *);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void DetachXfActById(void *, struct PO *, int);
 void SetAsegaChannelWeight(void *, float);
-static __inline__ float Clamp(float g, float minValue, float maxValue)
-{
-    if (g < minValue)
-        return minValue;
-    if (maxValue < g)
-        return maxValue;
-    return g;
-}
 /** @sly2-annot addr=0x136F48
  * Purpose: helper state change
  * Info: proposed name SetBentleyCrosshairState (T2); TU bentley
@@ -2109,12 +2103,6 @@ struct VU_FLOATM {
     qword q;
     VU_FLOATM(const float &f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "rV"(*(int *)&f)); }
 };
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Dot(qword a, qword b)
 {
     qword r, one;
@@ -2136,22 +2124,10 @@ static inline qword Scale(qword v, qword f)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f), "j"(v));
     return r;
 }
-static inline qword DivQ(qword v, qword f)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
-    return r;
-}
 static inline qword DivF(qword v, VU_FLOATM f)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f.q));
-    return r;
-}
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
 static inline qword AddScaled(qword a, qword v, VU_FLOAT f)
@@ -2167,31 +2143,13 @@ static inline qword MulM3(const M3 &m, qword v)
         : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v), "j"(m.r[0])); /* extra operand: allocation only */
     return r;
 }
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(q));
-    return f;
-}
-static inline float GetXM(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
-static inline float GetZ(qword q)
-{
-    float f;
-    __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q));
-    return f;
-}
 
 static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
 {
-    if (GetX(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         v.q = vDef;
     else
-        v.q = DivQ(v.q, len);
+        v.q = VuDivByX(v.q, len);
 }
 
 #define V4(a) virtual void a##0(); virtual void a##1(); virtual void a##2(); virtual void a##3();
@@ -2234,16 +2192,16 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     if (py == 0)
         return;
     float maxValue = D_002BC99C * D_002BC99C / D_002BC998 + D_002BC9A0;
-    qword dv = Sub(p->GetVel(), py->GetVel());
+    qword dv = VuSub(p->GetVel(), py->GetVel());
     UQ n;
-    qword d0 = Sub(GetLoWorldPos(s->p), GetLoWorldPos(py));
-    n.q = Sub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
+    qword d0 = VuSub(GetLoWorldPos(s->p), GetLoWorldPos(py));
+    n.q = VuSub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
-    qword c = Cross(n.q, dv);
-    float len = GetXM(qlen);
-    float cz = GetZ(c);
-    float dot = GetX(Dot(dv, n.q));
+    qword c = VuCross(n.q, dv);
+    float len = QwordX(qlen);
+    float cz = QwordZ(c);
+    float dot = VuToFloat(Dot(dv, n.q));
     float w = cz / len;
     float dgNext;
     SmoothValue__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
@@ -2252,7 +2210,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     M3 mc;
     M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.dt);
     mc = m;
-    qword r = DivF(Sub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
+    qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
     AddSoAcceleration(s->p, LimitVectorLength(r, maxValue));
 }
 } // namespace M_func_00137248

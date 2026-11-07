@@ -22,6 +22,8 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -1684,7 +1686,6 @@ static inline qword XYZ(float x, float y, float z, U &home)
     return home.q;
 }
 static inline qword ToVF(qword v) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(v)); return r; }
-static inline qword Zero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword Normalize(qword a)
 {
     qword d, one, r, l;
@@ -1702,7 +1703,6 @@ static inline qword Splat(const float &f, U &home)
     home.q = s;
     return home.q;
 }
-static inline qword Scale(qword a, qword s) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s)); return r; }
 // b by const reference: the ray lives in a stack slot, so the two Adds are not CSEd and each
 // reloads it into the register the result goes to.
 static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1732,8 +1732,8 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
     if (sel->input)
         direction = ToVF(XYZ(sel->input->x, -sel->input->y, 0.0f, home));
     else
-        direction = Zero();
-    qword ray = Scale(Normalize(direction), Splat(D_002C3274, home));
+        direction = VuZero<qword>();
+    qword ray = VuScaleByX(Normalize(direction), Splat(D_002C3274, home));
     int bestId = -1;
     float best = D_002A79C8;
     for (int i = 0; i < sel->count; i++) {
@@ -2194,15 +2194,6 @@ extern int D_003DA570;
 extern int D_002C35B4;
 int GetThiefnetRowEnd(OBJ *);
 void CloseScreen(OBJ *);
-static inline int Max(int iconAnim, int b) { return iconAnim < b ? b : iconAnim; }
-static inline int Clamp(int id, int lo, int hi)
-{
-    if (id < lo)
-        return lo;
-    if (id > hi)
-        return hi;
-    return id;
-}
 /** @sly2-annot addr=0x1DBBE0
  * Purpose: Select row i (clamped), scroll the window, set current power-up/loot id
  * Info: proposed name SelectThiefnetItem (T1); TU screen
@@ -2218,7 +2209,7 @@ void SelectThiefnetItem(OBJ *p, int row)
         p->selectedPowerup = -1;
         p->selectedLoot = -1;
     } else {
-        row = Clamp(row, 0, p->itemCount - 1);
+        row = ClampInt(row, 0, p->itemCount - 1);
         p->selectedRow = row;
         if (D_003DA570) {
             if (row < p->firstVisibleRow) {
@@ -2230,7 +2221,7 @@ void SelectThiefnetItem(OBJ *p, int row)
             if (p->firstVisibleRow == 1)
                 p->firstVisibleRow = 0;
         } else {
-            int id = Clamp(p->firstVisibleRow, Max(row - D_002C35B4 + 1, 0), row);
+            int id = ClampInt(p->firstVisibleRow, StdMaxInt(row - D_002C35B4 + 1, 0), row);
             p->firstVisibleRow = id;
         }
         p->selectedPowerup = p->items[p->selectedRow].id;
@@ -3065,11 +3056,6 @@ void UpdateJobList(OBJ *p)
 namespace M_SelectJobListItem { extern "C" {
 struct S { char p0[0x48]; int entryCount; char p1[0x118-0x4C]; int selectedRow; };
 void CloseScreen(struct S *p);
-static inline int Clamp(int n, int lo, int hi) {
-    if (n < lo) return lo;
-    if (n > hi) return hi;
-    return n;
-}
 /** @sly2-annot addr=0x1DCE90
  * Purpose: Select row i (clamped)
  * Info: proposed name SelectJobListItem (T1); TU screen
@@ -3081,7 +3067,7 @@ void SelectJobListItem(struct S *p, int i) {
     int entryCount = p->entryCount;
     int n;
     if (entryCount == 0) n = -1;
-    else n = Clamp(i, 0, entryCount - 1);
+    else n = ClampInt(i, 0, entryCount - 1);
     p->selectedRow = n;
     CloseScreen(p);
 }

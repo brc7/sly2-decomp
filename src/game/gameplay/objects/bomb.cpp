@@ -331,27 +331,15 @@ static __inline__ qword VLenA(qword c)
     return l;
 }
 // Vector divided by lane x of f.
-static inline qword DivQ(qword v, qword f)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
-    return r;
-}
 // Lane x of a 128-bit register as a float.
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
 
 // Unit vector of v, or def for a near-zero vector.
 static inline qword NormalizeSafe(qword v, qword def)
 {
     qword len = Length(v);
-    if (GetX(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return def;
-    return DivQ(v, len);
+    return VuDivByX(v, len);
 }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -388,7 +376,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     pqBest = 0;
     for (pl = bomb->pxp->pl; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
-            float g = GetX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
+            float g = QwordX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
             if (gBest <= g)
                 continue;

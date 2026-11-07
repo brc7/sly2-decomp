@@ -38,13 +38,6 @@ float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x11E1A0
  * Purpose: Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value
  * Info: proposed name SetVectorCylind (T1); TU vec
@@ -56,20 +49,13 @@ static __inline__ qword Make(float x, float y, float z)
 // Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
 extern "C" qword SetVectorCylind(float rad, float radius, float z)
 {
-    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = Make(gB * radius, gA * radius, z); return v.q;
+    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = QwordFromFloats<qword>(gB * radius, gA * radius, z); return v.q;
 }
 }
 
 //////// 0x11E208 SetVectorSphere
 namespace V_SetVectorSphere {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x11E208
  * Purpose: Vector from spherical (pan, tilt, r)
  * Info: proposed name SetVectorSphere (T1); TU vec
@@ -83,7 +69,7 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
     float sp, cp, st, ct;
     CalculateSinCos__FfPfT1(radPan, &sp, &cp);
     CalculateSinCos__FfPfT1(radTilt, &st, &ct);
-    v.q = Make(ct * cp * r, ct * sp * r, st * r);
+    v.q = QwordFromFloats<qword>(ct * cp * r, ct * sp * r, st * r);
     return v.q;
 }
 }
@@ -124,7 +110,6 @@ namespace V_GetNormalVectors {
 typedef int qword __attribute__((mode(TI)));
 #define CROSS(r, a, b) __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b))
 #define DOT(d, one, v) __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=j"(one), "=j"(d) : "j"(v))
-static __inline__ float FloatQ(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 /** @sly2-annot addr=0x11E2D8
  * Purpose: Two unit vectors perpendicular to a normal (basis rows)
  * Info: proposed name GetNormalVectors (T1); TU vec
@@ -146,7 +131,7 @@ extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
         register qword d __asm__("vf1");
         register qword one __asm__("vf2");
         DOT(d, one, x);
-        if (FloatQ(d) < 1.0e-4f)
+        if (QwordX(d) < 1.0e-4f)
             CROSS(x, vc, va);
     }
     {
@@ -176,22 +161,8 @@ namespace V_GetNormalVector {
 // union int->float so gcc emits the mtc1 itself (its latency gives the target schedule). x stays an asm mtc1 from the qword. One pin (|y| in $f0).
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
 static __inline__ float GetZ(qword q) { qword t; float z; __asm__("pextuw %0,$0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(z) : "r"(t)); return z; }
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
@@ -229,17 +200,17 @@ extern "C" qword GetNormalVector(qword v)
     float az = fabsf(z);
         if (ax <= ay) {
         if (ax <= az)
-            w = u.q = Make(0.0f, z, -y);
+            w = u.q = QwordFromFloats<qword>(0.0f, z, -y);
         else
-            w = u.q = Make(y, -x, 0.0f);
+            w = u.q = QwordFromFloats<qword>(y, -x, 0.0f);
     } else {
         if (ay <= az)
-            w = u.q = Make(z, 0.0f, -x);
+            w = u.q = QwordFromFloats<qword>(z, 0.0f, -x);
         else
-            w = u.q = Make(y, -x, 0.0f);
+            w = u.q = QwordFromFloats<qword>(y, -x, 0.0f);
     }
     }
-    return Normalize(Cross(v, w));
+    return Normalize(VuCross(v, w));
 }
 }
 
@@ -264,12 +235,6 @@ static inline float Dot(qword a, qword b)
     d = VuDot(a, b);
     f = VuToFloat(d);
     return f;
-}
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
 }
 static inline qword LenV(qword v)
 {
@@ -305,7 +270,7 @@ extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
         return 0.0f;
     }
     if (outAxis) {
-        qword axis = Cross(a, b);
+        qword axis = VuCross(a, b);
         qword dl = LenV(axis);
         float l;
         __asm__("mtc1 %1, %0" : "=f"(l) : "r"(dl));
@@ -325,12 +290,6 @@ namespace V_FindClosestPointBetweenLines {
    so gcc emits the qmfc2 moves itself; the commented barrier sits after ba (not ca). One pin (d). */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -366,14 +325,14 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
     ba = VuSub(b, a);
     __asm__ volatile(""); /* emulates toolchain order */
     pc = VuSub(pos, c);
-    n = Cross(ba, pc);
+    n = VuCross(ba, pc);
     lenSq = Dot(n, n);
     if (lenSq < eps) {
         outParams[0] = outParams[1] = 0.0f;
         n = ca;
     } else {
-        float u = DotG(Cross(ca, pc), n) / lenSq;
-        float v = DotG(Cross(ca, ba), n) / lenSq;
+        float u = DotG(VuCross(ca, pc), n) / lenSq;
+        float v = DotG(VuCross(ca, ba), n) / lenSq;
         outParams[0] = u;
         outParams[1] = v;
         if (Dot(ca, n) < 0.0f) {
@@ -426,7 +385,6 @@ static inline qword Len(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
-static __inline__ float F(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 /** @sly2-annot addr=0x11E7C8
  * Purpose: Closest points between two segments (clamped line solution)
  * Info: proposed name FindClosestPointBetweenLineSegments (T1); TU vec
@@ -441,8 +399,8 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     qword w0, w1, w2, w3, n, l;
     qword *pdef;
     FindClosestPointBetweenLines(a, b, c, pos, outParams, outDistance, outNormal);
-    outParams[0] = GClamp(outParams[0], 0.0f, 1.0f);
-    v = GClamp(outParams[1], 0.0f, 1.0f);
+    outParams[0] = Clamp(outParams[0], 0.0f, 1.0f);
+    v = Clamp(outParams[1], 0.0f, 1.0f);
     outParams[1] = v;
     w0 = VF(outParams[0] - 1.0f);
     w1 = VF(-outParams[0]);
@@ -453,7 +411,7 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     *outNormal = n;
     pdef = &D_002A2DA0;
     l = Len(n);
-    if (F(l) < 1e-4f) {
+    if (QwordX(l) < 1e-4f) {
         *outNormal = *pdef;
     } else {
         qword r;
@@ -467,10 +425,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11E958
  * Purpose: pan = atan2(y,x), tilt = atan2(z, |xy|), each RadNormalized, optional outputs
  * Info: proposed name CalculateVectorPanTilt (T1); TU vec
@@ -482,9 +436,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
-        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(QwordY(v), QwordX(v)));
     if (outTilt)
-        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(QwordZ(v), SqrtFloat(QwordX(v) * QwordX(v) + QwordY(v) * QwordY(v))));
 }
 }
 
@@ -622,12 +576,6 @@ extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *o
 namespace V_IntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -665,7 +613,7 @@ extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, q
     float det, inv, u, v, t;
     e1.q = VuSub(v1, v0);
     e2.q = VuSub(v2, v0);
-    pvec.q = Cross(dir, e2.q);
+    pvec.q = VuCross(dir, e2.q);
     det = Dot(e1.q, pvec.q);
     if (det > -1e-6f && det < 1e-6f)
         return 0;
@@ -674,7 +622,7 @@ extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, q
     u = DotS(tvec.q, pvec.q) * inv;
     if (u < 0.0f || u > 1.0f)
         return 0;
-    qvec.q = Cross(tvec.q, e1.q);
+    qvec.q = VuCross(tvec.q, e1.q);
     v = Dot(dir, qvec.q) * inv;
     if (v < 0.0f || u + v > 1.0f)
         return 0;
@@ -768,7 +716,8 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 /* kept private: the shared GClamp (sly2/util.h) changes FindClosestPointOnLineSegment (60/62 off) */
-static inline float ClampFloat(float g, float lo, float hi)
+// Same idiom as sly2/util.h Clamp; kept local because the shared helper changes FindClosestPointOnLineSegment (60/62 instructions off).
+static inline float Clamp(float g, float lo, float hi)
 {
     if (g < lo) g = lo;
     else if (g > hi) g = hi;
@@ -791,7 +740,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
-    float t = ClampFloat(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
+    float t = Clamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
     if (outT)
         *outT = t;
     if (outPos || outDistance) {
@@ -820,9 +769,6 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
 //////// 0x11EF08 GetVectorCylind
 namespace V_GetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x11EF00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
@@ -836,7 +782,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
-        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
+        *outAngle = NormalizeAngle__Ff(atan2f(QwordY(v), QwordX(v)));
     if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));
@@ -848,7 +794,7 @@ extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, floa
         }
     }
     if (outZ)
-        *outZ = GetZ(v);
+        *outZ = QwordZ(v);
 }
 }
 
@@ -922,12 +868,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float VfToFloat(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword LengthAsQword(qword v)
 {
     qword qw = VuDot(v, v);
@@ -968,7 +908,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);
     qword qwDpos = dpos.qw;
-    float sDist = VfToFloat(LengthAsQword(qwDpos));
+    float sDist = VuToFloat(LengthAsQword(qwDpos));
     if (sDist > 0.0001f)
     {
         float svNext;

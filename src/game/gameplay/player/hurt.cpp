@@ -20,6 +20,8 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -392,11 +394,8 @@ extern "C" float D_002BFA90[3];   /* the zap spring */
 extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
-static inline qword Broadcast(float g) { qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g));return q; }
-static inline qword BroadcastTo(float g,U *u) { qword q=Broadcast(g); u->q=q;return q; }
-static inline qword Scale(qword a,qword b) { qword q; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(q) : "j"(a),"j"(b));return q; }
-static inline float GetZ(qword v) { float g; __asm__("pextuw %0,$0,%1" : "=r"(g) : "r"(v));return g; }
-inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(Scale(v,k)); }
+static inline qword BroadcastTo(float g,U *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
+inline void O::Negate(U &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 /** @sly2-annot addr=0x1A1148
  * Purpose: Hurt-state acceleration: in knockback states add velocity / spring toward target velocity
  *   (AccelSoTowardPosSpring)
@@ -421,7 +420,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   v.i[2]=0;v.i[1]=0;v.i[0]=0;
   zero=v.f[2];
   if(p->o->f198!=zero)
-   v.f[2]=GetZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
+   v.f[2]=QwordZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
@@ -473,14 +472,6 @@ float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void SetStepTargetHeading(struct LO *po, float g);
 int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
-static inline float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo) r = lo;
-    else if (hi < g) r = hi;
-    else r = g;
-    return r;
-}
 /** @sly2-annot addr=0x1A1358
  * Purpose: jts 4 per-frame update: smooth heading (SmoothAngle), timers, run pending callback, IsJtStuck
  *   escape
@@ -509,8 +500,8 @@ void UpdateJtActiveZap(struct S *s)
             u = 0.0f;
         }
         w = cosf((D_002DDED0.t - s->x94) * 10.0f);
-        a = ClampF(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
-        s->po->xD0 = a * ClampF(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
+        a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
+        s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
 done:
     switch (s->x4) {
@@ -621,7 +612,6 @@ qword GetLoWorldPos(struct O*);
 struct M3*GetLoWorldMatrix(struct O*);
 qword ConvertVecBetweenLos(struct O*,struct O*,qword);
 void SetJtHurtState(struct P*,int);
-static inline float Max(float a,float b){return a>b?a:b;}
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}
@@ -1289,7 +1279,6 @@ extern "C" P*DeliverZapToSo(HIT*);
 extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
-static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 /** @sly2-annot addr=0x1A2460
  * Purpose: From UpdateStepplayer: if the player's (height-adjusted) point is inside the linked volume (vt73)
@@ -1318,7 +1307,7 @@ extern "C" void UpdateStepplayerWater(P *player)
         return;
     if (player->link->kind) {
         int notify = 0;
-        if (Z(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
+        if (QwordZ(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
             notify = 1;
         if (notify) {
             HIT hit;
@@ -1454,10 +1443,7 @@ float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float
 void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
-static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
-static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
-static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
 /** @sly2-annot addr=0x1A28B0
  * Purpose: STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current
  *   (CalculateWaterCurrent) and buoyancy (SmoothValueWithAccel, AddSoVelocity); else SO slot72 0x2297F8
@@ -1486,11 +1472,11 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   CalculateWaterCurrent(o,pos.q,&dir.q,&v50.q);
   v=GetVel(player);
   vel.q=v;
-  v=Add(v,local.q);
-  v=Sub(v,dir.q);
+  v=VuAdd(v,local.q);
+  v=VuSub(v,dir.q);
   k=Broadcast(*(int *)&player->alpha10A4);
   bcast.q=k;
-  v=Scale(v,k);
+  v=VuScaleByX(v,k);
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&D_002DDED0;

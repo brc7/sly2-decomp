@@ -281,7 +281,6 @@ extern "C" DTE *FindDetectorTarget(DETECTORV *detector, void *object)
 }
 
 // VU0 helper: vector sum.
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 // 0x1541D8: Computes the new detection state (0 unseen, 1 seen, 2 lost) of one target from its current one: unseen
 // if the target is gone, dead, disguised against this hero, globally invisible, disabled or flagged hidden; seen if
 // the detector is forced; else blocked by any world occluder BSP on the eye line -> unseen; then by state: 0 ->
@@ -305,7 +304,7 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && target->isHidden) { state = TARGET_UNSEEN; goto done; }
     if (detector->isForced) { state = TARGET_SEEN; goto done; }
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEP))
-        targetPos = Add(GetLoWorldPos(target), target->eyeOffset);
+        targetPos = VuAdd(GetLoWorldPos(target), target->eyeOffset);
     else
         targetPos = GetLoWorldPos(target);
     for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {

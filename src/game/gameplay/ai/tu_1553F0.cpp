@@ -255,7 +255,6 @@ extern "C" void StartBhvDimitriEscape(BHVESC *behavior)
 }
 
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // 0x155660: Dimitri escape behaviour update: while watching, switches state when the player comes within 850
 // horizontally and 400 vertically.
 extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
@@ -275,7 +274,7 @@ extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
             __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
             dist = VuToFloat(l);
             f = 0;
-            if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->unknown30) f = 1;
+            if (dist < 850.0f && __builtin_fabsf(QwordZ(d)) < 400.0f && py->unknown30) f = 1;
             if (f) SetBhvDimitriEscapeState(behavior, 1);
             break;
         }
@@ -371,7 +370,7 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
             {
                 float ga = VuXToFloat(la);
                 float gb = VuXToFloat(lb);
-                g = GMin(ga, gb);
+                g = Min(ga, gb);
             }
             if (gBest < g) {
                 gBest = g;
@@ -419,19 +418,7 @@ extern "C" void *ChooseBhvDimitriAttackRouteEnd(BHVATK *behavior)
 }
 
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qwordV q)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q));
-    return x;
-}
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qwordV q)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(q));
-    return y;
-}
 namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.40282347e+38f; }
 // 0x155AE0: Dimitri attack state change: 0 turn away from the chosen route end (alert animation), 1 face the
 // target, 2 walk a two-point path to the route end (BHV167), 3 attack (BHVATTACK with the chosen attack entry);
@@ -463,7 +450,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         child->sgf = 0xB;
         d = VuSub(GetLoWorldPos(behavior->goal), GetLoWorldPos(behavior->guard));
         {
-            float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
+            float g = atan2f(QwordY(d), QwordX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(behavior->guard->mover, g);
         }
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);

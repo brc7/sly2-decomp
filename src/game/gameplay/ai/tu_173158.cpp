@@ -323,18 +323,15 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
 }
 
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x173588: True if a projected point is in front of the camera (z > 1e-4) and within +-`extent` in x and y.
 extern "C" int IsInScreenRect(qwordV v, float extent) {
     int isInside = 0;
-    if (GetZ(v) > 0.0001f) {
-        float x = GetX(v);
+    if (QwordZ(v) > 0.0001f) {
+        float x = QwordX(v);
         if (-extent < x && x < extent) {
-            float y = GetY(v);
+            float y = QwordY(v);
             if (-extent < y && y < extent) isInside = 1;
         }
     }
@@ -685,12 +682,6 @@ static inline qwordV VuSum(qwordV qw0, qwordV qw1)
     return qw;
 }
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qwordV qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 // VU0 helper: vector scaled by the x of a VU float.
 static inline qwordV VuScaleByX(qwordV qwVec, const VU_FLOAT &g)
 {
@@ -713,7 +704,7 @@ static inline float VectorLengthXY(qwordV qw)
     qwordV qwT;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qwT) : "j"(qw));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwT) : "j"(qwT));
-    return VuGetX(qwT);
+    return QwordX(qwT);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -810,7 +801,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 if (distance < D_002BE5E4 || bestDistance < distance)
                     continue;
                 // Face along the curve, toward the camera's x axis.
-                int isFlipped = VuGetX(VuDot(D_002DDF40.mat.r[0], curveDirection.q)) < 0.0f;
+                int isFlipped = QwordX(VuDot(D_002DDF40.mat.r[0], curveDirection.q)) < 0.0f;
                 if (!isFlipped)
                 {
                     VU_FLOAT minusOne = VuFloatFromMemWord(0xBF800000);   // -1.0f

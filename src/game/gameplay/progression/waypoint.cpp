@@ -96,7 +96,7 @@ extern "C" void InitWaypt(WAYPTV *waypoint)
     waypoint->activeRadius = 500.0f;
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
-    if (FIsPtr(flags)) *(int *)flags |= 0xA;
+    if (IsPointer(flags)) *(int *)flags |= 0xA;
     else waypoint->taggedFlags = flags | 0xA;
     waypoint->soFlags &= ~(1L << 35);
 }
@@ -231,18 +231,14 @@ static inline qwordV Normalize(qwordV v)
     return r;
 }
 // Lane z of a 128-bit EE register as a float.
-static inline float ZOfP(qwordV v)
-{ float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(v)); return z; }
 // Lane x as a float.
-static inline float FQ(qwordV q)
-{ float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // Length of the xy part of a vector.
 static inline float LenXY(qwordV v)
 {
     qwordV d, l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(d) : "j"(v));
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "j"(d));
-    return FQ(l);
+    return QwordX(l);
 }
 // Signed distance of pos from a plane (xyz normal, w offset); also returns the VU temporaries (variant A, register
 // order for the match).
@@ -267,7 +263,7 @@ static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
     InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
-    float f = FQ(g);
+    float f = QwordX(g);
     __asm__("" : "+j"(g), "+j"(o));
     one.q = o;
     r.q = g;
@@ -282,7 +278,7 @@ static inline float PlaneDistS(UQ &r, UQ &one, qwordV plane, qwordV pos)
     InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
-    float f = FQ(g);
+    float f = QwordX(g);
     one.q = o;
     r.q = g;
     return f;
@@ -431,7 +427,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
                     isInside = 1;
                 if (isInside) {
                     qwordV toCrossing = VuSub(crossPos, posCam);
-                    float slope = ZOfP(toCrossing) / LenXY(toCrossing);
+                    float slope = QwordZ(toCrossing) / LenXY(toCrossing);
                     if (maxSlope < slope)
                         maxSlope = slope;
                 }
@@ -476,7 +472,8 @@ static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 // Clamps g to [gMin, gMax].
-static inline float GLimitG(float g, float gMin, float gMax)
+// Same idiom as sly2/util.h Clamp; kept local because the shared helper changes RenderWaypt (312/376 instructions off).
+static inline float ClampLocal(float g, float gMin, float gMax)
 {
     float gRet;
     if (g < gMin)
@@ -536,10 +533,10 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
-    float fadeStart = GMax(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float fadeStart = Max(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     fadeStart = D_003DD490.unknown4750 + D_002C449C;
-    float labelAlpha = GLimitG(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     switch (waypoint->mode)
     {
     case 0:
@@ -566,7 +563,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
-    float scale = GLimitG(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
+    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
     qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;

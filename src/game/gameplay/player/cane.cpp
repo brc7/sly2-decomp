@@ -641,7 +641,6 @@ extern "C" void UpdateJtCane__FP2JT(JT *jt)
         UpdateJtHands(jt->track);
 }
 
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x18ED98
  * Purpose: Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target
  *   behind) -> 1
@@ -668,13 +667,12 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     u.q = s;
     __asm__("vmulax.xyzw ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(d) : "j"(a), "j"(s), "j"(b));
     f = 1;
-    if (GetY(d) > 0.0f) {
+    if (QwordY(d) > 0.0f) {
     } else
         f = 0;
     return f;
 }
 
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 /** @sly2-annot addr=0x18EE38
  * Purpose: Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1
  *   points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground;
@@ -699,7 +697,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         g = VuToFloat(l);
         f = 0;
         if (g < D_002BF4AC)
-            f = IsWithinLimits__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
+            f = IsWithinLimits__FP2LMf(D_002BF4B0, QwordZ(d)) != 0;
         if (f) {
             BHV *pt = FindBhvInBhvstk(jt->interactTarget + 0x26C, 0xB1);
             if (pt && pt->subject == jt) {
@@ -929,7 +927,7 @@ extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
     float k = 1.6f;
     if (jt->mode == 0) k = 3.15f;
     ChooseJtAttackTarget((ALO *)jt, jt->heading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
-    if (alo) t = GClamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
+    if (alo) t = Clamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
     else t = 1.0f;
     blend->outgoing = t;
     blend->incoming = 1.0f - t;

@@ -564,7 +564,6 @@ void DrawRichText2(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
 }
 // The larger of two floats.
-static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 // Rhythm manager render: while demonstrating or playing, draws the note track: each note not yet due (or every note
 // while demonstrating, or a hit/expired one) as the four button glyphs in a diamond with the note's button large; a
 // pending note as the '?' glyph; then the hint marker ('m' glyph), which flies along a Bezier to each note as it
@@ -646,7 +645,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
                 break;
             }
             if (manager->hintState == 1) {
-                EvaluateBezierPos(GMaxR(pe->time - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, manager->hintPos, manager->hintVelocity, pe->screenPos, D_002BDBD0.q, &manager->hintPos, &manager->hintVelocity, 0);
+                EvaluateBezierPos(StdMax(pe->time - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, manager->hintPos, manager->hintVelocity, pe->screenPos, D_002BDBD0.q, &manager->hintPos, &manager->hintVelocity, 0);
             }
         }
         tb.x = manager->hintPosV.x - dxB * 0.5f;
@@ -802,7 +801,7 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
     float *slot;
     if (score < 0.0f) {
         float difficulty = GetDifficulty(D_002DE578);
-        score *= GClamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
+        score *= Clamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
     }
     if (manager->numScores == 16) {
         memmove(&manager->scores[0], &manager->scores[1], 15 * sizeof(float));
@@ -816,7 +815,6 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
 }
 
 // The larger of two ints.
-static inline int Max(int a, int b) { return a < b ? b : a; }
 // Average of the last averageWindow scores (missing ones count as 0), clamped to the score range.
 float GetAverageRhythmScore(RHYTHMMGR *manager)
 {
@@ -825,7 +823,7 @@ float GetAverageRhythmScore(RHYTHMMGR *manager)
     if (manager->averageWindow <= 0)
         return 0.0f;
     sum = 0.0f;
-    oldest = Max(manager->numScores - manager->averageWindow, 0);
+    oldest = StdMaxInt(manager->numScores - manager->averageWindow, 0);
     for (i = manager->numScores - 1; i >= oldest; i--)
         sum += manager->scores[i];
     return ClampToLimits__FP2LMf(&manager->scoreRange, sum / manager->averageWindow);

@@ -24,6 +24,8 @@
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -467,16 +469,7 @@ int TestStepplayerHidden(struct P *p);
 qword GetLoWorldPos(struct P *p);
 void CreateNoise(void *a, qword pos, struct P *p, int n);
 
-static inline float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo) r = lo;
-    else if (hi < g) r = hi;
-    else r = g;
-    return r;
-}
 
-static inline float MinF(float a, float b) { return b < a ? b : a; }
 static inline float MaxF(float a, float b) { return b > a ? b : a; }
 
 /** @sly2-annot addr=0x140750
@@ -494,7 +487,7 @@ void UpdateStepplayerHideBlend(struct P *player)
     if (!player->hideVolumes) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.dt; player->hideBlend = MinF(player->hideBlend + D_002BCC6C * dt, 1.0f); }
+        { float dt = D_002DDED0.dt; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
         { float dt = D_002DDED0.dt; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
@@ -513,11 +506,11 @@ void UpdateStepplayerHideBlend(struct P *player)
         player->x10D0 = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
     if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
@@ -902,12 +895,6 @@ static inline void *NextDliItem(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-static inline qword SubVec(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 /** @sly2-annot addr=0x140F90
  * Purpose: STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds
@@ -976,7 +963,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         case 0x162: {
             qword v = F(qword, player, 0x1060);
             F(int, player, 0x1044) = 0;
-            F(qword, player, 0x1070) = SubVec(v, GetLoWorldPos(player));
+            F(qword, player, 0x1070) = VuSub(v, GetLoWorldPos(player));
             F(int, player, 0x1078) = 0;
             break;
         }
@@ -1155,17 +1142,6 @@ void SmoothJtCameraCurveTarget(void *, struct XP *);
 void AddJtHurtCpdefiFlags(void *, struct XP *);
 
 static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
-static __inline__ float ClampF(float g, float lo, float hi)
-{
-    float r;
-    if (g < lo)
-        r = lo;
-    else if (hi < g)
-        r = hi;
-    else
-        r = g;
-    return r;
-}
 
 /** @sly2-annot addr=0x141640
  * Purpose: STEPPLAYER vt50 GetCpdefi: base 0x1F58F0, then camera focus height (posBase.z) clamped/smoothed by
@@ -1200,14 +1176,14 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             lo = D_002BCCA8;
             hi = D_002BCCAC;
         }
-        g = ClampF(v.f[2], z + lo, z + hi);
+        g = Clamp(v.f[2], z + lo, z + hi);
         jt->x104C = g;
         if (D_002DDF40.x300 != 0 || D_002DDF40.p260 != jt) {
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
             xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
-            xp->pos.f[2] = ClampF(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
+            xp->pos.f[2] = Clamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
         xp->pos.f[1] = v.f[1];
@@ -1237,7 +1213,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l1) : "j"(l1));
         { int t; __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(l1)); __asm__("mtc1 %1, %0" : "=f"(s) : "r"(t)); }
         k = EvaluatePoly(s, D_002BCCF0.a, D_002BCCF0.b, D_002BCCF0.c);
-        xp->g34 *= ClampF(k, D_002BBB60.lo, D_002BBB60.hi);
+        xp->g34 *= Clamp(k, D_002BBB60.lo, D_002BBB60.hi);
     }
 }
 } } // namespace M_GetStepplayerCpdefi
@@ -2240,32 +2216,6 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
-static inline float LaneX(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
-static inline float LaneZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 extern "C" { extern CLQ D_002BD280; }
 extern "C" { extern CLQ D_002BD290; }
 extern "C" { extern CLQ D_002BD2A0; }
@@ -2274,7 +2224,7 @@ extern "C" { extern LM D_002BBB60; }
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
-    r.qw = SubVec(a, b);
+    r.qw = VuSub(a, b);
     return r;
 }
 static inline qword LengthXYInX2(qword v)
@@ -2318,8 +2268,8 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     qword posHero = PosLoWorld(player);
     VU_VECTOR4 vecS = SubPos(posHero, PosLoWorld(lo));
     qword vec = vecS.qw;
-    float dz = LaneZ(vec);
-    float sXY = LaneX(LengthXYInX2(vec));
+    float dz = QwordZ(vec);
+    float sXY = VuToFloat(LengthXYInX2(vec));
     if ((LO *)player == *pploCur)
     {
         sBias = EvaluateClq(&D_002BD280, sXY);
@@ -2329,7 +2279,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     if (pctl != 0 && sXY > 0.0001f)
     {
         qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
-        float rAway = LaneXKeepVf(DotVec(qwStick, vec)) / sXY;
+        float rAway = LaneXKeepVf(VuDot(qwStick, vec)) / sXY;
         sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
     sXY += sBias;
@@ -2549,9 +2499,6 @@ extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float AbsF(float g) { return g < 0.0f ? -g : g; }
 /** @sly2-annot addr=0x1430C8
  * Purpose: From lean target direction (atan2 in local space, quadrants) and nLeanKind return a bitmask (8,
  *   0x10<<n, 0x100<<n, 0x1000)
@@ -2567,7 +2514,7 @@ int GetStepplayerLeanFlags(struct P *player)
     int r;
     if (player->leanTarget) {
         qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->leanTarget));
-        float g = atan2f(GetY(v), GetX(v));
+        float g = atan2f(QwordY(v), QwordX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
         else if (D_002BD2C4 < a) n = 3;
@@ -3071,7 +3018,6 @@ extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
 
 namespace M_func_00143D20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct SO;
 typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
@@ -3089,7 +3035,7 @@ int WillStepplayerLand(struct SO *so, float dt)
 {
     union { qword q; float f[4]; } pos;
     float h = so->z;
-    h += dt * GetZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
+    h += dt * QwordZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
     h += 0.5f * dt * dt * so->pg->g;
     if (h > 0.0f)
         return 0;

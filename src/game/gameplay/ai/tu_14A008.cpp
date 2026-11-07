@@ -364,7 +364,6 @@ static inline qword SubX(qword a, qword b)
     return r;
 }
 // VU0 helper: vector sum.
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // VU0 helper: length of a vector.
 static inline float Len(qword a)
 {
@@ -392,11 +391,8 @@ static inline float Len2(qword a)
     return g;
 }
 // VU0 helper: x component of a vector.
-static inline float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
-static inline float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 // VU0 helper: z component of a vector.
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // VU0 helper: a plus the normalized direction of v scaled by s.
 static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 {
@@ -432,7 +428,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
             pos = GetLoWorldPos(hero);
             int c = ppath->c;
             for (int i = 0; i < c; i++) {
-                if (GetZ(pos) < GetZ(ppath->av[i]))
+                if (QwordZ(pos) < QwordZ(ppath->av[i]))
                     pos = ppath->av[i];
             }
             goto moveMarker;
@@ -464,7 +460,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                 float pan = RandomFloatInRange(-3.1415927f, 3.1415927f);
                 float tilt = RandomFloatInRange(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
-                q = Add(posT, SetVectorSphere(pan, tilt, RandomFloatInRange(0.0f, r)));
+                q = VuAdd(posT, SetVectorSphere(pan, tilt, RandomFloatInRange(0.0f, r)));
                 qword entry = SubX(q, posMe);
                 posT = q;
                 if (IsLess(Len2(entry), Len2(d))) {
@@ -481,9 +477,9 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     }
     if (IsLess(Len2(v), D_002BD460)) {
         qword entry = VuSub(posMe, posPlayer);
-        float rad = atan2f(GetY(entry), GetX(entry));
+        float rad = atan2f(QwordY(entry), QwordX(entry));
         qword pp = GetLoWorldPos(hero);
-        pos = Add(pp, SetVectorCylind(RandomFloatInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
+        pos = VuAdd(pp, SetVectorCylind(RandomFloatInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
     }

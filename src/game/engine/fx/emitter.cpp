@@ -20,6 +20,8 @@
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -223,14 +225,6 @@ void *AllocClearedFromWorldHeap(AL *pal);
 extern "C" { extern qword D_002A2DC0; }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
 static inline void *AllocZeroedFromHeap(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -278,10 +272,10 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
         pemitmesh->sArea += ptri->sArea;
         qword *apos = pemitmesh->apos;
         qword p0 = apos[ptri->aipos[0]];
-        qword normal = Cross(Sub(apos[ptri->aipos[1]], p0), Sub(apos[ptri->aipos[2]], p0));
+        qword normal = VuCross(VuSub(apos[ptri->aipos[1]], p0), VuSub(apos[ptri->aipos[2]], p0));
         for (i = 0; i < 3; i++) {
             qword *pn = &pemitmesh->anormal[ptri->aipos[i]];
-            *pn = Add(*pn, normal);
+            *pn = VuAdd(*pn, normal);
         }
     }
     ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->center);
@@ -361,7 +355,6 @@ static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
     return AllocCopyFromWorldHeap(&req, pv);
 }
 
-static __inline__ int FPtr(int n) { return !(n & 1); }
 
 // Post-load setup of an EMITTER: runs the shared emitter template, schedules a callback when it emits from an object,
 // infers the emission mode when the level left it unset (intermittent when it can pause, constant count when it has
@@ -455,7 +448,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
         }
         pemitter->isDirty = 0;
         AppendDlEntry__FP2DLPv((char *)group + 0x11C /* group list */, pemitter);
-        if (FPtr(pemitter->flags40))
+        if (IsPointer(pemitter->flags40))
             *(int *)pemitter->flags40 &= ~2;
         else
             pemitter->flags40 &= ~2;
@@ -517,8 +510,6 @@ extern "C" {
 qword GetLoWorldPos(ALO *referenceObject);
 float ModPositive__Fff(float g, float gMod);
 }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
 {
     if (*pg < gMin || gMax < *pg) {
@@ -537,8 +528,8 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
         volatile int unused;
         vecBox.v.z = boxRadius; vecBox.v.y = boxRadius; vecBox.v.x = boxRadius;
         if (pemitter->pemitb->pemito->referenceObject) {
-            posMin.q = Sub(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
-            posMax.q = Add(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
+            posMin.q = VuSub(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
+            posMax.q = VuAdd(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
         } else {
             qword m, k;
             __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
@@ -948,26 +939,6 @@ static inline qword Length(qword a)
         : "=j"(r), "=j"(one) : "j"(a));
     return r;
 }
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
-static inline float GClamp(float g, float lo, float hi)
-{
-    if (g < lo)
-        return lo;
-    if (hi < g)
-        return hi;
-    return g;
-}
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
 
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale) __asm__("WakeSoWater__FP2SOP5WATERfP6VECTORT3ff");
 // Makes an object's wake in water: by distance from its last wake point and a random chance per dt, emits splash
@@ -976,7 +947,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
 {
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
     VTE *pvte = &so->pvt->a[33];
-    float distance = GetX(Length(Sub(pos, pvte->pfn((char *)so + pvte->d))));
+    float distance = QwordX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;
@@ -985,7 +956,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         soundObject = (SND *)so;
     if (distance > 10.0f || shouldWake) {
         interval = (distance - 10.0f) * 0.0012658228f;  /* 1/790: full strength at 800 units */
-        strength = GClamp(interval, volume, 1.0f);
+        strength = Clamp(interval, volume, 1.0f);
         if (soundObject && water->hasWakeSound) {
             void **soundSlot = &soundObject->wakeSound;
             volume = strength * 0.9f + 0.1f;
@@ -1086,14 +1057,6 @@ float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 static inline qword Combo3(VU_FLOAT f0, VU_VECTOR v0, VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword d;
@@ -1189,7 +1152,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
             goto normalize;
         case EMIT_NORMAL_CURVE_NORMAL: {
             EvaluateShapeAtDistance(curve, g, ppos, &av[0].q);
-            *pdir = Cross(av[0].q, emitb->ep.vector);
+            *pdir = VuCross(av[0].q, emitb->ep.vector);
             goto normalize;
         }
         }
@@ -1230,7 +1193,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         *pdir = origin->vector;
         break;
     case EMIT_NORMAL_RADIAL:
-        *pdir = Sub(*ppos, origin->vector);
+        *pdir = VuSub(*ppos, origin->vector);
         break;
     case EMIT_NORMAL_SCREEN: {
         void *reference = emitb->pemito->referenceObject;
@@ -1254,7 +1217,7 @@ normalize:
         VU_VECTOR dir = Normalize(*pdir);
         *pdir = dir.q;
         qword pos = *ppos;
-        *ppos = Add(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
+        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
     }
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
@@ -1272,7 +1235,6 @@ void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
 qword ConvertMatPos(struct M4 *pm, int z, qword v);
 qword ConvertMatVec(struct M4 *pm, int z, qword v);
 qword GetXfVelocity(struct R *r, int z, qword v);
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
 // Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space.
 // (inferred)
@@ -1290,7 +1252,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
     if (py->velocityKind != EMIT_VELOCITY_WORLD) {
         *pw = ConvertMatVec(&m, 0, *pw);
         if (py->velocityKind != EMIT_VELOCITY_NO_RELATIVE)
-            *pw = Add(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3]));
+            *pw = VuAdd(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3]));
     }
 }
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
@@ -1663,14 +1625,6 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
     __asm__("vmulax.xyz ACC, %2, %1x\n\tvmadday.xyz ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return r;
 }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
@@ -1691,12 +1645,12 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
             {
                 register qword *ppos __asm__("$2"); // register pin (target loads gen->apos into v0 and forms &apos[i] there)
                 ppos = gen->apos;
-                ppos[i] = Add(MulRow(pxf->mat, ppos[i]), pxf->pos);
+                ppos[i] = VuAdd(MulRow(pxf->mat, ppos[i]), pxf->pos);
             }
-            qword d = Sub(gen->apos[i], pxf->pos);
-            qword x = Cross(pxf->w, d);
-            qword t = Add(MulRow(pxf->mat, gen->av[i]), pxf->v);
-            gen->av[i] = Add(t, x);
+            qword d = VuSub(gen->apos[i], pxf->pos);
+            qword x = VuCross(pxf->w, d);
+            qword t = VuAdd(MulRow(pxf->mat, gen->av[i]), pxf->v);
+            gen->av[i] = VuAdd(t, x);
         }
         if (gen->convertToWorld)
             ConvertEmitoPosVec__FP5EMITOP6VECTORT1(emitb, &gen->apos[i], &gen->av[i]);
@@ -1742,7 +1696,6 @@ static inline qword MulRot(const M4 &m, qword v)
             : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return r;
 }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(v), "j"(s.q)); return d; }
 
 // For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
@@ -1797,7 +1750,7 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
                     v[0] = gen->apos[i];
                 else
                     v[0] = mA.r[3];
-                gen->av[i] = Add(gen->av[i], MulAffine(mB, v[0]));
+                gen->av[i] = VuAdd(gen->av[i], MulAffine(mB, v[0]));
             }
         }
         qword vv = gen->av[i];
@@ -1928,11 +1881,10 @@ struct X { float x, y, z, w; qword axis; float curlRate; float damping; };   /* 
 extern "C" { void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
 {
     for (int i = 0; i < 4; i++)
-        r.r[i] = Add(a.r[i], b.r[i]);
+        r.r[i] = VuAdd(a.r[i], b.r[i]);
 }
 extern "C" MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p);
 // Builds the matrix that advances a particle's velocity by one frame (dt): the curl rotation R (curlRate * dt about
@@ -2088,7 +2040,6 @@ struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
 extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 struct VU_VECTOR4 { qword qw; };
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
@@ -2139,7 +2090,7 @@ void ExplodeExplgExplso(S *group, P *explso)
         if (explso->fl & EXPLSO_HAS_XF) {
             XF *px = explso->pxf;
             xf.mat = px->mat * m3;
-            xf.pos = Add(px->pos, QwRotateVec(&px->mat, mRel.r[3]));
+            xf.pos = VuAdd(px->pos, QwRotateVec(&px->mat, mRel.r[3]));
             xf.v = px->v;
             xf.w = px->w;
         } else {

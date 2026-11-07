@@ -102,7 +102,7 @@ int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
         remaining = freeBytes;
     while (remaining != 0) {
         int offset = writeOffset;
-        int chunk = input->ReadBytes(NMin(remaining, size - offset), buffer + offset);
+        int chunk = input->ReadBytes(MinInt(remaining, size - offset), buffer + offset);
         if (chunk == 0)
             break;
         filled += chunk;
@@ -134,7 +134,7 @@ int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
         remaining = filledBytes;
     while (remaining != 0) {
         int offset = readOffset;
-        int chunk = output->WriteBytes(NMin(remaining, size - offset), buffer + offset);
+        int chunk = output->WriteBytes(MinInt(remaining, size - offset), buffer + offset);
         if (chunk == 0)
             break;
         readOffset += chunk;
@@ -196,7 +196,7 @@ void CByteQueue::FreeDrain(int byteCount)
 // Memory input: copies up to byteCount bytes from the block into dest and advances. Returns the bytes copied.
 int CQueueInputMemory::ReadBytes(int byteCount, void *dest)
 {
-    int chunk = NMin(byteCount, bytesLeft);
+    int chunk = MinInt(byteCount, bytesLeft);
     memcpy(dest, data + readOffset, chunk);
     readOffset += chunk;
     bytesLeft -= chunk;

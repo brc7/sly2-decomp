@@ -27,7 +27,6 @@ extern qwordV D_002A2DC0, D_002A2DD0;
 
 /* ---- 0x1D6848: ballistic launch velocity (pitch blend g, from start to end under acceleration acc) ---- */
 union U { qwordV q; float a[4]; };
-static inline float Sqrt(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /* As C++ the per-file `void Bc(union U *out, float f)` (asm output straight into out->q) costs an extra union
    temporary (frame 0xB0 instead of 0xA0); assigning the qword VuFromFloat returns matches. */
 static inline float Dot(const qwordV *a, qwordV b) {
@@ -81,7 +80,7 @@ extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV 
     elevation = directAngle + (1.57079637051f-directAngle)*elevation;
     speed=speed/((height-horizontalDistance*tanf(elevation))*2.0f);
     if (speed<=0.0f) return D_002A2DD0;
-    speed=Sqrt(speed);
+    speed=SqrtFloat(speed);
     numerator=horizontalDistance*speed;
     speed=numerator/cosf(elevation);
     velocity.q=delta.q;
@@ -96,7 +95,6 @@ extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV 
 }
 
 /* ---- 0x1D69F0: velocity to go from a to b in dt under acceleration acc ---- */
-static inline float Z(qwordV q) { float f; __asm__("pextuw %0, $zero, %1" : "=r"(f) : "r"(q)); return f; }
 static inline qwordV Bc(float g) {
     union { qwordV q; float f; } u;
     qwordV k;
@@ -115,11 +113,11 @@ static inline qwordV Bc(float g) {
 extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV acceleration, float dt)
 {
     float halfDt = dt * 0.5f;
-    float verticalAcceleration = Z(acceleration);
+    float verticalAcceleration = QwordZ(acceleration);
     qwordV delta, up, upAmount, vertical, horizontal, inverseDt, verticalSpeed, result;
     float height, inverseDtValue;
     delta = VuSub(end, start);
-    height = Z(delta) - (dt * halfDt) * verticalAcceleration;
+    height = QwordZ(delta) - (dt * halfDt) * verticalAcceleration;
     inverseDtValue = 1.0f / dt;
     up = D_002A2DC0;
     upAmount = VuDot(delta, up);
@@ -265,7 +263,6 @@ struct VECTORV {
 };
 static inline qwordV QwToVf(qwordV v) { qwordV r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(v)); return r; }
 static inline qwordV QwFromVf(qwordV v) { qwordV r; __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(v)); return r; }
-static inline float GFromVf(qwordV v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 static inline float GFromVfBits(qwordV v)
 {
     int n;
@@ -293,7 +290,7 @@ static inline qwordV Normalize(qwordV v)
 {
     qwordV fallback = D_002A2DA0;
     qwordV l = Length(v);
-    if (GFromVf(l) < 0.0001f)
+    if (QwordX(l) < 0.0001f)
         l = fallback;
     else
         l = Div(v, l);
@@ -316,7 +313,7 @@ static inline qwordV NormalizeTo(qwordV v)
 {
     qwordV fallback = D_002A2DA0;
     qwordV l = Length(v);
-    if (GFromVf(l) < 0.0001f)
+    if (QwordX(l) < 0.0001f)
         goto tiny;
     return Div(v, l);
 tiny:
@@ -367,8 +364,8 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         MATRIX4V mat;
         __ml__FRC7MATRIX4T0(&mat, &pxf->matWorld, &matParent);
         dpos = VuSub(Point(mat, plaunch->posTarget), posStart);
-        dist = GFromVf(Length(dpos));
-        float t = GClamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
+        dist = QwordX(Length(dpos));
+        float t = Clamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
         if (t != 0.0f) {
             MATRIX4V matPredict;
             LoadIdentityMatrix4(pxf, 0, &mat, 0, t);
@@ -376,8 +373,8 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
             dpos = VuSub(Point(matPredict, plaunch->posTarget), posStart);
         }
     }
-    dist = GFromVf(Length(dpos));
-    float offset = GClamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.gMin, plaunch->lmOffset.gMax);
+    dist = QwordX(Length(dpos));
+    float offset = Clamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.gMin, plaunch->lmOffset.gMax);
     qwordV posAim;
     qwordV posLaunch = AddScaled(posOrigin, VU_FLOAT(offset), Normalize(dpos));
     posAim = QwFromVf(posLaunch);

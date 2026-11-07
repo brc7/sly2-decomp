@@ -91,7 +91,7 @@ extern "C" void ResetClock(CLOCK *clock)
 extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
     TICK tick = TickNow(clock);
-    float dt = GClamp((float)(tick - clock->frameTick) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
+    float dt = Clamp((float)(tick - clock->frameTick) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
     clock->cameraDeltaTime = dt * clock->rtCm;
     clock->cameraTime += clock->cameraDeltaTime;
     {

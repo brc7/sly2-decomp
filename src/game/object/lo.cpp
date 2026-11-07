@@ -16,6 +16,7 @@
 #include "sly2/so.h"
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
+#include "sly2/vu0.h"
 
 /* The LO flag word at +0x28 (read as one 64-bit word by the m2c views; lo.h names the bits). */
 #define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (fRemoved): taken out of the world */
@@ -770,13 +771,8 @@ struct CAMERA { char pad[0x90]; qword pos; };
 extern struct CAMERA D_002DDF40;
 qword *VECTOR_opAssign(qword *p, qword v);
 void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
-static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b)); return r; }
-static inline qword Cross(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a),"j"(b)); return r; }
 static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
-static inline float GetX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v));return g; }
 static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
-static inline qword Broadcast(float g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
-static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
 /** @sly2-annot addr=0x1A5FB8
  * Purpose: Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos
  *   D_002DDF40+0x90) and apply via 0x1A5EE8
@@ -794,21 +790,21 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
  U uk;
  qword d,n,t,k;
  float len;
- d=Sub(b,a);
- n=Cross(Sub(a,D_002DDF40.pos),d);
+ d=VuSub(b,a);
+ n=VuCross(VuSub(a,D_002DDF40.pos),d);
  y.q=n;
- len=GetX(LenV(n));
+ len=VuToFloat(LenV(n));
  if(0.01f<len) {
   len=width/len;
-  pm=&m; t=Normalize(Cross(n,d));
+  pm=&m; t=Normalize(VuCross(n,d));
   x.q=t;
-  k=Broadcast(len);
+  k=VuFromFloat<qword>(len);
   uk.q=k;
-  n=Scale(n,k);
+  n=VuScaleByX(n,k);
   y.q=n;
-  k=Broadcast(0.01f);
+  k=VuFromFloat<qword>(0.01f);
   uk.q=k;
-  z.q=Scale(d,k);
+  z.q=VuScaleByX(d,k);
   VECTOR_opAssign(&m.r[3].q,a);
   pm->r[0].q=x.q;
   pm->r[1].q=y.q;
@@ -1085,16 +1081,6 @@ extern "C" void GetLoWorldMatrix(LO *plo)
 
 namespace M_func_001A6340 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 extern void *GetLoWorldMatrix(void);
 extern qword DecomposeRotationMatrixToEuler(void *p);
 /** @sly2-annot addr=0x1A6340
@@ -1108,7 +1094,7 @@ qword GetLoEulerDegrees(void)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(GetLoWorldMatrix());
-    r.q = Make(GetX(v) * 57.2957763671875f, GetY(v) * 57.2957763671875f, GetZ(v) * 57.2957763671875f);
+    r.q = QwordFromFloats<qword>(QwordX(v) * 57.2957763671875f, QwordY(v) * 57.2957763671875f, QwordZ(v) * 57.2957763671875f);
     return r.q;
 }
 } } // namespace M_func_001A6340
@@ -1116,9 +1102,6 @@ qword GetLoEulerDegrees(void)
 namespace M_func_001A63B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1146,7 +1129,7 @@ void SetLoEulerDegrees(struct LO *object, qword v)
     M3 c;
     union { qword q; float f; } r;
     M3 m;
-    r.q = Make(GetX(v) * 0.017453294f, GetY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
+    r.q = Make(QwordX(v) * 0.017453294f, QwordY(v) * 0.017453294f, QwordZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
     object->vt[30].pfn((struct LO *)((char *)object + object->vt[30].d), &c);

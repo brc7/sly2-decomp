@@ -21,6 +21,8 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -355,12 +357,6 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(struct STREAM*,struct VECTOR*) __a
 float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
 void*AllocClearedFromWorldHeap(struct REQUEST*);
-static inline float Min(float a, float b)
-{
-    float r;
-    __asm__("min.s %0,%1,%2" : "=f"(r) : "f"(a), "f"(b));
-    return r;
-}
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
 void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
@@ -388,7 +384,7 @@ void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
                 record->radius = F32Read__18CBinaryInputStream(stream);
                 record->meta.limit = F32Read__18CBinaryInputStream(stream);
                 record->meta.count = U8Read__18CBinaryInputStream(stream);
-                record->meta.limit = Min(1.0e10f, record->meta.limit);
+                record->meta.limit = FpuMin(1.0e10f, record->meta.limit);
                 switch (record->meta.kind) {
                 case 0: {
                     int index = S16Read__18CBinaryInputStream(stream);
@@ -500,12 +496,6 @@ static inline qword Transform(const struct M4 *m, qword p)
             : "j"(m->r[0]), "j"(m->r[1]), "j"(p), "j"(m->r[2]), "j"(m->r[3]));
     return r;
 }
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Length(qword v)
 {
     qword d, one;
@@ -516,12 +506,6 @@ static inline float Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
-}
-static inline qword Broadcast(float f)
-{
-    qword r;
-    __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f));
-    return r;
 }
 static inline qword MAdd(qword p, qword v, qword k)
 {
@@ -534,12 +518,12 @@ static inline qword MAdd(qword p, qword v, qword k)
 qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
 {
     U u;
-    qword d = Sub(Transform(m, D_002BE570), p);
+    qword d = VuSub(Transform(m, D_002BE570), p);
     float len = Length(d);
     if (*radius < len) {
         float ratio = (len - *radius) * 0.5f / len;
         *radius = (len + *radius) * 0.5f;
-        u.q = Broadcast(ratio);
+        u.q = VuFromFloat<qword>(ratio);
         p = MAdd(p, d, u.q);
     }
     return p;
@@ -621,7 +605,6 @@ extern "C" { extern char D_0025E668[]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
-static inline int Min(int a, int b) { return a < b ? a : b; }
 // Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
 // up to 256 lights x 3 qw. (inferred)
 extern "C" void BeginRpRelight(VIFS *pvifs)
@@ -654,7 +637,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
         if (px->isDisabled)
             continue;
         if (n >= iEnd) {
-            iEnd = n + Min(cActive - n, 32);
+            iEnd = n + MinInt(cActive - n, 32);
             pvifs->UnpackHelper(UPK_V4_32, (iEnd - n) * 3, n * 3 + 1, 0, &pb);
         }
         CopyAb__FPvT0Ui(pb, px->amat, 0x30);
@@ -1230,12 +1213,6 @@ static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1269,7 +1246,7 @@ static inline int GetSquaredLengthBits(qword qwV)
 }
 static inline float SqDist(qword qw0, qword qw1)
 {
-    qword qwV = QwSub(qw0, qw1);
+    qword qwV = VuSub(qw0, qw1);
     qword qwSq, qwOne;
     float g;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qwSq), "=&j"(qwOne) : "j"(qwV));
@@ -1469,7 +1446,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         }
         else
         {
-            dposSub = QwSub(posSub, posCam);
+            dposSub = VuSub(posSub, posCam);
             if (!IsWithinCameraRenderDistance(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
@@ -1746,12 +1723,6 @@ static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1867,7 +1838,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         if (psub->ppos)
         {
             qword pos = *psub->ppos;
-            dpos = QwSub(pos, GetLoWorldPos(palo));
+            dpos = VuSub(pos, GetLoWorldPos(palo));
         }
         else
         {
@@ -2867,7 +2838,6 @@ static inline char *RelocatePointer(char *pbOld, int cb, char *pbNew, char *pb)
 }
 struct RGBA5551 { ushort r : 5; ushort g : 5; ushort b : 5; ushort a : 1; };
 struct UVLINK { short u, v; ushort link; } __attribute__((packed));
-static inline int Min(int a, int b) { return a < b ? a : b; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -3394,7 +3364,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         for (int iofs = 0; iofs < pbatch->cvtx; iofs += 0x27)
                         {
-                            int n = Min(0x27, pbatch->cvtx - iofs);
+                            int n = MinInt(0x27, pbatch->cvtx - iofs);
                             uint *pun;
                             vifsLit.UnpackHelper(UPK_V4_32, 3, 0x307, 0, &pun);
                             pun[0] = 0x30a;

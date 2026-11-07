@@ -140,9 +140,7 @@ float NormalizeAngle(float rad);
 int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
 // 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
 // timers off (FLT_MAX).
@@ -220,7 +218,7 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                 qword b = GetLoWorldPos(behavior->guard);
                 qword d;
                 d = VuSub(a, b);
-                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
             }
             break;
         case 3:
@@ -299,7 +297,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             qword b = GetLoWorldPos(behavior->guard);
             qword d;
             d = VuSub(a, b);
-            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
             {
                 BHVO *child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
                 StartPushedBhv(child);
@@ -419,9 +417,7 @@ extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->an
 
 struct VU_FLOAT{qword qw;};
 // VU0 helper: vector difference.
-static inline qword VuSubtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: vector sum.
-static inline qword VuSum(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector (in x).
 static inline qword VuLength(qword v)
 {
@@ -441,17 +437,8 @@ static inline qword VuLengthReuseOne(qword v)
     return qwLen;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword VuLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: x of a VU register as a float.
-static inline float VuXToFloat(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qword qw){float x;__asm__("mtc1 %1, %0":"=f"(x):"r"(qw));return x;}
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
 static inline qword VuDotProduct(qword a, qword b)
 {
@@ -464,12 +451,6 @@ static inline qword VuDotProduct(qword a, qword b)
 // VU0 helper: vector scaled by the x of g.
 static inline qword VuScaleByX(qword v,qword g){qword qw;__asm__("vmulx.xyzw %0, %1, %2x":"=j"(qw):"j"(v),"0"(g));return qw;}
 // VU0 helper: v divided by g.
-static inline qword VuDivideByX(qword v, qword g)
-{
-    qword qw;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v), "j"(g));
-    return qw;
-}
 // VU0 helper: base + vector * scale.
 static inline qword VuMulAdd(qword base, qword vec, qword g)
 {
@@ -514,12 +495,12 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         qword len = VuLengthReuseOne(w.query.delta.q);
         qword g = VuFloatFromMemWord(*(int *)&object->reach);
         qword n;
-        if (VuGetX(len) < 0.0001f) {
+        if (QwordX(len) < 0.0001f) {
             w.query.scalar.q = g;
             n = qwFallback;
         } else {
             w.query.scalar.q = g;
-            n = VuDivideByX(w.query.delta.q, len);
+            n = VuDivByX(w.query.delta.q, len);
         }
         w.query.candidate.q = VuMulAdd(posObj, n, g);
         TryAddSearchCandidate(&w.query);
@@ -588,14 +569,14 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             ROW *row = &w.query.row[i];
             qword original = row->point.q;
             qword up = D_002A2DC0;
-            qword delta = VuSubtract(original, w.query.point.q);
+            qword delta = VuSub(original, w.query.point.q);
             qword qwFallback = D_002A2DA0;
-            qword planar = VuSubtract(delta, VuScaleByX(up, VuDotProduct(delta, up)));
+            qword planar = VuSub(delta, VuScaleByX(up, VuDotProduct(delta, up)));
             qword len = VuLength(planar);
-            if (VuGetX(len) < 0.0001f)
+            if (QwordX(len) < 0.0001f)
                 planar = qwFallback;
             else
-                planar = VuDivideByX(planar, len);
+                planar = VuDivByX(planar, len);
             qword s = VuFloatVolatile(200.0f);
             qword target = VuMulAdd(w.query.point.q, planar, s);
             w.query.delta.q = s;
@@ -604,7 +585,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             if (previous) {
                 qword d;
                 QW_SUB_T(d, probe, previous->candidate.q);
-                if (VuGetX(VuLengthXY(d)) < 150.0f)
+                if (QwordX(VuLengthXY(d)) < 150.0f)
                     continue;
             }
             previous = &behavior->searchPoints[accepted++];
@@ -614,14 +595,14 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         }
     }
     qword origin = w.query.point.q;
-    qword anchor = VuSum(origin, SetVectorCylind(w.query.heading + 3.1415927f, -350.0f, 0.0f));
+    qword anchor = VuAdd(origin, SetVectorCylind(w.query.heading + 3.1415927f, -350.0f, 0.0f));
     while (accepted < 4) {
         float angle, length;
         qword point;
         lastAngle += RandomFloatInRange(D_002BE5A8.low, D_002BE5A8.high);
         angle = lastAngle + w.query.heading;
         length = RandomFloatInRange(D_002BE5B0.low, D_002BE5B0.high);
-        point = VuSum(anchor, SetVectorCylind(angle, length, 0.0f));
+        point = VuAdd(anchor, SetVectorCylind(angle, length, 0.0f));
         {
             PAIR *pair = &behavior->searchPoints[accepted];
             pair->candidate.q = point;

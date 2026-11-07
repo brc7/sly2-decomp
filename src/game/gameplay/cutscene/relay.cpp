@@ -28,6 +28,8 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -1279,7 +1281,6 @@ extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
 // The larger of two values.
-static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
 // calls append the commands; the result is copied into an exact-size world-heap array.
@@ -1296,7 +1297,7 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
     LoadLoFromBrx(relay, x);
     {
         ENT *aeOld = relay->ae;
-        relay->cMax = Max(relay->c, relay->cMax) + 1;
+        relay->cMax = StdMaxInt(relay->c, relay->cMax) + 1;
         pmsg->cb = relay->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
         relay->ae = (ENT *)AllocFromWorldHeap(pmsg);
@@ -2274,18 +2275,15 @@ extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 
 // 0x1E1238 AddRelayCamBlendFrom
 // Lanes x, y and z of a 128-bit EE register as floats (the camera builders take angles in degrees as a vector).
-static __inline__ float GetVectorX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetVectorY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetVectorZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // Splice builtin: appends a CamBlendFrom command (RELAYCK 0x38): the camera starts from position qwPos with angles
 // (degrees, stored in radians) and field of view gFov, blending over dtBlend; oidAseg names an animation. (inferred)
 extern "C" void AddRelayCamBlendFrom(RELAYV *relay, qword qwPos, qword angles, OID oidAseg, float gFov, float dtBlend)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendFrom, 1);
     prelaycmd->camBlendFrom.qwPos = qwPos;
-    prelaycmd->camBlendFrom.radX = GetVectorX(angles) * 0.017453294f;
-    prelaycmd->camBlendFrom.radY = GetVectorY(angles) * 0.017453294f;
-    prelaycmd->camBlendFrom.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radX = QwordX(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radY = QwordY(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->camBlendFrom.gFov = gFov;
     prelaycmd->camBlendFrom.dtBlend = dtBlend;
     prelaycmd->camBlendFrom.oidAseg = oidAseg;
@@ -2298,9 +2296,9 @@ extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendTo, 1);
     prelaycmd->camBlendTo.qwPos = qwPos;
-    prelaycmd->camBlendTo.radX = GetVectorX(angles) * 0.017453294f;
-    prelaycmd->camBlendTo.radY = GetVectorY(angles) * 0.017453294f;
-    prelaycmd->camBlendTo.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radX = QwordX(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radY = QwordY(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->camBlendTo.gFov = gFov;
     prelaycmd->camBlendTo.nUnk16 = nUnk16;
     prelaycmd->camBlendTo.nUnk17 = nUnk17;
@@ -2353,9 +2351,9 @@ extern "C" void AddRelayTweenTarget(RELAYV *relay, qword qwPos, qword angles, fl
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_TweenTarget, 1);
     prelaycmd->tweenTarget.qwPos = qwPos;
-    prelaycmd->tweenTarget.radX = GetVectorX(angles) * 0.017453294f;
-    prelaycmd->tweenTarget.radY = GetVectorY(angles) * 0.017453294f;
-    prelaycmd->tweenTarget.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radX = QwordX(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radY = QwordY(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->tweenTarget.gFov = gFov;
 }
 
@@ -2809,19 +2807,7 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     return v;
 }
 // Vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 // Vector sum.
-static inline qword QwAdd(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 
 
 
@@ -3219,7 +3205,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            pstep->TranslateToPos(QwSub(*(qword *)&pos, pstep->qwUnk240));
+            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->qwUnk240));
             SetStepRadTarget(pstep, rad);
         }
         else
@@ -3376,7 +3362,7 @@ void NextJsgCommand(JSGV *script)
             {
                 CM *pcm = &D_002DDF40;
                 qword qwCm = *(qword *)&pcm->pos;
-                SetStepRadTowardDir(pstep, QwSub(qwCm, PosLoWorld(pstep)));
+                SetStepRadTowardDir(pstep, VuSub(qwCm, PosLoWorld(pstep)));
                 ploDir = 0;
             }
             else
@@ -3533,7 +3519,7 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.qwPos = QwAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
+                place.qwPos = VuAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
             }
             else
             {
@@ -4041,46 +4027,15 @@ extern "C" { extern SW D_003DD490; }
 
 
 // Vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 // Lane x of a VU register as a float.
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // Length of the xy part, in lane x.
-static inline qword QwLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // Length of the xy part as a float.
 static inline float GLengthXY(qword v)
 {
-    return GFromVf(QwLengthXY(v));
+    return VuToFloat(VuLengthXY(v));
 }
 // Lane y of a 128-bit register as a float.
-static inline float GYOfQw(qword qw)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
-    return y;
-}
 // Lane z of a 128-bit register as a float.
-static inline float GZOfQw(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 
 
 
@@ -4088,12 +4043,6 @@ static inline float GZOfQw(qword qw)
 extern "C" { extern SUBTITLE D_004435F0; }
 
 // Lane x of a 128-bit register as a float.
-static inline float GXOfQwAct(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBehavior");
@@ -4305,7 +4254,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 qword pos;
                 GetJsgLocation(script, plo, &pos, 0);
-                fComplete = GLengthXY(QwSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
+                fComplete = GLengthXY(VuSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
                 SetJtGoalPos(&((STEPPLAYER *)pjt)->jtgoal, pos);
             }
             else
@@ -4381,7 +4330,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 VECTOR4 pos;
                 GetJsgLocation(script, plo, (qword *)&pos, 0);
-                fComplete = GLengthXY(QwSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
+                fComplete = GLengthXY(VuSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
             }
             else
             {
@@ -4633,8 +4582,8 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
                 qword qwNew = pmurray->moverec.qwPosNew;
                 qword qwOld = pmurray->moverec.qwPosOld;
                 float gEps = D_002C3628;
-                fComplete = AreFloatsNear(GXOfQwAct(qwNew), GXOfQwAct(qwOld), gEps) && AreFloatsNear(GYOfQw(qwNew), GYOfQw(qwOld), gEps) &&
-                            AreFloatsNear(GZOfQw(qwNew), GZOfQw(qwOld), gEps);
+                fComplete = AreFloatsNear(QwordX(qwNew), QwordX(qwOld), gEps) && AreFloatsNear(QwordY(qwNew), QwordY(qwOld), gEps) &&
+                            AreFloatsNear(QwordZ(qwNew), QwordZ(qwOld), gEps);
             }
         }
         else
@@ -4697,7 +4646,6 @@ void *FindLiveSma(void *p, int n);
 float EstimateSmaTimeToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
 // Clamps g to [lo, hi].
-static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
@@ -4710,7 +4658,7 @@ float GetJsgCommandDuration(struct C *script, struct P *command)
         struct O *po = FindJsgObject(script, command->u10.n);
         if (po) {
             float t = GetDifficulty(&D_002DE578);
-            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->speedMin, po->speedMax);
+            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = Clamp(s, po->speedMin, po->speedMax);
             g = po->duration / (po->speed * s);
         }
         break;
@@ -4776,13 +4724,9 @@ void UpdatePoctlPressed(OUTPUT*);
 int AreFloatsNear__Ffff(float,float,float);
 }
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
-static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
-static inline float Y(qword a){float r;__asm__("prot3w %0,%1":"=r"(r):"r"(a));return r;}
-static inline float Z(qword a){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(a));return r;}
 static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
-static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return X(Root(r));}
+static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return QwordX(Root(r));}
 // Normalizes the path tangent in place (fallback for a zero tangent).
 static inline void NormalizeTangent(U &output){
  register qword vector __asm__("vf3");
@@ -4860,8 +4804,8 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   EvaluateShapeAtDistance(actor->curve,&work.from.q,0,t);
   t=ClampShapeDistance(actor->curve,actor->curveTime-50.0f);
   EvaluateShapeAtDistance(actor->curve,&work.to.q,0,t);
-  qword direction=GetPoctlLateralVector(out,Sub(work.from.q,work.to.q));
-  float x=X(direction),y=Y(direction);
+  qword direction=GetPoctlLateralVector(out,VuSub(work.from.q,work.to.q));
+  float x=QwordX(direction),y=QwordY(direction);
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
    float forward,backward;
@@ -5457,14 +5401,10 @@ qword DecomposeRotationMatrixToEuler(void *);
 int IsCameraPolicyActive__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
-// Helpers X, Y, Z (small asm wrappers/accessors shaped for the match).
-static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
-static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
-static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(X(b), X(a), 0.0001f) && AreFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f) && AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f) && AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f);
 }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)

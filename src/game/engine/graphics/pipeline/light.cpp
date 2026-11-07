@@ -13,6 +13,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 struct VTE {
     short d;
@@ -158,13 +160,6 @@ float cosf(float) __asm__("cosf");
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru);
 void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu, float *pru);
 
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 // After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (not dynamic), create a
 // LIGHT (CreateLo CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
@@ -178,7 +173,7 @@ extern "C" void EnsureSwDefaultLight(void)
     }
     if (light) return;
     light = CreateLo__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
-    r.q = Make(-0.2f, 0.3f, -1.0f);
+    r.q = QwordFromFloats<qword>(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
     ((void (*)(LIGHTV *, M3R *))light->vt[30].pfn)((LIGHTV *)((char *)light + light->vt[30].d), &c);
@@ -360,7 +355,6 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
     FitLinearFunction(strength0, g0 * kStrengthScale, strength1, g1 * kStrengthScale, pdu, pru);
 }
 
-static inline float Max1(float a, float b) { return (a > b) ? a : b; }
 // Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position;
 // then InvalidateLight. (inferred)
 void RebuildLight(LIGHTV *light)
@@ -368,7 +362,7 @@ void RebuildLight(LIGHTV *light)
     V3 rgb;
     float strength;
     float coneAngle;
-    strength = Max1(light->midtoneStrength, light->highlightHsvComponents[2]);
+    strength = Max(light->midtoneStrength, light->highlightHsvComponents[2]);
     coneAngle = (light->midtoneAngle > 30.0f) ? light->midtoneAngle : 30.0f;
     ConvertAngleStrength(coneAngle, 0.0f, 0.0f, strength, &light->duAngle, &light->ruAngle);
     ConvertUserHsvToUserRgb__FP6VECTORT0(&light->highlightHsv, &rgb);
@@ -404,7 +398,7 @@ void RebuildLight(LIGHTV *light)
         light->weight = light->ruFall;
         break;
     }
-    strength = Max1(light->highlightHsvComponents[2], light->midtoneStrength);
+    strength = Max(light->highlightHsvComponents[2], light->midtoneStrength);
     light->bias = light->bias * strength;
     light->weight = light->weight * strength;
     InvalidateLight(light);
@@ -648,22 +642,13 @@ void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results)
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 static inline VV ToVF(qword v) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(v)); return r; }
-static inline VV Sub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
-static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
-static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
-static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
+// Same idiom as sly2/vu0.h VuDivByX; kept local because the shared template changes DoesSphereHitSpheres (41/135 instructions off).
+static inline VV VuDivByX(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 static inline VV Divide(VV v, VU_FLOAT g) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
-static inline VV Normalize(VV v) { return DivideQ(v, Length(v)); }
-static inline VV Cross(VV a, VV b) { qword r; __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline VV Normalize(VV v) { return VuDivByX(v, Length(v)); }
 /* f1 * v1 + f2 * v2 */
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 {
@@ -678,7 +663,6 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(r) : "j"(base), "j"(g.q), "j"(v));
     return r;
 }
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 // True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
 int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
 {
@@ -686,7 +670,7 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
     float sDist;
     for (i = 0; i < csphere; i++)
     {
-        sDist = GFromQw(Length(Sub(ToVF(pos), asphere[i].pos)));
+        sDist = QwordX(Length(VuSub(ToVF(pos), asphere[i].pos)));
         if (sDist < sRadius + asphere[i].sRadius)
             return 1;
     }
@@ -695,24 +679,24 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         SPHERE *ps0 = &asphere[i - 1];
         SPHERE *ps1 = &asphere[i];
         VV p = ToVF(pos);
-        VV dpos = Sub(p, ps0->pos);
-        VV axis = Sub(ps1->pos, ps0->pos);
+        VV dpos = VuSub(p, ps0->pos);
+        VV axis = VuSub(ps1->pos, ps0->pos);
         VV len = Length(axis);
-        VV c1 = Cross(dpos, axis);
-        float sLen = GFromVf(len);
+        VV c1 = VuCross(dpos, axis);
+        float sLen = VuToFloat(len);
         VV u = Divide(axis, VU_FLOAT(sLen));
         float s = (ps0->sRadius - ps1->sRadius) / sLen;
-        VV perp = Normalize(Cross(u, c1));
-        float root = SqrtF(1.0f - s * s);
+        VV perp = Normalize(VuCross(u, c1));
+        float root = SqrtFloat(1.0f - s * s);
         VV n = VecCombo(VU_FLOAT(s), u, VU_FLOAT(root), perp);
         VV posA = AddScaled(ps0->pos, VU_FLOAT(ps0->sRadius), n);
-        VV pa = Sub(p, posA);
+        VV pa = VuSub(p, posA);
         VV posB = AddScaled(ps1->pos, VU_FLOAT(ps1->sRadius), n);
-        VV ba = Sub(posB, posA);
-        VV num = Dot(pa, ba);
-        VV den = Dot(ba, ba);
-        sDist = GFromQw(Dot(pa, n));
-        float t = GFromQw(num) / GFromVf(den);
+        VV ba = VuSub(posB, posA);
+        VV num = VuDot(pa, ba);
+        VV den = VuDot(ba, ba);
+        sDist = QwordX(VuDot(pa, n));
+        float t = QwordX(num) / VuToFloat(den);
         if (sDist < sRadius && t >= 0.0f && t <= 1.0f)
             return 1;
     }
@@ -730,7 +714,6 @@ union U { qword q; float f[4]; uint u[4]; };
 struct M3 { U row[3]; };
 struct M4 { U row[4]; };
 struct PACKET { U basis[3]; U position; int kind; float fraction; int pad[2]; };
-static inline qword Zero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword Transform(const M4 &m, qword v)
 {
     __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddaz.xyz $ACC,%3,%0z\n\tvmaddw.xyz %0,%4,$vf0w"
@@ -745,8 +728,6 @@ static inline qword AddScaledQ(qword base, const qword &v, VU_FLOAT g)
     return r;
 }
 static inline qword ScaleQ(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
-static inline qword AddQ(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword SubQ(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword DivQ(qword v, VU_FLOAT g) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
 static inline float LengthQ(qword v)
 {
@@ -811,7 +792,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
         Clear(p);
     } else {
         float total = 0.0f;
-        qword sum = Zero();
+        qword sum = VuZero<qword>();
         uint slot;
         for (slot = 0; slot < 4; slot++) {
             LIGHTV *o = results[slot].object;
@@ -841,7 +822,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             Clear(p);
         } else {
             qword center = DivQ(sum, VU_FLOAT(total));
-            qword dir = SubQ(point, center);
+            qword dir = VuSub(point, center);
             float dist = LengthQ(dir);
             float limit = D_002BFC94 * p->limit;
             float extent;
@@ -873,7 +854,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             SPHERE spheres[3];
             spheres[0].pos = point;
             spheres[0].sRadius = p->limit;
-            spheres[1].pos = AddQ(center, basis.row[2].q);
+            spheres[1].pos = VuAdd(center, basis.row[2].q);
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;

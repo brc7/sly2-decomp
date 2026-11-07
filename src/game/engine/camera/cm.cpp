@@ -18,6 +18,8 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/vu0.h"
+#include "sly2/util.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -332,12 +334,6 @@ static inline qword Normalize(qword v)
     __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(r) : "j"(t), "j"(v));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 static inline qword Normalize1(qword v)
 {
@@ -356,10 +352,10 @@ static inline qword Normalize1(qword v)
 // direction. UpdateCmMat4 calls it for the real and the widened culling frustum.
 void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal)
 {
-    anormal[0] = Cross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));
-    anormal[1] = Cross(Normalize(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(-gx))), pmat->r[2]);
-    anormal[2] = Cross(Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(gy))), pmat->r[1]);
-    anormal[3] = Cross(pmat->r[1], Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(-gy))));
+    anormal[0] = VuCross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));
+    anormal[1] = VuCross(Normalize(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(-gx))), pmat->r[2]);
+    anormal[2] = VuCross(Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(gy))), pmat->r[1]);
+    anormal[3] = VuCross(pmat->r[1], Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(-gy))));
 }
 } // namespace M_BuildFrustrum
 
@@ -367,16 +363,9 @@ namespace M_RecalcCmFrustrum__FP2CM {
 #include "sly2/cm.h"
 // sqrt.s as volatile inline asm (as in other matched cm/util code): it orders the stores like the original.
 extern "C" float tanf(float);
-static inline float sqrtf(float x)
-{
-    float r;
-    __asm__ __volatile__("sqrt.s %0,%1" : "=&f"(r) : "f"(x));
-    return r;
-}
 void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
 void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");
-static inline float GMax(float a, float b) { return a > b ? a : b; }
 // Recomputes everything that depends on the field of view: the half-fov tangents, the cull scale, the near-plane
 // corner distance, the projection matrix (512x224 half-screen, near/far clip), the fog/LOD fit coefficients
 // (BuildCmFgfn), then the view matrices (UpdateCmMat4).
@@ -387,8 +376,8 @@ extern "C" void RecalcCmFrustrum__FP2CM(CM *pcm)
     float c = pcm->rAspect;
     pcm->gTanHalfY = t;
     pcm->gTanHalfX = t * c;
-    pcm->rCullScale = GMax(pcm->rFovCullRef * r, 1.0f);
-    pcm->sNearCorner = t * sqrtf(c * c + 1.0f) * pcm->sNearClip + 1.0f;
+    pcm->rCullScale = Max(pcm->rFovCullRef * r, 1.0f);
+    pcm->sNearCorner = t * SqrtFloat(c * c + 1.0f) * pcm->sNearClip + 1.0f;
     BuildProj(&pcm->matProj, 512.0f / (pcm->gTanHalfX * 4096.0f), 224.0f / (pcm->gTanHalfY * 4096.0f), 0.0f, 0.0f, pcm->sNearClip, pcm->sFarClip);
     SetCmLookAt(pcm, 1.0f, pcm->agRecipFit);
     RecalcCm(pcm);
@@ -1196,8 +1185,6 @@ void HasCameraBsp(void);
 void SvSquishCmEyeConstraint(void);
 qword ClipCameraEye(void *p, qword pos, qword posTarget);
 }
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qword AddScaled(qword base, const qword &vec, const VU_FLOAT &s)
 {
@@ -1220,10 +1207,10 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &D_002DDED0;
     int ii, jj;
-    qword dpos = Sub(posTarget, pos);
+    qword dpos = VuSub(posTarget, pos);
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
-    qword posMin = Add(pos, D_002BD8F0);
-    qword posMax = Add(pos, D_002BD900);
+    qword posMin = VuAdd(pos, D_002BD8F0);
+    qword posMax = VuAdd(pos, D_002BD900);
     STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
@@ -1236,9 +1223,6 @@ namespace M_ConvertCmScreenToWorld { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1250,9 +1234,9 @@ static __inline__ qword Mul(M4 *pm, qword v)
 qword ConvertCmScreenToWorld(struct CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
-    float x = GetX(v);
-    float z = GetZ(v);
-    float y = GetY(v);
+    float x = QwordX(v);
+    float z = QwordZ(v);
+    float y = QwordY(v);
     r.f[2] = y;
     r.f[0] = z;
     r.f[1] = -x;
@@ -1337,9 +1321,6 @@ void SetCmMat(struct CM *cm, struct MATRIX3 *pmat)
 
 namespace M_GetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1359,16 +1340,13 @@ qword GetCmRotDeg(struct CMR *p)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(p->mat);
-    r.q = Make(GetX(v) * DEGREES_PER_RADIAN, GetY(v) * DEGREES_PER_RADIAN, GetZ(v) * DEGREES_PER_RADIAN);
+    r.q = Make(QwordX(v) * DEGREES_PER_RADIAN, QwordY(v) * DEGREES_PER_RADIAN, QwordZ(v) * DEGREES_PER_RADIAN);
     return r.q;
 }
 } } // namespace M_GetCmRotDeg
 
 namespace M_SetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1392,7 +1370,7 @@ void SetCmRotDeg(struct CM *cm, qword v)
     union { qword q; float f; } r;
     M3 m;
 #define RADIANS_PER_DEGREE 0.017453294f
-    r.q = Make(GetX(v) * RADIANS_PER_DEGREE, GetY(v) * RADIANS_PER_DEGREE, GetZ(v) * RADIANS_PER_DEGREE);
+    r.q = Make(QwordX(v) * RADIANS_PER_DEGREE, QwordY(v) * RADIANS_PER_DEGREE, QwordZ(v) * RADIANS_PER_DEGREE);
     LoadRotateMatrixEuler(&m, r.q);
     mat.m3 = m;
     mat.af[2][3] = 0.0f;

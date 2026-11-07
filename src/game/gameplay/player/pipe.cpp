@@ -163,7 +163,6 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 static inline qword operator*(VU_FLOAT f, VU_VECTOR v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 
-static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 static inline qword Length(qword v)
 {
     qword d, len;
@@ -171,18 +170,12 @@ static inline qword Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }
-static inline qword Unit(qword v, qword len)
-{
-    qword r;
-    __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v), "j"(len));
-    return r;
-}
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
-    if (X(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
-    return Unit(v, len);
+    return VuDivByX(v, len);
 }
 static inline float Dot(qword a, qword b)
 {
@@ -198,12 +191,6 @@ static inline qword Transform(const M3 &m, qword q)
     qword r;
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
             : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(q));
-    return r;
-}
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
 
@@ -256,13 +243,13 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, D_002A2DC0);
         w.basis.r[2] = up;
-        back.q = Cross(up, fwd.q);
+        back.q = VuCross(up, fwd.q);
         w.basis.r[1] = back.q;
         qword len = Length(back.q);
-        w.basis.r[1] = Unit(back.q, len);
-        if (X(len) < 0.0001f)
+        w.basis.r[1] = VuDivByX(back.q, len);
+        if (QwordX(len) < 0.0001f)
             w.basis.r[1] = GetNormalVector(up);
-        w.basis.r[0] = Cross(w.basis.r[1], w.basis.r[2]);
+        w.basis.r[0] = VuCross(w.basis.r[1], w.basis.r[2]);
     }
     if (!forward) {
         w.basis.r[1] = VU_FLOAT(-1.0f) * VU_VECTOR(w.basis.r[1]);
@@ -285,7 +272,7 @@ extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
 {
     FindShapeClosestPoint(pipe, GetLoWorldPos(q), 0, 0, 0, 0, pf);
     if (pipe->isCyclic == 0) {
-        *pf = GClamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
+        *pf = Clamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
     }
 }
 
@@ -326,7 +313,6 @@ extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float 
     *pvec = r;
 }
 
-static inline float Abs(float g) { return g<0.0f?-g:g; }
 static inline qword Bc(float g) {
     union { qword q; float f; } u;
     qword q;

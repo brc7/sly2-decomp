@@ -3,38 +3,57 @@
  * The per-function decompilation had pasted these into many TUs under private names (Min, GMin, GMax, Max, GClamp,
  * GLimit, GClampR, FPtr...). Only spellings that compile to the same code at every folded site live here; see
  * docs/guides/tu-merging.md "Shared inline helpers" for which private spellings were folded and which stay private.
- * Names follow the Sly 1 prefix convention (G float, N int, F flag); they are placeholders (HYPOTHESIS: Sly 1's util.h
- * has ClampAbs/ClampToLimits-style helpers, none of these exact ones). */
+ * Names follow docs/guides/naming-workflow.md section 8 (no Hungarian prefixes); they are descriptive placeholders
+ * (HYPOTHESIS: Sly 1's util.h has ClampAbs/ClampToLimits-style helpers, none of these exact ones).
+ *
+ * Two spellings of min and max compile differently, so both exist: Min/Max (`a < b ? a : b`, `a > b ? a : b`) and
+ * StdMin/StdMax (std::min / std::max's spelling: compare with `<` only, `b < a ? b : a`, `a < b ? b : a`). They agree
+ * on every value except ties of signed zeros and NaN; pick the one the site was written with, or the code changes. */
 #ifndef SLY2_UTIL_H
 #define SLY2_UTIL_H
 
-inline float GMin(float a, float b) { return a < b ? a : b; }
-inline float GMax(float a, float b) { return a > b ? a : b; }
-inline int NMin(int a, int b) { return a < b ? a : b; }
+inline float Min(float a, float b) { return a < b ? a : b; }
+inline float Max(float a, float b) { return a > b ? a : b; }
+inline int MinInt(int a, int b) { return a < b ? a : b; }
 
-/* g limited to [gMin, gMax] (the early-return form) */
-inline float GClamp(float g, float gMin, float gMax)
+/* std::min / std::max's spelling (see above) */
+inline float StdMin(float a, float b) { return b < a ? b : a; }
+inline float StdMax(float a, float b) { return a < b ? b : a; }
+inline int StdMaxInt(int a, int b) { return a < b ? b : a; }
+
+/* value limited to [low, high] (the early-return form; the if/else-if and in-place spellings fold into it too) */
+inline float Clamp(float value, float low, float high)
 {
-    if (g < gMin)
-        return gMin;
-    if (gMax < g)
-        return gMax;
-    return g;
+    if (value < low)
+        return low;
+    if (high < value)
+        return high;
+    return value;
 }
 
-inline float GAbs(float g) { return __builtin_fabsf(g); }
+/* the int clamp, written with `value > high` */
+inline int ClampInt(int value, int low, int high)
+{
+    if (value < low)
+        return low;
+    if (value > high)
+        return high;
+    return value;
+}
+
+inline float Abs(float value) { return __builtin_fabsf(value); }
 
 /* a word that holds either a pointer (low bit clear) or a tagged value (low bit set): is it the pointer? */
-inline int FIsPtr(int n) { return !(n & 1); }
+inline int IsPointer(int word) { return !(word & 1); }
 
-/* t in [0, 1] mapped onto the integers from nFrom to nTo inclusive (each value gets an equal share of t) */
-inline int NLerp(float t, int nFrom, int nTo)
+/* t in [0, 1] mapped onto the integers from first to last inclusive (each value gets an equal share of t) */
+inline int LerpInt(float t, int first, int last)
 {
-    if (nFrom == nTo)
-        return nTo;
-    if (nFrom < nTo)
-        return nFrom + (int)(t * ((float)nTo + 0.999f - (float)nFrom));
-    return nTo + (int)((1.0f - t) * ((float)nFrom + 0.999f - (float)nTo));
+    if (first == last)
+        return last;
+    if (first < last)
+        return first + (int)(t * ((float)last + 0.999f - (float)first));
+    return last + (int)((1.0f - t) * ((float)first + 0.999f - (float)last));
 }
 
 #endif /* SLY2_UTIL_H */

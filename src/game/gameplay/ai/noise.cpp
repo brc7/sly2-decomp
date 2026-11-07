@@ -235,15 +235,14 @@ extern "C" float GetNoiseRadius(NOISE *noise)
     NOISETYPE *type = noise->type;
     float rampTime, progress;
     if (0.0f < type->duration) {
-        rampTime = GMin(D_002BDCE0, type->duration);
-        progress = GMin((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
+        rampTime = Min(D_002BDCE0, type->duration);
+        progress = Min((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
         return type->range * (D_002BDCF0[0] + progress * (D_002BDCF0[1] + progress * D_002BDCF0[2]));
     }
     return type->range;
 }
 
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // 0x156918: True if `pos` is inside the noise: within the type's height window above/below the emitter and within
 // the current radius in the horizontal plane.
 extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
@@ -251,7 +250,7 @@ extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
     qword offset, lengthSquared;
     float distance;
     offset = VuSub(pos, noise->pos);
-    if (!IsWithinLimits__FP2LMf(&noise->type->heightRange, GetZ(offset)))
+    if (!IsWithinLimits__FP2LMf(&noise->type->heightRange, QwordZ(offset)))
         return 0;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(lengthSquared) : "j"(offset));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(lengthSquared) : "j"(lengthSquared));
@@ -471,7 +470,7 @@ extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
         if (!type->isMuted) {
             listenerPos = GetLoWorldPos(listener);
             offset = VuSub(listenerPos, noise->pos);
-            if (IsWithinLimits__FP2LMf(&type->heightRange, GetZ(offset)) && IsWithinXY(offset, type->range))
+            if (IsWithinLimits__FP2LMf(&type->heightRange, QwordZ(offset)) && IsWithinXY(offset, type->range))
                 return 1;
         }
     }

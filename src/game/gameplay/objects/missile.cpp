@@ -239,12 +239,6 @@ static inline VU_FLOAT VuFloat(float g)
     return v;
 }
 // Lane x of a VU register as a float.
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // Length of a vector, in lane x.
 static inline qword QwLength(qword v)
 {
@@ -256,7 +250,7 @@ static inline qword QwLength(qword v)
 // Length of a vector as a float.
 static inline float GLength(qword v)
 {
-    return GFromVf(QwLength(v));
+    return VuToFloat(QwLength(v));
 }
 extern "C" {
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
@@ -400,8 +394,8 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  WORKA w;
  float remaining;
  {register float deadline __asm__("$f1")=missile->arrivalTime;register float now __asm__("$f2")=D_002DDED0.t;
- deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=GMax(deadline,0.0f)+frameStep;}
- func_001B2398Ret(&w.output,missile,GMin(remaining,0.5f));
+ deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=Max(deadline,0.0f)+frameStep;}
+ func_001B2398Ret(&w.output,missile,Min(remaining,0.5f));
  int stationary=CaptureDestinationAndEqual(missile,&w.output,&w.destination);
  if(stationary){
   register qword scaleWord __asm__("$2");

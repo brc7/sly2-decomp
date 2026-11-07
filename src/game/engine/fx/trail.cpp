@@ -422,25 +422,13 @@ static inline qwordV Blend(qwordV a, qwordV b, qwordV beta, qwordV alpha)
     __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=&j"(r) : "j"(a), "j"(beta), "j"(b), "j"(alpha));
     return r;
 }
-static inline float GetY(qwordV q)
-{
-    float r;
-    __asm__("prot3w %0,%1" : "=r"(r) : "r"(q));
-    return r;
-}
-static inline float GetZ(qwordV q)
-{
-    float r;
-    __asm__("pextuw %0,$0,%1" : "=r"(r) : "r"(q));
-    return r;
-}
 static inline void StoreXYZ(U *dst, qwordV v)
 {
     qwordV q;
     __asm__("qmfc2.ni %0,%1" : "=r"(q) : "j"(v));
     __asm__("sw %1,%0" : "=m"(dst->n[0]) : "r"(q));
-    dst->f[1] = GetY(q);
-    dst->f[2] = GetZ(q);
+    dst->f[1] = QwordY(q);
+    dst->f[2] = QwordZ(q);
 }
 // Deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and
 // per-vertex alpha, then base render 0x1F3C70. (inferred)

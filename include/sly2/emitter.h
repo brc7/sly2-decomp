@@ -232,7 +232,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     pclrs = (EMITBLIPCLRS *)PvAllocLevelHeapUncleared(&u.req);
     pv->pblipclrs = pclrs;
     pv->n0C = BisU8Read(pbis);
-    pclrs->c = NMin(n, 32);
+    pclrs->c = MinInt(n, 32);
     for (i = 0; i < n; i++)
     {
         *(int *)&u.rgba = BisU32Read(pbis);
