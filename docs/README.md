@@ -33,6 +33,18 @@ ends with how to extend the system.
 - [ui-and-hud.md](systems/ui-and-hud.md) — HUD widgets, menu screens, text and fonts, full-screen presentation.
 - [progression-and-saves.md](systems/progression-and-saves.md) — missions and steps, the game event bus, save
   variables, memory card, dynamic difficulty.
+- [cutscenes-and-sequences.md](systems/cutscenes-and-sequences.md) — RELAY command lists and the JSG scripts that run
+  them, movies, the wipe, frame-capture and letterbox transitions.
+- [bosses-and-minigames.md](systems/bosses-and-minigames.md) — how the boss fights and the minigames (hacking, turret,
+  RC combat, dance, safehouse) reuse guards, scripts, relays and controller hand-off.
+
+## Cookbook
+Practical, step-by-step recipes for changing the game, each naming the systems, types, functions and registration
+points to touch, the matching-build constraints and how to test: [cookbook/README.md](cookbook/README.md) (how mods are
+built and tested), [new object class](cookbook/new-object-class.md), [guard behaviour](cookbook/guard-behaviour.md),
+[Splice builtins, options and events](cookbook/splice-command.md), [HUD widgets and screens](cookbook/hud-widget.md),
+[sound and music cues](cookbook/sound-cue.md), [player movement](cookbook/player-movement.md),
+[level events, tasks and sequences](cookbook/level-event-task.md), [debugging](cookbook/debugging.md).
 
 ## Formats
 On-disc data, for tools and the port: [disc records](formats/disc-records.md),

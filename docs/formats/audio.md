@@ -61,7 +61,7 @@ SBlk (offsets relative to chunk 0): `+0 "SBlk"; +4 version 3; +8 4; +0xC bank id
 - Rate ~ `48000 * 2^(((60 - (256 - center_note)) + center_fine/128) / 12)` for center_note >= 0x80: mostly ~11025 Hz, some ~22050 `[H]` (vgmstream/SCREAM formula).
 - Waveforms in chunk 1: each starts with a 16-byte zero frame; non-loopers end with an end-flag frame + one pad frame (445/445); the 15 loopers start the loop at frame 1
   (flag 4) and end with flag 3 `[C:parse]`.
-- Mapping to game SFX ids: the world file's sound section maps `aisnd[sfxid]` -> sound index (`LoadSoundSectionFromBrx` 0x1FD0E8); not joined yet.
+- Mapping to game SFX ids: the world file's sound section maps `aisnd[sfxid]` -> sound index (`LoadSoundSectionFromBrx`); not joined yet.
 
 ## 6. PS-ADPCM
 

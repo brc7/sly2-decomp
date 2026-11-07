@@ -1,9 +1,9 @@
 # Save variables
 
-All persistent progress lives in the 0x5400-byte blob `g_gs` = **0x3D4A60**; a schema loaded from every world file names each variable
+All persistent progress lives in the 0x5400-byte blob `g_gs`; a schema loaded from every world file names each variable
 (see [progression-and-saves.md](../systems/progression-and-saves.md#5-save-variables)). This table was generated once (by a since-removed
 script) from a runtime decode of the schema on save states S02-S05 (Paris hub), so names, offsets, kinds and the values shown are `[C:runtime]`.
-**Address = 0x3D4A60 + offset.** Kinds: int, float, bool (packed bits; `x3` = bit count for arrays), oid. `x3` > 0 on non-bool kinds = array length.
+Offsets are within the blob (the blob is written to the memory card as is; its RAM address is that of `g_gs`). Kinds: int, float, bool (packed bits; `x3` = bit count for arrays), oid. `x3` > 0 on non-bool kinds = array length.
 Later save states confirmed `bentley.hpCur` (+0x68, max 40) and `murray.hpCur` (+0x80, max 60), `powerUps.mppukfAcquired` (+0x98, bit n = gadget n),
 `<char>.apukCur[3]` = gadget slots, `episodeCurrent`/`episodeBest`, `widCurrent` = level index, and the `m<N>_*` / `t<N>_*` records = JOBs / TASKs
 (`is_complete` = 1 at task state 2) `[C:runtime]`.
@@ -11,65 +11,65 @@ Totals: 4472 named variables, 960 symbols, 5,461 trie entries.
 
 ## 1. Top-level variables
 
-| Variable | Offset | Address | Kind | x3 | Value S02 / S03 / S04 / S05 | Notes |
-|---|---|---|---|---|---|---|
-| `episodeCurrent` | 0x0000 | 0x3D4A60 | int | 0 | 0x1 |  |
-| `episodeBest` | 0x0004 | 0x3D4A64 | int | 0 | 0x1 |  |
-| `widCurrent` | 0x0008 | 0x3D4A68 | id? | 0 | 0x2 |  |
-| `oidPoCurrent` | 0x000C | 0x3D4A6C | oid | 0 | 0x7 | current playable character (JT oid 7) |
-| `dt` | 0x0010 | 0x3D4A70 | float | 0 | 655.6 / 695.1 / 725.6 / 735.2 | total play time (s); SW+0x3B1C key |
-| `suck_history.mission_0` | 0x0014 | 0x3D4A74 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 | difficulty sample 0 of 3 ("suck" = Sly 1 difficulty term) |
-| `suck_history.mission_1` | 0x0018 | 0x3D4A78 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `suck_history.mission_2` | 0x001C | 0x3D4A7C | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `flags.lang` | 0x0020 | 0x3D4A80 | int | 0 | 0x0 | option key k0 |
-| `flags.fNoVibration` | 0x0024 | 0x3D4A84 | bool | 0 | 0x0 | option key k7 (rumble gate) |
-| `flags.nMixerMode` | 0x0028 | 0x3D4A88 | int | 0 | 0x0 |  |
-| `flags.fAutosaveWarned` | 0x002C | 0x3D4A8C | bool | 0 | 0x1 |  |
-| `flags.fReverseLookAround` | 0x0030 | 0x3D4A90 | bool | 0 | 0x0 |  |
-| `flags.fReverseAim` | 0x0034 | 0x3D4A94 | bool | 0 | 0x0 |  |
-| `flags.fNoShowBudDistractWarning` | 0x0038 | 0x3D4A98 | bool | 0 | 0x0 |  |
-| `flags.uMusicVolume` | 0x003C | 0x3D4A9C | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `flags.uEffectsVolume` | 0x0040 | 0x3D4AA0 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `flags.fUseHeadset` | 0x0044 | 0x3D4AA4 | bool | 0 | 0x0 |  |
-| `flags.dxScreenCenter` | 0x0048 | 0x3D4AA8 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `flags.dyScreenCenter` | 0x004C | 0x3D4AAC | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
-| `sly.hpCur` | 0x0050 | 0x3D4AB0 | int | 0 | 0x28 | Sly health; JT+0xE00 points here; max 40 at JT+0xDFC |
-| `sly.mpCur` | 0x0054 | 0x3D4AB4 | int | 0 | 0x64 |  |
-| `sly.oidBooty` | 0x0058 | 0x3D4AB8 | int | 0 | 0x0 |  |
-| `sly.apukCur` | 0x005C | 0x3D4ABC | int | 3 | 0x0 |  |
-| `bentley.hpCur` | 0x0068 | 0x3D4AC8 | int | 0 | 0x28 |  |
-| `bentley.mpCur` | 0x006C | 0x3D4ACC | int | 0 | 0x64 |  |
-| `bentley.oidBooty` | 0x0070 | 0x3D4AD0 | int | 0 | 0x0 |  |
-| `bentley.apukCur` | 0x0074 | 0x3D4AD4 | int | 3 | 0x0 |  |
-| `murray.hpCur` | 0x0080 | 0x3D4AE0 | int | 0 | 0x3c |  |
-| `murray.mpCur` | 0x0084 | 0x3D4AE4 | int | 0 | 0x64 |  |
-| `murray.oidBooty` | 0x0088 | 0x3D4AE8 | int | 0 | 0x0 |  |
-| `murray.apukCur` | 0x008C | 0x3D4AEC | int | 3 | 0x0 |  |
-| `powerUps.mppukfAcquired` | 0x0098 | 0x3D4AF8 | bool | 43 | 0x0 | acquired power-ups (43 bits); builtins 138/139 |
-| `loot.ccoin` | 0x00A0 | 0x3D4B00 | int | 0 | 0x6 / 0x6 / 0x9 / 0x9 | coins at 0x3D4B00 (HUD via SW+0x3B20; live write of 777 shown on the HUD [C:live]); 6 -> 9 when 3 coins were collected |
-| `loot.mplootkc` | 0x00A4 | 0x3D4B04 | int | 64 | 0x0 | loot count per kind k; pickpocket key 0x45A+k -> [k]; [4] (g_gs+0xB4) went 0 -> 1 between S02 and S03 |
+| Variable | Offset | Kind | x3 | Value S02 / S03 / S04 / S05 | Notes |
+|---|---|---|---|---|---|
+| `episodeCurrent` | 0x0000 | int | 0 | 0x1 |  |
+| `episodeBest` | 0x0004 | int | 0 | 0x1 |  |
+| `widCurrent` | 0x0008 | id? | 0 | 0x2 |  |
+| `oidPoCurrent` | 0x000C | oid | 0 | 0x7 | current playable character (JT oid 7) |
+| `dt` | 0x0010 | float | 0 | 655.6 / 695.1 / 725.6 / 735.2 | total play time (s) |
+| `suck_history.mission_0` | 0x0014 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 | difficulty sample 0 of 3 ("suck" = Sly 1 difficulty term) |
+| `suck_history.mission_1` | 0x0018 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `suck_history.mission_2` | 0x001C | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `flags.lang` | 0x0020 | int | 0 | 0x0 | option key k0 |
+| `flags.fNoVibration` | 0x0024 | bool | 0 | 0x0 | option key k7 (rumble gate) |
+| `flags.nMixerMode` | 0x0028 | int | 0 | 0x0 |  |
+| `flags.fAutosaveWarned` | 0x002C | bool | 0 | 0x1 |  |
+| `flags.fReverseLookAround` | 0x0030 | bool | 0 | 0x0 |  |
+| `flags.fReverseAim` | 0x0034 | bool | 0 | 0x0 |  |
+| `flags.fNoShowBudDistractWarning` | 0x0038 | bool | 0 | 0x0 |  |
+| `flags.uMusicVolume` | 0x003C | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `flags.uEffectsVolume` | 0x0040 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `flags.fUseHeadset` | 0x0044 | bool | 0 | 0x0 |  |
+| `flags.dxScreenCenter` | 0x0048 | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `flags.dyScreenCenter` | 0x004C | float | 0 | 0.0 / 0.0 / 0.0 / 0.0 |  |
+| `sly.hpCur` | 0x0050 | int | 0 | 0x28 | Sly health; the hurt component's HP points here (`BindStepplayerHpMp`); max 40 |
+| `sly.mpCur` | 0x0054 | int | 0 | 0x64 |  |
+| `sly.oidBooty` | 0x0058 | int | 0 | 0x0 |  |
+| `sly.apukCur` | 0x005C | int | 3 | 0x0 |  |
+| `bentley.hpCur` | 0x0068 | int | 0 | 0x28 |  |
+| `bentley.mpCur` | 0x006C | int | 0 | 0x64 |  |
+| `bentley.oidBooty` | 0x0070 | int | 0 | 0x0 |  |
+| `bentley.apukCur` | 0x0074 | int | 3 | 0x0 |  |
+| `murray.hpCur` | 0x0080 | int | 0 | 0x3c |  |
+| `murray.mpCur` | 0x0084 | int | 0 | 0x64 |  |
+| `murray.oidBooty` | 0x0088 | int | 0 | 0x0 |  |
+| `murray.apukCur` | 0x008C | int | 3 | 0x0 |  |
+| `powerUps.mppukfAcquired` | 0x0098 | bool | 43 | 0x0 | acquired power-ups (43 bits); builtins 138/139 |
+| `loot.ccoin` | 0x00A0 | int | 0 | 0x6 / 0x6 / 0x9 / 0x9 | coins (a live write of 777 showed on the HUD [C:live]); 6 -> 9 when 3 coins were collected |
+| `loot.mplootkc` | 0x00A4 | int | 64 | 0x0 | loot count per kind k; pickpocket key 0x45A+k -> [k]; [4] (blob offset 0xB4) went 0 -> 1 between S02 and S03 |
 
-Option keys k0..k10 precomputed at SW+0x3B2C: `flags.lang`, `nMixerMode`, `uMusicVolume`, `uEffectsVolume`, `fUseHeadset`, `dxScreenCenter`,
+Option keys k0..k10, precomputed in `SW` at load: `flags.lang`, `nMixerMode`, `uMusicVolume`, `uEffectsVolume`, `fUseHeadset`, `dxScreenCenter`,
 `dyScreenCenter`, `fNoVibration`, `fReverseLookAround`, `fReverseAim`, `fAutosaveWarned` (ResetGs keeps these 11).
 
 ## 2. Per-episode and per-level variables
 
-Pattern (9 episodes = worlds intro..blimp): `episode.<world>.dt` (play time; SW+0x3B58[w]), `episode.<world>.percent_complete` (SW+0x3B7C[w]),
+Pattern (9 episodes = worlds intro..blimp): `episode.<world>.dt` (play time; its key cached per world in `SW`), `episode.<world>.percent_complete` (likewise),
 and per level `episode.<world>.level.<level>.afClue` (32 packed bools, one per clue bottle), `.fVault` (safe opened), `.booty.aoidAssembly[15]` (some levels).
 
 | World | Levels (in schema order) | percent_complete offset | Values seen |
 |---|---|---|---|
-| intro | exterior, dvd_menu | 0x3D4C08 | `percent_complete` 0x3D4C08 = 0x64 |
-| nightclub | exterior, cellar, disco, heist, moulinrouge, waterpump | 0x3D4C98 | `dt` 0x3D4C94 = 140.8 / 180.3 / 210.8 / 220.4; `percent_complete` 0x3D4C98 = 0x2; `level.exterior.afClue` 0x3D4CD8 = 0x0 / 0x0 / 0x0 / 0x400 |
-| palace | exterior, interior, basement, ballroom | 0x3D4E38 |  |
-| temple | exterior, interior | 0x3D4F50 |  |
-| prison | exterior, interior, vault | 0x3D4FE0 |  |
-| castle | exterior, interior, waterrails, guardbreak, wolftomb, heist, ewoktrainer, ewoktomb, ewokhall, ewokwater | 0x3D50B4 |  |
-| train | exterior, cabins, train_a, train_b, train_c | 0x3D5364 |  |
-| sawmill | exterior, mulch, burn, lighthouse, bearcave, boss | 0x3D54C0 |  |
-| blimp | exterior, interior, er_murray, er_bentley, er_jt, boss | 0x3D5660 |  |
+| intro | exterior, dvd_menu | 0x01A8 | `percent_complete` 0x01A8 = 0x64 |
+| nightclub | exterior, cellar, disco, heist, moulinrouge, waterpump | 0x0238 | `dt` 0x0234 = 140.8 / 180.3 / 210.8 / 220.4; `percent_complete` 0x0238 = 0x2; `level.exterior.afClue` 0x0278 = 0x0 / 0x0 / 0x0 / 0x400 |
+| palace | exterior, interior, basement, ballroom | 0x03D8 |  |
+| temple | exterior, interior | 0x04F0 |  |
+| prison | exterior, interior, vault | 0x0580 |  |
+| castle | exterior, interior, waterrails, guardbreak, wolftomb, heist, ewoktrainer, ewoktomb, ewokhall, ewokwater | 0x0654 |  |
+| train | exterior, cabins, train_a, train_b, train_c | 0x0904 |  |
+| sawmill | exterior, mulch, burn, lighthouse, bearcave, boss | 0x0A60 |  |
+| blimp | exterior, interior, er_murray, er_bentley, er_jt, boss | 0x0C00 |  |
 
-Example: the clue bottle collected in S05 set bit 10 of `episode.nightclub.level.exterior.afClue` = 0x3D4CD8 (0 -> 0x400).
+Example: the clue bottle collected in S05 set bit 10 of `episode.nightclub.level.exterior.afClue` = 0x0278 (0 -> 0x400).
 
 ## 3. Missions (`m<N>_<name>`: focus_count, is_complete, time_played, suck_value)
 
@@ -146,9 +146,9 @@ are 3 in the save states). 20 bytes each from offset ~0x1284 up to 0x5094.
 
 ## 5. Earlier findings now named
 
-| Address | Earlier description | Variable |
+| Offset | Earlier description | Variable |
 |---|---|---|
-| 0x3D4B00 | coins (FINDINGS.md) | `loot.ccoin` |
-| 0x3D4CD8 | clue bitmask afClue | `episode.nightclub.level.exterior.afClue` |
-| 0x3D4AB0 | health (open item) | `sly.hpCur` |
-| 0x3D4B14 | pickpocket loot | `loot.mplootkc[4]` |
+| 0x00A0 | coins (FINDINGS.md) | `loot.ccoin` |
+| 0x0278 | clue bitmask afClue | `episode.nightclub.level.exterior.afClue` |
+| 0x0050 | health (open item) | `sly.hpCur` |
+| 0x00B4 | pickpocket loot | `loot.mplootkc[4]` |
