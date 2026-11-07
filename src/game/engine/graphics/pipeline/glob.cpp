@@ -2296,23 +2296,6 @@ struct BATCHRECS
     BATCHREC *abatchrec;
     BATCHRECS *pbatchrecsNext;
 };
-struct CLUTCOLOR
-{
-    ushort ucA;
-    ushort ucB;
-    uchar bAlpha;
-};
-struct CLUTPAL
-{
-    int unknown00;
-    CLUTCOLOR *acolor;
-};
-struct CLUTSET
-{
-    int cpal;
-    CLUTPAL *apal;
-    int *aipal;
-};
 extern "C" { extern CM D_002DDF40; }
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 struct SWALLOCC
@@ -3297,45 +3280,42 @@ public:
     int U16Read() __asm__("U16Read__18CBinaryInputStream");
     int S16Read() __asm__("S16Read__18CBinaryInputStream");
 };
-struct E6 { short a; short b; char c; char pad; };
-struct E8 { int c; E6 *a; };
-struct T { int c; E8 *a; int *ai; };
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" void ColorCorrectRgba16(short *ps);
+extern "C" void ColorCorrectRgba16(ushort *pus);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
     return AllocClearedFromStack(preq);
 }
-// Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices (0x1ED1A8) (inferred)
-extern "C" T *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
+// Reads a sub-glob's CLUTSET (sly2/glob.h): u16-counted palettes of u16/u16/u8 colours, then the per-batch palette indices (0x1ED1A8)
+extern "C" CLUTSET *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 {
-    T *pt = 0;
+    CLUTSET *pt = 0;
     int c = pbis->U16Read();
     if (c) {
         ALLOCREQ req;
-        pt = (T *)PvAllocReq(&req, sizeof(T), 0x10);
-        pt->c = c;
-        pt->a = (E8 *)PvAllocReq(&req, c * sizeof(E8), 0x10);
-        for (int i = 0; i < pt->c; i++) {
-            E8 *pe = &pt->a[i];
+        pt = (CLUTSET *)PvAllocReq(&req, sizeof(CLUTSET), 0x10);
+        pt->cpal = c;
+        pt->apal = (CLUTPAL *)PvAllocReq(&req, c * sizeof(CLUTPAL), 0x10);
+        for (int i = 0; i < pt->cpal; i++) {
+            CLUTPAL *pe = &pt->apal[i];
             int n = pbis->U16Read();
-            pe->a = (E6 *)PvAllocReq(&req, n * sizeof(E6), 0x10);
+            pe->acolor = (CLUTCOLOR *)PvAllocReq(&req, n * sizeof(CLUTCOLOR), 0x10);
             for (int j = 0; j < n; j++) {
-                E6 *p6 = &pe->a[j];
-                short *pb = &p6->b;
-                p6->a = pbis->U16Read();
-                p6->b = pbis->U16Read();
-                p6->c = pbis->U8Read();
-                ColorCorrectRgba16(&p6->a);
+                CLUTCOLOR *p6 = &pe->acolor[j];
+                ushort *pb = &p6->ucB;
+                p6->ucA = pbis->U16Read();
+                p6->ucB = pbis->U16Read();
+                p6->bAlpha = pbis->U8Read();
+                ColorCorrectRgba16(&p6->ucA);
                 ColorCorrectRgba16(pb);
             }
         }
         int m = pbis->U16Read();
-        pt->ai = (int *)PvAllocReq(&req, m * 4, 0x10);
+        pt->aipal = (int *)PvAllocReq(&req, m * 4, 0x10);
         for (int k = 0; k < m; k++)
-            pt->ai[k] = pbis->S16Read();
+            pt->aipal[k] = pbis->S16Read();
     }
     return pt;
 }
