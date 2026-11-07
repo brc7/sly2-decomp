@@ -404,28 +404,23 @@ extern "C" DETECTOR *GetStepguardDetector(STEPGUARD *guard)
 
 // 0x206380 ShouldStepguardIgnoreIntersection
 namespace M_FIgnoreStepguardIntersection { extern "C" {
-struct SOV; struct HOLDER; struct BHVJUGGLED; struct S;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct SOV { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *collisionGroup; };
-struct HOLDER { char pad[0xEC]; void *collisionGroup; };
-struct BHVJUGGLED { char pad[0x50]; int state; char pad2[8]; struct HOLDER *holder; };
-struct S { char pad[0x26C]; char behaviorStack[4]; };
-int ShouldSoIgnoreIntersection(struct S *p, struct SOV *other);
-int StepguardHasSgf(struct S *p, int n);
-struct BHVJUGGLED *FindBhvInBhvstk(void *stack, int cid);
+struct BHVJUGGLED;
+struct BHVJUGGLED { char pad[0x50]; int state; char pad2[8]; SO *holder; };
+int ShouldSoIgnoreIntersection(STEP *p, SO *other);
+int StepguardHasSgf(STEP *p, int n);
 int MaxInt(int ignore, int b);
 // 0x206380: STEPGUARD vtable slot 61 (should an intersection with `other` be ignored): the step test, plus, while dead
 // (flag 7), objects whose vtable slot 62 test fails, and, while juggled/carried (flag 0x17), objects of its holder's
 // group in juggled states 0/4/5.
-int ShouldStepguardIgnoreIntersection(struct S *guard, struct SOV *other)
+int ShouldStepguardIgnoreIntersection(STEP *guard, SO *other)
 {
     int ignore = ShouldSoIgnoreIntersection(guard, other);
     if (StepguardHasSgf(guard, SGF_KO)) {
-        if (!((int (*)(void *))other->vt[62].pfn)((char *)other + other->vt[62].d))
+        if (!other->IsFixed())
             ignore = MaxInt(ignore, 1);
     } else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-        struct BHVJUGGLED *juggled = FindBhvInBhvstk(guard->behaviorStack, CID_BHVJUGGLED);
-        if (other->collisionGroup == juggled->holder->collisionGroup) {
+        struct BHVJUGGLED *juggled = (struct BHVJUGGLED *)FindBhvInBhvstk(&guard->behaviors, CID_BHVJUGGLED);
+        if (other->physicsTree == juggled->holder->physicsTree) {
             switch (juggled->state) {
             case 0:
             case 4:
@@ -3675,31 +3670,30 @@ extern "C" void CloneGuardAttack(ANIMLO *attack)
 
 // 0x20AE18 PostGuardAttackLoad
 namespace M_func_0020AE18 { extern "C" {
-struct SOV; struct LOV; struct EVAL; struct S;
+struct EVAL; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct SOV { char pad[0xA0]; int unknownA0; };
-struct LOV { char pad[0x10]; struct LOV *parent; };
 struct EVAL { char pad[0x30]; qword pos; };
-struct S { char pad[0x10]; struct LOV *parent; int pad14; int oid; char pad2[0x7C - 0x1C]; int aimObjectOid, effectorOid, strikeLabel; char pad3[0x90 - 0x88]; qword strikeOffset;
-           struct SOV *aimObject; int effector; int pad4[1]; struct LOV *guard; char binding[4]; int bindingResource; char pad5[0xC0 - 0xB8]; void *activeBinding; };
+/* A guard attack (an LO): its own fields. */
+struct S : LO { char pad50[0x7C - 0x50]; int aimObjectOid, effectorOid, strikeLabel; char pad3[0x90 - 0x88]; qword strikeOffset;
+           XF *aimObject; int effector; int pad4[1]; LO *guard; char binding[4]; int bindingResource; char pad5[0xC0 - 0xB8]; void *activeBinding; };
 void PostLoLoad(struct S *attack);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct LOV *object, int cid);
-void ResolveAnimBinding(void *binding, struct LOV *guard);
-void *FindSoXf(struct LOV *root, int oid, int b);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid);
+void ResolveAnimBinding(void *binding, LO *guard);
+void *FindSoXf(LO *root, int oid, int b);
 float *FindAsegLabel(int aseg, int label);
-void PredictAsegTransform(int aseg, struct LOV *root, int so, int relativeTo, struct EVAL *result, int c, float t, float g);
+void PredictAsegTransform(int aseg, LO *root, int so, XF *relativeTo, struct EVAL *result, int c, float t, float g);
 // 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
 // resolves its binding and, when it has an aim object, precomputes the strike offset: where the
 // effector is, relative to the aim object, at the strike label of the attack animation (inferred).
 void PostGuardAttackLoad(struct S *attack)
 {
-    struct LOV *object;
+    LO *object;
     PostLoLoad(attack);
     for (object = attack->parent; object && !IsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
         ;
     attack->guard = object;
     ResolveAnimBinding(attack->binding, object);
-    if (attack->oid != OID_DEFAULT_ATTACK)
+    if (attack->oid != (OID)OID_DEFAULT_ATTACK)
         attack->activeBinding = attack->binding;
     if (attack->aimObjectOid != -1) {
         struct EVAL eval;
@@ -3709,7 +3703,7 @@ void PostGuardAttackLoad(struct S *attack)
         attack->effector = (int)FindSoXf(attack->guard, attack->effectorOid, 6);
         aseg = attack->bindingResource;
         labelTime = FindAsegLabel(aseg, attack->strikeLabel);
-        PredictAsegTransform(aseg, attack->guard, attack->effector, attack->aimObject->unknownA0, &eval, 0, *labelTime, 1.0f);
+        PredictAsegTransform(aseg, attack->guard, attack->effector, attack->aimObject->parent, &eval, 0, *labelTime, 1.0f);
         attack->strikeOffset = eval.pos;
     }
 }
