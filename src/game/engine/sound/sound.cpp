@@ -200,17 +200,15 @@ struct S *SND_ctor(struct S *sound)
 } } // namespace M_SND_ctor
 
 namespace M_PauseSnd { extern "C" {
-struct S { char pad[0x4E]; short pauseCount; };
-void SetSndFlags(struct S *, int, int);
+void SetSndFlags(CID151 *, int, int);
 // Pauses a sound (counted: nested pauses need as many resumes); the first pause requests "pause" on the next flush.
-void PauseSnd(struct S *sound) { if (++sound->pauseCount == 1) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_PAUSE); }
+void PauseSnd(CID151 *sound) { if (++sound->pauseCount == 1) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_PAUSE); }
 } } // namespace M_PauseSnd
 
 namespace M_ResumeSnd { extern "C" {
-struct S { char pad[0x4E]; short pauseCount; };
-void SetSndFlags(struct S *, int, int);
+void SetSndFlags(CID151 *, int, int);
 // Undoes one PauseSnd; the last one requests "continue" on the next flush.
-void ResumeSnd(struct S *sound) { if (--sound->pauseCount == 0) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_CONTINUE); }
+void ResumeSnd(CID151 *sound) { if (--sound->pauseCount == 0) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_CONTINUE); }
 } } // namespace M_ResumeSnd
 
 // Requests that a sound stop, fading out over dtFade seconds (applied by the next UpdateSnd).
@@ -222,10 +220,9 @@ extern "C" void StopSnd(SNDV *sound, float fadeTime)
 
 namespace M_StartSnd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1C]; void *source; qword position; char pad2[0x40 - 0x30]; int voiceHandle; char pad3[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; };
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
-void SetSndFlags(struct P *, int, int);
+void SetSndFlags(CID151 *, int, int);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -236,7 +233,7 @@ static inline int AreVectorsNear(qword a, qword b)
 void CID151::Start()   /* key function: CID151's vtable comes out here (the namespace's views) */
 {
     using namespace M_StartSnd;
-    struct P *sound = (struct P *)this;
+    CID151 *sound = this;
     int isStopped = 0;
     int requests;
     if (!sound->voiceHandle) {
@@ -251,13 +248,12 @@ void CID151::Start()   /* key function: CID151's vtable comes out here (the name
 }
 
 namespace M_func_001FB1F8 { extern "C" {
-struct P { char pad[0x10]; float volume; };
 struct S;
 extern struct S D_002BBB60;
 float ClampToLimits__FP2LMf(struct S *, float);
-void SetSndFlags(struct P *, int, int);
+void SetSndFlags(CID151 *, int, int);
 // Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
-void SetSndVolume(struct P *sound, float volume)
+void SetSndVolume(CID151 *sound, float volume)
 {
     float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
     if ((int)(clamped * 1024.0f) != (int)(sound->volume * 1024.0f)) {
@@ -289,17 +285,15 @@ extern "C" void SetSndPitch(SNDV *sound, int n1, int n2, float pitchRatio)
 
 namespace M_SetSndSourceLo { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct SOURCE;
-struct P { char pad[0x1C]; struct SOURCE *source; qword position; };
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
-void SetSndFlags(struct P *, unsigned short, unsigned short);
+void SetSndFlags(CID151 *, unsigned short, unsigned short);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 }
 // Makes a sound positional, following an object.
-void SetSndSourceLo(struct P *sound, struct SOURCE *source)
+void SetSndSourceLo(CID151 *sound, LO *source)
 {
     sound->source = source;
     if (source) SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
@@ -309,16 +303,15 @@ void SetSndSourceLo(struct P *sound, struct SOURCE *source)
 
 namespace M_SetSndSourcePos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1C]; void *source; qword position;   /* SND: the followed object (SetSndSourceLo), the fixed position */ };
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
-void SetSndFlags(struct P *, int, int);
+void SetSndFlags(CID151 *, int, int);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 }
 // Makes a sound positional at a fixed world position (a zero vector means not positional).
-void SetSndSourcePos(struct P *sound, qword position)
+void SetSndSourcePos(CID151 *sound, qword position)
 {
     sound->position = position;
     if (!AreVectorsNear(D_002A2DD0, position)) SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
@@ -327,10 +320,9 @@ void SetSndSourcePos(struct P *sound, qword position)
 } } // namespace M_SetSndSourcePos
 
 namespace M_SetSndRange { extern "C" {
-struct S { char pad[0x30]; float rangeNear; float rangeFar; };
 // Sets the distance at which a positional sound starts to fade (full) and the distance where it is silent (stop);
 // stop is forced to be at least full + 1.
-void SetSndRange(struct S *sound, float rangeNear, float rangeFar) { if (rangeFar <= rangeNear) { rangeFar = rangeNear + 1.0f; sound->rangeFar = rangeFar; } else sound->rangeFar = rangeFar; sound->rangeNear = rangeNear; }
+void SetSndRange(CID151 *sound, float rangeNear, float rangeFar) { if (rangeFar <= rangeNear) { rangeFar = rangeNear + 1.0f; sound->rangeFar = rangeFar; } else sound->rangeFar = rangeFar; sound->rangeNear = rangeNear; }
 } } // namespace M_SetSndRange
 
 /* SetSndDoppler: empty */
@@ -374,12 +366,11 @@ void UpdateSndPositional(struct P *sound)
 } } // namespace M_UpdateSndPositional
 
 namespace M_SetSndFlags { extern "C" {
-struct S { char pad[0x50]; unsigned short flags; };
-void AddSndToDirtyList(struct S *);
-void RemoveSndFromDirtyList(struct S *);
+void AddSndToDirtyList(CID151 *);
+void RemoveSndFromDirtyList(CID151 *);
 // Sets the masked bits of a sound's request flags; a sound with pending requests is put on the manager's dirty list,
 // one without is taken off it.
-void SetSndFlags(struct S *sound, unsigned short mask, unsigned short value)
+void SetSndFlags(CID151 *sound, unsigned short mask, unsigned short value)
 {
     sound->flags = (sound->flags & ~mask) | (value & mask);
     if (sound->flags) AddSndToDirtyList(sound); else RemoveSndFromDirtyList(sound);
@@ -531,11 +522,9 @@ extern "C" void UpdateSnd(P *sound)
 #undef ICALL
 
 namespace M_func_001FBAF8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct S { int a[3]; struct VTE *vt; char pad[0x30]; int voiceHandle; char pad2[0xE]; short playState; };
 // Async callback when a looping bank sound started: stores its voice handle, clears "starting", drops the callback's
 // reference. (inferred)
-void OnBankSoundStarted(int voiceHandle, long context) { struct S *sound = (struct S *)(int)context; sound->voiceHandle = voiceHandle; sound->playState = 0; sound->vt[2].pfn((char *)sound + sound->vt[2].d); }
+void OnBankSoundStarted(int voiceHandle, long context) { CID151 *sound = (CID151 *)(int)context; sound->voiceHandle = voiceHandle; sound->playState = 0; sound->Release(); }
 } } // namespace M_func_001FBAF8
 
 namespace M_func_001FBB30 { extern "C" {
@@ -664,11 +653,10 @@ void PlayBanksnd(struct P *sound)
 } } // namespace M_PlayBanksnd
 
 namespace M_StopBanksnd { extern "C" {
-struct A { char pad[0x40]; int voiceHandle; char pad2[4]; float fadeTime; };
 void snd_AutoVol(int voiceHandle, int a, int b, int c);
 void snd_StopSound(int voiceHandle);
 // Stops a bank sound (slot 10): a fade-out when a fade time was requested, else immediately.
-void StopBanksnd(struct A *sound)
+void StopBanksnd(CID151 *sound)
 {
     if (sound->fadeTime > 0.0f)
         snd_AutoVol(sound->voiceHandle, -4,   /* fade to silence over fadeTime (240 ticks per second) */
@@ -752,11 +740,10 @@ void BANKSND::AddRef()   /* key function: BANKSND's vtable comes out here */
 }
 
 namespace M_DecrefBanksnd { extern "C" {
-struct S { char pad[0x4C]; short refCount; };
-void DestroyBasic(struct S *, int);
-void FreeBanksnd(struct S *);
+void DestroyBasic(BANKSND *, int);
+void FreeBanksnd(BANKSND *);
 // Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefBanksnd(struct S *sound) { if (--sound->refCount == 0 && sound) { DestroyBasic(sound, 0); FreeBanksnd(sound); } }
+void DecrefBanksnd(BANKSND *sound) { if (--sound->refCount == 0 && sound) { DestroyBasic(sound, 0); FreeBanksnd(sound); } }
 } } // namespace M_DecrefBanksnd
 
 // Allocates a bank sound from the manager's pool.
@@ -844,10 +831,9 @@ struct P *STREAMSND_ctor(struct P *sound, int streamRecord, int streamKind)
 } } // namespace M_STREAMSND_ctor
 
 namespace M_StartStreamsnd { extern "C" {
-struct P { char pad[0x40]; int voiceHandle; char pad2[0x50 - 0x44]; unsigned short flags; unsigned short playState; char pad3[0x68 - 0x54]; long playTime; char pad4[0x3BC - 0x70]; int dirtyGroups; };
-void StartSnd(struct P *);
+void StartSnd(STREAMSND *);
 // Starts a streamed sound (slot 7): base start, then resets its play time and status queries.
-void StartStreamsnd(struct P *sound)
+void StartStreamsnd(STREAMSND *sound)
 {
     /* only when not already started: no voice, not playing, flag 1 clear */
     int canStart = 0; if (!sound->voiceHandle) { canStart = sound->playState || (sound->flags & SND_START); canStart ^= 1; } if (canStart) {
@@ -859,13 +845,12 @@ void StartStreamsnd(struct P *sound)
 } } // namespace M_StartStreamsnd
 
 namespace M_SetStreamsndGroupVolume { extern "C" {
-struct P { char pad[0x70]; float groupVolumes[6]; char pad2[0x3BC - 0x88]; int dirtyGroups; };
 struct S;
 extern struct S D_002BBB60;   /* the volume limits (0..1) */
 float ClampToLimits__FP2LMf(struct S *, float);
-void SetSndFlags(struct P *, int, int);
+void SetSndFlags(STREAMSND *, int, int);
 // Sets the volume of one of a stream's six sub-groups (channels of a multi-layer stream) and marks it dirty.
-void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
+void SetStreamsndGroupVolume(STREAMSND *sound, unsigned int group, float volume)
 {
     if (group < 6) {
         float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
@@ -880,11 +865,10 @@ void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
 } } // namespace M_SetStreamsndGroupVolume
 
 namespace M_func_001FC380 { extern "C" {
-struct P { char pad[0x88]; int groupPans[6]; char pad2[0x3BC - 0xA0]; int dirtyGroups; };
-void SetSndFlags(struct P *, int, int);
+void SetSndFlags(STREAMSND *, int, int);
 static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; }   /* to 0..359 */
 // Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
-void SetStreamGroupPan(struct P *sound, unsigned int group, int deg)
+void SetStreamGroupPan(STREAMSND *sound, unsigned int group, int deg)
 {
     if (group < 6) {
         int pan = Norm(deg);
@@ -920,9 +904,8 @@ void AddStreamGroupSource(struct P *sound, unsigned int group, int object, struc
 } } // namespace M_func_001FC408
 
 namespace M_func_001FC4F8 { extern "C" {
-struct S { char pad[0x3B8]; int streamKind; };   /* bit 2: looping */
 // Kind of a streamed sound (slot 8): 2 when looping, else 1. (inferred)
-int GetStreamSoundKind(struct S *sound) { return (sound->streamKind & 4) ? 2 : 1; }
+int GetStreamSoundKind(STREAMSND *sound) { return (sound->streamKind & 4) ? 2 : 1; }
 } } // namespace M_func_001FC4F8
 
 namespace M_PlayStreamsnd { extern "C" {
@@ -1181,11 +1164,10 @@ void STREAMSND::AddRef()   /* key function: STREAMSND's vtable comes out here */
 }
 
 namespace M_DecrefStreamsnd { extern "C" {
-struct S { char pad[0x4C]; short refCount; };
-void DestroyBasic(struct S *, int);
-void FreeStreamsnd(struct S *);
+void DestroyBasic(STREAMSND *, int);
+void FreeStreamsnd(STREAMSND *);
 // Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefStreamsnd(struct S *sound)
+void DecrefStreamsnd(STREAMSND *sound)
 {
     if (--sound->refCount == 0 && sound) {
         DestroyBasic(sound, 0);

@@ -32,7 +32,7 @@ struct CID151 : BASIC
     int voiceHandle;            /* +0x40 the 989snd voice (bank sounds) or stream handle */
     float effectiveVolume;      /* +0x44 the volume after range and channel scaling (CalculateSndVolPan) */
     float fadeTime;             /* +0x48 */
-    ushort refCount;            /* +0x4C */
+    short refCount;             /* +0x4C */
     short pauseCount;           /* +0x4E */
     ushort flags;               /* +0x50 requests and dirty bits (sound.cpp's SND_* flags) */
     ushort playState;           /* +0x52 */
