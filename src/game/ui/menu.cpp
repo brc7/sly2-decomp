@@ -15,11 +15,11 @@
    SCREENBASE), vtable 0x2D37D0, emitted here. PMENU below is the view the m2c bodies read. */
 struct PAUSEMENU : SCREENBASE
 {
-    virtual void VSlot10() __asm__("ShowPausemenu");   /* slot 10; key function */
+    virtual void Show() __asm__("ShowPausemenu");   /* slot 10; key function */
     virtual void Update() __asm__("UpdatePauseMenu");   /* slot 7 */
-    virtual void VSlot8() __asm__("PAUSEMENU_Slot8Default");   /* slot 8 */
-    virtual void VSlot9() __asm__("PAUSEMENU_Slot9");   /* slot 9 */
-    virtual void VSlot11() __asm__("HidePauseMenu");   /* slot 11 */
+    virtual void Draw() __asm__("PAUSEMENU_Slot8Default");   /* slot 8 */
+    virtual void UnknownSlot9() __asm__("PAUSEMENU_Slot9");   /* slot 9 */
+    virtual void Hide() __asm__("HidePauseMenu");   /* slot 11 */
 };
 extern "C" char base_D_003DD040[] __asm__("D_003DD040");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
@@ -231,7 +231,7 @@ extern "C" void PAUSEMENU_Slot9(PMENU *p, int f) {
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 // Shows the pause menu (slot 10): screen base show, game clock stopped, hands-off, game event 0x28.
-void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
+void PAUSEMENU::Show()   /* key function: PAUSEMENU's vtable comes out here */
 {
     ShowScreen();
     SetClockRate(D_002DDED0, 0, 0.0f);

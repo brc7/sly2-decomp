@@ -119,7 +119,7 @@ void InitGrabspot(struct S *grabspot)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // GRABSPOT default: no wrap range (returns 0).
-int GRABSPOT::FGetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
+int GRABSPOT::GetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
 {
     return 0;
 }
@@ -321,7 +321,7 @@ float GetShapeMaxDistance(struct S *p);
 /** @sly2-annot addr=0x182FE8
  * Purpose: If open shape: out [GetShapeMinDistance, GetShapeMaxDistance], return 1
  * Info: proposed name CID12_FGetGrabRange (T2); class CID12; TU grabspot
- * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named FGetGrabRange
+ * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
  *   everywhere (verifier r4b: all overrides return a [min,max] range)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
@@ -587,7 +587,7 @@ void ClonePoleGrabspot(struct S *pole)
 /** @sly2-annot addr=0x183498
  * Purpose: Range [-pi r, pi r] (circumference of radius x10C): a round pole
  * Info: proposed name CID34_FGetGrabRange (T2); class CID34; TU grabspot
- * Notes: superseded: CID34_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named FGetGrabRange
+ * Notes: superseded: CID34_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
  *   everywhere (verifier r4b: all overrides return a [min,max] range)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8

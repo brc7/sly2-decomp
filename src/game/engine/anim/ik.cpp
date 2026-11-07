@@ -81,7 +81,7 @@ extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 /* ACT7's slot 1, its key function (sly2/act.h). */
 // Attaches an IK action to its transform (ACT slot 1, inferred as for ACTSEG): base slot 1 (sets the transform's
 // update mode), then points the transform's +0xA8 at this action's IK record.
-void ACT7::VSlot1()
+void ACT7::Attach()
 {
     ACTIKV *pact = (ACTIKV *)this;
     AttachActBase(pact);

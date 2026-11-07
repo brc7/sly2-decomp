@@ -43,14 +43,14 @@ struct CPLCYDATA
 struct CPLCY : public CPLCYDATA
 {
     /* The seven slots of the policy vtables (0x2CD378..0x2CD5B8 and tn's 0x2DB858; cplcy.cpp, the key TU, defines
-     * Init). Member names are Sly 1's where the C names say so (Init/Activate/Deactivate/Update), VSlot7 is DRAFT. */
+     * Init). Member names are Sly 1's where the C names say so (Init/Activate/Deactivate/Update), ResetPolicy (slot 7) is named from the C labels (inferred). */
     virtual void Init() __asm__("InitCplcy");
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplcy");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplcy");
     virtual void Set() __asm__("SetCplcy");
     virtual void Revoke() __asm__("CPLCY_Revoke");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
-    virtual void VSlot7() __asm__("ResetCplcy");
+    virtual void ResetPolicy() __asm__("ResetCplcy");
     int FIsTop() __asm__("IsCameraPolicyActive__FP5CPLCY");   /* from CanJtUseGadget__2JTi.cpp */
 };
 
@@ -66,7 +66,7 @@ struct CMPART1 : public CPLCY
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLOOK : public CPLCY
 {
-    virtual void VSlot7() __asm__("ResetCplook");   /* key function (cplcy.cpp) */
+    virtual void ResetPolicy() __asm__("ResetCplook");   /* key function (cplcy.cpp) */
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplook");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplook");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplook");
@@ -92,7 +92,7 @@ struct CPLOOK : public CPLCY
    Layout from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (6 copies in Lilly ports) */
 struct CPZOOM : public CPLCY
 {
-    virtual void VSlot7() __asm__("ResetCpzoom");   /* key function (cplcy.cpp) */
+    virtual void ResetPolicy() __asm__("ResetCpzoom");   /* key function (cplcy.cpp) */
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpzoom");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpzoom");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpzoom");

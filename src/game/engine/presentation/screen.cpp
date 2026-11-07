@@ -120,13 +120,13 @@ struct GADGETMENUV : public SCREENV
  * SCREENBASE. The views above keep the names the m2c bodies use (SCREENV, GADGETMENUV). */
 struct GADGETMENU : SCREEN
 {
-    virtual void VSlot13() __asm__("ResetGadgetMenu");   /* slot 13; key function */
+    virtual void Reset() __asm__("ResetGadgetMenu");   /* slot 13; key function */
     virtual void Update() __asm__("UpdateGadgetMenu");   /* slot 7 */
     virtual void SetMode(int mode) __asm__("SetGadgetMenuStickDir");   /* slot 14 */
 };
 struct THIEFNET : SCREEN
 {
-    virtual void VSlot13() __asm__("ResetThiefnet");   /* slot 13; key function */
+    virtual void Reset() __asm__("ResetThiefnet");   /* slot 13; key function */
     virtual void Update() __asm__("UpdateThiefnet");   /* slot 7 */
     virtual void SetMode(int mode) __asm__("SetThiefnetStickDir");   /* slot 14 */
 };
@@ -134,7 +134,7 @@ struct JOBLIST : SCREEN
 {
     virtual void PostLoad() __asm__("PostJobListLoad");   /* slot 12; key function */
     virtual void Update() __asm__("UpdateJobList");   /* slot 7 */
-    virtual void VSlot13() __asm__("ResetJobList");   /* slot 13 */
+    virtual void Reset() __asm__("ResetJobList");   /* slot 13 */
     virtual void SetMode(int mode) __asm__("SetJobListStickDir");   /* slot 14 */
 };
 struct SCRN52D : SCREEN   /* the screen of text 0x52D (ConstructScreen52D constructs it) */
@@ -1321,7 +1321,7 @@ extern "C" void *GADGETMENU_ctor(void *pv)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Gadget-menu reset (slot 13).
-void GADGETMENU::VSlot13()   /* key function */
+void GADGETMENU::Reset()   /* key function */
 {
     GADGETMENUV *gadgetMenu = (GADGETMENUV *)this;
     ResetScreen(gadgetMenu);
@@ -2002,7 +2002,7 @@ struct S *ConstructThiefnetScreen(struct S *p) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // ThiefNet shop reset (slot 13).
-void THIEFNET::VSlot13()   /* key function */
+void THIEFNET::Reset()   /* key function */
 {
     SCREENV *screen = (SCREENV *)this;
     ResetScreen(screen);

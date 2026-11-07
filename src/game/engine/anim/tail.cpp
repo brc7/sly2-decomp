@@ -1,7 +1,7 @@
 // tail.cpp -- chains of transforms that hang off an SO (tails, ropes): the chain actions, loading the chains from
 // the level, and the per-frame chain simulation (VU0 macro-mode asm).
 // Entry points: LoadSoChainsFromBrx (SO loading), UpdateChainLink (per-frame, from UpdateSoSlots' role-0x10 actions),
-// CloneChainAct / ACT3::VSlot1 (the chain action's clone and retract slots).
+// CloneChainAct / ACT3::Attach (the chain action's clone and retract slots).
 // TU 0x21C820..0x21D278 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021D258
@@ -52,7 +52,7 @@ extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 // Attaches a chain action to its transform (ACT slot 1, inferred from ACTSEG's slot 1, which binds its curve there):
 // runs the base slot 1 (sets the transform's update mode and refreshes it), then points the transform's +0xA8 at
 // this action's chain link. (An older draft called this RetractChainAct.)
-void ACT3::VSlot1()
+void ACT3::Attach()
 {
     ACTCHAINV *pact = (ACTCHAINV *)this;
     AttachActBase(pact);

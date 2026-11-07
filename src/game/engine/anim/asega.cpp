@@ -33,7 +33,7 @@ struct XF
     char padA0[8];
     union { XF *pxfRef; float blendWeight; };   /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
-    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::VSlot1) */
+    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
@@ -783,7 +783,7 @@ extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
 /* ACTSEG's slot 1, its key function (sly2/act.h). */
 // Attaches a segment channel action (slot 1): a rotation-curve channel binds its curve and the player's local time into
 // the transform's reference record; other channels use the base attach.
-void ACTSEG::VSlot1() {
+void ACTSEG::Attach() {
     ACTSEGV *p = (ACTSEGV *)this;
     ACV *pac;
     pac = p->pacRot;

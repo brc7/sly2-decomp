@@ -86,7 +86,7 @@ struct VTE { short d; short pad; void *pfn; };
 struct CHNO { VTE *vt; };
 /* A blended channel: its blend, timing tables and per-element channel objects; then the default value. */
 struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
-struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("LoadCurveFromBrxDefault"); virtual void VSlot2(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("LoadFloatCurveFromBrxDefault"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
+struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("LoadCurveFromBrxDefault"); virtual void Prepare(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void Prepare(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int GetKind() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("LoadFloatCurveFromBrxDefault"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
 
 extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
@@ -469,7 +469,7 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
 // Evaluates a blended pose channel (vtable label BlendChannelPose): with a dominant segment it forwards to that segment's
 // channel; otherwise it maps the blend time onto each weighted segment through the MRSG tables, evaluates each segment's
 // channel and weight-sums the positions and rotations into the output channel record.
-void AC5::VSlot2(CHN *pq)
+void AC5::Prepare(CHN *pq)
 { BLCHNQ *p = (BLCHNQ *)this;
     VU c, d;
     CHN q;
@@ -746,7 +746,7 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 }
 
 // AC5's vtable 0x2CB5A8 and ACG2's 0x2CB588 (sly2/act.h; act.cpp's PacNewKind/PacNewKind2 construct them) sit
-// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = BlendChannelPose and ACG2::Evaluate =
+// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::Prepare = BlendChannelPose and ACG2::Evaluate =
 // EvaluateBlendFloatCurve above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
 // out of line with them, weak in .gnu.linkonce.t.GetBlendCurveKind. The asm label keeps the config name (HYPOTHESIS:
 // in the original an in-class `virtual int Kind() { return 5; }`). The classes are declared on the BLCHNF line
@@ -758,4 +758,4 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 // The blended curve's kind: always 5 (inferred: an in-class inline virtual; emitted out of line here as linkonce).
-inline int AC5::VSlot4() { return 5; }
+inline int AC5::GetKind() { return 5; }

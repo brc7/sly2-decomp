@@ -24,12 +24,12 @@ struct BHV : public BASIC
       virtual void OnPush() __asm__("InitBhv");
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhvClassDesc");   /* slot 6 */
       virtual void Start() __asm__("StartBhv");
-    virtual void VSlot9() __asm__("CloseBhv");   /* slot 9: not yet identified */
-    virtual void VSlot10() __asm__("UpdateBhv");   /* slot 10: not yet identified */
-    virtual void VSlot11() __asm__("UpdateBhvMotion");   /* slot 11: not yet identified */
-    virtual void VSlot12() __asm__("GetBhvGroundProbeFlags");   /* slot 12: not yet identified */
-    virtual void VSlot13() __asm__("HandleBhvMessage");   /* slot 13: not yet identified */
-    virtual void VSlot14() __asm__("ResetBhvSteering");   /* slot 14: not yet identified */
+    virtual void Close() __asm__("CloseBhv");   /* slot 9: named from its overrides (inferred) */
+    virtual void Update() __asm__("UpdateBhv");   /* slot 10: named from its overrides (inferred) */
+    virtual void UpdateMotion() __asm__("UpdateBhvMotion");   /* slot 11: named from its overrides (inferred) */
+    virtual void GetGroundProbeFlags() __asm__("GetBhvGroundProbeFlags");   /* slot 12: named from its overrides (inferred) */
+    virtual void HandleBehaviorMessage() __asm__("HandleBhvMessage");   /* slot 13: named from its overrides (inferred) */
+    virtual void UpdateSteering() __asm__("ResetBhvSteering");   /* slot 14: named from its overrides (inferred) */
 };
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

@@ -217,7 +217,7 @@ inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /*
  * object's start) returns the object itself; GRABSPOT's own slot 6 (GetGrabspotOwner) returns 0. In the linkonce area
  * each sits right before its class's ensure accessor above (BARREL's in sly2/so.h). HYPOTHESIS: inline virtual
  * overrides in the original; free inline functions here, emitted by the key TU of each class, whose vtable names
- * them through classes.h's VtF labels (a label equal to the mangled name makes g++ emit the inline function). */
+ * them through classes.h's GetOwner labels (a label equal to the mangled name makes g++ emit the inline function). */
 inline void *func_002599F0(CID12 *p) { return p; }
 inline void *func_00259A00(CID34 *p) { return p; }
 inline void *func_00259A10(CID38 *p) { return p; }

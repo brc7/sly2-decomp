@@ -14,15 +14,15 @@ struct CID151 : BASIC
     char pad10[0x60 - 0x10];
     virtual void Start() __asm__("StartSnd");   /* slot 7 (the first new virtual); key function (sound.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid151ClassDesc");   /* slot 6 */
-    virtual void VSlot8() __asm__("__pure_virtual");   /* slot 8 (pure) */
-    virtual void VSlot9() __asm__("__pure_virtual");   /* slot 9 (pure) */
-    virtual void VSlot10() __asm__("__pure_virtual");   /* slot 10 (pure) */
-    virtual void VSlot11() __asm__("__pure_virtual");   /* slot 11 (pure) */
-    virtual void VSlot12() __asm__("__pure_virtual");   /* slot 12 (pure) */
-    virtual void VSlot13() __asm__("__pure_virtual");   /* slot 13 (pure) */
-    virtual void VSlot14() __asm__("__pure_virtual");   /* slot 14 (pure) */
-    virtual void VSlot15() __asm__("__pure_virtual");   /* slot 15 (pure) */
-    virtual void VSlot16() __asm__("UpdateSndPositional");   /* slot 16 */
+    virtual void GetKind() __asm__("__pure_virtual");   /* slot 8 (pure) */
+    virtual void Play() __asm__("__pure_virtual");   /* slot 9 (pure) */
+    virtual void Stop() __asm__("__pure_virtual");   /* slot 10 (pure) */
+    virtual void Pause() __asm__("__pure_virtual");   /* slot 11 (pure) */
+    virtual void Resume() __asm__("__pure_virtual");   /* slot 12 (pure) */
+    virtual void ApplyParams() __asm__("__pure_virtual");   /* slot 13 (pure) */
+    virtual void QueryStatus() __asm__("__pure_virtual");   /* slot 14 (pure) */
+    virtual void SetCulled() __asm__("__pure_virtual");   /* slot 15 (pure) */
+    virtual void UpdatePositional() __asm__("UpdateSndPositional");   /* slot 16 */
 };
 typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
 
@@ -31,14 +31,14 @@ struct BANKSND : CID151
 {
     virtual void AddRef() __asm__("IncrefBanksnd");   /* slot 1; key function (sound.cpp) */
     virtual void Release() __asm__("DecrefBanksnd");   /* slot 2 */
-    virtual void VSlot8() __asm__("GetBanksndKind");   /* slot 8 */
-    virtual void VSlot9() __asm__("PlayBanksnd");   /* slot 9 */
-    virtual void VSlot10() __asm__("StopBanksnd");   /* slot 10 */
-    virtual void VSlot11() __asm__("PauseBanksnd");   /* slot 11 */
-    virtual void VSlot12() __asm__("ContinueBanksnd");   /* slot 12 */
-    virtual void VSlot13() __asm__("ApplyBanksndParams");   /* slot 13 */
-    virtual void VSlot14() __asm__("BANKSND_QueryStatus");   /* slot 14 */
-    virtual void VSlot15() __asm__("SetBankSoundCulled");   /* slot 15 */
+    virtual void GetKind() __asm__("GetBanksndKind");   /* slot 8 */
+    virtual void Play() __asm__("PlayBanksnd");   /* slot 9 */
+    virtual void Stop() __asm__("StopBanksnd");   /* slot 10 */
+    virtual void Pause() __asm__("PauseBanksnd");   /* slot 11 */
+    virtual void Resume() __asm__("ContinueBanksnd");   /* slot 12 */
+    virtual void ApplyParams() __asm__("ApplyBanksndParams");   /* slot 13 */
+    virtual void QueryStatus() __asm__("BANKSND_QueryStatus");   /* slot 14 */
+    virtual void SetCulled() __asm__("SetBankSoundCulled");   /* slot 15 */
 };
 
 /* STREAMSND: a sound streamed from disc (DRAFT name). */
@@ -47,15 +47,15 @@ struct STREAMSND : CID151
     virtual void AddRef() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
     virtual void Release() __asm__("DecrefStreamsnd");   /* slot 2 */
     virtual void Start() __asm__("StartStreamsnd");   /* slot 7 */
-    virtual void VSlot8() __asm__("GetStreamSoundKind");   /* slot 8 */
-    virtual void VSlot9() __asm__("PlayStreamsnd");   /* slot 9 */
-    virtual void VSlot10() __asm__("StopStreamSound");   /* slot 10 */
-    virtual void VSlot11() __asm__("PauseStreamSound");   /* slot 11 */
-    virtual void VSlot12() __asm__("ResumeStreamSound");   /* slot 12 */
-    virtual void VSlot13() __asm__("ApplyStreamsndParams");   /* slot 13 */
-    virtual void VSlot14() __asm__("QueryStreamSoundStatus");   /* slot 14 */
-    virtual void VSlot15() __asm__("SetStreamSoundCulled");   /* slot 15 */
-    virtual void VSlot16() __asm__("UpdateStreamsndPositional");   /* slot 16 */
+    virtual void GetKind() __asm__("GetStreamSoundKind");   /* slot 8 */
+    virtual void Play() __asm__("PlayStreamsnd");   /* slot 9 */
+    virtual void Stop() __asm__("StopStreamSound");   /* slot 10 */
+    virtual void Pause() __asm__("PauseStreamSound");   /* slot 11 */
+    virtual void Resume() __asm__("ResumeStreamSound");   /* slot 12 */
+    virtual void ApplyParams() __asm__("ApplyStreamsndParams");   /* slot 13 */
+    virtual void QueryStatus() __asm__("QueryStreamSoundStatus");   /* slot 14 */
+    virtual void SetCulled() __asm__("SetStreamSoundCulled");   /* slot 15 */
+    virtual void UpdatePositional() __asm__("UpdateStreamsndPositional");   /* slot 16 */
 };
 
 #endif
