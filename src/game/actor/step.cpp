@@ -278,8 +278,7 @@ struct X {char pad40[0x40];M4 m;};
 struct B {union V *v;};
 struct M {struct X *px;char pad4[0xC];struct B *pb;char pad14[8];int count;char pad20[0x5C];union V *points;};
 struct S {char pad258[0x258];struct M *pm0,*pm1;};
-struct CLK {float time,dt;};
-extern struct CLK D_002DDED0;
+extern CLOCK D_002DDED0;
 /* step's .data starts here: the contact side signs (medium: tu_223F70 and murray read them too) and the point
  * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
 extern float D_002C3C60[2];
@@ -315,7 +314,7 @@ void UpdateStepPhys(struct S *input)
     int i,j;
     register struct M *firstSource __asm__("$3");
     register struct M *secondSource __asm__("$4");
-    struct CLK *clock;
+    CLOCK *clock;
     float *pv;
     float *pt,*ps,*pd;
     __asm__("lw %0,%1":"=r"(firstSource):"m"(((struct S*)context)->pm0));
@@ -361,8 +360,8 @@ void UpdateStepPhys(struct S *input)
         pt=pv;ps=old->f;
         j=3;
         while(--j>=0){
-            float next=SmoothValue__FfffP3SMPPf(*ps,*pt,clock->dt,D_002C3C68,0);
-            *pd=(next-*ps)/clock->dt;
+            float next=SmoothValue__FfffP3SMPPf(*ps,*pt,clock->deltaTime,D_002C3C68,0);
+            *pd=(next-*ps)/clock->deltaTime;
             ++pt;++ps;++pd;
         }
         pd=nextGoal;old=(__typeof__(old))context;
@@ -394,7 +393,7 @@ struct S {
 };
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002C3C80[3];   /* turn-rate speed factor polynomial */
 extern float D_002BBB60[2];
 void UpdateSo(struct S *p);
@@ -432,7 +431,7 @@ void UpdateStep(struct S *step)
         break;
     }
     if (step->floorContact)
-        step->lastFloorContactTime = D_002DDED0.t;
+        step->lastFloorContactTime = D_002DDED0.time;
 }
 } } // namespace M_UpdateStep
 
@@ -685,13 +684,8 @@ struct STEP
     float gUnk248;
 };
 
-struct CLOCK
-{
-    float time;
-    float deltaTime;
-};
 
-extern "C" { extern struct CLOCK D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
 extern "C" float D_002C3CA8[3];
 
