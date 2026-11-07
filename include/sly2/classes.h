@@ -680,10 +680,55 @@ struct BHV171 : BHV
 };
 typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 
+/* A spawn selector of CID119 (0x1C bytes, tu_173158.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
+   script), 2 a small LO spot. */
+struct SPAWNSELECTOR
+{
+    int kind;               /* +0x00 */
+    int oid;                /* +0x04 */
+    LO *object;             /* +0x08 */
+    CID113 *script;         /* +0x0C kind 1: the script made for the curve (cid 0x71) */
+    SSGE *scriptCommand;    /* +0x10 kind 1: its command (the direction in its +0x8) */
+    int isBusy;             /* +0x14 a spawned guard uses it */
+    float busyUntil;        /* +0x18 */
+};
+typedef char assert_SPAWNSELECTOR_size[sizeof(SPAWNSELECTOR) == 0x1C ? 1 : -1];
+/* A spawned-guard slot of CID119 (0x30 bytes): status 0 free (ready at readyTime), 1 waiting for the player to move
+   away before re-arming. */
+struct SPAWNENTRY
+{
+    STEPGUARD *guard;       /* +0x00 */
+    float activeTime;       /* +0x04 */
+    float readyTime;        /* +0x08 */
+    SPAWNSELECTOR *selector; /* +0x0C */
+    int status;             /* +0x10 */
+    int unknown14[3];
+    qword position;         /* +0x20 the focus position when the respawn delay was armed */
+};
+typedef char assert_SPAWNENTRY_size[sizeof(SPAWNENTRY) == 0x30 ? 1 : -1];
+
 /* 119 CID119 (0xB0): off-screen guard spawner; vtable 0x2CFA90, 48 slots */
 struct CID119 : LO
 {
-    char pad50[0xB0 - 0x50];
+    int selectorCount;      /* +0x50 */
+    SPAWNSELECTOR *selectors; /* +0x54 (at most 128) */
+    int entryCount;         /* +0x58 slots in use */
+    int entryCapacity;      /* +0x5C */
+    SPAWNENTRY *entries;    /* +0x60 */
+    int unknown64[3];
+    qword lastSpawnPosition; /* +0x70 the focus position at the last spawn */
+    float planarRange;      /* +0x80 5500: farther points do not count */
+    int useEdgeTest;        /* +0x84 */
+    int useRangeTest;       /* +0x88 */
+    int useOcclusionTest;   /* +0x8C */
+    int templateCount;      /* +0x90 guard templates (at most 8) */
+    LO **templates;         /* +0x94 */
+    int offsetCount;        /* +0x98 test offsets around a spawn point (at most 16) */
+    qword *offsets;         /* +0x9C */
+    float respawnDelay;     /* +0xA0 */
+    float respawnDelay2;    /* +0xA4 the selector's */
+    float nextSpawnTime;    /* +0xA8 */
+    int mode;               /* +0xAC 0 never while the hero has an alert, 1 only shortly after it, 2 always */
     virtual void Init() __asm__("InitSpawner");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("RemoveSpawnerHierarchy");   /* slot 12 */
