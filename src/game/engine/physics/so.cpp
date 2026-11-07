@@ -3705,18 +3705,14 @@ int CollectSoParts(struct P *so, int (*pfn)(void *, struct E *), void *pv, struc
 
 // 0x1F7EC8 SetSoUnknownBits16
 namespace M_func_001F7EC8 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
 // Sets the 4-bit field at bits 16-19 of +0x148 (meaning unknown, a splice option).
-void SetSoUnknownBits16(struct S *p, int n) { p->b = n; }
+void SetSoUnknownBits16(SO *p, int n) { p->unknownBits148A = n; }
 } } // namespace M_func_001F7EC8
 
 // 0x1F7EF0 GetSoUnknownBits16
 namespace M_func_001F7EF0 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:16; int b:4; ulong c:44; };
 // Returns the 4-bit field at bits 16-19 of +0x148.
-int GetSoUnknownBits16(struct S *p) { return p->b; }
+int GetSoUnknownBits16(SO *p) { return p->unknownBits148A; }
 } } // namespace M_func_001F7EF0
 
 // 0x1F7F08 GetSoNoJtPlace
@@ -3729,23 +3725,17 @@ int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->flags << 3) >> 32) & 1;
 
 // 0x1F7F20 SetSoNoJtPlace
 namespace M_func_001F7F20 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:29; int b:1; ulong c:34; };
 // Sets the no-JT-place flag.
-void SetSoNoJtPlace(struct S *p, int n) { p->b = n; }
+void SetSoNoJtPlace(SO *p, int n) { p->isNotLandable = n; }
 } } // namespace M_func_001F7F20
 
 // 0x1F7F48 SetSoTreeRoot
 namespace M_func_001F7F48 { extern "C" {
-struct A;
-typedef unsigned long ulong;
-struct A { char pad[0x148]; ulong a:34; ulong f:1; ulong b:1; };
-void RebuildSoPhysHook(struct A *p);
 // Sets the tree-root flag (+0x148 bit 34, so.h isTreeRoot) and rebuilds the physics hook when it changed. (inferred)
-void SetSoTreeRoot(struct A *so, long f)
+void SetSoTreeRoot(SO *so, long f)
 {
-    if (f != so->f) {
-        so->f = f;
+    if (f != so->isTreeRoot) {
+        so->isTreeRoot = f;
         RebuildSoPhysHook(so);
     }
 }
@@ -3975,10 +3965,8 @@ void SetSoIceable(SO *pso, int f) { pso->hurtRespawnsHero = f; }
 
 // 0x1F8500 GetSoIceable
 namespace M_GetSoIceable { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong fl; };
 // Returns the iceable flag.
-int GetSoIceable(struct S *p) { return (int)(p->fl >> 33) & 1; }
+int GetSoIceable(SO *p) { return (int)p->hurtRespawnsHero & 1; }   /* bit 33 (so.h hurtRespawnsHero) */
 } } // namespace M_GetSoIceable
 
 // 0x1F8510 NewSoXfHandle

@@ -213,7 +213,7 @@ struct SO : public LO
       undefined4 unknown144;
       char unknown148;
       char unknown149;
-      ulong unknownBits148A : 4;
+      int unknownBits148A : 4;   /* int-typed like the next field (so.cpp's getter sign-extends it) */
                 int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 ulong zapMode : 2;    /* how zaps (damage) are delivered */
                 ulong fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
