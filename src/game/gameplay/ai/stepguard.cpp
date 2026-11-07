@@ -93,20 +93,22 @@ struct GUARDMOVER
     STEPGUARD *guard;       /* +0x0C */
 };
 #define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
-/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target): the time the first guard engaged,
-   the target, and the engaged guards from +0x2C. */
+/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
+   that target: when the first guard engaged, the record's state and its time, the target, how the engagement token
+   is granted (DoesTargetRecordAllowGuard: facing kind and tolerance) and the engaged guards from +0x2C. */
 struct TARGETREC
 {
-    float t;                /* +0x00 */
-    int n4;
-    int n8;                 /* +0x08 */
-    LO *plo;                /* +0x0C */
-    int n10;                /* +0x10 */
-    float g14;              /* +0x14 */
-    float g18;              /* +0x18 */
-    char pad1C[0xC];
-    int cpstepguard;        /* +0x28 */
-    STEPGUARD *apstepguard[1];  /* +0x2C */
+    float firstEngageTime;  /* +0x00 */
+    float stateTime;        /* +0x04 */
+    int state;              /* +0x08 -1 none */
+    LO *target;             /* +0x0C */
+    int facingKind;         /* +0x10 -1 none, 0 camera heading, 1 target facing */
+    float unknown14;        /* +0x14 */
+    float facingTolerance;  /* +0x18 radians */
+    int isDisabled;         /* +0x1C */
+    char pad20[0x8];
+    int guardCount;         /* +0x28 */
+    STEPGUARD *guards[1];   /* +0x2C */
 };
 /* An object with an animation binding at +0xB0 for its guard at +0xAC (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
 struct ANIMLO
@@ -146,8 +148,8 @@ void *FindStepBhv(STEPGUARD *guard, int cid);
 void SetBhvThrownState(void *behavior, int n);
 BHV *FindBhvInBhvstk(BHVSTK *stack, int cid);
 int IsStepguardTargetValid(LO *object, LO *ploOther, int n);
-int FindTargetRecordGuardIndex(TARGETREC *ptargetrec, STEPGUARD *guard);
-void SetTargetRecordState(TARGETREC *ptargetrec, int n);
+int FindTargetRecordGuardIndex(TARGETREC *record, STEPGUARD *guard);
+void SetTargetRecordState(TARGETREC *record, int n);
 TARGETREC *func_001F8278(LO *object);
 void func_001F5078(STEPGUARD *guard);
 void func_00204660(STEPGUARD *guard);
@@ -171,8 +173,8 @@ void ClearStepguardIgnoreClasses(STEPGUARD *guard);
 void ClearStepguardForceClasses(STEPGUARD *guard);
 void CloneStepguardMover(GUARDMOVER *mover, STEPGUARD *guard);
 int StepguardHasSgf(STEPGUARD *guard, int sgf);
-void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
-void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
+void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard);
+void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard);
 }
 
 // 0x205E70 EnsureStepguardManager
@@ -1787,7 +1789,7 @@ extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, int n)
 extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 {
     LO *ploOld;
-    TARGETREC *ptargetrec;
+    TARGETREC *record;
     ploOld = guard->ploTarget;
     if (ploTarget == ploOld)
         return;
@@ -1797,9 +1799,9 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
     }
     guard->ploTarget = ploTarget;
     if (ploTarget != 0) {
-        ptargetrec = func_001F8278(ploTarget);
-        guard->pvEngage = ptargetrec;
-        AddTargetRecordGuard(ptargetrec, guard);
+        record = func_001F8278(ploTarget);
+        guard->pvEngage = record;
+        AddTargetRecordGuard(record, guard);
     }
 }
 
@@ -3240,32 +3242,32 @@ void AddStepguardClassE94(struct S *guard, int cid)
 
 // 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
-struct O; struct L; struct S;
-struct O { char pad[0x30]; int n30; };
-struct L { int k; int rest[27]; };
-struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int unknown2DC[3]; int patrolScript; };
+struct BHVGUARD; struct MODEREC; struct S;
+struct BHVGUARD { char pad[0x30]; int modeKind; };
+struct MODEREC { int kind; int rest[27]; };
+struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int scriptResumePoint[3]; int patrolScript; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct O *FindBhvInBhvstk(void *p, int n);
-void SetBhvguardMode(struct O *po, struct L *pl);
+struct BHVGUARD *FindBhvInBhvstk(void *stack, int cid);
+void SetBhvguardMode(struct BHVGUARD *bhv, struct MODEREC *mode);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
-void SetStepguardPatrolScript(struct S *guard, int n)
+void SetStepguardPatrolScript(struct S *guard, int script)
 {
-    if (guard->patrolScript == n)
+    if (guard->patrolScript == script)
         return;
-    struct O *po;
-    guard->patrolScript = n;
-    func_002333B4(guard->unknown2DC, 0, 0xC);
-    po = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
-    if (po) {
-        int k = po->n30;
-        if (k == 1) {
-            struct L l;
-            func_002333B4(&l, 0, sizeof(l));
-            l.k = -1;
-            SetBhvguardMode(po, &l);
-            func_002333B4(guard->unknown2DC, 0, 0xC);
-            l.k = k;
-            SetBhvguardMode(po, &l);
+    struct BHVGUARD *bhv;
+    guard->patrolScript = script;
+    func_002333B4(guard->scriptResumePoint, 0, 0xC);
+    bhv = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
+    if (bhv) {
+        int modeKind = bhv->modeKind;
+        if (modeKind == 1) {   /* patrolling: leave the mode and re-enter it so the new script starts */
+            struct MODEREC mode;
+            func_002333B4(&mode, 0, sizeof(mode));
+            mode.kind = -1;
+            SetBhvguardMode(bhv, &mode);
+            func_002333B4(guard->scriptResumePoint, 0, 0xC);
+            mode.kind = modeKind;
+            SetBhvguardMode(bhv, &mode);
         }
     }
 }
@@ -3274,27 +3276,27 @@ void SetStepguardPatrolScript(struct S *guard, int n)
 // 0x20A5F8 InitTargetRecord
 // 0x20A5F8: Initializes a shared per-target engagement record (0xAC bytes) and links it on the world's list.
 /* Initialises a target record for plo and appends it to the record list g_sw.dlTargetrec. */
-extern "C" TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *object)
+extern "C" TARGETREC *InitTargetRecord(TARGETREC *record, LO *object)
 {
-    ptargetrec->plo = object;
-    ptargetrec->g14 = 1.0f;
-    ptargetrec->g18 = 2.0f;
-    ptargetrec->n10 = -1;
-    ptargetrec->n8 = -1;
-    AppendDlEntry(&g_sw.dlTargetrec, ptargetrec);
-    return ptargetrec;
+    record->target = object;
+    record->unknown14 = 1.0f;
+    record->facingTolerance = 2.0f;
+    record->facingKind = -1;
+    record->state = -1;
+    AppendDlEntry(&g_sw.dlTargetrec, record);
+    return record;
 }
 
 // 0x20A658 FindTargetRecordGuardIndex
 namespace M_func_0020A658 { extern "C" {
-struct S;
-struct S { char pad[0x28]; int c; int a[1]; };
+struct TARGETREC;
+struct TARGETREC { char pad[0x28]; int guardCount; int guards[1]; };
 // 0x20A658: Returns the guard's index in an engagement record's guard list (-1 if absent).
-int FindTargetRecordGuardIndex(struct S *guard, int n)
+int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
 {
     int i;
-    for (i = 0; i < guard->c; i++)
-        if (n == guard->a[i])
+    for (i = 0; i < record->guardCount; i++)
+        if (guard == record->guards[i])
             return i;
     return -1;
 }
@@ -3302,90 +3304,89 @@ int FindTargetRecordGuardIndex(struct S *guard, int n)
 
 // 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
-struct O; struct S; struct G;
+struct LOV; struct TARGETREC; struct CAMERA;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0xC]; struct O *po; int k; };
-struct G { char pad[0x60]; float x; float y; };
-extern struct G D_002DDF40;
+struct LOV { char pad[0xC]; VTE *vt; };
+struct TARGETREC { char pad[0xC]; struct LOV *target; int facingKind; };
+struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
+extern struct CAMERA D_002DDF40;
 float atan2f(float y, float x);
 #define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
-float GetTargetRecordFacing(struct S *p)
+float GetTargetRecordFacing(struct TARGETREC *record)
 {
-    float r = 0.0f;
-    switch (p->k) {
+    float heading = 0.0f;
+    switch (record->facingKind) {
     case 0:
-        r = atan2f(D_002DDF40.y, D_002DDF40.x);
+        heading = atan2f(D_002DDF40.y, D_002DDF40.x);
         break;
     case 1: {
-        float *a = VCALL31(p->po);
-        float *b = VCALL31(p->po);
-        r = atan2f(a[1], b[0]);
+        float *forwardY = VCALL31(record->target);   /* the target's facing direction (vtable slot 31) */
+        float *forwardX = VCALL31(record->target);
+        heading = atan2f(forwardY[1], forwardX[0]);
         break;
     }
     case -1:
         break;
     }
-    return r;
+    return heading;
 }
 } } // namespace M_func_0020A690
 
 // 0x20A730 AddTargetRecordGuard
 // 0x20A730: Adds a guard to an engagement record (the first one stamps the time and resets the state).
 /* Adds a guard to a target record (stamping the time when it is the first). */
-extern "C" void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
+extern "C" void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
-    int c;
-    if (ptargetrec->cpstepguard == 0) {
-        ptargetrec->t = D_002DDED0.t;
-        SetTargetRecordState(ptargetrec, 0);
+    int count;
+    if (record->guardCount == 0) {
+        record->firstEngageTime = D_002DDED0.t;
+        SetTargetRecordState(record, 0);
     }
-    c = ptargetrec->cpstepguard;
-    ptargetrec->apstepguard[c] = guard;
-    ptargetrec->cpstepguard = c + 1;
+    count = record->guardCount;
+    record->guards[count] = guard;
+    record->guardCount = count + 1;
 }
 
 // 0x20A790 RemoveTargetRecordGuard
 // 0x20A790: Removes a guard from an engagement record.
 /* Removes a guard from a target record (FindTargetRecordGuardIndex finds its index). */
-extern "C" void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
+extern "C" void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
-    int i;
-    int c;
-    STEPGUARD **ppstepguard;
-    i = FindTargetRecordGuardIndex(ptargetrec, guard);
-    c = ptargetrec->cpstepguard - 1;
-    ppstepguard = &ptargetrec->apstepguard[i];
-    ptargetrec->cpstepguard = c;
-    CopyAb(ppstepguard, ppstepguard + 1, (c - i) * 4);
+    int index;
+    int count;
+    STEPGUARD **slot;
+    index = FindTargetRecordGuardIndex(record, guard);
+    count = record->guardCount - 1;
+    slot = &record->guards[index];
+    record->guardCount = count;
+    CopyAb(slot, slot + 1, (count - index) * 4);
 }
 
 // 0x20A7E0 IsTargetRecordStale
 namespace M_func_0020A7E0 { extern "C" {
-struct S;
+struct TARGETREC;
 extern struct CLOCK D_002DDED0;
 extern float D_002C3DB4;
-struct S { int a; float t; };
+struct TARGETREC { float firstEngageTime; float stateTime; };
 // 0x20A7E0: True if the engagement record has not been refreshed for longer than the timeout.
-int IsTargetRecordStale(struct S *p) { return D_002DDED0.t - p->t > D_002C3DB4; }
+int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.t - record->stateTime > D_002C3DB4; }
 } } // namespace M_func_0020A7E0
 
 // 0x20A818 DoesTargetRecordAllowGuard
 namespace M_func_0020A818 {
-union U; struct Actor; struct P; struct Camera;
-// Test actor availability, camera eligibility and heading tolerance.
+union U; struct GUARD; struct TARGETREC; struct Camera;
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-struct Actor { char pad[0xF30]; int blocked,ready,padF38,busy; };
-struct P { char pad[0xC]; Actor *target; int kind; float unused,tolerance; int disabled; char pad20[8]; int count; Actor *actors[1]; };
+struct GUARD { char pad[0xF30]; int ignoresBusyGuards,ready,padF38,isStriking; /* (inferred) */ };
+struct TARGETREC { char pad[0xC]; GUARD *target; int facingKind; float unknown14,facingTolerance; int isDisabled; char pad20[8]; int guardCount; GUARD *guards[1]; };
 struct Camera { char pad[0x90]; qword position; };
 extern "C" { extern Camera D_002DDF40; }
 extern "C" {
-qword func_001A62E8(Actor *);
+qword func_001A62E8(GUARD *);
 int FInsideCmFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
-float GetTargetRecordFacing(P *);
+float GetTargetRecordFacing(TARGETREC *);
 float RadNormalize__Ff(float);
 }
 // Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
@@ -3406,26 +3407,27 @@ static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m
 // VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
 // 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
-// guard busy; kind 0 also requires the guard ready or in view of the camera).
-extern "C" int DoesTargetRecordAllowGuard(P *guard, Actor *a)
+// guard striking; facing kind 0 needs the guard ready, or in view of the camera and within the tolerance of
+// the camera heading as seen from the target; kind 1 within the tolerance of the target's facing).
+extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
 {
     U scalar;
     float angle[2];
     U position0, position1;
-    if (guard->disabled)
+    if (record->isDisabled)
         goto fail;
-    if (!a->blocked) {
-        int i, n = guard->count;
+    if (!guard->ignoresBusyGuards) {
+        int i, n = record->guardCount;
         for (i = 0; i < n; i++)
-            if (guard->actors[i]->busy)
+            if (record->guards[i]->isStriking)
                 goto fail;
     }
-    switch (guard->kind) {
+    switch (record->facingKind) {
     case 0: {
-        if (a->ready)
+        if (guard->ready)
             return 1;
         qword returned;
-        returned = func_001A62E8(a);
+        returned = func_001A62E8(guard);
         register Camera *camera __asm__("$4");
         __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&D_002DDF40));
         qword threshold, point;
@@ -3433,20 +3435,20 @@ extern "C" int DoesTargetRecordAllowGuard(P *guard, Actor *a)
         if (!FInsideCmFrustum(camera, point, threshold))
             goto fail;
         qword other;
-        other = func_001A62E8(guard->target);
+        other = func_001A62E8(record->target);
         GetVectorCylind(Sub(position0.q, other), &angle[0], 0, 0);
-        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(guard)))) {
+        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(record)))) {
 fail:
             return 0;
         }
         return 1;
     }
     case 1: {
-        position1.q = func_001A62E8(a);
+        position1.q = func_001A62E8(guard);
         qword other;
-        other = func_001A62E8(guard->target);
+        other = func_001A62E8(record->target);
         GetVectorCylind(Sub(position1.q, other), &angle[1], 0, 0);
-        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(guard))))
+        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(record))))
             return 0;
         return 1;
     }
@@ -3461,14 +3463,14 @@ fail:
 
 // 0x20A9A8 SetTargetRecordState
 namespace M_func_0020A9A8 { extern "C" {
-struct S;
+struct TARGETREC;
 extern struct CLOCK D_002DDED0;
-struct S { int a; float t; int n; };
+struct TARGETREC { float firstEngageTime; float stateTime; int state; };
 // 0x20A9A8: Sets an engagement record's state and its time.
-void SetTargetRecordState(struct S *p, int n)
+void SetTargetRecordState(struct TARGETREC *record, int state)
 {
-    p->t = D_002DDED0.t;
-    p->n = n;
+    record->stateTime = D_002DDED0.t;
+    record->state = state;
 }
 } } // namespace M_func_0020A9A8
 
