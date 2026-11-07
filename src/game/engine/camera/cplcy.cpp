@@ -291,7 +291,6 @@ extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
 struct X {
     char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
     struct SND *zoomSound; int pad38; float panMin; float panMax; float tiltMin; float tiltMax;
