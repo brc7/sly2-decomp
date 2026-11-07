@@ -279,8 +279,7 @@ typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
 struct CM { char pad[0x20]; float fieldOfView; };
 extern struct CM D_002DDF40;
-struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float tLookLast; };   /* SW: the global save variables (inferred), sw.h's tLookLast */
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
 struct LM { float minValue, maxValue; };
@@ -348,7 +347,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
     gPan = -__builtin_fabsf(pjoy->leftStickX) * pjoy->leftStickX * D_002BD990;
     gTilt = -__builtin_fabsf(pjoy->leftStickY) * pjoy->leftStickY * D_002BD994;
-    GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
+    GetGlobalSaveVar(&ref, D_003DD490.psvpReverseLookAround, D_003D4A60);
     f = ref.m_n;
     Decref__4CRef(&ref);
     if (f)
