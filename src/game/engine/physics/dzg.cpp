@@ -267,17 +267,9 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 static inline qword QwProjectOut(qword v, qword n)
 {
-    qword d = QwDot(v, n);
+    qword d = VuDot(v, n);
     qword al, ac;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(al) : "j"(d), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
@@ -343,7 +335,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
                 }
             }
             push.q = QwProjectOut(push.q, contact->qwNormal);
-            float amount = VuToFloat(QwDot(push.q, push.q));
+            float amount = VuToFloat(VuDot(push.q, push.q));
             if (bestPushSquared < amount) {
                 bestPush.q = push.q;
                 bestPushSquared = amount;

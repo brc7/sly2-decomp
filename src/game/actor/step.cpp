@@ -826,14 +826,6 @@ extern "C" { void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixp
 extern "C" { float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
 
 
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 
 
 static inline qword QwRotate(struct M3 *pmat, qword v)
@@ -883,7 +875,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     if (pxp->xpk != 0xE)
         return;
 
-    float gVn = QwordX(QwDot(VuSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
+    float gVn = QwordX(VuDot(VuSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
     SmoothValue__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
@@ -906,7 +898,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     struct M3 *pmat = &step->matTarget;
     qword v = QwRotate(pmat, step->vUnk190);
     qword normal = pxp->normal;
-    qword vT = VuSub(v, VuScaleByX(normal, QwDot(v, normal)));
+    qword vT = VuSub(v, VuScaleByX(normal, VuDot(v, normal)));
     struct VU_FLOAT vuVn = VuFloat(-gVn);
     struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->gUnk180);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);

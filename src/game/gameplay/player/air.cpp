@@ -343,14 +343,6 @@ extern "C" { extern CLOCK D_002DDED0; }
 
 
 
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 void DecomposeCylind(qword v, float *prad, float *psXY, float *pz) __asm__("GetVectorCylind");
@@ -367,7 +359,7 @@ extern "C" { extern float D_002BF730; }
 extern "C" { extern float D_002BF768; }
 static inline qword ProjectOutVec(qword v, qword n)
 {
-    qword qwDot = DotVec(v, n);
+    qword qwDot = VuDot(v, n);
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwDot), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(v), "j"(qw));
@@ -2201,9 +2193,8 @@ static inline float LengthSqXYOfGpr(qword v)
 }
 static inline qword SqrtVec(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
 static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(SqrtVec(r)); }
-static inline qword DotVec(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
-static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(DotVec(v, v))); }
-static inline float LengthOf(qword v) { return VuToFloat(SqrtVec(DotVec(v, v))); }
+static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(VuDot(v, v))); }
+static inline float LengthOf(qword v) { return VuToFloat(SqrtVec(VuDot(v, v))); }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 
 static inline qword Transform(const M4 &m, qword v)
@@ -2235,7 +2226,7 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT 
 static inline qword DivVec(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 static inline float NormalizeInPlace(U &v, const qword &vDefault)
 {
-    qword l = SqrtVec(DotVec(v.q, v.q));
+    qword l = SqrtVec(VuDot(v.q, v.q));
     if (VuToFloat(l) < 0.0001f)
         v.q = vDefault;
     else
@@ -2511,8 +2502,8 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         qword up = D_002A2DC0;
         qword a = vel.q;
         qword b = p->actor->velocity.q;
-        a = VuSub(a, VuScaleByX(up, DotVec(a, up)));
-        b = VuSub(b, VuScaleByX(up, DotVec(b, up)));
+        a = VuSub(a, VuScaleByX(up, VuDot(a, up)));
+        b = VuSub(b, VuScaleByX(up, VuDot(b, up)));
         basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, CombineVec(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
@@ -2994,19 +2985,13 @@ static inline qword Add(qword a, qword b)
     __asm__("vadd.xyzw %0, %0, %1" : "+j"(a) : "j"(b));
     return a;
 }
-static inline qword Dot(qword a, qword b)
-{
-    qword d, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
-    return d;
-}
 static inline qword Sqrt(qword d)
 {
     qword l;
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
-static inline qword Len(qword v) { return Sqrt(Dot(v, v)); }
+static inline qword Len(qword v) { return Sqrt(VuDot(v, v)); }
 static inline qword Div(qword v, qword l)
 {
     qword r;

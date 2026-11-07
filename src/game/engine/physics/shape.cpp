@@ -763,13 +763,6 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
 static inline VV DotInto(VV a, VV b)
 {
     qword one;
@@ -798,7 +791,7 @@ static inline VV NormalizeTo(U a, VV length)
 }
 static inline VV Normalize(VV a)
 {
-    qword length = Root(Dot(a, a));
+    qword length = Root(VuDot(a, a));
     __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(length) : "j"(a));
     return length;
 }
@@ -989,13 +982,6 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
 static inline int Bits(qword v) { int b; __asm__("qmfc2.ni %0,%1" : "=r"(b) : "j"(v)); return b; }
 static inline float FromBits(int b) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(b)); return f; }
 static inline float ToFloat(qword v) { return FromBits(Bits(v)); }
@@ -1004,10 +990,10 @@ static inline VV Root(VV a)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
-static inline float Length(VV a) { return QwordX(Root(Dot(a, a))); }
+static inline float Length(VV a) { return QwordX(Root(VuDot(a, a))); }
 static inline VV Normalize(VV a)
 {
-    qword length = Root(Dot(a, a));
+    qword length = Root(VuDot(a, a));
     __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(length) : "j"(a));
     return length;
 }
@@ -1048,7 +1034,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
                 direction = ApplyConstrNoTransform(space, direction);
                 offset = ApplyConstrNoTransform(space, offset);
             }
-            float t = ToFloat(Dot(offset, direction)) / ToFloat(Dot(direction, direction));
+            float t = ToFloat(VuDot(offset, direction)) / ToFloat(VuDot(direction, direction));
             t = Clamp(t, 0.0f, 1.0f);
             float u = 1.0f - t;
             closest.q = VecCombo(VU_FLOAT(u), start, VU_FLOAT(t), end);
@@ -1874,14 +1860,15 @@ static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "
 // Same idiom as sly2/vu0.h QwordX; kept local because the shared template changes StepChainRk4 (10/838 instructions off).
 static inline float QwordX(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
-static inline VV Dot(VV a, VV b)
+// Same idiom as sly2/vu0.h VuDot; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuDot(VV a, VV b)
 {
     qword r, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
             : "=j"(r), "=j"(one) : "j"(a), "j"(b));
     return r;
 }
-static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
+static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Same idiom as sly2/vu0.h VuScaleByX; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuScaleByX(VV v, VV g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g)); return r; }
@@ -2010,7 +1997,7 @@ void StepChainRk4(CHAIN *chain)
         float scale = 0.75f - 0.25f / (count - 2);
         float rest = chain->distance[count - 1];
         VV chord = SubP(&newP[0], &newP[count - 1]);
-        float amplitude = scale * SqrtFloat(GMax(rest * rest - QwordX(Dot(chord, chord)), 0.0f));
+        float amplitude = scale * SqrtFloat(GMax(rest * rest - QwordX(VuDot(chord, chord)), 0.0f));
         for (i = 1; i < count - 1; i++) {
             VV F = AddScaled(chain->force, VU_FLOAT(-chain->damping), newV[i].q);
             if (chain->stretch != 0.0f || chain->stretchDamping != 0.0f) {
@@ -2021,8 +2008,8 @@ void StepChainRk4(CHAIN *chain)
                 float len2 = NormalizeV(&dir2, D_002A2DA0, len1);
                 float rest1 = chain->distance[i] - chain->distance[i - 1];
                 float rest2 = chain->distance[i + 1] - chain->distance[i];
-                proj1.q = VuScaleByX(dir1.q, Dot(SubP(&newV[i - 1], &newV[i]), dir1.q));
-                VV pr2 = VuScaleByX(dir2.q, Dot(SubX(newV[i + 1].q, newV[i].q), dir2.q));
+                proj1.q = VuScaleByX(dir1.q, VuDot(SubP(&newV[i - 1], &newV[i]), dir1.q));
+                VV pr2 = VuScaleByX(dir2.q, VuDot(SubX(newV[i + 1].q, newV[i].q), dir2.q));
                 VU_FLOAT g1(chain->stretch * (len1 - rest1));
                 /* damping built per spring: cse merges the two "r" qmtc2s and reload_cse drops the 2nd home store (same vf, same slot);
                    that dropped store still lengthens the g1 store chain in sched1, so g1 is born before the dir2 reload like the game */
@@ -2038,7 +2025,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&midV, &newV[i - 1], &newV[i + 1], r);
                 dir.q = SubP(&mid, &newP[i]);
                 float len = Normalize(&dir, D_002A2DC0);
-                proj.q = VuScaleByX(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
+                proj.q = VuScaleByX(dir.q, VuDot(SubP(&midV, &newV[i]), dir.q));
                 F = VecCombo3(F, VU_FLOAT(chain->bend * len), dir.q, VU_FLOAT(&chain->bendDamping), proj.q);
             }
             if (chain->shape != 0.0f || chain->shapeDamping != 0.0f) {
@@ -2048,7 +2035,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&midV, &newV[0], &newV[count - 1], r);
                 dir.q = SubP(&mid, &newP[i]);
                 float len = Normalize(&dir, D_002A2DC0);
-                proj.q = VuScaleByX(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
+                proj.q = VuScaleByX(dir.q, VuDot(SubP(&midV, &newV[i]), dir.q));
                 float r4 = r * 4.0f;
                 F = VecCombo3(F, VU_FLOAT(chain->shape * (len - amplitude * r4 * (1.0f - r))), dir.q, VU_FLOAT(&chain->shapeDamping), proj.q);
             }
@@ -2186,13 +2173,6 @@ static inline VV TransformPoint(const M4 &m, VV v)
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChain (62/215 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
 /* Dot with the 1.0 scratch in $vf1 (see the header comment) */
 static inline VV DotVf1(VV a, VV b)
 {
@@ -2201,7 +2181,7 @@ static inline VV DotVf1(VV a, VV b)
             : "=j"(r) : "j"(a), "j"(b) : "vf1");
     return r;
 }
-static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
+static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 /* base + v * g */
 static inline VV AddScaled(VV base, VU_FLOAT g, VV v)

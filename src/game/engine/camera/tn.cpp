@@ -199,14 +199,6 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 struct CPD
 {
       CID cid;
@@ -1212,7 +1204,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwAxis) : "j"(qwAxis));
         }
         *(qword *)&vecAxis = qwAxis;
-        float gTurn = ClampAbs(VuToFloat(QwDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
+        float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * uTunnel;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
         dradPanFree *= GLimitRange(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
@@ -1285,7 +1277,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 }
                 *(qword *)&vecHeading = qwHeading;
                 *(qword *)&vecTangent = ConvertVecBetweenLos(ptnCur, 0, *(qword *)&vecTangent);
-                float gAlong = VuToFloat(QwDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
+                float gAlong = VuToFloat(VuDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
                 gBlend = gAlong * gAlong * (3.0f - (fabsf(gAlong) + fabsf(gAlong)));
                 if ((grftnm & 2) == 0 || 0.0f < gAlong)
                 {

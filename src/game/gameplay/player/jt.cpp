@@ -702,8 +702,7 @@ static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1
 static inline qword ScaleVecX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword DivVec(qword a,VU_FLOAT g){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword RotateVecAt(M3*m,qword*pv){qword r;__asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
-static inline qword DotVec(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
-static inline qword ProjectOutVec(qword v,qword n){qword d=DotVec(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
+static inline qword ProjectOutVec(qword v,qword n){qword d=VuDot(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
 // 0x188958: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x80");
 
@@ -1298,17 +1297,9 @@ static inline float LengthXYOf(qword v)
 {
     return VuToFloat(LengthXYInX(v));
 }
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 static inline qword LengthInXViaDot(qword v)
 {
-    qword qw = DotVec(v, v);
+    qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
@@ -1426,7 +1417,7 @@ void UpdateJtLean(JT *jt)
                 if (((CID12 *)lo)->nUnk1bc) {
                     *(qword *)&vecDir = NormalizeVecViaDot(*(qword *)&vecDir);
                     qword velocity = jt->GetVelocity();
-                    float gSpeed = VuToFloat(DotVec(velocity, *(qword *)&vecDir));
+                    float gSpeed = VuToFloat(VuDot(velocity, *(qword *)&vecDir));
                     *(qword *)&vecLean = ScaleVec(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
                     float sMax = GetShapeMaxDistance((SHAPE *)lo);
@@ -2192,14 +2183,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 extern "C" {
 void UpdateJtAirInput(JTAIR *pjtair);
 }
@@ -2228,7 +2211,7 @@ extern "C" { extern qword D_002A2DA0; }
 extern "C" { extern qword D_002A2DC0; }
 static inline qword ProjectOutVec(qword v, qword n)
 {
-    qword qwDot = DotVec(v, n);
+    qword qwDot = VuDot(v, n);
     qword qwAlong;
     qword qwAcross;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qwAlong) : "j"(qwDot), "j"(n));
@@ -2409,7 +2392,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->jtbs == JTBS_13)
                     {
                         qword velocity = jt->GetVelocity();
-                        int fStill = QwordX(DotVec(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
+                        int fStill = QwordX(VuDot(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
                         if (fStill)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }

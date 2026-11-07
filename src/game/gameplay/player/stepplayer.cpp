@@ -2235,14 +2235,6 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 extern "C" { extern CLQ D_002BD280; }
 extern "C" { extern CLQ D_002BD290; }
 extern "C" { extern CLQ D_002BD2A0; }
@@ -2306,7 +2298,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     if (pctl != 0 && sXY > 0.0001f)
     {
         qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
-        float rAway = LaneXKeepVf(DotVec(qwStick, vec)) / sXY;
+        float rAway = LaneXKeepVf(VuDot(qwStick, vec)) / sXY;
         sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
     sXY += sBias;

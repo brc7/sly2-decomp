@@ -484,13 +484,6 @@ static inline qword LenB(qword a)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
-static inline qword Dot(qword a, qword b)
-{
-    qword d;
-    qword one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
-    return d;
-}
 struct MAT3 { float m[3][4]; };
 // 0x11BA00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xd0");
@@ -531,7 +524,7 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
             axis = GetNormalVector(a);
         }
         VU_FLOAT d;
-        d.q = Dot(a, b);
+        d.q = VuDot(a, b);
         float ll = la.H() * lb.H();
         VU_FLOAT c = ClampAbs__Fff(VU_FLOAT(d.G() / ll).F(), 1.0f);
         float cc = c.F();

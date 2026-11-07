@@ -3526,18 +3526,10 @@ static inline VU_FLOAT VuFloat(float g)
 // VU0 helper: y component of a quadword vector.
 // VU0 helper: vector difference.
 // VU0 helper: dot product (in x).
-static inline qword VuDotProduct(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 // VU0 helper: v minus its projection on n.
 static inline qword VuProjectOut(qword v, qword n)
 {
-    qword d = VuDotProduct(v, n);
+    qword d = VuDot(v, n);
     qword al, ac;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(al) : "j"(d), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
@@ -3575,7 +3567,7 @@ static inline qword VuLengthUntied(qword v)
 // VU0 helper: length via a dot product.
 static inline qword VuLengthFromDot(qword v)
 {
-    qword qw = VuDotProduct(v, v);
+    qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }

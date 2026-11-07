@@ -645,14 +645,7 @@ static inline VV ToVF(qword v) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : 
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
-static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
+static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 static inline VV Divide(VV v, VU_FLOAT g) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
 static inline VV Normalize(VV v) { return DivideQ(v, Length(v)); }
@@ -700,9 +693,9 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         VV pa = VuSub(p, posA);
         VV posB = AddScaled(ps1->pos, VU_FLOAT(ps1->sRadius), n);
         VV ba = VuSub(posB, posA);
-        VV num = Dot(pa, ba);
-        VV den = Dot(ba, ba);
-        sDist = QwordX(Dot(pa, n));
+        VV num = VuDot(pa, ba);
+        VV den = VuDot(ba, ba);
+        sDist = QwordX(VuDot(pa, n));
         float t = QwordX(num) / VuToFloat(den);
         if (sDist < sRadius && t >= 0.0f && t <= 1.0f)
             return 1;

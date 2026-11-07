@@ -1034,14 +1034,6 @@ static inline float VectorLength(qword v)
 {
     return VuToFloat(VuLength(v));
 }
-static inline qword VuDotXyz(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
     return AreFloatsNear(QwordX(qwA), QwordX(qwB), 0.0001f) && AreFloatsNear(QwordY(qwA), QwordY(qwB), 0.0001f) &&
@@ -1410,7 +1402,7 @@ void UpdateSoSlots(SO *so)
                     }
                     matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&xf->mat);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
-                    float gRateAlong = VuToFloat(VuDotXyz(qwRotRate, *(qword *)&vecAxis));
+                    float gRateAlong = VuToFloat(VuDot(qwRotRate, *(qword *)&vecAxis));
                     SMP smp;
                     if (xf->nPhase == 3)
                     {
@@ -1527,7 +1519,7 @@ void UpdateSoSlots(SO *so)
                     {
                         qwDir = D_002A2DA0;
                     }
-                    float gVelAlong = VuToFloat(VuDotXyz(qwTargetVel, qwDir));
+                    float gVelAlong = VuToFloat(VuDot(qwTargetVel, qwDir));
                     SMP smp;
                     if (xf->xfk < 13)
                     {
@@ -1685,9 +1677,9 @@ void UpdateSoSlots(SO *so)
                     int fSettled = 0;
                     if (xf->nPhase == 2)
                     {
-                        if (VuToFloat(VuDotXyz(qwV1, qwV1)) < 25.0f)
+                        if (VuToFloat(VuDot(qwV1, qwV1)) < 25.0f)
                         {
-                            if (VuToFloat(VuDotXyz(qwDPos, qwDPos)) < 4.0f)
+                            if (VuToFloat(VuDot(qwDPos, qwDPos)) < 4.0f)
                                 fSettled = 1;
                         }
                     }
@@ -1741,7 +1733,7 @@ void UpdateSoSlots(SO *so)
                     int fSettled = 0;
                     if (xf->nPhase == 2)
                     {
-                        if (VuToFloat(VuDotXyz(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
+                        if (VuToFloat(VuDot(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
                             fSettled = 1;
                     }
                     if (fSettled)

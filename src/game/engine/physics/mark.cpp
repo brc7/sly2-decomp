@@ -1052,14 +1052,6 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 static inline qword QwNormalize(qword v)
 {
     qword qw = QwLength(v);
@@ -1214,10 +1206,10 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                         *(qword *)&vecEdge = VuSub(*(qword *)ppos1, *(qword *)pposClosest);
                         register int iLenSq __asm__("$3");
                         float gLenSq;
-                        __asm__("qmfc2 %0, %1" : "=r"(iLenSq) : "j"(QwDot(*(qword *)&vecEdge, *(qword *)&vecEdge)));
+                        __asm__("qmfc2 %0, %1" : "=r"(iLenSq) : "j"(VuDot(*(qword *)&vecEdge, *(qword *)&vecEdge)));
                         __asm__("mtc1 %1, %0" : "=f"(gLenSq) : "r"(iLenSq));
                         *(qword *)&vecDelta = VuSub(pos, *(qword *)pposClosest);
-                        float u = VuToFloat(QwDot(*(qword *)&vecDelta, *(qword *)&vecEdge)) / gLenSq;
+                        float u = VuToFloat(VuDot(*(qword *)&vecDelta, *(qword *)&vecEdge)) / gLenSq;
                         if (u < 0.0001f)
                         {
                             ivert = pedge->aipos[0];
@@ -1236,7 +1228,7 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                             pposClosest = &vecClosest;
                             *(qword *)&vecDelta = VuSub(pos, *(qword *)&vecClosest);
                         }
-                        u = VuToFloat(QwDot(*(qword *)&vecDelta, *(qword *)&vecDelta));
+                        u = VuToFloat(VuDot(*(qword *)&vecDelta, *(qword *)&vecDelta));
                         if (u > sRadius * sRadius)
                             continue;
                         {

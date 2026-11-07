@@ -1461,12 +1461,6 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q));
     return r;
 }
-static inline qword Dot(qword a, qword b)
-{
-    qword d, one;
-    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
-    return d;
-}
 static inline qword Length(qword v)
 {
     qword d, one, len;
@@ -1554,7 +1548,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
-            grab->reversed = QwordX(Dot(normal, GetLoWorldMatrix(grab->pactor)->row[0])) < D_002BF63C;
+            grab->reversed = QwordX(VuDot(normal, GetLoWorldMatrix(grab->pactor)->row[0])) < D_002BF63C;
             break;
         }
         case 2: {
@@ -2594,14 +2588,6 @@ static inline float LengthOf(qword v)
 {
     return VuToFloat(LengthInX(v));
 }
-static inline qword DotVec(qword a, qword b)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
-    return qw;
-}
 extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
 extern "C" { extern JT *D_002E1E40; }
 extern "C" { extern int D_002E1E4C; }   // C symbol: this view has no extern "C" block; defined at file scope below
@@ -2609,7 +2595,7 @@ extern "C" { extern float D_002BF664; }
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
     qword qwDiff = VuSub(PosLoWorld(lo), pos);
-    return lo->sBusy * lo->sBusy < VuToFloat(DotVec(qwDiff, qwDiff));
+    return lo->sBusy * lo->sBusy < VuToFloat(VuDot(qwDiff, qwDiff));
 }
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
 {

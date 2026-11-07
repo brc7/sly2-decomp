@@ -1005,21 +1005,13 @@ static inline float Length2D(VV v)
 }
 // Distance in the xy plane.
 static inline float Dist2D(VV a, VV b) { return Length2D(VuSub(a, b)); }
-// Dot product.
-static inline VV Dot(VV a, VV b)
-{
-    qword r, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(r), "=j"(one) : "j"(a), "j"(b));
-    return r;
-}
 // Helpers Sqrt, DivideQ (small asm wrappers/accessors shaped for the match).
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
-    VV len = Sqrt(Dot(v, v));
+    VV len = Sqrt(VuDot(v, v));
     if (QwordX(len) < 0.0001f)
         return fallback;
     return DivideQ(v, len);
@@ -2036,7 +2028,8 @@ static inline VV VuAdd(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 // Dot product.
-static inline VV Dot(VV a, VV b)
+// Same idiom as sly2/vu0.h VuDot; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuDot(VV a, VV b)
 {
     qword r, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
@@ -2044,7 +2037,7 @@ static inline VV Dot(VV a, VV b)
     return r;
 }
 // Helpers Length, GFromQw, DivideQ (small asm wrappers/accessors shaped for the match).
-static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
+static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
@@ -2110,7 +2103,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
         VV position = GetLoWorldPos(tank);
         VV delta = VuSub(position, GetLoWorldPos(event->sender));
         VU_VECTOR4 direction;
-        direction.q = NormalizeSafe(VuSub(delta, ScaleV(Dot(delta, D_002A2DC0), D_002A2DC0)), D_002A2DA0);
+        direction.q = NormalizeSafe(VuSub(delta, ScaleV(VuDot(delta, D_002A2DC0), D_002A2DC0)), D_002A2DA0);
         VU_FLOAT first(Random(D_002C21E8));
         linear.q = VecCombo(first, direction.q, VuFloat(Random(D_002C21F0)), D_002A2DC0);
         VU_FLOAT second(Random(D_002C21F8));
