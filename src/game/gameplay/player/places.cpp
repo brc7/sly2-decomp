@@ -225,7 +225,7 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
     SetJtAirJump(jt->air, 0xA, 0, 0);
 }
 
-static inline float GFromClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
+static inline float EvaluateClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
 /** @sly2-annot addr=0x19F7D0
  * Purpose: Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects
  * Info: proposed name ScoreJtPlace (T2); TU places
@@ -280,7 +280,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         dist = VuToFloat(d);
-        g = GMax(g, GClamp(GFromClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
+        g = GMax(g, GClamp(EvaluateClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
     }
     return g;
 }

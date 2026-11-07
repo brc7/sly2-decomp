@@ -742,27 +742,27 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
 // keeps jump.c from turning it into movn.
 struct VU_FLOAT {qword qw;};
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword QwScaleX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
-static inline qword QwLengthXY(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
+static inline qword ScaleVecX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
+static inline qword LengthXYInX(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
-static inline qword QwUp(const M4 *m){return m->r[1];}
-static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
-static inline float GYOfQw(qword qw){float y;__asm__("prot3w %0,%1":"=r"(y):"r"(qw));return y;}
-static inline float GZOfQw(qword qw){float z;__asm__("pextuw %0,$0,%1":"=r"(z):"r"(qw));return z;}
+static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
+static inline float LaneXGpr(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
+static inline float LaneY(qword qw){float y;__asm__("prot3w %0,%1":"=r"(y):"r"(qw));return y;}
+static inline float LaneZ(qword qw){float z;__asm__("pextuw %0,$0,%1":"=r"(z):"r"(qw));return z;}
 // screen position of a projected point: x and y from [-1,1] to pixels, z kept
 static inline VU_FLOAT ScreenFromProjected(qword q)
 {
     VU_FLOAT v;
     int t;
-    float x=GXOfQw(q)*320.0f+320.0f;
-    float y=GYOfQw(q)*-246.40000915527344f+246.40000915527344f;
-    float z=GZOfQw(q);
+    float x=LaneXGpr(q)*320.0f+320.0f;
+    float y=LaneY(q)*-246.40000915527344f+246.40000915527344f;
+    float z=LaneZ(q);
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(v.qw),"=&r"(t):"f"(x),"f"(y),"f"(z));
     return v;
 }
 static inline float Min(float a,float b){return a<b?a:b;}
 static inline float Max(float a,float b){return a<b?b:a;}
-static inline float GClampMM(float g,float minValue,float maxValue){return Max(minValue,Min(g,maxValue));}
+static inline float ClampF(float g,float minValue,float maxValue){return Max(minValue,Min(g,maxValue));}
 /** @sly2-annot addr=0x202D38
  * Purpose: per frame: project target head to screen, proximity to centre / size gain, drive states, shutter
  *   on button 10 (250 when locked)
@@ -795,17 +795,17 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     if (reconSel->actor) {
         qword world = GetLoWorldPos(reconSel->actor);
         VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
-        qword head = VuAdd(world, QwScaleX(QwUp(&D_002DDF40.mat), offset.qw));
+        qword head = VuAdd(world, ScaleVecX(GetMatrixUp(&D_002DDF40.mat), offset.qw));
         qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
         qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
         VU_FLOAT screen = ScreenFromProjected(base);
-        float distance = GXOfQw(QwLengthXY(VuSub(screen.qw, reconSel->origin)));
+        float distance = LaneXGpr(LengthXYInX(VuSub(screen.qw, reconSel->origin)));
         VU_FLOAT screenTop = ScreenFromProjected(top);
-        float size = GXOfQw(QwLengthXY(VuSub(screen.qw, screenTop.qw)));
+        float size = LaneXGpr(LengthXYInX(VuSub(screen.qw, screenTop.qw)));
         float proximity = 1.0f - (distance - 128.0f) / 128.0f;
         size = size / 120.0f;
         reconSel->rising = 1;
-        reconSel->proximity = GClampMM(proximity, 0.0f, 1.0f);
+        reconSel->proximity = ClampF(proximity, 0.0f, 1.0f);
         reconSel->sizeGain = size;
         if (size > 1.0f) {
             reconSel->rising = 0;

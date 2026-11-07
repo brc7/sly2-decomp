@@ -3,12 +3,12 @@
 // booty, mode queries, HP / MP. TU 0x13FF70..0x144638 (96 functions, address order).
 // Entry points: InitStepplayer/PostLoadStepplayer, UpdateStepplayer (per frame), HandleStepplayerMessage,
 // the gadget slots (UpdateStepplayerGadgets, SetStepplayerGadget), HP/MP, booty and the Splice-callable helpers.
-// StepplayerVirtualNN names a vtable slot whose meaning is not identified yet (behaviour documented per function).
+// Slot overrides are named from their behaviour (GetStepplayerMovementNoise, AddStepplayerComponentXps...; "(inferred)" in their comments).
 //
 // Types: sly2/stepplayer.h's STEPPLAYER and its sub-records (jtgrab, jthurt, jtmode, jtthrow, agadgetslot...) for
 // the m2c bodies, with real virtual calls (slots 87, 88, 99, 101); three unnamed words through macros (as
-// tu_144B28.cpp does). JthsCurrent, FCanUseGadget and FCanBeHealed are STEPPLAYER members here (their symbols are
-// the members'). The hand-written per-function files keep their views in namespaces named after each function (as
+// tu_144B28.cpp does). The slots JthsCurrent, FCanUseGadget and FCanBeHealed are STEPPLAYER members here (symbols
+// GetStepplayerHealthState__10STEPPLAYER etc.). The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepplayer
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00144618
@@ -454,7 +454,7 @@ void SetStepplayerCtlState(char *player, int n)
 } } // namespace M_SetStepplayerCtlState
 
 namespace M_func_00140750 { extern "C" {
-/* UpdateStepplayerHideBlend (Claude agent): matched. GMin/GMax as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
+/* UpdateStepplayerHideBlend (Claude agent): matched. MinF/MaxF as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; int (*pfn)(void *); };
 struct P {
@@ -467,7 +467,7 @@ int TestStepplayerHidden(struct P *p);
 qword GetLoWorldPos(struct P *p);
 void CreateNoise(void *a, qword pos, struct P *p, int n);
 
-static inline float GClamp(float g, float lo, float hi)
+static inline float ClampF(float g, float lo, float hi)
 {
     float r;
     if (g < lo) r = lo;
@@ -476,8 +476,8 @@ static inline float GClamp(float g, float lo, float hi)
     return r;
 }
 
-static inline float GMin(float a, float b) { return b < a ? b : a; }
-static inline float GMax(float a, float b) { return b > a ? b : a; }
+static inline float MinF(float a, float b) { return b < a ? b : a; }
+static inline float MaxF(float a, float b) { return b > a ? b : a; }
 
 /** @sly2-annot addr=0x140750
  * Purpose: If +0x10C4 (a shadow/hide volume set) exists: smooth +0x10CC toward 1/0 by 0x1409E8 result, derive
@@ -494,10 +494,10 @@ void UpdateStepplayerHideBlend(struct P *player)
     if (!player->hideVolumes) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.dt; player->hideBlend = GMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
+        { float dt = D_002DDED0.dt; player->hideBlend = MinF(player->hideBlend + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
-        { float dt = D_002DDED0.dt; player->hideBlend = GMax(player->hideBlend + D_002BCC70 * dt, 0.0f); }
+        { float dt = D_002DDED0.dt; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
         break;
     case 2:
         player->hideBlend = 0.0f;
@@ -513,11 +513,11 @@ void UpdateStepplayerHideBlend(struct P *player)
         player->x10D0 = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; player->x10D0 = GClamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; player->x10D0 = GClamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->x10D0 = ClampF(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
     if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
@@ -532,8 +532,8 @@ void UpdateStepplayerHideBlend(struct P *player)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-// Slot 98 base: 0 normally, -1 while the world is hands-off (meaning of the slot not identified).
-extern "C" int StepplayerVirtual98()
+// Slot 98 base, movement-noise class (inferred): 0 (silent) while the world is hands-off, else -1 (no opinion: the subclass decides). UpdateStepplayerHideBlend resets its noise meter on 0 and fills it at one of two rates otherwise; a full meter makes noise.
+extern "C" int GetStepplayerMovementNoise()
 {
     return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
 }
@@ -649,7 +649,7 @@ void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void StepplayerVirtual82(struct X *player, void *a, struct Y *b, qword v)
+void AddStepplayerAxisXps(struct X *player, void *a, struct Y *b, qword v)
 {
     qword d;
     if ((((b->fl >> 60) & 1) == 0)) {
@@ -696,7 +696,7 @@ void UpdateJtInternalXpsPipe(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
-void StepplayerVirtual59(char *player)
+void AddStepplayerComponentXps(char *player)
 {
     IgnoreSoSlot59(player);
     if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
@@ -896,13 +896,13 @@ static inline void InitDli(DLI *pdli, DL *list)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
-static inline void *PvNextDli(DLI *pdli)
+static inline void *NextDliItem(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-static inline qword VecSub(qword a, qword b)
+static inline qword SubVec(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
@@ -976,7 +976,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         case 0x162: {
             qword v = F(qword, player, 0x1060);
             F(int, player, 0x1044) = 0;
-            F(qword, player, 0x1070) = VecSub(v, GetLoWorldPos(player));
+            F(qword, player, 0x1070) = SubVec(v, GetLoWorldPos(player));
             F(int, player, 0x1078) = 0;
             break;
         }
@@ -1017,7 +1017,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                         if (pa)
                             SetLoParent(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
-                        while ((po2 = PvNextDli(&dli)) != 0) {
+                        while ((po2 = NextDliItem(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == player)
                                 RemoveNoise(po2);
                         }
@@ -1154,8 +1154,8 @@ void AddJtAirCpdefiFlags(void *, struct XP *);
 void SmoothJtCameraCurveTarget(void *, struct XP *);
 void AddJtHurtCpdefiFlags(void *, struct XP *);
 
-static __inline__ float GPoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
-static __inline__ float GClamp(float g, float lo, float hi)
+static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
+static __inline__ float ClampF(float g, float lo, float hi)
 {
     float r;
     if (g < lo)
@@ -1200,14 +1200,14 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             lo = D_002BCCA8;
             hi = D_002BCCAC;
         }
-        g = GClamp(v.f[2], z + lo, z + hi);
+        g = ClampF(v.f[2], z + lo, z + hi);
         jt->x104C = g;
         if (D_002DDF40.x300 != 0 || D_002DDF40.p260 != jt) {
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
             xp->pos.f[2] = GSmooth__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
-            xp->pos.f[2] = GClamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
+            xp->pos.f[2] = ClampF(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
         xp->pos.f[1] = v.f[1];
@@ -1236,8 +1236,8 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(r2), "=&j"(l1) : "j"(w));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l1) : "j"(l1));
         { int t; __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(l1)); __asm__("mtc1 %1, %0" : "=f"(s) : "r"(t)); }
-        k = GPoly(s, D_002BCCF0.a, D_002BCCF0.b, D_002BCCF0.c);
-        xp->g34 *= GClamp(k, D_002BBB60.lo, D_002BBB60.hi);
+        k = EvaluatePoly(s, D_002BCCF0.a, D_002BCCF0.b, D_002BCCF0.c);
+        xp->g34 *= ClampF(k, D_002BBB60.lo, D_002BBB60.hi);
     }
 }
 } } // namespace M_GetStepplayerCpdefi
@@ -1814,7 +1814,7 @@ static __inline__ qword Mul(M4 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
 }
-static __inline__ float GDist(qword a, qword b)
+static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, t;
     float g;
@@ -1845,7 +1845,7 @@ int IsStepplayerGrabReady(struct P *player)
     if (player->grabState != 5 || !player->x4D4) return 1;
     LoadIdentityMatrix4(player->po->vt[32].pfn((char *)player->po + player->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
-    if (5.0f < GDist(GetLoWorldPos(player->po), v)) return 0;
+    if (5.0f < DistanceBetween(GetLoWorldPos(player->po), v)) return 0;
     if (player->x9A4 != 1) return 1;
     if (D_002DDED0.t < player->p994->t) return 0;
     return 1;
@@ -2160,7 +2160,7 @@ struct VU_VECTOR4
     qword qw;
 };
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-static inline float GEvaluateClq(CLQ *clq, float x)
+static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
@@ -2240,19 +2240,19 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline qword QwSub(qword qw0, qword qw1)
+static inline qword SubVec(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline float GFromVf(qword qw)
+static inline float LaneX(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwDot(qword a, qword b)
+static inline qword DotVec(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -2260,7 +2260,7 @@ static inline qword QwDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float GZOfQw(qword qw)
+static inline float LaneZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
@@ -2274,23 +2274,23 @@ extern "C" { extern LM D_002BBB60; }
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
-    r.qw = QwSub(a, b);
+    r.qw = SubVec(a, b);
     return r;
 }
-static inline qword QwLengthXYTwice(qword v)
+static inline qword LengthXYInX2(qword v)
 {
     qword qw;
     __asm__("vmul.xy %0, %1, %2\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v), "j"(v));
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline float GXOfQwVf(qword qw)
+static inline float LaneXKeepVf(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));
     return x;
 }
-static inline float GEvaluateClqLm(CLQ *clq, LM *range, float x)
+static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
     float g = clq->g0 + x * (clq->g1 + x * clq->g2);
     float minValue = range->gMin;
@@ -2318,19 +2318,19 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     qword posHero = PosLoWorld(player);
     VU_VECTOR4 vecS = SubPos(posHero, PosLoWorld(lo));
     qword vec = vecS.qw;
-    float dz = GZOfQw(vec);
-    float sXY = GFromVf(QwLengthXYTwice(vec));
+    float dz = LaneZ(vec);
+    float sXY = LaneX(LengthXYInX2(vec));
     if ((LO *)player == *pploCur)
     {
-        sBias = GEvaluateClq(&D_002BD280, sXY);
-        zBias = GEvaluateClq(&D_002BD290, dz);
+        sBias = EvaluateClq(&D_002BD280, sXY);
+        zBias = EvaluateClq(&D_002BD290, dz);
     }
     POCTL *pctl = player->pctl;
     if (pctl != 0 && sXY > 0.0001f)
     {
         qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
-        float rAway = GXOfQwVf(QwDot(qwStick, vec)) / sXY;
-        sBias += GEvaluateClqLm(&D_002BD2A0, &D_002BBB60, rAway) * GEvaluateClq(&D_002BD2B0, sXY);
+        float rAway = LaneXKeepVf(DotVec(qwStick, vec)) / sXY;
+        sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
     sXY += sBias;
     dz += zBias;
@@ -2409,7 +2409,7 @@ inline M3 operator*(const M3 &matL, const M3 &matR) return mat
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[2])->qw));
     *(VU_VECTOR4 *)&mat.r[2] = v2;
 }
-static inline float GFrac(float g, float a, float b)
+static inline float InverseLerp(float g, float a, float b)
 {
     if (b == a)
         return 0.5f;
@@ -2551,7 +2551,7 @@ qword ConvertAloPos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GAbs(float g) { return g < 0.0f ? -g : g; }
+static __inline__ float AbsF(float g) { return g < 0.0f ? -g : g; }
 /** @sly2-annot addr=0x1430C8
  * Purpose: From lean target direction (atan2 in local space, quadrants) and nLeanKind return a bitmask (8,
  *   0x10<<n, 0x100<<n, 0x1000)
@@ -3378,7 +3378,7 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
-void StepplayerVirtual83(char *player, int a, int b)
+void AddStepplayerDialogSmRefs(char *player, int a, int b)
 {
     AddStepDialogSmRefs(player, a, b);
     if (!b)
@@ -3400,7 +3400,7 @@ void StopStepplayerScriptAnim(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
-void StepplayerVirtual84(char *player, int a, int b)
+void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
 {
     RemoveStepDialogSmRefs(player, a, b);
     if (b) {
@@ -3422,7 +3422,7 @@ void GetJtHandsIgnoreFlags(void *p, int a, int b);
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
-void FIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
+void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
     int x = ShouldSoIgnoreIntersection(p, a);
     x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);

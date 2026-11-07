@@ -111,7 +111,7 @@ void InitGrabspot(struct S *grabspot)
 
 /** @sly2-annot addr=0x182CC0
  * Purpose: Default: no wrap range (return 0)
- * Info: proposed name GRABSPOT_FGetGrabRange (T1); class GRABSPOT; TU grabspot
+ * Info: proposed name GetGrabspotWrapRange (T1); class GRABSPOT; TU grabspot
  * Notes: superseded: GRABSPOT_FGetWrapRange (verdicts_followups) | verifier better_name (CORRECT row):
  *   Default slot 1 of the GRABSPOT secondary vtable (7 vtables). Overrides return a [min,max] parameter range
  *   and 1: CID34 +-pi*k (angular wrap), RAIL/PIPE shape s-
@@ -218,8 +218,8 @@ void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-// GRABSPOT default for virtual slot 0xF: returns 0 (meaning not identified).
-extern "C" int GrabspotSlotFDefault()
+// GRABSPOT's own slot 6 (secondary vtable): the owner getter, which every grab-spot class overrides to return its object (see sly2/xfm.h; GetGrabspotSparklePosition calls it); the base has no owner and returns 0.
+extern "C" int GetGrabspotOwner()
 {
     return 0;
 }
@@ -1409,7 +1409,7 @@ extern void PostLoLoad(struct O *p);
 extern qword GetLoWorldPos(void *p);
 extern qword ConvertAloPos(void *p, void *q, qword v);
 extern float D_002BE904;
-static __inline__ float GDist(qword a, qword b)
+static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, one;
     float g;
@@ -1431,7 +1431,7 @@ void PostTableGrabspotLoad(struct O *table)
 {
     PostLoLoad(table);
     if (table->g38 == 1e10f) {
-        table->g38 = GDist(GetLoWorldPos(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
+        table->g38 = DistanceBetween(GetLoWorldPos(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
     }
 }
 } } // namespace M_func_001843F0

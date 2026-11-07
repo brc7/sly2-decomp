@@ -827,7 +827,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 }
 
 // ChooseJtAttackTarget (Claude agent, lane G14, 2026-10-24): MATCH. laneG12v1 (aligned 2, s4/s5 swap of the hoisted D_002BF4B8 / D_003DD490 highs) plus const-ref helpers that add RTL insns which vanish after loop opt: VuSubRef(const qword&,const qword&), AbsF(const float&), IsBonus(P*const&), and a `qword pred` copy. The node loop now has 96 real insns in loop pass 1 (> threshold 95, so only the life-2 bonus high is hoisted) and 91 in pass 2 (the D_003DD490 high is hoisted then), which gives the target's s5/s4 order. One commented register pin (heading in f21).
-// history, laneG12v1: laneG11v1 with the abs.s asm replaced by __builtin_fabsf (same aligned 2). Was laneG11v1 (Claude agent, 2026-10-24): laneG10v1 (4) + an early `qword early=QwFromF(dt)` before the 11B500 call. QwFromF's mfc1 has a "memory" clobber so sched1 keeps it ahead of the call (the call depends on it), and it is defined on the SAME source line as VuFloatBits so cse treats the two asm_operands as equal (the line number is part of ASM_OPERANDS) and the later VuFloatBits reuses the early value, leaving only its dead store into the inline's v (0xD0) like the target. D_002A2DC0 is const (keeps its lq ahead of the memory clobber) and M3::operator= copies r[0],r[2],r[1]. aligned 2, ONE pin (heading f21). Left: s4/s5 swap of the hoisted D_003DD490/D_002BF4B8 high parts (target loop.c hoists the D_002BF4B8 hi first, so it lives one insn longer and is allocated second).
+// history, laneG12v1: laneG11v1 with the abs.s asm replaced by __builtin_fabsf (same aligned 2). Was laneG11v1 (Claude agent, 2026-10-24): laneG10v1 (4) + an early `qword early=FloatToVec(dt)` before the 11B500 call. FloatToVec's mfc1 has a "memory" clobber so sched1 keeps it ahead of the call (the call depends on it), and it is defined on the SAME source line as VuFloatBits so cse treats the two asm_operands as equal (the line number is part of ASM_OPERANDS) and the later VuFloatBits reuses the early value, leaving only its dead store into the inline's v (0xD0) like the target. D_002A2DC0 is const (keeps its lq ahead of the memory clobber) and M3::operator= copies r[0],r[2],r[1]. aligned 2, ONE pin (heading f21). Left: s4/s5 swap of the hoisted D_003DD490/D_002BF4B8 high parts (target loop.c hoists the D_002BF4B8 hi first, so it lives one insn longer and is allocated second).
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];}M3&operator=(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];return *this;}};
 struct M4{U r[4];};
 /* The objects the attack target is chosen from (and the JT itself, as an ALO). */
@@ -842,7 +842,7 @@ extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,fl
 extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
 extern "C" float RadNormalize__Ff(float);
 struct VU_FLOAT{qword qw;};
-static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword QwFromF(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
+static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword FloatToVec(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
 static inline float AngleOf(U v){return atan2f(v.f[1],v.f[0]);}
 static inline qword AddScaled(qword p,qword v,VU_FLOAT k){qword q;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%2x":"=j"(q):"j"(p),"j"(k.qw),"j"(v),"j"(k.qw)/*allocation-only: VU preference spills k like the target*/);return q;}
 static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(q):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"0"(v));return q;}
@@ -873,7 +873,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     ALO *best = 0;
     float nearest = 300.0f;
     qword position;
-    qword early = QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
+    qword early = FloatToVec(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
     rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, headingInput);
     position = GetLoWorldPos(jt);
     VU_FLOAT scalar = VuFloatBits(dt);

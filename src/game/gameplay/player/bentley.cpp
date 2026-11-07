@@ -429,8 +429,8 @@ float GLimitAbs__Fff(float g, float dg);
 void UpdateBentleyPlaces(struct P *p);
 void UpdateJtActiveZap(void *pv);
 
-static __inline__ float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
-static __inline__ float GClamp(float g, struct LM *range)
+static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+static __inline__ float ClampF(float g, struct LM *range)
 {
     float lo = range->gMin;
     float hi = range->gMax;
@@ -552,8 +552,8 @@ void UpdateBentley(struct P *bentley)
         break;
     case BENTLEY_GADGET:
         if (bentley->subState == 1) {
-            float g0 = GClamp(GEval(&D_002BC940, bentley->controller->g1C), &D_002BBB60);
-            float g1 = GClamp(GEval(&D_002BC950, bentley->controller->g1C), &D_002BBB60);
+            float g0 = ClampF(EvaluatePoly(&D_002BC940, bentley->controller->g1C), &D_002BBB60);
+            float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->g1C), &D_002BBB60);
             float z = 0.0f;
             if (z < bentley->controller->g1C) {
                 float d = RadNormalize__Ff(bentley->controller->g18 - bentley->g1A8);
@@ -1170,17 +1170,17 @@ extern "C" int TryFaceBentleyAttachedObject()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135E40 { extern "C" {
 struct S { char pad[0x13d0]; int st; };
-int StepplayerVirtual98(struct S *);
+int GetStepplayerMovementNoise(struct S *);
 /** @sly2-annot addr=0x135E40
  * Purpose: BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise
  * Info: proposed name BENTLEY_VUnk97 (T2); class BENTLEY slot98; TU bentley
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-// BENTLEY slot 98: the STEPPLAYER base result; when that is 0, 1 in states 1/5/14 and -1 otherwise (meaning of the
-// slot not identified).
-int BentleyVirtual98(struct S *bentley) {
-    int r = StepplayerVirtual98(bentley);
+// BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
+// then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
+int GetBentleyMovementNoise(struct S *bentley) {
+    int r = GetStepplayerMovementNoise(bentley);
     if (r != -1) return r;
     switch (bentley->st) {
     case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_ADRENALINE: return 1;

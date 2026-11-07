@@ -2811,18 +2811,18 @@ extern "C" int TryFaceMurrayAttachedObject()
 
 namespace M_func_001B8100 { extern "C" {
 struct S { char pad[0x13D0]; int n; char pad2[0x17F4 - 0x13D4]; int strafeSubstate; };
-int StepplayerVirtual98(struct S *p);
+int GetStepplayerMovementNoise(struct S *p);
 /** @sly2-annot addr=0x1B8100
  * Purpose: MURRAY vt98: base 0x1409B8; if -1 return 1 for states 1/12 or strafe with substate set
  * Info: proposed name MURRAY_vt98 (T2); class MURRAY slot98; TU murray
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-// MURRAY slot 98: the STEPPLAYER base result; when 0, 1 for states 1/12 or strafing with a sub-state (meaning of the
-// slot not identified).
-int MurrayVirtual98(struct S *murray)
+// MURRAY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
+// then 1 (noisy) in MURRAY_RUN/POWER_MOVE or when strafing with a sub-state, else -1.
+int GetMurrayMovementNoise(struct S *murray)
 {
-    int v = StepplayerVirtual98(murray);
+    int v = GetStepplayerMovementNoise(murray);
     if (v != -1) return v;
     switch (murray->n) {
     case MURRAY_RUN: case MURRAY_POWER_MOVE:
@@ -2971,7 +2971,7 @@ int IsMurrayInvulnerable(struct P *murray, int k)
 
 namespace M_MURRAY_FIgnoreIntersection { extern "C" {
 struct P { char pad[0x13D0]; int state; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
-int FIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
+int ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
 int IsLoSelfOrDescendantOf(void *pv, void *p1);
 int MaxInt(int n, int k);
 int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
@@ -2988,7 +2988,7 @@ int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
 // MURRAY slot 61: base flags, plus bit 3 for an object that is (part of) the carried object.
 int ShouldMurrayIgnoreIntersection(struct P *murray, void *pv)
 {
-    int n = FIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
+    int n = ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
     if (murray->p1430 && IsLoSelfOrDescendantOf(pv, murray->p1430))
         n = MaxInt(n, 3);
     else if (murray->state == MURRAY_AIMED_THROW)
@@ -3969,7 +3969,7 @@ int IsCameraPolicyActive__FP5CPLCY(void *p);
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
-int FCanUseGadget__6MURRAYi(struct P *p, int k)
+int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
     switch (p->state) {

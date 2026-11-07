@@ -83,12 +83,12 @@ inline PO::PO() { pvUnk174 = 0; }
 struct GRABSPOT
 {
     char abData[0x20];
-    virtual int FGetGrabRange() __asm__("GRABSPOT_FGetGrabRange");   /* slot 1; key function (grabspot.cpp) */
+    virtual int FGetGrabRange() __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
     virtual void GetClosestParam() __asm__("GetGrabspotClosestParam");         /* slot 2 */
     virtual void GetGrabPos() __asm__("GetGrabspotGrabPosition");              /* slot 3 */
     virtual void AdjustScore() __asm__("AdjustGrabspotScore");             /* slot 4 */
     virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
-    virtual void VtF() __asm__("GrabspotSlotFDefault");                     /* slot 6 */
+    virtual void VtF() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
 
 /* BLIPG's 32 records (0x1C bytes each) with an empty inline constructor: g++ still emits the 32-step loop. */

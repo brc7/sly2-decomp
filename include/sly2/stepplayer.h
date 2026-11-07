@@ -523,8 +523,8 @@ struct STEPPLAYER : public STEP
     virtual void RenderSelf() __asm__("RenderStepplayerSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepplayerToPos");   /* slot 29 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetStepplayerCpdefi");   /* slot 50 */
-    virtual void VUnk58() __asm__("StepplayerVirtual59");   /* slot 59 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
+    virtual void VUnk58() __asm__("AddStepplayerComponentXps");   /* slot 59 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
     virtual void VUnk71() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
     virtual void VUnk87(int n) __asm__("__pure_virtual");
@@ -537,19 +537,19 @@ struct STEPPLAYER : public STEP
       virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight) __asm__("SetStepplayerPlayerInteractMode");
       virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetStepplayerStunHold");
       virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCameraFocusPosition");
-    virtual int VUnk97() __asm__("StepplayerVirtual98");
-      virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__10STEPPLAYERi");
+    virtual int VUnk97() __asm__("GetStepplayerMovementNoise");
+      virtual int FCanUseGadget(int idGadget) __asm__("CanStepplayerUseGadget__10STEPPLAYERi");
       virtual void StartGadget(int idGadget) __asm__("StartStepplayerGadget");
     virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeStepplayerDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsStepplayerInvulnerable");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int JthsCurrent() __asm__("JthsCurrent__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("StepplayerVirtual82");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk82(uint grf, int fCount) __asm__("StepplayerVirtual83");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk83(uint grf, int fCount) __asm__("StepplayerVirtual84");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int JthsCurrent() __asm__("GetStepplayerHealthState__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepplayerAxisXps");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk82(uint grf, int fCount) __asm__("AddStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk83(uint grf, int fCount) __asm__("RemoveStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int VUnk84() __asm__("GetStepplayerModeCode");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int FCanBeHealed() __asm__("FCanBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int FCanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int VUnk85(ZPR *pzpr) __asm__("ShouldStepplayerVetoDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void VSlot101() __asm__("UpdateStepplayerGadget");   /* slot 101: not yet identified */
