@@ -313,7 +313,7 @@ qword PosCplookAnchor(struct X *p);
 void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
 
 
-// Same idiom as sly2/util.h Clamp; kept local because the shared template changes UpdateCplook (243/286 instructions off).
+// Same idiom as sly2/util.h Clamp; kept local because the shared helper changes UpdateCplook (243/286 instructions off).
 static __inline__ float ClampLocal(float g, float gMin, float gMax)
 {
     if (g < gMin) g = gMin;

@@ -716,7 +716,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 /* kept private: the shared GClamp (sly2/util.h) changes FindClosestPointOnLineSegment (60/62 off) */
-// Same idiom as sly2/util.h Clamp; kept local because the shared template changes FindClosestPointOnLineSegment (60/62 instructions off).
+// Same idiom as sly2/util.h Clamp; kept local because the shared helper changes FindClosestPointOnLineSegment (60/62 instructions off).
 static inline float Clamp(float g, float lo, float hi)
 {
     if (g < lo) g = lo;

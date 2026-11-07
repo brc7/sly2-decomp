@@ -472,7 +472,7 @@ static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 // Clamps g to [gMin, gMax].
-// Same idiom as sly2/util.h Clamp; kept local because the shared template changes RenderWaypt (312/376 instructions off).
+// Same idiom as sly2/util.h Clamp; kept local because the shared helper changes RenderWaypt (312/376 instructions off).
 static inline float ClampLocal(float g, float gMin, float gMax)
 {
     float gRet;

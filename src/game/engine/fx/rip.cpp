@@ -477,7 +477,7 @@ static inline void Init(DLI *it, DL *list) { it->list = list; it->next = (void *
 static inline void *Next(DLI *it) { void *p = *it->next; it->next = (void **)((char *)p + it->offset); return p; }
 static inline void SetAlign(REQ *r, int a) { r->align = a; }
 static inline const qword &Origin(STATE *s) { return s->origin; }
-// Same idiom as sly2/util.h MinInt; kept local because the shared template changes BounceRipgRips (139/199 instructions off).
+// Same idiom as sly2/util.h MinInt; kept local because the shared helper changes BounceRipgRips (139/199 instructions off).
 static inline int MinIntLocal(int a, int b) { return a <= b ? a : b; }
 // Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's HandleBounce virtual.
 void BounceRipgRips__FP4RIPG(P *p)
