@@ -28,14 +28,14 @@ struct CONTROL {char pad[0x10];float x,y;char pad18[8];float z;float zoom;};
 struct SHAPEV {char pad[0x30];float radius;};
 /* The aim target. */
 struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
-struct PROXYSRC {char pad[0x3C];int k;};
+struct PROXYSRC {char pad[0x3C];int kind;};
 /* View of the turret (a PO). */
 struct TURRETV
 {
     char pad0[0xC];
     VTE *vt;            /* +0x00C */
     char pad10[0x4C];
-    int unknown5C;      /* +0x05C */
+    int rotationXf;     /* +0x05C the rotation XF (an SO's pxf at +0x5C), handed to the rotation act */
     char pad60[0xF0];
     CONTROL *control;   /* +0x150 */
     char pad154[0x2C];
@@ -106,8 +106,8 @@ static inline qword Make(float x,float y,float z) {
     return q;
 }
 
-// TURRET vtable slot 7 (Init): PO defaults; yaw range +-1.5 rad, pitch range +-0.7 rad, zoom and smoothing
-// defaults, and the self pointer at +0x1D0.
+// TURRET vtable slot 7 (Init): PO defaults; pitchRange +-1.5 rad, yawRange +-0.7 rad (named from how UpdateTurretAim
+// uses them; the act gets (0, -yaw, pitch)), zoom range and strength, active at load, and the self pointer.
 extern "C" void InitTurret(TURRETV *turret)
 {
     InitPo(turret);
@@ -162,55 +162,60 @@ extern "C" void UpdateTurret(TURRETV *turret, float dt)
 
 // Aims the turret: with a target and aiming enabled, turns pan/tilt toward it; otherwise integrates the stick into
 // smoothed angular velocities. Both are clamped to the yaw/pitch ranges, and the rotation act gets the new goal.
-extern "C" void UpdateTurretAim(TURRETV *turret){
-    if(turret->target && turret->aim) {
+extern "C" void UpdateTurretAim(TURRETV *turret)
+{
+    if (turret->target && turret->aim) {
         M3 m;
-        float pitch,yaw;
+        float pitch, yaw;
         qword target;
-        m=LoadLookAtMatrix((target=func_001A62E8(turret->target),VuSub(target,func_001A62E8(turret))));
-        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&m,&pitch,&yaw);
-        float dp=pitch-turret->pitch;
-        float dy=yaw-turret->yaw;
-        turret->pitch=pitch;turret->yaw=yaw;
-        turret->vpitch=dp;turret->vyaw=dy;
+        m = LoadLookAtMatrix((target = func_001A62E8(turret->target), VuSub(target, func_001A62E8(turret))));
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&m, &pitch, &yaw);
+        float dp = pitch - turret->pitch;
+        float dy = yaw - turret->yaw;
+        turret->pitch = pitch;
+        turret->yaw = yaw;
+        turret->vpitch = dp;
+        turret->vyaw = dy;
     } else {
-        if(turret->control) {
-            float x=GLimitAbs__Fff(turret->control->x+turret->control->z,1.0f);
-            float y=GLimitAbs__Fff(turret->control->y,1.0f);
-            float strength=turret->strength;
-            float gain=(1.0f-strength)*0.5f+strength;
-            float cubic=-x*x;
-            cubic=cubic*x;
-            float accel=gain*10.0f;
-            float ax=cubic*accel;
-            float limit=strength*1.3f;
-            if(ax*turret->vpitch<=0.0f)turret->vpitch=0.0f;
-            float cubeY=y*y;
-            cubeY=cubeY*y;
-            float ay=cubeY*accel;
-            if(!RefGetGlobalSaveVar((*(int *)&g_sw.psvpReverseAim),D_003D4A60).u.n)ay=-ay;
-            if(ay*turret->vyaw<=0.0f)turret->vyaw=0.0f;
-            CLOCK *clock=&D_002DDED0;
-            const float *damping=D_002C4408;
-            turret->vpitch=GSmooth__FfffP3SMPPf(turret->vpitch,0.0f,clock->dt,damping,0);
-            turret->vyaw=GSmooth__FfffP3SMPPf(turret->vyaw,0.0f,clock->dt,damping,0);
-            turret->vpitch=GLimitAbs__Fff(turret->vpitch+ax*clock->dt,limit*0.9f);
-            turret->vyaw=GLimitAbs__Fff(turret->vyaw+ay*clock->dt,limit*0.8f);
-            turret->pitch+=turret->vpitch*clock->dt;
-            turret->yaw+=turret->vyaw*clock->dt;
+        if (turret->control) {
+            /* stick input, cubed for fine aim, scaled by the zoom strength */
+            float x = GLimitAbs__Fff(turret->control->x + turret->control->z, 1.0f);
+            float y = GLimitAbs__Fff(turret->control->y, 1.0f);
+            float strength = turret->strength;
+            float gain = (1.0f - strength) * 0.5f + strength;
+            float cubic = -x * x;
+            cubic = cubic * x;
+            float accel = gain * 10.0f;
+            float ax = cubic * accel;
+            float limit = strength * 1.3f;
+            if (ax * turret->vpitch <= 0.0f) turret->vpitch = 0.0f;   /* reversing stops at once */
+            float cubeY = y * y;
+            cubeY = cubeY * y;
+            float ay = cubeY * accel;
+            if (!RefGetGlobalSaveVar((*(int *)&g_sw.psvpReverseAim), D_003D4A60).u.n) ay = -ay;   /* "reverse aim" option */
+            if (ay * turret->vyaw <= 0.0f) turret->vyaw = 0.0f;
+            CLOCK *clock = &D_002DDED0;
+            const float *damping = D_002C4408;
+            turret->vpitch = GSmooth__FfffP3SMPPf(turret->vpitch, 0.0f, clock->dt, damping, 0);
+            turret->vyaw = GSmooth__FfffP3SMPPf(turret->vyaw, 0.0f, clock->dt, damping, 0);
+            turret->vpitch = GLimitAbs__Fff(turret->vpitch + ax * clock->dt, limit * 0.9f);
+            turret->vyaw = GLimitAbs__Fff(turret->vyaw + ay * clock->dt, limit * 0.8f);
+            turret->pitch += turret->vpitch * clock->dt;
+            turret->yaw += turret->vyaw * clock->dt;
         }
     }
-    turret->pitch=GLimitLm__FP2LMf(&turret->pitchRange,turret->pitch);
-    turret->yaw=GLimitLm__FP2LMf(&turret->yawRange,turret->yaw);
-    if(turret->isActRunning){V v;v.q=Make(0.0f,-turret->yaw,turret->pitch);SetActPositionGoal(turret->rotationAct,v.q);}
+    turret->pitch = GLimitLm__FP2LMf(&turret->pitchRange, turret->pitch);
+    turret->yaw = GLimitLm__FP2LMf(&turret->yawRange, turret->yaw);
+    if (turret->isActRunning) {
+        V v;
+        v.q = Make(0.0f, -turret->yaw, turret->pitch);
+        SetActPositionGoal(turret->rotationAct, v.q);
+    }
 }
 
 // VU helpers of UpdateTurretZoom: load/move into a VU register, difference, length (as float or as raw bits),
 // transpose-rotate by a 3x3 matrix, and the position of a value inside an LM range (Fraction) and back (Blend).
 static inline qword LoadVF(const qword &value){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(value));return r;}
-// Inline helpers ToVF, Difference, Length, OffsetLength, InverseRotate, Fraction, Blend: small vector/scalar wrappers
-// (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice matches
-// the original; the names say what they compute.
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
 static inline float Length(qword d){qword r;float f;
@@ -226,50 +231,59 @@ static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
 static inline float Fraction(LMV *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
 static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
 // Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
-extern "C" void UpdateTurretZoom(TURRETV *turret){
-    if(turret->target && turret->follow){
+extern "C" void UpdateTurretZoom(TURRETV *turret)
+{
+    if (turret->target && turret->follow) {
         M4 m;
-        V future,offset,local,swapped;
+        V future, offset, local, swapped;
         SMPV spring;
         V saved;
         V scratch;
-        float radius=turret->target->shape?turret->target->shape->radius:0.0f;
-        scratch.q=ToVF(func_001A62E8(turret));
-        float angle=atanf(radius/(Length(VuSub(scratch.q,func_001A62E8(turret->target)))*0.5f));
-        angle=angle+angle;
-        CLOCK *clock=&D_002DDED0;
-        angle=GMax(angle,turret->range.lo);
-        LoadIdentityMatrix4(turret->target->component,0,&m,0,clock->dt);
-        scratch.q=LoadVF(m.r[3]);future.q=scratch.q;
-        offset.q=VuSub(scratch.q,func_001A62E8(turret->target));
-        float extent=radius+OffsetLength(offset.q);
-        saved.q=future.q;
-        local.q=Difference(func_001A62E8(turret),saved.q);
-        local.q=InverseRotate(*func_001A6318(turret),local.q);
-        swapped.f[0]=-local.f[1];swapped.f[1]=local.f[2];swapped.f[2]=local.f[0];
+        /* the field of view that holds the target: from its radius at its distance, and from where it will be next
+           frame (LoadIdentityMatrix4 predicts its matrix) as seen in the turret's frame */
+        float radius = turret->target->shape ? turret->target->shape->radius : 0.0f;
+        scratch.q = ToVF(func_001A62E8(turret));
+        float angle = atanf(radius / (Length(VuSub(scratch.q, func_001A62E8(turret->target))) * 0.5f));
+        angle = angle + angle;
+        CLOCK *clock = &D_002DDED0;
+        angle = GMax(angle, turret->range.lo);
+        LoadIdentityMatrix4(turret->target->component, 0, &m, 0, clock->dt);
+        scratch.q = LoadVF(m.r[3]);
+        future.q = scratch.q;
+        offset.q = VuSub(scratch.q, func_001A62E8(turret->target));
+        float extent = radius + OffsetLength(offset.q);
+        saved.q = future.q;
+        local.q = Difference(func_001A62E8(turret), saved.q);
+        local.q = InverseRotate(*func_001A6318(turret), local.q);
+        swapped.f[0] = -local.f[1];
+        swapped.f[1] = local.f[2];
+        swapped.f[2] = local.f[0];
         float desired;
-        if(local.f[0]>0.0001f){
-            float horizontal=atanf((GAbs(swapped.f[0])+extent)/(swapped.f[2]*g_cm.rAspect));
-            horizontal=horizontal+horizontal;
-            float vertical=atanf((GAbs(swapped.f[1])+extent)/swapped.f[2]);
-            vertical=vertical+vertical;
-            desired=GMin(GMax(horizontal,vertical),turret->range.hi);
-        }else desired=turret->range.hi;
-        desired=GMax(desired,angle);
-        float target=GLimitLm__FP2LMf(&D_002BBB60,1.0f-Fraction(&turret->range,desired));
-        float delta=GAbs(target-turret->blend);
-        spring=D_002A97B0;
-        float rate=(1.0f-delta)*D_002C4418[0]+delta*D_002C4418[1];
-        spring.d*=rate;spring.a*=rate;spring.b*=rate;
-        turret->blend=GSmoothA__FffffP4SMPAPf(turret->blend,turret->velocity,target,D_002DDED0.dt,&spring,&turret->velocity);
-    }else {
-        if(turret->control){
-            float blend=turret->blend,zoom=turret->control->zoom;
-            turret->velocity=(D_002C4420[0]+blend*(D_002C4420[1]+blend*D_002C4420[2]))*zoom*GAbs(zoom);
-            turret->blend=GLimitLm__FP2LMf(&D_002BBB60,blend+turret->velocity*D_002DDED0.dt);
+        if (local.f[0] > 0.0001f) {
+            float horizontal = atanf((GAbs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.rAspect));
+            horizontal = horizontal + horizontal;
+            float vertical = atanf((GAbs(swapped.f[1]) + extent) / swapped.f[2]);
+            vertical = vertical + vertical;
+            desired = GMin(GMax(horizontal, vertical), turret->range.hi);
+        } else desired = turret->range.hi;
+        desired = GMax(desired, angle);
+        /* spring the blend toward it, faster for bigger changes (D_002C4418) */
+        float target = GLimitLm__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
+        float delta = GAbs(target - turret->blend);
+        spring = D_002A97B0;
+        float rate = (1.0f - delta) * D_002C4418[0] + delta * D_002C4418[1];
+        spring.d *= rate;
+        spring.a *= rate;
+        spring.b *= rate;
+        turret->blend = GSmoothA__FffffP4SMPAPf(turret->blend, turret->velocity, target, D_002DDED0.dt, &spring, &turret->velocity);
+    } else {
+        if (turret->control) {
+            float blend = turret->blend, zoom = turret->control->zoom;
+            turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * GAbs(zoom);
+            turret->blend = GLimitLm__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.dt);
         }
     }
-    turret->strength=Blend(&turret->range,1.0f-turret->blend);
+    turret->strength = Blend(&turret->range, 1.0f - turret->blend);
 }
 
 // Fires on any newly pressed button: takes a projectile from the proxy pool, launches it from the launcher and fires
@@ -293,7 +307,7 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
 extern "C" void *FilterTurretProxySource(TURRETV *turret, PROXYSRC *proxySource)
 {
     void *v = FIgnoreSoIntersection(turret);
-    if (turret->projectileProxy && proxySource->k == turret->projectileProxy->k) v = func_00134310(v, 1);
+    if (turret->projectileProxy && proxySource->kind == turret->projectileProxy->kind) v = func_00134310(v, 1);
     return v;
 }
 
@@ -305,7 +319,7 @@ extern "C" void SetTurretActive(TURRETV *turret, int k)
         if (k) {
             V v;
             v.q = Make(0.0f, -turret->yaw, turret->pitch);
-            turret->rotationAct = (void *)func_0012DC18(turret, turret->unknown5C, 1, 5, 3, v.q);
+            turret->rotationAct = (void *)func_0012DC18(turret, turret->rotationXf, 1, 5, 3, v.q);
         } else {
             ReleaseAct(&turret->rotationAct);
         }
