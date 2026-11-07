@@ -1212,20 +1212,20 @@ void KEY::Init() { using namespace M_func_001C6AB8; M_func_001C6AB8::S *p = (M_f
 
 namespace M_func_001C6B28 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; char pad2[0x150 - 0x10]; int state; char pad3[0x230 - 0x154]; void *task; };
+struct KEYV : SO { int state; char pad3[0x230 - 0x154]; void *task; };
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
-void RequestTaskState(void *p, int n, struct LO *plo);
-void SetDprizeDprizes(struct LO *p, int n);
+void RequestTaskState(void *p, int n, struct KEYV *plo);
+void SetDprizeDprizes(struct KEYV *p, int n);
 // CID 92 setter (sound on collect). (inferred)
-void SetKeyDprizes(struct LO *key, int n)
+void SetKeyDprizes(struct KEYV *key, int n)
 {
     if (key->state == n) return;
     if (n == 1) {
         SetSndSourceLo(CreateSfxSound(0), 0);
         if (key->task) RequestTaskState(key->task, 2, key);
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))key->vt[3].pf)((char *)key + key->vt[3].d, 5, 0, 0, 0, 0);
+        key->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
     SetDprizeDprizes(key, n);
 }
@@ -1269,17 +1269,17 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
 #undef VT
 
 namespace M_PdprizeNewSpray { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
+/* A sprayed prize (classes.h DPRIZE : SO): its slot 76, the state setter. */
+struct DPRIZEV : SO { virtual void SetState(int state); };
 void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
-struct LO *AcquireProxyObject(void *pg, int n);
-void LockProxyObject(void *pg, struct LO *plo);
+struct DPRIZEV *AcquireProxyObject(void *pg, int n);
+void LockProxyObject(void *pg, struct DPRIZEV *plo);
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
-int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
+int NewSprayedDprize(void *prize, int kind, int n, struct DPRIZEV **aplo)
 {
     int id, i, c;
     void *pg;
-    struct LO *plo;
+    struct DPRIZEV *plo;
     if (!n) return 0;
     switch (kind) {
     case 0x5B: id = 0x2B3; break;
@@ -1293,7 +1293,7 @@ int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
         if (i >= n) break;
         plo = AcquireProxyObject(pg, 0);
         if (!plo) break;
-        ((void (*)(void *, int))plo->vt[76].pf)((char *)plo + plo->vt[76].d, 2);
+        plo->SetState(2);
         c++;
         LockProxyObject(pg, plo);
         aplo[i] = plo;
