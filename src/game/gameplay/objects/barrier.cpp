@@ -55,7 +55,7 @@ extern CALLBACKK D_002A4790;
 extern "C" {
 void InitSo(BARRIERV *pso);
 void PostSoLoad(BARRIERV *pso);
-void RecalcSwOxfFilterForObject(void *psw, BARRIERV *pso);
+void RefreshSwObjectCollisionFilter(void *psw, BARRIERV *pso);
 int HasLoOid(void *plo, int oid);
 int ShouldSoIgnoreIntersection(BARRIERV *pso, void *psoOther);
 void AdjustSoNewXp(BARRIERV *pso);
@@ -79,7 +79,7 @@ extern "C" void PostBarrierLoad(BARRIERV *barrier)
 {
     PostSoLoad(barrier);
     if (barrier->hasPhysics)
-        RecalcSwOxfFilterForObject(D_003DD490, barrier);
+        RefreshSwObjectCollisionFilter(D_003DD490, barrier);
 }
 
 // BARRIER vtable slot 61 (FIgnoreIntersection): decides how the barrier collides with another object. The other

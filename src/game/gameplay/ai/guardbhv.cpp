@@ -225,7 +225,7 @@ void AddStepguardSgf(STEPGUARD *guard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
 void SetStepguardTarget(STEPGUARD *guard, LO *object);
 STEPGUARD *GetStepguardFromLo(LO *object);
-void RecalcSwOxfFilterForObject(SW *psw, STEP *pstep);
+void RefreshSwObjectCollisionFilter(SW *psw, STEP *pstep);
 void InitBhvanim(BHVANIMV *behavior);
 void StartBhvanim(BHVANIMV *behavior);
 void CloseBhvanim(BHVANIMV *behavior);
@@ -2789,7 +2789,7 @@ union VEC; struct VTENT; struct CURVE; struct CONTEXT; struct BODY; struct GROUP
 //  - dirNow length through VuLengthAlt (the vmul.xyz reads its input as two "j" operands, allocation only): the extra
 //    refs give the VLength copy a higher global.c priority than the projected dpos, so the copy takes vf5 and dpos vf7.
 // Earlier keys (lilly15):
-//  - FindShapeClosestPointFromS takes the float right after the position (pcrv, pos, s, pv, ...): arg-move order f12 before a2.
+//  - FindShapeClosestPointFromDistance takes the float right after the position (pcrv, pos, s, pv, ...): arg-move order f12 before a2.
 //  - Top and dirNow normalizes as `NormalizeSafeN(VV v, VV fallback)` / `DivSafe(v, len, fallback)` (return style,
 //    by-value VV fallback): the fallback lq/qmtc2 lands in the branch delay slots with the target registers.
 //  - "rV" on the VU_FLOAT(const float *) qmtc2 input: the lw reuses the dying lui register (reload-made load).
@@ -2892,10 +2892,10 @@ extern float D_002BE630, D_002BE634, D_002BE658, D_002BE65C, D_002BE660, D_002BE
 extern CLQ D_002BE640, D_002BE680;
 extern LM D_002BE650, D_002BBB60;
 qword GetLoWorldPos(void *pobj);
-float SWrapShape(CURVE *pcrv, float s);
-float SMaxShape(CURVE *pcrv);
-void FindShapeClosestPointFromS(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
-void EvaluateShapeS(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
+float WrapShapeDistance(CURVE *pcrv, float s);
+float GetShapeMaxDistance(CURVE *pcrv);
+void FindShapeClosestPointFromDistance(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
+void EvaluateShapeAtDistance(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
 int IsBhvpathAtEnd(S *p);
 void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
 int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv);
@@ -3143,8 +3143,8 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         s = behavior->s - D_002BE634;
     else
         s = behavior->s + D_002BE634;
-    float sCurve = SWrapShape(behavior->pcrv, s);
-    FindShapeClosestPointFromS(behavior->pcrv, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->s);
+    float sCurve = WrapShapeDistance(behavior->pcrv, s);
+    FindShapeClosestPointFromDistance(behavior->pcrv, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->s);
     if (behavior->mode == 1 || behavior->mode == 4)
     {
         fReverse = behavior->modeExtra != 2;
@@ -3152,8 +3152,8 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             s = behavior->sExtra - D_002BE634;
         else
             s = behavior->sExtra + D_002BE634;
-        float sCurve = SWrapShape(behavior->pcrvExtra, s);
-        FindShapeClosestPointFromS(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
+        float sCurve = WrapShapeDistance(behavior->pcrvExtra, s);
+        FindShapeClosestPointFromDistance(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
     }
     dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
     behavior->sSeparation = VuGetX(VuLengthXY(VuSubtract(point.qw, posActor)));
@@ -3178,7 +3178,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             if (behavior->pcrv == behavior->guard->pcrvPrimary)
             {
                 float sMin = -behavior->s;
-                float sMax = SMaxShape(behavior->pcrv) - behavior->s;
+                float sMax = GetShapeMaxDistance(behavior->pcrv) - behavior->s;
                 float dsClamp = Clamp(ds, sMin, sMax);
                 if (ds != dsClamp)
                     gSpeed = 0.0f;
@@ -3190,18 +3190,18 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 float sNext;
                 if (behavior->pcrv->fWrap)
                 {
-                    sNext = SWrapShape(behavior->pcrv, behavior->s + ds);
+                    sNext = WrapShapeDistance(behavior->pcrv, behavior->s + ds);
                 }
                 else
                 {
                     float sMin = -behavior->s;
-                    float sMax = SMaxShape(behavior->pcrv) - behavior->s;
+                    float sMax = GetShapeMaxDistance(behavior->pcrv) - behavior->s;
                     float dsClamp = Clamp(ds, sMin, sMax);
                     if (ds != dsClamp)
                         gSpeed = 0.0f;
                     sNext = behavior->s + dsClamp;
                 }
-                EvaluateShapeS(behavior->pcrv, sNext, &next, &nextDir);
+                EvaluateShapeAtDistance(behavior->pcrv, sNext, &next, &nextDir);
             }
             break;
         case 1:
@@ -3490,18 +3490,18 @@ extern struct G D_003DD020;
 struct O { char pad[0xE4]; int isClosed; };
 struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *shape; float pathParam; int isReversed; int hasEnd; int pad3; float endParam; float startParamHint; char pad4[0xB0 - 0x4C]; char endPoint[0x10]; };
 qword GetLoWorldPos(void *p);
-void FindShapeClosestPointFromS(struct O *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPointFromDistance(struct O *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(struct O *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float SMinShape(struct O *shape);
-float SMaxShape(struct O *shape);
-void EvaluateShapeS(struct O *shape, float g, void *pv, int n);
+float GetShapeMinDistance(struct O *shape);
+float GetShapeMaxDistance(struct O *shape);
+void EvaluateShapeAtDistance(struct O *shape, float g, void *pv, int n);
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
 void SetBhvpathShape(struct S *behavior, struct O *shape, int n) {
     behavior->isReversed = n;
     behavior->shape = shape;
     if (behavior->startParamHint >= 0.0f) {
-        FindShapeClosestPointFromS(shape, behavior->startParamHint, GetLoWorldPos(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromDistance(shape, behavior->startParamHint, GetLoWorldPos(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
         behavior->startParamHint = -1.0f;
     } else {
         FindShapeClosestPoint(shape, GetLoWorldPos(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
@@ -3510,9 +3510,9 @@ void SetBhvpathShape(struct S *behavior, struct O *shape, int n) {
         behavior->hasEnd = 0;
     } else {
         behavior->hasEnd = 1;
-        if (behavior->isReversed) behavior->endParam = SMinShape(shape);
-        else behavior->endParam = SMaxShape(shape);
-        EvaluateShapeS(shape, behavior->endParam, behavior->endPoint, 0);
+        if (behavior->isReversed) behavior->endParam = GetShapeMinDistance(shape);
+        else behavior->endParam = GetShapeMaxDistance(shape);
+        EvaluateShapeAtDistance(shape, behavior->endParam, behavior->endPoint, 0);
     }
 }
 } } // namespace M_SetBhvpathShape
@@ -4075,7 +4075,7 @@ void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
 qword ConvertAloPos(struct A *source, void *target, qword v);
 void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
-void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
+void RefreshSwObjectCollisionFilter(struct G *g, struct A *p);
 void ResetDetectorTargets(void *p);
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
 static inline int Count(struct A *a) {
@@ -4117,7 +4117,7 @@ void StartBhvko(struct S *behavior) {
         v = ConvertAloPos(behavior->guard, 0, q);
         SprayDifficultyPrizes(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
     }
-    RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
+    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->guard);
     ResetDetectorTargets(behavior->guard->detector);
 }
 
@@ -4152,7 +4152,7 @@ void BHVKO::VSlot9()
 {
     BHV *behavior = (BHV *)this;
     CloseBhvhit(behavior);
-    RecalcSwOxfFilterForObject(&D_003DD490, behavior->pstep);
+    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->pstep);
 }
 
 // 0x179A58 InitBhvpatrol
@@ -5316,7 +5316,7 @@ extern "C"{
  void SeekAsega(ASEGA*,int,float,float);
  void ReleaseAct(DELTA**);
  void SetXfRole(P*,GROUP*,int);
- void RecalcSwOxfFilterForObject(void*,P*);
+ void RefreshSwObjectCollisionFilter(void*,P*);
  void FreeSoContacts(P*);
  void SetBhvanimState(C*,int);
  void CalculateBhvjuggledHoldPoint(C*,REQUEST*,U*,U*);
@@ -5449,7 +5449,7 @@ extern "C" void SetBhvjuggledState(C *behavior, int next)
         __asm__("lui %0,%2\n\tlw %1,%3"
                 : "=&r"(gameBase), "=r"(callbackActor)
                 : "i"((gameAddress + 0x8000) >> 16), "m"(behavior->guard));
-        RecalcSwOxfFilterForObject(gameBase + (short)(gameAddress & 0xffff), callbackActor);
+        RefreshSwObjectCollisionFilter(gameBase + (short)(gameAddress & 0xffff), callbackActor);
         FreeSoContacts(behavior->guard);
         behavior->mode = next;
     }
@@ -6478,8 +6478,8 @@ struct S { char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3
 union V { qword q; float f[4]; };
 void UpdateBhv(struct S *p);
 qword GetLoWorldPos(void *p);
-float SWrapShape(void *p, float f);
-void FindShapeClosestPointFromS(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
+float WrapShapeDistance(void *p, float f);
+void FindShapeClosestPointFromDistance(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
 int HasBhvrailArrived(struct S *p);
 void SetBhvrailState(struct S *p, int n);
 float atan2f(float y, float x);
@@ -6500,7 +6500,7 @@ void UpdateBhvrail(struct S *behavior) {
             union V v;
             a->isMovingForward = t < behavior->goalParam;
             pos = GetLoWorldPos(behavior->guard);
-            FindShapeClosestPointFromS(q, SWrapShape(q, behavior->guard->isMovingForward ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
+            FindShapeClosestPointFromDistance(q, WrapShapeDistance(q, behavior->guard->isMovingForward ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
             behavior->guard->attachParam = t;
             if (HasBhvrailArrived(behavior)) {
                 SetBhvrailState(behavior, 1);
@@ -6559,17 +6559,17 @@ namespace M_SetBhvrailGoal { extern "C" {
 struct T; struct S;
 struct T { char pad[0xF84]; void *attachObject; float attachParam; int isMovingForward; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x28]; float goalParam; };
-float SMaxShape(void *p);
-float SMinShape(void *p);
+float GetShapeMaxDistance(void *p);
+float GetShapeMinDistance(void *p);
 void SetBhvrailState(struct S *p, int n);
 // 0x17CDB8: Sets the rail goal to the rail's maximum or minimum parameter, the direction, and starts walking.
 void SetBhvrailGoal(struct S *behavior, int f)
 {
     void *pv = behavior->guard->attachObject;
     if (f)
-        behavior->goalParam = SMaxShape(pv);
+        behavior->goalParam = GetShapeMaxDistance(pv);
     else
-        behavior->goalParam = SMinShape(pv);
+        behavior->goalParam = GetShapeMinDistance(pv);
     behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
     SetBhvrailState(behavior, 0);
 }
@@ -6624,7 +6624,7 @@ void UpdateBhv(struct S *p);
 int HasBhvpipeArrived(struct S *p);
 void SetBhvpipeState(struct S *p, int n);
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
-float SWrapShape(int n, float g);
+float WrapShapeDistance(int n, float g);
 void GetPipeGoalMatrix(int a, float g, int b, void *pv);
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
 // the pipe goal matrix.
@@ -6650,7 +6650,7 @@ void UpdateBhvpipe(struct S *behavior) {
                     g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.dt, &l, 0);
                 }
                 behavior->smoothedSpeed = g;
-                behavior->guard->attachParam = SWrapShape(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.dt);
+                behavior->guard->attachParam = WrapShapeDistance(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.dt);
             }
         }
     } while (behavior->state != s);
@@ -6697,17 +6697,17 @@ namespace M_SetBhvpipeGoal { extern "C" {
 struct T; struct S;
 struct T { char pad[0xF84]; void *attachObject; float attachParam; int isMovingForward; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; float goalParam; };
-float SMaxShape(void *p);
-float SMinShape(void *p);
+float GetShapeMaxDistance(void *p);
+float GetShapeMinDistance(void *p);
 void SetBhvpipeState(struct S *p, int n);
 // 0x17D110: Sets the pipe goal to the pipe's maximum or minimum parameter.
 void SetBhvpipeGoal(struct S *behavior, int f)
 {
     void *pv = behavior->guard->attachObject;
     if (f)
-        behavior->goalParam = SMaxShape(pv);
+        behavior->goalParam = GetShapeMaxDistance(pv);
     else
-        behavior->goalParam = SMinShape(pv);
+        behavior->goalParam = GetShapeMinDistance(pv);
     behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
     SetBhvpipeState(behavior, 0);
 }
@@ -7028,8 +7028,8 @@ int IsBhvBusyAbove(struct S *p);
 int IsBhvpathAtEnd(struct T *t);
 void SetBhvgotoState(struct S *p, int n);
 int IsBhvwalkpathStuck(struct T *t);
-float SMaxShape(void *p);
-void EvaluateShapeS(void *p, float f, float *pv, int n);
+float GetShapeMaxDistance(void *p);
+void EvaluateShapeAtDistance(void *p, float f, float *pv, int n);
 int IsBhvpathlinkDone(struct T *t);
 int IsBhvRelocateDone(struct T *t);
 void PlanBhvgoto(struct S *p);
@@ -7052,10 +7052,10 @@ void UpdateBhvgoto(struct S *behavior) {
                     PlanBhvgoto(behavior);
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
-                    float maxParam = SMaxShape(t->shape);
+                    float maxParam = GetShapeMaxDistance(t->shape);
                     behavior->relocateRef0 = 0;
                     behavior->relocateRef1 = 0;
-                    EvaluateShapeS(t->shape, f < maxParam ? f : maxParam, behavior->relocatePos, 0);
+                    EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, behavior->relocatePos, 0);
                     behavior->relocatePos[2] = behavior->guard->unknown218->z;
                     SetBhvgotoState(behavior, 5);
                 }
@@ -7888,7 +7888,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int lookAtTarg
 struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int shape; int pad3; float pathParam; int pad4; char goal[0x10]; int lookAtTarget; int unknownAC; int isDirect; };
 void StartBhv(struct S *p);
 qword GetLoWorldPos(void *p);
-void FindShapeClosestPointFromS(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPointFromDistance(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(int a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 struct O *PushStepBehavior(void *p, int n);
 void AdvanceBhvpatrolpathGoal(struct S *p, int n);
@@ -7898,7 +7898,7 @@ void StartBhvpatrolpath(struct S *behavior) {
     struct O *o;
     StartBhv(behavior);
     if (behavior->pathParam >= 0.0f)
-        FindShapeClosestPointFromS(behavior->shape, behavior->pathParam, GetLoWorldPos(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromDistance(behavior->shape, behavior->pathParam, GetLoWorldPos(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
     else
         FindShapeClosestPoint(behavior->shape, GetLoWorldPos(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
     o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
@@ -7939,12 +7939,12 @@ struct B { char pad[0xE4]; int isClosed; char pad2[0x180 - 0xE8]; void *blockedR
 struct X { qword a; qword v; };
 struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; struct B *shape; int isForward; float pathParam; int pad4; qword goal; char pad5[8]; int isDirect; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-float SMinShape(struct B *b);
-float SMaxShape(struct B *b);
-float SWrapShape(struct B *b, float f);
+float GetShapeMinDistance(struct B *b);
+float GetShapeMaxDistance(struct B *b);
+float WrapShapeDistance(struct B *b, float f);
 void BuildShapeValidRanges(void *p);
 struct R *FindRangeContaining(void *p, float f);
-void EvaluateShapeS(struct B *b, float f, qword *pv, int n);
+void EvaluateShapeAtDistance(struct B *b, float f, qword *pv, int n);
 void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 // 0x17ECF0: Steps the shape parameter by a class-dependent distance in the travel direction (clamping or wrapping,
@@ -7956,25 +7956,25 @@ void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
     if (behavior->isForward == 0) d = -d;
     t = behavior->pathParam + d;
     if (behavior->shape->isClosed == 0) {
-        float lo = SMinShape(behavior->shape);
-        float hi = SMaxShape(behavior->shape);
+        float lo = GetShapeMinDistance(behavior->shape);
+        float hi = GetShapeMaxDistance(behavior->shape);
         if (t < lo) t = lo;
         else if (hi < t) t = hi;
     } else {
-        t = SWrapShape(behavior->shape, t);
+        t = WrapShapeDistance(behavior->shape, t);
     }
     if (behavior->isDirect == 0) {
         struct R *r;
         BuildShapeValidRanges(behavior->shape->blockedRanges);
         r = FindRangeContaining(behavior->shape->blockedRanges, t);
-        if (r) t = SWrapShape(behavior->shape, behavior->isForward != 0 ? r->end : r->start);
+        if (r) t = WrapShapeDistance(behavior->shape, behavior->isForward != 0 ? r->end : r->start);
     }
     if (force == 0 && __builtin_fabsf(behavior->pathParam - t) < D_002BE7C4) return;
     {
         void *q;
         struct X x;
         behavior->pathParam = t;
-        EvaluateShapeS(behavior->shape, t, &behavior->goal, 0);
+        EvaluateShapeAtDistance(behavior->shape, t, &behavior->goal, 0);
         q = behavior->child;
         ClearPointerPair(&x);
         x.v = behavior->goal;
@@ -8003,13 +8003,13 @@ struct O; struct S;
 struct O { char pad[0xE4]; int isClosed; };
 struct S { char pad[0x30]; struct O *shape; int isForward; float pathParam; };
 extern float D_002BE7B8;
-float SMaxShape(struct O *p);
-float SMinShape(struct O *p);
+float GetShapeMaxDistance(struct O *p);
+float GetShapeMinDistance(struct O *p);
 // 0x17EEB8: True if the shape is open and the parameter is within tolerance of its end.
 int IsBhvpatrolpathAtEnd(struct S *behavior) {
     float g;
     if (behavior->shape->isClosed) return 0;
-    if (behavior->isForward) g = SMaxShape(behavior->shape); else g = SMinShape(behavior->shape);
+    if (behavior->isForward) g = GetShapeMaxDistance(behavior->shape); else g = GetShapeMinDistance(behavior->shape);
     if (D_002BE7B8 < __builtin_fabsf(behavior->pathParam - g)) return 0;
     return 1;
 }

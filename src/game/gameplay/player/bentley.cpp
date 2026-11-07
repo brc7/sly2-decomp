@@ -206,8 +206,8 @@ extern float D_002BC930;
 void SetJtAirJump(void *pv, int a, int b, int c);
 int IsStepplayerNearInteractTarget(struct P *p, int n);
 void SetBentleyState(struct P *p, int n);
-int GrfConsumePressed__5POCTLUif(struct PO *po, int grf, float g);
-int GrfPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
+int GetButtonsPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
 void ClearPoctlJoyPressed(struct PO *po, int grf);
 void UpdateJtAirInput(void *pv);
 void UpdateJtGrabInput(void *pv);
@@ -273,16 +273,16 @@ void UpdateBentleyStateMachine(struct P *p)
         case BENTLEY_WALK:
             if (!(p->controller->x30 & BUTTON_RUN) && IsStepplayerNearInteractTarget(p, 0)) {
                 SetBentleyState(p, BENTLEY_NEAR_TARGET);
-            } else if (GrfConsumePressed__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
                 SetJtAirJump(p->air, 1, 0, 0);
-            } else if (GrfPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
                 ClearPoctlJoyPressed(p->controller, BUTTON_LOOK);
                 StartJtMode(p->aF00, 0, 0, 0);
-            } else if (GrfPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
                 p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
                 SetBentleyState(p, BENTLEY_GADGET);
-            } else if (GrfConsumePressed__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
                 TryGrabJtNearestCandidate(&p->grab, 0xF8FE, 0);
             } else {
                 float g = p->controller->g1C;
@@ -298,7 +298,7 @@ void UpdateBentleyStateMachine(struct P *p)
             break;
         case BENTLEY_AIR:
             UpdateJtAirInput(p->air);
-            if (GrfPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
+            if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
                 p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
                 SetBentleyState(p, BENTLEY_GADGET);
@@ -313,14 +313,14 @@ void UpdateBentleyStateMachine(struct P *p)
         case BENTLEY_NEAR_TARGET:
             if ((p->controller->x30 & BUTTON_RUN) || !IsStepplayerNearInteractTarget(p, 1)) {
                 SetBentleyState(p, BENTLEY_IDLE);
-            } else if (GrfConsumePressed__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
                 SetJtAirJump(p->air, 1, 0, 0);
-            } else if (GrfPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
                 ClearPoctlJoyPressed(p->controller, BUTTON_LOOK);
                 StartJtMode(p->aF00, 0, 0, 0);
-            } else if (GrfConsumePressed__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
                 TryGrabJtNearestCandidate(&p->grab, 0xF8FE, 0);
-            } else if (GrfPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
                 p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
                 SetBentleyState(p, BENTLEY_GADGET);
@@ -358,7 +358,7 @@ void UpdateBentleyStateMachine(struct P *p)
 namespace M_func_00134D30 { extern "C" {
 struct S { char pad[0x150]; void *controller; char pad2[0xf00 - 0x154]; int ff00; int jtModeState; char pad3[0x18]; int jtModeKind; };
 int IsStepplayerInJtMode(struct S *);
-int GrfConsumePressed__5POCTLUif(void *, int, float);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void EndJtMode(void *);
 void UpdateJtMode(void *);
 /** @sly2-annot addr=0x134D30
@@ -372,7 +372,7 @@ void UpdateBentleyJtMode(struct S *bentley) {
     if (!IsStepplayerInJtMode(bentley))
         return;
     void *pv = &bentley->ff00;
-    if (bentley->jtModeState == 1 && bentley->jtModeKind == 0 && GrfConsumePressed__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
+    if (bentley->jtModeState == 1 && bentley->jtModeKind == 0 && ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
     UpdateJtMode(pv);
 }
 } } // namespace M_func_00134D30
@@ -1414,7 +1414,7 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BC994;
 int IsStepplayerInJtMode(struct P *p);
 void SetBentleyAimState(struct P *p, int n);
-int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *pv, int n, float g);
 void FireBentleyDart(struct P *p, int n);
 void UpdateBentleyCrosshair(void *pv, int n);
 int FindSmStateOptional__FP2SM3OID(void *pv, int n);
@@ -1443,7 +1443,7 @@ void UpdateBentleyAim(struct P *bentley)
             } else if (bentley->aimState == 1) {
                 if (D_002BC994 < D_002DDED0.t - bentley->g1700)
                     SetBentleyAimState(bentley, 0);
-            } else if (GrfConsumePressed__5POCTLUif(bentley->controller, BUTTON_RUN, 0.25f)) {   // in look mode the run button fires
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_RUN, 0.25f)) {   // in look mode the run button fires
                 FireBentleyDart(bentley, 0x80000);
             }
             break;
@@ -1895,7 +1895,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad2[0x150 - 0x10]; struct A *pa;
 struct P { struct O *po; int x4; int x8; int xC; int x10; int x14; char pad[0xE0 - 0x18]; void *pE0; };
 int IsAsegaRetracted(void *p);
 void SetBentleyCrosshairState(struct P *p, int k);
-int GrfPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
+int GetButtonsPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
 void ClearPoctlJoyPressed(struct A *pa, int n);
 /** @sly2-annot addr=0x136DC0
  * Purpose: Aim-helper update: on button 0x80 and FCanUseGadget(2) restart
@@ -1911,7 +1911,7 @@ void UpdateBentleyCrosshair(struct P *bentley, int k)
     if (k != bentley->x4 && bentley->x4 != -1)
         SetBentleyCrosshairState(bentley, k);
     if (k != -1 && (bentley->x4 == -1 || bentley->xC) &&
-        GrfPressedWithin__5POCTLUif(bentley->po->pa, BUTTON_ATTACK, 0.1f)) {
+        GetButtonsPressedWithin__5POCTLUif(bentley->po->pa, BUTTON_ATTACK, 0.1f)) {
         struct O *object = bentley->po;
         if (((int (*)(void *, int))object->pvt[99].pfn)((char *)object + object->pvt[99].d, 2)) {
             ClearPoctlJoyPressed(bentley->po->pa, BUTTON_ATTACK);

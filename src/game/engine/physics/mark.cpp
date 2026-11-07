@@ -1,7 +1,7 @@
 // mark.cpp -- narrow-phase collision ("marking" contacts) between the parts (SOPART) of two touching solid objects.
 // Role: AddSoXps pairs the parts of two object trees and dispatches by shape: sphere/sphere, sphere/BSP, BSP/BSP
 // and swept vertices; the BSP markers clip edges against the other part's BSP (ClipSoBspEdges, CategorizeSegmentList,
-// CplsgFindEdgePath) and append contacts (XPs) through AddXp. Also the XP list helpers and the per-frame refresh of
+// FindEdgePath) and append contacts (XPs) through AddXp. Also the XP list helpers and the per-frame refresh of
 // contact positions and relative velocities (RecalcSwXpPos / RecalcSwXpMovement). Called from the broad phase
 // (bbmark.cpp RecalcSwXpAll); the contacts feed the solver (solve.cpp, dzg.cpp).
 // TU 0x1A7C18..0x1AA978 (21 functions, address order) plus the inline function behind the linkonce copy 0x2564C0
@@ -140,7 +140,7 @@ struct CMCONTACT
 };
 extern "C" void *memmove(void *dst, const void *src, int cb);
 
-/* CategorizeAlsg swaps the ends of an LSG through a 16-byte aligned block on the stack (the original's VECTOR
+/* CategorizeClippedSegments swaps the ends of an LSG through a 16-byte aligned block on the stack (the original's VECTOR
    temporary): a qword temporary stays in a register (154 of 170 off). This form exists to reproduce the original
    codegen. */
 struct VECBLK { float x, y, z; } __attribute__((aligned(16)));
@@ -411,7 +411,7 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
  * @end-sly2-annot */
 // Sorts clipped spans into categories (inside, touching, crossing) for the BSP/BSP marker. Sly 1 name:
 // CategorizeAlsg.
-void CategorizeAlsg(int count, LSG *segments, int *numPointsOut, int *pointIndices, LSG **categorized, LSG **bothOut)
+void CategorizeClippedSegments(int count, LSG *segments, int *numPointsOut, int *pointIndices, LSG **categorized, LSG **bothOut)
 {
     LSG *plsgNone = 0;
     int cpos = 0;
@@ -478,7 +478,7 @@ void CategorizeAlsg(int count, LSG *segments, int *numPointsOut, int *pointIndic
 
 /** @sly2-annot addr=0x1A86B8
  * Purpose: Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges
- * Info: proposed name CplsgFindEdgePath (T1); TU mark
+ * Info: proposed name FindEdgePath (T1); TU mark
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources:
  *   r4b_rest+verdicts_A2+names_v2-signature(verified)
  * See: docs/engine/physics-collision.md#7-key-functions,
@@ -489,8 +489,8 @@ void CategorizeAlsg(int count, LSG *segments, int *numPointsOut, int *pointIndic
    (cleared again). Kept as the C-linkage definition of its literal symbol. */
 struct EDGEPATHNODE { EDGEPATHNODE *pnodeParent; LSG *plsg; int isurf; };
 // Breadth-first search (64 nodes) for a chain of spans connecting two positions along shared edges; used to find
-// edge/edge contacts. Sly 1 name.
-extern "C" int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *surfaces, int startSurface, int endSurface, LSG *first, LSG **pathOut)
+// edge/edge contacts. Sly 1 name: CplsgFindEdgePath.
+extern "C" int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *surfaces, int startSurface, int endSurface, LSG *first, LSG **pathOut)
 {
     EDGEPATHNODE anode[64];
     int inode;
@@ -559,7 +559,7 @@ namespace M_func_001A87F0 {
 // SURFACE.flags bit 8 marks surfaces already ranked (set while scanning, cleared again before the contacts are emitted).
 //
 // How the match was found (w2lane8 v4 + wave-3 lane 4; all natural C++, VU asm only):
-//  - SCALAR/VECTOR have default constructors that call InitVuTemp / func_002564C0 (the engine's 16-byte vector initialisers); PlaneDist's two SCALAR
+//  - SCALAR/VECTOR have default constructors that call InitVuTemp / DefaultConstructVector (the engine's 16-byte vector initialisers); PlaneDist's two SCALAR
 //    locals therefore become the ctor calls + the dead dot/one stores at sp+0x10.. of every inlined expansion.
 //  - `float d` and `NODE *m` live at function scope and are shared by the edge loop and the emit loop: cse1 canonicalises the `if (n)` loop guard to the
 //    lowest-numbered pseudo of its equivalence class, so loops over `n` (declared after `head`) test `head` and loops over `m` test `m`.
@@ -574,9 +574,9 @@ typedef int qword __attribute__((mode(TI)));
 struct SCALAR;
 struct VECTOR;
 extern "C" SCALAR *InitVuTemp(SCALAR *);
-extern "C" inline VECTOR *func_002564C0(VECTOR *);   /* defined after its callers (end of file) */
+extern "C" inline VECTOR *DefaultConstructVector(VECTOR *);   /* defined after its callers (end of file) */
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
-struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
+struct VECTOR { qword q; VECTOR() { (void)DefaultConstructVector(this); } };
 struct VU_VECTOR4 { qword q; VU_VECTOR4(qword a) { q = a; } };
 struct W;
 struct B;
@@ -665,8 +665,8 @@ extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, 
 // matched with, in a namespace of its own (see the file header).
 namespace M_MarkSoContactsBspBsp {
 // MarkSoContactsBspBsp: edge/edge and vertex/face contacts between two clipped shapes.
-// ClsgClipSoAllEdges + ClipSoBspEdges clip each shape's edges against the other, CategorizeAlsg sorts each side's LSGs, AddEmbeddedVertexXps adds the
-// vertex contacts of both sides; then every free LSG of side 0 either follows the CplsgFindEdgePath edge path of side 1 (closest points of the
+// ClsgClipSoAllEdges + ClipSoBspEdges clip each shape's edges against the other, CategorizeClippedSegments sorts each side's LSGs, AddEmbeddedVertexXps adds the
+// vertex contacts of both sides; then every free LSG of side 0 either follows the FindEdgePath edge path of side 1 (closest points of the
 // two edges via ClosestPointsOfLines, kind 3) or, when no side-1 LSG shares a surface with its edge, contacts the nearer endpoint against the
 // farther plane (kind 1). With no new contact and one side empty, a kind-13 contact at the shape position is added.
 // LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/game/core/math/bsp/func_00118668.cpp).
@@ -696,9 +696,9 @@ extern "C" {
 extern U D_002A2DC0;
 int ClsgClipSoAllEdges(SCENE *, SHAPE *, SHAPE *, NODE *, int, LSG *) __asm__("ClipSoAllEdges");
 int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *);
-void CategorizeAlsg(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeAlsg__FiP3LSGPiT2PP3LSGT4");
+void CategorizeClippedSegments(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4");
 void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **);
-int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **);
+int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **);
 int ClosestPointsOfLines(qword, qword, qword, qword, float *, U *);
 void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **);
 }
@@ -748,7 +748,7 @@ static inline void Closest(VV a, VV b, VV c, VV d, float *au, U *normal)
 }
 
 /** @sly2-annot addr=0x1A8B50
- * Purpose: Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg,
+ * Purpose: Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeClippedSegments,
  *   embedded vertex XPs, edge paths and closest points (kind 3)
  * Info: proposed name MarkSoContactsBspBsp (T1); TU mark
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_A2+verdicts_followups
@@ -778,14 +778,14 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
     {
         int i;
         for (i = 0; i < 2; i++)
-            CategorizeAlsg(aclsg[i], aalsg[i], &acpos[i], aaipos[i], aaplsg[i], &aplsgBoth[i]);
+            CategorizeClippedSegments(aclsg[i], aalsg[i], &acpos[i], aaipos[i], aaplsg[i], &aplsgBoth[i]);
     }
     AddEmbeddedVertexXps(scene, a, b, acpos[0], aaipos[0], aaplsg[0], out);
     AddEmbeddedVertexXps(scene, b, a, acpos[1], aaipos[1], aaplsg[1], out);
     for (LSG *plsg = aplsgBoth[0]; plsg; plsg = plsg->plsgNext) {
         if (!plsg->apsurf[0] || !plsg->apsurf[1])
             continue;
-        int clsgPath = CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(b->asurf, plsg->apsurf[0] - b->asurf, plsg->apsurf[1] - b->asurf, aplsgBoth[1], aplsgPath);
+        int clsgPath = FindEdgePath__FP4SURFiiP3LSGPP3LSG(b->asurf, plsg->apsurf[0] - b->asurf, plsg->apsurf[1] - b->asurf, aplsgBoth[1], aplsgPath);
         if (clsgPath > 0) {
             int j;
             for (j = 0; j < clsgPath; j++) {
@@ -1798,8 +1798,8 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 // its callers, so g++ calls it and emits the out-of-line copy (linkonce), as the original did. It keeps its C symbol
 // (bsp, tu_1D1370 and waypoint call it by that name).
 namespace M_func_001A87F0 {
-extern "C" inline VECTOR *func_002564C0(VECTOR *pvec)
+extern "C" { inline VECTOR *DefaultConstructVector(VECTOR *pvec)
 {
     return pvec;
-}
+} }
 } // namespace M_func_001A87F0

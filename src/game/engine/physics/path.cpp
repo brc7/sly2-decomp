@@ -204,13 +204,13 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 namespace M_CbskFromG__Ff { extern "C" {
 /** @sly2-annot addr=0x1BF398
  * Purpose: Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00)
- * Info: proposed name CbskFromG (T1); TU path
+ * Info: proposed name ClassifyPlaneDistance (T1); TU path
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name.
-int CbskFromG__Ff(float distance)
+// Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name: CbskFromG.
+int ClassifyPlaneDistance__Ff(float distance)
 {
 extern float D_002C0C00;
     if (D_002C0C00 < distance) return 0;
@@ -224,7 +224,7 @@ namespace M_ClsgClipEdgeToCbsp {
 // ClipEdgeToCbsp: walk the segment from -> to (XY only) through the 2D BSP of a navigation graph and write the
 // leaf spans it crosses into out[] (at most `capacity` rows); returns the number of rows (wave-4 lane 6).
 // Matched siblings: FindNavTriangleQuick / FindNavTriangleSafe (same GRAPH/NODE layout and Make/GetX/GetY/Dot helpers),
-// CbskFromG (plane side test), caller IsEdgeBlockedByCbsp (ROW layout).
+// ClassifyPlaneDistance (plane side test), caller IsEdgeBlockedByCbsp (ROW layout).
 // Keys:
 //  * The row count is `cursor - out` (ROW = 96 bytes). The exact division by 96 is a multiply by inverse(3) and an
 //    arithmetic shift by 5, so loop.c reduces both uses to registers stepping by 32 and only `sra 5` survives.
@@ -245,7 +245,7 @@ struct ROW { U a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char ta
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
 extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
-extern "C" int CbskFromG__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
+extern "C" int ClassifyPlaneDistance__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
 
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static inline float GetY(const qword &q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -343,8 +343,8 @@ extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW 
             qword q1 = Dot(st[0].node->plane, toPlane.q);
             float d0 = QX(q0);
             float d1 = QX(q1);
-            int s0 = CbskFromG__Ff(d0);
-            int s1 = CbskFromG__Ff(d1);
+            int s0 = ClassifyPlaneDistance__Ff(d0);
+            int s1 = ClassifyPlaneDistance__Ff(d1);
             int neg, pos;
             unsigned int child;
             neg = 0;
@@ -444,13 +444,13 @@ int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
 
 /** @sly2-annot addr=0x1BF970
  * Purpose: Index of a graph vertex: (pcgv - pcg->acgv) >> 5
- * Info: proposed name IcgvFromPcgv (T1); TU path
+ * Info: proposed name GetCgVertexIndex (T1); TU path
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Index of a graph vertex from its pointer.
-int IcgvFromPcgv(CG *graph, CGV *vertex)
+int GetCgVertexIndex(CG *graph, CGV *vertex)
 {
     return vertex - graph->acgv;
 }
@@ -467,7 +467,7 @@ struct NODE { V *pv; float f; float g; NODE *parent; int depth; NODE *next; };
 extern "C" {
 void *AllocFromStack(const AREQ &r);
 void *AllocClearedFromStack(const AREQ &r);
-int IcgvFromPcgv__FP2CGP3CGV(G *p, V *pv);
+int GetCgVertexIndex__FP2CGP3CGV(G *p, V *pv);
 }
 static inline void *Alloc(int cb) { return AllocFromStack(AREQ(cb, 0x10)); }
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQ(cb, 0x10)); }
@@ -516,7 +516,7 @@ extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int 
                 if (pv == goal) {
                     fSkip = 0;
                 } else {
-                    int iv = IcgvFromPcgv__FP2CGP3CGV(graph, pv);
+                    int iv = GetCgVertexIndex__FP2CGP3CGV(graph, pv);
                     if (afClosed[iv] == 0) {
                         afClosed[iv] = 1;
                         fSkip = 0;
@@ -570,12 +570,12 @@ int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
 static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
 /** @sly2-annot addr=0x1BFC18
  * Purpose: Drop intermediate path vertices with clear line of sight (IsEdgeBlockedByCbsp)
- * Info: proposed name SimplifyApcgvNeighbor (T1); TU path
+ * Info: proposed name SimplifyPathByLineOfSight (T1); TU path
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
-void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
+void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
     struct CTX c;
     struct REQ req;
@@ -602,7 +602,7 @@ void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
     }
     tmp[k] = points[n - 1];
     k++;
-    if (k < n && k >= 3) SimplifyApcgvNeighbor(ctx, &k, tmp);
+    if (k < n && k >= 3) SimplifyPathByLineOfSight(ctx, &k, tmp);
     CopyAb__FPvT0Ui(points, tmp, k * 4);
     *count = k;
     STACKSCOPE_ctor_1AE4A0(&c, 2);
@@ -611,7 +611,7 @@ void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ClosestPointOnCgt {
-// ClosestPointOnCgt: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
+// GetClosestPointOnNavTriangle: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
 // If p lies outside an edge in the XY plane (z of cross(p - v0, v1 - v0) > 0, tested a-b, b-c, c-a in turn), the result
 // is the closest point on that edge (FindClosestPointOnLineSegment); otherwise p is projected along D_002A2DC0 (world up) onto the
 // triangle's plane.
@@ -630,7 +630,7 @@ struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern "C" {
 extern qword D_002A2DC0; // (0, 0, 1, 0)
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
-qword ClosestPointOnCgt(T *t, qword p);
+qword GetClosestPointOnNavTriangle(T *t, qword p);
 }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -654,13 +654,13 @@ static inline qword AddScaled(qword a, qword b, float g)
 
 /** @sly2-annot addr=0x1BFDB0
  * Purpose: Closest point of a navigation triangle to p (edge clamp or vertical projection)
- * Info: proposed name ClosestPointOnCgt (T1); TU path
+ * Info: proposed name GetClosestPointOnNavTriangle (T1); TU path
  * Notes: names_v2 v1 proposed InitJt__FP2JT (0.000)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
-qword ClosestPointOnCgt(T *triangle, qword pos)
+extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
 {
     U result;
     qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
@@ -678,15 +678,15 @@ qword ClosestPointOnCgt(T *triangle, qword pos)
         result.q = AddScaled(pos, D_002A2DC0, g);
     }
     return result.q;
-}
+} }
 } // namespace M_ClosestPointOnCgt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CposFindPath {
 // FindPathPoints: build a route between two points over the navigation graph (wave-3 lane 4, from w2lane6.v1).
-// Finds the triangles containing both points, projects the points onto them (ClosestPointOnCgt), links a temporary start
+// Finds the triangles containing both points, projects the points onto them (GetClosestPointOnNavTriangle), links a temporary start
 // vertex to the start triangle's corners and the goal vertex to the goal triangle's corners, runs the path search
-// (FindPathAStar) and the path simplifier (SimplifyApcgvNeighbor), copies the route out, drops points closer than the minimum
+// (FindPathAStar) and the path simplifier (SimplifyPathByLineOfSight), copies the route out, drops points closer than the minimum
 // spacing, and returns a two-point route (offset along +X) when only one point is left.
 // Keys of the last fixes (tail block):
 //  * D_002C0C04 is a `const float` read by value through VU_FLOAT(const float) whose qmtc2 input has a never-chosen "V"
@@ -707,12 +707,12 @@ extern "C" { extern const float D_002C0C04; } // minimum spacing between route p
 extern "C" { extern qword D_002A2DA0; }       // (1, 0, 0, 0)
 extern "C" {
 TRI *FindNavTriangleSafe(G *, BSP *, qword, int);
-qword ClosestPointOnCgt(TRI *, qword);
+qword GetClosestPointOnNavTriangle(TRI *, qword);
 void STACKSCOPE_ctor(void *);
 void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
-void SimplifyApcgvNeighbor(G *, int *, V **);
+void SimplifyPathByLineOfSight(G *, int *, V **);
 int FindPathPoints(G *, qword, qword, int, U *);
 }
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
@@ -761,10 +761,10 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
 {
     TRI *first = FindNavTriangleSafe(graph, graph->pbsp, from, 1);
     if (!first) return 0;
-    qword start = ClosestPointOnCgt(first, from);
+    qword start = GetClosestPointOnNavTriangle(first, from);
     TRI *last = FindNavTriangleSafe(graph, graph->pbsp, to, 1);
     if (!last) return 0;
-    qword finish = ClosestPointOnCgt(last, to);
+    qword finish = GetClosestPointOnNavTriangle(last, to);
     U *write;
     int count;
     if (first == last) {
@@ -806,7 +806,7 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
         }
         int found;
         FindPathAStar(graph, &initial, pg, 128, &found, path);
-        if (found >= 3) SimplifyApcgvNeighbor(graph, &found, path);
+        if (found >= 3) SimplifyPathByLineOfSight(graph, &found, path);
         int n = found; if (n > capacity) n = capacity; count = n;
         for (int i = 0; i < count; i++) out[i].q = path[i]->pos.q;
         for (int i = 0; i < 3; i++) last->apv[i]->cEdge--;
@@ -871,9 +871,9 @@ namespace M_FindClosestPointInCg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { int a[5]; int bspNodes; };
 void *FindNavTriangleSafe(struct S *p, int n, qword q);
-qword ClosestPointOnCgt(void *p, qword q);
+qword GetClosestPointOnNavTriangle(void *p, qword q);
 /** @sly2-annot addr=0x1C0320
- * Purpose: FindNavTriangleSafe then ClosestPointOnCgt; returns found
+ * Purpose: FindNavTriangleSafe then GetClosestPointOnNavTriangle; returns found
  * Info: proposed name FindClosestPointInCg (T1); TU path
  * Notes: names_v2 v1 proposed LoadJtFromBrx__FP2JTP18CBinaryInputStream (0.001)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5b_rest
@@ -884,7 +884,7 @@ int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
     void *pv = FindNavTriangleSafe(graph, graph->bspNodes, pos);
     if (!pv) return 0;
-    *closest = ClosestPointOnCgt(pv, pos);
+    *closest = GetClosestPointOnNavTriangle(pv, pos);
     return 1;
 }
 } } // namespace M_FindClosestPointInCg
@@ -923,9 +923,9 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv);
 float F32Read__18CBinaryInputStream(void *pbis);
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
-void HookupCg(int *p);
+void ComputeCgEdgeCosts(int *p);
 /** @sly2-annot addr=0x1C03C0
- * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg
+ * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; ComputeCgEdgeCosts
  * Info: proposed name LoadPathzoneFromBrx (T1); class PATHZONE slot14; TU path
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+parse-verified
@@ -934,7 +934,7 @@ void HookupCg(int *p);
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
-// HookupCg.
+// ComputeCgEdgeCosts.
 void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
@@ -977,7 +977,7 @@ void LoadPathzoneFromBrx(struct S *zone, void *stream)
         pp->c = U16Read__18CBinaryInputStream(stream);
         pp->d = U16Read__18CBinaryInputStream(stream);
     }
-    HookupCg(&zone->numVertices);
+    ComputeCgEdgeCosts(&zone->numVertices);
     if (zone->oid == 0x2CA)
         D_003DD490.defaultPathzone = zone;
     zone->version = ++D_003DD490.pathzoneVersion;
@@ -1009,7 +1009,7 @@ struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
-void HookupCg(int *p);
+void ComputeCgEdgeCosts(int *p);
 /** @sly2-annot addr=0x1C0648
  * Purpose: Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables
  *   D_002C0C10/D_002C0C90) covering everything
@@ -1061,7 +1061,7 @@ void InitDefaultPathzoneCg(struct S *zone)
     pp->z = 0;
     pp->x = g;
     pp->y = -g;
-    HookupCg(&zone->numVertices);
+    ComputeCgEdgeCosts(&zone->numVertices);
     zone->version = ++D_003DD490.pathzoneVersion;
 }
 } } // namespace M_InitDefaultPathzoneCg
@@ -1085,13 +1085,13 @@ static inline int Dist(qword a, qword b)
 }
 /** @sly2-annot addr=0x1C0880
  * Purpose: Compute edge costs (XY distance between vertices)
- * Info: proposed name HookupCg (T1); TU path
+ * Info: proposed name ComputeCgEdgeCosts (T1); TU path
  * Notes: names_v2 v1 proposed AdjustJtDz__FP2JTiP2DZif (0.000)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name.
-void HookupCg(struct A *graph)
+// Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name: HookupCg.
+void ComputeCgEdgeCosts(struct A *graph)
 {
     int i, j;
     for (i = 0; i < graph->c; i++) {
@@ -1160,7 +1160,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0xE0]; char graph[4]; };
 void *FindNavTriangleQuick(void *p,qword pos,int flags);
 int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap);
-int IsPosInCnvo(void *pv, qword q);
+int IsPosInConvexObstacle(void *pv, qword q);
 /** @sly2-annot addr=0x1C09A0
  * Purpose: Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test)
  * Info: proposed name FPosFreeInPathzone (T2); TU path
@@ -1176,7 +1176,7 @@ int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
     if (!FindNavTriangleQuick(zone->graph,pos,flags)) return 0;
     n = FindPathzoneObstacles(zone, 0, pos, pos, 0x80, ap);
     for (i = 0; i < n; i++) {
-        if (IsPosInCnvo(ap[i], pos)) return 0;
+        if (IsPosInConvexObstacle(ap[i], pos)) return 0;
     }
     return 1;
 }
@@ -1188,7 +1188,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int a[0x30]; };
 void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e);
 int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap);
-void *ClipEdgeToCnvo(void *p, qword a, qword b, int n, struct S *ps);
+void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps);
 void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one);
 /** @sly2-annot addr=0x1C0A40
  * Purpose: Clip segment to pathzone then against obstacles (0x1BC688), returns blocker
@@ -1208,7 +1208,7 @@ void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
     if (!pv) return 0;
     n = FindPathzoneObstacles(zone, 0, from, to, 0x80, ap);
     for (i = 0; i < n; i++) {
-        void *r = ClipEdgeToCnvo(ap[i], from, to, 2, &s);
+        void *r = ClipEdgeToConvexObstacle(ap[i], from, to, 2, &s);
         pv = MergeSegmentLists(pv, d, r, &s, c, d, 1);
         if (!pv) goto out;   /* not `break`: that changes the loop's codegen */
     }
@@ -1229,9 +1229,9 @@ struct HIT {qword pos[2];char pad[0x40];};
 struct S {char pad[0xE0];char bsp[8];int count;int padEC;int padF0;qword*vertices;};
 extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata order) */
 void *FindNavTriangleQuick(void*,qword,int);
-qword ClosestPointOnCgt(void*,qword);
+qword GetClosestPointOnNavTriangle(void*,qword);
 int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
-int IsPosInCnvo(void*,qword);
+int IsPosInConvexObstacle(void*,qword);
 qword ConvertAloPos(void*,void*,qword);
 int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
@@ -1258,10 +1258,10 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  float z,bestDistance;
  leaf=FindNavTriangleQuick(zone->bsp,point,1);
  if(!leaf)return 0;
- projected=ClosestPointOnCgt(leaf,point);poly=0;
+ projected=GetClosestPointOnNavTriangle(leaf,point);poly=0;
  {int j=0;
  n=FindPathzoneObstacles(zone,0,projected,projected,128,objects);
- for(;j<n;j++){if(IsPosInCnvo(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}
+ for(;j<n;j++){if(IsPosInConvexObstacle(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}
  }
  if(!poly){*out=projected;return 1;}
  best.i[2]=0;best.i[1]=0;best.i[0]=0;
@@ -1817,7 +1817,7 @@ struct M { struct O *po; void *pv; };
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 int FindPathzoneObstacles(struct S *p, int z, qword a, qword b, int c, void **ap);
-int DoCnvosOverlap(struct O *po, void *pv);
+int DoConvexObstaclesOverlap(struct O *po, void *pv);
 void MergeCid14Obstacles(int n, struct M *pm);
 void GrowPathzoneObstacleArrays(struct S *p);
 void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1);
@@ -1835,7 +1835,7 @@ void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
     int n, i;
     n = FindPathzoneObstacles(zone, 0, obstacle->a.q, obstacle->b.q, 0x20, ap);
     for (i = 0; i < n; i++) {
-        if (DoCnvosOverlap(obstacle, ap[i])) {
+        if (DoConvexObstaclesOverlap(obstacle, ap[i])) {
             struct M m;
             m.po = obstacle;
             m.pv = ap[i];
@@ -1964,8 +1964,8 @@ qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 namespace M_func_001C1F28 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
-float SMaxShape(void *p);
-void EvaluateShapeS(void *p, qword *pq, int n, float g);
+float GetShapeMaxDistance(void *p);
+void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g);
 qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1C1F28
  * Purpose: Endpoint position using shape midpoint
@@ -1978,7 +1978,7 @@ qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
     qword q;
     if (endpoint->p0) {
-        EvaluateShapeS(endpoint->p0, &q, 0, SMaxShape(endpoint->p0) * 0.5f);
+        EvaluateShapeAtDistance(endpoint->p0, &q, 0, GetShapeMaxDistance(endpoint->p0) * 0.5f);
     } else if (endpoint->p4) {
         q = GetLoWorldPos(endpoint->p4);
     } else {

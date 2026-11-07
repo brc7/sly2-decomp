@@ -50,10 +50,10 @@ float UpdateShapeBoundingSphere(RAILV *p);
 void OnLoAdd(RAILV *p);
 void OnLoRemove(RAILV *p);
 void CloneShape(RAILV *p);
-float SMinShape(RAILV *p);
-float SMaxShape(RAILV *p);
+float GetShapeMinDistance(RAILV *p);
+float GetShapeMaxDistance(RAILV *p);
 void FindShapeClosestPoint(RAILV *p, qword q, int a, void *pv, int b, int c, float *pf);
-void EvaluateShapeS(RAILV *p, float s, qword *ppos, qword *pdir);
+void EvaluateShapeAtDistance(RAILV *p, float s, qword *ppos, qword *pdir);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
@@ -148,8 +148,8 @@ extern "C" void CloneRail(RAILV *rail)
 extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
 {
     if (rail->isClosed) {
-        pg[0] = SMinShape(rail);
-        pg[1] = SMaxShape(rail);
+        pg[0] = GetShapeMinDistance(rail);
+        pg[1] = GetShapeMaxDistance(rail);
         return 1;
     }
     return 0;
@@ -170,7 +170,7 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
     FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
     if (rail->isClosed != 0)
         return;
-    g = SMaxShape(rail) - 50.0f;
+    g = GetShapeMaxDistance(rail) - 50.0f;
     v = *pf;
     if (v < 50.0f) v = 50.0f;
     else if (g < v) v = g;
@@ -189,7 +189,7 @@ extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 {
     VECTORV v;
     qword diff;
-    EvaluateShapeS(a, g, (qword *)&v, 0);
+    EvaluateShapeAtDistance(a, g, (qword *)&v, 0);
     if (pv) {
         diff = VuSub(*(qword *)&v, *(qword *)&p->v);
         *(qword *)pv = diff;
@@ -222,7 +222,7 @@ struct M3 {
 };
 extern qword D_002A2DC0, D_002A2DA0;
 extern "C" {
-float SRandomShapeRange(RAILV*,float,float);
+float GetRandomShapeDistanceInRange(RAILV*,float,float);
 float RandomFloatInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
 void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 }
@@ -295,11 +295,11 @@ void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
     U pos;
     M3 basis;
     U scalar, moved, out;
-    float x = SRandomShapeRange(rail, g, D_002C1EC4);
+    float x = GetRandomShapeDistanceInRange(rail, g, D_002C1EC4);
     RAILV *sampleReceiver;
     float sampleTime;
     SamplerArguments(rail, x, &sampleReceiver, &sampleTime);
-    EvaluateShapeS(sampleReceiver, sampleTime, &pos.q, &basis.c);
+    EvaluateShapeAtDistance(sampleReceiver, sampleTime, &pos.q, &basis.c);
     const qword *fallbackAddress;
     float epsilon;
     qword cross = CrossAndFallbackAddress(basis.c, D_002A2DC0, &fallbackAddress, &epsilon);

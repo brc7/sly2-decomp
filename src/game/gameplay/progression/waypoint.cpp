@@ -195,7 +195,7 @@ int D_002C4490 = 0x459C4000;   /* 5000.0f, read as its bits (waypoint's .data st
 extern "C" {
 void InitPlaneFromPositions(UQ *, qwordV, qwordV, qwordV);
 void InitPlaneFromNormalPos(UQ *, qwordV, qwordV);
-UQ *func_002564C0(UQ *);
+UQ *DefaultConstructVector(UQ *);
 UQ *InitVuTemp(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
@@ -357,7 +357,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     for (i = 0; i < 4; i++) {
         UQ *corners = corner;
         qwordV cornerEdge = VuSub(corners[(i + 1) % 4].q, corners[i].q);
-        func_002564C0(&normalScratch);
+        DefaultConstructVector(&normalScratch);
         normalScratch.q = plane;
         InitPlaneFromNormalPos(&side[i], Normalize(Cross(cornerEdge, plane)), corners[i].q);
     }

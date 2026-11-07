@@ -127,9 +127,9 @@ int IsAsegaRetracted(ASEGAV *pa);
 void SetXfRole(DANCERV *p, void *pv, int n);
 qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
-void GetSoCpdefi(DANCERV *p, struct CPDEFIV *pc);
-int POCTL_FConsumePressed(void *p, int a);
-int GrfPressedWithin__5POCTLUif(void *, int, float);
+void GetSoCameraDefaults(DANCERV *p, struct CPDEFIV *pc);
+int POCTL_ConsumeAnyPressed(void *p, int a);
+int GetButtonsPressedWithin__5POCTLUif(void *, int, float);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
 void InitLo(RHYTHMMGR *p);
@@ -261,7 +261,7 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *mess
 struct CPDEFIV { char pad[0x30]; float radHome; };
 // DANCER vtable slot 50 (GetCpdefi): the SO camera definition with its home angle swung by -3*PI/4 (135 degrees).
 extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFIV *cameraDef) {
-    GetSoCpdefi(dancer, cameraDef);
+    GetSoCameraDefaults(dancer, cameraDef);
     cameraDef->radHome = cameraDef->radHome - 2.3561945f;   /* 3*PI/4 */
 }
 
@@ -272,7 +272,7 @@ void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
     int i;
     for (i = 0; i < dancer->numMoves; i++) {
         DMOVE *move = &dancer->moves[i];
-        if ((key == ANY_KEY && POCTL_FConsumePressed(dancer->controller, move->key)) || move->key == key) {
+        if ((key == ANY_KEY && POCTL_ConsumeAnyPressed(dancer->controller, move->key)) || move->key == key) {
             if (nextClipOid != -1) {
                 void *clip = FindDancerMoveObject(dancer, nextClipOid);
                 if (clip)
@@ -735,7 +735,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
     void *controller = dancer->controller;
     int i, j;
     CUE *cue;
-    manager->eventButtons = GrfPressedWithin__5POCTLUif(controller, 0xF0, 0.0f);   /* the four face buttons */
+    manager->eventButtons = GetButtonsPressedWithin__5POCTLUif(controller, 0xF0, 0.0f);   /* the four face buttons */
     if (!manager->eventButtons)
         return;
     for (i = 0; i < manager->numCues; i++) {
@@ -756,7 +756,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
             return;
         }
         cue->wasPressed = 1;
-        if (POCTL_FConsumePressed(controller, cue->key)) {
+        if (POCTL_ConsumeAnyPressed(controller, cue->key)) {
             PlayDancerMove(dancer, cue->key, cue->nextKey, MOVE_CLIP_SUCCESS);
             AddRhythmScore(manager, AdjustRhythmScore(manager, GetRhythmTimingScore(manager, cue)));
             for (j = 0; j < manager->numNotes; j++) {

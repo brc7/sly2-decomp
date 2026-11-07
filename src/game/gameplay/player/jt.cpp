@@ -312,9 +312,9 @@ struct XP
       XP *pxpNext;
 };
 
-extern "C" float SMaxShape(SHAPE *pshape);
+extern "C" float GetShapeMaxDistance(SHAPE *pshape);
 
-extern "C" void EvaluateShapeS(SHAPE *pshape, float s, qword *ppos, qword *pdir);
+extern "C" void EvaluateShapeAtDistance(SHAPE *pshape, float s, qword *ppos, qword *pdir);
 
 struct CID19 : public TARGET, public GRABSPOT
 {
@@ -480,9 +480,9 @@ struct XPLIST
       SO *psoOther;
 };
 
-extern "C" float SMinShape(SHAPE *pshape);
+extern "C" float GetShapeMinDistance(SHAPE *pshape);
 
-extern "C" void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
+extern "C" void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 
 struct CID12 : public SHAPE, public GRABSPOT
 {
@@ -1448,7 +1448,7 @@ void UpdateJtLean(JT *jt)
                 break;
             case 3: {
                 SHAPE *shape = (SHAPE *)jt->jtgrab.plo;
-                EvaluateShapeU(shape, jt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
+                EvaluateShapeAtParam(shape, jt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
                 lo = shape;
                 if (((CID12 *)lo)->nUnk1bc) {
                     *(qword *)&vecDir = NormalizeVecViaDot(*(qword *)&vecDir);
@@ -1456,17 +1456,17 @@ void UpdateJtLean(JT *jt)
                     float gSpeed = LaneX(DotVec(velocity, *(qword *)&vecDir));
                     *(qword *)&vecLean = ScaleVec(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
-                    float sMax = SMaxShape((SHAPE *)lo);
+                    float sMax = GetShapeMaxDistance((SHAPE *)lo);
                     if (((SHAPE *)lo)->fClosed) {
                         sAhead = ModPositive(sAhead, sMax);
                     } else {
-                        float sMin = SMinShape((SHAPE *)lo);
+                        float sMin = GetShapeMinDistance((SHAPE *)lo);
                         if (sAhead < sMin)
                             sAhead = sMin;
                         else if (sMax < sAhead)
                             sAhead = sMax;
                     }
-                    EvaluateShapeS(shape, sAhead, 0, (qword *)&vecDir);
+                    EvaluateShapeAtDistance(shape, sAhead, 0, (qword *)&vecDir);
                     *(qword *)&vecLocal = ScaleVec(NormalizeVec(*(qword *)&vecDir), VuFloat(gSpeed));
                     *(qword *)&vecDv = SubVec(*(qword *)&vecLocal, *(qword *)&vecLean);
                     if (jt->jtgrab.pasegblC) {
@@ -1963,9 +1963,9 @@ extern "C" SMP D_002BF348;
 
 extern "C" float GetStepHeading(A *p);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
-extern "C" float SMaxShape(B *p);
-extern "C" float SMinShape(B *p);
-extern "C" void EvaluateShapeS(B *p, qword *pv, qword *direction, float g);
+extern "C" float GetShapeMaxDistance(B *p);
+extern "C" float GetShapeMinDistance(B *p);
+extern "C" void EvaluateShapeAtDistance(B *p, qword *pv, qword *direction, float g);
 extern "C" qword GetLoWorldPos(A *p);
 extern "C" M *GetLoWorldMatrix(A *p);
 extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
@@ -2022,7 +2022,7 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
             if (ps->x2C == 1) {
                 g = ps->g20 + (ps->g50 * 125.0f) * ps->g50;
                 if (pb->xE4 == 0) {
-                    float h = SMaxShape(pb);
+                    float h = GetShapeMaxDistance(pb);
                     if (pb->x1BC & 2)
                         h += 100.0f;
                     g = MinF(g, h);
@@ -2030,13 +2030,13 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
             } else {
                 g = ps->g20 - (ps->g50 * 125.0f) * ps->g50;
                 if (pb->xE4 == 0) {
-                    float h = SMinShape(pb);
+                    float h = GetShapeMinDistance(pb);
                     if (pb->x1BC & 1)
                         h -= 100.0f;
                     g = MaxF(g, h);
                 }
             }
-            EvaluateShapeS(pb, &ps->v40, 0, g);
+            EvaluateShapeAtDistance(pb, &ps->v40, 0, g);
             lift = 125.0f;
             height = ((float *)&ps->v40)[2];
             goto liftValue;
@@ -2083,7 +2083,7 @@ tail:
     if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC) && ps->p14->xE4 == 0) {
         float k;
         float c = 30.0f;
-        register float h __asm__("$f0") = SMaxShape(ps->p14) - c;
+        register float h __asm__("$f0") = GetShapeMaxDistance(ps->p14) - c;
         register float half __asm__("$f3") = 0.5f, width __asm__("$f1") = h - c, d __asm__("$f2") = 300.0f;
         __asm__("mul.s %0,%0,%1" : "+f"(width) : "f"(half));
         __asm__("min.s %0,%1,%0" : "+f"(d) : "f"(width));
@@ -2368,9 +2368,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (!jt->FCanUseGadget(2))
                         break;
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ATTACK, 0.0f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
-                    else if (jt->pctl->GrfConsumePressed(BUTTON_ALT_ATTACK, 0.0f))
+                    else if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
@@ -2402,7 +2402,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (!jt->janim.fInputOpen)
                             break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
@@ -2412,18 +2412,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                         break;
                     }
-                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->nUnk10e4 == 3 && jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.15f))
+                    if (jt->nUnk10e4 == 3 && jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f))
                     {
                         SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2454,7 +2454,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
@@ -2490,18 +2490,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2514,7 +2514,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Hang:
                     if (D_002DDED0.t - jt->tJts > 0.25f)
                     {
-                        if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                        if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
                     }
                     break;
@@ -2565,18 +2565,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                         SetJtAirJump(&jt->jtair, 0x12, 0, 0);
                     break;
                 case JTS_HangFollow:
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
                         LO *ploTarget = jt->phndHang->ploUnk138;
                         if (ploTarget && FIsBasicDerivedFrom(ploTarget, (CID)10))
                         {
                             SHAPE *shape = (SHAPE *)jt->phndHang->ploUnk138;
-                            EvaluateShapeS(shape, SMaxShape(shape) * (0.5f - jt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
+                            EvaluateShapeAtDistance(shape, GetShapeMaxDistance(shape) * (0.5f - jt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
@@ -2606,7 +2606,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
 namespace M_func_0018B2C0 { extern "C" {
 struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
 int IsStepplayerInJtMode(struct S *p);
-int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 /** @sly2-annot addr=0x18B2C0
@@ -2622,7 +2622,7 @@ void UpdateJtModeInput(struct S *p)
     if (!IsStepplayerInJtMode(p))
         return;
     if (p->jtModeState == 1 && !p->jtModeKind &&
-        GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
         EndJtMode(&p->xf00);
     UpdateJtMode(&p->xf00);
 }
@@ -3420,7 +3420,7 @@ extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *respon
 extern int TryMatchJtXmg(void *p, void *a, void *response);
 extern void UpdateJtCane__FP2JT(void *p);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
+extern void FindShapeClosestPointFromDistance(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern qword GetLoWorldPos(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
@@ -3506,7 +3506,7 @@ void UpdateJt(char *p)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
             void *po2 = AsJt(p)->hands.ploTarget;
             for (i = 0; i < 3; i++)
-                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.sParam);
+                FindShapeClosestPointFromDistance(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.sParam);
         } else {
             qword q;
             if (!FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))

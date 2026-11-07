@@ -2,8 +2,8 @@
 // +0x3D40). Each solid object in the world owns an AAOBR (its world box plus list links); the box's min/max
 // endpoints sit in three per-axis arrays kept sorted by insertion sort, and whenever two boxes start or stop
 // overlapping an object pair link (POX) is created or destroyed. Once per solver step RecalcSwXpAll rebuilds the
-// contact points (XPs) of the pairs that changed. Entry points: AddSwAaobrObject / RemoveSwAaobrObject (an object
-// enters / leaves), UpdateSwAaox, RecalcSwXpAll, RecalcSwOxfFilterForObject. One register pin, allocation-only asms.
+// contact points (XPs) of the pairs that changed. Entry points: AddObjectToBroadPhase / RemoveObjectFromBroadPhase (an object
+// enters / leaves), UpdateSwAaox, RecalcSwXpAll, RefreshSwObjectCollisionFilter. One register pin, allocation-only asms.
 // TU 0x1336F0..0x1344F0 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bbmark
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001344D0
@@ -86,7 +86,7 @@ void InvalidateSoAaox(LO *);
 /** @sly2-annot addr=0x1336F0
  * Purpose: Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints
  *   on each of 3 axes to the sweep arrays (count += 2)
- * Info: proposed name AddSwAaobrObject (T1); TU bbmark
+ * Info: proposed name AddObjectToBroadPhase (T1); TU bbmark
  * Notes: names_v2 C proposed InitDzg__FP3DZGi (0.200)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
  * See: docs/engine/object-model.md#8-source-files, docs/engine/physics-collision.md#2-contacts-and-solving,
@@ -94,7 +94,7 @@ void InvalidateSoAaox(LO *);
  * @end-sly2-annot */
 // Adds an object to the broad phase: allocates its AAOBR from the world pool, links it into the world lists and
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
-extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
+extern "C" X *AddObjectToBroadPhase(SW *world, LO *object) {
     int axis;
     X *aaobr = (X *)AllocZeroedFromSlotheap(&world->poolAaobr);
     InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
@@ -125,14 +125,14 @@ extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
 /** @sly2-annot addr=0x1337D0
  * Purpose: Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from
  *   SW lists and delete its endpoints from the 3 axis arrays
- * Info: proposed name RemoveSwAaobrObject (T1); TU bbmark
+ * Info: proposed name RemoveObjectFromBroadPhase (T1); TU bbmark
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Removes an object's AAOBR from the broad phase: for every overlap pair both objects are notified (slot 54) and
 // the pair's contact lists freed, then the box leaves the world lists and its endpoints are deleted from the axes.
-extern "C" void RemoveSwAaobrObject(SW *world, X *aaobr)
+extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
 {
     L *pair, *nextPair;
     int axis;
@@ -480,7 +480,7 @@ extern "C" int MaxInt(int a, int b)
 /** @sly2-annot addr=0x134320
  * Purpose: If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every
  *   other node
- * Info: proposed name RecalcSwOxfFilterForObject (T1); TU bbmark
+ * Info: proposed name RefreshSwObjectCollisionFilter (T1); TU bbmark
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570,
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
@@ -488,7 +488,7 @@ extern "C" int MaxInt(int a, int b)
  * @end-sly2-annot */
 // When an object's collision filter changed: if it has an AAOBR (+0xEC), invalidates its box and re-evaluates its
 // pair with every other AAOBR in the world.
-extern "C" void RecalcSwOxfFilterForObject(SW *world, LO *object) {
+extern "C" void RefreshSwObjectCollisionFilter(SW *world, LO *object) {
     X *other;
     if (object->aaobr) {
         InvalidateSoAaox(object);

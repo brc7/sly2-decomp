@@ -780,7 +780,7 @@ static inline float ClampFloat(float g, float lo, float hi)
  * Info: proposed name FindClosestPointOnLineSegment (T1); TU vec
  * Notes: v3: superseded ClosestPointOnSegmentT | top50_round (0.80): Body clamps t to [0,1] (GClamp) before
  *   forming p0+t*d; 0x11ED40 is the same code without the clamp (infinite line). Callers: path/pathzone
- *   nearest point, FindMeshClosestPoint, ClosestPointOnCgt (triangle edges), RenderWa
+ *   nearest point, FindMeshClosestPoint, GetClosestPointOnNavTriangle (triangle edges), RenderWa
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */

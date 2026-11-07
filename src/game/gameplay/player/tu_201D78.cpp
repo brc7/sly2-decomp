@@ -133,7 +133,7 @@ void SetWidgetRequest(WIDGETV *, int);
 int IsWidgetAnimPlaying(WIDGETV *, int);
 void EndJtMode(MODEL *);
 qword ConvertCmWorldToScreen(CMV *, qword);
-int GrfConsumePressed__5POCTLUif(void *, int, float);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void InitXfm(RECONTGT *p);
 void LoadXfmFromBrx(RECONTGT *p, void *pbis);
 void PostLoLoad(RECONTGT *p);
@@ -945,11 +945,11 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     case 4:
     case 5:
     case 6:
-        if (!IsCameraPolicyActive(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->control, 10, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     case 7:
-        if (!IsCameraPolicyActive(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->control, 250, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     }

@@ -316,22 +316,22 @@ void CloneWallGrabspot(struct S *wall)
 
 namespace M_func_00182FE8 { extern "C" {
 struct S { char pad[0xE4]; int x; };
-float SMinShape(struct S *p);
-float SMaxShape(struct S *p);
+float GetShapeMinDistance(struct S *p);
+float GetShapeMaxDistance(struct S *p);
 /** @sly2-annot addr=0x182FE8
- * Purpose: If open shape: out [SMinShape, SMaxShape], return 1
+ * Purpose: If open shape: out [GetShapeMinDistance, GetShapeMaxDistance], return 1
  * Info: proposed name CID12_FGetGrabRange (T2); class CID12; TU grabspot
  * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named FGetGrabRange
  *   everywhere (verifier r4b: all overrides return a [min,max] range)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-// For an open shape outputs [SMinShape, SMaxShape] and returns 1.
+// For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
 int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 {
     if (wall->x) {
-        pg[0] = SMinShape(wall);
-        pg[1] = SMaxShape(wall);
+        pg[0] = GetShapeMinDistance(wall);
+        pg[1] = GetShapeMaxDistance(wall);
         return 1;
     }
     return 0;
@@ -344,7 +344,7 @@ struct T { char pad[0x218]; qword *pq; };
 struct S { char pad[0xE4]; int isClosed; };
 struct V { float a[4]; };
 void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
-float SMaxShape(struct S *p);
+float GetShapeMaxDistance(struct S *p);
 /** @sly2-annot addr=0x183040
  * Purpose: FindShapeClosestPoint to the player, clamp to [30, sMax-30] if open
  * Info: proposed name GetCid12ClosestParam (T2); class CID12; TU grabspot
@@ -358,7 +358,7 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
     FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
     if (wall->isClosed)
         return;
-    float lim = SMaxShape(wall) - 30.0f;
+    float lim = GetShapeMaxDistance(wall) - 30.0f;
     float g = *pg;
     if (g < 30.0f) g = 30.0f;
     else if (lim < g) g = lim;
@@ -370,7 +370,7 @@ namespace M_func_001830D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
-extern void EvaluateShapeS(void *p, float t, VU *ppos, VU *pdir);
+extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
@@ -419,7 +419,7 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
     qword n;
     qword c, r;
     float gl;
-    EvaluateShapeS(p, g, &pos, &dir);
+    EvaluateShapeAtDistance(p, g, &pos, &dir);
     __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(D_002A2DC0));
     n = VNormalize(c, D_002A2DA0);
     if (pv) {
@@ -449,8 +449,8 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
 namespace M_func_00183218 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-extern float SRandomShapeRange(void *p, float g, float h);
-extern void EvaluateShapeS(void *p, float t, VU *ppos, VU *pdir);
+extern float GetRandomShapeDistanceInRange(void *p, float g, float h);
+extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B8;
 extern float D_002BE8BC;
@@ -477,7 +477,7 @@ void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
     qword n;
     qword k, c, l, one, r, s, a;
     float gl;
-    EvaluateShapeS(p, SRandomShapeRange(p, g, D_002BE8B8), &pos, &dir);
+    EvaluateShapeAtDistance(p, GetRandomShapeDistanceInRange(p, g, D_002BE8B8), &pos, &dir);
     __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(D_002A2DC0));
     k = D_002A2DA0;
     l = VLen(c);

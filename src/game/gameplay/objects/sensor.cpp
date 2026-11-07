@@ -263,8 +263,8 @@ SOTREEV *NewSoTree(SOV *pso);   /* SO::PtreeNew */
 void RemoveSoParts(SOV *pso);
 void AddSoParts(SOV *pso);
 LO *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
-float SMaxShape(SHAPEV *pshape);
-void EvaluateShapeS(SHAPEV *pshape, qword *ppos, qword *pdir, float s);
+float GetShapeMaxDistance(SHAPEV *pshape);
+void EvaluateShapeAtDistance(SHAPEV *pshape, qword *ppos, qword *pdir, float s);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 qword GetLoWorldPos(void *pso);   /* object position */
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
@@ -447,13 +447,13 @@ extern "C" void BuildLasenBeams(LASENV *laser)
                         if (params.speed < 0.0f) { reverse = 1; params.speed = -params.speed; }
                         params.duration = __builtin_fabsf(params.duration);
                         if (params.mode != 8 && params.mode != 16 && params.mode != 0) params.mode = 8;
-                        float length = SMaxShape(path);
+                        float length = GetShapeMaxDistance(path);
                         if (0.0f < params.duration) params.speed = length / params.duration;
                         else if (0.0f < params.speed) params.duration = length / params.speed;
                         float start = params.fraction * length;
                         if (params.speed == 0.0f || params.duration == 0.0f) {
                             end->kind = 0;
-                            EvaluateShapeS(path, &end->pos, 0, start);
+                            EvaluateShapeAtDistance(path, &end->pos, 0, start);
                         } else {
                             end->track.path = path;
                             end->kind = 1;
@@ -671,7 +671,7 @@ extern "C" void GetLasenBeamEnds(LASENV *laser, BEAMEND *ends, qword *apos, floa
             apos[i] = TransformXfPos(laser->pxfRoot, 0, end->pos);
             break;
         case 1:
-            EvaluateShapeS(end->track.path, &apos[i], 0, end->track.cursor);
+            EvaluateShapeAtDistance(end->track.path, &apos[i], 0, end->track.cursor);
             break;
         }
     }

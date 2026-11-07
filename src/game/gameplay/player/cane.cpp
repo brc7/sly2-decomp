@@ -132,7 +132,7 @@ void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
 int ShouldJtSweepBack(JT *);
 int ChooseJtSweepCaneState(JT *);
 int ChooseJtAttackCaneState(JT *);
-int GrfConsumePressed__5POCTLUif(POCTL *, int, float);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *, int, float);
 void SetJtAirJump(void *, int, int, int);
 void SetJtCaneState__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
@@ -785,7 +785,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
     f = 0;
     switch (jt->mode) {
     case 3: case 21: case 22:
-        if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.0f))
+        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.0f))
             SetJtAirJump(jt->air, 0, 0, 0);
         break;
     case 7:
@@ -815,10 +815,10 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
     case 12 ... 23:
         if (!jt->finished) return;
     case -1:
-        if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ALT_ATTACK, 0.35f)) {
+        if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ALT_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtSweepCaneState(jt));
-        } else if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.35f)) {
+        } else if (ConsumeButtonsPressedWithin__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtAttackCaneState(jt));
         }

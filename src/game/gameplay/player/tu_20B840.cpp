@@ -171,7 +171,7 @@ float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
 qword TransformXfPos(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
 ACT *NewBezierAct(ALO *,XF *,int,qword,qword,float);
-void RecalcSwOxfFilterForObject(GAME *,ALO *);
+void RefreshSwObjectCollisionFilter(GAME *,ALO *);
 void SetSoGravity(ALO *,qword);
 void SeekAsega(ASEGA *,int,float,float);
 void AttachStepguard(ALO *,ALO *,int);
@@ -730,7 +730,7 @@ void SetLeapState(LEAPV *leap, int state)
             qword speed = ConvertXfVec(0, leap->subject->space->pxfParent, finalVelocity.q);
             leap->constraint = NewBezierAct(leap->subject, leap->subject->space, 5, position, speed, leap->arrival);
             leap->subject->flags |= 0x04000000ul;
-            RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
+            RefreshSwObjectCollisionFilter(&D_003DD490, leap->subject);
         }
         SetSoGravity(leap->subject, acceleration.q);
         break;
@@ -790,7 +790,7 @@ void ReleaseLeapConstraint(LEAPV *leap)
     ReleaseAct(&leap->constraint);
     SetXfRole(leap->subject, leap->subject->space, 2);
     leap->subject->flags &= ~(1L << 26);
-    RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
+    RefreshSwObjectCollisionFilter(&D_003DD490, leap->subject);
 }
 
 /** @sly2-annot addr=0x20C7D8

@@ -150,7 +150,7 @@ void SO_ResetForProxy(BOMBV *);
 void SetSoTreeFlag2(BOMBV *, int);
 int ShouldSoIgnoreIntersection(BOMBV *pbomb, SOV *pso);
 int MaxInt(int r, int n);
-void RecalcSwOxfFilterForObject(G *pg, BOMBV *p);
+void RefreshSwObjectCollisionFilter(G *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
 void UpdateBombCustomXps(BOMBV *p);
 int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pso);
@@ -735,11 +735,11 @@ extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
     return r;
 }
 
-// Set owner (+0x200) and RecalcSwOxfFilterForObject if changed. (inferred)
+// Set owner (+0x200) and RefreshSwObjectCollisionFilter if changed. (inferred)
 extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
     if (pbombOwner != bomb->owner) {
         bomb->owner = pbombOwner;
-        RecalcSwOxfFilterForObject(&D_003DD490, bomb);
+        RefreshSwObjectCollisionFilter(&D_003DD490, bomb);
     }
 }

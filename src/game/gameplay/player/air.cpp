@@ -594,7 +594,7 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
+void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
 qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
@@ -749,14 +749,14 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     case 7: {
         SOURCE *old = air->source;
         air->source = 0;
-        RecalcSwOxfFilterForObject(&D_003DD490, old);
+        RefreshSwObjectCollisionFilter(&D_003DD490, old);
         break;
     }
     case 6: {
         SOURCE *old = air->source;
         air->source = 0;
         if (air->actor->category != 1) {
-            RecalcSwOxfFilterForObject(&D_003DD490, old);
+            RefreshSwObjectCollisionFilter(&D_003DD490, old);
             if (old->state == 1)
                 SetBarrelState(old, 0);
         }
@@ -900,7 +900,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         break;
     case 6:
         SetXfRole(air->actor, air->actor->body, 17);
-        RecalcSwOxfFilterForObject(&D_003DD490, source);
+        RefreshSwObjectCollisionFilter(&D_003DD490, source);
         SetBarrelState(source, 1);
         ClearVelocity(air->actor);
         clip = air->actor->animation->clip;
@@ -1096,7 +1096,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     switch (air->mode) {
     case 0:
     case 2: air->actionFlag = 0; break;
-    case 18: RecalcSwOxfFilterForObject(&D_003DD490, air->actor); break;
+    case 18: RefreshSwObjectCollisionFilter(&D_003DD490, air->actor); break;
     }
     if (air->mode == -1)
         return;
@@ -1871,20 +1871,20 @@ void UpdateJtAirInput(JTAIR *air)
             case 0x16:
                 break;
             default:
-            if (air->fCanDoubleJump && pctl->GrfPressedWithin(BUTTON_JUMP, 0.0f) &&
+            if (air->fCanDoubleJump && pctl->GetButtonsPressedWithin(BUTTON_JUMP, 0.0f) &&
                 !FJtLandsWithin(0.075f, air->pstepplayer))
             {
                 pctl->ClearJoyPressed(BUTTON_JUMP);
                 SetJtAirJump(air, 6, air->n2, 0);
             }
-            if (pctl->GrfPressedWithin(BUTTON_ACTION, 0.0f))
+            if (pctl->GetButtonsPressedWithin(BUTTON_ACTION, 0.0f))
             {
                 int state = air->nState;
                 TryJtAirGrab(air, 0);
                 if (air->nState != state)
                     pctl->ClearJoyPressed(BUTTON_ACTION);
             }
-            if (pctl->GrfPressedWithin(BUTTON_RUN, 0.0f) &&
+            if (pctl->GetButtonsPressedWithin(BUTTON_RUN, 0.0f) &&
                 air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
             {
                 ChargeGadgetMp(air->pstepplayer, 0x1B);
@@ -1989,7 +1989,7 @@ void UpdateJtAirInput(JTAIR *air)
                     ReturnJtToSafePlace(air->pstepplayer, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - air->tState > 0.25f && pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                if (D_002DDED0.t - air->tState > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                 {
                     SetJtAirJump(air, 3, 0, 0);
                     break;
@@ -2008,7 +2008,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                     SetStepTargetHeadingFromVector(air->pstepplayer, ScaleVec(air->normalEdge, VuFloat(-1.0f)));
-                    if (pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
+                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
                     {
                         pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
@@ -2168,7 +2168,7 @@ float NormalizeAngle__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
 float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *);
 void RecalculateAsegBlend(CLIP *);
-void EvaluateShapeU(void *, float, qword *, qword *);
+void EvaluateShapeAtParam(void *, float, qword *, qword *);
 void UpdateJtHands(void *);
 void SetStepTargetHeadingFromVector(ACTOR *, qword);
 void SetStepTargetHeading(ACTOR *, float);
@@ -2514,7 +2514,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     case 14: case 15: {
         U target;
         if (p->mode == 15)
-            EvaluateShapeU(p->source, p->parameter, &target.q, 0);
+            EvaluateShapeAtParam(p->source, p->parameter, &target.q, 0);
         else
             target.q = GetLoWorldPos(p->source);
         if (p->actor != D_002E1E40)
@@ -4000,7 +4000,7 @@ typedef union { qword q; float f[4]; } V;
 struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
-void EvaluateShapeS(struct OBJECT *, float, V *, V *);
+void EvaluateShapeAtDistance(struct OBJECT *, float, V *, V *);
 qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
 float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
@@ -4023,7 +4023,7 @@ typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 float MeasureJumpToPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
     struct OBJECT *b = s->b;
-    EvaluateShapeS(b, parameter, &v, 0);
+    EvaluateShapeAtDistance(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
     t.q = ConvertAloPos(0, b, v.q);
@@ -4340,10 +4340,10 @@ void ShouldKeepSoPair();
 void FilterJtObstruction();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void FindShapeBestVertex(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
-float DuGetShapeSearchIncrement(CURVE *pcurve);
-float UFromShapeS(CURVE *pcurve, float s);
-float SMaxShape(CURVE *pcurve);
-float SFromShapeU(CURVE *pcurve, float u);
+float GetShapeParamSearchStep(CURVE *pcurve);
+float GetShapeParamAtDistance(CURVE *pcurve, float s);
+float GetShapeMaxDistance(CURVE *pcurve);
+float GetShapeDistanceAtParam(CURVE *pcurve, float u);
 void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
 float MeasureJumpToRail(void *pv, float u);
 float MeasureJumpTargetAtTime(void *pv, float u);
@@ -4355,7 +4355,7 @@ void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv,
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
 void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
 int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
-void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
+void EvaluateShapeAtDistance(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
 float atan2f(float y, float x);                                 // atan2f
 void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
@@ -4456,8 +4456,8 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ctx.pcurve = curve;
             ctx.v = vLaunch.q;
             FindShapeBestVertex(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
-            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, DuGetShapeSearchIncrement(curve),
-                                              UFromShapeS(curve, 50.0f), UFromShapeS(curve, SMaxShape(curve) - 50.0f),
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, GetShapeParamSearchStep(curve),
+                                              GetShapeParamAtDistance(curve, 50.0f), GetShapeParamAtDistance(curve, GetShapeMaxDistance(curve) - 50.0f),
                                               &u, &g);
             if (curve != forcedTarget) {
                 if (g >= D_002BF8E0)
@@ -4480,7 +4480,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             vBest = vHit;
             uBest = u;
             tBest = t;
-            sBest = SFromShapeU(curve, uBest);
+            sBest = GetShapeDistanceAtParam(curve, uBest);
         }
 
         for (HOOK *phook = (*(HOOK **)&g_sw.dlTarget); phook; phook = phook->phookNext) {
@@ -4608,7 +4608,7 @@ LPartnerDone:
         float s, gCurve;
         pair.pjtair = air;
         pair.plo = curve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(curve) - 50.0f, &s,
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, GetShapeMaxDistance(curve) - 50.0f, &s,
                                           &gCurve);
         if (curve != forcedTarget) {
             if (D_002BF8E0 <= gCurve)
@@ -4620,7 +4620,7 @@ LPartnerDone:
         OBJCTX ctx;
         ctx.pjtair = air;
         ctx.plo = curve;
-        EvaluateShapeS(curve, s, &posTarget, 0);
+        EvaluateShapeAtDistance(curve, s, &posTarget, 0);
         ctx.v = ConvertAloPos(0, curve, posTarget.q);
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
@@ -4689,7 +4689,7 @@ LPartnerDone:
         ctx.pjtair = air;
         ctx.plo = curve;
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHideShape, &ctx, sCur, D_002BF918, 30.0f,
-                                          SMaxShape(curve) - 30.0f, &u, &g);
+                                          GetShapeMaxDistance(curve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
         if (curve != forcedTarget) {
             if (g >= D_002BF8E0)

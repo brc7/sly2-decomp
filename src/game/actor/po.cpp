@@ -3,7 +3,7 @@
 // owns a POCTL that turns the pad's sticks into camera-relative polar form and remembers when each button was
 // last pressed; the world tracks the current PO, an override PO, followers that re-parent to the current PO, and
 // the list of POs for switching and the HUD. Entry points: InitPo / LoadFromBrx / ClonePo / HandlePoMessage,
-// SetPoCtlState, UpdatePoctl, SwitchToPo, GetCurrentPo, FindClosestSwPo, CollectActivePzis.
+// SetPoCtlState, UpdatePoctl, SwitchToPo, GetCurrentPo, FindClosestSwPo, CollectActivePickupInfos.
 // TU 0x1C3D70..0x1C4E50 (37 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_po
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C4E30
@@ -138,8 +138,8 @@ void ResetPoctl(POCTLV *p);
 void ClearPoctlJoyPressed(POCTLV *p, int grf);
 void ConvertPoctlStick(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void UpdatePoctlPressed(POCTLV *p);
-int GrfPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
-int GrfConsumePressed__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
+int GetButtonsPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
 void UpdateSwPoFollowers(SWP *p);
 /* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
    EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
@@ -228,14 +228,14 @@ extern "C" int IsPoInvulnerable(void) { /*B*/if ((D_002E1E00 & 1) || IsSwHandsOf
 
 /** @sly2-annot addr=0x1C3ED0
  * Purpose: PO virtual slot 77: returns 0 (JTHS_Normal)
- * Info: proposed name JthsCurrentPo (T1); class PO slot77; TU po
+ * Info: proposed name GetPoJtHoldState (T1); class PO slot77; TU po
  * Notes: names_v2 B proposed FIsRovSoundBase__FP3ROV (0.856)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
 // Slot 77: the PO's JT hold state; a plain PO is always 0 (normal).
-extern "C" int JthsCurrentPo(void) {
+extern "C" int GetPoJtHoldState(void) {
     return 0;
 }
 
@@ -575,8 +575,8 @@ void SetPoctlStateValue(POCTLV *poctl, int state) {
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name.
-int GrfPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
+// POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name: GrfPressedWithin.
+int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
 {
     int grfRet = 0;
     int i = 0;
@@ -593,21 +593,21 @@ int GrfPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
 }
 
 /** @sly2-annot addr=0x1C46C0
- * Purpose: GrfPressedWithin then ClearJoyPressed on the result (consume the press)
+ * Purpose: GetButtonsPressedWithin then ClearJoyPressed on the result (consume the press)
  * Info: proposed name POCTL_GrfConsumePressed (T1); class POCTL; TU po
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// POCTL method: GrfPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name.
-int GrfConsumePressed__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) {
-    int grfRet = GrfPressedWithin__5POCTLUif(poctl, buttons, dt);
+// POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name: GrfConsumePressed.
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) {
+    int grfRet = GetButtonsPressedWithin__5POCTLUif(poctl, buttons, dt);
     ClearPoctlJoyPressed(poctl, grfRet);
     return grfRet;
 }
 
 /** @sly2-annot addr=0x1C4700
- * Purpose: GrfConsumePressed(grf 0.0) != 0
- * Info: proposed name POCTL_FConsumePressed (T1); class POCTL; TU po
+ * Purpose: ConsumeButtonsPressedWithin(grf 0.0) != 0
+ * Info: proposed name POCTL_ConsumeAnyPressed (T1); class POCTL; TU po
  * Notes: names_v2 C proposed InitRost__FP4ROST (0.638)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
@@ -615,7 +615,7 @@ int GrfConsumePressed__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) 
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
 // Returns 1 if any button in grf was pressed this frame, consuming the press.
-extern "C" int POCTL_FConsumePressed(POCTLV *p, unsigned int grf) { return GrfConsumePressed__5POCTLUif(p, grf, 0.0f) != 0; }
+extern "C" int POCTL_ConsumeAnyPressed(POCTLV *p, unsigned int grf) { return ConsumeButtonsPressedWithin__5POCTLUif(p, grf, 0.0f) != 0; }
 
 /** @sly2-annot addr=0x1C4728
  * Purpose: (grfbtn(+0x30) & grf) != 0 (held test)
@@ -852,9 +852,9 @@ extern "C" POV *FindClosestSwPo(SWP *world,qword pos) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// Fills up to cMax pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
+// Fills up to maxCount pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
 // other in-world player characters that pass the check. Returns the count (used by the HUD, inferred).
-extern "C" int CollectActivePzis(SWP *world, int maxCount, void **pzis)
+extern "C" int CollectActivePickupInfos(SWP *world, int maxCount, void **pzis)
 {
     int c;
     unsigned int j;

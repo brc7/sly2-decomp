@@ -176,7 +176,7 @@ void DeliverZapToSo(HIT *px);
 struct R54 { char pad[0x54]; int unknown54; };   /* the stimulus NewNoise returns */
 R54 *NewNoise(void *pv, qwordV pos, CID100V *p);
 void ReleaseAct(ACT **);
-void RecalcSwOxfFilterForObject(SW *, CID100V *);
+void RefreshSwObjectCollisionFilter(SW *, CID100V *);
 void SetSoCnstrForce(CID100V *, int);
 void SetSoCnstrTorque(CID100V *, int);
 qwordV DecomposeRotationMatrixToEuler(const void *);
@@ -688,7 +688,7 @@ void SetTossableState(CID100V *gadget, int state)
     gadget->pendingContact = -1;
     ReleaseAct(&gadget->positionJob);
     ReleaseAct(&gadget->rotationJob);
-    if (oldState == TOSSABLE_HELD || oldState == TOSSABLE_FADING) RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+    if (oldState == TOSSABLE_HELD || oldState == TOSSABLE_FADING) RefreshSwObjectCollisionFilter(&D_003DD490, gadget);
     switch (gadget->state) {
     case TOSSABLE_HELD: {
         SetSoCnstrForce(gadget, 0);
@@ -699,7 +699,7 @@ void SetTossableState(CID100V *gadget, int state)
         qwordV rotation = DecomposeRotationMatrixToEuler(gadget->rotationXf);
         gadget->positionJob = NewPositionAct(gadget, gadget->positionXf, 0, 7, 2, position);
         gadget->rotationJob = NewPositionAct(gadget, gadget->rotationXf, 0, 7, 2, rotation);
-        RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+        RefreshSwObjectCollisionFilter(&D_003DD490, gadget);
         break;
     }
     case TOSSABLE_STUCK: {
@@ -730,7 +730,7 @@ void SetTossableState(CID100V *gadget, int state)
         break;
     }
     case TOSSABLE_FADING:
-        RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+        RefreshSwObjectCollisionFilter(&D_003DD490, gadget);
         FadeSoOut(gadget, 0.25f);
         break;
     }

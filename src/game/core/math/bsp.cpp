@@ -631,10 +631,10 @@ SLY2_SCRAP("swc1 $f0, 0x4($4)");
 // (Claude agent, lane A9, 2026-10-23) from the old draft (21): the dot is ONE asm tied to pos ("0"(pos)), and the float
 // readback is an mtc1 asm taking the qword (gcc emits the qmfc2 itself). Together they fix every VF number.
 struct VECTORQ;
-extern "C" VECTORQ *func_002564C0(VECTORQ *);
+extern "C" VECTORQ *DefaultConstructVector(VECTORQ *);
 inline qword *AssignQword(qword *p, qword v);   /* inline, defined after its caller (end of file) */
-/* A VECTOR held in a qword with its out-of-line empty constructor (func_002564C0). */
-struct VECTORQ { qword q; VECTORQ() { (void)func_002564C0(this); } };
+/* A VECTOR held in a qword with its out-of-line empty constructor (DefaultConstructVector). */
+struct VECTORQ { qword q; VECTORQ() { (void)DefaultConstructVector(this); } };
 struct MAT { qword r[4]; };
 /** @sly2-annot addr=0x1193D8
  * Purpose: Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d)

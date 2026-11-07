@@ -53,20 +53,20 @@ void OnLoRemove(PIPEV *p);
 void PostLoLoad(PIPEV *p);
 float UpdateShapeBoundingSphere(PIPEV *p);
 void CloneShape(PIPEV *p);
-float SMinShape(PIPEV *);           // low distance bound
-float SMaxShape(PIPEV *);           // high distance bound
-float UMinShape(PIPEV *);           // start distance
-void EvaluateShapeU(PIPEV *, float, qword *, qword *);
+float GetShapeMinDistance(PIPEV *);           // low distance bound
+float GetShapeMaxDistance(PIPEV *);           // high distance bound
+float GetShapeMinParam(PIPEV *);           // start distance
+void EvaluateShapeAtParam(PIPEV *, float, qword *, qword *);
 float ModPositive__Fff(float, float);     // wrap into range
-float SClampShape(PIPEV *, float);
-void EvaluateShapeS(PIPEV *, float, qword *, qword *);
+float ClampShapeDistance(PIPEV *, float);
+void EvaluateShapeAtDistance(PIPEV *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 qword ConvertAloVec(PIPEV *, PIPEV *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);
 void FindShapeClosestPoint(PIPEV *p, qword q, int a, void *pv, int b, int c, float *pf);
 void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, M3 *out);
-float SRandomShapeRange(PIPEV *,float,float);
+float GetRandomShapeDistanceInRange(PIPEV *,float,float);
 float RandomFloatInRange__Fff(float,float);
 qword SetVectorCylind(float,float,float);
 }
@@ -227,9 +227,9 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
     WORK w;
     U fwd;   // declared outside the inner block on purpose: the stack slot of `back` (declared inside) is freed at the
              // end of that block and is reused by the VU_FLOAT temporary of the final negate, like the original.
-    float low = SMinShape(pipe), high = SMaxShape(pipe);
-    float t0 = UMinShape(pipe);
-    EvaluateShapeU(pipe, t0, 0, &w.tangent);
+    float low = GetShapeMinDistance(pipe), high = GetShapeMaxDistance(pipe);
+    float t0 = GetShapeMinParam(pipe);
+    EvaluateShapeAtParam(pipe, t0, 0, &w.tangent);
     w.tangent = Normalize(w.tangent, D_002A2DA0);
     {
         U back;
@@ -243,8 +243,8 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
             } else
                 sample = low + ModPositive__Fff(sample - low, high - low);
             float r = 50.0f;
-            EvaluateShapeS(pipe, SClampShape(pipe, sample + r), &fwd.q, 0);
-            EvaluateShapeS(pipe, SClampShape(pipe, sample - r), &back.q, 0);
+            EvaluateShapeAtDistance(pipe, ClampShapeDistance(pipe, sample + r), &fwd.q, 0);
+            EvaluateShapeAtDistance(pipe, ClampShapeDistance(pipe, sample - r), &back.q, 0);
             w.direction = Normalize(VuSub(fwd.q, back.q), D_002A2DC0);
             if (i == 0)
                 w.first = w.direction;
@@ -285,7 +285,7 @@ extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
 {
     FindShapeClosestPoint(pipe, GetLoWorldPos(q), 0, 0, 0, 0, pf);
     if (pipe->isCyclic == 0) {
-        *pf = GClamp(*pf, 100.0f, SMaxShape(pipe) - 35.0f);
+        *pf = GClamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
     }
 }
 
@@ -316,7 +316,7 @@ extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float 
     register qword r __asm__("vf2");
     register qword scale __asm__("vf3"), axis __asm__("vf1"), position __asm__("vf2");
     GetPipeGoalMatrix(pipe, g, 1, (M3 *)a);
-    EvaluateShapeS(pipe, g, (qword *)&b, 0);
+    EvaluateShapeAtDistance(pipe, g, (qword *)&b, 0);
     if (!pvec)
         return;
     __asm__("lqc2 %0,%1" : "=j"(position) : "m"(b));
@@ -351,9 +351,9 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut
     M3 m;
     qword dir, s, r, pos2;
     float n, mag;
-    t = SRandomShapeRange(pipe, t, D_002C0D10);
+    t = GetRandomShapeDistanceInRange(pipe, t, D_002C0D10);
     GetPipeGoalMatrix(pipe, t, 1, &m);
-    EvaluateShapeS(pipe, t, &vp.q, 0);
+    EvaluateShapeAtDistance(pipe, t, &vp.q, 0);
     n = RandomFloatInRange__Fff(-1.0f, 1.0f);
     mag = __builtin_fabsf(n);
     dir = SetVectorCylind((n * mag) * D_002C0D08, -1.0f, 0.0f);
@@ -379,8 +379,8 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut
 extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
 {
     if (pipe->isCyclic) {
-        pg[0] = SMinShape(pipe);
-        pg[1] = SMaxShape(pipe);
+        pg[0] = GetShapeMinDistance(pipe);
+        pg[1] = GetShapeMaxDistance(pipe);
         return 1;
     }
     return 0;

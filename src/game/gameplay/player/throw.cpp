@@ -109,7 +109,7 @@ void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
 int IsAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
-int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
+int ConsumeButtonsPressedWithin__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
 TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
@@ -125,7 +125,7 @@ void SetTrailMeshPositions(EFFECT *,qword);
 int MaxInt(int, int);
 void AttachJtHandsObject(CTRLSEL *,O *);
 void ReleaseJtHandsActs(CTRLSEL *);
-void RecalcSwOxfFilterForObject(SW *,O *);
+void RefreshSwObjectCollisionFilter(SW *,O *);
 void SetStepTargetHeading(O *,float);
 void SetStepTargetHeadingFromVector(O *,qword);
 void SetLoParent(O *,int,int);
@@ -472,11 +472,11 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                 break;
             }
             float margin = 0.1f;
-            if (GrfConsumePressed__5POCTLUif(control, BUTTON_JUMP | BUTTON_ATTACK, margin)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(control, BUTTON_JUMP | BUTTON_ATTACK, margin)) {
                 SetJtThrowState(s, 7);
                 break;
             }
-            if (GrfConsumePressed__5POCTLUif(control, BUTTON_ALT_ATTACK | BUTTON_ACTION, margin)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(control, BUTTON_ALT_ATTACK | BUTTON_ACTION, margin)) {
                 if (s->animation0)
                     SetJtThrowState(s, 0);
                 else
@@ -1091,7 +1091,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     int previous = s->state;
     s->state = state;
     s->time = D_002DDED0.t;
-    RecalcSwOxfFilterForObject(&D_003DD490, s->owner);
+    RefreshSwObjectCollisionFilter(&D_003DD490, s->owner);
     switch (s->state) {
     case -1:
         SetStepTargetHeading(s->owner, GetStepHeading(s->owner));
@@ -1190,5 +1190,5 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     ReleaseSma(&s->owner->extra);
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(animation, s->owner, 0.0f, 1.0f, flags, &s->owner->animation);
     PlainCall(s->owner, 90);
-    RecalcSwOxfFilterForObject(&D_003DD490, s->owner);
+    RefreshSwObjectCollisionFilter(&D_003DD490, s->owner);
 }

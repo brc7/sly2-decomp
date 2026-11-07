@@ -162,9 +162,9 @@ void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
 void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
 void CollectVisibleMsGlobs(int *, void ***);
-float SMaxShape(LOV *);
+float GetShapeMaxDistance(LOV *);
 int FindRangeContaining(void *, float);
-void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
+void EvaluateShapeAtDistance(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 BuildAxisAngleRotationMatrix(float, qwordV);
 GUARDV *AcquireProxyObject(void *p, int n);
@@ -799,13 +799,13 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
         {
             // Samples the curve at random points about D_002BE5E8 apart.
             union { VECTOR4V v; qwordV q; } curvePosition, curveDirection;
-            int numSamples = (int)(SMaxShape(object) / D_002BE5E8);
+            int numSamples = (int)(GetShapeMaxDistance(object) / D_002BE5E8);
             for (int k = 0; k < numSamples; k++)
             {
                 float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.gMin, D_002BBB60.gMax));
                 if (FindRangeContaining(object->curveData, u))
                     continue;
-                EvaluateShapeS(object, &curvePosition.q, &curveDirection.q, u);
+                EvaluateShapeAtDistance(object, &curvePosition.q, &curveDirection.q, u);
                 float distance = VectorLengthXY(VuDifference(pos, curvePosition.q));
                 if (distance < D_002BE5E4 || bestDistance < distance)
                     continue;

@@ -298,8 +298,8 @@ extern struct G D_002DFC00;
 extern char D_003DA0F0[];
 void UpdateStep(struct P *p);
 void UpdateStepplayerGadgets(struct P *p);
-int GrfConsumePressed__5POCTLUif(struct Q *q, int grf, float g);
-int GrfPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
+int GetButtonsPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
 void AcknowledgeStepplayerHint(struct P *p);
 void UpdateJtgoal(int *pl);
 int IsJtgoalHolding(int *pl);
@@ -331,7 +331,7 @@ void UpdateStepplayer(struct P *player)
     int *pl;
     UpdateStep(player);
     UpdateStepplayerGadgets(player);
-    if (GrfConsumePressed__5POCTLUif(player->controller, BUTTON_HINT, 0.0f))
+    if (ConsumeButtonsPressedWithin__5POCTLUif(player->controller, BUTTON_HINT, 0.0f))
         AcknowledgeStepplayerHint(player);
     pl = &player->xFD0;
     if (player->xDF4 == -1) {
@@ -352,7 +352,7 @@ void UpdateStepplayer(struct P *player)
     PickHeroInteractTarget(player);
     if (player->xEFC && IsAsegaRetracted(player->xEFC))
         DropAsegaRef(&player->xEFC);
-    if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
+    if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GetButtonsPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
 
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & (BUTTON_GADGET_MENU | BUTTON_RUN)) == BUTTON_GADGET_MENU) {
@@ -1146,7 +1146,7 @@ extern char D_002BCCB8[], D_002BCCC8[], D_002BCCD8[];
 extern struct { float a, b, c; } D_002BCCF0;
 extern struct { float lo, hi; } D_002BBB60;
 extern qword D_002A2DD0;
-void GetSoCpdefi(struct JT *, struct XP *);
+void GetSoCameraDefaults(struct JT *, struct XP *);
 qword GetLoWorldPos(void *);
 float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
@@ -1179,7 +1179,7 @@ static __inline__ float ClampF(float g, float lo, float hi)
 // STEPPLAYER camera definition (slot 50): SO base, then the camera focus height and flags.
 void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
 {
-    GetSoCpdefi(jt, xp);
+    GetSoCameraDefaults(jt, xp);
     if (jt->x1044) {
         xp->pos.q = jt->x1060.q;
         jt->x104C = jt->x1060.f[2];
@@ -1315,7 +1315,7 @@ struct P {
 extern struct CLOCK D_002DDED0;
 extern int D_002C3258[];
 extern struct T D_002BCD00[];
-int GrfConsumePressed__5POCTLUif(struct X150 *p, int mask, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(struct X150 *p, int mask, float g);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 int GetStepplayerMp(struct P *p);
@@ -1344,7 +1344,7 @@ void UpdateStepplayerGadgets(struct P *player)
         int id = pe->id;
         switch (pe->state) {
         case 0:
-            if (GrfConsumePressed__5POCTLUif(player->controller, mask, 0.15f)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(player->controller, mask, 0.15f)) {
                 if (!player->vt[99].pfn((char *)player + player->vt[99].d, id)) {
                     SetSndSourceLo(CreateSfxSound(0x2E), 0);
                 } else {

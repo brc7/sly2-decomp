@@ -1083,7 +1083,7 @@ struct EMITBV {
 };
 extern "C" {
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void EvaluateShapeS(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
+void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -1182,13 +1182,13 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         float g = RandomFloatInRange__Fff(s, s + segment);
         switch (origin->normalKind) {
         default:
-            EvaluateShapeS(curve, g, ppos, 0);
+            EvaluateShapeAtDistance(curve, g, ppos, 0);
             break;
         case EMIT_NORMAL_CURVE_TANGENT:
-            EvaluateShapeS(curve, g, ppos, pdir);
+            EvaluateShapeAtDistance(curve, g, ppos, pdir);
             goto normalize;
         case EMIT_NORMAL_CURVE_NORMAL: {
-            EvaluateShapeS(curve, g, ppos, &av[0].q);
+            EvaluateShapeAtDistance(curve, g, ppos, &av[0].q);
             *pdir = Cross(av[0].q, emitb->ep.vector);
             goto normalize;
         }

@@ -3,7 +3,7 @@
 // outline, its side planes and segment clipping against them, point-inside and overlap tests, registration as an
 // obstacle in the path zone that contains it, the search for free points/ranges along a shape that avoid the
 // obstacles, and the merging of overlapping polygons into one convex hull (a pooled "merged" CID14 owner).
-// Entry points: LoadCid14FromBrx, PostCid14Load, ClipEdgeToCnvo, IsPosInCnvo, DoCnvosOverlap, FindShapeFreePoint,
+// Entry points: LoadCid14FromBrx, PostCid14Load, ClipEdgeToConvexObstacle, IsPosInConvexObstacle, DoConvexObstaclesOverlap, FindShapeFreePoint,
 // MergeCid14Obstacles, UpdatePendingCid14Obstacles.
 // TU 0x1BC050..0x1BE398 (31 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1BC050
@@ -108,15 +108,15 @@ void RemoveDlEntry__FP2DLPv(DLV *pdl, void *pv);
 int IsEntryInDl__FP2DLPv(DLV *pdl, void *pv);
 int IsDlEmpty__FP2DL(DLV *pdl);
 void PostLoLoad(CID14V *p);
-float UMaxShape(CID14V *p);
+float GetShapeMaxParam(CID14V *p);
 void MeasureShape(CID14V *p);
 void *memset(void *, int, unsigned);
-int IsegFindShapeS(CID14V *p, float g, int a, int b);
-void EvaluateShapeS(CID14V *p, qword *pv, float g, int n);
+int FindShapeSegmentAtDistance(CID14V *p, float g, int a, int b);
+void EvaluateShapeAtDistance(CID14V *p, qword *pv, float g, int n);
 int IsEdgeBlockedByPathzone(void *pv, qword a, qword b, int k);
-float SMaxShape(CID14V *p);
-float SMinShape(CID14V *p);
-float SWrapShape(CID14V *p, float g);
+float GetShapeMaxDistance(CID14V *p);
+float GetShapeMinDistance(CID14V *p);
+float WrapShapeDistance(CID14V *p, float g);
 int IsPosInPathzone(void *b, qword v, int c);
 qword GetLoWorldPos(CID14V *p);
 void *FindPathzoneAtPos(qword pos, int n);
@@ -134,8 +134,8 @@ int ComparePosXY(qword a, qword b);
 int GetTurnSignXY(qword a, qword b, qword c);
 int ClassifyCid14Polygon(CID14V *p);
 int WrapCid14PointIndex(CID14V *p, int n);
-int ClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
-int IsPosInCnvo(CID14V *p, qword pos);
+int ClipEdgeToConvexObstacle(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
+int IsPosInConvexObstacle(CID14V *p, qword pos);
 int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1);
 int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t);
 int FindShapePointInPathzone(CID14V *a, void *b, float g, float range, float *pf, int c);
@@ -381,7 +381,7 @@ extern "C" void PostCid14Load(CID14V *polygon)
     if (r == WINDING_CONVEX) return;   /* redundant with the next test, but part of the codegen */
     if (r != WINDING_CONVEX_REVERSED) return;
     half = polygon->numPoints / 2;
-    tMax = UMaxShape(polygon);
+    tMax = GetShapeMaxParam(polygon);
     for (i = 0; i < half; i++) {
         j = polygon->numPoints - i - 1;
         SwapV(&((V4 *)polygon->points)[i], &((V4 *)polygon->points)[j]);
@@ -393,7 +393,7 @@ extern "C" void PostCid14Load(CID14V *polygon)
     polygon->winding = WINDING_CONVEX;
 }
 
-// ClipEdgeToCnvo: clips the segment pos1-pos2 to the convex volume pcnvo (its cplane - 1 planes, built by BuildCid14EdgePlanes)
+// ClipEdgeToConvexObstacle: clips the segment pos1-pos2 to the convex volume pcnvo (its cplane - 1 planes, built by BuildCid14EdgePlanes)
 // and writes the parts of it OUTSIDE the volume to alsg (at most clsgMax LSGs); returns how many. Convex-volume twin of
 // ClsgClipEdgeToBsp (func_00118668), same LSG record (0x60 bytes: apos[2], anormal[2], au[2], apsurf[2]).
 // gIn / gOut = where the segment enters / leaves the volume (0 = pos1, 1 = pos2), normalIn / normalOut = those planes.
@@ -436,14 +436,14 @@ static inline qword QwZero() { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 /** @sly2-annot addr=0x1BC688
  * Purpose: Clip segment to the convex volume and write the parts outside it (LSG 0x60)
- * Info: proposed name ClipEdgeToCnvo (T1); TU tu_1BC050
+ * Info: proposed name ClipEdgeToConvexObstacle (T1); TU tu_1BC050
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
-int ClipEdgeToCnvo(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
+int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
 {
     BuildCid14EdgePlanes(polygon);
     float gIn = 0.0f;
@@ -532,7 +532,7 @@ static __inline__ float GDistPlane(qword plane, qword pos)
 }
 /** @sly2-annot addr=0x1BC9F0
  * Purpose: Point inside all planes of the convex volume
- * Info: proposed name IsPosInCnvo (T1); TU tu_1BC050
+ * Info: proposed name IsPosInConvexObstacle (T1); TU tu_1BC050
  * Notes: names_v2 B proposed FTurnJtToTarget__FP2JT (0.856)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
@@ -540,7 +540,7 @@ static __inline__ float GDistPlane(qword plane, qword pos)
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Returns 1 when a point is inside the polygon (in front of no side plane).
-int IsPosInCnvo(CID14V *polygon, qword pos)
+int IsPosInConvexObstacle(CID14V *polygon, qword pos)
 {
     int i;
     BuildCid14EdgePlanes(polygon);
@@ -570,8 +570,8 @@ static inline qword MulPos(M4 *pm, qword v)
 int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
 {
     int i0, r, pass, k, i1;
-    i0 = IsegFindShapeS(polygon, start, 0, 0);
-    i1 = IsegFindShapeS(polygon, end, 0, 0);
+    i0 = FindShapeSegmentAtDistance(polygon, start, 0, 0);
+    i1 = FindShapeSegmentAtDistance(polygon, end, 0, 0);
     for (pass = 0; pass < 2; pass++) {
         int i, iEnd, a;
         M4 m;
@@ -589,7 +589,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
         }
         i = a;
         m = *GetMat(polygon);
-        EvaluateShapeS(polygon, &v0, start, 0);
+        EvaluateShapeAtDistance(polygon, &v0, start, 0);
         q = v0;
         while (i != iEnd) {
             v = MulPos(&m, polygon->points[i]);
@@ -601,7 +601,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
                 i = WrapCid14PointIndex(polygon, i - 1);
             q = v;
         }
-        EvaluateShapeS(polygon, &v1, end, 0);
+        EvaluateShapeAtDistance(polygon, &v1, end, 0);
         if (!IsEdgeBlockedByPathzone(zone, q, v1, k))
             return r;
     next:;
@@ -621,21 +621,21 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
     float at[2];
     float tB, d, f;
     int fShort, a, b;
-    if (!FindShapePointInPathzone(shape, zone, param, SMaxShape(shape) * 0.5f, &at[0], 0) &&
-        !FindShapePointInPathzone(shape, zone, param, SMaxShape(shape) * 0.5f, &at[0], 1)) return 4;
+    if (!FindShapePointInPathzone(shape, zone, param, GetShapeMaxDistance(shape) * 0.5f, &at[0], 0) &&
+        !FindShapePointInPathzone(shape, zone, param, GetShapeMaxDistance(shape) * 0.5f, &at[0], 1)) return 4;
     param = at[0];
-    if (!FindShapePointInPathzone(shape, zone, *paramOut, SMaxShape(shape) * 0.5f, &at[1], 0) &&
-        !FindShapePointInPathzone(shape, zone, *paramOut, SMaxShape(shape) * 0.5f, &at[1], 1)) return 4;
+    if (!FindShapePointInPathzone(shape, zone, *paramOut, GetShapeMaxDistance(shape) * 0.5f, &at[1], 0) &&
+        !FindShapePointInPathzone(shape, zone, *paramOut, GetShapeMaxDistance(shape) * 0.5f, &at[1], 1)) return 4;
     tB = at[1];
     *paramOut = tB;
     d = tB - param;
-    if (d < 0.0f) d += SMaxShape(shape);
+    if (d < 0.0f) d += GetShapeMaxDistance(shape);
     switch (mode) {
     case 2: f = D_002C0AB8 + 1.0f; break;
     case 1: f = 1.0f - D_002C0AB8; break;
     default: f = 1.0f; break;
     }
-    fShort = (d < SMaxShape(shape) * f * 0.5f) ? 1 : 0;
+    fShort = (d < GetShapeMaxDistance(shape) * f * 0.5f) ? 1 : 0;
     a = func_001BCAC0F(shape, zone, param, tB, 1);
     b = func_001BCAC0F(shape, zone, param, tB, 0);
     if (b < a) return 1;
@@ -657,14 +657,14 @@ int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range
     float d, t;
     U v0, v1;
     for (d = 0.0f; d < range; d += D_002C0ABC) {
-        t = SWrapShape(shape, param - d);
-        EvaluateShapeS(shape, &v0.q, t, 0);
+        t = WrapShapeDistance(shape, param - d);
+        EvaluateShapeAtDistance(shape, &v0.q, t, 0);
         if (IsPosInPathzone(zone, v0.q, c)) {
             if (paramOut) *paramOut = t;
             return 1;
         }
-        t = SWrapShape(shape, param + d);
-        EvaluateShapeS(shape, &v1.q, t, 0);
+        t = WrapShapeDistance(shape, param + d);
+        EvaluateShapeAtDistance(shape, &v1.q, t, 0);
         if (IsPosInPathzone(zone, v1.q, c)) {
             if (paramOut) *paramOut = t;
             return 1;
@@ -776,7 +776,7 @@ CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
     min = 1.0f;
     for (i = 0; i < n; i++) {
         CID14V *e = buf[i];
-        if (!ClipEdgeToCnvo(e, start, end, 2, r) || r[0].au[0] != 0.0f) {
+        if (!ClipEdgeToConvexObstacle(e, start, end, 2, r) || r[0].au[0] != 0.0f) {
             best = e;
             break;
         }
@@ -841,26 +841,26 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
     float dt;
     int fWrapped;
     int c;
-    EvaluateShapeS(shape, &av[1], param, 0);
+    EvaluateShapeAtDistance(shape, &av[1], param, 0);
     dt = D_002C0AC0;
     if (!isForward) dt = -dt;
     fWrapped = 0;
     for (;;) {
         av[0] = av[1];
         param += dt;
-        if (param <= SMinShape(shape)) {
+        if (param <= GetShapeMinDistance(shape)) {
             if (fWrapped) break;
             fWrapped = 1;
-            if (shape->isClosed) param = SWrapShape(shape, param);
-            else param = SMinShape(shape);
-        } else if (SMaxShape(shape) <= param) {
+            if (shape->isClosed) param = WrapShapeDistance(shape, param);
+            else param = GetShapeMinDistance(shape);
+        } else if (GetShapeMaxDistance(shape) <= param) {
             if (fWrapped) break;
             fWrapped = 1;
-            if (shape->isClosed) param = SWrapShape(shape, param);
-            else param = SMaxShape(shape);
+            if (shape->isClosed) param = WrapShapeDistance(shape, param);
+            else param = GetShapeMaxDistance(shape);
         }
-        EvaluateShapeS(shape, &av[1], param, 0);
-        c = ClipEdgeToCnvo(obstacle, av[0], av[1], 2, ahit);
+        EvaluateShapeAtDistance(shape, &av[1], param, 0);
+        c = ClipEdgeToConvexObstacle(obstacle, av[0], av[1], 2, ahit);
         if (c > 0) {
             if (paramOut) *paramOut = param;
             if (posOut) *posOut = (ahit - 1)[c].apos[0];
@@ -884,9 +884,9 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
     float f0, f1;
     CID14V *x;
     int r;
-    if (direction) t = SWrapShape(shape, param + D_002C0AC4);
-    else t = SWrapShape(shape, param - D_002C0AC4);
-    EvaluateShapeS(shape, &v.q, t, 0);
+    if (direction) t = WrapShapeDistance(shape, param + D_002C0AC4);
+    else t = WrapShapeDistance(shape, param - D_002C0AC4);
+    EvaluateShapeAtDistance(shape, &v.q, t, 0);
     x = FindFirstObstacleHitBySegment(a1, a2, pos, v.q);
     if (blockerOut) *blockerOut = x;
     if (!x) return 0;
@@ -901,13 +901,13 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
 
 /** @sly2-annot addr=0x1BD8A8
  * Purpose: Two convex polygons overlap (edge clip or containment)
- * Info: proposed name DoCnvosOverlap (T1); TU tu_1BC050
+ * Info: proposed name DoConvexObstaclesOverlap (T1); TU tu_1BC050
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
 // Returns 1 when two convex polygons overlap (separating-axis test on their side planes).
-extern "C" int DoCnvosOverlap(CID14V *polygonA, CID14V *polygonB)
+extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
 {
     int i;
     M4 m = *GetMat(polygonA);
@@ -917,14 +917,14 @@ extern "C" int DoCnvosOverlap(CID14V *polygonA, CID14V *polygonB)
     if (i < polygonA->numPoints) {
         do {
             qword w = MulPt(&m, polygonA->points[i]);
-            if (ClipEdgeToCnvo(polygonB, v, w, 1, &hit))
+            if (ClipEdgeToConvexObstacle(polygonB, v, w, 1, &hit))
                 break;
             v = w;
         } while (++i < polygonA->numPoints);
     }
     if (i < polygonA->numPoints)
         return 1;
-    return IsPosInCnvo(polygonA, MulPt(GetMat(polygonB), polygonB->points[0])) != 0;
+    return IsPosInConvexObstacle(polygonA, MulPt(GetMat(polygonB), polygonB->points[0])) != 0;
 }
 
 /** @sly2-annot addr=0x1BDA00
