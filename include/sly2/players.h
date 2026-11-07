@@ -34,14 +34,14 @@ typedef char assert_PARTLINK_size[sizeof(PARTLINK) == 0xE0 ? 1 : -1];
 struct MURRAY : public STEPPLAYER
 {
       GAIT gaitA;   /* +0x1320 locomotion gaits (PostMurrayLoad's PostJtLoadGait: A, B, D, C in that order) */
-      int state;    /* Murray's state */
-      undefined4 unknown13D4;
+      int state;    /* Murray's state (MURRAY_IDLE.., SetMurrayState) */
+      float stateTime;   /* +0x13D4 clock.time state was entered (SetMurrayState) */
       int flopSubstate;   /* +0x13D8 sub-state of MURRAY_FLOP (UpdateMurrayFlop): 1 waits for landing (no ground probe), 2 impact */
       float unknown13DC;   /* +0x13DC passed to IsJtStuck while flopping */
-      int unknown13E0;
+      ASEG *pasegFlop;   /* +0x13E0 the flop clip (SetMurrayState MURRAY_FLOP; pasegFlopGadget instead when fFlopGadget) */
       struct XP *pxpFlop;   /* +0x13E4 contacts collected during the flop dive (AdjustMurrayNewXp appends); nonzero: landed
                              (UpdateMurrayFlop); zapped and freed at impact (SetMurrayFlopSubstate) */
-      int unknown13E8;
+      int fFlopGadget;   /* +0x13E8 the flop was started by the gadget (UseMurrayGadget 22: 1; the button and StartMurrayFlop: 0) */
       SO *psoCarryRoot;   /* +0x13EC the object a lifted one is parented to (SetMurrayLiftSubstate); no lift without it
                              (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
       LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
@@ -50,16 +50,16 @@ struct MURRAY : public STEPPLAYER
       struct ACT *apactCarryA[4];   /* +0x13F4 grip actuators on the carried object (DetachMurrayCarried releases them) */
       int xfRoleA;   /* +0x1404 transform roles given back to the lifted object on release (SetXfRole, DetachMurrayCarried) */
       int xfRoleB;
-      undefined4 unknown140C;
+      ASEG *pasegThrow;   /* +0x140C the throw clip (SetMurrayState MURRAY_THROW; pasegThrowPowered with power-up 0x11) */
       float throwRange;   /* +0x1410 how far Murray throws: target search radius (x D_002C0984) and the default goal distance (ChooseMurrayThrowTarget) */
       float throwSpeed;   /* +0x1414 speed a throw flies at (ThrowMurrayCarried: flight time = distance / throwSpeed) */
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
       qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
       LO *ploReleased;   /* +0x1430 the object last released from a carry (DetachMurrayCarried); ignored in collisions */
       float releaseTime;   /* +0x1434 clock.time of that release */
-      undefined4 unknown1438;
-      int unknown143C;
-      undefined4 unk_0x1440[(0x1448 - 0x1440) / 4];
+      ASEG *pasegToss;   /* +0x1438 the toss clip (SetMurrayState MURRAY_TOSS); no toss from a carry without it (UpdateMurrayCarry) */
+      int fTossGadget;   /* +0x143C the toss was started by the gadget (UseMurrayGadget 19: 1; the carry button: 0): pasegTossGadget is used */
+      ASEG *apasegLift[2];   /* +0x1440 lift clips by liftClip (SetMurrayState MURRAY_LIFT) */
       int fLiftGrabbed;   /* +0x1448 the lift animation reached its grab event (UpdateMurrayLift) */
       int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
       int liftSubstate;   /* +0x1450 sub-state of MURRAY_LIFT: 0, 1 reaching (aborts if the object left the world), 2 lifting, -1 none */
@@ -70,7 +70,7 @@ struct MURRAY : public STEPPLAYER
       struct SM *psmCarryStand;   /* +0x1510 the state machine carry sub-state 0 applies (SetMurrayCarrySubstate) */
       undefined4 unk_0x1514[(0x151c - 0x1514) / 4];
       ASEG *pasegCarryRun;   /* +0x151C the clip of carry sub-state 2 */
-      undefined4 unknown1520;
+      struct SM *psmStruggle;   /* +0x1520 the state machine MURRAY_STRUGGLE applies (SetMurrayState) */
       float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
       float lastMashTime;   /* +0x1528 struggleTimeLeft at the last face-button press */
       int mashesLeft;   /* +0x152C presses still needed to win the struggle */
@@ -115,7 +115,8 @@ struct MURRAY : public STEPPLAYER
       struct ASEGA *unknown190C;     /* running animation segment application; possibly animationPlayback (low-confidence guess: header comment: running animation segment application) */
       JTTHROW jtthrowAim;   /* +0x1910 Murray's aimed-throw component (MURRAY_AIMED_THROW; PostJtThrowLoad, SetJtThrowState,
                                UpdateJtThrowHoldPosition take it); was MOVEREC, a partial view of the same JTTHROW */
-      undefined4 unk_0x1a50[(0x1a58 - 0x1a50) / 4];
+      struct EXPL *pexplDustLand;   /* +0x1A50 dust effect on landing out of a jump (SetMurrayState: Add, ExplodeWithDefaults, Remove) */
+      struct EXPL *pexplDustGrab;   /* +0x1A54 the same when landing into grab kinds 3/4 */
       SOPART *aprecState[0x16];   /* per-state records */
       SOPART *aprecCarry[4];   /* per-carry-slot records */
       int isBehaviorActive;   /* +0x1AC0 1 while Murray's behaviour (BHV198) runs: set by its Start, cleared by its Close (inferred) */
@@ -126,7 +127,11 @@ struct MURRAY : public STEPPLAYER
       struct ASEG *pasegHitEffect;   /* +0x1AD4 its animation */
       SO *psoHitEffectB;   /* +0x1AD8 the effect of event 0x40000 (SpawnMurrayHitEffectUnchecked) */
       struct ASEG *pasegHitEffectB;
-      undefined4 unk_0x1ae0[(0x1b00 - 0x1ae0) / 4];
+      ASEG *pasegThrowPowered;   /* +0x1AE0 throw clip with power-up 0x11 (SetMurrayState) */
+      ASEG *pasegTossGadget;   /* +0x1AE4 toss clip of the gadget toss (fTossGadget) */
+      ASEG *pasegFlopGadget;   /* +0x1AE8 flop clip of the gadget flop (fFlopGadget) */
+      ASEG *pasegTurnbuckle;   /* +0x1AEC clip of MURRAY_TURNBUCKLE */
+      undefined4 unk_0x1af0[(0x1b00 - 0x1af0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
@@ -154,6 +159,11 @@ struct MURRAY : public STEPPLAYER
     virtual void *GetSaveVarRoot() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_MURRAY_size[sizeof(MURRAY) == 0x1B00 ? 1 : -1];
+typedef char assert_MURRAY_stateTime[SLY2_OFFSETOF(MURRAY, stateTime) == 0x13D4 ? 1 : -1];
+typedef char assert_MURRAY_apasegLift[SLY2_OFFSETOF(MURRAY, apasegLift) == 0x1440 ? 1 : -1];
+typedef char assert_MURRAY_psmStruggle[SLY2_OFFSETOF(MURRAY, psmStruggle) == 0x1520 ? 1 : -1];
+typedef char assert_MURRAY_pexplDustLand[SLY2_OFFSETOF(MURRAY, pexplDustLand) == 0x1A50 ? 1 : -1];
+typedef char assert_MURRAY_pasegTurnbuckle[SLY2_OFFSETOF(MURRAY, pasegTurnbuckle) == 0x1AEC ? 1 : -1];
 typedef char assert_MURRAY_jtthrowAim[SLY2_OFFSETOF(MURRAY, jtthrowAim) == 0x1910 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* BTBLEND: a pair of lean blends and their blended segment (Bentley).

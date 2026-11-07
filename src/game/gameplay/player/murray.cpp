@@ -314,7 +314,7 @@ extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
                 if (murray->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && murray->CanUseGadget(2) &&
                     murray->jtair.state < 6 && murray->jtair.state > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
                     murray->controller->ClearJoyPressed(BUTTON_ALT_ATTACK | BUTTON_ATTACK);
-                    murray->unknown13E8 = 0;
+                    murray->fFlopGadget = 0;
                     SetMurrayState(murray, MURRAY_FLOP);
                 }
             }
@@ -536,8 +536,8 @@ void UpdateMurrayCarry(MURRAY *murray)
                 SetJtAirJump(&murray->jtair, 0xF, 0, 0);
             } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
                 SetMurrayState(murray, MURRAY_THROW);
-            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f) && murray->unknown1438) {
-                murray->unknown143C = 0;
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f) && murray->pasegToss) {
+                murray->fTossGadget = 0;
                 SetMurrayState(murray, MURRAY_TOSS);
             } else if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && murray->CanUseGadget(3)) {
                 murray->controller->ClearJoyPressed(BUTTON_LOOK);
@@ -915,136 +915,71 @@ void ChooseMurrayThrowTarget(MURRAY *murray)
 } } // namespace M_ChooseMurrayThrowTarget
 
 namespace M_SetMurrayState {
-// SetMurrayState(p, next): main state transition of the animated actor (state at +0x13D0).
-// Exit work for the old state, then entry work for `next` (clip/template selection), then the shared
-// "ApplyAseg" tail that restarts the animation player (+0x1030) and the component (+0x1034).
+// SetMurrayState(murray, next): Murray's main state transition (MURRAY::state).
+// Exit work for the old state, then entry work for `next` (clip/state-machine selection), then the shared
+// tail that restarts the active animation (activeAnimation) and state machine (activeStateMachine).
 // Lane 4 (Claude agent): hacks of the earlier drafts (xori/mtc1/addiu asm, 6 pins) are gone; this has ONE pin
 // (the zero-vector temp in case 7) and one VU vsub.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
-struct VE { short delta, pad; void (*fn)(); };
-struct OBJ { char pad[12]; VE *vt; };
-struct COMPONENT;
-struct P {
-    char pad0[12];
-    VE *vt;
-    char pad10[72];
-    void *first;            // 0x58
-    void *second;           // 0x5C
-    char pad60[304];
-    U velocity;             // 0x190
-    float phase;            // 0x1A0
-    char pad1a4[804];
-    int submode;            // 0x4C8
-    char pad4cc[2908];
-    void *template0;        // 0x1028
-    void *template16;       // 0x102C
-    ASEGA *asega;           // 0x1030
-    COMPONENT *component;   // 0x1034
-    char pad1038[84];
-    int retain;             // 0x108C
-    char pad1090[660];
-    ASEG *clip1;            // 0x1324
-    char pad1328[168];
-    int state;              // 0x13D0
-    float time;             // 0x13D4
-    char pad13d8[8];
-    ASEG *clip3;            // 0x13E0
-    char pad13e4[4];
-    int alternate3;         // 0x13E8
-    char pad13ec[32];
-    ASEG *clip7;            // 0x140C
-    char pad1410[16];
-    U goal;                 // 0x1420
-    char pad1430[8];
-    ASEG *clip8;            // 0x1438
-    int alternate8;         // 0x143C
-    ASEG *clip4a;           // 0x1440
-    ASEG *clip4b;           // 0x1444
-    char pad1448[4];
-    int clipKind;           // 0x144C
-    char pad1450[208];
-    void *template6;        // 0x1520
-    char pad1524[12];
-    int marker;             // 0x1530
-    char pad1534[16];
-    ASEG *clip10;           // 0x1544
-    char pad1548[980];
-    OBJ *object15;          // 0x191C
-    int stamp15;            // 0x1920
-    char pad1924[300];
-    OBJ *firstCleanup;      // 0x1A50
-    OBJ *secondCleanup;     // 0x1A54
-    char pad1a58[136];
-    ASEG *extra7;           // 0x1AE0
-    ASEG *extra8;           // 0x1AE4
-    ASEG *extra3;           // 0x1AE8
-    ASEG *clip21;           // 0x1AEC
-};
 extern "C" {
 extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
-extern int D_002DD5BC;
-void SetXfRole(P *, void *, int);
-void ScheduleIdleTimer(P *);
-void SetMurrayFlopSubstate(P *, int);
-void ExplodeWithDefaults(OBJ *);
+extern BENTLEY *D_002DD5BC;
+void SetXfRole(MURRAY *, XF *, int);
+void ScheduleIdleTimer(MURRAY *);
+void SetMurrayFlopSubstate(MURRAY *, int);
+void ExplodeWithDefaults(EXPL *);
 void SetJtAirState(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
-void SetMurrayAttack(P *, int);
-void SetMurrayPowerSubstate(P *, int);
-void SetMurrayLiftSubstate(P *, int);
-void SetMurrayCarrySubstate(P *, int);
-void SetMurrayStrafeSubstate(P *, int);
+void SetMurrayAttack(MURRAY *, int);
+void SetMurrayPowerSubstate(MURRAY *, int);
+void SetMurrayLiftSubstate(MURRAY *, int);
+void SetMurrayCarrySubstate(MURRAY *, int);
+void SetMurrayStrafeSubstate(MURRAY *, int);
 void SetJtThrowState(void *, int);
-void SetSoCnstrForce(P *, int);
+void SetSoCnstrForce(MURRAY *, int);
 void SetJtPipeState(void *, int);
-int FindSmStateOptional__FP2SM3OID(void *, int);
-int GetStepplayerLeanFlags(P *);
-void InitIdleTimer(P *, int);
+int FindSmStateOptional__FP2SM3OID(SM *, int);
+int GetStepplayerLeanFlags(MURRAY *);
+void InitIdleTimer(MURRAY *, int);
 void ResetGaitFeet(void *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 int IsPowerupAcquired(int);
-void ChooseMurrayThrowTarget(P *);
-qword GetLoWorldPos(P *);
-void SetStepTargetHeadingFromVector(P *, qword);
+void ChooseMurrayThrowTarget(MURRAY *);
+qword GetLoWorldPos(MURRAY *);
+void SetStepTargetHeadingFromVector(MURRAY *, qword);
 void ReleaseAsega(ASEGA **);
-void ReleaseSma(COMPONENT **);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
-void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
+void ReleaseSma(SMA **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, MURRAY *, float, float, int, ASEGA **);
+void ReplaceSmaEx(SM *, MURRAY *, int, int, int, SMA **);
 EA *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
 }
-// Address p + offset.
-static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset); }
-// virtual call through slot `index` of an object whose vptr is at +0xC
-static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
-// Set the actor's velocity (virtual slot 35).
-static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
-// Murray state switch (x13D0, 0..21): exit work for the old state, entry work (clip selection, velocity reset,
+// Murray state switch (MURRAY::state, 0..21): exit work for the old state, entry work (clip selection, velocity reset,
 // component states) for the new one.
-extern "C" void SetMurrayState(P *murray, int next)
+extern "C" void SetMurrayState(MURRAY *murray, int next)
 {
     if (next == murray->state)
         return;
     // leave the old state
     switch (murray->state) {
     case MURRAY_IDLE:
-        SetXfRole(murray, murray->first, 2);
-        SetXfRole(murray, murray->second, 2);
+        SetXfRole(murray, murray->unknown58, 2);
+        SetXfRole(murray, murray->unknown5C, 2);
         ScheduleIdleTimer(murray);
         break;
     case MURRAY_PLAYER_STATE_4:
     case MURRAY_SCRIPT_ANIM:
     case MURRAY_SCRIPT_SMA:
-        SetXfRole(murray, murray->first, 2);
-        SetXfRole(murray, murray->second, 2);
+        SetXfRole(murray, murray->unknown58, 2);
+        SetXfRole(murray, murray->unknown5C, 2);
         break;
     case MURRAY_FLOP: SetMurrayFlopSubstate(murray, -1); break;
     case MURRAY_JUMP: {
-        if (!murray->retain) {
-            OBJ *object = 0;
+        if (!murray->pwater) {
+            EXPL *object = 0;
             switch (next) {
             case MURRAY_IDLE:
             case MURRAY_RUN:
@@ -1052,7 +987,7 @@ extern "C" void SetMurrayState(P *murray, int next)
             case MURRAY_CARRY:
             case MURRAY_STRAFE:
             case MURRAY_ATTACK:
-            case MURRAY_POWER_MOVE: object = murray->firstCleanup; break;
+            case MURRAY_POWER_MOVE: object = murray->pexplDustLand; break;
             case MURRAY_JUMP:
             case MURRAY_FLOP:
             case MURRAY_STRUGGLE:
@@ -1060,40 +995,40 @@ extern "C" void SetMurrayState(P *murray, int next)
             case MURRAY_TOSS:
             case MURRAY_WALK: break;
             case MURRAY_GRAB: {
-                switch (murray->submode) {
+                switch (murray->jtgrab.state) {
                 case 1: break;
                 case 3:
-                case 4: object = murray->secondCleanup; break;
-                default: object = murray->firstCleanup; break;
+                case 4: object = murray->pexplDustGrab; break;
+                default: object = murray->pexplDustLand; break;
                 }
                 break;
             }
             }
             if (object) {
-                Call(object, 8);
+                object->Add();
                 ExplodeWithDefaults(object);
-                Call(object, 9);
+                object->Remove();
             }
         }
-        SetJtAirState(Block(murray, 0x2C0), -1, 0);
+        SetJtAirState(&murray->jtair, -1, 0);
         break;
     }
-    case MURRAY_GRAB: SetJtGrabKind(Block(murray, 0x4C0), -1); break;
-    case MURRAY_HURT: SetJtHurtState(Block(murray, 0xDF0), -1); break;
+    case MURRAY_GRAB: SetJtGrabKind(&murray->jtgrab, -1); break;
+    case MURRAY_HURT: SetJtHurtState(&murray->jthurt, -1); break;
     case MURRAY_ATTACK: SetMurrayAttack(murray, -1); break;
     case MURRAY_POWER_MOVE: SetMurrayPowerSubstate(murray, -1); break;
     case MURRAY_LIFT: SetMurrayLiftSubstate(murray, -1); break;
     case MURRAY_CARRY: SetMurrayCarrySubstate(murray, -1); break;
     case MURRAY_STRAFE: SetMurrayStrafeSubstate(murray, -1); break;
     case MURRAY_AIMED_THROW:
-        Call(murray->object15, 9);
-        SetJtThrowState(Block(murray, 0x1910), -1);
+        murray->jtthrowAim.ploHoldParent->Remove();
+        SetJtThrowState(&murray->jtthrowAim, -1);
         SetSoCnstrForce(murray, 0);
         break;
     case MURRAY_RUN:
-    case MURRAY_WALK: murray->phase = murray->asega->time / murray->asega->animation->duration; break;
-    case MURRAY_STRUGGLE: murray->marker = 0; break;
-    case MURRAY_PIPE: SetJtPipeState(Block(murray, 0xF50), -1); break;
+    case MURRAY_WALK: murray->gaitBlend = murray->activeAnimation->time / murray->activeAnimation->animation->duration; break;
+    case MURRAY_STRUGGLE: murray->psmaWork = 0; break;
+    case MURRAY_PIPE: SetJtPipeState(&murray->jtpipe, -1); break;
     case MURRAY_THROW:
     case MURRAY_TOSS:
     case MURRAY_SCRIPT_THROW: break;
@@ -1101,18 +1036,18 @@ extern "C" void SetMurrayState(P *murray, int next)
     int old = murray->state;
     murray->state = next;
     ASEG *clip = 0;
-    void *source = 0;
+    SM *source = 0;
     int flags = 1, id = -1, mode = 4;
     void *activation;
     float duration = 0.0f;
-    murray->time = D_002DDED0.time;
+    murray->stateTime = D_002DDED0.time;
     // enter the new state
     switch (next) {
     case MURRAY_IDLE:
-        SetXfRole(murray, murray->first, 1);
-        SetXfRole(murray, murray->second, 1);
-        source = murray->template0;
-        murray->velocity = D_002A2DD0;
+        SetXfRole(murray, murray->unknown58, 1);
+        SetXfRole(murray, murray->unknown5C, 1);
+        source = murray->unknown1028;
+        murray->qwUnknown190 = D_002A2DD0.q;
         if (old != 2) {
             id = (old != 10) ? 0x175 : 0x176;
         } else
@@ -1123,44 +1058,45 @@ extern "C" void SetMurrayState(P *murray, int next)
         InitIdleTimer(murray, 1);
         break;
     case MURRAY_RUN:
-        clip = murray->clip1;
-        activation = Block(murray, 0x1320);
+        clip = murray->gaitA.blendedAnimation;
+        activation = &murray->gaitA;
         goto activate;
-    case MURRAY_HURT: SetJtModeState__FP6JTMODEi(Block(murray, 0xF00), -1); break;
+    case MURRAY_HURT: SetJtModeState__FP6JTMODEi(&murray->jtmode, -1); break;
     case MURRAY_FLOP: {
         SetMurrayFlopSubstate(murray, 0);
-        ASEG *a = murray->extra3;
-        if (a && murray->alternate3)
+        ASEG *a = murray->pasegFlopGadget;
+        if (a && murray->fFlopGadget)
             clip = a;
         else
-            clip = murray->clip3;
+            clip = murray->pasegFlop;
         break;
     }
     case MURRAY_CARRY:
         SetMurrayCarrySubstate(murray, 0);
-        Call((OBJ *)murray, 90);
+        murray->ApplyStateStepParams();
         return;
-    case MURRAY_STRUGGLE: source = murray->template6; break;
+    case MURRAY_STRUGGLE: source = murray->psmStruggle; break;
     case MURRAY_LIFT:
-        switch (murray->clipKind) {
-        case 0: clip = murray->clip4a; break;
-        case 1: clip = murray->clip4b; break;
+        switch (murray->liftClip) {
+        case 0: clip = murray->apasegLift[0]; break;
+        case 1: clip = murray->apasegLift[1]; break;
         }
-        murray->velocity = D_002A2DD0;
+        murray->qwUnknown190 = D_002A2DD0.q;
         SetMurrayLiftSubstate(murray, 0);
         break;
     case MURRAY_THROW: {
-        ASEG *a = murray->extra7;
+        ASEG *a = murray->pasegThrowPowered;
         if (a && IsPowerupAcquired(0x11))
-            clip = murray->extra7;
+            clip = murray->pasegThrowPowered;
         else
-            clip = murray->clip7;
+            clip = murray->pasegThrow;
         {
             register qword zero __asm__("$3") = D_002A2DD0.q;
-            murray->velocity.q = zero;
+            murray->qwUnknown190 = zero;
         } // pin: the zero vector goes through $v1 here
         ChooseMurrayThrowTarget(murray);
-        U point = murray->goal;
+        U point;
+        point.q = murray->throwGoal;
         qword current = GetLoWorldPos(murray);
         qword difference;
         __asm__("vsub.xyzw %0,%0,%2" : "=j"(difference) : "0"(point.q), "j"(current));
@@ -1168,47 +1104,47 @@ extern "C" void SetMurrayState(P *murray, int next)
         break;
     }
     case MURRAY_TOSS: {
-        ASEG *a = murray->extra8;
-        if (a && murray->alternate8)
+        ASEG *a = murray->pasegTossGadget;
+        if (a && murray->fTossGadget)
             clip = a;
         else
-            clip = murray->clip8;
+            clip = murray->pasegToss;
         goto clear_velocity;
     }
     case MURRAY_STRAFE:
         SetMurrayStrafeSubstate(murray, 0);
-        Call((OBJ *)murray, 90);
+        murray->ApplyStateStepParams();
         return;
     case MURRAY_WALK:
-        clip = murray->clip10;
-        activation = Block(murray, 0x1540);
+        clip = murray->gaitC.blendedAnimation;
+        activation = &murray->gaitC;
     activate:
         flags = 9;
         ResetGaitFeet(activation);
         break;
     case MURRAY_AIMED_THROW:
-        Call(murray->object15, 8);
-        murray->stamp15 = D_002DD5BC;
-        SetJtThrowState(Block(murray, 0x1910), 0);
+        murray->jtthrowAim.ploHoldParent->Add();
+        murray->jtthrowAim.ploCarried = D_002DD5BC;
+        SetJtThrowState(&murray->jtthrowAim, 0);
         SetSoCnstrForce(murray, 1);
-        SetVelocity(murray, D_002A2DD0.q);
+        murray->SetVelocity(D_002A2DD0.q);
         return;
-    case MURRAY_PLAYER_STATE_4: source = murray->template16;
+    case MURRAY_PLAYER_STATE_4: source = murray->unknown102C;
     case MURRAY_SCRIPT_ANIM:
     case MURRAY_SCRIPT_SMA:
-        SetXfRole(murray, murray->first, 1);
-        SetXfRole(murray, murray->second, 1);
+        SetXfRole(murray, murray->unknown58, 1);
+        SetXfRole(murray, murray->unknown5C, 1);
     clear_velocity:
-        murray->velocity = D_002A2DD0;
+        murray->qwUnknown190 = D_002A2DD0.q;
         break;
-    case MURRAY_PIPE: SetJtPipeState(Block(murray, 0xF50), 0); return;
+    case MURRAY_PIPE: SetJtPipeState(&murray->jtpipe, 0); return;
     case MURRAY_TURNBUCKLE: {
-        clip = murray->clip21;
-        U *velocity = &murray->velocity;
+        clip = murray->pasegTurnbuckle;
+        U *velocity = (U *)&murray->qwUnknown190;
         velocity->i[2] = 0;
         flags = 9;
         velocity->i[1] = 0;
-        murray->velocity.i[0] = 0;
+        ((U *)&murray->qwUnknown190)->i[0] = 0;
         break;
     }
     case MURRAY_JUMP:
@@ -1218,8 +1154,8 @@ extern "C" void SetMurrayState(P *murray, int next)
     case MURRAY_SCRIPT_THROW: break;
     }
     {
-        ASEGA **animation = &murray->asega;
-        COMPONENT **component = &murray->component;
+        ASEGA **animation = &murray->activeAnimation;
+        SMA **component = &murray->activeStateMachine;
         float position = 0.0f;
         ReleaseAsega(animation);
         ReleaseSma(component);
@@ -1232,10 +1168,10 @@ extern "C" void SetMurrayState(P *murray, int next)
                     duration = e->time;
             }
             if (duration != 0.0f)
-                SetAsegaChannelWeight(murray->asega, D_002DDED0.time + duration / murray->asega->speed);
+                SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + duration / murray->activeAnimation->speed);
         }
     }
-    Call((OBJ *)murray, 90);
+    murray->ApplyStateStepParams();
 }
 } // namespace M_SetMurrayState
 
@@ -3020,12 +2956,12 @@ void UseMurrayGadget(MURRAY *murray, int k)
         break;
     case 19:
         ChargeGadgetMp(murray, k);
-        murray->unknown143C = 1;
+        murray->fTossGadget = 1;
         SetMurrayState(murray, MURRAY_TOSS);
         break;
     case 22:
         ChargeGadgetMp(murray, k);
-        murray->unknown13E8 = 1;
+        murray->fFlopGadget = 1;
         SetMurrayState(murray, MURRAY_FLOP);
         break;
     case 21:
@@ -3120,7 +3056,7 @@ void ClearMurrayBehaviors(MURRAY *murray, int f)
 // Splice-callable: clears the alternate flag and enters state 3 (flop).
 extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 {
-    murray->unknown13E8 = 0;
+    murray->fFlopGadget = 0;
     SetMurrayState(murray, 3, pv);
 }
 

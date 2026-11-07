@@ -1639,7 +1639,7 @@ extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
         ZPR *selected = msg;
         if (((STEPGUARD *)behavior->owner)->IsZapLethal(msg)) {
             if (D_002F7900 && msg->ploSource == D_002F7900 && msg->zpk == 0x40000
-                && ((MURRAY *)msg->ploSource)->unknown143C)
+                && ((MURRAY *)msg->ploSource)->fTossGadget)
                 SpawnMurrayHitEffectUnchecked(D_002F7900, GetLoWorldPos(((STEPGUARD *)behavior->owner)));
             if (msg->zpk == 0x40000) {
                 void *context = (*(void **)&g_sw.apstimk[3]);
