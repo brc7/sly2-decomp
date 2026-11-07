@@ -3127,23 +3127,16 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
 
 // 0x1789F8 UpdateBhvpath
 namespace M_UpdateBhvpath { extern "C" {
-struct VTE; struct Y; struct X; struct A; struct T; struct S;
+struct Y; struct X; struct A; struct T; 
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
-struct VTE { short d; short pad; void *pfn; };
 struct Y { char pad[0x10]; void *pathzone; char pad2[0x0C]; char unknown20[1]; };
 struct X { char pad[0xDC]; struct Y *unknownDC; };
 struct A { char pad[0xE8]; struct X *unknownE8; };
 struct T { char pad[0x28]; unsigned long loFlags; char pad2[0x1D8 - 0x30]; int unknown1D8; };
-struct S {
-    char pad[0xC]; struct VTE *vt; struct A *guard; char pad1[0x30 - 0x14];
-    void *shape; float pathParam; int isReversed; char pad2[4]; int ignoresBlockers; char pad3[8]; int state;
-    char pad4[4]; struct T *blocker; int isBlocked; float blockerParam; float blockerRange; char pad5[4]; float nearRadius; float farRadius;
-    char pad6[0x80 - 0x70]; qword startPosition;
-};
-void UpdateBhv(struct S *p);
-void StepBhvpathAlongShape(struct S *p);
+void UpdateBhv(BHVPATH *p);
+void StepBhvpathAlongShape(BHVPATH *p);
 qword GetLoWorldPos(struct A *a);
 int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
 void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
@@ -3158,20 +3151,15 @@ static inline float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-// Calls the behaviour's SetState (vtable slot 15).
-static inline void Set(struct S *p, int n) {
-    struct VTE *e = &p->vt[15];
-    ((void (*)(void *, int))e->pfn)((char *)p + e->d, n);
-}
 // 0x1789F8: BHVPATH vtable slot 10 (Update): follows the path; detects blockers on the shape and switches between
 // move, wait and end (3) states.
-void UpdateBhvpath(struct S *behavior) {
+void UpdateBhvpath(BHVPATH *behavior) {
     float g;
     qword pos;
     int s;
     UpdateBhv(behavior);
     StepBhvpathAlongShape(behavior);
-    pos = GetLoWorldPos(behavior->guard);
+    pos = GetLoWorldPos(((struct A *)behavior->owner));
     do {
         s = behavior->state;
         switch (s) {
@@ -3179,23 +3167,23 @@ void UpdateBhvpath(struct S *behavior) {
         case 2:
         case 3:
             if (!behavior->ignoresBlockers) {
-                struct X *x = behavior->guard->unknownE8;
+                struct X *x = ((struct A *)behavior->owner)->unknownE8;
                 struct Y *y = x ? x->unknownDC : 0;
-                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->unknownDC->unknown20, behavior->shape, behavior->isReversed == 0, &behavior->blocker, &behavior->blockerRange, behavior->pathParam);
+                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->unknownDC->unknown20, behavior->shape, behavior->isReversed == 0, &((struct T *)behavior->blocker), &behavior->blockerRange, behavior->pathParam);
                 behavior->isBlocked = n;
                 switch (n) {
                 case 0:
                     break;
                 case 3:
                 case 4:
-                    Set(behavior, 3);
+                    behavior->SetPathState(3);
                     break;
                 case 1:
                 case 2: {
-                    FindShapeClosestPoint(behavior->blocker, pos, &D_003DD020, 0, 0, 0, &g);
-                    if (80.0f < __builtin_fabsf(GetShapeDistanceBetween(behavior->blocker, g, behavior->blockerRange))) {
+                    FindShapeClosestPoint(((struct T *)behavior->blocker), pos, &D_003DD020, 0, 0, 0, &g);
+                    if (80.0f < __builtin_fabsf(GetShapeDistanceBetween(((struct T *)behavior->blocker), g, behavior->blockerRange))) {
                         behavior->blockerParam = g;
-                        Set(behavior, 1);
+                        behavior->SetPathState(1);
                     } else {
                         behavior->isBlocked = 0;
                     }
@@ -3206,21 +3194,21 @@ void UpdateBhvpath(struct S *behavior) {
             if (behavior->isBlocked == 0) {
                 float r = behavior->state == 0 ? behavior->nearRadius : behavior->farRadius;
                 int f = r < Dist(behavior->startPosition, pos);
-                if (f) Set(behavior, 0);
-                else Set(behavior, 2);
+                if (f) behavior->SetPathState(0);
+                else behavior->SetPathState(2);
             }
             break;
         case 1:
         case 4:
-            if ((((int)(behavior->blocker->loFlags >> 60) & 1) == 0) || behavior->blocker->unknown1D8) {
-                Set(behavior, 0);
-            } else if (__builtin_fabsf(GetShapeDistanceBetween(behavior->blocker, behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
-                Set(behavior, 0);
+            if ((((int)(((struct T *)behavior->blocker)->loFlags >> 60) & 1) == 0) || ((struct T *)behavior->blocker)->unknown1D8) {
+                behavior->SetPathState(0);
+            } else if (__builtin_fabsf(GetShapeDistanceBetween(((struct T *)behavior->blocker), behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
+                behavior->SetPathState(0);
             } else {
                 float r = behavior->state == 1 ? behavior->nearRadius : behavior->farRadius;
                 int f = r < Dist(behavior->startPosition, pos);
-                if (f) Set(behavior, 1);
-                else Set(behavior, 4);
+                if (f) behavior->SetPathState(1);
+                else behavior->SetPathState(4);
             }
             break;
         }
