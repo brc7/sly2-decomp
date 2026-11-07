@@ -784,41 +784,28 @@ void UpdateMurrayStruggle(MURRAY *murray)
 namespace M_func_001B5990 {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef unsigned int uint;
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
+/* The target orientation rows (STEP::aqwTarget) as Rotate reads them (as qword rows the row loads schedule
+   differently). */
 struct M3{U rows[3];};
-struct PL{char pad[0x18];float angle,strength;char pad20[0x10];uint flags;};
-struct ENTRY{float weight;int active;char pad8[8];U direction;};
-struct VT{short delta,pad;void*fn;};
-struct P{
- char pad[12];VT*vt;char pad10[0x140];PL*input;char pad154[0x3C];U acceleration;
- char pad1A0[0x10];M3 orientation;char pad1E0[0xE0];char controller[0x200];char context[0xA40];char requestF00[0x130];
- ASEGA*animation;int pad1034,side;char pad103C[0xA0];void*target;
- char pad10E0[0x2F0];int mainState;char pad13D4[0x18];void*root;
- char pad13F0[0x5C];int reset;char pad1450[0x1E0];char motion[0xC0];
- ENTRY axes[8];void*request;int state;
-};
 extern "C"{
 extern float D_002C08DC;
-int IsStepplayerNearInteractTarget(P*,int);
-void SetMurrayState(P*,int);
-int ConsumeButtonsPressedWithin__5POCTLUif(PL*,int,float);
-int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);
-void ClearPoctlJoyPressed(PL*,int);
-void SetJtAirJump(void*,int,int,void*);
-void StartJtMode(void*,int,P*,void*);
-int TryMurrayTakedown(P*);
-int TryGrabJtNearestCandidate(void*,int,int);
-int CanMurrayAttack(P*);
-void StartMurrayPunch(P*);
-void StartMurrayAltAttack(P*);
-void SetMurrayStrafeSubstate(P*,int);
-void FaceStepToward(P*,void*);
-void SetStepTargetHeading(P*,float);
-void UpdateGaitBlend(void*,float);
-void UpdateGaitFootsteps(void*);
+int IsStepplayerNearInteractTarget(MURRAY*,int);
+void SetMurrayState(MURRAY*,int);
+void SetJtAirJump(JTAIR*,int,int,void*);
+void StartJtMode(JTMODE*,int,MURRAY*,void*);
+int TryMurrayTakedown(MURRAY*);
+int TryGrabJtNearestCandidate(JTGRAB*,int,int);
+int CanMurrayAttack(MURRAY*);
+void StartMurrayPunch(MURRAY*);
+void StartMurrayAltAttack(MURRAY*);
+void SetMurrayStrafeSubstate(MURRAY*,int);
+void FaceStepToward(MURRAY*,void*);
+void SetStepTargetHeading(MURRAY*,float);
+void UpdateGaitBlend(GAIT*,float);
+void UpdateGaitFootsteps(GAIT*);
 qword SetVectorCylind(float,float,float);
-void UpdateDirectionalBlend(P*,ENTRY*,void*);
+void UpdateDirectionalBlend(MURRAY*,BLDIR*,ASEGBL*);
 }
 // Load a vector into a VU0 register.
 static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
@@ -838,98 +825,67 @@ static inline qword Rotate(M3 *m, qword vector)
             : "j"(row1), "j"(row2), "j"(vector));
     return result;
 }
-typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char M3_Size[sizeof(M3)==48?1:-1];
-typedef char PL_Size[sizeof(PL)==52?1:-1];
-typedef char ENTRY_Size[sizeof(ENTRY)==32?1:-1];
-typedef char VT_Size[sizeof(VT)==8?1:-1];
-typedef char PL_angle_Offset[FIELD_OFFSET(PL,angle)==24?1:-1];
-typedef char PL_strength_Offset[FIELD_OFFSET(PL,strength)==28?1:-1];
-typedef char PL_flags_Offset[FIELD_OFFSET(PL,flags)==48?1:-1];
-typedef char ENTRY_weight_Offset[FIELD_OFFSET(ENTRY,weight)==0?1:-1];
-typedef char ENTRY_active_Offset[FIELD_OFFSET(ENTRY,active)==4?1:-1];
-typedef char ENTRY_direction_Offset[FIELD_OFFSET(ENTRY,direction)==16?1:-1];
-typedef char VT_delta_Offset[FIELD_OFFSET(VT,delta)==0?1:-1];
-typedef char VT_fn_Offset[FIELD_OFFSET(VT,fn)==4?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_input_Offset[FIELD_OFFSET(P,input)==336?1:-1];
-typedef char P_acceleration_Offset[FIELD_OFFSET(P,acceleration)==400?1:-1];
-typedef char P_orientation_Offset[FIELD_OFFSET(P,orientation)==432?1:-1];
-typedef char P_controller_Offset[FIELD_OFFSET(P,controller)==704?1:-1];
-typedef char P_context_Offset[FIELD_OFFSET(P,context)==1216?1:-1];
-typedef char P_requestF00_Offset[FIELD_OFFSET(P,requestF00)==3840?1:-1];
-typedef char P_animation_Offset[FIELD_OFFSET(P,animation)==4144?1:-1];
-typedef char P_side_Offset[FIELD_OFFSET(P,side)==4152?1:-1];
-typedef char P_target_Offset[FIELD_OFFSET(P,target)==4316?1:-1];
-typedef char P_mainState_Offset[FIELD_OFFSET(P,mainState)==5072?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_reset_Offset[FIELD_OFFSET(P,reset)==5196?1:-1];
-typedef char P_motion_Offset[FIELD_OFFSET(P,motion)==5680?1:-1];
-typedef char P_axes_Offset[FIELD_OFFSET(P,axes)==5872?1:-1];
-typedef char P_request_Offset[FIELD_OFFSET(P,request)==6128?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==6132?1:-1];
-typedef char Axis1Direction_Offset[(FIELD_OFFSET(P,axes)+sizeof(ENTRY)+FIELD_OFFSET(ENTRY,direction))==0x1720?1:-1];
-// State 9 (locked onto the nearby target x10DC): exits when the lock button is released or the target is lost; allows
+// State 9 (locked onto the nearby target interactTarget): exits when the lock button is released or the target is lost; allows
 // jump and takedown.
-extern "C" void UpdateMurrayStrafe(P *murray)
+extern "C" void UpdateMurrayStrafe(MURRAY *murray)
 {
     int before;
     for (;;) {
-        before = murray->state;
+        before = murray->strafeSubstate;
         switch (before) {
         case 0:
         case 1:
         case 2: {
-            if ((murray->input->flags & BUTTON_RUN) || !IsStepplayerNearInteractTarget(murray, 1))
+            if ((murray->controller->buttonsHeld & BUTTON_RUN) || !IsStepplayerNearInteractTarget(murray, 1))
                 SetMurrayState(murray, MURRAY_IDLE);
-            else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f))
-                SetJtAirJump(murray->controller, 1, 0, 0);
+            else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
+                SetJtAirJump(&murray->jtair, 1, 0, 0);
             else if (TryMurrayTakedown(murray)) {
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
-                if (!TryGrabJtNearestCandidate(murray->context, 0x80, 0) && murray->root) {
-                    murray->reset = 0;
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                if (!TryGrabJtNearestCandidate(&murray->jtgrab, 0x80, 0) && murray->psoCarryRoot) {
+                    murray->liftClip = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
-            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC))
+            } else if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, D_002C08DC))
                 StartMurrayPunch(murray);
-            else if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) &&
-                     ((int (*)(P *, int))murray->vt[99].fn)((P *)((char *)murray + murray->vt[99].delta), 3)) {
-                ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
-                StartJtMode(murray->requestF00, 0, 0, 0);
-            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC))
+            else if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) &&
+                     murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
+            } else if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, D_002C08DC))
                 StartMurrayAltAttack(murray);
             else {
-                PL *pl = murray->input;
-                float strength = pl->strength;
-                if (murray->mainState == MURRAY_IDLE ? 0.1f < strength : 0.0f < strength)
+                POCTL *pl = murray->controller;
+                float strength = pl->leftStickDeflection;
+                if (murray->state == MURRAY_IDLE ? 0.1f < strength : 0.0f < strength)
                     SetMurrayStrafeSubstate(murray, 2);
                 else
                     SetMurrayStrafeSubstate(murray, 0);
             }
         } break;
         }
-        if (murray->state == before || murray->mainState != MURRAY_STRAFE)
+        if (murray->strafeSubstate == before || murray->state != MURRAY_STRAFE)
             break;
     }
-    switch (murray->state) {
-    case 0: FaceStepToward(murray, murray->target); break;
+    switch (murray->strafeSubstate) {
+    case 0: FaceStepToward(murray, murray->interactTarget); break;
     case 2: {
-        FaceStepToward(murray, murray->target);
-        float length = LengthXY(murray->axes[1].direction.q);
-        PL *input = murray->input;
+        FaceStepToward(murray, murray->interactTarget);
+        float length = LengthXY(murray->unknown16F0[1].vRoot);
+        POCTL *input = murray->controller;
         qword direction = Vector(
-            SetVectorCylind(input->angle + 3.1415927f, (input->strength * length) * murray->animation->speed, 0.0f));
-        murray->acceleration.q = direction;
-        qword world = Rotate(&murray->orientation, direction);
-        murray->side = -1;
-        murray->acceleration.q = world;
-        UpdateDirectionalBlend(murray, murray->axes, murray->request);
+            SetVectorCylind(input->leftStickAngle + 3.1415927f, (input->leftStickDeflection * length) * murray->activeAnimation->speed, 0.0f));
+        murray->qwUnknown190 = direction;
+        qword world = Rotate((M3 *)murray->aqwTarget, direction);
+        murray->blendSide = -1;
+        murray->qwUnknown190 = world;
+        UpdateDirectionalBlend(murray, murray->unknown16F0, murray->unknown17F0);
         break;
     }
     case 1:
-        SetStepTargetHeading(murray, murray->input->angle);
-        UpdateGaitBlend(murray->motion, murray->input->strength);
-        UpdateGaitFootsteps(murray->motion);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitD, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitD);
         break;
     }
 }
