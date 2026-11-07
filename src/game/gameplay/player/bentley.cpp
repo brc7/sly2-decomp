@@ -151,43 +151,28 @@ void PostBentleyLoad(BENTLEY *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBentleyStateMachine { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
-struct PO { char pad[0x1C]; float g1C; char pad1[0x30 - 0x20]; int x30; };
-struct P {
-    char pad[0xC]; struct VTE *vt; char pad0[0x150 - 0x10]; struct PO *controller;
-    char pad1[0x20C - 0x154]; float g20C; char pad2[0x2C0 - 0x210]; char air[0x4C0 - 0x2C0];
-    int grab; char pad3[0x4C8 - 0x4C4]; int grabState; char pad4[0xDF0 - 0x4CC]; char hurt[0xF00 - 0xDF0];
-    char aF00[0xF50 - 0xF00]; char pipe[0x1030 - 0xF50]; void *action; void *p1034; char pad5[0x11B0 - 0x1038];
-    char thrower[0x13D0 - 0x11B0]; int state; float t13D4; char pad6[0x16B4 - 0x13D8]; int x16B4;
-    char pad7[0x1870 - 0x16B8]; int x1870;
-};
 extern struct CLOCK D_002DDED0;
 extern float D_002BC930;
-void SetJtAirJump(void *pv, int a, int b, int c);
-int IsStepplayerNearInteractTarget(struct P *p, int n);
-void SetBentleyState(struct P *p, int n);
-int ConsumeButtonsPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
-int GetButtonsPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
-void ClearPoctlJoyPressed(struct PO *po, int grf);
-void UpdateJtAirInput(void *pv);
-void UpdateJtGrabInput(void *pv);
-void UpdateJtHurtInput(void *pv);
-void StartJtMode(void *pv, int a, int b, int c);
-void TryGrabJtNearestCandidate(void *pv, int a, int b);
-int GetBentleyGadgetFromId(struct P *p, int n);
-void UpdateJtActivePipe(void *pv);
-void UpdateBentleySubState(struct P *p);
-void UpdateBentleyStateMisc(struct P *p);
-void UpdateJtThrow(void *pv);
-int IsAsegaRetracted(void *pv);
-int IsSmaRetracted(void *pv);
-void UpdateBentleyAim(struct P *p);
+void SetJtAirJump(JTAIR *pv, int a, int b, int c);
+int IsStepplayerNearInteractTarget(BENTLEY *p, int n);
+void SetBentleyState(BENTLEY *p, int n);
+void UpdateJtAirInput(JTAIR *pv);
+void UpdateJtGrabInput(JTGRAB *pv);
+void UpdateJtHurtInput(JTHURT *pv);
+void StartJtMode(JTMODE *pv, int a, int b, int c);
+void TryGrabJtNearestCandidate(JTGRAB *pv, int a, int b);
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int n);
+void UpdateJtActivePipe(JTPIPE *pv);
+void UpdateBentleySubState(BENTLEY *p);
+void UpdateBentleyStateMisc(BENTLEY *p);
+void UpdateJtThrow(JTTHROW *pv);
+int IsAsegaRetracted(ASEGA *pv);
+int IsSmaRetracted(SMA *pv);
+void UpdateBentleyAim(BENTLEY *p);
 
-#define VCALL99(p, a) ((int (*)(void *, int))(p)->vt[99].pfn)((char *)(p) + (p)->vt[99].d, a)
-
-// Per-frame Bentley state transitions (+0x13D0) driven by the component states, then the sub-machines (sub-state,
+// Per-frame Bentley state transitions driven by the component states, then the sub-machines (sub-state,
 // aim, hover).
-void UpdateBentleyStateMachine(struct P *p)
+void UpdateBentleyStateMachine(BENTLEY *p)
 {
     int s;
     do {
@@ -204,40 +189,40 @@ void UpdateBentleyStateMachine(struct P *p)
         case BENTLEY_ADRENALINE:
             break;
         case BENTLEY_GRAB:
-            if (p->grabState == 1 || p->grabState == 12)
+            if (p->jtgrab.state == 1 || p->jtgrab.state == 12)
                 break;
-            if (0.1f < D_002DDED0.time - p->g20C)
-                SetJtAirJump(p->air, 0, 0, 0);
+            if (0.1f < D_002DDED0.time - p->unknown20C)
+                SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         case BENTLEY_NEAR_TARGET:
         case BENTLEY_WALK:
         case BENTLEY_THROW:
         default:
-            if (0.1f < D_002DDED0.time - p->g20C)
-                SetJtAirJump(p->air, 0, 0, 0);
+            if (0.1f < D_002DDED0.time - p->unknown20C)
+                SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         }
         switch (p->state) {
         case BENTLEY_IDLE:
         case BENTLEY_RUN:
         case BENTLEY_WALK:
-            if (!(p->controller->x30 & BUTTON_RUN) && IsStepplayerNearInteractTarget(p, 0)) {
+            if (!(p->controller->buttonsHeld & BUTTON_RUN) && IsStepplayerNearInteractTarget(p, 0)) {
                 SetBentleyState(p, BENTLEY_NEAR_TARGET);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
-                SetJtAirJump(p->air, 1, 0, 0);
-            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
-                ClearPoctlJoyPressed(p->controller, BUTTON_LOOK);
-                StartJtMode(p->aF00, 0, 0, 0);
-            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
-                ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
-                p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
+            } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f)) {
+                SetJtAirJump(&p->jtair, 1, 0, 0);
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && p->CanUseGadget(3)) {
+                p->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&p->jtmode, 0, 0, 0);
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+                p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
                 SetBentleyState(p, BENTLEY_GADGET);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
-                TryGrabJtNearestCandidate(&p->grab, 0xF8FE, 0);
+            } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                TryGrabJtNearestCandidate(&p->jtgrab, 0xF8FE, 0);
             } else {
-                float g = p->controller->g1C;
+                float g = p->controller->leftStickDeflection;
                 if ((p->state == BENTLEY_IDLE && 0.1f < g) || (p->state != BENTLEY_IDLE && 0.0f < g)) {
-                    if (p->controller->x30 & BUTTON_RUN)
+                    if (p->controller->buttonsHeld & BUTTON_RUN)
                         SetBentleyState(p, BENTLEY_RUN);
                     else
                         SetBentleyState(p, BENTLEY_WALK);
@@ -247,37 +232,37 @@ void UpdateBentleyStateMachine(struct P *p)
             }
             break;
         case BENTLEY_AIR:
-            UpdateJtAirInput(p->air);
-            if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
-                ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
-                p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
+            UpdateJtAirInput(&p->jtair);
+            if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+                p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
                 SetBentleyState(p, BENTLEY_GADGET);
             }
             break;
         case BENTLEY_GRAB:
-            UpdateJtGrabInput(&p->grab);
+            UpdateJtGrabInput(&p->jtgrab);
             break;
         case BENTLEY_HURT:
-            UpdateJtHurtInput(p->hurt);
+            UpdateJtHurtInput(&p->jthurt);
             break;
         case BENTLEY_NEAR_TARGET:
-            if ((p->controller->x30 & BUTTON_RUN) || !IsStepplayerNearInteractTarget(p, 1)) {
+            if ((p->controller->buttonsHeld & BUTTON_RUN) || !IsStepplayerNearInteractTarget(p, 1)) {
                 SetBentleyState(p, BENTLEY_IDLE);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_JUMP, 0.1f)) {
-                SetJtAirJump(p->air, 1, 0, 0);
-            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_LOOK, 0.15f) && VCALL99(p, 3)) {
-                ClearPoctlJoyPressed(p->controller, BUTTON_LOOK);
-                StartJtMode(p->aF00, 0, 0, 0);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ACTION, 0.2f)) {
-                TryGrabJtNearestCandidate(&p->grab, 0xF8FE, 0);
-            } else if (GetButtonsPressedWithin__5POCTLUif(p->controller, BUTTON_ALT_ATTACK, 0.15f) && VCALL99(p, p->x1870)) {
-                ClearPoctlJoyPressed(p->controller, BUTTON_ALT_ATTACK);
-                p->x16B4 = GetBentleyGadgetFromId(p, p->x1870);
+            } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f)) {
+                SetJtAirJump(&p->jtair, 1, 0, 0);
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && p->CanUseGadget(3)) {
+                p->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&p->jtmode, 0, 0, 0);
+            } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                TryGrabJtNearestCandidate(&p->jtgrab, 0xF8FE, 0);
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+                p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
                 SetBentleyState(p, BENTLEY_GADGET);
             }
             break;
         case BENTLEY_PIPE:
-            UpdateJtActivePipe(p->pipe);
+            UpdateJtActivePipe(&p->jtpipe);
             break;
         case BENTLEY_GADGET:
             UpdateBentleySubState(p);
@@ -286,16 +271,16 @@ void UpdateBentleyStateMachine(struct P *p)
             UpdateBentleyStateMisc(p);
             break;
         case BENTLEY_THROW:
-            UpdateJtThrow(p->thrower);
+            UpdateJtThrow(&p->jtthrow);
             break;
         case BENTLEY_SCRIPT_ANIM:
-            if (p->action && IsAsegaRetracted(p->action))
+            if (p->activeAnimation && IsAsegaRetracted(p->activeAnimation))
                 SetBentleyState(p, BENTLEY_IDLE);
-            else if (p->p1034 && IsSmaRetracted(p->p1034))
+            else if (p->activeStateMachine && IsSmaRetracted(p->activeStateMachine))
                 SetBentleyState(p, BENTLEY_IDLE);
             break;
         case BENTLEY_ADRENALINE:
-            if (D_002BC930 < D_002DDED0.time - p->t13D4)
+            if (D_002BC930 < D_002DDED0.time - p->stateTime)
                 SetBentleyState(p, BENTLEY_IDLE);
             break;
         }

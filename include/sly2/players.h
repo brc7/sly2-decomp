@@ -191,7 +191,8 @@ struct BENTLEY : public STEPPLAYER
 {
       GAIT gaitA;   /* +0x1320 locomotion gaits (PostBentleyLoad) */
       int state;    /* Bentley's state */
-      undefined4 unk_0x13d4[(0x13e0 - 0x13d4) / 4];
+      float stateTime;   /* +0x13D4 clock.time state was set (UpdateBentleyStateMachine: the adrenaline timeout) */
+      undefined4 unk_0x13d8[(0x13e0 - 0x13d8) / 4];
       BLDIR abldirA[8];   /* first set of directional blends */
       ASEGBL *pasegblA;   /* its blended segment */
       ASEG *pasegSubState0;   /* +0x14E4 animation of sub-state 0 (SetBentleySubState) */
