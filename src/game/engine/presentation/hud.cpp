@@ -1081,24 +1081,22 @@ void WIDGET::Update()
 
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void SetSpriteDefaultPhase(struct A *pa, float phase);
-void SetSpriteAnimPhase(struct A *pa, int animIndex, float g, int z);
+void SetSpriteDefaultPhase(SPRITEGRP *pa, float phase);
+void SetSpriteAnimPhase(SPRITEGRP *pa, int animIndex, float g, int z);
+} } // namespace M_SetWidgetAnimPhase
 // Seeks a widget animation (0x314 = main) to a fraction of its length (meters and gauges).
-void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
+extern "C" void SetWidgetAnimPhase(WIDGET *widget, int animId, float phase)
 {
+    using namespace M_SetWidgetAnimPhase;
     int groupIndex, animIndex;
     if (animId == 0x314) {
         SetSpriteDefaultPhase(widget->spriteGroups, phase);
         return;
     }
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
@@ -1111,31 +1109,27 @@ void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
         }
     }
 }
-} } // namespace M_SetWidgetAnimPhase
 
 // 0x212F80 SetWidgetAnimTime
 namespace M_func_00212F80 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void SetSpriteDefaultTime(struct A *pa, float phase);
-void SetSpriteAnimTime(struct A *pa, int animIndex, float g, int z);
+void SetSpriteDefaultTime(SPRITEGRP *pa, float phase);
+void SetSpriteAnimTime(SPRITEGRP *pa, int animIndex, float g, int z);
 // 0x212F78: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-
+} } // namespace M_func_00212F80
 // Seeks a widget animation to an absolute time. (inferred)
-void SetWidgetAnimTime(struct S *widget, int animId, float phase)
+extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 {
+    using namespace M_func_00212F80;
     int groupIndex, animIndex;
     if (animId == 0x314) {
         SetSpriteDefaultTime(widget->spriteGroups, phase);
         return;
     }
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
@@ -1148,7 +1142,6 @@ void SetWidgetAnimTime(struct S *widget, int animId, float phase)
         }
     }
 }
-} } // namespace M_func_00212F80
 
 // 0x2130C0 QueueWidgetRenderSetup
 namespace M_QueueWidgetRenderSetup { extern "C" {
