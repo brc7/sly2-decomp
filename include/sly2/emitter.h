@@ -84,13 +84,30 @@ typedef char assert_EMITV_size[sizeof(EMITV) == 0x40 ? 1 : -1];
 /* indices into EMITB::aploRef, the objects the block's OIDs resolve to (func_002586D8) */
 enum EMITREF
 {
-    EMITREF_Reference = 0,  /* the origin's reference object (EMITB::originOid; UpdateEmitter puts the emitter itself
+    EMITREF_Reference = 0,  /* the origin's reference object (EMITO::originOid; UpdateEmitter puts the emitter itself
                                here for the emission when both it and the shape are unset) */
     EMITREF_Shape = 1,      /* the origin's curve shape (origin kind 2) */
     EMITREF_Render = 2,     /* rips: render object (record 1 +0x08); blips: record 0 +0x14 */
     EMITREF_RenderNext = 3, /* rips: second render object (record 1 +0x0C) */
     EMITREF_Touch = 4,      /* rips: touch object (record 1 +0x10) */
 };
+
+/* EMITO: where particles start (EMITB+0x10, 0x40 bytes; Sly 1's EMITO; defaults D_002DE5B0 in emitter.cpp) */
+struct EMITO
+{
+    int originKind;         /* +0x00 emitter.cpp's EMIT_ORIGIN: 0 point, 1 box, 2 curve, 3 mesh */
+    int normalKind;         /* +0x04 how the emission direction is chosen (EMIT_NORMAL) */
+    int velocityKind;       /* +0x08 how particle velocities follow the reference object (EMIT_VELOCITY) */
+    XF *pxfOrigin;          /* +0x0C a local transform for the origin (0: none) */
+    int originOid;          /* +0x10 the origin's reference object (-1: none) */
+    LM lmOffset;            /* +0x14 random distance moved along the chosen direction */
+    char pad1C[4];
+    int pvEmito;            /* +0x20 origin data by originKind (point: the position; box: its BOX; curve: -1, then
+                               an OID; mesh: its EMITMESH) */
+    char pad24[0x30 - 0x24];
+    qword direction;        /* +0x30 emission direction, centre or tangent partner (by normalKind) */
+};
+typedef char assert_EMITO_size[sizeof(EMITO) == 0x40 ? 1 : -1];
 
 /* EMITB: the emitter block. +0x10..+0x4F is the origin record (Sly 1's EMITO; the defaults D_002DE5B0 in
    emitter.cpp), +0x50..+0xBF the velocity record (Sly 1's EMITV; defaults D_002DE5F0), +0xC0 the particle record
@@ -103,17 +120,7 @@ struct EMITB
     LO **aploRef;           /* +0x08 the five objects the block's OIDs resolve to (func_002586D8, a 0x14-byte block;
                                indexed by EMITREF) */
     char pad0C[4];
-    int originKind;         /* +0x10 EMITO kind (emitter.cpp's EMIT_ORIGIN: 0 point, 1 box, 2 curve, 3 mesh) */
-    int normalKind;         /* +0x14 how the emission direction is chosen (EMIT_NORMAL) */
-    int velocityKind;       /* +0x18 how particle velocities follow the reference object (EMIT_VELOCITY) */
-    XF *pxfOrigin;          /* +0x1C a local transform for the origin (0: none) */
-    int originOid;          /* +0x20 the origin's reference object (-1: none) */
-    LM lmOffset;            /* +0x24 random distance moved along the chosen direction */
-    char pad2C[4];
-    int pvEmito;            /* +0x30 origin data by originKind (point: the position; box: its BOX; curve: -1, then
-                               an OID; mesh: its EMITMESH) */
-    char pad34[0x40 - 0x34];
-    qword direction;        /* +0x40 emission direction, centre or tangent partner (by normalKind) */
+    EMITO emito;            /* +0x10 the origin record */
     /* +0x50: the velocity record */
     LM lmSpeed;             /* +0x50 speed range */
     float damping;          /* +0x58 velocity damping (default -1) */
@@ -132,7 +139,7 @@ struct EMITB
     EMITV v;                /* +0xC0 the particle record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];
-typedef char assert_EMITB_pvEmito[SLY2_OFFSETOF(EMITB, pvEmito) == 0x30 ? 1 : -1];
+typedef char assert_EMITB_emito[SLY2_OFFSETOF(EMITB, emito) == 0x10 ? 1 : -1];
 typedef char assert_EMITB_alpha[SLY2_OFFSETOF(EMITB, alpha) == 0xB0 ? 1 : -1];
 typedef char assert_EMITB_particlesPerRing[SLY2_OFFSETOF(EMITB, particlesPerRing) == 0x84 ? 1 : -1];
 
@@ -306,8 +313,8 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
     req.cbAlign = 0x10;
     InitEmitBlock(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
     p->XFM::LoadFromBrx(pbis);
-    if (p->pemitb->originKind == 3)
-        LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->pvEmito, pbis);
+    if (p->pemitb->emito.originKind == 3)
+        LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->emito.pvEmito, pbis);
     LoadEmitblipColorsFromBrx(p, pbis);
 }
 
@@ -332,9 +339,9 @@ template <class T> void func_002586D8(T *p)
     p->LO::PostLoad();
     {
         EMITB *pemitb0 = p->pemitb;
-        oid1 = pemitb0->originOid;
-        if (pemitb0->originKind == 2)
-            oid2 = pemitb0->pvEmito;
+        oid1 = pemitb0->emito.originOid;
+        if (pemitb0->emito.originKind == 2)
+            oid2 = pemitb0->emito.pvEmito;
     }
     memset(aplo, 0, 0x14);
     if (oid1 != -1)
@@ -432,29 +439,29 @@ template <class T> int func_002589F0(T *p) { return p->pemitb->particleKind; }
 template <class T> void func_00258A00(T *p, int k)
 {
     EMITB *pemitb;
-    if (p->pemitb->originKind == k)
+    if (p->pemitb->emito.originKind == k)
         return;
-    if (p->pemitb->originKind != 0)
+    if (p->pemitb->emito.originKind != 0)
         return;
     pemitb = PemitbEnsure(p, ENSK_Set);
-    pemitb->originKind = k;
+    pemitb->emito.originKind = k;
     switch (k)
     {
-    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
-    case 2: pemitb->pvEmito = -1; break;
-    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 2: pemitb->emito.pvEmito = -1; break;
+    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
     }
 }
 
 /* get: the EMITO kind */
-template <class T> int func_00258AB8(T *p) { return p->pemitb->originKind; }
+template <class T> int func_00258AB8(T *p) { return p->pemitb->emito.originKind; }
 
 /* ensure: the EMITO kind (as kind 0 on a write) */
 template <class T> int *func_00258AC8(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 0);
-    return &p->pemitb->originKind;
+    return &p->pemitb->emito.originKind;
 }
 
 /* ensure: the EMITO data (as kind 1 on a write) */
@@ -462,7 +469,7 @@ template <class T> int func_00258B00(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 1);
-    return p->pemitb->pvEmito;
+    return p->pemitb->emito.pvEmito;
 }
 
 /* ensure: the EMITO kind (as kind 2 on a write) */
@@ -470,7 +477,7 @@ template <class T> int *func_00258B38(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 2);
-    return &p->pemitb->originKind;
+    return &p->pemitb->emito.originKind;
 }
 
 /* setUser: record 1's payload kind (2, 3 or 8; only from unset), payload reset from its default */

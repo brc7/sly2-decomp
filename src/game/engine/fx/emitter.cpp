@@ -347,8 +347,8 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
         break;
     }
     pemitter->density = 1.0f;
-    if (pemitter->pemitb->originKind == EMIT_ORIGIN_BOX) {
-        struct BOX *pbox = (struct BOX *)pemitter->pemitb->pvEmito;
+    if (pemitter->pemitb->emito.originKind == EMIT_ORIGIN_BOX) {
+        struct BOX *pbox = (struct BOX *)pemitter->pemitb->emito.pvEmito;
         if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
             float dx = __builtin_fabsf(pbox->xMax - pbox->xMin);
             float dy = __builtin_fabsf(pbox->yMax - pbox->yMin);
@@ -377,7 +377,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
             group->pemitb->cref = 1;
             if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
                 group->pemitb->aploRef = (LO **)AllocCopyFromHeap(0x14, pemitter->pemitb->aploRef);
-                group->pemitb->originOid = -1;
+                group->pemitb->emito.originOid = -1;
                 group->pemitb->aploRef[EMITREF_Reference] = 0;
             }
             group->emitMode = pemitter->emitMode;
@@ -1122,10 +1122,6 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
 struct R { char pad[0x40]; struct M4 m; };
 struct BUF { qword a[4]; };
-struct VTE { short d; short pad; struct R *(*pfn)(void *, struct BUF *); };
-struct SO { char pad[0xC]; struct VTE *vt; };
-struct Y { int pad0, pad4, velocityKind; };   /* Sly 1's EMITVK: 0 relative, 1 relative + spin, 2 no relative velocity, 3 world */
-struct E { int pad0, pad4; struct SO **ppso; int padC; struct Y y; };   /* EMITB (ppso: the resolved objects, [0] the reference) */
 void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
 qword ConvertMatPos(struct M4 *pm, int z, qword v);
 qword ConvertMatVec(struct M4 *pm, int z, qword v);
@@ -1133,15 +1129,15 @@ qword GetXfVelocity(struct R *r, int z, qword v);
 
 // Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space.
 // (inferred)
-void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
+void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
 {
-    struct Y *py = &p->y;
-    struct SO *pso = *p->ppso;
+    EMITO *py = &p->emito;
+    LO *pso = p->aploRef[EMITREF_Reference];
     struct BUF buf;
     struct M4 m;
     struct R *r;
     if (!pso) return;
-    r = pso->vt[32].pfn((char *)pso + pso->vt[32].d, &buf);
+    r = (struct R *)pso->GetLocalTransform((MATRIX4 *)&buf);
     __ml__FRC7MATRIX4T0(&m, &r->m, &buf);
     *pv = ConvertMatPos(&m, 0, *pv);
     if (py->velocityKind != EMIT_VELOCITY_WORLD) {
