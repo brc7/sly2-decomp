@@ -266,10 +266,10 @@ struct CMBASE : public BASIC
 {
 };
 
-/* CMMATQ: the camera matrix (CM::mat) as quadword rows: the three rotation rows, then the position. The game's VU0
- * code moves these rows as 128-bit values (lq/sq of the row at base &g_cm plus the row offset); a qword member
- * reproduces that, where a cast of the float members (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the
- * address constant. See docs/decisions.md 1 and docs/guides/tu-merging.md "Views unified (names/vu-f5-camera-2)". */
+/* CMMATQ: the camera matrix (CM::mat) as quadword rows: the three rotation rows, then the position. The VU0 code moves
+ * the rows as 128-bit members (lq 0x90(base), base &g_cm), which a cast of the float members does not give (g++ folds
+ * the offset into the address constant); a read at base &g_cm.mat goes through a local CMMATQ pointer. See
+ * docs/decisions.md 1.8 and docs/guides/tu-merging.md "Views unified (names/vu-f5-camera-2)". */
 struct CMMATQ
 {
     qword rot[3];   /* rotation rows (row 0 the view direction, rows 1/2 the other two axes) */
