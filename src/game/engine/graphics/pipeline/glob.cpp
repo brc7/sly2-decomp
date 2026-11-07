@@ -17,6 +17,7 @@
 #include "sly2/so.h"
 #include "sly2/glob.h"
 #include "sly2/render.h"
+#include "sly2/shd.h"
 #include "sly2/light.h"
 #include "sly2/cm.h"
 #include "vifs.h"
@@ -2154,8 +2155,6 @@ inline void AddDmaIntStore(DMAS *pdmas, int val)
     *(int *)pdmas->m_pb = val;
     pdmas->m_pb += 4;
 }
-struct BMP;
-struct CLUT;
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
@@ -2164,44 +2163,6 @@ void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 struct XF;
-typedef struct SHD;
-typedef struct SHDP;
-struct TEXF
-{
-    ushort OID;
-    short grdtex;
-    uchar cibmp;
-    uchar ciclut;
-};
-struct TEX : public TEXF
-{
-    ushort numFrames;          /* +0x06 (low byte: shd.cpp reads the frame count there) */
-    SHD *pshd;
-    BMP **apbmp;
-    CLUT **apclut;
-};
-struct SHDF
-{
-      int oid;
-      uchar shdk;
-      uchar grfshd;
-      uchar unknown06;
-      uchar unknown07;
-      RGBA rgba;
-      RGBA rgbaVolume;
-      RGBA rgba2;
-      ushort OidAltSat;
-      uchar rp;
-      uchar ctex;
-};
-struct SHD : public SHDF
-{
-    TEX *atex;
-    int cshdp;
-    SHDP *ashdp;
-    int cframe;
-    SAA *psaa;
-};
 struct WRBG;
 struct BND
 {
@@ -2950,7 +2911,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             BATCH *pbatch = &abatch[ib];
             BATCHPART0 *ppart = &phdr->apart[ib];
             ppart->cvtxFlag = pbatch->cvtx | 0x8000;
-            ppart->oidAltSat = pbatch->pshd->OidAltSat;
+            ppart->oidAltSat = pbatch->pshd->oidAltSat;
             ppart->cframe = pbatch->pshd->cframe;
             for (int ishdp = 0; ishdp < 3; ishdp++)
             {
@@ -3115,13 +3076,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     for (int iv = 0; iv < pbatch->cvtx; iv++)
                     {
                         RGBA rgbaA = argbaFile[pbVtxCur[iv]];
-                        RGBA rgbaB = pbatch->pshd->rgba;
-                        uchar a = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                        SHDRGBA rgbaB = pbatch->pshd->rgba;
+                        uchar a = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                         RGBA5551 *pc = pcol++;
                         RGBA5551 col;
-                        col.g = (uchar)((rgbaA.green * rgbaB.green + 0xff) / 256) >> 3;
-                        col.r = (uchar)((rgbaA.red * rgbaB.red + 0xff) / 256) >> 3;
-                        col.b = (uchar)((rgbaA.blue * rgbaB.blue + 0xff) / 256) >> 3;
+                        col.g = (uchar)((rgbaA.green * rgbaB.g + 0xff) / 256) >> 3;
+                        col.r = (uchar)((rgbaA.red * rgbaB.r + 0xff) / 256) >> 3;
+                        col.b = (uchar)((rgbaA.blue * rgbaB.b + 0xff) / 256) >> 3;
                         col.a = a >> 7;
                         *pc = col;
                         if (pbAlpha != 0)
@@ -3152,7 +3113,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                             else
                                 pun[8] = 0;
                             pun[9] = pbatch->obAlpha + iofs;
-                            *(float *)&pun[7] = (float)pbatch->pshd->OidAltSat * 0.000244140625f;
+                            *(float *)&pun[7] = (float)pbatch->pshd->oidAltSat * 0.000244140625f;
                             apvLit[nLit] = pun;
                             nLit++;
                             vifsLit.AddVifStcycl(1, 3);
@@ -3170,11 +3131,11 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                                     *pvNorm++ = anormFile[ivtxFile];
                                     *pvPos++ = aposFile[ivtxFile];
                                     RGBA rgba = argbaFile[ivtxFile];
-                                    RGBA rgbaB = pbatch->pshd->rgba;
-                                    rgba.red = (rgba.red * rgbaB.red + 0xff) / 256;
-                                    rgba.green = (rgba.green * rgbaB.green + 0xff) / 256;
-                                    rgba.blue = (rgba.blue * rgbaB.blue + 0xff) / 256;
-                                    rgba.alpha = (rgba.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                                    SHDRGBA rgbaB = pbatch->pshd->rgba;
+                                    rgba.red = (rgba.red * rgbaB.r + 0xff) / 256;
+                                    rgba.green = (rgba.green * rgbaB.g + 0xff) / 256;
+                                    rgba.blue = (rgba.blue * rgbaB.b + 0xff) / 256;
+                                    rgba.alpha = (rgba.alpha * rgbaB.a + 0xff) / 0x1fe;
                                     *prgbaCol++ = rgba;
                                 }
                             }
@@ -3227,8 +3188,8 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     if (pbatch->pbAlpha != 0)
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
-                        RGBA rgbaB = pbatch->pshd->rgba;
-                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                        SHDRGBA rgbaB = pbatch->pshd->rgba;
+                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                     }
                 }
             }
@@ -3354,12 +3315,12 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 }
                 if (pbatchFirst->pbRgb != 0)
                 {
-                    RGBA rgbaB = pbatchFirst->pshd->rgba;
+                    SHDRGBA rgbaB = pbatchFirst->pshd->rgba;
                     uchar *pbC = pbatchFirst->pbRgb + (ivtxFirst - pbatchFirst->ivtxOwn) * 4;
-                    pbC[0] = (rgbaA.red * rgbaB.red + 0xff) / 512;
-                    pbC[1] = (rgbaA.green * rgbaB.green + 0xff) / 512;
-                    pbC[2] = (rgbaA.blue * rgbaB.blue + 0xff) / 512;
-                    pbC[3] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                    pbC[0] = (rgbaA.red * rgbaB.r + 0xff) / 512;
+                    pbC[1] = (rgbaA.green * rgbaB.g + 0xff) / 512;
+                    pbC[2] = (rgbaA.blue * rgbaB.b + 0xff) / 512;
+                    pbC[3] = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                 }
                 if (psubglob->cbnd != 0)
                 {
