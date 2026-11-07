@@ -53,7 +53,10 @@ struct MURRAY : public STEPPLAYER
       int carryIndex; /* carry slot index */
       undefined4 unknown145C;
       GAIT gaitB;   /* +0x1460 */
-      undefined4 unk_0x1510[(0x1530 - 0x1510) / 4];
+      undefined4 unk_0x1510[(0x1524 - 0x1510) / 4];
+      float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
+      float lastMashTime;   /* +0x1528 struggleTimeLeft at the last face-button press */
+      int mashesLeft;   /* +0x152C presses still needed to win the struggle */
       struct SMA *psmaWork;   /* state machine application of the current work action */
       int workAction; /* current work action */
       undefined4 unk_0x1538[(0x1540 - 0x1538) / 4];

@@ -871,37 +871,36 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
-struct P { char pad[0x150]; int controller; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
-struct P *GetHeroPo(void *g);
+STEPPLAYER *GetHeroPo(void *g);
 int IsSwHandsOff(void *g);
-int GetSmaCurrentState(int a);
-int GetSmaGoal(int a);
-int ConsumeButtonsPressedWithin__5POCTLUif(int a, int b, float f);
-void SetSmaGoal(int a, int b);
+int GetSmaCurrentState(SMA *psma);
+int GetSmaGoal(SMA *psma);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *pctl, int b, float f);
+void SetSmaGoal(SMA *psma, int b);
 // State 6 (scripted struggle with a partner state machine): only while Murray is the current player and not hands-off;
 // face-button mashing advances it.
-void UpdateMurrayStruggle(struct P *murray)
+void UpdateMurrayStruggle(MURRAY *murray)
 {
     int a;
     if (GetHeroPo(D_003DD490) != murray) return;
     if (IsSwHandsOff(D_003DD490)) return;
-    a = GetSmaCurrentState(murray->x1034);
-    if (a != GetSmaGoal(murray->x1034)) return;
+    a = GetSmaCurrentState(murray->activeStateMachine);
+    if (a != GetSmaGoal(murray->activeStateMachine)) return;
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
-    murray->f1524 -= D_002DDED0.deltaTime;
+    murray->struggleTimeLeft -= D_002DDED0.deltaTime;
     if (ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE, 0.0f)) {
-        murray->x152C--;
-        murray->f1528 = murray->f1524;
+        murray->mashesLeft--;
+        murray->lastMashTime = murray->struggleTimeLeft;
     }
-    if (murray->f1524 <= 0.0f) {
-        if (murray->x152C <= 0) a = D_002C0908[murray->x1534][a - 0x1CB];
-        else a = D_002C0948[murray->x1534][a - 0x1CB];
-    } else if (murray->f1528 - murray->f1524 > D_002C0900) {
+    if (murray->struggleTimeLeft <= 0.0f) {
+        if (murray->mashesLeft <= 0) a = D_002C0908[murray->workAction][a - 0x1CB];
+        else a = D_002C0948[murray->workAction][a - 0x1CB];
+    } else if (murray->lastMashTime - murray->struggleTimeLeft > D_002C0900) {
         a = 0x1CA;
     }
-    if (murray->x1530) SetSmaGoal(murray->x1530, a);
-    SetSmaGoal(murray->x1034, a);
+    if (murray->psmaWork) SetSmaGoal(murray->psmaWork, a);
+    SetSmaGoal(murray->activeStateMachine, a);
 }
 } } // namespace M_func_001B5820
 
@@ -2484,27 +2483,26 @@ int GetMurrayPlayerState(MURRAY *murray)
 } } // namespace M_GetMurrayPlayerState
 
 namespace M_func_001B8008 { extern "C" {
-struct P { char pad[0x268]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int carried; char pad3[0x1458 - 0x13F4]; int carrySubstate; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
-int GetJtGrabAdjustRecord(void *p, int *pk);
-int GetJtHurtAdjustRecord(void *p, int *pk);
-int GetJtAirAdjustRecord(void *p, int *pk);
-void SetStepPhys(struct P *p, int v, int k);
+SOPART *GetJtGrabAdjustRecord(JTGRAB *p, int *pk);
+SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pk);
+SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pk);
+void SetStepPhys(MURRAY *p, SOPART *v, int k);
 // MURRAY slot 90: chooses the per-state STEP parameter block (component-supplied for 2/13/14, carry table ...).
-void ApplyMurrayStateStepParams(struct P *murray)
+void ApplyMurrayStateStepParams(MURRAY *murray)
 {
     int k = 0;
-    int v;
-    switch (murray->k) {
-    case MURRAY_GRAB: v = GetJtGrabAdjustRecord(&AsStepplayer(murray)->jtgrab, &k); break;
-    case MURRAY_HURT: v = GetJtHurtAdjustRecord(&AsStepplayer(murray)->jthurt, &k); break;
+    SOPART *v;
+    switch (murray->state) {
+    case MURRAY_GRAB: v = GetJtGrabAdjustRecord(&murray->jtgrab, &k); break;
+    case MURRAY_HURT: v = GetJtHurtAdjustRecord(&murray->jthurt, &k); break;
     case MURRAY_JUMP:
-        if (murray->carried) v = murray->x1ABC;
-        else v = GetJtAirAdjustRecord(&AsStepplayer(murray)->jtair, &k);
+        if (murray->ploCarried) v = murray->aprecCarry[3];
+        else v = GetJtAirAdjustRecord(&murray->jtair, &k);
         break;
-    case MURRAY_CARRY: v = murray->a1AB0[murray->carrySubstate]; break;
-    default: v = murray->a1A58[murray->k]; break;
+    case MURRAY_CARRY: v = murray->aprecCarry[murray->carryIndex]; break;
+    default: v = murray->aprecState[murray->state]; break;
     }
-    if (!v) v = murray->x268;
+    if (!v) v = murray->unknown268;
     SetStepPhys(murray, v, k);
 }
 } } // namespace M_func_001B8008
@@ -3551,16 +3549,15 @@ int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
 namespace M_UseMurrayGadget { extern "C" {
 struct G { char pad[0xC]; int xC; };
 extern struct G D_002DEB30;
-struct P { char pad[0x9BC]; int x9BC; char pad1[0x10DC - 0x9C0]; int interactTarget; char pad2[0x130C - 0x10E0]; int x130C; char pad3[0x13E8 - 0x1310]; int x13E8; char pad4[0x143C - 0x13EC]; int x143C; char pad5[0x1AC4 - 0x1440]; int x1AC4; };
-void BroadcastGameEvent(void *p, int a, struct P *b);
-void ChargeGadgetMp(struct P *p, int k);
-void StartStepplayerGadget(struct P *p, int k);
-void SetMurrayState(struct P *p, int n);
-void SetMurrayPowerSubstate(struct P *p, int n);
-void SetJtGrabState(void *p, int a, int b, int c);
+void BroadcastGameEvent(void *p, int a, MURRAY *b);
+void ChargeGadgetMp(MURRAY *p, int k);
+void StartStepplayerGadget(MURRAY *p, int k);
+void SetMurrayState(MURRAY *p, int n);
+void SetMurrayPowerSubstate(MURRAY *p, int n);
+void SetJtGrabState(JTGRAB *p, int a, LO *plo, int c);
 // MURRAY slot 100: broadcasts game event 0x3C, then per power: 20 power move (state 12), 19 alternate toss (state 8),
 // ...
-void UseMurrayGadget(struct P *murray, int k)
+void UseMurrayGadget(MURRAY *murray, int k)
 {
     D_002DEB30.xC = k;
     BroadcastGameEvent(&D_002DEB30, 0x3C, murray);
@@ -3572,23 +3569,23 @@ void UseMurrayGadget(struct P *murray, int k)
         SetMurrayPowerSubstate(murray, 1);
         break;
     case 15:
-        murray->x9BC = k;
-        murray->x130C = murray->x1AC4;
-        SetJtGrabState(&AsStepplayer(murray)->jtgrab, 0xB, 0, 0);
+        murray->jtgrab.gadgetId = k;
+        murray->unknown130C = murray->unknown1AC4;
+        SetJtGrabState(&murray->jtgrab, 0xB, 0, 0);
         break;
     case 19:
         ChargeGadgetMp(murray, k);
-        murray->x143C = 1;
+        murray->unknown143C = 1;
         SetMurrayState(murray, MURRAY_TOSS);
         break;
     case 22:
         ChargeGadgetMp(murray, k);
-        murray->x13E8 = 1;
+        murray->unknown13E8 = 1;
         SetMurrayState(murray, MURRAY_FLOP);
         break;
     case 21:
-        murray->x9BC = 0x15;
-        SetJtGrabState(&AsStepplayer(murray)->jtgrab, 0xB, murray->interactTarget, 0);
+        murray->jtgrab.gadgetId = 0x15;
+        SetJtGrabState(&murray->jtgrab, 0xB, murray->interactTarget, 0);
         break;
     case 16:
         SetMurrayState(murray, MURRAY_TURNBUCKLE);
@@ -3636,46 +3633,41 @@ void GetMurrayStunHold(MURRAY *murray, STUNHOLD *object)
 } } // namespace M_func_001B9B70
 
 namespace M_func_001B9C00 { extern "C" {
-struct S { char pad[0x1034]; void *p1034; char pad1[0x1530 - 0x1038]; void *p1530; int n1534; };
-void SetMurrayState(struct S *p, int n);
+void SetMurrayState(MURRAY *p, int n);
 void SeekSma(void *p, int n);
 void SetSmaGoal(void *p, int n);
 // Enters state 6 with a partner state machine and table index; optionally sets or skips both machines to a state.
-void StartMurrayStruggle(struct S *murray, void *pv, int n, int m, int f)
+void StartMurrayStruggle(MURRAY *murray, SMA *psma, int n, int m, int f)
 {
-    murray->p1530 = pv;
-    murray->n1534 = m;
+    murray->psmaWork = psma;
+    murray->workAction = m;
     SetMurrayState(murray, MURRAY_STRUGGLE);
     if (n == -1)
         return;
-    if (murray->p1530) {
+    if (murray->psmaWork) {
         if (f)
-            SeekSma(murray->p1530, n);
+            SeekSma(murray->psmaWork, n);
         else
-            SetSmaGoal(murray->p1530, n);
+            SetSmaGoal(murray->psmaWork, n);
     }
     if (f)
-        SeekSma(murray->p1034, n);
+        SeekSma(murray->activeStateMachine, n);
     else
-        SetSmaGoal(murray->p1034, n);
+        SetSmaGoal(murray->activeStateMachine, n);
 }
 } } // namespace M_func_001B9C00
 
 namespace M_func_001B9CA0 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
-struct S { char pad[0x26C]; char x26c[4]; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *PushStepBehavior(struct S *p, int oid);
+BHV *PushStepBehavior(MURRAY *p, int oid);
 // Splice-callable: clears Murray's behaviour stack; with the flag set also triggers child object 0xC6 (slot 8).
-void ClearMurrayBehaviors(struct S *murray, int f)
+void ClearMurrayBehaviors(MURRAY *murray, int f)
 {
-    ClearBhvstk__FP6BHVSTK(murray->x26c);
+    ClearBhvstk__FP6BHVSTK(&murray->behaviors);
     if (!f)
         return;
-    struct O *object = PushStepBehavior(murray, 0xC6);
-    struct VTE *e = &object->vt[8];
-    ((void (*)(void *))e->pfn)((char *)object + e->d);
+    BHV *object = PushStepBehavior(murray, 0xC6);
+    object->Start();
 }
 } } // namespace M_func_001B9CA0
 
