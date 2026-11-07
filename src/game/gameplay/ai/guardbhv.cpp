@@ -4497,15 +4497,14 @@ void UpdateBhvThrown(BHV176 *behavior) {
 
 // 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct VTE; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
 struct S { char pad[0x10]; STEPGUARD *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
 void ClearBhvBusy(struct S *p);
-struct O *PushStepBehavior(void *p, int n);
+BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17A8C8: Thrown behaviour state switch: pushes the animation for the state (flags 18/19/20/21/19 for states 0-4)
 // and sets the airborne flag for states 0-1; -1 clears busy.
 void SetBhvThrownState(struct S *behavior, int n) {
@@ -4516,7 +4515,7 @@ void SetBhvThrownState(struct S *behavior, int n) {
     switch (n) {
     case 0: case 1: case 2: case 3: case 4:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            BHVANIM *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             int a[5] = { 18, 19, 20, 21, 19 };
             o->sgf = a[behavior->state];
             StartPushedBhv(o);
