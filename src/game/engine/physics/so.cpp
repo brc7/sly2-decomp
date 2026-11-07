@@ -2377,42 +2377,34 @@ void GetSoConstraintAxis(void *unused,M3 *matrix,int index,struct OUT *out) {
 
 // 0x1F55C8 RebuildSoPhysHook
 namespace M_func_001F55C8 { extern "C" {
-struct VTE; struct Q; struct O;
-typedef unsigned long ulong;
-struct VTE { short d; short pad; void *(*pfn)(void *); };
-struct O;
-struct Q { char pad[0x60]; struct O *rootSo; };
-struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong flags; char pad3[0xEC - 0x30]; struct Q *tree; };
 struct G;
 extern struct G D_003DD490;
-struct O *FindSoPhysRoot(struct O *);
-int FindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
-void RemoveSoParts(struct O *);
-void RefreshSwObjectCollisionFilter(struct G *, struct O *);
-void AddSoParts(struct O *);
-void WakeSo(struct O *);
+int FindSwObjectsByClass(struct G *, int, int, SO *, int, SO **);
+void RefreshSwObjectCollisionFilter(struct G *, SO *);
+void RemoveSoParts(SO *);
+void AddSoParts(SO *);
 // After a physics-root change, regroups the contact trees of the objects whose physics root changed and registers
 // them again. Sly 1 name.
-void RebuildSoPhysHook(struct O *so)
+void RebuildSoPhysHook(SO *so)
 {
-    struct O *ap[64];
+    SO *ap[64];
     int i;
     int n;
-    if (((so->flags >> 60) & 1) == 0) return;
-    if (FindSoPhysRoot(so) != so->tree->rootSo) {
+    if ((so->isInWorld & 1) == 0) return;
+    if (FindSoPhysRoot(so) != so->physicsTree->root) {
         n = FindSwObjectsByClass(&D_003DD490, 1, 0x30, so, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
-                struct O *po = ap[i];
-                if (po->tree) {
-                    struct O *q = FindSoPhysRoot(po);
-                    if (q != po->tree->rootSo) {
+                SO *po = ap[i];
+                if (po->physicsTree) {
+                    SO *q = FindSoPhysRoot(po);
+                    if (q != po->physicsTree->root) {
                         RemoveSoParts(po);
-                        if (!q->tree) {
-                            q->tree = (__typeof__(q->tree))q->pvt[53].pfn((char *)q + q->pvt[53].d);
+                        if (!q->physicsTree) {
+                            q->physicsTree = q->NewTree();
                             RefreshSwObjectCollisionFilter(&D_003DD490, q);
                         }
-                        po->tree = q->tree;
+                        po->physicsTree = q->physicsTree;
                         AddSoParts(po);
                     }
                 }
@@ -4115,20 +4107,18 @@ int GetSoIceable(struct S *p) { return (int)(p->fl >> 33) & 1; }
 
 // 0x1F8510 NewSoXfHandle
 namespace M_func_001F8510 { extern "C" {
-struct Q; struct E; struct P;
-struct Q { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };
-struct E { char pad[0x94]; int kind; int pad2; int oid; char pad3[0x100 - 0xA0]; };
-struct P { char pad[0x50]; int numTransforms; struct E *transforms; };
+struct Q;
+struct Q { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };   /* the CID149 handle, built by hand */
 extern char D_002CA2C0[] __asm__("_vt$6CID149");
 struct Pool;
 struct Q *AllocZeroedFromSlotheap(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
 // Creates an XF handle object (CID 149) for the object's XF matching (oid, kind), for scripts.
-struct Q *NewSoXfHandle(struct P *so, int k, int m)
+struct Q *NewSoXfHandle(SO *so, int k, int m)
 {
     int i;
     for (i = 0; i < so->numTransforms; i++) {
-        struct E *pe = &so->transforms[i];
+        XF *pe = &so->transforms[i];
         if (pe->kind == m && (k == -1 || pe->oid == k)) {
             struct Q *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
