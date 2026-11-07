@@ -384,7 +384,7 @@ Guide: [systems/progression-and-saves.md](systems/progression-and-saves.md#5-sav
 
 ### 7.14 Cutscenes, sequences and movies (`gameplay/cutscene/`)
 
-No systems guide yet; this section is the reference.
+Guide: [systems/cutscenes-and-sequences.md](systems/cutscenes-and-sequences.md).
 
 - **RELAY** (CID 0x72) holds a flat array of commands in nested blocks, built at load from object records (METHOD
   options) or Splice through one builtin per command kind. `FireRelay` spawns a **JSG** interpreter (slot heap) that steps
@@ -400,7 +400,7 @@ No systems guide yet; this section is the reference.
 
 ### 7.15 Bosses and minigames
 
-No systems guide yet; this section is the reference.
+Guide: [systems/bosses-and-minigames.md](systems/bosses-and-minigames.md).
 
 Six boss fights, each a JOB or tasks inside a heist JOB; all reuse generic machinery: STEPGUARD hit points, game events,
 a health-bar WIDGET, guard scripts (CID 0x71), boss music, and PROXY copies so retries respawn a fresh boss.
