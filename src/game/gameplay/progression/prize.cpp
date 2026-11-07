@@ -211,11 +211,11 @@ union U { qword q; float f[4]; int words[4]; };
 union M3 { qword rows[3]; float values[12]; };
 struct VTE { short delta, pad; void *fn; };
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
-struct HOLDER { char pad30[0x30]; ASEGA *animation; };
+/* the holder is the prize's state machine application (aseg.h SMA; its current segment pasegaCur) */
 struct P {
     char padC[0xC]; VTE *vt; char pad10[8]; int id; char pad1C[0x3C];
     CHANNEL *position, *orientation;
-    char pad60[0xF0]; int state; char pad154[0x14]; HOLDER *holder; char pad16C[4];
+    char pad60[0xF0]; int state; char pad154[0x14]; SMA *holder; char pad16C[4];
     qword coordinate, velocity, acceleration;
 };
 union FLOATWORD { float value; int bits; };
@@ -309,8 +309,8 @@ extern "C" void ProjectDprizeTransform(P *prize)
     *(float *)((char *)channel + 0x3C) = 1.0f;
     prize->position->velocity = prize->velocity;
     { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
-    if (prize->holder && prize->holder->animation) {
-        ASEGA *animation = prize->holder->animation;
+    if (prize->holder && prize->holder->pasegaCur) {
+        ASEGA *animation = prize->holder->pasegaCur;
         ASEG *action = animation->animation;
         AC *positionMotion = 0, *orientationMotion = 0;
         int i = 0;

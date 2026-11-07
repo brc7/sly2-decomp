@@ -328,13 +328,12 @@ extern "C" void PresetCritterAccel(CID96V *critter)
     AccelSoTowardMatBounded(critter, &critter->headingBasis, &critter->spinScale);
 }
 
-struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::animation) */
 // CID96 vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
 // ASEGA playing that clip) the critter flees.
 extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)
 {
     HandleBasicMessage(critter, kind, anim);
-    if (kind == 2 && anim == critter->segmentAnim && ((MSG *)anim)->paseg == critter->stateAnims[CRITTER_STARTLED].paseg)
+    if (kind == 2 && anim == critter->segmentAnim && anim->animation == critter->stateAnims[CRITTER_STARTLED].paseg)
         SetCritterState(critter, CRITTER_FLEE);
 }
 
