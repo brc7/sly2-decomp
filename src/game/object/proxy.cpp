@@ -1008,22 +1008,18 @@ extern "C" void EnsureProxyCopy(PROXY *proxy)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB360 {
 struct R { int a[4]; R(int c, int f, void **ap) __asm__("BuildSpliceListFromUniformValues"); };
-struct N { int unknown0; N *pnext; };   /* a held spare */
-struct T { int unknown0; void **ap; };   /* the proxy source: its copies' objects */
-struct S { char pad[0xE0]; T *source; int pad2; N *firstSpare; };
 extern "C" {
-int GetCopyIndexFromProxySpare__FP5PROXYP10PROXYSPARE(S *p, N *pn);
-R GetProxyCopyObjects(S *p);
+R GetProxyCopyObjects(PROXY *p);
 }
 // Returns a Splice list of the objects of every spare the proxy holds.
-R GetProxyCopyObjects(S *proxy)
+R GetProxyCopyObjects(PROXY *proxy)
 {
     void *ap[0x20];
     unsigned int c = 0;
-    N *pn;
-    for (pn = proxy->firstSpare; pn && c < 0x20; pn = pn->pnext) {
-        int i = GetCopyIndexFromProxySpare__FP5PROXYP10PROXYSPARE(proxy, pn);
-        ap[c++] = proxy->source->ap[i];
+    PROXYSPARE *pn;
+    for (pn = proxy->firstSpare; pn && c < 0x20; pn = pn->pspareNext) {
+        int i = GetCopyIndexFromProxySpare(proxy, pn);
+        ap[c++] = proxy->source->aplo[i];
     }
     return R(c, 0x2002, ap);
 }
