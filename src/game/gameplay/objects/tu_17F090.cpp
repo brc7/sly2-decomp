@@ -240,7 +240,7 @@ extern "C" void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke)
 
 namespace M_func_0017F4C0 { extern "C" {
 struct R { int oid; void *animation; void *stateMachine; int flags; };
-struct S { char pad[0x194]; void *asega; int sma[1]; };
+struct S : PO { char pad180[0x194 - 0x180]; void *asega; int sma[1]; };
 void ReleaseSma(void *p);
 void ReleaseAsega(void *pp);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
@@ -257,7 +257,7 @@ void StartHackAnim(struct S *hack, struct R *r) {
 } } // namespace M_func_0017F4C0
 
 namespace M_func_0017F550 { extern "C" {
-struct S { char pad[0x194]; void *asega; void *sma; };
+struct S : PO { char pad180[0x194 - 0x180]; void *asega; void *sma; };
 int IsAsegaRetracted(void *p);
 int GetSmaCurrentState(void *p);
 int GetSmaGoal(void *p);
@@ -271,7 +271,7 @@ struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5630;
 struct G { int a; };
 extern struct G D_003DD490;
-struct S { char pad[0x18C]; int isDying; };
+struct S : PO { char pad180[0x18C - 0x180]; int isDying; };
 void PostSwCallback(struct G *g, void *p, long k, int n);
 // Once: set the dying flag and PostSwCallback(D_002A5630, n). (inferred)
 void StartHackDying(struct S *p, int n) { if (p->isDying) return; p->isDying = 1; PostSwCallback(&D_003DD490, p, D_002A5630.l, n); }
@@ -312,7 +312,7 @@ struct K { short x; short y; int i; };
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5638;
 extern char D_003DD490[];
-struct S { char pad[0x180]; int maxHealth; int health; int pad2; int isDying; };
+struct S : PO { int maxHealth; int health; int pad2; int isDying; };
 void ClearSwCallbacks(void *g, int a, void *p, long k, int n);
 // Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
 void ResetHack(struct S *p) { p->health = p->maxHealth; if (p->isDying) ClearSwCallbacks(D_003DD490, 1, p, D_002A5638.l, 0); }
@@ -343,7 +343,7 @@ extern qword D_002A2DD0;
 struct G;
 extern struct G D_003DD490;
 struct E { int xfOid; int objectOid; int xf; int actuator; int object; int sma; };   /* a ship part, 0x18 bytes */
-struct S { char pad[0x230]; int partCount; struct E parts[1]; };
+struct S : PO { char pad180[0x230 - 0x180]; int partCount; struct E parts[1]; };
 int FindSoXf(struct S *p, int a, int b);
 int FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int NewPositionAct(struct S *p, int xf, int a, int b, int d, qword q);
@@ -464,7 +464,7 @@ void UpdateHackship(struct S *ship) {
 namespace M_func_0017FB50 {
 #include "mat.h"
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1C0]; int state; char pad2[0x54]; float heading; int pad3; qword desiredVelocity; };
+struct S : PO { char pad180[0x1C0 - 0x180]; int state; char pad2[0x54]; float heading; int pad3; qword desiredVelocity; };
 extern "C" {
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_002BE800[], D_002BE810[];
@@ -487,7 +487,7 @@ struct G { int a; };
 extern struct G D_003DD490;
 extern int D_002E1E00;
 extern char D_002DEB30[];
-struct S { char pad[0x184]; int health; char pad2[0x38]; int state; };
+struct S : PO { char pad180[0x184 - 0x180]; int health; char pad2[0x38]; int state; };
 int IsSwHandsOff(struct G *g);
 int TakeHackDamage(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
@@ -653,7 +653,7 @@ extern "C" void AddHackshipOidPair(HACKSHIPV *ship, int n, OID oid)
 
 namespace M_func_001800D8 { extern "C" {
 struct E { int a; int b; int c; int d; };
-struct S { char pad[0x1C8]; struct E ae[5]; };
+struct S : PO { char pad180[0x1C8 - 0x180]; struct E ae[5]; };
 // Set entry i (<5) fields a,d. (inferred)
 void SetHackshipEntry(struct S *ship, unsigned int i, int a, int d)
 {
@@ -665,7 +665,7 @@ void SetHackshipEntry(struct S *ship, unsigned int i, int a, int d)
 } } // namespace M_func_001800D8
 
 namespace M_UpdateHackshipHealthBar { extern "C" {
-struct S { char pad[0x180]; int maxHealth; int health; char p1[0x118]; void *healthWidget; };
+struct S : PO { int maxHealth; int health; char p1[0x118]; void *healthWidget; };
 void SetWidgetAnimPhase(void *p, int anim, float phase);
 // Set widget anim 0x34F phase = 1 - health/max (clamped). (inferred)
 void UpdateHackshipHealthBar(struct S *ship)
@@ -683,7 +683,7 @@ void UpdateHackshipHealthBar(struct S *ship)
 } } // namespace M_UpdateHackshipHealthBar
 
 namespace M_func_00180188 { extern "C" {
-struct S { char pad[0x188]; int n; };
+struct S : PO { char pad180[0x188 - 0x180]; int n; };
 void InitHack(struct S *p);
 // HACKBULLET (cid 0x4A) vtable slot 7: InitCid47, field = 10. (inferred)
 } } // namespace M_func_00180188
@@ -748,7 +748,7 @@ extern "C" void UpdateHackbullet(P*bullet){
 
 namespace M_func_001803A8 { extern "C" {
 struct T { char pad[0xEC]; int n; };
-struct S { char pad[0x1C8]; struct T *pt; };
+struct S : PO { char pad180[0x1C8 - 0x180]; struct T *pt; };
 int ShouldSoIgnoreIntersection(struct S *p, struct T *q);
 // vtable slot 61 override. (inferred)
 int ShouldHackbulletIgnoreIntersection(struct S *bullet, struct T *q)
@@ -761,7 +761,7 @@ int ShouldHackbulletIgnoreIntersection(struct S *bullet, struct T *q)
 
 namespace M_func_001803E0 { extern "C" {
 struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };
-struct S { char pad[0x1CC]; int x1cc; };
+struct S : PO { char pad180[0x1CC - 0x180]; int x1cc; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
@@ -797,7 +797,7 @@ void SetHackbulletMode(struct S *bullet, int n)
 } } // namespace M_func_00180478
 
 namespace M_InitHackenemy { extern "C" {
-struct S { char pad[0x1C0]; int state; char p0[0x5C]; char animEntries[0x118]; float unknown338; int p1; float unknown340; char p2[0xC]; float unknown350; char p3[0x10]; float unknown364; char p4[8]; float unknown370; float unknown374; };
+struct S : PO { char pad180[0x1C0 - 0x180]; int state; char p0[0x5C]; char animEntries[0x118]; float unknown338; int p1; float unknown340; char p2[0xC]; float unknown350; char p3[0x10]; float unknown364; char p4[8]; float unknown370; float unknown374; };
 void InitHack(struct S *p);
 void SetHackenemyScale(struct S *p, float g);
 void SetHackenemyRange(struct S *p, float g);
@@ -1065,7 +1065,7 @@ void PresetHackenemyAccel(struct O *enemy)
 
 namespace M_func_00180FF0 { extern "C" {
 struct E { int a; int b; int x8; char pad[0x34]; };
-struct S { char pad[0x188]; int n; };
+struct S : PO { char pad180[0x188 - 0x180]; int n; };
 extern int D_002DFB80;
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 void StartHackDying(struct S *p, int n);
@@ -1151,7 +1151,7 @@ typedef char layout_VT_a_35_pfn[((unsigned long)&((VT*)0)->a[35].pfn==0x11c)?1:-
 } // namespace M_func_00181060
 
 namespace M_func_001811B8 { extern "C" {
-struct S { char pad[0x184]; int health; char p1[0x38]; int state; };
+struct S : PO { char pad180[0x184 - 0x180]; int health; char p1[0x38]; int state; };
 extern char D_002DEB30[];
 int TakeHackDamage(struct S *p, void *message);
 void BroadcastGameEvent(void *g, int event, struct S *p);
@@ -1180,7 +1180,7 @@ void HACKENEMY::Reset()
 namespace M_func_00181268 { extern "C" {
 struct X { int x; int y; int z; };
 struct E { int a[4]; };
-struct S { char pad[0x180]; int maxHealth; int health; char p1[0x38]; int state; float stateTime; char p2[0x48]; struct X stepVelocity; int p3; struct E animEntries[1]; };
+struct S : PO { int maxHealth; int health; char p1[0x38]; int state; float stateTime; char p2[0x48]; struct X stepVelocity; int p3; struct E animEntries[1]; };
 extern struct CLOCK D_002DDED0;
 // Zeroes the step velocity that animation event 0x15E sets (HandleHackenemyMessage).
 static __inline__ void ClearStepVelocity(struct X *px) { px->x = px->y = px->z = 0; }
@@ -1205,7 +1205,7 @@ void SetHackenemyState(struct S *enemy, int state)
 
 namespace M_func_00181308 { extern "C" {
 struct E { int a; int b; int c; int d; };
-struct S { char pad[0x220]; struct E ae[5]; };
+struct S : PO { char pad180[0x220 - 0x180]; struct E ae[5]; };
 // Set entry i (<5). (inferred)
 void SetHackenemyEntry(struct S *enemy, unsigned int i, int a, int d)
 {
@@ -1219,7 +1219,7 @@ void SetHackenemyEntry(struct S *enemy, unsigned int i, int a, int d)
 namespace M_func_00181330 { extern "C" {
 struct K { int a; int b; };
 struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
-struct S { char pad[0x270]; struct E ae[5]; };
+struct S : PO { char pad180[0x270 - 0x180]; struct E ae[5]; };
 // Set two 8-byte fields of entry i. (inferred)
 void SetHackenemyEntryVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
 {
@@ -1235,7 +1235,7 @@ void SetHackenemyEntryVectors(struct S *enemy, unsigned int i, struct K *pk1, st
 namespace M_func_00181378 { extern "C" {
 struct K { int a; int b; };
 struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
-struct S { char pad[0x270]; struct E ae[5]; };
+struct S : PO { char pad180[0x270 - 0x180]; struct E ae[5]; };
 // Twin setter. (inferred)
 void SetHackenemyEntrySecondVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
 {
@@ -1280,7 +1280,7 @@ extern "C" void PostHacklockLoad(HACKLOCKV *lock)
 
 namespace M_func_00181478 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x1C0]; int state; int stateTime; void *ship; void *triggerObject; };
+struct O : PO { char pad180[0x1C0 - 0x180]; int state; int stateTime; void *ship; void *triggerObject; };
 extern void UpdateSo(struct O *p);
 extern qword GetLoWorldPos(void *p);
 extern int IsHackAnimDone(struct O *p);
@@ -1332,7 +1332,7 @@ void UpdateHacklock(struct O *lock)
 } } // namespace M_func_00181478
 
 namespace M_func_00181598 { extern "C" {
-struct S { char pad[0x200]; int a; int b; };
+struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
 extern char D_003DD490[];
 void ResetHack(struct S *p);
 void SetHacklockState(struct S *p, int n);
@@ -1378,7 +1378,7 @@ extern "C" void SetHacklockState(HACKLOCKV *lock, int nState)
 
 namespace M_func_001816C0 { extern "C" {
 struct E { int a; int b; int c; int d; };
-struct S { char pad[0x1D0]; struct E ae[3]; };
+struct S : PO { char pad180[0x1D0 - 0x180]; struct E ae[3]; };
 // Set entry i (<3). (inferred)
 void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
 {
@@ -1390,7 +1390,7 @@ void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
 } } // namespace M_func_001816C0
 
 namespace M_func_001816E8 { extern "C" {
-struct S { char pad[0x200]; int a; int b; };
+struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
 extern char D_003DD490[];
 void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
 // AddOrUpdateRsmg on its RSMG table. (inferred)
@@ -1502,7 +1502,7 @@ namespace M_func_001819E0 { extern "C" {
 struct R { char pad[0x10]; char dl[0xC]; };
 struct Q { char pad[0x20]; struct R *pr; char p1[0x3C]; struct DLE dle; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; char p[0xC]; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
-struct S { char pad[0x1C8]; int c; struct E ae[4]; struct Q *pqFirst; };
+struct S : PO { char pad180[0x1C8 - 0x180]; int c; struct E ae[4]; struct Q *pqFirst; };
 void ResetHack(struct S *p);
 void ClearDle__FP3DLE(struct DLE *pdle);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
@@ -1640,7 +1640,7 @@ extern "C" void UpdateHackwallSegments(SO *pso, HACKSEG *pseg)
 namespace M_func_00181EB0 { extern "C" {
 struct R { char pad[0xC]; int c; char dl[0xC]; };
 struct Q { char pad[0x20]; struct R *pr; int n; float t; };
-struct S { char pad[0x28C]; char dl[0xC]; };
+struct S : PO { char pad180[0x28C - 0x180]; char dl[0xC]; };
 extern struct CLOCK D_002DDED0;
 extern char D_002DEB30[];
 void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
@@ -1668,7 +1668,7 @@ namespace M_func_00181F60 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x10]; char x10[0x2C]; float g3c; float g40; float g44; char p1[8]; float g50; float g54; float g58; float g5c; struct Q *next; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
-struct S { char pad[0x1C0]; int x1c0; char p0[4]; int c; struct E ae[4]; };
+struct S : PO { char pad180[0x1C0 - 0x180]; int x1c0; char p0[4]; int c; struct E ae[4]; };
 struct V { float a[4]; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002DFB80;
@@ -1742,7 +1742,7 @@ struct M3 {qword r[3];};
 struct M4 {U r[4];};
 struct N {qword pos,dir;char pad20[0x50-0x20];float lateral,roll;char pad58[8];N*next;};
 struct E {char pad[0x10];N*first;char pad14[0x1C];};
-struct P {char pad[0x1C4];void*model;int count;E entries[1];};
+struct P : PO { char pad180[0x1C4 - 0x180];void*model;int count;E entries[1];};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
@@ -1808,7 +1808,6 @@ typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
 typedef char N_Prefix_Size[(sizeof(N)==0x70)?1:-1];
 typedef char N_Align[(__alignof__(N)==16)?1:-1];
 typedef char E_Size[(sizeof(E)==0x30)?1:-1];
-typedef char P_Prefix_Size[(sizeof(P)==0x1fc)?1:-1];
 typedef char N_position_Offset[((unsigned)&((N*)0)->pos==0)?1:-1];
 typedef char N_direction_Offset[((unsigned)&((N*)0)->dir==0x10)?1:-1];
 typedef char N_lateral_Offset[((unsigned)&((N*)0)->lateral==0x50)?1:-1];
@@ -1951,7 +1950,7 @@ typedef char WORK_one_Offset[((unsigned)&((WORK*)0)->one==272)?1:-1];
 
 namespace M_func_00182700 { extern "C" {
 struct E { int a; int b; int x8; int xc; char pad[0x30]; };
-struct S { char pad[0x188]; int n; };
+struct S : PO { char pad180[0x188 - 0x180]; int n; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
 int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
@@ -1978,7 +1977,7 @@ extern "C" int GetHackwallExtraPartCount()
 namespace M_func_00182780 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int x24; int p2; float h; };
-struct S { char pad[0x1C8]; int c; struct E ae[4]; };
+struct S : PO { char pad180[0x1C8 - 0x180]; int c; struct E ae[4]; };
 void UpdateSoTreeBounds(struct S *p);
 void GetShapeBounds(int n, qword *pa, qword *pb);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
@@ -2002,7 +2001,7 @@ namespace M_func_00182810 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { qword pos; char pad[0x50]; struct Q *next; };
 struct E { int oid; int c; int c8; int d; struct Q *pqFirst; struct Q *pqLast; int ib; int x1c; float g20; int x24; float g28; float g2c; };
-struct O { char pad[0x1C8]; int ce; struct E ae[4]; };
+struct O : PO { char pad180[0x1C8 - 0x180]; int ce; struct E ae[4]; };
 // Nearest segment record to a world position. (inferred)
 struct Q *FindNearestHackwallSegment(struct O *po, qword pos)
 {
@@ -2037,7 +2036,7 @@ namespace M_func_001828A8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { qword pos; qword v10; char pad[0x4C - 0x20]; int n4C; char pad2[0x58 - 0x50]; float g58; float g5C; };
 struct M { char pad[0x10]; int n10; char pad1[0x20 - 0x14]; qword v20; qword v30; char pad2[0x44 - 0x40]; int n44; };
-struct O { char pad[0x190]; void *p190; };
+struct O : PO { char pad180[0x190 - 0x180]; void *p190; };
 extern struct Q *FindNearestHackwallSegment(struct O *po, qword pos);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern void SetHackwallSegmentState(struct O *po, struct Q *pq, int n);
@@ -2077,7 +2076,7 @@ int TakeHackwallDamage(struct O *po, struct M *pm)
 namespace M_func_001829D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { qword pos; };
-struct S { char pad[0x188]; int x188; int x18c; void *x190; };
+struct S : PO { char pad180[0x188 - 0x180]; int x188; int x18c; void *x190; };
 struct CTX { struct S *p; int x4; void *pv; int xc; int x10; int pad[3]; qword q; char rest[0x30]; };
 extern qword D_002A2DD0;
 qword GetLoWorldPos(void *p);
@@ -2109,7 +2108,7 @@ void KillHackwall(struct S *wall, void *pv)
 
 namespace M_func_00182AB8 { extern "C" {
 struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int p2[2]; float h; };
-struct S { char pad[0x1C8]; unsigned int c; struct E ae[4]; };
+struct S : PO { char pad180[0x1C8 - 0x180]; unsigned int c; struct E ae[4]; };
 extern int D_002BE8AC;
 // Append a segment record (max 4) {a,b,c,g}. (inferred)
 void AddHackwallSegment(struct S *wall, int a, int b, int c, float g)
