@@ -499,40 +499,33 @@ void ResolveSwSaveVars(SW *world)
 }
 
 namespace M_PostSwLoad { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; };
-struct S {
-    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
-    char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
-    char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
-};
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void PrimeSlotheap(void *p);
-void CreateSwScreenTint(struct S *p);
-void SelectSwMainMs(struct S *p);
-void ClearSwSpliceTable(struct S *p);
-void InitSwProxySpares(struct S *p);
-void BindSwTimerHud(struct S *p);
-void CreateSwNoiseTypes(struct S *p);
-void EnsureSwDefaultLight(struct S *p);
-void PostLoadSwPathzones(struct S *p);
-void BindSwBootyProxy(struct S *p);
-void PostLoadGrabMarker(struct S *p);
+void CreateSwScreenTint(SW *psw);
+void SelectSwMainMs(SW *psw);
+void ClearSwSpliceTable(SW *psw);
+void InitSwProxySpares(SW *psw);
+void BindSwTimerHud(SW *psw);
+void CreateSwNoiseTypes(SW *psw);
+void EnsureSwDefaultLight(SW *psw);
+void PostLoadSwPathzones(SW *psw);
+void BindSwBootyProxy(SW *psw);
+void PostLoadGrabMarker(SW *psw);
 void PostLoadScreens(void *p);
-void ProcessSwCallbacks(struct S *p);
+void ProcessSwCallbacks(SW *psw);
 void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
-void PostSwLoad(struct S *world)
+void PostSwLoad(SW *world)
 {
-    struct O **ppo;
-    PrimeSlotheap(world->pool403C);
-    PrimeSlotheap(world->pool4054);
-    PrimeSlotheap(world->pool4070);
-    PrimeSlotheap(world->pool4088);
+    LO **ppo;
+    PrimeSlotheap(&world->slotheapRipg);
+    PrimeSlotheap(&world->slotheapRip);
+    PrimeSlotheap(&world->slotheapBlipg);
+    PrimeSlotheap(&world->slotheapBlip);
     CreateSwScreenTint(world);
     SelectSwMainMs(world);
     ClearSwSpliceTable(world);
@@ -544,16 +537,16 @@ void PostSwLoad(struct S *world)
     BindSwBootyProxy(world);
     PostLoadGrabMarker(world);
     PostLoadScreens(D_003D9E70);
-    while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
-        for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
-            (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
-        world->ppoLast = world->ppoFirst;
+    while (ProcessSwCallbacks(world), world->pploNew != world->aploNew) {
+        for (ppo = world->aploNew; ppo < world->pploNew; ppo++)
+            (*ppo)->PostLoad();
+        world->pploNew = world->aploNew;
     }
-    world->ppoLast = 0;
-    world->ppoFirst = 0;
-    world->loadBuffer1 = 0;
-    world->loadBuffer0 = 0;
-    BuildPathzoneLinkLists(world->regionTree);
+    world->pploNew = 0;
+    world->aploNew = 0;
+    world->unknown39D8 = 0;
+    world->unknown39D0 = 0;
+    BuildPathzoneLinkLists(world->pregtree);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
