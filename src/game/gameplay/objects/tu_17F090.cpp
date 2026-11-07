@@ -548,18 +548,11 @@ void UpdateHackshipHealthBar(HACKSHIP *ship)
 }
 } } // namespace M_UpdateHackshipHealthBar
 
-namespace M_func_00180188 { extern "C" {
-struct S : PO { char pad180[0x188 - 0x180]; int n; };
-void InitHack(struct S *p);
-// HACKBULLET (cid 0x4A) vtable slot 7: InitCid47, field = 10. (inferred)
-} } // namespace M_func_00180188
-// HACKBULLET::Init: hack-object init, then sets its field to 10.
+// HACKBULLET (cid 0x4A) vtable slot 7: hack-object init, then its damage = 10. (inferred)
 void HACKBULLET::Init()
 {
-    using namespace M_func_00180188;
-    M_func_00180188::S *p = (M_func_00180188::S *)this;
-    InitHack(p);
-    p->n = 10;
+    InitHack(this);
+    cDamage = 10;
 }
 
 namespace M_func_001801B8 {
@@ -574,12 +567,10 @@ struct M3 {
  // Assign the three rows.
  M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}
 };
-struct VTE {short delta,pad;void*fn;};
-struct P {char pad[0xC];VTE*vt;char pad10[0x17C];int flag;char pad190[0x30];float time;char pad1C4[0xC];P*target;float turnRate;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
-extern "C" void UpdateSo(P*);
-extern "C" qword GetLoWorldPos(P*);
+extern "C" void UpdateSo(SO*);
+extern "C" qword GetLoWorldPos(LO*);
 extern "C" float atan2f(float,float);
 extern "C" float NormalizeAngle__Ff(float);
 extern "C" float ClampAbs__Fff(float,float);
@@ -594,96 +585,90 @@ static inline M3 Mul(const M3&a,const M3&b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
-// vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate. (inferred)
-extern "C" void UpdateHackbullet(P*bullet){
+// vt16: UpdateSo; self-destruct (Kill) when its timer expires; turn toward the target with a limited turn rate. (inferred)
+extern "C" void UpdateHackbullet(HACKBULLET*bullet){
  UpdateSo(bullet);
- if(!bullet->flag&&bullet->time<=D_002DDED0.time)((void(*)(void*,P*))bullet->vt[82].fn)((char*)bullet+bullet->vt[82].delta,0);
- if(!bullet->target||bullet->turnRate==0.0f)return;
+ if(!bullet->fDying&&bullet->tExpire<=D_002DDED0.time)bullet->Kill(0);
+ if(!bullet->ploTarget||bullet->radTurnRate==0.0f)return;
  M3 rotation,matrix;
  qword position;
- position=GetLoWorldPos(bullet->target);
+ position=GetLoWorldPos(bullet->ploTarget);
  qword displacement=VuSub(position,GetLoWorldPos(bullet));
  float desired=atan2f(QwordY(displacement),QwordX(displacement));
- qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
+ qword direction=bullet->GetVelocity();
  float current=atan2f(QwordY(direction),QwordX(direction));
- float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.deltaTime);
+ float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->radTurnRate*D_002DDED0.deltaTime);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
- ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));
+ bullet->SetVelocity(Transform(rotation,direction));
  // The original reads this local matrix before initialization.
  matrix=Mul(rotation,matrix);
- ((void(*)(void*,M3*))bullet->vt[30].fn)((char*)bullet+bullet->vt[30].delta,&matrix);
+ bullet->RotateToMat((MATRIX4*)&matrix);   /* SO's override takes the 3x3 rotation */
 }
 } // namespace M_func_001801B8
 
 namespace M_func_001803A8 { extern "C" {
-struct T { char pad[0xEC]; int n; };
-struct S : PO { char pad180[0x1C8 - 0x180]; struct T *pt; };
-int ShouldSoIgnoreIntersection(struct S *p, struct T *q);
-// vtable slot 61 override. (inferred)
-int ShouldHackbulletIgnoreIntersection(struct S *bullet, struct T *q)
+int ShouldSoIgnoreIntersection(SO *pso, SO *psoOther);
+// vtable slot 61 override: ignore contacts with the tree of the object that fired it. (inferred)
+int ShouldHackbulletIgnoreIntersection(HACKBULLET *bullet, SO *psoOther)
 {
-    if (bullet->pt && q->n == bullet->pt->n)
+    if (bullet->psoOwner && psoOther->physicsTree == bullet->psoOwner->physicsTree)
         return 3;
-    return ShouldSoIgnoreIntersection(bullet, q);
+    return ShouldSoIgnoreIntersection(bullet, psoOther);
 }
 } } // namespace M_func_001803A8
 
 namespace M_func_001803E0 { extern "C" {
-struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };
-struct S : PO { char pad180[0x1CC - 0x180]; int x1cc; };
-void AdjustHackNewXp(struct S *p, struct E *ae, int i);
+struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };   /* an XP contact side (0x40) */
+void AdjustHackNewXp(HACK *hack, struct E *ae, int i);
 int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
-void StartHackDying(struct S *p, int n);
-// vtable slot 55: CID47::AdjustXp then start dying on contact. (inferred)
-void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
+void StartHackDying(HACK *hack, int n);
+// vtable slot 55: HACK's AdjustNewXp, then start dying on contact (with a hack object, or with anything unless it
+// bounces); a bouncing bullet gets elasticity 1. (inferred)
+void AdjustHackbulletNewXp(HACKBULLET *bullet, struct E *ae, int i)
 {
     struct E *pe;
     int oid;
     AdjustHackNewXp(bullet, ae, i);
     pe = &ae[1 - i];
     oid = pe->xc;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->x1cc)
+    if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->fBounce)
         StartHackDying(bullet, oid);
-    if (bullet->x1cc) ae[2].g18 = 1.0f;
+    if (bullet->fBounce) ae[2].g18 = 1.0f;
 }
 } } // namespace M_func_001803E0
 
 namespace M_func_00180478 { extern "C" {
-struct T { char pad[0x60]; void *p60; };
-struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float expireTime; float lifetime; int n; };
 extern struct CLOCK D_002DDED0;
-extern char D_003DD490[];
-void RefreshSwObjectCollisionFilter(void *g, struct S *p);
-// Set mode field and recalc object filters (RefreshSwObjectCollisionFilter). (inferred)
-void SetHackbulletMode(struct S *bullet, int n)
+void RefreshSwObjectCollisionFilter(SW *g, SO *pso);
+// Sets the object that fired it (its tree's contacts are ignored, so the collision filter is refreshed when the bullet
+// is its tree's root) and restarts the lifetime. (inferred; the symbol name is ours)
+void SetHackbulletMode(HACKBULLET *bullet, SO *psoOwner)
 {
-    if (n != bullet->n) {
-        bullet->n = n;
-        if (bullet->pt->p60 == bullet) RefreshSwObjectCollisionFilter(D_003DD490, bullet);
+    if (psoOwner != bullet->psoOwner) {
+        bullet->psoOwner = psoOwner;
+        if (bullet->physicsTree->root == bullet) RefreshSwObjectCollisionFilter(&D_003DD490, bullet);
     }
-    bullet->expireTime = (bullet->lifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.time + bullet->lifetime;
+    bullet->tExpire = (bullet->dtLifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.time + bullet->dtLifetime;
 }
 } } // namespace M_func_00180478
 
 namespace M_InitHackenemy { extern "C" {
-struct S : PO { char pad180[0x1C0 - 0x180]; int state; char p0[0x5C]; char animEntries[0x118]; float unknown338; int p1; float unknown340; char p2[0xC]; float unknown350; char p3[0x10]; float unknown364; char p4[8]; float unknown370; float unknown374; };
-void InitHack(struct S *p);
-void SetHackenemyScale(struct S *p, float g);
-void SetHackenemyRange(struct S *p, float g);
-void InitHackAnimEntries(struct S *p, int n, void *pv);
-// HACKENEMY (cid 0x49) vtable slot 7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
-void InitHackenemy(struct S *enemy)
+void SetHackenemyScale(HACKENEMY *enemy, float g);
+void SetHackenemyRange(HACKENEMY *enemy, float g);
+// HACKENEMY (cid 0x49) vtable slot 7: InitHack, defaults (speed 250, heading limits -/+FLT_MAX, the speed and heading
+// curves' constant/linear terms, scales), entries. (inferred)
+void InitHackenemy(HACKENEMY *enemy)
 {
     InitHack(enemy);
-    enemy->unknown340 = 1.0f;
-    enemy->unknown350 = 1.0f;
-    enemy->unknown364 = 1.0f;
-    enemy->unknown338 = 250.0f;
-    enemy->unknown370 = -3.40282346638528859812e+38f;
-    enemy->unknown374 = 3.40282346638528859812e+38f;
+    enemy->clqSpeedDistance.g0 = 1.0f;
+    enemy->clqSpeedTurn.g0 = 1.0f;
+    enemy->clqHeading.g1 = 1.0f;
+    enemy->uSpeed = 250.0f;
+    enemy->lmHeading.minValue = -3.40282346638528859812e+38f;
+    enemy->lmHeading.maxValue = 3.40282346638528859812e+38f;
     SetHackenemyScale(enemy, 1.0f);
     SetHackenemyRange(enemy, 1.0f);
-    InitHackAnimEntries(enemy, 5, enemy->animEntries);
+    InitHackAnimEntries(enemy, 5, enemy->ahacke);
     enemy->state = -1;
 }
 } } // namespace M_InitHackenemy
@@ -697,19 +682,16 @@ extern "C" void RemoveHackenemyHierarchy(HACKENEMY *enemy)
 }
 
 namespace M_func_001805C8 { extern "C" {
-struct S { char pad[0x58]; int positionChannel; int rotationChannel; char p2[0x178]; int unknown1D8; char p3[0x44]; char animEntries[4]; };
-void PostHackLoad(struct S *p);
-int NewSampledShape(int positionChannel, int rotationChannel);
-void SetXfRole(struct S *p, int positionChannel, int rotationChannel);
-void BindHackAnimEntries(struct S *p, int n, void *pv);
-// vtable slot 15: PostCid47Load + bind entries. (inferred)
-void PostHackenemyLoad(struct S *enemy)
+SHAPE *NewSampledShape(int a, int b);
+void SetXfRole(SO *pso, XF *pxf, int role);
+// vtable slot 15: PostHackLoad, the chase path shape, the transforms' roles, bind entries. (inferred)
+void PostHackenemyLoad(HACKENEMY *enemy)
 {
     PostHackLoad(enemy);
-    enemy->unknown1D8 = NewSampledShape(0x2C9, 0x10);
-    if (enemy->positionChannel) SetXfRole(enemy, enemy->positionChannel, 2);
-    if (enemy->rotationChannel) SetXfRole(enemy, enemy->rotationChannel, 2);
-    BindHackAnimEntries(enemy, 5, enemy->animEntries);
+    enemy->pshapePath = NewSampledShape(0x2C9, 0x10);
+    if (enemy->unknown58) SetXfRole(enemy, enemy->unknown58, 2);
+    if (enemy->unknown5C) SetXfRole(enemy, enemy->unknown5C, 2);
+    BindHackAnimEntries(enemy, 5, enemy->ahacke);
 }
 } } // namespace M_func_001805C8
 
