@@ -564,47 +564,38 @@ void AddSoPartToTree(SO *so, SOPART *pe)
 
 // 0x1F2930 RemoveSoPartFromTree
 namespace M_RemoveSoPartFromTree { extern "C" {
-struct VTE; struct E; struct Q; struct P; struct Q2;
-typedef unsigned long ulong;
-struct VTE { short d; short p; int (*pfn)(void *); };
-struct E { char pad[0x10]; ulong flags; char pad2[0xB0 - 0x18]; };
-struct P;
-struct Q { char pad[0x34]; char parts[0x2C]; struct P *rootSo; };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE0 - 0x10]; int numParts; struct E *parts; int physics; struct Q *tree; };
-struct Q2 { char pad[0xEC]; struct Q *tree; };
 struct G;
 extern struct G D_003DD490;
 int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 int IsDlEmpty__FP2DL(void *);
-void RemoveSwPlacesOf(struct G *, int, struct E *);
-void FreeSoContacts(struct P *);
-void RemoveObjectFromBroadPhase(struct G *, struct Q *);
-void WakeSo(struct P *);
+void RemoveSwPlacesOf(struct G *, int, SOPART *);
+void RemoveObjectFromBroadPhase(struct G *, SOTREE *);
+void WakeSo(SO *);
 // Removes a part from the tree's part list and frees its contacts; drops the tree when it becomes empty, or detaches
 // the object when none of its own parts remain.
-void RemoveSoPartFromTree(struct P *so, struct E *pe)
+void RemoveSoPartFromTree(SO *so, SOPART *pe)
 {
     int i;
-    if (!so->tree) return;
-    if (!IsEntryInDl__FP2DLPv(so->tree->parts, pe)) return;
-    RemoveDlEntry__FP2DLPv(so->tree->parts, pe);
-    if (pe->flags & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
+    if (!so->physicsTree) return;
+    if (!IsEntryInDl__FP2DLPv(&so->physicsTree->parts, pe)) return;
+    RemoveDlEntry__FP2DLPv(&so->physicsTree->parts, pe);
+    if (pe->hasPlaces) RemoveSwPlacesOf(&D_003DD490, 0, pe);
     FreeSoContacts(so);
-    if (IsDlEmpty__FP2DL(so->tree->parts)) {
-        struct Q *pq = so->tree;
-        ((struct Q2 *)pq->rootSo)->tree = 0;
-        so->tree = 0;
+    if (IsDlEmpty__FP2DL(&so->physicsTree->parts)) {
+        SOTREE *pq = so->physicsTree;
+        pq->root->physicsTree = 0;
+        so->physicsTree = 0;
         RemoveObjectFromBroadPhase(&D_003DD490, pq);
-    } else if (so->tree->rootSo != so) {
+    } else if (so->physicsTree->root != so) {
         i = so->numParts;
         while (--i >= 0) {
-            if (IsEntryInDl__FP2DLPv(so->tree->parts, (struct E *)(i * 0xB0 + (int)so->parts))) break;
+            if (IsEntryInDl__FP2DLPv(&so->physicsTree->parts, (SOPART *)(i * 0xB0 + (int)so->parts))) break;
         }
-        if (i < 0) so->tree = 0;
+        if (i < 0) so->physicsTree = 0;
     }
 done:
-    if (!so->pvt[62].pfn((char *)so + so->pvt[62].d)) WakeSo(so);
+    if (!so->IsFixed()) WakeSo(so);
 }
 } } // namespace M_RemoveSoPartFromTree
 

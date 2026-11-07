@@ -302,7 +302,7 @@ struct SOPART
       ulong unknownFlag10A : 1;   /* possibly collectsZaps (low-confidence guess: mark.cpp: parts with zap kinds (unknownFlag10A / zapKindFlags) collect zap contacts) */
                ulong unknownFlag10B : 1;   /* possibly isSphere (low-confidence guess: so.cpp view: radius applies to unknownFlag10B parts; mark.cpp sphere tests) */
                ulong isHidden : 1;  /* part is hidden */
-               ulong unknownFlag10C : 1;
+               ulong hasPlaces : 1;   /* the part carries hero places (RemoveSoPartFromTree then calls RemoveSwPlacesOf; places.cpp) */
                ulong unknownBits10A : 12;
       uint zapKindFlags; /* zap kinds (damage types) the part delivers or accepts */
       int unknown1C;   /* possibly numSphereVertices (low-confidence guess: compared with meshLocal.cpos in mark.cpp) */
