@@ -707,7 +707,6 @@ struct M3 {
 };
 struct VTE {short delta,pad;void*fn;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x17C];int flag;char pad190[0x30];float time;char pad1C4[0xC];P*target;float turnRate;};
-struct CLOCK{float time,deltaTime;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" void UpdateSo(P*);
