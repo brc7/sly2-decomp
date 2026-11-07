@@ -714,7 +714,6 @@ union U { qword q; float f[4]; uint u[4]; };
 struct M3 { U row[3]; };
 struct M4 { U row[4]; };
 struct PACKET { U basis[3]; U position; int kind; float fraction; int pad[2]; };
-static inline qword Zero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword Transform(const M4 &m, qword v)
 {
     __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddaz.xyz $ACC,%3,%0z\n\tvmaddw.xyz %0,%4,$vf0w"
@@ -793,7 +792,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
         Clear(p);
     } else {
         float total = 0.0f;
-        qword sum = Zero();
+        qword sum = VuZero<qword>();
         uint slot;
         for (slot = 0; slot < 4; slot++) {
             LIGHTV *o = results[slot].object;

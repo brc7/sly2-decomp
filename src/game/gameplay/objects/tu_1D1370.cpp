@@ -2018,8 +2018,7 @@ qword GetLoWorldPos(P *);
 int TakeRobottankDamage(P *, EVENT *);
 }
 // Helpers Zero, VecZero, Add, Sub, Sqrt (small asm wrappers/accessors shaped for the match).
-static inline VV Zero() { qword r; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r)); return r; }
-static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
+static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = VuZero<VV>(); return v; }
 // Same idiom as sly2/vu0.h VuAdd; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuAdd(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).

@@ -425,7 +425,6 @@ static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qwor
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %4x" : "=j"(qw) : "j"(qw1), "j"(qw2), "j"(g1.qw), "j"(g2.qw));
     return qw;
 }
-static inline qword QwZero() { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(qw)); return qw; }
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 /** @sly2-annot addr=0x1BC688
  * Purpose: Clip segment to the convex volume and write the parts outside it (LSG 0x60)
@@ -440,7 +439,7 @@ int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSeg
 {
     BuildCid14EdgePlanes(polygon);
     float gIn = 0.0f;
-    qword normalIn = QwZero();
+    qword normalIn = VuZero<qword>();
     float gOut = 1.0f;
     qword normalOut = normalIn;
     int i;

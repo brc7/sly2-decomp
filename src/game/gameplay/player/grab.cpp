@@ -831,7 +831,6 @@ static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
 }
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
-static inline qword ZeroVec() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline qword ScaleVecX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
 static inline qword DotVec(qword a, qword b)
@@ -920,7 +919,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         float lateral;
         qword offset;
         if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
-            offset = ZeroVec();
+            offset = VuZero<qword>();
             lateral = 0.0f;
         } else {
             U side;

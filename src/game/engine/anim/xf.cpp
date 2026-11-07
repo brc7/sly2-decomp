@@ -619,7 +619,6 @@ M4 EvaluateXfSlotMatrixDerivative(O *);
 void UpdateXfJobRange(void *,O *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
-static inline qword Zero() {qword r;__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
 static inline qword InverseTransform(const M4 &m,qword v) {register qword r __asm__("vf4")=m.r[0];
@@ -651,7 +650,7 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
     qword delta;
     M4 m;
     qword input=in;
-    sum=Zero();
+    sum=VuZero<qword>();
     for(;p!=stop;p=p->parent) {
         switch(p->mode) {
         case 0:case 3:case 10:case 12:case 15:case 19:break;
@@ -1095,12 +1094,6 @@ static inline qword VuMulXAddMulX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
-    return qw;
-}
-static inline qword VuZero()
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(qw));
     return qw;
 }
 static inline qword VuXMul(qword qwS, qword qwA)
@@ -1670,7 +1663,7 @@ void UpdateSoSlots(SO *so)
                     }
                     if (fSettled)
                     {
-                        qwV1 = VuZero();
+                        qwV1 = VuZero<qword>();
                         SlotSetRole(so, xf, 0x13);
                     }
                     qword qwPos0 = *(qword *)xf->mat.mat[3];
@@ -1723,7 +1716,7 @@ void UpdateSoSlots(SO *so)
                     }
                     if (fSettled)
                     {
-                        qwOmega1 = VuZero();
+                        qwOmega1 = VuZero<qword>();
                         SlotSetRole(so, xf, 0x13);
                     }
                     qword qwTurn = VuMulXAddMulX(qwOmega0, qwOmega1, VuFloat(dt * 0.5f).qw);

@@ -1685,7 +1685,6 @@ static inline qword XYZ(float x, float y, float z, U &home)
     return home.q;
 }
 static inline qword ToVF(qword v) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(v)); return r; }
-static inline qword Zero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword Normalize(qword a)
 {
     qword d, one, r, l;
@@ -1732,7 +1731,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
     if (sel->input)
         direction = ToVF(XYZ(sel->input->x, -sel->input->y, 0.0f, home));
     else
-        direction = Zero();
+        direction = VuZero<qword>();
     qword ray = VuScaleByX(Normalize(direction), Splat(D_002C3274, home));
     int bestId = -1;
     float best = D_002A79C8;
