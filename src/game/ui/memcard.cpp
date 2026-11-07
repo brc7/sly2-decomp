@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/scrap.h"
 #include "sly2/sw.h"
+#include "sly2/save.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
@@ -66,34 +67,7 @@ namespace BSS_memcard { BUF<0xFDA0> d_002E65E0 __asm__("D_002E65E0"); }
 // 0x1ADF98 StaticInit_memcard (the two widgets, then the six slot pools; their destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The memory card worker: semaphore, thread id (-1: none), priority. */
-struct MEMCARD
-{
-    int sema;
-    int tid;                /* +0x04 */
-    int job[2];             /* +0x08 the queued job: a pointer to a SAVE member function (CreateMemcardThread) */
-    int jobResult;          /* +0x10 the job's result code (0x20 idle, 0x21 while running; McSyncResult codes) */
-};
-/* A card directory record as the game keeps it (0x5C bytes): name, size, attribute flags and the creation /
-   modification dates. The flag word at +0x48 is read and written whole; the creation day and month bytes overlap
-   its upper half. */
-struct SAVEINFO
-{
-    char achName[0x44];
-    int cb;                 /* +0x44 */
-    union {
-        int grf;            /* +0x48 */
-        struct { uchar pad48[2]; uchar bDayC, bMonthC; };
-    };
-    ushort wYearC;          /* +0x4C */
-    uchar bHourC, bMinC, bSecC;
-    uchar pad51;
-    uchar bDayM, bMonthM;   /* +0x52 */
-    ushort wYearM;          /* +0x54 */
-    uchar bHourM, bMinM, bSecM;
-    uchar pad59[3];
-};
-typedef char assert_SAVEINFO_size[sizeof(SAVEINFO) == 0x5C ? 1 : -1];
+/* MEMCARD, SAVEINFO and the save manager SAVE: sly2/save.h */
 /* The card's own directory entry (sceMcTblGetDir). */
 struct MCTBLDIR
 {
@@ -106,24 +80,6 @@ struct MCTBLDIR
     ushort resv16;
     uint resv18[2];
     char achName[32];       /* +0x20 */
-};
-/* The save manager: card port/slot, state, three slots, the current slot and the worker. */
-struct SAVE
-{
-    int port;
-    int slot;               /* +0x04 */
-    int nState;             /* +0x08 */
-    int nStateNext;         /* +0x0C */
-    float tStateChanged;    /* +0x10 */
-    float tNextPoll;        /* +0x14 */
-    int cardType;           /* +0x18 sceMcGetInfo type (2: PS2 card) */
-    int freeClusters;       /* +0x1C */
-    int isFormatted;        /* +0x20 */
-    char aslot[3][0x5464];  /* +0x24 */
-    int currentSlot;        /* +0xFD50 the slot in use (0: none) */
-    void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
-    int selectedSlot;          /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
-    MEMCARD memcard;        /* +0xFD5C */
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
 /* The dialog's child widget: its display state (2: fully shown), when that was reached, the state it is heading for. */

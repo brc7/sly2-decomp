@@ -3,7 +3,8 @@
  * (SW::savevars; devtools/pine_toolkit/data/savevars.json, 4472 variables) -- CONFIRMED runtime for name and offset.
  * Tags: [R] runtime-confirmed meaning, [S] name/offset from the schema only (meaning not checked).
  * Everything from +0x1A4 on is the per-episode / per-level tree (episode.<world>.dt, percent_complete,
- * level.<name>.booty.aoidAssembly[15], afClue (32 bits), fVault, ...); see savevars.json for exact offsets. */
+ * level.<name>.booty.aoidAssembly[15], afClue (32 bits), fVault, ...); see savevars.json for exact offsets.
+ * Also the save manager that keeps three such blobs and writes them to the card (SAVE, g_save; memcard.cpp). */
 #ifndef SLY2_SAVE_H
 #define SLY2_SAVE_H
 #include "sly2/basic.h"
@@ -57,5 +58,64 @@ typedef char assert_GS_murray[SLY2_OFFSETOF(GS, murray) == 0x80 ? 1 : -1];   /* 
 typedef char assert_GS_mppukfAcquired[SLY2_OFFSETOF(GS, mppukfAcquired) == 0x98 ? 1 : -1];   /* schema (CONFIRMED) */
 typedef char assert_GS_ccoin[SLY2_OFFSETOF(GS, ccoin) == 0xA0 ? 1 : -1];   /* schema + runtime coin counts (CONFIRMED) */
 typedef char assert_GS_mplootkc[SLY2_OFFSETOF(GS, mplootkc) == 0xA4 ? 1 : -1];   /* schema (CONFIRMED) */
+
+/* ---- The save manager (g_save = D_002E65E0; memcard.cpp): moved from memcard.cpp's file-scope types. ---- */
+
+/* MEMCARD: the memory card worker thread (SAVE::memcard): semaphore, thread id (-1: none), the queued job. */
+struct MEMCARD
+{
+    int sema;
+    int tid;                /* +0x04 */
+    int job[2];             /* +0x08 the queued job: a pointer to a SAVE member function (CreateMemcardThread) */
+    int jobResult;          /* +0x10 the job's result code (0x20 idle, 0x21 while running; McSyncResult codes) */
+};
+
+/* SAVEINFO: a card directory record as the game keeps it (0x5C bytes): name, size, attribute flags and the creation /
+   modification dates. The flag word at +0x48 is read and written whole (FillMcDirInfo); the creation day and month
+   bytes overlap its upper half. */
+struct SAVEINFO
+{
+    char achName[0x44];
+    int cb;                 /* +0x44 */
+    union {
+        int grf;            /* +0x48 */
+        struct { uchar pad48[2]; uchar bDayC, bMonthC; };
+    };
+    ushort wYearC;          /* +0x4C */
+    uchar bHourC, bMinC, bSecC;
+    uchar pad51;
+    uchar bDayM, bMonthM;   /* +0x52 */
+    ushort wYearM;          /* +0x54 */
+    uchar bHourM, bMinM, bSecM;
+    uchar pad59[3];
+};
+typedef char assert_SAVEINFO_size[sizeof(SAVEINFO) == 0x5C ? 1 : -1];
+
+/* SAVE: the save manager: card port/slot, its state machine (SetSaveState), the card's info, the three save slots
+   (0x5464 bytes each: the 0x5408 bytes written to the card -- a GS blob, a version and a checksum -- then the slot's
+   SAVEINFO; memcard.cpp's per-function SLOT views), the slot in use and the worker. memcard.cpp's .bss reserves
+   0xFDA0 bytes for it. */
+struct SAVE
+{
+    int port;
+    int slot;               /* +0x04 */
+    int nState;             /* +0x08 */
+    int nStateNext;         /* +0x0C */
+    float tStateChanged;    /* +0x10 */
+    float tNextPoll;        /* +0x14 */
+    int cardType;           /* +0x18 sceMcGetInfo type (2: PS2 card) */
+    int freeClusters;       /* +0x1C */
+    int isFormatted;        /* +0x20 */
+    char aslot[3][0x5464];  /* +0x24 the slots (kept as bytes: the matched code addresses them by offset) */
+    int currentSlot;        /* +0xFD50 the slot in use (0: none) */
+    void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
+    int selectedSlot;       /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
+    MEMCARD memcard;        /* +0xFD5C */
+};
+typedef char assert_SAVE_currentSlot[SLY2_OFFSETOF(SAVE, currentSlot) == 0xFD50 ? 1 : -1];
+typedef char assert_SAVE_memcard[SLY2_OFFSETOF(SAVE, memcard) == 0xFD5C ? 1 : -1];
+
+/* g_save: memcard.cpp's .bss block under its address name. */
+extern SAVE g_save __asm__("D_002E65E0");
 
 #endif /* SLY2_SAVE_H */
