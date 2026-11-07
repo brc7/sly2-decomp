@@ -779,22 +779,18 @@ extern "C" CPHANG *CPHANG_ctor(CPHANG *pcphang)
 namespace M_ActivateCphang { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-extern char D_002DDF40[];
-struct A { int hero; int pad[3]; void *pb; int act; float nextSwayTime; };
-void ActivateCplcy(struct A *a, int n, void *b);
-void SetCmNearClip__FP2CMf(void *pg, float g);
-void SetCmFov__FP2CMf(void *pg, float g);
-int NewPositionAct(int n, void *pb, int a, int b, int c, qword q);
+void ActivateCplcy(CPHANG *a, int n, void *b);
+ACT1 *NewPositionAct(void *pvHero, XF *pxf, int a, int b, int c, qword q);
 // Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), nextSwayTime=-1. (inferred)
-void ActivateCphang(struct A *a, int n, void *b)
+void ActivateCphang(CPHANG *a, int n, void *b)
 {
-    void *pg;
+    CM *pg;
     ActivateCplcy(a, n, b);
-    a->pb = b;
-    pg = D_002DDF40;
-    SetCmNearClip__FP2CMf(pg, 25.0f);
-    SetCmFov__FP2CMf(pg, 1.15f);
-    a->act = NewPositionAct(a->hero, a->pb, 1, 8, 3, D_002A2DD0);
+    a->pxfCam = (XF *)b;
+    pg = &g_cm;
+    SetCmNearClip(pg, 25.0f);
+    SetCmFov(pg, 1.15f);
+    a->pact1 = NewPositionAct(a->pvHero, a->pxfCam, 1, 8, 3, D_002A2DD0);
     a->nextSwayTime = -1.0f;
 }
 } } // namespace M_ActivateCphang
@@ -816,10 +812,7 @@ namespace M_UpdateCphang {
 // never-chosen "V" alternative (the ClipCameraEye trick: lw instead of lwc1+mfc1).
 typedef int qword __attribute__((mode(TI)));
 extern "C" CLOCK D_002DDED0;
-struct CM;
-extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float minValue, maxValue; };
 extern "C" CLQ D_002BDA10;
 extern "C" LM D_002BDA20;
 extern "C" CLQ D_002BDA30;
@@ -830,16 +823,12 @@ struct JOY { char pad[0x1070]; float dxRight; float dyRight; float rightStickDef
 struct GS { char pad[0x4CC]; int unknown4CC; };
 struct TGT { char pad[0x20]; qword pos; };
 struct OBJ { char pad[0x40]; int matrix; };   /* the camera XF: its matrix at +0x40 */
-struct X {
-    GS *pgs; int pad4[3]; OBJ *cameraXf; TGT *act; float nextSwayTime; int pad1C;
-    union { qword q; float f[4]; } pos; qword v;
-};
 extern "C" {
-void UpdateCplcy(X *p, void *pv, JOY *pjoy);
+void UpdateCplcy(CPHANG *p, void *pv, JOY *pjoy);
 float RandomFloatInRange__Fff(float gMin, float gMax);
 void SetActPositionGoal(TGT *p, qword pos);
 void SetCmMat4(CM *p, int *pm);
-void UpdateCphang(X *p, void *pv, JOY *pjoy);
+void UpdateCphang(CPHANG *p, void *pv, JOY *pjoy);
 }
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
 static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
@@ -875,7 +864,7 @@ static inline qword AddScaled2(VU_VECTOR a, VU_VECTOR b, VU_VECTOR c, VU_FLOAT s
 
 // Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and
 // SetCmMat4 from the camera transform.
-void UpdateCphang(X *p, void *pv, JOY *pjoy)
+void UpdateCphang(CPHANG *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
     UpdateCplcy(p, pv, pjoy);
@@ -894,7 +883,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
         union { qword q; } u;
         u.q = Make(0.0f, y, ax);
         pos = u.q;
-    } else if (p->pgs->unknown4CC != 9) {
+    } else if (((GS *)p->pvHero)->unknown4CC != 9) {
         qword zero = Zero();
         pos = zero;
         v = pos;
@@ -902,7 +891,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
         if (p->nextSwayTime < D_002DDED0.time) {
             float y = GRand(D_002BDA48);
             float z = GRand(D_002BDA50);
-            float *pf = p->pos.f;
+            float *pf = &p->swayOffset.x;
             pf[0] = 0.0f;
             pf[1] = y;
             pf[2] = z;
@@ -910,13 +899,13 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
             p->nextSwayTime = t + GRand(D_002BDA58);
         }
         float dt = D_002DDED0.deltaTime;
-        qword accel = VecCombo(VU_FLOAT(&D_002BDA60), Sub(p->pos.q, p->act->pos), VU_FLOAT(-D_002BDA64), p->v);
-        v = AddScaled(p->v, accel, VU_FLOAT(dt));
-        pos = AddScaled2(p->act->pos, p->v, v, VU_FLOAT(dt * 0.5f));
+        qword accel = VecCombo(VU_FLOAT(&D_002BDA60), Sub(*(qword *)&p->swayOffset, ((TGT *)p->pact1)->pos), VU_FLOAT(-D_002BDA64), *(qword *)&p->vecVel);
+        v = AddScaled(*(qword *)&p->vecVel, accel, VU_FLOAT(dt));
+        pos = AddScaled2(((TGT *)p->pact1)->pos, *(qword *)&p->vecVel, v, VU_FLOAT(dt * 0.5f));
     }
-    SetActPositionGoal(p->act, pos);
-    p->v = v;
-    SetCmMat4(&D_002DDF40, &p->cameraXf->matrix);
+    SetActPositionGoal((TGT *)p->pact1, pos);
+    *(qword *)&p->vecVel = v;
+    SetCmMat4(&g_cm, &((OBJ *)p->pxfCam)->matrix);
 }
 } // namespace M_UpdateCphang
 
