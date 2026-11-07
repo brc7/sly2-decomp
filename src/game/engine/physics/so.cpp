@@ -610,13 +610,9 @@ done:
 
 // 0x1F2A60 ShowSoPart
 namespace M_ShowSoPart {
-struct A; struct B;
-typedef unsigned long ulong;
-struct A { char pad[0x28]; ulong lo : 60; ulong isInWorld : 1; ulong hi : 3; };
-struct B { char pad[0x10]; ulong lo : 50; ulong isHidden : 1; ulong hi : 13; };
-extern "C" void AddSoPartToTree(A *, B *);
-// Un-hides a part (clears flag bit 50) and, when the object is in the world, adds it to the tree.
-extern "C" void ShowSoPart(A *pa, B *pb)
+extern "C" void AddSoPartToTree(SO *, SOPART *);
+// Un-hides a part and, when the object is in the world, adds it to the tree.
+extern "C" void ShowSoPart(SO *pa, SOPART *pb)
 {
     if (pb->isHidden) { pb->isHidden = 0;
     bool f = pa->isInWorld; if (f) AddSoPartToTree(pa, pb); }
@@ -625,52 +621,41 @@ extern "C" void ShowSoPart(A *pa, B *pb)
 
 // 0x1F2AD0 HideSoPart
 namespace M_HideSoPart { extern "C" {
-struct T; struct S;
-struct T { char pad[0x10]; ulong flags; };
-struct S { char pad[0x28]; ulong flags; };
-void RemoveSoPartFromTree(struct S *, struct T *);
-// Hides a part (sets flag bit 50) and, when the object is in the world, removes it from the tree.
-void HideSoPart(struct S *so, struct T *pt)
+void RemoveSoPartFromTree(SO *, SOPART *);
+// Hides a part and, when the object is in the world, removes it from the tree.
+void HideSoPart(SO *so, SOPART *pt)
 {
-    if (!(pt->flags & (1UL << 50))) {
-        pt->flags |= 1UL << 50;
-        if ((int)(so->flags >> 60) & 1) RemoveSoPartFromTree(so, pt);
+    if (!pt->isHidden) {
+        pt->isHidden = 1;
+        if ((int)so->isInWorld & 1) RemoveSoPartFromTree(so, pt);
     }
 }
 } } // namespace M_HideSoPart
 
 // 0x1F2B20 AddSoParts
 namespace M_AddSoParts { extern "C" {
-struct E; struct P;
-typedef unsigned long ulong;
-struct E { int pad[4]; ulong flags; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
-void AddSoPartToTree(struct P *, struct E *);
+void AddSoPartToTree(SO *, SOPART *);
 // Adds every visible part to the object's tree.
-void AddSoParts(struct P *so)
+void AddSoParts(SO *so)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (!(pe->flags & (1L << 50))) AddSoPartToTree(so, pe);
+        SOPART *pe = &so->parts[i];
+        if (!pe->isHidden) AddSoPartToTree(so, pe);
     }
 }
 } } // namespace M_AddSoParts
 
 // 0x1F2BA8 RemoveSoParts
 namespace M_RemoveSoParts { extern "C" {
-struct E; struct P;
-typedef unsigned long ulong;
-struct E { int pad[4]; ulong flags; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
-void RemoveSoPartFromTree(struct P *, struct E *);
+void RemoveSoPartFromTree(SO *, SOPART *);
 // Removes every visible part from the object's tree.
-void RemoveSoParts(struct P *so)
+void RemoveSoParts(SO *so)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (!(pe->flags & (1L << 50))) RemoveSoPartFromTree(so, pe);
+        SOPART *pe = &so->parts[i];
+        if (!pe->isHidden) RemoveSoPartFromTree(so, pe);
     }
 }
 } } // namespace M_RemoveSoParts
