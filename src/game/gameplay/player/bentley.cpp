@@ -832,35 +832,34 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135940 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct VT { short d; short pad; void *pfn; };
-struct P { char pad[0xC]; struct VT *pvt; char pad1[0x2C0 - 0x10]; char air[0x200]; char grab[0xDF0 - 0x4C0];
-    char hurt[0x160]; char pipe[0x13D0 - 0xF50]; int k; char pad3[0x16B0 - 0x13D4]; int subState; };
+/* Bentley as the register-pinned drag code reads him: the g++ vtable pointer at +0xC. */
+struct VOBJ { char pad[0xC]; struct VT *pvt; };
 extern float D_002BC990;
-void PresetSoAccel(struct P *p);
-void PresetStepAccel(struct P *p);
-void PresetJtAccelJump(void *p);
-void PresetJtAccelHide(void *p);
-void PresetJtAccelZap(void *p);
-void PresetJtAccelPipe(void *p);
-void AddSoAcceleration(struct P *p, qword v);
+void PresetSoAccel(BENTLEY *p);
+void PresetStepAccel(BENTLEY *p);
+void PresetJtAccelJump(JTAIR *p);
+void PresetJtAccelHide(JTGRAB *p);
+void PresetJtAccelZap(JTHURT *p);
+void PresetJtAccelPipe(JTPIPE *p);
+void AddSoAcceleration(BENTLEY *p, qword v);
 // BENTLEY physics preset (slot 70): per state, the pipe / air / grab / hurt component's preset; state 6 sub-state 2
 // applies drag.
-void PresetBentleyAccel(struct P *bentley)
+void PresetBentleyAccel(BENTLEY *bentley)
 {
-    if (bentley->k == BENTLEY_PIPE)
+    if (bentley->state == BENTLEY_PIPE)
         PresetSoAccel(bentley);
     else
         PresetStepAccel(bentley);
-    switch (bentley->k) {
-    case BENTLEY_AIR: PresetJtAccelJump(bentley->air); break;
-    case BENTLEY_GRAB: PresetJtAccelHide(bentley->grab); break;
-    case BENTLEY_HURT: PresetJtAccelZap(bentley->hurt); break;
-    case BENTLEY_PIPE: PresetJtAccelPipe(bentley->pipe); break;
+    switch (bentley->state) {
+    case BENTLEY_AIR: PresetJtAccelJump(&bentley->jtair); break;
+    case BENTLEY_GRAB: PresetJtAccelHide(&bentley->jtgrab); break;
+    case BENTLEY_HURT: PresetJtAccelZap(&bentley->jthurt); break;
+    case BENTLEY_PIPE: PresetJtAccelPipe(&bentley->jtpipe); break;
     case BENTLEY_GADGET:
         if (bentley->subState == 2) {
-            register struct VT *vt __asm__("$3") = bentley->pvt;
+            register struct VT *vt __asm__("$3") = ((VOBJ *)bentley)->pvt;
             U a, u;
             qword v, r, q;
             qword (*function)(void *) = (qword (*)(void *))vt[33].pfn;
@@ -1255,95 +1254,86 @@ void UpdateBentleyAim(BENTLEY *bentley)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136530 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; qword pos; } M4;
-struct VT { short d; short pad; void *f; };
+/* A transform (XF) as read here: +0xA0 its parent. */
 struct O { char pad[0xA0]; void *xA0; };
-struct G { char pad[0x13D0]; int state; char pad2[0x1910 - 0x13D4]; int x1910; int k1914; char pad3[4]; struct Q *pq; };
-struct Q { char pad[0xC]; struct VT *vt; };
-struct P {
-    char pad[0xC]; struct VT *vt; char pad1[0x54 - 0x10]; struct O *p54; struct O *p58; struct O *p5C;
-    char pad2[0x1A4 - 0x60]; int x1A4; char pad3[0x9E4 - 0x1A8]; int placeCount;
-    char pad4[0x1030 - 0x9E8]; int action; int x1034; char pad5[0x1800 - 0x1038];
-    int hoverState; float t1804; void *apv[2]; void *pv1810; void *pv1814;
-};
-extern struct G *D_002F7900;
+extern MURRAY *D_002F7900;
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void SetLoParent(struct P *, int, int);
-void ReleaseAct(void *);
-void SetXfRole(struct P *, struct O *, int);
-float GetStepHeading(struct P *);
-void SetStepTargetHeading(struct P *, float);
-void FixStepAngularVelocity(struct P *);
-void SetJtThrowState(void *, int);
+void SetLoParent(BENTLEY *, int, int);
+void ReleaseAct(ACT **);
+void SetXfRole(BENTLEY *, XF *, int);
+float GetStepHeading(BENTLEY *);
+void SetStepTargetHeading(BENTLEY *, float);
+void FixStepAngularVelocity(BENTLEY *);
+void SetJtThrowState(JTTHROW *, int);
 M4 GetRelativeXfMatrix(void *, void *, M4 *);
-void *NewPositionAct(struct P *p, struct O *pso, int a, int b, int c, qword q);
+ACT *NewPositionAct(BENTLEY *p, XF *pxf, int a, int b, int c, qword q);
 qword DecomposeRotationMatrixToEuler(M4 *pm);
-void ReleaseSma(void *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
+void ReleaseSma(SMA **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, int, ASEGA **, float, float);
 
-// State machine on +0x1800 with reparenting and actuator teardown; also called from the throw code. (inferred: hover
+// State machine on hoverState with reparenting and actuator teardown; also called from the throw code. (inferred: hover
 // pack)
-void SetBentleyHoverState(struct P *bentley, int k)
+void SetBentleyHoverState(BENTLEY *bentley, int k)
 {
-    void *pv;
+    ASEG *pv;
     if (k == bentley->hoverState)
         return;
     switch (bentley->hoverState) {
     case 0: {
-        int save = bentley->placeCount;
+        int save = bentley->jtplaces.cplace;
         SetLoParent(bentley, 0, 0xF);
-        bentley->placeCount = save;
-        ReleaseAct(&bentley->pv1810);
-        ReleaseAct(&bentley->pv1814);
-        SetXfRole(bentley, bentley->p58, 2);
-        SetXfRole(bentley, bentley->p5C, 2);
+        bentley->jtplaces.cplace = save;
+        ReleaseAct(&bentley->apactHover[0]);
+        ReleaseAct(&bentley->apactHover[1]);
+        SetXfRole(bentley, bentley->unknown58, 2);
+        SetXfRole(bentley, bentley->unknown5C, 2);
         break;
     }
     case 1:
         SetStepTargetHeading(bentley, GetStepHeading(bentley));
-        bentley->x1A4 = 0;
+        bentley->unknown1A4 = 0;
         FixStepAngularVelocity(bentley);
         break;
     }
     bentley->hoverState = k;
-    bentley->t1804 = D_002DDED0.time;
-    pv = bentley->apv[k];
+    bentley->hoverStateTime = D_002DDED0.time;
+    pv = bentley->apasegHover[k];
     switch (k) {
     case -1: {
-        struct G *pg = D_002F7900;
+        MURRAY *pg = D_002F7900;
         if (pg->state != 0xF)
             return;
-        if (pg->k1914 == 7)
+        if (pg->jtthrowAim.state == 7)
             return;
-        SetJtThrowState(&pg->x1910, 0);
+        SetJtThrowState(&pg->jtthrowAim, 0);
         return;
     }
     case 0: {
         M4 m;
-        int n;
-        struct Q *pq = D_002F7900->pq;
-        n = ((int (*)(void *, M4 *))pq->vt[32].f)((char *)pq + pq->vt[32].d, &m);
-        { M4 t = GetRelativeXfMatrix(bentley->p54->xA0, bentley->p58->xA0, &m); m = t; }
+        XF *pxf;
+        SO *pq = (SO *)D_002F7900->jtthrowAim.ploHoldParent;
+        pxf = pq->GetLocalTransform((MATRIX4 *)&m);
+        { M4 t = GetRelativeXfMatrix(((O *)bentley->transforms)->xA0, ((O *)bentley->unknown58)->xA0, &m); m = t; }
         {
-            int save = bentley->placeCount;
-            ((void (*)(void *, struct G *, int, int))bentley->vt[10].f)((char *)bentley + bentley->vt[10].d, D_002F7900, n, 3);
-            bentley->placeCount = save;
+            int save = bentley->jtplaces.cplace;
+            bentley->SetParent(D_002F7900, pxf, 3);
+            bentley->jtplaces.cplace = save;
         }
-        ((void (*)(void *, qword))bentley->vt[35].f)((char *)bentley + bentley->vt[35].d, D_002A2DD0);
-        ((void (*)(void *, qword))bentley->vt[36].f)((char *)bentley + bentley->vt[36].d, D_002A2DD0);
-        bentley->pv1810 = NewPositionAct(bentley, bentley->p58, 1, 7, 2, m.pos);
-        bentley->pv1814 = NewPositionAct(bentley, bentley->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+        bentley->SetVelocity(D_002A2DD0);
+        bentley->SetAngularVelocity(D_002A2DD0);
+        bentley->apactHover[0] = NewPositionAct(bentley, bentley->unknown58, 1, 7, 2, m.pos);
+        bentley->apactHover[1] = NewPositionAct(bentley, bentley->unknown5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
         break;
     }
     case 1:
-        bentley->x1A4 = -1;
+        bentley->unknown1A4 = -1;
         break;
     }
-    ReleaseSma(&bentley->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->action, 0.0f, 1.0f);
-    ((void (*)(void *))bentley->vt[90].f)((char *)bentley + bentley->vt[90].d);
+    ReleaseSma(&bentley->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->activeAnimation, 0.0f, 1.0f);
+    bentley->ApplyStateStepParams();
 }
 } } // namespace M_func_00136530
 

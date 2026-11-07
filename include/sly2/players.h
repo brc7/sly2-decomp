@@ -214,7 +214,9 @@ struct BENTLEY : public STEPPLAYER
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
       BTBLENDS btblends;   /* +0x1710 blend set (the crosshair/aim helper: InitBentleyCrosshair, SetBentleyCrosshairState) */
       int hoverState;   /* +0x1800 -1 at init; 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
-      undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
+      float hoverStateTime;   /* +0x1804 clock.time hoverState was set */
+      ASEG *apasegHover[2];   /* +0x1808 clip of hover states 0 and 1 (SetBentleyHoverState) */
+      struct ACT *apactHover[2];   /* +0x1810 position/rotation actuators holding Bentley on Murray in hover state 0 */
     union
     {
           long unknown1818Wide;

@@ -439,8 +439,9 @@ struct JTTHROW
       struct STEPPLAYER *player;        /* owner */
       int state;    /* -1 none, 0 holding, 1/2 hold turn, 3 lift, 4 aiming, 5/6 aim turn, 7 throwing (SetJtThrowState) */
       float stateStartTime; /* time the state was entered */
-      struct LO *ploHoldParent;   /* +0x0C splice option 0x283; on leaving the carry the object is dropped and faded out only when
-                                     its parent is this object's parent (SetJtThrowState -1) */
+      struct LO *ploHoldParent;   /* +0x0C the object the carried one is held by (splice option 0x283): Murray's aimed throw
+                                     parents Bentley to its transform (SetBentleyHoverState); on leaving the carry the object is
+                                     dropped and faded out only when its parent is this object's parent (SetJtThrowState -1) */
       struct LO *ploCarried;   /* carried object: Bentley (D_002DD5BC, the hover launch) or a tossable (CID 100) */
       float holdTurnAngle; /* turn while holding */
       float aimTurnAngle; /* turn while aiming */
