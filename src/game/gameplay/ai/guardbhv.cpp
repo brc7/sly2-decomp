@@ -5125,63 +5125,54 @@ extern "C" qword ChooseBhvCirclePosition(BHV179 *behavior, void *region, qword o
 
 // 0x17C3E8 UpdateBhvCircle
 namespace M_func_0017C3E8 { extern "C" {
-struct D; struct C; struct B; struct K; struct A; struct T; 
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BE748;
-struct D { char pad[0x10]; void *pathzone; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
-struct K { char pad[0xC]; void *target; char pad2[8]; float facingTolerance; };
-struct A { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct B *pathShape; char pad3[0x324 - 0x298]; char circleDistance[0xA8]; struct K *engagement; };
-struct T { char pad[0x70]; float unknown70; };
 void UpdateBhv(BHV179 *p);
-float GetTargetRecordFacing(struct K *engagement);
+float GetTargetRecordFacing(TARGETREC *engagement);
 qword GetLoWorldPos(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float NormalizeAngle__Ff(float f);
 int IsWithinLimits__FP2LMf(void *p, float f);
 qword ChooseBhvCirclePosition(BHV179 *p, void *pathzone, float f, qword v);
-void FindPathzonePathCurve(void *pathzone, qword a, qword b, struct B *c);
-void SetBhvpathShape(struct T *walk, struct B *b, int n);
+void FindPathzonePathCurve(void *pathzone, qword a, qword b, SHAPE *c);
 // 0x17C3E8: Circle behaviour vtable slot 10 (Update): when out of the distance band or off-heading relative to the
 // target, re-paths to a new spacing point.
 void UpdateBhvCircle(BHV179 *behavior) {
-    struct A *a;
-    struct C *c;
-    struct D *d;
+    STEPGUARD *a;
+    SOPHYS *c;
+    REGENT *d;
     void *pathzone;
-    struct B *b;
-    struct K *engagement;
+    SHAPE *b;
+    TARGETREC *engagement;
     void *targetObject;
     float targetFacing;
-    struct T *walk;
+    BHVWALKPATH *walk;
     float cylinder[2];
     qword pos;
     UpdateBhv(behavior);
     d = 0;
     if (behavior->state == 0)
         return;
-    a = ((struct A *)behavior->owner);
-    c = a->unknownE8;
-    b = a->pathShape;
-    if (c) d = c->unknownDC;
+    a = (STEPGUARD *)behavior->owner;
+    c = a->physics;
+    b = (SHAPE *)a->unknown294;
+    if (c) d = c->pregent;
     pathzone = d ? d->pathzone : 0;
-    engagement = a->engagement;
+    engagement = a->pvEngage;
     targetObject = engagement->target;
     targetFacing = GetTargetRecordFacing(engagement);
     pos = GetLoWorldPos(targetObject);
-    walk = ((struct T *)behavior->pbhvNext);
-    if (walk->unknown70 > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
+    walk = (BHVWALKPATH *)behavior->pbhvNext;
+    if (walk->separation > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
     {
         qword dv;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->points[b->numPoints - 1]), "j"(pos));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(*(qword *)&b->vertexPositions[b->numControlVertices - 1]), "j"(pos));
         GetVectorCylind(dv, &cylinder[0], &cylinder[1], 0);
     }
     if (__builtin_fabsf(NormalizeAngle__Ff(cylinder[0] - targetFacing)) > engagement->facingTolerance) goto repath;
-    if (IsWithinLimits__FP2LMf(((struct A *)behavior->owner)->circleDistance, cylinder[1])) return;
+    if (IsWithinLimits__FP2LMf(&((STEPGUARD *)behavior->owner)->circleDistance, cylinder[1])) return;
 repath:
     {
-        qword v = GetLoWorldPos(((struct A *)behavior->owner));
+        qword v = GetLoWorldPos(behavior->owner);
         FindPathzonePathCurve(pathzone, v, ChooseBhvCirclePosition(behavior, pathzone, targetFacing, pos), b);
     }
     SetBhvpathShape(walk, b, 0);
@@ -5190,32 +5181,26 @@ repath:
 
 // 0x17C550 SetBhvCircleState
 namespace M_func_0017C550 { extern "C" {
-struct VTE; struct O; struct X; struct S;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; char pad3[0xC0 - 0x3C]; int animSgf; int pad4; int lookAtTarget; };
-struct X { char pad[0xC]; int target; };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad2; char childSlot[0x18]; int state; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SetBhvpathShape(struct O *o, void *a, int b);
+BHV *PushStepBehavior(void *p, int n);
 // 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
-void SetBhvCircleState(struct S *behavior, int n)
+void SetBhvCircleState(BHV179 *behavior, int n)
 {
     if (n == behavior->state)
         return;
-    PopBhv(behavior->childSlot);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     switch (n) {
     case 0: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-        o->lookAt = ((struct X *)behavior->guard->pvEngage)->target;
+        BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
+        o->lookAt = ((STEPGUARD *)behavior->owner)->pvEngage->target;
         StartPushedBhv(o);
     } break;
     case 1: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
-        SetBhvpathShape(o, behavior->guard->unknown294, 0);
+        BHVWALKPATH *o = (BHVWALKPATH *)PushStepBehavior(behavior->owner, CID_BHVWALKPATH);
+        SetBhvpathShape(o, (SHAPE *)behavior->owner->unknown294, 0);
         o->animSgf = 8;
-        o->lookAtTarget = ((struct X *)behavior->guard->pvEngage)->target;
+        o->lookAtTarget = ((STEPGUARD *)behavior->owner)->pvEngage->target;
         StartPushedBhv(o);
     } break;
     }
