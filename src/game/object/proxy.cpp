@@ -437,7 +437,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
         for (int iplo = 0; iplo < listCopy.m_cplo; iplo++)
         {
             LO *plo = listCopy.m_aplo[iplo];
-            if (!plo->unknownFlag28B)
+            if (!plo->keepsOwnVisMask)
             {
                 SetLoVisMask(plo, grfvis);
             }
@@ -494,7 +494,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
             LO *plo = listNested.m_aplo[iplo];
             plo->SetIdProxy(idProxy, 1);
             plo->ApplyProxy(&mat);
-            if (!plo->unknownFlag28B)
+            if (!plo->keepsOwnVisMask)
             {
                 SetLoVisMask(plo, grfvis);
             }

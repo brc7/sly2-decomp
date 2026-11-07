@@ -1028,16 +1028,14 @@ extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
 }
 
 namespace M_func_001A6C48 { extern "C" {
-typedef unsigned long ulong;
 struct G;
 extern struct G D_003DD490;
 void ResortSwBusyEntry(struct G *g, void *p);
-struct S { char pad[0x10]; int parent; void *root; char pad2[0x10]; ulong fl; int pad3[2]; float busyDistance; };
 // vtable slot 42: sets the busy distance (default 1e10) and re-sorts the root in the world's busy list.
-void SetLoBusyDistance(struct S *object, float g)
+void SetLoBusyDistance(LO *object, float g)
 {
-    object->busyDistance = g;
-    if (!object->parent && ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1)) ResortSwBusyEntry(&D_003DD490, object->root);
+    object->busyRadius = g;
+    if (!object->parent && ((int)object->isInWorld & 1)) ResortSwBusyEntry(&D_003DD490, object->root);
 }
 } } // namespace M_func_001A6C48
 
@@ -1048,24 +1046,14 @@ extern "C" int GetLoBusyKind(LO *plo)
 }
 
 namespace M_SetLoBusyk { extern "C" {
-struct O {
-    char pad[0x10];
-    struct O *parent;
-    void *root;
-    char pad2[0x10];
-    unsigned long lowBits : 52;
-    long busyk : 4;
-    unsigned int removedBits : 4;
-    unsigned int isInWorld : 1;
-};
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
-void SetLoBusyKind(struct O *object, int busyk)
+void SetLoBusyKind(LO *object, int busyk)
 {
-    if (busyk != object->busyk) {
-        object->busyk = busyk;
+    if (busyk != object->busyKind) {
+        object->busyKind = busyk;
         if (!object->parent && (unsigned char)object->isInWorld != 0)
             ResortSwBusyEntry(D_003DD490, object->root);
     }
@@ -1073,37 +1061,17 @@ void SetLoBusyKind(struct O *object, int busyk)
 } } // namespace M_SetLoBusyk
 
 namespace M_func_001A6D28 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct ALO {
-    char pad[0x28];
-    unsigned long lowBits : 52;
-    long busyk : 4;
-    unsigned int removedBits : 4;
-    unsigned int isInWorld : 1;
-};
-struct LOROOT { struct ALO *rootObject; };
-struct O {
-    char pad[0xC];
-    struct VTE *vt;
-    struct O *parent;
-    struct LOROOT *root;
-    char pad2[0x15];
-    unsigned char visMask;   /* grfvis */
-};
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
 // Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into every ancestor.
-void SetLoVisMask(struct O *object, int b)
+void SetLoVisMask(LO *object, int b)
 {
-    struct O *ancestor;
-    if ((unsigned char)object->root->rootObject->isInWorld)
+    LO *ancestor;
+    if ((unsigned char)object->root->topObject->isInWorld)
         ResortSwBusyEntry(D_003DD490, object->root);
-    {
-        struct VTE *entry = &object->vt[46];
-        ((void (*)(void *, int))entry->pfn)((char *)object + entry->d, b);
-    }
+    object->SetVisMask(b);
     for (ancestor = object->parent; ancestor; ancestor = ancestor->parent)
-        ancestor->visMask |= b;
+        ancestor->visibilityMask |= b;
 }
 } } // namespace M_func_001A6D28
 
@@ -1114,51 +1082,44 @@ extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 }
 
 namespace M_SetSoVisMask { extern "C" {
-typedef unsigned long ulong;
-struct O { char pad[0x24]; struct O *pNext; ulong grf; char pad2[0x34]; struct O *pFirst; };
-void SetLoVisMask(struct O *, int);
+void SetLoVisMask(LO *, int);
 // SO's SetVisMask (vtable slot 46): stores the mask and propagates it to the children that do not keep their own.
-void SetSoVisMask(struct O *object, int b)
+void SetSoVisMask(SO *object, int b)
 {
-    struct O *q;
-    *((unsigned char *)object + 0x2D) = b;
-    for (q = object->pFirst; q; q = q->pNext) {
-        if (!(q->grf & (1UL << 58)))
+    LO *q;
+    object->visibilityMask = b;
+    for (q = (LO *)object->children.head; q; q = (LO *)q->siblingLink.next) {
+        if (!q->keepsOwnVisMask)
             SetLoVisMask(q, b);
     }
 }
 } } // namespace M_SetSoVisMask
 
 namespace M_func_001A6E38 { extern "C" {
-typedef unsigned long ulong;
-struct S { char pad[0x28]; ulong fl; };
 // Sets or clears the "keeps its own visibility mask" bit (a parent's SetVisMask then skips it).
-void SetLoOwnVisMask(struct S *object, int f) { object->fl = (object->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
+void SetLoOwnVisMask(LO *object, int f) { object->keepsOwnVisMask = f; }
 } } // namespace M_func_001A6E38
 
 namespace M_func_001A6E70 { extern "C" {
-typedef unsigned long ulong;
-struct S { char pad[0x28]; ulong fl; };
 // True when the object keeps its own visibility mask.
-int HasLoOwnVisMask(struct S *object) { return (int)(object->fl >> 58) & 1; }
+int HasLoOwnVisMask(LO *object) { return (int)object->keepsOwnVisMask & 1; }
 } } // namespace M_func_001A6E70
 
 namespace M_func_001A6E80 { extern "C" {
-struct S { char pad[0x40]; unsigned int flags; };
-static inline void SetFlag(struct S *p, unsigned int fl)
+static inline void SetFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->flags;
+    unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
-    else p->flags = v | fl;
+    else p->unknown40 = v | fl;
 }
-static inline void ClearFlag(struct S *p, unsigned int fl)
+static inline void ClearFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->flags;
+    unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
-    else p->flags = v & ~fl;
+    else p->unknown40 = v & ~fl;
 }
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
-void SetLoFlag8(struct S *object, int f)
+void SetLoFlag8(LO *object, int f)
 {
     if (f) SetFlag(object, 8);
     else ClearFlag(object, 8);

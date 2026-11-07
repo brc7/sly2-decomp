@@ -45,7 +45,7 @@ struct LO : public BASIC
                long busyKind : 4; /* busy kind: how the object takes part in the busy list */
                ulong isRemoved : 1;  /* set once the object has been removed from the world */
                ulong unknownFlag28A : 1;
-               ulong unknownFlag28B : 1;
+               ulong keepsOwnVisMask : 1;   /* a parent's SetVisMask skips it (SetLoOwnVisMask) */
                ulong clearsPlacesOnRemove : 1;   /* RemoveLoHierarchy then calls RemoveSwPlacesOf on it (inferred) */
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
       float nextSpliceTime;   /* when UpdateLo next sends the Splice update event; PostLoLoad sets the default */
