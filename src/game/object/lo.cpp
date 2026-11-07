@@ -374,10 +374,9 @@ extern "C" int LO_GetChildren()
 }
 
 namespace M_PsoFromLo { extern "C" {
-struct S { char pad[0x10]; struct S *parent; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
-struct S *GetSoFromLo(struct S *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return object; return object->parent; }
+SO *GetSoFromLo(LO *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return (SO *)object; return object->parent; }
 } } // namespace M_PsoFromLo
 
 // Loads an LO from the BRX (vtable slot 14): reads its option records until the end marker.
@@ -388,42 +387,32 @@ extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *stream)
 }
 
 namespace M_PostLoLoad { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
-struct S {
-    void *frame; int sidebag, firstRefNode; struct VTE *vt; char pad[0x18];
-    long b0 : 52; long busyk : 4; long b1 : 8;
-    float tNextSplice; char pad2[0xC]; int flags;
-};
 extern float D_002A6A40;
-void RunLoDeferredCallbacks(struct S *s);
+void RunLoDeferredCallbacks(LO *s);
 int FindBindingPtr__6CFrameUii(void *p, int a, int b);
-void SetLoBusyKind(struct S *s, int n);
+void SetLoBusyKind(LO *s, int n);
 // After the level load (vtable slot 15): runs the deferred callbacks and sends Splice message 0; an object whose Splice
 // frame binds an update handler becomes busy and wants Splice updates, others get the default next Splice time.
-void PostLoLoad(struct S *object)
+void PostLoLoad(LO *object)
 {
-    struct VTE *e;
     RunLoDeferredCallbacks(object);
-    e = &object->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)object + e->d, 0, 1, 0, 0, 0);
-    if (object->frame && FindBindingPtr__6CFrameUii(object->frame, 1, 1)) {
+    object->HandleSpliceEvent(0, 1, 0, 0, 0);
+    if (object->scriptFrame.m_p && FindBindingPtr__6CFrameUii(object->scriptFrame.m_p, 1, 1)) {
         int v;
-        if ((int)object->busyk == 2)
+        if ((int)object->busyKind == 2)
             SetLoBusyKind(object, 0);
-        v = object->flags;
+        v = object->unknown40;
         if ((v ^ 1) & 1) *(int *)v |= 2;
-        else object->flags = v | 2;
+        else object->unknown40 = v | 2;
     } else {
-        object->tNextSplice = D_002A6A40;
+        object->nextSpliceTime = D_002A6A40;
     }
 }
 } } // namespace M_PostLoLoad
 
 namespace M_DeferLoRemoveCallback { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
 // The deferred-callback body that removes the object (its Remove, vtable slot 9).
-void DeferLoRemoveCallback(struct O *object) { struct VTE *e = &object->vt[9]; e->pfn((char *)object + e->d); }
+void DeferLoRemoveCallback(LO *object) { object->Remove(); }
 } } // namespace M_DeferLoRemoveCallback
 
 // Queues the object's removal to run with its deferred callbacks instead of immediately.
@@ -444,33 +433,28 @@ extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 }
 
 namespace M_RunLoDeferredCallbacks { extern "C" {
-typedef struct E { void (*pfn)(void *, void *); void *arg; struct E *next; } E;
-struct S { char pad[0x34]; E *first; };
 // Runs every deferred callback queued on the object, in the order they were added.
-void RunLoDeferredCallbacks(struct S *object)
+void RunLoDeferredCallbacks(LO *object)
 {
-    E *a[32];
-    E *e = object->first;
+    LORUN *a[32];
+    LORUN *e = object->firstRunCallback;
     int n;
     if (!e)
         return;
     n = 0;
     do { a[n] = e; n++; e = e->next; } while (e);
-    for (n--; n >= 0; n--) { e = a[n]; e->pfn(object, e->arg); }
+    for (n--; n >= 0; n--) { e = a[n]; e->pfn(object, e->argument); }
 }
 } } // namespace M_RunLoDeferredCallbacks
 
 namespace M_UpdateLo { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; float tNextSplice; };
 extern float D_002DDED0;
 // LO's per-frame update (vtable slot 16): when the object's next Splice time has come, sends Splice message 1 (the
 // update event).
-void UpdateLo(struct O *object)
+void UpdateLo(LO *object)
 {
-    if (object->tNextSplice <= D_002DDED0) {
-        struct VTE *e = &object->vt[3];
-        e->pfn((char *)object + e->d, 1, 1, 0, 0, 0);
+    if (object->nextSpliceTime <= D_002DDED0) {
+        object->HandleSpliceEvent(1, 1, 0, 0, 0);
     }
 }
 } } // namespace M_UpdateLo

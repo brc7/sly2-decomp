@@ -48,7 +48,7 @@ struct LO : public BASIC
                ulong unknownFlag28B : 1;
                ulong clearsPlacesOnRemove : 1;   /* RemoveLoHierarchy then calls RemoveSwPlacesOf on it (inferred) */
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
-      float unknown30;
+      float nextSpliceTime;   /* when UpdateLo next sends the Splice update event; PostLoLoad sets the default */
       LORUN *firstRunCallback; /* first queued LORUN callback */
       float busyRadius; /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
