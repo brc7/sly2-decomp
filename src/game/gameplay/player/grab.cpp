@@ -190,13 +190,7 @@ struct LANGSTR
       char *pchz;
 };
 
-struct SVN
-{
-      int nHash;
-      char *pchzName;
-      int id;
-      SVN *psvnNext;
-};
+/* SVN: sly2/sw.h */
 
 struct SVPATH
 {
@@ -1681,28 +1675,26 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FJtGrabNearestCandidate { extern "C" {
 struct O { char pad[0x10C]; int x10c; };
-struct E { struct O *x0; int x4; float x8; int pad[9]; };
-struct G { char pad[0x4678]; int c; int pad2; struct E ae[1]; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern float D_002BF660;
 extern float D_002BF664;
 extern int D_002E1E40;
 struct P { int x0; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
-void SetJtGrabState(struct P *p, int n, struct O *o, int a);
+void SetJtGrabState(struct P *p, int n, struct O *o, GRABSPOT *a);
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
 // returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
 int TryGrabJtNearestCandidate(struct P *p)
 {
-    struct G *g = &D_003DD490;
-    int n = g->c;
+    SW *g = &D_003DD490;
+    int n = g->cjtgrabcand;
     int i;
     for (i = 0; i < n; i++) {
-        struct E *e = &g->ae[i];
+        JTGRABCAND *e = &g->ajtgrabcand[i];
         struct O *o;
         int k;
-        if (e->x8 > D_002BF660) break;
-        o = e->x0;
+        if (e->distance > D_002BF660) break;
+        o = (struct O *)e->object;
         if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x13) || IsBasicDerivedFrom__FP5BASIC3CID(o, 0xB))
             k = (p->x0 == D_002E1E40) ? 6 : 5;
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1B))
@@ -1712,11 +1704,11 @@ int TryGrabJtNearestCandidate(struct P *p)
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x22))
             k = 0;
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x26))
-            k = e->x0->x10c;
+            k = ((struct O *)e->object)->x10c;
         else
             k = IsBasicDerivedFrom__FP5BASIC3CID(o, 0x23) ? 7 : -1;
         if (k != -1) {
-            SetJtGrabState(p, k, o, e->x4);
+            SetJtGrabState(p, k, o, e->grabSpot);
             return 1;
         }
     }

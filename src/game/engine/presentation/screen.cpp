@@ -29,6 +29,7 @@
 #include "sly2/cref.h"
 #include "sly2/joy.h"
 #include "sly2/save.h"
+#include "sly2/game.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -1232,14 +1233,13 @@ int IsPowerupAcquired(int n) {
 } } // namespace M_FPowerupAcquired
 
 namespace M_SetPowerupAcquired {
-struct G { char pad[0xC]; int powerupId; };   /* the game-event record (BroadcastGameEvent) */
-extern "C" { extern G D_002DEB30; }
+extern "C" { extern GAME D_002DEB30; }
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79A8[]; }
 extern "C" { extern char D_002A79B8[]; }
 extern "C" { int sprintf(char *, const char *, ...); }
 extern "C" { CRef SetSaveVarByName(const CRef &, const char *, ...); }
-extern "C" { void BroadcastGameEvent(G *, int, int); }
+extern "C" { void BroadcastGameEvent(GAME *, int, int); }
 // Marks a power-up bought or not; buying broadcasts the "power-up acquired" game event.
 extern "C" void SetPowerupAcquired(int n, int f)
 {
@@ -1248,7 +1248,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
     sprintf(buf, D_002A79A0, n);
     ref = SetSaveVarByName(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
-        D_002DEB30.powerupId = n;
+        D_002DEB30.idGadgetLast = n;
         BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
     }
 }
@@ -2840,8 +2840,7 @@ void TITLE::SetMode(int mode)   /* key function */
 }
 
 namespace M_BuildTitlePromptText {
-struct G { char pad[0x3B1C]; void *unknown3B1C; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern JOY D_002DFC00; }
 extern "C" { 
 extern SAVE D_002E65E0;
@@ -2850,7 +2849,6 @@ extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
 extern "C" int CountRegionLanguages(void);
-extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
 extern "C" { CRef GetGlobalSaveVar(void *, void *); }
 // Text callback: the title prompt (continue or new game, options, language).
 extern "C" void BuildTitlePromptText(char *pch)
@@ -2858,24 +2856,24 @@ extern "C" void BuildTitlePromptText(char *pch)
     float g;
     void *pv;
     if (D_002DFC00.joys == 1 && D_002DFC00.joyk == 0) {
-        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 9));
+        strcpy(pch, FindSwLocalizedString(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
     pv = D_002E65E0.newestSlot;
     if (pv) {
-        CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
+        CRef ref = GetGlobalSaveVar(D_003DD490.psvpDt, pv);
         g = ref.u.g;
     }
     {
         int ids = g != 0.0f ? 6 : 5;
-        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, FindSwLocalizedString(&D_003DD490, ids));
     }
     strcpy1(pch, D_002A7A70);
-    strcpy1(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 8));
+    strcpy1(pch, FindSwLocalizedString(&D_003DD490, 8));
     if (CountRegionLanguages() >= 2) {
         strcpy1(pch, D_002A7A70);
-        strcpy1(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 0x56));
+        strcpy1(pch, FindSwLocalizedString(&D_003DD490, 0x56));
     }
 }
 } // namespace M_BuildTitlePromptText

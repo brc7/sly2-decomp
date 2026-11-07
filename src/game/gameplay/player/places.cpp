@@ -61,8 +61,7 @@ typedef char assert_JT_places[(unsigned int)&((JTV *)0)->places == 0x9E0 ? 1 : -
 typedef char assert_JT_state[(unsigned int)&((JTV *)0)->state == 0x18C8 ? 1 : -1];
 struct LO2 { char pad[0x218]; qword *position; };
 struct HIT { qword pos; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };
-typedef struct { float g, gFirst, gSecond; } CLQV;
-typedef struct { float gMin, gMax; } LMV;
+typedef struct { float g, gFirst, gSecond; } CLQV;   /* 12-byte data object: basic.h's CLQ is 16 (its symbol size would change) */
 
 extern SW D_003DD490;
 float D_002BF940 = 1.25f;   /* places' .data starts here (address order) */
@@ -95,7 +94,7 @@ float D_002BF944 = 500.0f;          /* the nearby-objects sphere radius */
 VQ D_002BF950[8] = {{{40.0f, 0.0f, 0.0f, 0.0f}}, {{28.3f, 28.3f, 0.0f, 0.0f}}, {{0.0f, 40.0f, 0.0f, 0.0f}}, {{-28.3f, 28.3f, 0.0f, 0.0f}},
     {{-40.0f, 0.0f, 0.0f, 0.0f}}, {{-28.3f, -28.3f, 0.0f, 0.0f}}, {{0.0f, -40.0f, 0.0f, 0.0f}}, {{28.3f, -28.3f, 0.0f, 0.0f}}};   /* 8 probe offsets */
 CLQV D_002BF9D0 = {400.0f, -1.0f, 0.0f};
-LMV D_002BF9E0 = {0.0f, 1000.0f};
+LM D_002BF9E0 = {0.0f, 1000.0f};
 int FindSwObjectsByClass(SW *g, int k, int n, int m, int c, LO2 **apv);
 float ScoreJtPlace(JTPLACES *p, PLACE *e, int c, LO2 **apv);
 qword GetLoWorldPos(void *p);
@@ -238,7 +237,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         dist = VuToFloat(d);
-        g = Max(g, Clamp(EvaluateClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
+        g = Max(g, Clamp(EvaluateClq(&D_002BF9D0, dist), D_002BF9E0.minValue, D_002BF9E0.maxValue));
     }
     return g;
 }

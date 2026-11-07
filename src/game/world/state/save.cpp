@@ -32,51 +32,8 @@ struct SVKEY
     short *ash;
 };
 
-/* A schema entry (10 bytes): a trie node over the key's symbol ids. kind -1 is an inner node; leaves give the slot's
-   type (0..2, 9, 10 int; 3 float; 4 bool, bit-packed when fBits; 5 vector, 6 clq: 16 bytes; 7 lm; 8 smp), the
-   offset in the save blob, and whether one more key element indexes an array (fIndexed). */
-struct SVENT
-{
-    short symid;
-    signed char kind;
-    unsigned char fIndexed;     /* (bool kind: bit-packed array of fIndexed bits) */
-    unsigned short ib;
-    unsigned short ientChild;
-    unsigned short ientSibling;
-};
-typedef char assert_SVENT_size[sizeof(SVENT) == 10 ? 1 : -1];
+/* The schema (g_svstore = SW::savevars) is sly2/sw.h's SAVEVARS: SVENT entries and the SVN symbol table (SVNHASH). */
 
-/* The save symbol table: 0x35 hash chains over an array filled from the end. */
-struct SVSYM
-{
-    unsigned int hash;
-    char *pchz;
-    int symid;
-    SVSYM *psymNext;
-};
-struct SVSYMTAB
-{
-    SVSYM *apsym[0x35];
-    int csym;
-    SVSYM *asym;
-};
-
-/* The schema (g_svstore, D_003E0EA8 = SW::savevars: sly2/sw.h's SAVEVARS is the same layout, read through a cast). */
-struct SVSTORE
-{
-    int cent;
-    SVENT *aent;
-    SVSYMTAB symtab;
-};
-
-/* The save blob plus the schema version and checksum it was written with (g_gs, D_003D4A60). */
-struct SVSET
-{
-    GS gs;
-    int nSchema;            /* +0x5400 */
-    int nSchemaSum;         /* +0x5404 */
-};
-typedef char assert_SVSET_size[sizeof(SVSET) == 0x5408 ? 1 : -1];
 
 /* The result of a lookup: the leaf and the array index. */
 struct SVFIND
@@ -92,7 +49,7 @@ struct DISP1 { unsigned long dx : 12; unsigned long dy : 11; unsigned long rest 
 struct DISP2 { unsigned int dx : 12; unsigned int dy : 11; unsigned long rest : 41; };
 struct GSREGS { char pad[0x18]; DISP1 d1; char pad20[0x40 - 0x20]; DISP2 d2; };
 
-extern SVSET D_003D4A60;        /* g_gs */
+extern SAVEDATA D_003D4A60;        /* g_gs */
 extern char D_002DD590[];       /* the level heap */
 /* save's .data: bytes per element by kind, and the completion weight of each world's progress variable. */
 int D_002C2D90[11] = {4, 4, 4, 4, 4, 16, 16, 8, 12, 4, 4};
@@ -114,8 +71,8 @@ void *AllocFromStack(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
-CRef GetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
-CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
+CRef GetGlobalSaveVar(SVKEY *key, SAVEDATA *saveSet);
+CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet);
 void ResetRumbleSaveVar();
 int CountRegionLanguages();
 void SetLanguage(int lang);
@@ -129,16 +86,16 @@ CRef *CRef_SetClq(CRef *pref, const qword *pclq);
 CRef *CRef_SetLm(CRef *pref, const void *plm);
 CRef *CRef_SetSmp(CRef *pref, const void *psmp);
 
-void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet);
-int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet);
-int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result);
-void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
-CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
-CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
-void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym);
+void ResetGsIfSchemaChanged(SAVEVARS *schema, SAVEDATA *saveSet);
+int DoesGsMatchSchema(SAVEVARS *schema, SAVEDATA *saveSet);
+int FindSaveVar(SAVEVARS *schema, SVKEY *key, SVFIND *result);
+void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet);
+CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet);
+CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &ref, SAVEDATA *saveSet);
+void InitSaveSymbolTable(SVNHASH *symbolTable, int csym);
 unsigned int HashSaveSymbolName(const char *pchz);
-void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid);
-int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz);
+void AddSaveSymbol(SVNHASH *symbolTable, char *pchz, int symid);
+int FindSaveSymbol(SVNHASH *symbolTable, const char *pchz);
 void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key);
 }
 
@@ -155,11 +112,11 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
 }
 
 // Index of the symbol pchz in the schema's symbol table.
-static inline int FindSchemaSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
+static inline int FindSchemaSymbol(SAVEVARS *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
 
 // Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
 // the save blob when the schema changed.
-extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *stream)
+extern "C" void LoadSaveSchemaFromBrx(SAVEVARS *schema, CBinaryInputStream *stream)
 {
     MEMREQ memreq;
     char *pchz;
@@ -185,7 +142,7 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *strea
 
 // Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
 // ones.
-extern "C" void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet)
+extern "C" void ResetGsIfSchemaChanged(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
     int nSchema = *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6);
@@ -197,7 +154,7 @@ extern "C" void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet)
 }
 
 // True when the save blob's stored schema version and checksum match the loaded schema.
-extern "C" int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet)
+extern "C" int DoesGsMatchSchema(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
     return *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6) == saveSet->nSchema &&
@@ -206,7 +163,7 @@ extern "C" int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet)
 
 // Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
 // false when the key does not name a variable.
-extern "C" int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result)
+extern "C" int FindSaveVar(SAVEVARS *schema, SVKEY *key, SVFIND *result)
 {
     SVENT *aent = schema->aent;
     SVENT *pent;
@@ -248,7 +205,7 @@ extern "C" int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result)
 }
 
 // Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
-extern "C" void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
+extern "C" void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 {
     SVFIND find;
     FindSaveVar(schema, key, &find);
@@ -259,7 +216,7 @@ struct LMV { int a[2]; };
 struct SMPV { int a[3]; };
 
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
-CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
+CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 {
     CRef ref;
     SVFIND find;
@@ -314,7 +271,7 @@ CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 }
 
 // Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
-CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
+CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SAVEDATA *saveSet)
 {
     CRef ref(0x24);
     SVFIND find;
@@ -368,7 +325,7 @@ CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
 }
 
 // Read the save variable key as an int.
-static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
+static inline int GetSaveVarInt(SVKEY *key, SAVEDATA *saveSet)
 {
     CRef ref = GetGlobalSaveVar(key, saveSet);
     return ref.u.n;
@@ -377,7 +334,7 @@ static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
 
 // The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
 // clamped to 1..99.
-extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
+extern "C" int GetCompletionPercent(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = 0;
     int total = 0;
@@ -428,7 +385,7 @@ extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
 
 // Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
 // "from_memcard". (inferred)
-extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
+extern "C" void BuildMemcardGsMask(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int symid;
     int i;
@@ -445,13 +402,13 @@ extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
 }
 
 // Allocates the save symbol table's entries.
-extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
+extern "C" void InitSaveSymbolTable(SVNHASH *symbolTable, int csym)
 {
     MEMREQ memreq;
     symbolTable->csym = csym;
     memreq.cb = csym << 4;
     memreq.cbAlign = 0x10;
-    symbolTable->asym = (SVSYM *)AllocFromWorldHeap(&memreq);
+    symbolTable->asym = (SVN *)AllocFromWorldHeap(&memreq);
 }
 
 // Upper-case form of ch.
@@ -471,11 +428,11 @@ extern "C" unsigned int HashSaveSymbolName(const char *pchz)
 }
 
 // Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
-extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
+extern "C" void AddSaveSymbol(SVNHASH *symbolTable, char *pchz, int symid)
 {
     unsigned int hash = HashSaveSymbolName(pchz);
     unsigned int ihash = hash % 0x35;
-    SVSYM *psym = &symbolTable->asym[symbolTable->csym - 1];
+    SVN *psym = &symbolTable->asym[symbolTable->csym - 1];
     symbolTable->csym--;
     psym->pchz = pchz;
     psym->symid = symid;
@@ -485,10 +442,10 @@ extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
 }
 
 // Returns the symbol id of a name in the save symbol table, or -1.
-extern "C" int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz)
+extern "C" int FindSaveSymbol(SVNHASH *symbolTable, const char *pchz)
 {
     unsigned int hash = HashSaveSymbolName(pchz);
-    SVSYM *psym;
+    SVN *psym;
     for (psym = symbolTable->apsym[hash % 0x35]; psym; psym = psym->psymNext)
     {
         if (psym->hash == hash && strcasecmp(psym->pchz, pchz) == 0)
@@ -516,7 +473,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
-            int symid = FindSchemaSymbol((SVSTORE *)&g_sw.savevars, pchzT);
+            int symid = FindSchemaSymbol(&g_sw.savevars, pchzT);
             if (symid == -1)
                 key->ash[i] = atoi(pchzT);
             else
@@ -562,11 +519,11 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 }
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
-static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SVSET *saveSet) { return GetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
+static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SAVEDATA *saveSet) { return GetSaveVar(&g_sw.savevars, key, saveSet); }
 // Write the save variable key into the world's global save store.
-static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet)
+static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet)
 {
-    return SetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
+    return SetSaveVar(&g_sw.savevars, key, ref, saveSet);
 }
 
 // Reads the named save variable (varargs path) from the global save blob as a Splice value.
@@ -604,7 +561,7 @@ extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
     VA_LIST ap;
     VA_START(ap, pchz);
     BuildSaveKeyV(pchz, ap, &key.key);
-    return GetSaveVarAddress((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
+    return GetSaveVarAddress(&g_sw.savevars, &key.key, &D_003D4A60);
 }
 
 // Returns a new key: the concatenation of two keys.
@@ -627,12 +584,12 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 }
 
 // Write *pref into the global save variable key.
-static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
+static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SAVEDATA *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
 // settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
-extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
+extern "C" void ResetSaveGs(SAVEDATA *saveSet, int fKeepSettings)
 {
     STACKSCOPE stackscope;
     SVKEY *apkey[11] = { (SVKEY *)g_sw.psvpLang, (SVKEY *)g_sw.psvpNoVibration, (SVKEY *)g_sw.psvpAutosaveWarned,
@@ -641,7 +598,7 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
                          (SVKEY *)g_sw.psvpScreenCenterX, (SVKEY *)g_sw.psvpScreenCenterY };
     CRef aref[11];
     unsigned int i;
-    if (fKeepSettings && !DoesGsMatchSchema((SVSTORE *)&g_sw.savevars, saveSet))
+    if (fKeepSettings && !DoesGsMatchSchema(&g_sw.savevars, saveSet))
         fKeepSettings = 0;
     if (fKeepSettings)
     {
@@ -661,12 +618,12 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
 }
 
 // Read the global save variable key as an int.
-static inline int GetGlobalSaveVarInt(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
+static inline int GetGlobalSaveVarInt(SVKEY *key, SAVEDATA *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
 // Read the global save variable key as a float.
-static inline float GetGlobalSaveVarFloat(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
+static inline float GetGlobalSaveVarFloat(SVKEY *key, SAVEDATA *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
-extern "C" void ApplyGsSettings(SVSET *saveSet)
+extern "C" void ApplyGsSettings(SAVEDATA *saveSet)
 {
     if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)
         SetLanguage(GetGlobalSaveVarInt((SVKEY *)g_sw.psvpLang, saveSet));
@@ -702,6 +659,6 @@ namespace RO_ORDER { extern const char r_D_002A78F0[] __asm__("D_002A78F0") = "f
 namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "from_memcard"; }
 // ---- save's .bss (tu-merging.md "Data": .bss gaps): g_gs, the save blob with its schema version and checksum
 // (0x3D4A60..0x3D9E68, then screen's .bss at 0x3D9E70). 16-aligned on the definition, as the layout shows (0x3D4A60
-// after tu_1D7238's word at 0x3D4A54; SVSET itself is 8-aligned, and its 0x5408 bytes are what the copies in this
+// after tu_1D7238's word at 0x3D4A54; SAVEDATA itself is 8-aligned, and its 0x5408 bytes are what the copies in this
 // file move). Defined after the functions, so none sees a definition.
-SVSET D_003D4A60 __attribute__((aligned(16)));
+SAVEDATA D_003D4A60 __attribute__((aligned(16)));

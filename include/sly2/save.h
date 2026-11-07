@@ -59,6 +59,20 @@ typedef char assert_GS_mppukfAcquired[SLY2_OFFSETOF(GS, mppukfAcquired) == 0x98 
 typedef char assert_GS_numCoins[SLY2_OFFSETOF(GS, numCoins) == 0xA0 ? 1 : -1]; /* schema + runtime coin counts (CONFIRMED) */
 typedef char assert_GS_lootCounts[SLY2_OFFSETOF(GS, lootCounts) == 0xA4 ? 1 : -1]; /* schema (CONFIRMED) */
 
+/* SAVEDATA: the save blob plus the schema version and checksum it was written with (g_gs, D_003D4A60; 0x5408 bytes, the
+   part of a save slot written to the card). Type name from basic.h's forward declaration, field names from save.cpp
+   (its SVSET; sw.cpp's copy called them nVersion/nSum). */
+struct SAVEDATA
+{
+      GS gs;
+      int nSchema;          /* +0x5400 the schema version (the last entry's ib) */
+      int nSchemaSum;       /* +0x5404 the schema checksum (sum of its entry bytes) */
+};
+typedef char assert_SAVEDATA_size[sizeof(SAVEDATA) == 0x5408 ? 1 : -1];
+
+/* g_gs: the live save data (address name D_003D4A60). */
+extern SAVEDATA g_gs __asm__("D_003D4A60");
+
 /* ---- The save manager (g_save = D_002E65E0; memcard.cpp): moved from memcard.cpp's file-scope types. ---- */
 
 /* MEMCARD: the memory card worker thread (SAVE::memcard): semaphore, thread id (-1: none), the queued job. */
@@ -91,9 +105,17 @@ struct SAVEINFO
 };
 typedef char assert_SAVEINFO_size[sizeof(SAVEINFO) == 0x5C ? 1 : -1];
 
+/* SAVESLOT: one of the save manager's three slots (0x5464 bytes): the save data written to the card, then the slot
+   file's card directory record. */
+struct SAVESLOT
+{
+      SAVEDATA data;        /* +0x0000 */
+      SAVEINFO info;        /* +0x5408 */
+};
+typedef char assert_SAVESLOT_size[sizeof(SAVESLOT) == 0x5464 ? 1 : -1];
+
 /* SAVE: the save manager: card port/slot, its state machine (SetSaveState), the card's info, the three save slots
-   (0x5464 bytes each: the 0x5408 bytes written to the card -- a GS blob, a version and a checksum -- then the slot's
-   SAVEINFO; memcard.cpp's per-function SLOT views), the slot in use and the worker. memcard.cpp's .bss reserves
+   (SAVESLOT), the slot in use and the worker. memcard.cpp's .bss reserves
    0xFDA0 bytes for it. */
 struct SAVE
 {
@@ -106,11 +128,10 @@ struct SAVE
     int cardType;           /* +0x18 sceMcGetInfo type (2: PS2 card) */
     int freeClusters;       /* +0x1C */
     int isFormatted;        /* +0x20 */
-    char aslot[3][0x5464];  /* +0x24 the slots (kept as bytes: the matched code addresses them by offset) */
-    int currentSlot;        /* +0xFD50 the slot in use (0: none); memcard.cpp's save-page functions read it, and
-                               selectedSlot, as a pointer to one of aslot (their views keep that form for now) */
-    void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
-    int selectedSlot;       /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
+    SAVESLOT aslot[3];      /* +0x24 the slots */
+    SAVESLOT *currentSlot;  /* +0xFD50 the slot in use (0: none) */
+    SAVESLOT *newestSlot;   /* +0xFD54 the most recently modified slot (SetSaveState) */
+    SAVESLOT *selectedSlot; /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
     MEMCARD memcard;        /* +0xFD5C */
 };
 typedef char assert_SAVE_currentSlot[SLY2_OFFSETOF(SAVE, currentSlot) == 0xFD50 ? 1 : -1];

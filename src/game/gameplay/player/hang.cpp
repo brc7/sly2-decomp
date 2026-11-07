@@ -63,6 +63,7 @@ qword GetLoWorldPos(void*);
 M4*GetLoWorldMatrix(void*);
 qword GetXfVelocity(void*,void*,qword);
 float SplitVectorAlongAxis(qword,qword,qword*,qword*);
+struct CLQV{float g0,g1,g2;};   /* 12-byte data objects: basic.h's CLQ is 16 (the symbol sizes would change) */
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
 M3 BuildRotationMatrixFromVector(qword);
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
@@ -90,13 +91,13 @@ extern U D_002A2DC0,D_002A2DA0,D_002A2DB0,D_002A2DD0;
 extern LM D_002BBB60;
 extern CLOCK D_002DDED0;
 /* hang's .data (address order). */
-extern CLQ D_002BF4F0;
+extern CLQV D_002BF4F0;
 extern LM D_002BF500;
 extern float D_002BF508;
 extern float D_002BF50C;
 extern float D_002BF510;
 extern float D_002BF514;
-extern CLQ D_002BF520;
+extern CLQV D_002BF520;
 extern SMPA D_002BF530;
 extern float D_002BF540;
 extern float D_002BF544;
@@ -290,7 +291,7 @@ static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VuSqrtX(VuDot(
 // Length of v as a float.
 static inline float LengthOf(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
 // Evaluate the quadratic g0 + g1*x + g2*x^2.
-static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
+static inline float EvaluateClq(CLQV*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 // Larger of a and b.
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
 // The object's velocity (virtual slot 33).
@@ -446,6 +447,7 @@ typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char PL_Size[sizeof(PL)==32?1:-1];
 typedef char LINK_Size[sizeof(LINK)==8?1:-1];
+typedef char SMP_Size[sizeof(SMP)==12?1:-1];
 typedef char WORK_Size[sizeof(WORK)==176?1:-1];
 typedef char JT_vt_Offset[FIELD_OFFSET(JT,vt)==12?1:-1];
 typedef char JT_input_Offset[FIELD_OFFSET(JT,input)==336?1:-1];
@@ -668,6 +670,9 @@ typedef char final_offset_1_2[FIELD_OFFSET(U,i)==0?1:-1];
 typedef char final_offset_2_0[FIELD_OFFSET(M3,r[0])==0?1:-1];
 typedef char final_offset_2_1[FIELD_OFFSET(M3,r[1])==16?1:-1];
 typedef char final_offset_2_2[FIELD_OFFSET(M3,r[2])==32?1:-1];
+typedef char final_offset_3_0[FIELD_OFFSET(SMP,fastSpeed)==0?1:-1];
+typedef char final_offset_3_1[FIELD_OFFSET(SMP,slowSpeed)==4?1:-1];
+typedef char final_offset_3_2[FIELD_OFFSET(SMP,fastDuration)==8?1:-1];
 typedef char final_size_0[sizeof(qword)==16?1:-1];
 typedef char final_size_1[sizeof(int)==4?1:-1];
 typedef char final_size_2[sizeof(uint)==4?1:-1];
@@ -682,6 +687,7 @@ typedef char final_alignment_4[__alignof__(JT)==16?1:-1];   /* 16 in the unified
 typedef char final_alignment_5[__alignof__(VTE)==4?1:-1];
 typedef char final_alignment_6[__alignof__(PL)==4?1:-1];
 typedef char final_alignment_9[__alignof__(LINK)==4?1:-1];
+typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
 #undef FIELD_OFFSET
 
 // Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.
@@ -787,13 +793,13 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 
 // ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 extern "C" {
-CLQ D_002BF4F0={1.5f,-0.35f,0.0f};
+CLQV D_002BF4F0={1.5f,-0.35f,0.0f};
 LM D_002BF500={-5.0f,-0.25f};
 float D_002BF508=-2.5f;
 float D_002BF50C=-1.0f;
 float D_002BF510=0.25f;
 float D_002BF514=5.0f;
-CLQ D_002BF520 __attribute__((aligned(16)))={0.5f,-0.01f,0.0f};
+CLQV D_002BF520 __attribute__((aligned(16)))={0.5f,-0.01f,0.0f};
 SMPA D_002BF530={1000.0f,0.0f,0.25f,5000.0f};
 float D_002BF540=75.0f;
 float D_002BF544=230.0f;
