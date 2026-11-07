@@ -189,7 +189,7 @@ struct SO : public LO
       char unknown148;
       char unknown149;
       ulong unknownBits148A : 4;
-                long unknownBits148B : 4;
+                int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 ulong zapMode : 2;    /* how zaps (damage) are delivered */
                 ulong fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
                 ulong unknownBits148C : 2;

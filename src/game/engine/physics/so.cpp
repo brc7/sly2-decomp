@@ -471,26 +471,20 @@ void EnsureSoBoundsHierarchy(struct L *so)
 
 // 0x1F2718 SetSoUnknownBits20
 namespace M_func_001F2718 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
 // Sets the 4-bit field at bits 20-23 of the flag word +0x148 (so.h unknownBits148B; meaning unknown, a splice option).
-void SetSoUnknownBits20(struct S *p, int n) { p->b = n; }
+void SetSoUnknownBits20(SO *p, int n) { p->unknownBits148B = n; }
 } } // namespace M_func_001F2718
 
 // 0x1F2740 GetSoUnknownBits20
 namespace M_func_001F2740 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
 // Returns the 4-bit field at bits 20-23 of +0x148.
-int GetSoUnknownBits20(struct S *p) { return p->b; }
+int GetSoUnknownBits20(SO *p) { return p->unknownBits148B; }
 } } // namespace M_func_001F2740
 
 // 0x1F2758 GetSoIgnoreLocked
 namespace M_GetSoIgnoreLocked { extern "C" {
-struct S;
-struct S { char pad[0xD0]; ulong globsetFlags; };
 // Returns the ignore-locked flag (bit 34 of +0xD0).
-int GetSoIgnoreLocked(struct S *p) { return (int)(p->globsetFlags >> 34) & 1; }
+int GetSoIgnoreLocked(SO *p) { return (int)p->model.ignoreLocked & 1; }
 } } // namespace M_GetSoIgnoreLocked
 
 // 0x1F2768 SetSoIgnoreLocked__FP2SOi
@@ -500,20 +494,16 @@ void SetSoIgnoreLocked(SO *pso, int f) { pso->model.ignoreLocked = f; }
 
 // 0x1F2798 FindSoPhysRoot
 namespace M_PsoFindPhysRoot { extern "C" {
-struct Q; struct A;
-typedef unsigned long ulong;
-struct Q { char pad[0xA0]; int a0; char pad2[0x1C]; int c0; };
-struct A { char pad[0x10]; struct A *parent; char pad2[0xD4]; struct Q *physics; char pad3[0x5C]; ulong flags; };
 // Walks up the parent chain to the first SO whose physics is not fixed (SOPHYS modes != 3) or that is marked as a
 // tree root (+0x148 bit 34); returns the last object visited. That object owns the contact tree.
-struct A *FindSoPhysRoot(struct A *so)
+SO *FindSoPhysRoot(SO *so)
 {
-    struct A *r = 0;
+    SO *r = 0;
     while (so) {
         r = so;
-        if (so->physics && (so->physics->c0 != 3 || so->physics->a0 != 3))
+        if (so->physics && (so->physics->constrForce.kind != 3 || so->physics->constrTorque.kind != 3))
             break;
-        if (so->flags & (1L << 34))
+        if (so->isTreeRoot)
             break;
         so = so->parent;
     }
