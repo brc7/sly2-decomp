@@ -785,11 +785,8 @@ struct VT { VTE a[64]; };
 struct XE8 { char pad[0x80]; qword velocity; };   /* SO+0xE8: its motion state */
 struct SO { int pad0[3]; VT *pvt; char pad10[0xE8 - 0x10]; XE8 *motion; };
 struct SND { char pad[0x170]; float lastWakeTime; void *wakeSound; };   /* the SO as a sound-carrying object (CID 0x32) */
-struct EVT { short d; short pad; void (*pfn)(void *, float, qword, int); };
-struct EVTT { EVT a[4]; };
 struct EX { char pad[0x18]; int oid; };   /* an LO */
 struct WATER { char pad[0x18]; int oid; char pad1c[0x178 - 0x1C]; EX *splashObject; EX *rippleObject; int hasWakeSound; };
-struct RIP { char pad[0x1C]; EX *renderObject; float scaleStart; float scaleSlope; char pad28[0xEC - 0x28]; EVTT *pvt; };   /* +0x20: the scale CLQ, start + slope * t */
 struct E { int pad0[2]; EX *renderObject; EX *nextRenderObject; WATER *touchObject; };   /* the resolved objects (EMITB+0x08's block) */
 union V4 { qword q; float a[4]; };
 
@@ -865,11 +862,10 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         if (shouldWake && water->rippleObject) {
             RIP *ripple = NewRipInGroup(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
             if (ripple) {
-                EVT *pvte = &ripple->pvt->a[1];
-                pvte->pfn((char *)ripple + pvte->d, scale, v, 0);
+                ripple->Init(v, scale, 0);
                 ripple->scaleStart = scale;
                 ripple->scaleSlope = scale * 0.6f;
-                ripple->renderObject = water->rippleObject;
+                ripple->renderObject = (LO *)water->rippleObject;
                 if (soundObject)
                     soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
