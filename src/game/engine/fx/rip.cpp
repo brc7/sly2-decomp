@@ -44,6 +44,8 @@ struct RIPSUB
     int pad4;
     RIPSUB *pnext;          /* +0x08 */
 };
+/* a rotation as three quadword rows (copied whole) */
+struct RIPM3 { qword r[3]; };
 /* RIP: share count, owning group, start time and the per-kind fields used by the m2c bodies; the vtable pointer
    follows the fields (+0xEC). Sly 2's RIP kinds (RIPT, PvtripFromRipt) are real classes with the eight slots of Sly 1's
    VTRIP table; rip.cpp is their key TU (docs/systems/rendering.md section 8). */
@@ -52,17 +54,24 @@ struct RIP
     int kind;
     int refCount;               /* +0x04 */
     RIPGV *ripGroup;            /* +0x08 */
-    char padC[0x18 - 0xC];
+    char padC[0x14 - 0xC];
+    float startTime;           /* +0x14 game time the rip starts (it is skipped until then) */
     float duration;            /* +0x18 */
-    char pad1C[0x20 - 0x1C];
-    qword scale;            /* +0x20 */
+    LO *renderObject;          /* +0x1C */
+    union
+    {
+        qword scale;           /* +0x20 the scale curve as one quadword */
+        float scaleStart;      /* +0x20 its first coefficient (the initial scale) */
+    };
     qword alpha;            /* +0x30 */
-    char pad40[0x70 - 0x40];
+    RIPM3 orientation;      /* +0x40 */
     qword currentPosition;           /* +0x70 */
     qword previousPosition;          /* +0x80 */
     char pad90[0xA0 - 0x90];
     qword acceleration;          /* +0xA0 */
-    char padB0[0xE8 - 0xB0];
+    char padB0[0xE0 - 0xB0];
+    LO *touchObject;           /* +0xE0 */
+    char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
     virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
@@ -695,27 +704,22 @@ struct R *NewRipInGroup(struct G *p, void *a, struct Q *q)
 } } // namespace M_NewRipInGroup
 
 namespace M_InitRip { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct M3 { qword a, b, c; };
-struct RIP { char pad[0x14]; float startTime; float duration; int renderObject; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int touchObject; };
-extern float D_002DDED0;
+extern float D_002DDED0;   /* g_clock.time as a bare float: reading g_clock.time schedules the stores differently (10/23 off) */
 extern qword D_002C1F50;
-extern struct M3 D_002A2D00;
+extern RIPM3 D_002A2D00;
 } } // namespace M_InitRip
 // RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
 // positions at `pos`, identity orientation.
-void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
+void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here */
 {
-    using namespace M_InitRip;
-    M_InitRip::RIP *p = (M_InitRip::RIP *)this;
-    /*B*/p->touchObject = n;
-    p->duration = 1.0f;
-    p->startTime = D_002DDED0;
-    p->scale = g;
-    p->alpha = D_002C1F50;
-    p->previousPosition = pos;
-    p->currentPosition = pos;
-    p->m = D_002A2D00;/*E*/
+    /*B*/touchObject = (LO *)n;
+    duration = 1.0f;
+    startTime = M_InitRip::D_002DDED0;
+    scaleStart = g;
+    alpha = M_InitRip::D_002C1F50;
+    previousPosition = pos;
+    currentPosition = pos;
+    orientation = M_InitRip::D_002A2D00;/*E*/
 }
 
 // Unlink from RIPG dl + ReleaseRip.
@@ -768,20 +772,16 @@ void TouchRip(RIP *prip, int fRemove)
     }
 }
 
-namespace M_ForceRipFade__FP3RIPf {
-struct RIP { char pad[0x14]; float startTime; float duration; };
-extern "C" { extern CLOCK D_002DDED0; }
 // Start fade.
-extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
+void ForceRipFade(RIP *prip, float dt)
 {
-    float t = prip->duration - (D_002DDED0.time - prip->startTime);
+    float t = prip->duration - (g_clock.time - prip->startTime);
     if (dt < t) {
         float u = t / prip->duration;
         prip->duration = dt / u;
-        prip->startTime = D_002DDED0.time - (1.0f - u) * prip->duration;
+        prip->startTime = g_clock.time - (1.0f - u) * prip->duration;
     }
 }
-} // namespace M_ForceRipFade__FP3RIPf
 
 namespace M_HandleRipBounce {
 typedef int qw __attribute__((mode(TI)));
