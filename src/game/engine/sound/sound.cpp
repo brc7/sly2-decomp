@@ -117,8 +117,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define VOLUME_CATEGORY_PAUSE_FADE 2
 #define PLAY_TIME_TICKS_PER_SECOND 294912000.0f   /* a stream's play time (+0x68) counts these */
 #define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state D_002BD4C0 (1 read, 2 wait, 3 idle) */
-/* A stream record (FindDialogStream) with a float parameter at +0x50. */
-struct STREAMREC { char pad0[0x50]; float duration; };
 
 extern "C" {
 extern void *D_002D9C70[] __asm__("_vt$7BANKSND");  /* BANKSND vtable */
@@ -132,7 +130,7 @@ void snd_ContinueSound(int voiceHandle);
 void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
-STREAMREC *FindDialogStream(int id);
+SNDSTREAM *FindDialogStream(int id);
 void snd_SetPlaybackMode(int nMode);
 }
 int IsEntryInDl(DL *pdl, void *pv);
@@ -1201,7 +1199,7 @@ SNDSTREAM *FindDialogStream(SNDMGR *soundManager, int id)
 // Duration of a dialog line's stream by id (0 when unknown); subtitles use it to pace the typewriter effect. (inferred)
 extern "C" float GetDialogStreamDuration(int id)
 {
-    STREAMREC *prec = FindDialogStream(id);
+    SNDSTREAM *prec = FindDialogStream(id);
     float g = 0.0f;
     if (prec != 0) {
         g = prec->duration;
@@ -1848,32 +1846,21 @@ extern "C" STREAMSND *PushMusic(SNDMGR *soundManager, int id)
 } // namespace M_PushMusic
 
 namespace M_func_001FE310 {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *vtable; char pad2[0x40 - 0x10]; int voiceHandle; char pad3[0x50 - 0x44]; unsigned short flags; unsigned short playState; };   /* a STREAMSND */
-struct S { int count; void *entries[8]; };   /* the music stack */
-struct P { char pad[0x204]; S musicStack; };   /* SNDMGR */
-struct Ref {
-    X *px;
-    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
-};
-extern "C" void FindMusic(Ref *, P *, int);
-extern "C" void StopSnd(X *, float);
-extern "C" void AssignSoundRef(Ref *, void *);
+extern "C" void FindMusic(SNDREF *, SNDMGR *, int);   /* its by-value result, by hand */
 // Stops a music track by id: takes it off the stack (FindMusic) and, unless it had already stopped, stops it and
 // restarts the track now on top of the stack. (inferred)
-extern "C" void StopMusic(P *soundManager, int id)
+extern "C" void StopMusic(SNDMGR *soundManager, int id)
 {
-    Ref music;
+    SNDREF music;
     FindMusic(&music, soundManager, id);
-    if (music.px) {
+    if (music.p) {
         /* stopped: no voice and not starting */
         int isStopped = 0;
-        if (!music.px->voiceHandle) { isStopped = music.px->playState || (music.px->flags & SND_START); isStopped ^= 1; }
+        if (!music.p->voiceHandle) { isStopped = music.p->playState || (music.p->flags & SND_START); isStopped ^= 1; }
         if (!isStopped) {
-            StopSnd(music.px, 0.0f);
-            AssignSoundRef(&music, soundManager->musicStack.count > 0 ? *(soundManager->musicStack.entries + soundManager->musicStack.count - 1) : 0);
-            if (music.px) music.px->vtable->a[7].pfn((char *)music.px + music.px->vtable->a[7].d);   /* Start */
+            StopSnd(music.p, 0.0f);
+            AssignSoundRef(&music, soundManager->musicStackCount > 0 ? (soundManager->musicStack + soundManager->musicStackCount - 1)->p : 0);
+            if (music.p) music.p->Start();
         }
     }
 }
@@ -1924,56 +1911,43 @@ extern "C" int ShouldFadeWhenTimeStops(SNDMGR *soundManager)
 }
 
 namespace M_StartDialog {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; VTE *vtable; };
-struct Ref;
-extern "C" void AssignSoundRef(Ref *, X *);
-struct Ref {
-    X *px;
-    Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
-    operator X *() { return px; }
-};
-struct D { char pad[0x48]; int speakerId; char pad2[0x54 - 0x4C]; int numEvents; };   /* SNDSTREAM */
-/* SNDMGR (layout: sly2/sndmgr.h) */
-struct P { char pad[0x200]; Ref dialogSound; char pad2[0x22C - 0x204]; X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; int dialogElapsed; };
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_004435F0[]; }
 extern "C" {
-void StopDialog(P *, int);
-D *FindDialogStream(P *, int);
-X *PstreamsndNew(D *, int);
+void StopDialog(SNDMGR *, int);
+SNDSTREAM *FindDialogStream(SNDMGR *, int);
+STREAMSND *PstreamsndNew(FILEREC *, int);
 void SetSubtitle(void *, int, int);
-X *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
-int GetDialogRoleSmOid(P *, int);
-X *FindLiveSma(X *, int);
+BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
+int GetDialogRoleSmOid(SNDMGR *, int);
+BASIC *FindLiveSma(BASIC *, int);
 }
 // Starts a dialog line: stops the current one, creates its stream, shows its subtitle (unless noSubtitle) and, when the
 // line has events and a speaker, binds the six lip-sync roles: role 3 is the speaker object, the others the state
 // machines GetDialogRoleSmOid names on it. Each bound object is counted (vtable slot 1). Returns the stream.
-extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
+extern "C" STREAMSND *StartDialog(SNDMGR *soundManager, int id, int noSubtitle)
 {
-    D *record;
+    SNDSTREAM *record;
     StopDialog(soundManager, id);
     record = FindDialogStream(soundManager, id);
     if (!record) return 0;
-    soundManager->dialogSound = PstreamsndNew(record, 0);
+    soundManager->dialogSound = PstreamsndNew(&record->record, 0);
     soundManager->dialogEventIndex = 0;
     soundManager->dialogEventTime = 0;
     soundManager->dialogElapsed = 0;
     if (!noSubtitle) SetSubtitle(D_004435F0, id, record->speakerId);
     if (record->speakerId != -1 && record->numEvents) {
-        register X *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
+        register BASIC *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
         if (speaker) {
             register int role __asm__("$18")=0;
             register int speakerRole __asm__("$20")=3;
-            register X **slot __asm__("$16")=soundManager->dialogRoleObjects;
+            register BASIC **slot __asm__("$16")=soundManager->dialogRoleObjects;
             for(;role<6;role++,slot++) {
                 if(role==speakerRole)soundManager->dialogRoleObjects[3]=speaker;
                 else *slot=FindLiveSma(speaker,GetDialogRoleSmOid(soundManager,role));
-                { X *current=*slot;
-                  if(current) { VTE &entry=current->vtable[1];
-                    entry.pfn((char *)current+entry.d); } }
+                { BASIC *current=*slot;
+                  if(current) current->AddRef(); }
             }
         }
     }
@@ -1982,36 +1956,25 @@ extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
 } // namespace M_StartDialog
 
 namespace M_StopDialog { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *vtable; };
-struct A { int a, b; };   /* a dialog event */
-struct E { char pad[0x54]; int numEvents; struct A *events; };   /* SNDSTREAM */
-struct Y { char pad[0x60]; struct E *record; };   /* the dialog STREAMSND */
-struct Ref { struct Y *px; };
-/* SNDMGR (layout: sly2/sndmgr.h) */
-struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; struct X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
 #define SM_STATE_MOUTH_REST 0x611   /* (inferred: the speaker's idle mouth) */
-void ApplyDialogEvent(struct P *, struct A *);
+void ApplyDialogEvent(SNDMGR *, DIALOGEVENT *);
 void SetSmaGoal(void *, int);
-void StopSnd(struct Y *, float);
-void AssignSoundRef(struct Ref *, void *);
 void func_002333B4(void *, int, int) __asm__("memset");
-static inline void Stop(struct Ref *ref)
+static inline void Stop(SNDREF *ref)
 {
-    if (ref && ref->px) {
-        StopSnd(ref->px, 0.0f);
+    if (ref && ref->p) {
+        StopSnd(ref->p, 0.0f);
         AssignSoundRef(ref, 0);
     }
 }
 // Stops the current dialog: flushes its remaining events, returns the speakers' mouths to rest, stops the stream and
 // clears the dialog state.
-void StopDialog(struct P *soundManager)
+void StopDialog(SNDMGR *soundManager)
 {
     int role;
-    struct E *record;
-    if (!soundManager->dialogSound.px) return;
-    record = soundManager->dialogSound.px->record;
+    SNDSTREAM *record;
+    if (!soundManager->dialogSound.p) return;
+    record = soundManager->dialogSound.p->record.psndstream;
     while (soundManager->dialogEventIndex < record->numEvents) {
         ApplyDialogEvent(soundManager, &record->events[soundManager->dialogEventIndex]);
         soundManager->dialogEventIndex++;
@@ -2022,8 +1985,8 @@ void StopDialog(struct P *soundManager)
     soundManager->dialogEventTime = 0;
     soundManager->dialogElapsed = 0.0f;
     for (role = 0; role < 6; role++) {
-        struct X *object = soundManager->dialogRoleObjects[role];
-        if (object) object->vtable->a[2].pfn((char *)object + object->vtable->a[2].d);   /* release */
+        BASIC *object = soundManager->dialogRoleObjects[role];
+        if (object) object->Release();
     }
     func_002333B4(soundManager->dialogRoleObjects, 0, sizeof(soundManager->dialogRoleObjects));
 }
