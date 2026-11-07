@@ -786,23 +786,20 @@ void UpdateBentleyAimPoint(struct S *bentley) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FireBentleyDart { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(); };
-struct E { char pad[0x18]; int f18; };
-struct O { int pad[3]; struct VTE *vt; char pad2[0xe4 - 0x10]; struct E *pe; };
 struct Q { char pad[0x50]; ti128 v50; int f60; };
 struct S { char pad[0x16d8]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; ti128 v16f0; float f1700; };
 extern ti128 D_002A2DD0;
 extern float D_002DDED0;
 void UpdateBentleyAimPoint(struct S *);
-struct O *AcquireProxyObject(void *, int);
-void LaunchSoFromLauncher(struct Q *, struct O *);
-void PrimeBomb__FP4BOMBf(struct O *, float);
+SO *AcquireProxyObject(void *, int);
+void LaunchSoFromLauncher(struct Q *, SO *);
+void PrimeBomb__FP4BOMBf(SO *, float);
 void SetBentleyAimState(struct S *, int);
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
 // (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
 void FireBentleyDart(struct S *bentley, int a) {
     void *pv;
-    struct O *object;
+    SO *object;
     struct Q *pq;
     UpdateBentleyAimPoint(bentley);
     switch (bentley->f16d8) {
@@ -813,12 +810,12 @@ void FireBentleyDart(struct S *bentley, int a) {
     if (!pv) return;
     object = AcquireProxyObject(pv, 0);
     if (!object) return;
-    object->pe->f18 = a;
+    object->parts->zapKindFlags = a;
     pq = bentley->pq;
     pq->f60 = 0;
     pq->v50 = bentley->v16f0;
     LaunchSoFromLauncher(pq, object);
-    ((void (*)(void *, ti128))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+    object->SetAngularVelocity(D_002A2DD0);
     PrimeBomb__FP4BOMBf(object, 4.0f);
     SetBentleyAimState(bentley, 1);
     bentley->f1700 = D_002DDED0;
