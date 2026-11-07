@@ -1494,13 +1494,16 @@ extern "C" void FreeStreamsnd(void *pv)
 }
 
 namespace M_SNDMGR_ctor { extern "C" {
-struct T { float a; float b; float c; };
+struct T { float a; float b; float c; };   /* three curve parameters (inferred) */
 struct V2 { float x, y; };
+/* SNDMGR: BASIC's counted pointers, the bank / stream sound pools, the dirty list, the paused flag, the mode, two
+   fitted volume curves (CLQ), the playback mode, three curve parameter sets, the counted sound pointers released by
+   the destructor (music +0x200, eight music-stack entries +0x208, ambience +0x228). */
 struct P {
-    int n0; int n4; int pad8; void *vtable; int n10; char pad14[0x1C - 0x14]; char x1C[0x18]; char x34[0x18]; char x4C[0xC];
-    int n58; char pad5C[0x68 - 0x5C]; int n68; char pad6C[0x80 - 0x6C]; char x80[0x10]; char x90[0x10];
-    char padA0[0x104 - 0xA0]; int n104; char pad108[0x114 - 0x108]; struct T t114; struct T t120; struct T t12C;
-    char pad138[0x200 - 0x138]; int n200; int pad204; int a208[8]; int n228;
+    int frame; int sidebag; int pad8; void *vtable; int unknown10; char pad14[0x1C - 0x14]; char bankSoundPool[0x18]; char streamSoundPool[0x18]; char dirtySounds[0xC];
+    int isPaused; char pad5C[0x68 - 0x5C]; int managerMode; char pad6C[0x80 - 0x6C]; char volumeCurveA[0x10]; char volumeCurveB[0x10];
+    char padA0[0x104 - 0xA0]; int playbackMode; char pad108[0x114 - 0x108]; struct T curve114; struct T curve120; struct T curve12C;
+    char pad138[0x200 - 0x138]; int musicSound; int pad204; int musicStack[8]; int ambienceSound;
 };
 extern char D_002CA510[] __asm__("_vt$6CID152");
 extern const struct V2 D_002A83B8;
@@ -1522,41 +1525,43 @@ static inline void InitT(struct T *pt, float a, float c)
  * See: docs/engine/sound.md#1-sound-manager-soundcpp-0x1faf70-0x1ff398,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-struct P *SNDMGR_ctor(struct P *p)
+struct P *SNDMGR_ctor(struct P *soundManager)
 {
     int n;
-    int *q;
-    p->n0 = 0;
-    p->n4 = 0;
-    p->vtable = D_002CA510;
-    func_0011CCA8(p->x1C, 0x70, 0x80, 0x10);
-    func_0011CCA8(p->x34, 0x3C0, 0x10, 0x10);
-    p->n200 = 0;
-    q = p->a208;
-    for (n = 7; n != -1; n--) *q++ = 0;
-    p->n228 = 0;
-    InitDl__FP2DLi(p->x4C, 0x38);
-    p->n68 = 3;
-    p->n10 = 0;
-    p->n104 = 0;
-    InitT(&p->t12C, 1.0f, 0.25f);
-    InitT(&p->t120, 1.0f, 0.25f);
+    int *entry;
+    soundManager->frame = 0;
+    soundManager->sidebag = 0;
+    soundManager->vtable = D_002CA510;
+    func_0011CCA8(soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
+    func_0011CCA8(soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
+    soundManager->musicSound = 0;
+    entry = soundManager->musicStack;
+    for (n = 7; n != -1; n--) *entry++ = 0;
+    soundManager->ambienceSound = 0;
+    InitDl__FP2DLi(soundManager->dirtySounds, 0x38);
+    soundManager->managerMode = 3;
+    soundManager->unknown10 = 0;
+    soundManager->playbackMode = 0;
+    InitT(&soundManager->curve12C, 1.0f, 0.25f);
+    InitT(&soundManager->curve120, 1.0f, 0.25f);
     {
-        struct T *pt = &p->t114;
+        struct T *curve = &soundManager->curve114;
         float b;
         float h = 0.5f;
-        InitT(pt, 3.0f, 0.25f);
-        b = pt->b;
-        FitClq__FffffP3CLQ(b, D_002A83B8.y, h, p->x80, D_002A83B8.x);
-        FitClq__FffffP3CLQ(b, D_002A83C0.y, h, p->x90, D_002A83C0.x);
+        InitT(curve, 3.0f, 0.25f);
+        b = curve->b;
+        FitClq__FffffP3CLQ(b, D_002A83B8.y, h, soundManager->volumeCurveA, D_002A83B8.x);
+        FitClq__FffffP3CLQ(b, D_002A83C0.y, h, soundManager->volumeCurveB, D_002A83C0.x);
     }
-    p->n58 = 0;
-    return p;
+    soundManager->isPaused = 0;
+    return soundManager;
 }
 } } // namespace M_SNDMGR_ctor
 
 namespace M_StartupSound { extern "C" {
-struct G { char pad[0x13C]; float a[8][4]; float g1BC; float b[4]; char pad2[0x1F0 - 0x1D0]; long l1F0; long l1F8; };
+/* SNDMGR: the volume table (8 rows x 4 channels; row 2 is read as the stream channel volumes), the master volume,
+   four channel volumes, this and the last update's tick */
+struct G { char pad[0x13C]; float volumes[8][4]; float masterVolume; float channelVolumes[4]; char pad2[0x1F0 - 0x1D0]; long tickNow; long tickLast; };
 extern struct G D_003DD040;
 struct CLOCK;
 extern struct CLOCK D_002DDED0;
@@ -1574,23 +1579,24 @@ long TickNow(struct CLOCK *);
 // time.
 void StartupSound(void)
 {
-    int i, j;
-    long t;
+    int channel, row;
+    long now;
     snd_StartSoundSystem(2);
-    (void)func_00233048(0x524B5553, 0, 0, 0, 0, 0, 0);
-    D_003DD040.g1BC = 1.0f;
-    for (i = 0; i < 4; i++) {
-        D_003DD040.b[i] = 1.0f;
-        for (j = 0; j < 8; j++) D_003DD040.a[j][i] = 1.0f;
+    (void)func_00233048(SUKR_RPC, SUKR_INIT, 0, 0, 0, 0, 0);
+    D_003DD040.masterVolume = 1.0f;
+    for (channel = 0; channel < 4; channel++) {
+        D_003DD040.channelVolumes[channel] = 1.0f;
+        for (row = 0; row < 8; row++)
+            D_003DD040.volumes[row][channel] = 1.0f;
     }
-    t = TickNow(&D_002DDED0);
-    D_003DD040.l1F0 = t;
-    D_003DD040.l1F8 = t;
+    now = TickNow(&D_002DDED0);
+    D_003DD040.tickNow = now;
+    D_003DD040.tickLast = now;
 }
 } } // namespace M_StartupSound
 
 namespace M_func_001FCF70 { extern "C" {
-struct S { char pad[0x6C]; int a; int b; };
+struct S { char pad[0x6C]; int isQueryBusy; int queryResult; };   /* SNDMGR */
 /** @sly2-annot addr=0x1FCF70
  * Purpose: Async callback: store result (+b), clear busy
  * Info: proposed name OnSndmgrQueryB (T2); TU sound
@@ -1598,11 +1604,11 @@ struct S { char pad[0x6C]; int a; int b; };
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async callback: stores a query result in the manager and clears its busy flag. (inferred)
-void OnSoundManagerQueryResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
+void OnSoundManagerQueryResult(int result, long context) { struct S *soundManager = (struct S *)(int)context; soundManager->queryResult = result; soundManager->isQueryBusy = 0; }
 } } // namespace M_func_001FCF70
 
 namespace M_func_001FCF88 { extern "C" {
-struct S { char pad[0xA0]; int a; int b; };
+struct S { char pad[0xA0]; int isStatusBusy; int statusResult; };   /* SNDMGR */
 /** @sly2-annot addr=0x1FCF88
  * Purpose: Async callback for SUKR cmd 0xC (0x1FDBA8)
  * Info: proposed name OnSndmgrQueryC (T2); TU sound
@@ -1610,19 +1616,26 @@ struct S { char pad[0xA0]; int a; int b; };
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async callback of the manager's periodic status query: stores the result and clears the busy flag. (inferred)
-void OnSoundManagerStatusResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
+void OnSoundManagerStatusResult(int result, long context) { struct S *soundManager = (struct S *)(int)context; soundManager->statusResult = result; soundManager->isStatusBusy = 0; }
 } } // namespace M_func_001FCF88
 
 namespace M_func_001FCFA0 { extern "C" {
-struct T { char pad[0x40]; int n; struct T *pnext; };
-struct S { char pad[0xEC]; struct T *pt; };
+struct T { char pad[0x40]; int id; struct T *next; };   /* SNDSTREAM */
+struct S { char pad[0xEC]; struct T *firstStream; };   /* SNDMGR psndstreamFirst */
 /** @sly2-annot addr=0x1FCFA0
  * Purpose: Find SNDSTREAM by id in one stream list
  * Info: proposed name PsndstreamFindDialog (T2); TU sound
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-struct T *FindDialogStream(struct S *p, int n) { struct T *pt; for (pt = p->pt; pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
+struct T *FindDialogStream(struct S *soundManager, int id)
+{
+    struct T *stream;
+    for (stream = soundManager->firstStream; stream; stream = stream->next)
+        if (stream->id == id)
+            return stream;
+    return 0;
+}
 } } // namespace M_func_001FCFA0
 
 /** @sly2-annot addr=0x1FCFD0
@@ -1643,19 +1656,26 @@ extern "C" float GetDialogStreamDuration(int id)
 }
 
 namespace M_func_001FCFF8 { extern "C" {
-struct T { char pad[0x40]; int n; struct T *pnext; };
-struct S { char pad[0xF0]; struct T *pt; };
+struct T { char pad[0x40]; int id; struct T *next; };   /* SNDFILE */
+struct S { char pad[0xF0]; struct T *firstFile; };   /* SNDMGR psndfileFirst */
 /** @sly2-annot addr=0x1FCFF8
  * Purpose: Find SNDSTREAM by id (music list)
  * Info: proposed name PsndstreamFindMusic (T2); TU sound
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-struct T *FindMusicStream(struct S *p, int n) { struct T *pt; for (pt = p->pt; pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
+struct T *FindMusicStream(struct S *soundManager, int id)
+{
+    struct T *file;
+    for (file = soundManager->firstFile; file; file = file->next)
+        if (file->id == id)
+            return file;
+    return 0;
+}
 } } // namespace M_func_001FCFF8
 
 namespace M_PsndFromSfxid { extern "C" {
-struct S { char pad[0x18]; int c; char pad2[0xE0]; int *a; int *ai; };
+struct S { char pad[0x18]; int numSfx; char pad2[0xE0]; int *soundTable; int *soundIndexFromSfx; };   /* SNDMGR csfx, +0xFC, aisnd */
 /** @sly2-annot addr=0x1FD028
  * Purpose: sfxid -> SNDMGR sound entry via aisnd index table (NULL if unmapped)
  * Info: proposed name PsndFromSfxid (T1); TU sound
@@ -1663,13 +1683,15 @@ struct S { char pad[0x18]; int c; char pad2[0xE0]; int *a; int *ai; };
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // The manager's sound entry for a sound-effect id, or 0 when the level does not have it.
-int *PsndFromSfxid(struct S *p, int n)
+int *PsndFromSfxid(struct S *soundManager, int sfxId)
 {
-    int i;
-    if (n < 0 || n >= p->c) return 0;
-    i = p->ai[n];
-    if (i < 0) return 0;
-    return &p->a[i];
+    int index;
+    if (sfxId < 0 || sfxId >= soundManager->numSfx)
+        return 0;
+    index = soundManager->soundIndexFromSfx[sfxId];
+    if (index < 0)
+        return 0;
+    return &soundManager->soundTable[index];
 }
 } } // namespace M_PsndFromSfxid
 
@@ -1686,8 +1708,8 @@ extern "C" int IsndFromPsnd(SNDMGRV *soundManager, SNDV **ppsnd)
 }
 
 namespace M_func_001FD080 { extern "C" {
-struct T { char pad[0x44]; struct T *pnext; };
-struct S { char pad[0xF0]; struct T *pt; struct T *pt2; };
+struct T { char pad[0x44]; struct T *next; };
+struct S { char pad[0xF0]; struct T *firstFile; struct T *ambienceRecord; };   /* SNDMGR psndfileFirst, precAmbience */
 /** @sly2-annot addr=0x1FD080
  * Purpose: 1 if record is in list A, 0 if it is the ambience record, else 2: picks volume channel
  * Info: proposed name ChannelFromPsndstream (T2); TU sound
@@ -1696,7 +1718,14 @@ struct S { char pad[0xF0]; struct T *pt; struct T *pt2; };
  * @end-sly2-annot */
 // Which volume channel a stream belongs to: 1 for dialog streams, 0 for the ambience stream, 2 for anything else
 // (inferred: music).
-int GetStreamVolumeChannel(struct S *p, struct T *x) { struct T *pt; for (pt = p->pt; pt; pt = pt->pnext) if (pt == x) return 1; return p->pt2 != x ? 2 : 0; }
+int GetStreamVolumeChannel(struct S *soundManager, struct T *record)
+{
+    struct T *file;
+    for (file = soundManager->firstFile; file; file = file->next)
+        if (file == record)
+            return 1;
+    return soundManager->ambienceRecord != record ? 2 : 0;
+}
 } } // namespace M_func_001FD080
 
 namespace M_func_001FD0C0 { extern "C" {
@@ -1709,7 +1738,7 @@ extern int D_002C3C40[];
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // OID of the state machine that animates dialog speaker role n (n < 6), or -1. (inferred)
-int GetDialogRoleSmOid(int a, unsigned int n) { if (n >= 6) return -1; return D_002C3C40[n]; }
+int GetDialogRoleSmOid(int unused, unsigned int role) { if (role >= 6) return -1; return D_002C3C40[role]; }
 } } // namespace M_func_001FD0C0
 
 namespace M_LoadSoundSectionFromBrx {
