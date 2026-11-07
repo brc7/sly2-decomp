@@ -178,8 +178,9 @@ struct SW : public BASIC
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
                                    (request already consumed); was fUnk3bf0 */
-      uint grfTransition;       /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
-                                   timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4 */
+      int grfTransition;        /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
+                                   timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4; int, not uint: game.cpp RestoreTasksAfterLoad
+                                   clears bit 3 with a sign-extended ~8 */
       FILEREC destinationLevel; /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == currentLevel after load */
       int oidWarpDest;          /* +0x3C38 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
                                    specific warps); was nUnk3c38 */

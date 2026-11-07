@@ -889,8 +889,7 @@ struct S {
     char pad6[0xE8 - 0xE4]; int stateKey;
 };
 extern char D_003D4A60[];
-struct G { char pad[0x3A18]; char saveVars[0x10]; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void PostLoLoad(struct S *p);
 int IsCurrentJob(struct S *p);
 int IsJobLive(struct S *p);
@@ -927,7 +926,7 @@ void PostJobLoad(struct S *job)
         Decref__4CRef(&ref);
         job->elapsedTime = g;
     }
-    job->stateSaveVar = GetSaveVarAddress(D_003DD490.saveVars, &job->stateKey, D_003D4A60);
+    job->stateSaveVar = GetSaveVarAddress(&D_003DD490.savevars, &job->stateKey, D_003D4A60);
     if (job->completionWidgetOid != -1)
         job->completionWidget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
     job->widget379 = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
@@ -1036,11 +1035,9 @@ public:
     int stateSource;
 };
 struct W { int unknown0, unknown4, sectorKey; char pad[0x38 - 0xC]; int sectorXor; };   /* a file record */
-struct G { char pad[0x3B14]; O *pendingTask; char pad2[0x3C88 - 0x3B18]; int returnWarpOid; int returnWarpContext; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
-extern "C" void SetSwJobCur(G *pg, O *p);
-extern "C" void SetSwTaskPending(G *pg, O *p);
+extern "C" void SetSwJobCur(SW *pg, O *p);
 extern "C" W *GetCurrentWorldEntry();
 extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" W *GetLevelFileRecord(int n);
@@ -1058,7 +1055,7 @@ static inline int IsSameFileRecord(W *a, W *b)
 extern "C" void EndJob(O *job)
 {
     SetSwJobCur(&D_003DD490, 0);
-    if (D_003DD490.pendingTask && D_003DD490.pendingTask->job && D_003DD490.pendingTask->job == job)
+    if (D_003DD490.pendingTask && ((O *)D_003DD490.pendingTask)->job && ((O *)D_003DD490.pendingTask)->job == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *currentEntry = GetCurrentWorldEntry();
     W *levelEntry = GetLevelFileRecord(GetCurrentLevelIndex__Fv());
@@ -1176,18 +1173,17 @@ extern "C" void RestartJob(JOB *job)
 }
 
 namespace M_func_00162E38 { extern "C" {
-struct G { char pad[0x3B18]; int jobToAbort; char pad2[0x3C84 - 0x3B1C]; int exitBeingTaken; };
-extern struct G D_003DD490;
-int IsSwTransitionBusy(struct G *p);
+extern SW D_003DD490;
+int IsSwTransitionBusy(SW *p);
 int GetCurrentWorldEntry(void);
-void WipeToWorldWarp(struct G *p, int n, int a, int b, int c, int d);
+void WipeToWorldWarp(SW *p, int n, int a, int b, int c, int d);
 // Fails the current job: records it for abort and, unless a transition is busy, wipes back to the current world's
 // entry warp (0x189).
 void FailJob(int job)
 {
-    struct G *pg = &D_003DD490;
-    pg->jobToAbort = job;
-    if (!IsSwTransitionBusy(pg) && !pg->exitBeingTaken)
+    SW *pg = &D_003DD490;
+    pg->ploJobFailed = (LO *)job;
+    if (!IsSwTransitionBusy(pg) && !pg->pexitTaken)
         WipeToWorldWarp(pg, GetCurrentWorldEntry(), 0x189, -1, 0, -1);
 }
 } } // namespace M_func_00162E38
@@ -2790,26 +2786,23 @@ extern "C" void SendTaskGameEvent(O *task, int n, int m)
 } // namespace M_SendTaskGameEvent
 
 namespace M_func_001651D8 { extern "C" {
-struct G;
-struct Q { char pad[0x10]; int currentJobOid; int currentTaskOid; int pendingTaskOid; };
-extern struct G D_003DD490;
-extern struct Q D_002DEB30;
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, void *owner);
-void SetSwTaskPending(struct G *pg, void *p);
+extern SW D_003DD490;
+extern GAME D_002DEB30;
+void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
 void GoToTask(void *p);
-void WipeToWorldWarp(struct G *pg, int n, int a, int b, int c, int d);
+void WipeToWorldWarp(SW *pg, int n, int a, int b, int c, int d);
 // Goes to the task with the given oid, or, when it is not in this level, stores it as pending and warps to the level.
 void StartTaskByOid(void *pv, int worldEntry, int oid)
 {
-    struct G *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     void *task = FindSwObject__FP2SWi3OIDP2LO(pg, 0x105, oid, 0);
     if (task) {
-        SetSwTaskPending(pg, task);
+        SetSwTaskPending(pg, (LO *)task);
         GoToTask(task);
     } else {
-        D_002DEB30.currentJobOid = -1;
-        D_002DEB30.currentTaskOid = -1;
-        D_002DEB30.pendingTaskOid = oid;
+        D_002DEB30.oidJobCur = -1;
+        D_002DEB30.oidTaskCur = -1;
+        D_002DEB30.oidTaskPending = oid;
         WipeToWorldWarp(pg, worldEntry, 0x189, -1, 8, -1);
     }
 }
@@ -2868,22 +2861,20 @@ inline StateSourceScope::~StateSourceScope()
     }
 }
 struct CRef { int m_tagk; int m_tag; };
-struct G { char pad[0x3BF4]; int transitionFlags; char pad2[0x3C38 - 0x3BF8]; int warpOid; int warpContext; };
-struct SS { int pad[4]; int currentJobOid; int currentTaskOid; int pendingTaskOid; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
 extern "C" void SortTasksTopologically(int *pc, X ***papx);
 extern "C" void RestoreTaskState(X *p);
-extern "C" X *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+extern "C" X *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
 extern "C" void SetTaskState(X *p, int n);
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
 // picks the current character from it and sets the warp.
-extern "C" void RestoreTasksAfterLoad(SS *game)
+extern "C" void RestoreTasksAfterLoad(GAME *game)
 {
-    if (!(D_003DD490.transitionFlags & 8))
+    if (!(D_003DD490.grfTransition & 8))
         return;
     STACKSCOPE fr;
     int numTasks;
@@ -2895,9 +2886,9 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
         StateSourceScope scope(restored, STATE_SOURCE_LOAD_RESET, 0);
         RestoreTaskState(restored);
     }
-    X *pending = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->pendingTaskOid, 0);
-    game->currentJobOid = pending->job->oid;
-    game->currentTaskOid = pending->oid;
+    X *pending = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->oidTaskPending, 0);
+    game->oidJobCur = pending->job->oid;
+    game->oidTaskCur = pending->oid;
     StateSourceScope scope(pending, STATE_SOURCE_LOAD_RESET, 0);
     SetTaskStateCascade(pending, TASK_STATE_AVAILABLE);
     int playerOid = pending->playerOid;
@@ -2915,9 +2906,9 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
         StateSourceScope scope2(restored, STATE_SOURCE_LOAD_RESET, 0);
         SetTaskState(restored, TASK_STATE_UNSET);
     }
-    D_003DD490.warpOid = pending->warpOid;
-    D_003DD490.warpContext = -1;
-    D_003DD490.transitionFlags = (D_003DD490.transitionFlags & ~8) | 4;
+    D_003DD490.oidWarpDest = pending->warpOid;
+    D_003DD490.oidWarpContext = -1;
+    D_003DD490.grfTransition = (D_003DD490.grfTransition & ~8) | 4;
 }
 } // namespace M_RestoreTasksAfterLoad
 
@@ -3312,10 +3303,8 @@ extern "C" void SetSwTaskPending(SW *world, LO *plo)
 
 namespace M_func_00165E38 { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct G { char pad[0x3B1C]; void *playTimeVar; char pad2[0x3B28 - 0x3B20]; void *currentEpisodeVar; char pad3[0x3B7C - 0x3B2C]; void *episodePercentVars[1]; };
-struct Q { int a[4]; int currentJobOid; int currentTaskOid; int pendingTaskOid; };
-extern struct G D_003DD490;
-extern struct Q D_002DEB30;
+extern SW D_003DD490;
+extern GAME D_002DEB30;
 extern void *D_002DEB4C;
 extern char D_003DA530[];
 extern char D_002A3828[];
@@ -3325,7 +3314,7 @@ int IsScreenShown(void *p);
 void ResetRumbleSaveVar(void);
 void HideTitleScreen(void *p);
 void *GetWorldEntry(int n);
-void WipeToWorldWarp(struct G *pg, void *p, int a, int b, int c, int d);
+void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d);
 // Starts play from a save slot: a new game goes to the first task (0x62F) in world entry 0, otherwise the saved
 // episode (or the hub level when it is complete).
 void StartGameFromSave(void *pv)
@@ -3335,7 +3324,7 @@ void StartGameFromSave(void *pv)
     register int n __asm__("$16"); /* register pin: n lives in s0 in the target */
     void *worldEntry;
     void *percentVar;
-    GetGlobalSaveVar(&ref, D_003DD490.playTimeVar, pv);
+    GetGlobalSaveVar(&ref, D_003DD490.psvpDt, pv);
     playTime = *(float *)&ref.m_tag;
     Decref__4CRef(&ref);
     if (IsScreenShown(D_003DA530) && playTime == 0.0f) {
@@ -3345,25 +3334,25 @@ void StartGameFromSave(void *pv)
     }
     if (playTime == 0.0f) {
         D_002DEB4C = pv;
-        D_002DEB30.currentJobOid = -1;
-        D_002DEB30.currentTaskOid = -1;
-        D_002DEB30.pendingTaskOid = 0x62F;
+        D_002DEB30.oidJobCur = -1;
+        D_002DEB30.oidTaskCur = -1;
+        D_002DEB30.oidTaskPending = 0x62F;
         WipeToWorldWarp(&D_003DD490, GetWorldEntry(0), 0x189, -1, 0x48, -1);
         return;
     }
     {
-        struct G *pg = &D_003DD490;
+        SW *pg = &D_003DD490;
         D_002DEB4C = pv;
-        D_002DEB30.currentJobOid = -1;
-        D_002DEB30.currentTaskOid = -1;
-        D_002DEB30.pendingTaskOid = -1;
-        GetGlobalSaveVar(&ref, pg->currentEpisodeVar, pv);
+        D_002DEB30.oidJobCur = -1;
+        D_002DEB30.oidTaskCur = -1;
+        D_002DEB30.oidTaskPending = -1;
+        GetGlobalSaveVar(&ref, pg->psvpEpisodeCurrent, pv);
     }
     __asm__ __volatile__(""); /* ordering-only: ends the -1 constant's dependence chain at the call */
     n = ref.m_tag;
     Decref__4CRef(&ref);
     worldEntry = GetWorldEntry(n);
-    percentVar = D_003DD490.episodePercentVars[n];
+    percentVar = D_003DD490.apsvpEpisodePercent[n];
     n = 0;
     if (percentVar) {
         GetGlobalSaveVar(&ref, percentVar, pv);
