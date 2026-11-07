@@ -1306,15 +1306,14 @@ void FinishJob(struct S *job)
 } } // namespace M_FinishJob
 
 namespace M_func_00162FD0 { extern "C" {
-struct LO { char pad[0x40]; int flags; };
 /* SetLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 static inline void SetLoFlagsInline(struct LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->unknown40 = v | bits;
 }
 struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
@@ -1894,15 +1893,14 @@ public:
     virtual void V2();
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
 };
-struct LO { char pad[0x40]; int flags; };
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->unknown40 = v | bits;
 }
 class O : public OBase {
 public:

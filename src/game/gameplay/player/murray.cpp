@@ -666,7 +666,6 @@ namespace M_UpdateMurrayCarry { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct VT { short d; short pad; void *pfn; };
-struct LO { char pad[0x28]; unsigned long x28; };
 struct T { char pad[0x180]; struct LO *po; };
 struct PL { char pad[0x18]; float g18; float g1C; char pad2[0x30 - 0x20]; int x30; };
 struct P {
@@ -708,7 +707,7 @@ void UpdateMurrayCarry(struct P *murray)
         s = murray->carrySubstate;
         switch (s) {
         case 0: case 1: case 2:
-            if ((((int)(murray->carried->po->x28 >> 60) & 1) == 0)) {
+            if ((((int)murray->carried->po->isInWorld & 1) == 0)) {
                 DetachMurrayCarried(murray);
                 murray->carried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);

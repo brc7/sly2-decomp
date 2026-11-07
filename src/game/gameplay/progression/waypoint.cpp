@@ -28,7 +28,6 @@ struct RGBAV
 
 struct TASKV { char pad[0x6C]; int labelNameId; };    /* the job: its name plate string (-1: none) */
 struct ATTACH { char pad[0x7C]; TASKV *task; };
-/* View of an SO: LO flags word (or a pointer to it, bit 0 clear) at +0x40, bounding radius at +0xA0. */
 /* The waypoint (an SO). */
 struct WAYPTV : SO
 {
