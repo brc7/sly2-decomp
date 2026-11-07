@@ -3670,7 +3670,7 @@ namespace M_func_0019AC88 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct X { char pad[0x80]; qword v80; };
-struct O { char pad[0xE8]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
+struct O : LO { char pad[0xE8 - 0x50]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
 struct A { struct O *p; };
 struct P { struct A *a; void *p4; int pad[2]; qword v10; };
 qword GetLoWorldPos(void *p);
@@ -3903,9 +3903,8 @@ class PAD_E0 { public: char ab[0xE0]; };
 class PAD_190 { public: char ab[0x190]; };
 struct SHAPE : PAD_E0, TARGET { SHAPE *pshapeNext; int pad108; float rAngle; };
 struct CURVE : PAD_190, TARGET { CURVE *pcurveNext; };
-struct HOOK
+struct HOOK : XFM
 {
-    char pad0[0xE0];
     HOOK *phookNext;            // 0xE0
     int padE4;
     uint grfHook;               // 0xE8
@@ -4747,7 +4746,7 @@ extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 //////// 0x19CA58 CloneJmt
 namespace M_CloneJmt { extern "C" {
 struct K { int a, b; };
-struct S { char pad[0xE0]; struct K k; };
+struct S : XFM { struct K k; };
 void CloneXfm(struct S *);
 // JMT Clone (slot 41): clones the transform but keeps its own list entry.
 void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }

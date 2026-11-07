@@ -387,8 +387,8 @@ union FLOATWORD { float g; int bits; };
 struct XF { char pad[0x70]; qword pos; };
 struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
-struct P {
-    char pad0[0x150]; int state; char pad154[0x1C]; qword pos; qword v;
+struct P : SO {
+    int state; char pad154[0x1C]; qword pos; qword v;
     char pad190[0x34]; int fRaised; char pad1C8[8]; float gThreshold; FLOATWORD gBoost; FLOATWORD sRadius;
     int collectRadius; float gNormalResponse; FLOATWORD gTangentResponse;
 };
@@ -1076,7 +1076,7 @@ extern "C" void AwardCoin()
 }
 
 namespace M_func_001C67D8 { extern "C" {
-struct S { char p0[0x1A0]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse;
+struct S : SO { char p0[0x1A0 - 0x150]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse;
     char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; int lifetimeLeft; int healArg0; int healArg1; };
 void InitDprize(struct S *p);
 // CID 93 Init (sprayable pickup 0x5D). (inferred)
@@ -1592,7 +1592,7 @@ void InitLoot(struct S *loot)
 namespace M_LoadLootFromBrx { extern "C" {
 struct STACKSCOPE_STORAGE { int a, b, c, d; };
 struct ALLOCREQ_VIEW { int cb; int cbAlign; int pad[2]; };
-struct S { char p0[0x23C]; int entryCount; void *entries; };
+struct S : SO { char p0[0x23C - 0x150]; int entryCount; void *entries; };
 struct STACKSCOPE_STORAGE *STACKSCOPE_ctor(struct STACKSCOPE_STORAGE *ph);
 void *AllocFromStack(struct ALLOCREQ_VIEW *pal);
 void *AllocCopyFromWorldHeap(struct ALLOCREQ_VIEW *pal, void *pv);

@@ -850,7 +850,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
 struct T { M3 m; qword v[3]; };
-struct X { char pad[0xE8]; struct T *physics; };
+struct X : LO { char pad[0xE8 - 0x50]; struct T *physics; };
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
 int InvertMatrix3(struct T *pt, qword *pv);
@@ -925,7 +925,7 @@ void UpdateSo(SO *so)
 // 0x1F37C8 SetSoPhysRegion
 namespace M_func_001F37C8 { extern "C" {
 struct Q;
-struct Q { char pad[0x118]; char dl[1]; };   /* a PATHZONE: its list of region links (+0x118) */
+struct Q : XFM { char pad[0x118 - 0xE0]; char dl[1]; };   /* a PATHZONE: its list of region links (+0x118) */
 int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
@@ -1138,7 +1138,7 @@ namespace M_func_001F3CC8 { extern "C" {
 struct VTE; struct O; struct P;
 struct VTE { short d; short pad; void (*pfn)(void *, int, float, float, SOBOUNDS *); };
 struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *next; };
-struct P { char pad[0x64]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; SOBOUNDS *bounds; };
+struct P : LO { char pad[0x64 - 0x50]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; SOBOUNDS *bounds; };
 struct G;
 extern struct G D_003DD490;
 void BuildSoLightPackets(struct G *, int, SOBOUNDS *);
@@ -2356,7 +2356,7 @@ struct V; struct O; struct P; struct Out;
 typedef int qword __attribute__((mode(TI)));
 struct V { float x, y, z, w; float pad[8]; };
 struct O { char pad[0x40]; char rotation[0x30]; qword position; };
-struct P { char pad[0x60]; struct O *rootTransform; };
+struct P : LO { char pad[0x60 - 0x50]; struct O *rootTransform; };
 struct Out { int flags; int pad[3]; qword position; qword velocity; float heading; float adjustment; float lastMoveTime; int unknown3C; };
 extern struct CLOCK D_002DDED0;
 qword GetXfVelocity(struct O *, int, qword);
@@ -2412,7 +2412,7 @@ union U {qword q;float f[4];};
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
 struct SPACE;
 struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
-struct P {char pad5C[0x5C];OWNER *owner;};
+struct P : LO { char pad5C[0x5C - 0x50]; OWNER *owner;};
 struct COEF {float a,b,c;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
@@ -2501,7 +2501,7 @@ union U {qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
 struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
-struct P {char pad5C[0x5C];OWNER *owner;};
+struct P : LO { char pad5C[0x5C - 0x50]; OWNER *owner;};
 struct COEF {float a,b,c;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
@@ -3757,7 +3757,7 @@ struct T *FindSoSaa(SO *so, int n)
 // 0x1F81E0 SetSoAnimIndex
 namespace M_func_001F81E0 { extern "C" {
 struct A;
-struct A { char pad[0xAC]; int numAnimIds; int *animIds; int animIndex; };
+struct A : LO { char pad[0xAC - 0x50]; int numAnimIds; int *animIds; int animIndex; };
 // Selects an animation by oid: +0xB4 = -(index in the list + 3), or 0 when not found. (inferred)
 void SetSoAnimIndex(struct A *so, int n)
 {

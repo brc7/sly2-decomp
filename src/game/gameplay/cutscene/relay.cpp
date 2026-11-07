@@ -482,9 +482,9 @@ int FRelayHasAlarm(RELAYV *relay, ALARM *palarm) __asm__("IsRelayAlarm");
 int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("IsGuardRunningScript");
 
 /* The alarm set of a guard group (SGG) as EnsureSggAlarm reads it (RELAY has the same block at +0x84). */
-struct SGG
+struct SGG : LO
 {
-    char pad0[0x84];
+    char pad0[0x84 - 0x50];
     int calarm;             /* +0x84 */
     ALARM *apalarm[8];      /* +0x88 */
 };
@@ -764,17 +764,14 @@ extern "C" int IsRelayFiring(RELAYV *relay)
 
 // 0x1DFFE0 ResetRelay
 namespace M_ResetRelay { extern "C" {
-struct S;
-struct S { char p0[0x50]; int n50; char p1[0x7C-0x54]; int n7C; };
-void StopRelay(struct S *p);
-void AddRelayBlockBegin(struct S *p, int n);
+void AddRelayBlockBegin(RELAYV *p, int n);
 // Stops the relay and empties its command list back to the implicit BlockBegin(-1) (used before a script rebuilds
 // it). (inferred)
-void ResetRelay(struct S *relay) {
+void ResetRelay(RELAYV *relay) {
     StopRelay(relay);
-    relay->n50 = 0;
+    relay->crelaycmd = 0;
     AddRelayBlockBegin(relay, -1);
-    relay->n7C = 1;
+    relay->fAppendEnd = 1;
 }
 } } // namespace M_ResetRelay
 
@@ -792,7 +789,7 @@ void EnsureSggAlarm(SGG *psgg, ALARM *palarm)
 // 0x1E0070 RemoveAlarmFromRelay
 namespace M_func_001E0070 { extern "C" {
 struct SGG;
-struct SGG { char pad[0x84]; int calarm; void *apalarm[8]; };
+struct SGG : LO { char pad[0x84 - 0x50]; int calarm; void *apalarm[8]; };
 void *memmove(void *d, void *s, int cb);
 // Removes an alarm from the relay's alarm list. (inferred)
 void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
@@ -811,7 +808,7 @@ void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
 // 0x1E00E8 IsRelayAlarm
 namespace M_FWipingAseg__FP4ASEG { extern "C" {
 struct ASEG;
-struct ASEG { char pad[0x84]; int c; int a[1]; };
+struct ASEG : LO { char pad[0x84 - 0x50]; int c; int a[1]; };
 // Whether the alarm is in the relay's alarm list.
 int IsRelayAlarm(struct ASEG *paseg, int n)
 {
@@ -860,7 +857,7 @@ namespace M_func_001E0180 { extern "C" {
 struct T; struct O; struct S;
 struct T { char pad[0x10]; int n; };
 struct O { char pad[0x28]; struct T *pt; char pad2[0xE4-0x2C]; struct O *pNext; };
-struct S { char pad[0x5C]; struct O *pFirst; };
+struct S : LO { char pad[0x5C - 0x50]; struct O *pFirst; };
 // Finds a running script of this relay whose block has the given label, ignoring one script. (inferred)
 struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 {
@@ -875,15 +872,13 @@ struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 
 // 0x1E01C8 SetRelayCommandLimit
 namespace M_func_001E01C8 { extern "C" {
-struct S;
-struct S { char pad[0x50]; int n50; int n54; int n58; char pad2[0x80-0x5C]; int n80; };
 // Splice: gives the relay its own command limit n (0 < n < 0x200), allowed only before commands are added. (inferred)
-void SetRelayCommandLimit(struct S *relay, int n)
+void SetRelayCommandLimit(RELAYV *relay, int n)
 {
     if (n > 0) {
-        if (n < 0x200 && relay->n50 < 2) {
-            relay->n58 = n;
-            relay->n80 = 1;
+        if (n < 0x200 && relay->crelaycmd < 2) {
+            relay->crelaycmdMax = n;
+            relay->nUnk80 = 1;
         }
     }
 }
@@ -893,7 +888,7 @@ void SetRelayCommandLimit(struct S *relay, int n)
 namespace M_PrelaycmdAddRelay { extern "C" {
 struct CMD; struct Q;
 struct CMD { int kind; int b; char pad[0x48]; };
-struct Q { char pad[0x50]; int c; struct CMD *a; int cMax; };
+struct Q : LO { int c; struct CMD *a; int cMax; };
 extern struct CMD D_003DA740;
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 // Appends a zeroed command of the given kind (async flag set as asked) to the relay and returns it for the builder to
@@ -3829,7 +3824,7 @@ extern float D_002BD850;
 union U { int n; float g; };
 struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
 struct C { char pad[0x18]; int context; };
-struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
+struct O : LO { char pad[0x74 - 0x50]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
 struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, int b);
@@ -3890,7 +3885,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 union U {qword q;float f[4];};
 union ARG {int id;float gain;};
-struct PATH {char padE4[0xE4];int cyclic;};
+struct PATH : XFM { char padE4[0xE4 - 0xE0]; int cyclic;};
 struct PARAM {int kind;char pad4[0xC];int target;ARG value;char pad18[0xC];int flag;};
 struct ACTOR {char padC[0xC];void *vtable;char pad10[0x4C8-0x10];int mode,active;int word4D0;PATH *motion;int word4D8;float motionTime;char pad4E0[0xA7C];PATH *curve;float curveTime;char padF64[0xA8C];qword oldPosition;char pad1A00[0x20];qword position;};
 struct P {char pad24[0x24];ACTOR *overrideActor;char pad28[0x40-0x28];PARAM *param;ACTOR *actor;int blocked;char pad4C[0x2C];float previousMotion,previousCurve;};
@@ -4113,7 +4108,7 @@ typedef char layout_ACTOR_prefix[(sizeof(ACTOR)==0x1A30)?1:-1];
 typedef char layout_P_prefix[(sizeof(P)==0x80)?1:-1];
 typedef char layout_OUTPUT_prefix[(sizeof(OUTPUT)==0x70)?1:-1];
 typedef char layout_OUTPUT_align[(__alignof__(OUTPUT)==16)?1:-1];
-typedef char layout_PATH_prefix[(sizeof(PATH)==0xE8)?1:-1];
+typedef char layout_PATH_prefix[(sizeof(PATH)==0xF0)?1:-1];
 typedef char layout_WORK[(sizeof(WORK)==0x60)?1:-1];
 typedef char layout_WORK_align[(__alignof__(WORK)==16)?1:-1];
 typedef char layout_PARAM_kind[((unsigned)&((PARAM*)0)->kind==0x0)?1:-1];
@@ -4393,17 +4388,15 @@ extern "C" void ClearJsgRelayWait(RELAYJSG *script)
 
 // 0x1E5410 ClearJsgSma
 namespace M_ClearJsgSma { extern "C" {
-struct S;
-struct S { char pad[0x58]; BASIC *po; int n5C; };
-void UnsubscribeLoObject(BASIC *po, struct S *p);
+void UnsubscribeLoObject(BASIC *po, RELAYJSG *p);
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
-void ClearJsgSma(struct S *script)
+void ClearJsgSma(RELAYJSG *script)
 {
-    if (script->po) {
-        UnsubscribeLoObject(script->po, script);
-        script->po->Release();
-        script->po = 0;
-        script->n5C = 0;
+    if (script->psmaCur) {
+        UnsubscribeLoObject(script->psmaCur, script);
+        script->psmaCur->Release();
+        script->psmaCur = 0;
+        script->fSmaReached = 0;
     }
 }
 } } // namespace M_ClearJsgSma
@@ -4413,7 +4406,7 @@ namespace M_func_001E5468 { extern "C" {
 struct VTE; struct O; struct S;
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x64]; struct O *po; };
+struct S : BASIC { char pad[0x64 - 0x10]; struct O *po; };
 // Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
 void ClearJsgWidget(struct S *script)
 {
@@ -4440,15 +4433,12 @@ extern "C" void ClearJsgJtMode(RELAYJSG *script)
 
 // 0x1E54E8 ClearJsgStepHolds
 namespace M_ClearJsgStepHolds { extern "C" {
-struct S;
-struct O;
-struct S { char pad[0xA4]; int c; struct O *a[4]; int b[4]; int d[4]; };
-void RemoveJsgStepHold(struct S *p, struct O *object, int b, int d);
 // RemoveJsgStepHold for every held step. (inferred)
-void ClearJsgStepHolds(struct S *script)
+void ClearJsgStepHolds(RELAYJSG *script)
 {
-    while (script->c) {
-        RemoveJsgStepHold(script, script->a[script->c - 1], script->b[script->c - 1], script->d[script->c - 1]);
+    while (script->cstepHold) {
+        RemoveJsgStepHold(script, script->apstepHold[script->cstepHold - 1], script->anHold5[script->cstepHold - 1],
+                          script->anHold6[script->cstepHold - 1]);
     }
 }
 } } // namespace M_ClearJsgStepHolds
@@ -4456,7 +4446,7 @@ void ClearJsgStepHolds(struct S *script)
 // 0x1E5570 AbortJsgMove
 namespace M_func_001E5570 { extern "C" {
 struct O; struct P;
-struct O { char pad[0x26C]; int a; };
+struct O : PO { char pad[0x26C - 0x180]; int a; };
 struct P { char pad[0x24]; struct O *po; int *pnMin; int *pnMax; int *pn; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
 void ClearBhvstk__FP6BHVSTK(void *p);
@@ -4610,7 +4600,7 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
 // 0x1E5A98 EndJsgCamBlend
 namespace M_func_001E5A98 { extern "C" {
 struct S;
-struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
+struct S : BASIC { char pad[0x84 - 0x10]; int a84[3]; int n90; int n94; int n98; int n9C; };
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
 void EndJsgCamBlend(struct S *script, int n)
@@ -4626,7 +4616,7 @@ namespace M_PjsgNew { extern "C" {
 struct VTE; struct E; struct A; struct C; struct S;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct E { int kind; char pad4[0xC]; int oid; char pad14[0x3C]; };   /* RELAYCMD: kind, then (BlockBegin) the block object's oid at +0x10 */
-struct A { char pad[0x50]; int commandCount; struct E *commands; char pad2[4]; char dl[1]; };
+struct A : LO { int commandCount; struct E *commands; char pad2[4]; char dl[1]; };
 struct C { char pad[0x18]; int context; };
 struct S { int unknown0; int unknown4; int pad8; struct VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
 extern char D_003DD490[];

@@ -361,7 +361,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 struct VE { short d; short pad; void *pfn; };
 struct X { char pad[0x80]; qword v80; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
+struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
 extern "C" float D_002BFA90[3];   /* the zap spring */
@@ -388,7 +388,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   v.i[2]=0;v.i[1]=0;v.i[0]=0;
   zero=v.f[2];
   if(p->o->f198!=zero)
-   v.f[2]=QwordZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
+   v.f[2]=QwordZ(p->o->GetVelocity());
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;

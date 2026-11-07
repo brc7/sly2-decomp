@@ -563,7 +563,7 @@ typedef union { qword q; float f[4]; } U;
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
 struct X150 { char pad[0x80]; int x80; };
-struct P { char pad[0x150]; struct X150 *controller; };
+struct P : SO { struct X150 *controller; };
 extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
@@ -1683,8 +1683,8 @@ struct Q { char pad[8]; R *p8; };
 struct S {
     char pad[0xE0]; S *pNext; int pad1; float gE8; char rng[8]; int nF4;
 };
-struct P {
-    char pad[0x60]; void *p60; char pad1[0xF04 - 0x64]; int jtModeState; char pad2[0x10DC - 0xF08];
+struct P : LO {
+    char pad[0x60 - 0x50]; void *p60; char pad1[0xF04 - 0x64]; int jtModeState; char pad2[0x10DC - 0xF08];
     S *ps10DC; int pad3; int interactKind; char pad4[0x10F4 - 0x10E8]; Q *pq; void *leanTarget; int pad5;
     int n1100; int n1104; int pad6[2]; float g1110; float g1114; float g1118; int pad7;
     LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;

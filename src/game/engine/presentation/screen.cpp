@@ -18,6 +18,7 @@
 // SLY2_ALIAS: _GLOBAL_$D$*=func_001DE280
 
 #include "sly2/basic.h"
+#include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -2330,8 +2331,8 @@ void SelectJobListItem(JOBLIST *p, int i) {
 } } // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
-struct SO {
-    char pad0[0x54];
+struct SO : LO {
+    char pad0[0x54 - 0x50];
     int taskState;
     char pad58[0x5C - 0x58];
     int taskTextId;
@@ -2644,7 +2645,7 @@ void HideScreen52D(SCRN52D *p) {
 } } // namespace M_func_001DD728
 
 namespace M_func_001DD780 { extern "C" {
-struct O { char pad[0x58]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
+struct O : LO { char pad[0x58 - 0x50]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
 // True when the screen's widget is fully shown. (inferred)
 int IsScreen52DShown(SCRN52D *p) {
     struct O *po = (struct O *)p->pchild;
@@ -2921,7 +2922,7 @@ extern "C" void BuildJobNameText(char *pch)
 }
 
 namespace M_BuildJobListRowText { extern "C" {
-struct O { char pad[0x6C]; int n; };
+struct O : LO { char pad[0x6C - 0x50]; int n; };
 extern JOBLIST D_003DA3C0;
 extern struct G D_003DD490;
 void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
@@ -2934,7 +2935,7 @@ void BuildJobListRowText(void *p, int i) {
 } } // namespace M_BuildJobListRowText
 
 namespace M_BuildJobListTaskRowText { extern "C" {
-struct O { char pad[0x5C]; int n; };
+struct O : LO { char pad[0x5C - 0x50]; int n; };
 extern JOBLIST D_003DA3C0;
 extern struct G D_003DD490;
 void *FindSwLocalizedString__FP2SWi(struct G *g, int n);

@@ -21,6 +21,7 @@
 #include "sly2/cm.h"
 #include "sly2/lo.h"
 #include "sly2/sndmgr.h"
+#include "sly2/step.h"
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
 

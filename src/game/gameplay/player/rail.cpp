@@ -33,7 +33,7 @@ struct RAILV
 typedef char assert_RAIL_unknown1C4[(unsigned int)&((RAILV *)0)->unknown1C4 == 0x1C4 ? 1 : -1];
 /* The object a closest point is measured from (+0x218) and a position is measured from (+0x240). */
 struct T { char pad[0x218]; qword *pq; };
-struct P { char pad[0x240]; VECTOR4 v; };
+struct P : PO { char pad[0x240 - 0x180]; VECTOR4 v; };
 
 struct DL;
 /* rail's .data (address order). */

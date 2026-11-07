@@ -49,7 +49,7 @@ struct L { char pad[0x30]; qword unknown30; };
 /* A behaviour on Neela's stack (pushed or found by class): +0x38 its target, +0x40 class-specific. */
 struct O : BHV { char pad30[0x38 - 0x30]; void *target; char pad3C[4]; void *unknown40; };
 /* The guard's vision detector: near and far volumes. */
-struct DETECTORV { char pad[0xE8]; VOLUME *nearVolume; VOLUME *farVolume; char padF0[8]; int options; };
+struct DETECTORV : XFM { char pad[0xE8 - 0xE0]; VOLUME *nearVolume; VOLUME *farVolume; char padF0[8]; int options; };
 /* Distance curve of the guard (clamped quadratic) and the behaviour's timeout. */
 struct POLY { float c0, c1, c2; float pad; float gMin, gMax; float dt; };
 /* View of the guard (a STEPGUARD, sly2/guard.h; the fields from +0x1010 on are NEELA's). */

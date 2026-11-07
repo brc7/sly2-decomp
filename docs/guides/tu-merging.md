@@ -808,6 +808,38 @@ round 2 (RenderAll, RotateToMat, IsPosInside, WIDGET Show) block rip UpdateRip, 
 widget Show calls in game.cpp/tu_1D1370/screen; the qword-representation SHAPE/XF views (shape.cpp, tail.cpp) and the
 hand-tuned player functions (murray, bentley, jt, hurt, grab) whose P views are STEPPLAYER layouts.
 
+### Views unified (names/vu-f1-base-4): base family, round 4
+
+Same rules and checks as rounds 2 and 3 (every touched object MATCHes with identical relocations compared by symbol
+name and an identical nm symbol set, now including symbol sizes from `nm -S`). No header changed: this round rewrote
+private views in 37 sources. Its target was the views padded over a base class.
+
+| change | where | how |
+|---|---|---|
+| object views padded over a base (`struct S { char pad[0x54]; int state; ... }`) | game (JOB/TASK), guardbhv/stepguard/tu_144B28 (guards, attacks, detectors, behaviours), hud/screen/memcard (widgets), murray/jt/bentley/stepplayer/grab/hurt/air (heroes), step, so, path, shape, relay, prize, grabspot, tu_1D1370, sound (stream sounds), and 15 smaller files | `struct S : B { char pad[0x54 - 0x50]; int state; ... }`: B is the largest base of the object's class whose size fits in the pad (BASIC 0x10, BHV 0x30, LO 0x50, XFM 0xE0, SO 0x150, PO 0x180, SHAPE 0x190, STEP 0x2C0, STEPPLAYER 0x1320; classes.h CID35 for the carry grab spot, snd.h STREAMSND for stream sounds). The leftover pad keeps both offsets (`0x54 - 0x50`), so the view's other offsets read as before |
+| how a view's class was decided | per view | from what the function does with the object: guard functions (`Stepguard*`, a behaviour's `guard` field), InitLo/PostLoLoad/UpdateLo calls, IsBasicDerivedFrom, Init/Clone calls (InitShape, CloneXfm, CloneSo), and offsets that match a header (SHAPE +0xE4 isClosed, DETECTOR +0xE8/+0xFC, RELAYV's alarm list at +0x84). Views whose class is not shown (internal records such as XF, SOPHYS and SOTREE views, the SNDMGR global, rich-text and sprite records) stay as they are |
+| views that are a header type | guardbhv (SetBhvpathShape, IsBhvpatrolpathAtEnd: xfm.h SHAPE; SetBhvanimState: aseg.h ASEG), relay (ResetRelay, SetRelayCommandLimit: the file's RELAYV; ClearJsgSma, ClearJsgStepHolds: its JSGV) | the view is removed and the type used with its field names |
+| pushed behaviours called by hand | guardbhv (21 views and the `StartPushedBhv` calls in their functions), stepguard (ResetStepguardToHome) | `struct O : BHV { ... }` with `o->Start()` / `o->Close()`; MoveBhvRelocateToPoint keeps the template: its one view is both the guard and the pushed leap |
+| LO objects called by hand | stepplayer (LaunchStepplayer, WillStepplayerLand), hurt (PresetJtAccelZap, func_001A28B0), grab (PresetJtAccelHide), stepguard (PostStepguardLoad's indicators: Remove; func_00209EE0: Get/SetVelocity) | the view derives from LO and makes the real virtual call |
+
+Layout asserts written for a view (the m2c generator's `sizeof`/`__alignof__` lines) follow the new type where it grew
+to the base's alignment: murray func_001B7700 (`X` 0x184 -> 0x190 and 16-aligned, `P` 16-aligned), relay's PATH
+(0xE8 -> 0xF0), grab PresetJtAccelHide's `O` (0xEC -> 0xF0). Includes added: step.h in sound.cpp, lo.h in screen.cpp,
+memcard.cpp and difficulty.cpp.
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 6,510 -> 6,480; family-named views
+309 -> 308; hand-vptr views 330 -> 301; non-derived views padded over a base 1,172 -> 635; 37 files, +735/-786.
+
+Left, with the reason: a view in a function whose namespace defines its own struct with the base's name (prize
+EmitDprizeGlint's local `LO`: inside a derived struct the name means the base); tu_144B28 func_00146B18's `PO` (as an
+LO it picks the C++ `GetLoWorldPos(LO *)` overload, which returns a different qword type, so the call target would
+change); the SNDMGR views of sound.cpp (destroyed through DestroyBasic, but nothing else shows that it is a BASIC);
+views of SO fields inside the SO range (`struct B { char pad[0xE8]; SOPHYS-like *pc; }`), which want each field mapped to
+so.h's name rather than a base; hand-vptr views whose vt field has layout asserts (murray func_001B6CC0, jt
+func_0018DF60, tu_1D1370 robot tank, tu_17F090) or whose calls are inside asm (murray SetMurrayFlopSubstate); the
+screen/memcard/game widget Show/Hide calls (WIDGET slot 49 takes an int, classes.h) and the screen objects' own slots
+10/11 (screen family).
+
 ### Views unified (names/vu-f5-camera): the camera family
 
 The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,

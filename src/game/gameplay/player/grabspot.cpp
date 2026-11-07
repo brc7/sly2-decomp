@@ -171,7 +171,7 @@ extern "C" int GetGrabspotOwner()
 }
 
 namespace M_func_00182E80 { extern "C" {
-struct S { char pad[0x190]; char sub[0x2C]; int n; };
+struct S : SHAPE { char sub[0x2C]; int n; };
 void InitShape(struct S *p);
 void InitGrabspot(void *p);
 // Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
@@ -215,7 +215,7 @@ void PostWallGrabspotLoad(struct S *wall)
 
 namespace M_func_00182FA0 { extern "C" {
 struct K { int a; int b; };
-struct S { char pad[0x1B4]; struct K k; };
+struct S : SHAPE { char pad[0x1B4 - 0x190]; struct K k; };
 void CloneShape(struct S *p);
 // Clone: clones the shape but keeps its own 8-byte field.
 void CloneWallGrabspot(struct S *wall)
@@ -227,7 +227,7 @@ void CloneWallGrabspot(struct S *wall)
 } } // namespace M_func_00182FA0
 
 namespace M_func_00182FE8 { extern "C" {
-struct S { char pad[0xE4]; int x; };
+struct S : XFM { char pad[0xE4 - 0xE0]; int x; };
 float GetShapeMinDistance(struct S *p);
 float GetShapeMaxDistance(struct S *p);
 // For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
@@ -245,7 +245,7 @@ int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 namespace M_func_00183040 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x218]; qword *pq; };
-struct S { char pad[0xE4]; int isClosed; };
+struct S : XFM { char pad[0xE4 - 0xE0]; int isClosed; };
 struct V { float a[4]; };
 void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
 float GetShapeMaxDistance(struct S *p);
@@ -426,7 +426,7 @@ void PostPoleGrabspotLoad(struct S *pole)
 
 namespace M_func_00183450 { extern "C" {
 struct K { int a; int b; };
-struct S { char pad[0x104]; struct K k; };
+struct S : XFM { char pad[0x104 - 0xE0]; struct K k; };
 void CloneXfm(struct S *p);
 // Clone: clones the transform but keeps its own field.
 void ClonePoleGrabspot(struct S *pole)
@@ -449,7 +449,7 @@ extern "C" int GetPoleGrabspotWrapRange(GRABPOLE *ppole, float *ag)
 namespace M_func_001834D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x218]; qword *p218; };
-struct P { char pad[0x10C]; float f10C; };
+struct P : XFM { char pad[0x10C - 0xE0]; float f10C; };
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 // The arc-length parameter of the player's angle around the pole axis.
@@ -485,7 +485,7 @@ void GetPoleGrabspotGrabPosition(struct O *pole, float g, STEPPLAYER *pj, qword 
 
 namespace M_func_00183600 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x10C]; float radius; };
+struct O : XFM { char pad[0x10C - 0xE0]; float radius; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
@@ -539,7 +539,7 @@ void PostHoldGrabspotLoad(struct S *hold)
 
 namespace M_func_001837D0 { extern "C" {
 struct K { int a; int b; };
-struct S { char pad[0x104]; struct K k; };
+struct S : XFM { char pad[0x104 - 0xE0]; struct K k; };
 void CloneXfm(struct S *p);
 // Clone: clones the transform but keeps its own field.
 void CloneHoldGrabspot(struct S *hold)
@@ -620,7 +620,7 @@ extern "C" void OnBarrelRemove(SO *so)
 
 namespace M_CloneBarrel { extern "C" {
 struct K { int a; int b; };
-struct S { char pad[0x174]; struct K k; };
+struct S : SO { char pad[0x174 - 0x150]; struct K k; };
 void CloneSo(struct S *p);
 // Clone: SO clone keeping its own field.
 void CloneBarrel(struct S *barrel)
@@ -651,7 +651,7 @@ extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
 namespace M_func_00183B00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { float a[12]; };
-struct S { char pad[0x17C]; int carryState; char p1[0xC]; int isFree; };
+struct S : SO { char pad[0x17C - 0x150]; int carryState; char p1[0xC]; int isFree; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
 void PresetSoAccel(struct S *p);
@@ -676,7 +676,7 @@ typedef struct { qword a[3]; } MATRIX3;
 struct VTE { short d; short pad; void *pfn; };
 struct X { char pad[0x9A]; short partFlags; char pad1[0xA0 - 0x9C]; void *pA0; char pad2[0xC0 - 0xA4]; qword vC0; };
 struct XV { int x, y; float z; int w; };
-struct T { char pad[0x60]; void *p60; char pad1[0x10BC - 0x64]; void *p10BC; };
+struct T : LO { char pad[0x60 - 0x50]; void *p60; char pad1[0x10BC - 0x64]; void *p10BC; };
 struct S2 { char pad[0x70]; qword v70; };
 struct O {
     char pad[0xC]; struct VTE *vtable; char pad1[0x58 - 0x10]; struct X *partA; struct X *partB;
@@ -848,7 +848,7 @@ extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *grabspot, STEPPLAYER *player)
 }
 
 namespace M_func_00184040 { extern "C" {
-struct S { char pad[0xFC]; int fl; };
+struct S : XFM { char pad[0xFC - 0xE0]; int fl; };
 // Maps a player class to the mask: STEPPLAYER (0x34) -> 7 (everyone), JT (0x35) -> Sly only, ...
 void SetGrabspotPlayerClass(struct S *grabspot, int n)
 {
@@ -862,7 +862,7 @@ void SetGrabspotPlayerClass(struct S *grabspot, int n)
 } } // namespace M_func_00184040
 
 namespace M_func_001840B8 { extern "C" {
-struct S { char pad[0x118]; int a; int b; };
+struct S : XFM { char pad[0x118 - 0xE0]; int a; int b; };
 extern char D_003DD490[];
 void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
 // Registers a state-machine message link (AddOrUpdateRsmg) for the trigger spot.
@@ -873,7 +873,7 @@ void AddTriggerGrabspotRsmg(struct S *trigger, int y, int z, int w)
 } } // namespace M_func_001840B8
 
 namespace M_func_001840F8 { extern "C" {
-struct S { char pad[0x15C]; int a; int b; };
+struct S : XFM { char pad[0x15C - 0xE0]; int a; int b; };
 extern char D_002DEB30[];
 void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y);
 // Registers a pair (FAddPair) for the trigger spot.
@@ -929,7 +929,7 @@ extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *trigger, float *pgScore)
 }
 
 namespace M_func_00184268 { extern "C" {
-struct S { char pad[0xF0]; int unknownF0; char p1[8]; int playerMask; char p2[0x84]; int oid0; int p3; int oid1; int p4; int oid2; int p5; int oid3; };
+struct S : XFM { char pad[0xF0 - 0xE0]; int unknownF0; char p1[8]; int playerMask; char p2[0x84]; int oid0; int p3; int oid1; int p4; int oid2; int p5; int oid3; };
 void InitTriggerGrabspot(struct S *p);
 // Carry grab spot (CID36, child of CID35) Init: CID35 init and four oids -1.
 void InitCarryGrabspot(struct S *carry)
@@ -966,8 +966,8 @@ extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *trigger, LO *lo)
 }
 
 namespace M_func_00184380 { extern "C" {
-struct T { char pad[0xF4]; int n; };
-struct S { char pad[0x180]; int x; char pad2[0x18]; int n; };
+struct T : LO { char pad[0xF4 - 0x50]; int n; };
+struct S : CID35 { int x; char pad2[0x18]; int n; };
 int IsLoSelfOrDescendantOf(struct T *q, int x);
 // 1 if the ids differ, else whether the object is a parent of the spot (IsLoSelfOrDescendantOf). (inferred)
 int ShouldTriggerGrabspotSkipTarget(struct S *trigger, struct T *q)
@@ -1032,7 +1032,7 @@ namespace M_func_00184510 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct S { char pad[0x110]; qword q110; char p1[0x3C]; void *p15c; };
+struct S : XFM { char pad[0x110 - 0xE0]; qword q110; char p1[0x3C]; void *p15c; };
 extern int D_002DFB84;
 extern float D_002BE908;
 qword GetLoWorldPos(void *p);
@@ -1054,7 +1054,7 @@ void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
 
 namespace M_func_001845A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x110]; qword pos; };
+struct O : XFM { char pad[0x110 - 0xE0]; qword pos; };
 extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);

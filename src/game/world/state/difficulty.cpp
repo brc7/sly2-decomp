@@ -5,6 +5,7 @@
 // much the player is struggling (deaths raise it by 0.1, completed jobs lower it by 0.2).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_difficulty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001553D0
+#include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"

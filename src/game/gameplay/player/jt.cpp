@@ -543,7 +543,7 @@ namespace M_func_00188CC8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x80]; float x80, y84, g88; char pad1[0x94 - 0x8C]; float g94; int n98; int n9C; };
 struct B { char pad[0x1BC]; int x1BC; };
-struct O { char pad[0x4C8]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
+struct O : STEP { char pad[0x4C8 - 0x2C0]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
     char hurt[0xF50 - 0xDF0]; char pipe[0x18C8 - 0xF50]; int state; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
 extern struct CLOCK D_002DDED0;
@@ -1483,7 +1483,7 @@ typedef union { qword q; float f[4]; } VU;
 struct WORK{VU scalar;VU forward,reverse;VU kept;};
 typedef struct M { qword r[4]; } M;
 struct C;
-typedef struct A { char pad[0x1024]; C*x1024; } A;
+typedef struct A : STEP { char pad[0x1024 - 0x2C0]; C*x1024; } A;
 typedef struct B { char pad[0xE4]; int xE4; char pad1[0x1BC - 0xE8]; int x1BC; } B;
 typedef struct C114 { char pad[0x10]; float g10; } C114;
 typedef struct C { char pad[0x114]; C114 *p114; } C;
@@ -2171,7 +2171,7 @@ struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};
 struct AIM{char pad[0x150];struct SPACE*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
 struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];struct GROUP*group;};
 struct DV{char pad[0x20];qword value;};
-struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct ASEGA*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
+struct P : LO { char pad[0x60 - 0x50]; struct SPACE*space;char pad64[0x1030-0x64];struct ASEGA*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
 extern float D_002BF380;
 extern float D_002BF3A0;
@@ -4193,7 +4193,7 @@ void UseJtGadget(char *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DD78 { extern "C" {
-struct S { char pad[0x2044]; void *p2044; };
+struct S : STEPPLAYER { char pad[0x2044 - 0x1320]; void *p2044; };
 extern struct CLOCK D_002DDED0;
 void SetClockRate(struct CLOCK *pclock, int n, float g);
 void StopSnd(void *p, float g);

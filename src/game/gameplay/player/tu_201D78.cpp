@@ -88,7 +88,7 @@ struct RECONSEL
     int pending;            /* 0xC0 */
 };
 
-struct PLAYER { char pad0[0x150]; void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
+struct PLAYER : SO { void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
 
 extern "C" {
 extern SW D_003DD490;

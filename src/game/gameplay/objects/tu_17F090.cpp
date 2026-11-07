@@ -391,8 +391,8 @@ extern char D_002BE7F0[];
 struct T { char pad[0x18]; float heading; float speed; char pad2[8]; float height; float unknown2C; };
 struct E { char pad[0xC]; void *actuator; char pad2[4]; void *sma; };
 struct M { char pad[0x4E]; short pauseCount; };
-struct S {
-    char pad[0x150]; struct T *params;
+struct S : SO {
+    struct T *params;
     char pad1[0x1C0 - 0x154]; int state;
     char pad2[0x218 - 0x1C4]; float heading;
     char pad3[4]; qword desiredVelocity;
@@ -781,7 +781,7 @@ void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
 
 namespace M_func_00180478 { extern "C" {
 struct T { char pad[0x60]; void *p60; };
-struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float expireTime; float lifetime; int n; };
+struct S : LO { char pad[0xEC - 0x50]; struct T *pt; char p1[0xD0]; float expireTime; float lifetime; int n; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 void RefreshSwObjectCollisionFilter(void *g, struct S *p);

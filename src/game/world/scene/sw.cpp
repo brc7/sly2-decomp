@@ -531,7 +531,7 @@ namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
 struct KEY {int name,tag,kind;char data[0x104];};
-struct WIDGET {char pad0[0x58];int shown;};
+struct WIDGET : LO { char pad0[0x58 - 0x50]; int shown;};
 struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct FRAME;
@@ -1103,7 +1103,7 @@ int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 
 namespace M_func_0020FA10 { extern "C" {
 struct O { char pad[0x70]; long fl; };
-struct P { char pad[0xEC]; struct O *po; };
+struct P : LO { char pad[0xEC - 0x50]; struct O *po; };
 struct S { int a; struct P *pp; char pad[8]; long fl; };
 // Intersection filter: keeps objects that are not the context object and do not have flag 4.
 int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
@@ -1224,7 +1224,7 @@ void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, str
 } } // namespace M_IntersectSwBoundingSphere
 
 namespace M_func_0020FDC8 { extern "C" {
-struct O { char pad[0x148]; long fl; };
+struct O : LO { char pad[0x148 - 0x50]; long fl; };
 struct A { int pad; struct O *po; };
 struct M { int cb; int align; int pad[2]; };
 void *AllocFromStack(struct M *pm);

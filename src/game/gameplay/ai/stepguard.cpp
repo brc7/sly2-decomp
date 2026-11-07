@@ -2320,7 +2320,7 @@ struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *a
 struct ANIMBINDINGIsland { int kind; int resource; void *instance; };
 union FLOATWORD { float value; int bits; };
 /* island: register-pinned asm body; STEP +0x190/+0x1E0 as qwords (step.h has VECTOR/qword padding names) */
-struct STEPGUARDIsland { char pad[0x190]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
+struct STEPGUARDIsland : PO { char pad[0x190 - 0x180]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0;
 qword GetStepAsegaTranslation(struct STEPGUARDIsland *, struct ASEGA *, float);
 qword GetStepAsegaRotation(struct STEPGUARDIsland *, struct ASEGA *, float);
@@ -3438,7 +3438,7 @@ struct DRIVER; struct STEPGUARDIsland;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct DRIVER { char pad[0xC]; VTE *vt; };
 /* island: the mover driver called through BHV slot 12, which step.h declares void (other family) */
-struct STEPGUARDIsland { char pad[0x2C0]; long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
+struct STEPGUARDIsland : STEP { long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
 long GetSgfMask(int n);
 int GetStepGroundProbeFlags(struct STEPGUARDIsland *p);
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),

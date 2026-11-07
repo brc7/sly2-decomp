@@ -1107,7 +1107,7 @@ extern float D_002BF638;
 }
 struct E { int x0; int x4; };
 struct F { char pad[0xF8]; int xf8; };
-struct O { char pad[0xF64]; F *xf64; char pad2[0xFE0 - 0xF68]; O *xfe0; };
+struct O : STEP { char pad[0xF64 - 0x2C0]; F *xf64; char pad2[0xFE0 - 0xF68]; O *xfe0; };
 struct P { void *x0; };
 // The frame's scope and the two sector indices IntersectSwBoundingBox returns, laid out as ClearJtDetectionOutOfSight's frame
 // has them. At namespace scope, not local to the function: g++ 2.95 emits a local class's implicit constructor and
@@ -1717,7 +1717,7 @@ namespace M_GetJtRailLanding { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} U;
 struct T {char pad[0x18];float x18,x1C;};
-struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos;};
+struct O : SO { struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
 extern CLOCK D_002DDED0;
@@ -1784,7 +1784,7 @@ typedef union { qword q; float f; } U;
 struct O { char pad[0xE4]; int xe4; };
 struct Q { int x0; int x4; float x8; int xc; U x10; qword x20; };
 struct HIT { qword a; U b; qword c[4]; };
-struct P { char pad[0x4D4]; struct O *x4d4; int pad2[2]; float x4e0; int x4e4; };
+struct P : STEP { char pad[0x4D4 - 0x2C0]; struct O *x4d4; int pad2[2]; float x4e0; int x4e4; };
 extern qword D_002A2DD0;
 void SetActRotationGoal(void *r, qword q);
 float GetShapeMinDistance(struct O *o);
@@ -2004,9 +2004,8 @@ void ResetJtGrabTnParams(O *o)
 namespace M_PresetJtAccelHide { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-typedef struct { short d; short pad; qword (*pfn)(void *); } VT;
 struct E8 { char pad[0x80]; qword x80; };
-struct O { char pad[0xC]; VT *vt; char pad2[0xE8-0x10]; struct E8 *xe8; };
+struct O : LO { char pad2[0xE8-0x50]; struct E8 *xe8; };
 struct S { char pad[0x1BC]; int x1bc; float x1c0; float x1c4; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; float x1c; };
 extern CLOCK D_002DDED0;
@@ -2017,7 +2016,6 @@ float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float 
 void AddSoAcceleration(struct O *o, qword q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char E8_x80_Offset[FIELD_OFFSET(E8,x80)==128?1:-1];
-typedef char O_vt_Offset[FIELD_OFFSET(O,vt)==12?1:-1];
 typedef char O_xe8_Offset[FIELD_OFFSET(O,xe8)==232?1:-1];
 typedef char S_x1bc_Offset[FIELD_OFFSET(S,x1bc)==444?1:-1];
 typedef char S_x1c0_Offset[FIELD_OFFSET(S,x1c0)==448?1:-1];
@@ -2030,15 +2028,12 @@ typedef char SMP_a_Offset[FIELD_OFFSET(SMP,a)==0?1:-1];
 typedef char SMP_b_Offset[FIELD_OFFSET(SMP,b)==4?1:-1];
 typedef char SMP_c_Offset[FIELD_OFFSET(SMP,c)==8?1:-1];
 typedef char E8_PrefixSize[sizeof(struct E8)==144?1:-1];
-typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
+typedef char O_PrefixSize[sizeof(struct O)==240?1:-1];   /* an LO-derived view: tail padding to the base's alignment */
 typedef char S_PrefixSize[sizeof(struct S)==456?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==32?1:-1];
 typedef char SMP_PrefixSize[sizeof(struct SMP)==12?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char VT_Size[sizeof(VT)==8?1:-1];
-typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
-typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
 // Grab physics preset: in grab state 3 on a curve object smooths the velocity along the curve. Sly 1 name and body.
 void PresetJtAccelHide(struct P *p)
 {
@@ -2052,7 +2047,7 @@ void PresetJtAccelHide(struct P *p)
     s = p->x14;
     if (!s->x1bc)
         return;
-    v.q = p->x0->vt[33].pfn((char *)p->x0 + p->x0->vt[33].d);
+    v.q = p->x0->GetVelocity();
     EvaluateShapeAtParam(s, 0, &w, p->x1c);
     psmp = &D_002BF700;
     {
@@ -2094,7 +2089,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct S4C { char pad[0x148]; long fl; };
 struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char pad3[0x60-0x50]; qword x60; char pad4[0x88-0x70]; float x88; };
-struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
+struct O : PO { char pad[0x208 - 0x180]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
 struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);

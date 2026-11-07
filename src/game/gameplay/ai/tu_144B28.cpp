@@ -363,7 +363,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct CLQ { float g0, g1, g2, gPad; };
 struct TARGETREC { char pad[0x28]; int guardCount; STEPGUARD *guards[1]; };   /* stepguard.cpp's engagement record */
-struct PO { char pad[0x1088]; struct TARGETREC *engagement; };
+struct PO : STEP { char pad[0x1088 - 0x2C0]; struct TARGETREC *engagement; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
@@ -453,7 +453,7 @@ namespace M_UpdateBhvfollow { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct D { char pad[0x10]; void *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
+struct PO : LO { char pad[0xE8 - 0x50]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
 struct X { char pad[0x40]; int usesStraightPath; };
 struct SO;
 struct P {
@@ -752,7 +752,7 @@ extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 namespace M_SetBhvfollowState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O : BHV { char pad1[0x38 - 0x30]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
-struct LEADER { char pad[0x150]; int poctl; };
+struct LEADER : SO { int poctl; };
 struct P {
     char pad[0x10]; void *guard; char pad1[4]; char childSlot[0x30 - 0x18]; struct LEADER *leader; char pad2[0x60 - 0x34];
     int state; float stateTime; char pad3[0x80 - 0x68]; qword landingPoint; int threat;
@@ -862,7 +862,7 @@ extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
 struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct TARGET : STEP { char pad[0x330 - 0x2C0]; int isKnockedOut; };
 struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1810 - 0xDF8]; int attackState; };
 void UpdateBhv(BHV195 *);
 int IsLoInWorld(struct TARGET *);   /* object still valid/in the world (inferred) */
@@ -1048,7 +1048,7 @@ extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
 struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct TARGET : STEP { char pad[0x330 - 0x2C0]; int isKnockedOut; };
 struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1714 - 0xDF8]; int attackState; };
 void UpdateBhv(BHV196 *);
 int IsLoInWorld(struct TARGET *);   /* object still valid/in the world (inferred) */
@@ -1228,7 +1228,7 @@ extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 namespace M_func_001467A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct PO { char pad[0x2DC]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
+struct PO : STEP { char pad[0x2DC - 0x2C0]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
 struct TARGET { char pad[0x330]; int isKnockedOut; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
