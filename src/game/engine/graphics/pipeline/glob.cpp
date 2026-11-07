@@ -1952,10 +1952,10 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 }
 } // namespace M_BuildModelDrawPackets
 
-// qsort comparator for the vertex records, grouping vertices by batch.
-/* qsort order of the 0x14-byte vertex records (LoadSubglobType0FromBrx's VERTREC): by the first batch (+4, a pointer
-   compared in 0x40 units), the first vertex, the batch (+0xC, likewise), then the vertex. */
 struct SORTREC { int fileVertex; int firstBatch; int firstVertex; int batch; int vertex; };
+// qsort comparator for the 0x14-byte vertex records (LoadSubglobType0FromBrx's VERTREC), grouping vertices by batch:
+// by the first batch (+4, a pointer compared in 0x40 units), the first vertex, the batch (+0xC, likewise), then the
+// vertex.
 extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
 {
     int d = (prec0->firstBatch - prec1->firstBatch) >> 6;

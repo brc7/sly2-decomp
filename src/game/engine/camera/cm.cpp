@@ -882,13 +882,13 @@ void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
 }
 } } // namespace M_AdjustCmCpdefi
 
-// DposAdjust = CalcCmAdjust(); zero vAdjust (+0x2D0) and vFocus (+0x2F0)
 static inline void ZeroVector(VECTOR *pv)
 {
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
 }
+// Resets the camera's adjust state: the adjust offset from CalcCmAdjust, and zero adjust / focus velocities.
 extern "C" void ResetCmAdjust(CM *pcm)
 {
     pcm->dposAdjust = CalcCmAdjust(pcm);
@@ -1119,9 +1119,8 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
 }
 } } // namespace M_SquishCmEye
 
-// Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) (inferred)
-/* Camera filter callback: accepts objects whose +0x70 word is positive. */
 struct LOBSP { char pad[0x70]; int numCameraBspNodes; };
+// Camera object filter: accepts objects with camera-collision BSP nodes (a positive count at +0x70) (inferred).
 extern "C" int HasCameraBsp(void *pv, LO *plo)
 {
     return ((LOBSP *)plo)->numCameraBspNodes > 0;
@@ -1497,8 +1496,8 @@ void SetCmMrdRatio(CM *pcm, float g)
 
 namespace M_JoltCamera { extern "C" {
 extern float D_002DDED0;
-// Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
 struct CMJ { char pad[0x618]; float joltTime; int joltKind; };
+// Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
 void JoltCamera(struct CMJ *p, int a)
 {
     p->joltTime = D_002DDED0;

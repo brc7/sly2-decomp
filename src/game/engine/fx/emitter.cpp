@@ -489,13 +489,13 @@ extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSG
 }
 } // namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv
 
-// Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
-// write.
 #ifndef SLY2_ENUM_ENSK
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 #endif
 EMITTERV * PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
+// Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
+// write.
 EMITTERV *PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 {
     if (ensk == ENSK_Set) {
