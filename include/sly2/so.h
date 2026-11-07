@@ -233,7 +233,7 @@ struct SO : public LO
     virtual void VUnk46(int grf) __asm__("SetSoGrf");   /* slot 47 */
     virtual void VUnk47(int grf) __asm__("ClearSoGrf");   /* slot 48 */
       virtual void VUnk48() __asm__("UpdateSoTreeBounds");
-      virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetSoCpdefi");
+      virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetSoCameraDefaults");
       virtual XF *PxfFromIxf(int ixf) __asm__("ResolveXfIdInSo");
       virtual void CloneXfRef(LO *ploBase, XF **ppxf) __asm__("CloneSoXfRef");
       virtual SOTREE *VUnk52() __asm__("NewSoTree");

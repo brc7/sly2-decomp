@@ -3225,7 +3225,7 @@ void SetSoGravity(struct P *so, qword q)
 }
 } } // namespace M_SetSoDvGravity
 
-// 0x1F58F0 GetSoCpdefi
+// 0x1F58F0 GetSoCameraDefaults
 namespace M_GetSoCpdefi { extern "C" {
 struct V; struct O; struct P; struct Out; 
 typedef int qword __attribute__((mode(TI)));
@@ -3240,7 +3240,7 @@ float atan2f(float, float);
 /** @sly2-annot addr=0x1F58F0
  * Purpose: SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix,
  *   sAdjust 100, grfcpd 0, tMoveLast = g_clock.t
- * Info: proposed name GetSoCpdefi (T1); class SO slot50; TU so
+ * Info: proposed name GetSoCameraDefaults (T1); class SO slot50; TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
@@ -3248,7 +3248,7 @@ float atan2f(float, float);
  * @end-sly2-annot */
 // Slot 50: the camera's default info for this object: base position and velocity, home heading from the upright
 // matrix, adjustment 100, no flags, last-move time now.
-void GetSoCpdefi(struct P *so, struct Out *po)
+void GetSoCameraDefaults(struct P *so, struct Out *po)
 {
     struct O *o = so->rootTransform;
     struct V v;

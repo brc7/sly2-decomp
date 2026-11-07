@@ -204,13 +204,13 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 namespace M_CbskFromG__Ff { extern "C" {
 /** @sly2-annot addr=0x1BF398
  * Purpose: Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00)
- * Info: proposed name CbskFromG (T1); TU path
+ * Info: proposed name ClassifyPlaneDistance (T1); TU path
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name.
-int CbskFromG__Ff(float distance)
+int ClassifyPlaneDistance__Ff(float distance)
 {
 extern float D_002C0C00;
     if (D_002C0C00 < distance) return 0;
@@ -224,7 +224,7 @@ namespace M_ClsgClipEdgeToCbsp {
 // ClipEdgeToCbsp: walk the segment from -> to (XY only) through the 2D BSP of a navigation graph and write the
 // leaf spans it crosses into out[] (at most `capacity` rows); returns the number of rows (wave-4 lane 6).
 // Matched siblings: FindNavTriangleQuick / FindNavTriangleSafe (same GRAPH/NODE layout and Make/GetX/GetY/Dot helpers),
-// CbskFromG (plane side test), caller IsEdgeBlockedByCbsp (ROW layout).
+// ClassifyPlaneDistance (plane side test), caller IsEdgeBlockedByCbsp (ROW layout).
 // Keys:
 //  * The row count is `cursor - out` (ROW = 96 bytes). The exact division by 96 is a multiply by inverse(3) and an
 //    arithmetic shift by 5, so loop.c reduces both uses to registers stepping by 32 and only `sra 5` survives.
@@ -245,7 +245,7 @@ struct ROW { U a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char ta
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
 extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
-extern "C" int CbskFromG__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
+extern "C" int ClassifyPlaneDistance__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
 
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static inline float GetY(const qword &q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -343,8 +343,8 @@ extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW 
             qword q1 = Dot(st[0].node->plane, toPlane.q);
             float d0 = QX(q0);
             float d1 = QX(q1);
-            int s0 = CbskFromG__Ff(d0);
-            int s1 = CbskFromG__Ff(d1);
+            int s0 = ClassifyPlaneDistance__Ff(d0);
+            int s1 = ClassifyPlaneDistance__Ff(d1);
             int neg, pos;
             unsigned int child;
             neg = 0;
@@ -444,13 +444,13 @@ int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
 
 /** @sly2-annot addr=0x1BF970
  * Purpose: Index of a graph vertex: (pcgv - pcg->acgv) >> 5
- * Info: proposed name IcgvFromPcgv (T1); TU path
+ * Info: proposed name GetCgVertexIndex (T1); TU path
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Index of a graph vertex from its pointer.
-int IcgvFromPcgv(CG *graph, CGV *vertex)
+int GetCgVertexIndex(CG *graph, CGV *vertex)
 {
     return vertex - graph->acgv;
 }
@@ -467,7 +467,7 @@ struct NODE { V *pv; float f; float g; NODE *parent; int depth; NODE *next; };
 extern "C" {
 void *AllocFromStack(const AREQ &r);
 void *AllocClearedFromStack(const AREQ &r);
-int IcgvFromPcgv__FP2CGP3CGV(G *p, V *pv);
+int GetCgVertexIndex__FP2CGP3CGV(G *p, V *pv);
 }
 static inline void *Alloc(int cb) { return AllocFromStack(AREQ(cb, 0x10)); }
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQ(cb, 0x10)); }
@@ -516,7 +516,7 @@ extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int 
                 if (pv == goal) {
                     fSkip = 0;
                 } else {
-                    int iv = IcgvFromPcgv__FP2CGP3CGV(graph, pv);
+                    int iv = GetCgVertexIndex__FP2CGP3CGV(graph, pv);
                     if (afClosed[iv] == 0) {
                         afClosed[iv] = 1;
                         fSkip = 0;
@@ -570,12 +570,12 @@ int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
 static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
 /** @sly2-annot addr=0x1BFC18
  * Purpose: Drop intermediate path vertices with clear line of sight (IsEdgeBlockedByCbsp)
- * Info: proposed name SimplifyApcgvNeighbor (T1); TU path
+ * Info: proposed name SimplifyPathByLineOfSight (T1); TU path
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
-void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
+void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
     struct CTX c;
     struct REQ req;
@@ -602,7 +602,7 @@ void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
     }
     tmp[k] = points[n - 1];
     k++;
-    if (k < n && k >= 3) SimplifyApcgvNeighbor(ctx, &k, tmp);
+    if (k < n && k >= 3) SimplifyPathByLineOfSight(ctx, &k, tmp);
     CopyAb__FPvT0Ui(points, tmp, k * 4);
     *count = k;
     STACKSCOPE_ctor_1AE4A0(&c, 2);
@@ -686,7 +686,7 @@ namespace M_CposFindPath {
 // FindPathPoints: build a route between two points over the navigation graph (wave-3 lane 4, from w2lane6.v1).
 // Finds the triangles containing both points, projects the points onto them (ClosestPointOnCgt), links a temporary start
 // vertex to the start triangle's corners and the goal vertex to the goal triangle's corners, runs the path search
-// (FindPathAStar) and the path simplifier (SimplifyApcgvNeighbor), copies the route out, drops points closer than the minimum
+// (FindPathAStar) and the path simplifier (SimplifyPathByLineOfSight), copies the route out, drops points closer than the minimum
 // spacing, and returns a two-point route (offset along +X) when only one point is left.
 // Keys of the last fixes (tail block):
 //  * D_002C0C04 is a `const float` read by value through VU_FLOAT(const float) whose qmtc2 input has a never-chosen "V"
@@ -712,7 +712,7 @@ void STACKSCOPE_ctor(void *);
 void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
-void SimplifyApcgvNeighbor(G *, int *, V **);
+void SimplifyPathByLineOfSight(G *, int *, V **);
 int FindPathPoints(G *, qword, qword, int, U *);
 }
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
@@ -806,7 +806,7 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
         }
         int found;
         FindPathAStar(graph, &initial, pg, 128, &found, path);
-        if (found >= 3) SimplifyApcgvNeighbor(graph, &found, path);
+        if (found >= 3) SimplifyPathByLineOfSight(graph, &found, path);
         int n = found; if (n > capacity) n = capacity; count = n;
         for (int i = 0; i < count; i++) out[i].q = path[i]->pos.q;
         for (int i = 0; i < 3; i++) last->apv[i]->cEdge--;

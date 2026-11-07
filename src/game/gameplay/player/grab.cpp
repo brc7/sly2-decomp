@@ -487,8 +487,8 @@ extern qword D_002A2DC0;                                // (0, 0, 1)
 extern float D_002BF5B0;
 extern float D_002BF5B4;
 extern float D_002BF5B8;
-int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
-int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
+int ConsumeButtonsPressedWithin__5POCTLUif(JOY *, uint, float);
+int GetButtonsPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
 void SetJtAirJump(void *, int, int, ACTOR *);
 void StartJtMode(void *, int, int, int);
@@ -617,22 +617,22 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         step = grab->step;
         switch (grab->action) {
         case 1:
-            if (0.15f < D_002DDED0.t - grab->tHold && GrfConsumePressed__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
+            if (0.15f < D_002DDED0.t - grab->tHold && ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
                 SetJtAirJump(&AsStepplayer(grab->pactor)->jtair, 7, 0, grab->pactorFocus);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3)) {
+            if (GetButtonsPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3)) {
                 ClearPoctlJoyPressed(joy, BUTTON_LOOK);
                 StartJtMode(&AsStepplayer(grab->pactor)->jtmode, 0, 0, 0);
             }
             break;
         case 3:
         case 4:
-            if (GrfConsumePressed__5POCTLUif(joy, BUTTON_JUMP, 0.1f)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.1f)) {
                 SetJtAirJump(&AsStepplayer(grab->pactor)->jtair, 1, 0, 0);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3)) {
+            if (GetButtonsPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3)) {
                 ClearPoctlJoyPressed(joy, BUTTON_LOOK);
                 StartJtMode(&AsStepplayer(grab->pactor)->jtmode, 0, 0, 0);
             }
@@ -702,11 +702,11 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             SetControl(grab->pactor, 0);
             break;
         default:
-            if (GrfConsumePressed__5POCTLUif(joy, BUTTON_JUMP, 0.1f)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.1f)) {
                 SetJtAirJump(&AsStepplayer(grab->pactor)->jtair, 1, 0, 0);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3) && (grab->action == 0 || grab->action == 13)) {
+            if (GetButtonsPressedWithin__5POCTLUif(joy, BUTTON_LOOK, 0.15f) && CanAct(grab->pactor, 3) && (grab->action == 0 || grab->action == 13)) {
                 ClearPoctlJoyPressed(joy, BUTTON_LOOK);
                 StartJtMode(&AsStepplayer(grab->pactor)->jtmode, 0, 0, 0);
                 break;

@@ -1871,20 +1871,20 @@ void UpdateJtAirInput(JTAIR *air)
             case 0x16:
                 break;
             default:
-            if (air->fCanDoubleJump && pctl->GrfPressedWithin(BUTTON_JUMP, 0.0f) &&
+            if (air->fCanDoubleJump && pctl->GetButtonsPressedWithin(BUTTON_JUMP, 0.0f) &&
                 !FJtLandsWithin(0.075f, air->pstepplayer))
             {
                 pctl->ClearJoyPressed(BUTTON_JUMP);
                 SetJtAirJump(air, 6, air->n2, 0);
             }
-            if (pctl->GrfPressedWithin(BUTTON_ACTION, 0.0f))
+            if (pctl->GetButtonsPressedWithin(BUTTON_ACTION, 0.0f))
             {
                 int state = air->nState;
                 TryJtAirGrab(air, 0);
                 if (air->nState != state)
                     pctl->ClearJoyPressed(BUTTON_ACTION);
             }
-            if (pctl->GrfPressedWithin(BUTTON_RUN, 0.0f) &&
+            if (pctl->GetButtonsPressedWithin(BUTTON_RUN, 0.0f) &&
                 air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
             {
                 ChargeGadgetMp(air->pstepplayer, 0x1B);
@@ -1989,7 +1989,7 @@ void UpdateJtAirInput(JTAIR *air)
                     ReturnJtToSafePlace(air->pstepplayer, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - air->tState > 0.25f && pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                if (D_002DDED0.t - air->tState > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                 {
                     SetJtAirJump(air, 3, 0, 0);
                     break;
@@ -2008,7 +2008,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                     SetStepTargetHeadingFromVector(air->pstepplayer, QwScale(air->normalEdge, VuFloat(-1.0f)));
-                    if (pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
+                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
                     {
                         pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);

@@ -3378,8 +3378,8 @@ RecalcSwXpPos,0x1A7E60,88,match,src/game/engine/physics/mark.cpp
 RecalcSwXpMovement,0x1A7FC0,69,match,src/game/engine/physics/mark.cpp
 ClipSoAllEdges,0x1A80D8,71,match,src/game/engine/physics/mark.cpp
 ClipSoBspEdges,0x1A81F8,134,match,src/game/engine/physics/mark.cpp
-CategorizeAlsg__FiP3LSGPiT2PP3LSGT4,0x1A8410,170,match,src/game/engine/physics/mark.cpp
-CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG,0x1A86B8,78,match,src/game/engine/physics/mark.cpp
+CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4,0x1A8410,170,match,src/game/engine/physics/mark.cpp
+FindEdgePath__FP4SURFiiP3LSGPP3LSG,0x1A86B8,78,match,src/game/engine/physics/mark.cpp
 AddEmbeddedVertexXps,0x1A87F0,215,match,src/game/engine/physics/mark.cpp
 MarkSoContactsBspBsp,0x1A8B50,365,match,src/game/engine/physics/mark.cpp
 FindContactInsideBsp,0x1A9108,175,match,src/game/engine/physics/mark.cpp
@@ -3777,12 +3777,12 @@ StaticInit_tu_1BE398,0x1BEFB8,77,match,src/game/engine/graphics/pipeline/tu_1BE3
 func_001BF0F0,0x1BF0F0,8,match,src/game/engine/graphics/pipeline/tu_1BE398.cpp
 FindNavTriangleQuick,0x1BF110,57,match,src/game/engine/physics/path.cpp
 FindNavTriangleSafe,0x1BF1F8,103,match,src/game/engine/physics/path.cpp
-CbskFromG__Ff,0x1BF398,15,match,src/game/engine/physics/path.cpp
+ClassifyPlaneDistance__Ff,0x1BF398,15,match,src/game/engine/physics/path.cpp
 ClipEdgeToCbsp,0x1BF3D8,329,match,src/game/engine/physics/path.cpp
 IsEdgeBlockedByCbsp,0x1BF900,27,match,src/game/engine/physics/path.cpp
-IcgvFromPcgv__FP2CGP3CGV,0x1BF970,4,match,src/game/engine/physics/path.cpp
+GetCgVertexIndex__FP2CGP3CGV,0x1BF970,4,match,src/game/engine/physics/path.cpp
 FindPathAStar,0x1BF980,165,match,src/game/engine/physics/path.cpp
-SimplifyApcgvNeighbor,0x1BFC18,101,match,src/game/engine/physics/path.cpp
+SimplifyPathByLineOfSight,0x1BFC18,101,match,src/game/engine/physics/path.cpp
 ClosestPointOnCgt,0x1BFDB0,93,match,src/game/engine/physics/path.cpp
 FindPathPoints,0x1BFF28,233,match,src/game/engine/physics/path.cpp
 FindPathzonePathCurve,0x1C02D0,20,match,src/game/engine/physics/path.cpp
@@ -3857,7 +3857,7 @@ LoadPoFromBrx,0x1C3DC8,11,match,src/game/actor/po.cpp
 ClonePo,0x1C3DF8,10,match,src/game/actor/po.cpp
 HandlePoMessage,0x1C3E20,27,match,src/game/actor/po.cpp
 IsPoInvulnerable,0x1C3E90,15,match,src/game/actor/po.cpp
-JthsCurrentPo,0x1C3ED0,2,match,src/game/actor/po.cpp
+GetPoJtHoldState,0x1C3ED0,2,match,src/game/actor/po.cpp
 SetPoCtlState,0x1C3ED8,69,match,src/game/actor/po.cpp
 OnPoActive,0x1C3FF0,35,match,src/game/actor/po.cpp
 GetPoCtlState,0x1C4080,6,match,src/game/actor/po.cpp
@@ -3873,9 +3873,9 @@ ConvertPoctlStick,0x1C4330,77,match,src/game/actor/po.cpp
 UpdatePoctl,0x1C4468,80,match,src/game/actor/po.cpp
 UpdatePoctlPressed,0x1C45A8,37,match,src/game/actor/po.cpp
 SetPoctlStateValue,0x1C4640,7,match,src/game/actor/po.cpp
-GrfPressedWithin__5POCTLUif,0x1C4660,24,match,src/game/actor/po.cpp
-GrfConsumePressed__5POCTLUif,0x1C46C0,16,match,src/game/actor/po.cpp
-POCTL_FConsumePressed,0x1C4700,9,match,src/game/actor/po.cpp
+GetButtonsPressedWithin__5POCTLUif,0x1C4660,24,match,src/game/actor/po.cpp
+ConsumeButtonsPressedWithin__5POCTLUif,0x1C46C0,16,match,src/game/actor/po.cpp
+POCTL_ConsumeAnyPressed,0x1C4700,9,match,src/game/actor/po.cpp
 POCTL_IsButtonDown,0x1C4728,4,match,src/game/actor/po.cpp
 ClearPoctlJoyPressed,0x1C4738,12,match,src/game/actor/po.cpp
 GetPoctlLateralVector,0x1C4768,54,match,src/game/actor/po.cpp
@@ -3886,7 +3886,7 @@ SwitchToPo,0x1C4940,65,match,src/game/actor/po.cpp
 GetCurrentPo,0x1C4A48,5,match,src/game/actor/po.cpp
 SetSwPoOverride,0x1C4A60,38,match,src/game/actor/po.cpp
 FindClosestSwPo,0x1C4AF8,56,match,src/game/actor/po.cpp
-CollectActivePzis,0x1C4BD8,72,match,src/game/actor/po.cpp
+CollectActivePickupInfos,0x1C4BD8,72,match,src/game/actor/po.cpp
 StaticInit_po,0x1C4CF8,77,match,src/game/actor/po.cpp
 func_001C4E30,0x1C4E30,8,match,src/game/actor/po.cpp
 InitDprize,0x1C4E50,42,match,src/game/gameplay/progression/prize.cpp
@@ -4772,7 +4772,7 @@ SetSoCnstrForce,0x1F5720,40,match,src/game/engine/physics/so.cpp
 SetSoCnstrTorque,0x1F57C0,40,match,src/game/engine/physics/so.cpp
 GetSoGravity,0x1F5860,8,match,src/game/engine/physics/so.cpp
 SetSoGravity,0x1F5880,27,match,src/game/engine/physics/so.cpp
-GetSoCpdefi,0x1F58F0,37,match,src/game/engine/physics/so.cpp
+GetSoCameraDefaults,0x1F58F0,37,match,src/game/engine/physics/so.cpp
 OnSoContactFreed,0x1F5988,2,match,src/game/engine/physics/so.cpp
 AddSoCustomXps,0x1F5990,2,match,src/game/engine/physics/so.cpp
 GetSoExtraPartCount,0x1F5998,2,match,src/game/engine/physics/so.cpp
@@ -6507,7 +6507,7 @@ JT_ctor,0x2563E8,22,match,src/game/app/class_registry.cpp
 MURRAY_ctor,0x256440,22,match,src/game/app/class_registry.cpp
 func_002564A8__FPxx,0x2564A8,3,match,src/game/core/math/bsp.cpp
 InitVuTemp,0x2564B8,2,match,src/game/core/math/bsp.cpp
-func_002564C0,0x2564C0,2,match,src/game/engine/physics/mark.cpp
+DefaultConstructVector,0x2564C0,2,match,src/game/engine/physics/mark.cpp
 Init__t10CDynArrayV1ZPcPv,0x2564E0,17,match,src/game/core/containers/tu_119BC8.cpp
 Init__t10CHashIndex1ZPcPt10CDynArrayV1ZPcPv,0x256528,19,match,src/game/core/containers/tu_119BC8.cpp
 NotifyAdd__t10CDynArrayV1ZPcPPc,0x256588,21,match,src/game/core/containers/tu_119BC8.cpp

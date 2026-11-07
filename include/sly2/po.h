@@ -31,14 +31,14 @@ struct POCTL : public BASIC
       PO *ppo;   /* the controlled object */
       int nState;   /* controller state */
       void *pvUnk84;
-      float atPressed[16];   /* time each button was last pressed (GrfPressedWithin) */
+      float atPressed[16];   /* time each button was last pressed (GetButtonsPressedWithin) */
       float atLeftStick[2];   /* times of the last left stick flicks (inferred) */
       float atRightStick[2];   /* times of the last right stick flicks (inferred) */
       uint32_t   _pad_78    [ 2 ] ;
     void ClearJoyPressed(int grf) __asm__("ClearPoctlJoyPressed");
-    uint GrfPressedWithin(uint grf, float dt);
-    uint GrfConsumePressed(uint grf, float dt);
-    int FConsumePressed(uint grf) __asm__("POCTL_FConsumePressed");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    uint GetButtonsPressedWithin(uint grf, float dt);
+    uint ConsumeButtonsPressedWithin(uint grf, float dt);
+    int FConsumePressed(uint grf) __asm__("POCTL_ConsumeAnyPressed");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPoctlClassDesc");   /* slot 6 */
 };
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
@@ -65,7 +65,7 @@ struct PO : public SO
     virtual void Init() __asm__("InitPo");   /* slot 7 */
     virtual void Clone(LO *ploBase) __asm__("ClonePo");   /* slot 41 */
       virtual int FInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
-      virtual int JthsCurrent() __asm__("JthsCurrentPo");
+      virtual int JthsCurrent() __asm__("GetPoJtHoldState");
       virtual void OnActive(int fActive) __asm__("OnPoActive");
       virtual void SetCtlState(int nState) __asm__("SetPoCtlState");
       virtual int FCanBeHealed() __asm__("CanPoBeHealed");

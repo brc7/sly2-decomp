@@ -721,7 +721,7 @@ typedef struct {
 } OBJ;
 int HasRobottankWeaponAmmo(ITEM *);
 void SetSmaGoal(void *, int);
-int GrfConsumePressed__5POCTLUif(POCTL_VIEW *, int, float);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL_VIEW *, int, float);
 // Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
 // (SMA goal 0x68) or held-flag variant (0x67). (inferred)
 void ReadRobottankInput(OBJ *tank)
@@ -742,7 +742,7 @@ void ReadRobottankInput(OBJ *tank)
         if (HasRobottankWeaponAmmo(q)) {
             if (tank->control->fl & q->fl)
                 SetSmaGoal(q->sma, 0x67);
-            else if (GrfConsumePressed__5POCTLUif(tank->control, q->fireButtons, 0.0f))
+            else if (ConsumeButtonsPressedWithin__5POCTLUif(tank->control, q->fireButtons, 0.0f))
                 SetSmaGoal(q->sma, 0x68);
         }
     }
@@ -1439,9 +1439,9 @@ struct VECTOR4 { float x, y, z, w; };   /* BLKmode on purpose: all block locals 
 struct SCALAR;
 struct VECTOR;
 extern "C" SCALAR *InitVuTemp(SCALAR *);
-extern "C" VECTOR *func_002564C0(VECTOR *);
+extern "C" VECTOR *DefaultConstructVector(VECTOR *);
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
-struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
+struct VECTOR { qword q; VECTOR() { (void)DefaultConstructVector(this); } };
 /* the edge-loop lerp scalars need a VF-class pseudo: qmtc2 conversion */
 struct VU_FLOATQ { qword q; VU_FLOATQ(float g) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g)); } };
 

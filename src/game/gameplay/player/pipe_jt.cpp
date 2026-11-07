@@ -75,7 +75,7 @@ void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, U *pv);
 float GetShapeMinDistance(PATH *);
 float GetShapeMaxDistance(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
-void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
+void SetJtAirJump(void*,int,void*,void*);int ConsumeButtonsPressedWithin__5POCTLUif(INPUT*,int,float);int GetButtonsPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float ClampShapeDistance(PATH*,float);void EvaluateShapeAtDistance(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
 void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
@@ -267,11 +267,11 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
             SetJtAirJump(pipe->actor->controller, 0, 0, 0);
             return;
         }
-        if (pipe->state && GrfConsumePressed__5POCTLUif(input, BUTTON_JUMP, 0.25f)) {
+        if (pipe->state && ConsumeButtonsPressedWithin__5POCTLUif(input, BUTTON_JUMP, 0.25f)) {
             SetJtAirJump(pipe->actor->controller, 2, 0, 0);
             return;
         }
-        if (GrfPressedWithin__5POCTLUif(input, BUTTON_LOOK, 0.15f) && CanAct(pipe->actor, 3)) {
+        if (GetButtonsPressedWithin__5POCTLUif(input, BUTTON_LOOK, 0.15f) && CanAct(pipe->actor, 3)) {
             ClearPoctlJoyPressed(input, BUTTON_LOOK);
             StartJtMode(pipe->actor->action, 0, 0, 0);
         }

@@ -81,7 +81,7 @@ M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
-void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
+void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
@@ -637,7 +637,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     CalculateJtHangAccel__FP2JT(jt);
     if (jt->link)
         WakeSo(jt->link->object);
-    if (GrfPressedWithin__5POCTLUif(jt->input, BUTTON_LOOK, 0.15f) && Can(jt, 3)) {
+    if (GetButtonsPressedWithin__5POCTLUif(jt->input, BUTTON_LOOK, 0.15f) && Can(jt, 3)) {
         ClearPoctlJoyPressed(jt->input, BUTTON_LOOK);
         StartJtMode(jt->action, 0, 0, 0);
     }

@@ -3389,8 +3389,8 @@ RecalcSwXpPos,0x1A7E60,mark
 RecalcSwXpMovement,0x1A7FC0,mark
 ClipSoAllEdges,0x1A80D8,mark
 ClipSoBspEdges,0x1A81F8,mark
-CategorizeAlsg__FiP3LSGPiT2PP3LSGT4,0x1A8410,mark
-CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG,0x1A86B8,mark
+CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4,0x1A8410,mark
+FindEdgePath__FP4SURFiiP3LSGPP3LSG,0x1A86B8,mark
 AddEmbeddedVertexXps,0x1A87F0,mark
 MarkSoContactsBspBsp,0x1A8B50,mark
 FindContactInsideBsp,0x1A9108,mark
@@ -3788,12 +3788,12 @@ StaticInit_tu_1BE398,0x1BEFB8,tu_1BE398
 func_001BF0F0,0x1BF0F0,tu_1BE398
 FindNavTriangleQuick,0x1BF110,path
 FindNavTriangleSafe,0x1BF1F8,path
-CbskFromG__Ff,0x1BF398,path
+ClassifyPlaneDistance__Ff,0x1BF398,path
 ClipEdgeToCbsp,0x1BF3D8,path
 IsEdgeBlockedByCbsp,0x1BF900,path
-IcgvFromPcgv__FP2CGP3CGV,0x1BF970,path
+GetCgVertexIndex__FP2CGP3CGV,0x1BF970,path
 FindPathAStar,0x1BF980,path
-SimplifyApcgvNeighbor,0x1BFC18,path
+SimplifyPathByLineOfSight,0x1BFC18,path
 ClosestPointOnCgt,0x1BFDB0,path
 FindPathPoints,0x1BFF28,path
 FindPathzonePathCurve,0x1C02D0,path
@@ -3868,7 +3868,7 @@ LoadPoFromBrx,0x1C3DC8,po
 ClonePo,0x1C3DF8,po
 HandlePoMessage,0x1C3E20,po
 IsPoInvulnerable,0x1C3E90,po
-JthsCurrentPo,0x1C3ED0,po
+GetPoJtHoldState,0x1C3ED0,po
 SetPoCtlState,0x1C3ED8,po
 OnPoActive,0x1C3FF0,po
 GetPoCtlState,0x1C4080,po
@@ -3884,9 +3884,9 @@ ConvertPoctlStick,0x1C4330,po
 UpdatePoctl,0x1C4468,po
 UpdatePoctlPressed,0x1C45A8,po
 SetPoctlStateValue,0x1C4640,po
-GrfPressedWithin__5POCTLUif,0x1C4660,po
-GrfConsumePressed__5POCTLUif,0x1C46C0,po
-POCTL_FConsumePressed,0x1C4700,po
+GetButtonsPressedWithin__5POCTLUif,0x1C4660,po
+ConsumeButtonsPressedWithin__5POCTLUif,0x1C46C0,po
+POCTL_ConsumeAnyPressed,0x1C4700,po
 POCTL_IsButtonDown,0x1C4728,po
 ClearPoctlJoyPressed,0x1C4738,po
 GetPoctlLateralVector,0x1C4768,po
@@ -3897,7 +3897,7 @@ SwitchToPo,0x1C4940,po
 GetCurrentPo,0x1C4A48,po
 SetSwPoOverride,0x1C4A60,po
 FindClosestSwPo,0x1C4AF8,po
-CollectActivePzis,0x1C4BD8,po
+CollectActivePickupInfos,0x1C4BD8,po
 StaticInit_po,0x1C4CF8,po
 func_001C4E30,0x1C4E30,po
 InitDprize,0x1C4E50,prize
@@ -4783,7 +4783,7 @@ SetSoCnstrForce,0x1F5720,so
 SetSoCnstrTorque,0x1F57C0,so
 GetSoGravity,0x1F5860,so
 SetSoGravity,0x1F5880,so
-GetSoCpdefi,0x1F58F0,so
+GetSoCameraDefaults,0x1F58F0,so
 OnSoContactFreed,0x1F5988,so
 AddSoCustomXps,0x1F5990,so
 GetSoExtraPartCount,0x1F5998,so
@@ -6519,7 +6519,7 @@ JT_ctor,0x2563E8,class_registry
 MURRAY_ctor,0x256440,class_registry
 func_002564A8__FPxx,0x2564A8,bsp
 InitVuTemp,0x2564B8,bsp
-func_002564C0,0x2564C0,mark
+DefaultConstructVector,0x2564C0,mark
 Init__t10CDynArrayV1ZPcPv,0x2564E0,tu_119BC8
 Init__t10CHashIndex1ZPcPt10CDynArrayV1ZPcPv,0x256528,tu_119BC8
 NotifyAdd__t10CDynArrayV1ZPcPPc,0x256588,tu_119BC8

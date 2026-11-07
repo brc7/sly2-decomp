@@ -109,7 +109,7 @@ void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
 int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
-int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
+int ConsumeButtonsPressedWithin__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
 TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
@@ -472,11 +472,11 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                 break;
             }
             float margin = 0.1f;
-            if (GrfConsumePressed__5POCTLUif(control, BUTTON_JUMP | BUTTON_ATTACK, margin)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(control, BUTTON_JUMP | BUTTON_ATTACK, margin)) {
                 SetJtThrowState(s, 7);
                 break;
             }
-            if (GrfConsumePressed__5POCTLUif(control, BUTTON_ALT_ATTACK | BUTTON_ACTION, margin)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(control, BUTTON_ALT_ATTACK | BUTTON_ACTION, margin)) {
                 if (s->animation0)
                     SetJtThrowState(s, 0);
                 else

@@ -656,7 +656,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int isCollectable; float expireTime; };
-int CollectActivePzis(void *pg, int c, void **ap);
+int CollectActivePickupInfos(void *pg, int c, void **ap);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int TryCollectDprize(struct S *p, void *pv);
 // for each collector PZI (CppziCur) check collection. (inferred)
@@ -669,7 +669,7 @@ void CheckDprizeCollect(struct S *prize)
         ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 1);
         return;
     }
-    n = CollectActivePzis(D_003DD490, 0x10, ap);
+    n = CollectActivePickupInfos(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
         if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
@@ -2296,7 +2296,7 @@ struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
-extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
+extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
 extern "C" int FAsegaRetracted(void*);
@@ -2317,13 +2317,13 @@ extern "C" void UpdateVaultInput(struct S*vault){
  int divisor=1000;
  do{
   old=vault->state;
-  if(GrfConsumePressed__5POCTLUif(vault->input,0x30,0)){
+  if(ConsumeButtonsPressedWithin__5POCTLUif(vault->input,0x30,0)){
    func_001E0020(vault->relay,(ALARM*)0x655);
    SetVaultDialState(vault,3);
   }
   switch(vault->state){
   case 0:
-   if(GrfConsumePressed__5POCTLUif(vault->input,0xC0,0)){SetVaultDialState(vault,2);break;}
+   if(ConsumeButtonsPressedWithin__5POCTLUif(vault->input,0xC0,0)){SetVaultDialState(vault,2);break;}
    {
     char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=vault->selectedDigit,best;register int comparison __asm__("$7")=current;
     unsigned i;qword*table;

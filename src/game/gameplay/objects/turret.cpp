@@ -90,7 +90,7 @@ void SetActPositionGoal(void *,qword);
 CRef RefGetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
-int POCTL_FConsumePressed(CONTROL *x, int a);
+int POCTL_ConsumeAnyPressed(CONTROL *x, int a);
 void *AcquireProxyObject(PROXYSRC *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *ShouldSoIgnoreIntersection(TURRETV *p);
@@ -290,7 +290,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
 // the turret's Splice event 5. (inferred)
 extern "C" void UpdateTurretFire(TURRETV *turret)
 {
-    if (turret->control && POCTL_FConsumePressed(turret->control, 0xFF)) {
+    if (turret->control && POCTL_ConsumeAnyPressed(turret->control, 0xFF)) {
         if (turret->projectileProxy) {
             void *v = AcquireProxyObject(turret->projectileProxy, 0);
             if (!v) return;

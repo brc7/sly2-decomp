@@ -2368,9 +2368,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (!jt->FCanUseGadget(2))
                         break;
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ATTACK, 0.0f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
-                    else if (jt->pctl->GrfConsumePressed(BUTTON_ALT_ATTACK, 0.0f))
+                    else if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
@@ -2402,7 +2402,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (!jt->janim.fInputOpen)
                             break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
@@ -2412,18 +2412,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                         break;
                     }
-                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->nUnk10e4 == 3 && jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.15f))
+                    if (jt->nUnk10e4 == 3 && jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f))
                     {
                         SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2454,7 +2454,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
@@ -2490,18 +2490,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2514,7 +2514,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Hang:
                     if (D_002DDED0.t - jt->tJts > 0.25f)
                     {
-                        if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                        if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
                     }
                     break;
@@ -2565,11 +2565,11 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                         SetJtAirJump(&jt->jtair, 0x12, 0, 0);
                     break;
                 case JTS_HangFollow:
-                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
+                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
                         LO *ploTarget = jt->phndHang->ploUnk138;
@@ -2606,7 +2606,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
 namespace M_func_0018B2C0 { extern "C" {
 struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
 int IsStepplayerInJtMode(struct S *p);
-int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 /** @sly2-annot addr=0x18B2C0
@@ -2622,7 +2622,7 @@ void UpdateJtModeInput(struct S *p)
     if (!IsStepplayerInJtMode(p))
         return;
     if (p->jtModeState == 1 && !p->jtModeKind &&
-        GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
         EndJtMode(&p->xf00);
     UpdateJtMode(&p->xf00);
 }

@@ -329,8 +329,8 @@ extern "C" void SetJtAirJump(void*,int,void*,void*);
 extern "C" void StartJtMode(void*,int,void*,void*);
 extern "C" int IsStepplayerNearInteractTarget(P*,int);
 extern "C" void SetMurrayState(P*,int);
-extern "C" unsigned GrfConsumePressed__5POCTLUif(PL*,unsigned,float);
-extern "C" unsigned GrfPressedWithin__5POCTLUif(PL*,unsigned,float);
+extern "C" unsigned ConsumeButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
+extern "C" unsigned GetButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
 extern "C" void ClearPoctlJoyPressed(PL*,int);
 extern "C" int CanMurrayAttack(P*);
 extern "C" void StartMurrayAltAttack(P*);
@@ -413,29 +413,29 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
                 SetMurrayState(murray, MURRAY_STRAFE);
                 break;
             }
-            if (GrfConsumePressed__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f)) {
                 SetJtAirJump(&murray->control, 1, 0, 0);
                 break;
             }
-            if (GrfPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) && Can(murray, 3)) {
+            if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) && Can(murray, 3)) {
                 ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
                 StartJtMode(murray->altAction, 0, 0, 0);
                 break;
             }
-            if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC)) {
                 StartMurrayAltAttack(murray);
                 break;
             }
             if (TryMurrayTakedown(murray))
                 break;
-            if (GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
+            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
                 if (!TryGrabJtNearestCandidate(&murray->gate, 0xF8FA, 0) && murray->root) {
                     murray->flag = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
                 break;
             }
-            if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC)) {
                 StartMurrayPunch(murray);
                 break;
             }
@@ -465,7 +465,7 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             case 15:
             case 16: break;
             default:
-                if (GrfPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && Can(murray, 2) &&
+                if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && Can(murray, 2) &&
                     murray->control.count < 6 && murray->control.count > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
                     ClearPoctlJoyPressed(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK);
                     murray->pending = 0;
@@ -499,7 +499,7 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             SetMurrayState(murray, MURRAY_IDLE);
             break;
         case MURRAY_TURNBUCKLE:
-            if (GrfConsumePressed__5POCTLUif(murray->input, BUTTON_JUMP, 0.0f))
+            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.0f))
                 SetJtAirJump(&murray->control, 13, 0, 0);
             else if (!(murray->input->flags & GetGadgetButtonMask(murray, 0x10)))
                 SetMurrayState(murray, MURRAY_IDLE);
@@ -514,7 +514,7 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
 namespace M_func_001B5038 { extern "C" {
 struct S { char pad[0x150]; void *controller; char pad2[0xF00 - 0x154]; int f00; int f04; char pad3[0xF20 - 0xF08]; int f20; };
 int IsStepplayerInJtMode(struct S *p);
-int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 /** @sly2-annot addr=0x1B5038
@@ -528,7 +528,7 @@ void UpdateJtMode(void *p);
 void UpdateMurrayJtModeInput(struct S *murray)
 {
     if (IsStepplayerInJtMode(murray)) {
-        if (murray->f04 == 1 && !murray->f20 && GrfConsumePressed__5POCTLUif(murray->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(&murray->f00);
+        if (murray->f04 == 1 && !murray->f20 && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(&murray->f00);
         UpdateJtMode(&murray->f00);
     }
 }
@@ -730,8 +730,8 @@ struct P {
 };
 void DetachMurrayCarried(struct P *p);
 void SetMurrayState(struct P *p, int n);
-int GrfPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
-int GrfConsumePressed__5POCTLUif(struct PL *pl, int k, float g);
+int GetButtonsPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(struct PL *pl, int k, float g);
 void ClearPoctlJoyPressed(struct PL *pl, int k);
 int FPowerupAcquired(int n);
 void SetJtAirJump(void *p, int a, int b, int c);
@@ -776,15 +776,15 @@ void UpdateMurrayCarry(struct P *murray)
                 DetachMurrayCarried(murray);
                 murray->carried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (GrfPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && FPowerupAcquired(0x12)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && FPowerupAcquired(0x12)) {
                 ClearPoctlJoyPressed(murray->pl, BUTTON_JUMP);
                 SetJtAirJump(murray->air, 0xF, 0, 0);
-            } else if (GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
                 SetMurrayState(murray, MURRAY_THROW);
-            } else if (GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ALT_ATTACK, 0.0f) && murray->x1438) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ALT_ATTACK, 0.0f) && murray->x1438) {
                 murray->x143C = 0;
                 SetMurrayState(murray, MURRAY_TOSS);
-            } else if (GrfPressedWithin__5POCTLUif(murray->pl, BUTTON_LOOK, 0.15f) && ((int (*)(void *, int))murray->vt[99].pfn)((char *)murray + murray->vt[99].d, 3)) {
+            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_LOOK, 0.15f) && ((int (*)(void *, int))murray->vt[99].pfn)((char *)murray + murray->vt[99].d, 3)) {
                 ClearPoctlJoyPressed(murray->pl, BUTTON_LOOK);
                 StartJtMode(murray->xF00, 0, 0, 0);
             } else {
@@ -954,7 +954,7 @@ struct P *GetHeroPo(void *g);
 int IsSwHandsOff(void *g);
 int GetSmaCurrentState(int a);
 int GetSmaGoal(int a);
-int GrfConsumePressed__5POCTLUif(int a, int b, float f);
+int ConsumeButtonsPressedWithin__5POCTLUif(int a, int b, float f);
 void SetSmaGoal(int a, int b);
 /** @sly2-annot addr=0x1B5820
  * Purpose: State 6 (scripted SMA struggle): only when Murray is current PO and not hands-off; face-button
@@ -976,7 +976,7 @@ void UpdateMurrayStruggle(struct P *murray)
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
     murray->f1524 -= D_002DDED0.dt;
-    if (GrfConsumePressed__5POCTLUif(murray->controller, BUTTON_FACE, 0.0f)) {
+    if (ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE, 0.0f)) {
         murray->x152C--;
         murray->f1528 = murray->f1524;
     }
@@ -1013,8 +1013,8 @@ extern "C"{
 extern float D_002C08DC;
 int IsStepplayerNearInteractTarget(P*,int);
 void SetMurrayState(P*,int);
-int GrfConsumePressed__5POCTLUif(PL*,int,float);
-int GrfPressedWithin__5POCTLUif(PL*,uint,float);
+int ConsumeButtonsPressedWithin__5POCTLUif(PL*,int,float);
+int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);
 void ClearPoctlJoyPressed(PL*,int);
 void SetJtAirJump(void*,int,int,void*);
 void StartJtMode(void*,int,P*,void*);
@@ -1099,21 +1099,21 @@ extern "C" void UpdateMurrayStrafe(P *murray)
         case 2: {
             if ((murray->input->flags & BUTTON_RUN) || !IsStepplayerNearInteractTarget(murray, 1))
                 SetMurrayState(murray, MURRAY_IDLE);
-            else if (GrfConsumePressed__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f))
+            else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f))
                 SetJtAirJump(murray->controller, 1, 0, 0);
             else if (TryMurrayTakedown(murray)) {
-            } else if (GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
+            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
                 if (!TryGrabJtNearestCandidate(murray->context, 0x80, 0) && murray->root) {
                     murray->reset = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
-            } else if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC))
+            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC))
                 StartMurrayPunch(murray);
-            else if (GrfPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) &&
+            else if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) &&
                      ((int (*)(P *, int))murray->vt[99].fn)((P *)((char *)murray + murray->vt[99].delta), 3)) {
                 ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
                 StartJtMode(murray->requestF00, 0, 0, 0);
-            } else if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC))
+            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC))
                 StartMurrayAltAttack(murray);
             else {
                 PL *pl = murray->input;
@@ -2142,8 +2142,8 @@ struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *inter
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
 int StepguardHasSgf(struct O *po, int n);
-int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
-int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
+int GetButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
 struct S *FindBhvInBhvstk(void *p, int n);
 qword GetLoWorldPos(void *p);
 int IsWithinLimits__FP2LMf(void *p, float g);
@@ -2180,7 +2180,7 @@ int TryMurrayTakedown(struct P *murray)
     if (!murray->interactTarget)
         return 0;
     if (!StepguardHasSgf(murray->interactTarget, 0x17) ||
-        !GrfPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
+        !GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
         goto ret0;
     ps = FindBhvInBhvstk(murray->interactTarget->x26C, 0xB1);
     if (ps->x50 >= 3)
@@ -2196,7 +2196,7 @@ int TryMurrayTakedown(struct P *murray)
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
     if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, GetZ(d)) && murray->interactTarget->xFEC)
-        f = GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
+        f = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
         StartMurrayLiftGuard(murray, murray->interactTarget->xFEC);
@@ -2205,7 +2205,7 @@ int TryMurrayTakedown(struct P *murray)
     d = u.q;
     g = 0;
     if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, GetZ(d)) && murray->x180C)
-        g = GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
+        g = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
     if (!g)
         goto ret0;
     SetMurrayState(murray, MURRAY_ATTACK);
@@ -3223,7 +3223,7 @@ typedef struct P {
 int FAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
 int CanMurrayAttack(P *p);
-int GrfConsumePressed__5POCTLUif(T *t, int k, float f);
+int ConsumeButtonsPressedWithin__5POCTLUif(T *t, int k, float f);
 void SetMurrayAttack(P *p, int k);
 int TryMurrayTakedown(P *p);
 void CancelMurrayAttack(P *p);
@@ -3250,7 +3250,7 @@ void UpdateMurrayAttack(P *murray)
             switch (murray->attackSubstate) {
             case 0:
             case 1:
-                if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->controller, BUTTON_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, murray->attackSubstate == 0);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
                     if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
@@ -3258,7 +3258,7 @@ void UpdateMurrayAttack(P *murray)
                 break;
             case 2:
             case 3:
-                if (CanMurrayAttack(murray) && GrfConsumePressed__5POCTLUif(murray->controller, BUTTON_ALT_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ALT_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, (murray->attackSubstate == 2) ? 3 : 2);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
                     if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
