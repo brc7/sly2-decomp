@@ -822,20 +822,15 @@ int GetStreamSoundKind(STREAMSND *sound) { return (sound->streamKind & 4) ? 2 : 
 
 namespace M_PlayStreamsnd { extern "C" {
 struct K { int keyLo; int keyHi; int kind; char filename; char pad[0x110 - 0xD]; };   /* a file lookup key (as hud.cpp's) */
-/* the stream's file record: key words at +0, +4, +0x34, +0x3C; a dialog stream (SNDSTREAM) has its headset flag at +0x4C */
-struct X { int key0; int key1; char pad[0x34 - 8]; int key2; int unknown38; int key3; char pad2[0x4C - 0x40]; int excludeFromHeadset; };
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int panAngle; char pad2[0x44 - 0x18]; float effectiveVolume; char pad3[0x52 - 0x48]; short playState; char pad4[0x60 - 0x54]; struct X *streamRecord; char pad5[0x3B8 - 0x64]; int streamKind; };
 /* the 'SUKR' start command's 0x18-byte payload */
 struct M { int fileKey; int volume; int pan; int channel; int kind; int playOnHeadset; };
 extern SNDMGR D_003DD040;
 void InitFileKey(struct K *);
-int GetStreamVolumeChannel(SNDMGR *, struct X *);
-void PauseSnd(struct P *);
-void SetSndFlags(struct P *, int, int);
+int GetStreamVolumeChannel(SNDMGR *, FILEREC *);
+void PauseSnd(CID151 *);
 void OnStreamSoundStarted(void);
-void func_00233130(int, int, int, struct M *, void (*)(void), struct P *);
-static inline int BuildStreamFileKey(struct K *key, struct X *record)
+void func_00233130(int, int, int, struct M *, void (*)(void), STREAMSND *);
+static inline int BuildStreamFileKey(struct K *key, FILEREC *record)
 {
     if (!record) return 0;
     {
@@ -851,15 +846,15 @@ static inline int BuildStreamFileKey(struct K *key, struct X *record)
 }
 // Starts a streamed sound (slot 9): resolves the stream's file and sends the start command to the IOP stream module
 // with volume and pan.
-void PlayStreamsnd(struct P *sound)
+void PlayStreamsnd(STREAMSND *sound)
 {
     struct K key;
     struct M message;
     int channel;
     key.kind = 2;
     InitFileKey(&key);
-    channel = GetStreamVolumeChannel(&D_003DD040, sound->streamRecord);
-    if (BuildStreamFileKey(&key, sound->streamRecord)) {
+    channel = GetStreamVolumeChannel(&D_003DD040, sound->record.pfilerec);
+    if (BuildStreamFileKey(&key, sound->record.pfilerec)) {
         if (key.kind != 2) {
             SetSndFlags(sound, SND_ALL, 0);
             return;
@@ -874,11 +869,11 @@ void PlayStreamsnd(struct P *sound)
             /* with the headset option on, dialog lines play through the headset unless their record says otherwise (inferred) */
             int playOnHeadset = 0;
             if (D_003DD040.isHeadsetEnabled && channel == VOLUME_CHANNEL_DIALOG)
-                playOnHeadset = sound->streamRecord->excludeFromHeadset == 0;
+                playOnHeadset = sound->record.psndstream->excludeFromHeadset == 0;
             message.playOnHeadset = playOnHeadset;
         }
         sound->playState = 1;
-        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);   /* Incref for the callback */
+        sound->AddRef();   /* for the callback */
         func_00233130(SUKR_RPC, SUKR_START, 0x18, &message, OnStreamSoundStarted, sound);
         SetSndFlags(sound, SND_START | SND_PAUSE | SND_CONTINUE | SND_STOP | SND_DIRTY_VOLUME | SND_DIRTY_PAN, 0);
     } else {
