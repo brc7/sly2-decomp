@@ -132,7 +132,8 @@ def main():
             rows.append((name, f'0x{a:06X}', s // 4, 'match' if score == 1.0 else f'{score:.3f}', os.path.relpath(src, M.ROOT).replace(os.sep, '/')))
     rows.sort(key=lambda r: r[1])
     with open(os.path.join(M.ROOT, 'config', 'matched.csv'), 'w', newline='') as f:
-        w = csv.writer(f); w.writerow(['name', 'addr', 'n_instr', 'status', 'source']); w.writerows(rows)
+        # LF, as committed (csv.writer defaults to CRLF)
+        w = csv.writer(f, lineterminator='\n'); w.writerow(['name', 'addr', 'n_instr', 'status', 'source']); w.writerows(rows)
     seen = {}
     for r in rows:
         if r[3] == 'match' and int(r[1], 16) in real: seen.setdefault(r[1], r)
