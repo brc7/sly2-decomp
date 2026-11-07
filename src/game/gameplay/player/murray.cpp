@@ -84,7 +84,7 @@ void InitMurray(MURRAY *murray)
     murray->liftSubstate = -1;
     murray->carrySubstate = -1;
     murray->strafeSubstate = -1;
-    murray->unknown1410 = 1500.0f;
+    murray->throwRange = 1500.0f;
     murray->throwSpeed = 3500.0f;
     murray->grabRadius = 60.0f;
     murray->unknown1048 = 125.0f;
@@ -997,16 +997,13 @@ void SetMurrayStrafeSubstate(MURRAY *murray, int st)
 } } // namespace M_func_001B5D30
 
 namespace M_ChooseMurrayThrowTarget { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
-struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
-           char pad3[0x1420 - 0x1414]; qword throwGoal; };
 struct G { char pad[0x13B4]; struct O *pFirst; };
 extern float D_002C0984, D_002C0988;
 qword GetLoWorldPos(void *p);
 int ShouldTriggerGrabspotSkipTarget(void *a, struct O *po);
 float atan2f(float y, float x);
-float GetStepHeading(struct P *p);
+float GetStepHeading(MURRAY *p);
 float NormalizeAngle__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
 // z lane of t as a float.
@@ -1026,17 +1023,17 @@ static inline float LenXY(qword v) {
 }
 // Picks the throw goal: the nearest object with flag 0x10000 (not the carried one) within range and view cone.
 // Without one, the goal is 1500 units ahead.
-void ChooseMurrayThrowTarget(struct P *murray)
+void ChooseMurrayThrowTarget(MURRAY *murray)
 {
     struct { int a[4]; } unused;
     struct O *object, *poBest = 0;
-    float maxValue = murray->g1410 * D_002C0984;
+    float maxValue = murray->throwRange * D_002C0984;
     for (object = (*(struct G *)&g_sw.aslPxrOid[410]).pFirst; object; object = object->pnext) {
         qword d;
         float dist, g;
         if (!(object->xE8 & 0x10000))
             continue;
-        if (ShouldTriggerGrabspotSkipTarget(murray->carried, object))
+        if (ShouldTriggerGrabspotSkipTarget(murray->ploCarried, object))
             continue;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(object)), "j"(GetLoWorldPos(murray)));
         dist = LenXY(d);
@@ -1057,7 +1054,7 @@ void ChooseMurrayThrowTarget(struct P *murray)
         return;
     qword a, b, r;
     a = GetLoWorldPos(murray);
-    b = SetVectorCylind(murray->g1A8, murray->g1410, 0.0f);
+    b = SetVectorCylind(murray->targetHeading, murray->throwRange, 0.0f);
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     murray->throwGoal = r;
 }
@@ -1815,22 +1812,19 @@ void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
 } } // namespace M_StartMurrayLiftGuard
 
 namespace M_FTryMurrayTakedown { extern "C" {
-typedef int qword __attribute__((mode(TI)));
+/* The interaction target as read here: a guard (STEPGUARD, AI family): its behaviour stack and +0xFEC. */
 struct O { char pad[0x26C]; char x26C[0xFEC - 0x26C]; void *xFEC; };
 struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
-struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
-int StepguardHasSgf(struct O *po, int n);
-int GetButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
-int ConsumeButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
+int StepguardHasSgf(LO *po, int n);
 struct S *FindBhvInBhvstk(void *p, int n);
 qword GetLoWorldPos(void *p);
 int IsWithinLimits__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
-void StartMurrayLiftGuard(struct P *p, void *q);
-void SetMurrayState(struct P *p, int n);
-void SetMurrayAttack(struct P *p, int n);
+void StartMurrayLiftGuard(MURRAY *p, void *q);
+void SetMurrayState(MURRAY *p, int n);
+void SetMurrayAttack(MURRAY *p, int n);
 // XY length of v as a float.
 static inline float LenXY(qword v) {
     qword d;
@@ -1844,18 +1838,18 @@ static inline float LenXY(qword v) {
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
 // Move a VU0 register to a 128-bit GPR value.
 static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
-// If the target (x10DC) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
+// If the target (interactTarget) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
 // nonzero if it did.
-int TryMurrayTakedown(struct P *murray)
+int TryMurrayTakedown(MURRAY *murray)
 {
     union { qword q; float f[4]; } u;
     struct S *ps;
     if (!murray->interactTarget)
         return 0;
     if (!StepguardHasSgf(murray->interactTarget, 0x17) ||
-        !GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
+        !murray->controller->GetButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
         goto ret0;
-    ps = FindBhvInBhvstk(murray->interactTarget->x26C, 0xB1);
+    ps = FindBhvInBhvstk(((O *)murray->interactTarget)->x26C, 0xB1);
     if (ps->x50 >= 3)
         return 0;
     if (ps->x5C != murray) {
@@ -1868,17 +1862,17 @@ int TryMurrayTakedown(struct P *murray)
     qword d = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
-    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && murray->interactTarget->xFEC)
-        f = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
+    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && ((O *)murray->interactTarget)->xFEC)
+        f = murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
-        StartMurrayLiftGuard(murray, murray->interactTarget->xFEC);
+        StartMurrayLiftGuard(murray, ((O *)murray->interactTarget)->xFEC);
         return 1;
     }
     d = u.q;
     g = 0;
-    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, QwordZ(d)) && murray->x180C)
-        g = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
+    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, QwordZ(d)) && murray->apasegAttack[4])
+        g = murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.15f) != 0;
     if (!g)
         goto ret0;
     SetMurrayState(murray, MURRAY_ATTACK);

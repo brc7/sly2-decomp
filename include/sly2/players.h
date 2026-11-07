@@ -45,7 +45,7 @@ struct MURRAY : public STEPPLAYER
       int xfRoleA;   /* +0x1404 transform roles given back to the lifted object on release (SetXfRole, DetachMurrayCarried) */
       int xfRoleB;
       undefined4 unknown140C;
-      float unknown1410;
+      float throwRange;   /* +0x1410 how far Murray throws: target search radius (x D_002C0984) and the default goal distance (ChooseMurrayThrowTarget) */
       float throwSpeed;   /* +0x1414 speed a throw flies at (ThrowMurrayCarried: flight time = distance / throwSpeed) */
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
       qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
