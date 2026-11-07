@@ -1695,7 +1695,7 @@ void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *DeliverZapToSo(struct MSG *pmsg);
-float *FindAsegLabel(void *p, int n);
+EA *FindAsegLabel(void *p, int n);
 void SeekAsega(struct Q *p, int n, float g, float h);
 void RetractAsega(struct Q *p);
 // Zero the xyz components of pv.
@@ -1796,9 +1796,9 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
         FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
         murray->plink = 0;
         {
-            float *pg = FindAsegLabel(murray->action->x14, 0x1A5);
-            if (pg)
-                SeekAsega(murray->action, 0, *pg, 1.0f);
+            EA *pea = FindAsegLabel(murray->action->x14, 0x1A5);
+            if (pea)
+                SeekAsega(murray->action, 0, pea->time, 1.0f);
             else
                 RetractAsega(murray->action);
         }
@@ -2645,7 +2645,7 @@ void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ASEGA **ppanim);
-float *FindAsegLabel(void *q, int n);
+EA *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ASEGA *pa, float t);
 struct R *FindAsegChannel(struct ASEG *p, struct P *pp, int a, int b);
 void ReleaseInteractTargetMark(struct P *p);
@@ -2687,9 +2687,9 @@ void SetMurrayAttack(struct P *murray, int k)
     ReleaseSma(murray->x1034);
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
     if (q) {
-        float *pg = FindAsegLabel(q, 0x1AC);
-        if (pg)
-            g = *pg;
+        EA *pea = FindAsegLabel(q, 0x1AC);
+        if (pea)
+            g = pea->time;
     }
     if (g != 0.0f)
         SetAsegaChannelWeight(murray->panim, D_002DDED0.time + g / murray->panim->speed);
