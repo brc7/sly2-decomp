@@ -4624,12 +4624,11 @@ void BHV176::Close()
 
 // 0x17A7F8 UpdateBhvThrown
 namespace M_func_0017A7F8 { extern "C" {
-struct G; struct R; struct T; struct S;
+struct R; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern float D_002BE6C0;
-struct G { char pad[0x4020]; void *yellNoise; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct R { char pad[0x54]; int noiseType; };
 struct T { char pad[0x208]; int isOnGround; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; int state; int pad3; float lastYellTime; };
@@ -4648,9 +4647,9 @@ void UpdateBhvThrown(struct S *behavior) {
     } while (s != behavior->state);
     if (s == 1 || s == 4) {
         if (D_002DDED0.time - behavior->lastYellTime > D_002BE6C0) {
-            struct G *g = &D_003DD490;
+            SW *g = &D_003DD490;
             behavior->lastYellTime = D_002DDED0.time;
-            NewNoise(g->yellNoise, GetLoWorldPos(behavior->guard), behavior->guard)->noiseType = 3;
+            NewNoise(g->apstimk[0], GetLoWorldPos(behavior->guard), behavior->guard)->noiseType = 3;
         }
     }
 }
@@ -5024,10 +5023,9 @@ typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 
 // 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
-struct G; struct VTE; struct O; struct C; struct A; struct S; struct M; struct X;
+struct VTE; struct O; struct C; struct A; struct S; struct M; struct X;
 typedef int qword __attribute__((mode(TI)));
-struct G { char pad[0x4028]; void *hitNoise; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern void *D_002BE6D0[];
 extern int D_002BE6E8[];
 struct VTE { short d; short pad; void *pfn; };
@@ -5045,7 +5043,7 @@ void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
 float *FindAsegLabel(void *p, void *q);
 void SeekAsega(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
-struct O *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
+struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(struct A *a);
 void NewNoise(void *p, qword v, struct A *a);
@@ -5063,7 +5061,7 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
         {
             int i, n;
             float g;
-            struct G *pg;
+            SW *pg;
             struct O *o;
             struct A *a;
             if (pm->kind != 0x200000) return 0;
@@ -5098,7 +5096,7 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
                 int m = a->hp + pm->amount;
                 a->hp = m < 5 ? 5 : m;
             }
-            NewNoise(D_003DD490.hitNoise, GetLoWorldPos(behavior->guard), behavior->guard);
+            NewNoise(D_003DD490.apstimk[2], GetLoWorldPos(behavior->guard), behavior->guard);
             return 1;
         }
     }
