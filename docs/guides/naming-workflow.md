@@ -185,6 +185,51 @@ into `main` (naming it is a source change). Independent checker `review_check.py
 next to it. Open questions for the maintainer are in `rename_tool/OPEN_QUESTIONS.txt` (plain-name policy, asm-label aliases, `main`, functions.csv sync, data symbols, CI on a
 machine that builds src/lib).
 
+### Struct fields: `tools/fieldrename.py`
+
+Field names never reach the object file, so the compiler decides which `->f` means `S::f`. Input is the reviewed plan
+(`reports/names_r1/SHARED_FIELDS_REVIEWED.csv`: header,struct,offset,old_name,new_name,confidence,basis).
+
+```sh
+tools/fieldrename.py --csv SHARED_FIELDS_REVIEWED.csv --header clock.h --dry-run      # print every edit site, change nothing
+tools/fieldrename.py --csv SHARED_FIELDS_REVIEWED.csv --header clock.h [--struct CLOCK] [--fields rt,tReal] \
+    [--min-confidence med] [--check] --log batch.json --commit-msg msg.txt             # apply + verify, or restore
+#   --jobs N (default $JOBS or 2)  --rounds N (default 12)  --allow-unverifiable  --allow-dirty
+```
+Needs the matchtool environment. Exit 0 = applied (or dry run fine), 1 = refused or reverted. One run is one batch, all or
+nothing; commit each batch on its own with the generated message (the tool does not commit).
+
+What it does:
+1. **Shadow guard** (refuses the row): the new name is a keyword or a `#define`; it already appears as a token inside the body
+   of S (only the definitions that will be edited), an ancestor or a descendant; it appears inside an out-of-line `X::method`
+   body of that hierarchy (implicit-`this` shadowing); or it clashes with another row of the batch.
+2. **Declarations**: renames the field in every definition of S that declares the old name: the header's and every
+   TU-private view of the same unqualified name (namespaced views too; views spelling the slot differently are left
+   alone). It also rewrites `M(S, old)` calls of any two-argument function-like macro (`SLY2_*OFFSETOF`, TU-local `OFF`)
+   and renames `assert_S_old` typedefs. Every edit swaps a token within one line (line numbers feed the path-hash quirk);
+   the whitespace before a trailing comment on that line absorbs the length change.
+3. **Uses**: builds every TU that sees an edited definition through matchtool's compile path (`-fsyntax-only` segfaults
+   under wibo and drops the diagnostics, so the tool compiles fully; failing TUs stop early). For each
+   ``` `struct T' has no member named `old' ``` (T must be S, a descendant, or a view of either), ``` `old' undeclared ```
+   (implicit `this`) or `does not have any field named` (mem-initializer), only the matching tokens on that line are
+   rewritten (`#line` pins are mapped back to physical lines). g++ 2.95 prints one message per access, so the message
+   count must equal the candidate tokens: fewer means another struct's field of the same name shares the line (each
+   subset is tried with a recompile); more means a macro body (refused). Repeats until every TU compiles.
+4. **Verify**: every TU in scope is built before editing. After editing, each function's words and relocations, each
+   data symbol's bytes and the object's symbol set (`nm`) must be identical (`_GLOBAL_$I$` temp-name suffixes
+   normalized). Any difference, error or interrupt restores the tree. `--check` also runs matchtool on the edited TUs.
+
+Limits: comments are not touched, so doc comments may still use old names. Member tokens in uninstantiated template
+bodies and in `#define` bodies of in-scope headers produce warnings and are left for review. TUs this machine cannot
+build are refused unless `--allow-unverifiable` (then they are listed for a hand fix). A template body instantiated for
+several types (`SPREL<T>::~SPREL` reads `cref` of both CPair and CFrame) fails the batch: rename the field in every
+instantiating type in one batch. Large batches touch many TU-private views (clock.h `t`/`dt`: 84 files, 681 sites), so
+run them only after the naming branches that edit those files are merged.
+
+Proof batches on `tools/fieldrename`: clock.h 9 fields (all but `t`/`dt`; 93 sites in 17 files, 143 objects
+byte-identical) and pair.h `x4`, `pnext` (70 sites including one implicit-`this`, 7 objects); matchtool all MATCH. pair.h
+`cref` was correctly refused (the shared SPREL template above).
+
 ## 6. Related: shared type headers
 
 `reports/types_headers/MIGRATION.txt`: 12 generated headers (`include/sly2/{basic,lo,xfm,so,po,step,aseg,stepplayer,jt,players,cm,sw}.h`, 111 types) replace the private struct
