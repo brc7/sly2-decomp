@@ -546,6 +546,38 @@ counted pointers in the derived class). Not attempted: the SP* inline-release ow
 views of splice/ (tied to gc.cpp's linkonce instances), WIDGET (classes.h, another family), screen.cpp's
 per-function views (~100), CRichText/CFont. For sw.h's owner: FILEREC's key words are aw[0], aw[1], aw[13], aw[15].
 
+### Views unified, continued (names/vu-f8-sound-ui-2): the screens, CFrame
+
+Round 2 of the sound / UI / Splice family (from 5c3253ce). Every function and data symbol of the touched files and of
+every includer of a touched header MATCHes, and each of the 114 objects compiled from them (screen.cpp, menu, memcard,
+bif, proxy, splice/, the includers of cref/pair/varb/cframe/screen/snd/sndmgr.h) is identical to the branch start's
+(allocated section bytes, relocations by symbol name, symbol table). screen.cpp's private struct/class/union
+definitions: 152 -> 78 (bif.cpp 94 -> 92).
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| SCREENBASE, SCREEN, HUDMETER | sly2/screen.h | SCREENBASE's joypad (+0x10, JOY) and slot 9 as `SetFocus(int fFocus, SCREENBASE *pscrOther)` (menu.cpp's PAUSEMENU override renamed with it); SCREEN completed to its 0x40 bytes: the message popup of SetScreenMode (`nPopup` -1 none / 0 prompt / 1 timed, `tPopupEnd`, `idsPopup`); HUDMETER's five animation ids named (they were `anims[5]`) | -- |
+| GADGETMENU, THIEFNET, JOBLIST, GMITEM, TNITEM, JLENTRY | screen.cpp (the screens' key TU; their classes stay there for the vtable order) | full layouts (0x60, 0x270, 0x128: JOBLIST's selected job +0x110 is what the file calls D_003DA4D0 / s_jobselslot); GMITEM's highlight animations; the gadget tables D_002C2DE8.. are GMITEM (were GADGETITEM, same bytes) | 74 definitions (the OBJ/S/E/ENT views and the hand vtable types they needed) in 50 functions: the constructors, popup timer, stick handlers, focus, reset, HUD meter, gadget menu (8), ThiefNet (14), job list (10), title |
+| CFrame | sly2/cframe.h | +0x24 object-frame flag, `FindBindingPtr` (splice/frame.cpp's member), size 0x28 asserted | bif.cpp's BuiltinFindBindingOrNoop (its call-frame `O` was the frame) |
+
+Spellings that matched on the first compile: hand vtable calls on the screen as virtual calls (`p->vt[10]` Show,
+`[11]` Hide, `[9]` SetFocus, `[14]` SetMode); the vptr store of the C-named constructors stays by hand
+(`*(void **)((char *)p + 0xC) = vtable`); GMITEM's flag word as the bit-fields (`fEquippable` bit 0, `fAvailable`,
+`fAcquired`: `flags & 4` and `pe->fAcquired` give the same code); RefreshThiefnetItems' unsigned count compare as
+`(unsigned int)p->citem > 0x40`; the job-list globals and ThiefNet's popup word (`#define D_003DA180`) as members of
+`extern THIEFNET D_003DA150` / `JOBLIST D_003DA3C0`. A namespace-local `extern "C"` declaration identical to a
+file-scope one makes calls ambiguous (g++ 2.95): such declarations were deleted, and SetGadgetMenuState's recursive
+call is `::SetGadgetMenuState` (same function).
+
+Kept (other families' types, noted for their owners): the widget the screens point at (`pchild`, `void *`; the bodies
+read it through their WIDGET views, cast at the use: classes.h, the AI family's this round) and HUDMETER's hero
+(`HERO(p)`, a cast to the STEPPLAYER view); the notice banner (CID154, classes.h: its state at +0x10 is not SCREEN's
+layout); M_func_00258348's BASIC/CVarb/CSidebag release view (DestroyBasic's linkonce copy). Not attempted: the splice/
+CFrame/CProc/CSidebag/CPair/CVarb views and SP* owners of frame.cpp, eval.cpp, ref.cpp, proc.cpp, varb.cpp, pair.cpp,
+sidebag.cpp (tied to gc.cpp's linkonce instances, the next step); callback.cpp's one-field CFrame view (including
+cframe.h there clashes: basic.h's SL, gc.h's PtNew against its C declaration); CRichText/CFont (font.cpp's classes
+need RGBA/QW/GIFS/TEX0 in a header; mpeg.cpp's and tu_2275B8's views).
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
