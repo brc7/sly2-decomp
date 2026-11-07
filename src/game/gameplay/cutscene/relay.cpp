@@ -4944,30 +4944,26 @@ extern "C" void SetRelayScriptActor(JSGV *script, RELAYCMD *prelaycmdJt, LO *pjt
 
 // 0x1E4F20 SetJsgTunnel
 namespace M_SetJsgTunnel { extern "C" {
-struct VTE; struct O; struct G; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int pad[3]; struct VTE *vt; char pad2[0x28 - 0x10]; unsigned long flPad : 60; unsigned int fBit60 : 1; char pad3[0xE0 - 0x30]; void *pvE0; };
 struct G { int a; };
 extern struct G D_003DD490;
-struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int fActive; };
-void SetTnTnsOverride(struct O *po, int n);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void *GetCurrentPo(struct G *pg);
+void SetTnTnsOverride(TN *po, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
+LO *GetCurrentPo(struct G *pg);
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
-void SetJsgTunnel(struct P *script, struct O *po)
+void SetJsgTunnel(JSGV *script, TN *po)
 {
-    if (script->po) {
-        SetTnTnsOverride(script->po, -1);
-        script->po->pvE0 = 0;
-        if (script->fActive) script->po->vt[9].pfn((char *)script->po + script->po->vt[9].d);
-        script->po = 0;
+    if (script->ptnCur) {
+        SetTnTnsOverride(script->ptnCur, -1);
+        script->ptnCur->hero = 0;
+        if (script->fHideTn) script->ptnCur->Remove();
+        script->ptnCur = 0;
     }
     if (!po) return;
-    script->po = po;
-    script->fActive = (uchar)po->fBit60 == 0;
-    if (script->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : GetCurrentPo(&D_003DD490);
+    script->ptnCur = po;
+    script->fHideTn = (uchar)po->isInWorld == 0;
+    if (script->fHideTn) po->Add();
+    po->hero = (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x30)) ? script->ploActor : GetCurrentPo(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel
