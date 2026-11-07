@@ -276,8 +276,10 @@ struct CMMATQ
     qword pos;      /* the camera position (CM::pos) */
 };
 /* The position row read through a pointer to the matrix: the original reads it at base &g_cm.mat, offset 0x30, where
- * g_cm.matq.pos is base &g_cm, offset 0x90 (sky's UpdateSky, relay's StartRelayScriptCamBlend). */
-inline qword PosOfCmMatq(CMMATQ *pmatq) { return pmatq->pos; }
+ * g_cm.matq.pos is base &g_cm, offset 0x90 (sky's UpdateSky, relay's StartRelayScriptCamBlend). A template only so
+ * that TUs which do not call it compile as before (a plain inline shifts g++'s local label numbers: cm.cpp's
+ * function-static names s_rgba.N). */
+template <class MATQ> inline qword PosOfCmMatq(MATQ *pmatq) { return pmatq->pos; }
 
 /* CM: the camera: the policy stack, the view matrix, projection and frustum, fog, and the embedded policy objects.
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
@@ -308,8 +310,8 @@ struct CM : public CMBASE
         };
         CMMATQ matq;   /* the same matrix as quadword rows (the VU0 register view; see CMMATQ) */
     };
-      float agFrustumXyz[12];   /* frustum corner coordinates */
-      float agFrustumWideXyz[12];   /* wide frustum corner coordinates */
+      float agFrustumXyz[12];   /* the four side planes' normals transposed: x of the four, then y, then z (three VU0 registers, the cull microprogram's vf10-vf12) */
+      float agFrustumWideXyz[12];   /* the same for the wide frustum (follows agFrustumXyz directly: UpdateCmMat4's copy loop) */
       MATRIX4 matProj;   /* projection matrix */
       MATRIX4 matViewProj;   /* view-projection matrix */
       MATRIX4 matViewProjInv;   /* its inverse */
