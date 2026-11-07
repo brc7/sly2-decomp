@@ -785,14 +785,14 @@ namespace M_ApplyCameraSpring { extern "C" {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCK { float time; union { float g; int n; } deltaTime; };
-extern struct CLOCK D_002DDED0;
+struct CLOCKIsland { float time; union { float g; int n; } deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (union view of one float) */
+extern struct CLOCKIsland D_002DDED0;
 struct P { char pad[0x300]; int cutCount; };
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
 void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
-    register struct CLOCK *pclock __asm__("v0");
+    register struct CLOCKIsland *pclock __asm__("v0");
     register qword s1 __asm__("vf3");
     register qword s2 __asm__("vf4");
     register qword s3 __asm__("vf5");
