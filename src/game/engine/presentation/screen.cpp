@@ -305,9 +305,9 @@ extern "C" void PostLoadScreens()
 
 namespace M_func_001D95B8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; void *p10; };
-struct S { struct O *pNew; int a, b; struct O *pCur; };
-extern char D_002DFC00[];
+struct O { int a, b, c; struct VTE *vt; void *joypad; };   /* a screen: the joypad it reads (only while focused) */
+struct S { struct O *requested; int a, b; struct O *focused; };
+extern char D_002DFC00[];   /* the joypad */
 /** @sly2-annot addr=0x1D95B8
  * Purpose: If the requested top screen (list head) differs from the current one, notify the old one (vt) and
  *   switch focus
@@ -317,24 +317,24 @@ extern char D_002DFC00[];
  * @end-sly2-annot */
 // If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
 // it lost focus and focuses the new one. (inferred)
-void UpdateScreenFocus(struct S *p) {
-    struct O *po = p->pNew;
-    struct O *pOld;
-    if (po == p->pCur) return;
-    if (p->pCur) {
-        p->pCur->p10 = 0;
+void UpdateScreenFocus(struct S *list) {
+    struct O *requested = list->requested;
+    struct O *previous;
+    if (requested == list->focused) return;
+    if (list->focused) {
+        list->focused->joypad = 0;
         {
-            struct O *pc = p->pCur;
-            struct VTE *e = &pc->vt[9];
-            ((void (*)(void *, int, struct O *))e->pfn)((char *)pc + e->d, 0, po);
+            struct O *focused = list->focused;
+            struct VTE *entry = &focused->vt[9];   /* SetFocus(isFocused, other) */
+            ((void (*)(void *, int, struct O *))entry->pfn)((char *)focused + entry->d, 0, requested);
         }
     }
-    pOld = p->pCur;
-    p->pCur = po;
-    if (po) {
-        struct VTE *e = &po->vt[9];
-        po->p10 = D_002DFC00;
-        ((void (*)(void *, int, struct O *))e->pfn)((char *)po + e->d, 1, pOld);
+    previous = list->focused;
+    list->focused = requested;
+    if (requested) {
+        struct VTE *entry = &requested->vt[9];
+        requested->joypad = D_002DFC00;
+        ((void (*)(void *, int, struct O *))entry->pfn)((char *)requested + entry->d, 1, previous);
     }
 }
 } } // namespace M_func_001D95B8
@@ -2627,7 +2627,7 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
 
 namespace M_BuildGadgetMenuInfoText { extern "C" {
 typedef struct { char pad[0x30]; int timerKind; int closeTime; int modeArg; char pad3c[0x48 - 0x3C]; int selectedGadget; } GS;
-typedef struct { int pad[5]; int nameTextId; int ids2; int descriptionTextId; } REC;
+typedef struct { int pad[5]; int nameTextId; int detailTextId; int descriptionTextId; } REC;
 typedef struct { char pad[0x1C]; int flags; } OBJ;   /* gadget menu item */
 extern GS D_003DA0F0;
 extern char D_003DD490[];
@@ -2670,7 +2670,7 @@ void BuildGadgetMenuInfoText(char *out)
             else
                 sz = D_002A7A10;
             sprintf(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].descriptionTextId), sz, sz, sz);
-            s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].ids2);
+            s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].detailTextId);
         }
         sprintf(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].nameTextId),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
@@ -2842,7 +2842,7 @@ void BuildThiefnetPromptText(char *pch) {
 #undef D_003DA180
 
 namespace M_BuildThiefnetInfoText { extern "C" {
-typedef struct { int x0,x4,cost,xC,x10,ids1,ids2,x1C; } REC;
+typedef struct { int unknown0,category,cost,powerCost,unlockEpisode,nameTextId,detailTextId,descriptionTextId; } REC;   /* a power-up (D_002BCD00) */
 typedef struct { char *name; int ids,pad; } REC2;
 typedef struct {
     char pad[0x30];
@@ -2884,14 +2884,14 @@ void BuildThiefnetInfoText(char *pch)
         case 0: {
             unsigned int i=pt->selectedPowerup;
             if(i<0x2B) {
-                if(D_002BCD00[i].ids2!=pt->timerKind) {
+                if(D_002BCD00[i].detailTextId!=pt->timerKind) {   /* timerKind is -1 here: "has a detail text" */
                     int *pc=&D_002BCD00[i].cost;
                     int count=func_00161798(D_002DEB30);
                     int idsT=count<*pc?0xD9:0xDA;
                     struct G *pg=&D_003DD490;
                     char *fmt=D_002A7A38;
-                    char *pch1=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].ids1);
-                    char *pch2=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].ids2);
+                    char *pch1=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].nameTextId);
+                    char *pch2=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].detailTextId);
                     sprintf(pch,fmt,pch1,pch2,PchzFindSwLangstr__FP2SWi(pg,idsT));
                     return;
                 }
@@ -3205,7 +3205,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
 } // namespace M_RefreshJobListEntries
 
 namespace M_UpdateJobListWidgets { extern "C" {
-typedef struct { char pad[0x58]; int x58; } W;
+typedef struct { char pad[0x58]; int visibility; } W;   /* widget: 2 = fully shown */
 typedef struct { void *p; int a; int b; } ENT;
 typedef struct {
     char pad[0x24];
@@ -3231,7 +3231,7 @@ int FTaskComplete(void *);
 void UpdateJobListWidgets(OBJ *p)
 {
     int i;
-    if (p->pw->x58 != 2)
+    if (p->pw->visibility != 2)
         return;
     for (i = 0; i < p->c; i++) {
         int f;
@@ -3649,9 +3649,9 @@ namespace M_UpdateTitleScreen { extern "C" {
 typedef struct { char pad[0x10B4]; int fl; } PAD;
 typedef struct {
     char pad[0x10];
-    PAD *pad10;
+    PAD *joypad;           /* set while the screen has focus (UpdateScreenFocus) */
     char pad14[0x24 - 0x14];
-    void *x24;
+    void *widget;
 } OBJ;
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
 typedef struct { char pad[0xFD50]; void *saveToLoad; void *foundSave; } BIG;
@@ -3692,11 +3692,11 @@ void UpdateTitleScreen(OBJ *p)
     int *ak;
     int i;
     UpdateTimedScreen(p);
-    if (p->x24 == 0)
+    if (p->widget == 0)
         return;
-    if (p->pad10 == 0)
+    if (p->joypad == 0)
         return;
-    if (GrfHandleJoyBtn(p->pad10, 0x800)) {
+    if (GrfHandleJoyBtn(p->joypad, 0x800)) {
         if ((D_002E65E0.saveToLoad = D_002E65E0.foundSave) != 0) {
             func_001ACC38(D_002E6550, 1);
             func_00165E38(D_002E65E0.saveToLoad);
@@ -3705,14 +3705,14 @@ void UpdateTitleScreen(OBJ *p)
         }
         return;
     }
-    if (GrfJoyPressed(p->pad10, 0x100) && (p->pad10->fl & 0x108) == 0x100) {
-        SetJoyBtnHandled(p->pad10, 0x100);
+    if (GrfJoyPressed(p->joypad, 0x100) && (p->joypad->fl & 0x108) == 0x100) {
+        SetJoyBtnHandled(p->joypad, 0x100);
         func_001B04E0(0);
         return;
     }
     if (CLanguagesRegion() < 2)
         return;
-    if (!GrfHandleJoyBtn(p->pad10, 0x10))
+    if (!GrfHandleJoyBtn(p->joypad, 0x10))
         return;
     pv = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
     if (pv == 0)
