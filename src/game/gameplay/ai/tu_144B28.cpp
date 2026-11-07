@@ -76,7 +76,7 @@ struct BHV144E20 : public BHVB
 struct BHVFOLLOWV : public BHVB
 {
     char pad14[0x30 - 0x14];
-    SO *pso;                /* +0x30 */
+    SO *leader;             /* +0x30 */
 };
 /* Owner words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and, on a
    player, a flag word whose bit 0 is set while one of the AI interact behaviours runs (+0x10E0, inferred). */
@@ -770,23 +770,12 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
-    CID17 *pcid17;
-    SOPHYS *psophys;
-    REGENT *pregent;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->pso, CID_SO) != 0) {
-        psophys = behavior->pso->psophys;
-        pregent = 0;
-        if (psophys != 0) {
-            pregent = psophys->pregent;
-        }
-        pcid17 = 0;
-        if (pregent != 0) {
-            return pregent->pcid17;
-        }
-        return pcid17;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
+        SOPHYS *physics = behavior->leader->psophys;
+        REGENT *region = physics ? physics->pregent : 0;
+        return region ? region->pcid17 : 0;
     }
-    pcid17 = PpathzoneFromPos(func_001A62E8(behavior->pso), 1);
-    return pcid17;
+    return PpathzoneFromPos(func_001A62E8(behavior->leader), 1);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1406,7 +1395,7 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(p->p38) - pos(p->p10).
+// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
 struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
