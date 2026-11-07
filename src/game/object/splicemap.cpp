@@ -97,14 +97,14 @@ void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *stream);
 SPLCS *AllocClearedFromWorldHeap(SZ *psz);
 SPLCE *AllocFromWorldHeap(SZ *psz);
-SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *stream);
+SPPAIR DeserializePair__FP18CBinaryInputStream(void *stream);
 void CBinaryInputStream_SkipStringSw(void *stream);
 CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i);
 void CGc_UpdateRecyclable(void *pgc);
 SPFRAME Attach__t7CRefPtr1Z6CFrameP6CFrame(void *pv);
 void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
 }
-extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
+extern "C" CRef EvalExpression__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 
 /** @sly2-annot addr=0x1FF7E8
  * Purpose: Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88)
@@ -180,7 +180,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
     }
     for (i = 0; i < c; i++) {
         SPLCE *pe = &psplcs->ae[i];
-        SPPAIR sp = PpairSerializeIn__FP18CBinaryInputStream(stream);
+        SPPAIR sp = DeserializePair__FP18CBinaryInputStream(stream);
         PAIRV *q = sp.p;
         if (q) q->cref++;
         pe->ppair = sp.p;
@@ -237,7 +237,7 @@ extern "C" CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i)
         SPFRAME sp = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
         MakeRoot__t6CGcObj1Z6CFrame(sp.p);
         sp.p->n24 = 1;
-        r = RefEval__FP5CPairP6CFrame(psplcs->ae[i].ppair, sp.p);
+        r = EvalExpression__FP5CPairP6CFrame(psplcs->ae[i].ppair, sp.p);
         sp.p->cref++;
         psplcs->ae[i].pframe = sp.p;
     }

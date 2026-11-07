@@ -40,7 +40,7 @@ struct CSidebag
     int FFindBinding(int sym, CRef *pref);
     CRef RefSetBinding(int sym, CRef *pref);
 };
-extern "C" CRef CSidebag_RefAddBinding(CSidebag *psidebag, int sym, CRef *pref);
+extern "C" CRef CSidebag_AddBinding(CSidebag *psidebag, int sym, CRef *pref);
 void EnsureBasicSidebag(BASIC *object);
 
 /* Per-class option tables: g_mpcidarysplopt (D_00279AD0, one {count, sorted array} per CID). */
@@ -60,9 +60,9 @@ CRef *CRef_SetMethod(CRef *pref, CMethod *pmethod);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 PVREC *FindOptionRecord(BASIC *object, int optionId);
 }
-/* CRef_RefCoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
-CRef RefCoerceS32(const CRef *pref) __asm__("CRef_RefCoerceS32");
-CRef RefCoerceF32(const CRef *pref) __asm__("CRef_RefCoerceF32");
+/* CRef_CoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
+CRef RefCoerceS32(const CRef *pref) __asm__("CRef_CoerceS32");
+CRef RefCoerceF32(const CRef *pref) __asm__("CRef_CoerceF32");
 CRef GetOptionRecordValue(void *pv, PVREC *record) __asm__("GetOptionRecordValue");
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptionRecordValue");
 CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
@@ -389,7 +389,7 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
-    return CSidebag_RefAddBinding(object->psidebag, optionId, pref);
+    return CSidebag_AddBinding(object->psidebag, optionId, pref);
 }
 
 /** @sly2-annot addr=0x200D10
@@ -403,7 +403,7 @@ CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
     EnsureBasicSidebag(object);
     if (object->psidebag->FFindBinding(optionId, 0))
         return object->psidebag->RefSetBinding(optionId, pref);
-    return CSidebag_RefAddBinding(object->psidebag, optionId, pref);
+    return CSidebag_AddBinding(object->psidebag, optionId, pref);
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:

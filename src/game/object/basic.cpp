@@ -68,11 +68,11 @@ CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
+void EvalExpression__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
 void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
-int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
+int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
 CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
 
 void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref);
@@ -349,7 +349,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 }
 
 /** @sly2-annot addr=0x133000
- * Purpose: RefEval the call list in the object's frame; copy result to *pref if given
+ * Purpose: EvalExpression the call list in the object's frame; copy result to *pref if given
  * Info: proposed name EvalSpliceEventCallback (T1); TU basic
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
@@ -358,7 +358,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
 {
     CREFV ref;
-    RefEval__FP5CPairP6CFrame(&ref, pair, frame);
+    EvalExpression__FP5CPairP6CFrame(&ref, pair, frame);
     if (pref != 0) {
         __as__4CRefRC4CRef(pref, &ref);
     }
@@ -442,7 +442,7 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CREFV *z)
 {
-    if (object->frame && PrefFindBinding__6CFrameUii(object->frame, k, 1)) {
+    if (object->frame && FindBindingPtr__6CFrameUii(object->frame, k, 1)) {
         CREFV ref;
         SPAIR sp;
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);

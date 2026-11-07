@@ -2,7 +2,7 @@
 // sidebag pool's GC members are CGcObj<CSidebag>'s (sly2/gc.h) and its counted-pointer copies CRefPtr<T>'s
 // (sly2/basic.h), all emitted by splice/gc.cpp.
 // TU 0x12A980..0x12AE18 (6 functions, address order).
-// Entry points: CSidebag_RefAddBinding / RefSetBinding / FFindBinding (object options outside the
+// Entry points: CSidebag_AddBinding / RefSetBinding / FFindBinding (object options outside the
 // built-in table), CSidebag_CloneTo.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
@@ -82,20 +82,20 @@ struct SPS
 
 extern "C" {
 SPW CVarb_CloneTo(CVarb *binding, void *p, void *q);
-CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref);
+CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref);
 SPS CSidebag_CloneTo(CSidebag *source, void *q);
 }
 
 /** @sly2-annot addr=0x12A980
  * Purpose: Prepends BINDING {n, ref} to sidebag list
- * Info: proposed name CSidebag_RefAddBinding (T1); class CSidebag; TU sidebag
+ * Info: proposed name CSidebag_AddBinding (T1); class CSidebag; TU sidebag
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
 // Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
-extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
+extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
     SPW *firstSlot = &sidebag->firstBinding;
     SPW sp;
