@@ -1995,22 +1995,18 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L { char pad[0x84]; char *spriteGroups; };   /* the owning widget */
-/* a sprite descriptor: index is the nested group (NESTED) or the texture resource id (EFFECT) */
-struct S { int id; int kind; L *owner; int unknownC; int index; void *texture; };
-struct T { char pad[0x30]; S *descriptor; char pad34[0x24]; int spriteSlot; };   /* a frame item */
 extern "C" int FindFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *FindObjectForRenderTarget(int);
 extern "C" void *AcquireRenderTarget(void *);
 // Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
-extern "C" void SetSpriteItemSource(S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
+extern "C" void SetSpriteItemSource(SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
     item->descriptor = sprite;
     switch (sprite->kind) {
-    case SPRITE_KIND_NESTED:   /* groups are 0x30 bytes */
-        item->spriteSlot = FindFreeSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30);
-        StartSpriteAnimSlot(sprite->owner->spriteGroups + sprite->index * 0x30, 0x314, item->spriteSlot, matrix, c0, c1);
+    case SPRITE_KIND_NESTED:
+        item->spriteSlot = FindFreeSpriteSlot(&sprite->owner->spriteGroups[sprite->index]);
+        StartSpriteAnimSlot(&sprite->owner->spriteGroups[sprite->index], 0x314, item->spriteSlot, matrix, c0, c1);
         break;
     case SPRITE_KIND_EFFECT:
         if (sprite->index != -1) {
@@ -2032,15 +2028,12 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L { char pad[0x84]; char *spriteGroups; };
-struct S { int id; int kind; L *owner; int unknownC; int index; };
-struct T { char pad[0x58]; int spriteSlot; };
 extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 // Forwards a frame update (time, transform, colours) to a nested sprite item. (inferred)
-extern "C" void UpdateSpriteItem(float time, S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
+extern "C" void UpdateSpriteItem(float time, SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
     if (sprite->kind == SPRITE_KIND_NESTED)
-        UpdateSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, matrix, time, c0, c1);
+        UpdateSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot, matrix, time, c0, c1);
 }
 } // namespace M_func_00215850
 
