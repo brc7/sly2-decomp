@@ -128,12 +128,6 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
-
 struct SLOT
 {
       SLOT *pslotNext;

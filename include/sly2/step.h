@@ -64,7 +64,11 @@ struct STEP : public PO
             qword aqwTarget[3];   /* the same rows as VU quadwords (jthands.cpp reads them so). Local qword-row form of
                                      MATRIX3: a candidate for a MATRIX3 union in sly2/basic.h */
       };
-      qword unknown1E0;
+      union
+      {
+            qword unknown1E0;   /* root-motion velocity (throw.cpp: the z of root channel 6 while unknown1A4 is 1, else zero) */
+            VECTOR vecUnknown1E0;   /* the same, by component (UpdateJtThrow writes x, z, y) */
+      };
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */
       float unknown200;
@@ -78,12 +82,17 @@ struct STEP : public PO
       float unknown220;
       undefined4 unknown224[3];
       qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
-      qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets
-                              (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
-                              in the step's frame); was unknown230's "possibly parentOffset" */
+      union
+      {
+            qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets
+                                    (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
+                                    in the step's frame); was unknown230's "possibly parentOffset" */
+            VECTOR vecPivotOffset;   /* the same, by component (LaunchStepplayer and WillStepplayerLand read z) */
+      };
       undefined4 unknown250[2];
-      SOPART *unknown258;
-      undefined4 unknown25C;
+      SOPART *psopartBody;   /* +0x258 the body part: its points follow the phys part (step.cpp SetStepPhys/UpdateStepPhys); its
+                                world mesh vertices are the hero's outline (tu_14A008 UpdateBhvRouteChase) */
+      SOPART *psopartPhys;   /* +0x25C the current phys part (step.cpp SetStepPhys) */
       float unknown260;   /* possibly massScale (low-confidence guess: SetSoMass(m * unknown260 / r)) */
       int unknown264;
       SOPART *unknown268;

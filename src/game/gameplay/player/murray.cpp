@@ -62,6 +62,10 @@ extern const char D_002A75E0[];   /* "murray" */
 void SetMurrayState(MURRAY *pmurray, int nState, void *pv);
 }
 
+/* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
+   object it holds (the one Murray lifts), +0x190/+0x198 the objects whose transforms are the hands' IK goals. */
+struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
+
 namespace M_InitMurray { extern "C" {
 /* InitMurray: actor defaults init. The int -1 stores come before the float stores in source; gcc schedules them so strafeSubstate lands right after unknown220. (Claude agent) */
 extern MURRAY *D_002F7900;
@@ -81,12 +85,12 @@ void InitMurray(MURRAY *murray)
     murray->attackSubstate = -1;
     murray->subState = -1;
     murray->state = -1;
-    murray->unknown144C = -1;
-    murray->unknown1450 = -1;
-    murray->carryIndex = -1;
+    murray->liftClip = -1;
+    murray->liftSubstate = -1;
+    murray->carrySubstate = -1;
     murray->strafeSubstate = -1;
-    murray->unknown1410 = 1500.0f;
-    murray->unknown1414 = 3500.0f;
+    murray->throwRange = 1500.0f;
+    murray->throwSpeed = 3500.0f;
     murray->grabRadius = 60.0f;
     murray->unknown1048 = 125.0f;
     InitGait(&murray->gaitA, murray, 0x15);
@@ -180,75 +184,38 @@ void PostMurrayLoad(MURRAY *murray)
 
 namespace M_UpdateMurrayStateMachine {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-struct VTE {short delta,pad;void*fn;};
-struct PL {char pad[0x1C];float amount;char pad20[0x10];unsigned flags;};
-struct CONTROL {int word0,state;char pad8[0x14];int count;};
-struct GATE {int word0,word4,mode;};
-struct P {char pad[0xC];VTE*vt;char pad10[0x140];PL*input;char pad154[0xB8];float changed;char pad210[0xB0];CONTROL control;char pad2E0[0x1E0];GATE gate;char pad4CC[0x924];char action[0x110];char altAction[0x50];char physics[0xE0];void*animation;void*other;char pad1038[0x398];int state;char pad13D4[0x14];int pending;void*root;char pad13F0[0x5C];int flag;char pad1450[0x3F0];int kind;char pad1844[0xCC];char extra[1];};
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
-typedef char PL_Size[sizeof(PL)==52?1:-1];
-typedef char CONTROL_Size[sizeof(CONTROL)==32?1:-1];
-typedef char GATE_Size[sizeof(GATE)==12?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
-typedef char PL_amount_Offset[FIELD_OFFSET(PL,amount)==28?1:-1];
-typedef char PL_flags_Offset[FIELD_OFFSET(PL,flags)==48?1:-1];
-typedef char CONTROL_state_Offset[FIELD_OFFSET(CONTROL,state)==4?1:-1];
-typedef char CONTROL_count_Offset[FIELD_OFFSET(CONTROL,count)==28?1:-1];
-typedef char GATE_mode_Offset[FIELD_OFFSET(GATE,mode)==8?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_input_Offset[FIELD_OFFSET(P,input)==336?1:-1];
-typedef char P_changed_Offset[FIELD_OFFSET(P,changed)==524?1:-1];
-typedef char P_control_Offset[FIELD_OFFSET(P,control)==704?1:-1];
-typedef char P_gate_Offset[FIELD_OFFSET(P,gate)==1216?1:-1];
-typedef char P_action_Offset[FIELD_OFFSET(P,action)==3568?1:-1];
-typedef char P_altAction_Offset[FIELD_OFFSET(P,altAction)==3840?1:-1];
-typedef char P_physics_Offset[FIELD_OFFSET(P,physics)==3920?1:-1];
-typedef char P_animation_Offset[FIELD_OFFSET(P,animation)==4144?1:-1];
-typedef char P_other_Offset[FIELD_OFFSET(P,other)==4148?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==5072?1:-1];
-typedef char P_pending_Offset[FIELD_OFFSET(P,pending)==5096?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_flag_Offset[FIELD_OFFSET(P,flag)==5196?1:-1];
-typedef char P_kind_Offset[FIELD_OFFSET(P,kind)==6208?1:-1];
-typedef char P_extra_Offset[FIELD_OFFSET(P,extra)==6416?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" float D_002C08DC,D_002C08E0;
-extern "C" void SetJtAirJump(void*,int,void*,void*);
-extern "C" void StartJtMode(void*,int,void*,void*);
-extern "C" int IsStepplayerNearInteractTarget(P*,int);
-extern "C" void SetMurrayState(P*,int);
-extern "C" unsigned ConsumeButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
-extern "C" unsigned GetButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
-extern "C" void ClearPoctlJoyPressed(PL*,int);
-extern "C" int CanMurrayAttack(P*);
-extern "C" void StartMurrayAltAttack(P*);
-extern "C" void StartMurrayPunch(P*);
-extern "C" int TryMurrayTakedown(P*);
-extern "C" int TryGrabJtNearestCandidate(void*,unsigned,int);
-extern "C" void UpdateJtAirInput(void*);
-extern "C" int WillStepplayerLand(P*,float);
-extern "C" void UpdateJtGrabInput(void*);
-extern "C" void UpdateJtHurtInput(void*);
-extern "C" void UpdateMurrayFlop(P*);
-extern "C" void UpdateMurrayCarry(P*);
-extern "C" void UpdateMurrayStruggle(P*);
-extern "C" void UpdateMurrayLift(P*);
-extern "C" int IsAsegaRetracted(void*);
-extern "C" int IsSmaRetracted(void*);
-extern "C" void UpdateMurrayAttack(P*);
-extern "C" void UpdateMurrayStrafe(P*);
-extern "C" void UpdateMurrayPower(P*);
-extern "C" void UpdateJtThrow(void*);
-extern "C" void UpdateJtActivePipe(void*);
-extern "C" int GetGadgetButtonMask(P*,int);
+extern "C" void SetJtAirJump(JTAIR*,int,void*,void*);
+extern "C" void StartJtMode(JTMODE*,int,void*,void*);
+extern "C" int IsStepplayerNearInteractTarget(MURRAY*,int);
+extern "C" void SetMurrayState(MURRAY*,int);
+extern "C" int CanMurrayAttack(MURRAY*);
+extern "C" void StartMurrayAltAttack(MURRAY*);
+extern "C" void StartMurrayPunch(MURRAY*);
+extern "C" int TryMurrayTakedown(MURRAY*);
+extern "C" int TryGrabJtNearestCandidate(JTGRAB*,unsigned,int);
+extern "C" void UpdateJtAirInput(JTAIR*);
+extern "C" int WillStepplayerLand(MURRAY*,float);
+extern "C" void UpdateJtGrabInput(JTGRAB*);
+extern "C" void UpdateJtHurtInput(JTHURT*);
+extern "C" void UpdateMurrayFlop(MURRAY*);
+extern "C" void UpdateMurrayCarry(MURRAY*);
+extern "C" void UpdateMurrayStruggle(MURRAY*);
+extern "C" void UpdateMurrayLift(MURRAY*);
+extern "C" int IsAsegaRetracted(ASEGA*);
+extern "C" int IsSmaRetracted(SMA*);
+extern "C" void UpdateMurrayAttack(MURRAY*);
+extern "C" void UpdateMurrayStrafe(MURRAY*);
+extern "C" void UpdateMurrayPower(MURRAY*);
+extern "C" void UpdateJtThrow(JTTHROW*);
+extern "C" void UpdateJtActivePipe(JTPIPE*);
+extern "C" int GetGadgetButtonMask(MURRAY*,int);
 // Copy the PL pointer through a register move.
-static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
-// Ask the actor whether action `kind` is allowed (virtual slot 99).
-static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
+static inline POCTL *CopyPL(POCTL *source){POCTL *result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
 // Per-frame input-driven state machine (loops until the state is stable): idle/move, jump, attacks, lift/carry/throw,
 // flop, strafe. Pad bit 0x400 is look mode; gadgets are the slot buttons 0x4/0x1/0x2.
-extern "C" void UpdateMurrayStateMachine(P *murray)
+extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
 {
     int state;
     do {
@@ -267,18 +234,18 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
         case MURRAY_SCRIPT_SMA:
         case MURRAY_PIPE: break;
         default:
-            if (D_002DDED0.time - murray->changed > 0.1f) {
+            if (D_002DDED0.time - murray->unknown20C > 0.1f) {
                 switch (murray->state) {
-                case MURRAY_CARRY: SetJtAirJump(&murray->control, 16, 0, 0); break;
+                case MURRAY_CARRY: SetJtAirJump(&murray->jtair, 16, 0, 0); break;
                 case MURRAY_POWER_MOVE:
-                    if (murray->kind == 3)
-                        SetJtAirJump(&murray->control, 11, 0, 0);
+                    if (murray->subState == 3)
+                        SetJtAirJump(&murray->jtair, 11, 0, 0);
                     break;
                 case MURRAY_GRAB:
-                    if (murray->gate.mode != 1 && murray->gate.mode != 12)
-                        SetJtAirJump(&murray->control, 0, 0, 0);
+                    if (murray->jtgrab.state != 1 && murray->jtgrab.state != 12)
+                        SetJtAirJump(&murray->jtair, 0, 0, 0);
                     break;
-                default: SetJtAirJump(&murray->control, 0, 0, 0); break;
+                default: SetJtAirJump(&murray->jtair, 0, 0, 0); break;
                 }
             }
         }
@@ -287,48 +254,48 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
         case MURRAY_IDLE:
         case MURRAY_RUN:
         case MURRAY_WALK: {
-            if (!(murray->input->flags & BUTTON_RUN) && IsStepplayerNearInteractTarget(murray, 0)) {
+            if (!(murray->controller->buttonsHeld & BUTTON_RUN) && IsStepplayerNearInteractTarget(murray, 0)) {
                 SetMurrayState(murray, MURRAY_STRAFE);
                 break;
             }
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f)) {
-                SetJtAirJump(&murray->control, 1, 0, 0);
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f)) {
+                SetJtAirJump(&murray->jtair, 1, 0, 0);
                 break;
             }
-            if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) && Can(murray, 3)) {
-                ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
-                StartJtMode(murray->altAction, 0, 0, 0);
+            if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
                 break;
             }
-            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, D_002C08DC)) {
                 StartMurrayAltAttack(murray);
                 break;
             }
             if (TryMurrayTakedown(murray))
                 break;
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
-                if (!TryGrabJtNearestCandidate(&murray->gate, 0xF8FA, 0) && murray->root) {
-                    murray->flag = 0;
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                if (!TryGrabJtNearestCandidate(&murray->jtgrab, 0xF8FA, 0) && murray->psoCarryRoot) {
+                    murray->liftClip = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
                 break;
             }
-            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, D_002C08DC)) {
                 StartMurrayPunch(murray);
                 break;
             }
-            PL *input = murray->input;
-            PL *flagsInput = CopyPL(input);
+            POCTL *input = murray->controller;
+            POCTL *flagsInput = CopyPL(input);
             register int current __asm__("$3") = murray->state;
             // From idle the stick needs a small dead zone before Murray starts moving.
             if (current == MURRAY_IDLE) {
-                if (input->amount > 0.1f)
+                if (input->leftStickDeflection > 0.1f)
                     goto moving;
-            } else if (input->amount > 0.0f)
+            } else if (input->leftStickDeflection > 0.0f)
                 goto moving;
             goto idle;
         moving:
-            if (flagsInput->flags & BUTTON_RUN)
+            if (flagsInput->buttonsHeld & BUTTON_RUN)
 
                 SetMurrayState(murray, MURRAY_RUN);
             else
@@ -336,40 +303,40 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             break;
         }
         case MURRAY_JUMP:
-            UpdateJtAirInput(&murray->control);
-            switch (murray->control.state) {
+            UpdateJtAirInput(&murray->jtair);
+            switch (murray->jtair.jumpKind) {
             case 0:
             case 11:
             case 15:
             case 16: break;
             default:
-                if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && Can(murray, 2) &&
-                    murray->control.count < 6 && murray->control.count > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
-                    ClearPoctlJoyPressed(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK);
-                    murray->pending = 0;
+                if (murray->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && murray->CanUseGadget(2) &&
+                    murray->jtair.state < 6 && murray->jtair.state > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
+                    murray->controller->ClearJoyPressed(BUTTON_ALT_ATTACK | BUTTON_ATTACK);
+                    murray->unknown13E8 = 0;
                     SetMurrayState(murray, MURRAY_FLOP);
                 }
             }
             break;
-        case MURRAY_GRAB: UpdateJtGrabInput(&murray->gate); break;
-        case MURRAY_HURT: UpdateJtHurtInput(murray->action); break;
+        case MURRAY_GRAB: UpdateJtGrabInput(&murray->jtgrab); break;
+        case MURRAY_HURT: UpdateJtHurtInput(&murray->jthurt); break;
         case MURRAY_FLOP: UpdateMurrayFlop(murray); break;
         case MURRAY_CARRY: UpdateMurrayCarry(murray); break;
         case MURRAY_STRUGGLE: UpdateMurrayStruggle(murray); break;
         case MURRAY_LIFT: UpdateMurrayLift(murray); break;
         case MURRAY_THROW:
-        case MURRAY_TOSS: finished = IsAsegaRetracted(murray->animation); goto checkIdle;
+        case MURRAY_TOSS: finished = IsAsegaRetracted(murray->activeAnimation); goto checkIdle;
         case MURRAY_ATTACK: UpdateMurrayAttack(murray); break;
         case MURRAY_STRAFE: UpdateMurrayStrafe(murray); break;
         case MURRAY_POWER_MOVE: UpdateMurrayPower(murray); break;
-        case MURRAY_AIMED_THROW: UpdateJtThrow(murray->extra); break;
-        case MURRAY_PIPE: UpdateJtActivePipe(murray->physics); break;
+        case MURRAY_AIMED_THROW: UpdateJtThrow(&murray->jtthrowAim); break;
+        case MURRAY_PIPE: UpdateJtActivePipe(&murray->jtpipe); break;
         case MURRAY_SCRIPT_ANIM:
-            if (murray->animation && IsAsegaRetracted(murray->animation))
+            if (murray->activeAnimation && IsAsegaRetracted(murray->activeAnimation))
                 goto idle;
-            if (!murray->other)
+            if (!murray->activeStateMachine)
                 break;
-            finished = IsSmaRetracted(murray->other);
+            finished = IsSmaRetracted(murray->activeStateMachine);
         checkIdle:
             if (!finished)
                 break;
@@ -377,9 +344,9 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             SetMurrayState(murray, MURRAY_IDLE);
             break;
         case MURRAY_TURNBUCKLE:
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.0f))
-                SetJtAirJump(&murray->control, 13, 0, 0);
-            else if (!(murray->input->flags & GetGadgetButtonMask(murray, 0x10)))
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.0f))
+                SetJtAirJump(&murray->jtair, 13, 0, 0);
+            else if (!(murray->controller->buttonsHeld & GetGadgetButtonMask(murray, 0x10)))
                 SetMurrayState(murray, MURRAY_IDLE);
             break;
         default: break;
@@ -405,50 +372,36 @@ void UpdateMurrayJtModeInput(MURRAY *murray)
 } } // namespace M_func_001B5038
 
 namespace M_UpdateMurray { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct PL { char pad[0x18]; float g18; float g1C; };
-struct O;
-struct TABLE;
-struct ASEGA {char pad[0x14];struct TABLE*table;struct O*owner;float time;char pad20[0x20];float speed40,scale44,factor48,factor4C;};
-struct BBOX {float min[4],max[4];char pad20[0x40];struct O*owner;};
 struct G;
-struct Q { char pad[0xEC]; struct BBOX *xEC; };
 extern CLOCK D_002DDED0;
 extern struct G D_003DD490;
 extern float D_002C08E4;
 extern qword D_002C08F0;
 extern qword D_002A2DE0;
-struct P {
-    char pad0[0x28]; unsigned long x28; char pad1[0xEC - 0x30]; struct BBOX *xEC; char pad1b[0x150 - 0xF0]; struct PL *pl;
-    char pad2[0x190 - 0x154]; qword v190; char pad3[0x2C0 - 0x1A0]; char air[0x4C0 - 0x2C0]; char grab[0xDF0 - 0x4C0];
-    char hurt[0x1030 - 0xDF0]; struct ASEGA *action; void *p1034; char pad4[0x1320 - 0x1038]; char x1320[0x13D0 - 0x1320];
-    int state; char pad5[0x1430 - 0x13D4]; struct Q *p1430; float g1434; char pad6[0x1540 - 0x1438]; char x1540[0x190C - 0x1540];
-    struct O *x190C; char pad7[0x1AC8 - 0x1910]; float g1AC8; void *x1ACC;
-};
-void UpdateStepplayer(struct P *p);
-int IsAsegaRetracted(struct O *p);
-void DropAsegaRef(struct O **pp);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
-void UpdateMurrayJtModeInput(struct P *p);
-void UpdateMurrayStateMachine(struct P *p);
-int GetStepplayerLeanFlags(struct P *p);
-void SetSmaMask(void *p, int n);
-void SetStepTargetHeading(struct P *p, float g);
-qword GetStepAsegaTranslation(struct P *p, struct ASEGA *pl, float g);
-void UpdateGaitBlend(void *p, float g);
-void UpdateGaitFootsteps(void *p);
-void UpdateJtActiveJump(void *p);
-void UpdateJtActiveHide(void *p);
-void UpdateMurrayAttackVelocity(struct P *p);
-void UpdateMurrayPowerVelocity(struct P *p);
-void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
-void UpdateMurrayPlaces(struct P *p);
-void UpdateJtActiveZap(void *p);
-int ShouldSwPairObjects(struct G *pg,struct BBOX *a,struct BBOX *b);
-void RefreshSwObjectCollisionFilter(struct G *pg, struct P *p);
-void SetActPositionGoal(void *p, qword v);
-// Store -v (v scaled by a broadcast -1) into the actor's v190.
-static inline void Neg(struct P *p, qword v)
+void UpdateStepplayer(MURRAY *p);
+int IsAsegaRetracted(ASEGA *p);
+void DropAsegaRef(ASEGA **pp);
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, MURRAY *p, int n);
+void UpdateMurrayJtModeInput(MURRAY *p);
+void UpdateMurrayStateMachine(MURRAY *p);
+int GetStepplayerLeanFlags(MURRAY *p);
+void SetSmaMask(SMA *p, int n);
+void SetStepTargetHeading(MURRAY *p, float g);
+qword GetStepAsegaTranslation(MURRAY *p, ASEGA *pl, float g);
+void UpdateGaitBlend(GAIT *p, float g);
+void UpdateGaitFootsteps(GAIT *p);
+void UpdateJtActiveJump(JTAIR *p);
+void UpdateJtActiveHide(JTGRAB *p);
+void UpdateMurrayAttackVelocity(MURRAY *p);
+void UpdateMurrayPowerVelocity(MURRAY *p);
+void SetAsegaSpeed__FP5ASEGAf(ASEGA *p,float g);
+void UpdateMurrayPlaces(MURRAY *p);
+void UpdateJtActiveZap(JTHURT *p);
+int ShouldSwPairObjects(struct G *pg,SOTREE *a,SOTREE *b);
+void RefreshSwObjectCollisionFilter(struct G *pg, MURRAY *p);
+void SetActPositionGoal(ACT1 *p, qword v);
+// Store -v (v scaled by a broadcast -1) into the actor's qwUnknown190.
+static inline void Neg(MURRAY *p, qword v)
 {
     union { qword q; float f[4]; } u;
     qword b = VuFromFloat<qword>(-1.0f);
@@ -456,91 +409,56 @@ static inline void Neg(struct P *p, qword v)
     {
         qword qwpv190Out;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwpv190Out) : "j"(v), "j"(u.q));
-        p->v190 = qwpv190Out;
+        p->qwUnknown190 = qwpv190Out;
     }
 }
-// Store -v into the actor's v190 and set the action's speed from the PL's g1C.
-static inline void Neg2(struct P *p, qword v)
+// Store -v into the actor's qwUnknown190 and set the action's speed from the stick deflection.
+static inline void Neg2(MURRAY *p, qword v)
 {
-    struct ASEGA *pl = p->action;
+    ASEGA *pl = p->activeAnimation;
     volatile qword u; /* scalar stack copy of the -1 broadcast (target stores it to 0(sp) last) */
     qword b = VuFromFloat<qword>(-1.0f); qword r;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(b));
-    p->v190 = r;
+    p->qwUnknown190 = r;
     u = b;
-    SetAsegaSpeed__FP5ASEGAf(pl,p->pl->g1C);
+    SetAsegaSpeed__FP5ASEGAf(pl,p->controller->leftStickDeflection);
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char Offset_0[FIELD_OFFSET(struct PL,g18)==24?1:-1];
-typedef char Offset_1[FIELD_OFFSET(struct PL,g1C)==28?1:-1];
-typedef char Offset_2[FIELD_OFFSET(struct ASEGA,table)==20?1:-1];
-typedef char Offset_3[FIELD_OFFSET(struct ASEGA,owner)==24?1:-1];
-typedef char Offset_4[FIELD_OFFSET(struct ASEGA,time)==28?1:-1];
-typedef char Offset_5[FIELD_OFFSET(struct ASEGA,speed40)==64?1:-1];
-typedef char Offset_6[FIELD_OFFSET(struct ASEGA,scale44)==68?1:-1];
-typedef char Offset_7[FIELD_OFFSET(struct ASEGA,factor48)==72?1:-1];
-typedef char Offset_8[FIELD_OFFSET(struct ASEGA,factor4C)==76?1:-1];
-typedef char Offset_9[FIELD_OFFSET(struct BBOX,min)==0?1:-1];
-typedef char Offset_10[FIELD_OFFSET(struct BBOX,max)==16?1:-1];
-typedef char Offset_11[FIELD_OFFSET(struct BBOX,owner)==96?1:-1];
-typedef char Offset_12[FIELD_OFFSET(struct Q,xEC)==236?1:-1];
-typedef char Offset_15[FIELD_OFFSET(struct P,x28)==40?1:-1];
-typedef char Offset_16[FIELD_OFFSET(struct P,xEC)==236?1:-1];
-typedef char Offset_17[FIELD_OFFSET(struct P,pl)==336?1:-1];
-typedef char Offset_18[FIELD_OFFSET(struct P,v190)==400?1:-1];
-typedef char Offset_19[FIELD_OFFSET(struct P,air)==704?1:-1];
-typedef char Offset_20[FIELD_OFFSET(struct P,grab)==1216?1:-1];
-typedef char Offset_21[FIELD_OFFSET(struct P,hurt)==3568?1:-1];
-typedef char Offset_22[FIELD_OFFSET(struct P,action)==4144?1:-1];
-typedef char Offset_23[FIELD_OFFSET(struct P,p1034)==4148?1:-1];
-typedef char Offset_24[FIELD_OFFSET(struct P,x1320)==4896?1:-1];
-typedef char Offset_25[FIELD_OFFSET(struct P,state)==5072?1:-1];
-typedef char Offset_26[FIELD_OFFSET(struct P,p1430)==5168?1:-1];
-typedef char Offset_27[FIELD_OFFSET(struct P,g1434)==5172?1:-1];
-typedef char Offset_28[FIELD_OFFSET(struct P,x1540)==5440?1:-1];
-typedef char Offset_29[FIELD_OFFSET(struct P,x190C)==6412?1:-1];
-typedef char Offset_30[FIELD_OFFSET(struct P,g1AC8)==6856?1:-1];
-typedef char Offset_31[FIELD_OFFSET(struct P,x1ACC)==6860?1:-1];
-typedef char Size_0[sizeof(struct PL)==32?1:-1];
-typedef char Size_1[sizeof(struct ASEGA)==80?1:-1];
-typedef char Size_2[sizeof(struct BBOX)==100?1:-1];
-typedef char Size_3[sizeof(struct Q)==240?1:-1];
-typedef char Size_5[sizeof(struct P)==6864?1:-1];
 typedef char Size_6[sizeof(qword)==16?1:-1];
 typedef char Size_7[sizeof(unsigned long)==8?1:-1];
 typedef char Size_8[sizeof(float)==4?1:-1];
 typedef char Size_9[sizeof(int)==4?1:-1];
 typedef char Size_10[sizeof(void*)==4?1:-1];
 // MURRAY Update (slot 16): STEPPLAYER update, grab candidates, the state machine, then per-state updates.
-void UpdateMurray(struct P *murray)
+void UpdateMurray(MURRAY *murray)
 {
     UpdateStepplayer(murray);
-    if ((((int)(murray->x28 >> 60) & 1) == 0))
+    if ((((int)murray->isInWorld & 1) == 0))
         return;
-    if (murray->x190C && IsAsegaRetracted(murray->x190C))
-        DropAsegaRef(&murray->x190C);
+    if (murray->unknown190C && IsAsegaRetracted(murray->unknown190C))
+        DropAsegaRef(&murray->unknown190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
     UpdateMurrayStateMachine(murray);
     switch (murray->state) {
     case MURRAY_IDLE:
-        SetSmaMask(murray->p1034, GetStepplayerLeanFlags(murray));
+        SetSmaMask(murray->activeStateMachine, GetStepplayerLeanFlags(murray));
         break;
     case MURRAY_RUN:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1320, 1.0f);
-        UpdateGaitFootsteps(murray->x1320);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitA, 1.0f);
+        UpdateGaitFootsteps(&murray->gaitA);
         break;
     case MURRAY_WALK:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1540, murray->pl->g1C);
-        UpdateGaitFootsteps(murray->x1540);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitC, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitC);
         break;
     case MURRAY_JUMP:
-        UpdateJtActiveJump(murray->air);
+        UpdateJtActiveJump(&murray->jtair);
         break;
     case MURRAY_GRAB:
-        UpdateJtActiveHide(murray->grab);
+        UpdateJtActiveHide(&murray->jtgrab);
         break;
     case MURRAY_ATTACK:
         UpdateMurrayAttackVelocity(murray);
@@ -549,54 +467,41 @@ void UpdateMurray(struct P *murray)
         UpdateMurrayPowerVelocity(murray);
         break;
     case MURRAY_SCRIPT_ANIM:
-        Neg(murray, GetStepAsegaTranslation(murray, murray->action, murray->action->time));
+        Neg(murray, GetStepAsegaTranslation(murray, murray->activeAnimation, murray->activeAnimation->time));
         break;
     case MURRAY_SCRIPT_SMA:
-        Neg2(murray, GetStepAsegaTranslation(murray, murray->action, murray->action->time));
-        SetStepTargetHeading(murray, murray->pl->g18);
+        Neg2(murray, GetStepAsegaTranslation(murray, murray->activeAnimation, murray->activeAnimation->time));
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
         break;
     }
     UpdateMurrayPlaces(murray);
-    UpdateJtActiveZap(murray->hurt);
-    if (murray->p1430 && murray->g1434 + 0.1f < D_002DDED0.time) {
-        if (!murray->p1430->xEC || !ShouldSwPairObjects(&D_003DD490, murray->xEC, murray->p1430->xEC))
-            murray->p1430 = 0;
-        if (!murray->p1430)
+    UpdateJtActiveZap(&murray->jthurt);
+    if (murray->ploReleased && murray->releaseTime + 0.1f < D_002DDED0.time) {
+        if (!((SO *)murray->ploReleased)->physicsTree || !ShouldSwPairObjects(&D_003DD490, murray->physicsTree, ((SO *)murray->ploReleased)->physicsTree))
+            murray->ploReleased = 0;
+        if (!murray->ploReleased)
             RefreshSwObjectCollisionFilter(&D_003DD490, murray);
     }
-    if (!murray->x1ACC)
+    if (!murray->pact1Unk1acc)
         return;
-    if (D_002DDED0.time - murray->g1AC8 < D_002C08E4)
-        SetActPositionGoal(murray->x1ACC, D_002C08F0);
+    if (D_002DDED0.time - murray->unknown1AC8 < D_002C08E4)
+        SetActPositionGoal(murray->pact1Unk1acc, D_002C08F0);
     else
-        SetActPositionGoal(murray->x1ACC, D_002A2DE0);
+        SetActPositionGoal(murray->pact1Unk1acc, D_002A2DE0);
 }
 } } // namespace M_UpdateMurray
 #undef FIELD_OFFSET
 
 namespace M_UpdateMurrayCarry { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct VT { short d; short pad; void *pfn; };
-struct T { char pad[0x180]; struct LO *po; };
-struct PL { char pad[0x18]; float g18; float g1C; char pad2[0x30 - 0x20]; int x30; };
-struct P {
-    char pad0[0xC]; struct VT *vt; char pad1[0x150 - 0x10]; struct PL *pl;
-    char pad2[0x190 - 0x154]; qword v190; char pad3[0x2C0 - 0x1A0]; char air[0xF00 - 0x2C0]; char xF00[0x1030 - 0xF00];
-    struct PL *action; char pad4[0x13D0 - 0x1034]; int state; char pad5[0x13F0 - 0x13D4]; struct T *carried;
-    char pad6[0x1438 - 0x13F4]; int x1438; int x143C; char pad7[0x1458 - 0x1440]; int carrySubstate; char pad8[0x1460 - 0x145C]; char x1460[1];
-};
-void DetachMurrayCarried(struct P *p);
-void SetMurrayState(struct P *p, int n);
-int GetButtonsPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
-int ConsumeButtonsPressedWithin__5POCTLUif(struct PL *pl, int k, float g);
-void ClearPoctlJoyPressed(struct PL *pl, int k);
+void DetachMurrayCarried(MURRAY *p);
+void SetMurrayState(MURRAY *p, int n);
 int IsPowerupAcquired(int n);
-void SetJtAirJump(void *p, int a, int b, int c);
-void StartJtMode(void *p, int a, int b, int c);
-void SetMurrayCarrySubstate(struct P *p, int n);
-void SetStepTargetHeading(struct P *p, float g);
-qword GetStepAsegaTranslation(struct P *p,struct PL*pl,float g);
+void SetJtAirJump(JTAIR *p, int a, int b, int c);
+void StartJtMode(JTMODE *p, int a, int b, int c);
+void SetMurrayCarrySubstate(MURRAY *p, int n);
+void SetStepTargetHeading(MURRAY *p, float g);
+qword GetStepAsegaTranslation(MURRAY *p,ASEGA *pasega,float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 // Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
@@ -611,37 +516,37 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
     *velocity=result;
 }
 // Copy the PL pointer through pinned registers.
-static inline struct PL*CopyPL(struct PL*p){register struct PL*source __asm__("$2")=p;register struct PL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
-// State 5 (carrying x13F0): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
+static inline POCTL*CopyPL(POCTL*p){register POCTL*source __asm__("$2")=p;register POCTL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
+// State 5 (carrying ploCarried): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
 // locomotion. Power-up 0x12 is Atlas Strength.
-void UpdateMurrayCarry(struct P *murray)
+void UpdateMurrayCarry(MURRAY *murray)
 {
     int s;
     for (;;) {
         s = murray->carrySubstate;
         switch (s) {
         case 0: case 1: case 2:
-            if ((((int)murray->carried->po->isInWorld & 1) == 0)) {
+            if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
                 DetachMurrayCarried(murray);
-                murray->carried = 0;
+                murray->ploCarried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && IsPowerupAcquired(0x12)) {
-                ClearPoctlJoyPressed(murray->pl, BUTTON_JUMP);
-                SetJtAirJump(murray->air, 0xF, 0, 0);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
+            } else if (murray->controller->GetButtonsPressedWithin(BUTTON_JUMP, 0.1f) && IsPowerupAcquired(0x12)) {
+                murray->controller->ClearJoyPressed(BUTTON_JUMP);
+                SetJtAirJump(&murray->jtair, 0xF, 0, 0);
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
                 SetMurrayState(murray, MURRAY_THROW);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ALT_ATTACK, 0.0f) && murray->x1438) {
-                murray->x143C = 0;
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f) && murray->unknown1438) {
+                murray->unknown143C = 0;
                 SetMurrayState(murray, MURRAY_TOSS);
-            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_LOOK, 0.15f) && ((int (*)(void *, int))murray->vt[99].pfn)((char *)murray + murray->vt[99].d, 3)) {
-                ClearPoctlJoyPressed(murray->pl, BUTTON_LOOK);
-                StartJtMode(murray->xF00, 0, 0, 0);
+            } else if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
             } else {
-                struct PL*source=murray->pl;
-                struct PL*pl=CopyPL(source);
-                float g=source->g1C;
+                POCTL*source=murray->controller;
+                POCTL*pl=CopyPL(source);
+                float g=source->leftStickDeflection;
                 if (murray->carrySubstate == 0 ? 0.1f < g : 0.0f < g) {
-                    if ((pl->x30 & 8) && IsPowerupAcquired(0x12))
+                    if ((pl->buttonsHeld & 8) && IsPowerupAcquired(0x12))
                         SetMurrayCarrySubstate(murray, 2);
                     else
                         SetMurrayCarrySubstate(murray, 1);
@@ -658,16 +563,16 @@ void UpdateMurrayCarry(struct P *murray)
     case 0:
         break;
     case 1:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1460, murray->pl->g1C);
-        UpdateGaitFootsteps(murray->x1460);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitB, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitB);
         break;
     case 2: {
         U u;
         qword v;
-        SetStepTargetHeading(murray, murray->pl->g18);
-        v = GetStepAsegaTranslation(murray,murray->action,murray->action->g1C);
-        NegateSource(v,&murray->v190,&u);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        v = GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
+        NegateSource(v,&murray->qwUnknown190,&u);
         break;
     }
     }
@@ -676,53 +581,18 @@ void UpdateMurrayCarry(struct P *murray)
 
 namespace M_SetMurrayCarrySubstate { extern "C" {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
-typedef struct A { ASEGA *pb; } A;
-typedef struct C { void *x; } C;
-typedef struct P {
-    char pad0[0x58];
-    void *x58, *x5C;
-    char pad60[0x190 - 0x60];
-    qword x190;
-    float x1A0;
-    char pad1A4[0x1030 - 0x1A4];
-    A a;
-    C c;
-    char pad1038[0x1320 - 0x1038];
-    char x1320[0x1458 - 0x1320];
-    int carrySubstate;
-    float x145C;
-    int pad1460;
-    ASEG *x1464;
-    char pad1468[0x1510 - 0x1468];
-    void *x1510;
-    char pad1514[0x151C - 0x1514];
-    ASEG *x151C;
-} P;
 typedef struct { float t,dt; } CLOCK;
 extern CLOCK D_002DDED0;
-typedef char P_x58_Offset[FIELD_OFFSET(P,x58)==88?1:-1];
-typedef char P_x5C_Offset[FIELD_OFFSET(P,x5C)==92?1:-1];
-typedef char P_x190_Offset[FIELD_OFFSET(P,x190)==400?1:-1];
-typedef char P_x1A0_Offset[FIELD_OFFSET(P,x1A0)==416?1:-1];
-typedef char P_a_Offset[FIELD_OFFSET(P,a)==4144?1:-1];
-typedef char P_c_Offset[FIELD_OFFSET(P,c)==4148?1:-1];
-typedef char P_x1320_Offset[FIELD_OFFSET(P,x1320)==4896?1:-1];
-typedef char P_x1458_Offset[FIELD_OFFSET(P,carrySubstate)==5208?1:-1];
-typedef char P_x145C_Offset[FIELD_OFFSET(P,x145C)==5212?1:-1];
-typedef char P_x1464_Offset[FIELD_OFFSET(P,x1464)==5220?1:-1];
-typedef char P_x1510_Offset[FIELD_OFFSET(P,x1510)==5392?1:-1];
-typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
-void SetXfRole(P *p, void *x, int k);
+void SetXfRole(MURRAY *p, XF *pxf, int k);
 void ResetGaitFeet(void *p);
-void ReleaseAsega(A *pa);
-void ReleaseSma(C *pc);
-void ReplaceCurrentAseg(ASEG *pr, P *p, float f, float g, int k, A *pa) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
-void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
+void ReleaseAsega(ASEGA **ppasega);
+void ReleaseSma(SMA **ppsma);
+void ReplaceCurrentAseg(ASEG *pr, MURRAY *p, float f, float g, int k, ASEGA **ppasega) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void ReplaceSma(void *pv, MURRAY *p, int a, int k, SMA **ppsma);
 
-// Carry sub-state (x1458): 0 stand, 1 walk (blend x1460), 2 run (clip x151C); restarts the animation.
-void SetMurrayCarrySubstate(P *murray, int k)
+// Carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); restarts the animation.
+void SetMurrayCarrySubstate(MURRAY *murray, int k)
 {
     ASEG *pr;
     void *pv;
@@ -733,18 +603,18 @@ void SetMurrayCarrySubstate(P *murray, int k)
         return;
     switch (murray->carrySubstate) {
     case 0:
-        SetXfRole(murray, murray->x58, 2);
-        SetXfRole(murray, murray->x5C, 2);
+        SetXfRole(murray, murray->unknown58, 2);
+        SetXfRole(murray, murray->unknown5C, 2);
         murray->carrySubstate = k;
         break;
     case 1:
-    case 2: murray->x1A0 = murray->a.pb->time / murray->a.pb->animation->duration;
+    case 2: murray->gaitBlend = murray->activeAnimation->time / murray->activeAnimation->animation->duration;
     default: murray->carrySubstate = k; break;
     }
     __asm__("daddu %0,$%5,$zero\n\tdaddu %1,$%5,$zero\n\tlwc1 %2,%6\n\taddiu %3,$zero,%7\n\tmtc1 $%5,%4"
             : "=&r"(pr), "=&r"(pv), "=f"(now), "=r"(n), "=f"(f)
             : "J"(0), "m"(D_002DDED0.t), "I"(1));
-    murray->x145C = now;
+    murray->carrySubstateTime = now;
     if (k == n)
         goto state1;
     if (k < 2) {
@@ -756,26 +626,26 @@ void SetMurrayCarrySubstate(P *murray, int k)
         goto state2;
     goto done;
 state0:
-    SetXfRole(murray, murray->x58, 1);
-    SetXfRole(murray, murray->x5C, 1);
-    pv = murray->x1510;
-    murray->x190 = D_002A2DD0;
+    SetXfRole(murray, murray->unknown58, 1);
+    SetXfRole(murray, murray->unknown5C, 1);
+    pv = murray->psmCarryStand;
+    murray->qwUnknown190 = D_002A2DD0;
     goto done;
 state1:
-    pr = murray->x1464;
-    f = murray->x1A0 * pr->duration;
-    ResetGaitFeet(murray->x1320);
+    pr = murray->gaitB.blendedAnimation;
+    f = murray->gaitBlend * pr->duration;
+    ResetGaitFeet(&murray->gaitA);
     n = 9;
     goto done;
 state2:
-    pr = murray->x151C;
+    pr = murray->pasegCarryRun;
     n = 9;
-    f = murray->x1A0 * pr->duration;
+    f = murray->gaitBlend * pr->duration;
 done:
-    ReleaseAsega(&murray->a);
-    ReleaseSma(&murray->c);
-    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->a);
-    ReplaceSma(pv, murray, -1, n, &murray->c);
+    ReleaseAsega(&murray->activeAnimation);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->activeAnimation);
+    ReplaceSma(pv, murray, -1, n, &murray->activeStateMachine);
 }
 } } // namespace M_SetMurrayCarrySubstate
 #undef FIELD_OFFSET
@@ -821,41 +691,28 @@ void UpdateMurrayStruggle(MURRAY *murray)
 namespace M_func_001B5990 {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef unsigned int uint;
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
+/* The target orientation rows (STEP::aqwTarget) as Rotate reads them (as qword rows the row loads schedule
+   differently). */
 struct M3{U rows[3];};
-struct PL{char pad[0x18];float angle,strength;char pad20[0x10];uint flags;};
-struct ENTRY{float weight;int active;char pad8[8];U direction;};
-struct VT{short delta,pad;void*fn;};
-struct P{
- char pad[12];VT*vt;char pad10[0x140];PL*input;char pad154[0x3C];U acceleration;
- char pad1A0[0x10];M3 orientation;char pad1E0[0xE0];char controller[0x200];char context[0xA40];char requestF00[0x130];
- ASEGA*animation;int pad1034,side;char pad103C[0xA0];void*target;
- char pad10E0[0x2F0];int mainState;char pad13D4[0x18];void*root;
- char pad13F0[0x5C];int reset;char pad1450[0x1E0];char motion[0xC0];
- ENTRY axes[8];void*request;int state;
-};
 extern "C"{
 extern float D_002C08DC;
-int IsStepplayerNearInteractTarget(P*,int);
-void SetMurrayState(P*,int);
-int ConsumeButtonsPressedWithin__5POCTLUif(PL*,int,float);
-int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);
-void ClearPoctlJoyPressed(PL*,int);
-void SetJtAirJump(void*,int,int,void*);
-void StartJtMode(void*,int,P*,void*);
-int TryMurrayTakedown(P*);
-int TryGrabJtNearestCandidate(void*,int,int);
-int CanMurrayAttack(P*);
-void StartMurrayPunch(P*);
-void StartMurrayAltAttack(P*);
-void SetMurrayStrafeSubstate(P*,int);
-void FaceStepToward(P*,void*);
-void SetStepTargetHeading(P*,float);
-void UpdateGaitBlend(void*,float);
-void UpdateGaitFootsteps(void*);
+int IsStepplayerNearInteractTarget(MURRAY*,int);
+void SetMurrayState(MURRAY*,int);
+void SetJtAirJump(JTAIR*,int,int,void*);
+void StartJtMode(JTMODE*,int,MURRAY*,void*);
+int TryMurrayTakedown(MURRAY*);
+int TryGrabJtNearestCandidate(JTGRAB*,int,int);
+int CanMurrayAttack(MURRAY*);
+void StartMurrayPunch(MURRAY*);
+void StartMurrayAltAttack(MURRAY*);
+void SetMurrayStrafeSubstate(MURRAY*,int);
+void FaceStepToward(MURRAY*,void*);
+void SetStepTargetHeading(MURRAY*,float);
+void UpdateGaitBlend(GAIT*,float);
+void UpdateGaitFootsteps(GAIT*);
 qword SetVectorCylind(float,float,float);
-void UpdateDirectionalBlend(P*,ENTRY*,void*);
+void UpdateDirectionalBlend(MURRAY*,BLDIR*,ASEGBL*);
 }
 // Load a vector into a VU0 register.
 static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
@@ -875,98 +732,67 @@ static inline qword Rotate(M3 *m, qword vector)
             : "j"(row1), "j"(row2), "j"(vector));
     return result;
 }
-typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char M3_Size[sizeof(M3)==48?1:-1];
-typedef char PL_Size[sizeof(PL)==52?1:-1];
-typedef char ENTRY_Size[sizeof(ENTRY)==32?1:-1];
-typedef char VT_Size[sizeof(VT)==8?1:-1];
-typedef char PL_angle_Offset[FIELD_OFFSET(PL,angle)==24?1:-1];
-typedef char PL_strength_Offset[FIELD_OFFSET(PL,strength)==28?1:-1];
-typedef char PL_flags_Offset[FIELD_OFFSET(PL,flags)==48?1:-1];
-typedef char ENTRY_weight_Offset[FIELD_OFFSET(ENTRY,weight)==0?1:-1];
-typedef char ENTRY_active_Offset[FIELD_OFFSET(ENTRY,active)==4?1:-1];
-typedef char ENTRY_direction_Offset[FIELD_OFFSET(ENTRY,direction)==16?1:-1];
-typedef char VT_delta_Offset[FIELD_OFFSET(VT,delta)==0?1:-1];
-typedef char VT_fn_Offset[FIELD_OFFSET(VT,fn)==4?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_input_Offset[FIELD_OFFSET(P,input)==336?1:-1];
-typedef char P_acceleration_Offset[FIELD_OFFSET(P,acceleration)==400?1:-1];
-typedef char P_orientation_Offset[FIELD_OFFSET(P,orientation)==432?1:-1];
-typedef char P_controller_Offset[FIELD_OFFSET(P,controller)==704?1:-1];
-typedef char P_context_Offset[FIELD_OFFSET(P,context)==1216?1:-1];
-typedef char P_requestF00_Offset[FIELD_OFFSET(P,requestF00)==3840?1:-1];
-typedef char P_animation_Offset[FIELD_OFFSET(P,animation)==4144?1:-1];
-typedef char P_side_Offset[FIELD_OFFSET(P,side)==4152?1:-1];
-typedef char P_target_Offset[FIELD_OFFSET(P,target)==4316?1:-1];
-typedef char P_mainState_Offset[FIELD_OFFSET(P,mainState)==5072?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_reset_Offset[FIELD_OFFSET(P,reset)==5196?1:-1];
-typedef char P_motion_Offset[FIELD_OFFSET(P,motion)==5680?1:-1];
-typedef char P_axes_Offset[FIELD_OFFSET(P,axes)==5872?1:-1];
-typedef char P_request_Offset[FIELD_OFFSET(P,request)==6128?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==6132?1:-1];
-typedef char Axis1Direction_Offset[(FIELD_OFFSET(P,axes)+sizeof(ENTRY)+FIELD_OFFSET(ENTRY,direction))==0x1720?1:-1];
-// State 9 (locked onto the nearby target x10DC): exits when the lock button is released or the target is lost; allows
+// State 9 (locked onto the nearby target interactTarget): exits when the lock button is released or the target is lost; allows
 // jump and takedown.
-extern "C" void UpdateMurrayStrafe(P *murray)
+extern "C" void UpdateMurrayStrafe(MURRAY *murray)
 {
     int before;
     for (;;) {
-        before = murray->state;
+        before = murray->strafeSubstate;
         switch (before) {
         case 0:
         case 1:
         case 2: {
-            if ((murray->input->flags & BUTTON_RUN) || !IsStepplayerNearInteractTarget(murray, 1))
+            if ((murray->controller->buttonsHeld & BUTTON_RUN) || !IsStepplayerNearInteractTarget(murray, 1))
                 SetMurrayState(murray, MURRAY_IDLE);
-            else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f))
-                SetJtAirJump(murray->controller, 1, 0, 0);
+            else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
+                SetJtAirJump(&murray->jtair, 1, 0, 0);
             else if (TryMurrayTakedown(murray)) {
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
-                if (!TryGrabJtNearestCandidate(murray->context, 0x80, 0) && murray->root) {
-                    murray->reset = 0;
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                if (!TryGrabJtNearestCandidate(&murray->jtgrab, 0x80, 0) && murray->psoCarryRoot) {
+                    murray->liftClip = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
-            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC))
+            } else if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, D_002C08DC))
                 StartMurrayPunch(murray);
-            else if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) &&
-                     ((int (*)(P *, int))murray->vt[99].fn)((P *)((char *)murray + murray->vt[99].delta), 3)) {
-                ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
-                StartJtMode(murray->requestF00, 0, 0, 0);
-            } else if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC))
+            else if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) &&
+                     murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
+            } else if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, D_002C08DC))
                 StartMurrayAltAttack(murray);
             else {
-                PL *pl = murray->input;
-                float strength = pl->strength;
-                if (murray->mainState == MURRAY_IDLE ? 0.1f < strength : 0.0f < strength)
+                POCTL *pl = murray->controller;
+                float strength = pl->leftStickDeflection;
+                if (murray->state == MURRAY_IDLE ? 0.1f < strength : 0.0f < strength)
                     SetMurrayStrafeSubstate(murray, 2);
                 else
                     SetMurrayStrafeSubstate(murray, 0);
             }
         } break;
         }
-        if (murray->state == before || murray->mainState != MURRAY_STRAFE)
+        if (murray->strafeSubstate == before || murray->state != MURRAY_STRAFE)
             break;
     }
-    switch (murray->state) {
-    case 0: FaceStepToward(murray, murray->target); break;
+    switch (murray->strafeSubstate) {
+    case 0: FaceStepToward(murray, murray->interactTarget); break;
     case 2: {
-        FaceStepToward(murray, murray->target);
-        float length = LengthXY(murray->axes[1].direction.q);
-        PL *input = murray->input;
+        FaceStepToward(murray, murray->interactTarget);
+        float length = LengthXY(murray->unknown16F0[1].vRoot);
+        POCTL *input = murray->controller;
         qword direction = Vector(
-            SetVectorCylind(input->angle + 3.1415927f, (input->strength * length) * murray->animation->speed, 0.0f));
-        murray->acceleration.q = direction;
-        qword world = Rotate(&murray->orientation, direction);
-        murray->side = -1;
-        murray->acceleration.q = world;
-        UpdateDirectionalBlend(murray, murray->axes, murray->request);
+            SetVectorCylind(input->leftStickAngle + 3.1415927f, (input->leftStickDeflection * length) * murray->activeAnimation->speed, 0.0f));
+        murray->qwUnknown190 = direction;
+        qword world = Rotate((M3 *)murray->aqwTarget, direction);
+        murray->blendSide = -1;
+        murray->qwUnknown190 = world;
+        UpdateDirectionalBlend(murray, murray->unknown16F0, murray->unknown17F0);
         break;
     }
     case 1:
-        SetStepTargetHeading(murray, murray->input->angle);
-        UpdateGaitBlend(murray->motion, murray->input->strength);
-        UpdateGaitFootsteps(murray->motion);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitD, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitD);
         break;
     }
 }
@@ -1024,16 +850,13 @@ void SetMurrayStrafeSubstate(MURRAY *murray, int st)
 } } // namespace M_func_001B5D30
 
 namespace M_ChooseMurrayThrowTarget { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
-struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
-           char pad3[0x1420 - 0x1414]; qword throwGoal; };
 struct G { char pad[0x13B4]; struct O *pFirst; };
 extern float D_002C0984, D_002C0988;
 qword GetLoWorldPos(void *p);
 int ShouldTriggerGrabspotSkipTarget(void *a, struct O *po);
 float atan2f(float y, float x);
-float GetStepHeading(struct P *p);
+float GetStepHeading(MURRAY *p);
 float NormalizeAngle__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
 // z lane of t as a float.
@@ -1053,17 +876,17 @@ static inline float LenXY(qword v) {
 }
 // Picks the throw goal: the nearest object with flag 0x10000 (not the carried one) within range and view cone.
 // Without one, the goal is 1500 units ahead.
-void ChooseMurrayThrowTarget(struct P *murray)
+void ChooseMurrayThrowTarget(MURRAY *murray)
 {
     struct { int a[4]; } unused;
     struct O *object, *poBest = 0;
-    float maxValue = murray->g1410 * D_002C0984;
+    float maxValue = murray->throwRange * D_002C0984;
     for (object = (*(struct G *)&g_sw.aslPxrOid[410]).pFirst; object; object = object->pnext) {
         qword d;
         float dist, g;
         if (!(object->xE8 & 0x10000))
             continue;
-        if (ShouldTriggerGrabspotSkipTarget(murray->carried, object))
+        if (ShouldTriggerGrabspotSkipTarget(murray->ploCarried, object))
             continue;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(object)), "j"(GetLoWorldPos(murray)));
         dist = LenXY(d);
@@ -1084,7 +907,7 @@ void ChooseMurrayThrowTarget(struct P *murray)
         return;
     qword a, b, r;
     a = GetLoWorldPos(murray);
-    b = SetVectorCylind(murray->g1A8, murray->g1410, 0.0f);
+    b = SetVectorCylind(murray->targetHeading, murray->throwRange, 0.0f);
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     murray->throwGoal = r;
 }
@@ -1462,52 +1285,27 @@ void PresetMurrayAccel(MURRAY *murray)
 } } // namespace M_PresetMurrayAccel
 
 namespace M_HandleMurrayMessage { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct MSG { void *x0; int x4; int x8; } MSG;
-typedef struct P {
-    char pad0[0x1030];
-    void *action;
-    void *x1034;
-    char pad1038[0x13D0 - 0x1038];
-    int state;
-    char pad13D4[0x1448 - 0x13D4];
-    int x1448;
-    int pad144C;
-    int x1450;
-    char pad1454[0x1524 - 0x1454];
-    float x1524;
-    float x1528;
-    int x152C;
-    char pad1530[4];
-    int x1534;
-    char pad1538[0x1818 - 0x1538];
-    int x1818;
-    int x181C;
-    int comboWindow;
-    char pad1824[0x190C - 0x1824];
-    void *x190C;
-    char x1910[0x10];
-} P;
 extern char D_003DD490[];
 extern float D_002C0990[];
 extern float D_002C099C;
-void HandleStepplayerMessage(P *p, int msg, MSG *pm);
-void SetMurrayFlopSubstate(P *p, int k);
-qword GetLoWorldPos(P *p);
-void EmitSwNoise(void *g, int z, qword q, P *p);
-void ThrowMurrayCarried(P *p);
-void TossMurrayCarried(P *p);
+void HandleStepplayerMessage(MURRAY *p, int msg, MSG *pm);
+void SetMurrayFlopSubstate(MURRAY *p, int k);
+qword GetLoWorldPos(MURRAY *p);
+void EmitSwNoise(void *g, int z, qword q, MURRAY *p);
+void ThrowMurrayCarried(MURRAY *p);
+void TossMurrayCarried(MURRAY *p);
 void ReleaseJtThrowObject(void *p);
-void SetMurrayLiftSubstate(P *p, int k);
-void SetMurrayState(P *p, int s);
+void SetMurrayLiftSubstate(MURRAY *p, int k);
+void SetMurrayState(MURRAY *p, int s);
 
 // MURRAY message handler (slot 5): base, then animation events from his own animations (0x1A4 flop dive, ...).
-void HandleMurrayMessage(P *murray, int msg, MSG *pm)
+void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
 {
     HandleStepplayerMessage(murray, msg, pm);
     switch (msg) {
     case 9:
-        if (pm->x0 != murray->action && pm->x0 != murray->x190C) return;
+        if (pm->x0 != murray->activeAnimation && pm->x0 != murray->unknown190C) return;
         switch (pm->x8) {
         case 0x1A4:
             SetMurrayFlopSubstate(murray, 1);
@@ -1524,27 +1322,27 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
                 TossMurrayCarried(murray);
                 break;
             case MURRAY_AIMED_THROW:
-                ReleaseJtThrowObject(murray->x1910);
+                ReleaseJtThrowObject(&murray->jtthrowAim);
                 break;
             }
             break;
         case 0x1C6:
-            murray->x1448 = 1;
+            murray->fLiftGrabbed = 1;
             break;
         case 0x1C8:
-            if (!murray->x1450) {
+            if (!murray->liftSubstate) {
                 EmitSwNoise(D_003DD490, 0, GetLoWorldPos(murray), murray);
                 SetMurrayLiftSubstate(murray, 1);
             }
             break;
         case 0x1C7:
-            if (murray->x1450 == 1) SetMurrayLiftSubstate(murray, 2);
+            if (murray->liftSubstate == 1) SetMurrayLiftSubstate(murray, 2);
             break;
         case 0x240:
-            murray->x1818 = 1;
+            murray->unknown1818 = 1;
             break;
         case 0x241:
-            murray->x181C = 1;
+            murray->unknown181C = 1;
             break;
         case 0x242:
             murray->comboWindow = 1;
@@ -1552,7 +1350,7 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
         }
         break;
     case 10:
-        if (pm->x0 != murray->x1034) return;
+        if (pm->x0 != murray->activeStateMachine) return;
         if (murray->state != MURRAY_STRUGGLE) return;
         if (pm->x8 == pm->x4) return;
         switch (pm->x8) {
@@ -1565,9 +1363,9 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
         case 0x1CD:
         case 0x1CE:
         case 0x1CF: {
-            float f = D_002C0990[murray->x1534];
-            murray->x1524 = murray->x1528 = f;
-            murray->x152C = (int)(D_002C099C * f);
+            float f = D_002C0990[murray->workAction];
+            murray->struggleTimeLeft = murray->lastMashTime = f;
+            murray->mashesLeft = (int)(D_002C099C * f);
             break;
         }
         }
@@ -1594,7 +1392,7 @@ void UpdateMurrayFlop(MURRAY *murray)
         s = murray->flopSubstate;
         if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_IDLE);
         else if (murray->flopSubstate == 1) {
-            if (murray->unknown13E4) SetMurrayFlopSubstate(murray, 2);
+            if (murray->pxpFlop) SetMurrayFlopSubstate(murray, 2);
             else if (IsJtStuck(murray, &murray->unknown131C, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
         }
         if (murray->flopSubstate == s || murray->flopSubstate == -1) break;
@@ -1609,16 +1407,9 @@ void UpdateMurrayFlop(MURRAY *murray)
 } } // namespace M_func_001B6BA8
 
 namespace M_func_001B6CC0 {
-typedef int qword __attribute__((mode(TI)));
-struct VT { short d; short pad; void *pfn; };
-struct O { char pad[0x80]; qword v80; };
-struct P {
-    char pad0[0xC]; struct VT *vt; char pad1[0xE8 - 0x10]; struct O *pE8; char pad1b[0x190 - 0xEC]; qword v190;
-    char pad4[0x13D8 - 0x1A0]; int x13D8;
-};
 extern "C" qword D_002A2DC0;
 enum { FACTOR_ADDRESS = 0x002C09A4 };
-extern "C" void AddSoAcceleration(struct P *p, qword v);
+extern "C" void AddSoAcceleration(MURRAY *p, qword v);
 typedef union { qword q; float f[4]; } U;
 // Return a scaled by g.
 static inline qword Scale(qword a, float g) { U u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
@@ -1637,16 +1428,6 @@ static inline qword Projection(qword a,qword b) {
 /* The load replaces its address carrier with the actual scalar word. */
 static inline int ReadFactor(void){unsigned int bits=FACTOR_ADDRESS & ~0xFFFF;__asm__("lw %0,%1":"+r"(bits):"m"(((int*)bits)[(FACTOR_ADDRESS&0xFFFF)/4]));return bits;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
-typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
-typedef char O_v80_Offset[FIELD_OFFSET(O,v80)==128?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_pE8_Offset[FIELD_OFFSET(P,pE8)==232?1:-1];
-typedef char P_v190_Offset[FIELD_OFFSET(P,v190)==400?1:-1];
-typedef char P_x13D8_Offset[FIELD_OFFSET(P,x13D8)==5080?1:-1];
-typedef char VT_PrefixSize[sizeof(struct VT)==8?1:-1];
-typedef char O_PrefixSize[sizeof(struct O)==144?1:-1];
-typedef char P_PrefixSize[sizeof(struct P)==5088?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
@@ -1654,16 +1435,16 @@ typedef char U_q_Offset[((unsigned int)&(((U*)0x10000)->q)-0x10000)==0?1:-1];
 typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
 // State 3 physics helper: sub-state 0 cancels ground velocity, sub-state 1 adds horizontal correction toward the
 // desired point.
-extern "C" void PresetMurrayFlopAccel(struct P *murray)
+extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 {
-    switch (murray->x13D8) {
+    switch (murray->flopSubstate) {
     case 0:
-        AddSoAcceleration(murray, Scale(murray->pE8->v80, -1.0f));
+        AddSoAcceleration(murray, Scale(*(qword *)&murray->physics->gravity, -1.0f));
     case 1: {
-        qword v = ((qword (*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
+        qword v = murray->GetVelocity();
         U u; register qword kn __asm__("vf5"); register qword n __asm__("vf1");
         __asm__("qmtc2.ni %1,%0":"=j"(kn):"r"(-1.0f));
-        __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->v190),"j"(kn));
+        __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->qwUnknown190),"j"(kn));
         int bits = ReadFactor();
         qword d = VuSub(n, v);
         qword up = D_002A2DC0;
@@ -1685,7 +1466,6 @@ extern "C" void PresetMurrayFlopAccel(struct P *murray)
 
 namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
-typedef int qword __attribute__((mode(TI)));
 struct VT { short d; short pad; void *pfn; };
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -1694,22 +1474,17 @@ union WORD{int bits;float value;};extern union WORD D_002C09A8;
 struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x20]; qword v30; };
 struct LINK { struct SIDE as[2]; char pad[0xAC - 0x80]; struct LINK *pnext; };
 struct MSG { void *x0; int x4; void *x8; int xC; int x10; char pad[0x20 - 0x14]; qword v20; qword v30; char pad2[0x60 - 0x40]; };
-struct Q { char pad[0x14]; void *x14; };
-struct V3 { float x, y, z; };
-struct P {
-    char pad0[0xC]; struct VT *vt; char pad1[0x190 - 0x10]; struct V3 v190; char pad2[0x1030 - 0x19C]; struct Q *action;
-    char pad3[0x131C - 0x1034]; float g131C; char pad4[0x13D8 - 0x1320]; int x13D8; float g13DC; char pad5[0x13E4 - 0x13E0];
-    struct LINK *plink;
-};
-void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
+/* Any BASIC as the register-pinned dive code reads it: the g++ vtable pointer at +0xC. */
+struct VOBJ { char pad[0xC]; struct VT *vt; };
+void FreeSwXpList__FP2SWP2XP(void *pg, XP *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *DeliverZapToSo(struct MSG *pmsg);
 float *FindAsegLabel(void *p, int n);
-void SeekAsega(struct Q *p, int n, float g, float h);
-void RetractAsega(struct Q *p);
+void SeekAsega(ASEGA *p, int n, float g, float h);
+void RetractAsega(ASEGA *p);
 // Zero the xyz components of pv.
-static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
+static inline void Zero(VECTOR *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char WORD_Size[sizeof(union WORD)==4?1:-1];
@@ -1717,9 +1492,6 @@ typedef char VT_Size[sizeof(struct VT)==8?1:-1];
 typedef char SIDE_Size[sizeof(struct SIDE)==64?1:-1];
 typedef char LINK_Size[sizeof(struct LINK)==176?1:-1];
 typedef char MSG_Size[sizeof(struct MSG)==96?1:-1];
-typedef char Q_Size[sizeof(struct Q)==24?1:-1];
-typedef char V3_Size[sizeof(struct V3)==12?1:-1];
-typedef char P_Size[sizeof(struct P)==5096?1:-1];
 typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
 typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
 typedef char SIDE_x0_Offset[FIELD_OFFSET(SIDE,x0)==0?1:-1];
@@ -1737,32 +1509,21 @@ typedef char MSG_xC_Offset[FIELD_OFFSET(MSG,xC)==12?1:-1];
 typedef char MSG_x10_Offset[FIELD_OFFSET(MSG,x10)==16?1:-1];
 typedef char MSG_v20_Offset[FIELD_OFFSET(MSG,v20)==32?1:-1];
 typedef char MSG_v30_Offset[FIELD_OFFSET(MSG,v30)==48?1:-1];
-typedef char Q_x14_Offset[FIELD_OFFSET(Q,x14)==20?1:-1];
-typedef char V3_x_Offset[FIELD_OFFSET(V3,x)==0?1:-1];
-typedef char V3_y_Offset[FIELD_OFFSET(V3,y)==4?1:-1];
-typedef char V3_z_Offset[FIELD_OFFSET(V3,z)==8?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_v190_Offset[FIELD_OFFSET(P,v190)==400?1:-1];
-typedef char P_p1030_Offset[FIELD_OFFSET(P,action)==4144?1:-1];
-typedef char P_g131C_Offset[FIELD_OFFSET(P,g131C)==4892?1:-1];
-typedef char P_x13D8_Offset[FIELD_OFFSET(P,x13D8)==5080?1:-1];
-typedef char P_g13DC_Offset[FIELD_OFFSET(P,g13DC)==5084?1:-1];
-typedef char P_plink_Offset[FIELD_OFFSET(P,plink)==5092?1:-1];
 // Flop sub-states: 1 dive (sets downward velocity), 2 impact (zaps every contact and shakes the camera).
-void SetMurrayFlopSubstate(struct P *murray, int s)
+void SetMurrayFlopSubstate(MURRAY *murray, int s)
 {
-    if (murray->x13D8 == s)
+    if (murray->flopSubstate == s)
         return;
-    if (murray->x13D8 == -1)
-        Zero(&murray->v190);
-    murray->x13D8 = s;
-    murray->g13DC = D_002DDED0.time;
+    if (murray->flopSubstate == -1)
+        Zero(&murray->unknown190);
+    murray->flopSubstate = s;
+    murray->unknown13DC = D_002DDED0.time;
     switch (s) {
     case 0:
         break;
     case -1:
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
-        murray->plink = 0;
+        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        murray->pxpFlop = 0;
         break;
     case 1: {
         union { qword q; float f[4]; } u;
@@ -1772,20 +1533,20 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
         register int delta __asm__("$4");
         register void(*setter)(void*,qword) __asm__("$2");
         register qword argument __asm__("$5");
-        v=((qword(*)(void*))murray->vt[33].pfn)((char*)murray+murray->vt[33].d);
-        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(murray->vt),"m"(D_002A2DC0),"I"(0x2C));
+        v=murray->GetVelocity();
+        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(((VOBJ*)murray)->vt),"m"(D_002A2DC0),"I"(0x2C));
         __asm__("vmul.xyz %0,%3,%4\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlw %2,%5":"=&j"(d),"=&j"(k),"+r"(bits):"j"(v),"j"(up),"m"(((int*)bits)[0x9A8/4]));
         __asm__("vmulx.xyzw %0,%2,%0x\n\tlh %1,%3":"+j"(d),"=r"(delta):"j"(up),"m"(vt[35].d));
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
         u.q=k;
         setter((char*)murray+delta,argument);
-        murray->g131C = D_002DDED0.time;
+        murray->unknown131C = D_002DDED0.time;
         break;
     }
     case 2: {
         struct LINK *pl;
-        Zero(&murray->v190);
-        for (pl = murray->plink; pl; pl = pl->pnext) {
+        Zero(&murray->unknown190);
+        for (pl = (struct LINK *)murray->pxpFlop; pl; pl = pl->pnext) {
             int i = pl->as[0].x8 != murray;
             struct SIDE *so = &pl->as[1 - i];
             struct SIDE *stateMachine = &pl->as[i];
@@ -1803,14 +1564,14 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
                 (void)DeliverZapToSo(&msg);
             }
         }
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
-        murray->plink = 0;
+        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        murray->pxpFlop = 0;
         {
-            float *pg = FindAsegLabel(murray->action->x14, 0x1A5);
+            float *pg = FindAsegLabel(murray->activeAnimation->animation, 0x1A5);
             if (pg)
-                SeekAsega(murray->action, 0, *pg, 1.0f);
+                SeekAsega(murray->activeAnimation, 0, *pg, 1.0f);
             else
-                RetractAsega(murray->action);
+                RetractAsega(murray->activeAnimation);
         }
         break;
     }
@@ -1827,56 +1588,49 @@ typedef char WORD_value_Offset[((unsigned int)&(((union WORD*)0)->value))==0?1:-
 #undef FIELD_OFFSET
 
 namespace M_StartMurrayLiftGrabspot { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
-void SetMurrayState(struct S *p, int n);
-void FaceStepToward(struct S *p, int n);
-// If lifting is allowed (x13EC): the grab spot becomes the carried target, lift clip 0, state 4, face it.
-void StartMurrayLiftGrabspot(struct S *murray, struct T *pt)
+void SetMurrayState(MURRAY *p, int n);
+void FaceStepToward(MURRAY *p, LO *plo);
+// If lifting is allowed: the grab spot becomes the carried target, lift clip 0, state 4, face the object it holds.
+void StartMurrayLiftGrabspot(MURRAY *murray, LO *pspot)
 {
-    if (!murray->f)
+    if (!murray->psoCarryRoot)
         return;
-    murray->pt = pt;
-    murray->g = 0;
+    murray->ploCarried = pspot;
+    murray->liftClip = 0;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, murray->pt->n);
+    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
 }
 } } // namespace M_StartMurrayLiftGrabspot
 
 namespace M_StartMurrayLiftGuard { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
-void SetMurrayState(struct S *p, int n);
-void FaceStepToward(struct S *p, int n);
+void SetMurrayState(MURRAY *p, int n);
+void FaceStepToward(MURRAY *p, LO *plo);
 // Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
-void StartMurrayLiftGuard(struct S *murray, struct T *pt)
+void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
 {
-    if (!murray->f)
+    if (!murray->psoCarryRoot)
         return;
-    murray->pt = pt;
-    murray->g = 1;
+    murray->ploCarried = pspot;
+    murray->liftClip = 1;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, murray->pt->n);
+    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
 }
 } } // namespace M_StartMurrayLiftGuard
 
 namespace M_FTryMurrayTakedown { extern "C" {
-typedef int qword __attribute__((mode(TI)));
+/* The interaction target as read here: a guard (STEPGUARD, AI family): its behaviour stack and +0xFEC. */
 struct O { char pad[0x26C]; char x26C[0xFEC - 0x26C]; void *xFEC; };
 struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
-struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
-int StepguardHasSgf(struct O *po, int n);
-int GetButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
-int ConsumeButtonsPressedWithin__5POCTLUif(void *pl, int k, float g);
+int StepguardHasSgf(LO *po, int n);
 struct S *FindBhvInBhvstk(void *p, int n);
 qword GetLoWorldPos(void *p);
 int IsWithinLimits__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
-void StartMurrayLiftGuard(struct P *p, void *q);
-void SetMurrayState(struct P *p, int n);
-void SetMurrayAttack(struct P *p, int n);
+void StartMurrayLiftGuard(MURRAY *p, void *q);
+void SetMurrayState(MURRAY *p, int n);
+void SetMurrayAttack(MURRAY *p, int n);
 // XY length of v as a float.
 static inline float LenXY(qword v) {
     qword d;
@@ -1890,18 +1644,18 @@ static inline float LenXY(qword v) {
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
 // Move a VU0 register to a 128-bit GPR value.
 static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
-// If the target (x10DC) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
+// If the target (interactTarget) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
 // nonzero if it did.
-int TryMurrayTakedown(struct P *murray)
+int TryMurrayTakedown(MURRAY *murray)
 {
     union { qword q; float f[4]; } u;
     struct S *ps;
     if (!murray->interactTarget)
         return 0;
     if (!StepguardHasSgf(murray->interactTarget, 0x17) ||
-        !GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
+        !murray->controller->GetButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
         goto ret0;
-    ps = FindBhvInBhvstk(murray->interactTarget->x26C, 0xB1);
+    ps = FindBhvInBhvstk(((O *)murray->interactTarget)->x26C, 0xB1);
     if (ps->x50 >= 3)
         return 0;
     if (ps->x5C != murray) {
@@ -1914,17 +1668,17 @@ int TryMurrayTakedown(struct P *murray)
     qword d = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
-    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && murray->interactTarget->xFEC)
-        f = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
+    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && ((O *)murray->interactTarget)->xFEC)
+        f = murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
-        StartMurrayLiftGuard(murray, murray->interactTarget->xFEC);
+        StartMurrayLiftGuard(murray, ((O *)murray->interactTarget)->xFEC);
         return 1;
     }
     d = u.q;
     g = 0;
-    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, QwordZ(d)) && murray->x180C)
-        g = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
+    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, QwordZ(d)) && murray->apasegAttack[4])
+        g = murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.15f) != 0;
     if (!g)
         goto ret0;
     SetMurrayState(murray, MURRAY_ATTACK);
@@ -2036,16 +1790,12 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 } // namespace M_func_001B72B0
 
 namespace M_func_001B7700 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-struct LO{char pad[0x30];qword pos;char pad40[0x60];struct LO*parent;char padA4[0xC];qword velocity;};
-struct ACC{char pad[0x80];qword v;};
-struct O{char pad[0x58];struct LO*lo;char pad5C[0x8C];struct ACC*acc;};
-struct X{char pad[0x180];struct O*object;};
-struct P{char pad[0x1030];struct ASEGA*anim;char pad1034[0x3BC];struct X*x;char pad13F4[0x58];int state;};
+/* A transform (XF) as read here: position, parent and velocity. */
+struct XFV{char pad[0x30];qword pos;char pad40[0x60];struct XFV*parent;char padA4[0xC];qword velocity;};
 extern qword D_002A2DC0;
 extern float D_002C09C8;
-qword ConvertXfVec(struct LO*,struct LO*,qword);
+qword ConvertXfVec(struct XFV*,struct XFV*,qword);
 int SolveQuadratic__FfffPf(float,float,float,float*);
 void SeekAsega(struct ASEGA*,int,float,float);
 // Clamp inputValue to [inputLower, *upper] (register-pinned).
@@ -2063,39 +1813,24 @@ static inline qword Div(qword v,qword s,U*u){qword r;u->q=s;__asm__("vdiv Q,$vf0
 // Store a VU0 register to *p.
 static inline void Store(qword*p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 // Copy the actor pointer into callee-saved $16.
-static inline struct P*CaptureActor(struct P*input){register struct P*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
+static inline MURRAY*CaptureActor(MURRAY*input){register MURRAY*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char U_f_Offset[FIELD_OFFSET(U,f)==0?1:-1];
-typedef char LO_pos_Offset[FIELD_OFFSET(struct LO,pos)==48?1:-1];
-typedef char LO_parent_Offset[FIELD_OFFSET(struct LO,parent)==160?1:-1];
-typedef char LO_velocity_Offset[FIELD_OFFSET(struct LO,velocity)==176?1:-1];
-typedef char ACC_v_Offset[FIELD_OFFSET(struct ACC,v)==128?1:-1];
-typedef char O_lo_Offset[FIELD_OFFSET(struct O,lo)==88?1:-1];
-typedef char O_acc_Offset[FIELD_OFFSET(struct O,acc)==232?1:-1];
-typedef char X_object_Offset[FIELD_OFFSET(struct X,object)==384?1:-1];
-typedef char P_anim_Offset[FIELD_OFFSET(struct P,anim)==4144?1:-1];
-typedef char P_x_Offset[FIELD_OFFSET(struct P,x)==5104?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(struct P,state)==5196?1:-1];
 typedef char qword_PrefixSize[sizeof(qword)==16?1:-1];
 typedef char U_PrefixSize[sizeof(U)==16?1:-1];
-typedef char LO_PrefixSize[sizeof(struct LO)==192?1:-1];
-typedef char ACC_PrefixSize[sizeof(struct ACC)==144?1:-1];
-typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
-typedef char X_PrefixSize[sizeof(struct X)==388?1:-1];
-typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
 // Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
-void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
- struct P*owner=CaptureActor(murray);
+void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
+ MURRAY*owner=CaptureActor(murray);
  U roots;U u;U start;
  qword end;
- switch(owner->state){
+ switch(owner->liftClip){
  case 0:{
-  struct LO*parent=owner->x->object->lo->parent;
+  struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->unknown58)->parent;
   qword first=ConvertXfVec(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
   {
-   register struct LO*space __asm__("$4");register int bits __asm__("$2");
-   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct LO*)0));
+   register struct XFV*space __asm__("$4");register int bits __asm__("$2");
+   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct XFV*)0));
    end=ConvertXfVec(space,parent,FinalLaunchScale(&D_002A2DC0,bits,&roots));
   }
   break;
@@ -2107,14 +1842,14 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
   float t;
   int count;
   {
-   struct X*x=owner->x;
-   register struct O*object __asm__("$3");
-   __asm__("lw %0,%1":"=r"(object):"m"(x->object));
+   CARRYSPOTV*x=(CARRYSPOTV*)owner->ploCarried;
+   register SO*object __asm__("$3");
+   __asm__("lw %0,%1":"=r"(object):"m"(x->plo));
    {
-    register struct LO*lo __asm__("$2");register struct ACC*source __asm__("$5");
+    register struct XFV*lo __asm__("$2");register SOPHYS*source __asm__("$5");
     register qword velocity __asm__("$3"),argument __asm__("$6");
-    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->lo),"m"(object->acc));
-    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(source->v),"m"(lo->pos));
+    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->unknown58),"m"(object->physics));
+    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(*(qword*)&source->gravity),"m"(lo->pos));
     v.q=velocity;
     acceleration=ConvertXfVec(0,lo->parent,argument);
    }
@@ -2132,7 +1867,7 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);
-  SeekAsega(owner->anim,0,*animation-t*owner->anim->speed,owner->anim->speed);
+  SeekAsega(owner->activeAnimation,0,*animation-t*owner->activeAnimation->speed,owner->activeAnimation->speed);
   {
    register qword actualAcceleration __asm__("vf3");register qword qt __asm__("vf1");
    register float averageTime __asm__("$f0")=0.5f;register int bits __asm__("$2");
@@ -2164,19 +1899,11 @@ typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
-typedef char LO_Alignment[__alignof__(struct LO)==16?1:-1];
-typedef char ACC_Alignment[__alignof__(struct ACC)==16?1:-1];
-typedef char O_Alignment[__alignof__(struct O)==4?1:-1];
-typedef char X_Alignment[__alignof__(struct X)==4?1:-1];
-typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
 } } // namespace M_func_001B7700
 #undef FIELD_OFFSET
 
 namespace M_ThrowMurrayCarried { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x180]; struct LO *po; };
-struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
-void DetachMurrayCarried(struct P *p);
+void DetachMurrayCarried(MURRAY *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void StunStepguardThrownOp3(struct LO *p);
 qword GetLoWorldPos(struct LO *p);
@@ -2195,18 +1922,18 @@ static inline float Dist(qword a, qword b) {
 }
 // Release on animation event 0x1EB in state 7: detaches the carried object and gives it the velocity to reach the
 // throw goal.
-void ThrowMurrayCarried(struct P *murray)
+void ThrowMurrayCarried(MURRAY *murray)
 {
     struct LO *object;
     DetachMurrayCarried(murray);
-    object = murray->carried->po;
-    murray->carried = 0;
+    object = ((CARRYSPOTV *)murray->ploCarried)->plo;
+    murray->ploCarried = 0;
     if ((int)object->isInWorld & 1) {
         float t;
         qword v;
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
             StunStepguardThrownOp3(object);
-        t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->g1414;
+        t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->throwSpeed;
         v = CalculateVelocityToReachPos(GetLoWorldPos(object), murray->throwGoal, GetSoGravity(object), t);
         object->SetVelocity(v);
         SetSoZapMode(object, 2);
@@ -2235,124 +1962,108 @@ void ThrowMurrayCarriedAt(MURRAY *murray, void *pv)
 } } // namespace M_func_001B7A78
 
 namespace M_func_001B7AE8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x18]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
-struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
-void DetachMurrayCarried(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-void StunStepguardThrownOp3(struct O *p);
-qword ConvertVecBetweenLos(struct S *p, int n, qword q);
-void SetSoZapMode(struct O *p, int n);
+void DetachMurrayCarried(MURRAY *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
+void StunStepguardThrownOp3(SO *p);
+qword ConvertVecBetweenLos(MURRAY *p, int n, qword q);
+void SetSoZapMode(SO *p, int n);
 // Release in state 8: detaches, fixed local velocity D_002C09D0, no angular velocity, zap mode 3.
-void TossMurrayCarried(struct S *murray)
+void TossMurrayCarried(MURRAY *murray)
 {
-    struct O *object;
+    SO *object;
     qword q;
     DetachMurrayCarried(murray);
-    object = murray->pt->po;
-    murray->pt = 0;
-    if ((int)(object->f28 >> 60) & 1) {
+    object = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    murray->ploCarried = 0;
+    if ((int)object->isInWorld & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertVecBetweenLos(murray, 0, D_002C09D0);
-        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
-        ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+        object->SetVelocity(q);
+        object->SetAngularVelocity(D_002A2DD0);
         SetSoZapMode(object, 3);
     }
 }
 } } // namespace M_func_001B7AE8
 
 namespace M_DropMurrayCarried { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pfn)(...); };
-struct X { char pad[0xC]; struct VE *vt; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
-struct P { char pad[0x13D0]; int state; char pad1[0x13F0 - 0x13D4]; struct O *carried; char pad2[0x1450 - 0x13F4]; int x1450; char pad3[0x1530 - 0x1454]; int x1530; };
 extern qword D_002C09E0, D_002A2DD0;
-void SetSmaGoal(int a, int b);
-void DetachMurrayCarried(struct P *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
-void StunStepguardThrownOp2(struct X *x);
-void SetSoZapMode(struct X *x, int n);
-qword ConvertVecBetweenLos(struct P *p, int n, qword q);
+void SetSmaGoal(SMA *psma, int oid);
+void DetachMurrayCarried(MURRAY *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *x, int n);
+void StunStepguardThrownOp2(SO *x);
+void SetSoZapMode(SO *x, int n);
+qword ConvertVecBetweenLos(MURRAY *p, int n, qword q);
 // Aborts carrying on a forced state change: detaches the carried/lifted object and sets its velocity for the current
 // state.
-void DropMurrayCarried(struct P *murray)
+void DropMurrayCarried(MURRAY *murray)
 {
-    struct O *o;
-    struct X *x;
+    LO *o;
+    SO *x;
     if (murray->state == MURRAY_STRUGGLE) {
-        if (murray->x1530) SetSmaGoal(murray->x1530, 0x1CA);
+        if (murray->psmaWork) SetSmaGoal(murray->psmaWork, 0x1CA);
         return;
     }
-    o = murray->carried;
+    o = murray->ploCarried;
     if (!o) return;
-    if (murray->state == MURRAY_LIFT && murray->x1450 == 0) {
-        ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
-        murray->carried = 0;
+    if (murray->state == MURRAY_LIFT && murray->liftSubstate == 0) {
+        o->HandleSpliceEvent(6, 0, 0, 0, 0);
+        murray->ploCarried = 0;
         return;
     }
     DetachMurrayCarried(murray);
-    x = murray->carried->x180;
+    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
     if (IsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else SetSoZapMode(x, 1);
     switch (murray->state) {
-    case MURRAY_CARRY: {
-        struct VE *e = &x->vt[35];
-        ((void (*)(void *, qword))e->pfn)((char *)x + e->d, ConvertVecBetweenLos(murray, 0, D_002C09E0));
+    case MURRAY_CARRY:
+        x->SetVelocity(ConvertVecBetweenLos(murray, 0, D_002C09E0));
         break;
-    }
     case MURRAY_JUMP: case MURRAY_LIFT: case MURRAY_THROW: case MURRAY_TOSS:
-        ((void (*)(void *, qword))x->vt[35].pfn)((char *)x + x->vt[35].d, D_002A2DD0);
+        x->SetVelocity(D_002A2DD0);
         break;
     case MURRAY_FLOP: case MURRAY_STRUGGLE:
         break;
     }
-    murray->carried = 0;
+    murray->ploCarried = 0;
 }
 } } // namespace M_DropMurrayCarried
 
 namespace M_DetachMurrayCarried { extern "C" {
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
-struct VE { short d; short pad; void (*pfn)(...); };
-struct X { char pad[0x58]; int x58; int x5C; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
-struct P { char pad[0x13F0]; struct O *carried; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
-void ReleaseAct(int *p);
-void SetXfRole(struct X *x, int a, int b);
-void SetSoTreeFlag2(struct X *x, int a);
-void SetLoParent(struct X *x, int a, int b);
-void RefreshSwObjectCollisionFilter(void *g, struct P *p);
+void ReleaseAct(ACT **ppact);
+void SetXfRole(SO *pso, XF *pxf, int n);
+void SetSoTreeFlag2(SO *pso, int a);
+void SetLoParent(SO *pso, int a, int b);
+void RefreshSwObjectCollisionFilter(void *g, MURRAY *p);
 // Frees the 12 grip constraints, notifies the object (message 6), restores its transform roles and tree flags.
-void DetachMurrayCarried(struct P *murray)
+void DetachMurrayCarried(MURRAY *murray)
 {
-    struct O *o;
-    struct X *x;
-    ReleaseAct(&murray->a13F4[0]);
-    ReleaseAct(&murray->a13F4[1]);
-    ReleaseAct(&murray->a13F4[2]);
-    ReleaseAct(&murray->a13F4[3]);
-    ReleaseAct(&murray->a1600[0]);
-    ReleaseAct(&murray->a1600[1]);
-    ReleaseAct(&murray->a1600[2]);
-    ReleaseAct(&murray->a1600[3]);
-    ReleaseAct(&murray->a1618[0]);
-    ReleaseAct(&murray->a1618[1]);
-    ReleaseAct(&murray->a1618[2]);
-    ReleaseAct(&murray->a1618[3]);
-    o = murray->carried;
+    LO *o;
+    SO *x;
+    ReleaseAct(&murray->apactCarryA[0]);
+    ReleaseAct(&murray->apactCarryA[1]);
+    ReleaseAct(&murray->apactCarryA[2]);
+    ReleaseAct(&murray->apactCarryA[3]);
+    ReleaseAct(&murray->apactCarryB[0]);
+    ReleaseAct(&murray->apactCarryB[1]);
+    ReleaseAct(&murray->apactCarryB[2]);
+    ReleaseAct(&murray->apactCarryB[3]);
+    ReleaseAct(&murray->apactCarryC[0]);
+    ReleaseAct(&murray->apactCarryC[1]);
+    ReleaseAct(&murray->apactCarryC[2]);
+    ReleaseAct(&murray->apactCarryC[3]);
+    o = murray->ploCarried;
     if (!o) return;
-    ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
-    x = murray->carried->x180;
-    SetXfRole(x, x->x58, murray->x1404);
-    SetXfRole(x, x->x5C, murray->x1408);
+    o->HandleSpliceEvent(6, 0, 0, 0, 0);
+    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    SetXfRole(x, x->unknown58, murray->xfRoleA);
+    SetXfRole(x, x->unknown5C, murray->xfRoleB);
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
-    murray->x1430 = x;
-    murray->f1434 = D_002DDED0.time;
+    murray->ploReleased = x;
+    murray->releaseTime = D_002DDED0.time;
     RefreshSwObjectCollisionFilter(D_003DD490, murray);
 }
 } } // namespace M_DetachMurrayCarried
@@ -2419,7 +2130,7 @@ void ApplyMurrayStateStepParams(MURRAY *murray)
         if (murray->ploCarried) v = murray->aprecCarry[3];
         else v = GetJtAirAdjustRecord(&murray->jtair, &k);
         break;
-    case MURRAY_CARRY: v = murray->aprecCarry[murray->carryIndex]; break;
+    case MURRAY_CARRY: v = murray->aprecCarry[murray->carrySubstate]; break;
     default: v = murray->aprecState[murray->state]; break;
     }
     if (!v) v = murray->unknown268;
@@ -2470,56 +2181,50 @@ int MURRAY::IsFreeMoving()
 }
 
 namespace M_func_001B81B8 { extern "C" {
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
-void IgnoreStepSlot87(struct P *p, int b);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-#define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
+void IgnoreStepSlot87(MURRAY *p, int b);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 // MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object.
-void SetMurrayPlayable(struct P *p, int b)
+void SetMurrayPlayable(MURRAY *p, int b)
 {
-    struct O *o;
+    LO *o;
     IgnoreStepSlot87(p, b);
     if (b) {
-        if (!p->carried) return;
-        o = p->carried->po;
+        if (!p->ploCarried) return;
+        o = ((CARRYSPOTV *)p->ploCarried)->plo;
         if (!o) return;
-        p->xF1C = o;
-        VCALL(o, 21, 0);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, b);
+        p->jtmode.ploHidden = o;
+        o->SetFlag8(0);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->jtmode.ploHidden, 0x33)) ((STEP *)p->jtmode.ploHidden)->SetPlayable(b);
     } else {
-        o = p->xF1C;
+        o = p->jtmode.ploHidden;
         if (!o) return;
-        VCALL(o, 21, 1);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, 0);
-        p->xF1C = 0;
+        o->SetFlag8(1);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->jtmode.ploHidden, 0x33)) ((STEP *)p->jtmode.ploHidden)->SetPlayable(0);
+        p->jtmode.ploHidden = 0;
     }
 }
 } } // namespace M_func_001B81B8
 #undef VCALL
 
 namespace M_func_001B82A0 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
+/* The floor contact (STEP::floorContact; XP has no shared definition yet) and its surface material flags. */
 struct M { char pad[0x148]; unsigned long f148; };
 struct Q { char pad[0x40]; int x40; char pad2[8]; struct M *pm; char pad3[0x10]; qword q60; char pad4[0x18]; float f88; };
-struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
 void AddJtPlaceAtPosition(void *p, int a, qword q);
 void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
 // Per frame: on flat ground (normal z > 0.7, material flag clear) records a safe place; component hooks otherwise.
-void UpdateMurrayPlaces(struct S *murray)
+void UpdateMurrayPlaces(MURRAY *murray)
 {
     struct Q *pq;
-    switch (murray->k) {
+    switch (murray->state) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_LIFT: case MURRAY_CARRY: case MURRAY_THROW: case MURRAY_TOSS: case MURRAY_STRAFE: case MURRAY_WALK: case MURRAY_SCRIPT_SMA: case MURRAY_TURNBUCKLE:
-        pq = murray->pq;
-        if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !murray->x108C)
-            AddJtPlaceAtPosition(&AsStepplayer(murray)->jtplaces, pq->x40, pq->q60);
+        pq = (Q *)murray->floorContact;
+        if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !murray->pwater)
+            AddJtPlaceAtPosition(&murray->jtplaces, pq->x40, pq->q60);
         break;
-    case MURRAY_GRAB: RecordJtGrabPlace(&AsStepplayer(murray)->jtgrab); break;
-    case MURRAY_PIPE: RecordJtPipePlace(&AsStepplayer(murray)->jtpipe); break;
+    case MURRAY_GRAB: RecordJtGrabPlace(&murray->jtgrab); break;
+    case MURRAY_PIPE: RecordJtPipePlace(&murray->jtpipe); break;
     }
 }
 } } // namespace M_func_001B82A0
@@ -2633,32 +2338,24 @@ void StartMurrayAltAttack(MURRAY *murray)
 } } // namespace M_StartMurrayAltAttack
 
 namespace M_SetMurrayAttack { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
 struct VT { short d; short pad; void *pfn; };
 struct OBJ { struct VT *vt; };
 struct R { int x0; struct OBJ *po; };
-struct PL { char pad[0x30]; int x30; };
-struct P {
-    char pad0[0x150]; struct PL *pl; char pad1[0x190 - 0x154]; qword v190; char pad1b[0x1A8 - 0x1A0]; float g1A8; char pad2[0x1B0 - 0x1AC];
-    qword m1B0[3]; char pad3[0x1030 - 0x1E0]; struct ASEGA *panim; char x1034[0x10DC - 0x1034]; void *interactTarget; char pad5[0x10E4 - 0x10E0];
-    int interactKind; char pad6[0x17FC - 0x10E8]; void *ap17FC[5]; int attackSubstate; float g1814; int x1818; int x181C; int comboWindow;
-    char pad7[0x1830 - 0x1824]; qword v1830; char pad8[0x190C - 0x1840]; void *x190C;
-};
 void ReleaseAsega(void *pp);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
-void SetStepTargetHeading(struct P *p, float g);
-void FixStepAngularVelocity(struct P *p);
+void SetStepTargetHeading(MURRAY *p, float g);
+void FixStepAngularVelocity(MURRAY *p);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ASEGA **ppanim);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, MURRAY *p, float g, float h, int n, struct ASEGA **ppanim);
 float *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ASEGA *pa, float t);
-struct R *FindAsegChannel(struct ASEG *p, struct P *pp, int a, int b);
-void ReleaseInteractTargetMark(struct P *p);
+struct R *FindAsegChannel(struct ASEG *p, MURRAY *pp, int a, int b);
+void ReleaseInteractTargetMark(MURRAY *p);
 // Rotate v by the 3x3 matrix rows m[0..2].
 static inline qword MulM3(qword *m, qword v)
 {
@@ -2667,55 +2364,55 @@ static inline qword MulM3(qword *m, qword v)
 }
 // Attack sub-state (x1810, clip table x17FC[kind]): resets event flags, auto-faces a target within the cone, starts the
 // clip and predicts its end point.
-void SetMurrayAttack(struct P *murray, int k)
+void SetMurrayAttack(MURRAY *murray, int k)
 {
     void *q;
     float g;
     if (k == murray->attackSubstate)
         return;
     murray->attackSubstate = k;
-    murray->g1814 = D_002DDED0.time;
+    murray->attackStartTime = D_002DDED0.time;
     if (k == -1)
         return;
     murray->comboWindow = 0;
-    murray->x1818 = 0;
-    murray->x181C = 0;
-    if (murray->x190C)
-        ReleaseAsega(&murray->x190C);
-    q = murray->ap17FC[k];
-    murray->v190 = D_002A2DD0;
-    if (murray->interactTarget && murray->interactKind >= 2 && !(murray->pl->x30 & 8)) {
+    murray->unknown1818 = 0;
+    murray->unknown181C = 0;
+    if (murray->unknown190C)
+        ReleaseAsega(&murray->unknown190C);
+    q = murray->apasegAttack[k];
+    murray->qwUnknown190 = D_002A2DD0;
+    if (murray->interactTarget && murray->nUnk10e4 >= 2 && !(murray->controller->buttonsHeld & 8)) {
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
         g = atan2f(QwordY(d), QwordX(d));
-        if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->g1A8)) < D_002C09F0) {
+        if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->targetHeading)) < D_002C09F0) {
             SetStepTargetHeading(murray, g);
             FixStepAngularVelocity(murray);
         }
     }
     g = 0.0f;
-    ReleaseSma(murray->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->activeAnimation);
     if (q) {
         float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
             g = *pg;
     }
     if (g != 0.0f)
-        SetAsegaChannelWeight(murray->panim, D_002DDED0.time + g / murray->panim->speed);
-    if (murray->panim) {
-        struct R *r = FindAsegChannel(murray->panim->animation, murray, 1, 1);
+        SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + g / murray->activeAnimation->speed);
+    if (murray->activeAnimation) {
+        struct R *r = FindAsegChannel(murray->activeAnimation->animation, murray, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->panim->animation->duration, 0.0f, 0);
+            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->activeAnimation->animation->duration, 0.0f, 0);
             pos = GetLoWorldPos(murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
-            t = MulM3(murray->m1B0, t);
+            t = MulM3(murray->aqwTarget, t);
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(t));
-            murray->v1830 = v;
+            murray->unknown1830 = v;
         } else {
-            murray->v1830 = GetLoWorldPos(murray);
+            murray->unknown1830 = GetLoWorldPos(murray);
         }
     }
     ReleaseInteractTargetMark(murray);
@@ -2737,49 +2434,36 @@ void CancelMurrayAttack(MURRAY *murray)
 } } // namespace M_func_001B8938
 
 namespace M_UpdateMurrayAttack { extern "C" {
-typedef struct T { char pad[0x1C]; float x1C; } T;
-typedef struct P {
-    char pad0[0x150];
-    T *controller;
-    char pad154[0x1030 - 0x154];
-    void *action;
-    char pad1034[0x1810 - 0x1034];
-    int attackSubstate;
-    char pad1814[0x181C - 0x1814];
-    int x181C;
-} P;
 int IsAsegaRetracted(void *p);
-void SetMurrayState(P *p, int s);
-int CanMurrayAttack(P *p);
-int ConsumeButtonsPressedWithin__5POCTLUif(T *t, int k, float f);
-void SetMurrayAttack(P *p, int k);
-int TryMurrayTakedown(P *p);
-void CancelMurrayAttack(P *p);
+void SetMurrayState(MURRAY *p, int s);
+void SetMurrayAttack(MURRAY *p, int k);
+int TryMurrayTakedown(MURRAY *p);
+void CancelMurrayAttack(MURRAY *p);
 
 // State 11 combo: chains square (0 <-> 1) or 0x10 (2 <-> 3) within the combo window; takedown check; movement cancel.
-void UpdateMurrayAttack(P *murray)
+void UpdateMurrayAttack(MURRAY *murray)
 {
     int s;
     for (;;) {
         s = murray->attackSubstate;
-        if (!murray->action || IsAsegaRetracted(murray->action)) {
+        if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
             SetMurrayState(murray, MURRAY_IDLE);
         } else {
             switch (murray->attackSubstate) {
             case 0:
             case 1:
-                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, murray->attackSubstate == 0);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
+                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             case 2:
             case 3:
-                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ALT_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, (murray->attackSubstate == 2) ? 3 : 2);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
+                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             }
@@ -2790,27 +2474,17 @@ void UpdateMurrayAttack(P *murray)
 } } // namespace M_UpdateMurrayAttack
 
 namespace M_func_001B8B70 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float angle,time; };   /* the joystick (POCTL) fields read */
 struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
-struct P {
-    char pad[0x150]; struct Q *orbit;
-    char pad154[0x190-0x154]; qword velocity;
-    char pad1A0[0x1030-0x1A0]; ASEGA *source;
-    char pad1034[0x10DC-0x1034]; void *focus; int reserved10E0,mode;
-    char pad10E8[0x1700-0x10E8]; qword direction;
-    char pad1710[0x1818-0x1710]; int blend;
-};
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
-qword GetStepAsegaTranslation(struct P*,ASEGA*,float);
+qword GetStepAsegaTranslation(MURRAY*,ASEGA*,float);
 struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
-void FaceStepToward(struct P*,void*);
+void FaceStepToward(MURRAY*,void*);
 // Evaluate the quadratic a + b*t + c*t^2.
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 // Blend value into *velocity by strength g (and its complement), keeping the scalars in *scalar (register-pinned).
@@ -2846,132 +2520,97 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
 }
 // Orbit offset vector: XY direction length and the orbit's time, angle and radius loaded for the caller
 // (register-pinned).
-static inline qword OrbitVector(struct P*p){
-    register struct Q*orbit __asm__("$2");
+static inline qword OrbitVector(MURRAY*p){
+    register POCTL*orbit __asm__("$2");
     register qword d __asm__("vf1");
     register qword bits __asm__("$2");
     register float magnitude __asm__("$f0"),angle __asm__("$f12"),radius __asm__("$f13"),zero __asm__("$f14");
-    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->orbit),"m"(p->direction));
+    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->controller),"m"(p->unknown16F0[0].vRoot));
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));
-    magnitude=orbit->time;
+    magnitude=orbit->leftStickDeflection;
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));
-    angle=orbit->angle;
+    angle=orbit->leftStickAngle;
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(d));
     zero=0.0f;
     __asm__("mtc1 %1,%0":"=f"(radius):"r"(bits));
     return SetVectorCylind(angle,magnitude*radius,zero);
 }
 // State 11 velocity: animation root motion, blended toward the stick direction between two animation parameters.
-void UpdateMurrayAttackVelocity(struct P*murray){
+void UpdateMurrayAttackVelocity(MURRAY*murray){
     U scalar;
-    if(murray->source){
-        qword value=GetStepAsegaTranslation(murray,murray->source,murray->source->time);
-        NegateSource(value,&murray->velocity,&scalar);
+    if(murray->activeAnimation){
+        qword value=GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
+        NegateSource(value,&murray->qwUnknown190,&scalar);
         {
-            register int active __asm__("$3")=murray->blend;
+            register int active __asm__("$3")=murray->unknown1818;
             if(active){
-            struct PARAM *start=FindAsegLabel(murray->source->animation,0x240);
-            struct PARAM *end=FindAsegLabel(murray->source->animation,0x242);
-            float t=(murray->source->time-start->value)/(end->value-start->value);
+            struct PARAM *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
+            struct PARAM *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
+            float t=(murray->activeAnimation->time-start->value)/(end->value-start->value);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
-            Blend(desired,blend,&murray->velocity,&scalar);
+            Blend(desired,blend,&murray->qwUnknown190,&scalar);
             }
         }
     }
-    if(murray->focus&&murray->mode==4)FaceStepToward(murray,murray->focus);
+    if(murray->interactTarget&&murray->nUnk10e4==4)FaceStepToward(murray,murray->interactTarget);
 }
 } } // namespace M_func_001B8B70
 
 namespace M_func_001B8D30 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct CLIP; struct ANIMATION;
-struct COMPONENT_DATA;
-struct COMPONENT { struct COMPONENT_DATA *value; };
-struct SCRIPT { int opaque; struct CLIP *clip; char rest[0x14]; };
+/* MURRAY::unknown1850 (an ASEG arc record) as read here: +0x1C the leap distance behind Murray. */
+struct ARCV { char pad[0x1C]; float sLeap; };
 struct M3 { qword row[3]; };
 extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x40 - 0x10]; qword v40; char rest[0x20]; };
-union V3 { qword q; struct { float x,y,z,w; } value; };
+/* A LEAP (leap.h, no fields yet) as written here: +0x40 its goal position. */
+struct LEAPV { char pad[0x40]; qword posGoal; };
 // Zero the xyz components of pv.
-static __inline__ void Zero(union V3 *pv) { pv->value.z = 0; pv->value.y = 0; pv->value.x = 0; }
-struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *action; struct COMPONENT x1034;
-    char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
-    char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int powerContactTrigger; };
-void StopLeap(struct O *o);
-void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
-qword GetLoWorldPos(struct P *p);
-struct M3 *GetLoWorldMatrix(struct P *p);
-void ReleaseSma(struct COMPONENT *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
+static __inline__ void Zero(VECTOR *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
+void StopLeap(LEAP *o);
+void StartLeap(void *parc, MURRAY *p, int n, LEAP *b);
+qword GetLoWorldPos(MURRAY *p);
+struct M3 *GetLoWorldMatrix(MURRAY *p);
+void ReleaseSma(SMA **ppsma);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, MURRAY *p, float time, float rate, int n, ASEGA **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char COMPONENT_value_Offset[FIELD_OFFSET(COMPONENT,value)==0?1:-1];
-typedef char SCRIPT_clip_Offset[FIELD_OFFSET(SCRIPT,clip)==4?1:-1];
-typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
-typedef char VE_d_Offset[FIELD_OFFSET(VE,d)==0?1:-1];
-typedef char VE_pfn_Offset[FIELD_OFFSET(VE,pfn)==4?1:-1];
-typedef char O_vt_Offset[FIELD_OFFSET(O,vt)==12?1:-1];
-typedef char O_v40_Offset[FIELD_OFFSET(O,v40)==64?1:-1];
-typedef char P_v190_Offset[FIELD_OFFSET(P,v190)==400?1:-1];
-typedef char P_x1030_Offset[FIELD_OFFSET(P,action)==4144?1:-1];
-typedef char P_x1034_Offset[FIELD_OFFSET(P,x1034)==4148?1:-1];
-typedef char P_x1840_Offset[FIELD_OFFSET(P,x1840)==6208?1:-1];
-typedef char P_f1844_Offset[FIELD_OFFSET(P,f1844)==6212?1:-1];
-typedef char P_x1848_Offset[FIELD_OFFSET(P,x1848)==6216?1:-1];
-typedef char P_x184C_Offset[FIELD_OFFSET(P,x184C)==6220?1:-1];
-typedef char P_x1850_Offset[FIELD_OFFSET(P,x1850)==6224?1:-1];
-typedef char P_f186C_Offset[FIELD_OFFSET(P,f186C)==6252?1:-1];
-typedef char P_x1890_Offset[FIELD_OFFSET(P,x1890)==6288?1:-1];
-typedef char P_x1900_Offset[FIELD_OFFSET(P,x1900)==6400?1:-1];
-typedef char P_x1904_Offset[FIELD_OFFSET(P,x1904)==6404?1:-1];
-typedef char P_x1908_Offset[FIELD_OFFSET(P,powerContactTrigger)==6408?1:-1];
-typedef char COMPONENT_Size[sizeof(struct COMPONENT)==4?1:-1];
-typedef char SCRIPT_Size[sizeof(struct SCRIPT)==28?1:-1];
-typedef char M3_Size[sizeof(struct M3)==48?1:-1];
-typedef char VE_Size[sizeof(struct VE)==8?1:-1];
-typedef char O_Size[sizeof(struct O)==112?1:-1];
-typedef char P_Size[sizeof(struct P)==6416?1:-1];
-typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char V3_Size[sizeof(union V3)==16?1:-1];
 // State 12 (gadget 20 power move) sub-states: 0 wind-up clip, 1 clip, 2 spawn/launch a script object.
-void SetMurrayPowerSubstate(struct P *murray, int st)
+void SetMurrayPowerSubstate(MURRAY *murray, int st)
 {
-    struct CLIP *o;
+    ASEG *o;
     int n;
-    if (st == murray->x1840) return;
-    if (murray->x1840 == 2) {
-        StopLeap(murray->x1900);
-        ((void (*)())murray->x1900->vt[2].pfn)((char *)murray->x1900 + murray->x1900->vt[2].d);
-        murray->x1900 = 0;
+    if (st == murray->subState) return;
+    if (murray->subState == 2) {
+        StopLeap(murray->pleapPower);
+        murray->pleapPower->Release();
+        murray->pleapPower = 0;
     }
-    murray->x1840 = st;
-    murray->f1844 = D_002DDED0.time;
+    murray->subState = st;
+    murray->subStateTime = D_002DDED0.time;
     o = 0;
     n = 0;
     switch (st) {
     case 0:
-        o = murray->x1848;
-        Zero(&murray->v190);
+        o = murray->pasegPowerA;
+        Zero(&murray->unknown190);
         n = 1;
         break;
     case 1:
-        o = murray->x184C;
+        o = murray->pasegPowerB;
         n = 9;
         break;
     case 2: {
-        struct O *q;
+        LEAP *q;
         qword b;
         struct M3 *px;
         union { qword q; float f[4]; } u, uv, u2;
         murray->powerContactTrigger = 0;
-        murray->x1900 = &murray->x1890;
-        StartLeap(&murray->x1850, murray, 1, &murray->x1890);
-        q = murray->x1900;
+        murray->pleapPower = &murray->leap;
+        StartLeap(murray->unknown1850, murray, 1, &murray->leap);
+        q = murray->pleapPower;
         uv.q = GetLoWorldPos(murray);
-        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-murray->f186C));
+        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-((ARCV *)murray->unknown1850)->sLeap));
         u.q = b;
         u2.q = u.q;
         px = GetLoWorldMatrix(murray);
@@ -2980,88 +2619,72 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
             register qword origin __asm__("vf2") = uv.q;
             __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %0, %2x"
                     : "+j"(axis) : "j"(origin), "j"(u2.q));
-            q->v40 = axis;
+            ((LEAPV *)q)->posGoal = axis;
         }
-        murray->v190.q = D_002A2DD0;
+        murray->qwUnknown190 = D_002A2DD0;
         break;
     }
     case 3:
-        o = murray->x1904;
+        o = murray->pasegPowerEnd;
         n = 1;
         break;
     case -1:
         murray->powerContactTrigger = 0;
         return;
     }
-    ReleaseSma(&murray->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->activeAnimation);
 }
 } } // namespace M_func_001B8D30
 #undef FIELD_OFFSET
 
 namespace M_func_001B8EC0 { extern "C" {
-typedef struct T { char pad[0x1C]; float x1C; char pad2[0x80 - 0x20]; int x80; } T;
-typedef struct P {
-    char pad0[0x150];
-    T *controller;
-    char pad154[0x1030 - 0x154];
-    void *action;
-    char pad1034[0x1840 - 0x1034];
-    int x1840;
-    float x1844;
-    char pad1848[0x1900 - 0x1848];
-    void *x1900;
-    int pad1904;
-    int powerContactTrigger;
-    char pad190C[0x1AC0 - 0x190C];
-    int x1AC0;
-} P;
 extern float D_002DDED0;
 extern float D_002C0A30;
 extern float D_002C0A34;
-int IsAsegaRetracted(void *p);
-void SetMurrayState(P *p, int s);
-void SetMurrayPowerSubstate(P *p, int s);
-int IsLeapDone(void *p);
-void UpdateLeap(void *p);
+int IsAsegaRetracted(ASEGA *p);
+void SetMurrayState(MURRAY *p, int s);
+void SetMurrayPowerSubstate(MURRAY *p, int s);
+int IsLeapDone(LEAP *p);
+void UpdateLeap(LEAP *p);
 
 // State 12 update: advances sub-states on animation end, the contact trigger x1908 (set in AdjustMurrayNewXp) or a
 // timeout.
-void UpdateMurrayPower(P *murray)
+void UpdateMurrayPower(MURRAY *murray)
 {
     int s;
     for (;;) {
-        s = murray->x1840;
+        s = murray->subState;
         switch (s) {
         case 0:
-            if (!murray->action || IsAsegaRetracted(murray->action)) SetMurrayPowerSubstate(murray, 1);
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayPowerSubstate(murray, 1);
             break;
         case 1:
-            if (!murray->action || IsAsegaRetracted(murray->action)) {
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
                 SetMurrayState(murray, MURRAY_IDLE);
             } else if (murray->powerContactTrigger) {
                 SetMurrayPowerSubstate(murray, 2);
-            } else if (!murray->x1AC0 && D_002DDED0 - murray->x1844 > D_002C0A30) {
+            } else if (!murray->isBehaviorActive && D_002DDED0 - murray->subStateTime > D_002C0A30) {
                 SetMurrayPowerSubstate(murray, 3);
             }
             break;
         case 2:
-            if (!murray->x1900 || IsLeapDone(murray->x1900)) {
-                if (murray->x1AC0) SetMurrayPowerSubstate(murray, 0);
+            if (!murray->pleapPower || IsLeapDone(murray->pleapPower)) {
+                if (murray->isBehaviorActive) SetMurrayPowerSubstate(murray, 0);
                 else SetMurrayState(murray, MURRAY_IDLE);
             } else {
-                UpdateLeap(murray->x1900);
+                UpdateLeap(murray->pleapPower);
             }
             break;
         case 3:
-            if (!murray->action || IsAsegaRetracted(murray->action)) {
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (D_002DDED0 - murray->x1844 > D_002C0A34 && murray->controller->x80 == 1 && 0.0f < murray->controller->x1C) {
+            } else if (D_002DDED0 - murray->subStateTime > D_002C0A34 && murray->controller->state == 1 && 0.0f < murray->controller->leftStickDeflection) {
                 SetMurrayState(murray, MURRAY_IDLE);
             }
             break;
         }
-        if (murray->x1840 == s || murray->x1840 == -1) break;
+        if (murray->subState == s || murray->subState == -1) break;
     }
 }
 } } // namespace M_func_001B8EC0
@@ -3089,7 +2712,6 @@ void UpdateMurrayPowerVelocity(MURRAY *murray)
 } } // namespace M_func_001B90B8
 
 namespace M_AdjustMurrayNewXp {
-typedef int qword __attribute__((mode(TI)));
 typedef struct VTE { short d; short pad; void (*pfn)(...); } VTE;
 typedef union U { int i; float f; } U;
 typedef struct Q { char pad[0xC]; VTE *vt; } Q;
@@ -3101,25 +2723,10 @@ typedef struct X {
     qword x80;
     char pad90[0x88 - 0x90 + 0x10];
 } X;
-typedef struct P {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0xDF0 - 0x10];
-    char hurt[0xF50 - 0xDF0];
-    char pipe[0x13D0 - 0xF50];
-    int state;
-    int pad13D4;
-    int x13D8;
-    char pad13DC[0x13E4 - 0x13DC];
-    char x13E4[0x1840 - 0x13E4];
-    int x1840;
-    char pad1844[0x1908 - 0x1844];
-    int powerContactTrigger;
-} P;
 extern "C" float D_002C3C60[];
 extern "C" float D_002C0A38;
 extern "C" char D_003DD490[];
-extern "C" void AdjustStepNewXp(P *p, X *px, int i);
+extern "C" void AdjustStepNewXp(MURRAY *p, X *px, int i);
 extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
 extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
 extern "C" qword GetCosineBetweenVectors(qword a, qword b);
@@ -3127,18 +2734,18 @@ extern "C" int CloneXpList(void *g, X *px);
 extern "C" void AppendXpList(void *g, int r, void *p);
 
 // MURRAY contact adjust (slot 55): STEP base, then per-state contact handling (power-move trigger, flop impact).
-extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
+extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
 {
     int n;
     AdjustStepNewXp(murray, px, i);
     switch (murray->state) {
-    case MURRAY_HURT: AdjustJtHurtXp(murray->hurt, px, i); break;
+    case MURRAY_HURT: AdjustJtHurtXp(&murray->jthurt, px, i); break;
     case MURRAY_POWER_MOVE:
-        n = murray->x1840;
+        n = murray->subState;
         if (n == 1) {
             Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
             if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
-                qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
+                qword v = murray->GetVelocity();
                 qword r = GetCosineBetweenVectors(v, px->x80);
                 float g;
                 __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
@@ -3149,247 +2756,181 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
         }
         break;
     case MURRAY_FLOP:
-        if (murray->x13D8 == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), murray->x13E4);
+        if (murray->flopSubstate == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
+            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), &murray->pxpFlop);
         }
         break;
-    case MURRAY_PIPE: ResetJtPipeAdjust(murray->pipe, px, i); break;
+    case MURRAY_PIPE: ResetJtPipeAdjust(&murray->jtpipe, px, i); break;
     }
 }
 } // namespace M_AdjustMurrayNewXp
 
 namespace M_UpdateMurrayLift { extern "C" {
-struct O { char pad[0x28]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0x1030]; int action; char pad1[0x13F0 - 0x1034]; struct T *carried; char pad2[0x1448 - 0x13F4]; int x1448; int x144C; int x1450; };
-void SetMurrayState(struct P *p, int n);
-int IsAsegaRetracted(int n);
-// State 4: waits for the grab event (x1448), aborts if the object is gone; after attaching goes to carry (state 5)
+void SetMurrayState(MURRAY *p, int n);
+int IsAsegaRetracted(ASEGA *pasega);
+// State 4: waits for the grab event (fLiftGrabbed), aborts if the object is gone; after attaching goes to carry (state 5)
 // when the animation ends.
-void UpdateMurrayLift(struct P *murray)
+void UpdateMurrayLift(MURRAY *murray)
 {
     int s;
     for (;;) {
-        s = murray->x1450;
+        s = murray->liftSubstate;
         switch (s) {
         case 0: break;
         case 1:
-            if (murray->x1448) {
-                if (!murray->carried) SetMurrayState(murray, MURRAY_IDLE);
-                else if ((((int)(murray->carried->po->f28 >> 60) & 1) == 0)) {
+            if (murray->fLiftGrabbed) {
+                if (!murray->ploCarried) SetMurrayState(murray, MURRAY_IDLE);
+                else if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
                     SetMurrayState(murray, MURRAY_IDLE);
-                    murray->carried = 0;
+                    murray->ploCarried = 0;
                 }
             }
             break;
         case 2:
-            if (IsAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_CARRY);
+            if (IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_CARRY);
             break;
         }
-        if (murray->x1450 == s || murray->x1450 == -1) break;
+        if (murray->liftSubstate == s || murray->liftSubstate == -1) break;
     }
 }
 } } // namespace M_UpdateMurrayLift
 
 namespace M_SetMurrayLiftSubstate {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 union U { qword q; float f[4]; int i[4]; };
 struct M4 { U row[4]; };
-struct VTE { short delta,pad; void *fn; };
-struct NODE { M4 local,world; char pad80[0x18]; short state; char pad9A[6]; NODE*parent; };
-struct OWNER { char pad[0xC]; VTE*vt; char pad10[0x18]; ulong flags; char pad30[0x28]; NODE*left,*right; };
 struct EVENT { float time; int kind,tag,pad; };
-struct ROOT { char pad[0x60]; NODE*node; };
-struct PROXY { char pad[0x1C]; int active; };
-struct GOAL { char pad[0xC]; VTE*vt; };
-struct STRETCH { void*frame; NODE*first,*second; char padC[0x94]; U position; char padB0[0x1C]; float tuning; };
+/* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
+struct PROXYV { char pad[0x1C]; int active; };
 struct MOTION;
-struct LINK { char pad[0x180]; OWNER*owner; char pad184[0xC]; GOAL*first; int pad194; GOAL*second; };
-struct P { char pad[0xC]; VTE*vt; char pad10[0x50]; NODE*node; char pad64[0x12C]; U velocity; char pad1A0[0xE90]; ASEGA*anim; char pad1034[0x54]; PROXY*proxy; char pad108C[0x360]; ROOT*root; LINK*link; MOTION*m13F4,*m13F8,*m13FC,*m1400; int oldLeft,oldRight; char pad140C[0x3C]; int flag,pad144C,state; float time; char pad1458[0x19C]; NODE*targetFirst; int pad15F8; NODE*targetSecond; int pad1600; MOTION*m1604; int pad1608; MOTION*m160C; STRETCH*first,*second; MOTION*m1618,*m161C,*m1620,*m1624; };
-typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char M4_Size[sizeof(M4)==64?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
-typedef char EVENT_Size[sizeof(EVENT)==16?1:-1];
-typedef char STRETCH_Size[sizeof(STRETCH)==208?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
-typedef char M4_row_Offset[FIELD_OFFSET(M4,row)==0?1:-1];
-typedef char NODE_state_Offset[FIELD_OFFSET(NODE,state)==152?1:-1];
-typedef char NODE_parent_Offset[FIELD_OFFSET(NODE,parent)==160?1:-1];
-typedef char OWNER_vt_Offset[FIELD_OFFSET(OWNER,vt)==12?1:-1];
-typedef char OWNER_flags_Offset[FIELD_OFFSET(OWNER,flags)==40?1:-1];
-typedef char OWNER_left_Offset[FIELD_OFFSET(OWNER,left)==88?1:-1];
-typedef char OWNER_right_Offset[FIELD_OFFSET(OWNER,right)==92?1:-1];
-typedef char EVENT_time_Offset[FIELD_OFFSET(EVENT,time)==0?1:-1];
-typedef char ROOT_node_Offset[FIELD_OFFSET(ROOT,node)==96?1:-1];
-typedef char PROXY_active_Offset[FIELD_OFFSET(PROXY,active)==28?1:-1];
-typedef char GOAL_vt_Offset[FIELD_OFFSET(GOAL,vt)==12?1:-1];
-typedef char STRETCH_frame_Offset[FIELD_OFFSET(STRETCH,frame)==0?1:-1];
-typedef char STRETCH_first_Offset[FIELD_OFFSET(STRETCH,first)==4?1:-1];
-typedef char STRETCH_second_Offset[FIELD_OFFSET(STRETCH,second)==8?1:-1];
-typedef char STRETCH_position_Offset[FIELD_OFFSET(STRETCH,position)==160?1:-1];
-typedef char STRETCH_tuning_Offset[FIELD_OFFSET(STRETCH,tuning)==204?1:-1];
-typedef char LINK_owner_Offset[FIELD_OFFSET(LINK,owner)==384?1:-1];
-typedef char LINK_first_Offset[FIELD_OFFSET(LINK,first)==400?1:-1];
-typedef char LINK_second_Offset[FIELD_OFFSET(LINK,second)==408?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_node_Offset[FIELD_OFFSET(P,node)==96?1:-1];
-typedef char P_velocity_Offset[FIELD_OFFSET(P,velocity)==400?1:-1];
-typedef char P_anim_Offset[FIELD_OFFSET(P,anim)==4144?1:-1];
-typedef char P_proxy_Offset[FIELD_OFFSET(P,proxy)==4232?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_link_Offset[FIELD_OFFSET(P,link)==5104?1:-1];
-typedef char P_m13F4_Offset[FIELD_OFFSET(P,m13F4)==5108?1:-1];
-typedef char P_m13F8_Offset[FIELD_OFFSET(P,m13F8)==5112?1:-1];
-typedef char P_m13FC_Offset[FIELD_OFFSET(P,m13FC)==5116?1:-1];
-typedef char P_m1400_Offset[FIELD_OFFSET(P,m1400)==5120?1:-1];
-typedef char P_oldLeft_Offset[FIELD_OFFSET(P,oldLeft)==5124?1:-1];
-typedef char P_oldRight_Offset[FIELD_OFFSET(P,oldRight)==5128?1:-1];
-typedef char P_flag_Offset[FIELD_OFFSET(P,flag)==5192?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==5200?1:-1];
-typedef char P_time_Offset[FIELD_OFFSET(P,time)==5204?1:-1];
-typedef char P_targetFirst_Offset[FIELD_OFFSET(P,targetFirst)==5620?1:-1];
-typedef char P_targetSecond_Offset[FIELD_OFFSET(P,targetSecond)==5628?1:-1];
-typedef char P_m1604_Offset[FIELD_OFFSET(P,m1604)==5636?1:-1];
-typedef char P_m160C_Offset[FIELD_OFFSET(P,m160C)==5644?1:-1];
-typedef char P_first_Offset[FIELD_OFFSET(P,first)==5648?1:-1];
-typedef char P_second_Offset[FIELD_OFFSET(P,second)==5652?1:-1];
-typedef char P_m1618_Offset[FIELD_OFFSET(P,m1618)==5656?1:-1];
-typedef char P_m161C_Offset[FIELD_OFFSET(P,m161C)==5660?1:-1];
-typedef char P_m1620_Offset[FIELD_OFFSET(P,m1620)==5664?1:-1];
-typedef char P_m1624_Offset[FIELD_OFFSET(P,m1624)==5668?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" M4 D_002A2D30;
 extern "C" float D_002C0A3C,D_002C0A40;
-extern "C" void ReleaseAct(MOTION**);
-extern "C" void SetSoCnstrForce(OWNER*,int);
-extern "C" void SetLoParent(OWNER*,int,int);
-extern "C" void SetSoTreeFlag2(OWNER*,int);
+extern "C" void ReleaseAct(ACT**);
+extern "C" void SetSoCnstrForce(SO*,int);
+extern "C" void SetLoParent(SO*,SO*,int);
+extern "C" void SetSoTreeFlag2(SO*,int);
 extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertMat4BetweenLos(void*,void*,M4*);
-extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
-extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
-extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
-extern "C" void StunStepguardThrownOp1(OWNER*);
-extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
-extern "C" MOTION*NewBezierAct(void*,void*,void*,float,qword,qword);
-extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
-extern "C" MOTION*NewPositionAct(void*,void*,void*,int,int,qword);
-extern "C" MOTION*NewIkAct(void*,void*,void*,STRETCH*);
-extern "C" MOTION*NewMatrixAct(void*,void*,void*,void*,int,M4*);
-extern "C" void DetachMurrayCarried(P*);
-extern "C" void SetMurrayState(P*,int);
+extern "C" void GetMurrayGripFrame(MURRAY*,XF*,const M4*,qword*,qword*);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(SO*,int);
+extern "C" void SendStepguardRootBhvMode6(SO*,int);
+extern "C" void StunStepguardThrownOp1(SO*);
+extern "C" void ComputeMurrayLiftLaunch(MURRAY*,qword,float*,float*,qword*,qword*);
+extern "C" ACT*NewBezierAct(void*,void*,void*,float,qword,qword);
+extern "C" qword ConvertXfVec(XF*,XF*,qword);
+extern "C" ACT*NewPositionAct(void*,void*,void*,int,int,qword);
+extern "C" ACT*NewIkAct(void*,void*,void*,PARTLINK*);
+extern "C" ACT*NewMatrixAct(void*,void*,void*,void*,int,M4*);
+extern "C" void DetachMurrayCarried(MURRAY*);
+extern "C" void SetMurrayState(MURRAY*,int);
 // Zero the xyz words of v.
-static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
+static inline void ClearXYZ(VECTOR*v){v->x=v->y=v->z=0.0f;}
 // Lift sub-states: 1 launches the object toward the hands (constraints, velocity), 2 attaches it.
-extern "C" void SetMurrayLiftSubstate(P *murray, int state)
+extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
 {
-    if (murray->state == state)
+    if (murray->liftSubstate == state)
         return;
-    if (murray->state == 1) {
-        ReleaseAct(&murray->m13FC);
-        ReleaseAct(&murray->m1400);
+    if (murray->liftSubstate == 1) {
+        ReleaseAct(&murray->apactCarryA[2]);
+        ReleaseAct(&murray->apactCarryA[3]);
     }
-    murray->state = state;
-    murray->time = D_002DDED0.time;
-    OWNER *owner;
+    murray->liftSubstate = state;
+    murray->liftSubstateTime = D_002DDED0.time;
+    SO *owner;
     switch (state) {
-    case 0: murray->flag = 0; break;
+    case 0: murray->fLiftGrabbed = 0; break;
     case 1: {
-        if (!murray->link)
+        if (!murray->ploCarried)
             goto failed;
-        owner = murray->link->owner;
-        if ((int)(owner->flags >> 60) & 1)
+        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        if ((int)owner->isInWorld & 1)
             goto attach;
         else
             goto failed;
     attach:
         SetSoCnstrForce(owner, 0);
-        murray->oldLeft = owner->left->state;
-        murray->oldRight = owner->right->state;
+        murray->xfRoleA = owner->unknown58->role;
+        murray->xfRoleB = owner->unknown5C->role;
         SetLoParent(owner, 0, 15);
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
         float duration;
-        EVENT *event = FindAsegLabel(murray->anim->animation, 0x1C7);
-        duration = (event->time - murray->anim->time) / murray->anim->speed;
-        LoadIdentityMatrix4(murray->root->node, murray->node, &predicted, 0, duration);
+        EVENT *event = FindAsegLabel(murray->activeAnimation->animation, 0x1C7);
+        duration = (event->time - murray->activeAnimation->time) / murray->activeAnimation->speed;
+        LoadIdentityMatrix4(murray->psoCarryRoot->rootTransform, murray->rootTransform, &predicted, 0, duration);
         M4 work = ConvertMat4BetweenLos(murray, 0, &predicted);
         predicted = work;
         GetMurrayGripFrame(murray, 0, &predicted, &work.row[0].q, &work.row[1].q);
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             SendStepguardRootBhvMode6(owner, (int)murray);
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
-        murray->m13FC =
-            NewBezierAct(owner, owner->left, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
-        VTE *entry = &owner->vt[35];
-        void *receiver = (char *)owner + entry->delta;
-        qword velocity = ConvertXfVec(owner->left->parent, 0, work.row[2].q);
-        ((void (*)(void *, qword))entry->fn)(receiver, velocity);
-        murray->m1400 = NewPositionAct(owner, owner->right, (void *)5, 7, 2, work.row[0].q);
+        murray->apactCarryA[2] =
+            NewBezierAct(owner, owner->unknown58, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
+        owner->SetVelocity(ConvertXfVec(owner->unknown58->parent, 0, work.row[2].q));
+        murray->apactCarryA[3] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, work.row[0].q);
         break;
     }
     case 2: {
-        if (!murray->link)
+        if (!murray->ploCarried)
             goto failed;
-        owner = murray->link->owner;
-        if ((int)(owner->flags >> 60) & 1)
+        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        if ((int)owner->isInWorld & 1)
             goto valid;
     failed:
         DetachMurrayCarried(murray);
-        murray->link = 0;
+        murray->ploCarried = 0;
         SetMurrayState(murray, MURRAY_IDLE);
         break;
     valid:
-        ROOT *root = murray->root;
-        SetLoParent(owner, (int)root, 15);
+        SO *root = murray->psoCarryRoot;
+        SetLoParent(owner, root, 15);
         SetSoTreeFlag2(owner, 1);
         U position, rotation;
         M4 frame;
-        GetMurrayGripFrame(murray, root->node, &D_002A2D30, &rotation.q, &position.q);
-        murray->m13F8 = NewPositionAct(owner, owner->right, (void *)5, 7, 2, rotation.q);
-        murray->m13F4 = NewPositionAct(owner, owner->left, (void *)5, 7, 2, position.q);
-        if (murray->link->first) {
-            GOAL *goal = murray->link->first;
-            STRETCH *stretch = murray->first;
-            stretch->frame = ((void *(*)(void *, M4 *))goal->vt[32].fn)((char *)goal + goal->vt[32].delta, &frame);
-            stretch->position = frame.row[3];
-            stretch->tuning = D_002C0A3C;
-            murray->m1618 = NewIkAct(murray, stretch->first, (void *)5, stretch);
-            murray->m161C = NewIkAct(murray, stretch->second, (void *)5, stretch);
-            murray->m1604 =
-                NewMatrixAct(murray, murray->targetFirst, (void *)5, (void *)5, (int)stretch->frame, &frame);
+        GetMurrayGripFrame(murray, root->rootTransform, &D_002A2D30, &rotation.q, &position.q);
+        murray->apactCarryA[1] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, rotation.q);
+        murray->apactCarryA[0] = NewPositionAct(owner, owner->unknown58, (void *)5, 7, 2, position.q);
+        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalA) {
+            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalA;
+            PARTLINK *stretch = murray->ikChainA;
+            stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
+            stretch->posGoal = frame.row[3].q;
+            stretch->gTuning = D_002C0A3C;
+            murray->apactCarryC[0] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
+            murray->apactCarryC[1] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
+            murray->apactCarryB[1] =
+                NewMatrixAct(murray, murray->unknown15F4, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
-        if (murray->link->second) {
-            GOAL *goal = murray->link->second;
-            STRETCH *stretch = murray->second;
-            stretch->frame = ((void *(*)(void *, M4 *))goal->vt[32].fn)((char *)goal + goal->vt[32].delta, &frame);
-            stretch->position = frame.row[3];
-            stretch->tuning = D_002C0A40;
-            murray->m1620 = NewIkAct(murray, stretch->first, (void *)5, stretch);
-            murray->m1624 = NewIkAct(murray, stretch->second, (void *)5, stretch);
-            murray->m160C =
-                NewMatrixAct(murray, murray->targetSecond, (void *)5, (void *)5, (int)stretch->frame, &frame);
+        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalB) {
+            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalB;
+            PARTLINK *stretch = murray->ikChainB;
+            stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
+            stretch->posGoal = frame.row[3].q;
+            stretch->gTuning = D_002C0A40;
+            murray->apactCarryC[2] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
+            murray->apactCarryC[3] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
+            murray->apactCarryB[3] =
+                NewMatrixAct(murray, murray->unknown15FC, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             StunStepguardThrownOp1(owner);
-        ClearXYZ(&murray->velocity);
+        ClearXYZ(&murray->unknown190);
         break;
     }
     default: break;
     }
     do {
-        if (murray->state >= 2)
+        if (murray->liftSubstate >= 2)
             break;
-        if (murray->state < 0)
+        if (murray->liftSubstate < 0)
             break;
-        murray->proxy->active = 1;
+        ((PROXYV *)murray->unknown1088)->active = 1;
         goto end;
     } while (0);
-    murray->proxy->active = 0;
+    ((PROXYV *)murray->unknown1088)->active = 0;
 end:;
 }
 } // namespace M_SetMurrayLiftSubstate
@@ -3403,34 +2944,32 @@ extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
 /* CanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in CanUseGadget), and the extra k use raised k's allocation priority. */
-struct O { char pad[0x180]; void *x180; };
-struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int state; char pad3[0x13F0 - 0x13D4]; struct O *carried; };
 extern int D_002DFBC0;
-int IsStepplayerInJtMode(struct P *p);
+int IsStepplayerInJtMode(MURRAY *p);
 int CanJtUseGadgetInAir(void *p, int k);
 int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsCameraPolicyActive__FP5CPLCY(void *p);
 // MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
-int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
+int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
     switch (p->state) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
         break;
     case MURRAY_JUMP:
-        if (!CanJtUseGadgetInAir(&AsStepplayer(p)->jtair, k)) return 0;
+        if (!CanJtUseGadgetInAir(&p->jtair, k)) return 0;
         break;
     case MURRAY_GRAB:
-        if (!CanJtUseGadgetInGrab(&AsStepplayer(p)->jtgrab, k)) return 0;
+        if (!CanJtUseGadgetInGrab(&p->jtgrab, k)) return 0;
         break;
     case MURRAY_PIPE:
-        if (!CanJtUseGadgetOnPipe(&AsStepplayer(p)->jtpipe, k)) return 0;
+        if (!CanJtUseGadgetOnPipe(&p->jtpipe, k)) return 0;
         break;
     case MURRAY_CARRY:
         if (k == 3) return 1;
-        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(p->carried->x180, 0x38)) return 1; }
+        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(((CARRYSPOTV *)p->ploCarried)->plo, 0x38)) return 1; }
         return 0;
     default:
         return 0;
@@ -3439,13 +2978,13 @@ int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->x12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+        if (p->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
         return r;
     }
     case 22:
     {
         int r = 0;
-        if (p->x2C4 != 0 && p->x2C4 != 11) r = p->x2C4 != -1;
+        if (p->jtair.jumpKind != 0 && p->jtair.jumpKind != 11) r = p->jtair.jumpKind != -1;
         return r;
     }
     case 1: case 2: case 15: case 16: case 20: case 21:
@@ -3590,39 +3129,34 @@ extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 }
 
 namespace M_func_001B9D28 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
-struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
 int IsPowerupAcquired(int n);
-void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
+void ApplyAsegCore(ASEG *paseg, SO *pso, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
-void SpawnMurrayHitEffect(struct P *murray, qword q)
+void SpawnMurrayHitEffect(MURRAY *murray, qword q)
 {
     if (!IsPowerupAcquired(0x11))
         return;
-    struct O *object = murray->po;
-    if (!((((object->f28 >> 60) & 1) == 0)))
+    SO *object = murray->psoHitEffect;
+    if (!((((object->isInWorld) & 1) == 0)))
         return;
-    struct VTE *e = &object->vt[29];
-    ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
-    ApplyAsegCore(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
+    object->TranslateToPos(q);
+    ApplyAsegCore(murray->pasegHitEffect, murray->psoHitEffect, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9D28
 
 namespace M_func_001B9DB8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; char pad[0x18]; unsigned long fl; };
-struct S { char pad[0x1AD8]; struct O *po; void *pv; };
-void ApplyAsegCore(void *a, struct O *po, int c, int d, float f, float g);
+/* The effect object's vtable as called here: slot 29 (TranslateToPos) is passed an int, so the call stays by hand. */
+struct OV { int a, b, c; struct VTE *vt; };
+void ApplyAsegCore(ASEG *paseg, SO *pso, int c, int d, float f, float g);
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
-void SpawnMurrayHitEffectUnchecked(struct S *murray, int x)
+void SpawnMurrayHitEffectUnchecked(MURRAY *murray, int x)
 {
-    if (!((((int)(murray->po->fl >> 60) & 1) == 0)))
+    if (!((((int)murray->psoHitEffectB->isInWorld & 1) == 0)))
         return;
-    struct VTE *e = &murray->po->vt[29];
-    ((void (*)(void *, int))e->pfn)((char *)murray->po + e->d, x);
-    ApplyAsegCore(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
+    struct VTE *e = &((OV *)murray->psoHitEffectB)->vt[29];
+    ((void (*)(void *, int))e->pfn)((char *)murray->psoHitEffectB + e->d, x);
+    ApplyAsegCore(murray->pasegHitEffectB, murray->psoHitEffectB, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9DB8
 

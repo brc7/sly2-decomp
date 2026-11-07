@@ -78,12 +78,6 @@ struct SWALLOC
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
-
 int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("CanJtUseGadgetInAir");
 
 int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("CanJtUseGadgetInGrab");
@@ -126,15 +120,6 @@ struct GRABSPOT : public GRABSPOTDATA
 };
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
-
-struct JTREC
-{
-      JT *pjt;
-      int nState;
-      float tStart;
-      int nSide;
-      ASEG *apaseg[2];
-};
 
 void JtInteractPre(JTREC *prec) __asm__("EndBentleyHelperWhenRetracted");
 
@@ -261,13 +246,6 @@ struct TRI3
     int a, b, c;
 };
 
-struct SURFLOC
-{
-    int itri;
-    float u;
-    float v;
-};
-
 struct CLIMBSURF : public XFM
 {
       int cvtx;
@@ -298,33 +276,25 @@ struct CID12 : public SHAPE, public GRABSPOT
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitJt { extern "C" {
-struct LM4 { float g0; int n; float g8; float gc; };
-struct S {
-    char pad[0x264]; int x264;
-    char p0[0xD98]; int x1000; char p1[0x1C]; float x1020;
-    char p2[0x74]; float x1098; float x109c; float x10a0; float x10a4; struct LM4 lm;
-    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int state; int p4; int x18d0; int p5; int caneState;
-    char p6[0xD0]; float x19ac; char p7[0x280]; char x1c30[0x380]; int x1fb0; int p8[2]; int x1fbc; int p9[2]; int x1fc8; int p10[2]; int x1fd4; int p11[6]; char x1ff0[4];
-};
-extern struct S *D_002E1E40;
-void InitStepplayer(struct S *p);
-void InitGait(void *pv, struct S *p, int n);
-void ScaleStepSpinSpeed(struct S *p, float g);
-void InitBentleyHelper(void *pv, struct S *p);
-void ResetJtHands(void *pv);
+extern JT *D_002E1E40;
+void InitStepplayer(JT *p);
+void InitGait(GAIT *pv, JT *p, int n);
+void ScaleStepSpinSpeed(JT *p, float g);
+void InitBentleyHelper(JTREC *pv, JT *p);
+void ResetJtHands(JTHANDS *pv);
 // Initialise a limit record from its two float fields and clear its int field.
-static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
+static __inline__ void InitLm(SMPA *range, float g8, float gc) { range->fastDuration = g8; range->maxSpeedChange = gc; range->slowSpeed = 0; }
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
-void InitJt(struct S *jt)
+void InitJt(JT *jt)
 {
     InitStepplayer(jt);
-    jt->x19ac = 15.0f;
-    jt->state = -1;
-    jt->caneState = -1;
-    jt->x18d0 = -1;
-    InitGait(jt->x1320, jt, 0x6F);
-    InitGait(jt->x1c30, jt, 0x6F);
+    jt->rBounds = 15.0f;
+    *(int *)&jt->state = -1;   /* JTS has no negative enumerator (an unsigned enum): stored as the int -1 */
+    jt->animState = -1;
+    jt->bodyState = JTBS_Nil;
+    InitGait(&jt->gait, jt, 0x6F);
+    InitGait(&jt->gaitB, jt, 0x6F);
     {
     register float a __asm__("$f5")=-100.0f;
     register float b __asm__("$f1")=100.0f;
@@ -333,36 +303,34 @@ void InitJt(struct S *jt)
     register float e __asm__("$f4")=250.0f;
     register float f __asm__("$f6")=1.0f;
     register float g __asm__("$f0")=4500.0f;
-    jt->x1098=a; jt->x109c=b; jt->x10a0=c; jt->x10a4=d; jt->lm.g0=e; InitLm(&jt->lm,f,g);
+    jt->waterProbe[0]=a; jt->waterProbe[1]=b; jt->waterProbe[2]=c; jt->waterProbe[3]=d; jt->unknown10A8.fastSpeed=e; InitLm(&jt->unknown10A8,f,g);
     }
     ScaleStepSpinSpeed(jt, 1.6f);
-    jt->x1fb0 = 0x1A;
-    jt->x1fbc = 0x25;
-    jt->x1fc8 = 0x26;
-    jt->x1fd4 = 0x29;
-    InitBentleyHelper(jt->x1ff0, jt);
-    jt->x1000 = 1;
-    jt->x1020 = 200.0f;
-    jt->x264 = 0xC7;
-    ResetJtHands(jt->x17d0);
+    jt->gadgetPockets[0].idGadget = 0x1A;
+    jt->gadgetPockets[1].idGadget = 0x25;
+    jt->gadgetPockets[2].idGadget = 0x26;
+    jt->gadgetPockets[3].idGadget = 0x29;
+    InitBentleyHelper(&jt->jtrec, jt);
+    jt->grfGrabTarget = 1;
+    jt->unknown1020 = 200.0f;
+    jt->unknown264 = 0xC7;
+    ResetJtHands(&jt->hands);
     D_002E1E40 = jt;
 }
 } } // namespace M_InitJt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadJtFromBrx { extern "C" {
-typedef struct { float x, y, z; } VEC3;
-struct S { char pad[0x240]; VEC3 v; };
 extern char D_002BE990[];
-void LoadStepFromBrx(struct S *p);
-void BindLoOidTable(struct S *p, int n, void *pv);
-// JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) offset and binds his object table (0xAD entries).
+void LoadStepFromBrx(JT *p);
+void BindLoOidTable(JT *p, int n, void *pv);
+// JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) pivot offset and binds his object table (0xAD entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadJtFromBrx(struct S *jt)
+void LoadJtFromBrx(JT *jt)
 {
-    VEC3 *pv;
+    VECTOR *pv;
     LoadStepFromBrx(jt);
-    pv = &jt->v;
+    pv = &jt->vecPivotOffset;
     pv->x = 0.0f;
     pv->y = 0.0f;
     pv->z = -75.0f;
@@ -1922,7 +1890,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     UpdateJtThrow(&jt->jtthrow);
                     break;
                 case JTS_Interact:
-                    JtInteractPre((JTREC *)&jt->unknown1FF0);
+                    JtInteractPre(&jt->jtrec);
                     break;
                 case JTS_Unk08:
                     UpdateJtActivePipe(&jt->jtpipe);
@@ -3330,7 +3298,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     if (jts != JTS_Unk08 && jts != JTS_Hang && jts != JTS_HangFollow)
                         SetJtAnimState(jt, -1);
                 }
-                if (jt->unknown108C == 0)
+                if (jt->pwater == 0)
                 {
                     EXPL *pexpl = 0;
                     switch (jts)
@@ -3398,7 +3366,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtThrowState(&jt->jtthrow, -1);
                 break;
             case JTS_Interact:
-                SetJtRecState((JTREC *)&jt->unknown1FF0, -1);
+                SetJtRecState(&jt->jtrec, -1);
                 break;
             case JTS_Unk09:
                 jt->attachedTo = 0;
@@ -3525,14 +3493,14 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             }
             break;
             case JTS_Run:
-                aseg = ((GAIT *)jt->gait)->blendedAnimation;
+                aseg = jt->gait.blendedAnimation;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                ClearGaitFootDown((GAIT *)jt->gait);
+                ClearGaitFootDown(&jt->gait);
                 break;
             case JTS_Interact:
                 fKeep = 1;
-                SetJtRecState((JTREC *)&jt->unknown1FF0, NJtRecSide((JTREC *)&jt->unknown1FF0));
+                SetJtRecState(&jt->jtrec, NJtRecSide(&jt->jtrec));
                 break;
             case JTS_Hang:
             {
@@ -3633,10 +3601,10 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->unknown1BD4 = 0;
                 break;
             case JTS_Gait2:
-                aseg = ((GAIT *)jt->unk_0x1c30)->blendedAnimation;
+                aseg = jt->gaitB.blendedAnimation;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
+                ClearGaitFootDown(&jt->gaitB);
                 break;
             case JTS_Pounce:
                 jt->interactBlockFlags |= 4;
@@ -3692,7 +3660,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 OnGameEvent(&D_002DEB30, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
-                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, (SURFLOC *)&jt->unk_0x1f1c, 0, 0);
+                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, &jt->surflocMesh, 0, 0);
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
@@ -3794,7 +3762,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 stateMachine = jt->unknown1F14;
                 break;
             case JTBS_11:
-                aseg = jt->unknown1F10;
+                aseg = jt->pasegblMesh;
                 grfapl = 9;
                 break;
             case JTBS_12:
@@ -4553,14 +4521,12 @@ typedef char M4_Basis_Prefix[(sizeof(M3)==(unsigned)&((M4*)0)->r[3])?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E1E0 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
-struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *interactTarget; };
 extern qword GetLoWorldPos(void *p);
-extern void SetStepTargetHeadingFromVector(struct O *p, qword v);
+extern void SetStepTargetHeadingFromVector(JT *p, qword v);
 extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
-extern M3 *InvertMatrix3Cofactor(M3 *pmOut, M3 *pm);
+extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows);
 extern struct CLOCK D_002DDED0;
 extern float D_002BF414;
 extern char D_002BF418[];
@@ -4573,8 +4539,8 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-// Turns Sly toward the interact target (x10DC) with smoothing.
-void UpdateJtFaceTarget(struct O *jt)
+// Turns Sly toward the interact target with smoothing.
+void UpdateJtFaceTarget(JT *jt)
 {
     VU n;
     M3 ms, m;
@@ -4597,7 +4563,7 @@ void UpdateJtFaceTarget(struct O *jt)
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
     SetStepTargetHeadingFromVector(jt, n.q);
     SmoothValue__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.deltaTime * 0.5f, D_002BF418, &g);
-    InvertMatrix3Cofactor(&m, &jt->m1B0);
+    InvertMatrix3Cofactor(&m, jt->aqwTarget);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[0]), "j"(s)); ms.r[0] = r; }
@@ -4605,7 +4571,7 @@ void UpdateJtFaceTarget(struct O *jt)
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[2]), "j"(s)); ms.r[2] = r; }
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
         : "=j"(r) : "j"(ms.r[0]), "j"(ms.r[1]), "j"(ms.r[2]), "j"(n.q));
-    jt->v190 = r;
+    jt->qwUnknown190 = r;
 }
 } } // namespace M_func_0018E1E0
 

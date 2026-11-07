@@ -257,7 +257,7 @@ extern "C" void UpdateJtPlaces(JT *jt)
     case 15: case 16: case 17: case 20: case 23: case 24:
     {
         XP *pa = jt->floorContact;
-        if (pa && pa->normalZ > 0.7f && !pa->surface->isNotLandable && !jt->unknown108C)
+        if (pa && pa->normalZ > 0.7f && !pa->surface->isNotLandable && !jt->pwater)
             AddJtPlaceAtPosition(&jt->jtplaces, pa->part, pa->pos);
         break;
     }

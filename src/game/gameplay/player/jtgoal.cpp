@@ -14,15 +14,12 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/stepplayer.h"
+#include "sly2/relay.h"
 
 /* Views of the objects UpdateJtgoal walks (field names from the per-function file). XP (a contact point: its two end
    objects and the next contact of the list) has no shared definition yet. */
 struct XPEND { int pad[2]; void *object; void *otherObject; char pad2[0x30]; };
 struct XP { XPEND ends[2]; char pad[0xAC - 0x80]; XP *next; };
-/* STEPPLAYER::pjsgScript points at the relay's job-sequence instance (RELAYJSG; its layout is the JSGV view in
-   cutscene/relay.cpp, not in a header): +0x40 the current actor command, whose first word is its command kind. */
-struct RELAYCMDIsland { int kind; };
-struct RELAYJSGIsland { char pad[0x40]; RELAYCMDIsland *prelaycmdJt; };
 /* SetJtgoal stores the raw bits of its integer-typed distance helper into JTGOAL::lastDistance (as the original did);
    the store goes through this union so it may alias the float loads around it. */
 union FLOATBITS { float f; int bits; };
@@ -113,7 +110,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
             return;
     }
     if (goal->player->pjsgScript) {
-        if (((RELAYJSGIsland *)goal->player->pjsgScript)->prelaycmdJt->kind != 0x24)
+        if (goal->player->pjsgScript->prelaycmdJt->relayck != RELAYCK_GoTo)
             return;
     } else {
         R *behavior = FindStepBehavior(goal->player, 0xA8);

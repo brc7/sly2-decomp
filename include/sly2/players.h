@@ -17,11 +17,15 @@
    his transforms 0x200..0x202 and 0x203..0x205). Was copied in air.cpp and relay.cpp (Lilly names). */
 struct PARTLINK
 {
-      undefined4 unk_0x00;
+      void *pxfGoal;   /* the goal transform (SetMurrayLiftSubstate: the carried object's grip transform) */
       void *precA;   /* first transform of the chain (FindSoXf kind 6) */
       void *precB;   /* second transform (kind 6) */
       void *precC;   /* end transform (kind 1) */
-      undefined4 unk_0x10[0xD0 / 4];
+      undefined4 unk_0x10[(0xa0 - 0x10) / 4];
+      qword posGoal;   /* +0xA0 the goal position (SetMurrayLiftSubstate) */
+      undefined4 unk_0xb0[(0xcc - 0xb0) / 4];
+      float gTuning;   /* +0xCC IK tuning (D_002C0A3C / D_002C0A40 in SetMurrayLiftSubstate) */
+      undefined4 unk_0xd0[(0xe0 - 0xd0) / 4];
 };
 typedef char assert_PARTLINK_size[sizeof(PARTLINK) == 0xE0 ? 1 : -1];
 
@@ -35,29 +39,38 @@ struct MURRAY : public STEPPLAYER
       int flopSubstate;   /* +0x13D8 sub-state of MURRAY_FLOP (UpdateMurrayFlop): 1 waits for landing (no ground probe), 2 impact */
       float unknown13DC;   /* +0x13DC passed to IsJtStuck while flopping */
       int unknown13E0;
-      int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
+      struct XP *pxpFlop;   /* +0x13E4 contacts collected during the flop dive (AdjustMurrayNewXp appends); nonzero: landed
+                             (UpdateMurrayFlop); zapped and freed at impact (SetMurrayFlopSubstate) */
       int unknown13E8;
-      undefined4 unknown13EC;
+      SO *psoCarryRoot;   /* +0x13EC the object a lifted one is parented to (SetMurrayLiftSubstate); no lift without it
+                             (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
       LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
-                           StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (the views in
-                           murray.cpp read it there) */
-      undefined4 unk_0x13f4[(0x1410 - 0x13f4) / 4];
-      float unknown1410;
-      float unknown1414;
+                           StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (CARRYSPOTV in
+                           murray.cpp) */
+      struct ACT *apactCarryA[4];   /* +0x13F4 grip actuators on the carried object (DetachMurrayCarried releases them) */
+      int xfRoleA;   /* +0x1404 transform roles given back to the lifted object on release (SetXfRole, DetachMurrayCarried) */
+      int xfRoleB;
+      undefined4 unknown140C;
+      float throwRange;   /* +0x1410 how far Murray throws: target search radius (x D_002C0984) and the default goal distance (ChooseMurrayThrowTarget) */
+      float throwSpeed;   /* +0x1414 speed a throw flies at (ThrowMurrayCarried: flight time = distance / throwSpeed) */
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
       qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
       LO *ploReleased;   /* +0x1430 the object last released from a carry (DetachMurrayCarried); ignored in collisions */
       float releaseTime;   /* +0x1434 clock.time of that release */
       undefined4 unknown1438;
       int unknown143C;
-      undefined4 unk_0x1440[(0x144c - 0x1440) / 4];
-      int unknown144C;
-      int unknown1450;
-      undefined4 unknown1454;
-      int carryIndex; /* carry slot index */
-      undefined4 unknown145C;
+      undefined4 unk_0x1440[(0x1448 - 0x1440) / 4];
+      int fLiftGrabbed;   /* +0x1448 the lift animation reached its grab event (UpdateMurrayLift) */
+      int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
+      int liftSubstate;   /* +0x1450 sub-state of MURRAY_LIFT: 0, 1 reaching (aborts if the object left the world), 2 lifting, -1 none */
+      float liftSubstateTime;   /* +0x1454 clock.time liftSubstate was set */
+      int carrySubstate;   /* +0x1458 carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); indexes aprecCarry (SetMurrayCarrySubstate) */
+      float carrySubstateTime;   /* +0x145C clock.time carrySubstate was set */
       GAIT gaitB;   /* +0x1460 */
-      undefined4 unk_0x1510[(0x1524 - 0x1510) / 4];
+      struct SM *psmCarryStand;   /* +0x1510 the state machine carry sub-state 0 applies (SetMurrayCarrySubstate) */
+      undefined4 unk_0x1514[(0x151c - 0x1514) / 4];
+      ASEG *pasegCarryRun;   /* +0x151C the clip of carry sub-state 2 */
+      undefined4 unknown1520;
       float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
       float lastMashTime;   /* +0x1528 struggleTimeLeft at the last face-button press */
       int mashesLeft;   /* +0x152C presses still needed to win the struggle */
@@ -69,10 +82,11 @@ struct MURRAY : public STEPPLAYER
       void *unknown15F4;   /* +0x15F4 transform 0x202 (FindSoXf kind 6) */
       void *ikEndB;   /* +0x15F8 ikChainB's end transform */
       void *unknown15FC;   /* +0x15FC transform 0x205 (FindSoXf kind 6) */
-      undefined4 unknown1600[4];
+      struct ACT *apactCarryB[4];   /* +0x1600 more grip actuators (DetachMurrayCarried) */
       PARTLINK *ikChainA;   /* +0x1610 IK chain of transforms 0x200..0x202 (LoadMurrayFromBrx; a hand, inferred) */
       PARTLINK *ikChainB;   /* +0x1614 IK chain of transforms 0x203..0x205 */
-      undefined4 unk_0x1618[(0x1630 - 0x1618) / 4];
+      struct ACT *apactCarryC[4];   /* +0x1618 more grip actuators (DetachMurrayCarried) */
+      undefined4 unk_0x1628[(0x1630 - 0x1628) / 4];
       GAIT gaitD;   /* +0x1630 */
       struct SM *psmStrafeIdle;   /* +0x16E0 the state machine strafe sub-state 0 applies (SetMurrayStrafeSubstate) */
       undefined4 unk_0x16e4[(0x16f0 - 0x16e4) / 4];
@@ -90,10 +104,14 @@ struct MURRAY : public STEPPLAYER
       undefined4 unk_0x1824[(0x1830 - 0x1824) / 4];
       qword unknown1830;
       int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/tu_144B28.cpp: 0 face the player, 1 keep turning) */
-      undefined4 unk_0x1844[(0x1850 - 0x1844) / 4];
+      float subStateTime;   /* +0x1844 clock.time subState was set (UpdateMurrayPower timeouts) */
+      ASEG *pasegPowerA;   /* +0x1848 power-move clip of sub-state 0 (SetMurrayPowerSubstate) */
+      ASEG *pasegPowerB;   /* +0x184C power-move clip of sub-state 1 */
       undefined4 unknown1850[0x40 / 4];   /* an ASEG arc record (PostAsegArcLoad) */
       LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (ConstructLeap) */
-      undefined4 unk_0x1900[(0x190c - 0x1900) / 4];
+      struct LEAP *pleapPower;   /* +0x1900 the leap of the power attack (UpdateMurrayPower runs it) */
+      ASEG *pasegPowerEnd;   /* +0x1904 power-move clip of sub-state 3 */
+      int powerContactTrigger;   /* +0x1908 set on contact during the power attack (AdjustMurrayNewXp; UpdateMurrayPower) */
       struct ASEGA *unknown190C;     /* running animation segment application; possibly animationPlayback (low-confidence guess: header comment: running animation segment application) */
       JTTHROW jtthrowAim;   /* +0x1910 Murray's aimed-throw component (MURRAY_AIMED_THROW; PostJtThrowLoad, SetJtThrowState,
                                UpdateJtThrowHoldPosition take it); was MOVEREC, a partial view of the same JTTHROW */
@@ -104,7 +122,11 @@ struct MURRAY : public STEPPLAYER
       int unknown1AC4;
       float unknown1AC8;
       struct ACT1 *pact1Unk1acc;
-      undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
+      SO *psoHitEffect;   /* +0x1AD0 hit effect object placed at a hit with power-up 0x11 (SpawnMurrayHitEffect) */
+      struct ASEG *pasegHitEffect;   /* +0x1AD4 its animation */
+      SO *psoHitEffectB;   /* +0x1AD8 the effect of event 0x40000 (SpawnMurrayHitEffectUnchecked) */
+      struct ASEG *pasegHitEffectB;
+      undefined4 unk_0x1ae0[(0x1b00 - 0x1ae0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
@@ -169,7 +191,8 @@ struct BENTLEY : public STEPPLAYER
 {
       GAIT gaitA;   /* +0x1320 locomotion gaits (PostBentleyLoad) */
       int state;    /* Bentley's state */
-      undefined4 unk_0x13d4[(0x13e0 - 0x13d4) / 4];
+      float stateTime;   /* +0x13D4 clock.time state was set (UpdateBentleyStateMachine: the adrenaline timeout) */
+      undefined4 unk_0x13d8[(0x13e0 - 0x13d8) / 4];
       BLDIR abldirA[8];   /* first set of directional blends */
       ASEGBL *pasegblA;   /* its blended segment */
       ASEG *pasegSubState0;   /* +0x14E4 animation of sub-state 0 (SetBentleySubState) */
@@ -184,13 +207,21 @@ struct BENTLEY : public STEPPLAYER
       undefined4 unknown16B8;
       int aimState;   /* +0x16BC binocucom dart aim state: -1 outside look mode, 0 ready, 1 cooling down (UpdateBentleyAim) */
       float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
-      undefined4 unk_0x16c4[(0x16f0 - 0x16c4) / 4];
+      undefined4 unk_0x16c4[(0x16cc - 0x16c4) / 4];
+      struct ASEGA *pasegaAim;   /* +0x16CC the aim animation: its event 0x243 fires a dart (HandleBentleyMessage) */
+      LO *aploLandEffect[2];   /* +0x16D0 effects played when Bentley leaves the air: [0] usual, [1] for grab states 3/4 (SetBentleyState) */
+      int dartKind;   /* +0x16D8 which dart template FireBentleyDart clones: 0/1 (aproxyDart), other: none */
+      PROXY *aproxyDart[2];   /* +0x16DC the dart templates */
+      SO *psoLauncher;   /* +0x16E4 the launcher the darts leave from (CID 112; LaunchSoFromLauncher) */
+      undefined4 unk_0x16e8[(0x16f0 - 0x16e8) / 4];
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
       BTBLENDS btblends;   /* +0x1710 blend set (the crosshair/aim helper: InitBentleyCrosshair, SetBentleyCrosshairState) */
       int hoverState;   /* +0x1800 -1 at init; 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
-      undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
+      float hoverStateTime;   /* +0x1804 clock.time hoverState was set */
+      ASEG *apasegHover[2];   /* +0x1808 clip of hover states 0 and 1 (SetBentleyHoverState) */
+      struct ACT *apactHover[2];   /* +0x1810 position/rotation actuators holding Bentley on Murray in hover state 0 */
     union
     {
           long unknown1818Wide;
@@ -200,12 +231,13 @@ struct BENTLEY : public STEPPLAYER
               int unknown181C;
         };
     };
-      undefined4 unknown1820;
+      struct ASEG *unknown1820;   /* +0x1820 the idle clip used while unknown181C is set (SetBentleyState) */
       JTPOCKET apocket[6];   /* the gadget slots */
       LO *ploHeld;   /* +0x186C the proxy object Bentley holds (bentley.cpp) */
       int unknown1870;
       int unknown1874;
-      undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
+      struct ASEG *pasegAdrenaline;   /* +0x1878 the adrenaline clip (else gaitA's run clip at 1.5x; SetBentleyState) */
+      undefined4 unknown187C;
     virtual void OnGadgetsChanged() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBentleyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBentleyMessage");   /* slot 5 */

@@ -43,11 +43,6 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
 void SetAsegaSpeed(ASEGA *pasega, float svt);
 extern "C" void SetSndmgrChannelVolume(SNDMGR *psndmgr, int iBus, float gVolume, int iSlot);
 extern "C" {
