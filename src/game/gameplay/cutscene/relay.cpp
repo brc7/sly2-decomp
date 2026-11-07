@@ -5136,18 +5136,16 @@ typedef char layout_P_array[((unsigned)&((struct P*)0)->apo==0xA8)?1:-1];
 
 // 0x1E5370 ClearJsgAseg
 namespace M_ClearJsgAseg { extern "C" {
-struct VTE; struct O; struct S;
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
-void RetractAsega(struct O *po);
+struct S;
+struct S { char pad[0x4C]; BASIC *po; int n50; void *pv; };
+void RetractAsega(BASIC *po);
 void StopStepplayerScriptAnim(void *pv);
 // Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
 void ClearJsgAseg(struct S *script)
 {
     if (script->po) {
         RetractAsega(script->po);
-        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po->Release();
         script->po = 0;
     }
     if (script->pv) {
@@ -5171,18 +5169,15 @@ extern "C" void ClearJsgRelayWait(JSGV *script)
 
 // 0x1E5410 ClearJsgSma
 namespace M_ClearJsgSma { extern "C" {
-struct VTE; struct O; struct S;
-
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x58]; struct O *po; int n5C; };
-void UnsubscribeLoObject(struct O *po, struct S *p);
+struct S;
+struct S { char pad[0x58]; BASIC *po; int n5C; };
+void UnsubscribeLoObject(BASIC *po, struct S *p);
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
 void ClearJsgSma(struct S *script)
 {
     if (script->po) {
         UnsubscribeLoObject(script->po, script);
-        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po->Release();
         script->po = 0;
         script->n5C = 0;
     }
