@@ -224,11 +224,11 @@ struct P {
     qword coordinate, velocity, acceleration;
 };
 union FLOATWORD { float value; int bits; };
-struct CLOCK { float time; FLOATWORD deltaTime; };
+struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 struct CAMERA { char pad90[0x90]; qword position; };
 struct SW { char pad3D58[0x3D58]; int stamp; };
 extern "C" {
-extern CLOCK D_002DDED0;
+extern CLOCKIsland D_002DDED0;
 extern CAMERA D_002DDF40;
 extern SW D_003DD490;
 extern float D_002C0D4C;
