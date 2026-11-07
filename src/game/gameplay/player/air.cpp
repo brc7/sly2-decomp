@@ -351,12 +351,6 @@ static inline qword DotVec(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float LaneZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 void DecomposeCylind(qword v, float *prad, float *psXY, float *pz) __asm__("GetVectorCylind");
@@ -571,7 +565,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         air->fUnk2c = air->fCanDoubleJump;
     if (IsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
         ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
-    air->zStart = LaneZ(PosLoWorld(air->pstepplayer));
+    air->zStart = QwordZ(PosLoWorld(air->pstepplayer));
 }
 } // namespace M_func_00195A00
 
@@ -1117,7 +1111,6 @@ static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) :
 static inline float Max(float a, float b) { return a < b ? b : a; }
 /* v.z as a float; Zin overwrites its (copied) input, Z reads it */
 static inline float Zin(qword v) { float f; __asm__("pextuw %0,$zero,%0" : "=r"(f) : "0"(v)); return f; }
-static inline float Z(qword v) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(v)); return f; }
 /* length of the xy part through VU0.  The duplicated "j"(v) input is allocation-only: it makes v prefer
    a VU register class, so it is spilled to the stack (sq at entry, lqc2 reload) instead of living in $s1. */
 static inline float LenXY(qword v) {
@@ -1141,7 +1134,7 @@ static inline float LenXY(qword v) {
 // (inferred)
 float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
     U r0, r1;
-    float az = Z(a) * 0.5f, naz = -az;
+    float az = QwordZ(a) * 0.5f, naz = -az;
     float vz, best = 0.0f, l, t;
     int n;
     vz = Zin(v);
@@ -2199,7 +2192,6 @@ static inline qword AddScaledVec2(qword a, qword b, VU_FLOAT g)
 static inline qword ScaleVec2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline float LaneX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float LengthSqXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return LaneX(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
 static inline float LengthSqXYOfGpr(qword v)
@@ -2323,7 +2315,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             qword posSrc = GetLoWorldPos(src);
             if (360000.0f < LengthSqXYOf(VuSub(posSrc, pos.q)))
                 continue;
-            if (GetZ(posSrc) + src->height < pos.f[2])
+            if (QwordZ(posSrc) + src->height < pos.f[2])
                 continue;
             MeasureJtJumpToTarget(p, vel.q, src, VuSub(posSrc, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
             if (scoreBest < score)
@@ -3490,7 +3482,6 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
 //////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
@@ -3504,7 +3495,7 @@ int SolveQuadratic__FfffPf(float, float, float, float *);
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
 int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
-    int n = SolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, GetZ(b) - GetZ(d), GetZ(a) - GetZ(c), ag);
+    int n = SolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
     if (n <= 0) return 0;
     {
         float g = ag[n - 1];
@@ -3520,7 +3511,6 @@ namespace M_MeasureJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct WORK{U u0,v10,v20,s;float at;U uq;qword incoming;U sum;};
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
@@ -3580,13 +3570,13 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
        :"r"(p),"r"(pos),"r"(a),"r"(got));
       solved=SolveJtJumpTimeToTarget(receiver,initial,velocity,b,q,&w.at); }
     if (!solved) {
-        float dz = GetZ(a) - GetZ(q);
+        float dz = QwordZ(a) - QwordZ(q);
         float g = p->pb->pc->g88;
         float t1 = -dz / g;
         float h;
         t1 = MaxF(0.0f, t1);
-        { register float height __asm__("$f6") = GetZ(pos);
-          register float end __asm__("$f4") = GetZ(b);
+        { register float height __asm__("$f6") = QwordZ(pos);
+          register float end __asm__("$f4") = QwordZ(b);
           float th = t1 * 0.5f;
           __asm__("sub.s %0,%0,%1":"+f"(height):"f"(end));
           h = height + (g * th * t1 + dz * t1); }
@@ -3703,12 +3693,6 @@ int SolveQuadratic(float a, float b, float c, float *ax) __asm__("SolveQuadratic
 
 
 
-static inline float LaneZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 static inline float MaxOf(float a, float b)
 {
     return (a > b) ? a : b;
@@ -3812,7 +3796,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
         {
             float vJump = SqrtfEarly(g * -2.0f * D_002BF738);
             float tApex = -vJump / g;
-            float vzMin = LaneZ(air->pstepplayer->GetVelocity());
+            float vzMin = QwordZ(air->pstepplayer->GetVelocity());
             vzMin = MinOf(vzMin, vJump);
             float tElapsed = (vzMin - vJump) / g;
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);

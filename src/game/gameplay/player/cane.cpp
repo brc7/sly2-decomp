@@ -673,7 +673,6 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     return f;
 }
 
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 /** @sly2-annot addr=0x18EE38
  * Purpose: Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1
  *   points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground;
@@ -698,7 +697,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         g = VuToFloat(l);
         f = 0;
         if (g < D_002BF4AC)
-            f = IsWithinLimits__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
+            f = IsWithinLimits__FP2LMf(D_002BF4B0, QwordZ(d)) != 0;
         if (f) {
             BHV *pt = FindBhvInBhvstk(jt->interactTarget + 0x26C, 0xB1);
             if (pt && pt->subject == jt) {

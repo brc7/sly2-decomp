@@ -170,7 +170,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { VU r[3]; } M3;
 typedef struct { VU r[4]; } M4;
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct S { M4 m; char pad[0x94 - 0x40]; int k; };
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
@@ -194,7 +193,7 @@ M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
         func_0023320C(pm, p, 0x40);
         __asm__("sw %1,%0" : "=m"(pm->r[3].f[0]) : "r"(v));
         pm->r[3].f[1] = QwordY(v);
-        pm->r[3].f[2] = GetZ(v);
+        pm->r[3].f[2] = QwordZ(v);
         break;
     case 2: case 3:
         func_0023320C(pm, p, 0x40);
@@ -216,13 +215,13 @@ M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
         func_0023320C(pm, p, 0x40);
         __asm__("sw %1,%0" : "=m"(pm->r[1].f[0]) : "r"(v));
         pm->r[2].f[0] = QwordY(v);
-        pm->r[2].f[1] = GetZ(v);
+        pm->r[2].f[1] = QwordZ(v);
         break;
     case 12:
         func_0023320C(pm, p, 0x40);
         __asm__("sw %1,%0" : "=m"(pm->r[0].f[0]) : "r"(v));
         pm->r[1].f[1] = QwordY(v);
-        pm->r[2].f[2] = GetZ(v);
+        pm->r[2].f[2] = QwordZ(v);
         break;
     }
     return pm;
@@ -278,7 +277,6 @@ qword GetXfValueFromMatrix(struct S *p, float *m)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CAD0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -299,10 +297,10 @@ qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
     float s0, c0, s1, c1;
     union { qword q; float f[4]; } r;
     CalculateSinCos__FfPfT1(QwordY(a), &s0, &c0);
-    CalculateSinCos__FfPfT1(GetZ(a), &s1, &c1);
+    CalculateSinCos__FfPfT1(QwordZ(a), &s1, &c1);
     r.q = Make(c0 * c1 * QwordX(b) - s1 * QwordY(b),
                c0 * s1 * QwordX(b) + c1 * QwordY(b),
-               -s0 * QwordX(b) + GetZ(b));
+               -s0 * QwordX(b) + QwordZ(b));
     return r.q;
 }
 } } // namespace M_func_0022CAD0
@@ -326,7 +324,6 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 namespace M_func_0022CC00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct S { char pad[0x94]; int k; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x22CC00
@@ -345,17 +342,17 @@ float *BuildXfValueDerivativeMatrix(float *m, struct S *p, qword v)
     case 1: case 4: case 5: case 9: case 10:
         __asm__("sw %1,%0" : "=m"(m[12]) : "r"(v));
         m[13] = QwordY(v);
-        m[14] = GetZ(v);
+        m[14] = QwordZ(v);
         break;
     case 11:
         __asm__("sw %1,%0" : "=m"(m[4]) : "r"(v));
         m[8] = QwordY(v);
-        m[9] = GetZ(v);
+        m[9] = QwordZ(v);
         break;
     case 12:
         __asm__("sw %1,%0" : "=m"(m[0]) : "r"(v));
         m[5] = QwordY(v);
-        m[10] = GetZ(v);
+        m[10] = QwordZ(v);
         break;
     }
     return m;
@@ -1065,16 +1062,10 @@ static inline qword VuDotXyz(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float VuGetZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
     return AreFloatsNear(QwordX(qwA), QwordX(qwB), 0.0001f) && AreFloatsNear(QwordY(qwA), QwordY(qwB), 0.0001f) &&
-           AreFloatsNear(VuGetZ(qwA), VuGetZ(qwB), 0.0001f);
+           AreFloatsNear(QwordZ(qwA), QwordZ(qwB), 0.0001f);
 }
 extern qword D_002A2DD0;
 extern qword D_002A2DA0;

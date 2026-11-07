@@ -2275,7 +2275,6 @@ extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 
 // 0x1E1238 AddRelayCamBlendFrom
 // Lanes x, y and z of a 128-bit EE register as floats (the camera builders take angles in degrees as a vector).
-static __inline__ float GetVectorZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // Splice builtin: appends a CamBlendFrom command (RELAYCK 0x38): the camera starts from position qwPos with angles
 // (degrees, stored in radians) and field of view gFov, blending over dtBlend; oidAseg names an animation. (inferred)
 extern "C" void AddRelayCamBlendFrom(RELAYV *relay, qword qwPos, qword angles, OID oidAseg, float gFov, float dtBlend)
@@ -2284,7 +2283,7 @@ extern "C" void AddRelayCamBlendFrom(RELAYV *relay, qword qwPos, qword angles, O
     prelaycmd->camBlendFrom.qwPos = qwPos;
     prelaycmd->camBlendFrom.radX = QwordX(angles) * 0.017453294f;
     prelaycmd->camBlendFrom.radY = QwordY(angles) * 0.017453294f;
-    prelaycmd->camBlendFrom.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->camBlendFrom.gFov = gFov;
     prelaycmd->camBlendFrom.dtBlend = dtBlend;
     prelaycmd->camBlendFrom.oidAseg = oidAseg;
@@ -2299,7 +2298,7 @@ extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int
     prelaycmd->camBlendTo.qwPos = qwPos;
     prelaycmd->camBlendTo.radX = QwordX(angles) * 0.017453294f;
     prelaycmd->camBlendTo.radY = QwordY(angles) * 0.017453294f;
-    prelaycmd->camBlendTo.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->camBlendTo.gFov = gFov;
     prelaycmd->camBlendTo.nUnk16 = nUnk16;
     prelaycmd->camBlendTo.nUnk17 = nUnk17;
@@ -2354,7 +2353,7 @@ extern "C" void AddRelayTweenTarget(RELAYV *relay, qword qwPos, qword angles, fl
     prelaycmd->tweenTarget.qwPos = qwPos;
     prelaycmd->tweenTarget.radX = QwordX(angles) * 0.017453294f;
     prelaycmd->tweenTarget.radY = QwordY(angles) * 0.017453294f;
-    prelaycmd->tweenTarget.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radZ = QwordZ(angles) * 0.017453294f;
     prelaycmd->tweenTarget.gFov = gFov;
 }
 
@@ -4050,12 +4049,6 @@ static inline float GLengthXY(qword v)
 }
 // Lane y of a 128-bit register as a float.
 // Lane z of a 128-bit register as a float.
-static inline float GZOfQw(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 
 
 
@@ -4603,7 +4596,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
                 qword qwOld = pmurray->moverec.qwPosOld;
                 float gEps = D_002C3628;
                 fComplete = AreFloatsNear(QwordX(qwNew), QwordX(qwOld), gEps) && AreFloatsNear(QwordY(qwNew), QwordY(qwOld), gEps) &&
-                            AreFloatsNear(GZOfQw(qwNew), GZOfQw(qwOld), gEps);
+                            AreFloatsNear(QwordZ(qwNew), QwordZ(qwOld), gEps);
             }
         }
         else
@@ -4746,7 +4739,6 @@ int AreFloatsNear__Ffff(float,float,float);
 }
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
-static inline float Z(qword a){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(a));return r;}
 static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
 static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return QwordX(Root(r));}
 // Normalizes the path tangent in place (fallback for a zero tangent).
@@ -5423,12 +5415,10 @@ qword DecomposeRotationMatrixToEuler(void *);
 int IsCameraPolicyActive__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
-// Helpers X, Y, Z (small asm wrappers/accessors shaped for the match).
-static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f) && AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f) && AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f) && AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f) && AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f);
 }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)

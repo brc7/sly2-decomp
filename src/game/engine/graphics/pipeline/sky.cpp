@@ -10,6 +10,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/cm.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
 union V { qword q; float f[4]; };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short delta; short pad; void (*function)(void *, qword); };
@@ -35,7 +36,6 @@ qword GetLoWorldPos(SKYV *pso);
 }
 
 // Returns the z component (word 2) of a quadword vector.
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 
 // Post-load hook (vtable slot 15): SO post-load, busy level 1, sets flag bit 1 in the +0x40 flags (through the pointer
 // when it holds one) and clears SO flag bit 35, which keeps the sky out of the collision sphere tree (inferred).
@@ -58,6 +58,6 @@ extern "C" void UpdateSky(SKYV *sky)
     union V target;
     UpdateSo(sky);
     target.q = (*(CMV *)&g_cm.mat).pos;
-    if (!sky->followCameraZ) target.f[2] = GetZ(GetLoWorldPos(sky));
+    if (!sky->followCameraZ) target.f[2] = QwordZ(GetLoWorldPos(sky));
     sky->vtable[29].function((char *)sky + sky->vtable[29].delta, target.q);
 }

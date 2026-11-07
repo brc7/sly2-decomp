@@ -699,11 +699,10 @@ static __inline__ float LengthXY(qword a)
     return f;
 }
 // z component of a quadword vector.
-static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 // Absolute value.
 static __inline__ float Abs(float f){return __builtin_fabsf(f);}
 // True if a difference vector is within the horizontal and vertical .data limits.
-static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3D08 && Abs(Z(difference))<D_002C3D0C;}
+static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3D08 && Abs(QwordZ(difference))<D_002C3D0C;}
 /* Two empty-asm tricks for the nearby-object collection loop (T1592); neither emits an instruction:
    OPAQUE_COUNT: an empty asm that "sets" the candidate count. loop.c then sees no basic induction variable, so
      &candidates[n] stays a real `mult` by 24 instead of a strength-reduced pointer, and the increment is not PRE-copied.

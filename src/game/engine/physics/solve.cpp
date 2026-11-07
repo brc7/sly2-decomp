@@ -481,10 +481,9 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
 }
 #undef FLT_MAX
 
-static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int FNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1F9B20
  * Purpose: If SO has nonzero pending velocity (pe+0x80) and not locked (kind!=3), constrain it (0x1FA810) and
@@ -652,7 +651,7 @@ static __inline__ int NearV(qword value,qword reference)
     int same=0;
     if(AreFloatsNear__Ffff(QwordX(reference),QwordX(value),0.0001f) &&
        AreFloatsNear__Ffff(QwordY(reference),QwordY(value),0.0001f) &&
-       AreFloatsNear__Ffff(Z(reference),Z(value),0.0001f))same=1;
+       AreFloatsNear__Ffff(QwordZ(reference),QwordZ(value),0.0001f))same=1;
     return same;
 }
 static __inline__ void AddTo(U *out,qword q)
@@ -703,7 +702,7 @@ extern "C" void ApplySoImpactVelocity(SO *object)
 
 // Apply queued translation and rotation, then refresh changed objects.
 extern "C" M3 func_0011B570R(qword) __asm__("BuildRotationMatrixFromVector");
-static inline void NearR(int*out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(QwordY(a),QwordY(b),0.0001f))*out=AreFloatsNear__Ffff(Z(a),Z(b),0.0001f)!=0;}
+static inline void NearR(int*out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(QwordY(a),QwordY(b),0.0001f))*out=AreFloatsNear__Ffff(QwordZ(a),QwordZ(b),0.0001f)!=0;}
 static inline qword AddR(qword a,qword b){__asm__("vadd.xyzw %0,%1,%0":"+j"(b):"j"(a));return b;}
 static inline M3 Mul(const M3&a,const M3&b) return r {
     qword a0=a.r[0],a1=a.r[1],a2=a.r[2];

@@ -631,7 +631,6 @@ qword GetClosestPointOnNavTriangle(T *t, qword p);
 }
 static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Z(qword a) { float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(z) : "j"(a)); return z; }
-static inline float ZOf(qword q) { float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(q)); return z; }
 static inline qword Dot(qword a, qword b)
 {
     qword d = a, one;
@@ -667,7 +666,7 @@ extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
     else {
         qword n = Cross(ab, VuSub(vc.q, va.q));
         qword dv = Dot(VuSub(va.q, pos), n);
-        float nz = ZOf(n);
+        float nz = QwordZ(n);
         float dot = QwordX(dv);
         float g = dot / nz;
         result.q = AddScaled(pos, D_002A2DC0, g);

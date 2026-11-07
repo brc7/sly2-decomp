@@ -818,7 +818,6 @@ SO *FindNearestRobottankPickup(OBJ *pickup)
 namespace M_func_001D2420 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 // Lane z as a float.
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 struct E { float x, y, z, w; };
 struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
 struct S { char pad[0x5AC]; struct O *po; int n5B0; };
@@ -830,7 +829,7 @@ void ResetRobottankWheelHeights(struct S *tank) {
     tank->n5B0 = 0;
     q = GetLoWorldPos(tank);
     for (i = 0; i < tank->po->c; i++) {
-        tank->po->ae[i].z = GetZ(q);
+        tank->po->ae[i].z = QwordZ(q);
     }
 }
 } } // namespace M_func_001D2420
@@ -996,8 +995,6 @@ int IsPointInVol(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
-// Helpers Sub, Add, GetX, GetY, GetZ (small asm wrappers/accessors shaped for the match).
-static inline float GetZ(VV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // Length of the xy part of a vector.
 static inline float Length2D(VV v)
 {
@@ -1140,7 +1137,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                     float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
                     float error = Abs(NormalizeAngle__Ff(aim - tank->wheelAngle));
-                    float pitch = GetZ(packed) - attach->meshBinding->pitch;
+                    float pitch = QwordZ(packed) - attach->meshBinding->pitch;
                     if (error < D_002C20EC && Abs(pitch) < D_002C20F0)
                         goto fire;
                     break;
@@ -1184,7 +1181,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                 float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
                 float error = Abs(NormalizeAngle__Ff(aim - tank->wheelAngle));
-                float pitch = GetZ(packed) - attach->meshBinding->pitch;
+                float pitch = QwordZ(packed) - attach->meshBinding->pitch;
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
                     continue;
             }
@@ -1857,7 +1854,6 @@ void AdjustSoNewXp(void *, OBJ *, int);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
 // Lane z as a float.
-static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
 // 0x6C pickup schedules CollectRcCarPickup. (inferred)
 void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
@@ -1875,7 +1871,7 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
         s.q = sq;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(contact->normal), "j"(s.q));
     }
-    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || QwordZ(v) < 0.7f) {
         contact->elasticity = 0.0f;
         contact->friction = 0.1f;
     } else {

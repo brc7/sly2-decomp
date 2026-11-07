@@ -393,7 +393,6 @@ static inline float Len2(qword a)
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // VU0 helper: z component of a vector.
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // VU0 helper: a plus the normalized direction of v scaled by s.
 static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 {
@@ -429,7 +428,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
             pos = GetLoWorldPos(hero);
             int c = ppath->c;
             for (int i = 0; i < c; i++) {
-                if (GetZ(pos) < GetZ(ppath->av[i]))
+                if (QwordZ(pos) < QwordZ(ppath->av[i]))
                     pos = ppath->av[i];
             }
             goto moveMarker;

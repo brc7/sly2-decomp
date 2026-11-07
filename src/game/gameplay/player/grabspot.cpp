@@ -972,7 +972,6 @@ qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 qword TransformXfPos(void *pv, void *pvA0, qword v);
 void SetBarrelState(struct O *p, int n);
 }
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 
 /** @sly2-annot addr=0x183B80
  * Purpose: Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent),
@@ -1025,7 +1024,7 @@ void SetBarrelState(struct O *barrel, int n)
 
                 struct XV *pv = (struct XV *)&barrel->partB->vC0;
                 pv->x = 0;
-                pv->z = GetZ(q);
+                pv->z = QwordZ(q);
                 pv->y = 0;
             }
             barrel->partB->partFlags = n;
@@ -1468,12 +1467,6 @@ extern int D_002DFB84;
 extern float D_002BE908;
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(struct S *p, int n, qword q);
-static __inline__ float GetZ(qword q)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q));
-    return z;
-}
 /** @sly2-annot addr=0x184510
  * Purpose: Hold position (debug flag D_002DFB84 uses child x15C pos + offset)
  * Info: proposed name GetCid27GrabPos (T2); class CID27; TU grabspot
@@ -1491,7 +1484,7 @@ void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
         pv->v.z = pv->v.z + D_002BE908;
     } else {
         pv->q = ConvertPosBetweenLos(table, 0, table->q110);
-        pv->v.z = GetZ(GetLoWorldPos(table->p15c)) + D_002BE908;
+        pv->v.z = QwordZ(GetLoWorldPos(table->p15c)) + D_002BE908;
     }
 }
 } } // namespace M_func_00184510

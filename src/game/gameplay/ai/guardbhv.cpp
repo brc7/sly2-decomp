@@ -1073,12 +1073,6 @@ static inline float VectorLength(qword v)
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
 // VU0 helper: z component of a quadword vector.
-static inline float VuGetZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 
 // True if the line test hit something nearer than `limit` to the line start.
 static inline int Blocked(LOS *line, float limit)
@@ -1117,7 +1111,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
     {
         qword d = VuSub(to, from);
         distance = VectorLengthXY(d);
-        height = VuGetZ(d);
+        height = QwordZ(d);
     }
     if (GetSourceIndexFromProxyId__Fi(target->name->identity) == GetSourceIndexFromProxyId__Fi(guard->name->identity))
         distance += ((unsigned)target < (unsigned)guard) ? 75.0f : -75.0f;
@@ -3013,12 +3007,6 @@ static inline qword VuCross(qword a, qword b)
     return qw;
 }
 // VU0 helper: z component of a quadword vector.
-static inline float VuGetZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $zero, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 // Evaluates a CLQ curve at x clamped to an LM range.
 static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 {
@@ -3210,7 +3198,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             posOther.qw = GetLoWorldPos(pobj);
             posOther.f[2] += pbodyOther->dz;
             qword dpos = VuSub(posActor, posOther.qw);
-            if (__builtin_fabsf(VuGetZ(dpos)) > D_002BE660)
+            if (__builtin_fabsf(QwordZ(dpos)) > D_002BE660)
                 continue;
             qword vOther = GetObjectVelocity(pobj);
             qword posPredict = VAddScaled(posOther.qw, vOther, VU_FLOAT(&D_002BE664));
@@ -5030,7 +5018,6 @@ void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, fl
 // Returns the frame object of the actor's +0x19A4 record.
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;}
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
 void UpdateBhvjuggled(struct S *behavior) {
@@ -5051,7 +5038,7 @@ void UpdateBhvjuggled(struct S *behavior) {
                 SetBhvjuggledState(behavior, 3);
             } else if (behavior->guard->unknown58->currentAct != behavior->holdAct || behavior->guard->unknown58->currentAct->endTime < D_002DDED0.t) {
                 SetBhvjuggledState(behavior, 2);
-            } else if (GetZ(v) < 0.0f && behavior->state == 0) {
+            } else if (QwordZ(v) < 0.0f && behavior->state == 0) {
                 SetBhvjuggledState(behavior, 1);
             } else {
                 UpdateBhvjuggledHoldAct(behavior);
@@ -7125,7 +7112,6 @@ void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *
 void MeasureShape(struct B *b);
 int FindPathzonePathCurve(void *q, qword a, qword b, struct B *c);
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
 void PlanBhvgoto(struct S *behavior) {
@@ -7161,7 +7147,7 @@ void PlanBhvgoto(struct S *behavior) {
                 __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
                 __asm__("qmfc2.ni %0, %1" : "=r"(distance) : "j"(l));
                 if (distance < 50.0f) {
-                    if (__builtin_fabsf(c.f[2] - GetZ(pos)) < 300.0f) isNearLink = 1;
+                    if (__builtin_fabsf(c.f[2] - QwordZ(pos)) < 300.0f) isNearLink = 1;
                 }
             }
             if (isNearLink) nextState = 3;

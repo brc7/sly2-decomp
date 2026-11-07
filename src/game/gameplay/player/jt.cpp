@@ -701,7 +701,6 @@ static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword ScaleVecX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword DivVec(qword a,VU_FLOAT g){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(g.qw));return r;}
-static inline float LaneZ(qword a){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(a));return f;}
 static inline qword RotateVecAt(M3*m,qword*pv){qword r;__asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
 static inline qword DotVec(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
 static inline qword ProjectOutVec(qword v,qword n){qword d=DotVec(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
@@ -765,7 +764,7 @@ extern "C" void PresetJtAccel(P *jt)
             float dt = D_002DDED0.dt;
             float gAlong = projection - D_002BF290 * dt;
             float gPerp = 1.0f - D_002BF294 * dt;
-            float angle = LaneZ(direction) * dt;
+            float angle = QwordZ(direction) * dt;
             w.a.q = ScaleVecX(basis.r[0].q, VuFloat(gAlong));
             w.b.q = ScaleVecX(w.b.q, VuFloat(gPerp));
             M3 rotation;
@@ -1853,12 +1852,6 @@ typedef union { qword q; VEC v; } UV;
 struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword GetLoWorldPos(void *p);
 void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
-static __inline__ float GetZ(qword q)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q));
-    return z;
-}
 /** @sly2-annot addr=0x18A350
  * Purpose: JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos;
  *   default STEPPLAYER 0x141588
@@ -1872,11 +1865,11 @@ void GetJtCameraTarget(struct S *jt, UV *pv)
     switch (jt->n) {
     case 3:
         GetStepplayerCameraFocusPosition(jt, pv);
-        pv->v.z = GetZ(GetLoWorldPos(jt->hangHandle)) + -175.0f;
+        pv->v.z = QwordZ(GetLoWorldPos(jt->hangHandle)) + -175.0f;
         break;
     case 0x16:
         GetStepplayerCameraFocusPosition(jt, pv);
-        pv->v.z = GetZ(GetLoWorldPos(jt->hangHandle)) + -100.0f;
+        pv->v.z = QwordZ(GetLoWorldPos(jt->hangHandle)) + -100.0f;
         break;
     case 0x15:
         pv->q = GetLoWorldPos(jt);
@@ -3164,12 +3157,6 @@ static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, 
     *stateOut = state;
 }
 
-static inline float Z(qword q)
-{
-    float r;
-    __asm__("pextuw %0,$zero,%1" : "=r"(r) : "r"(q));
-    return r;
-}
 /** @sly2-annot addr=0x18B7E8
  * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
  *   ChooseJtGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
@@ -3276,7 +3263,7 @@ void UpdateJtPre(struct P *jt)
         one = 1.0f;
         entry = &jt->vt[34];
         velocity = ((qword(*)(void *))entry->fn)((char *)jt + entry->delta);
-        weight = D_002BF3CC * ClampAbs__Fff(Z(velocity) / (jt->factor * D_002BF35C), one);
+        weight = D_002BF3CC * ClampAbs__Fff(QwordZ(velocity) / (jt->factor * D_002BF35C), one);
         {
             register float zero __asm__("$f2") = 0.0f;
             register float magnitude __asm__("$f3");
@@ -3638,12 +3625,6 @@ static inline VU_FLOAT VuFloat(float g)
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
-}
-static inline float LaneZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
 }
 void ExplodeExpl(EXPL *pexpl) __asm__("ExplodeWithDefaults");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
@@ -4007,7 +3988,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     {
                         int fHigh = jt->janim.nUnk10;
                         if (fHigh == -1)
-                            fHigh = D_002BF3E0 < jt->jtair.zStart - LaneZ(PosLoWorld(jt));
+                            fHigh = D_002BF3E0 < jt->jtair.zStart - QwordZ(PosLoWorld(jt));
                         oid = (fHigh == 1) ? (OID)0x179 : (OID)0x178;
                     }
                     break;

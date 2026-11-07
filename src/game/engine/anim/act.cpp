@@ -272,13 +272,12 @@ int FindVecCurveAKey(T *t, float g)
 
 namespace M_func_0012B738 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
@@ -416,13 +415,12 @@ int FindVecCurveBKey(T *t, float g)
 
 namespace M_func_0012BBD0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
@@ -570,13 +568,12 @@ int FindFloatCurveAKey(T *t, float g)
 
 namespace M_func_0012C140 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
@@ -764,13 +761,12 @@ int FindFloatCurveBKey(T *t, float g)
 
 namespace M_func_0012C768 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 typedef struct KEY { float g; float dg; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
@@ -1254,7 +1250,6 @@ extern "C" void GetPhaseActGoal(ACTPHASE *act, qword *ppos, VECTOR *pdvec)
 
 namespace M_SetActPositionGoal { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
@@ -1263,7 +1258,7 @@ extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 /** @sly2-annot addr=0x12D108
  * Purpose: Store a new position goal (+0x20); if this act is the XF driver (xf+0x90==act) and the goal moved,
@@ -1781,7 +1776,6 @@ namespace M_func_0012DA30 { extern "C" {
 // wip (Claude agent): sibling of matched SetActPositionGoal. ~60 diff: target spills dv (vsub result) to the stack
 // (sqc2 vf3,0(sp); lq before prot3w/pextuw; lqc2 vf2 for the vadds) and uses only s0-s2; ours keeps dv in $s1.
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
@@ -1790,7 +1784,7 @@ extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
-           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+           AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
 /** @sly2-annot addr=0x12DA30
  * Purpose: Stores a rotation goal and pushes it to the ALO (0x230598)

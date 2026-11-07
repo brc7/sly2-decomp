@@ -242,7 +242,6 @@ static inline qword Normal(qword v, U *axis)
     __asm__("qmfc2.ni %0,%1" : "=r"(q) : "j"(r));
     return q;
 }
-static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 /** @sly2-annot addr=0x19E1E0
  * Purpose: Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb
  *   up/down/spin along curve within GetJtPipeSRange, sounds
@@ -288,7 +287,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         U *axis;
         qword direction = Direction(&w.ahead, &w.behind, axis);
         qword normalized = Normal(direction, axis);
-        float z = Z(normalized);
+        float z = QwordZ(normalized);
         if (fabsf(z) > 0.5f) {
             if (z > 0.0f) {
                 if (!pipe->descending)
@@ -299,9 +298,9 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
                 goto turn;
         }
     checkMemory:
-        if (pipe->reset > 0.4f && pipe->descending && Z(normalized) > -0.3f)
+        if (pipe->reset > 0.4f && pipe->descending && QwordZ(normalized) > -0.3f)
             goto turn;
-        if (pipe->reset < -0.4f && !pipe->descending && Z(normalized) < 0.3f)
+        if (pipe->reset < -0.4f && !pipe->descending && QwordZ(normalized) < 0.3f)
             goto turn;
         goto proceed;
     turn:
@@ -594,7 +593,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         EvaluateShapeAtDistance(pipe->path, ClampShapeDistance(pipe->path, pipe->distance - 50.0f), &w.behind, 0);
         U *axis;
         qword direction = DirectionB(&w.ahead, &w.behind, axis);
-        pipe->descending = Z(NormalB(direction, axis)) < -0.5f;
+        pipe->descending = QwordZ(NormalB(direction, axis)) < -0.5f;
         GetJtPipeDistanceRange(pipe, &w.limit);
         pipe->distance = ClampToLimits__FP2LMf(&w.limit, pipe->distance);
         EvaluateShapeAtDistance(pipe->path, pipe->distance, &w.point, 0);

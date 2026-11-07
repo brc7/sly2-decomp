@@ -231,8 +231,6 @@ static inline qwordV Normalize(qwordV v)
     return r;
 }
 // Lane z of a 128-bit EE register as a float.
-static inline float ZOfP(qwordV v)
-{ float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(v)); return z; }
 // Lane x as a float.
 // Length of the xy part of a vector.
 static inline float LenXY(qwordV v)
@@ -429,7 +427,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
                     isInside = 1;
                 if (isInside) {
                     qwordV toCrossing = VuSub(crossPos, posCam);
-                    float slope = ZOfP(toCrossing) / LenXY(toCrossing);
+                    float slope = QwordZ(toCrossing) / LenXY(toCrossing);
                     if (maxSlope < slope)
                         maxSlope = slope;
                 }

@@ -454,14 +454,13 @@ extern "C" void HandleWaterMessage(SOW *water, int message, SOW *sender)
 }
 
 // Query the vertical hit span and optional point and normal outputs.
-static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float Epsilon(){register float f __asm__("$f14");__asm__ __volatile__("li.s %0,%1":"=f"(f):"F"(1e-4f));return f;}
 static inline int WordY(qwordV q){int r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return r;}
 static inline int WordZ(qwordV q){int r;__asm__("pextuw %0,$0,%1":"=r"(r):"r"(q));return r;}
 static inline float FloatWord(int word){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
 static inline int NearX(qwordV d,qwordV n,float e){return AreFloatsNear__Ffff(QwordX(d),QwordX(n),e);}
 static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(y),QwordY(n),e);}
-static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
+static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(z),QwordZ(n),e);}
 /** @sly2-annot addr=0x229468
  * Purpose: vertical hit span and optional surface point/normal
  * Info: proposed name UGetWaterSubmerged (T2); TU water

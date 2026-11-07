@@ -1482,7 +1482,6 @@ struct VU_FLOAT {
 };
 // Helpers PvAllocFrame, GetZ, GFromVf, Add, Sub (small asm wrappers/accessors shaped for the match).
 static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
-static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // Dot product.
 static inline qword Dot(qword a, qword b)
 {
@@ -1570,7 +1569,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
         qword pos = GetLoWorldPos(plo);
         if (!FindPathzoneClosestPoint(pregion, pos, &posSnap.q, 1))
             return;
-        posSnap.f[2] = GetZ(pos);
+        posSnap.f[2] = QwordZ(pos);
     }
     if (FFartherThan(QwordX(LengthXY(VuSub(posOrig.q, posSnap.q))), D_002C0E80))
         return;

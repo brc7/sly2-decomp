@@ -396,7 +396,6 @@ extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *
 static inline qword Broadcast(float g) { qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g));return q; }
 static inline qword BroadcastTo(float g,U *u) { qword q=Broadcast(g); u->q=q;return q; }
 static inline qword Scale(qword a,qword b) { qword q; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(q) : "j"(a),"j"(b));return q; }
-static inline float GetZ(qword v) { float g; __asm__("pextuw %0,$0,%1" : "=r"(g) : "r"(v));return g; }
 inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(Scale(v,k)); }
 /** @sly2-annot addr=0x1A1148
  * Purpose: Hurt-state acceleration: in knockback states add velocity / spring toward target velocity
@@ -422,7 +421,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   v.i[2]=0;v.i[1]=0;v.i[0]=0;
   zero=v.f[2];
   if(p->o->f198!=zero)
-   v.f[2]=GetZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
+   v.f[2]=QwordZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
@@ -1290,7 +1289,6 @@ extern "C" P*DeliverZapToSo(HIT*);
 extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
-static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 /** @sly2-annot addr=0x1A2460
  * Purpose: From UpdateStepplayer: if the player's (height-adjusted) point is inside the linked volume (vt73)
@@ -1319,7 +1317,7 @@ extern "C" void UpdateStepplayerWater(P *player)
         return;
     if (player->link->kind) {
         int notify = 0;
-        if (Z(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
+        if (QwordZ(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
             notify = 1;
         if (notify) {
             HIT hit;

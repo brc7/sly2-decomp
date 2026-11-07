@@ -2249,12 +2249,6 @@ static inline qword DotVec(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float LaneZ(qword qw)
-{
-    float z;
-    __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
-    return z;
-}
 extern "C" { extern CLQ D_002BD280; }
 extern "C" { extern CLQ D_002BD290; }
 extern "C" { extern CLQ D_002BD2A0; }
@@ -2307,7 +2301,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     qword posHero = PosLoWorld(player);
     VU_VECTOR4 vecS = SubPos(posHero, PosLoWorld(lo));
     qword vec = vecS.qw;
-    float dz = LaneZ(vec);
+    float dz = QwordZ(vec);
     float sXY = LaneX(LengthXYInX2(vec));
     if ((LO *)player == *pploCur)
     {
@@ -3058,7 +3052,6 @@ extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
 
 namespace M_func_00143D20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct SO;
 typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
@@ -3076,7 +3069,7 @@ int WillStepplayerLand(struct SO *so, float dt)
 {
     union { qword q; float f[4]; } pos;
     float h = so->z;
-    h += dt * GetZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
+    h += dt * QwordZ(so->vt[33].pfn((struct SO *)((char *)so + so->vt[33].d)));
     h += 0.5f * dt * dt * so->pg->g;
     if (h > 0.0f)
         return 0;

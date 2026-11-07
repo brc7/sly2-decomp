@@ -2976,12 +2976,11 @@ static inline qword Factors(const float *cs, float speed, float *first, float *s
     *second = b;
     return dt;
 }
-static inline float Z(qword q) {float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f;}
 static inline void FNear(int *pf, qword a, qword b)
 {
     if (AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f))
         if (AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f))
-            *pf = AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f) != 0;
+            *pf = AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f) != 0;
 }
 static inline qword BcX(float f)
 {

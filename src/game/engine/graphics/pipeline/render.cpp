@@ -136,7 +136,6 @@ static inline float SavedHeight(float value)
     return height;
 }
 // x, y and z components of a quadword vector.
-static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 // Draws a text label anchored at a world position: projects it to the screen (skipped when nearer than the near
 // plane), scales the text with distance (clamped to D_002C1F28 = 0.4..1.5), centres a padded box just above the point
@@ -147,7 +146,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unu
     float height = SavedHeight(inputHeight);
     CM *camera = &D_002DDF40;
     qword screen = ConvertCmWorldToScreen(camera, position);
-    float depth = Z(screen);
+    float depth = QwordZ(screen);
     if (depth < camera->nearDepth)
         return;
     float scale = ClampToLimits__FP2LMf(&D_002C1F28, height * (D_002C1F20 / (camera->sx * depth)));

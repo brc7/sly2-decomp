@@ -1213,7 +1213,6 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
 
 namespace M_ChooseMurrayThrowTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
 struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
            char pad3[0x1420 - 0x1414]; qword throwGoal; };
@@ -2133,7 +2132,6 @@ void StartMurrayLiftGuard(struct S *murray, struct T *pt)
 
 namespace M_FTryMurrayTakedown { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct O { char pad[0x26C]; char x26C[0xFEC - 0x26C]; void *xFEC; };
 struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
 struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
@@ -2192,7 +2190,7 @@ int TryMurrayTakedown(struct P *murray)
     qword d = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
-    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, GetZ(d)) && murray->interactTarget->xFEC)
+    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && murray->interactTarget->xFEC)
         f = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
@@ -2201,7 +2199,7 @@ int TryMurrayTakedown(struct P *murray)
     }
     d = u.q;
     g = 0;
-    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, GetZ(d)) && murray->x180C)
+    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, QwordZ(d)) && murray->x180C)
         g = ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
     if (!g)
         goto ret0;

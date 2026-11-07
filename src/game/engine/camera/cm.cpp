@@ -1235,7 +1235,6 @@ namespace M_ConvertCmScreenToWorld { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1248,7 +1247,7 @@ qword ConvertCmScreenToWorld(struct CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
     float x = QwordX(v);
-    float z = GetZ(v);
+    float z = QwordZ(v);
     float y = QwordY(v);
     r.f[2] = y;
     r.f[0] = z;
@@ -1334,7 +1333,6 @@ void SetCmMat(struct CM *cm, struct MATRIX3 *pmat)
 
 namespace M_GetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1354,14 +1352,13 @@ qword GetCmRotDeg(struct CMR *p)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(p->mat);
-    r.q = Make(QwordX(v) * DEGREES_PER_RADIAN, QwordY(v) * DEGREES_PER_RADIAN, GetZ(v) * DEGREES_PER_RADIAN);
+    r.q = Make(QwordX(v) * DEGREES_PER_RADIAN, QwordY(v) * DEGREES_PER_RADIAN, QwordZ(v) * DEGREES_PER_RADIAN);
     return r.q;
 }
 } } // namespace M_GetCmRotDeg
 
 namespace M_SetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1385,7 +1382,7 @@ void SetCmRotDeg(struct CM *cm, qword v)
     union { qword q; float f; } r;
     M3 m;
 #define RADIANS_PER_DEGREE 0.017453294f
-    r.q = Make(QwordX(v) * RADIANS_PER_DEGREE, QwordY(v) * RADIANS_PER_DEGREE, GetZ(v) * RADIANS_PER_DEGREE);
+    r.q = Make(QwordX(v) * RADIANS_PER_DEGREE, QwordY(v) * RADIANS_PER_DEGREE, QwordZ(v) * RADIANS_PER_DEGREE);
     LoadRotateMatrixEuler(&m, r.q);
     mat.m3 = m;
     mat.af[2][3] = 0.0f;

@@ -1072,7 +1072,6 @@ struct POLY {float normal[3];int unknown;struct E *head0,*head1;int flags,pad;};
 struct GEOM {char pad94[0x94];qword *positions;int unknown;struct POLY *polygons;};
 struct P {char pad210[0x210];float height;char pad214[0x34];float previous;};
 void FindClosestPointOnLineSegment(qword,qword,qword,qword *,float *,float *);
-static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 /** @sly2-annot addr=0x2048C8
  * Purpose: BFS over mesh polygon adjacency (max 32) from a hit polygon: true if a reachable neighbour within
  *   the step height window has normal.z>0.7
@@ -1099,7 +1098,7 @@ int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY 
             struct E *edge;
             if(!side)edge=poly->head0;else edge=poly->head1;
             while(edge){
-                float z=Z(position);
+                float z=QwordZ(position);
                 FindClosestPointOnLineSegment(position,g->positions[edge->vertices[0]],g->positions[edge->vertices[1]],&closest.q,0,&distance);
                 if(limit<distance)goto next;
                 if(z+delta<closest.f[2])goto next;
@@ -1425,7 +1424,6 @@ static inline qword Rotate(const M3 &m, qword v) {
         : "=&j"(one), "=&j"(a), "=&j"(b), "=&j"(c), "=&j"(r) : "j"(m.r[0]), "j"(v), "r"(&m) : "vf1", "vf2");
     return r;
 }
-static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 /** @sly2-annot addr=0x205008
  * Purpose: STEP vt82: add up to 3 contacts (AddXp 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
@@ -1470,8 +1468,8 @@ extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, q
         AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[0], QwordX(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
     if ((flags & 2) || ((flags & 0x10) && QwordY(posLocal) < 0.0001f))
         AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[1], QwordY(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
-    if ((flags & 4) || ((flags & 0x20) && Z(posLocal) < 0.0001f))
-        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
+    if ((flags & 4) || ((flags & 0x20) && QwordZ(posLocal) < 0.0001f))
+        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[2], QwordZ(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;
 }
 } // namespace M_AddStepAxisXps

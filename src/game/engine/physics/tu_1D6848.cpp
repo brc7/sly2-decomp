@@ -96,7 +96,6 @@ extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV 
 }
 
 /* ---- 0x1D69F0: velocity to go from a to b in dt under acceleration acc ---- */
-static inline float Z(qwordV q) { float f; __asm__("pextuw %0, $zero, %1" : "=r"(f) : "r"(q)); return f; }
 static inline qwordV Bc(float g) {
     union { qwordV q; float f; } u;
     qwordV k;
@@ -115,11 +114,11 @@ static inline qwordV Bc(float g) {
 extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV acceleration, float dt)
 {
     float halfDt = dt * 0.5f;
-    float verticalAcceleration = Z(acceleration);
+    float verticalAcceleration = QwordZ(acceleration);
     qwordV delta, up, upAmount, vertical, horizontal, inverseDt, verticalSpeed, result;
     float height, inverseDtValue;
     delta = VuSub(end, start);
-    height = Z(delta) - (dt * halfDt) * verticalAcceleration;
+    height = QwordZ(delta) - (dt * halfDt) * verticalAcceleration;
     inverseDtValue = 1.0f / dt;
     up = D_002A2DC0;
     upAmount = VuDot(delta, up);

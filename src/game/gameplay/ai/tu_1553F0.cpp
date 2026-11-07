@@ -255,7 +255,6 @@ extern "C" void StartBhvDimitriEscape(BHVESC *behavior)
 }
 
 // VU0 helper: z component of a vector.
-static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // 0x155660: Dimitri escape behaviour update: while watching, switches state when the player comes within 850
 // horizontally and 400 vertically.
 extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
@@ -275,7 +274,7 @@ extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
             __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
             dist = VuToFloat(l);
             f = 0;
-            if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->unknown30) f = 1;
+            if (dist < 850.0f && __builtin_fabsf(QwordZ(d)) < 400.0f && py->unknown30) f = 1;
             if (f) SetBhvDimitriEscapeState(behavior, 1);
             break;
         }
