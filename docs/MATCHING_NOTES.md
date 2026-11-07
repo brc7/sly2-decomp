@@ -561,3 +561,11 @@ Measured while cleaning src/game/gameplay/ai/ (object compared byte-for-byte bef
   -> `&p->segments[i]` in SetBhvpathlinkState (address computed differently). A non-template `static inline`
   helper (tu_171F58) and the template with a cast in tu_1553F0 were emitted out of line (a new local symbol in
   `nm`): check the nm set, not only matchtool, after introducing a helper.
+- **r4 (stepguard, tu_144B28, tu_1709A8):** free: field/local renames, file-local enums for switch cases and magic
+  ids (gadget special states, binding kinds, script command kinds, oids), `~x == 0` -> `x == -1`, char-pointer
+  `*(int *)(p + 0x30)` -> a typed view, an m2c temp chain -> `return a ? b->c : 0;` (GetBhvfollowLeaderGround), a
+  `*(int *)(p + 0xED8) = 0` pair -> a struct view. Not free: merging identical switch cases into one (DetachStepguard:
+  jump table changes), `done = 0; if (...) done = 1;` per case -> `done = expr` or `return expr` (IsAnimBindingDone),
+  dropping a `!!` inside `&&` (GuardEvalInteractMode), the two-if range test -> `&&` (SteerBhvInteract/2), `goto
+  fail` -> returns (DoesTargetRecordAllowGuard). Renaming tool hazard: a token replace of a one-letter struct name
+  (`Q`) also rewrote `vsqrt Q` inside inline asm: the compiler then fails with no message; skip string literals.
