@@ -19,7 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
 #include "sly2/cm.h"
-#include "sly2/snd.h"
+#include "sly2/sndmgr.h"
 #include "sly2/vu0.h"
 
 /* g_sndmgr's static construction and destruction. */
@@ -128,23 +128,7 @@ struct SNDV
    Volume channels: 0 ambience, 1 music, 2 dialog, 3 bank sound effects (the menu's effects slider sets 0 and 3).
    Volume categories (rows of volumes): 1 the options menu, 2 the pause fade (0 pauses the channel's sounds), 3 a player
    mode's ducking (mode.cpp: 0.6); the rest are 1. */
-struct SNDMGRV
-{
-    char pad0[0x1C];
-    SLOTHEAP bankSoundPool;   /* +0x1C */
-    SLOTHEAP streamSoundPool; /* +0x34 */
-    DL dirtySounds;             /* +0x4C */
-    char pad58[0x5C - 0x58];
-    int musicLayer2Requests;                /* +0x5C */
-    int musicLayer0Requests;                /* +0x60 */
-    char pad64[0x68 - 0x64];
-    int muteWhenStoppedFlags;    /* +0x68 */
-    char pad6C[0xFC - 0x6C];
-    SNDV **soundKinds;           /* +0xFC (an int per sound; FindSoundForSfxId returns a pointer into it) */
-    char pad100[0x104 - 0x100];
-    int playbackMode;      /* +0x104 */
-};
-#define G_SNDMGR (*(SNDMGRV *)&D_003DD040)
+#define G_SNDMGR (*(SNDMGR *)&D_003DD040)   /* the field layout of g_sndmgr (sly2/sndmgr.h) */
 #define MUTE_WHEN_STOPPED_ALL 3   /* muteWhenStoppedFlags: both flags set (the default) */
 /* volume channels (GetStreamVolumeChannel, SetSndmgrChannelVolume) and the volume category that pauses a channel's
    sounds at 0 (SetSndmgrChannelVolume; UpdateSndmgr fades it while game time is stopped). Macros, not enums: an enum
@@ -165,7 +149,7 @@ void SetSndFlags(SNDV *sound, int grfMask, int grf);
 SNDV *SND_ctor(SNDV *sound);
 SNDV *BANKSND_ctor(SNDV *sound, int sfxId);
 void *AllocBanksnd(int cb);
-int *FindSoundForSfxId(SNDMGRV *soundManager, int sfxId);
+int *FindSoundForSfxId(SNDMGR *soundManager, int sfxId);
 void snd_PauseSound(int voiceHandle);
 void snd_ContinueSound(int voiceHandle);
 void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
@@ -1227,7 +1211,7 @@ extern "C" void FreeStreamsnd(void *pv)
 namespace M_SNDMGR_ctor { extern "C" {
 struct T { float fastSpeed; float slowSpeed; float fastTime; };   /* SMP: SmoothValue parameters */
 struct V2 { float x, y; };
-/* SNDMGR (layout: see SNDMGRV): BASIC's header, the headset option, the bank / stream sound pools, the dirty list, the
+/* SNDMGR (layout: see SNDMGR): BASIC's header, the headset option, the bank / stream sound pools, the dirty list, the
    paused flag, the mute-when-stopped flags, the microphone noise curves (CLQ), the playback mode, the music layers'
    smoothing parameters, the counted sound pointers released by the destructor (dialog +0x200, the eight music-stack
    entries +0x208, ambience +0x228). */
@@ -1383,7 +1367,7 @@ int *FindSoundForSfxId(struct S *soundManager, int sfxId)
 } } // namespace M_PsndFromSfxid
 
 // Index of a sound entry in the manager's table.
-extern "C" int GetSoundIndex(SNDMGRV *soundManager, SNDV **ppsnd)
+extern "C" int GetSoundIndex(SNDMGR *soundManager, SNDV **ppsnd)
 {
     return (int)((char *)ppsnd - (char *)soundManager->soundKinds) >> 2;
 }
@@ -1423,7 +1407,6 @@ typedef unsigned short   ushort;
 typedef unsigned int     uint;
 typedef uchar byte;
 typedef unsigned long ulong;
-struct SNDMGR;
 class CBinaryStreamBase
 {
 public:
@@ -1463,10 +1446,6 @@ public:
     float F32Read() __asm__("F32Read__18CBinaryInputStream");
     void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
-struct FILEREC
-{
-    uint aw[16];
-};
 struct SWALLOC
 {
     int cb;
@@ -1491,47 +1470,8 @@ inline void *AllocClearedWorldHeapBlock(int cb, int cbAlign)
     return PvAllocSwClearImpl(pswalloc);
 }
 struct STREAMSND;
-/* A dialog line. */
-struct SNDSTREAM
-{
-    FILEREC record;            /* the current language's file */
-    int id;
-    SNDSTREAM *next;
-    int speakerId;             /* the speaking object's id (StartDialog; -1: none) and the subtitle's speaker */
-    int excludeFromHeadset;    /* PlayStreamsnd: 0 = plays through the headset when it is enabled (inferred) */
-    float duration;            /* seconds (subtitles, UpdateDialog) */
-    int numEvents;
-    ulong *events;             /* lip-sync / gesture events: {frames since the previous event, role, value} */
-};
-/* A music track. */
-struct SNDFILE
-{
-    FILEREC record;
-    int id;
-    SNDFILE *next;
-};
-/* SNDMGR (layout: see SNDMGRV) */
-struct SNDMGR
-{
-    byte ab[0x18];
-    int numSfx;
-    byte pad1C[0x8c];
-    FILEREC bankRecord;
-    void *bank;
-    SNDSTREAM *firstDialogStream;
-    SNDFILE *firstMusicFile;
-    FILEREC *ambienceRecord;
-    int numSounds;
-    int *soundKinds;
-    int *soundIndexFromSfx;
-    byte pad104[0xCC];
-    int numAmbienceGroups;
-    int ambienceGroupIds[6];
-    byte pad1EC[0x3C];
-    STREAMSND *ambienceSound;
-};
 extern "C" { extern int D_002E1E54; }
-extern "C" void snd_UnloadBank(void *);
+extern "C" void snd_UnloadBank(int bank);
 extern "C" int snd_FlushSoundCommands(void);
 extern "C" void *func_002333B4(void *, int, uint) __asm__("memset");
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
@@ -1679,7 +1619,7 @@ void PostSoundLoad(struct P *soundManager)
 
 namespace M_ResetSndmgr { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P {
     char pad0[0x14]; int unknown14; int numSfx; char bankSoundPool[0x18]; char streamSoundPool[0x18]; char dirtySounds[0xC];
     int isPaused; int musicLayer2Requests; int musicLayer0Requests; int selectedMusicLayer; int muteWhenStoppedFlags;
@@ -1741,7 +1681,7 @@ namespace M_UpdateSndmgr { extern "C" {
 struct X;
 struct Q { char pad[0x38]; struct Q *nextDirty; };   /* a sound on the dirty list */
 struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
-/* SNDMGR (layout: see SNDMGRV); +0x15C is volumes[2][0], the pause-fade category's weight on the ambience channel */
+/* SNDMGR (layout: see SNDMGR); +0x15C is volumes[2][0], the pause-fade category's weight on the ambience channel */
 struct P { char pad[0x4C]; struct Q *firstDirty; char pad1[0x58 - 0x50]; int isPaused; char pad2[0x15C - 0x5C]; float pauseFadeVolume; char pad3[0x1F0 - 0x160];
     long tickNow; long tickLast; struct X *dialogSound; int musicStackCount; struct X *musicStack[8]; struct X *ambienceSound; };
 struct CLOCK { float time; float deltaTime; char pad[0x40 - 8]; float realDeltaTime; };
@@ -1813,7 +1753,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CLQ { float c0, c1, c2; float pad; };   /* c0 + c1 t + c2 t^2 */
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P { char pad[0x10]; int isHeadsetEnabled; char pad2[0x6C - 0x14]; int isMicLevelQueryBusy; float micLevel; char micNoise[0xC]; struct CLQ micNoiseRangeCurve; struct CLQ micNoiseHeightCurve; };
 struct SW { char pad[0x4034]; struct O *micNoiseType; };   /* the world's noise type for the headset microphone */
 extern struct SW D_003DD490;
@@ -1878,7 +1818,7 @@ extern "C" {
 struct REF {char pad50[0x50];unsigned short flags,playState;};   /* the music STREAMSND */
 struct COEF {float fastSpeed,slowSpeed,fastTime;};   /* SMP */
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P {char pad5C[0x5C];int musicLayer2Requests,musicLayer0Requests,selectedMusicLayer;char pad68[0xA0];float musicLayerWeights[3];struct COEF musicLayerSmoothing[3];char pad138[0xCC];int musicStackCount;struct REF *musicStack[8];};
 extern char D_003DD490[];
 struct PLAYER *GetCurrentPo(void *);
@@ -1954,7 +1894,7 @@ typedef unsigned long ulong;
 struct X { char pad[0x40]; int voiceHandle; char pad2[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; char pad3[0x60 - 0x54]; struct S *record; char pad4[0x68 - 0x64]; ulong playTime; };
 struct Ent { short framesAfterPrevious; short role; int value; };   /* a dialog event */
 struct S { char pad[0x50]; float duration; int numEvents; struct Ent *events; };   /* SNDSTREAM */
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P { char pad[0x200]; struct X *dialogSound; char pad2[0x244 - 0x204]; int dialogEventIndex; float dialogEventTime; float dialogElapsed; };
 void StopDialog(struct P *);
 void ApplyDialogEvent(struct P *, struct Ent *);
@@ -2161,7 +2101,7 @@ void SetSoundManagerFlags(struct S *soundManager, int mask, int isSet) { if (isS
 
 // True when both mute-when-stopped flags are set (the default): UpdateSndmgr then fades the ambience and music out
 // while game time is stopped (the pause menu). Cutscenes and a player mode clear a flag to keep them playing.
-extern "C" int ShouldFadeWhenTimeStops(SNDMGRV *soundManager)
+extern "C" int ShouldFadeWhenTimeStops(SNDMGR *soundManager)
 {
     return soundManager->muteWhenStoppedFlags == MUTE_WHEN_STOPPED_ALL;
 }
@@ -2177,7 +2117,7 @@ struct Ref {
     operator X *() { return px; }
 };
 struct D { char pad[0x48]; int speakerId; char pad2[0x54 - 0x4C]; int numEvents; };   /* SNDSTREAM */
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P { char pad[0x200]; Ref dialogSound; char pad2[0x22C - 0x204]; X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; int dialogElapsed; };
 struct G;
 extern "C" { extern G D_003DD490; }
@@ -2232,7 +2172,7 @@ struct A { int a, b; };   /* a dialog event */
 struct E { char pad[0x54]; int numEvents; struct A *events; };   /* SNDSTREAM */
 struct Y { char pad[0x60]; struct E *record; };   /* the dialog STREAMSND */
 struct Ref { struct Y *px; };
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; struct X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
 #define SM_STATE_MOUTH_REST 0x611   /* (inferred: the speaker's idle mouth) */
 void ApplyDialogEvent(struct P *, struct A *);
@@ -2333,7 +2273,7 @@ int FindStreamGroupIndex(struct S *soundManager, int id)
 } } // namespace M_func_001FE990
 
 // Sets the 989snd output mode (mono / stereo option) if it changed.
-extern "C" void SetSndmgrPlaybackMode(SNDMGRV *soundManager, int nMode)
+extern "C" void SetSndmgrPlaybackMode(SNDMGR *soundManager, int nMode)
 {
     if (soundManager->playbackMode != nMode) {
         soundManager->playbackMode = nMode;
@@ -2443,25 +2383,25 @@ void ResetSndmgrVolumes(void *soundManager)
 } } // namespace M_ResetSndmgrVolumes
 
 // Adds a request for music layer 2 (counted; AI code raises it, inferred: the alert layer).
-extern "C" void AddMusicLayer2Request(SNDMGRV *soundManager)
+extern "C" void AddMusicLayer2Request(SNDMGR *soundManager)
 {
     soundManager->musicLayer2Requests++;
 }
 
 // Removes a request for music layer 2. (inferred)
-extern "C" void RemoveMusicLayer2Request(SNDMGRV *soundManager)
+extern "C" void RemoveMusicLayer2Request(SNDMGR *soundManager)
 {
     soundManager->musicLayer2Requests--;
 }
 
 // Adds a request for music layer 0 (counted). (inferred)
-extern "C" void AddMusicLayer0Request(SNDMGRV *soundManager)
+extern "C" void AddMusicLayer0Request(SNDMGR *soundManager)
 {
     soundManager->musicLayer0Requests++;
 }
 
 // Removes a request for music layer 0. (inferred)
-extern "C" void RemoveMusicLayer0Request(SNDMGRV *soundManager)
+extern "C" void RemoveMusicLayer0Request(SNDMGR *soundManager)
 {
     soundManager->musicLayer0Requests--;
 }
@@ -2481,7 +2421,7 @@ extern const unsigned int r_D_002A82A0[2] __asm__("D_002A82A0") = {0xFFFF0000, (
 namespace M_func_001FEED0 { extern "C" {
 /* 989snd play parameters (as in PlayBanksnd) */
 struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad12; int pad14[3]; short pitch; short pad22; int pad24; int mask; int pad2C; };
-/* SNDMGR (layout: see SNDMGRV) */
+/* SNDMGR (layout: see SNDMGR) */
 struct P { char pad[0x64]; int selectedMusicLayer; char pad2[0xE8 - 0x68]; int bank; char pad3[0x138 - 0xEC]; int sfxVariationStep; };
 #define SFX_VARIATION 0x28
 int RandomIntInRange__Fii(int, int);
