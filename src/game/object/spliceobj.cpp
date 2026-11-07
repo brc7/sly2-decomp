@@ -10,6 +10,7 @@
 #include "sly2/eopid.h"
 #include "sly2/gc.h"
 #include "sly2/sidebag.h"
+#include "sly2/pair.h"
 #include "sly2/method.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
@@ -343,42 +344,15 @@ CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
     return CSidebag_AddBinding(object->scriptVariables, optionId, pref);
 }
 
-/* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
-   the store and the release are out of line (Attach__t7CRefPtr1Z5CPairP5CPair / PairPtr_Assign, _$_t7CRefPtr1Z5CPair), the destructor's
-   release inline. SPPAIR is 16-byte aligned: the original frame has its list pointers in 16-byte slots, so this form
-   exists to reproduce the original codegen. */
-struct CPair;
-class SPPAIR
+/* The list builders below: their owning pointers (sly2/sp.h's CRefOwner<CPair>, starting cleared) are 16-byte
+   aligned: the original frame has its list pointers in 16-byte slots, so this form exists to reproduce the original
+   codegen. The tail store is CRefPtr<CPair>'s assignment, out of line. */
+struct SPPAIR : CRefOwner<CPair>
 {
-public:
-    CPair *p;
-    SPPAIR() { p = 0; }
-    SPPAIR(CPair *q);
-    void Set(CPair *q);
-    ~SPPAIR();
+    SPPAIR() : CRefOwner<CPair>(spNull) {}
+    SPPAIR(CPair *ppair) : CRefOwner<CPair>(ppair) {}
+    void operator=(CPair *ppair) { CRefOwner<CPair>::operator=(ppair); }
 } __attribute__((aligned(16)));
-struct CPair { int cref; int link; CRef ref; SPPAIR next; };
-extern "C" {
-void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *pair);
-void PairPtr_Assign(SPPAIR *psp, CPair *pair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
-void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_t7CRefPtr1Z5CPair");
-CPair *PtNew__t6CGcObj1Z5CPair(void);
-void Unlink__t6CGcObj1Z5CPair(CPair *pair);
-}
-inline SPPAIR::SPPAIR(CPair *q) { Attach__t7CRefPtr1Z5CPairP5CPair(this, q); }
-inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
-inline SPPAIR::~SPPAIR()
-{
-    CPair *q = p;
-    if (q) {
-        if (--q->cref == 0) {
-            PairPtr_Release(&q->next, 2);
-            q->ref.Decref();
-            Unlink__t6CGcObj1Z5CPair(q);
-            FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
-        }
-    }
-}
 
 /* BuildSpliceListFromValues (RefSetArgListFromPvs): a Splice list of c values read directly (grfeopid 2) from apv[i] as type
    aotyp[i]; the void reference for none. */
@@ -393,15 +367,15 @@ CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
     SPPAIR list;
     func_002333B4(&pvrec, 0, sizeof(pvrec));
     pvrec.grfeopid = 2;
-    SPPAIR *ppTail = &list;
+    CPair **ppTail = &list.p;
     for (int i = 0; i < c; i++) {
         void *pv = apv[i];
         pvrec.otyp = aotyp[i];
-        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
+        SPPAIR nw(CGcObj<CPair>::PtNew());
         CRef *pref = &nw.p->ref;
         *pref = GetOptionRecordValue(pv, &pvrec);
-        ppTail->Set(nw.p);
-        ppTail = &nw.p->next;
+        CRefPtrFns<CPair>::Assign(ppTail, nw.p);
+        ppTail = &nw.p->next.p;
     }
     return CRef(list.p);
 }
@@ -419,15 +393,15 @@ CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv)
     func_002333B4(&pvrec, 0, sizeof(pvrec));
     pvrec.otyp = otyp;
     pvrec.grfeopid = 2;
-    list.Set(0);
-    SPPAIR *ppTail = &list;
+    list = 0;
+    CPair **ppTail = &list.p;
     for (int i = 0; i < c; i++) {
         pvrec.ib = i * 4;
-        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
+        SPPAIR nw(CGcObj<CPair>::PtNew());
         CRef *pref = &nw.p->ref;
         *pref = GetOptionRecordValue(pv, &pvrec);
-        ppTail->Set(nw.p);
-        ppTail = &nw.p->next;
+        CRefPtrFns<CPair>::Assign(ppTail, nw.p);
+        ppTail = &nw.p->next.p;
     }
     return CRef(list.p);
 }
