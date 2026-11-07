@@ -224,7 +224,7 @@ struct P {
     qword coordinate, velocity, acceleration;
 };
 union FLOATWORD { float value; int bits; };
-struct CLOCK { float time; FLOATWORD dt; };
+struct CLOCK { float time; FLOATWORD deltaTime; };
 struct CAMERA { char pad90[0x90]; qword position; };
 struct SW { char pad3D58[0x3D58]; int stamp; };
 extern "C" {
@@ -304,10 +304,10 @@ extern "C" void ProjectDprizeTransform(P *prize)
 {
     if (prize->state == 6) { UpdateSoXfWorld(prize); return; }
     float factor;
-    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
+    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.deltaTime.value;
     else factor = 1.0f;
-    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.dt.bits), VU_VECTOR(prize->acceleration));
-    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.dt.bits));
+    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.deltaTime.bits), VU_VECTOR(prize->acceleration));
+    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.deltaTime.bits));
     CHANNEL *channel = prize->position;
     prize->coordinate = newPosition;
     VECTOR_opAssign(&channel->position, newPosition);
@@ -638,7 +638,7 @@ void CheckDprizeCollect(struct S *prize)
     void *ap[0x10];
     int i, n;
     if (!prize->isCollectable) return;
-    if (prize->expireTime < D_002DDED0.t) {
+    if (prize->expireTime < D_002DDED0.time) {
         ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 1);
         return;
     }
@@ -744,7 +744,7 @@ void UpdateDprize(P *prize)
         if (prize->hasBoosted && *(float *)((char *)&prize->velocity + 8) < 25.0f) {
             prize->hasBoosted = 0;
             prize->SetState(DPRIZE_STATE_IDLE);
-        } else if (D_002C0D50 < D_002DDED0.t - prize->stateTime) {
+        } else if (D_002C0D50 < D_002DDED0.time - prize->stateTime) {
             prize->SetState(DPRIZE_STATE_GONE);
         } else {
             CheckDprizeBounce(prize);
@@ -877,7 +877,7 @@ void SetDprizeDprizes(struct S *prize, int n)
         break;
     }
     prize->state = n;
-    prize->stateTime = D_002DDED0.t;
+    prize->stateTime = D_002DDED0.time;
     if (anim != -1) {
         if (!prize->sma) {
             prize->sma = ApplySmToObject(prize->smaSource, prize, anim, 0);
@@ -946,13 +946,13 @@ void EmitDprizeGlint(struct S *prize)
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=prize->previous) {
         if(RandomFloatInRange__Fff(0,1)<prize->probability) {
-            if(D_002C0D90<D_002DDED0.t-prize->last) {
+            if(D_002C0D90<D_002DDED0.time-prize->last) {
                 if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
                 else emitter=prize->right;
                 if(!emitter)goto changed;
                 q=NewRipInGroup(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
-                prize->last=D_002DDED0.t;
+                prize->last=D_002DDED0.time;
                 {
                     struct VTE *method=&q->vt[1];
                     void *ctx=(char *)q+method->delta;
@@ -1009,7 +1009,7 @@ void UpdateDprize(struct O *p);
 void COIN::Update() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
     UpdateDprize(p);
     if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.dt;
+        p->lifetimeLeft -= D_002DDED0.deltaTime;
         if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
     }
 }
@@ -1123,7 +1123,7 @@ void UpdateDprize(struct O *p);
 void MEDICINE::Update() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
     UpdateDprize(p);
     if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.dt;
+        p->lifetimeLeft -= D_002DDED0.deltaTime;
         if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
     }
 }
@@ -1278,7 +1278,7 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
     prize->hasBoosted = 0;
     ((void (*)(void *, int))VT(prize, 76).pf)((char *)prize + VT(prize, 76).d, 3);
     prize->velocity = q2;
-    prize->expireTime = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.t + f2;
+    prize->expireTime = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.time + f2;
 }
 } } // namespace M_LaunchSprayedDprize
 #undef VT
@@ -1666,7 +1666,7 @@ void UpdateDprize(struct O *p);
 void LOOT::Update() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
     UpdateDprize(p);
     if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.dt;
+        p->lifetimeLeft -= D_002DDED0.deltaTime;
         if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
     }
 }
@@ -2261,7 +2261,7 @@ struct SGG;struct ALARM;
 struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
-extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
+extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
 extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
@@ -2269,7 +2269,7 @@ extern "C" int IsAsegaRetracted(void*);
 // Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline float Len(qword a){register qword d __asm__("vf1");register qword one __asm__("vf2");float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
-static inline float ClockTime(){float t;__asm__("lwc1 %0,%1":"=f"(t):"m"(D_002DDED0.t));return t;}
+static inline float ClockTime(){float t;__asm__("lwc1 %0,%1":"=f"(t):"m"(D_002DDED0.time));return t;}
 static inline char*MinimumPage(){register char*page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002A7798));return page;}
 static inline char*SelectionTablePage(){register char*page __asm__("$5");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_002C0FF0));return page;}
 static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){register float minimum __asm__("$f1");register qword*table __asm__("$5");__asm__ volatile("lwc1 %0,%%lo(%4)(%2)\n\taddiu %1,%3,%%lo(%5)":"=f"(minimum),"=r"(table):"r"(minimumPage),"r"(tablePage),"i"(&D_002A7798),"i"(D_002C0FF0),"m"(*(const float*)(minimumPage+0x7798)));*out=minimum;return table;}
@@ -2318,7 +2318,7 @@ extern "C" void UpdateVaultInput(struct S*vault){
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,selectedDigit)==0x194 && OFF(S,enteredCode)==0x198 && OFF(S,relay)==0x19C && OFF(S,dialAnim)==0x1A0 && OFF(S,combination)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,t)==0 && OFF(CLOCK,dt)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
+typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,selectedDigit)==0x194 && OFF(S,enteredCode)==0x198 && OFF(S,relay)==0x19C && OFF(S,dialAnim)==0x1A0 && OFF(S,combination)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,time)==0 && OFF(CLOCK,deltaTime)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
 } // namespace M_func_001C84D8
 #undef OFF
 
@@ -2374,7 +2374,7 @@ void SetVaultState(struct S *vault, int n)
         break;
     }
     vault->state = n;
-    vault->stateTime = D_002DDED0.t;
+    vault->stateTime = D_002DDED0.time;
     switch (n) {
     case -1:
         return;
@@ -2439,7 +2439,7 @@ void SetVaultDialState(struct S *vault, int n)
     if (n == vault->dialState) return;
     DropAsegaRef(vault->dialAnim);
     vault->dialState = n;
-    vault->dialStateTime = D_002DDED0.t;
+    vault->dialStateTime = D_002DDED0.time;
     switch (n) {
     case -1:
         vault->selectedDigit = -1;
@@ -2450,7 +2450,7 @@ void SetVaultDialState(struct S *vault, int n)
         break;
     case 1:
         SetStepplayerGrabTarget(vault->user, vault->dialCenter);
-        vault->dialTimer->endTime = D_002DDED0.t + 0.25f;
+        vault->dialTimer->endTime = D_002DDED0.time + 0.25f;
         px = vault->dialTimer;
         q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
         px->startPoint = q;
@@ -2470,7 +2470,7 @@ void SetVaultDialState(struct S *vault, int n)
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,t)==0 && OFF(struct CLOCK,dt)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0 && OFF(struct S,dialState)==0x188 && OFF(struct S,dialStateTime)==0x18C && OFF(struct S,user)==0x190 && OFF(struct S,selectedDigit)==0x194 && OFF(struct S,dialAnim)==0x1A0 && OFF(struct S,digitTargets)==0x1A8 && OFF(struct S,digitAnims)==0x1CC && OFF(struct S,dialTimer)==0x204 && OFF(struct S,dialCenter)==0x208)?1:-1];
+typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 && OFF(struct CLOCK,deltaTime)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0 && OFF(struct S,dialState)==0x188 && OFF(struct S,dialStateTime)==0x18C && OFF(struct S,user)==0x190 && OFF(struct S,selectedDigit)==0x194 && OFF(struct S,dialAnim)==0x1A0 && OFF(struct S,digitTargets)==0x1A8 && OFF(struct S,digitAnims)==0x1CC && OFF(struct S,dialTimer)==0x204 && OFF(struct S,dialCenter)==0x208)?1:-1];
 } } // namespace M_func_001C8918
 #undef OFF
 

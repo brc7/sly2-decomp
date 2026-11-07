@@ -309,7 +309,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
             SOPHYS *physics = bestContact->sides[0].pso->physics;
             float limit;
             if (flags & 1) {
-                limit = -physics->gravity.z * physics->m * D_002DDED0.dt;
+                limit = -physics->gravity.z * physics->m * D_002DDED0.deltaTime;
                 float amount = __builtin_fabsf(row->pdzOther->gC);
                 row->gMax = bestContact->friction * (amount < limit ? limit : amount);
             } else {

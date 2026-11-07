@@ -327,7 +327,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
             jtMode->state = state;
             break;
     }
-    jtMode->enterTime = D_002DDED0.t;
+    jtMode->enterTime = D_002DDED0.time;
     aseg = 0;
     switch (state)
     {

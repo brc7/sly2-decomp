@@ -22,7 +22,7 @@ struct VIS : public XFM
     } bspc;                   /* +0xE8 BSPC (CBinaryInputStream_ReadBspc) */
     byte geom[0x110 - 0xF8];  /* +0xF8 GEOM (ReadGeom) */
     int isInside;             /* +0x110 -1 after init (unknown) */
-    float changeTime;            /* +0x114 g_clock.t when fInside last changed */
+    float changeTime;            /* +0x114 g_clock.time when fInside last changed */
 };
 typedef char assert_VIS_fInside[SLY2_OFFSETOF(VIS, isInside) == 0x110 ? 1 : -1];
 
@@ -65,11 +65,11 @@ extern "C" void UpdateVisInside(VIS *vis, qword worldPos)
     SetVisInside(vis, FindBspLeafContainingPointFast(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertPosBetweenLos(0, vis, worldPos)) != 0);
 }
 
-// Stores the zone's inside state; on a change also stamps the time (g_clock.t) it changed.
+// Stores the zone's inside state; on a change also stamps the time (g_clock.time) it changed.
 extern "C" void SetVisInside(VIS *vis, int isInside)
 {
     if (isInside != vis->isInside) {
         vis->isInside = isInside;
-        vis->changeTime = D_002DDED0.t;
+        vis->changeTime = D_002DDED0.time;
     }
 }

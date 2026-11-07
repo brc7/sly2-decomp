@@ -314,7 +314,7 @@ void UpdateScreenFocus(struct S *list) {
 } } // namespace M_func_001D95B8
 
 namespace M_func_001D9648 { extern "C" {
-extern struct CLOCK { float t; float dt; float g; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; float g; } D_002DDED0;
 typedef struct { char pad[0x100C]; int unknown100C; } PAD;
 extern int D_002DFBC0;
 extern int D_002DFBC4;
@@ -344,7 +344,7 @@ void UpdateScreens(void *pdl)
 {
     PAD *pad;
     if (D_002DFBC4 & 8) {
-        if (D_002DDED0.g == 0.0f || 0.1f < D_002DDED0.t / D_002DDED0.g)
+        if (D_002DDED0.g == 0.0f || 0.1f < D_002DDED0.time / D_002DDED0.g)
             RemoveGrfusr__Fi(8);
     }
     if (D_002DFBC0 & 2)
@@ -357,7 +357,7 @@ void UpdateScreens(void *pdl)
     } else if (D_002DFBC0 & 2) {
         int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
-        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.t)
+        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.time)
             f = 1;
         if (r && f)
             TryOpenPauseMenu(0);
@@ -779,7 +779,7 @@ extern "C" void ResetNotice(SCREENV *screen)
 }
 
 namespace M_UpdateNotice { extern "C" {
-extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
+extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
 typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
@@ -814,7 +814,7 @@ void UpdateNotice(OBJ *p)
             SetNoticeState(p, NOTICE_HIDING);
         } else if (0.0f < p->duration) {
             if (p->widget && !IsWidgetVisible(p->widget))
-                p->stateTime += D_002DDED0.dt;
+                p->stateTime += D_002DDED0.deltaTime;
         }
         break;
     case NOTICE_HIDING:
@@ -903,7 +903,7 @@ extern "C" int GetCurrentNoticeTextId(SCREENV *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
+extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {

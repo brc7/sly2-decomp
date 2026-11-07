@@ -662,7 +662,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         reconSel->refreshPending = 0;
         EndJtMode(reconSel->model);
     }
-    if (reconSel->choiceTime + 5.0f < D_002DDED0.t)
+    if (reconSel->choiceTime + 5.0f < D_002DDED0.time)
         StopWidgetAnim(reconSel->primary, 0x35B);
     if (reconSel->state < 8)
         if (reconSel->state >= 2) {
@@ -780,7 +780,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
             }
             if (changed) {
                 PlayWidgetAnim(reconSel->primary, 0x35B);
-                reconSel->choiceTime = D_002DDED0.t;
+                reconSel->choiceTime = D_002DDED0.time;
             }
         }
         break;

@@ -354,7 +354,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
     if (initialState < 7) {
         if (initialState >= 4) {
             if (s->transitioning) {
-                float begin = s->transitionStart, end = begin + s->transitionDuration, time = D_002DDED0.t;
+                float begin = s->transitionStart, end = begin + s->transitionDuration, time = D_002DDED0.time;
                 if (end <= time) {
                     s->transitioning = 0;
                     s->targetWorld.q = s->transitionEnd.q;
@@ -368,7 +368,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                 CopyRange(w.scratch.range, s->bounds);
                 if (IsPowerupAcquired(0x24))
                     w.scratch.range.hi *= D_002C40E0;
-                float dt = PlanarSnapshot(Sub(s->targetWorld.q, w.ownerPosition.q), w.delta, D_002DDED0.dt);
+                float dt = PlanarSnapshot(Sub(s->targetWorld.q, w.ownerPosition.q), w.delta, D_002DDED0.deltaTime);
                 float elevation;
                 float scale;
                 qword delta;
@@ -660,7 +660,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
         }
         posPrev = pos;
     }
-    float dtMax = D_002C4100 * D_002DDED0.dt;
+    float dtMax = D_002C4100 * D_002DDED0.deltaTime;
     thrower->distance = Clamp(t, thrower->distance - dtMax, thrower->distance + dtMax);
     t = thrower->distance;
     i = 0;
@@ -698,7 +698,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
                 pframe->gValid = 1.0f;
             } else
                 pframe->gValid = 0.0f;
-            pframe->t = D_002DDED0.t;
+            pframe->t = D_002DDED0.time;
             pframe->s = 0.0f;
             pframe->mat = mat;
         }
@@ -718,7 +718,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
             uTurnOld = thrower->ablB[3].weight / uFarOld;
         else
             uTurnOld = thrower->ablB[1].weight / (1.0f - uFarOld);
-        float dtFrame = D_002DDED0.dt;
+        float dtFrame = D_002DDED0.deltaTime;
         float du = D_002C4104 * dtFrame;
         uFar = Clamp(uFar, uFarOld - du, uFarOld + du);
         uTurn = Clamp(uTurn, uTurnOld - du, uTurnOld + du);
@@ -829,7 +829,7 @@ extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, O *object, int n)
 }
 
 static inline float DivideBits(int bits,float denominator){register float value asm("$f0");register float rate asm("$f2")=denominator;__asm__ ("mtc1 %1,%0\n\tdiv.s %0,%0,%2":"=&f"(value):"r"(bits),"f"(rate));return value;}
-static inline float ClockNow(void){float value;__asm__ __volatile__ ("lwc1 %0,%1":"=f"(value):"m"(D_002DDED0.t));return value;}
+static inline float ClockNow(void){float value;__asm__ __volatile__ ("lwc1 %0,%1":"=f"(value):"m"(D_002DDED0.time));return value;}
 static inline void PublishStart(JTTHROW *thrower,int active,float now,float span){asm("sw %3,%0\n\tswc1 %4,%1\n\tswc1 %5,%2":"=m"(thrower->transitioning),"=m"(thrower->transitionStart),"=m"(thrower->transitionDuration):"r"(active),"f"(now),"f"(span));}
 static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero,1":"=r"(value));return value;}
 // In states 4..6: stores the launch and target points, flight time = distance / speed, start time = now, and marks
@@ -1017,7 +1017,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     }
     int previous = s->state;
     s->state = state;
-    s->time = D_002DDED0.t;
+    s->time = D_002DDED0.time;
     RefreshSwObjectCollisionFilter(&D_003DD490, s->owner);
     switch (s->state) {
     case -1:

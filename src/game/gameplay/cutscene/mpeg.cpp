@@ -11,7 +11,7 @@
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 struct LM { float low, high; };
-struct CLOCK { float t; float dt; char pad[0x34]; float realTime; }; /* +0x3C: real (unscaled) time, inferred */
+struct CLOCK { float time; float deltaTime; char pad[0x34]; float realTime; }; /* +0x3C: real (unscaled) time, inferred */
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
 struct K { uint offsetScrambled, lengthScrambled, idScrambled; char pad[0x34 - 0xC]; uint offsetKey, idKey, lengthKey; };   /* each value = scrambled ^ key */
 /* The subtitle shown over a movie: its text id and the time window. */

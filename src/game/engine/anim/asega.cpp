@@ -159,7 +159,7 @@ extern "C" void UpdateAsega(ASEGA *player)
         if (ResolveAsegFlags(player->paseg) & 0x100)
             player->tLocal = player->tLocal + player->svt * D_002DDED0.realDeltaTime;
         else
-            player->tLocal = player->tLocal + player->svt * D_002DDED0.dt;
+            player->tLocal = player->tLocal + player->svt * D_002DDED0.deltaTime;
         HandleAsegaEvents(player);
         if (IsAsegaRetracted(player))
             { End(&g); return; }

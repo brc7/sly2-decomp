@@ -141,7 +141,7 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
     GetPipeGoalMatrix(pipe->path, pipe->distance, pipe->descending == 0, &m);
     if (pipe->state == 0 || pipe->state == 4) {
         JT *o = pipe->actor;
-        float dt = D_002DDED0.dt;
+        float dt = D_002DDED0.deltaTime;
         float g = o->asega->paseg->duration - o->asega->t;
         M3 *pa;
         g = g > dt ? g : dt;
@@ -160,7 +160,7 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
         VE *vt = o->vt;
         void (*call)(void *, qword) = (void (*)(void *, qword))vt[36].fn;
         void *thisp = (char *)o + vt[36].delta;
-        call(thisp, Scale(vec.q, f / D_002DDED0.dt));
+        call(thisp, Scale(vec.q, f / D_002DDED0.deltaTime));
     }
 }
 
@@ -222,7 +222,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     WORK w;
     float lowSpeed, highSpeed;
     JT *actor = pipe->actor;
-    actor->offset.q = PosSmooth(actor->offset.q, D_002A2DD0.q, D_002DDED0.dt, &D_002BF928, 0);
+    actor->offset.q = PosSmooth(actor->offset.q, D_002A2DD0.q, D_002DDED0.deltaTime, &D_002BF928, 0);
     register float amount __asm__("$f4"), dot __asm__("$f3"), zero __asm__("$f2");
     register int previous __asm__("$5");
     {
@@ -354,8 +354,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     pipe->reset = nextMemory;
     if (!path->cyclic) {
         GetJtPipeDistanceRange(pipe, &w.limit);
-        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.low, clock->dt, &w.reuse.smooth, &lowSpeed);
-        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.high, clock->dt, &w.reuse.smooth, &highSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.low, clock->deltaTime, &w.reuse.smooth, &lowSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.high, clock->deltaTime, &w.reuse.smooth, &highSpeed);
         float low = -highSpeed, high = -lowSpeed;
         if (speed < low)
             speed = low;
@@ -365,7 +365,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     register float stopped __asm__("$f21") = 0.0f;
     pipe->speed = -speed;
     if (speed != stopped) {
-        pipe->distance += pipe->speed * D_002DDED0.dt;
+        pipe->distance += pipe->speed * D_002DDED0.deltaTime;
         InvalidateSoAaox(pipe->actor);
     }
     if (pipe->path->cyclic)
@@ -533,7 +533,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         break;
     }
     pipe->state = next;
-    pipe->time = D_002DDED0.t;
+    pipe->time = D_002DDED0.time;
     ASEGV *clip = 0;
     float position = 0.0f, speed = 1.0f;
     int flags = 1;

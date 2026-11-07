@@ -760,7 +760,7 @@ void SetBarrelState(struct O *barrel, int n)
         { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
     }
     barrel->carryState = n;
-    barrel->unknown180 = D_002DDED0.t;
+    barrel->unknown180 = D_002DDED0.time;
 }
 } // namespace M_func_00183B80
 

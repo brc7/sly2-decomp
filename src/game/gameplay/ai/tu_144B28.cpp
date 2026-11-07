@@ -220,7 +220,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         }
         if (behavior->forcesButton8)
             poctl->grfbtn |= 8;
-        if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.t - behavior->pathStateTime) {
+        if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.time - behavior->pathStateTime) {
             int mirror = 1;
             struct O *leader = behavior->mirrorPoctl->po;
             qword own, other;
@@ -804,7 +804,7 @@ void SetBhvfollowState(struct P *behavior, int state)
     if (state == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = state;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (state) {
     case 0: {
         struct O *child = PushStepBehavior(behavior->guard, CID_BHV168);
@@ -959,7 +959,7 @@ void UpdateBhvInteract(struct P *behavior)
                 SetBhvInteractState(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.time - behavior->stateTime)
                 SetBhvInteractState(behavior, -1);
             break;
         }
@@ -997,7 +997,7 @@ void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
             speed = 0.1f;
         poctl->speed = speed;
         poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
-        if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
+        if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
         }
@@ -1017,7 +1017,7 @@ extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     if (state == 2) {
         SetBhvBusy(behavior);
     }
@@ -1148,7 +1148,7 @@ void UpdateBhvInteract2(struct P *behavior)
                 SetBhvInteract2State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.time - behavior->stateTime)
                 SetBhvInteract2State(behavior, -1);
             break;
         }
@@ -1186,7 +1186,7 @@ void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
             speed = 0.1f;
         poctl->speed = speed;
         poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
-        if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
+        if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
         }
@@ -1206,7 +1206,7 @@ extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     if (state == 2) {
         SetBhvBusy(behavior);
     }
@@ -1356,11 +1356,11 @@ void UpdateBhvInteract3(struct P *behavior)
                 SetBhvInteract3State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.time - behavior->stateTime)
                 SetBhvInteract3State(behavior, -1);
             break;
         case 3: {
-            float t = D_002DDED0.t;
+            float t = D_002DDED0.time;
             if (0.1f < t - behavior->stateTime) {
                 struct PO *owner = behavior->owner;
                 if (owner->airState != -1) {
@@ -1372,7 +1372,7 @@ void UpdateBhvInteract3(struct P *behavior)
             break;
         }
         case 4:
-            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->jtState != 13)
+            if (0.1f < D_002DDED0.time - behavior->stateTime && behavior->owner->jtState != 13)
                 SetBhvInteract3State(behavior, -1);
             break;
         }
@@ -1457,7 +1457,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         qword d = VuSub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         poctl->speed = 1.0f;
         poctl->heading = AngleXY(d);
-        if (D_002DDED0.t - behavior->stateTime < 0.1f) {
+        if (D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;
             UpdatePoctlPressed(poctl);
         }
@@ -1481,7 +1481,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         }
         poctl->speed = s;
         poctl->heading = AngleXYKeepAlive(d, b);
-        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
+        if (D_002DDED0.time - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
             poctl->grfbtn |= 0x40;   /* jump (state 3: the jump attack) */
             UpdatePoctlPressed(poctl);
         }
@@ -1491,7 +1491,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         qword d = VuSub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         poctl->speed = 1.0f;
         poctl->heading = AngleXY(d);
-        if (D_002DDED0.t - behavior->stateTime < 0.1f) {
+        if (D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;
             UpdatePoctlPressed(poctl);
         }
@@ -1516,7 +1516,7 @@ void SetBhvInteract3State(struct P *behavior, int state)
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (state) {
     case 2: case 3: case 4:
         SetBhvBusy(behavior);
@@ -1596,7 +1596,7 @@ void UpdateBhvMurray(struct P *behavior)
                 heading = GetStepHeading(behavior->murray);
                 {
                     float turn = NormalizeAngle__Ff(headingToPlayer - heading);
-                    float dt = D_002DDED0.dt;
+                    float dt = D_002DDED0.deltaTime;
                     float turnRate = D_002BD378;
                     SetStepTargetHeading(behavior->murray, heading + ClampAbs__Fff(turn, turnRate * dt));
                 }

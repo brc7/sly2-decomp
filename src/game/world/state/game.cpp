@@ -173,7 +173,7 @@ struct G {
     char pad10[0xC]; OPT *playTimeVar;
     char pad20[0x38]; OPT *episodePlayTimeVars[9];
 };
-struct CLOCK { float time, dt; };
+struct CLOCK { float time, deltaTime; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
@@ -202,20 +202,20 @@ extern "C" void UpdateGameTimers()
     if (!D_003DD490.playTimeVar)
         return;
     float playTime = GetFloat(D_003DD490.playTimeVar, D_003D4A60);
-    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.dt, D_003D4A60);
+    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.deltaTime, D_003D4A60);
     unsigned int episode = GetCurrentWorld();
     if (episode < 9) {
         OPT *var = D_003DD490.episodePlayTimeVars[episode];
         if (var) {
             float episodeTime = GetFloat(var, D_003D4A60);
-            SetFloat(var, episodeTime + D_002DDED0.dt, D_003D4A60);
+            SetFloat(var, episodeTime + D_002DDED0.deltaTime, D_003D4A60);
         }
     }
     JOBTIME *job = D_003DD490.currentJob;
     if (job && (float)g_joy.dtIdle < 10.0f) {   /* only while the player is not idle */
-        job->elapsed += D_002DDED0.dt;
+        job->elapsed += D_002DDED0.deltaTime;
         if (job->start < job->elapsed)
-            ChangeDifficulty(D_002DE578, D_002DDED0.dt / (job->end - job->start));
+            ChangeDifficulty(D_002DE578, D_002DDED0.deltaTime / (job->end - job->start));
     }
 }
 
@@ -246,7 +246,7 @@ typedef char G_EpisodePlayTimeVars[FIELD_OFFSET(G,episodePlayTimeVars)==0x3B58?1
 typedef char G_EpisodeCount[sizeof(((G*)0)->episodePlayTimeVars)/sizeof(OPT*)==9?1:-1];
 typedef char Clock_Size[sizeof(CLOCK)==8?1:-1];
 typedef char Clock_Time[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char Clock_Delta[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char Clock_Delta[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 } // namespace M_UpdateGameTimers
 #undef FIELD_OFFSET
 
@@ -385,7 +385,7 @@ void ShowCountdownHud(struct SW *world, float dt)
         entry = &widget->vt[49];
         entry->pfn((char *)widget + entry->d, -1);
     }
-    world->hideTime = D_002DDED0.t + dt;
+    world->hideTime = D_002DDED0.time + dt;
 }
 } } // namespace M_func_001618F8
 
@@ -1452,7 +1452,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
         IncrementSwHandsOff(D_003DD490, 2);
     }
     job->completionPhase = phase;
-    job->completionPhaseTime = D_002DDED0.t;
+    job->completionPhaseTime = D_002DDED0.time;
     switch (phase) {
     case PHASE_NONE: {
         if (job->widget379) HideWidget(job->widget379);
@@ -1815,8 +1815,8 @@ void UpdateTask(struct S *task)
     struct O *marker;
     UpdateLo(task);
     if (task->state == TASK_STATE_AVAILABLE && task->timeLimit > 0.0f) {
-        float elapsed = D_002DDED0.t - task->stateChangeTime;
-        if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.dt <= elapsed)
+        float elapsed = D_002DDED0.time - task->stateChangeTime;
+        if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.deltaTime <= elapsed)
             SendTaskTimeout(task, 0);
     }
     marker = task->marker;
@@ -3172,7 +3172,7 @@ extern "C" void SetTaskState(O *task, int n)
         break;
     }
     task->state = n;
-    task->stateChangeTime = D_002DDED0.t;
+    task->stateChangeTime = D_002DDED0.time;
     UpdateTaskSaveVars(task);
     if (IsTaskLive(task)) {
         BroadcastGameEvent(D_002DEB30, 0x25, task);

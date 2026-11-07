@@ -81,12 +81,12 @@ struct JT : public STEPPLAYER
       CID19 *phndHang;      /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
       JTS jts;              /* +0x18C8 [R] movement state: 0 Stand 1 Run 2 Air 3 Hang 4 Hurt 6 Interact 8 Pipe 11 Pickpocket
                                12 Walk 21 SurfaceClimb 22 HangFollow 23 Throw/aim (runtime2/3, slygame JTS) */
-      float tJts;           /* +0x18CC [R] clock.t when jts was entered (t - tJts = time in state); was tUnk18cc */
+      float tJts;           /* +0x18CC [R] clock.time when jts was entered (t - tJts = time in state); was tUnk18cc */
       JTBS jtbs;            /* +0x18D0 [R] body state; -1 in all observed states */
-      float tJtbs;          /* +0x18D4 [S] clock.t when jtbs was entered (by analogy with tJts); was tUnk18d4 */
+      float tJtbs;          /* +0x18D4 [S] clock.time when jtbs was entered (by analogy with tJts); was tUnk18d4 */
       int jtas;             /* +0x18D8 [R] cane/attack anim state (SetJtAnimState); ram_inspector calls it jtcs; 8/9 = attack
                                clips (ChooseJtGroundState), -1 none */
-      float tJtas;          /* +0x18DC [R] clock.t when jtas was entered; was tUnk18dc */
+      float tJtas;          /* +0x18DC [R] clock.time when jtas was entered; was tUnk18dc */
 
       JTANIM janim;   /* animation and hang state */
       undefined4 unk_0x1970[0x24 / 4];

@@ -1588,7 +1588,7 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 namespace M_func_001ACC38 { extern "C" {
 struct H { char pad[0xFD50]; int currentSlot; };
 extern struct H D_002E65E0;
-struct CLOCK { float t; float dt; char pad[0x34]; float realTime; };
+struct CLOCK { float time; float deltaTime; char pad[0x34]; float realTime; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.

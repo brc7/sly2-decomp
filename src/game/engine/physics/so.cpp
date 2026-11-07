@@ -1094,7 +1094,7 @@ void UpdateSo(struct P *so)
     if (q) SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
     d = so->alphaRate;
     if (d != 0.0f) {
-        float v = so->alpha + D_002DDED0.dt * d;
+        float v = so->alpha + D_002DDED0.deltaTime * d;
         so->alpha = v;
         if (v <= 0.0f) {
             so->alpha = 0.0f;
@@ -1217,7 +1217,7 @@ void UpdateSoXfWorld(struct P *so)
     UpdateSoPartMatrices(so);
     for (i = 0; i < so->numParts; i++) {
         struct E *pe = &so->parts[i];
-        if (*(int *)&pe->flags) UpdateSoPartMesh(pe, D_002DDED0.dt);
+        if (*(int *)&pe->flags) UpdateSoPartMesh(pe, D_002DDED0.deltaTime);
     }
     if (so->physics) {
         if (so->positionXf) so->physics->velocity = so->positionXf->velocity;
@@ -2660,7 +2660,7 @@ void GetSoCameraDefaults(struct P *so, struct Out *po)
     ps = o->rotation;
     po->velocity = GetXfVelocity(o, 0, q);
     TiltMatUpright(ps, 0, &v);
-    po->heading = atan2f(-v.y, -v.x); po->adjustment = 100.0f; po->flags = 0; po->lastMoveTime = D_002DDED0.t; po->unknown3C = 0;
+    po->heading = atan2f(-v.y, -v.x); po->adjustment = 100.0f; po->flags = 0; po->lastMoveTime = D_002DDED0.time; po->unknown3C = 0;
 }
 } } // namespace M_GetSoCpdefi
 
@@ -2699,7 +2699,7 @@ struct SPACE;
 struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
@@ -2748,17 +2748,17 @@ extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *
     desired=ClampAbs__Fff((angle/stopAngle)*maximum,maximum);
     speed=QwordX(DotQ(owner->velocity,axis.q));
     clock=&D_002DDED0;
-    float half=clock->dt*0.5f;
+    float half=clock->deltaTime*0.5f;
     remaining=angle-(speed+desired)*half;
     if(remaining<stopAngle)desired=ClampAbs__Fff((remaining/stopAngle)*maximum,maximum);
     U scalar;
     qword w;
     {qword k=Scalar(desired,&scalar);w=Scale(axis.q,k);StoreQ(w,&wanted);}
-    {qword v=owner->velocity;qword k=Scalar(clock->dt,&scalar);predicted.q=AddScaled(v,owner->force,k);}
+    {qword v=owner->velocity;qword k=Scalar(clock->deltaTime,&scalar);predicted.q=AddScaled(v,owner->force,k);}
     qword cv=VuSub(w,predicted.q);
     change.q=cv;
     length=Length(cv);
-    if(length<acceleration*clock->dt)gain=1.0f/clock->dt;
+    if(length<acceleration*clock->deltaTime)gain=1.0f/clock->deltaTime;
     else gain=acceleration/length;
     StoreQ(ScaleNew(cv,Scalar(gain,&scalar)),&change);
     owner->force=Add(owner->force,change.q);
@@ -2769,7 +2769,7 @@ typedef char check_owner_parent[((unsigned)&((OWNER*)0)->parent==0xA0)?1:-1];
 typedef char check_owner_velocity[((unsigned)&((OWNER*)0)->velocity==0xB0)?1:-1];
 typedef char check_owner_force[((unsigned)&((OWNER*)0)->force==0xF0)?1:-1];
 typedef char check_object_owner[((unsigned)&((P*)0)->owner==0x5C)?1:-1];
-typedef char check_clock_dt[((unsigned)&((CLOCK*)0)->dt==4)?1:-1];
+typedef char check_clock_dt[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 } // namespace M_func_001F59A0
 
 // 0x1F5C30 AccelSoTowardMatSpring
@@ -2781,7 +2781,7 @@ struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];r
 struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -2819,7 +2819,7 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
         float length=Length(direction);
         if(0.0001f<length){
             float gain=(d->c*length+d->b)+d->a/length;
-            float limit=1.0f/D_002DDED0.dt;
+            float limit=1.0f/D_002DDED0.deltaTime;
             U scalar;
             qword k;
             if(limit<gain)gain=limit;
@@ -2839,7 +2839,7 @@ struct COEF {float a,b,c;};
 struct VE {short d,pad;qword(*fn)(void*);};
 struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
 struct S {char pad[0xC];struct VE *vt;char pad10[0x48];struct OWNER *owner;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 extern struct CLOCK D_002DDED0;
 qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
@@ -2878,7 +2878,7 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
    if(1.0e-4f<distance){
      register void *parent asm("a1");
      float value=(d->c*distance+d->b)+d->a/distance;
-     float limit=1.0f/D_002DDED0.dt;
+     float limit=1.0f/D_002DDED0.deltaTime;
      if(limit<value)value=limit;
      scale2.q=Scalar(value);
      {register qword oldValue asm("v0")=owner->force;old2.q=oldValue;}parent=owner->parent;argument.q=LoadVector(&scale2);
@@ -3740,7 +3740,7 @@ void ExpireSwZapRecords(struct P *so)
     struct E *pe;
     InitDli(&dli, &so->dl);
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.t < pe->t + 0.25f) continue;
+        if (D_002DDED0.time < pe->t + 0.25f) continue;
         RemoveDlEntry__FP2DLPv(&so->dl, pe);
         FreeSlotheapSlot(so->pool, pe);
     }

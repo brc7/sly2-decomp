@@ -387,7 +387,7 @@ extern "C" void SetBtnButtons(BTN *btn, int state)
     shouldTrigger = oldState == BTN_UP && state == BTN_DOWN;
     shouldUntrigger = oldState != BTN_UNINITIALIZED && state == BTN_UP;
     btn->state = state;
-    btn->stateTime = D_002DDED0.t;
+    btn->stateTime = D_002DDED0.time;
     if (shouldTrigger)
         TriggerBtn(btn);
     if (shouldUntrigger)
@@ -477,8 +477,8 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
     {
         SLYV *sly = D_002E1E40;
         if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON && sly->interactionId == button->slyInteractionId)
-            button->btn.stateTime = D_002DDED0.t;
-        if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.t - button->btn.stateTime)
+            button->btn.stateTime = D_002DDED0.time;
+        if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.time - button->btn.stateTime)
             SetButtonButtons(button, BTN_RESETTING);
         break;
     }
@@ -571,7 +571,7 @@ extern "C" void *TakeButtonDamage(BUTTONV *button, WKR *hit)
         case PRESS_WORKER_TOGGLE:
             if (button->btn.state == BTN_UP)
             {
-                if (button->btn.resetDelay <= D_002DDED0.t - button->btn.stateTime)
+                if (button->btn.resetDelay <= D_002DDED0.time - button->btn.stateTime)
                     SetButtonButtons(button, BTN_DOWN);
             }
             else if (button->btn.state == BTN_DOWN)
@@ -591,7 +591,7 @@ extern "C" void UpdateButtonPlayerPush(BUTTONV *button)
     if (IsBasicDerivedFrom((BASIC *)button->pusher, (CIDV)0x34))
     {
         PUSHER *hero = (PUSHER *)button->pusher;
-        if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.t - hero->stateTime < 0.15f))
+        if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.time - hero->stateTime < 0.15f))
         {
             button->pusher = 0;
             return;
@@ -751,7 +751,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
     state = volumeButton->btn.state;
     if (state == BTN_PRESSED)
     {
-        if (0.0f <= volumeButton->btn.resetDelay && volumeButton->btn.resetDelay < D_002DDED0.t - volumeButton->btn.stateTime)
+        if (0.0f <= volumeButton->btn.resetDelay && volumeButton->btn.resetDelay < D_002DDED0.time - volumeButton->btn.stateTime)
             SetVolbtnButtons(volumeButton, BTN_DOWN);
     }
     else if (state < BTN_LOCKED) if (state >= BTN_UP)   /* two tests: a combined range test becomes one unsigned compare */

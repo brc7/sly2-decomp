@@ -1329,7 +1329,7 @@ namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
 typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern struct CLOCK { float t; float dt; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
 extern DLI *D_002DD2FC;
 typedef struct {
     char pad[0x40];
@@ -1383,7 +1383,7 @@ void UpdateRelay(OBJ *relay)
     if (fl & LO_FLAG_UNPAUSED)
         relay->firedTime += D_002DDED0.realDeltaTime;
     else
-        relay->firedTime += D_002DDED0.dt;
+        relay->firedTime += D_002DDED0.deltaTime;
     InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         UpdateRelayScript(pv);
@@ -3949,7 +3949,7 @@ void NextJsgCommand(JSGV *script)
     }
     else
     {
-        script->tCommand = D_002DDED0.t;
+        script->tCommand = D_002DDED0.time;
     }
 }
 } // namespace M_NextJsgCommand__FP3JSG
@@ -4067,7 +4067,7 @@ static inline float TJsgNow(JSGV *script)
     {
         return D_002DDED0.realTime;
     }
-    return D_002DDED0.t;
+    return D_002DDED0.time;
 }
 int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
 // Whether the given command has finished, by kind.
@@ -4388,7 +4388,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         fComplete = prelaycmd->rumble.dtRumble < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_CamBlendTo:
-        fComplete = script->tBlendEnd <= D_002DDED0.t;
+        fComplete = script->tBlendEnd <= D_002DDED0.time;
         if (fComplete)
         {
             if (prelaycmd->camBlendTo.nUnk16 != 0)

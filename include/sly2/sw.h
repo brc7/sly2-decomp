@@ -279,7 +279,7 @@ struct SW : public BASIC
       float tGuardsFrozen;   /* time the guards were frozen */
       float tLookLast;   /* time of the last look-around (inferred) */
       uint32_t   _pad_352    [ 1 ] ;
-      float tUnk4758;       /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.t (guardbhv.cpp) */
+      float tUnk4758;       /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
       float gUnk475c;
       uint32_t   _pad_354    [ 1 ] ;
       int cClue;            /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */

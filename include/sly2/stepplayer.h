@@ -506,7 +506,7 @@ struct STEPPLAYER : public STEP
       struct EMITTER *pemitterGrab;   /* grab effect emitter */
       int *gadgetPower;     /* +0x12FC [R] -> save var <char>.mpCur (gadget power) */
       int maxGadgetPower;   /* +0x1300 [R] max gadget power */
-      float lastGadgetUseTime; /* +0x1304 [R] clock.t of the last gadget use */
+      float lastGadgetUseTime; /* +0x1304 [R] clock.time of the last gadget use */
       float gadgetPowerDrainRemainder; /* +0x1308 [R] fractional mp drain accumulator */
       int unknown130C;
       struct ASEGA *pasegaGadgetOverlay;   /* +0x1310 [R] ASEGA of the gadget overlay animation; was pasegaUnk1310 */

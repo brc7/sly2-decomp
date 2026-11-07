@@ -307,12 +307,12 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     else
         bias = D_002BF50C;
     U angular, parallelAngular, perpendicularAngular;
-    angular.q = AddScaledVec(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt));
+    angular.q = AddScaledVec(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->deltaTime));
     SplitVectorAlongAxis(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
-    angular.q = CombineVec(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->dt + 1.0f),
-                        VuFloat(bias * Addr(&D_002DDED0)->dt + 1.0f));
-    if ((jt->state == 0 || jt->state == 2) && D_002DDED0.t - jt->changed < D_002BF510) {
-        float amount = Addr(&D_002DDED0)->dt * D_002BF514;
+    angular.q = CombineVec(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->deltaTime + 1.0f),
+                        VuFloat(bias * Addr(&D_002DDED0)->deltaTime + 1.0f));
+    if ((jt->state == 0 || jt->state == 2) && D_002DDED0.time - jt->changed < D_002BF510) {
+        float amount = Addr(&D_002DDED0)->deltaTime * D_002BF514;
         if (jt->state == 0)
             amount = -amount;
         if (jt->flipped)
@@ -331,7 +331,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         angular.q = AddScaledVec(angular.q, anchorBasis.r[1].q, VuFloat(amount));
     }
     float speedOut;
-    float next = SmoothValueWithAccel__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->dt,
+    float next = SmoothValueWithAccel__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->deltaTime,
                                          &D_002BF530, &speedOut);
     angular.q = ScaleVecX(angular.q, VuFloat(StdMin(D_002BF544, distance) / MaxOf(D_002BF540, next)));
     U velocity;
@@ -343,7 +343,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         __asm__(
             ""
             : "=r"(dt)
-            : "0V"(*(int *)&D_002DDED0.dt)
+            : "0V"(*(int *)&D_002DDED0.deltaTime)
             : "memory"); /* empty asm, see below: the "memory" clobber keeps the point/spin/base loads after the dt store (target order) */
         base =
             anchorVelocity
@@ -356,7 +356,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         velocity.q = AddScaledVec2Q(base, spin, VuCross(spin, arm), dt);
     } else
         velocity = anchorVelocity;
-    state.rotation = BuildRotationMatrixFromVector(ScaleVecX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->dt * 0.5f)));
+    state.rotation = BuildRotationMatrixFromVector(ScaleVecX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->deltaTime * 0.5f)));
     state.direction.q = RotateVec(&state.rotation, axis.q);
     qword radius = ScaleVecXK(state.direction.q, VuFloat(next));
     state.position.q = VuAdd(anchor.q, radius);
@@ -364,7 +364,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
                         ScaleVecX(state.direction.q, VufFromMemWord(*(int *)&speedOut)));
     state.velocity.q = final;
     qword current = GetVelocityOf(jt);
-    projected.q = VuSubRef(DivVecBy(VuSubRef(final, current), VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt).qw),
+    projected.q = VuSubRef(DivVecBy(VuSubRef(final, current), VufFromMemWord(*(int *)&Addr(&D_002DDED0)->deltaTime).qw),
                            jt->accel->value.q);
     if (jt->link)
         AnticipateJtForce((NODE *)jt, jt->link->object, &anchor.q, (float *)&projected.q, jt->response);
@@ -442,8 +442,8 @@ typedef char CURVE_value_Offset[FIELD_OFFSET(CURVE,value)==28?1:-1];
 typedef char CURVE_slope_Offset[FIELD_OFFSET(CURVE,slope)==64?1:-1];
 typedef char ANIMATION_gain_Offset[FIELD_OFFSET(ANIMATION,gain)==116?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==4?1:-1];
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char WORK_reference_Offset[FIELD_OFFSET(WORK,reference)==0?1:-1];
 typedef char WORK_direction_Offset[FIELD_OFFSET(WORK,direction)==16?1:-1];
 typedef char WORK_local_Offset[FIELD_OFFSET(WORK,local)==32?1:-1];
@@ -466,10 +466,10 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         float d = Abs(inputDifference);
         if (d < 1.0471975803375244140625f) {
             near = 1;
-            jt->farTime = D_002DDED0.t;
+            jt->farTime = D_002DDED0.time;
         } else if (d > 2.094395160675048828125f) {
             far = 1;
-            jt->farTime = D_002DDED0.t;
+            jt->farTime = D_002DDED0.time;
         }
     } else
         jt->previous = -1;
@@ -527,22 +527,22 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         if (far)
             next = 2;
         else if (near) {
-            if (D_002DDED0.t - jt->changed > D_002BF554) {
+            if (D_002DDED0.time - jt->changed > D_002BF554) {
                 jt->previous = 0;
                 next = 1;
             }
-        } else if (D_002DDED0.t - jt->farTime > D_002BF55C)
+        } else if (D_002DDED0.time - jt->farTime > D_002BF55C)
             next = 1;
         break;
     case 2:
         if (near)
             next = 0;
         else if (far) {
-            if (D_002DDED0.t - jt->changed > D_002BF558) {
+            if (D_002DDED0.time - jt->changed > D_002BF558) {
                 jt->previous = 2;
                 next = 1;
             }
-        } else if (D_002DDED0.t - jt->farTime > D_002BF55C)
+        } else if (D_002DDED0.time - jt->farTime > D_002BF55C)
             next = 1;
         break;
     case 1:
@@ -617,8 +617,8 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         break;
     }
     }
-    jt->activeBlend = SmoothValue__FfffP3SMPPf(jt->activeBlend, activeTarget, D_002DDED0.dt, &D_002BF570, 0);
-    jt->speedBlend = SmoothValue__FfffP3SMPPf(jt->speedBlend, speedTarget, D_002DDED0.dt, &D_002BF580, 0);
+    jt->activeBlend = SmoothValue__FfffP3SMPPf(jt->activeBlend, activeTarget, D_002DDED0.deltaTime, &D_002BF570, 0);
+    jt->speedBlend = SmoothValue__FfffP3SMPPf(jt->speedBlend, speedTarget, D_002DDED0.deltaTime, &D_002BF580, 0);
     float active = jt->activeBlend, speed = jt->speedBlend;
     float idle = 1.0f - active;
     float combined = active * speed;
@@ -630,7 +630,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     float steering = Clamp(angle / D_002BF58C, -1.0f, 1.0f);
     float target = jt->animation->gain * (steering + 1.0f);
     target *= 0.5f;
-    jt->curve->slope = ClampAbs__Fff((target - jt->curve->value) / D_002DDED0.dt, D_002BF590);
+    jt->curve->slope = ClampAbs__Fff((target - jt->curve->value) / D_002DDED0.deltaTime, D_002BF590);
 }
 
 typedef char final_offset_0_0[FIELD_OFFSET(VTE,delta)==0?1:-1];
@@ -762,7 +762,7 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
     qword q = ConvertXfVec(0, jt->wristXf->parent, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), BuildAxisAngleRotationMatrix(D_002A2DA0.q, D_002BF594));
     SetActPositionGoal(jt->handAct, DecomposeRotationMatrixToEuler(&m));
-    jt->handIkOffset = PosSmooth(jt->handIkOffset, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
+    jt->handIkOffset = PosSmooth(jt->handIkOffset, D_002A2DD0.q, g_clock.deltaTime, D_002BF598, 0);
 }
 
 // ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.

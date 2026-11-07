@@ -407,7 +407,7 @@ struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];flo
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0; }
 extern "C" POLY D_002C2040;
@@ -527,7 +527,7 @@ extern "C" void UpdateRobottank(P *tank)
         ENTRY *entry=&tank->entries[k];
         float desired;
         if(tank->drive!=0.0f)desired=entry->steering*tank->steering;else desired=0.0f;
-        entry->tilt=SmoothAngle__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.dt,D_002C2098,0);
+        entry->tilt=SmoothAngle__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.deltaTime,D_002C2098,0);
     }
     i=0;
     qword currentPosition=GetLoWorldPos(tank);
@@ -596,7 +596,7 @@ extern "C" void UpdateRobottank(P *tank)
         }while(i<tank->attachCount);
     }
     if(tank->sound){
-        tank->soundRate=SmoothValue__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
+        tank->soundRate=SmoothValue__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.deltaTime,D_002C20A8,0);
         float rate=Clamp(tank->soundRate,0.2f,1.0f);
         SetSndVolume(tank->sound,rate);
         SetSndPitch(tank->sound,rate*0.2f);
@@ -653,7 +653,7 @@ typedef char guard_43[(OFF(ATTACH,angle)==116)?1:-1];
 typedef char guard_44[(OFF(ATTACH,speed)==120)?1:-1];
 typedef char guard_45[(OFF(ATTACH,active)==160)?1:-1];
 typedef char guard_46[(OFF(SOUND,references)==78)?1:-1];
-typedef char guard_47[(OFF(CLOCK,dt)==4)?1:-1];
+typedef char guard_47[(OFF(CLOCK,deltaTime)==4)?1:-1];
 typedef char guard_48[(sizeof(U)==16)?1:-1];
 typedef char guard_49[(sizeof(M3)==48)?1:-1];
 typedef char guard_50[(sizeof(M4)==64)?1:-1];
@@ -1108,7 +1108,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         tank->drive = 0.0f;
         tank->goalHeading = tank->heading;
         tank->wheelAngle = atan2f(QwordY(delta), QwordX(delta));
-        if (tank->nextAttack < D_002DDED0.t) {
+        if (tank->nextAttack < D_002DDED0.time) {
             ATTACH *attach = FindReadyRobottankWeapon(tank);
             if (attach) {
                 if (attach->mesh) {
@@ -1123,7 +1123,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                 }
             fire:
                 SetSmaGoal(attach->binding, 0x68);
-                float t = D_002DDED0.t;
+                float t = D_002DDED0.time;
                 tank->nextAttack = t + RandomFloatInRange__Fff(1.0f, 1.5f);
             }
         }
@@ -1146,7 +1146,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         break;
     }
 
-    if (D_002DDED0.t > tank->nextAttack) {
+    if (D_002DDED0.time > tank->nextAttack) {
         for (int i = 0; i < tank->attachCount; i++) {
             ATTACH *attach = tank->attachments[i];
             if (!HasRobottankWeaponAmmo(attach))
@@ -1165,7 +1165,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                     continue;
             }
             SetSmaGoal(attach->binding, 0x68);
-            float t = D_002DDED0.t;
+            float t = D_002DDED0.time;
             tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
         }
     }
@@ -1230,7 +1230,7 @@ struct P {
     int unused52C; LIMITS limits; float reverseLimit, contactScale; char pad540[0x10]; float drive, turn, acceleration;
     char pad55C[0x64]; float lastCorrection;
 };
-struct CLOCK { float time, dt; };
+struct CLOCK { float time, deltaTime; };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
@@ -1259,7 +1259,7 @@ void AddSoAcceleration(P *, qword);
 }
 // Helpers ScalarBits, TimeStep, Scalar, Subtract, Scale (small asm wrappers/accessors shaped for the match).
 static inline VV ScalarBits(int b) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(b)); return r; }
-static inline VV TimeStep(const CLOCK &c) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(*(const int *)&c.dt)); return r; }
+static inline VV TimeStep(const CLOCK &c) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(*(const int *)&c.deltaTime)); return r; }
 static inline VV Scalar(float f) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "r"(f)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1346,18 +1346,18 @@ extern "C" void PresetRobottankAccel(P *tank)
     float budget = StdMin(D_002C2140, tank->contactScale * total / tank->physics->mass);
     CLOCK *clock = &D_002DDED0;
     qword origin = tank->primary->velocity.q;
-    velocity.q = ScalarBits(*(const int *)&clock->dt);
+    velocity.q = ScalarBits(*(const int *)&clock->deltaTime);
     scalar.q = AddScaled(origin, tank->primary->acceleration.q, velocity.q);
     velocity.q = ConvertXfVec(tank->primary->space, tank->secondary, scalar.q);
     localVelocity.q = InverseRotate(tank->secondary->local.basis, tank->secondary->velocity.q);
     float acceleration = D_002C2144 * tank->physics->mass * tank->width / tank->physics->inertia;
     torque.f[0] = torque.f[1] = 0.0f;
-    float turnImpulse = ClampAbs__Fff((tank->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
+    float turnImpulse = ClampAbs__Fff((tank->turn - localVelocity.f[2]) / clock->deltaTime, acceleration * budget);
     torque.f[2] = turnImpulse;
     worldTorque.q = Rotate(tank->secondary->world.basis, torque.q);
     budget -= Abs(D_002C2148 * turnImpulse / acceleration);
     AddSoAngularAcceleration(tank, worldTorque.q);
-    float dt = clock->dt;
+    float dt = clock->deltaTime;
     float half = dt * 0.5f;
     BuildAxisAngleRotationMatrix(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
     desired.f[0] = tank->acceleration * tank->drive;
@@ -1883,7 +1883,7 @@ struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,spee
 struct P;
 struct VE{short delta,pad;qword(*fn)(P*);};
 struct P{char pad[0xC];VE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 struct G{char pad[0x3D58];int generation;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern G D_003DD490; }
@@ -1924,7 +1924,7 @@ extern "C" void RenderRobottankSelf(P*tank){
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
    else height=e->height;
-   (void)SmoothValue__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
+   (void)SmoothValue__FfffP3SMPPf(point.f[2],height,D_002DDED0.deltaTime,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
   point.q=TransformXfPos(tank->space,e->node->parent,point.q);
@@ -1932,15 +1932,15 @@ extern "C" void RenderRobottankSelf(P*tank){
   if(hit){
    float current=velocity.f[0]/e->radius;
    if((0.0f<desired&&current<D_002C21CC*desired)||(desired<0.0f&&D_002C21CC*desired<current))
-    e->speed=SmoothValue__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.dt,D_002C21B0,0);
+    e->speed=SmoothValue__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.deltaTime,D_002C21B0,0);
    else e->speed=current;
   }else{
-   float dt=D_002DDED0.dt;
+   float dt=D_002DDED0.deltaTime;
    void*table;
    if(FpuAbs(e->speed)<FpuAbs(desired))table=D_002C21B0;else table=D_002C21C0;
    e->speed=SmoothValue__FfffP3SMPPf(e->speed,desired,dt,table,0);
   }
-  float dt=D_002DDED0.dt;
+  float dt=D_002DDED0.deltaTime;
   e->angle=NormalizeAngle__Ff(e->angle+e->speed*dt);
   basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
@@ -2099,7 +2099,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRobottankState { extern "C" {
-extern struct CLOCK { float t; float dt; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
 typedef struct VT1 { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT1;
 typedef struct { char pad[0xC]; VT1 *vt; } W;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
@@ -2156,7 +2156,7 @@ void SetRobottankState(OBJ *tank, int n)
         break;
     }
     tank->state = n;
-    tank->t = D_002DDED0.t;
+    tank->t = D_002DDED0.time;
     switch (n) {
     case 0: {
         W *pw2 = tank->pw;
@@ -2189,7 +2189,7 @@ extern "C" void SetRobottankTactic(ROBOTTANKV *tank, int nState)
 {
     if (nState != tank->nState188) {
         tank->nState188 = nState;
-        tank->tState188 = D_002DDED0.t;
+        tank->tState188 = D_002DDED0.time;
     }
 }
 
@@ -2464,7 +2464,7 @@ void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRcPickupState { extern "C" {
-extern struct CLOCK { float t; } D_002DDED0;
+extern struct CLOCK { float time; } D_002DDED0;
 extern int D_002C2248[];
 struct S { char p0[0x150]; int n150; float g154; char p1[0x164-0x158]; void *p164; };
 void SetSmaGoalIfReachable(void *p, int n);
@@ -2472,7 +2472,7 @@ void SetSmaGoalIfReachable(void *p, int n);
 void SetRcPickupState(struct S *pickup, int n) {
     if (n == pickup->n150) return;
     pickup->n150 = n;
-    pickup->g154 = D_002DDED0.t;
+    pickup->g154 = D_002DDED0.time;
     if (pickup->p164 && n != -1) SetSmaGoalIfReachable(pickup->p164, D_002C2248[n]);
 }
 } } // namespace M_SetRcPickupState

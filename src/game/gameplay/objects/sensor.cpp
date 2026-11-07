@@ -818,7 +818,7 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
             if (end->kind != 1)
                 continue;
             seg = &end->track.motion.segments[end->track.motion.current];
-            seg->elapsed = t = seg->elapsed + laser->endpointSpeed * D_002DDED0.dt;
+            seg->elapsed = t = seg->elapsed + laser->endpointSpeed * D_002DDED0.deltaTime;
             if (seg->duration < t) {
                 float r = fmodf(t, seg->duration);
                 end->track.motion.current = (end->track.motion.current + 1) % end->track.motion.count;

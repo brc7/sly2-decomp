@@ -312,7 +312,7 @@ void StartBhvanim(struct S *behavior) {
 // 0x1749C0 SetBhvanimState
 namespace M_SetBhvanimState { extern "C" {
 struct CLOCK; struct A; struct B; struct E; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct A { char pad[0x74]; float duration; };
 struct B { char pad[0x1C]; float time; };
@@ -330,12 +330,12 @@ void ClearBhvBusy(struct S *p);
 void SetBhvanimState(struct S *behavior, int n) {
     if (behavior->state == n) return;
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
         float f;
         SetStepguardMoverDriver(behavior->guard->mover, behavior);
-        if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.t == behavior->guard->walkPhaseTime)
+        if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.time == behavior->guard->walkPhaseTime)
             f = behavior->binding->aseg->duration * behavior->guard->walkPhase;
         else
             f = 0.0f;
@@ -347,7 +347,7 @@ void SetBhvanimState(struct S *behavior, int n) {
         if (behavior->binding) {
             if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
                 behavior->guard->walkPhase = behavior->binding->asega->time / behavior->binding->aseg->duration;
-                behavior->guard->walkPhaseTime = D_002DDED0.t;
+                behavior->guard->walkPhaseTime = D_002DDED0.time;
             }
             StopAnimBinding(behavior->binding);
             behavior->binding = 0;
@@ -787,7 +787,7 @@ extern "C" void CloseBhvattack(BHVATTACKV *behavior)
 namespace M_SetBhvattackState { extern "C" {
 struct CLOCK; struct VTE; struct Q; struct O; struct P; struct S; struct B;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct VTE { short d; short pad; int (*pfn)(void *, void *); };
@@ -812,7 +812,7 @@ void SetBhvattackState(struct S *behavior, int n) {
     }
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
         {
@@ -1010,7 +1010,7 @@ struct CREF {
     ~CREF() { Decref__4CRef(this); }
 };
 struct POLY { float a, b, c; };
-struct CLOCK { float time, dt; };
+struct CLOCK { float time, deltaTime; };
 struct BASIC {
     char pad0[0xC];
     virtual void AddRef();
@@ -1167,7 +1167,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
 namespace M_FBhvcombatCanShoot { extern "C" {
 struct CLOCK; struct VTE; struct T; struct A; struct S; struct X; struct Y; struct R2; struct R1; struct R; union V;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct G;
 extern struct G D_003DD490;
@@ -1252,7 +1252,7 @@ int CanBhvcombatShoot(struct S *behavior) {
     }
     if (!mustShootNow) {
         if (behavior->state == 0) {
-            if (D_002DDED0.t - behavior->stateTime < 3.0f) return 0;
+            if (D_002DDED0.time - behavior->stateTime < 3.0f) return 0;
         } else if (behavior->state != 2) {
             return 0;
         }
@@ -1286,8 +1286,8 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *behavior)
         return 1;
     }
     guard = (STEPGUARD *)behavior->pstep;
-    if (guard->tAttackNext < D_002DDED0.t) {
-        guard->tAttackNext = D_002DDED0.t + D_002BE610;
+    if (guard->tAttackNext < D_002DDED0.time) {
+        guard->tAttackNext = D_002DDED0.time + D_002BE610;
     }
     return 0;
 }
@@ -1326,7 +1326,7 @@ struct P{char pad[0xE8];TUNE*tuning;char padEC[0x314-0xEC];float close,far;char 
 typedef struct C{char pad[0x10];P*guard;int pad14;void*sub;char pad1C[0x30-0x1C];P*target;int state;char pad38[0x44-0x38];void*region;char pad48[8];U cached;}C;
 typedef struct X{void*a,*b;char pad8[8];qword point;}X;
 typedef struct WORK{X frame;U point;}WORK;
-typedef struct CLOCK{float time,dt;}CLOCK;
+typedef struct CLOCK{float time,deltaTime;}CLOCK;
 extern CLOCK D_002DDED0;
 extern float D_002BE614;
 
@@ -1421,7 +1421,7 @@ typedef char X_point_Offset[FIELD_OFFSET(X,point)==16?1:-1];
 typedef char WORK_frame_Offset[FIELD_OFFSET(WORK,frame)==0?1:-1];
 typedef char WORK_point_Offset[FIELD_OFFSET(WORK,point)==32?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 // 0x176098: BHVCOMBAT vtable slot 10 (Update): state machine 0 close in / 3 pursue -> 1 melee attack, 2 ranged
 // attack, 4 give up, 5 hands-off; re-goals the pursuit when the target moves far or changes path zone; emits a
 // stimulus to alert others.
@@ -1536,7 +1536,7 @@ namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.4
 namespace M_SetBhvcombatState { extern "C" {
 struct CLOCK; struct VTE; struct X; struct O; struct A; struct P; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002A5408;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -1565,13 +1565,13 @@ void SetBhvcombatState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     if (behavior->state == 1) {
-        float t = D_002DDED0.t;
+        float t = D_002DDED0.time;
         t += RandomFloatInRange__Fff(behavior->attack->cooldownMin, behavior->attack->cooldownMax);
         behavior->guard->attackCooldownEnd = t;
         behavior->attack = 0;
     }
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
         {
@@ -1673,7 +1673,7 @@ void StartBhvguard(void *p)
 namespace M_SetBhvguardMode { extern "C" {
 struct CLOCK; struct VTE; struct B6; struct F; struct O; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE618[2];
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -1702,7 +1702,7 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
     if (IsBhvguardModeSame(m, &behavior->mode)) return;
     PopBhv(behavior->childSlot);
     behavior->mode = *m;
-    behavior->modeTime = D_002DDED0.t;
+    behavior->modeTime = D_002DDED0.time;
     clearsTarget = 0;
     switch (m->kind) {
     case GUARD_MODE_SCRIPT:
@@ -1832,7 +1832,7 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
             o->lookAt = m->u.s.arg;
             StartPushedBhv(o);
         }
-        { float t = D_002DDED0.t; behavior->watchEndTime = t + RandomFloatInRange__Fff(D_002BE618[0], D_002BE618[1]); }
+        { float t = D_002DDED0.time; behavior->watchEndTime = t + RandomFloatInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case GUARD_MODE_STALK:
         {
@@ -1905,7 +1905,7 @@ struct HELPER{char pad0[0x58];float until;unsigned flags;};
 struct S{char pad0[0x10];OBJECT*guard;int pad14;HELPER*helper;char pad1C[0x14];STATE current;};
 struct SLOT{int kind;char pad4[0xC];};
 struct M4{qword r[4];};
-struct CLOCK{float t,dt;};
+struct CLOCK{float time,deltaTime;};
 struct WORK{STATE next;U scalar,own,other,copy,delta;};
 struct OFFSETINPUTS{qword own,other,copy;};
 extern "C"{
@@ -2044,7 +2044,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             if (behavior->current.kind == GUARD_MODE_SLEEP) {
                 HELPER *h = behavior->helper;
                 SetBhvSleepState(h, 0);
-                h->until = Max(D_002DDED0.t + D_002BE620, h->until);
+                h->until = Max(D_002DDED0.time + D_002BE620, h->until);
             } else {
                 behavior->guard->otherProgress += msg->data.amount;
                 if (behavior->guard->otherProgress <= 0) {
@@ -2127,7 +2127,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                     if (behavior->guard->progress > 0) {
                         ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
                                                               &behavior->guard->animation);
-                        behavior->guard->animationTime = D_002DDED0.t;
+                        behavior->guard->animationTime = D_002DDED0.time;
                     } else
                         flags |= REACT_HURT;
                 } else
@@ -2231,8 +2231,8 @@ typedef char layout_S_actor[((unsigned long)&((S*)0)->guard==0x10)?1:-1];
 typedef char layout_S_helper[((unsigned long)&((S*)0)->helper==0x18)?1:-1];
 typedef char layout_S_current[((unsigned long)&((S*)0)->current==0x30)?1:-1];
 typedef char layout_SLOT_kind[((unsigned long)&((SLOT*)0)->kind==0x0)?1:-1];
-typedef char layout_CLOCK_t[((unsigned long)&((CLOCK*)0)->t==0x0)?1:-1];
-typedef char layout_CLOCK_dt[((unsigned long)&((CLOCK*)0)->dt==0x4)?1:-1];
+typedef char layout_CLOCK_t[((unsigned long)&((CLOCK*)0)->time==0x0)?1:-1];
+typedef char layout_CLOCK_dt[((unsigned long)&((CLOCK*)0)->deltaTime==0x4)?1:-1];
 typedef char layout_WORK_next[((unsigned long)&((WORK*)0)->next==0x0)?1:-1];
 typedef char layout_WORK_scalar[((unsigned long)&((WORK*)0)->scalar==0x70)?1:-1];
 typedef char layout_OBJECT_vt[((unsigned long)&((OBJECT*)0)->vt==0xc)?1:-1];
@@ -2280,7 +2280,7 @@ struct P{char pad0[12];VE*vt;char pad10[0x38C-0x10];P*selected;char pad390[0xE20
 struct H{char pad0[0x30];P*object;char pad34[16];P*target;char pad48[8];int mode;char pad54[8];P*extra;};
 struct STATE{int kind,pad4,pad8,padC;union{qword data[6];struct{P*object;float amount;char pad18[0x60-8];}s;}payload;};
 struct C{char pad0[16];P*guard;int pad14;H*helper;char pad1C[0x30-0x1C];STATE state;float started,expires;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_003DD490[];
@@ -2351,7 +2351,7 @@ typedef char C_state_Offset[FIELD_OFFSET(C,state)==48?1:-1];
 typedef char C_started_Offset[FIELD_OFFSET(C,started)==160?1:-1];
 typedef char C_expires_Offset[FIELD_OFFSET(C,expires)==164?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 // 0x177618: BHVGUARD vtable slot 10 (Update): the top-level guard AI: patrol -> (stimulus) search -> (target seen)
 // alert animation -> combat; returns to patrol when the child finishes; also the script, escort and target-list
 // modes.
@@ -2841,7 +2841,7 @@ struct LM
 };
 struct CLOCK
 {
-    float t, dt;
+    float time, deltaTime;
 };
 extern "C" {
 extern char D_003DD020[];
@@ -3207,7 +3207,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         }
     }
     float half = 0.5f;
-    float dt = D_002DDED0.dt;
+    float dt = D_002DDED0.deltaTime;
     accel = VuProjectOut(accel, D_002A2DC0);
     qword posNext = VuIntegrateStep(behavior->pos, behavior->v, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
     qword vNew = VuMulAdd(behavior->v, accel, VU_FLOAT(dt));
@@ -3349,7 +3349,7 @@ extern "C" void SetBhvpathState(BHVPATHV *behavior, int nState)
 {
     if (nState != behavior->nState) {
         behavior->nState = nState;
-        behavior->tState = D_002DDED0.t;
+        behavior->tState = D_002DDED0.time;
     }
 }
 
@@ -3469,7 +3469,7 @@ struct P {
     char pad1C[0x4C - 0x1C]; unsigned int mode; char pad50[0x80 - 0x50]; qword target;
     char pad90[0xC4 - 0x90]; float rate; char padC8[8]; qword cached; float timeout;
 };
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
 extern "C" {
 extern CLQ D_002BE6A0;
@@ -3612,7 +3612,7 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
         }
         else
         {
-            behavior->timeout -= D_002DDED0.dt;
+            behavior->timeout -= D_002DDED0.deltaTime;
         }
     }
 }
@@ -3682,7 +3682,7 @@ int IsBhvwalkpathStuck(struct S *behavior)
 namespace M_StartBhvhit { extern "C" {
 struct CLOCK; struct E4; struct E; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct G;
 extern struct G D_003DD490;
@@ -3748,9 +3748,9 @@ void StartBhvhit(struct S *behavior) {
         void *o = GetHeroPo(&D_003DD490);
         if (o && IsLoSelfOrDescendantOf(behavior->attacker, o) && (o == D_002F7900 || (behavior->zapKind & 0x40000))) {
             TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
-            behavior->cameraJoltTime = D_002DDED0.t + 5.00000044703483581543e-02f;
+            behavior->cameraJoltTime = D_002DDED0.time + 5.00000044703483581543e-02f;
         }
-        behavior->zapModeTime = D_002DDED0.t + 1.33333340287208557129e-01f;
+        behavior->zapModeTime = D_002DDED0.time + 1.33333340287208557129e-01f;
     }
 }
 } } // namespace M_StartBhvhit
@@ -3781,7 +3781,7 @@ namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.4
 namespace M_UpdateBhvhit { extern "C" {
 struct CLOCK; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern char D_002DDF40[];
 struct V { char pad[0x20]; qword position; };
@@ -3801,7 +3801,7 @@ void UpdateBhvhit(struct S *behavior) {
         struct V *v = pt->heldNoise;
         v->position = GetLoWorldPos(pt);
     }
-    t = D_002DDED0.t + 0.0001f;
+    t = D_002DDED0.time + 0.0001f;
     if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; JoltCamera(D_002DDF40, 0); }
     if (behavior->zapModeTime < t) { behavior->zapModeTime = 3.40282346638528859812e+38f; SetSoZapMode(behavior->guard, 2); }
 }
@@ -4077,7 +4077,7 @@ void BHVPATROL::Close()
 // 0x179BA0 UpdateBhvpatrol
 namespace M_UpdateBhvpatrol { extern "C" {
 struct CLOCK; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; char pad4[4]; int script; };
 void UpdateBhv(struct S *p);
@@ -4096,14 +4096,14 @@ void UpdateBhvpatrol(struct S *behavior) {
         switch (s) {
         case 1:
             if (f) SetBhvpatrolState(behavior, 3);
-            else if (D_002DDED0.t > behavior->pauseEndTime) SetBhvpatrolState(behavior, 0);
+            else if (D_002DDED0.time > behavior->pauseEndTime) SetBhvpatrolState(behavior, 0);
             break;
         case 2:
             if (f) SetBhvpatrolState(behavior, 3);
             break;
         case 0:
             if (f) SetBhvpatrolState(behavior, 3);
-            else if (D_002DDED0.t > behavior->walkEndTime) SetBhvpatrolState(behavior, 1);
+            else if (D_002DDED0.time > behavior->walkEndTime) SetBhvpatrolState(behavior, 1);
             else if (IsBhvScriptDone(behavior->child)) { behavior->script = 0; SetBhvpatrolState(behavior, 2); }
             break;
         case 3:
@@ -4122,7 +4122,7 @@ void UpdateBhvpatrol(struct S *behavior) {
 // 0x179D30 SetBhvpatrolState
 namespace M_SetBhvpatrolState { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
@@ -4141,7 +4141,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
     if (behavior->state == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard->scriptResumePoint);
     PopBhv(&behavior->child);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1: case 2:
         {
@@ -4174,7 +4174,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
 // 0x179E80 ArmBhvpatrolWalkTimer
 namespace M_ArmBhvpatrolWalkTimer { extern "C" {
 struct CLOCK; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct T { char pad[0x2CC]; float walkTimeMin; float walkTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float walkEndTime; };
@@ -4187,7 +4187,7 @@ void ArmBhvpatrolWalkTimer(struct S *behavior)
     if (behavior->guard->walkTimeMin == 3.40282346638528859812e+38f)
         behavior->walkEndTime = 3.40282346638528859812e+38f;
     else {
-        float t = D_002DDED0.t;
+        float t = D_002DDED0.time;
         behavior->walkEndTime = t + RandomFloatInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax);
     }
 }
@@ -4196,7 +4196,7 @@ void ArmBhvpatrolWalkTimer(struct S *behavior)
 // 0x179EF8 ArmBhvpatrolPauseTimer
 namespace M_ArmBhvpatrolPauseTimer { extern "C" {
 struct CLOCK; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct T { char pad[0x2D4]; float pauseTimeMin; float pauseTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float pauseEndTime; };
@@ -4209,7 +4209,7 @@ void ArmBhvpatrolPauseTimer(struct S *behavior)
     if (behavior->guard->pauseTimeMin == 3.40282346638528859812e+38f)
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
     else {
-        float t = D_002DDED0.t;
+        float t = D_002DDED0.time;
         behavior->pauseEndTime = t + RandomFloatInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax);
     }
 }
@@ -4543,7 +4543,7 @@ void CloseBhvSleep(struct S *behavior)
 // 0x17A5B0 SetBhvSleepState
 namespace M_func_0017A5B0 { extern "C" {
 struct CLOCK; struct U; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct U { int kind; int pad; void *payload; };
 struct T { char pad[0xE7C]; float sleepTimeMin; float sleepTimeMax; };
@@ -4559,7 +4559,7 @@ void SetBhvSleepState(struct S *behavior, int n) {
     switch (n) {
     case 0:
         if (behavior->binding->kind == 1) SetSmaGoal(behavior->binding->payload, 0x44);
-        { float t = D_002DDED0.t; behavior->wakeTime = t + RandomFloatInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
+        { float t = D_002DDED0.time; behavior->wakeTime = t + RandomFloatInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
         break;
     case 1:
         if (behavior->binding->kind == n) SetSmaGoal(behavior->binding->payload, 0x43);
@@ -4572,7 +4572,7 @@ void SetBhvSleepState(struct S *behavior, int n) {
 namespace M_func_0017A670 { extern "C" {
 struct CLOCK; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct V { char pad[0x20]; qword position; };
 struct T { char pad[0x35C]; struct V *heldNoise; };
@@ -4587,7 +4587,7 @@ void UpdateBhvSleep(struct S *behavior) {
     UpdateBhvanim(behavior);
     do {
         s = behavior->state;
-        if (s == 0 && D_002DDED0.t > behavior->wakeTime) SetBhvSleepState(behavior, 1);
+        if (s == 0 && D_002DDED0.time > behavior->wakeTime) SetBhvSleepState(behavior, 1);
     } while (behavior->state != s);
     {
         struct T *t = behavior->guard;
@@ -4657,7 +4657,7 @@ void BHV176::Close()
 namespace M_func_0017A7F8 { extern "C" {
 struct CLOCK; struct G; struct R; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE6C0;
 struct G { char pad[0x4020]; void *yellNoise; };
@@ -4679,9 +4679,9 @@ void UpdateBhvThrown(struct S *behavior) {
         if (s < 4) { if (s >= 2 && behavior->guard->isOnGround) SetBhvThrownState(behavior, -1); }
     } while (s != behavior->state);
     if (s == 1 || s == 4) {
-        if (D_002DDED0.t - behavior->lastYellTime > D_002BE6C0) {
+        if (D_002DDED0.time - behavior->lastYellTime > D_002BE6C0) {
             struct G *g = &D_003DD490;
-            behavior->lastYellTime = D_002DDED0.t;
+            behavior->lastYellTime = D_002DDED0.time;
             NewNoise(g->yellNoise, GetLoWorldPos(behavior->guard), behavior->guard)->noiseType = 3;
         }
     }
@@ -4691,7 +4691,7 @@ void UpdateBhvThrown(struct S *behavior) {
 // 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
@@ -4706,7 +4706,7 @@ void SetBhvThrownState(struct S *behavior, int n) {
     if (behavior->state == n) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: case 1: case 2: case 3: case 4:
         {
@@ -4889,7 +4889,7 @@ typedef char U_scalar_Offset[(unsigned)&((U*)0)->g==0?1:-1];
 namespace M_func_0017ABC8 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct R; struct U; struct W; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void *pfn; };
 struct O { char pad[0xC]; struct VTE *vt; };
@@ -4912,7 +4912,7 @@ void UpdateBhvjuggledHoldAct(struct S *behavior) {
     {
         struct O *o = behavior->holder;
         struct VTE *entry = &o->vt[0x60];
-        ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, behavior->holdAct->endTime - D_002DDED0.t);
+        ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, behavior->holdAct->endTime - D_002DDED0.time);
     }
     if (!r.isValid) { behavior->isHoldActive = 0; return; }
     w = behavior->guard->unknown58;
@@ -4928,7 +4928,7 @@ struct CLOCK; struct VTE; struct C; struct B; struct A; struct Y; struct X; stru
 // Update the movement-state controller.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE6C8, D_002BE6CC;
 struct VTE { short d; short pad; void *pfn; };
@@ -4965,7 +4965,7 @@ void UpdateBhvjuggled(struct S *behavior) {
         case 1:
             if (behavior->state == 1 && behavior->guard->isOnGround) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (behavior->guard->unknown58->currentAct != behavior->holdAct || behavior->guard->unknown58->currentAct->endTime < D_002DDED0.t) {
+            } else if (behavior->guard->unknown58->currentAct != behavior->holdAct || behavior->guard->unknown58->currentAct->endTime < D_002DDED0.time) {
                 SetBhvjuggledState(behavior, 2);
             } else if (QwordZ(v) < 0.0f && behavior->state == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -4993,7 +4993,7 @@ void UpdateBhvjuggled(struct S *behavior) {
                 struct A *pa = behavior->guard;
                 struct VTE *entry = &pa->vt[33];
                 qword velocity = ((qword (*)(void *))entry->pfn)((char *)pa + entry->d);
-                dt=clock->dt;
+                dt=clock->deltaTime;
                 /* Preserve velocity and prepare the prediction inputs. */
                 __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(behavior->holder));
             }
@@ -5003,11 +5003,11 @@ void UpdateBhvjuggled(struct S *behavior) {
             tq = t.q;
             c = GetLoWorldPos(behavior->guard);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(tq), "j"(c));
-            clock=(struct CLOCK*)*(int*)&clock->dt;
+            clock=(struct CLOCK*)*(int*)&clock->deltaTime;
             { qword ud_q; __asm__("qmtc2.ni %1, %0" : "=j"(ud_q) : "r"(clock)); ud.q = ud_q; }
             { qword vel_q; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(vel_q) : "j"(ud.q), "j"(c)); vel.q = vel_q; }
             if (behavior->state == 4) {
-                if (a.f[2] < t.f[2] || D_002BE6CC < D_002DDED0.t - behavior->stateTime) {
+                if (a.f[2] < t.f[2] || D_002BE6CC < D_002DDED0.time - behavior->stateTime) {
                     SetBhvjuggledState(behavior, 5);
                     break;
                 }
@@ -5043,8 +5043,8 @@ typedef char layout_U_q[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char layout_U_f[((unsigned)&((U*)0)->f==0)?1:-1];
 typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
 typedef char layout_VTE_fn[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
-typedef char layout_CLOCK_time[((unsigned)&((struct CLOCK*)0)->t==0)?1:-1];
-typedef char layout_CLOCK_dt[((unsigned)&((struct CLOCK*)0)->dt==4)?1:-1];
+typedef char layout_CLOCK_time[((unsigned)&((struct CLOCK*)0)->time==0)?1:-1];
+typedef char layout_CLOCK_dt[((unsigned)&((struct CLOCK*)0)->deltaTime==4)?1:-1];
 typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
 typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1];
 typedef char layout_A_vt[((unsigned)&((struct A*)0)->vt==0xC)?1:-1];
@@ -5171,7 +5171,7 @@ struct CONTROL{char pad0[4];void*curves;ASEGA*asega;};
 struct DELTA;
 struct REQUEST{int flag;float a,b;int pad;U point,direction;};
 struct C{char pad0[0x10];P*guard;char pad14[0x40-0x14];CONTROL*control;char pad44[12];int mode;float time;int pad58;P*target;int owned;DELTA*delta;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern float D_002BE6FC,D_002BE700,D_002BE704;
@@ -5281,7 +5281,7 @@ typedef char ENTRY_value_Offset[FIELD_OFFSET(ENTRY,value)==0?1:-1];
 typedef char ENTRY_kind_Offset[FIELD_OFFSET(ENTRY,kind)==4?1:-1];
 typedef char ENTRY_key_Offset[FIELD_OFFSET(ENTRY,key)==8?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 // True for the motionless modes (0, 4, 5).
 static inline int Still(int m){int f=0;if(m==4||m==5||m==0)f=1;return f;}
 // 0x17B1A8: BHVJUGGLED state switch: attaches an act to the holder, releases acts and XF roles, changes the mass
@@ -5465,7 +5465,7 @@ int HandleBhvshootMessage(struct S *behavior, int msg, struct M *pm) {
 // 0x17B750 SetBhvshootState
 namespace M_SetBhvshootState { extern "C" {
 struct CLOCK; struct VTE; struct O; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
@@ -5480,7 +5480,7 @@ void SetBhvshootState(struct S *behavior, int n) {
     PopBhv(behavior->childSlot);
     if (!behavior->state) behavior->guard->firingWindow = 0;
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     if (n)
         return;
     struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
@@ -5534,7 +5534,7 @@ extern "C" void CloseBhvTargets(BHVSTATE *behavior)
 // 0x17B8B0 SetBhvTargetsState
 namespace M_func_0017B8B0 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int target; char pad3[8]; int sgf; int unknown40; };
@@ -5550,7 +5550,7 @@ void SetBhvTargetsState(struct S *behavior, int n)
         return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
@@ -5584,7 +5584,7 @@ struct POLY{float a,b,c;};
 struct P{char pad[0x28];unsigned long flags;char pad30[0xF94-0x30];int count;P*choices[4];P*Choice(int i){return choices[i];}int nearCount;P*near[0];};
 struct C{char pad[0x10];P*guard;char pad14[0x38-0x14];P*preferred;P*near;P*selected;float time;};
 struct WORK{float t,d,t2,d2;U origin,bestPoint;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
@@ -5658,7 +5658,7 @@ typedef char POLY_c_Offset[FIELD_OFFSET(POLY,c)==8?1:-1];
 typedef char RANGE_lo_Offset[FIELD_OFFSET(RANGE,lo)==0?1:-1];
 typedef char RANGE_hi_Offset[FIELD_OFFSET(RANGE,hi)==4?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 // 0x17B9C0: Every random interval, picks the cheapest designated target (cost: distance, a bonus for preferred
 // ones, a penalty near avoid objects) or a nearer avoid object within 800.
 extern "C" void ChooseBhvTargetsTarget(C *behavior)
@@ -6228,7 +6228,7 @@ typedef char layout_X_v[((unsigned)&((struct X*)0)->v==0x10)?1:-1];
 namespace M_func_0017C928 { extern "C" {
 struct CLOCK; struct VTE; struct X; struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct X { qword a; qword v; };
@@ -6251,7 +6251,7 @@ void SetBhvEscortState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
         {
@@ -6385,7 +6385,7 @@ void UpdateBhvrail(struct S *behavior) {
 // 0x17CD00 SetBhvrailState
 namespace M_SetBhvrailState { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
@@ -6397,7 +6397,7 @@ void SetBhvrailState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
         {
@@ -6477,7 +6477,7 @@ extern "C" void CloseBhvpipe(BHVSTATE *behavior)
 // 0x17CF10 UpdateBhvpipe
 namespace M_UpdateBhvpipe { extern "C" {
 struct CLOCK; struct O; struct S; struct L;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002DFB7C;
 struct O { char pad[0x198]; float moveSpeed; char pad2[0x14]; char orientation[0xF84 - 0x1B0]; int attachObject; float attachParam; int isMovingForward; };
@@ -6510,10 +6510,10 @@ void UpdateBhvpipe(struct S *behavior) {
                     l.b = 0.0f;
                     l.c = 0.1f;
                     l.a = __builtin_fabsf(d);
-                    g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.dt, &l, 0);
+                    g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.deltaTime, &l, 0);
                 }
                 behavior->smoothedSpeed = g;
-                behavior->guard->attachParam = WrapShapeDistance(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.dt);
+                behavior->guard->attachParam = WrapShapeDistance(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.deltaTime);
             }
         }
     } while (behavior->state != s);
@@ -6527,7 +6527,7 @@ void UpdateBhvpipe(struct S *behavior) {
 // 0x17D058 SetBhvpipeState
 namespace M_SetBhvpipeState { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
@@ -6539,7 +6539,7 @@ void SetBhvpipeState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
         { struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM); o->sgf = 2; StartPushedBhv(o); } behavior->smoothedSpeed = 0;
@@ -6721,7 +6721,7 @@ void BHVGOTO::Close()
 namespace M_SetBhvgotoState { extern "C" {
 struct CLOCK; struct VTE; struct O; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
@@ -6739,7 +6739,7 @@ void SetBhvgotoState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->child);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 4:
         {
@@ -6873,7 +6873,7 @@ int SnapPositionToSurfaceAbove(qword *ppos)
 namespace M_UpdateBhvgoto { extern "C" {
 struct CLOCK; struct W; struct G; struct T; struct V; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE758, D_002BE75C;
 struct W { int pad[0x28 / 4]; int version; };
@@ -6911,7 +6911,7 @@ void UpdateBhvgoto(struct S *behavior) {
                 struct T *t = behavior->child;
                 if (s == 2 && IsBhvpathAtEnd(t)) {
                     SetBhvgotoState(behavior, 3);
-                } else if (D_002DDED0.t - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != D_003DD490.pathGraph->version) {
+                } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != D_003DD490.pathGraph->version) {
                     PlanBhvgoto(behavior);
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
@@ -7015,7 +7015,7 @@ void FindBhvgotoRoute(struct S *behavior) {
 namespace M_PlanBhvgoto { extern "C" {
 struct CLOCK; struct W; struct G; struct X; struct Q; struct B; struct D; struct C; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct W { int pad[0x28 / 4]; int version; };
 struct G { char pad[0x45CC]; struct W *pathGraph; };
@@ -7101,7 +7101,7 @@ void PlanBhvgoto(struct S *behavior) {
         }
     }
     SetBhvgotoState(behavior, nextState);
-    behavior->planTime = D_002DDED0.t;
+    behavior->planTime = D_002DDED0.time;
     behavior->pathGraphVersion = D_003DD490.pathGraph->version;
 }
 } } // namespace M_PlanBhvgoto
@@ -7210,7 +7210,7 @@ extern "C" int IsBhvStalkDone(BHVTARGET *behavior)
 namespace M_func_0017DE50 { extern "C" {
 struct CLOCK; struct VTE; struct X; struct T; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE760, D_002BE764, D_002BE768;
 struct VTE { short d; short pad; void *pfn; };
@@ -7252,7 +7252,7 @@ void UpdateBhvStalk(struct S *behavior) {
             if (IsStepguardHandsOff(behavior->guard)) {
                 SetBhvStalkState(behavior, 2);
             } else {
-                { float dt = D_002DDED0.dt; behavior->forcedDelay -= dt; }
+                { float dt = D_002DDED0.deltaTime; behavior->forcedDelay -= dt; }
                 if (behavior->forcedDelay <= 0.0f) {
                     void *o;
                     {
@@ -7277,7 +7277,7 @@ void UpdateBhvStalk(struct S *behavior) {
     }
     if (behavior->state == 1) {
         struct T *t = behavior->child;
-        if (D_002DDED0.t - behavior->lastRegoalTime > D_002BE760) {
+        if (D_002DDED0.time - behavior->lastRegoalTime > D_002BE760) {
         struct X *x = &t->goal;
         qword pos = GetLoWorldPos(behavior->guard);
         int f = 0;
@@ -7299,7 +7299,7 @@ struct CLOCK; struct X; struct T; struct D; struct C; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct X;
 extern "C" {
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE76C;
 extern float D_002BE770[16];
@@ -7333,7 +7333,7 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
     void *q;
     float ang, best;
     unsigned int i;
-    behavior->lastRegoalTime = D_002DDED0.t;
+    behavior->lastRegoalTime = D_002DDED0.time;
     t = behavior->child;
     a = GetLoWorldPos(behavior->target);
     b = GetLoWorldPos(behavior->guard);
@@ -7370,7 +7370,7 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
 // 0x17E278 SetBhvStalkState
 namespace M_func_0017E278 { extern "C" {
 struct CLOCK; struct VTE; struct O; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 /* The pushed child: a BHVANIM/BHVIDLE or a BHVGOTO. */
@@ -7387,7 +7387,7 @@ void SetBhvStalkState(struct S *behavior, int n)
         return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
@@ -7443,7 +7443,7 @@ extern "C" void CloseBhvpathlink(BHVPATHLINKV *behavior)
 // 0x17E458 UpdateBhvpathlink
 namespace M_UpdateBhvpathlink { extern "C" {
 struct CLOCK; struct D; struct C; struct O; struct T; struct S;
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct D { char pad[0x10]; int pathzone; };
 struct C { char pad[0xDC]; struct D *unknownDC; };
@@ -7477,7 +7477,7 @@ void UpdateBhvpathlink(struct S *behavior) {
             }
             break;
         case 0:
-            if (behavior->segmentTimeout < D_002DDED0.t) {
+            if (behavior->segmentTimeout < D_002DDED0.time) {
                 SetBhvpathlinkState(behavior, 1);
             } else {
                 struct C *c = behavior->guard->unknownE8;
@@ -7555,7 +7555,7 @@ void PushBhvpathlinkLeap(struct S *behavior) {
 namespace M_SetBhvpathlinkState { extern "C" {
 struct CLOCK; struct VTE; struct SEG; struct O; struct B; struct A; struct P; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE7B0, D_002BE7B4;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -7577,7 +7577,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
         switch (behavior->pathlink->kind) {
@@ -7589,7 +7589,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
                 qword q = GetPathlinkEndpointPos(&behavior->pathlink->segments[behavior->segmentIndex], pos);
                 qword d;
                 float len;
-                float t = D_002DDED0.t;
+                float t = D_002DDED0.time;
                 __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(q));
                 __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
                 __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));

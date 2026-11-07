@@ -575,7 +575,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
  }
  if(0.0f<span&&span<1.0f&&0.9f<work.normal.f[2]){
   float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.25f;
-  WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(object,(WATER *)water,g_clock.dt,work.velocity.q,work.point.q,0.1f,radius);
+  WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(object,(WATER *)water,g_clock.deltaTime,work.velocity.q,work.point.q,0.1f,radius);
  }
  else if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x32))Clear(&object->emitter);
 }

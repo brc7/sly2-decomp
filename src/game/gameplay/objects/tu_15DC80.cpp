@@ -70,7 +70,7 @@ void CID116::Init()
 extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
     UpdateLo(fade, dt);
-    if (D_002DDED0.t - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
+    if (D_002DDED0.time - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
         VTE *entry = &fade->vtable[9];
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
@@ -99,7 +99,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
     RGBAV color;
     RGBAV from, to;
     float phaseTime;
-    float elapsed = D_002DDED0.t - fade->startTime;
+    float elapsed = D_002DDED0.time - fade->startTime;
     R *dma;
     int dmaStart;
     Q *entry;
@@ -153,7 +153,7 @@ extern "C" void StartScreenFade(FADEV *fade)
 {
     if (((int)(fade->loFlags >> 60) & 1) == 0) {
         VTE *entry = &fade->vtable[8];
-        fade->startTime = D_002DDED0.t;
+        fade->startTime = D_002DDED0.time;
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
 }

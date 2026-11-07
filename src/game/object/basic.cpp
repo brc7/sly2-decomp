@@ -313,7 +313,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int 
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
         BuildSpliceEventCall(&sp, object, k, &ref);
         if (f)
-            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.t);
+            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.time);
         else
             EvalSpliceEventCallback(object, sp.p, object->frame, z);
         {

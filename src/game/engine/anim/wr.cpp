@@ -502,7 +502,7 @@ static inline float Product(float a,float b)
 float UNoise(float frequency, float phase, float u1)
 {
     float randomness = u1;
-    float t = frequency * 2.0f * D_002DDED0.t + phase;
+    float t = frequency * 2.0f * D_002DDED0.time + phase;
     int n = (int)t;
     float u0 = UNoise(n);
     u1 = UNoise(n + 1);
@@ -559,7 +559,7 @@ void UpdateWrMatrixes(WRV *p) __asm__("UpdateWrMatrixes__FP2WR");
 // rotations). Skipped when already updated this frame.
 void UpdateWrMatrixes(WRV *p){
  UpdateLo(p);
- if(D_002DDED0.t==p->lastUpdateTime)return;
+ if(D_002DDED0.time==p->lastUpdateTime)return;
  if(p->valuesChanged)UpdateWrStateVectors(p);
  for(int i=0;i<p->entryCount;i++){
   WRE *entry=&p->entries[i];
@@ -569,7 +569,7 @@ void UpdateWrMatrixes(WRV *p){
   case 0:{
    V position,uv,temporary;
    float sine,cosine;
-   float angle=(D_002DDED0.t*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
+   float angle=(D_002DDED0.time*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
    CalculateSinCos__FfPfT1(NormalizeAngle__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
@@ -599,7 +599,7 @@ void UpdateWrMatrixes(WRV *p){
   }
   }
  }
- p->lastUpdateTime=D_002DDED0.t;
+ p->lastUpdateTime=D_002DDED0.time;
 }
 
 void AddWrCircleWarp(WRV *warp) __asm__("AddWrCircleWarp__FP2WR");

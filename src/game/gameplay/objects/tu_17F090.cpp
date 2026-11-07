@@ -451,7 +451,7 @@ void UpdateHackship(struct S *ship) {
     }
     if (ship->engineSound) {
         float g = (ship->state == 1) ? ship->params->speed : 0.0f;
-        ship->engineVolume = SmoothValue__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.dt);
+        ship->engineVolume = SmoothValue__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.deltaTime);
         SetSndVolume(ship->engineSound, ship->engineVolume);
         if (0.0f < ship->engineVolume) {
             if (ship->engineSound->pauseCount > 0) ResumeSnd(ship->engineSound);
@@ -601,7 +601,7 @@ void SetHackshipState(struct S *ship, int n) {
         break;
     }
     ship->state = n;
-    ship->stateTime = D_002DDED0.t;
+    ship->stateTime = D_002DDED0.time;
     switch (n) {
     case -1:
         {
@@ -707,7 +707,7 @@ struct M3 {
 };
 struct VTE {short delta,pad;void*fn;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x17C];int flag;char pad190[0x30];float time;char pad1C4[0xC];P*target;float turnRate;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" void UpdateSo(P*);
@@ -738,7 +738,7 @@ extern "C" void UpdateHackbullet(P*bullet){
  float desired=atan2f(QwordY(displacement),QwordX(displacement));
  qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
  float current=atan2f(QwordY(direction),QwordX(direction));
- float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
+ float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.deltaTime);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
  ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));
  // The original reads this local matrix before initialization.
@@ -793,7 +793,7 @@ void SetHackbulletMode(struct S *bullet, int n)
         bullet->n = n;
         if (bullet->pt->p60 == bullet) RefreshSwObjectCollisionFilter(D_003DD490, bullet);
     }
-    bullet->expireTime = (bullet->lifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + bullet->lifetime;
+    bullet->expireTime = (bullet->lifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.time + bullet->lifetime;
 }
 } } // namespace M_func_00180478
 
@@ -981,13 +981,13 @@ dispatch:
   int refresh=0;
   if(D_002BE820<Length(QwSubC(target,enemy->previousTarget)))refresh=1;
   else if(D_002BE820<Length(VuSub(self,enemy->previousSelf)))refresh=1;
-  else if(D_002BE824<D_002DDED0.t-enemy->stamp)refresh=1;
+  else if(D_002BE824<D_002DDED0.time-enemy->stamp)refresh=1;
   if(refresh){
    FindPathzonePathCurve(enemy->binding,self,target,enemy->curve);
    enemy->progress=0.0f;
    enemy->previousTarget=target;
    enemy->previousSelf=self;
-   enemy->stamp=D_002DDED0.t;
+   enemy->stamp=D_002DDED0.time;
   }
   FindShapeClosestPointFromDistance(enemy->curve,self,0,&nearest.q,enemy->progress,&direction.q,0,&enemy->progress);
   {
@@ -1192,7 +1192,7 @@ void SetHackenemyState(struct S *enemy, int state)
     if (enemy->state == state) return;
     if (enemy->state == -1) enemy->health = enemy->maxHealth;
     enemy->state = state;
-    enemy->stateTime = D_002DDED0.t;
+    enemy->stateTime = D_002DDED0.time;
     switch (state) {
     case 0: case 1: case 2: case 4:
         ClearStepVelocity(&enemy->stepVelocity);
@@ -1358,7 +1358,7 @@ extern "C" void SetHacklockState(HACKLOCKV *lock, int nState)
             ActivateHackshipFromHacklock(lock);
         }
         lock->nState = nState;
-        lock->tState = D_002DDED0.t;
+        lock->tState = D_002DDED0.time;
         switch (nState) {
         case 1:
             lock->ship->nTarget = lock->nTarget;
@@ -1633,7 +1633,7 @@ extern "C" void UpdateHackwallSegments(SO *pso, HACKSEG *pseg)
     int nState;
     do {
         nState = pseg->nState;
-        if (nState == 1 && D_002DDED0.t - pseg->tState > D_002BE884) {
+        if (nState == 1 && D_002DDED0.time - pseg->tState > D_002BE884) {
             SetHackwallSegmentState(pso, pseg, 0);
         }
     } while (pseg->nState != nState);
@@ -1655,7 +1655,7 @@ void SetHackwallSegmentState(struct S *wall, struct Q *q, int n)
     struct R *r;
     if (n == q->n) return;
     q->n = n;
-    q->t = D_002DDED0.t;
+    q->t = D_002DDED0.time;
     if (n != 2) return;
     r = q->pr;
     r->c--;
@@ -1710,10 +1710,10 @@ void UpdateHackwall(struct S *wall)
         int oid = pe->shape;
         struct Q *q;
         GetShapeMaxDistance(oid);
-        if (!(D_002DDED0.t <= pe->retargetTime)) {
+        if (!(D_002DDED0.time <= pe->retargetTime)) {
             float t;
             FindShapeClosestPoint(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS);
-            t = D_002DDED0.t;
+            t = D_002DDED0.time;
             pe->retargetTime = t + RandomFloatInRange__Fff(0.5f, 0.75f);
         } else {
             FindShapeClosestPointFromDistance(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
@@ -1721,12 +1721,12 @@ void UpdateHackwall(struct S *wall)
         UpdateHackwallPieces(wall, pe);
         for (q = pe->pqFirst; q; q = q->next) {
             float a, b;
-            q->g3c = SmoothValueWithAccel__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
+            q->g3c = SmoothValueWithAccel__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.deltaTime);
             EvaluateShapeAtDistance(oid, q, q->x10, q->g3c);
             a = D_002BE898 * q->g50 + D_002BE89C * q->g58;
             b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;
-            Integrate(&q->g50, &q->g58, a, D_002DDED0.dt);
-            Integrate(&q->g50, &q->g5c, b, D_002DDED0.dt);
+            Integrate(&q->g50, &q->g58, a, D_002DDED0.deltaTime);
+            Integrate(&q->g50, &q->g5c, b, D_002DDED0.deltaTime);
             UpdateHackwallSegments(wall, q);
         }
     }

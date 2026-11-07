@@ -20,7 +20,7 @@ struct SWVIEW
 {
       byte pad[0x4748];
       int isGuardOverrideActive; /* +0x4748 */
-      float guardOverrideStartTime; /* +0x474C g_clock.t when it was set */
+      float guardOverrideStartTime; /* +0x474C g_clock.time when it was set */
 };
 
 extern SWVIEW D_003DD490;         /* g_sw */
@@ -52,7 +52,7 @@ extern "C" void RefreshPlayersAfterPowerupChange()
 extern "C" void UpdateSwGuardOverride(SWVIEW *world)
 {
       if (world->isGuardOverrideActive != 0) {
-            if (D_002BF938 < D_002DDED0.t - world->guardOverrideStartTime)
+            if (D_002BF938 < D_002DDED0.time - world->guardOverrideStartTime)
                   SetGuardOverride(world, 0);
       }
 }
@@ -65,7 +65,7 @@ extern "C" void SetGuardOverride(SWVIEW *world, int isActive)
       int count, i;
 
       world->isGuardOverrideActive = isActive;
-      world->guardOverrideStartTime = D_002DDED0.t;
+      world->guardOverrideStartTime = D_002DDED0.time;
       count = FindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);
       for (i = 0; i < count; i++) {
             if (isActive)

@@ -458,7 +458,7 @@ struct CONTEXT {
     ACTOR *pactor; float tStamp; int action; int step; float tHold; ACTOR *pactorFocus; char pad18[8]; float gParam;
     char pad24[0x440 - 0x24]; ATTACH attach; char pad478[0x500 - 0x478]; int fInhibit;
 };
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 struct SWALLOC { int cb, cbAlign; };
 struct VU_FLOAT { qword q; };
 
@@ -585,7 +585,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         step = grab->step;
         switch (grab->action) {
         case 1:
-            if (0.15f < D_002DDED0.t - grab->tHold && ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
+            if (0.15f < D_002DDED0.time - grab->tHold && ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
                 SetJtAirJump(&AsStepplayer(grab->pactor)->jtair, 7, 0, grab->pactorFocus);
                 break;
             }
@@ -635,7 +635,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         case 10:
             if (!grab->pactor->pasega || IsAsegaRetracted(grab->pactor->pasega)) {
                 SetControl(grab->pactor, 0);
-            } else if (D_002BF5B8 < D_002DDED0.t - grab->tStamp) {
+            } else if (D_002BF5B8 < D_002DDED0.time - grab->tStamp) {
                 if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->grfbtn & 0xD0)) {
                     SetControl(grab->pactor, 0);
                     return;
@@ -745,7 +745,7 @@ struct CONTEXT {
     char pad224[0x240 - 0x224]; PROGRAM program240; char pad2E4[0x330 - 0x2E4]; ENTRY axes2[8]; void *request2;
     char pad434[0x440 - 0x434]; char sub[0x10];
 };
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {
@@ -869,7 +869,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         smp.svSlow = 0.0f;
         smp.dtFast = 0.3f;
         U vel;
-        PosSmooth(pos.q, goal.q, D_002DDED0.dt, &smp, &vel);
+        PosSmooth(pos.q, goal.q, D_002DDED0.deltaTime, &smp, &vel);
         float lateral;
         qword offset;
         if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
@@ -895,8 +895,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             FOCUS *focus;
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.deltaTime, &smp, &lo);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.deltaTime, &smp, &hi);
                 s = Clamp(lateral, lo, hi);
             } else {
                 s = lateral;
@@ -1028,10 +1028,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (focus->cyclic) {
                 limit = smp.svFast;
             } else if (ctx->reversed) {
-                SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.dt, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.deltaTime, &smp, &limit);
                 limit = -limit;
             } else {
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, D_002DDED0.deltaTime, &smp, &limit);
             }
             float ratio = (limit - smp.svSlow) / (smp.svFast - smp.svSlow);
             float amount = joy->amount;
@@ -1075,7 +1075,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ACTOR *actor = ctx->actor;
                 float turn = -actor->velocity.f[1] / D_002BF5CC;
                 actor->velocity.q = ScaleVecX(D_002A2DA0, DotVec(actor->velocity.q, D_002A2DA0));
-                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * D_002DDED0.dt);
+                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * D_002DDED0.deltaTime);
             } else {
                 SetJtGrabKind(ctx, 9);
             }
@@ -1147,7 +1147,7 @@ struct P {
     struct O *x0; float x4; int x8; int pad0c[2]; int x14; int x18; char pad[0x440-0x1C]; char x440[0x4C4-0x440];
     int x4c4; char pad2[0x500-0x4C8]; int x500;
 };
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 void SetJtGrabKind(struct P *p, int n);
 void SetJtCaneState__FP2JTi(struct O *o, int n);
@@ -1160,7 +1160,7 @@ void SetJtGrabState(struct P *grab, int n, int a, int b)
 {
     SetJtGrabKind(grab, -1);
     grab->x8 = n;
-    grab->x4 = D_002DDED0.t;
+    grab->x4 = D_002DDED0.time;
     grab->x18 = b;
     grab->x14 = a;
     grab->x0->vt[88].pfn((char *)grab->x0 + grab->x0->vt[88].d, 2);
@@ -1315,7 +1315,7 @@ struct CONTEXT {
     CLIP *clip4F0, *clip4F4, *clip4F8; int tag; int fInhibit; char pad504[0x50C - 0x504];
     CLIP *clip50C, *clip510, *clip514;
 };
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword q; };
 union U { qword q; float f[4]; int i[4]; };
 
@@ -1493,7 +1493,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             break;
         }
         grab->previous = -1;
-        grab->pactor->tStamp = D_002DDED0.t;
+        grab->pactor->tStamp = D_002DDED0.time;
         break;
     case 7:
         if (Less(step, 11) && !Less(step, 9)) {
@@ -1759,7 +1759,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
         break;
     }
     grab->step = step;
-    grab->tStep = D_002DDED0.t;
+    grab->tStep = D_002DDED0.time;
     if (step == -1)
         return;
     ReleaseAsega(&grab->pactor->animation);
@@ -1829,7 +1829,7 @@ struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
 struct SMP {float g0,g1,g2;};
-struct CLOCK {float t,dt;};
+struct CLOCK {float time,deltaTime;};
 extern struct CLOCK D_002DDED0;
 extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
@@ -1864,8 +1864,8 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     smp.g1 = p->x260;
     smp.g0 = p->x2A0;
     smp.g2 = D_002BF668;
-    (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.dt, &smp, &low);
-    (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
+    (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.deltaTime, &smp, &low);
+    (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.deltaTime, &smp, &high);
     {
         float hi = high;
         *outPos = VuSub(pos.q, p->o->pos);
@@ -2065,7 +2065,7 @@ extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
 {
     if (hfdk == grab->hfdk) return;
     grab->hfdk = hfdk;
-    grab->tHfdk = D_002DDED0.t;
+    grab->tHfdk = D_002DDED0.time;
     grab->uFlattenClamp = 0;
     switch (hfdk) {
     case 3:
@@ -2113,7 +2113,7 @@ struct E8 { char pad[0x80]; qword x80; };
 struct O { char pad[0xC]; VT *vt; char pad2[0xE8-0x10]; struct E8 *xe8; };
 struct S { char pad[0x1BC]; int x1bc; float x1c0; float x1c4; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; float x1c; };
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
@@ -2131,8 +2131,8 @@ typedef char P_x0_Offset[FIELD_OFFSET(P,x0)==0?1:-1];
 typedef char P_x8_Offset[FIELD_OFFSET(P,x8)==8?1:-1];
 typedef char P_x14_Offset[FIELD_OFFSET(P,x14)==20?1:-1];
 typedef char P_x1c_Offset[FIELD_OFFSET(P,x1c)==28?1:-1];
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char SMP_a_Offset[FIELD_OFFSET(SMP,a)==0?1:-1];
 typedef char SMP_b_Offset[FIELD_OFFSET(SMP,b)==4?1:-1];
 typedef char SMP_c_Offset[FIELD_OFFSET(SMP,c)==8?1:-1];
@@ -2179,13 +2179,13 @@ void PresetJtAccelHide(struct P *p)
             int bits;
             goal = s->x1c0;
             __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(direction));
-            dt = D_002DDED0.dt;
+            dt = D_002DDED0.deltaTime;
             __asm__ __volatile__("mtc1 %1,%0" : "=f"(d2) : "r"(bits));
         }
     }
     (void)SmoothValue__FfffP3SMPPf(d1, goal, dt, psmp, &a);
     }
-    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.dt, psmp, &b);
+    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.deltaTime, psmp, &b);
     x = Clamp(s->x1c4 * d2, b, a) - d2;
     qword kq, rq;
     __asm__("qmtc2.ni %1, %0" : "=j"(kq) : "r"(x));
@@ -2494,7 +2494,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     MoveJtGrabCands(&candidates[i + 1], &candidates[i], (ccandMax - i) * sizeof(JTGRABCAND) - sizeof(JTGRABCAND));
     cand.plo = lo;
     cand.pspot = spot;
-    cand.tUnk14 = D_002DDED0.t;
+    cand.tUnk14 = D_002DDED0.time;
     cand.ploUnk10 = 0;
     cand.dsParam = 0.0f;
     candidates[i] = cand;
@@ -2720,7 +2720,7 @@ struct JTGRABCAND {
 };
 struct SW { char pad0[0x4678]; int cjtgrabcand; JTGRABCAND ajtgrabcand[4]; };
 struct STEPPLAYER { char pad0[0x9C4]; int idUnk9C4; };
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -2794,7 +2794,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                         }
                     }
                     if (D_002E1E50) {
-                        float dt = D_002DDED0.dt;
+                        float dt = D_002DDED0.deltaTime;
                         float dsPrev = oldCandidate->dsParam;
                         float dsNew = dsPrev + dt * ((pcand->sParam - oldCandidate->sParam) * D_002BF710 + (pcand->dsParam - dsPrev) * D_002BF714);
                         float dsAvg;
@@ -2802,7 +2802,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                         dsAvg = (dsPrev + dsNew) * 0.5f;
                         oldCandidate->sParam = oldCandidate->sParam + dt * dsAvg;
                     } else {
-                        oldCandidate->sParam = SmoothValue__FfffP3SMPPf(oldCandidate->sParam, pcand->sParam, D_002DDED0.dt, &D_002BF718, &oldCandidate->dsParam);
+                        oldCandidate->sParam = SmoothValue__FfffP3SMPPf(oldCandidate->sParam, pcand->sParam, D_002DDED0.deltaTime, &D_002BF718, &oldCandidate->dsParam);
                     }
                     if (fWrap) {
                         if (asRange[1] < oldCandidate->sParam)
@@ -2910,7 +2910,7 @@ struct EMITTER
 struct EMITX { PRG **ppprg; void *ppripg; EMITTER *pemitter; };
 struct SW;
 struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 
 extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
@@ -2964,7 +2964,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
 
         if (candidate->nPriority == -1)
             continue;
-        g = pemitter->gRate * D_002DDED0.dt;
+        g = pemitter->gRate * D_002DDED0.deltaTime;
         gRand = RandomFloatInRange__Fff(0.0f, 1.0f);
         c = (int)g;
         g -= (float)c;
@@ -2979,7 +2979,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
             s = VU_FLOAT(RandomInRange(&pemitp->lmSv));
             VU_VECTOR vs = s * v;
             vScaled.q = vs.q;
-            float tBirth = D_002DDED0.t;
+            float tBirth = D_002DDED0.time;
             tBirth -= RandomInRange(&pemitp->lmAge);
             atBirth[cpart] = tBirth;
             atDeath[cpart] = tBirth + pemitp->dtLife;

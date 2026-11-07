@@ -265,7 +265,7 @@ void BHV182::Start()
     BHVRT *behavior = (BHVRT *)this;
     StartBhv(behavior);
     SetBhvRouteState(behavior, 0);
-    behavior->lastFastHeroTime = D_002DDED0.t;
+    behavior->lastFastHeroTime = D_002DDED0.time;
     behavior->guard->unknown4A4 = 0;
 }
 
@@ -420,8 +420,8 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         v = ((qword (*)(void *))entry->pfn)((char *)hero + entry->d);
     }
     if (IsLess(D_002BD460, Len(v)))
-        behavior->lastFastHeroTime = D_002DDED0.t;
-    float dt = D_002DDED0.t - behavior->lastFastHeroTime;
+        behavior->lastFastHeroTime = D_002DDED0.time;
+    float dt = D_002DDED0.time - behavior->lastFastHeroTime;
     if (RandomFloatInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && hero->state == 0x11) {
             PATH *ppath = hero->path;
@@ -590,7 +590,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         SetSoCnstrTorque(behavior->guard, 1);
         break;
     case 3: {
-        float t = D_002DDED0.t;
+        float t = D_002DDED0.time;
         behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
         behavior->attack = 0;
         break;
@@ -598,7 +598,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     }
     PopBhv(behavior->childSlot);
     behavior->state = state;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (state) {
     case 0: {
         struct O9E *po = (struct O9E *)PushStepBehavior(behavior->guard, CID_BHVIDLE);
@@ -638,7 +638,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         po->arrivalRadius = 25.0f;
         po->faceTarget = GetHeroPo(&D_003DD490);
         VCALL0(po, 8);
-        behavior->guard->attackCooldownEnd = D_002DDED0.t;
+        behavior->guard->attackCooldownEnd = D_002DDED0.time;
         SetSoCnstrForce(behavior->guard, 0);
         SetSoCnstrTorque(behavior->guard, 0);
         break;

@@ -1166,7 +1166,7 @@ struct VIEW
 };
 struct CLOCK
 {
-    float t, dt;
+    float time, deltaTime;
 };
 struct G
 {
@@ -1387,7 +1387,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     float gVis = GetSphereVisibility(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
     if (gVis == 0.0f)
         return;
-    pmodel->t = D_002DDED0.t;
+    pmodel->t = D_002DDED0.time;
     if (pmodel->nStamp != D_003DD490.nStamp)
         SubmitGlobsetRelight(pmodel);
     int i;

@@ -367,7 +367,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     if (kind != 6)
     {
         air->unknown40 = 0;
-        t = D_002DDED0.t;
+        t = D_002DDED0.time;
         air->unknown4C = t;
         air->unknown48 = t;
         air->unknown44 = t;
@@ -379,10 +379,10 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     }
     vel = JtPlanLaunchVz(air, kind);
     air->player->SetVelocity(vel);
-    t = D_002DDED0.t;
+    t = D_002DDED0.time;
     air->player->unknown131C = t;
     if (kind != 6)
-        air->startTime = D_002DDED0.t;
+        air->startTime = D_002DDED0.time;
     switch (kind)
     {
         case 0:
@@ -547,7 +547,7 @@ struct BODY{char pad0[0x70];U position;char pad80[0x20];SPACE*frame;};struct MOT
 struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];U velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];CLIP*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];U offset;char pad1020[0x10];ANIMATION*animation;COMPONENT component;char pad1038[0x4DC];CLIP*clip1514;CLIP*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
 struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct TRACK{int opaque;WORD control;float weight;};struct QUERY{OBJECT*object;PROVIDER*provider;REFERENCE*reference;int tag;U point;};
 struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];U relative,direction,offset;char pad100[0x20];CLIP*base[5];CLIP*alternate[5];CLIP*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;CLIP*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];CLIP*multi;SOURCE*scriptFocus;char pad1C0[8];CLIP*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
-struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
+struct CLOCK{float time,deltaTime;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
@@ -667,7 +667,7 @@ typedef char CONTEXT_special1C8_Offset[FIELD_OFFSET(CONTEXT,special1C8)==456?1:-
 typedef char CONTEXT_query_Offset[FIELD_OFFSET(CONTEXT,query)==464?1:-1];
 typedef char CONTEXT_event_Offset[FIELD_OFFSET(CONTEXT,event)==496?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char RANGE_low_Offset[FIELD_OFFSET(RANGE,low)==0?1:-1];
 typedef char RANGE_high_Offset[FIELD_OFFSET(RANGE,high)==4?1:-1];
 typedef char TWO_ROWS_row_Offset[FIELD_OFFSET(TWO_ROWS,row)==0?1:-1];
@@ -1270,7 +1270,7 @@ typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];int i[4];};struct M3{U row[3];};struct M4{U row[4];};
 struct VTE{short delta,pad;void*fn;};struct BODY{char pad0[0xB0];U angularVelocity;char padC0[0x30];U angularAcceleration;};struct MOTION{char pad0[0x80];U acceleration;};struct ACTOR{char pad0[12];VTE*vt;char pad10[0x4C];BODY*body;char pad60[0x88];MOTION*motion;char padEC[0x190-0xEC];U velocity;};
 struct CONTEXT{ACTOR*actor;int state;char pad8[0x10];float stamp;int mode;char pad20[0x14];float gain;char pad38[0x68];U desired;char padB0[0x110];float targetX,targetZ;};
-struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct POLY{float c0,c1,c2;};struct PARAMS{float values[3];};
+struct CLOCK{float time,deltaTime;};struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct POLY{float c0,c1,c2;};struct PARAMS{float values[3];};
 /* The basis writer and later vectors share their actual stack homes. */
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
@@ -1313,7 +1313,7 @@ typedef char CONTEXT_desired_Offset[FIELD_OFFSET(CONTEXT,desired)==160?1:-1];
 typedef char CONTEXT_targetX_Offset[FIELD_OFFSET(CONTEXT,targetX)==448?1:-1];
 typedef char CONTEXT_targetZ_Offset[FIELD_OFFSET(CONTEXT,targetZ)==452?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char SMP_maximum_Offset[FIELD_OFFSET(SMP,maximum)==0?1:-1];
 typedef char SMP_minimum_Offset[FIELD_OFFSET(SMP,minimum)==4?1:-1];
 typedef char SMP_duration_Offset[FIELD_OFFSET(SMP,duration)==8?1:-1];
@@ -1386,7 +1386,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
                     : "j"(r0), "j"(r1), "j"(r2), "m"(matrix->row[1].q));
             __asm__("lwc1 %0,%4\n\tlwc1 %1,%5\n\tsqc2 %6,%2\n\tsqc2 %7,%3"
                     : "=f"(step), "=f"(target), "=m"(w.turn.basis.row[1].q), "=m"(w.turn.returned.row[0].q)
-                    : "m"(((CLOCK *)clockWord)->dt), "m"(p->targetX), "j"(second), "j"(first));
+                    : "m"(((CLOCK *)clockWord)->deltaTime), "m"(p->targetX), "j"(second), "j"(first));
             /* XYZ changes; each matrix row keeps its actual incoming W carrier. */
             __asm__("lqc2 $vf1,%5\n\tvmulax.xyz $ACC,%0,$vf1x\n\tvmadday.xyz $ACC,%3,$vf1y\n\tvmaddz.xyz "
                     "%0,%4,$vf1z\n\tsqc2 %6,%1\n\tsqc2 %0,%2"
@@ -1401,7 +1401,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
             register float current __asm__("$f12"), step __asm__("$f14");
             __asm__("lwc1 %0,%4\n\tlui %2,%%hi(%6)\n\tlwc1 %1,%5\n\taddiu %2,%2,%%lo(%6)\n\tswc1 %7,%3"
                     : "=f"(current), "=f"(step), "=&r"(parameters), "=m"(w.turn.local.f[0])
-                    : "m"(w.turn.local.f[1]), "m"(((CLOCK *)clockWord)->dt), "i"(&D_002BF7B8), "f"(updatedX));
+                    : "m"(w.turn.local.f[1]), "m"(((CLOCK *)clockWord)->deltaTime), "i"(&D_002BF7B8), "f"(updatedX));
             updatedY = SmoothValue__FfffP3SMPPf(current, zero, step, parameters, 0);
         }
         {
@@ -1409,7 +1409,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
             register float current __asm__("$f12"), step __asm__("$f14"), target __asm__("$f13");
             __asm__("lwc1 %1,%4\n\tlui %2,%%hi(%7)\n\tlwc1 %0,%5\n\taddiu %2,%2,%%lo(%7)\n\tlwc1 %3,%6"
                     : "=f"(current), "=f"(step), "=&r"(parameters), "=f"(target)
-                    : "m"(((CLOCK *)clockWord)->dt), "m"(w.turn.local.f[2]), "m"(p->targetZ), "i"(&D_002BF7C8));
+                    : "m"(((CLOCK *)clockWord)->deltaTime), "m"(w.turn.local.f[2]), "m"(p->targetZ), "i"(&D_002BF7C8));
             w.turn.local.f[1] = updatedY;
             w.turn.local.f[2] = SmoothValue__FfffP3SMPPf(current, target, step, parameters, 0);
         }
@@ -1790,7 +1790,7 @@ void UpdateJtAirInput(JTAIR *air)
         switch (air->state)
         {
             case 0:
-                if (D_002DDED0.t - air->stateStartTime > D_002BF818)
+                if (D_002DDED0.time - air->stateStartTime > D_002BF818)
                 {
                     if (!(pctl->grfbtn & 0x40) && air->unknown40 != 3)
                         air->unknown24 = 1;
@@ -1800,7 +1800,7 @@ void UpdateJtAirInput(JTAIR *air)
                     SteerJtAirClip(air);
                 break;
             case 2:
-                if (D_002DDED0.t - air->stateStartTime > D_002BF81C)
+                if (D_002DDED0.time - air->stateStartTime > D_002BF81C)
                     SetJtAirState(air, 3, air->jumpObject);
                 else if (!air->unknown30 && pctl->sLeft > 0.5f)
                     SteerJtAirClip(air);
@@ -1813,7 +1813,7 @@ void UpdateJtAirInput(JTAIR *air)
             case 6:
                 if (((CID88 *)air->jumpObject)->nUnk17c == 3)
                     SetJtAirState(air, 4, 0);
-                else if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
+                else if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             case 9:
@@ -1824,7 +1824,7 @@ void UpdateJtAirInput(JTAIR *air)
             case 0xE:
             case 0xF:
             case 0x10:
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             case 0x12:
@@ -1832,21 +1832,21 @@ void UpdateJtAirInput(JTAIR *air)
                 float tLabel = TFindAsegLabel(D_002F7900->moverec.pasegUnk64, (OID)0x1C7);
                 float t = *(float *)&air->player->unknown58->reference;
                 t -= tLabel;
-                if (t <= D_002DDED0.t && D_002F7900->moverec.nState != 3)
+                if (t <= D_002DDED0.time && D_002F7900->moverec.nState != 3)
                 {
                     SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
                     break;
                 }
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             }
             case 8:
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
                     SetJtAirState(air, 4, air->jumpObject);
                 break;
             case 5:
-                if (D_002DDED0.t - air->stateStartTime > 0.25f && fFloor)
+                if (D_002DDED0.time - air->stateStartTime > 0.25f && fFloor)
                 {
                     air->player->SetPlayerState(0);
                     break;
@@ -1883,7 +1883,7 @@ void UpdateJtAirInput(JTAIR *air)
                     ReturnJtToSafePlace(air->player, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - air->stateStartTime > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
+                if (D_002DDED0.time - air->stateStartTime > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                 {
                     SetJtAirJump(air, 3, 0, 0);
                     break;
@@ -1893,9 +1893,9 @@ void UpdateJtAirInput(JTAIR *air)
                 else
                 {
                     STEPPLAYER *player = air->player;
-                    player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
+                    player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, D_002DDED0.deltaTime, &D_002BF820, 0);
                     *(qword *)&vec = ConvertXfPos(air->edge->pxf, 0, air->edgePosition);
-                    if (D_002DDED0.t - air->stateStartTime > 0.03f &&
+                    if (D_002DDED0.time - air->stateStartTime > 0.03f &&
                         !FCheckJtEdgeGrab(air, (SOPART *)air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
                     {
                         SetJtAirState(air, 4, 0);
@@ -1929,7 +1929,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 break;
             case 0x15:
-                if (air->pact8->tEnd < D_002DDED0.t)
+                if (air->pact8->tEnd < D_002DDED0.time)
                 {
                     JT *jt = 0;
                     int nUnk10;
@@ -1946,7 +1946,7 @@ void UpdateJtAirInput(JTAIR *air)
                         jt->janim.nUnk10 = nUnk10;
                     break;
                 }
-                if (air->placeTarget.grabSpot != 0 && air->pact8->tEnd < D_002DDED0.t + 0.25f)
+                if (air->placeTarget.grabSpot != 0 && air->pact8->tEnd < D_002DDED0.time + 0.25f)
                 {
                     if (IsBasicDerivedFrom(air->placeTarget.object, (CID)0x13) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0xB) ||
                         IsBasicDerivedFrom(air->placeTarget.object, (CID)0xD) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0x27) ||
@@ -1967,18 +1967,18 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->placeTarget.grabSpot != 0 || air->placeTarget.part != 0)
                 {
-                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.t), air->player, &air->placeTarget);
+                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.time), air->player, &air->placeTarget);
                     air->pact8->SetGoal(ConvertXfPos(0, air->player->unknown58->parent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
             case 0x16:
                 if (GetStepplayerMp(air->player) <= 0)
                     SetJtAirState(air, 4, 0);
-                else if (D_002DDED0.t - air->stateStartTime > D_002BF82C && fFloor)
+                else if (D_002DDED0.time - air->stateStartTime > D_002BF82C && fFloor)
                     air->player->SetPlayerState(0);
-                else if (D_002DDED0.t - air->stateStartTime > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->player, 0xC)))
+                else if (D_002DDED0.time - air->stateStartTime > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->player, 0xC)))
                     SetJtAirState(air, 4, 0);
-                else if (D_002DDED0.t - air->stateStartTime > D_002BF830)
+                else if (D_002DDED0.time - air->stateStartTime > D_002BF830)
                     SetJtAirState(air, 4, 0);
                 break;
         }
@@ -2159,15 +2159,15 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     case 0:
         if (0.9f < input->amount) {
             p->combo = 1;
-            p->tPress = D_002DDED0.t;
-        } else if (D_002BF834 < D_002DDED0.t - p->tRelease)
+            p->tPress = D_002DDED0.time;
+        } else if (D_002BF834 < D_002DDED0.time - p->tRelease)
             p->jump = 1;
         break;
     case 1:
         if (input->amount < 0.9f) {
             p->combo = 2;
-            p->tRelease2 = D_002DDED0.t;
-            if (D_002DDED0.t - p->tPress < D_002BF838)
+            p->tRelease2 = D_002DDED0.time;
+            if (D_002DDED0.time - p->tPress < D_002BF838)
                 p->jump = 1;
         }
         break;
@@ -2259,7 +2259,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         }
         if (srcBest || objBest) {
             BODY *body = p->actor->body;
-            body->deadline = D_002DDED0.t + tBest;
+            body->deadline = D_002DDED0.time + tBest;
             body->goal.q = TransformXfPos(0, body->frame, posBest.q);
             SPACE *frame = body->frame;
             U v;
@@ -2283,7 +2283,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         point.q = VuSub(GetLoWorldPos(p->source), p->actor->offset.q);
     predict: {
         BODY *body = p->actor->body;
-        float dt = body->deadline - D_002DDED0.t;
+        float dt = body->deadline - D_002DDED0.time;
         SPACE *frame = GetFrame(p->source);
         M4 forecast, derivative;
         LoadIdentityMatrix4(frame, 0, &forecast, dt, &derivative);
@@ -2319,7 +2319,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     switch (p->mode) {
     case 6: case 8 ... 16: case 18: {
         BODY *body = p->actor->body;
-        float dt = body->deadline - D_002DDED0.t + D_002DDED0.dt;
+        float dt = body->deadline - D_002DDED0.time + D_002DDED0.deltaTime;
         U accel0, accel1;
         EvaluateBezierPos(dt, 0.0f, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel0.q);
         EvaluateBezierPos(dt, dt, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel1.q);
@@ -2349,9 +2349,9 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         float mix = (forward + 1.0f) * 0.5f;
         if (p->scriptFocus) {
             DATA *data = p->scriptFocus->data;
-            data->amount = SmoothValue__FfffP3SMPPf(data->amount, LerpRange(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
+            data->amount = SmoothValue__FfffP3SMPPf(data->amount, LerpRange(D_002BF798, mix), D_002DDED0.deltaTime, &D_002BF860, 0);
         }
-        float turn = LerpRange(D_002BF870, mix) * lateral * D_002DDED0.dt;
+        float turn = LerpRange(D_002BF870, mix) * lateral * D_002DDED0.deltaTime;
         p->blend0 = LerpRange(D_002BF850, mix);
         p->blend1 = LerpRange(D_002BF858, mix);
 
@@ -4405,7 +4405,7 @@ LPartnerDone:
     if (kind == -1)
         return;
     XF *xf = air->player->pxf;
-    xf->tGoal = D_002DDED0.t + tBest;
+    xf->tGoal = D_002DDED0.time + tBest;
     xf->posGoal = VuSub(posBest.q, air->player->qwUnk240);
     xf->vGoal = vBest.q;
     air->uTarget = uBest;

@@ -324,7 +324,7 @@ static inline float Dot(qword a,qword b){qword one;float f;__asm__("vmul.xyz %0,
 // "memory": the game re-reads p->pxfRot after this dot product.
 static inline float LengthSquared(qword v){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(v),"=&j"(one): :"memory");__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
-static inline float ClockDt(){return D_002DDED0.dt;}
+static inline float ClockDt(){return D_002DDED0.deltaTime;}
 static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;vt[slot].pfn((char *)p+vt[slot].d);}
 // Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
 // and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
@@ -478,13 +478,13 @@ void IntegrateSoGroupTransforms(SO *p)
     SettleXfSlot(p,rotation);
     clock=&D_002DDED0;
     {qword point=position->pos.q;
-    qword k=Scalar(clock->dt*coefficient,&scalar);
+    qword k=Scalar(clock->deltaTime*coefficient,&scalar);
     VECTOR_opAssign(&position->pos.q,AddScaledE(point,position->v.q,k));}
     position->pos.f[3]=1.0f;
     global=&D_003DD490;
     position->worldStamp=++global->stamp;
     Clear(positionVelocity);
-    frame=MulC(BuildRotation(ScaleE(rotation->v.q,Scalar(clock->dt*coefficient,&scalar))),MATC(rotation));
+    frame=MulC(BuildRotation(ScaleE(rotation->v.q,Scalar(clock->deltaTime*coefficient,&scalar))),MATC(rotation));
     NormalizeRotateMatrix3__FP7MATRIX3(&frame);
     {M3C *dest=&MATC(rotation);*dest=frame;dest->r[1].i[3]=0;dest->r[2].i[3]=0;dest->r[0].i[3]=0;}
     rotation->worldStamp=++global->stamp;
@@ -551,7 +551,7 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
             int incrementNear=0;NearVector(&incrementNear,D_002A2DD0,shift);
             if(!incrementNear){
                 qword point;qword *positionAddress=PointAddress(position,&point);
-                qword delta;float halfDt=HalfAndDelta(D_002DDED0.dt,0.5f,shift,&delta);
+                qword delta;float halfDt=HalfAndDelta(D_002DDED0.deltaTime,0.5f,shift,&delta);
                 qword k=Scalar(halfDt,&scalar);
                 VECTOR_opAssign(positionAddress,AddScaledIn(point,delta,k));
                 position->pos.f[3]=1.0f;
@@ -559,7 +559,7 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
             }
             incrementNear=0;NearVector(&incrementNear,D_002A2DD0,turn);
             if(!incrementNear){
-                frame=MulC(BuildRotation(ScaleIn(turn,Scalar(D_002DDED0.dt*0.5f,&scalar))),MATC(rotation));
+                frame=MulC(BuildRotation(ScaleIn(turn,Scalar(D_002DDED0.deltaTime*0.5f,&scalar))),MATC(rotation));
                 NormalizeRotateMatrix3__FP7MATRIX3(&frame);
                 MATC(rotation)=frame;
                 MATC(rotation).r[1].i[3]=0;

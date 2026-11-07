@@ -222,13 +222,13 @@ extern "C" void UpdateBooty(BOOTYV *booty) {
     st = booty->st;
     switch (st) {
     case 5:
-        if ((D_002DDED0.t - booty->tState) >= 5.0f) {
+        if ((D_002DDED0.time - booty->tState) >= 5.0f) {
             ReturnDroppedBooty(booty, 0);
             return;
         }
         return;
     case 4:
-        if ((booty->pbootyeCur->hasTimer != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
+        if ((booty->pbootyeCur->hasTimer != 0) && (D_002DDED0.time >= g_sw.tHudTimerEnd)) {
             DropStepplayerBooty(booty->phero);
         }
         break;
@@ -244,7 +244,7 @@ extern "C" void RenderBootySelf(BOOTYV *booty)
     case 4: {
         VU v;
         M4 m;
-        float dt = D_002DDED0.t - booty->tState;
+        float dt = D_002DDED0.time - booty->tState;
         if (booty->tDrop <= dt) {
             v = booty->vScale;
         } else {
@@ -547,7 +547,7 @@ void SetBootyState(BOOTYV *booty, int st)
         break;
     }
     booty->st = st;
-    booty->tState = D_002DDED0.t;
+    booty->tState = D_002DDED0.time;
     switch (st) {
     case 0:
         booty->pbootyeCur = 0;

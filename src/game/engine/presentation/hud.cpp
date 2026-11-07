@@ -178,13 +178,13 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern struct CLOCK { float t; float dt; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
 void BuildTimerText(void *f)
 {
-    float t = -D_002DDED0.t + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
+    float t = -D_002DDED0.time + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
     {
         int q = n / 60;

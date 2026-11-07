@@ -3125,7 +3125,7 @@ namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 extern float D_002DDED0;
-// Splice builtin "current-time": F32 = g_clock.t (D_002DDED0).
+// Splice builtin "current-time": F32 = g_clock.time (D_002DDED0).
 CRef *BuiltinCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 {
     ret->m_tagk = TAGK_F32;
@@ -3257,7 +3257,7 @@ CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
         }
     }
     G *sw = &D_003DD490;
-    float now = D_002DDED0.t;
+    float now = D_002DDED0.time;
     R *callback = ScheduleSwSpliceCallback(sw, 0, body.p, now + CRef_CoerceF32(args).u.g);
     result.SetS32(callback->handle);
     return result;
@@ -3282,7 +3282,7 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 extern float D_002DDED0;
-// Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt.
+// Splice builtin "defer-object-update": obj+0x30 = g_clock.time + dt.
 CRef *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;

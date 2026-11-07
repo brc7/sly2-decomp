@@ -81,7 +81,7 @@ struct INNER{char pad[0x60];VALUE*value;};
 struct RIG{char pad[0xA8];INNER*inner;};
 struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 struct CM{char pad[0x90];U position;};
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
@@ -181,7 +181,7 @@ typedef char POLY_c_Offset[FIELD_OFFSET(POLY,c)==8?1:-1];
 typedef char LIMIT_lo_Offset[FIELD_OFFSET(LIMIT,lo)==0?1:-1];
 typedef char LIMIT_hi_Offset[FIELD_OFFSET(LIMIT,hi)==4?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
@@ -389,7 +389,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
-   u.f[2]=(-p->o->f198-v.f[2])/D_002DDED0.dt;
+   u.f[2]=(-p->o->f198-v.f[2])/D_002DDED0.deltaTime;
    p->o->Set(u.q);
   }
   break;
@@ -439,7 +439,7 @@ void UpdateJtActiveZap(struct S *s)
         float w;
         float a;
         if (s->x4 == -1) {
-            float dt = D_002DDED0.t - s->x98;
+            float dt = D_002DDED0.time - s->x98;
             if (s->x9C < dt) {
                 s->x90 = -1;
                 s->po->xD0 = 0.0f;
@@ -450,7 +450,7 @@ void UpdateJtActiveZap(struct S *s)
         } else {
             u = 0.0f;
         }
-        w = cosf((D_002DDED0.t - s->x94) * 10.0f);
+        w = cosf((D_002DDED0.time - s->x94) * 10.0f);
         a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
         s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
@@ -463,8 +463,8 @@ done:
         float g;
         v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
-        if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
+        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.deltaTime));
+        if (0.25f < D_002DDED0.time - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (IsJtStuck(s->po, 0, s->x8))
             RunJtHurtCallback(s);
@@ -671,7 +671,7 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void Stop() __asm__("JtHurtFallCallback");
  void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 struct G{char pad[0x4038];int channel;};
 extern "C"{
  extern CLOCK D_002DDED0;
@@ -732,7 +732,7 @@ typedef char RECORD_b_Offset[FIELD_OFFSET(RECORD,b)==52?1:-1];
 typedef char RECORD_c_Offset[FIELD_OFFSET(RECORD,c)==56?1:-1];
 typedef char G_channel_Offset[FIELD_OFFSET(G,channel)==16440?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char unsigned_Size[sizeof(unsigned)==4?1:-1];
 typedef char float_Size[sizeof(float)==4?1:-1];
@@ -1102,7 +1102,7 @@ struct ENTRY{P*object;float time;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x2CC];int state;char pad2E0[0xB14];int mode;char padDF8[0x294];L*link;ENTRY*entries;int count;float pad1098[2];float height;};
 struct HIT {L*target;int pad4;P*source;int tag,kind;char pad14[0xC];U point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];U position;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword GetLoWorldPos(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
@@ -1164,7 +1164,7 @@ extern "C" void UpdateStepplayerWater(P *player)
         P *object = entry->object;
         position.q = GetLoWorldPos(object);
         void *frame = ((void *(*)(void *, M4 *))object->vt[32].fn)((char *)object + object->vt[32].delta, pbase);
-        LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.dt);
+        LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.deltaTime);
         predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
         int crossed = 0;
         if (point.f[2] <= position.f[2]) {
@@ -1290,8 +1290,8 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&D_002DDED0;
-  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->dt,&player->smp10A8,&z);
-  g=(z-vel.f[2])/clock->dt-player->xE8->v80.f[2];
+  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->smp10A8,&z);
+  g=(z-vel.f[2])/clock->deltaTime-player->xE8->v80.f[2];
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;
   AddSoAcceleration(player,accel.q);
   break;

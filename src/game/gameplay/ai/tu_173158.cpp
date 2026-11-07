@@ -471,16 +471,16 @@ extern "C" void ReleaseSpawnerEntry(CID119V *spawner, ENTRY *slot, int status, i
         {
             GUARDV *guard = slot->guard;
             VTE *entry;
-            slot->readyTime = D_002DDED0.t;
+            slot->readyTime = D_002DDED0.time;
             entry = &guard->vt[9];   // RemoveLo
             ((void (*)(void *))entry->pfn)((char *)guard + entry->d);
         }
-        if (!(keepSelectorReady & 1)) slot->selector->busyUntil = D_002DDED0.t;
+        if (!(keepSelectorReady & 1)) slot->selector->busyUntil = D_002DDED0.time;
         break;
     case ENTRY_RESPAWN_DELAY:
-        slot->readyTime = D_002DDED0.t + spawner->respawnDelay;
+        slot->readyTime = D_002DDED0.time + spawner->respawnDelay;
         slot->position = GetSpawnerFocusPosition(spawner);
-        if (!(keepSelectorReady & 1)) slot->selector->busyUntil = D_002DDED0.t + spawner->respawnDelay2;
+        if (!(keepSelectorReady & 1)) slot->selector->busyUntil = D_002DDED0.time + spawner->respawnDelay2;
         break;
     }
     slot->guard = 0;
@@ -526,9 +526,9 @@ extern "C" void UpdateSpawner(CID119V *spawner)
     UpdateLo(spawner);
     pos = GetSpawnerFocusPosition(spawner);
     UpdateSpawnerEntries(spawner, pos);
-    if (D_002DDED0.t < spawner->nextSpawnTime)
+    if (D_002DDED0.time < spawner->nextSpawnTime)
         return;
-    spawner->nextSpawnTime = D_002DDED0.t + D_002BE5D0;
+    spawner->nextSpawnTime = D_002DDED0.time + D_002BE5D0;
     if (spawner->entryCount == spawner->entryCapacity) {
         // Full: only recycle a slot once the player has moved away from the last spawn.
         int isClose = DistanceXY(pos, spawner->lastSpawnPosition) < D_002BE5D4;   // (an int temporary: needed)
@@ -546,7 +546,7 @@ extern "C" void UpdateSpawner(CID119V *spawner)
             case 0:   // never spawn while the player has an alert event
                 return;
             case 1:   // only within D_002BE5CC seconds of it
-                if (D_002DDED0.t - event->time > D_002BE5CC)
+                if (D_002DDED0.time - event->time > D_002BE5CC)
                     return;
                 break;
             case 2:
@@ -571,12 +571,12 @@ extern "C" void UpdateSpawner(CID119V *spawner)
     if (event)
         SetDetectorTargetStateById(guard->detector, event->tag, 2);   // the event's source starts as "lost"
     entry->guard = guard;
-    entry->activeTime = D_002DDED0.t;
+    entry->activeTime = D_002DDED0.time;
     entry->selector = selector;
     spawner->entryCount++;
     selector->isBusy = 1;
     link.pp = (LOV **)&guard;
-    spawner->nextSpawnTime = D_002DDED0.t + D_002BE5D8;
+    spawner->nextSpawnTime = D_002DDED0.time + D_002BE5D8;
     // vtable slot 3 (HandleSpliceEvent): message 0x19 "guard spawned" with the guard.
     ((void (*)(void *, int, int, int, void *const *, CRefV *))spawner->vt[3].pfn)((char *)spawner + spawner->vt[3].d, 0x19, 0, 1, (void *const *)&link, 0);
 }
@@ -622,7 +622,7 @@ extern "C" void UpdateSpawnerEntries(CID119V *spawner, qwordV pos) {
                 int isFarEnough = D_002BE5DC < DistXY(VU_VECTOR(entry->position), VU_VECTOR(pos));
                 if (isFarEnough) {
                     entry->status = ENTRY_FREE;
-                    entry->readyTime = D_002DDED0.t;
+                    entry->readyTime = D_002DDED0.time;
                 }
             }
         } else if (guard->isKnockedOut) {
@@ -638,8 +638,8 @@ extern "C" void UpdateSpawnerEntries(CID119V *spawner, qwordV pos) {
 
 // 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
 extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *spawner, LOV *object) {
-    float oldestActiveTime = D_002DDED0.t - D_002BE5E0;   // occupied slots must be older than this
-    float oldestReadyTime = D_002DDED0.t;
+    float oldestActiveTime = D_002DDED0.time - D_002BE5E0; // occupied slots must be older than this
+    float oldestReadyTime = D_002DDED0.time;
     ENTRY *best = 0;
     ENTRY *slot;
     int i;
@@ -741,7 +741,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
         LOV *object;
         if (selector->isBusy)
             continue;
-        if (D_002DDED0.t < selector->busyUntil)
+        if (D_002DDED0.time < selector->busyUntil)
             continue;
         object = selector->object;
         if (!object)

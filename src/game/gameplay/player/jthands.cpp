@@ -436,7 +436,7 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
         ReleaseAct(&hands->pactTurn);
     }
     hands->mode = nMode;
-    hands->modeStartTime = D_002DDED0.t;
+    hands->modeStartTime = D_002DDED0.time;
     switch (nMode) {
     case 0:
     case 1:
@@ -660,7 +660,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         work.views.scalar.q = positive;
         apply(receiver, callbackVelocity);
     }
-    float endTime = D_002DDED0.t + phase;
+    float endTime = D_002DDED0.time + phase;
     qword position = TransformXfPos(0, object->unknown58->parent, work.final.r[3]);
     qword endVelocity = ConvertXfVec(0, object->unknown58->parent, work.endVelocity);
     {
@@ -755,7 +755,7 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
         SetLoParent(hands->psoHeld, 0, 0xF);
     }
     XF *pxfAct = hands->psoHeld->unknown58;
-    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->parent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->parent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.time + D_002C1EF4);
     pxfAct = hands->psoHeld->unknown5C;
     mat = ConvertXfMatR(0, pxfAct->parent, GetLoWorldMatrix(object));
     hands->pactTurn = NewPositionAct(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));

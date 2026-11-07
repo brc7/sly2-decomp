@@ -152,7 +152,7 @@ void UpdateCmLast__FP2CM(struct CM *cm)
     if (cm->cutCount) {
         SetCmFov__FP2CMf(cm, cm->targetFov);
     } else if (cm->targetFov != cm->fov) {
-        cm->fov = SmoothValueWithAccel__FffffP4SMPAPf(cm->fov, cm->fovSpeed, cm->targetFov, D_002DDED0.dt, &cm->fovSmoothing, &cm->fovSpeed);
+        cm->fov = SmoothValueWithAccel__FffffP4SMPAPf(cm->fov, cm->fovSpeed, cm->targetFov, D_002DDED0.deltaTime, &cm->fovSmoothing, &cm->fovSpeed);
         RecalcCmFrustrum__FP2CM(cm);
     }
     cm->cutCount = 0;
@@ -482,7 +482,7 @@ void UpdateCmMat4(CM *pcm) __asm__("UpdateCmMat4__FP2CM");
 extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 {
     MATRIX4 matEye;
-    float dtJolt = D_002DDED0.t - pcm->tJolt;
+    float dtJolt = D_002DDED0.time - pcm->tJolt;
     if (dtJolt > D_002BD850)
     {
         CombineEyeLookAtProj(&pcm->mat, &pcm->matProj, &pcm->matViewProj);
@@ -674,7 +674,7 @@ extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
 // Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
-// prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate.
+// prev vt3 Deactivate, tModeStart=clock.time, vt2 Activate.
 void SetCmPolicy(struct P *p, int prio, struct O *po, int a, int b)
 {
     int i;
@@ -701,7 +701,7 @@ void SetCmPolicy(struct P *p, int prio, struct O *po, int a, int b)
             struct VTE *e = &o->vt[3];
             ((void (*)(void *, int, int))e->pfn)((char *)o + e->d, p->policies[1].a, p->policies[1].b);
         }
-        p->modeStartTime = D_002DDED0.t;
+        p->modeStartTime = D_002DDED0.time;
         {
             struct VTE *e = &po->vt[2];
             ((void (*)(void *, int, int))e->pfn)((char *)po + e->d, a, b);
@@ -761,7 +761,7 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
         if (p->policyCount > 0) {
             struct O *o;
             struct VTE *v;
-            p->modeStartTime = D_002DDED0.t;
+            p->modeStartTime = D_002DDED0.time;
             o = p->policies[0].po;
             v = &o->vt[2];
             ((void (*)(void *, int, int))v->pfn)((char *)o + v->d, p->policies[0].a, p->policies[0].b);
@@ -785,7 +785,7 @@ namespace M_ApplyCameraSpring { extern "C" {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCK { float t; union { float g; int n; } dt; };
+struct CLOCK { float time; union { float g; int n; } deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct P { char pad[0x300]; int cutCount; };
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
@@ -810,7 +810,7 @@ void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, floa
     d = *ppos;
     __asm__("qmtc2.ni %1, %0" : "=j"(s2) : "r"(k2));
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(target));
-    __asm__("qmtc2.ni %1, %0" : "=j"(s3) : "r"(pclock->dt.n));
+    __asm__("qmtc2.ni %1, %0" : "=j"(s3) : "r"(pclock->deltaTime.n));
     v = *(qword *)pvel;
     __asm__("vmulax.xyzw ACC, %0, %2x\n\tvmaddx.xyzw %0, %1, %3x" : "+j"(d) : "j"(v), "j"(s1), "j"(s2));
     { VU u; u.q = s1; }
@@ -820,7 +820,7 @@ void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, floa
     {
         register qword s4 __asm__("vf3");
         qword x;
-        { register int n __asm__("v0") = pclock->dt.n;
+        { register int n __asm__("v0") = pclock->deltaTime.n;
         __asm__("qmtc2.ni %1, %0" : "=j"(s4) : "r"(n)); }
         x = *ppos;
         { VU u; u.q = s3; }
@@ -1171,7 +1171,7 @@ namespace M_ClipCameraEye {
 // v is computed before posMin so the spill slots come out v 0x30 / posMin 0x40. No register pins.
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
-struct CLOCK { float t, dt, unknown8, unknownC, dtPrev; };
+struct CLOCK { float time, deltaTime, unknown8, unknownC, dtPrev; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;

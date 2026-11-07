@@ -476,7 +476,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
         break;
     }
     {
-        float dt = D_002DDED0.dt;
+        float dt = D_002DDED0.deltaTime;
         manager->smoothedScore = SmoothValue__FfffP3SMPPf(manager->smoothing, manager->smoothedScore, manager->averageScore, dt, 0);
     }
     UpdateRhythmManagerGrades(manager);
@@ -645,7 +645,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
                 break;
             }
             if (manager->hintState == 1) {
-                EvaluateBezierPos(StdMax(pe->time - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, manager->hintPos, manager->hintVelocity, pe->screenPos, D_002BDBD0.q, &manager->hintPos, &manager->hintVelocity, 0);
+                EvaluateBezierPos(StdMax(pe->time - t, D_002DDED0.deltaTime), D_002DDED0.deltaTime, 1.0f, manager->hintPos, manager->hintVelocity, pe->screenPos, D_002BDBD0.q, &manager->hintPos, &manager->hintVelocity, 0);
             }
         }
         tb.x = manager->hintPosV.x - dxB * 0.5f;
@@ -664,7 +664,7 @@ void SetRhythmMgrState(RHYTHMMGR *manager, int newState) {
             DecrementSwHandsOff(&D_003DD490, 3);
         }
         manager->state = newState;
-        manager->stateTime = D_002DDED0.t;
+        manager->stateTime = D_002DDED0.time;
         manager->numCues = 0;
         if (newState == RHYTHM_DEMONSTRATE) {
             IncrementSwHandsOff(&D_003DD490, 3);

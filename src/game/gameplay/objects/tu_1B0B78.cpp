@@ -258,13 +258,13 @@ extern "C" void UpdateCritter(CID96V *critter)
     switch (newState) {
     case CRITTER_IDLE:
         newState = ChooseCritterStateFromPlayer(critter);
-        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.t) {
+        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.time) {
             if (critter->walkPath) newState = CRITTER_WALK;
         }
         break;
     case CRITTER_WALK:
         newState = ChooseCritterStateFromPlayer(critter);
-        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.t) newState = CRITTER_IDLE;
+        if (newState != CRITTER_STARTLED && critter->nextStateTime <= D_002DDED0.time) newState = CRITTER_IDLE;
         break;
     case CRITTER_TURN:
         newState = ChooseCritterStateFromPlayer(critter);
@@ -274,7 +274,7 @@ extern "C" void UpdateCritter(CID96V *critter)
         if (!critter->segmentAnim && IsCritterFacingHeading(critter)) newState = CRITTER_FLEE;
         break;
     case CRITTER_FLEE:
-        if (critter->fleeEndTime <= D_002DDED0.t) {
+        if (critter->fleeEndTime <= D_002DDED0.time) {
             FadeSoOut(critter, critter->fadeTime);
             critter->fleeEndTime = D_002A70E0;   /* FLT_MAX: once */
         }
@@ -461,14 +461,14 @@ void SetCritterState(CID96V *critter, int next)
         SetVelocity(critter, D_002A2DD0.q);
         ResetXfValueRef(critter, critter->rotationXf);
         {
-            float now = D_002DDED0.t;
+            float now = D_002DDED0.time;
             critter->nextStateTime = now + RandomFloatInRange__Fff(critter->idleWaitMin, critter->idleWaitMax);
         }
         break;
     case CRITTER_WALK:
         SetMode(critter);
         {
-            float now = D_002DDED0.t;
+            float now = D_002DDED0.time;
             critter->nextStateTime = now + RandomFloatInRange__Fff(critter->walkWaitMin, critter->walkWaitMax);
         }
         break;
@@ -503,12 +503,12 @@ void SetCritterState(CID96V *critter, int next)
             critter->pathStep = phase;
             travel /= speed;
             float end = GetShapeMaxDistance(critter->fleePath);
-            critter->fleeEndTime = D_002DDED0.t + travel + (end - w.parameter) / critter->fleeSpeed.value - critter->fadeTime;
+            critter->fleeEndTime = D_002DDED0.time + travel + (end - w.parameter) / critter->fleeSpeed.value - critter->fadeTime;
         } else {
             LOV *near = FindClosestSwPo(&D_003DD490, w.first.q);
             w.second = w.first;
             w.first.q = GetLoWorldPos(near);
-            critter->fleeEndTime = D_002DDED0.t + 2.0f;
+            critter->fleeEndTime = D_002DDED0.time + 2.0f;
         }
         qwordV ff = w.first.q;
         qwordV ss = w.second.q;
@@ -544,7 +544,7 @@ void SetCritterState(CID96V *critter, int next)
     }
     }
     critter->state = next;
-    critter->stateTime = D_002DDED0.t;
+    critter->stateTime = D_002DDED0.time;
     if (next != CRITTER_TURN) {
         ReplaceCurrentAseg(critter->stateAnims[next].paseg, (ALO *)critter, 0.0f, 1.0f, critter->stateAnims[next].applyFlags | 1, &critter->segmentAnim);
     }

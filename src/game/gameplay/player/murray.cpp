@@ -269,7 +269,7 @@ struct PL {char pad[0x1C];float amount;char pad20[0x10];unsigned flags;};
 struct CONTROL {int word0,state;char pad8[0x14];int count;};
 struct GATE {int word0,word4,mode;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x140];PL*input;char pad154[0xB8];float changed;char pad210[0xB0];CONTROL control;char pad2E0[0x1E0];GATE gate;char pad4CC[0x924];char action[0x110];char altAction[0x50];char physics[0xE0];void*animation;void*other;char pad1038[0x398];int state;char pad13D4[0x14];int pending;void*root;char pad13F0[0x5C];int flag;char pad1450[0x3F0];int kind;char pad1844[0xCC];char extra[1];};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 typedef char PL_Size[sizeof(PL)==52?1:-1];
@@ -499,7 +499,7 @@ struct ASEGA {char pad[0x14];struct TABLE*table;struct O*owner;float time;char p
 struct BBOX {float min[4],max[4];char pad20[0x40];struct O*owner;};
 struct G;
 struct Q { char pad[0xEC]; struct BBOX *xEC; };
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern struct G D_003DD490;
 extern float D_002C08E4;
@@ -569,8 +569,8 @@ typedef char Offset_9[FIELD_OFFSET(struct BBOX,min)==0?1:-1];
 typedef char Offset_10[FIELD_OFFSET(struct BBOX,max)==16?1:-1];
 typedef char Offset_11[FIELD_OFFSET(struct BBOX,owner)==96?1:-1];
 typedef char Offset_12[FIELD_OFFSET(struct Q,xEC)==236?1:-1];
-typedef char Offset_13[FIELD_OFFSET(struct CLOCK,t)==0?1:-1];
-typedef char Offset_14[FIELD_OFFSET(struct CLOCK,dt)==4?1:-1];
+typedef char Offset_13[FIELD_OFFSET(struct CLOCK,time)==0?1:-1];
+typedef char Offset_14[FIELD_OFFSET(struct CLOCK,deltaTime)==4?1:-1];
 typedef char Offset_15[FIELD_OFFSET(struct P,x28)==40?1:-1];
 typedef char Offset_16[FIELD_OFFSET(struct P,xEC)==236?1:-1];
 typedef char Offset_17[FIELD_OFFSET(struct P,pl)==336?1:-1];
@@ -646,7 +646,7 @@ void UpdateMurray(struct P *murray)
     }
     UpdateMurrayPlaces(murray);
     UpdateJtActiveZap(murray->hurt);
-    if (murray->p1430 && murray->g1434 + 0.1f < D_002DDED0.t) {
+    if (murray->p1430 && murray->g1434 + 0.1f < D_002DDED0.time) {
         if (!murray->p1430->xEC || !ShouldSwPairObjects(&D_003DD490, murray->xEC, murray->p1430->xEC))
             murray->p1430 = 0;
         if (!murray->p1430)
@@ -654,7 +654,7 @@ void UpdateMurray(struct P *murray)
     }
     if (!murray->x1ACC)
         return;
-    if (D_002DDED0.t - murray->g1AC8 < D_002C08E4)
+    if (D_002DDED0.time - murray->g1AC8 < D_002C08E4)
         SetActPositionGoal(murray->x1ACC, D_002C08F0);
     else
         SetActPositionGoal(murray->x1ACC, D_002A2DE0);
@@ -873,7 +873,7 @@ done:
 #undef FIELD_OFFSET
 
 namespace M_func_001B5820 { extern "C" {
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
@@ -896,7 +896,7 @@ void UpdateMurrayStruggle(struct P *murray)
     if (a != GetSmaGoal(murray->x1034)) return;
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
-    murray->f1524 -= D_002DDED0.dt;
+    murray->f1524 -= D_002DDED0.deltaTime;
     if (ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE, 0.0f)) {
         murray->x152C--;
         murray->f1528 = murray->f1524;
@@ -1068,7 +1068,7 @@ extern "C" void UpdateMurrayStrafe(P *murray)
 
 namespace M_func_001B5D30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; };
+struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
@@ -1089,7 +1089,7 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
         SetXfRole(murray, murray->x5C, 2);
     }
     murray->strafeSubstate = st;
-    murray->f17F8 = D_002DDED0.t;
+    murray->f17F8 = D_002DDED0.time;
     o = 0;
     x = 0;
     n = 1;
@@ -1251,7 +1251,7 @@ struct P {
     ASEG *clip21;           // 0x1AEC
 };
 extern "C" {
-struct CLOCK { float t, dt; };
+struct CLOCK { float time, deltaTime; };
 extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern int D_002DD5BC;
@@ -1373,7 +1373,7 @@ extern "C" void SetMurrayState(P *murray, int next)
     int flags = 1, id = -1, mode = 4;
     void *activation;
     float duration = 0.0f;
-    murray->time = D_002DDED0.t;
+    murray->time = D_002DDED0.time;
     // enter the new state
     switch (next) {
     case MURRAY_IDLE:
@@ -1500,7 +1500,7 @@ extern "C" void SetMurrayState(P *murray, int next)
                     duration = e->value;
             }
             if (duration != 0.0f)
-                SetAsegaChannelWeight(murray->asega, D_002DDED0.t + duration / murray->asega->rate);
+                SetAsegaChannelWeight(murray->asega, D_002DDED0.time + duration / murray->asega->rate);
         }
     }
     Call((OBJ *)murray, 90);
@@ -1508,7 +1508,7 @@ extern "C" void SetMurrayState(P *murray, int next)
 } // namespace M_SetMurrayState
 
 namespace M_GetMurrayCpdefi { extern "C" {
-struct CLOCK { float t; };
+struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int interactKind; char pad3[0x13D0 - 0x10E8]; int k; };
 void GetStepplayerCpdefi(struct S *p, int *pf);
@@ -1517,7 +1517,7 @@ void GetJtPipeVelocity(void *p, int *pf);
 // MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
 void GetMurrayCpdefi(struct S *murray, int *pf)
 {
-    if (murray->k != MURRAY_IDLE && murray->k != MURRAY_PLAYER_STATE_4 && murray->x4CC) murray->t1080 = D_002DDED0.t;
+    if (murray->k != MURRAY_IDLE && murray->k != MURRAY_PLAYER_STATE_4 && murray->x4CC) murray->t1080 = D_002DDED0.time;
     GetStepplayerCpdefi(murray, pf);
     switch (murray->k) {
     case MURRAY_ATTACK:
@@ -1781,7 +1781,7 @@ namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
 typedef int qword __attribute__((mode(TI)));
 struct VT { short d; short pad; void *pfn; };
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DC0;
@@ -1817,8 +1817,8 @@ typedef char V3_Size[sizeof(struct V3)==12?1:-1];
 typedef char P_Size[sizeof(struct P)==5096?1:-1];
 typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
 typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char SIDE_x0_Offset[FIELD_OFFSET(SIDE,x0)==0?1:-1];
 typedef char SIDE_x4_Offset[FIELD_OFFSET(SIDE,x4)==4?1:-1];
 typedef char SIDE_x8_Offset[FIELD_OFFSET(SIDE,x8)==8?1:-1];
@@ -1853,7 +1853,7 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
     if (murray->x13D8 == -1)
         Zero(&murray->v190);
     murray->x13D8 = s;
-    murray->g13DC = D_002DDED0.t;
+    murray->g13DC = D_002DDED0.time;
     switch (s) {
     case 0:
         break;
@@ -1876,7 +1876,7 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
         u.q=k;
         setter((char*)murray+delta,argument);
-        murray->g131C = D_002DDED0.t;
+        murray->g131C = D_002DDED0.time;
         break;
     }
     case 2: {
@@ -2406,7 +2406,7 @@ void DropMurrayCarried(struct P *murray)
 } } // namespace M_DropMurrayCarried
 
 namespace M_DetachMurrayCarried { extern "C" {
-struct CLOCK { float t; };
+struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct VE { short d; short pad; void (*pfn)(...); };
@@ -2444,7 +2444,7 @@ void DetachMurrayCarried(struct P *murray)
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
     murray->x1430 = x;
-    murray->f1434 = D_002DDED0.t;
+    murray->f1434 = D_002DDED0.time;
     RefreshSwObjectCollisionFilter(D_003DD490, murray);
 }
 } } // namespace M_DetachMurrayCarried
@@ -2739,7 +2739,7 @@ void StartMurrayAltAttack(struct P *murray)
 
 namespace M_SetMurrayAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
+struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
@@ -2781,7 +2781,7 @@ void SetMurrayAttack(struct P *murray, int k)
     if (k == murray->attackSubstate)
         return;
     murray->attackSubstate = k;
-    murray->g1814 = D_002DDED0.t;
+    murray->g1814 = D_002DDED0.time;
     if (k == -1)
         return;
     murray->comboWindow = 0;
@@ -2809,7 +2809,7 @@ void SetMurrayAttack(struct P *murray, int k)
             g = *pg;
     }
     if (g != 0.0f)
-        SetAsegaChannelWeight(murray->panim, D_002DDED0.t + g / murray->panim->g40);
+        SetAsegaChannelWeight(murray->panim, D_002DDED0.time + g / murray->panim->g40);
     if (murray->panim) {
         struct R *r = FindAsegChannel(murray->panim->p14, murray, 1, 1);
         if (r) {
@@ -2989,7 +2989,7 @@ void UpdateMurrayAttackVelocity(struct P*murray){
 
 namespace M_func_001B8D30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t,dt; };
+struct CLOCK { float time,deltaTime; };
 struct CLIP; struct ANIMATION;
 struct COMPONENT_DATA;
 struct COMPONENT { struct COMPONENT_DATA *value; };
@@ -3011,8 +3011,8 @@ struct M3 *GetLoWorldMatrix(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
+typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char COMPONENT_value_Offset[FIELD_OFFSET(COMPONENT,value)==0?1:-1];
 typedef char SCRIPT_clip_Offset[FIELD_OFFSET(SCRIPT,clip)==4?1:-1];
 typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
@@ -3054,7 +3054,7 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
         murray->x1900 = 0;
     }
     murray->x1840 = st;
-    murray->f1844 = D_002DDED0.t;
+    murray->f1844 = D_002DDED0.time;
     o = 0;
     n = 0;
     switch (st) {
@@ -3318,7 +3318,7 @@ struct STRETCH { void*frame; NODE*first,*second; char padC[0x94]; U position; ch
 struct MOTION;
 struct LINK { char pad[0x180]; OWNER*owner; char pad184[0xC]; GOAL*first; int pad194; GOAL*second; };
 struct P { char pad[0xC]; VTE*vt; char pad10[0x50]; NODE*node; char pad64[0x12C]; U velocity; char pad1A0[0xE90]; ANIM*anim; char pad1034[0x54]; PROXY*proxy; char pad108C[0x360]; ROOT*root; LINK*link; MOTION*m13F4,*m13F8,*m13FC,*m1400; int oldLeft,oldRight; char pad140C[0x3C]; int flag,pad144C,state; float time; char pad1458[0x19C]; NODE*targetFirst; int pad15F8; NODE*targetSecond; int pad1600; MOTION*m1604; int pad1608; MOTION*m160C; STRETCH*first,*second; MOTION*m1618,*m161C,*m1620,*m1624; };
-struct CLOCK { float time,dt; };
+struct CLOCK { float time,deltaTime; };
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M4_Size[sizeof(M4)==64?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];

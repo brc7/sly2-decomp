@@ -165,7 +165,7 @@ static inline int Wrap(int index, int count)
 // (inferred)
 extern "C" void ResetTrailHistory(TRAIL *trail)
 {
-    float t = D_002DDED0.t;
+    float t = D_002DDED0.time;
     M4 m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
     int n = trail->count;
     int i = n + Wrap(0, n);
@@ -353,7 +353,7 @@ extern "C" void UpdateTrail(TRAIL *trail, float dt)
 {
     UpdateLo(trail, dt);
     if (trail->rate != 0.0f) {
-        float t = trail->g + D_002DDED0.dt * trail->rate;
+        float t = trail->g + D_002DDED0.deltaTime * trail->rate;
         trail->g = t;
         if (t <= 0.0f) {
             trail->g = 0.0f;
@@ -382,7 +382,7 @@ extern "C" void ProjectTrailTransform(TRAIL *trail)
     if (!trail->state) {
         Ring *e = &trail->ring[trail->index];
         trail->index = (trail->index + 1) % trail->count;
-        e->t = D_002DDED0.t;
+        e->t = D_002DDED0.time;
         e->g = trail->g;
         e->m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
         if (trail->g <= 0.0f)
@@ -463,7 +463,7 @@ extern "C" void RenderTrail(TRAIL *trail)
                 StoreXYZ(out, pos);
                 out++;
                 if (color) {
-                    float fade = 1.0f - (D_002DDED0.t - a->t) / trail->fade;
+                    float fade = 1.0f - (D_002DDED0.time - a->t) / trail->fade;
                     if (fade < 0.0f)
                         fade = 0.0f;
                     else if (1.0f < fade)

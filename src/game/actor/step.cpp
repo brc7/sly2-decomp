@@ -687,8 +687,8 @@ struct STEP
 
 struct CLOCK
 {
-    float t;
-    float dt;
+    float time;
+    float deltaTime;
 };
 
 extern "C" { extern struct CLOCK D_002DDED0; }
@@ -743,19 +743,19 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     float gVn = QwordX(VuDot(VuSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    SmoothValue__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
-    SmoothValue__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.dt, D_002C3CA8, &gVnTarget);
+    SmoothValue__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.deltaTime, D_002C3C98, &gVnMin);
+    SmoothValue__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.deltaTime, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
     {
         float dg = gVnTarget - gVn;
-        float dgMax = D_002DDED0.dt * 9000.0f;
+        float dgMax = D_002DDED0.deltaTime * 9000.0f;
         gVn += dg < dgMax ? dg : dgMax;
     }
     else
     {
         float dg = gVnTarget - gVn;
-        float dgMin = D_002DDED0.dt * -4500.0f;
+        float dgMin = D_002DDED0.deltaTime * -4500.0f;
         gVn += dg > dgMin ? dg : dgMin;
     }
 

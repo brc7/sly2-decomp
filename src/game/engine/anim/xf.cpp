@@ -1110,7 +1110,7 @@ void UpdateSoSlots(SO *so)
                 {
                 case 1:
                 {
-                    float dt = D_002DDED0.dt;
+                    float dt = D_002DDED0.deltaTime;
                     qword qwV0 = *(qword *)&xf->velocity;
                     VU_FLOAT vfDt = VuFloat(dt);
                     qword qwF0 = *(qword *)&xf->acceleration;
@@ -1142,7 +1142,7 @@ void UpdateSoSlots(SO *so)
                 }
                 case 6:
                 {
-                    float dt = D_002DDED0.dt;
+                    float dt = D_002DDED0.deltaTime;
                     qword qwV0 = *(qword *)&xf->velocity;
                     VU_FLOAT vfDt = VuFloat(dt);
                     qword qwF0 = *(qword *)&xf->acceleration;
@@ -1176,7 +1176,7 @@ void UpdateSoSlots(SO *so)
                 if (xf->kind == 6)
                 {
                     fIdle = 0;
-                    float gAngle = NormalizeAngle(*(float *)&xf->unknownE0 + D_002DDED0.dt * *(float *)&xf->rate);
+                    float gAngle = NormalizeAngle(*(float *)&xf->unknownE0 + D_002DDED0.deltaTime * *(float *)&xf->rate);
                     *(float *)&xf->unknownE0 = gAngle;
                     MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->restValue);
                     *(MATRIX3 *)&xf->localMatrix = matRot;
@@ -1274,7 +1274,7 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = SmoothValue(0.0f, gAngle, D_002DDED0.dt, &smp, &dgNext);
+                        gOut = SmoothValue(0.0f, gAngle, D_002DDED0.deltaTime, &smp, &dgNext);
                         switch (xf->role)
                         {
                             case 0xb:
@@ -1283,13 +1283,13 @@ void UpdateSoSlots(SO *so)
                                 qword qwNewOmega = VuSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
                                 qword qwV0 = *(qword *)&xf->velocity;
                                 qword qwDOmega = VuSub(qwNewOmega, qwV0);
-                                float gNeed = VectorLength(qwDOmega) / D_002DDED0.dt;
+                                float gNeed = VectorLength(qwDOmega) / D_002DDED0.deltaTime;
                                 if (gMax < gNeed)
                                 {
                                     qword qwLimited = VuMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
                                     MATRIX3 matRot;
                                     MATRIX3 matTurn;
-                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, VuAdd(*(qword *)&xf->velocity, qwLimited)));
+                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.deltaTime * 0.5f).qw, VuAdd(*(qword *)&xf->velocity, qwLimited)));
                                     matTurn = matRot * matOld;
                                     NormalizeRotateMatrix3(&matTurn);
                                     *(qword *)&xf->velocity = qwLimited;
@@ -1304,14 +1304,14 @@ void UpdateSoSlots(SO *so)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&xf->reference)
-                                    gMin = gAngle * D_002DDED0.dt / ((*(float *)&xf->reference - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.time < *(float *)&xf->reference)
+                                    gMin = gAngle * D_002DDED0.deltaTime / ((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime);
                                 else
                                     gMin = gAngle;
                                 if (gOut < gMin)
                                 {
                                     gOut = gMin;
-                                    dgNext = gOut / D_002DDED0.dt;
+                                    dgNext = gOut / D_002DDED0.deltaTime;
                                 }
                                 break;
                             }
@@ -1400,7 +1400,7 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = SmoothValue(0.0f, gDist, D_002DDED0.dt, &smp, &dgNext);
+                        gOut = SmoothValue(0.0f, gDist, D_002DDED0.deltaTime, &smp, &dgNext);
                         switch (xf->role)
                         {
                             case 0xb:
@@ -1408,7 +1408,7 @@ void UpdateSoSlots(SO *so)
                                 VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
                                 qword qwDV = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
                                 qwDV = VuSub(qwDV, *(qword *)&xf->velocity);
-                                float gNeed = VectorLength(qwDV) / D_002DDED0.dt;
+                                float gNeed = VectorLength(qwDV) / D_002DDED0.deltaTime;
                                 float gMax;
                                 if (xf->kind < 13)
                                 {
@@ -1423,7 +1423,7 @@ void UpdateSoSlots(SO *so)
                                 {
                                     qword qwV0 = *(qword *)&xf->velocity;
                                     VU_FLOAT vfLimit = VuFloat(gMax / gNeed);
-                                    VU_FLOAT vfHalf = VuFloat(D_002DDED0.dt * 0.5f);
+                                    VU_FLOAT vfHalf = VuFloat(D_002DDED0.deltaTime * 0.5f);
                                     qwDV = VuMulAddX(qwV0, qwDV, vfLimit.qw);
                                     qword qwSum = VuAdd(*(qword *)&xf->velocity, qwDV);
                                     *(qword *)&xf->velocity = qwDV;
@@ -1435,14 +1435,14 @@ void UpdateSoSlots(SO *so)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&xf->reference)
-                                    gMin = gDist * D_002DDED0.dt / ((*(float *)&xf->reference - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.time < *(float *)&xf->reference)
+                                    gMin = gDist * D_002DDED0.deltaTime / ((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime);
                                 else
                                     gMin = gDist;
                                 if (gOut < gMin)
                                 {
                                     gOut = gMin;
-                                    dgNext = gOut / D_002DDED0.dt;
+                                    dgNext = gOut / D_002DDED0.deltaTime;
                                 }
                                 break;
                             }
@@ -1489,14 +1489,14 @@ void UpdateSoSlots(SO *so)
             {
                 VECTOR4 vecPos;
                 VECTOR4 vecVel;
-                if (*(float *)&xf->reference <= D_002DDED0.t)
+                if (*(float *)&xf->reference <= D_002DDED0.time)
                 {
                     *(qword *)&vecPos = xf->restValue;
                     ClearXyz(&vecVel);
                 }
                 else
                 {
-                    EvaluateBezierPos((*(float *)&xf->reference - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)xf->localMatrix.mat[3], *(qword *)&xf->velocity, xf->restValue, xf->rate, &vecPos, &vecVel, 0);
+                    EvaluateBezierPos((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime, D_002DDED0.deltaTime, 1.0f, *(qword *)xf->localMatrix.mat[3], *(qword *)&xf->velocity, xf->restValue, xf->rate, &vecPos, &vecVel, 0);
                 }
                 fIdle = 0;
                 VECTOR_opAssign(xf->localMatrix.mat[3], *(qword *)&vecPos);
@@ -1518,7 +1518,7 @@ void UpdateSoSlots(SO *so)
                     SLOT_RATE_SWITCH(xf, qw, qwTargetVel)
                     float gKp = (float)(ushort)xf->stiffness * s_gKpPos;
                     float gKd = (float)(ushort)xf->damping * s_gKdPos;
-                    float dt = D_002DDED0.dt;
+                    float dt = D_002DDED0.deltaTime;
                     qword qwV0 = *(qword *)&xf->velocity;
                     qword qwDV = VuSub(qwTargetVel, qwV0);
                     qword qwDPos = VuSub(qwTarget, *(qword *)xf->localMatrix.mat[3]);
@@ -1546,7 +1546,7 @@ void UpdateSoSlots(SO *so)
                 }
                 case 6:
                 {
-                    float dt = D_002DDED0.dt;
+                    float dt = D_002DDED0.deltaTime;
                     MATRIX3 matOld = *(MATRIX3 *)&xf->localMatrix;
                     MATRIX3 matTarget;
                     MATRIX3 matDmat;

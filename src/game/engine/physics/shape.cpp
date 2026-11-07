@@ -1686,7 +1686,7 @@ void StepChainRk4(CHAIN *chain)
     CopyAb__FPvT0Ui(accV, chain->velocity, count * 16);
     for (int pass = 0; pass < 4; pass++) {
         float w = D_002C3658[pass];
-        float h = w * D_002DDED0.dt;
+        float h = w * D_002DDED0.deltaTime;
         Blend(&newP[0], &chain->position[0], start, w);
         Blend(&newV[0], &chain->velocity[0], startVel, w);
         Blend(&newP[count - 1], &chain->position[count - 1], end, w);
@@ -1741,7 +1741,7 @@ void StepChainRk4(CHAIN *chain)
                 F = VecCombo3(F, VU_FLOAT(chain->shape * (len - amplitude * r4 * (1.0f - r))), dir.q, VU_FLOAT(&chain->shapeDamping), proj.q);
             }
             float wk = D_002C3668[pass];
-            float k = wk * D_002DDED0.dt;
+            float k = wk * D_002DDED0.deltaTime;
             Store(&accV[i], AddScaled(accV[i].q, VU_FLOAT(k), F));
             Store(&accP[i], AddScaled2I(accP[i].q, VU_FLOAT(k * 0.5f), chain->velocity[i].q, newV[i].q));
             Store(&force[i], F);
@@ -1909,7 +1909,7 @@ static inline VV VecCombo3(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
 // One Verlet-style step of the rope chain with distance constraints and pinned ends.
 void StepChain(CHAIN *chain)
 {
-    float dt = D_002DDED0.dt;
+    float dt = D_002DDED0.deltaTime;
     VV prev = TransformPoint(chain->first->matrix, chain->start);
     int n = chain->path->count;
     chain->position[0].q = prev;

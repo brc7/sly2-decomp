@@ -160,7 +160,7 @@ extern "C" void SetStepguardPickpocketState(P *guard, int state)
     void *stateMachine;
     if (state == guard->pickpocketState) return;
     guard->pickpocketState = state;
-    guard->stateTime = D_002DDED0.t;
+    guard->stateTime = D_002DDED0.time;
     switch (state) {
     case PICKPOCKET_NONE:
     case PICKPOCKET_ALERT:

@@ -666,7 +666,7 @@ LActive:   /* near the camera (or not tied to a parent) */
     int numToEmit = 0;
     switch (emitter->emitMode) {
     case EMIT_MODE_INTERMITTENT: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (1.0f < (float)numToEmit) {
@@ -702,7 +702,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         break;
     }
     case EMIT_MODE_CONTINUOUS: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (numToEmit != 0) {
@@ -746,9 +746,9 @@ LActive:   /* near the camera (or not tied to a parent) */
         emitter->pemitb->pemito->referenceObject = savedReference;
     }
 
-    if (D_002DDED0.t >= emitter->rateRedrawTime) {
+    if (D_002DDED0.time >= emitter->rateRedrawTime) {
         emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
-        emitter->rateRedrawTime = D_002DDED0.t + emitter->rateRedrawInterval;
+        emitter->rateRedrawTime = D_002DDED0.time + emitter->rateRedrawInterval;
     }
     ModifyEmitterParticles(emitter);
 }
@@ -758,7 +758,7 @@ void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTE
 // Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt)
 {
-    pemitter->tUnpause = D_002DDED0.t + dt;
+    pemitter->tUnpause = D_002DDED0.time + dt;
 }
 
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
@@ -782,7 +782,7 @@ struct EMITTERV { char pad[0xF0]; int emitMode; int particleCount; char pad2[0x1
 // emit.
 extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
 {
-    if (D_002DDED0.t < pemitter->tUnpause)
+    if (D_002DDED0.time < pemitter->tUnpause)
         return 1;
     switch (pemitter->emitMode) {
     case EMIT_MODE_CONTINUOUS:
@@ -973,9 +973,9 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         if (!shouldWake) {
             interval = 1.0f - strength * (1.0f - minIntervalFrac);
             if (soundObject) {
-                shouldWake = interval < D_002DDED0.t - soundObject->lastWakeTime;
+                shouldWake = interval < D_002DDED0.time - soundObject->lastWakeTime;
             } else {
-                float now = D_002DDED0.t;
+                float now = D_002DDED0.time;
                 int periodNow = (int)(now / interval);
                 int periodNext = (int)((now + dt) / interval);
                 shouldWake = periodNow != periodNext;
@@ -990,7 +990,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                 ripple->scaleSlope = scale * 0.6f;
                 ripple->renderObject = water->rippleObject;
                 if (soundObject)
-                    soundObject->lastWakeTime = D_002DDED0.t;
+                    soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITP emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
                     EMITV emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
@@ -1347,7 +1347,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *e
 {
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
-    birthTime = D_002DDED0.t;
+    birthTime = D_002DDED0.time;
     birthTime = birthTime - RandomFloatInRange__Fff(emitv->birthMin, emitv->birthMax);
     *ptBirth = birthTime;
     *ptDeath = birthTime + emitv->lifetime;
@@ -1723,7 +1723,7 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
     pv = target->pvt->pfn((ALO *)((char *)target + target->pvt->d), &mWorld);
     mBase = mWorld;
     for (i = 0; i < c; i++) {
-        float tNow = D_002DDED0.t;
+        float tNow = D_002DDED0.time;
         float t = ptimes->atDeath[i] - tNow;
         int velocityKind = target->pemitb->velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
@@ -1903,11 +1903,11 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
     MATRIX4 *pmRot = &mRot;
     if (emitdv->curlRate != 0.0f) {
         MATRIX3 m3;
-        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * D_002DDED0.dt, emitdv->axis);
+        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * D_002DDED0.deltaTime, emitdv->axis);
         *(MATRIX3 *)pmRot = m3;
     }
     MATRIX4 mD;
-    mD = *pmRot * mScale * VU_FLOAT(D_002DDED0.dt);
+    mD = *pmRot * mScale * VU_FLOAT(D_002DDED0.deltaTime);
     return *pmRot + mD;
 }
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4

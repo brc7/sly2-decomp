@@ -153,8 +153,8 @@ int ShouldUpdateSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
 int ShouldUpdateSaa(SAAV *saa) {
-    if (saa->updateTime != D_002DDED0.t) {
-        saa->updateTime = D_002DDED0.t;
+    if (saa->updateTime != D_002DDED0.time) {
+        saa->updateTime = D_002DDED0.time;
         return 1;
     }
     return 0;
@@ -230,10 +230,10 @@ void UpdateLoop(LOOPV *ploop, float dt)
         return;
     if (ploop->pauseRemaining > 0.0f)
     {
-        ploop->pauseRemaining -= D_002DDED0.dt;
+        ploop->pauseRemaining -= D_002DDED0.deltaTime;
         return;
     }
-    ploop->frame += ploop->frameRate * D_002DDED0.dt;
+    ploop->frame += ploop->frameRate * D_002DDED0.deltaTime;
     if (ploop->frame >= (float)ploop->numFrames)
     {
         float rand1 = RandomFloatInRange__Fff(ploop->loopTimeRange.min, ploop->loopTimeRange.max);
@@ -279,10 +279,10 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
         return;
     if (ppingpong->pauseRemaining > 0.0f)
     {
-        ppingpong->pauseRemaining -= D_002DDED0.dt;
+        ppingpong->pauseRemaining -= D_002DDED0.deltaTime;
         return;
     }
-    float frameRate = ppingpong->frameRate * D_002DDED0.dt;
+    float frameRate = ppingpong->frameRate * D_002DDED0.deltaTime;
     ppingpong->frame += frameRate;
     if (ppingpong->frame >= (float)ppingpong->numFrames)
     {
@@ -340,7 +340,7 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
         return;
     if (pshuffle->pauseTime > 0.0f)
     {
-        pshuffle->pauseTime -= D_002DDED0.dt;
+        pshuffle->pauseTime -= D_002DDED0.deltaTime;
         return;
     }
     int randFrame = RandomIntInRange__Fii(1, pshuffle->numFrames - 1);
@@ -385,7 +385,7 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
         break;
     }
     peyes->eyess = eyess;
-    peyes->stateTime = D_002DDED0.t;
+    peyes->stateTime = D_002DDED0.time;
 }
 
 // EYES vt8 Update. (inferred)
@@ -398,12 +398,12 @@ void EYES::Update()
     switch (peyes->eyess)
     {
     case EYESS_Open:
-        if (D_002DDED0.t - peyes->stateTime >= peyes->openTime)
+        if (D_002DDED0.time - peyes->stateTime >= peyes->openTime)
             eyessNext = EYESS_Closing;
         break;
     case EYESS_Closing:
     {
-        float frameRate = peyes->frameRate * D_002DDED0.dt;
+        float frameRate = peyes->frameRate * D_002DDED0.deltaTime;
         peyes->frame += frameRate;
         if (peyes->frame >= (float)peyes->numFrames)
         {
@@ -417,7 +417,7 @@ void EYES::Update()
             eyessNext = EYESS_Opening;
         break;
     case EYESS_Opening:
-        peyes->frame -= peyes->frameRate * D_002DDED0.dt;
+        peyes->frame -= peyes->frameRate * D_002DDED0.deltaTime;
         if (peyes->frame <= peyes->numFrames * peyes->openFraction)
             eyessNext = EYESS_Open;
         break;
@@ -465,8 +465,8 @@ void SCROLLER::Update()
     SCROLLERV *p = (SCROLLERV *)this;
     float uOffset, vOffset;
     if (IsSlEmpty(&p->instances)) return;
-    uOffset = fmodf(p->uOffset * (1.0f / 4096.0f) + p->uSpeed * p->uSpeedScale * D_002DDED0.dt, p->uRange);
-    vOffset = fmodf(p->vOffset * (1.0f / 4096.0f) + p->vSpeed * p->vSpeedScale * D_002DDED0.dt, p->vRange);
+    uOffset = fmodf(p->uOffset * (1.0f / 4096.0f) + p->uSpeed * p->uSpeedScale * D_002DDED0.deltaTime, p->uRange);
+    vOffset = fmodf(p->vOffset * (1.0f / 4096.0f) + p->vSpeed * p->vSpeedScale * D_002DDED0.deltaTime, p->vRange);
     SetSaiDuDv(p, uOffset, vOffset);
 }
 
@@ -512,7 +512,7 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
 {
     if (IsSlEmpty(&pcircler->instances))
         return;
-    float angle = NormalizeAngle__Ff(D_002DDED0.t * pcircler->angularSpeed);
+    float angle = NormalizeAngle__Ff(D_002DDED0.time * pcircler->angularSpeed);
     float sinOut;
     float cosOut;
     CalculateSinCos__FfPfT1(angle, &sinOut, &cosOut);
@@ -525,7 +525,7 @@ float GetCirclerCompletion(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP
 // Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
 float GetCirclerCompletion(CIRCLERV *pcircler)
 {
-    float angle = D_002DDED0.t * pcircler->angularSpeed;
+    float angle = D_002DDED0.time * pcircler->angularSpeed;
     return ModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;
 }
 

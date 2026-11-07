@@ -96,9 +96,9 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
     }
     if (!IsStepplayerPushing(goal->player))
         return;
-    if (D_002DDED0.t < goal->nextCheckTime)
+    if (D_002DDED0.time < goal->nextCheckTime)
         return;
-    goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
+    goal->nextCheckTime = D_002DDED0.time + D_002BD2D0;
     if (IsSwHandsOff(D_003DD490)) {
         int pushedAny = 0;
         LN *link;
@@ -175,7 +175,7 @@ extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
     goal->goalPos = newGoalPos;
     playerPos = GetLoWorldPos(goal->player);
     goal->lastDistanceBits = GetDistanceBits(playerPos, goal->goalPos);
-    goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
+    goal->nextCheckTime = D_002DDED0.time + D_002BD2D0;
 }
 
 // Returns nonzero while the goal has warped the player and waits for the player to be free again.

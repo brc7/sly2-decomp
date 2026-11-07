@@ -1218,7 +1218,7 @@ union FLAGS {unsigned long value;unsigned char bytes[8];};
 struct P {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
 struct CAMERA {char pad0[0x14];int mask;char pad18[0x78];U position;};
 struct PROFILE {float a,b,c,unused,min,max;};
-struct CLOCK {float time,dt;};
+struct CLOCK {float time,deltaTime;};
 struct EFFECT;
 extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { 
@@ -1325,7 +1325,7 @@ void OnStepguardRemove(struct S *guard)
 {
     OnSoRemove(guard);
     RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard);
-    guard->removalTime = D_002DDED0.t;
+    guard->removalTime = D_002DDED0.time;
 }
 } } // namespace M_OnStepguardRemove
 
@@ -1827,7 +1827,7 @@ struct E {
     int state;
     float stateTime;
     int pad;
-    E(S *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.t) {}
+    E(S *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
 };
 struct T { char pad[0xFC]; unsigned int count; struct E targets[8]; };
 struct S { char pad[0x3A4]; int generatedTargetCount; char pad2[0xF64 - 0x3A8]; struct T *detector; };
@@ -3345,7 +3345,7 @@ extern "C" void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
     int count;
     if (record->guardCount == 0) {
-        record->firstEngageTime = D_002DDED0.t;
+        record->firstEngageTime = D_002DDED0.time;
         SetTargetRecordState(record, 0);
     }
     count = record->guardCount;
@@ -3375,7 +3375,7 @@ extern struct CLOCK D_002DDED0;
 extern float D_002C3DB4;
 struct TARGETREC { float firstEngageTime; float stateTime; };
 // 0x20A7E0: True if the engagement record has not been refreshed for longer than the timeout.
-int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.t - record->stateTime > D_002C3DB4; }
+int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.time - record->stateTime > D_002C3DB4; }
 } } // namespace M_func_0020A7E0
 
 // 0x20A818 DoesTargetRecordAllowGuard
@@ -3475,7 +3475,7 @@ struct TARGETREC { float firstEngageTime; float stateTime; int state; };
 // 0x20A9A8: Sets an engagement record's state and its time.
 void SetTargetRecordState(struct TARGETREC *record, int state)
 {
-    record->stateTime = D_002DDED0.t;
+    record->stateTime = D_002DDED0.time;
     record->state = state;
 }
 } } // namespace M_func_0020A9A8

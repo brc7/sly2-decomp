@@ -122,7 +122,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002DDED0 (g_clock), D_003DD490 (g_sw)
 // 0x0021CB18 UpdateChainLink__FP2SOP9CHAINLINK (our name; role 0x10 of UpdateSoSlots 0x22DE88)
-// Runs for every link of a chain every frame. The first call of a frame (g_clock.t != lastUpdateTime) simulates the links from this one to the end:
+// Runs for every link of a chain every frame. The first call of a frame (g_clock.time != lastUpdateTime) simulates the links from this one to the end:
 // the start point is the anchor (link 0: the XF's world position; its velocity is the finite difference over dt, or the XF's own velocity
 // (0x22D348) when update flag 0x10 is set) or the tip of the link before (earlier links are re-read from their XFs first). Then stepCount steps
 // of dt / stepCount: per link, the segment is turned back when it bends more than maxBendAngle against the one before; the tip velocity gets damping
@@ -264,7 +264,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
     XF *xf = chainLink->pxf;
     XF *parentXf = xf->parent;
     VECTOR4 velocity;
-    if (D_002DDED0.t != chain->lastUpdateTime)
+    if (D_002DDED0.time != chain->lastUpdateTime)
     {
         qword position;
         qword previousDirection;
@@ -281,7 +281,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
             }
             else
             {
-                *(qword *)&velocity = VuDivByFloat(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
+                *(qword *)&velocity = VuDivByFloat(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.deltaTime));
             }
             chain->previousAnchor = anchor;
             MATRIX3 parentRotation = *(MATRIX3 *)&parentXf->worldMatrix * chainLink->restMatrix;
@@ -308,7 +308,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 previousDirection = VuSub(position, *(qword *)parentXf->worldMatrix.mat[3]);
             }
         }
-        float stepDt = D_002DDED0.dt / chain->stepCount;
+        float stepDt = D_002DDED0.deltaTime / chain->stepCount;
         int step;
         for (step = 0; step < chain->stepCount; step++)
         {
@@ -371,7 +371,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 previousSegment = segment;
             }
         }
-        chain->lastUpdateTime = D_002DDED0.t;
+        chain->lastUpdateTime = D_002DDED0.time;
     }
     qword tipInParent = ConvertXfPos(0, parentXf, chainLink->tipPosition);
     qword toTip = VuSub(tipInParent, *(qword *)xf->localMatrix.mat[3]);

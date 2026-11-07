@@ -652,7 +652,7 @@ struct M4{U r[4];};struct VTE{short delta,pad;void*fn;};
 struct MODEL{char pad[0x1C];float base;};
 struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];MODEL*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
-struct CLOCK{float time,dt;};struct WORK{U a,b;};
+struct CLOCK{float time,deltaTime;};struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
 extern float D_002BF288;
@@ -708,7 +708,7 @@ extern "C" void PresetJtAccel(P *jt)
             w.b.f[2] = w.a.f[2];
         AddSoAcceleration(
             jt,
-            LimitVectorLength(DivVec(VuSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.dt)), D_002BF288));
+            LimitVectorLength(DivVec(VuSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.deltaTime)), D_002BF288));
         break;
     }
     case 24:
@@ -723,7 +723,7 @@ extern "C" void PresetJtAccel(P *jt)
             basis.r[1] = m->r[1];
             basis.r[2] = m->r[2];
             float projection = SplitVectorAlongAxis(position, basis.r[0].q, &w.a.q, &w.b.q);
-            float dt = D_002DDED0.dt;
+            float dt = D_002DDED0.deltaTime;
             float gAlong = projection - D_002BF290 * dt;
             float gPerp = 1.0f - D_002BF294 * dt;
             float angle = QwordZ(direction) * dt;
@@ -733,7 +733,7 @@ extern "C" void PresetJtAccel(P *jt)
             rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
             qword sum = VuAdd(w.a.q, w.b.q);
             qword moved = VuSub(RotateVecAt(&rotation, &sum), position);
-            qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
+            qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.deltaTime));
             AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, D_002A2DC0), D_002BF28C));
         }
         break;
@@ -758,7 +758,7 @@ typedef char P_model_Offset[((unsigned)&((P*)0)->model==4144)?1:-1];
 typedef char P_mode_Offset[((unsigned)&((P*)0)->mode==6344)?1:-1];
 typedef char P_submode_Offset[((unsigned)&((P*)0)->submode==6352)?1:-1];
 typedef char P_lookup_Offset[((unsigned)&((P*)0)->lookup==6788)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->dt==4)?1:-1];
+typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 } // namespace M_func_00188960
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -816,7 +816,7 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
         break;
     case 5:
         if ((unsigned int)(jt->n18D0 - 8) < 2) {
-            register float g __asm__("$f0") = D_002DDED0.t - jt->g18D4;
+            register float g __asm__("$f0") = D_002DDED0.time - jt->g18D4;
             if (g < D_002BF298) { g=D_002BF29C; pa->g94=g; }
         }
         break;
@@ -1312,7 +1312,7 @@ void UpdateJtLean(JT *jt)
                         if (jt->jtgrab.isFlipped)
                             g = -g;
                         float gLean = SmoothValueWithAccel(jt->jtgrab.leanAmount, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
-                                               D_002DDED0.dt, &D_002BF320, &jt->jtgrab.dgLean);
+                                               D_002DDED0.deltaTime, &D_002BF320, &jt->jtgrab.dgLean);
                         jt->jtgrab.leanAmount = gLean;
                         float gZero = 0.0f;
                         float gOne = 1.0f;
@@ -1585,7 +1585,7 @@ void UpdateJtStand(struct S *jt)
         e = &o->vt[34];
         u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
         u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
-        SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
+        SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.deltaTime);
     }
     if (!jt->x19f0)
         return;
@@ -1687,7 +1687,7 @@ void GetJtPipeVelocity(void *p, int *pf);
 void GetJtCpdefi(struct S *jt, int *pf)
 {
     if (jt->n != 0 && jt->n != 0x12 && jt->x4cc && jt->xf54 != 1)
-        jt->t = D_002DDED0.t;
+        jt->t = D_002DDED0.time;
     GetStepplayerCpdefi(jt, pf);
     switch (jt->n) {
     case 8:
@@ -1716,7 +1716,7 @@ typedef struct S {
     qword v40; float g50; int pad54[5]; C *p68;
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
-typedef struct CLOCK { float t; float dt; } CLOCK;
+typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 struct SMP {float a,b,duration;};
 
 extern "C" CLOCK D_002DDED0;
@@ -1882,7 +1882,7 @@ tail:
         } else {
             k = 0.0f;
         }
-        ps->p68->p114->g10 = SmoothValue__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
+        ps->p68->p114->g10 = SmoothValue__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.deltaTime, 0);
     }
     switch (ps->x8) {
     case 0:
@@ -1919,8 +1919,8 @@ typedef char R_x0_Offset[((unsigned)&((R*)0)->x0==0)?1:-1];
 typedef char R_g30_Offset[((unsigned)&((R*)0)->g30==48)?1:-1];
 typedef char R_x34_Offset[((unsigned)&((R*)0)->x34==52)?1:-1];
 typedef char R_x3C_Offset[((unsigned)&((R*)0)->x3C==60)?1:-1];
-typedef char CLOCK_t_Offset[((unsigned)&((CLOCK*)0)->t==0)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->dt==4)?1:-1];
+typedef char CLOCK_t_Offset[((unsigned)&((CLOCK*)0)->time==0)?1:-1];
+typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 typedef char WORK_scalar_Offset[((unsigned)&((WORK*)0)->scalar==0)?1:-1];
 typedef char WORK_forward_Offset[((unsigned)&((WORK*)0)->forward==16)?1:-1];
 typedef char WORK_reverse_Offset[((unsigned)&((WORK*)0)->reverse==32)?1:-1];
@@ -2078,7 +2078,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->jtas != 8 && jt->jtas != 9 || jt->janim.fInputOpen)
                     {
     fell:
-                        if (D_002DDED0.t - jt->tUnk20c > 0.1f)
+                        if (D_002DDED0.time - jt->tUnk20c > 0.1f)
                             SetJtAirJump(&jt->jtair, 0, 0, 0);
                     }
                     break;
@@ -2238,7 +2238,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
-                    if (D_002DDED0.t - jt->tJts > 0.25f)
+                    if (D_002DDED0.time - jt->tJts > 0.25f)
                     {
                         if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
@@ -2252,7 +2252,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z)
                     {
-                        if (D_002DDED0.t - jt->tJts > 0.4f)
+                        if (D_002DDED0.time - jt->tJts > 0.4f)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
@@ -2262,7 +2262,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.t - jt->tJts > 0.4f)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.time - jt->tJts > 0.4f)
                     {
                         float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;
@@ -2287,7 +2287,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     break;
                 }
                 case JTS_Unk11:
-                    if (!jt->nUnk1d30 || D_002DDED0.t - jt->tJts > D_002BF360)
+                    if (!jt->nUnk1d30 || D_002DDED0.time - jt->tJts > D_002BF360)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
@@ -2394,7 +2394,7 @@ namespace M_func_0018B460 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct SPACE;
-struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};struct CLOCK{float time,dt;};
+struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};struct CLOCK{float time,deltaTime;};
 struct MODEL{char pad[0x1C];float base;char pad20[0x40-0x20];float scale;};
 struct AIM{char pad[0x150];struct SPACE*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
 struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];struct GROUP*group;};
@@ -2582,7 +2582,7 @@ void UpdateJtAttachCorrection(struct P *jt)
         {
             register float life __asm__("$f1") = D_002BF3BC, now __asm__("$f3") = D_002DDED0.time;
             remaining = remaining + life;
-            after = D_002DDED0.dt;
+            after = D_002DDED0.deltaTime;
             remaining = remaining - now;
             after = remaining - after;
         }
@@ -2668,7 +2668,7 @@ typedef char WORK_relative_Offset[((unsigned)&((struct WORK *)0)->relative == 19
 typedef char WORK_residual_Offset[((unsigned)&((struct WORK *)0)->residual == 208) ? 1 : -1];
 typedef char WORK_gain_Offset[((unsigned)&((struct WORK *)0)->gain == 224) ? 1 : -1];
 typedef char CLOCK_time_Offset[((unsigned)&((struct CLOCK *)0)->time == 0) ? 1 : -1];
-typedef char CLOCK_dt_Offset[((unsigned)&((struct CLOCK *)0)->dt == 4) ? 1 : -1];
+typedef char CLOCK_dt_Offset[((unsigned)&((struct CLOCK *)0)->deltaTime == 4) ? 1 : -1];
 typedef char LM_low_Offset[((unsigned)&((struct LM *)0)->low == 0) ? 1 : -1];
 typedef char LM_high_Offset[((unsigned)&((struct LM *)0)->high == 4) ? 1 : -1];
 
@@ -3725,7 +3725,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->gUnk1998 = 1.0f;
                 ACT1 *pact1 = (ACT1 *)jt->nUnk1a00;
                 svt = 0.0f;
-                jt->janim.tHang = D_002DDED0.t;
+                jt->janim.tHang = D_002DDED0.time;
                 aseg = jt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->qwRest);
                 tStart = 0.5f;
@@ -3796,7 +3796,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearXyz(&jt->vUnk190);
                 ChooseJtSmashTarget(jt);
                 aseg = jt->pasegUnk1a80;
-                jt->tUnk19b0 = D_002DDED0.t + D_002BF3E4;
+                jt->tUnk19b0 = D_002DDED0.time + D_002BF3E4;
                 break;
             case JTS_Unk0E:
                 SetJtAnimState(jt, -1);
@@ -3995,12 +3995,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     if (jts != jt->jts)
     {
         jt->jts = jts;
-        jt->tJts = D_002DDED0.t;
+        jt->tJts = D_002DDED0.time;
     }
     if (jtbs != jt->jtbs)
     {
         jt->jtbs = jtbs;
-        jt->tJtbs = D_002DDED0.t;
+        jt->tJtbs = D_002DDED0.time;
     }
     jt->ApplyStateStepParams();
     SetJtChannelMask(jt, grf);
@@ -4522,7 +4522,7 @@ struct O{char pad[0xC];VTE*vt;};
 struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
 struct P{char pad[0xC];VTE*vt;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
-struct CLOCK{float time,dt;};
+struct CLOCK{float time,deltaTime;};
 struct SMP{float a,b,c;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
@@ -4611,7 +4611,7 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
     register unsigned address __asm__("$6") = page;
     __asm__("lwc1 %0,%4\n\tdaddu %1,%5,$zero\n\taddiu %3,%3,%%lo(%7)\n\tdaddu %2,$zero,$zero\n\tmul.s %0,%0,%6"
             : "=&f"(dt), "=r"(receiver), "=r"(out), "+r"(address)
-            : "m"(clock->dt), "r"(source), "f"(factor), "i"(&D_002BF3F8));
+            : "m"(clock->deltaTime), "r"(source), "f"(factor), "i"(&D_002BF3F8));
     current = receiver;
     optional = out;
     sample = (SMP *)address;
@@ -4635,7 +4635,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
     ((void (*)(void *, qword))jt->vt[36].fn)((char *)jt + jt->vt[36].delta, direction.q);
     U target;
     P *owner = NegativeTarget(m, jt->offset, &negative, &scratch, &target, jt);
-    (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->dt * factor);
+    (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->deltaTime * factor);
     ((void (*)(void *, qword))jt->vt[35].fn)((char *)jt + jt->vt[35].delta, position.q);
     qword relative;
     {
@@ -4721,7 +4721,7 @@ typedef char SMP_a_Offset[((unsigned)&((SMP*)0)->a==0)?1:-1];
 typedef char SMP_b_Offset[((unsigned)&((SMP*)0)->b==4)?1:-1];
 typedef char SMP_c_Offset[((unsigned)&((SMP*)0)->c==8)?1:-1];
 typedef char CLOCK_time_Offset[((unsigned)&((CLOCK*)0)->time==0)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->dt==4)?1:-1];
+typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
 typedef char P_params_Offset[((unsigned)&((P*)0)->params==336)?1:-1];
 typedef char P_matrix_Offset[((unsigned)&((P*)0)->matrix==432)?1:-1];
@@ -4783,7 +4783,7 @@ void UpdateJtFaceTarget(struct O *jt)
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
     SetStepTargetHeadingFromVector(jt, n.q);
-    SmoothValue__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.dt * 0.5f, D_002BF418, &g);
+    SmoothValue__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.deltaTime * 0.5f, D_002BF418, &g);
     InvertMatrix3Cofactor(&m, &jt->m1B0);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;

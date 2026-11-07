@@ -42,7 +42,7 @@ struct TASK : public LO
 {
       undefined4 unk_0x50;
       int nState;           /* +0x54 [R] -1 unset, 0 locked, 1 available, 2 done (in job), 3 done */
-      float tState;         /* +0x58 [R] clock.t when nState was entered */
+      float tState;         /* +0x58 [R] clock.time when nState was entered */
       undefined4 unk_0x5c[(0x7c - 0x5c) / 4];
       JOB *pjob;            /* +0x7C [R] owning JOB */
       undefined4 unk_0x80[(0x94 - 0x80) / 4];

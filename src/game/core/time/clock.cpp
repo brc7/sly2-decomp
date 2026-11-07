@@ -1,7 +1,7 @@
 // clock.cpp -- the game clock (CLOCK, g_clock D_002DDED0): COUNT-register ticks with wraparound, game/camera/real
 // time and the nine multiplied rate slots.
 // Once per frame MarkClockTick turns the elapsed COUNT ticks into a frame time clamped to 1/60..1/30 s and derives
-// three clocks from it: camera time (scaled by rtCm = slot 8), real time (scaled by slot 3; runs during pause) and
+// three clocks from it: camera time (scaled by cameraRate = slot 8), real time (scaled by slot 3; runs during pause) and
 // game time (real time scaled by rt = the product of all nine slots; stops while paused). The slots let several
 // systems slow or stop the game independently (pause, slow-motion power-up, ...). Entry points: StartupClock,
 // ResetClock, MarkClockTick, SetClockRate, RecalcClockRate, TickNow. TU 0x14CFE0..0x14D3D8 (8 functions).
@@ -33,20 +33,20 @@ extern "C" void StartupClock(void)
     unsigned long count;    /* as C++, an asm output straight into c[0] costs a second stack copy (33/36 differ) */
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
     countHistory[0] = count;
-    D_002DDED0.tickLastRaw = countHistory[0];
+    D_002DDED0.lastRawTick = countHistory[0];
     D_002DDED0.frameTick = TickNow(&D_002DDED0);
     for (i = 0; i < 9; i++) D_002DDED0.art[i] = 1.0f;
     D_002DDED0.rate = 1.0f;
-    D_002DDED0.rtCm = 1.0f;
+    D_002DDED0.cameraRate = 1.0f;
     ResetClock(&D_002DDED0);
 }
 
-/* Clears clock->t but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
+/* Clears clock->time but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
 // Resets `clock`'s game time to 0 and g_clock's rate slots to 1, except slot 3 (the real-time scale survives
 // resets), then recomputes the rates.
 extern "C" void ResetClock(CLOCK *clock)
 {
-    clock->t = 0;
+    clock->time = 0;
     D_002DDED0.art[0] = 1.0f;
     D_002DDED0.art[1] = 1.0f;
     D_002DDED0.art[2] = 1.0f;
@@ -61,20 +61,20 @@ extern "C" void ResetClock(CLOCK *clock)
 
 /* Ticks are COUNT-register cycles (294.912 MHz: 3.3908420e-9 s each); the frame delta is clamped to 1/60..1/30 s. */
 // Advances the clock by one frame: frame time from the ticks since the last call (294.912 MHz COUNT, clamped to
-// 1/60..1/30 s); camera time scaled by rtCm; real time scaled by slot 3; unless paused, game time = real time x rt,
+// 1/60..1/30 s); camera time scaled by cameraRate; real time scaled by slot 3; unless paused, game time = real time x rt,
 // and the game timers (D_002DEB30) advance.
 extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
     TICK tick = TickNow(clock);
     float dt = Clamp((float)(tick - clock->frameTick) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
-    clock->cameraDeltaTime = dt * clock->rtCm;
+    clock->cameraDeltaTime = dt * clock->cameraRate;
     clock->cameraTime += clock->cameraDeltaTime;
     {
     float dtReal = dt * clock->art[3];
     clock->realDeltaTime = dtReal;
     if (!isPaused) {
-        clock->dt = dtReal * clock->rate;
-        clock->t += clock->dt;
+        clock->deltaTime = dtReal * clock->rate;
+        clock->time += clock->deltaTime;
         UpdateGameTimers(D_002DEB30);
     }
     }
@@ -89,7 +89,7 @@ extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
     RecalcClockRate(clock);
 }
 
-// Recomputes the combined rates: rt = the product of all nine slots, rtCm = slot 8.
+// Recomputes the combined rates: rt = the product of all nine slots, cameraRate = slot 8.
 extern "C" void RecalcClockRate(CLOCK *clock)
 {
     unsigned int i;
@@ -97,7 +97,7 @@ extern "C" void RecalcClockRate(CLOCK *clock)
     for (i = 0; i < 9; i++) {
         clock->rate *= clock->art[i];
     }
-    clock->rtCm = clock->art[8];
+    clock->cameraRate = clock->art[8];
 }
 
 // Returns a 64-bit tick count from the 32-bit COUNT register, counting wraparounds.
@@ -106,8 +106,8 @@ extern "C" TICK TickNow(CLOCK *clock)
     unsigned long count;
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
     count &= 0xFFFFFFFF;
-    if (count < clock->tickLastRaw) clock->numTickWraps++;
-    clock->tickLastRaw = count;
+    if (count < clock->lastRawTick) clock->numTickWraps++;
+    clock->lastRawTick = count;
     return ((unsigned long)clock->numTickWraps << 32) | count;
 }
 

@@ -1011,7 +1011,7 @@ void DetachLookAtAct(T *p)
 } } // namespace M_func_0012D210
 
 namespace M_UpdateActLookAt { extern "C" {
-/* MATCH (Claude agent laneB22, 2026-10-23): from v8 (3). 2nd block: dt read as the scalar D_002DDED4 (g_clock.dt) through an "rV" asm input: expand keeps the MEM (V allows memory) but only r fits at reload, so reload loads it at the asm through the dying %hi reg (target lw v0,lo(v0) after the lqc2s); vsub then pin-free as "+j"(d = s.pos). */
+/* MATCH (Claude agent laneB22, 2026-10-23): from v8 (3). 2nd block: dt read as the scalar D_002DDED4 (g_clock.deltaTime) through an "rV" asm input: expand keeps the MEM (V allows memory) but only r fits at reload, so reload loads it at the asm through the dying %hi reg (target lw v0,lo(v0) after the lqc2s); vsub then pin-free as "+j"(d = s.pos). */
 /* v8 (Claude agent laneB21, 2026-10-23): aligned 7 -> 3. posT load: x8 ($v0) and a dummy z ($v1) kept live across it by two commented empty allocation-only asms, so the reload reg for the spilled posT is $a1 like the target (find_reg takes the first free reg in alloc order); the keep-alive asm has an output (+r po) so it is not volatile and reload_cse removes the a1 reload. Left: 2nd-block dt load (target: lui early + lw v0,lo(v0) right before the vsub = reload of a MEM). */
 /* v7 (Claude agent laneB19, 2026-10-23): aligned 8 -> 7. Allocation-only "r"(p->x8) on the 2nd-block vsub/qmtc2 asm gives x8 $v1. Left: posT lq v0+por (target lq a1), lw dt scheduled before the lqc2s and dt in $a0 (target: reload-style lw v0,lo(v0) right before the vsub). */
 /* v6 (Claude agent laneB15, 2026-10-23): aligned 9 -> 8. dv is a plain qword (spilled across the calls, so the dot reads its reload: lqc2 vf3) kept apart from d by a commented empty asm on d; posT a plain qword too (spill slots dv 0x40 / posT 0x50 in pseudo order). Left: posT load lq v0 + por a1 (target lq a1 directly), second block lw x8/dt regs. */
@@ -1019,7 +1019,7 @@ namespace M_UpdateActLookAt { extern "C" {
 /* v4 (Claude agent laneB8, 2026-10-23): aligned 12 -> 11. Second block: vsub and the dt qmtc2 fused in ONE asm (goalValue (+0xC0) as first input), plus a "memory" clobber on the vdiv asm (keeps the dt sqc2 before it, out of the b delay slot). Left: pos/goalValue (+0xC0) VF regs swapped and lw dt scheduled early; first block unchanged. */
 /* v3 (Claude agent laneB7, 2026-10-23): aligned 13 -> 12. FindClosestSwPo takes a 2nd qword arg (posT; it sq a1 to its stack); posT as a U memory local so the load goes straight into a1. */
 /* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, goalValue (+0xC0) (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/goalValue (+0xC0) vf1, output vf2. */
-// WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.dt after the lqc2s and vsub in vf2; posT lq via $a1.
+// WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.deltaTime after the lqc2s and vsub in vf2; posT lq via $a1.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void (*pfn)(...); };
@@ -1034,7 +1034,7 @@ struct P {
 extern char D_003DD490[];
 extern qword D_002A2DD0;
 extern float D_002A45A8;
-struct CLOCK { float t; int dt; };
+struct CLOCK { float time; int deltaTime; };
 extern struct CLOCK D_002DDED0;
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *FindClosestSwPo(void *pg, qword pos);
@@ -1117,7 +1117,7 @@ void UpdateActLookAt(struct P *p)
             qword d = s.pos;
             {
                 qword qwdtqOut;
-                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(p->xf->goalValue), "rV"((*(int *)&g_clock.dt)));
+                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(p->xf->goalValue), "rV"((*(int *)&g_clock.deltaTime)));
                 dt.q = qwdtqOut;
             }  /* "rV": MEM kept to reload, which loads it into the dying %hi reg */
             __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(vel) : "j"(dt.q), "j"(d) : "memory");
@@ -1628,7 +1628,7 @@ void ACT8::Update()
 
 namespace M_func_0012E060 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct CLOCK { float t; float dt; } CLOCK;
+typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 extern CLOCK D_002DDED0;
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
 typedef struct P { char pad[8]; Q *xf; char pad2[0x14]; qword pos; qword vel; } P;
@@ -1636,7 +1636,7 @@ void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b,
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
 void GetBezierActGoal(P *p, qword *ppos, qword *pvel, float dt)
 {
-    float now = D_002DDED0.t;
+    float now = D_002DDED0.time;
     Q *xf = p->xf;
     if (xf->endTime <= now + dt) {
         if (ppos) *ppos = p->pos;

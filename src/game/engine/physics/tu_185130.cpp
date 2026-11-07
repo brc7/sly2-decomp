@@ -295,7 +295,7 @@ extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *poi
     pm = ((M4 *(*)(void *))e->fn)((char *)mesh + e->delta);
     mat = *pm;
     float h = (params->svFast + params->svSlow) * 0.5f;
-    step = g_clock.dt * 0.5f;
+    step = g_clock.deltaTime * 0.5f;
     stop = params->dtFast * h;
     for (int i = 0; i < mesh->count; i++) {
         I3 *t = &mesh->triangles[i];

@@ -365,7 +365,7 @@ extern "C" void UpdateTossableContacts(CID100V *gadget)
     LN *contactList;
     SOV *ownObject;
     AdjustSoXps(gadget);
-    if (!gadget->state && D_002DDED0.t - gadget->time < D_002C42E0) return;
+    if (!gadget->state && D_002DDED0.time - gadget->time < D_002C42E0) return;
     contactList = gadget->tree->contactLists;
     ownObject = gadget->tree->owner;
     for (; contactList; contactList = contactList->next) {
@@ -683,7 +683,7 @@ void SetTossableState(CID100V *gadget, int state)
     int oldState = gadget->state;
     if (state == oldState) return;
     gadget->state = state;
-    gadget->time = D_002DDED0.t;
+    gadget->time = D_002DDED0.time;
     gadget->pendingContact = -1;
     ReleaseAct(&gadget->positionJob);
     ReleaseAct(&gadget->rotationJob);
@@ -793,12 +793,12 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
                     if (LengthL(Sub(pos, other)) < 100.0f) SetBhvThrownState(behavior, 4);
                 }
                 if (gadget->actor->color) {
-                    float t = (D_002DDED0.t - gadget->time) / D_002C43B0;
+                    float t = (D_002DDED0.time - gadget->time) / D_002C43B0;
                     float fade = D_002C43C0[0] + t * (D_002C43C0[1] + t * D_002C43C0[2]);
                     ClampLm(&fade, &D_002BBB60);
                     SetActPositionGoal(gadget->actor->color, Splat(fade));
                 }
-                if (D_002C43B0 < D_002DDED0.t - gadget->time) {
+                if (D_002C43B0 < D_002DDED0.time - gadget->time) {
                     SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(gadget->source),gadget,1);
                     gadget->actor->pvt[9].pfn((char *)gadget->actor + gadget->actor->pvt[9].d);   /* Remove */
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).

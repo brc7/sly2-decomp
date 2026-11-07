@@ -255,7 +255,7 @@ void AcknowledgeStepplayerHint(void)
     RestartHudWidget1(D_003DD490);
     if (FindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
-    *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
+    *(float *)(D_003DD490 + 0x4754) = D_002DDED0.time;
     D_002DDF40.n4A4++;
 }
 } } // namespace M_func_00140338
@@ -850,7 +850,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                                 RemoveNoise(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
-                        D_003DD490.g4758 = D_002DDED0.t + D_002BCC94;
+                        D_003DD490.g4758 = D_002DDED0.time + D_002BCC94;
                         break;
                     }
                     }
@@ -1006,14 +1006,14 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
-            xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
+            xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.deltaTime, pv, 0);
             xp->pos.f[2] = Clamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
         xp->pos.f[1] = v.f[1];
     }
     {
-        qword vel = PosSmooth(jt->x1070, D_002A2DD0, D_002DDED0.dt, D_002BCCD8, 0);
+        qword vel = PosSmooth(jt->x1070, D_002A2DD0, D_002DDED0.deltaTime, D_002BCCD8, 0);
         qword r;
         jt->x1070 = vel;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(xp->pos.q), "j"(vel));
@@ -1127,7 +1127,7 @@ void UpdateStepplayerGadgets(struct P *player)
                     int n = GetStepplayerMp(player);
                     if (n < D_002BCD00[id].xC) {
                         SetSndSourceLo(CreateSfxSound(0x2E), 0);
-                        player->t1304 = D_002DDED0.t;
+                        player->t1304 = D_002DDED0.time;
                     } else {
                         SetGadgetSlotState(player, pe, D_002BCD00[id].x0);
                     }
@@ -1163,7 +1163,7 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
         ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
     }
     pslot->state = state;
-    pslot->stateStartTime = D_002DDED0.t;
+    pslot->stateStartTime = D_002DDED0.time;
     switch (state) {
     case 2:
         player->StartGadget(pslot->idGadget);  /* slot 99 */
@@ -1337,7 +1337,7 @@ extern "C" void SetStepplayerGadget(P *player, unsigned int i, int id)
     SetGadgetSlotState(player, pe, -1);
     pe->id = id;
     pe->a = 0;
-    pe->g = D_002DDED0.t;
+    pe->g = D_002DDED0.time;
     for (int j = 0; j < 3; j++) {
         char ach[16];
         E *pe2 = &player->ae[j];
@@ -1490,7 +1490,7 @@ int IsStepplayerGrabReady(struct P *player)
     v = Mul(&m, buf.pos);
     if (5.0f < DistanceBetween(GetLoWorldPos(player->po), v)) return 0;
     if (player->x9A4 != 1) return 1;
-    if (D_002DDED0.t < player->p994->t) return 0;
+    if (D_002DDED0.time < player->p994->t) return 0;
     return 1;
 }
 } } // namespace M_func_001423A0
@@ -1576,8 +1576,8 @@ void RenderStepplayerSelf(struct P *player)
         g1 = 1.0f;
         g0 = g1;
     }
-    player->g10D4 = SmoothValue__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
-    player->g10D8 = SmoothValue__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
+    player->g10D4 = SmoothValue__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.deltaTime, D_002BD270, 0);
+    player->g10D8 = SmoothValue__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.deltaTime, D_002BD270, 0);
     if (player == D_002E1E40) {
         player->py0->g = player->g10D4;
         player->py1->g = player->g10D4;
@@ -1686,11 +1686,11 @@ void ScheduleIdleTimer(struct X *p)
 {
     float t;
     if (p->f) {
-        t = D_002DDED0.t;
+        t = D_002DDED0.time;
         t += RandomFloatInRange__Fff(p->a0, p->b0);
         p->tNext = t;
     } else {
-        t = D_002DDED0.t;
+        t = D_002DDED0.time;
         t += RandomFloatInRange__Fff(p->a1, p->b1);
         p->tNext = t;
     }
@@ -1960,7 +1960,7 @@ void PickHeroInteractTarget(P *p)
         f = 1;
     if (p->jtModeState != -1)
         f = 0;
-    if (p->g114C < D_002DDED0.t && (p->n1148 != 0 || f)) {
+    if (p->g114C < D_002DDED0.time && (p->n1148 != 0 || f)) {
         p->n1148 = !p->n1148;
         ScheduleIdleTimer(p);
     }
@@ -2680,7 +2680,7 @@ struct P { char pad[0x1308]; float g; };
 void DrainStepplayerMp(struct P *player, float f)
 {
     int n;
-    player->g += f * D_002DDED0.dt;
+    player->g += f * D_002DDED0.deltaTime;
     n = (int)player->g;
     if (!n)
         return;

@@ -118,7 +118,7 @@ extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *t
         CRichText_Trim(text, visibleLength);
         showCursor = 1;
     } else {
-        showCursor = (int)(D_002DDED0.t * 4.0f) & 1;
+        showCursor = (int)(D_002DDED0.time * 4.0f) & 1;
     }
     if (showCursor) strcpy1(text->pch, D_002A97F0);
 }

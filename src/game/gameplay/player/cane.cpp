@@ -205,7 +205,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
         start = duration * half;
         InvalidateSoAaox(receiver);
         sharedDelay = 0.1f;
-        sharedDeadline = D_002DDED0.t;
+        sharedDeadline = D_002DDED0.time;
         goto deadline_add;
     }
 

@@ -1672,7 +1672,7 @@ link/round3, 2026-11-05; the data definitions of the Data section follow them to
 - Check the whole relocation, not only the symbol: for every relocation in a function or data object with a known
   address, the relocated field in the ELF (jal target, %hi/%lo pair, R_MIPS_32) minus the object's addend must be the
   address config gives the symbol. This found two source bugs the match masks (round 3): mpeg called
-  `GIFS::EndDmaCnt` where the ELF calls `AddDmaEnd`, and two hud widget timers read `g_clock.t` (+0) where the ELF
+  `GIFS::EndDmaCnt` where the ELF calls `AddDmaEnd`, and two hud widget timers read `g_clock.time` (+0) where the ELF
   reads `tReal` (+0x3C); the offset of a field sits in the %lo relocation field, so a wrong field matches.
 
 Verification: compile each merged object, list its undefined symbols, and check each against config/symbol_addrs.txt,
