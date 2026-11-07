@@ -18,6 +18,7 @@
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"
+#include "sly2/so.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
@@ -645,10 +646,8 @@ void ResolveSwSaveVars(SW *world)
 }
 
 namespace M_PostSwLoad { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; };
 struct S {
-    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
+    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; LO **ppoFirst; LO **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
     char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
     char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
 };
@@ -674,7 +673,7 @@ void BroadcastGameEvent(void *p, int a, int b);
 // until the queue is empty, resets the camera and runs game callback 4.
 void PostSwLoad(struct S *world)
 {
-    struct O **ppo;
+    LO **ppo;
     PrimeSlotheap(world->pool403C);
     PrimeSlotheap(world->pool4054);
     PrimeSlotheap(world->pool4070);
@@ -692,7 +691,7 @@ void PostSwLoad(struct S *world)
     PostLoadScreens(D_003D9E70);
     while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
         for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
-            (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
+            (*ppo)->PostLoad();
         world->ppoLast = world->ppoFirst;
     }
     world->ppoLast = 0;
@@ -1268,30 +1267,23 @@ void UpdateSwTimerHud(struct S *world)
 } } // namespace M_func_0020F7E0
 
 namespace M_FFilterSoPair { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0x60]; struct O *po; char pad2[0xC]; long fl; };
-struct B { char pad[0xEC]; struct S *ps; };
-struct E { int pad; struct B *pb; int pad2[2]; long fl; };
 int MaxInt(int a, int b);
-#define VC61(o, a) ((int (*)(void *, struct O *))(o)->vt[61].pfn)((char *)(o) + (o)->vt[61].d, a)
 // Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
 // or 3.
-int ShouldKeepSoPair(struct S *object, struct E *e)
+int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 {
-    struct S *ps = e->pb->ps;
+    SOTREE *ps = e->owner->physicsTree;
     int a, b, r;
-    if (!(e->fl & (1L << 48)) && (ps->fl & 4))
+    if (!e->unknownFlag10A && ps->skipsUpdate)
         return 0;
-    if ((e->fl & (1L << 48)) || ps == object)
+    if (e->unknownFlag10A || ps == object)
         return 0;
-    a = VC61(object->po, ps->po);
-    b = VC61(ps->po, object->po);
+    a = object->root->ShouldIgnoreIntersection(ps->root);
+    b = ps->root->ShouldIgnoreIntersection(object->root);
     r = MaxInt(a, b);
     return r != 1 && r != 3;
 }
 } } // namespace M_FFilterSoPair
-#undef VC61
 
 namespace M_func_0020FA10 { extern "C" {
 struct O { char pad[0x70]; long fl; };
