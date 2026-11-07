@@ -269,15 +269,12 @@ struct PL {char pad[0x1C];float amount;char pad20[0x10];unsigned flags;};
 struct CONTROL {int word0,state;char pad8[0x14];int count;};
 struct GATE {int word0,word4,mode;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x140];PL*input;char pad154[0xB8];float changed;char pad210[0xB0];CONTROL control;char pad2E0[0x1E0];GATE gate;char pad4CC[0x924];char action[0x110];char altAction[0x50];char physics[0xE0];void*animation;void*other;char pad1038[0x398];int state;char pad13D4[0x14];int pending;void*root;char pad13F0[0x5C];int flag;char pad1450[0x3F0];int kind;char pad1844[0xCC];char extra[1];};
-struct CLOCK {float time,deltaTime;};
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
-typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 typedef char PL_Size[sizeof(PL)==52?1:-1];
 typedef char CONTROL_Size[sizeof(CONTROL)==32?1:-1];
 typedef char GATE_Size[sizeof(GATE)==12?1:-1];
 typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
 typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
-typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char PL_amount_Offset[FIELD_OFFSET(PL,amount)==28?1:-1];
 typedef char PL_flags_Offset[FIELD_OFFSET(PL,flags)==48?1:-1];
 typedef char CONTROL_state_Offset[FIELD_OFFSET(CONTROL,state)==4?1:-1];
@@ -499,8 +496,7 @@ struct ASEGA {char pad[0x14];struct TABLE*table;struct O*owner;float time;char p
 struct BBOX {float min[4],max[4];char pad20[0x40];struct O*owner;};
 struct G;
 struct Q { char pad[0xEC]; struct BBOX *xEC; };
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern struct G D_003DD490;
 extern float D_002C08E4;
 extern qword D_002C08F0;
@@ -569,8 +565,6 @@ typedef char Offset_9[FIELD_OFFSET(struct BBOX,min)==0?1:-1];
 typedef char Offset_10[FIELD_OFFSET(struct BBOX,max)==16?1:-1];
 typedef char Offset_11[FIELD_OFFSET(struct BBOX,owner)==96?1:-1];
 typedef char Offset_12[FIELD_OFFSET(struct Q,xEC)==236?1:-1];
-typedef char Offset_13[FIELD_OFFSET(struct CLOCK,time)==0?1:-1];
-typedef char Offset_14[FIELD_OFFSET(struct CLOCK,deltaTime)==4?1:-1];
 typedef char Offset_15[FIELD_OFFSET(struct P,x28)==40?1:-1];
 typedef char Offset_16[FIELD_OFFSET(struct P,xEC)==236?1:-1];
 typedef char Offset_17[FIELD_OFFSET(struct P,pl)==336?1:-1];
@@ -592,7 +586,6 @@ typedef char Size_0[sizeof(struct PL)==32?1:-1];
 typedef char Size_1[sizeof(struct ASEGA)==80?1:-1];
 typedef char Size_2[sizeof(struct BBOX)==100?1:-1];
 typedef char Size_3[sizeof(struct Q)==240?1:-1];
-typedef char Size_4[sizeof(struct CLOCK)==8?1:-1];
 typedef char Size_5[sizeof(struct P)==6864?1:-1];
 typedef char Size_6[sizeof(qword)==16?1:-1];
 typedef char Size_7[sizeof(unsigned long)==8?1:-1];
@@ -873,8 +866,7 @@ done:
 #undef FIELD_OFFSET
 
 namespace M_func_001B5820 { extern "C" {
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
@@ -1068,8 +1060,7 @@ extern "C" void UpdateMurrayStrafe(P *murray)
 
 namespace M_func_001B5D30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float time; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
 void SetXfRole(struct P *p, int a, int b);
@@ -1251,7 +1242,6 @@ struct P {
     ASEG *clip21;           // 0x1AEC
 };
 extern "C" {
-struct CLOCK { float time, deltaTime; };
 extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern int D_002DD5BC;
@@ -1508,8 +1498,7 @@ extern "C" void SetMurrayState(P *murray, int next)
 } // namespace M_SetMurrayState
 
 namespace M_GetMurrayCpdefi { extern "C" {
-struct CLOCK { float time; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int interactKind; char pad3[0x13D0 - 0x10E8]; int k; };
 void GetStepplayerCpdefi(struct S *p, int *pf);
 void UpdateJtThrowHoldPosition(void *p, int *pf);
@@ -1781,8 +1770,7 @@ namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
 typedef int qword __attribute__((mode(TI)));
 struct VT { short d; short pad; void *pfn; };
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 union WORD{int bits;float value;};extern union WORD D_002C09A8;
@@ -1808,7 +1796,6 @@ static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char WORD_Size[sizeof(union WORD)==4?1:-1];
 typedef char VT_Size[sizeof(struct VT)==8?1:-1];
-typedef char CLOCK_Size[sizeof(struct CLOCK)==8?1:-1];
 typedef char SIDE_Size[sizeof(struct SIDE)==64?1:-1];
 typedef char LINK_Size[sizeof(struct LINK)==176?1:-1];
 typedef char MSG_Size[sizeof(struct MSG)==96?1:-1];
@@ -1817,8 +1804,6 @@ typedef char V3_Size[sizeof(struct V3)==12?1:-1];
 typedef char P_Size[sizeof(struct P)==5096?1:-1];
 typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
 typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char SIDE_x0_Offset[FIELD_OFFSET(SIDE,x0)==0?1:-1];
 typedef char SIDE_x4_Offset[FIELD_OFFSET(SIDE,x4)==4?1:-1];
 typedef char SIDE_x8_Offset[FIELD_OFFSET(SIDE,x8)==8?1:-1];
@@ -2406,8 +2391,7 @@ void DropMurrayCarried(struct P *murray)
 } } // namespace M_DropMurrayCarried
 
 namespace M_DetachMurrayCarried { extern "C" {
-struct CLOCK { float time; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct VE { short d; short pad; void (*pfn)(...); };
 struct X { char pad[0x58]; int x58; int x5C; };
@@ -2739,8 +2723,7 @@ void StartMurrayAltAttack(struct P *murray)
 
 namespace M_SetMurrayAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
 struct VT { short d; short pad; void *pfn; };
@@ -2989,13 +2972,12 @@ void UpdateMurrayAttackVelocity(struct P*murray){
 
 namespace M_func_001B8D30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float time,deltaTime; };
 struct CLIP; struct ANIMATION;
 struct COMPONENT_DATA;
 struct COMPONENT { struct COMPONENT_DATA *value; };
 struct SCRIPT { int opaque; struct CLIP *clip; char rest[0x14]; };
 struct M3 { qword row[3]; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct VE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x40 - 0x10]; qword v40; char rest[0x20]; };
@@ -3011,8 +2993,6 @@ struct M3 *GetLoWorldMatrix(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char COMPONENT_value_Offset[FIELD_OFFSET(COMPONENT,value)==0?1:-1];
 typedef char SCRIPT_clip_Offset[FIELD_OFFSET(SCRIPT,clip)==4?1:-1];
 typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
@@ -3033,7 +3013,6 @@ typedef char P_x1890_Offset[FIELD_OFFSET(P,x1890)==6288?1:-1];
 typedef char P_x1900_Offset[FIELD_OFFSET(P,x1900)==6400?1:-1];
 typedef char P_x1904_Offset[FIELD_OFFSET(P,x1904)==6404?1:-1];
 typedef char P_x1908_Offset[FIELD_OFFSET(P,powerContactTrigger)==6408?1:-1];
-typedef char CLOCK_Size[sizeof(struct CLOCK)==8?1:-1];
 typedef char COMPONENT_Size[sizeof(struct COMPONENT)==4?1:-1];
 typedef char SCRIPT_Size[sizeof(struct SCRIPT)==28?1:-1];
 typedef char M3_Size[sizeof(struct M3)==48?1:-1];
@@ -3318,12 +3297,10 @@ struct STRETCH { void*frame; NODE*first,*second; char padC[0x94]; U position; ch
 struct MOTION;
 struct LINK { char pad[0x180]; OWNER*owner; char pad184[0xC]; GOAL*first; int pad194; GOAL*second; };
 struct P { char pad[0xC]; VTE*vt; char pad10[0x50]; NODE*node; char pad64[0x12C]; U velocity; char pad1A0[0xE90]; ANIM*anim; char pad1034[0x54]; PROXY*proxy; char pad108C[0x360]; ROOT*root; LINK*link; MOTION*m13F4,*m13F8,*m13FC,*m1400; int oldLeft,oldRight; char pad140C[0x3C]; int flag,pad144C,state; float time; char pad1458[0x19C]; NODE*targetFirst; int pad15F8; NODE*targetSecond; int pad1600; MOTION*m1604; int pad1608; MOTION*m160C; STRETCH*first,*second; MOTION*m1618,*m161C,*m1620,*m1624; };
-struct CLOCK { float time,deltaTime; };
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M4_Size[sizeof(M4)==64?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char EVENT_Size[sizeof(EVENT)==16?1:-1];
-typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 typedef char STRETCH_Size[sizeof(STRETCH)==208?1:-1];
 typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
 typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
@@ -3349,7 +3326,6 @@ typedef char STRETCH_tuning_Offset[FIELD_OFFSET(STRETCH,tuning)==204?1:-1];
 typedef char LINK_owner_Offset[FIELD_OFFSET(LINK,owner)==384?1:-1];
 typedef char LINK_first_Offset[FIELD_OFFSET(LINK,first)==400?1:-1];
 typedef char LINK_second_Offset[FIELD_OFFSET(LINK,second)==408?1:-1];
-typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
 typedef char P_node_Offset[FIELD_OFFSET(P,node)==96?1:-1];
 typedef char P_velocity_Offset[FIELD_OFFSET(P,velocity)==400?1:-1];
