@@ -19,7 +19,7 @@ struct SLOTHEAP
       int c;               /* 0x04 slots per block */
       int cbAlign;         /* 0x08 block alignment (passed to the world allocator) */
       SLOT *pslotFree;     /* 0x0C free list */
-      int cAlloc;          /* 0x10 live slots */
+      int numAllocated;    /* 0x10 live slots */
       byte *ab;            /* 0x14 the block carved into slots (allocated on first use) */
 };
 typedef char assert_SLOTHEAP_size[sizeof(SLOTHEAP) == 0x18 ? 1 : -1];

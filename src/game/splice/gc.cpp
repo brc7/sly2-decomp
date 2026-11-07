@@ -310,9 +310,9 @@ void CGc::Collect()
     CGcObj<CSidebag>::ClearMarks();
     CGcObj<CMethod>::ClearMarks();
     STACKSCOPE_ctor(&ss);
-    InitMarkStack(&cFrame, (void ***)&apFrame, CSlotPool<0x28, 0x200>::s_pool.slotheap.cAlloc);   /* live-slot counts of the */
-    InitMarkStack(&cNode, (void ***)&apNode, CSlotPool<0x14, 0x2000>::s_pool.slotheap.cAlloc);   /* frame, pair and proc pools */
-    apClo = (CProc **)PvAllocMarkStack(CSlotPool<0x1C, 0x800>::s_pool.slotheap.cAlloc);   /* size the mark stacks */
+    InitMarkStack(&cFrame, (void ***)&apFrame, CSlotPool<0x28, 0x200>::s_pool.slotheap.numAllocated); /* live-slot counts of the */
+    InitMarkStack(&cNode, (void ***)&apNode, CSlotPool<0x14, 0x2000>::s_pool.slotheap.numAllocated); /* frame, pair and proc pools */
+    apClo = (CProc **)PvAllocMarkStack(CSlotPool<0x1C, 0x800>::s_pool.slotheap.numAllocated); /* size the mark stacks */
     cClo = 0;
     for (pn = CGcObj<CFrame>::s_ptRoot; pn;)
     {
