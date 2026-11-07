@@ -56,18 +56,13 @@ void CPLCY::Init()   /* key function: CPLCY's vtable comes out here */
 {
 }
 
-namespace M_ActivateCplcy { extern "C" {
-struct G { char pad[0x24]; float targetFov; char pad2[0x24]; float nearClip; };
-extern struct G D_002DDF40;
-struct T { int a; float b; float c; };
 // Default slot 2 Activate(focus, pv): pvHero(+0)=focus; save g_cm targetFieldOfView (+4) and nearClip (+8)
-void ActivateCplcy(struct T *p, int a)
+extern "C" void ActivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
-    p->a = a;
-    p->c = D_002DDF40.nearClip;
-    p->b = D_002DDF40.targetFov;
+    pcplcy->pvHero = pvHero;
+    pcplcy->savedNearClip = g_cm.nearClip;
+    pcplcy->savedTargetFieldOfView = g_cm.targetFieldOfView;
 }
-} } // namespace M_ActivateCplcy
 
 // Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); targetFieldOfView=saved.
 extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
@@ -123,14 +118,14 @@ extern "C" void UpdateCmpart1(CMPART1 *pcmpart1, void *pv, JOY *pjoy)
     UpdateCplcy(pcmpart1, pv, pjoy);
 }
 
-// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/unknown38 = 0.
+// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndZoomStop = 0.
 extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
 {
     CPLCY_ctor(pcplook);
     PVTCPLCY(pcplook) = D_002CD4E0;
     pcplook->rZoomMax = 7.0f;
     pcplook->psndZoom.m_p = 0;
-    pcplook->unknown38.m_p = 0;
+    pcplook->psndZoomStop.m_p = 0;
     return pcplook;
 }
 
@@ -205,71 +200,63 @@ qword PosCplookEye(struct X *p)
 } } // namespace M_PosCplookEye
 
 namespace M_ActivateCplook { extern "C" {
-typedef struct { float a, b; } F2;
-struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; int matrix; };
-extern struct G D_002DDF40;
 extern struct { float t; float dt; } D_002DDED0;
-extern F2 D_002BD950, D_002BD958, D_002BD960, D_002BD968, D_002BD970;
-struct X {
-    int hero; char pad[0xC]; float panAngle; float tiltAngle; int panSpeed; int tiltSpeed; int zoom; int zoomSpeed; float maxZoom; float zoomFov; float wideFov;
-    int zoomSound; int zoomStopSound; F2 panLimits; F2 tiltLimits; float startPan; float startTilt; int enterCount;
-};
-void ActivateCplcy(struct X *p);
+extern LM D_002BD950, D_002BD958, D_002BD960, D_002BD968, D_002BD970;
+void ActivateCplcy(CPLOOK *p);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
-void RcPtr_Assign(int *, void *);
-void PauseSnd(int);
+void RcPtr_Assign(CRefPtr<SND> *, void *);
+void PauseSnd(SND *);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *, float *, float *);
-int IsBasicDerivedFrom__FP5BASIC3CID(int, int);
-void *GetLoWorldMatrix(int);
-float ClampToLimits__FP2LMf(F2 *, float);
-void SetCmNearClip__FP2CMf(struct G *, float);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+void *GetLoWorldMatrix(void *);
+float ClampToLimits__FP2LMf(LM *, float);
 
 // Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits,
 // zoom=0, fov zoom range, near clip 49, numActivations++.
-void ActivateCplook(struct X *p)
+void ActivateCplook(CPLOOK *p)
 {
-    struct G *pg;
+    CM *pcm;
     void *pv;
     float g;
     ActivateCplcy(p);
     pv = CreateSfxSound(0x26);
     SetSndSourceLo(pv, 0);
-    RcPtr_Assign(&p->zoomSound, pv);
+    RcPtr_Assign(&p->psndZoom, pv);
     {
         void *pv2 = CreateSfxSound(0x25);
         SetSndSourceLo(pv2, 0);
-        RcPtr_Assign(&p->zoomStopSound, pv2);
+        RcPtr_Assign(&p->psndZoomStop, pv2);
     }
-    PauseSnd(p->zoomSound);
-    pg = &D_002DDF40;
-    DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&pg->matrix, &p->panAngle, &p->tiltAngle);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x34)) {
-        p->panLimits = D_002BD950;
-        p->tiltLimits = D_002BD958;
+    PauseSnd(p->psndZoom.m_p);
+    pcm = &g_cm;
+    DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&pcm->mat, &p->panAngle, &p->tiltAngle);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->pvHero, 0x34)) {
+        p->lmPan = D_002BD950;
+        p->lmTilt = D_002BD958;
     } else {
-        p->panLimits = D_002BD968;
-        p->tiltLimits = D_002BD970;
-        p->startPan = p->panAngle;
-        p->startTilt = p->tiltAngle;
-        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(GetLoWorldMatrix(p->hero), &p->panAngle, &p->tiltAngle);
+        p->lmPan = D_002BD968;
+        p->lmTilt = D_002BD970;
+        p->panStartAngle = p->panAngle;
+        p->tiltStartAngle = p->tiltAngle;
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(GetLoWorldMatrix(p->pvHero), &p->panAngle, &p->tiltAngle);
         g = ClampToLimits__FP2LMf(&D_002BD960, p->tiltAngle);
         p->tiltAngle = g;
-        p->panLimits.a += p->panAngle;
-        p->panLimits.b += p->panAngle;
-        p->tiltLimits.a += g;
-        p->tiltLimits.b += g;
-        p->tiltLimits.a = ClampToLimits__FP2LMf(&D_002BD960, p->tiltAngle);
-        p->tiltLimits.b = ClampToLimits__FP2LMf(&D_002BD960, p->tiltAngle);
+        p->lmPan.minValue += p->panAngle;
+        p->lmPan.maxValue += p->panAngle;
+        p->lmTilt.minValue += g;
+        p->lmTilt.maxValue += g;
+        p->lmTilt.minValue = ClampToLimits__FP2LMf(&D_002BD960, p->tiltAngle);
+        p->lmTilt.maxValue = ClampToLimits__FP2LMf(&D_002BD960, p->tiltAngle);
     }
-    p->panSpeed = 0;
-    p->tiltSpeed = 0;
-    p->zoom = 0;
-    p->zoomSpeed = 0;
-    p->zoomFov = D_002DDF40.targetFov / p->maxZoom;
-    p->wideFov = D_002DDF40.targetFov;
-    SetCmNearClip__FP2CMf(&D_002DDF40, 49.0f);
-    p->enterCount++;
+    p->swPan = 0.0f;
+    p->swTilt = 0.0f;
+    p->zoom = 0.0f;
+    p->svuZoom = 0.0f;
+    p->zoomedFieldOfView = g_cm.targetFieldOfView / p->rZoomMax;
+    p->wideFieldOfView = g_cm.targetFieldOfView;
+    SetCmNearClip(&g_cm, 49.0f);
+    p->numActivations++;
     g_sw.tLookLast = D_002DDED0.t;
 }
 } } // namespace M_ActivateCplook
@@ -378,11 +365,11 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 } } // namespace M_UpdateCplook
 
 // ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references unknown38 and psndZoom. (inferred)
+// sound references psndZoomStop and psndZoom. (inferred)
 void CPLOOK::ResetPolicy()   /* key function */
 {
     CPLOOK *pcplook = this;
-    RcPtr_Assign(&pcplook->unknown38, 0);
+    RcPtr_Assign(&pcplook->psndZoomStop, 0);
     RcPtr_Assign(&pcplook->psndZoom, 0);
 }
 
@@ -422,7 +409,7 @@ extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
     pcpzoom->rZoomMax = 7.0f;
     pcpzoom->zoomTarget = -1.0f;
     pcpzoom->psndZoom.m_p = 0;
-    pcpzoom->unknownC4.m_p = 0;
+    pcpzoom->psndZoomStop.m_p = 0;
     return pcpzoom;
 }
 
@@ -669,11 +656,11 @@ void UpdateCpzoom(struct X *p)
 } } // namespace M_UpdateCpzoom
 
 // ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references unknownC4 (+0xC4) and psndZoom (+0xC0). (inferred)
+// sound references psndZoomStop (+0xC4) and psndZoom (+0xC0). (inferred)
 void CPZOOM::ResetPolicy()   /* key function */
 {
     CPZOOM *pcpzoom = this;
-    RcPtr_Assign(&pcpzoom->unknownC4, 0);
+    RcPtr_Assign(&pcpzoom->psndZoomStop, 0);
     RcPtr_Assign(&pcpzoom->psndZoom, 0);
 }
 

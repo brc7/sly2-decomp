@@ -105,7 +105,7 @@ struct CPLOOK : public CPLCY
       float zoomedFieldOfView; /* FOV fully zoomed */
       float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> unknown38;   /* possibly sound (low-confidence guess: SND reference released on exit) */
+      CRefPtr<SND> psndZoomStop;   /* zoom-stop sound (sfx 0x25, created on activation; released on exit) */
       LM lmPan;   /* pan limits */
       LM lmTilt;   /* tilt limits */
       float panStartAngle; /* pan at activation */
@@ -144,7 +144,7 @@ struct CPZOOM : public CPLCY
       float zoomedFieldOfView; /* FOV fully zoomed */
       float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> unknownC4;   /* possibly sound (low-confidence guess: SND reference released on exit) */
+      CRefPtr<SND> psndZoomStop;   /* zoom-stop sound (sfx 0x25, created on activation; released on exit) */
       uint32_t   _pad_245    [ 2 ] ;
     void Reset() __asm__("SnapCpzoom");
     void SetOwner(LO *plo) __asm__("SetCpzoomOwner");

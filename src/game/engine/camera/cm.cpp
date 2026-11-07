@@ -1554,7 +1554,7 @@ namespace M_DestroyCm { extern "C" {
 typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
-   unknown38 and CPZOOM::psndZoom / unknownC4) */
+   psndZoomStop and CPZOOM::psndZoom / psndZoomStop) */
 typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
 void DestroyBasic(S *, int);
 // The CM destructor (an inline, emitted linkonce): releases the policies' four sound references in reverse member
