@@ -342,7 +342,7 @@ extern "C" int IsInScreenRect(qwordV v, float extent) {
 }
 
 // VU0 helper: p + up * s.
-static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
+static __inline__ qwordV VuMulAddScalar(qwordV p, qwordV up, float s) {
     U u;
     qwordV uq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
     qwordV r;
@@ -359,8 +359,8 @@ extern "C" int SnapToGround(qwordV *position, float top, float bottom, int accep
     int firstObject, numObjects;
     qwordV start, end;
     STACKSCOPE_ctor(&scope);
-    start = MAdd(*position, D_002A2DC0, top);   // D_002A2DC0: the up axis
-    end = MAdd(*position, D_002A2DC0, bottom);
+    start = VuMulAddScalar(*position, D_002A2DC0, top);   // D_002A2DC0: the up axis
+    end = VuMulAddScalar(*position, D_002A2DC0, bottom);
     if (!filter) filter = ShouldKeepSoNotSelfSlot62;
     {
         HITY hit;
@@ -708,7 +708,7 @@ static inline qwordV VuRotateByMatrix(M3 *pmat, qwordV *pqwVec)
     return qwResult;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float SLengthXY(qwordV qw)
+static inline float VectorLengthXY(qwordV qw)
 {
     qwordV qwT;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qwT) : "j"(qw));
@@ -781,7 +781,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 rotation = *(M3 *)GetLoWorldMatrix(selector->object);
                 break;
             }
-            float distance = SLengthXY(VuDifference(pos, spotPosition));
+            float distance = VectorLengthXY(VuDifference(pos, spotPosition));
             if (distance < D_002BE5E4 || bestDistance < distance)
                 continue;
             for (int j = 0; j < spawner->offsetCount; j++)
@@ -806,7 +806,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 if (FindRangeContaining(object->curveData, u))
                     continue;
                 EvaluateShapeS(object, &curvePosition.q, &curveDirection.q, u);
-                float distance = SLengthXY(VuDifference(pos, curvePosition.q));
+                float distance = VectorLengthXY(VuDifference(pos, curvePosition.q));
                 if (distance < D_002BE5E4 || bestDistance < distance)
                     continue;
                 // Face along the curve, toward the camera's x axis.

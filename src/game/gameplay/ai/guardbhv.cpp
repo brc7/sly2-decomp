@@ -2915,14 +2915,14 @@ static inline float VuGetX(qword qw)
     return x;
 }
 // VU0 helper: x component of a quadword vector (VU register operand variant for the match).
-static inline float GXOfQwJ(qword qw)
+static inline float VuGetXKeepInVf(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw)); /* allocation-only "j"(qw): the vector stays in a VF register */
     return x;
 }
 // VU0 helper: x component of a quadword vector (operand order variant for the match).
-static inline float GXOfQwA0A1(qword qw)
+static inline float VuGetXClobberA0A1(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw) : "$4", "$5"); /* allocation-only "j"(qw); clobbers of the dead a0/a1 */
@@ -3259,7 +3259,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 normal.qw = *pqwZeroHere;
             else
                 normal.qw = VuDivideByLength(normalCopy, qwLen);
-            float sGap = GXOfQwJ(qwLen);
+            float sGap = VuGetXKeepInVf(qwLen);
             sGap = MaxFloat(0.0f, sGap - pbodyOther->sRadius - pbodySelf->sRadius);
             float gMass = pbodyOther->gMass / (pbodyOther->gMass + pbodySelf->gMass);
             float g;
@@ -3310,9 +3310,9 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 normal.qw = *pqwZero;
             else
                 normal.qw = VuDivideByLength(normal.qw, qwLen);
-            if (D_002BE690 < GXOfQwA0A1(qwLen))
+            if (D_002BE690 < VuGetXClobberA0A1(qwLen))
             {
-                float gClose = GXOfQwJ(VuDotProduct(vNew, normal.qw));
+                float gClose = VuGetXKeepInVf(VuDotProduct(vNew, normal.qw));
                 posNext = posHit.qw;
                 if (gClose < 0.0f)
                     vNext = VuMulAdd(vNew, normal.qw, VU_FLOAT(-gClose));
