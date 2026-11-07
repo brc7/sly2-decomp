@@ -105,6 +105,7 @@ void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 
+// Pack the vertex (x, y) in 12.4 fixed point with z = 0; returns x.
 static inline int PackNext(GIFS &gifs, int x, int y)
 {
     gifs.PackXYZ(x << 4, y << 4, 0);
@@ -166,8 +167,11 @@ extern "C" void InitRenderTargets(RT *pt, GSB *px)
     gifs.DetachCopySw(&pt->cqwTex, 0, &pt->aqwTex);
 }
 
+// Broadcast a float into vf2.
 static inline qword Bcast(float f){register qword q __asm__("vf2");q = VuFromFloat<qword>(f);return q;}
+// Return v scaled by k.x, in vf4.
 static inline qword Scale0(qword v,qword k){register qword q __asm__("vf4");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
+// Return v scaled by k.x, in vf1.
 static inline qword Scale2(qword v,qword k){register qword q __asm__("vf1");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
 // Starts rendering into a target: builds the look-at and projection of the target's camera object (RTCAM) and emits
 // the VIF setup (BASE/OFFSET, the camera constants for VU1). Called by the BeginRpRenderTarget0/1 pass hooks. (inferred)
@@ -369,6 +373,7 @@ extern "C" void RenderRtcam(RTCAM *rtcam)
     }
 }
 
+// The object a POV controls when po is a POV-derived object (cid 0x34), otherwise po itself.
 static __inline__ POV *Get(POV *po) { return (po && IsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
 // Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
 // player object, or what it controls), others in the whole world. (inferred)

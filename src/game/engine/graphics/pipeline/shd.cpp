@@ -253,7 +253,9 @@ void LoadClutFromBrx(void *pbis, struct X *px)
 namespace M_BuildWorldBackgroundImage {
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
+// Three-float vector with a no-op constructor.
 struct VEC3 { float x, y, z; VEC3() {} };
+// Packed color word with a no-op constructor.
 struct CLR { unsigned int n; CLR() {} };
 struct GIFS {
     void *max; qword *base,*count,*current; int pad,endPrim; void *vt;
@@ -279,15 +281,18 @@ void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
 void BuildWorldBackgroundImage(O *p, void *pbs);
 }
+// Clear a packed color to zero.
 static inline void ClearClr(CLR *pc)
 {
     pc->n = 0;
 }
+// Pack rgb with alpha g * gA * 128 in the top byte.
 static inline void SetClr(CLR *pc, float g, float gA, unsigned int rgb)
 {
     float h = gA * 128.0f;
     pc->n = rgb | ((unsigned int)(int)(g * h) << 24);
 }
+// Pack v's components as an RGB word into *outColor and store *gain / 255 as *outAlpha.
 static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,const VEC3 &v){
     unsigned int rgb=(unsigned int)(int)v.x|((unsigned int)(int)v.y<<8)|((unsigned int)(int)v.z<<16);
     float alpha=*gain*0.003921569f;
@@ -561,6 +566,7 @@ void ColorCorrectRgba(int *);
 int S16Read__18CBinaryInputStream(void *);
 void *AllocClearedFromWorldHeap(struct MSG *);
 void LoadTexFromBrx(void *, struct C *);
+// Set the entry count to n and allocate n zeroed 16-byte records from the world heap.
 static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
 {
     pe->n = n;
@@ -771,18 +777,26 @@ extern "C" {
  }
 extern "C" void PackTexGifs(TEXTURE*,int,GIFS*);
 extern "C" void BuildShaderGifPackets();
+// GS RGBAQ word for the entry: rgb, plus the alpha byte when flag 2 is set, with Q = 1.0 in the high word.
 static inline ulong ColorWord(const RGBA&color,const ENTRY*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->flags&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
+// Add two bulk primitive register descriptors (first, first+1) to the GIF stream.
 static inline void Pair(GIFS&q,int first,ulong regs){q.AddPrimBulk(first,0,4,regs,0);q.AddPrimBulk(first+1,0,4,regs,0);}
+// Add the packed-mode primitive descriptor.
 static inline void Packed(GIFS&q){q.AddPrimPack(0,1,0xE);}
+// Close the primitive and the DMA CNT tag.
 static inline void End(GIFS&q){q.GIFS::EndPrim(1);q.EndDmaCnt();}
 union BLEND_WORD {ulong value;struct {ulong first:2;ulong second:2;ulong third:2;ulong fourth:2;ulong remaining:56;} fields;};
+// GS ALPHA blend word for the entry: flag 1 picks the second operand (2 or 1); the fourth field is 1.
 static inline ulong Alpha(ENTRY*e){BLEND_WORD word;word.value=0;word.fields.second=(e->flags&1)?2UL:1UL;word.fields.fourth=1;return word.value;}
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
 typedef char packet_layout[(sizeof(void*)==4 && sizeof(ulong)==8 && sizeof(QW)==16 && sizeof(DMAS)==28 && sizeof(GIFS)==40 && sizeof(RGBA)==4 && sizeof(PACKET)==8 && sizeof(ENTRY)==44 && sizeof(BLEND_WORD)==8 && OFF(PACKET,count)==0x0 && OFF(PACKET,data)==0x4 && OFF(RGBA,r)==0x0 && OFF(RGBA,g)==0x1 && OFF(RGBA,b)==0x2 && OFF(RGBA,a)==0x3 && OFF(ENTRY,kind)==0x4 && OFF(ENTRY,flags)==0x5 && OFF(ENTRY,color)==0xC && OFF(ENTRY,secondary)==0x10 && OFF(ENTRY,texture)==0x18 && OFF(ENTRY,packets)==0x20 && OFF(GIFS,m_pbMax)==0x0 && OFF(GIFS,m_ab)==0x4 && OFF(GIFS,m_pqwCnt)==0x8 && OFF(GIFS,m_pb)==0xC && OFF(GIFS,m_fPad)==0x10 && OFF(GIFS,m_fEndPrim)==0x14 && OFF(GIFS,m_pqwPrim)==0x1C && OFF(GIFS,m_creg)==0x20 && OFF(GIFS,m_cregAll)==0x24)?1:-1];
+// Return base | bits through pinned registers (keeps the original or).
 static inline ulong TestWordOr(uint base,ulong bits){
  register ulong result __asm__("$6");register uint input __asm__("$5")=base;register ulong mask __asm__("$2")=bits;
  __asm__("or %0,%1,%2":"=r"(result):"r"(input),"r"(mask));return result;
 }
+// Compute the GS TEST word base (0x7E1, or 0x7EB when the entry kind is 0) and the flag-4 bit in one asm block for
+// matching.
 static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKind,uint &flags4){
  register uint rawKind __asm__("$2")=entry->kind;
  register uint retained __asm__("$3")=0x7EB;
@@ -962,6 +976,7 @@ int AddShaderVifUnpackQword(struct S *p, int i, int x, int y)
 // CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
 struct COPYREC { unsigned int cb; void *pvSrc; void *pvDst; };
+// Copy a record's cb bytes from its source to its destination.
 extern "C" void ApplyCopyRecord(COPYREC *prec)
 {
     CopyAb__FPvT0Ui(prec->pvDst, prec->pvSrc, prec->cb);
@@ -1334,13 +1349,16 @@ int UploadPermShaders(struct BS *pbs, int k)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ColorCorrectRgba16 {
 struct RGBA { unsigned char r, g, b, a;
+  // Uninitialised color.
   RGBA() {}
+  // Color from its four components.
   RGBA(unsigned char r_, unsigned char g_, unsigned char b_, unsigned char a_) { r = r_; g = g_; b = b_; a = a_; }
 };
 struct BF { unsigned short r : 5; unsigned short g : 5; unsigned short b : 5; unsigned short a : 1; };
 union U { unsigned short w; BF bf; };
 extern "C" { 
  void ColorCorrectRgba(RGBA *prgba); void ColorCorrectRgba16(U *pu); }
+// Pack an RGBA color into 16-bit 5:5:5:1.
 static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b = c.b >> 3; u.bf.a = c.a >> 7; return u; }
 // 0x1ED1A0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");

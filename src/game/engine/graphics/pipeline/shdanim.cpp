@@ -182,6 +182,7 @@ void SetSaiIframe(SAAV *saa, int n)
     }
 }
 
+// Convert g to 12-bit fixed point (x4096, rounded, low 12 bits).
 static inline int ToFixed12(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 // Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
 void SetSaiDuDv(SAAV *saa, float uOffset, float vOffset)
