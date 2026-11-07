@@ -125,7 +125,7 @@ script variables share names. If the loaded schema's version or checksum differs
 
 **Access.**
 
-- From native code: `RefGetSaveVarV("name", ..., NULL)` / `RefSetSaveVarV(value, "name", ..., NULL)` read and write a
+- From native code: `GetSaveVarByName("name", ..., NULL)` / `SetSaveVarByName(value, "name", ..., NULL)` read and write a
   variable of the global blob as a Splice value; `GetSaveVarAddressV` returns its address for direct access. The
   non-V forms take a schema, a key and a blob.
 - Hot variables are resolved once per level: `ResolveSwSaveVars` (`world/scene/sw.cpp`) caches handles (`SVPATH`) in
@@ -171,7 +171,7 @@ The save manager in `ui/memcard.cpp` is initialised by the boot stage `StartupMe
   game goes to the first task, a saved game to its episode (or the hub when the episode is complete). Slot data reaches the
   blob through `ApplyPendingSaveData`, which the game record runs on the reset event (inferred sequence).
 - **Dialogs.** `CMemcardDialog` and its helpers (`SetMcDialogState`, `CMemcardDialog_Update`, `OnMcDialogChoice`) show
-  card errors and confirmations; `MsgFromMcError` maps card error codes to message ids.
+  card errors and confirmations; `GetMcErrorMessageId` maps card error codes to message ids.
 
 ## 7. Difficulty: the "suck" measure
 
@@ -230,13 +230,13 @@ is in `src/game/gameplay/progression/` (`prize.cpp` for coins, clues, vaults and
 [formats/save-variables.md](../formats/save-variables.md); task states are `<task>.state`, the current character
 `oidPoCurrent`, coins `loot.ccoin`.
 
-**Complete or unlock a task from code.** Find the task (`PloFindSwObject` with its oid) and call `RequestTaskState(task,
+**Complete or unlock a task from code.** Find the task (`FindSwObject` with its oid) and call `RequestTaskState(task,
 2, ...)` to complete it, or 1 to make it available; use `ForceTaskState` only for debugging tools.
 
 **Jump to a mission.** `GoToTask(task)` if the task is in the loaded level, otherwise `StartTaskByOid`, which warps.
 
 **Add a persistent value (port or mod build).** Add the variable to the schema in the world files (every file carries
-the schema) and access it by name with `RefGetSaveVarV` / `RefSetSaveVarV`; existing saves are wiped by the schema
+the schema) and access it by name with `GetSaveVarByName` / `SetSaveVarByName`; existing saves are wiped by the schema
 check unless that check is adapted.
 
 **React to mission progress natively.** Hook `HandleGameEvent` (game-wide) or the job and task functions above; for

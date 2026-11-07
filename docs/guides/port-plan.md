@@ -261,7 +261,7 @@ READMEs already state for their `out/` dirs.
   `McSync` returns immediately with success. The worker thread still runs, so UI flow is unchanged.
 
 ### 5.4 Native overrides of game functions (when, and how)
-- Mechanism: `PORT_OVERRIDE(0x1FBB90, PsndStartSound)`. A generated adapter unpacks `a0..a3`, `t0..t3`, `f12..f19`
+- Mechanism: `PORT_OVERRIDE(0x1FBB90, CreateSfxSound)`. A generated adapter unpacks `a0..a3`, `t0..t3`, `f12..f19`
   from `ctx` per the signature taken from the decomp header and stores `v0`/`f0` on return. Signatures come from
   `include/port/*.h`, which are generated from decomp declarations (6.2).
 - Use overrides only at hardware boundaries, for hot spots found by profiling (A1), and for host features
@@ -347,7 +347,7 @@ Notes:
   GS TBP when sampled the next frame (A8).
 
 ### 6.3 Textures **[K8, rendering.md §9, formats/textures.md]**
-- Intercept uploads at the source. Override `FBuildUploadBitmapGifs` 0x1ECC28 / `UploadBitmaps` 0x170730 /
+- Intercept uploads at the source. Override `BuildUploadBitmapGifs` 0x1ECC28 / `UploadBitmaps` 0x170730 /
   `UploadPermShaders` 0x1ECE58: call the original (so GS-block allocation and TEX0 words stay byte-identical), and
   also decode each BMP/CLUT record (PSMT4/PSMT8 indices plus CT32 CLUTs) into Metal textures registered under
   `(TBP0, TBW, PSM)` and `(CBP, CSA)`.

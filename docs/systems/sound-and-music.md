@@ -72,7 +72,7 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
 
 ## 4. Playing sounds from game code
 
-- **Effect**: `PsndStartSound(sfxId)` allocates a `BANKSND` from the pool (null if the level has no such effect); it
+- **Effect**: `CreateSfxSound(sfxId)` allocates a `BANKSND` from the pool (null if the level has no such effect); it
   starts at the next flush. Configure with `SetSndSourceLo` (follow an object) or `SetSndSourcePos`, `SetSndVolume`,
   `SetSndPan`, `SetSndPitch`; stop with `StopSnd(snd, fadeSeconds)`. Loopers return a voice handle and keep running until
   stopped; one-shots stop themselves when the status query reports them finished.
@@ -80,7 +80,7 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
   volume inside the near range, linear falloff to zero at the far range) and pan from direction. A sound that becomes
   inaudible is **culled** (`SetBankSoundCulled` stops it; a looper keeps its parameters and restarts when audible).
 - **From animation**: clip events start and stop sounds ([animation.md](animation.md#5-clips-aseg-and-asega)).
-- **From scripts**: Splice builtins and thunks wrap `PsndStartSound`, the music calls and `SetSndmgrChannelVolume`;
+- **From scripts**: Splice builtins and thunks wrap `CreateSfxSound`, the music calls and `SetSndmgrChannelVolume`;
   `SetAmbienceGroupMix` is a Splice command for the ambience groups.
 - **Ambience**: an `AMB` starts its sounds as looping positional bank sounds when it becomes live (`OnAmbAdd`) and stops
   them when it leaves (`OnAmbRemove`), so the busy-list activation radius governs which ambient emitters run. The
@@ -95,7 +95,7 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
   counters and the player's state (calm, sneaking/hiding, alert/action) and cross-fades the three group volumes with a
   power-preserving smoothing on the real clock. Gameplay raises requests with `AddMusicLayer2Request` /
   `RemoveMusicLayer2Request` (AI alert, inferred) and `AddMusicLayer0Request` / `RemoveMusicLayer0Request`.
-- **Music time**: `TMusicCur` is the play position of the top track from the stream's status replies. The rhythm
+- **Music time**: `GetMusicTime` is the play position of the top track from the stream's status replies. The rhythm
   minigame judges against it, not the game clock.
 
 ## 6. Dialogue and subtitles
@@ -108,7 +108,7 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
   clears the line. `IsDialogPlaying`, `GetDialogTime` and `GetDialogStreamDuration` are the queries.
 - **Subtitles** (the subtitle unit in `engine/sound/`): `SetSubtitle` / `ClearSubtitle`; `GetSubtitleText` copies the
   language string; `TrimSubtitleToVoiceProgress` cuts it to the fraction of the voice line played so far (the
-  typewriter effect); `FormatSubtitleButtonGlyphs` appends rich-text button glyphs; `RgbaFromSpeakerCid` colours the box
+  typewriter effect); `FormatSubtitleButtonGlyphs` appends rich-text button glyphs; `GetSpeakerSubtitleColor` colours the box
   by speaker class. The HUD draws it through text callbacks ([ui-and-hud.md](ui-and-hud.md)). RELAY cutscene commands,
   movies and the letterbox also set subtitles.
 
@@ -153,8 +153,8 @@ audio modules (see [formats/audio.md](../formats/audio.md)).
   request, not the hardware.
 - **References**: the dirty list, async callbacks and the music stack each hold references. Keep your own reference (or
   a counted slot) if you need a sound after the frame; a sound with no owner is freed once its callbacks return.
-- **Pools are fixed.** `PsndStartSound` / `PstreamsndNew` return null when the pool is exhausted; callers must check.
-- **Effects are per level.** An effect id that is not in this level's table returns null from `PsndFromSfxid`.
+- **Pools are fixed.** `CreateSfxSound` / `PstreamsndNew` return null when the pool is exhausted; callers must check.
+- **Effects are per level.** An effect id that is not in this level's table returns null from `FindSoundForSfxId`.
 - **Streams are never culled.** The music, ambience and dialogue streams are paused by the manager while the disc is
   busy and faded or cut while game time is stopped; bank sounds are not covered by those rules.
 - **The headset microphone is gameplay.** A loud microphone makes the hero audible to guards; a port that wires a real
@@ -165,7 +165,7 @@ audio modules (see [formats/audio.md](../formats/audio.md)).
 
 ## 9. How to
 
-**Add a sound to an object.** Hold a counted pointer to a `BANKSND` from `PsndStartSound`, attach it with
+**Add a sound to an object.** Hold a counted pointer to a `BANKSND` from `CreateSfxSound`, attach it with
 `SetSndSourceLo(snd, this)`, and stop it in your OnRemove (slot 22) so it does not outlive the object's activity.
 
 **Add ambience.** Place an `AMB` with sounds (id, range, volume, pitch) in the level; it needs no code.

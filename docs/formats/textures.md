@@ -24,7 +24,7 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 |---|---|---|
 | +0 | U32 id | hash key; CLUTs are shared across WEs (`AddClutHash` / `PclutFindHash` 0x1ED560/0x1ED5D0) |
 | +4 | U8 kind | 1 = colours in the blob (+0xC = blob offset, 16-aligned); otherwise inline (c x 4 bytes follow). Kind 3 = the "permanent" set uploaded every frame (all four kind-3 CLUTs in L02 belong to `f_skydome`) |
-| +5 | S8 cch | if > 0, cch x S16 load-filter ids follow; the record is dropped unless the current filter matches (`FMatchLoadFilter` 0x13FAD0) |
+| +5 | S8 cch | if > 0, cch x S16 load-filter ids follow; the record is dropped unless the current filter matches (`IsCurrentLevelInList` 0x13FAD0) |
 | +8 | U16 c | colour count: <= 16 -> PSMT4 palette, else PSMT8 (`BuildClutTex2` 0x1EC9D0) |
 | +0xA | U16 cgs | GS blocks to allocate |
 | +0xC | U32 | blob offset (kind 1) |

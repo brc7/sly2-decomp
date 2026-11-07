@@ -90,7 +90,7 @@ From `GameMain` (`app/main.cpp`), after the world update:
      and queues one `RPL` per sub-glob with its kind and sort depth;
    - other classes override RenderSelf (BLIPG, RIPG, WIDGET, RTCAM, ...).
 3. **`DrawSw`** (`pipeline/draw.cpp`, SW slot 9): `CprplPartitionArpl` counting-sorts the RPLs into the 26 kinds and
-   depth-sorts the blended kinds (`NCmpPrplReverseZ` far-to-near; `NCmpPrplZ` near-to-far for the HUD kind); it emits the
+   depth-sorts the blended kinds (`CompareRplFarToNear` far-to-near; `CompareRplNearToFar` near-to-far for the HUD kind); it emits the
    frame and camera VU1 constants (viewport, world-to-clip, camera matrix, ambient, framebuffer words), then walks the
    entries in kind order. On every **pass** change it calls the old pass's end hook and the new pass's begin hook from
    the pass hook table, then appends each entry's DMA CALLs.
@@ -188,7 +188,7 @@ The darkening is proportional to the surface's direct light, so ambient-only sur
   (`UpdateVisInside`, `SetCmVisZone`; see [camera.md](camera.md)). Objects that are not live (see
   [engine.md section 6](../engine.md#6-the-object-model)) never get RenderSelf at all.
 - **Per sub-glob**: a VU0 microprogram sphere test (`GCullSphere` in glob.cpp) against the frustum planes CM keeps in a
-  transposed form; it also returns the fade used for distance fade-out. `FInsideCmFrustum` / `FInsideCmMrd` are the
+  transposed form; it also returns the fade used for distance fade-out. `IsInCameraFrustum` / `IsWithinCameraRenderDistance` are the
   C-side equivalents used by gameplay code.
 - **Scene render tree** (the unit holding `CullSceneRenderList`, `AddLoToRenderTree`, `InsertRenderEntry`): a sphere
   tree of render blocks. SOs enter it in their add path (`AddLoToRenderTree` from `engine/physics/so.cpp`); a posed

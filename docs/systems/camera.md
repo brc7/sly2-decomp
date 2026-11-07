@@ -67,7 +67,7 @@ best `VIS` zone containing the eye (`SetCmVisZone` copies that zone's mask into 
 - `RevokeCmPolicy(cm, mask, priority, policy, focusSo, arg)` removes every entry matching the mask (bits select which
   of policy, focus and argument must match; a priority of -1 matches any) and calls Revoke on each; if the top was
   removed, Deactivate it and Activate the new top.
-- `FActiveCplcy` tells a policy whether it is currently on top.
+- `IsCameraPolicyActive` tells a policy whether it is currently on top.
 
 Who pushes what (priority in parentheses; values are the code's constants):
 
@@ -110,7 +110,7 @@ The camera does not use the physics solver. It has its own queries against each 
 - `ClipCameraEye`: estimates the eye velocity, gathers camera-colliding SOs in a box around the previous eye, and
   `SquishCmEye` pushes the eye out with a smoothed constraint (`SvSquishCmEyeConstraint`) that keeps the near-plane
   corners clear (`sNearCorner`).
-- `FFindCmClearInterval`: clips a segment against the SOs and returns the first clear gap; `FindCmClosestClearPos`
+- `FindCameraClearInterval`: clips a segment against the SOs and returns the first clear gap; `FindCmClosestClearPos`
   samples tilts and pans around a point for the closest clear eye (used on cuts).
 
 ## 6. Look and zoom
@@ -130,7 +130,7 @@ The camera does not use the physics solver. It has its own queries against each 
   sideways (a stereo/debug feature; inferred).
 - **Fog**: `SetCmNearFog`, `SetCmFarFog`, `SetCmUFogMax`, `SetCmRgbaFog`; `BuildCmFgfn` turns them into the GS fog
   function the glob microprogram evaluates per vertex.
-- **Culling helpers**: `FInsideCmFrustum` (point or sphere in the frustum) and `FInsideCmMrd` (within the "maximum
+- **Culling helpers**: `IsInCameraFrustum` (point or sphere in the frustum) and `IsWithinCameraRenderDistance` (within the "maximum
   render distance" with a fade fraction).
 - **Screen mapping**: `ConvertCmWorldToScreen` / `ConvertCmScreenToWorld` (used for labels and HUD markers).
 - **Visibility mask**: `grfvis` from the current `VIS` zone, compared against each object's `grfvis` by RenderSelf and by

@@ -40,7 +40,7 @@ time by oid (`find-object` and friends) and pass them around.
 ## 3. Frames, sidebags and the script tables
 
 - **`CFrame`** (`include/sly2/cframe.h`): a list of bindings (`CVarb`: symbol id -> value) and up to four parent frames
-  searched after it (`CFrame::PrefFindBinding`, `FFindBinding`, `RefSetBinding`, `CFrame_RefAddBinding`). Lookup is
+  searched after it (`CFrame::FindBindingPtr`, `FFindBinding`, `RefSetBinding`, `CFrame_AddBinding`). Lookup is
   depth-first through the parents with a visited flag against cycles.
 - **The world's root frame** is created by `InitSwSpliceFrame` when a level body is loaded and released by
   `DeleteSwSplice` when the world is deleted, which also shuts the VM down (`ShutdownSplice`); `StartupSplice` runs at
@@ -49,7 +49,7 @@ time by oid (`find-object` and friends) and pass them around.
   `LoadSpliceEntryFromBrx` builds each entry as a new frame under the root frame and evaluates the entry's expression
   once in it. In practice every entry is a `(begin ...)` of top-level `define`s, so evaluating it fills the frame with
   functions and variables, including event handlers.
-- **Binding objects to frames.** Each object record carries a Splice index; `PloNew` attaches the frame of that table
+- **Binding objects to frames.** Each object record carries a Splice index; `CreateLo` attaches the frame of that table
   entry (`GetSpliceFrame`) to the object's `pframe`. The index is local to the world entry being loaded, and **all
   objects with the same index share one frame**, so a `define` executed at run time in a handler is visible to every
   object of that entry.
@@ -61,13 +61,13 @@ time by oid (`find-object` and friends) and pass them around.
 
 ## 4. The evaluator
 
-`RefEval(expr, frame)` (`splice/eval.cpp`) is Sly 1's evaluator: atoms evaluate to themselves, symbols are looked up in
+`EvalExpression(expr, frame)` (`splice/eval.cpp`) is Sly 1's evaluator: atoms evaluate to themselves, symbols are looked up in
 the frame chain (unbound symbols give nil), and lists dispatch on their head:
 
 - special forms: `set!`, `define`, `assert`, an extra Sly 2 form (keyword unknown; evaluates its first operand),
   `if`, `or`, `and`, `cond` (with `else`), `case`, `let`, `while`, `lambda`, `begin`, `import` (returns nil),
   `quote`;
-- anything else is a call: `RefEvalApply` evaluates the operator and operands and calls a **builtin** (by index into
+- anything else is a call: `EvalApply` evaluates the operator and operands and calls a **builtin** (by index into
   the builtin table, checking the minimum argument count and whether extra arguments are allowed), a **method** (a
   native object method, section 5), or a **lambda** (a new frame binding the parameters, with a rest list when the
   lambda has a dotted parameter).
@@ -75,17 +75,17 @@ the frame chain (unbound symbols give nil), and lists dispatch on their head:
 Quirks that matter when reading or writing scripts (all from the code):
 
 - `if` takes the THEN branch only when the test's payload word equals 1, whatever its tag (`#t` is 1, so booleans
-  behave; an integer 2 goes to ELSE). The doc comment on `RefEvalIf` says "not #f", which is not what the code does.
+  behave; an integer 2 goes to ELSE). The doc comment on `EvalIf` says "not #f", which is not what the code does.
 - `and`, `or`, `cond` and `not` treat only the boolean false as false.
-- `while` evaluates only its first body expression per iteration and returns void (`RefEvalWhile`; its doc comment
+- `while` evaluates only its first body expression per iteration and returns void (`EvalWhile`; its doc comment
   says "the last body value"). Wrap a multi-expression body in `begin`.
-- `=` (`RefOpIntEqual`) compares raw payload words, so an integer and a float with the same value are not equal.
+- `=` (`BuiltinIntEqual`) compares raw payload words, so an integer and a float with the same value are not equal.
 - `+` and `-` accumulate in floating point.
 
 ## 5. How game objects expose script options
 
 Scripts never touch C++ fields directly. Each class publishes a sorted list of **options**, numbered properties or
-methods, and four builtins operate on them: `addo`, `ensureo`, `seto!` and `geto` (all through `RefOpObjectOption` in
+methods, and four builtins operate on them: `addo`, `ensureo`, `seto!` and `geto` (all through `BuiltinObjectOption` in
 `bif.cpp`). A method is called by fetching it and applying it: `((geto obj OPT) args...)`.
 
 **The records.** `g_aeopid` (`app/class_registry_options.inc`, type `EOPID` in `include/sly2/eopid.h`) holds one record
@@ -104,8 +104,8 @@ options merged with those of all its base classes, indexed through `g_mpcidarysp
 to different records on different classes (a "trigger" or "state" option means something class-specific), and they do
 not line up with Sly 1's ids.
 
-**Access.** `RefGetOption` / `RefSetOption` / `RefAddOption` / `RefEnsureOption` take an object and an option id. Ids up
-to a fixed threshold go through the class's record (`RefGetPeopid` / `RefSetPeopid`, which convert between the C type
+**Access.** `GetBasicOption` / `SetBasicOption` / `AddBasicOption` / `EnsureBasicOption` take an object and an option id. Ids up
+to a fixed threshold go through the class's record (`GetOptionRecordValue` / `SetOptionRecordValue`, which convert between the C type
 and a `CRef` by `otyp`); larger ids are custom properties stored in the object's sidebag. Getting a method option
 returns a fresh method value (`CMethod`: the object, the thunk, the argument count); applying it calls the thunk.
 
@@ -158,7 +158,7 @@ builtin has the signature `CRef RefOpX(int cargs, CRef *args, CFrame *frame)`. G
 - options: `addo`, `ensureo`, `seto!`, `geto`;
 - finding objects: by oid, by oid list, nearest, the world, the sound manager, the camera, by class, in a box or
   sphere, hit tests, coordinate conversion between objects;
-- sound and rumble, save variables (`RefOpGetSaveVar` / `RefOpSetSaveVar`, keyed by a list of save-schema symbols, see
+- sound and rumble, save variables (`BuiltinGetSaveVar` / `BuiltinSetSaveVar`, keyed by a list of save-schema symbols, see
   [progression-and-saves.md](progression-and-saves.md)), bitwise and/or, the hint box, power-up flags;
 - a block of stubs at the end (`bif2.cpp`) whose bodies were compiled out of the release build; they return nil.
 
@@ -181,7 +181,7 @@ state goes through save variables.
 
 ## 9. How it connects
 
-- **Object model**: frames and sidebags live in `BASIC`; slot 3 is the event entry; `PloNew` binds frames; options are
+- **Object model**: frames and sidebags live in `BASIC`; slot 3 is the event entry; `CreateLo` binds frames; options are
   per class. [object-model.md](object-model.md).
 - **World**: the root frame, the per-entry tables and the scheduled-callback list are world state, rebuilt per level.
   [world-and-levels.md](world-and-levels.md).
@@ -222,15 +222,15 @@ state goes through save variables.
 **Call a script handler from native code.** Call the object's slot 3 with the event id (`plo->HandleSpliceEvent(...)`,
 or `SendTriggerEvent` for event 5); pass the post flag to defer the call to the next callback pass.
 
-**Read or write a save variable from native code.** Use `RefGetSaveVarV` / `RefSetSaveVarV` with the variable's path
+**Read or write a save variable from native code.** Use `GetSaveVarByName` / `SetSaveVarByName` with the variable's path
 (see [progression-and-saves.md](progression-and-saves.md)); scripts use the save-variable builtins with the same
 paths.
 
 ## 12. Where to look
 
-- `src/game/splice/eval.cpp`: `RefEval`, the special forms, `RefEvalApply`.
+- `src/game/splice/eval.cpp`: `EvalExpression`, the special forms, `EvalApply`.
 - `src/game/splice/frame.cpp`, `sidebag.cpp`, `ref.cpp`, `gc.cpp`, `spliceutils.cpp`: the VM.
-- `src/game/object/spliceobj.cpp`: `FindOptionRecord`, `RefGetPeopid`, `RefSetPeopid`, `RefGetOption` and friends,
+- `src/game/object/spliceobj.cpp`: `FindOptionRecord`, `GetOptionRecordValue`, `SetOptionRecordValue`, `GetBasicOption` and friends,
   argument conversion.
 - `src/game/object/splicemap.cpp`: script tables and frames. `src/game/object/basic.cpp`: event dispatch and scheduled
   callbacks.

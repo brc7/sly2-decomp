@@ -139,7 +139,7 @@ callbacks, vt15 PostLoad, bind save vars, default pathzone, game event 4); pick 
 `LoadSwFromBrx` reads the decompressed stream in order: world-entry table, sound section, save-variable schema, level
 table, localized strings, cell BSP, options of `g_sw` then `g_cm`, Splice frame setup and save-var resolve, then **per
 world entry** Splice refs, shaders/textures, zone BSP, the object list (`LoadSwObjectsFromBrx`) and its clones
-(`PloCloneLo`). World entries are **proxy sources**: entries flagged to stay out of the world have their objects removed
+(`CloneLoWithParent`). World entries are **proxy sources**: entries flagged to stay out of the world have their objects removed
 again and appear only through PROXY copies. Each object record carries its class, oid, Splice index, load filter and
 byte size, and vt14 `LoadFromBrx` must consume exactly that many bytes. Byte layouts:
 [formats/world-file.md](formats/world-file.md) and [formats/level-objects.md](formats/level-objects.md).
@@ -192,7 +192,7 @@ The essentials (detail in [systems/object-model.md](systems/object-model.md)):
 
 - **Registry.** The class list with sizes and factories is `include/sly2/classes.h` and
   [`app/class_registry.cpp`](../src/game/app/class_registry.cpp). CIDs are numbered in **pre-order** of the class tree, so
-  "is derived from" is a range test (`FIsBasicDerivedFrom`) `[C:runtime]`.
+  "is derived from" is a range test (`IsBasicDerivedFrom`) `[C:runtime]`.
 - **Layout.** The vptr follows BASIC's three data words (Splice frame, sidebag of extra script options, message
   subscribers), not at offset 0 as in Sly 1. Non-BASIC helpers (HEAP, CBinaryInputStream, RIPs, camera policies) put the
   vptr elsewhere.
@@ -203,7 +203,7 @@ The essentials (detail in [systems/object-model.md](systems/object-model.md)):
 - **Messages vs Splice events.** Slot 4 delivers a numeric message to the object's own slot 5 and every subscriber; slot 3
   runs or schedules the script bound to an event symbol. `vt3(k,0,0,0,0)` calls are Splice events (5 trigger,
   6 untrigger), not messages.
-- **Creation.** `PloNew(cid, parent, oid, isplice)`: factory, link into the oid hash and class list, vt7 Init, vt11
+- **Creation.** `CreateLo(cid, parent, oid, isplice)`: factory, link into the oid hash and class list, vt7 Init, vt11
   AddHierarchy if the parent is in the world, vt23 OnAdd if now live. `BindLoOidTable` resolves OID references into
   pointer fields at PostLoad.
 - **Activation** `[C:verified]`. `IsLoInWorld` is true only when the object is in the world hierarchy **and** its LOROOT is
@@ -213,7 +213,7 @@ The essentials (detail in [systems/object-model.md](systems/object-model.md)):
   pickups are pooled and toggled, never freed. Sly 1's separate `FreezeAlo` is merged into this.
 - **Proxies.** A world entry is a proxy source loaded several times; PROXY objects (CID 0x6/0x7) take a spare copy on
   demand (`AcquireProxySpare`). `AcquireProxyObject` is the generic spawn path (thrown objects, markers, coin sprays).
-- **Finding objects.** `PloFindSwObject` resolves OIDs through the oid hash; `CploFindSwObjectsByClass` walks the
+- **Finding objects.** `FindSwObject` resolves OIDs through the oid hash; `FindSwObjectsByClass` walks the
   per-class lists. Runtime-spawned BLIPG/RIPG objects are on class lists but not in the oid hash.
 - **XFM** (CID 0x3): LO + parent XF, local and world matrices; `GetLoWorldPos` / `GetLoWorldMatrix`.
 
@@ -313,7 +313,7 @@ Sly 2 rewrote Sly 1's C sound code as C++ classes with a request queue. Effects 
 music, dialogue and ambience stream from disc through Sucker Punch's IOP module (RPC 'SUKR'). `g_sndmgr` owns the pools,
 bank, music stack, dialogue and ambience streams and a category x channel volume matrix (channels: 0 ambience, 1 music,
 2 dialogue, 3 bank effects). **SND** (CID 0x97, refcounted) keeps request bits that `UpdateSnd` turns into virtual calls
-once per frame. The rhythm minigame times against music time (`TMusicCur`), not the game clock. SNDMGR's headset option
+once per frame. The rhythm minigame times against music time (`GetMusicTime`), not the game clock. SNDMGR's headset option
 drives the **USB-headset microphone**: dialogue plays through the headset and the mic level makes the hero emit a noise
 guards hear.
 
@@ -376,7 +376,7 @@ Guide: [systems/progression-and-saves.md](systems/progression-and-saves.md).
 
 All persistent progress is **one flat blob** `g_gs` addressed by **named variables** whose layout comes from a schema in
 every world file `[C:runtime]`; a changed schema wipes the blob (`ResetGsIfSchemaChanged`). Access is through
-`RefGetSaveVarV` / `RefSetSaveVarV` / `GetSaveVarAddressV` and the Splice save-var builtins. Memory-card files `save0..2`
+`GetSaveVarByName` / `SetSaveVarByName` / `GetSaveVarAddressV` and the Splice save-var builtins. Memory-card files `save0..2`
 are the raw blob plus the schema fingerprint, with **no checksum, compression or encryption** `[C:static]`.
 
 Guide: [systems/progression-and-saves.md](systems/progression-and-saves.md#5-save-variables). Variable list:
@@ -447,7 +447,7 @@ The research pages argued for these readings; the code keeps a different name fo
 | `InitZpr__FP3ZPR3ZPKP2LO` | GS block allocator init (`InitGsb`) |
 | `SetStepSpinRatio__FP4STEPf` | sets the spin ratio of the CID96 critters |
 | `EnsureSggAlarm__FP3SGGP5ALARM` | RELAY alarm id set used by command kinds 4/5 |
-| `AddAlarmAlbrk__FP5ALARM3OID` | adds a BOOTY entry by oid (CID 0x67 is BOOTY, not ALARM) |
+| `AddBootyEntryObject__FP5ALARM3OID` | adds a BOOTY entry by oid (CID 0x67 is BOOTY, not ALARM) |
 | `SetFrameCaptureState` | the DANCER's screen-grab state (split/flip transition) |
 | `GetHeroPo` / `GetCurrentPo` | `GetHeroPo` returns the PO that has control |
 
@@ -459,7 +459,7 @@ Hungarian function names. **(team)** marks project coinage.
 Prefixes: `P`/`p` pointer (returns or is), `F`/`f` boolean, `C`/`c` count, `G`/`g` float, `I`/`i` index, `N`/`n` integer,
 `A`/`a` array, `Grf`/`grf` flag bits, `Mp`/`mp` map indexed by an enum, `Rad` radians, `S`/`s` distance, `T`/`t` time (s),
 `Dt` time delta, `U`/`u` 0..1 parameter, `Pchz` C string, `Ref` returns a Splice `CRef`, `Pv` `void*`, `g_` global, `s_` file
-static. Methods read `<Verb><Class><Noun>`: `PloFindSwObject` = "pointer to LO: find SW object".
+static. Methods read `<Verb><Class><Noun>`: `FindSwObject` = "pointer to LO: find SW object".
 
 | Abbr. | Meaning |
 |---|---|

@@ -33,7 +33,7 @@ asm section by section rather than patching an old m2c draft.
 - In the EE EABI float arguments go in `$f12..` and integer/pointer arguments in `$a0..`, counted separately, so
   `f(int *p, float g)` and `f(float g, int *p)` compile to the same callee. The caller shows the order (gcc evaluates
   arguments in prototype order): when a caller matches only with a different float/int order, that order is the real one
-  (`GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext)`, Sly 1's prototype, fixed its callers).
+  (`SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext)`, Sly 1's prototype, fixed its callers).
 - Jump tables live in .rodata: read them from disc/SCUS_973.16 at file offset 0x80 + (addr - 0x100000).
 - **gcse orders some expressions by a hash of the symbol name**, so a global named `D_002DEA4C` can schedule differently
   from the same global under its real name. Extern names never reach the binary, so giving a global its real
@@ -239,7 +239,7 @@ set too after introducing a helper (see the last items).
   (UpdateBhvScript).
 - `goto L` over a block -> `if/else` (MeasureJtJumpToTargetAtTime, leap init); a `goto` into the else branch of the same `if`
   (StartJtMode), or of an earlier `if` with the same test -> two plain ifs (GenerateStepguardLoot); a goto *back* to a loop head -> `for (;;)` (FindBspLeafContainingPointFast); a goto *into* a case -> plain
-  cases (RefOpMult's int/float multiply).
+  cases (BuiltinMultiply's int/float multiply).
 - A goto into a shared tail **between if-branches** -> the tail written twice (cross-jumping merges it again:
   UpdateBentleySubState; AI `goto fill`/`goto take`/`goto spawn`).
 - `(unsigned)x - 8u < 5u` -> `x >= 8 && x <= 12` when x is a plain field or local (via a local when it came from a macro read).
@@ -275,13 +275,13 @@ set too after introducing a helper (see the last items).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
-  early/separate `return`s: the return duplicates STACKSCOPE's cleanup (FInvertMatrix), a second copy of the return
-  expression changes allocation/layout (func_0011F198, OSTRM::CbWrite, RefOpFindBindingOrNoop), the result lives in `$v0`
+  early/separate `return`s: the return duplicates STACKSCOPE's cleanup (InvertMatrix), a second copy of the return
+  expression changes allocation/layout (func_0011F198, OSTRM::CbWrite, BuiltinFindBindingOrNoop), the result lives in `$v0`
   instead of a saved register (`state = X; goto done;` in CalculateDetectorTargetState), or blocks reorder
   (IsStepguardTargetValid, DoesTargetRecordAllowGuard, ChooseStepguardTarget).
 - A goto that leaves a nested loop to continue the outer one -> `break` + re-test (loop rotation changes): keep a labelled
   `goto nextX`.
-- Gotos that share tails across switch cases or jump into a common cleanup label (MsgFromMcError, McJobCreateSave,
+- Gotos that share tails across switch cases or jump into a common cleanup label (GetMcErrorMessageId, McJobCreateSave,
   load_file_from_disc, SetBentleyState, ChooseJtGroundState): `break` + a re-test of the result, per-case `return`s or a
   duplicated tail reorder blocks (40-90% differ). Case-tail sharing is a layout decision.
 - A `goto out;`/`goto found;` to a label right after a loop -> `break` (FindPathzoneSegmentBlocker, BuildConvexHull's inner
@@ -325,7 +325,7 @@ set too after introducing a helper (see the last items).
 - Nested range tests `if (s < 3) if (s >= 0)` written `s < 3 && s >= 0` (becomes one unsigned compare).
 - A goto out of a nested contact walk to the code after it -> a helper that returns the result (frame and registers change:
   UpdateButton, SendBarrierImpactMessages).
-- `&verts[i]` for `(P4 *)((i << 4) + (int)verts)` in CalculateWayptCurtainDz (different schedule).
+- `&verts[i]` for `(P4 *)((i << 4) + (int)verts)` in CalculateWayptCurtainExtraHeight (different schedule).
 - Factoring a repeated block into a `static inline` helper, even once (UpdateEmitter's particle-count clamp: register
   allocation changes); `int f = 0 < d; if (f) c = d;` written `if (d > 0) c = d;` (loses slt/movn); folding
   `if (!a(p)) continue; if (b(p)) goto found;` into `if (a(p) && b(p)) ...` through an inline predicate.

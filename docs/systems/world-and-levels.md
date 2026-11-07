@@ -16,7 +16,7 @@ warps, exits and wipes request a level change. The objects inside the world are 
   - pools (`SLOTHEAP` members): root records, callbacks, Splice event callbacks, physics trees and contacts, animation
     applications, state machines, stimuli, relay interpreters, and more;
   - loading state: the world-entry table (`awe`, count `cwe`), the proxy sources (`aproxysrc`), the "new objects" array
-    filled by `PloNew` during a load, the load filter;
+    filled by `CreateLo` during a load, the load filter;
   - progression: the save-variable store `savevars`, cached save-variable handles (`psvp...` fields such as the coin
     count and the settings keys), the current job, task and pending task (`ploJobCur`, `ploTaskCur`,
     `ploTaskPending`), the active task list;
@@ -32,7 +32,7 @@ warps, exits and wipes request a level change. The objects inside the world are 
 - **World entry** (`WE`, the `awe` array): one block of the world file with its objects, Splice table, textures and copy
   count ([formats/world-file.md](../formats/world-file.md)).
 - **Level table**: per level its file record, world, episode and entry flag (`LoadLevelTableFromBrx`); queries
-  `NWorldCur`, the current level and episode getters, `PrecWorldEntry`, the level-index lookups (`world/scene/sw.cpp`).
+  `GetCurrentWorld`, the current level and episode getters, `GetWorldEntry`, the level-index lookups (`world/scene/sw.cpp`).
   Worlds group levels into episodes (Paris, India, Prague, Canada, ...); a world's "entry" record is its hub level.
 - Other singletons the frame loop drives: `g_cm` (camera), the clock `g_clock` (`core/time/clock.cpp`), the game
   record `g_game` (`world/state/game.cpp`), the wipe (`level/wipe.cpp`), the screen list (pause menu and other screens,
@@ -141,7 +141,7 @@ In order (`world/scene/sw.cpp`):
    localized strings; the cell plane tree; the options of `g_sw` and of `g_cm`; then creates the world's Splice frame
    (`InitSwSpliceFrame`) and resolves the save-variable handles (`ResolveSwSaveVars`, which ends with game event 3).
    Then **per world entry**: its Splice table (`LoadSwSpliceFromBrx`), shaders and textures, zone tree, its object list
-   (`LoadSwObjectsFromBrx` into a collector), then the clones (`PloCloneLo` per extra copy), and either the objects stay
+   (`LoadSwObjectsFromBrx` into a collector), then the clones (`CloneLoWithParent` per extra copy), and either the objects stay
    or they are removed again to serve as proxy sources. Formats: [formats/world-file.md](../formats/world-file.md),
    [formats/level-objects.md](../formats/level-objects.md).
 7. `PostSwLoad`: prime pools, create the screen tint object, select the main `MS` object (purpose inferred), build proxy spares
@@ -195,7 +195,7 @@ while warping.
 
 ## 8. How it connects
 
-- **Object model**: `SW` owns every list objects link into; `PloNew`, `AddLo`, the busy list and the update table all
+- **Object model**: `SW` owns every list objects link into; `CreateLo`, `AddLo`, the busy list and the update table all
   write `SW` fields.
 - **Splice**: the world has the root Splice frame; each world entry's Splice table hangs under it; scheduled
   callbacks live on the world. [splice-scripting.md](splice-scripting.md).
@@ -223,7 +223,7 @@ while warping.
 ## 10. Recipes
 
 **Warp somewhere from code.** Call `WipeToWorldWarp(&g_sw, filerec, warpOid, 0, flags, wipeWidgetOid)`. Get the file
-record from the level table (`PrecWorldEntry(world)` for a world's hub, or the level-index helpers in `sw.cpp`); pass
+record from the level table (`GetWorldEntry(world)` for a world's hub, or the level-index helpers in `sw.cpp`); pass
 null for the current level and a wipe widget oid (the standard wipe widget exists in every world) to get the wipe, or
 -1 to cut immediately. The warp oid names a WARP or one of its aliases in the target level.
 

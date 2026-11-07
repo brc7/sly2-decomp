@@ -85,7 +85,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
 - Mode 1 (or -1 when the source WE has x60): a PROXY object stands at the placement and borrows one of the c8 spare copies at runtime (`PspareAcquire` calls LO/SO slot 26
   `ResetLoForProxy`/`ResetSoForProxy` after slot 37 `ApplySoProxy`) `[H top50]`; every live spare copy sits exactly on one of the PROXY placements `[C:runtime]`.
 - **Shaders** come from the WE whose object list holds the SO; a proxy copy uses its source WE's shaders. Texture = SHD.atex[0], frame 0, pass 0 ([textures.md](textures.md)).
-- **Load filter** = level index (2 in the Paris hub; D_003E1110) applied to object records (k > 0, k < -2) and sub-glob cfilter lists exactly as `FMatchLoadFilter` 0x13FAD0 `[C:runtime]`.
+- **Load filter** = level index (2 in the Paris hub; D_003E1110) applied to object records (k > 0, k < -2) and sub-glob cfilter lists exactly as `IsCurrentLevelInList` 0x13FAD0 `[C:runtime]`.
 - **Runtime check** (`textured/verify_runtime_S02.txt`) `[C:runtime]`: all 31 directly loaded and 142 of 143 proxy-copied root SOs coincide with a live object of the same oid
   within 2 units (the exception, `f_skydome`, follows the camera in x/y); all 67 in-world child SOs match; 450 of 464 live in-world SOs have an exported instance
   within 2 units (misses: patrolling guards, Sly, carried dispensers, the sky).

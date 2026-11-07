@@ -32,8 +32,8 @@ No LCG/WAL-style encryption (that is a PS3 remaster construct) and no `sceCdSear
 |---|---|---|
 | `sceCdRead` 0x242840 | the only sector reader | [C:static] |
 | 0x14BC78 `(lsn, nsect, buf, mode)` | retry wrapper; adds no base offset | [C:static] |
-| `FOpenSector__18CBinaryInputStreamUiUi` 0x184D98 | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
-| `FOpenSector__18CBinaryAsyncStreamUiUi` 0x132640, `StartSpooling` 0x132710 | async stream for FMVs | [C:static] |
+| `OpenCdSectors__18CBinaryInputStreamUiUi` 0x184D98 | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
+| `OpenSector__18CBinaryAsyncStreamUiUi` 0x132640, `StartSpooling` 0x132710 | async stream for FMVs | [C:static] |
 | 0x184D60 / 0x132600 | open by FLOC (kind 2 -> FOpenSector) | [C:static] |
 | `UpdateCd` 0x14BA38 | disc check: CRC (reflected CRC-32, init 0xFFFFFFFF, no final XOR) of sector `D_002A2E5C + 0xCA0` (1259331) against 0xACDD3EE4 | [C:static]; not run on a real ISO |
 | `GetFileIdName` 0x14B690 | retail stub returning a constant ("fid:#unknown") | [C:static] |

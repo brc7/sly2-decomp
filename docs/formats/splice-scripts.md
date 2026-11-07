@@ -16,7 +16,7 @@ only when fExtra (never in retail). Sly 1's symidMax and extra-option count are 
 isplice is local to its WE. Each entry is evaluated once by `LoadSpliceEntryFromBrx` 0x1FFA70 into a fresh frame; all objects with that isplice share the frame.
 Many entries are used only by objects nested inside other payloads (ASEG/SM callbacks, rig children).
 
-## 2. Serialized list (`PpairSerializeIn` 0x12A3D8)
+## 2. Serialized list (`DeserializePair` 0x12A3D8)
 
 ```
 list := 0xFF (null) | CELL
@@ -40,7 +40,7 @@ occur (vectors are built with the `(vector ...)` builtin); object literals are a
 
 ## 3. Names
 
-**Builtins** (tag 25): table D_002BBB90 = 169 x `{pfn, cargMin, fRest}`, applied by `RefEvalApply` 0x1272E0 `[C:static]`. Spellings come from Sly 1's builtin names via
+**Builtins** (tag 25): table D_002BBB90 = 169 x `{pfn, cargMin, fRest}`, applied by `EvalApply` 0x1272E0 `[C:static]`. Spellings come from Sly 1's builtin names via
 the slot mapping; Sly 2-only builtins carry team names with `~` `[H]`. 97 of 169 are used in the whole game; 140-168 (nil stubs), 132 `set-save-var!~`, 134, 98 and all
 type predicates are never used `[C:parse]`. Roles resolved by the top-50 round (code read): 97 current level index (was `load-filter~`), 98 episode, 99 world,
 100/101/102 current JOB / TASK / pending TASK (confirmed live, runtime6), 103 difficulty, 137 hint box (`find-hintbox-object~`), 118 the sound manager, 114 objects
@@ -52,14 +52,14 @@ from an oid list, 41 shuffle. Most used `~` builtins: `find-sound-object~` 1454,
   label callbacks), 5 trigger / 6 untrigger (`HandleLoSpliceEvent` 0x1A61E0 also broadcasts game events 0x1A/0x1B), 14 hit, 17 game event (JOBs; case 16 = hero died ->
   RestartJob), 19 activate / 20 deactivate (TASK/JOB) `[H]`, with 0, 6, 17, 19, 20 bound in live mission frames `[C:runtime]`. Whole game: evt19 3358, evt4 3036, evt0 2100, evt5 1418.
 - **30-989** are named by the save-schema symbol table in every level head (`LoadSaveSchemaFromBrx` 0x1D7B88: `U16 n; n x {U16 symid; string16 name}`, identical in all
-  files). Save-var builtins use them as key paths (`RefOpGetSaveVar` 0x125398 -> trie keyed by symbol id) `[C:static]`; the same names serve as script variables (`murray`,
+  files). Save-var builtins use them as key paths (`BuiltinGetSaveVar` 0x125398 -> trie keyed by symbol id) `[C:static]`; the same names serve as script variables (`murray`,
   `bentley`, `flags`, `episodeBest`).
 - 1002 = the first parameter of 1,224 handlers ("self"); 990/1038 likewise. Everything else (990-4057) has no name on disc (printed `sNNN`).
 
-**Options** (`addo/ensureo/seto!/geto`, builtins 108-111; second argument = S32 option id; method calls are `((geto obj OPT) args...)`) `[C:static]` (`RefOpObjectOption` 0x123EB0):
+**Options** (`addo/ensureo/seto!/geto`, builtins 108-111; second argument = S32 option id; method calls are `((geto obj OPT) args...)`) `[C:static]` (`BuiltinObjectOption` 0x123EB0):
 - ids <= 0x4D0: class options via per-class tables `g_mpcidarysplopt` D_00279AD0 (199 x {c, SPLOPT*}) -> `g_aeopid` D_002AC880. 1,091 distinct optids; 210 bind to different
   records on different classes (polymorphic: TRIGGER, APPLY, SEEK, state; e.g. 446 = `StartStepplayerFollow` on STEPPLAYER, the root BHV point on STEPGUARD) `[C:static]`.
-- ids > 0x4D0: the object's sidebag (`RefGetOption` 0x200BA0); scripts use 1255-1875 (`sidebag-N`; N = symid of the custom name `[H]`).
+- ids > 0x4D0: the object's sidebag (`GetBasicOption` 0x200BA0); scripts use 1255-1875 (`sidebag-N`; N = symid of the custom name `[H]`).
 - Label resolution order (`splnames.py`): hand overrides, Sly 1 option names, the native target of the option's thunk, getter/setter pointer-to-member names, documented
   fields, else `Class+0xOFF`. Full table: `splice_scripts/OPTION_TABLE.tsv` (1,449 bindings). Whole game: 1,016 option ids used, 142 still offset-labelled (top: ASEGA+0x18
   x3358 = option 251 ASEGA/SMA root object, TASK+0x7C x1642 = the task's job, JOB+0x7C, JOB+0xF0, BOMB+0x1F0) (`whole_game/splice/options_used.csv`;

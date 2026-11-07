@@ -57,7 +57,7 @@ From `UpdateSw` ([engine.md section 4](../engine.md#4-the-frame-loop)):
 
 1. Live objects' Update (LO slot 16) run first: gameplay code sets goals, applies clips, changes SM goals.
 2. The world's live ASEGA list: **`UpdateAsega`** for each: advance local time by the effective speed, wrap (loop) or
-   reflect (ping-pong) via `FWrapAsegaTime`, dispatch crossed events (`HandleAsegaEvents` -> `HandleAsegaEvent`),
+   reflect (ping-pong) via `WrapAsegaTime`, dispatch crossed events (`HandleAsegaEvents` -> `HandleAsegaEvent`),
    retract a finished non-looping clip (`RetractAsega`). A finished transition clip sends "animation finished" to its
    SMA (`HandleSmaMessage`), which ends the transition and chooses the next.
 3. Physics and the SO transform step: SO slot 17 (`UpdateSoXfWorld` in `engine/physics/so.cpp`) calls
@@ -95,8 +95,8 @@ moving role, so motion is continuous across role changes. Frame conversion helpe
 Entry points for gameplay code (all in `aseg.cpp`):
 
 - `ApplyAsegCore` / `ApplyAsegToObject`: start a clip on a root object; returns the new ASEGA.
-- `EnsureAseg`: reuse the clip's existing application on that root (`PasegaFindAseg`) or start one, then seek.
-- `ApplyAsegCur(..., &slot)`: the common pattern: a "current clip" slot that releases the previous application and
+- `EnsureAseg`: reuse the clip's existing application on that root (`FindAsegPlayerForObject`) or start one, then seek.
+- `ReplaceCurrentAseg(..., &slot)`: the common pattern: a "current clip" slot that releases the previous application and
   holds a reference to the new one.
 - `FindAsegLabel` / `GetAsegLabelTime`: named times inside a clip (used to line up blends and seeks).
 - `PredictAsegTransform`: where a clip would put an object at time t, without applying it (used for planning moves).
@@ -109,14 +109,14 @@ animation on the same XFs), `SetAsegaHandsOff` (holds the world's hands-off coun
 application wins per XF), by blends (section 6), or by animating different XFs.
 
 **Events** fire when the time cursor crosses them, in either direction of play. A clip started at t > 0 replays the
-state-changing events up to the start time (`HandleAsegaEventsFF`) so the world matches. Events are the bridge to sound
+state-changing events up to the start time (`HandleAsegaEventsFastForward`) so the world matches. Events are the bridge to sound
 (start/stop), effects, Splice scripts, rumble, show/hide with fade, and other clips.
 
 ## 6. Blends
 
 - **ASEGBL** (`blend.cpp`): `EnsureAsegBlendDynamic` finds or creates a blend of a set of clips with weights;
   `RecalculateAsegBlend` re-blends after weight changes. Each clip gets an `MRSG` table of sync points so clips of
-  different lengths stay phase-aligned (`FillBlAmrsg`, `CalculateBlendAmrsg`, `ImrsgLookUp`); the dominant clip supplies
+  different lengths stay phase-aligned (`FillBlendSyncTables`, `CalculateBlendSyncTable`, `FindSyncInterval`); the dominant clip supplies
   events. Blended channels evaluate positions/rotations with VU0 code. Users: grab, hang, throw and locomotion code in
   `gameplay/player/`.
 - **Directional blend** (`gameplay/player/dirblend.cpp`): eight directional clips whose weights are solved so the root
@@ -132,10 +132,10 @@ state-changing events up to the start time (`HandleAsegaEventsFF`) so the world 
 - Drive: `SetSmaGoal` (by state oid; may break off a running transition if it allows breaking), `SetSmaGoalIfReachable`,
   `SeekSma` (re-choose immediately), `SnapSma` (jump without animating), `SkipSma` (advance through transitions by time),
   `SetSmaMask` (restrict usable transitions), `SetSmaSvt` (speed).
-- Query: `GetSmaCurrentState`, `GetSmaGoal`, `GetSmaNext`, `DtSmaToState` (estimated time to reach a state),
-  `CsmtDistanceSm`.
-- **Choice**: `ChooseSmaTransition` wanders (`PsmtChooseFrom`, weighted random) with no goal, otherwise takes a
-  transition one hop closer to the goal (`PsmtChooseTowardGoal`, weighted among equals), and plays the transition's clip.
+- Query: `GetSmaCurrentState`, `GetSmaGoal`, `GetSmaNext`, `EstimateSmaTimeToState` (estimated time to reach a state),
+  `CountSmTransitionHops`.
+- **Choice**: `ChooseSmaTransition` wanders (`ChooseRandomSmTransition`, weighted random) with no goal, otherwise takes a
+  transition one hop closer to the goal (`ChooseSmTransitionTowardGoal`, weighted among equals), and plays the transition's clip.
 - **Notifications**: entering a state calls `NotifySmaSpliceOnEnterState`: a message to listeners and a Splice event
   with the from/to state oids, which is how level scripts react to machines.
 
@@ -158,7 +158,7 @@ lip-sync (the sound manager sets the speaker roles' SM goals; see [sound-and-mus
 
 - **Only the head action matters.** An action lower in an XF's list is ignored until those above it go; forgetting to
   retract an application leaves its channels overriding everything at that priority.
-- **Release applications through their slots.** `ApplyAsegCur`, `ReplaceSma` and `ReleaseSma` handle refcounts; holding a
+- **Release applications through their slots.** `ReplaceCurrentAseg`, `ReplaceSma` and `ReleaseSma` handle refcounts; holding a
   raw ASEGA/SMA pointer without a reference can dangle after the clip ends.
 - **Events are crossed, not polled.** Seeking backward or wrapping can fire events again; zero speed fires none.
 - **Clip time is game time** times speed; anything that must stay in sync with audio (lip-sync, rhythm) uses stream time
@@ -169,8 +169,8 @@ lip-sync (the sound manager sets the speaker roles' SM goals; see [sound-and-mus
 
 ## 10. How to
 
-**Play a clip on an object from code.** Keep an `ASEGA *` slot on your object and call `ApplyAsegCur(aseg, root, t,
-speed, flags, &slot)`; read `FAsegaRetracted` or use an event to know when it ends; pass a null clip to clear the slot.
+**Play a clip on an object from code.** Keep an `ASEGA *` slot on your object and call `ReplaceCurrentAseg(aseg, root, t,
+speed, flags, &slot)`; read `IsAsegaRetracted` or use an event to know when it ends; pass a null clip to clear the slot.
 
 **Animate a state change.** Author an SM with states and transition clips, apply it once (`ReplaceSma`), then only set
 goals (`SetSmaGoal`); the machine routes and plays clips. Listen for state entry by message or Splice event.

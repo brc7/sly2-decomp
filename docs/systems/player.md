@@ -39,7 +39,7 @@ SO -> PO -> STEP -> STEPPLAYER -> JT (Sly)
 
 - **PO** (player object) is an SO with a **POCTL** controller. POCTL is a BASIC child the PO owns; each frame it turns
   the pad into camera-relative polar stick values (heading and deflection), a held-button word `grfbtn`, and a
-  timestamp per button so input can be buffered (`GrfPressedWithin`, `GrfConsumePressed`, `ClearPoctlJoyPressed`).
+  timestamp per button so input can be buffered (`GetButtonsPressedWithin`, `ConsumeButtonsPressedWithin`, `ClearPoctlJoyPressed`).
   PO adds the virtuals for invulnerability (`IsPoInvulnerable`), health state, activation, control hand-off
   (`SetPoCtlState`), healing and `AddPoHpMp`. `po.cpp` also owns the world's player bookkeeping: the current PO
   (`GetCurrentPo`, `SwitchToPo`), followers and the PO list used for switching and the HUD.
@@ -59,7 +59,7 @@ which is published as the save variable `oidPoCurrent`; heroes that are not curr
 
 ## 3. Lifecycle
 
-**Load.** Heroes are ordinary level objects: `PloNew` + slot 14 `LoadFromBrx` (`LoadJtFromBrx`,
+**Load.** Heroes are ordinary level objects: `CreateLo` + slot 14 `LoadFromBrx` (`LoadJtFromBrx`,
 `LoadMurrayFromBrx`, `LoadBentleyFromBrx`, each chaining down to `LoadStepFromBrx` and `LoadPoFromBrx`). Slot 7
 `Init` (`InitJt`, `InitMurray`, `InitBentley` -> `InitStepplayer` -> `STEP::Init` -> `InitPo`) sets defaults and
 initialises every component (`InitJtPipe`, `InitThrow`, `InitJtgoal`, `InitJtHands`, ...).
@@ -197,7 +197,7 @@ Not every component is meaningful for every hero (hang and cane are Sly's), but 
 ## 6. Input and Sly's cane
 
 Gameplay never reads the pad directly. The world updates each POCTL before object updates; a hero reads its own POCTL
-(`pctl`) through the stick fields and the button helpers. `GrfConsumePressed(mask, dt)` returns a press that happened
+(`pctl`) through the stick fields and the button helpers. `ConsumeButtonsPressedWithin(mask, dt)` returns a press that happened
 within `dt` seconds and consumes it, which is how jump and attack presses are buffered across state changes. The bit
 meanings are in `player_input.h` (`BUTTON_JUMP`, `BUTTON_ACTION`, `BUTTON_ATTACK`, `BUTTON_ALT_ATTACK`,
 `BUTTON_RUN`, the three gadget buttons, look, hint and gadget menu); the physical buttons for the gadget and look bits
@@ -242,7 +242,7 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
   slot 101 (`UpdateStepplayerGadget`) runs every frame; releasing it, or the hero becoming unable to use it, calls
   slot 102 (`StopStepplayerGadget`).
 - The per-gadget description records (mode, owner, price, MP cost, unlock episode, name, description, icon) are the
-  `GADGETDESC` table defined in `stepplayer.cpp`. Ownership is a bit per gadget in the save data (`FPowerupAcquired`).
+  `GADGETDESC` table defined in `stepplayer.cpp`. Ownership is a bit per gadget in the save data (`IsPowerupAcquired`).
 - Each hero decides usability per state: `JT::FCanUseGadget` asks the active component (`FJtairCanUseGadget`,
   `FJtgrabCanUseGadget`, `FJtpipeCanUseGadget`) and refuses during a mode; `CanBentleyUseGadget` and
   Murray's `FCanUseGadget` override have their own rules. The effect itself is in `UseJtGadget`, `StartBentleyGadget` and

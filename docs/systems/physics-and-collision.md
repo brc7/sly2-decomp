@@ -25,7 +25,7 @@ Code lives in `src/game/engine/physics/`:
   impulse/acceleration helpers), `dzg.cpp` (contact rows on top of the solver in `core/math/dzgcore.cpp`).
 - `geom.cpp` (collision geometry in local and world space), `clip.cpp` (segment clipping and line tests),
   `vol.cpp` (trigger volumes), `water.cpp` (water bodies), `shape.cpp` (paths and curves), `path.cpp` (navigation
-  zones and A*), the convex-obstacle unit (`IsPosInCnvo`, `MergeCid14Obstacles`), the sticky-mesh unit
+  zones and A*), the convex-obstacle unit (`IsPosInConvexObstacle`, `MergeCid14Obstacles`), the sticky-mesh unit
   (`UpdateJtMeshAttachment`) and the launcher unit (`LaunchSoFromLauncher`).
 - Shared maths in `src/game/core/math/`: `bsp.cpp` (plane BSP trees: clip an edge, locate a point), `dzgcore.cpp`
   (the active-set constraint solver), `crout.cpp` (the factorisation it uses).
@@ -62,7 +62,7 @@ objects get a SOPHYS from `InitSoPhysics`. `PostSoLoad` finishes references. Col
 heap and shared where possible (`CloneGeom`).
 
 **Activation.** `OnSoAdd` / `OnSoRemove` (slots 23/22) register and unregister the object with rendering and the broad
-phase (`AddSwAaobrObject` / `RemoveSwAaobrObject`), so only live objects collide. `AddSoHierarchy` /
+phase (`AddObjectToBroadPhase` / `RemoveObjectFromBroadPhase`), so only live objects collide. `AddSoHierarchy` /
 `RemoveSoHierarchy` build and tear down trees when objects are attached to each other.
 
 **Per frame.** In `UpdateSw`, after every live object's slot 16 has run (where gameplay sets intent: velocities,
@@ -116,7 +116,7 @@ STEP (`step.cpp`) is the bridge between gameplay and physics:
 - **Ignoring collisions.** `FIgnoreIntersection` (slot 61) answers per pair; the broad phase combines both objects'
   answers and only pairs them when neither asks to ignore the other. Heroes use it to pass through a thrown object
   for a moment (Murray after a throw); guards ignore some objects while dead and their holder's group while juggled. When the answer changes, call
-  `RecalcSwOxfFilterForObject` so existing pairs are re-evaluated.
+  `RefreshSwObjectCollisionFilter` so existing pairs are re-evaluated.
 
 ## 5. Water, external accelerations and launchers
 
@@ -171,7 +171,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
 - **VOL** (`vol.cpp`): a trigger volume (an XFM with a convex-cell BSP): `IsPointInVol`, `IsSphereInVol`. Used by guard
   detectors, buttons, exits, hazard checks and Splice. Active volumes are kept on a world list.
 - **SHAPE** (`shape.cpp`): polylines or Hermite curves with a parameter `u` and arc length `s` per point (Sly 1's S/U API:
-  `SFromShapeU`, `UFromShapeS`, `SMaxShape`, `EvaluateShapeS` / `EvaluateShapeU`, `FindShapeClosestPoint*`). Shapes are
+  `GetShapeDistanceAtParam`, `GetShapeParamAtDistance`, `GetShapeMaxDistance`, `EvaluateShapeAtDistance` / `EvaluateShapeAtParam`, `FindShapeClosestPoint*`). Shapes are
   patrol paths, camera and platform paths, PIPE and RAIL, rope chains (`SetShapeChainMode`), and the outlines of convex
   obstacles.
 
@@ -182,7 +182,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
   sight and returns the points; `FindPathzonePathCurve` builds a curve from it.
 - **The zone BSP.** A world can carry a BSP whose leaves are path zones; `FindPathzoneAtPos` walks it to find the zone
   containing a point, falling back to a default zone that `PostLoadSwPathzones` creates when the world has none.
-- **Obstacles.** Convex polygons (the convex-obstacle unit: `IsPosInCnvo`, `ClipEdgeToCnvo`) register in the zone that
+- **Obstacles.** Convex polygons (the convex-obstacle unit: `IsPosInConvexObstacle`, `ClipEdgeToConvexObstacle`) register in the zone that
   contains them (`AddPathzoneObstacle` / `RemovePathzoneObstacle`), kept in sorted begin/end event arrays per axis for
   sweep-and-prune queries; overlapping ones merge into one hull (`MergeCid14Obstacles`, `UpdatePendingCid14Obstacles`
   after each solve). Every change bumps a world navigation version so planners know to re-plan. `IsPosFreeInPathzone`
@@ -203,7 +203,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
 - **Wake what you disturb.** Code that changes an object's state without contacts (teleport, re-parent, enabling
   collision) should wake it, or a sleeping tree will ignore the change.
 - **Collision filters are cached in pairs.** After changing what `FIgnoreIntersection` answers, call
-  `RecalcSwOxfFilterForObject`.
+  `RefreshSwObjectCollisionFilter`.
 - **Zap history dedupes.** A repeated identical zap inside the history window is dropped silently; give distinct hits
   distinct sources or parts, or wait out the window.
 - **Navigation changes are versioned.** Adding or removing obstacles bumps the navigation version; long-lived plans must

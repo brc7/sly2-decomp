@@ -60,9 +60,9 @@ src/
                                    files: cd tu_14B660
   game/platform/input/         L1  pad (JOY) and rumble
                                    files: joy rumble
-  game/platform/memory/        L1  heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), PvAllocClear, malloc/free
+  game/platform/memory/        L1  heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), AllocZeroedFromHeap, malloc/free
                                    files: heap memory phasemem slotheap sprbuf tu_1147D8 tu_114AE0
-  game/platform/runtime/       L1  Sucker Punch's own printf/string runtime (CchOstrmPrintf, vsprintf, strlen) and OSTRM streams
+  game/platform/runtime/       L1  Sucker Punch's own printf/string runtime (PrintfToStream, vsprintf, strlen) and OSTRM streams
                                    files: stream text
   game/platform/thread/        L1  EE threads / semaphores wrapper
                                    files: thread
@@ -146,7 +146,7 @@ src/
 | ONE-HIERARCHY | 7 | 31 | BASIC/LO/XFM base methods call SO/XF/ACT/CPLCY services (BindLoOidTable -> PsopartFindSo, TranslateXfmToPos -> ConvertXfPos). The object model and engine classes are one C++ hierarchy split over many files; xf could join engine/object at the cost of xf->act/so up-edges (tried: no gain). |
 | SCRIPT-API | 1 | 15 | Splice is the game's scripting API: values wrap BASIC objects (CRef_SetBasic -> BASIC vtable), frames/eval resolve proxies, built-ins query the world. The VM part could be decoupled by a vtable-only interface; the built-ins cannot. |
 | BINDING | 4 | 6 | Option/property binding records in the crt0-block .data prefix (0x2AC880-0x2BAAE8, app/class_registry_options.inc) point at generated wrappers; brx/proxy/emitter/so read them by address. |
-| REGISTRY | 1 | 1 | Class descriptor table D_002BAAE8 / factories live in the crt0-block registry; FIsBasicDerivedFrom (basic) and PloNew (brx) read it. Header fix: declare the descriptor record type and an extern for the table in object/; only the definition stays in app/. |
+| REGISTRY | 1 | 1 | Class descriptor table D_002BAAE8 / factories live in the crt0-block registry; IsBasicDerivedFrom (basic) and CreateLo (brx) read it. Header fix: declare the descriptor record type and an extern for the table in object/; only the definition stays in app/. |
 
 All upward subsystem pairs with weight >= 3 (54 of 134; the other 80 pairs total 112 weight, mostly single vtable slots
 or one call each; all are listed in the design record, research/layout/):

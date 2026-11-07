@@ -70,13 +70,13 @@ level data, run by `engine/presentation/hud.cpp`).
 
 - **Show/hide**: `ShowWidget` (slot 49, loading sprites first if needed) and `HideWidget` (slot 50) set a request;
   `UpdateWidget` performs the appear/disappear animations and state changes. `SetWidgetRequest`, `IsWidgetIdle`,
-  `FWidgetVisible`, `ResetWidgetVisibleTime` are the helpers. `ShowWidgetArgs` / `ShowWidgetArgsFromSplice` pass up to
+  `IsWidgetVisible`, `ResetWidgetVisibleTime` are the helpers. `ShowWidgetArgs` / `ShowWidgetArgsFromSplice` pass up to
   ten argument text ids the widget displays.
 - **Animation**: each widget has a main animation track and named animation ids; `PlayWidgetAnim`,
   `StopWidgetAnim`, `SwitchWidgetAnim`, `SetWidgetAnimPhase` (meters and gauges seek by fraction), `SetWidgetAnimTime`,
   `SetWidgetXf` / `SetWidgetAnimXf` (2-D transform overrides).
 - **Exclusivity**: an exclusive widget hides lower-priority widgets while shown (`SetWidgetExclusive`,
-  `FWidgetObscured`).
+  `IsWidgetObscured`).
 - **Sprites**: sprite items are text (rich text drawn at the item's transform), geometry or pictures (a texture packet);
   keys interpolate transforms and colours and can trigger sounds (`FinishSpriteSoundEvents`).
 - **3-D in the HUD**: a widget can show a live 3-D object through a render target (`AcquireRenderTarget`; see
@@ -89,11 +89,11 @@ level data, run by `engine/presentation/hud.cpp`).
   on demand (`BuildCoinCountText`, `BuildClueCountText`, `BuildTimerText`, `BuildSubtitleText`, ...; screens add their
   own: `BuildThiefnetInfoText`, `BuildJobNameText`, `BuildTitlePromptText`, ...). A new dynamic text is a new table
   entry plus a getter.
-- **Rich text escapes** (`CRichText::ChNext`): `~RRGGBB` sets a colour, `~.` restores the base colour, `&N` switches
+- **Rich text escapes** (`CRichText::ReadNextChar`): `~RRGGBB` sets a colour, `~.` restores the base colour, `&N` switches
   font, `&.` restores it, `^` escapes push/pop a scale; doubling a character escapes it. The sprite-text copy in
   `hud.cpp` handles the `&` family.
 - **Fonts**: `CFontBrx` holds a glyph table (binary-searched via a remap table), uploads its texture into GS memory
-  (`EnsureFontLoaded`, `CFontBrx::SwitchTex0`) and draws sprites per glyph through `GIFS` (`DxDrawCh`). `PushScaling` /
+  (`EnsureFontLoaded`, `CFontBrx::SwitchTex0`) and draws sprites per glyph through `GIFS` (`DrawChar`). `PushScaling` /
   `PopScaling` scale relative to the base. `CRichText::Draw` justifies, wraps and clips into a text box.
 - **Subtitles** come from the sound system's subtitle record ([sound-and-music.md](sound-and-music.md#6-dialogue-and-subtitles))
   through the subtitle text getters.

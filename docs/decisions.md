@@ -46,7 +46,7 @@ views move to shared types.
 **1.6 V-renamed views.** A private view that clashes by name with a shared header type is removed if the layouts agree,
 otherwise renamed with a `V` suffix (`BASICV`, `LOV`, `ASEGAV`; occasionally `Q`/`A`). A C++ symbol that mentions the
 view keeps its original mangled name through an asm label on the declaration
-(`FIsBasicDerivedFrom(BASICV *, CIDV) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID")`). *Why:* cc1plus crashes on a
+(`IsBasicDerivedFrom(BASICV *, CIDV) __asm__("IsBasicDerivedFrom__FP5BASIC3CID")`). *Why:* cc1plus crashes on a
 redefinition of a polymorphic class, and the mangled name must not change. *Status:* temporary: the V-named views are
 the to-do list for view unification.
 

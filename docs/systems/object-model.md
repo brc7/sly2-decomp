@@ -31,7 +31,7 @@ BASIC                    script context + message subscribers; the vptr follows 
 
 **There is no ALO in Sly 2.** Sly 1's ALO ("actor level object": an LO with a transform and children) was split: the
 transform part became `XFM`, the child list moved to `SO`. Some code views and functions still say `Alo`
-(`ConvertAloPos`, `ConvertAloMat4`, local `ALO` structs inside `lo.cpp`); they operate on any `LO` and the name is
+(`ConvertPosBetweenLos`, `ConvertMat4BetweenLos`, local `ALO` structs inside `lo.cpp`); they operate on any `LO` and the name is
 historical.
 
 **Where the classes are declared.** `include/sly2/basic.h` (BASIC, CLASSINFO, lists, value types), `lo.h` (LO, LOROOT,
@@ -58,7 +58,7 @@ Each class has a numeric class id (`CID`) and a descriptor:
   generated wrappers in `src/generated/splicewrap/`).
 
 **Type tests.** CIDs are numbered in pre-order of the class tree, so a subtree occupies a contiguous CID range.
-`FIsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `cidMax`;
+`IsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `cidMax`;
 `IsCidDerivedFrom(cid, cidBase)` (`object/find.cpp`) walks the parent chain instead. `GetBasicCid` returns an object's
 CID. Level files name classes by CID, so CIDs are part of the data format.
 
@@ -98,9 +98,9 @@ are one lower); trust the asm label on the declaration.
 
 ## 4. Lifecycle of an object
 
-### 4.1 Creation: `PloNew`
+### 4.1 Creation: `CreateLo`
 
-`PloNew(cid, psoParent, oid, isplice)` (`object/brx.cpp`) is the general factory, used by the level loader and by
+`CreateLo(cid, psoParent, oid, isplice)` (`object/brx.cpp`) is the general factory, used by the level loader and by
 run-time spawning alike:
 
 1. calls the class's factory through the descriptor table;
@@ -117,7 +117,7 @@ infinite busy distance, all visibility bits, the default flag word; it inherits 
 in-world bit from the parent, or allocates its own root when it has no parent; it inherits the proxy record pointer;
 and it links the object into the parent's child list. New objects are therefore born "added", not removed.
 
-`PloCloneLo(plo, psoParent)` makes a new object of the same class and oid with `PloNew` and then calls slot 40
+`CloneLoWithParent(plo, psoParent)` makes a new object of the same class and oid with `CreateLo` and then calls slot 40
 `CloneHierarchy`, which copies the body and, for an SO, clones the children.
 
 ### 4.2 Load: `LoadFromBrx` and options
@@ -136,7 +136,7 @@ After the whole level is read, `PostSwLoad` (`world/scene/sw.cpp`) runs slot 15 
 load, repeating until no new objects appear (post-load handlers may create objects). `PostLoLoad`:
 
 1. runs the object's deferred callbacks in the order they were queued (`RunLoDeferredCallbacks`), which resolves the
-   oid references now that every object exists (`PloFindSwObject` relative to the object);
+   oid references now that every object exists (`FindSwObject` relative to the object);
 2. sends Splice event 0 (post-load) to itself through slot 3;
 3. if the object's frame binds a handler for event 1 (update), switches busy kind "never" to "by distance" and sets
    the flag that asks for per-frame updates; otherwise it parks the next-Splice-update time.
@@ -160,7 +160,7 @@ What makes a root active is the **busy list** (`object/busy.cpp`). Each root has
 always, never, within its busy distance of the camera, or within its busy distance of the current player, gated by the
 object's visibility mask against the camera's. `UpdateSwBusyList` re-tests a few roots per frame, skipping roots that
 are far from their zone edge until the camera or player has moved enough, and calls slot 23 / slot 22 on the roots
-that crossed. `SetLoBusyk` and `SetLoBusyDistance` change the settings and re-sort the root so it is tested soon.
+that crossed. `SetLoBusyKind` and `SetLoBusyDistance` change the settings and re-sort the root so it is tested soon.
 
 Base `OnLoAdd` puts the object in the world's **update table** and `OnLoRemove` takes it out. Subclasses add their
 own registration: SO joins the render and physics structures; targets, volumes, guards, rails, pipes, lights and
@@ -200,11 +200,11 @@ updates the root record (slot 13) and fires the activation callbacks as needed.
 **Lookup.** The world keeps an oid hash and one list per CID (`SW::aslOid`, `SW::aslCid`; hash and bucket helpers in
 `object/find.cpp`).
 
-- `PloFindSwObject(world, grf, oid, ploContext)` returns the first match; `FindSwObjects` collects several. The low
+- `FindSwObject(world, grf, oid, ploContext)` returns the first match; `FindSwObjects` collects several. The low
   byte of `grf` picks the scope relative to the context object (scope 4 = the matches nearest the context in the
   hierarchy; the level loader's oid fixups use it); higher bits restrict to live objects, lift the result clamp, or
   ignore proxy scoping.
-- `CploFindSwObjectsByClass` / the "first of class" variant walk the class lists (derived classes included).
+- `FindSwObjectsByClass` / the "first of class" variant walk the class lists (derived classes included).
 - Objects inside a proxy copy are found only from the same copy unless the search says otherwise, so two copies of a
   template that refer to "oid N" each find their own N.
 - Objects spawned at run time without an oid (particle groups, for example) are on class lists but not in the oid hash.
@@ -225,7 +225,7 @@ updates the root record (slot 13) and fires the activation callbacks as needed.
 Levels are built from **world entries**, each a block of objects in the world file
 ([formats/world-file.md](../formats/world-file.md)). Two mechanisms multiply them:
 
-**Copies of a world entry.** `LoadSwFromBrx` loads an entry's object list once and then calls `PloCloneLo` on every
+**Copies of a world entry.** `LoadSwFromBrx` loads an entry's object list once and then calls `CloneLoWithParent` on every
 loaded object as many times as the entry asks for copies. Depending on a per-entry flag, the copies stay in the world,
 or all of them are removed right after loading and serve only as a pool for proxies (the in-memory field name says
 which is which only by inference).
@@ -233,7 +233,7 @@ which is which only by inference).
 **Proxies** (`PROXY`, an `XFM` subclass; `object/proxy.cpp`):
 
 - A **proxy source** (`PROXYSRC`, in `SW::aproxysrc`) is a world entry used as a template; each of its copies has a
-  **proxy id** `IdProxy(isrc, icopy)` = source index in the high half, copy index in the low half (`IsrcFromIdProxy`,
+  **proxy id** `MakeProxyId(isrc, icopy)` = source index in the high half, copy index in the low half (`GetSourceIndexFromProxyId`,
   `GetCopyIndexFromProxyId`).
 - `LoadProxyFromBrx` reads a proxy record from an object list. In one mode it immediately takes the source's next copy
   (`AddProxyCopy`), places it at the record's transform, applies the record's `PROXYINIT` overrides (class, Splice
@@ -243,7 +243,7 @@ which is which only by inference).
   rest poses.
 - At run time `AcquireProxySpare` rates the spares (free, locked, live...), takes the best from its previous owner,
   moves its objects to the proxy, re-applies the init records (slot 26 on each object) and adds them to the world;
-  `ReleasePspare` undoes all of it (removes the objects, restores the rest pose, detaches the proxy's frames).
+  `ReleaseProxySpare` undoes all of it (removes the objects, restores the rest pose, detaches the proxy's frames).
   `AcquireProxyObject` returns the single object of a one-object source; `LockProxyObject` /
   `UnlockProxyObject` pin a copy. Thrown objects, coin sprays and respawning enemies come from here.
 - Each object that came from a proxy keeps a proxy record (`PXR`, `LO::ppxr`): a node in a tree of proxy ids rooted at
@@ -254,7 +254,7 @@ which is which only by inference).
 
 - **World** (`world/scene/sw.cpp`): owns every list the objects link into (oid hash, class lists, roots, busy list,
   update table, per-class lists, slot heaps for `LOROOT`s and callbacks). [world-and-levels.md](world-and-levels.md).
-- **Level loading** (`object/brx.cpp`, `level/brx_sw.cpp`): creates objects with `PloNew` and calls `LoadFromBrx`.
+- **Level loading** (`object/brx.cpp`, `level/brx_sw.cpp`): creates objects with `CreateLo` and calls `LoadFromBrx`.
 - **Splice**: every object may have a frame and a sidebag; options expose fields and methods to scripts; slot 3 runs
   event handlers. [splice-scripting.md](splice-scripting.md).
 - **Engine services**: SO's slot overrides connect objects to physics, rendering and animation; XF transforms are
@@ -268,7 +268,7 @@ which is which only by inference).
   state. `OnAdd`/`OnRemove` are the only reliable activation edges.
 - Activation can change in the middle of the update pass (an `Update` may add or remove other objects); the update
   table tolerates holes and compacts itself when adding, so do not cache entry indices.
-- `FIsBasicDerivedFrom` relies on pre-order CID numbering. A class whose CID lies outside its parent's range (for
+- `IsBasicDerivedFrom` relies on pre-order CID numbering. A class whose CID lies outside its parent's range (for
   example one appended after all existing CIDs) fails that test even though `IsCidDerivedFrom` succeeds.
 - `fRemoved` and "not live" are different states: a live object's parent can still be removed later, and a removed
   object keeps its frame, sidebag and fields for when it is added again.
@@ -285,7 +285,7 @@ which is which only by inference).
 virtual declarations name the functions in slots 7, 14, 15, 16, 22 and 23. Search `src/game/` for those symbols.
 
 **Spawn an object at run time.** Prefer a proxy: give the level a `PROXY` whose source is the template, then call
-`AcquireProxySpare` (or the one-object helper) and release it with `ReleasePspare`. `PloNew` also works, but the
+`AcquireProxySpare` (or the one-object helper) and release it with `ReleaseProxySpare`. `CreateLo` also works, but the
 object's memory is never reclaimed before the next level load, so do not create objects per frame.
 
 **Add a new object class (port or mod build).**
@@ -294,7 +294,7 @@ object's memory is never reclaimed before the next level load, so do not create 
    for a positioned helper, `SO` for something physical), overriding the slots you need (`Init`, `LoadFromBrx`,
    `Update`, `OnAdd`/`OnRemove`...). Call the base implementation first in each override.
 2. Give it a factory and a descriptor getter and add a descriptor entry, as `app/class_registry.cpp` does for the
-   existing classes. Mind the CID range rule above if code will test derivation with `FIsBasicDerivedFrom`.
+   existing classes. Mind the CID range rule above if code will test derivation with `IsBasicDerivedFrom`.
 3. If levels should place it, the level data must carry records with its CID, and its `LoadFromBrx` must read exactly
    what the record holds.
 4. If scripts should see its properties, add option records (see [splice-scripting.md](splice-scripting.md)).
@@ -309,7 +309,7 @@ unregister in your structure. Do not do this in `Init` or `Add`: an object can b
 - `src/game/object/lo.cpp`: LO virtuals, roots, child lists, deferred callbacks, visibility and busy setters,
   coordinate conversions.
 - `src/game/object/xform.cpp`: XFM.
-- `src/game/object/brx.cpp`: `PloNew`, `PloCloneLo`, `LoadSwObjectsFromBrx`, option loading, load collectors.
+- `src/game/object/brx.cpp`: `CreateLo`, `CloneLoWithParent`, `LoadSwObjectsFromBrx`, option loading, load collectors.
 - `src/game/object/busy.cpp`: the busy list. `src/game/object/find.cpp`: lookup by oid and class.
 - `src/game/object/proxy.cpp`: proxies, spares and proxy ids.
 - `src/game/app/class_registry.cpp`: factories, descriptor getters, descriptor table.

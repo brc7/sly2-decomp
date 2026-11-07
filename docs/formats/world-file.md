@@ -7,7 +7,7 @@ Merged from the asset-extraction write-up and the brx/sound/save TU write-ups. S
 code, not exercised by the samples); **hypothesis** = `[H]`.
 
 **Key correction to the original draft:** the "world entries" are **proxy sources**. Each entry's object list is instanced `c8` times at load
-(the original plus `c8-1` `PloCloneLo` clones); the copies form the pool that proxies and spawners draw from (`LoadProxyFromBrx` 0x1C9B08,
+(the original plus `c8-1` `CloneLoWithParent` clones); the copies form the pool that proxies and spawners draw from (`LoadProxyFromBrx` 0x1C9B08,
 `AcquireProxySpare` 0x1CAEC8). The current entry index (SW+0x3F10) is the `isrc` in `idProxy = (isrc<<16)|icopy` `[H r2 brx.md, r5 proxy.md]`.
 The live Paris hub has 287 entries; entry 0 is `f_nightclub_exterior_vz` with 2 copies `[C:runtime]`.
 
@@ -71,7 +71,7 @@ Parse order. All offsets are in the decompressed stream.
 | 2 | sound section | `LoadSoundSectionFromBrx` | 0x00FE..0x0660 | 0x4E6E..0xAA94 |
 | 3 | save variables | `LoadSaveSchemaFromBrx` | 0x0660..0x132D5 | 0xAA94..0x1D709 |
 | 4 | level table | `LoadLevelTableFromBrx` | 0x132D5..0x13FED | 0x1D709..0x1E421 |
-| 5 | localized strings | `LoadSwLangstrsFromBrx` | 0x13FED..0x17157 | 0x1E421..0x22628 |
+| 5 | localized strings | `LoadSwLocalizedStringsFromBrx` | 0x13FED..0x17157 | 0x1E421..0x22628 |
 | 6 | plane tree | `LoadSwCellsFromBrx` | 0x17157..0x17159 (0 nodes) | 0x22628..0x22936 (39 nodes) |
 | 7 | options of `g_sw` (D_003DD490) | `LoadOptionsFromBrx` | 0x17159..0x1717F | 0x22936..0x22956 |
 | 8 | options of `g_cm` (D_002DDF40) | `LoadOptionsFromBrx` | 0x1717F..0x1718D | 0x22956..0x2297C |
@@ -101,7 +101,7 @@ cwe x {
 | x60 | Stored only. It is 1 for `abandon_icon` | hypothesis: flag |
 | x10 | Passed to `LoadSwSpliceFromBrx` as the id of the WE's script/ref table. It equals the **oid of an object in that WE's object list** (e.g. `explode_whack_flash_small` x10=3901, and the objects with cid 6 have oid 3901) | hypothesis (strong): root object oid |
 | x14 | Stored only. Mostly increasing (152701, 152702, ...) | hypothesis: second id |
-| c8 | Instance (copy) count of this proxy source. The object list is cloned `c8-1` times (`PloCloneLo` 0x13E510) into `WE.apo` (`c0*c8` slots). It also sizes `pv18` (c8 x S32, filled with -1) | confirmed (code); values 1..41 |
+| c8 | Instance (copy) count of this proxy source. The object list is cloned `c8-1` times (`CloneLoWithParent` 0x13E510) into `WE.apo` (`c0*c8` slots). It also sizes `pv18` (c8 x S32, filled with -1) | confirmed (code); values 1..41 |
 
 Counts: `london` cwe=3, `boot_world` cwe=239.
 
@@ -173,7 +173,7 @@ clevel x {
 
 The full table is in the appendix below.
 
-### 3.5 Localized strings (`LoadSwLangstrsFromBrx`)
+### 3.5 Localized strings (`LoadSwLocalizedStringsFromBrx`)
 
 ```
 U8 clang ; clang x U8 lang
@@ -242,7 +242,7 @@ For each WE i in order (loop body of `LoadSwFromBrx`):
 ```
 S32 cbBlob ; S32 idBlob            LoadSwSharedHeaderFromBrx -> D_003E1C30 = cbBlob; "reload" = idBlob != previous idBlob
 S32 fExtra                         D_003E1C34 (adds 4 x string16 / extra fields in the ref reader)
-U32 cref ; cref x Ref              LoadSwSpliceFromBrx (Ref = PpairSerializeIn: U8 tag|0x80 next, payload by tag; 0xFF = null)
+U32 cref ; cref x Ref              LoadSwSpliceFromBrx (Ref = DeserializePair: U8 tag|0x80 next, payload by tag; 0xFF = null)
                                    (if fExtra: 3 x string16 after each Ref)
 <LoadShadersFromBrx>                    U16 n x LoadClutFromBrx ; U16 n x LoadBmpFromBrx ; U16 n x LoadSaaFromBrx ;
                                    U16 n x LoadShdFromBrx (0x2C-byte structs) ;
@@ -265,7 +265,7 @@ Per-object record fields (`LoadSwObjectsFromBrx` 0x13FB40, matched) `[C:static]`
 
 | Field | Type | Meaning |
 |---|---|---|
-| k | S8 | filter kind: `k>0` -> `k` S16 filter ids follow, object created only if `FMatchLoadFilter` 0x13FAD0 matches the current level index D_003E1110; `k=0` always; `k=-1/-2` create unless the save state (query 0x805/0x405 on `(oid, IdProxy(iwe))`) says it is gone; `k<-2` reads nothing (stale list) |
+| k | S8 | filter kind: `k>0` -> `k` S16 filter ids follow, object created only if `IsCurrentLevelInList` 0x13FAD0 matches the current level index D_003E1110; `k=0` always; `k=-1/-2` create unless the save state (query 0x805/0x405 on `(oid, MakeProxyId(iwe))`) says it is gone; `k<-2` reads nothing (stale list) |
 | filter ids | k x S16 | level/job filter list |
 | cid | S16 | class id (index into D_002BAAE8); PROXY-derived classes go through `LoadProxyFromBrx` |
 | oid | **S32** | object id (Sly 1: S16) |
