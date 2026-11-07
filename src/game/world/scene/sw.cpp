@@ -11,7 +11,7 @@
 // 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
 // StaticInit_sw and the _GLOBAL_$D$ stub func_00210E90 next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
 // Entry points: SW_ctor (g_sw), ExecuteSwTransition (per frame: level loads), PostSwLoad, DeleteSw,
-// the hands-off / letterbox counters, the level and world table queries (NWorldCur, PrecWorldEntry...).
+// the hands-off / letterbox counters, the level and world table queries (GetCurrentWorld, GetWorldEntry...).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00210E70
 // SLY2_ALIAS: _GLOBAL_$D$*=func_00210E90
@@ -74,8 +74,8 @@ extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
 void UpdateSwIllum(SW *world);
-int NWorldCur();
-FILEREC *PrecWorldEntry(int nWorld);
+int GetCurrentWorld();
+FILEREC *GetWorldEntry(int nWorld);
 }
 void AddGrfusr(int grf);
 void RemoveGrfusr(int grf);
@@ -616,7 +616,7 @@ struct LOUPD
       int grf;
       LO *plo;
 };
-int IlevelCur();
+int GetCurrentLevelIndex();
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 union TAG
 {
@@ -656,16 +656,16 @@ extern int D_002E1E54;
 extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
 extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
-extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
-inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { RefSetGlobalSaveVar(psvp, ref, &D_003D4A60); }
+extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
+inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &D_003D4A60); }
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
     CRef ref((TAGK)0x15, n);
     SetSaveVarRef(psvp, ref);
 }
-extern "C" CRef RefSetSaveVarV(const CRef &ref, const char *pchz, ...);
-extern "C" int NWorldCur();
-extern "C" int NEpisodeBest();
+extern "C" CRef SetSaveVarByName(const CRef &ref, const char *pchz, ...);
+extern "C" int GetCurrentWorld();
+extern "C" int GetBestEpisode();
 void ResolveSwSaveVars(SW *world) __asm__("ResolveSwSaveVars__FP2SW");
 /** @sly2-annot addr=0x20E3C0
  * Purpose: Look up save-variable paths the game reads (language, sound flags, job/world, per-world
@@ -702,10 +702,10 @@ void ResolveSwSaveVars(SW *world)
         world->apsvpEpisodePercent[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
     }
     SetSaveVarInt(world->psvpLang, D_002E1E54);
-    SetSaveVarInt(world->psvpWidCurrent, IlevelCur());
-    SetSaveVarInt(world->psvpEpisodeCurrent, NWorldCur());
-    if (NWorldCur() > NEpisodeBest())
-        RefSetSaveVarV(CRef((TAGK)0x15, NWorldCur()), "episodeBest", 0);
+    SetSaveVarInt(world->psvpWidCurrent, GetCurrentLevelIndex());
+    SetSaveVarInt(world->psvpEpisodeCurrent, GetCurrentWorld());
+    if (GetCurrentWorld() > GetBestEpisode())
+        SetSaveVarByName(CRef((TAGK)0x15, GetCurrentWorld()), "episodeBest", 0);
     BroadcastGameEvent(&D_002DEB30, 3, 0);
 }
 
@@ -828,7 +828,7 @@ void Decref__4CRef(REF *);
 ACTOR *FindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
-int NWorldCur(void);
+int GetCurrentWorld(void);
 void SetWidgetState(WIDGET *,int);
 void UpdateCmLast__FP2CM(void *);
 void CutCm__FP2CM(void *);
@@ -840,7 +840,7 @@ void RunNextStartupStep(void *);
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
 struct REF {int tag,value;REF(const REF &);~REF(){Decref__4CRef(this);}};
-extern "C" REF RefGetSaveVarV(const char *,...);
+extern "C" REF GetSaveVarByName(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
@@ -912,7 +912,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     if(!GetHeroPo(world)&&!GetCurrentPo(world)&&world->actorCount>0){
         ACTOR *selected=0;
         int actorId;
-        {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
+        {REF value=GetSaveVarByName("oidPoCurrent",0);actorId=value.value;}
         if(actorId!=-1)selected=FindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
@@ -931,7 +931,7 @@ extern "C" void ExecuteSwTransition(SW *world)
             }
         }
     }
-    if(!NWorldCur()){
+    if(!GetCurrentWorld()){
         ACTOR *actor=GetHeroPo(world);
         if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
@@ -1727,18 +1727,18 @@ void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
 namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25 { extern "C" {
 typedef int OID;
 typedef struct RSMG { OID oidRoot; OID oidSM; OID oidTrigger; OID oidNoTrigger; } RSMG;
-int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
-    __asm__("FAddRsmg__FP2SWP4RSMGiPii3OIDN25");
+int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
+    __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25");
 /** @sly2-annot addr=0x20FEC0
  * Purpose: Add/update a (root,SM)->trigger/untrigger goal record
- * Info: proposed name FAddRsmg__FP2SWP4RSMGiPii3OIDN25 (EXISTING); TU sw
- * Notes: RENAME proposed -> FAddRsmg__FP2SWP4RSMGiPii3OIDN25 (existing_name_changes.csv)
+ * Info: proposed name AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25 (EXISTING); TU sw
+ * Notes: RENAME proposed -> AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25 (existing_name_changes.csv)
  * Confidence: high [EXISTING 0.80] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
  *   r7_1F8DD8+verdicts_tu_r7r8+arbitration
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Adds or updates a rsmg record ((root, state machine) -> goal on trigger or untrigger) in a bounded array.
-int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
+int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;
     for (i = 0; i < *pcrsmg; i++) {
@@ -2341,9 +2341,9 @@ int FindLevelIndexByFileRecord(struct X *px)
 
 /** @sly2-annot addr=0x210A88
  * Purpose: Return the current level index g_sw.nLoadFilter
- * Info: proposed name IlevelCur (T1); TU sw
+ * Info: proposed name GetCurrentLevelIndex (T1); TU sw
  * Notes: top50_round (0.80): Body. Siblings PlevelFromIlevel/IlevelFromRec,
- *   NEpisodeCur=g_anEpisodeOfLevel[IlevelCur()], NWorldCur=g_anWorldOfLevel[IlevelCur()]. Splice builtin 97
+ *   GetCurrentEpisode=g_anEpisodeOfLevel[GetCurrentLevelIndex()], GetCurrentWorld=g_anWorldOfLevel[GetCurrentLevelIndex()]. Splice builtin 97
  *   returns it and scripts switch on it (case (load-filter~) ...) with le
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r7_1F8DD8+top50_round
  * See: docs/engine/world-sw.md#10-key-functions,
@@ -2351,25 +2351,25 @@ int FindLevelIndexByFileRecord(struct X *px)
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Returns the current level index.
-int IlevelCur()
+int GetCurrentLevelIndex()
 {
     return g_sw.nLoadFilter;
 }
 
 namespace M_NEpisodeCur { extern "C" {
 extern int *D_003E1C48;
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 /** @sly2-annot addr=0x210A98
- * Purpose: g_anEpisodeOfLevel[IlevelCur()] or -1
- * Info: proposed name NEpisodeCur (T1); TU sw
+ * Purpose: g_anEpisodeOfLevel[GetCurrentLevelIndex()] or -1
+ * Info: proposed name GetCurrentEpisode (T1); TU sw
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Returns the episode of the current level, or -1.
-int NEpisodeCur(void)
+int GetCurrentEpisode(void)
 {
-    int i = IlevelCur__Fv();
+    int i = GetCurrentLevelIndex__Fv();
     if (i == -1)
         return -1;
     return D_003E1C48[i];
@@ -2378,19 +2378,19 @@ int NEpisodeCur(void)
 
 namespace M_NWorldCur { extern "C" {
 extern int *D_003E1C44;
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 /** @sly2-annot addr=0x210AE0
- * Purpose: g_anWorldOfLevel[IlevelCur()] or -1
- * Info: proposed name NWorldCur (T1); TU sw
+ * Purpose: g_anWorldOfLevel[GetCurrentLevelIndex()] or -1
+ * Info: proposed name GetCurrentWorld (T1); TU sw
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Returns the world of the current level, or -1.
-int NWorldCur(void)
+int GetCurrentWorld(void)
 {
-    int i = IlevelCur__Fv();
+    int i = GetCurrentLevelIndex__Fv();
     if (i == -1)
         return -1;
     return D_003E1C44[i];
@@ -2399,22 +2399,22 @@ int NWorldCur(void)
 
 namespace M_NEpisodeBest { extern "C" {
 struct CRef { int tagk; int tag; };
-void RefGetSaveVarV(struct CRef *r, char *s, int a);
+void GetSaveVarByName(struct CRef *r, char *s, int a);
 void Decref__4CRef(struct CRef *r);
 /** @sly2-annot addr=0x210B28
  * Purpose: Read save variable "episodeBest"
- * Info: proposed name NEpisodeBest (T1); TU sw
+ * Info: proposed name GetBestEpisode (T1); TU sw
  * Notes: names_v2 v1 proposed CloneVolbtn__FP6VOLBTNT0 (0.000)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Returns the best episode reached (save variable "episodeBest").
-int NEpisodeBest(void)
+int GetBestEpisode(void)
 {
     struct CRef r;
     int v;
-    RefGetSaveVarV(&r, "episodeBest", 0);
+    GetSaveVarByName(&r, "episodeBest", 0);
     v = r.tag;
     Decref__4CRef(&r);
     return v;
@@ -2435,21 +2435,21 @@ extern "C" int SwStubFalse()
 }
 
 /** @sly2-annot addr=0x210B70
- * Purpose: PrecWorldEntry(NWorldCur())
+ * Purpose: GetWorldEntry(GetCurrentWorld())
  * Info: proposed name PrecWorldEntryCur (T2); TU sw
  * Notes: names_v2 v1 proposed SetVolbtnButtons__FP6VOLBTN7BUTTONS (0.000)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Returns the entry record of the current world (PrecWorldEntry(NWorldCur())).
+// Returns the entry record of the current world (GetWorldEntry(GetCurrentWorld())).
 extern "C" void GetCurrentWorldEntry()
 {
-    PrecWorldEntry(NWorldCur());
+    GetWorldEntry(GetCurrentWorld());
 }
 
 /** @sly2-annot addr=0x210B98
  * Purpose: &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL
- * Info: proposed name PrecWorldEntry (T1); TU sw
+ * Info: proposed name GetWorldEntry (T1); TU sw
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
@@ -2457,7 +2457,7 @@ extern "C" void GetCurrentWorldEntry()
  * @end-sly2-annot */
 // Returns a world's entry record, or null when there is none (or it is empty).
 /* The world's entry record, or 0 when there is none (or it is empty: its words 1 and 15 equal). */
-extern "C" FILEREC *PrecWorldEntry(int nWorld)
+extern "C" FILEREC *GetWorldEntry(int nWorld)
 {
     FILEREC *prec;
     int f;

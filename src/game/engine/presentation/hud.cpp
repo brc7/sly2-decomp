@@ -148,7 +148,7 @@ namespace M_BuildCoinCountText { extern "C" {
 struct CRef { int tagk; int tag; };
 extern char D_003D4A60[];
 extern char D_002A8AA0[];
-void RefGetGlobalSaveVar(struct CRef *r, int *p, void *q);
+void GetGlobalSaveVar(struct CRef *r, int *p, void *q);
 void Decref__4CRef(struct CRef *r);
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // 0x210ED0: dead-code scrap (sly2/scrap.h)
@@ -169,7 +169,7 @@ void BuildCoinCountText(void *f, int **pp)
         char *fmt = D_002A8AA0;
         struct CRef r;
         int v;
-        RefGetGlobalSaveVar(&r, p, D_003D4A60);
+        GetGlobalSaveVar(&r, p, D_003D4A60);
         v = r.tag;
         Decref__4CRef(&r);
         fiprintf(f, fmt, v);

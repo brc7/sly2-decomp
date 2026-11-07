@@ -210,7 +210,7 @@ extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
  * Notes: top50_round (0.75): Sly 1 wipe.h WipeToWorldWarp(world, oidWarp, wipek) does the same (build TRANS,
  *   ActivateWipe). Callers: CheatWarpEpisode/CheatResetEpisode, FailJob, GoToTask, StartTaskByOid,
  *   PlayGameFromGs, RunNextBootStep, PauseItemRet | runtime5b: transition request =
- *   WipeToWorldWarp(PrecWorldEntry(7), 0x189, ..., 0x30A) from WIDGET131 (S55/S56)
+ *   WipeToWorldWarp(GetWorldEntry(7), 0x189, ..., 0x30A) from WIDGET131 (S55/S56)
  * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); Sly 1 / Lilly reference; semantic review;
  *   sources: r8_21BB88+top50_round+runtime
  * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,

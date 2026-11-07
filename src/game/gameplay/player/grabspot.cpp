@@ -1207,17 +1207,17 @@ void SetGrabspotPlayerClass(struct S *grabspot, int n)
 namespace M_func_001840B8 { extern "C" {
 struct S { char pad[0x118]; int a; int b; };
 extern char D_003DD490[];
-void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
 /** @sly2-annot addr=0x1840B8
- * Purpose: FAddRsmg(g_sw, &p->b, 4, &p->a, 1, ...)
+ * Purpose: AddOrUpdateRsmg(g_sw, &p->b, 4, &p->a, 1, ...)
  * Info: proposed name AddCid35Rsmg (T2); class CID35; TU grabspot
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-// Registers a state-machine message link (FAddRsmg) for the trigger spot.
+// Registers a state-machine message link (AddOrUpdateRsmg) for the trigger spot.
 void AddTriggerGrabspotRsmg(struct S *trigger, int y, int z, int w)
 {
-    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &trigger->b, 4, &trigger->a, 1, y, z, w);
+    AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &trigger->b, 4, &trigger->a, 1, y, z, w);
 }
 } } // namespace M_func_001840B8
 

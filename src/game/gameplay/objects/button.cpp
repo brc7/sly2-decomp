@@ -166,7 +166,7 @@ extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one
 
 LOV *FindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 ASEGV *PasegaEnsureAseg(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi");
-int FAddRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
+int AddOrUpdateRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 extern "C" {
@@ -406,10 +406,10 @@ extern "C" void AddBtnOffAseg(BTN *btn, OID oid, int ensureArg)
     AddAshEntry(&btn->animLists[1], oid, ensureArg);
 }
 
-// Adds an rsmg (state-machine goal) applied on trigger/untrigger (FAddRsmg, at most 8).
+// Adds an rsmg (state-machine goal) applied on trigger/untrigger (AddOrUpdateRsmg, at most 8).
 extern "C" void SetBtnRsmg(BTN *btn, int onTrigger, OID root, OID stateMachine, OID goal)
 {
-    FAddRsmg(&D_003DD490, btn->rsmgs, 8, &btn->numRsmgs, onTrigger, root, stateMachine, goal);
+    AddOrUpdateRsmg(&D_003DD490, btn->rsmgs, 8, &btn->numRsmgs, onTrigger, root, stateMachine, goal);
 }
 
 // Adds a task state applied on trigger (at most 4; func_00161F10 on the task table D_002DEB30). (inferred)

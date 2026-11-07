@@ -173,7 +173,7 @@ LO *FindSwObject(SW *world, int grf, OID oid, LO *ploCtx);
 LO *PloFindSwObjectPch(SW *world, int grf, OID oid, LO *ploCtx, void *pchList) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
-int IlevelCur();
+int GetCurrentLevelIndex();
 int MakeProxyId(int isrc, int n);
 int IsCurrentLevelInList(int c, short *aid);
 void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream,
@@ -864,7 +864,7 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
 // True when no load filter is active (D_003E1110 == -1) or the active filter id is in the object's filter list.
 int IsCurrentLevelInList(int c, short *aid)
 {
-    int ilevel = IlevelCur();
+    int ilevel = GetCurrentLevelIndex();
     int i;
     if (ilevel == -1) return 1;
     for (i = 0; ; i++)

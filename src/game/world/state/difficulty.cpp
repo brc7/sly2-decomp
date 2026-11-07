@@ -57,9 +57,9 @@ extern const char D_002A5060[] = "suck_history", D_002A5070[] = "mission_0", D_0
 extern "C" {
 void *memset(void *pv, int c, unsigned int cb);
 SVKEY *NewSaveKey(const void *p, ...);
-CRef RefGetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
-CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *key, SVSET *saveSet);
-CRef RefSetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
+CRef GetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
+CRef GetSaveVar(SVSTORE *psvstore, SVKEY *key, SVSET *saveSet);
+CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
 float GetDifficulty(DIFFICULTY *difficulty);
 void SetDifficulty(DIFFICULTY *difficulty, float g);
 void ChangeDifficulty(DIFFICULTY *difficulty, float delta);
@@ -69,10 +69,10 @@ float GLimitLm(LM *plm, float g);
 int NRandInRange(int nMin, int nMax);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-static inline void Set(SVKEY *key, CRef ref) { RefSetGlobalSaveVar(key, ref, &D_003D4A60); }
+static inline void Set(SVKEY *key, CRef ref) { SetGlobalSaveVar(key, ref, &D_003D4A60); }
 static inline void SetG(SVKEY *key, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(key, ref); }
-static inline CRef Get(SVKEY *key) { SVSET *saveSet = &D_003D4A60; return RefGetSaveVar(&(*(SVSTORE *)&g_sw.savevars), key, saveSet); }
-static inline float GGet(SVKEY *key) { CRef ref = RefGetGlobalSaveVar(key, &D_003D4A60); return ref.u.g; }
+static inline CRef Get(SVKEY *key) { SVSET *saveSet = &D_003D4A60; return GetSaveVar(&(*(SVSTORE *)&g_sw.savevars), key, saveSet); }
+static inline float GGet(SVKEY *key) { CRef ref = GetGlobalSaveVar(key, &D_003D4A60); return ref.u.g; }
 
 /** @sly2-annot addr=0x154A60
  * Purpose: Zeroes the 0x18-byte DIFFICULTY object

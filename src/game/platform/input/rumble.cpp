@@ -73,17 +73,17 @@ struct CRef {
     CRef(const RAW &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
-extern "C" CRef RefSetGlobalSaveVar(void *saveVar, const CRef &ref, void *p);
-extern "C" CRef RefGetGlobalSaveVar(void *saveVar, void *p);
+extern "C" CRef SetGlobalSaveVar(void *saveVar, const CRef &ref, void *p);
+extern "C" CRef GetGlobalSaveVar(void *saveVar, void *p);
 static inline void SetPv(void *saveVar, const RAW &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(saveVar, arg, D_003D4A60);
+    const CRef &ret = SetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
 static inline void SetPv2(void *saveVar, const RAW &r)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(saveVar, arg, D_003D4A60);
+    const CRef &ret = SetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
 
 /** @sly2-annot addr=0x1D5150
@@ -294,7 +294,7 @@ extern "C" int IsRumbleEnabled(void)
     default: {
         int noVibration;
         {
-            CRef ref = RefGetGlobalSaveVar(g_sw.psvpNoVibration, D_003D4A60);
+            CRef ref = GetGlobalSaveVar(g_sw.psvpNoVibration, D_003D4A60);
             noVibration = ref.m_tag;
         }
         return noVibration ^ 1;

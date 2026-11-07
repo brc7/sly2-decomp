@@ -69,7 +69,7 @@ void FailJob(SUBV *p);
 int FindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
 void DeliverStepplayerBooty(SOV *object);
 void BindStepplayerHpMp(SOV *object, int n);
-CRef RefGetSaveVarV(const char *pchz, ...);
+CRef GetSaveVarByName(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
@@ -194,7 +194,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         for (int i2 = 0; i2 < count; i2++)
             VCALL(objects4F[i2], 9);
         if (safehouse->stateMachine) {
-            int savedOid = RefGetSaveVarV(D_002A7878, 0).u.n;
+            int savedOid = GetSaveVarByName(D_002A7878, 0).u.n;
             if (IsmsFindSmOptional((SM *)safehouse->stateMachine, (OID)savedOid) == -1)
                 initialState = OidFromSmIsms(safehouse->stateMachine, 0);
             else

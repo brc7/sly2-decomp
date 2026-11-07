@@ -2,7 +2,7 @@
 // typed slot at an offset of the save blob), lookup by key (a list of symbol ids built from strings), typed get/set
 // as CRef values, the completion percentage, schema resets and applying the settings variables.
 // TU 0x1D7B88..0x1D93D8 (24 functions, address order).
-// Entry points: LoadSaveSchemaFromBrx (level load), RefGetSaveVarV / RefSetSaveVarV / GetSaveVarAddressV
+// Entry points: LoadSaveSchemaFromBrx (level load), GetSaveVarByName / SetSaveVarByName / GetSaveVarAddressV
 // (named access from game code), GetCompletionPercent, ApplyGsSettings.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_save
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D93B8
@@ -115,8 +115,8 @@ void *AllocFromStack(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
-CRef RefGetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
-CRef RefSetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
+CRef GetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
+CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
 void ResetRumbleSaveVar();
 int CountRegionLanguages();
 void SetLanguage(int lang);
@@ -134,8 +134,8 @@ void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet);
 int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet);
 int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result);
 void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
-CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
-CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
+CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
+CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
 void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym);
 unsigned int HashSaveSymbolName(const char *pchz);
 void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid);
@@ -301,13 +301,13 @@ struct SMPV { int a[3]; };
 
 /** @sly2-annot addr=0x1D7ED8
  * Purpose: Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...)
- * Info: proposed name RefGetSaveVar (T1); TU save
+ * Info: proposed name GetSaveVar (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
-CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
+CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 {
     CRef ref;
     SVFIND find;
@@ -363,14 +363,14 @@ CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 
 /** @sly2-annot addr=0x1D80C8
  * Purpose: Write a CRef into a save var by kind (bitfield set/clear for packed bools)
- * Info: proposed name RefSetSaveVar (T1); TU save
+ * Info: proposed name SetSaveVar (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
-CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
+CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
 {
     CRef ref(0x24);
     SVFIND find;
@@ -425,7 +425,7 @@ CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveS
 
 static inline int NGetSaveVar(SVKEY *key, SVSET *saveSet)
 {
-    CRef ref = RefGetGlobalSaveVar(key, saveSet);
+    CRef ref = GetGlobalSaveVar(key, saveSet);
     return ref.u.n;
 }
 
@@ -690,15 +690,15 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 }
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
-static inline CRef RefGetSaveVarGlobal(SVKEY *key, SVSET *saveSet) { return RefGetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
+static inline CRef RefGetSaveVarGlobal(SVKEY *key, SVSET *saveSet) { return GetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
 static inline CRef RefSetSaveVarGlobal(SVKEY *key, const CRef &ref, SVSET *saveSet)
 {
-    return RefSetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
+    return SetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
 }
 
 /** @sly2-annot addr=0x1D8A38
  * Purpose: CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60
- * Info: proposed name RefGetSaveVarV (T1); TU save
+ * Info: proposed name GetSaveVarByName (T1); TU save
  * Notes: runtime: save-var trie walk yields 4472 named vars
  * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
  *   r6_1D5150+verdicts_tu_r4r6+runtime
@@ -707,7 +707,7 @@ static inline CRef RefSetSaveVarGlobal(SVKEY *key, const CRef &ref, SVSET *saveS
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Reads the named save variable (varargs path) from the global save blob as a Splice value.
-extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
+extern "C" CRef GetSaveVarByName(const char *pchz, ...)
 {
     CRef ref;
     STACKSCOPE stackscope;
@@ -721,14 +721,14 @@ extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
 
 /** @sly2-annot addr=0x1D8B20
  * Purpose: CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs
- * Info: proposed name RefSetSaveVarV (T1); TU save
+ * Info: proposed name SetSaveVarByName (T1); TU save
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Writes a Splice value into the named save variable (varargs path) of the global save blob.
-extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
+extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
 {
     CRef ref;
     STACKSCOPE stackscope;
@@ -784,7 +784,7 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     return key;
 }
 
-static inline CRef RefSetGlobal(SVKEY *key, CRef *pref, SVSET *saveSet) { return RefSetGlobalSaveVar(key, *pref, saveSet); }
+static inline CRef RefSetGlobal(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
 /** @sly2-annot addr=0x1D8D80
  * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
@@ -827,8 +827,8 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
     }
 }
 
-static inline int NGetGlobal(SVKEY *key, SVSET *saveSet) { return RefGetGlobalSaveVar(key, saveSet).u.n; }
-static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return RefGetGlobalSaveVar(key, saveSet).u.g; }
+static inline int NGetGlobal(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
+static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 /** @sly2-annot addr=0x1D8FF8
  * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at

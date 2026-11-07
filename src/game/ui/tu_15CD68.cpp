@@ -71,7 +71,7 @@ extern int *D_002BE080[];
 extern const char D_002A5160[] = "%d%%", D_002A5168[] = "%01d:%02d";
 
 extern "C" {
-CRef RefGetGlobalSaveVar(void *pkey, void *psvset);
+CRef GetGlobalSaveVar(void *pkey, void *psvset);
 void InitLo(EPMENU *plo);
 void PostWidgetLoad(EPMENU *widget);
 void UpdateWidget(EPMENU *widget);
@@ -89,7 +89,7 @@ void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetExitExits(void *pexit, int n);
 void TakeExit(void *pexit);
-int PrecWorldEntry(int n);
+int GetWorldEntry(int n);
 int FPowerupAcquired(void *p);
 void AutosaveGame(void *p, int n);
 float fmodf(float a, float b);
@@ -124,7 +124,7 @@ static inline float GetSaveFloat(void *pkey)
 {
     float g;
     {
-        CRef ref = RefGetGlobalSaveVar(pkey, D_003D4A60);
+        CRef ref = GetGlobalSaveVar(pkey, D_003D4A60);
         g = ref.u.g;
     }
     return g;
@@ -133,7 +133,7 @@ static inline int GetSaveInt(void *pkey)
 {
     int n;
     {
-        CRef ref = RefGetGlobalSaveVar(pkey, D_003D4A60);
+        CRef ref = GetGlobalSaveVar(pkey, D_003D4A60);
         n = ref.u.n;
     }
     return n;
@@ -349,7 +349,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
                     isNew = 0;
             }
             if (!isNew) {
-                int worldEntry = PrecWorldEntry(menu->episode);
+                int worldEntry = GetWorldEntry(menu->episode);
                 WipeToWorldWarp(&D_003DD490, worldEntry, 0x189, -1, 0, 0x30A);
             }
             SetEpisodeMenuMode(menu, -1, -1);

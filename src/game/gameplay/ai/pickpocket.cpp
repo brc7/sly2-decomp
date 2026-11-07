@@ -112,7 +112,7 @@ int GetHeroPo(G *);
 void ClearLootPouchLoot(OWNER *);
 int StageLootPouchLoot(OWNER *, OBJECT *, int, int);
 void *LaunchLootPouchLootAtPlayer(OWNER *, int);
-int NWorldCur(void);
+int GetCurrentWorld(void);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
 OBJECT *FindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
@@ -213,7 +213,7 @@ extern "C" void GenerateStepguardLoot(P *guard)
     ClearLootPouchLoot(guard->pouch);
     if (guard->isLootFixed)
         return;
-    world = NWorldCur();
+    world = GetCurrentWorld();
     if (world == -1)
         world = 1;
     if (IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD))

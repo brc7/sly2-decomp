@@ -1,5 +1,5 @@
 // brx_sw.cpp -- loading a level body (SW) from the BRX world file. Entry point: LoadSwFromBrx (called by the level
-// load); it reads the localized strings (LoadSwLangstrsFromBrx) and the cell BSP (LoadSwCellsFromBrx). TU 0x13DA18..0x13E368 (5 functions, address order).
+// load); it reads the localized strings (LoadSwLocalizedStringsFromBrx) and the cell BSP (LoadSwCellsFromBrx). TU 0x13DA18..0x13E368 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013E348
 #include "sly2/slotheap.h"
@@ -49,7 +49,7 @@ void LoadSoundSectionFromBrx(void *p, BIS *stream);
 void PostSoundLoad(void *p);
 void LoadSaveSchemaFromBrx(void *p, BIS *stream);
 void LoadLevelTableFromBrx(void *world, BIS *stream);
-void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
+void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
 void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, BIS *stream);
 void InitSwSpliceFrame(void *world);
@@ -155,7 +155,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     LoadSoundSectionFromBrx(D_003DD040, stream);
     LoadSaveSchemaFromBrx((char *)world + 0x3A18, stream);
     LoadLevelTableFromBrx(world, stream);
-    LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
+    LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
     LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_003DD490, stream);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_002DDF40, stream);
@@ -229,7 +229,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     EndLoadingScreen(&h);
 }
 
-/* Language strings as LoadSwLangstrsFromBrx sees the SW (offsets only). */
+/* Language strings as LoadSwLocalizedStringsFromBrx sees the SW (offsets only). */
 struct LANGSTR { int id; int text; };
 struct SWLANG { char pad[0x4640]; int c; LANGSTR *ae; };
 extern int D_002E1E54;
@@ -238,14 +238,14 @@ extern char D_003E1C20[];
 /** @sly2-annot addr=0x13DF80
  * Purpose: Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the
  *   g_nLang (D_002E1E54) string into SW.alangstr (+0x4640/+0x4644)
- * Info: proposed name LoadSwLangstrsFromBrx (T1); TU brx_sw
+ * Info: proposed name LoadSwLocalizedStringsFromBrx (T1); TU brx_sw
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
  * @end-sly2-annot */
 // Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
 // and keeps only the current language's strings (g_nLang) in the world's string array.
-extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
+extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
 {
     SWLANG *p = (SWLANG *)world;
     AREQ req;

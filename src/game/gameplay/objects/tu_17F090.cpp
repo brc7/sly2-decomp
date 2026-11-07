@@ -1404,11 +1404,11 @@ void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
 namespace M_func_001816E8 { extern "C" {
 struct S { char pad[0x200]; int a; int b; };
 extern char D_003DD490[];
-void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
-// FAddRsmg on its RSMG table. (inferred)
+void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+// AddOrUpdateRsmg on its RSMG table. (inferred)
 void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
 {
-    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
+    AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
 }
 } } // namespace M_func_001816E8
 

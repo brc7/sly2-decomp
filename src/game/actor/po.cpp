@@ -743,7 +743,7 @@ void UpdateSwPoFollowers(SWP *world)
 }
 
 struct CREF4 { int m_tagk; int m_tag; int pad[2]; };
-extern "C" CREF4 *RefSetSaveVarV(CREF4 *pret, CREF4 *pref, const char *s, int n);
+extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int n);
 void Decref4(CREF4 *p) __asm__("Decref__4CRef");
 /** @sly2-annot addr=0x1C4940
  * Purpose: Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER
@@ -767,7 +767,7 @@ void SwitchToPo(SWP *world, POV *po)
         CREF4 ret, ref;
         ref.m_tagk = 0x15;
         ref.m_tag = po->oid;
-        RefSetSaveVarV(&ret, &ref, "oidPoCurrent", 0);
+        SetSaveVarByName(&ret, &ref, "oidPoCurrent", 0);
         Decref4(&ret);
         Decref4(&ref);
     }

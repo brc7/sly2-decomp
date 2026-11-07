@@ -1733,8 +1733,8 @@ struct M { int n; S *p; int pad[14]; };
 extern "C" { extern char D_002A7768[]; }
 extern "C" { extern char D_002A7770[]; }
 extern "C" { extern char D_002A7778[]; }
-extern "C" { CRef RefGetSaveVarV(char *a, char *b, char *c, int n); }
-extern "C" { CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n); }
+extern "C" { CRef GetSaveVarByName(char *a, char *b, char *c, int n); }
+extern "C" { CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n); }
 extern "C" void SetLootDprizes(S *p, int n);
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
 void SetLootDprizes(S *loot, int n)
@@ -1748,8 +1748,8 @@ void SetLootDprizes(S *loot, int n)
         CRef ref;
         char buf[0x10];
         sprintf(buf, D_002A7768, loot->currentEntry->saveId);
-        ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
-        RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
+        ref = GetSaveVarByName(D_002A7770, D_002A7778, buf, 0);
+        SetSaveVarByName(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
         LO *plo = loot->collectListener;
         if (plo) {
             M m;
@@ -1856,7 +1856,7 @@ struct A { int c; short *pk; };
 struct HT {void *buckets[0x35];int count;void *entries;};
 struct X {char pad[8];struct HT table;};
 extern const char D_002A7768[],D_002A7788[];
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 int sprintf(char *buf,const char *fmt,...);
 int FindSaveSymbol(struct HT *pt,const char *s);
 struct A *GetLevelListEntry(int h);
@@ -1871,7 +1871,7 @@ struct A *GetClueSaveKey(int input)
     struct A a;
     struct K k;
     char buf[0x10];
-    h = IlevelCur__Fv();
+    h = GetCurrentLevelIndex__Fv();
     if (h == -1) return 0;
     sprintf(buf, D_002A7768, n);
     k.a = Find(&(*(struct X *)&g_sw.savevars), D_002A7788);
@@ -1891,9 +1891,9 @@ void *GetClueSaveKey(void *p);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
-extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+extern "C" void GetGlobalSaveVar(CRef *pref, void *pv, void *p);
 // Reads an int global save variable.
-static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
+static inline int NFromPv(void *pv) { CRef ref; int n; GetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsClueCollected(void *p);
 // wrapper of GetClueSaveKey. (inferred)
 int IsClueCollected(void *clue)
@@ -1925,12 +1925,12 @@ struct CRef {
 extern "C" { extern char D_003D4A60[]; }
 extern "C" { 
  }
-extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
+extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
+    const CRef &ret = SetGlobalSaveVar(pv, arg, D_003D4A60);
 }
 // set clue bit / count. (inferred)
 void SetClueCollected(int n, int f)
@@ -1963,7 +1963,7 @@ struct G { char pad[0x3A18]; struct M m; };
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A7788[];
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 struct { int a; int b; } *GetLevelListEntry(int n);
 void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
 void *FindSaveVar(void *a, void *b, struct T *pt);
@@ -1980,7 +1980,7 @@ int CountCollectedClues(void)
     unsigned int i;
     struct E *pe;
     unsigned int v;
-    n = IlevelCur__Fv();
+    n = GetCurrentLevelIndex__Fv();
     if (n == -1)
         return 0;
     c = 0;
@@ -2116,7 +2116,7 @@ struct B { int a, b; int c; short Find(char *s) ; };
 extern "C" { 
  }
 extern "C" {
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 void *GetLevelListEntry(int n);
 int ConcatSaveKeys(void *p, X *px);
 int GetVaultSaveKey(void);
@@ -2128,7 +2128,7 @@ inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
 // the original (FVaultOpened) suggested a predicate but it returns the key.
 int GetVaultSaveKey(void)
 {
-    int n = IlevelCur__Fv();
+    int n = GetCurrentLevelIndex__Fv();
     X x;
     short s;
     if (n == -1) return 0;
@@ -2148,9 +2148,9 @@ void *GetVaultSaveKey(void);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
-extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+extern "C" void GetGlobalSaveVar(CRef *pref, void *pv, void *p);
 // Reads an int global save variable.
-static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
+static inline int NFromPv(void *pv) { CRef ref; int n; GetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsVaultOpened(void);
 // Whether the current level's vault has been opened (reads the 'fVault' save flag).
 int IsVaultOpened(void)
@@ -2183,12 +2183,12 @@ extern "C" {
 extern char D_002E65E0[];
  }
 
-extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
+extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
-extern "C" RAW *RefGetGlobalSaveVar(RAW *pr, void *pv, void *p);
+extern "C" RAW *GetGlobalSaveVar(RAW *pr, void *pv, void *p);
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
-static inline int NFromPv(void *pv,RAW &ref) { int n; RefGetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
-static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60); }
+static inline int NFromPv(void *pv,RAW &ref) { int n; GetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
+static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=SetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void SetVaultOpened(int f);
 // Records in the save whether the current level's vault is open. (inferred)
 void SetVaultOpened(int f)

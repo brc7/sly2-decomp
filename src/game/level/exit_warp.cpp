@@ -88,7 +88,7 @@ extern CLOCK D_002DDED0;        /* g_clock */
 
 struct CM;
 LO *FindSwObject(SW *world, int findFlags, OID oid, LO *context);
-int FAddRsmg(SW *world, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
+int AddOrUpdateRsmg(SW *world, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 void CutCm(CM *pcm);
 extern "C" {
 int FindSwObjectsByClass(SW *world, int findFlags, int cid, LO *context, int cploMax, void *aplo);
@@ -531,7 +531,7 @@ extern "C" void TriggerWarp(WARPV *warp)
 }
 
 /** @sly2-annot addr=0x2288D8
- * Purpose: FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger
+ * Purpose: AddOrUpdateRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger
  * Info: proposed name SetWarpRsmg (T1); TU exit_warp
  * Notes: verifier WRONG: SetCid41Rsmg -> SetWarpRsmg | Sly1 SetWarpRsmg; class is CID 0x2A=42 WARP (r8
  *   SetCid41Rsmg was CID 0x29)
@@ -544,7 +544,7 @@ extern "C" void TriggerWarp(WARPV *warp)
 extern "C" void SetWarpRsmg(WARPV *warp, int d, OID e, OID f, OID g)
 {
     if (d)
-        FAddRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
+        AddOrUpdateRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
 }
 
 /** @sly2-annot addr=0x228920

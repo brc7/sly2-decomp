@@ -184,7 +184,7 @@ void SetGadgetMenuState(GADGETMENUV *gadgetMenu, int nState);
 void ClearThiefnet(SCREENV *screen);
 void ClearJobList(SCREENV *screen);
 int IdsFromWorld(int nWorld);
-int NWorldCur();
+int GetCurrentWorld();
 int GetCompletionPercent(void *pgs, void *psave);
 int sprintf(char *pch, const char *pchzFormat, ...);
 void strcpy1(char *pchDst, const char *pchSrc);
@@ -1524,11 +1524,11 @@ struct E *FindScreenEntry(struct S *p, int gadgetId) {
 namespace M_func_001DAE58 { extern "C" {
 struct E { int a[4]; int unlockEpisode; int b[3]; };
 extern struct E D_002BCD00[];
-int NEpisodeBest(void);
+int GetBestEpisode(void);
 /** @sly2-annot addr=0x1DAE58
  * Purpose: Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold
  * Info: proposed name FScreenItemUnlocked (T2); TU screen
- * Notes: runtime7b V03: returns NEpisodeBest() >= gadget[i].x10 (unlock episode); S71 list matches exactly
+ * Notes: runtime7b V03: returns GetBestEpisode() >= gadget[i].x10 (unlock episode); S71 list matches exactly
  * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
@@ -1536,7 +1536,7 @@ int NEpisodeBest(void);
 int IsScreenItemUnlocked(int i) {
     struct E *pe = &D_002BCD00[i];
     if (pe->unlockEpisode == -1) return 0;
-    return NEpisodeBest() >= pe->unlockEpisode;
+    return GetBestEpisode() >= pe->unlockEpisode;
 }
 } } // namespace M_func_001DAE58
 
@@ -1544,7 +1544,7 @@ namespace M_FPowerupAcquired { extern "C" {
 typedef struct CRef { int tagk; int tag; } CRef;
 extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
 void sprintf(char *pch, char *fmt, int n);
-void RefGetSaveVarV(CRef *pref, char *a, char *b, char *c, int d);
+void GetSaveVarByName(CRef *pref, char *a, char *b, char *c, int d);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1DAEA8
@@ -1563,7 +1563,7 @@ int FPowerupAcquired(int n) {
     if (n == -1) return 0;
     ref.tagk = -1;
     sprintf(ach, D_002A79A0, n);
-    RefGetSaveVarV(&tmp, D_002A79A8, D_002A79B8, ach, 0);
+    GetSaveVarByName(&tmp, D_002A79A8, D_002A79B8, ach, 0);
     func_00129658(&ref, &tmp);
     Decref__4CRef(&tmp);
     r = ref.tag;
@@ -1589,7 +1589,7 @@ extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79A8[]; }
 extern "C" { extern char D_002A79B8[]; }
 extern "C" { int sprintf(char *, const char *, ...); }
-extern "C" { CRef RefSetSaveVarV(const CRef &, const char *, ...); }
+extern "C" { CRef SetSaveVarByName(const CRef &, const char *, ...); }
 extern "C" { void BroadcastGameEvent(G *, int, int); }
 /** @sly2-annot addr=0x1DAF38
  * Purpose: Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
@@ -1604,7 +1604,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
     CRef ref;
     char buf[0x20];
     sprintf(buf, D_002A79A0, n);
-    ref = RefSetSaveVarV(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
+    ref = SetSaveVarByName(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
         D_002DEB30.powerupId = n;
         BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
@@ -2076,8 +2076,8 @@ void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshPlayersAfterPowerupChange(void *);
 void sprintf(char *, const char *, ...);
-CRef RefGetSaveVarV(const char *, ...);
-CRef RefSetSaveVarV(const CRef &, const char *, ...);
+CRef GetSaveVarByName(const char *, ...);
+CRef SetSaveVarByName(const CRef &, const char *, ...);
 void UpdateScreenStickDir(OBJ *);
 void UpdateThiefnetWidgets(OBJ *);
 }
@@ -2135,9 +2135,9 @@ extern "C" void UpdateThiefnet(OBJ *p)
                 CRef r;
                 char buf[32];
                 sprintf(buf, D_002A79A0, p->selectedLoot);
-                r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
+                r = GetSaveVarByName(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
-                    RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
+                    SetSaveVarByName(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
                     SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
@@ -2263,7 +2263,7 @@ extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79D0[]; }
 extern "C" { extern char D_002A79D8[]; }
 extern "C" int sprintf(char *, const char *, ...);
-extern "C" CRef RefGetSaveVarV(const char *, ...);
+extern "C" CRef GetSaveVarByName(const char *, ...);
 extern "C" int IsScreenItemUnlocked(int);
 extern "C" int FPowerupAcquired(int);
 extern "C" void SelectThiefnetItem(OBJ *, int);
@@ -2305,7 +2305,7 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
             CRef ref;
             char ach[0x20];
             sprintf(ach, D_002A79A0, i);
-            ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
+            ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
             if (ref.m_tag == 0)
                 continue;
             if (p->itemCount > 0x40)
@@ -2758,7 +2758,7 @@ extern "C" { extern char D_002A79D8[]; }
 extern "C" { extern char D_002A7A30[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" char *strcpy(char *, const char *);
-extern "C" CRef RefGetSaveVarV(const char *, ...);
+extern "C" CRef GetSaveVarByName(const char *, ...);
 extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
 /** @sly2-annot addr=0x1DC890
  * Purpose: Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once
@@ -2776,7 +2776,7 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
         CRef ref;
         char ach[0x20];
         sprintf(ach, D_002A79A0, i);
-        ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
+        ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
         c = ref.m_tag;
         ids = D_002C3288[i].ids;
     }
@@ -3748,13 +3748,13 @@ extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
 extern "C" { extern void *D_002F7900; }
 extern "C" {
-CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
+CRef SetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
 void StartGameFromSave(G *);
 }
 /* The unused third parameter is deliberate: it is the same SetPv form as SetBootyContainerKind / ClearStepplayerBootySave,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
-static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
+static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08
  * Purpose: Clear the save flag at (*(void * *)&g_sw.psvpDt), bind hp/power of the three heroes, PlayGameFromGs(g_gs)
  * Info: proposed name StartNewGame (T1); TU screen
@@ -3817,7 +3817,7 @@ extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
 extern "C" int CountRegionLanguages(void);
 extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
-extern "C" { CRef RefGetGlobalSaveVar(void *, void *); }
+extern "C" { CRef GetGlobalSaveVar(void *, void *); }
 /** @sly2-annot addr=0x1DDBF0
  * Purpose: Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids
  *   5/6/8/0x56
@@ -3837,7 +3837,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     g = 0.0f;
     pv = D_002E65E0.foundSave;
     if (pv) {
-        CRef ref = RefGetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
+        CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
         g = ref.m_g;
     }
     {
@@ -3888,7 +3888,7 @@ int IdsFromWorld(int n) {
 // Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
 {
-    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, IdsFromWorld(NWorldCur())));
+    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, IdsFromWorld(GetCurrentWorld())));
 }
 
 /** @sly2-annot addr=0x1DDE10

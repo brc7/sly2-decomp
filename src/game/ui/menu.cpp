@@ -144,8 +144,8 @@ int FWidgetAnimPlaying(POOL *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
-CRef RefGetGlobalSaveVar(OPT *, CONTEXT *);
-CRef RefSetGlobalSaveVar(OPT *, const CRef &, void *);
+CRef GetGlobalSaveVar(OPT *, CONTEXT *);
+CRef SetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 float GLimitLm__FP2LMf(void *, float);
@@ -157,7 +157,7 @@ char *GetHeroPo(SWM *g);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
 int AreWidgetLoadsIdle(void);
-int NWorldCur(void);
+int GetCurrentWorld(void);
 int GetBasicCid(void *p);
 void SetJobListPage(void *p, int f);
 void StartSaveSlotJob(GSAVE *p);
@@ -179,8 +179,8 @@ int GetPauseMenuTopPageId(PMENU *p);
 int IsPauseMenuOnSavePage(PMENU *p);
 }
 /* Callers' views (asm labels). */
-CRef Eval(int a, void *b) __asm__("RefGetGlobalSaveVar");
-void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar");
+CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
+void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("GetGlobalSaveVar");
 
 /** @sly2-annot addr=0x1AE928
  * Purpose: Find menu widget object (oid 0x370) into +0x20; state 0, selection -1
@@ -370,7 +370,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     }
 }
 
-static inline float Value(OPT*key,CONTEXT*context){CRef result=RefGetGlobalSaveVar(key,context);return result.f;}
+static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 /** @sly2-annot addr=0x1AEEE0
  * Purpose: Screen vt7: per-frame menu input (GetJoySelectionStepY, HandleJoyButtons), item activation callbacks,
@@ -733,7 +733,7 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
     }
 }
 
-static inline void SetPv(OPT*key,CRef r,void*context){RefSetGlobalSaveVar(key,r,context);}
+static inline void SetPv(OPT*key,CRef r,void*context){SetGlobalSaveVar(key,r,context);}
 static inline void SetInt(OPT*key,int x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
@@ -928,13 +928,13 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         case 0x6A:
             f = 0;
             if (D_003DA3C0.unknown24) {
-                if (NWorldCur()) f = 1;
+                if (GetCurrentWorld()) f = 1;
             }
             break;
         case 0x6B:
             f = 0;
             if (D_003DD490.currentJob) {
-                if (NWorldCur()) f = 1;
+                if (GetCurrentWorld()) f = 1;
             }
             break;
         case 0x43:
@@ -949,7 +949,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         case 0x2C:
             break;
         case 0x42:
-            f = NWorldCur() != 0;
+            f = GetCurrentWorld() != 0;
             break;
         }
         if (f) {

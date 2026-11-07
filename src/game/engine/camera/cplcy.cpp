@@ -302,7 +302,7 @@ void SetSndVolume(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-void RefGetGlobalSaveVar(struct CRef *, void *, void *);
+void GetGlobalSaveVar(struct CRef *, void *, void *);
 void Decref__4CRef(struct CRef *);
 float GLimitAbs__Fff(float g, float gMax);
 float RadNormalize__Ff(float g);
@@ -351,7 +351,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
     gPan = -__builtin_fabsf(pjoy->dxLeft) * pjoy->dxLeft * D_002BD990;
     gTilt = -__builtin_fabsf(pjoy->dyLeft) * pjoy->dyLeft * D_002BD994;
-    RefGetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
+    GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
     f = ref.m_n;
     Decref__4CRef(&ref);
     if (f)

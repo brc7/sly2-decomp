@@ -176,7 +176,7 @@ int GetSavedBootyContainerKind(CID37V *p);
 }
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* IsBasicDerivedFrom__FP5BASIC3CID */
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
-int IlevelCur();                                    /* IlevelCur__Fv */
+int GetCurrentLevelIndex();                                    /* GetCurrentLevelIndex__Fv */
 
 // BOOTY (cid 0x67) vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
 extern "C" void InitBooty(BOOTYV *booty) {
@@ -729,7 +729,7 @@ void GetBootyContainerSaveKey(CID37V *container) {
     int i;
     int v;
     i = 0;
-    v = IlevelCur();
+    v = GetCurrentLevelIndex();
     if (v == -1) v = i;
     i = v;
     char *pv = (char *)&g_sw.savevars;
@@ -759,15 +759,15 @@ public:
 };
 struct CREFC { int m_tagk; int m_n; };
 extern "C" {
-void RefGetGlobalSaveVar(CREFC *, void *, void *);
-CRef RefSetGlobalSaveVar(void *, const CRef &, void *);
+void GetGlobalSaveVar(CREFC *, void *, void *);
+CRef SetGlobalSaveVar(void *, const CRef &, void *);
 }
 // Reads an integer save variable through a CRef.
 static inline int NFromRef(void *pv)
 {
     CREFC ref;
     int n;
-    RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
+    GetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.m_n;
     Decref__4CRef(&ref);
     return n;
@@ -790,7 +790,7 @@ int GetSavedBootyContainerKind(CID37V *container) {
 }
 
 // Stores a CRef into a global save variable.
-static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
+static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, D_003D4A60); }
 // Splice: reset current booty, save kind n, and spawn if n != -1. (inferred)
 extern "C" void SetBootyContainerKind(CID37V *container, int n)
 {

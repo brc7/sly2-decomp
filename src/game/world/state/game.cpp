@@ -199,12 +199,12 @@ struct CLOCK { float time, dt; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
-extern "C" CRef RefGetGlobalSaveVar(OPT *, void *);
-extern "C" CRef RefSetGlobalSaveVar(OPT *, const CRefData &, void *);
-extern "C" int NWorldCur();
+extern "C" CRef GetGlobalSaveVar(OPT *, void *);
+extern "C" CRef SetGlobalSaveVar(OPT *, const CRefData &, void *);
+extern "C" int GetCurrentWorld();
 extern "C" void ChangeDifficulty(void *, float);
-static inline float GetFloat(OPT *p, void *context) { const CRef &r = RefGetGlobalSaveVar(p, context); return r.g; }
-static inline void SetPv(OPT *p, const CRef &r, void *context) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(p, arg, context); }
+static inline float GetFloat(OPT *p, void *context) { const CRef &r = GetGlobalSaveVar(p, context); return r.g; }
+static inline void SetPv(OPT *p, const CRef &r, void *context) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(p, arg, context); }
 static inline void SetFloat(OPT *p, float x, void *context) { CRef r(x); SetPv(p, r, context); }
 struct CRefCopy : CRefData {
     CRefCopy(const CRefData &r) { __4CRefRC4CRef(this, &r); }
@@ -215,11 +215,11 @@ static inline void SetPlayTimeFloat(OPT *p, float value, void *context)
 {
     CRef r(value);
     CRefCopy arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(p, arg, context);
+    const CRef &ret = SetGlobalSaveVar(p, arg, context);
 }
 /** @sly2-annot addr=0x161478
  * Purpose: Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's
- *   play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); adds dt to the current JOB's elapsed time and eases
+ *   play-time var (g_sw+0x3B58[GetCurrentWorld()], 9 episodes); adds dt to the current JOB's elapsed time and eases
  *   difficulty (ChangeDifficulty(dt/(end-start))) once elapsed > job start threshold (default 480 s, end 720
  *   s)
  * Info: proposed name UpdateGameTimers (T1); TU game
@@ -236,7 +236,7 @@ extern "C" void UpdateGameTimers()
         return;
     float playTime = GetFloat(D_003DD490.playTimeVar, D_003D4A60);
     SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.dt, D_003D4A60);
-    unsigned int episode = NWorldCur();
+    unsigned int episode = GetCurrentWorld();
     if (episode < 9) {
         OPT *var = D_003DD490.episodePlayTimeVars[episode];
         if (var) {
@@ -341,7 +341,7 @@ extern "C" int GetEpisodePercentComplete()
 namespace M_func_00161798 { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 extern char D_003D4A60[];
-void RefGetGlobalSaveVar(CRef *pref, int a, void *b);
+void GetGlobalSaveVar(CRef *pref, int a, void *b);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x161798
  * Purpose: Reads the int save var at g_sw+0x3B20 (a collectible counter)
@@ -355,7 +355,7 @@ int GetCoinCount(void)
 {
     CRef ref;
     int n;
-    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpCcoin), D_003D4A60);
+    GetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpCcoin), D_003D4A60);
     n = ref.m_tag;
     Decref__4CRef(&ref);
     return n;
@@ -375,8 +375,8 @@ public:
 };
 struct O;
 extern "C" { extern char D_003D4A60[]; }
-extern "C" CRef RefSetGlobalSaveVar(O *, const CRef &, void *);
-static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60);}
+extern "C" CRef SetGlobalSaveVar(O *, const CRef &, void *);
+static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=SetGlobalSaveVar(pv,arg,D_003D4A60);}
 struct G { char pad[0x3B20]; O *coinCountVar; };
 extern "C" { extern G D_003DD490; }
 extern "C" void RestartHudWidget1(G *pg);
@@ -555,7 +555,7 @@ extern BANK D_002E65E0;
  void InitGame(P*);
  void ApplyPendingSaveData();
  void ReloadSaveSlots(BANK*);
- int NWorldCur();
+ int GetCurrentWorld();
  void ApplyGsSettings(void*);
  void RestoreTasksAfterLoad(P*);
  LEASE*STACKSCOPE_ctor(LEASE*);
@@ -592,8 +592,8 @@ struct OVERRIDE {
     }
 };
 struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
-extern "C" CRef RefGetGlobalSaveVar(void*,void*);
-static inline float GetFloat(void*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
+extern "C" CRef GetGlobalSaveVar(void*,void*);
+static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.g;}
 static inline int Same(CHECK*a,CHECK*b){
  if(a==b)return 1;
  if(!a||!b)return 0;
@@ -668,7 +668,7 @@ extern "C" void HandleGameEvent(P *game, int action)
         } else if (D_003DD490.transitionFlags & 0x40)
             ApplyPendingSaveData();
         ReloadSaveSlots(&D_002E65E0);
-        if (NWorldCur())
+        if (GetCurrentWorld())
             break;
         if (D_002E65E0.mode != 6 || D_002E65E0.selectedSlot || !D_002E65E0.currentSlotData)
             break;
@@ -857,7 +857,7 @@ struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" int GetStateBit(int n);
 extern "C" int GetStateMask(int numRecords, int *states);
-extern "C" int IlevelCur__Fv();
+extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" void *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 /** @sly2-annot addr=0x1620B0
  * Purpose: For a job/task state change: for each {oidLo, oidContext, grfStates, level} record whose mask
@@ -885,7 +885,7 @@ extern "C" void ApplyStateLoVisibility(void *object, int nState, int numRecords,
         E *record = &records[i];
         if (!(record->stateMask & groupMask))
             continue;
-        if (record->level != -1 && record->level != IlevelCur__Fv())
+        if (record->level != -1 && record->level != GetCurrentLevelIndex__Fv())
             continue;
         void *contextObject = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, record->context, 0);
         LO *plo = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, contextObject ? 4 : 5, record->object, contextObject);
@@ -903,7 +903,7 @@ namespace M_TriggerStateRsmg { extern "C" {
 struct E { int state; int root; int stateMachine; int goal; int restoreOnly; int level; };
 struct G;
 extern struct G D_003DD490;
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 int FindSwObjects(struct G *pg, int kind, int oid, int a, int c, void **apv);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
 void *FindLiveSma(void *pv, int n);
@@ -925,7 +925,7 @@ void TriggerStateRsmg(void *pvUnused, struct E *record, int newState, int source
     int goal;
     if (record->state != -1 && record->state != newState) return;
     if (record->restoreOnly && source == STATE_SOURCE_GAMEPLAY) return;
-    if (record->level != -1 && record->level != IlevelCur__Fv()) return;
+    if (record->level != -1 && record->level != GetCurrentLevelIndex__Fv()) return;
     if (FindSwObjects(&D_003DD490, 0x205, record->root, 0, 1, &root) != 1) return;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(root, 0x30)) return;
     sma = FindLiveSma(root, record->stateMachine);
@@ -1182,7 +1182,7 @@ int IsCurrentJob(struct S *p);
 int IsJobLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, int a);
 void TriggerStateRsmgs(struct S *p, int n, int c, int a, int b);
-void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
+void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 void *GetSaveVarAddress(void *p, void *q, void *r);
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
@@ -1209,7 +1209,7 @@ void PostJobLoad(struct S *job)
     pn = &job->startCountKey;
     if (*pn) {
         int n;
-        RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
+        GetGlobalSaveVar(&ref, pn, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
         job->startCount = n;
@@ -1217,7 +1217,7 @@ void PostJobLoad(struct S *job)
     pn = &job->savedTimeKey;
     if (*pn) {
         float g;
-        RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
+        GetGlobalSaveVar(&ref, pn, D_003D4A60);
         g = *(float *)&ref.m_tag;
         Decref__4CRef(&ref);
         job->elapsedTime = g;
@@ -1372,7 +1372,7 @@ extern "C" { extern char D_002DEB30[]; }
 extern "C" void SetSwJobCur(G *pg, O *p);
 extern "C" void SetSwTaskPending(G *pg, O *p);
 extern "C" W *GetCurrentWorldEntry();
-extern "C" int IlevelCur__Fv();
+extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" W *GetLevelFileRecord(int n);
 extern "C" int IsJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
@@ -1399,7 +1399,7 @@ extern "C" void EndJob(O *job)
     if (D_003DD490.pendingTask && D_003DD490.pendingTask->job && D_003DD490.pendingTask->job == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *currentEntry = GetCurrentWorldEntry();
-    W *levelEntry = GetLevelFileRecord(IlevelCur__Fv());
+    W *levelEntry = GetLevelFileRecord(GetCurrentLevelIndex__Fv());
     if (IsSameFileRecord(currentEntry, levelEntry)) {
         D_003DD490.returnWarpOid = 0x189;
         D_003DD490.returnWarpContext = -1;
@@ -1909,9 +1909,9 @@ struct CRef{
 struct OPT{int kind,value;};
 struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
-extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
+extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,D_003D4A60);}
+static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
 /** @sly2-annot addr=0x163460
@@ -2144,7 +2144,7 @@ int IsCurrentTask(struct S *p);
 int IsTaskLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, struct E16 *a);
 void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
-CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
+CRef *GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 void SetLoBusyKind(struct S *p, int n);
 /** @sly2-annot addr=0x1638F8
@@ -2195,14 +2195,14 @@ void PostTaskLoad(struct S *task)
     }
     if (task->startCountKey) {
         int n;
-        RefGetGlobalSaveVar(&ref, startCountKeyPtr, D_003D4A60);
+        GetGlobalSaveVar(&ref, startCountKeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
         task->startCount = n;
     }
     if (task->completionCountKey) {
         int n;
-        RefGetGlobalSaveVar(&ref, completionCountKeyPtr, D_003D4A60);
+        GetGlobalSaveVar(&ref, completionCountKeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
         task->completionCount = n;
@@ -2544,7 +2544,7 @@ namespace M_FTaskComplete { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct S { char pad[0x54]; int state; char pad2[0xD8 - 0x58]; int completeKey; };
 extern char D_003D4A60[];
-void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
+void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x164030
  * Purpose: State >= 2, or for an unset task (-1) the value of its save var +0xD8
@@ -2558,7 +2558,7 @@ int IsTaskComplete(struct S *task)
     if (task->state == TASK_STATE_UNSET && task->completeKey) {
         CRef ref;
         int value;
-        RefGetGlobalSaveVar(&ref, &task->completeKey, D_003D4A60);
+        GetGlobalSaveVar(&ref, &task->completeKey, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
         return value;
@@ -2666,7 +2666,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct Y;
 struct X { char pad[0x54]; int state; char pad1[0x64 - 0x58]; union { struct X *startTask; int startCount; }; char pad2[0x7C - 0x68]; union { struct X *job; int jobStartCount; }; char pad3[0x94 - 0x80]; int numPrerequisites; struct X **prerequisites; char pad4[0xE0 - 0x9C]; int stateKey; int pad5; int interruptedKey; };
 extern char D_003D4A60[];
-void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
+void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 void SetTaskState(struct X *p, int n);
 /** @sly2-annot addr=0x164270
@@ -2688,7 +2688,7 @@ void RestoreTaskState(struct X *task)
     wasInterrupted = 0;
     if (*key) {
         int value;
-        RefGetGlobalSaveVar(&ref, key, D_003D4A60);
+        GetGlobalSaveVar(&ref, key, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
         state = value;
@@ -2696,7 +2696,7 @@ void RestoreTaskState(struct X *task)
     key = &task->interruptedKey;
     if (*key) {
         int value;
-        RefGetGlobalSaveVar(&ref, key, D_003D4A60);
+        GetGlobalSaveVar(&ref, key, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
         wasInterrupted = value;
@@ -2735,10 +2735,10 @@ struct CRef {
 struct OPT{int kind,value;};
 struct S{char pad[0x54];int state;char pad58[0xC];int startCount,completionCount;char pad6C[0x10];void*job;char pad80[0x48];OPT startCountVar,completionCountVar,completeVar,stateVar,interruptedVar;int pendingCascadeState,stateSource;};
 extern "C" { extern char D_003D4A60[]; }
-extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
+extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsTaskComplete(S*);
 extern "C" void UpdateJobSaveVars(void*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,D_003D4A60);}
+static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 /** @sly2-annot addr=0x1643B0
  * Purpose: Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes
@@ -3307,7 +3307,7 @@ void*AllocClearedFromStack(const REQUEST&);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 void CollectTaskCascade(P*,int,int*,P**);
 void SetTaskStatePropagate(P*,int);
-int NWorldCur(void);
+int GetCurrentWorld(void);
 int GetEpisodePercentComplete(void*);
 int IsTaskLive(P*);
 void OnJobTaskComplete(void*,P*);
@@ -3333,8 +3333,8 @@ struct OVERRIDE {
     }
 };
 struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
-extern "C" CRef RefSetGlobalSaveVar(void*,const CRef&,void*);
-static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=RefSetGlobalSaveVar(object,arg,D_003D4A60);}
+extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
+static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
 /** @sly2-annot addr=0x164DF0
  * Purpose: Main task state change: propagates to collected successors, sets the state, updates the episode
@@ -3378,7 +3378,7 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     }
     SetTaskStatePropagate(task, state);
     D_002DEB28 = 0;
-    int episode = NWorldCur();
+    int episode = GetCurrentWorld();
     if ((unsigned)episode < 9) {
         void *percentVar = D_003DD490.episodePercentVars[episode];
         if (percentVar)
@@ -3555,7 +3555,7 @@ extern "C" void SortTasksTopologically(int *pc, X ***papx);
 extern "C" void RestoreTaskState(X *p);
 extern "C" X *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void SetTaskStateCascade(X *p, int n);
-extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
+extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
 extern "C" void SetTaskState(X *p, int n);
 /** @sly2-annot addr=0x165280
@@ -3592,7 +3592,7 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
         CRef ref;
         ref.m_tagk = 0x15;
         ref.m_tag = playerOid;
-        RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
+        SetSaveVarByName(&refRet, &ref, D_002A5238, 0);
         Decref__4CRef(&refRet);
         Decref__4CRef(&ref);
     }
@@ -3666,9 +3666,9 @@ extern "C" void AbortJob(X *p);
 extern "C" void SetCurrentJob(X *p);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void ActivateTask(X *p);
-extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
+extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
-extern "C" int IlevelCur__Fv();
+extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" void *GetLevelFileRecord(int n);
 extern "C" void WipeToWorldWarp(G *pg, void *p, int a, int b, int c, int d);
 /** @sly2-annot addr=0x165538
@@ -3699,13 +3699,13 @@ extern "C" void GoToTask(X *task)
         CRef ref;
         ref.m_tagk = 0x15;
         ref.m_tag = task->playerOid;
-        RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
+        SetSaveVarByName(&refRet, &ref, D_002A5238, 0);
         Decref__4CRef(&refRet);
         Decref__4CRef(&ref);
     }
     int warpOid = task->warpOid == -1 ? 0x189 : task->warpOid;
     int flags = 4;
-    if (D_003DD490.unknown3E38 && (task->level == -1 || task->level == IlevelCur__Fv()))
+    if (D_003DD490.unknown3E38 && (task->level == -1 || task->level == GetCurrentLevelIndex__Fv()))
         flags = 0x24;
     WipeToWorldWarp(&D_003DD490, GetLevelFileRecord(task->level), warpOid, -1, flags, 0x30A);
 }
@@ -4071,12 +4071,12 @@ extern struct Q D_002DEB30;
 extern void *D_002DEB4C;
 extern char D_003DA530[];
 extern char D_002A3828[];
-CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
+CRef *GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 int FScreenShown(void *p);
 void ResetRumbleSaveVar(void);
 void HideTitleScreen(void *p);
-void *PrecWorldEntry(int n);
+void *GetWorldEntry(int n);
 void WipeToWorldWarp(struct G *pg, void *p, int a, int b, int c, int d);
 /** @sly2-annot addr=0x165E38
  * Purpose: Starts play from a save-slot GS: new game -> first task oid 0x62F in world entry 0; else the saved
@@ -4096,7 +4096,7 @@ void StartGameFromSave(void *pv)
     register int n __asm__("$16"); /* register pin: n lives in s0 in the target */
     void *worldEntry;
     void *percentVar;
-    RefGetGlobalSaveVar(&ref, D_003DD490.playTimeVar, pv);
+    GetGlobalSaveVar(&ref, D_003DD490.playTimeVar, pv);
     playTime = *(float *)&ref.m_tag;
     Decref__4CRef(&ref);
     if (FScreenShown(D_003DA530) && playTime == 0.0f) {
@@ -4109,7 +4109,7 @@ void StartGameFromSave(void *pv)
         D_002DEB30.currentJobOid = -1;
         D_002DEB30.currentTaskOid = -1;
         D_002DEB30.pendingTaskOid = 0x62F;
-        WipeToWorldWarp(&D_003DD490, PrecWorldEntry(0), 0x189, -1, 0x48, -1);
+        WipeToWorldWarp(&D_003DD490, GetWorldEntry(0), 0x189, -1, 0x48, -1);
         return;
     }
     {
@@ -4118,16 +4118,16 @@ void StartGameFromSave(void *pv)
         D_002DEB30.currentJobOid = -1;
         D_002DEB30.currentTaskOid = -1;
         D_002DEB30.pendingTaskOid = -1;
-        RefGetGlobalSaveVar(&ref, pg->currentEpisodeVar, pv);
+        GetGlobalSaveVar(&ref, pg->currentEpisodeVar, pv);
     }
     __asm__ __volatile__(""); /* ordering-only: ends the -1 constant's dependence chain at the call */
     n = ref.m_tag;
     Decref__4CRef(&ref);
-    worldEntry = PrecWorldEntry(n);
+    worldEntry = GetWorldEntry(n);
     percentVar = D_003DD490.episodePercentVars[n];
     n = 0;
     if (percentVar) {
-        RefGetGlobalSaveVar(&ref, percentVar, pv);
+        GetGlobalSaveVar(&ref, percentVar, pv);
         n = ref.m_tag;
         Decref__4CRef(&ref);
     }
@@ -4176,13 +4176,13 @@ extern "C" void ResetGameSequence()
 }
 
 namespace M_RefGetGlobalSaveVar { extern "C" {
- void RefGetSaveVar(void *, void *, int, int);
-inline void *RefGetGlobalSaveVar(void *a, int b, int c) { RefGetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
+ void GetSaveVar(void *, void *, int, int);
+inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
 } } // namespace M_RefGetGlobalSaveVar
 
 namespace M_RefSetGlobalSaveVar { extern "C" {
- void RefSetSaveVar(void *, void *, int, int, int);
-inline void *RefSetGlobalSaveVar(void *a, int b, int c, int d) { RefSetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
+ void SetSaveVar(void *, void *, int, int, int);
+inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
 } } // namespace M_RefSetGlobalSaveVar
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

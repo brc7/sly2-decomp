@@ -64,7 +64,7 @@ struct VU_VECTOR { qword q; VU_VECTOR(const VECTORQ &vec) __asm__("__9VU_VECTORR
 
 extern char D_003DD490[];       /* g_sw */
 extern char D_002DE578[];       /* the difficulty record */
-int IlevelCur();
+int GetCurrentLevelIndex();
 extern "C" {
 void SetTag(CREFV *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void Decref(CREFV *pref) __asm__("Decref__4CRef");
@@ -78,8 +78,8 @@ CREFV *CRef_ctor_MATRIX4(CREFV *pref, MATRIX4 *pmat);
 CREFV *CRef_ctor_BASIC(CREFV *pref, BASIC *pbasic);
 void InvertMatrix4(MATRIX4 *pmat, MATRIX4 *pmatInverse);
 void CalculateDmat4(MATRIX4 *pmat1, MATRIX4 *pmat2, MATRIX4 *pmatResult);
-int NEpisodeCur();
-int NWorldCur();
+int GetCurrentEpisode();
+int GetCurrentWorld();
 int SwStubFalse();
 float GetDifficulty(char *pdifficulty);
 void CancelSwSpliceCallback(char *psw, int n);
@@ -3819,7 +3819,7 @@ CRef *RefOpCurrentTime__FiP4CRefP6CFrame(CRef *ret)
  * Purpose: S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList
  * Info: proposed name RefOpCurrentLevel (T1); TU bif
  * Notes: v3: superseded RefOpGetLoadFilterCur | splice builtin 97 load-filter~ -> current-level~ (0.70): Body
- *   returns CRef Int(IlevelCur()) = D_003E1110 (current level index; siblings NEpisodeCur/NWorldCur).
+ *   returns CRef Int(GetCurrentLevelIndex()) = D_003E1110 (current level index; siblings GetCurrentEpisode/GetCurrentWorld).
  *   Scripts: (case (load-filter~) ...) and (= (load-filter~)
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r1_116918+top50_round(splice
  *   builtin 97)
@@ -3828,7 +3828,7 @@ CRef *RefOpCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 // S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList.
 extern "C" CREFV *RefOpCurrentLevel(CREFV *pref)
 {
-    pref->u.n = IlevelCur();
+    pref->u.n = GetCurrentLevelIndex();
     pref->m_tagk = TAGK_S32;
     return pref;
 }
@@ -3838,7 +3838,7 @@ extern "C" CREFV *RefOpCurrentLevel(CREFV *pref)
  * Purpose: S32 = table D_003E1C48[cur] (0x210A98) or -1
  * Info: proposed name RefOpCurrentEpisode (T1); TU bif
  * Notes: v3: superseded RefOpGetLoadFilterMappedA | splice builtin 98 load-filter-world-episode~ ->
- *   current-episode~ (0.65): Body returns Int(NEpisodeCur()) = g_anEpisodeOfLevel[IlevelCur()] or -1. Not
+ *   current-episode~ (0.65): Body returns Int(GetCurrentEpisode()) = g_anEpisodeOfLevel[GetCurrentLevelIndex()] or -1. Not
  *   used by retail scripts
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round(splice
  *   builtin 98)
@@ -3847,7 +3847,7 @@ extern "C" CREFV *RefOpCurrentLevel(CREFV *pref)
 // S32 = table D_003E1C48[cur] (0x210A98) or -1.
 extern "C" CREFV *RefOpCurrentEpisode(CREFV *pref)
 {
-    pref->u.n = NEpisodeCur();
+    pref->u.n = GetCurrentEpisode();
     pref->m_tagk = TAGK_S32;
     return pref;
 }
@@ -3857,7 +3857,7 @@ extern "C" CREFV *RefOpCurrentEpisode(CREFV *pref)
  * Purpose: S32 = table D_003E1C44[cur] (0x210AE0) or -1
  * Info: proposed name RefOpCurrentWorld (T1); TU bif
  * Notes: v3: superseded RefOpGetLoadFilterMappedB | splice builtin 99 load-filter-world~ -> current-world~
- *   (0.65): Body returns Int(NWorldCur()) = g_anWorldOfLevel[IlevelCur()] or -1. Scripts: (case
+ *   (0.65): Body returns Int(GetCurrentWorld()) = g_anWorldOfLevel[GetCurrentLevelIndex()] or -1. Scripts: (case
  *   (load-filter-world~) ((1) 33) ((2) 34) ...) and (= (load-filter-world~) -1)
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round(splice
  *   builtin 99)
@@ -3866,7 +3866,7 @@ extern "C" CREFV *RefOpCurrentEpisode(CREFV *pref)
 // S32 = table D_003E1C44[cur] (0x210AE0) or -1.
 extern "C" CREFV *RefOpCurrentWorld(CREFV *pref)
 {
-    pref->u.n = NWorldCur();
+    pref->u.n = GetCurrentWorld();
     pref->m_tagk = TAGK_S32;
     return pref;
 }
@@ -5166,29 +5166,29 @@ struct X { int a[4]; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
-CRef RefGetSaveVar(void *a, X *px, void *b);
+CRef GetSaveVar(void *a, X *px, void *b);
 CRef RefOpGetSaveVar(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x125398
- * Purpose: Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..)
+ * Purpose: Converts path list to U16 array (0x1252D0) and returns GetSaveVar(D_003E0EA8,..)
  * Info: proposed name RefOpGetSaveVar (T1); TU bif
  * Notes: names_v2 B proposed RefOpStartRumble__FiP4CRefP6CFrame (0.923) | splice_scripts format doc cites
  *   this function by this name (CONFIRMED(code) in the doc) | splice builtin 131 get-save-var~ ->
  *   get-save-var~ (0.85): Body converts the quoted path list to a key array (FillAsFromPair) and returns
- *   RefGetSaveVar(D_003E0EA8, key, D_003D4A60). Scripts: (get-save-var~ '(oidPoCurren
+ *   GetSaveVar(D_003E0EA8, key, D_003D4A60). Scripts: (get-save-var~ '(oidPoCurren
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources:
  *   r1_116918+format-doc:splice_scripts+top50_round(splice builtin 131)
  * See: docs/formats/splice-scripts.md#3-names,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..).
+// Converts path list to U16 array (0x1252D0) and returns GetSaveVar(D_003E0EA8,..).
 CRef RefOpGetSaveVar(void *pbasic, CRef *args)
 {
     CRef ref;
     STACKSCOPE obj;
     X x;
     FillAsFromPair(args[0].u.pv, &x);
-    ref = RefGetSaveVar(&g_sw.savevars, &x, D_003D4A60);
+    ref = GetSaveVar(&g_sw.savevars, &x, D_003D4A60);
     return ref;
 }
 } // namespace M_RefOpGetSaveVar
@@ -5209,25 +5209,25 @@ struct X { int a[4]; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
-CRef RefSetSaveVar(void *a, X *px, CRef *pref, void *b);
+CRef SetSaveVar(void *a, X *px, CRef *pref, void *b);
 CRef RefOpSetSaveVar(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x125450
- * Purpose: Path list + value -> RefSetSaveVar 0x1D80C8
+ * Purpose: Path list + value -> SetSaveVar 0x1D80C8
  * Info: proposed name RefOpSetSaveVar (T1); TU bif
- * Notes: splice builtin 132 set-save-var!~ -> set-save-var!~ (0.80): Body pair of 131 (RefSetSaveVar). Unused
+ * Notes: splice builtin 132 set-save-var!~ -> set-save-var!~ (0.80): Body pair of 131 (SetSaveVar). Unused
  *   by retail scripts
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 132)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Path list + value -> RefSetSaveVar 0x1D80C8.
+// Path list + value -> SetSaveVar 0x1D80C8.
 CRef RefOpSetSaveVar(void *pbasic, CRef *args)
 {
     CRef ref;
     STACKSCOPE obj;
     X x;
     FillAsFromPair(args[0].u.pv, &x);
-    ref = RefSetSaveVar(&g_sw.savevars, &x, &args[1], D_003D4A60);
+    ref = SetSaveVar(&g_sw.savevars, &x, &args[1], D_003D4A60);
     return ref;
 }
 } // namespace M_RefOpSetSaveVar
