@@ -920,7 +920,7 @@ void GetCmCpdefi(struct P *p, struct O *po, struct S *ps)
 }
 } } // namespace M_GetCmCpdefi
 
-namespace M_FFindCmClearInterval { extern "C" {
+namespace M_FindCameraClearInterval { extern "C" {
 /* float g placed after the pointer params: its param copy comes after pgMax, lengthening pgMax so the hoisted 0x40 wins $fp in global alloc */
 typedef int qword __attribute__((mode(TI)));
 struct T { int a, b, c; };
@@ -962,7 +962,7 @@ int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *
         *pgMax = g1;
     return 1;
 }
-} } // namespace M_FFindCmClearInterval
+} } // namespace M_FindCameraClearInterval
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -1549,7 +1549,7 @@ void BuildStereoEyeViewProj(struct CM *cm, int k, void *pv, int n, M4 *pm)
 }
 } } // namespace M_BuildStereoEyeViewProj
 
-namespace M_FInsideCmFrustum { extern "C" {
+namespace M_IsInCameraFrustum { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
@@ -1563,9 +1563,9 @@ int IsInCameraFrustum(struct X *p, qword v, qword w)
             : "=r"(f) : "j"(p->r[0]), "j"(p->r[1]), "j"(p->r[2]), "j"(v), "j"(one), "j"(w));
     return (f ^ 0xF0) == 0;
 }
-} } // namespace M_FInsideCmFrustum
+} } // namespace M_IsInCameraFrustum
 
-namespace M_FInsideCmMrd { extern "C" {
+namespace M_IsWithinCameraRenderDistance { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float cullScale; };
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
@@ -1587,12 +1587,12 @@ int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
         *pu = 1.0f;
     return 1;
 }
-} } // namespace M_FInsideCmMrd
+} } // namespace M_IsWithinCameraRenderDistance
 
 
 /* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
-namespace M_func_00258290 { extern "C" {
+namespace M_DestroyCm { extern "C" {
 typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
@@ -1609,7 +1609,7 @@ inline void DestroyCm(S *p, int x)
     if (p->lookZoomSound) p->lookZoomSound->vt->f((char *)p->lookZoomSound + p->lookZoomSound->vt->d);
     DestroyBasic(p, x);
 }
-} } // namespace M_func_00258290
+} } // namespace M_DestroyCm
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

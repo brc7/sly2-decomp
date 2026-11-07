@@ -620,7 +620,7 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
-int FPausedEmitter(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
+int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
 void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
@@ -669,7 +669,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *emitter, float dt)
             return;
     }
 LActive:   /* near the camera (or not tied to a parent) */
-    if (FPausedEmitter(emitter))
+    if (IsEmitterPaused(emitter))
         return;
 
     int numToEmit = 0;
@@ -784,7 +784,7 @@ void UnpauseEmitter(EMITTERV *pemitter)
     pemitter->tUnpause = -1.0f;
 }
 
-namespace M_FPausedEmitter__FP7EMITTER {
+namespace M_IsEmitterPaused__FP7EMITTER {
 extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTERV { char pad[0xF0]; int emitMode; int particleCount; char pad2[0x148 - 0xF8]; float tUnpause; };
 // Returns whether the emitter is paused: before its unpause time, or (continuous and constant-count modes) with no particles left to
@@ -801,7 +801,7 @@ extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
     }
     return 0;
 }
-} // namespace M_FPausedEmitter__FP7EMITTER
+} // namespace M_IsEmitterPaused__FP7EMITTER
 
 void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 // Called when the emitter's properties changed: clears the dirty flag, pushes the new emission parameters to its blip

@@ -1398,7 +1398,7 @@ NewActFromParams,0x12E3F0,act
 ReleaseAct,0x12E460,act
 StaticInit_act,0x12E4A8,act
 func_0012E5E0,0x12E5E0,act
-func_0012E600,0x12E600,tu_12E600
+InitCamera,0x12E600,tu_12E600
 PostCameraLoad,0x12E648,tu_12E600
 AddCameraHierarchy,0x12E6A0,tu_12E600
 RemoveCameraHierarchy,0x12E6E8,tu_12E600
@@ -1406,7 +1406,7 @@ GetCameraFocalLengthField,0x12E738,tu_12E600
 IncrementCameraFovRequests,0x12E740,tu_12E600
 DecrementCameraFovRequests,0x12E750,tu_12E600
 CPCAMERA_ctor,0x12E760,tu_12E600
-func_0012E798,0x12E798,tu_12E600
+ActivateCpcamera,0x12E798,tu_12E600
 DeactivateCpcamera,0x12E7F0,tu_12E600
 UpdateCpcamera,0x12E858,tu_12E600
 StaticInit_tu_12E600,0x12E9F0,tu_12E600
@@ -1607,7 +1607,7 @@ RemoveBlip__FP4BLIP,0x139098,blip
 NewBlipGroup,0x1390D8,blip
 InitBlipg__FP5BLIPG,0x1391C8,blip
 OnBlipgRemove__FP5BLIPG,0x139250,blip
-func_00139318,0x139318,blip
+ReleaseBlipg,0x139318,blip
 PropagateBlipgShader,0x139370,blip
 SetBlipgEmitb,0x1394C8,blip
 UpdateBlipg,0x1398E0,blip
@@ -2064,14 +2064,14 @@ PosCplookAnchor,0x14FE58,cplcy
 PosCplookEye,0x14FEC8,cplcy
 ActivateCplook,0x14FF38,cplcy
 UpdateCplook,0x150160,cplcy
-func_001505D8,0x1505D8,cplcy
+ResetCplook,0x1505D8,cplcy
 DeactivateCplook,0x150610,cplcy
 CPZOOM_ctor,0x150728,cplcy
 PosCpzoomCenter,0x150780,cplcy
 PosCpzoomEye,0x1507F8,cplcy
 ActivateCpzoom,0x150938,cplcy
 UpdateCpzoom,0x150A28,cplcy
-func_00150DE8,0x150DE8,cplcy
+ResetCpzoom,0x150DE8,cplcy
 SetCpzoomOwner,0x150E20,cplcy
 SetCpzoomFocus,0x150E60,cplcy
 SetCpzoomPose,0x150EA0,cplcy
@@ -3774,7 +3774,7 @@ InitRenderTargets,0x1BE398,tu_1BE398
 SetupRenderTargetView,0x1BE6F0,tu_1BE398
 BeginRpRenderTarget0,0x1BE990,tu_1BE398
 BeginRpRenderTarget1,0x1BE9E8,tu_1BE398
-func_001BEA40,0x1BEA40,tu_1BE398
+InitRtcam,0x1BEA40,tu_1BE398
 LoadRtcamFromBrx,0x1BEA88,tu_1BE398
 AddRtcamObject,0x1BEAA8,tu_1BE398
 AddRtcamObjectShown,0x1BEAD0,tu_1BE398
@@ -4060,7 +4060,7 @@ UpdateRipgBounds,0x1CE170,rip
 UpdateRipg,0x1CE1C8,rip
 BounceRipgRips__FP4RIPG,0x1CE2E8,rip
 RenderRipgSelf__FP4RIPGP2CMP2RO,0x1CE608,rip
-func_001CE6C0,0x1CE6C0,rip
+CanRipgStayAsleep,0x1CE6C0,rip
 PvtripFromRipt,0x1CE6D0,rip
 NewRipInGroup,0x1CE888,rip
 InitRip,0x1CE920,rip
@@ -4076,7 +4076,7 @@ func_001CF010,0x1CF010,rip
 func_001CF058,0x1CF058,rip
 ProjectRipTransform,0x1CF0A0,rip
 UpdateRip,0x1CF268,rip
-FRenderRipPosMat,0x1CF338,rip
+RenderRipAtPose,0x1CF338,rip
 RenderRip,0x1CF518,rip
 OnRipRemove,0x1CF570,rip
 SubscribeRipObject,0x1CF578,rip
@@ -4584,7 +4584,7 @@ StaticInit_shd,0x1ED650,shd
 func_001ED788,0x1ED788,shd
 LoadSaaFromBrx,0x1ED7A8,shdanim
 CloneSaa,0x1ED850,shdanim
-func_001ED8E0,0x1ED8E0,shdanim
+InitSaa,0x1ED8E0,shdanim
 AddSaaCopyRecord,0x1ED960,shdanim
 ShouldUpdateSaa__FP3SAA,0x1EDA20,shdanim
 UpdateSaa,0x1EDA50,shdanim
@@ -5513,7 +5513,7 @@ DrawSpriteItems,0x21A998,hud
 StaticInit_hud,0x21AA60,hud
 func_0021BB68,0x21BB68,hud
 InitTrail,0x21BB88,trail
-func_0021BBD0,0x21BBD0,trail
+AddTrailHierarchy,0x21BBD0,trail
 ResetTrailHistory,0x21BC08,trail
 PostTrailLoad,0x21BD18,trail
 UpdateTrail,0x21C0D8,trail
@@ -5679,7 +5679,7 @@ AddVifDirectRefs__4VIFSiP2QWi,0x227148,vifs
 AddVifGifs__4VIFSP4GIFS,0x2271C8,vifs
 StaticInit_vifs,0x2271F8,vifs
 func_00227330,0x227330,vifs
-func_00227350,0x227350,vis
+InitVis,0x227350,vis
 LoadVisFromBrx,0x227380,vis
 UpdateVisInside,0x2273F0,vis
 SetVisInside,0x227440,vis

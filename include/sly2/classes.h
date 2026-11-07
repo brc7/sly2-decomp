@@ -163,7 +163,7 @@ struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP
 struct SAA : BASIC
 {
     char pad10[0x50 - 0x10];
-    virtual void VSlot7(SAAF *psaaf) __asm__("func_001ED8E0");   /* slot 7 (its first new virtual); key function (shdanim.cpp) */
+    virtual void VSlot7(SAAF *psaaf) __asm__("InitSaa");   /* slot 7 (its first new virtual); key function (shdanim.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSaaClassDesc");   /* slot 6 */
     virtual void VSlot8() __asm__("UpdateSaa");   /* slot 8 */
     virtual void VSlot9() __asm__("GetSaaCompletion__FP3SAA");   /* slot 9 */
@@ -186,7 +186,7 @@ typedef char assert_GUARD_size[sizeof(GUARD) == 0x1010 ? 1 : -1];
 struct CID44 : XFM
 {
     char padE0[0x140 - 0xE0];
-    virtual void Init() __asm__("func_0012E600");   /* slot 7 */
+    virtual void Init() __asm__("InitCamera");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCameraHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCameraHierarchy");   /* slot 12 */
@@ -226,7 +226,7 @@ typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 struct BLIPG : XFM
 {
     BLIP ablip[32];
-    virtual void VUnk01() __asm__("func_00139318");   /* slot 2 */
+    virtual void VUnk01() __asm__("ReleaseBlipg");   /* slot 2 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBlipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBlipg__FP5BLIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnBlipgRemove__FP5BLIPG");   /* slot 12 */
@@ -1431,7 +1431,7 @@ typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
 struct CID45 : XFM
 {
     char padE0[0x130 - 0xE0];
-    virtual void Init() __asm__("func_001BEA40");   /* slot 7 */
+    virtual void Init() __asm__("InitRtcam");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid45ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRtcamFromBrx");   /* slot 14 */
     virtual void RenderSelf() __asm__("RenderRtcam");   /* slot 19 */
@@ -1598,7 +1598,7 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 struct RIPG : SO
 {
     char pad150[0x1B0 - 0x150];
-    virtual int VUnk61() __asm__("func_001CE6C0");   /* slot 62 */
+    virtual int VUnk61() __asm__("CanRipgStayAsleep");   /* slot 62 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRipg__FP4RIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnRipgRemove__FP4RIPG");   /* slot 12 */
@@ -1857,7 +1857,7 @@ typedef char assert_WIDGET128_size[sizeof(WIDGET128) == 0x110 ? 1 : -1];
 struct CID105 : SO
 {
     char pad150[0x1A0 - 0x150];
-    virtual void AddHierarchy() __asm__("func_0021BBD0");   /* slot 11 */
+    virtual void AddHierarchy() __asm__("AddTrailHierarchy");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid105ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTrail");   /* slot 7 */
     virtual void VUnk14() __asm__("PostTrailLoad");   /* slot 15 */
@@ -1991,7 +1991,7 @@ typedef char assert_TURRET_size[sizeof(TURRET) == 0x1E0 ? 1 : -1];
 struct CID5 : XFM
 {
     char padE0[0x120 - 0xE0];
-    virtual void Init() __asm__("func_00227350");   /* slot 7 */
+    virtual void Init() __asm__("InitVis");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid5ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVisFromBrx");   /* slot 14 */
 };

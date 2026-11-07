@@ -380,8 +380,8 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 }
 } } // namespace M_UpdateCplook
 
-// Slot 7: release psndUnk38/psndZoom refs. (inferred)
-/* Slot 7: releases the two sound pointers. */
+// ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
+// sound references psndUnk38 and psndZoom. (inferred)
 void CPLOOK::VSlot7()   /* key function */
 {
     CPLOOK *pcplook = this;
@@ -680,8 +680,8 @@ void UpdateCpzoom(struct X *p)
 }
 } } // namespace M_UpdateCpzoom
 
-// Slot 7: release the two sound refs (+0xC4/+0xC0) (inferred)
-/* Slot 7: releases the two sound pointers. */
+// ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
+// sound references psndUnkc4 (+0xC4) and psndZoom (+0xC0). (inferred)
 void CPZOOM::VSlot7()   /* key function */
 {
     CPZOOM *pcpzoom = this;
