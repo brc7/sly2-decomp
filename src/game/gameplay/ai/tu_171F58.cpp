@@ -420,7 +420,6 @@ extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->an
 struct VU_FLOAT{qword qw;};
 // VU0 helper: vector difference.
 // VU0 helper: vector sum.
-static inline qword VuSum(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector (in x).
 static inline qword VuLength(qword v)
 {
@@ -613,14 +612,14 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         }
     }
     qword origin = w.query.point.q;
-    qword anchor = VuSum(origin, SetVectorCylind(w.query.heading + 3.1415927f, -350.0f, 0.0f));
+    qword anchor = VuAdd(origin, SetVectorCylind(w.query.heading + 3.1415927f, -350.0f, 0.0f));
     while (accepted < 4) {
         float angle, length;
         qword point;
         lastAngle += RandomFloatInRange(D_002BE5A8.low, D_002BE5A8.high);
         angle = lastAngle + w.query.heading;
         length = RandomFloatInRange(D_002BE5B0.low, D_002BE5B0.high);
-        point = VuSum(anchor, SetVectorCylind(angle, length, 0.0f));
+        point = VuAdd(anchor, SetVectorCylind(angle, length, 0.0f));
         {
             PAIR *pair = &behavior->searchPoints[accepted];
             pair->candidate.q = point;

@@ -1197,7 +1197,6 @@ void HasCameraBsp(void);
 void SvSquishCmEyeConstraint(void);
 qword ClipCameraEye(void *p, qword pos, qword posTarget);
 }
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qword AddScaled(qword base, const qword &vec, const VU_FLOAT &s)
 {
@@ -1222,8 +1221,8 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
     int ii, jj;
     qword dpos = VuSub(posTarget, pos);
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
-    qword posMin = Add(pos, D_002BD8F0);
-    qword posMax = Add(pos, D_002BD900);
+    qword posMin = VuAdd(pos, D_002BD8F0);
+    qword posMax = VuAdd(pos, D_002BD900);
     STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);

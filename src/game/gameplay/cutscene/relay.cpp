@@ -2811,12 +2811,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
 }
 // Vector difference.
 // Vector sum.
-static inline qword QwAdd(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 
 
 
@@ -3528,7 +3522,7 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.qwPos = QwAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
+                place.qwPos = VuAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
             }
             else
             {

@@ -6004,7 +6004,6 @@ struct VU_FLOAT{qword qw;};
 // VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 // VU0 helper: vector sum.
-static inline qword VuSum(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: vector difference.
 // VU0 helper: base + v * g, using a scratch slot (for the match).
 static inline qword VuMulAddViaScratch(qword base, qword v, const qword &g, U *scratch)
@@ -6052,7 +6051,7 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
     GetVectorCylind(VuSub(GetLoWorldPos(behavior->guard), origin), &flow.polarAngle, &flow.polarLength, 0);
     float angle = heading + ClampAbs__Fff(NormalizeAngle__Ff(flow.polarAngle - heading), tuning->narrow);
     float length = ClampToLimits__FP2LMf(&first, flow.polarLength);
-    if (FindPathzoneClosestFreePoint(region, VuSum(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
+    if (FindPathzoneClosestFreePoint(region, VuAdd(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
         GetVectorCylind(VuSub(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
         if (__builtin_fabsf(NormalizeAngle__Ff(flow.candidateAngle - heading)) < tuning->wide
             && IsWithinLimits__FP2LMf(&second, flow.candidateLength))

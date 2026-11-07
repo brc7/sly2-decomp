@@ -13,6 +13,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 struct VTE {
     short d;
@@ -746,7 +747,6 @@ static inline qword AddScaledQ(qword base, const qword &v, VU_FLOAT g)
     return r;
 }
 static inline qword ScaleQ(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
-static inline qword AddQ(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword DivQ(qword v, VU_FLOAT g) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
 static inline float LengthQ(qword v)
 {
@@ -873,7 +873,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             SPHERE spheres[3];
             spheres[0].pos = point;
             spheres[0].sRadius = p->limit;
-            spheres[1].pos = AddQ(center, basis.row[2].q);
+            spheres[1].pos = VuAdd(center, basis.row[2].q);
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;

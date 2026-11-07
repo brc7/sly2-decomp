@@ -641,7 +641,6 @@ void UpdateXfJobRange(void *,O *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
 static inline qword Zero() {qword r;__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
-static inline qword Add(qword a,qword b) {qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
 static inline qword InverseTransform(const M4 &m,qword v) {register qword r __asm__("vf4")=m.r[0];
@@ -691,8 +690,8 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
                     }
                     break;
                 }
-                if(p->parent)sum=Add(sum,RotateRow(p->parent->world,delta));
-                else sum=Add(sum,delta);
+                if(p->parent)sum=VuAdd(sum,RotateRow(p->parent->world,delta));
+                else sum=VuAdd(sum,delta);
                 break;
             }
             default: {
@@ -701,10 +700,10 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
                 O *parent=p->parent;
                 if(parent) {
                     M4 inverse=InvertMatrix4Rigid(&p->world);
-                    sum=Add(sum,ParentRotate(parent->world,Transform(m,InverseTransform(inverse,input))));
+                    sum=VuAdd(sum,ParentRotate(parent->world,Transform(m,InverseTransform(inverse,input))));
                 } else {
                     M4 inverse=InvertMatrix4Rigid(&p->world);
-                    sum=Add(sum,Transform(m,InverseTransform(inverse,input)));
+                    sum=VuAdd(sum,Transform(m,InverseTransform(inverse,input)));
                 }
                 break;
             }
@@ -1043,12 +1042,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword AddVectors(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float FloatFromVu(qword qw)
 {
     float g;
@@ -1339,7 +1332,7 @@ void UpdateSoSlots(SO *so)
                         fIdle = 0;
                         qword qwPos0 = *(qword *)xf->mat.mat[3];
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = AddVectors(qwVel, *(qword *)&xf->vUnkB0);
+                        qword qwSum = VuAdd(qwVel, *(qword *)&xf->vUnkB0);
                         qword qwPos = VuMulAddX(qwPos0, qwSum, vfHalf.qw);
                         VECTOR_opAssign(xf->mat.mat[3], qwPos);
                         *(qword *)&xf->vUnkB0 = qwVel;
@@ -1370,7 +1363,7 @@ void UpdateSoSlots(SO *so)
                     {
                         fIdle = 0;
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = AddVectors(*(qword *)&xf->vUnkB0, qwVel);
+                        qword qwSum = VuAdd(*(qword *)&xf->vUnkB0, qwVel);
                         TurnSlotMat(xf, (MATRIX3 *)&xf->mat, VuMulX(qwSum, vfHalf.qw));
                         *(qword *)&xf->vUnkB0 = qwVel;
                         xf->nStampWorld = ++D_003DD490.nStampXf;
@@ -1505,7 +1498,7 @@ void UpdateSoSlots(SO *so)
                                     qword qwLimited = VuMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
                                     MATRIX3 matRot;
                                     MATRIX3 matTurn;
-                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, AddVectors(*(qword *)&xf->vUnkB0, qwLimited)));
+                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, VuAdd(*(qword *)&xf->vUnkB0, qwLimited)));
                                     matTurn = matRot * matOld;
                                     NormalizeRotateMatrix3(&matTurn);
                                     *(qword *)&xf->vUnkB0 = qwLimited;
@@ -1641,7 +1634,7 @@ void UpdateSoSlots(SO *so)
                                     VU_FLOAT vfLimit = VuFloat(gMax / gNeed);
                                     VU_FLOAT vfHalf = VuFloat(D_002DDED0.dt * 0.5f);
                                     qwDV = VuMulAddX(qwV0, qwDV, vfLimit.qw);
-                                    qword qwSum = AddVectors(*(qword *)&xf->vUnkB0, qwDV);
+                                    qword qwSum = VuAdd(*(qword *)&xf->vUnkB0, qwDV);
                                     *(qword *)&xf->vUnkB0 = qwDV;
                                     xf->mat = SlotStoreValue(xf, VuMulAddX(qwCur, qwSum, vfHalf.qw));
                                     goto LChaseDone;

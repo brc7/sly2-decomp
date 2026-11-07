@@ -699,7 +699,6 @@ M3 BuildAxisAngleRotationMatrix(qword,float);
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword AddVec(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ScaleVecX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword DivVec(qword a,VU_FLOAT g){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline float LaneZ(qword a){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(a));return f;}
@@ -771,7 +770,7 @@ extern "C" void PresetJtAccel(P *jt)
             w.b.q = ScaleVecX(w.b.q, VuFloat(gPerp));
             M3 rotation;
             rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
-            qword sum = AddVec(w.a.q, w.b.q);
+            qword sum = VuAdd(w.a.q, w.b.q);
             qword moved = VuSub(RotateVecAt(&rotation, &sum), position);
             qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
             AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, D_002A2DC0), D_002BF28C));
@@ -1586,12 +1585,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword AddVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 int ClsgClipEdgeToSphere(qword posSphere, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("ClipEdgeToSphere");
 static inline qword AddScaledVec(qword qwBase, qword vec, VU_FLOAT scale)
 {
@@ -1652,7 +1645,7 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     MATRIX4 matIkh;
     PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
     qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
-    qword posSphereCenter = AddVec(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
+    qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->posSphere = posSphereCenter;
     pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
@@ -2681,12 +2674,6 @@ float atan2f(float,float);float ClampToLimits__FP2LMf(struct LM*,float);
 struct M3 *LoadRotateMatrixEuler(struct M3 *, qword);
 qword *VECTOR_opAssign(qword *, qword);
 void SetActRotationGoal(struct DV *, qword);
-static inline qword Add(qword a, qword b)
-{
-    qword r;
-    __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **source)
 {
     register qword r __asm__("vf6"), row0 __asm__("vf5") = m->r[0].q;
@@ -2799,7 +2786,7 @@ void UpdateJtAttachCorrection(struct P *jt)
             heading = ClampToLimits__FP2LMf(&D_002BF3A8, heading);
             tilt = Pack(zero, heading, zero);
             w.axis.q = tilt;
-            LoadRotateMatrixEuler(&w.rotation, Add(jt->euler, w.axis.q));
+            LoadRotateMatrixEuler(&w.rotation, VuAdd(jt->euler, w.axis.q));
             frame = &w.transform;
             VECTOR_opAssign(&frame->r[3].q, jt->position);
             {

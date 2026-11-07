@@ -1697,7 +1697,6 @@ extern qword D_002A2DC0;
 void BuildStepFootprint(struct P*,V*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
-static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Scale(qword a,float f,V *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
 static inline float Normal(V*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
@@ -1732,7 +1731,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
  do{
    int hit=IntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
    if(distance<=length && (hit&1)){
-      *out=Add(from,Scale(d.q,distance,&k));return 1;
+      *out=VuAdd(from,Scale(d.q,distance,&k));return 1;
    }
    t+=3;third+=3;
  }while(t<end);
@@ -1752,7 +1751,6 @@ qword GetLoWorldPos(S *p);
 extern int D_002C3CC8[2][3];
 }
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) : "m"(*p)); return r; }
 /** @sly2-annot addr=0x2057E8
  * Purpose: Build 2 triangles (diamond of radius +0x220 around the base point +0x218, oriented by the world
@@ -1771,10 +1769,10 @@ extern "C" void BuildStepFootprint(S *step, qword out[2][3])
     qword forward = LoadVf(&GetLoWorldMatrix(step)->r[1]);
     point[0] = GetLoWorldPos(step);
     float radius = step->radius;
-    point[1] = Add(origin, MulX(right, VU_FLOAT(radius)));
-    point[2] = Add(origin, MulX(forward, VU_FLOAT(radius)));
-    point[3] = Add(origin, MulX(right, VU_FLOAT(-radius)));
-    point[4] = Add(origin, MulX(forward, VU_FLOAT(-radius)));
+    point[1] = VuAdd(origin, MulX(right, VU_FLOAT(radius)));
+    point[2] = VuAdd(origin, MulX(forward, VU_FLOAT(radius)));
+    point[3] = VuAdd(origin, MulX(right, VU_FLOAT(-radius)));
+    point[4] = VuAdd(origin, MulX(forward, VU_FLOAT(-radius)));
     for (unsigned i = 0; i < 2; i++) {
         int *indices = D_002C3CC8[i];
         qword *dest = out[i];

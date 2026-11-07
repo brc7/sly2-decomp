@@ -872,12 +872,6 @@ void RenderLoAtMatrix(ALO *palo, const M4 *pmat, float a, float b);
 }
 // Vector difference.
 // Vector sum.
-static inline qword Add(qword a, qword b)
-{
-    qword r;
-    __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 // Vector scaled by a VU_FLOAT.
 static inline qword Scale(qword a, VU_FLOAT b)
 {
@@ -921,7 +915,7 @@ extern "C" void RenderLasenSelf(LASENV *laser)
         Query(laser, beam, points, dist);
         if (beam->visibleLength < dist) {
             float ratio = beam->visibleLength / dist;
-            points[1].q = Add(Scale(points[0].q, VU_FLOAT(1.0f - ratio)), Scale(points[1].q, VU_FLOAT(ratio)));
+            points[1].q = VuAdd(Scale(points[0].q, VU_FLOAT(1.0f - ratio)), Scale(points[1].q, VU_FLOAT(ratio)));
         }
         if (laser->lineObject) RenderLoAlongSegment(laser->lineObject, points[0].q, points[1].q, 1.0f, 1.0f);
         qword dir;

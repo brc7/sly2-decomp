@@ -193,7 +193,6 @@ extern qword SetVectorSphere(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B0;
 extern qword D_002A2DC0;
-static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x182D78
  * Purpose: Default: random point in a sphere around the owner (RandomFloatInRange pan/tilt/radius), zero dv
  * Info: proposed name GetGrabspotSparklePos (T2); class GRABSPOT; TU grabspot
@@ -208,7 +207,7 @@ void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
     float t = RandomFloatInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8B0);
-    *pv = VAdd(GetLoWorldPos(object), SetVectorSphere(gPan, gTilt, gR));
+    *pv = VuAdd(GetLoWorldPos(object), SetVectorSphere(gPan, gTilt, gR));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_00182D78
@@ -633,7 +632,6 @@ struct O { char pad[0x10C]; float radius; };
 struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
-static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x183540
  * Purpose: Point at angle g/r on the circle of radius r + player radius
  * Info: proposed name GetCid34GrabPos (T2); class CID34; TU grabspot
@@ -646,7 +644,7 @@ void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *p
     float gPan = g / pole->radius;
     float gR = pole->radius + pj->playerRadius;
     if (pv) {
-        *pv = VuSub(VAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
+        *pv = VuSub(VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
     }
     if (pg) {
         if (pj->unknown1040 == 1)
@@ -664,7 +662,6 @@ extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8C4;
 extern qword D_002A2DC0;
-static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x183600
  * Purpose: Random point on a ring around the pole
  * Info: proposed name GetCid34SparklePos (T2); class CID34; TU grabspot
@@ -676,7 +673,7 @@ void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->radius;
-    *pv = VAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
+    *pv = VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_00183600
@@ -982,7 +979,6 @@ qword TransformXfPos(void *pv, void *pvA0, qword v);
 void SetBarrelState(struct O *p, int n);
 }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
-static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
 /** @sly2-annot addr=0x183B80
  * Purpose: Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent),
@@ -1041,7 +1037,7 @@ void SetBarrelState(struct O *barrel, int n)
             barrel->partB->partFlags = n;
 
             {
-            qword q2 = TransformXfPos(0, barrel->partA->pA0, VAdd(ps->v70, D_002BE8F0));
+            qword q2 = TransformXfPos(0, barrel->partA->pA0, VuAdd(ps->v70, D_002BE8F0));
             SetXfRole(barrel, barrel->partA, 7);
             barrel->partA->vC0 = q2;
             }
@@ -1514,7 +1510,6 @@ extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE90C;
 extern qword D_002A2DC0;
-static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x1845A0
  * Purpose: Random point on a disc around its point
  * Info: proposed name GetCid27SparklePos (T2); class CID27; TU grabspot
@@ -1526,7 +1521,7 @@ void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE90C);
-    *pv = VAdd(ConvertPosBetweenLos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
+    *pv = VuAdd(ConvertPosBetweenLos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_001845A0

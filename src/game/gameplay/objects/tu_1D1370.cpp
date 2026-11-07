@@ -1001,7 +1001,6 @@ int IsPointInVol(void *, qword);
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
 // Helpers Sub, Add, GetX, GetY, GetZ (small asm wrappers/accessors shaped for the match).
-static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float GetX(VV q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(VV q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(VV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -1106,12 +1105,12 @@ extern "C" void UpdateRobottankAi(P *tank)
             break;
         case 2: {
             M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
-            goal = Add(target, Rotate(m, offset));
+            goal = VuAdd(target, Rotate(m, offset));
             break;
         }
         case 3: {
             M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, -angle);
-            goal = Add(target, Rotate(m, offset));
+            goal = VuAdd(target, Rotate(m, offset));
             break;
         }
         case 4:
@@ -2048,7 +2047,8 @@ int TakeRobottankDamage(P *, EVENT *);
 // Helpers Zero, VecZero, Add, Sub, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline VV Zero() { qword r; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r)); return r; }
 static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
-static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Same idiom as sly2/vu0.h VuAdd; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuAdd(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
@@ -2095,7 +2095,7 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
     VENTRY *pset = &vt[set];
     void *receiver = (char *)p + pset->delta;
     VV original = ((qword (*)(void *))vt[get].fn)((char *)p + vt[get].delta);
-    ((void (*)(void *, qword))pset->fn)(receiver, Add(original, delta.q));
+    ((void (*)(void *, qword))pset->fn)(receiver, VuAdd(original, delta.q));
 }
 
 // CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or

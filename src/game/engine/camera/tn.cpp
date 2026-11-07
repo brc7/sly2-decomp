@@ -182,12 +182,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword QwAdd(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float GFromVf(qword qw)
 {
     float g;
@@ -695,7 +689,6 @@ void TN::Freeze()
 
 // The tunnel's path basis: ProjectPointOntoTnPath projects a world point into it and returns the path direction; EvaluateTnPathPos evaluates
 // a clamped path offset, then rotates and translates it into world space.
-static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 static inline qword CrossTied(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "0"(a),"j"(b));return r; }
 static inline qword CrossEarly(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=&j"(r) : "j"(a),"j"(b));return r; }
 // The VU helper receives vf1 and reuses its length temporary for the result.
@@ -722,7 +715,7 @@ void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     } else if(p->fCircle) {
         U a;
         a.q=SetVectorCylind(p->uProgress/p->sRadius,p->sRadius,0.0f);
-        pos.q=Add(*(qword *)&p->posCenter,a.q);
+        pos.q=VuAdd(*(qword *)&p->posCenter,a.q);
         *normal=Normalize(CrossTied(D_002A2DC0q,a.q));
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0q);
         *out=InverseRotate(m,VuSub(v,pos.q));
@@ -762,7 +755,7 @@ void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qwor
         float angle=fmodf(phase,period);
         center.q=SetVectorCylind(angle/p->sRadius,p->sRadius,0.0f);
         qword arc=center.q;
-        center.q=Add(arc,*(qword *)&p->posCenter);
+        center.q=VuAdd(arc,*(qword *)&p->posCenter);
         normal.q=Normalize(CrossEarly(D_002A2DC0q,arc));
         m=BuildOrthonormalMatrixZ(normal.q,D_002A2DC0q);
         rotated.q=Rotate(m,pos.q);
@@ -771,7 +764,7 @@ void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qwor
         pos.f[0]+=delta;
         rotated.q=ConvertPosBetweenLos(p,0,pos.q);
     }
-    *out=Add(center.q,rotated.q);
+    *out=VuAdd(center.q,rotated.q);
 }
 
 // Makes the tunnel's CPD record for a class id current (CPD: the camera parameters the tunnel applies to that class
@@ -853,7 +846,6 @@ extern "C" void InitCptn(CMPART2 *p)
     p->pcpd = 0;
 }
 
-static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) (inferred)
 extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 {
@@ -887,10 +879,10 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
             UpdateCptnTarget(p, (CPDEFI *)&cpdefi);
         BlendTnFocusPos(p->pcpd, (CPDEFI *)&cpdefi, &focusPos, p->ptn);
     }
-    { qword *pq = &D_002DDF40.dposFocus; a = VAdd(focusPos, *pq);
+    { qword *pq = &D_002DDF40.dposFocus; a = VuAdd(focusPos, *pq);
     GetVectorSphere(VuSub(pq[-0x25], a), &p->radPan, &p->radTilt, &p->sDist); }
     p->sDist = p->sDist - D_002DDF40.sNearClip;
-    p->posEye = VAdd(a, SetVectorSphere(p->radPan, p->radTilt, p->sDist));
+    p->posEye = VuAdd(a, SetVectorSphere(p->radPan, p->radTilt, p->sDist));
     p->uFrameY = p->pcpd->uFrameY;
     p->nMode = 0;
     if (p->ptn && p->ptn->nUnk184)
@@ -1020,7 +1012,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         SpringCm(&D_002DDF40, &D_002DDF40.dposFocus, &D_002DDF40.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.qwPosFocus, *(qword *)&posFocus), 8.0f, -6.0f);
     VECTOR4 posHang;
     qword *pdposFocus = &D_002DDF40.dposFocus;
-    *(qword *)&posHang = QwAdd(*(qword *)&posFocus, *pdposFocus);
+    *(qword *)&posHang = VuAdd(*(qword *)&posFocus, *pdposFocus);
     if (ptnCur != 0 && ptnCur->ploPull != 0)
         pcpdefi->grfcpd &= ~1;
     float uTunnelWant;
@@ -1490,7 +1482,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     VECTOR4 dposEye;
     *(qword *)&dposEye = SetVectorSphere(radPanOut, radTiltOut, sDistOut);
     VECTOR4 posEyeWant;
-    *(qword *)&posEyeWant = QwAdd(*(qword *)&posHang, *(qword *)&dposEye);
+    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, *(qword *)&dposEye);
     if (ptnCur == 0 || ptnCur->fNoCamClip == 0)
     {
         if (D_002DDF40.nCut != 0)
@@ -1501,7 +1493,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     *(qword *)&dposEye = VuSub(*(qword *)&posEyeWant, *(qword *)&posHang);
     GetVectorSphere(*(qword *)&dposEye, &radPanOut, &radTiltOut, &sDistOut);
     posEye = *(qword *)&posEyeWant;
-    *(qword *)&posEyeWant = QwAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.sNearClip) / sDistOut)));
+    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.sNearClip) / sDistOut)));
     float radLookX = atanf(uFrameXWant * D_002DDF40.gTanHalfX);
     float radLookY = -atanf(uFrameYWant * D_002DDF40.gTanHalfY);
     if (fEntered)
@@ -1629,7 +1621,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     qword *pqw; // the current sample
     for (i = 0; i < 5; i++)
     {
-        qword pos = QwAdd(GetLoWorldPos(plo), CombineAxes(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
+        qword pos = VuAdd(GetLoWorldPos(plo), CombineAxes(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
         aqw[0] = MinXyz(aqw[0], pos);
         aqw[1] = MaxXyz(aqw[0], pos);
         pqw = &aqw[3 + i];
@@ -1712,7 +1704,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         do{
             qword off=SetVectorCylind(w.phase+angle,w.radius,w.height);
             w.offset.q=off;
-            w.rayEnd.q=Add(begin,off);
+            w.rayEnd.q=VuAdd(begin,off);
             FindCameraClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
             float cost=(1.25f-w.high)*(GAbs(angle)+0.47123894f);
             if(cost<bestCost){

@@ -264,12 +264,6 @@ static inline qword Advance(qword value, qword velocity, VU_FLOAT time)
 }
 // Vector difference.
 // Vector sum.
-static inline qword Add(qword a, qword b)
-{
-    qword r;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 // 3x3 matrix times vector.
 static inline qword RotateVec(const M3 &m, qword value)
 {
@@ -346,10 +340,10 @@ extern "C" void ProjectDprizeTransform(P *prize)
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
                 channel = prize->position;
-                VECTOR_opAssign(&channel->position, Add(channel->position, RotateVec(frame, position.q)));
+                VECTOR_opAssign(&channel->position, VuAdd(channel->position, RotateVec(frame, position.q)));
                 *(float *)((char *)channel + 0x3C) = 1.0f;
                 CHANNEL *current = prize->position;
-                current->velocity = Add(current->velocity, RotateVec(frame, velocity.q));
+                current->velocity = VuAdd(current->velocity, RotateVec(frame, velocity.q));
                 { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
             }
             if (orientationMotion) {
@@ -1490,7 +1484,6 @@ struct VU_FLOAT {
 static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Dot product.
 static inline qword Dot(qword a, qword b)
 {
@@ -1602,7 +1595,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     for (int iAttempt = 0; cLaunched < clo;) {
         float g = GClamp(GFromClq(D_002C0EA0, iAttempt * 0.02f), D_002C0EB0);
         qword posBase = posSnap.q;
-        qword posTrial = Add(posBase, SetVectorCylind(gAngle, gRadius, 0.0f));
+        qword posTrial = VuAdd(posBase, SetVectorCylind(gAngle, gRadius, 0.0f));
         qword dpos = VuSub(posTrial, posOrig.q);
         qword dposPerp = VuSub(dpos, Scale(Dot(dpos, D_002A2DC0), D_002A2DC0));
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));

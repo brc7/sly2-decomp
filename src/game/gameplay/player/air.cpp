@@ -343,12 +343,6 @@ extern "C" { extern CLOCK D_002DDED0; }
 
 
 
-static inline qword AddVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword DotVec(qword a, qword b)
 {
     qword qw;
@@ -450,7 +444,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
                 qword dvel;
                 air->nUnk40 = 3;
                 dvel = SetVectorCylind(air->pstepplayer->radTarget, D_002BF754, 0.0f);
-                air->pstepplayer->SetVelocity(AddVec(vel, dvel));
+                air->pstepplayer->SetVelocity(VuAdd(vel, dvel));
             }
             SetJtAirState(air, 0, lo);
             air->fCanDoubleJump = 1;
@@ -517,7 +511,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
                 qword dvel;
                 air->nUnk40 = 3;
                 dvel = SetVectorCylind(air->pstepplayer->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
-                air->pstepplayer->SetVelocity(AddVec(vel, dvel));
+                air->pstepplayer->SetVelocity(VuAdd(vel, dvel));
             }
             break;
         }
@@ -561,7 +555,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         case 0x11:
             if (air->nState == -1)
             {
-                air->pstepplayer->SetVelocity(AddVec(ProjectOutVec(velWall, D_002A2DC0), D_002BF770));
+                air->pstepplayer->SetVelocity(VuAdd(ProjectOutVec(velWall, D_002A2DC0), D_002BF770));
                 air->fCanDoubleJump = 1;
             }
             SetJtAirState(air, 0x16, 0);
@@ -4360,7 +4354,6 @@ float atan2f(float y, float x);                                 // atan2f
 void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
 }
 
-static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float LengthSquared(qword v)
 {
     qword l, one;
@@ -4518,7 +4511,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             }
             kind = 14;
             ploBest = phook;
-            posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
             bestScore = MinOf(bestScore, g);
             tBest = t;
@@ -4553,7 +4546,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 continue;
             kind = 16;
             ploBest = pmesh;
-            posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
             bestScore = MinOf(bestScore, gMesh);
             tBest = t;
@@ -4627,7 +4620,7 @@ LPartnerDone:
             continue;
         kind = 15;
         ploBest = curve;
-        posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
+        posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
         vBest = vHit;
         bestScore = MinOf(bestScore, gCurve);
         tBest = t;

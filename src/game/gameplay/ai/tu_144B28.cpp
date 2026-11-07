@@ -676,12 +676,6 @@ static inline qword MulM3(const M3 &m, qword v)
 }
 
 // VU0 helper: vector sum a + b.
-static inline qword Add(qword a, qword b)
-{
-    qword r;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 // 0x1457A8: Computes the follow position: the leader's position offset by its velocity (lead time
 // +0x68) and by the follow offset (+0x40) in the leader's frame (its heading for a step, its orientation otherwise),
@@ -700,7 +694,7 @@ void UpdateBhvfollowPosition(P *behavior)
         leader = behavior->leader;
         u.s.pos = AddScaled(behavior->followPoint, VU_FLOATM(behavior->velocityLeadTime), leader->vt->pfn((O *)((char *)leader + leader->vt->d)));
     }
-    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->followOffset));
+    u.s.pos = VuAdd(u.s.pos, MulM3(u.s.m, behavior->followOffset));
     {
         GUARD *guard = behavior->guard;
         SHAPE *path = guard->pathShape;

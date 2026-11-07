@@ -468,7 +468,6 @@ qword GetLoWorldPos(void *p);
 qword PosCpzoomCenter(struct X *p);
 float atan2f(float y, float x);
 void LoadRotateMatrixPanTilt(M3 *pm, float a, float b);
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Len(qword v)
 {
     qword d, one;
@@ -509,12 +508,12 @@ qword PosCpzoomEye(struct X *p)
         qword a = GetLoWorldPos(p->focus);
         n.q = Normalize(VuSub(a, PosCpzoomCenter(p)));
         p->panAngle = atan2f(n.f[1], n.f[0]);
-        r = Add(PosCpzoomCenter(p), VecMul(n.q, -GFromQ(Len(D_002A5000))));
+        r = VuAdd(PosCpzoomCenter(p), VecMul(n.q, -GFromQ(Len(D_002A5000))));
     } else {
         M3 m;
         qword v = D_002A5000;
         LoadRotateMatrixPanTilt(&m, p->panAngle, p->tiltAngle);
-        r = Add(PosCpzoomCenter(p), MulM3(&m, v));
+        r = VuAdd(PosCpzoomCenter(p), MulM3(&m, v));
     }
     return r;
 }
@@ -1339,7 +1338,6 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q), "j"(f1.q), "j"(f2.q)); /* extra unused operands: allocation only */
     return r;
 }
-static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline float Length(qword a)
 {
     qword d, one;
@@ -1389,7 +1387,7 @@ void UpdateCptwoshot(X *p)
     qword n = Normalize(Cross(d.q, D_002A2DC0));
     float g = GClamp(GFromClq(D_002BDAF0, dist), D_002BDB00.gMin, D_002BDB00.gMax);
     U pos2;
-    pos2.q = Add(focus.q, Scale(n, VU_FLOATJ(g)));
+    pos2.q = VuAdd(focus.q, Scale(n, VU_FLOATJ(g)));
     pos2.f[2] += GClamp(GFromClq(D_002BDB10, dist), D_002BDB20.gMin, D_002BDB20.gMax);
     {
         M4 m4;

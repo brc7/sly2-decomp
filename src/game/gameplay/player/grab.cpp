@@ -522,7 +522,6 @@ static inline void *AllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swall
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in ClipCameraEye).
 static inline VU_FLOAT VuFloat(const float *pg) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)pg)); return v; }
-static inline qword AddVec(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 // a * g0 + b * g1
 static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
@@ -548,8 +547,8 @@ static inline void ProbeGround(CONTEXT *p)
     LSG alsg[8];
     int i;
     qword pos = GetLoWorldPos(p->pactor);
-    qword posBase = AddVec(pos, p->pactor->posOffset);
-    qword posEnd = AddVec(posBase, ScaleVec(D_002A2DC0, VuFloat(&D_002BF5B0)));
+    qword posBase = VuAdd(pos, p->pactor->posOffset);
+    qword posEnd = VuAdd(posBase, ScaleVec(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
@@ -834,7 +833,6 @@ static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 static inline qword ZeroVec() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
-static inline qword AddVec(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline qword ScaleVecX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
 static inline float LaneX(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
@@ -957,7 +955,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             offset = ScaleVec(side.q, VuFloat(s));
         }
         ACTOR *actor = ctx->actor;
-        actor->velocity.q = ScaleVec(MulM3Vec(&actor->local, AddVec(vel.q, offset)), VuFloat(-1.0f));
+        actor->velocity.q = ScaleVec(MulM3Vec(&actor->local, VuAdd(vel.q, offset)), VuFloat(-1.0f));
         int step;
         if (25.0f < LengthOf(ctx->actor->velocity.q)) {
             step = 1;
