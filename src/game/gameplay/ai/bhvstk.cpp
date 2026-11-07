@@ -42,7 +42,7 @@ struct AREQV { int cb; int nKind; };
 /* ResetBhvSteering's argument. */
 struct BHVTIMER { char pad[0x18]; float heading; int unknown1C; };
 
-/* Class ids: the guard step and the behaviour classes (docs/reference/class-tree.md). */
+/* Class ids: the guard step and the behaviour classes (docs/systems/object-model.md section 1). */
 enum {
     CID_STEPGUARD = 0x38,
     CID_BHVGUARD = 0x9C,

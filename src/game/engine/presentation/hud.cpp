@@ -1,4 +1,4 @@
-// hud.cpp -- WIDGET HUD objects, sprite groups and the STRINGGEN text table (docs/engine/hud-ui.md section 1).
+// hud.cpp -- WIDGET HUD objects, sprite groups and the STRINGGEN text table (docs/systems/ui-and-hud.md section 1).
 // TU 0x210EB0..0x21BB88 (124 functions, address order).
 // Entry points: the WIDGET class slots (LoadWidgetFromBrx, PostWidgetLoad, UpdateWidget, ShowWidget / HideWidget,
 // WIDGET::RenderSelf), sprite-group loading and animation (LoadSpriteGroups, StartSpriteAnim, AdvanceSpriteAnim),
@@ -118,7 +118,7 @@ enum SPRITE_KIND
     SPRITE_KIND_TABLE = 8,      /* a nested sprite table with word / float parameters */
 };
 
-/* Class ids tested by the text getters (docs/reference/class-tree.md). */
+/* Class ids tested by the text getters (docs/systems/object-model.md section 1). */
 enum HUD_CID
 {
     CID_STEPPLAYER = 0x34,   /* any playable character */

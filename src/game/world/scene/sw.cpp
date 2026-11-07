@@ -482,7 +482,7 @@ class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual
 class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
 struct S { char pad[0x3E60]; O *screenTint; };
 extern "C" O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
-// Creates the world's screen tint/fill object (class 0x74, CID116 in docs/reference/class-tree.md; parameters 0.1 and
+// Creates the world's screen tint/fill object (class 0x74, CID116 in docs/engine.md section 7; parameters 0.1 and
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
 extern "C" void CreateSwScreenTint(S *world)
 {

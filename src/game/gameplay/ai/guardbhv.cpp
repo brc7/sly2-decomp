@@ -31,7 +31,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Starts a freshly pushed child behaviour: its Start (vtable slot 8) through the this-adjusting vtable entry.
 template <class T> static inline void StartPushedBhv(T *child) { child->vt[8].pfn((char *)child + child->vt[8].d); }
 
-/* Zap (damage) kinds of a zap message (docs/engine/player.md "Damage kinds", physics-collision.md); only the
+/* Zap (damage) kinds of a zap message (docs/systems/physics-and-collision.md section 6); only the
    kinds tested by name here. */
 enum { ZAP_WATER = 0x2000, ZAP_STUCK_WATCH = 0x4000, ZAP_SLEEP_DART = 0x80000, ZAP_JUGGLE = 0x200000 };
 /* Zap reaction bits of a zap message's flags (HandleBhvguardMessage; inferred from how each bit is resolved):
@@ -43,7 +43,7 @@ enum {
     REACT_KNOCKDOWN = 0x80,
     REACT_ANY = 0xF0
 };
-/* BHVGUARD awareness modes (the root behaviour's mode record kind, +0x30; docs/engine/guards-ai.md section 3). Past
+/* BHVGUARD awareness modes (the root behaviour's mode record kind, +0x30; docs/systems/ai-guards.md section 6). Past
    the documented ones, a mode is named after the behaviour it pushes (SetBhvguardMode) and what ends it
    (UpdateBhvguard); GUARD_MODE_WATCH is inferred. */
 enum {
@@ -70,7 +70,7 @@ enum {
     GUARD_MODE_RELOCATE = 19,
 };
 
-/* Class ids used here (docs/reference/class-tree.md). */
+/* Class ids used here (docs/systems/object-model.md section 1). */
 enum {
     CID_SHAPE = 0xA,
     CID_PIPE = 0xB,
@@ -116,7 +116,7 @@ enum {
     CID_BHVPATHLINK = 0xBE,
     CID_BHV191 = 0xBF,
 };
-/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/systems/ai-guards.md
    section 2). Only the identified flags are named. */
 enum {
     SGF_MOVING = 0x9,

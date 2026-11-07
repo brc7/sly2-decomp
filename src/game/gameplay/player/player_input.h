@@ -1,6 +1,6 @@
 // player_input.h -- named bits of the player controller's button word (POCTL grfbtn, PO+0x150 -> +0x30), as the
 // player state machines test them (ConsumeButtonsPressedWithin / GetButtonsPressedWithin / ClearPoctlJoyPressed, `flags & ...`).
-// Meanings are from runtime observation (docs/engine/player.md, "Pad bits"); the physical buttons follow the PS2 pad
+// Meanings are from runtime observation (docs/systems/player.md section 6); the physical buttons follow the PS2 pad
 // bit order (byte-swapped libpad layout) and are a hypothesis for the gadget/look bits.
 //
 // Local to the player files for now: a later pass may move it into include/sly2/ next to POCTL. Enumerators are plain

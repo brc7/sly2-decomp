@@ -550,7 +550,7 @@ void SetCritterState(CID96V *critter, int next)
     }
 }
 
-/* SetCid96SpinRatio (docs/engine/gameplay-objects.md): the symbol still says STEP. */
+/* SetCid96SpinRatio (docs/engine.md section 9): the symbol still says STEP. */
 // Spin spring parameters: D_002C0248 {25, 0, 0.25} scaled by (ratio, ratio, 1/sqrt(ratio)); a larger ratio turns faster.
 void SetStepSpinRatio(STEP *pstep, float ratio)
 {

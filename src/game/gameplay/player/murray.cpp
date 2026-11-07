@@ -27,7 +27,7 @@
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
 
 // Murray's state (MURRAY +0x13D0), switched by SetMurrayState and run by UpdateMurrayStateMachine. Meanings from
-// runtime observation (docs/engine/player.md section 6) except where marked.
+// runtime observation (docs/systems/player.md section 4) except where marked.
 enum MurrayState {
     MURRAY_IDLE = 0,
     MURRAY_RUN = 1,              // run button held

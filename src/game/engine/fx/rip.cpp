@@ -46,7 +46,7 @@ struct RIPSUB
 };
 /* RIP: share count, owning group, start time and the per-kind fields used by the m2c bodies; the vtable pointer
    follows the fields (+0xEC). Sly 2's RIP kinds (RIPT, PvtripFromRipt) are real classes with the eight slots of Sly 1's
-   VTRIP table; rip.cpp is their key TU (docs/engine/particles-effects.md). */
+   VTRIP table; rip.cpp is their key TU (docs/systems/rendering.md section 8). */
 struct RIP
 {
     int kind;

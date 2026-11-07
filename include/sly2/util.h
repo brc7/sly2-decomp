@@ -3,7 +3,7 @@
  * The per-function decompilation had pasted these into many TUs under private names (Min, GMin, GMax, Max, GClamp,
  * GLimit, GClampR, FPtr...). Only spellings that compile to the same code at every folded site live here; see
  * docs/guides/tu-merging.md "Shared inline helpers" for which private spellings were folded and which stay private.
- * Names follow docs/guides/naming-workflow.md section 8 (no Hungarian prefixes); they are descriptive placeholders
+ * Names follow docs/guides/naming-workflow.md section 1 (no Hungarian prefixes); they are descriptive placeholders
  * (HYPOTHESIS: Sly 1's util.h has ClampAbs/ClampToLimits-style helpers, none of these exact ones).
  *
  * Two spellings of min and max compile differently, so both exist: Min/Max (`a < b ? a : b`, `a > b ? a : b`) and

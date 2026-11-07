@@ -21,7 +21,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* g_cm (D_002DDF40, the camera manager; docs/engine/camera.md section 2) as ReadJoy reads it: the policy-stack depth and
+/* g_cm (D_002DDF40, camera manager; docs/systems/camera.md section 3) as ReadJoy reads it: the policy-stack depth and
    its first entry {priority, policy}, and the embedded default follow policy (CMPART1); and the event timer at D_002DEB30. */
 struct CMV { char pad[0x30C]; int policyCount; int firstPolicyPriority; void *firstPolicy; char pad318[0x3A0 - 0x318]; int followPolicy; };
 struct SNDV { float t; };

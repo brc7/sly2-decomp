@@ -4,8 +4,8 @@
 // constructible class) and descriptor getters (Get<Class>ClassDesc, vtable slot 6 GetClassInfo, one per class), and
 // the generated static initializer, in address order (825 functions), plus three out-of-line constructors homed here
 // from the linkonce area. Its .rodata (the thunks' and wrappers' argument-type arrays) is in function order, as in
-// the ELF. See docs/guides/tu-merging.md "class_registry", docs/engine/object-model.md section 1 and
-// docs/reference/class-tree.md. The file keeps its old name (the registry part came first); renaming it to
+// the ELF. See docs/guides/tu-merging.md "class_registry", docs/systems/object-model.md section 2 and
+// section 1 (the class tree). The file keeps its old name (the registry part came first); renaming it to
 // crt0_splicewrap.cpp is a mechanical follow-up.
 // Entry points: the factories and descriptor getters (reached through the class descriptor table, one per class
 // id), the Splice thunks and wrappers (reached through the option table g_aeopid when a script reads or sets an

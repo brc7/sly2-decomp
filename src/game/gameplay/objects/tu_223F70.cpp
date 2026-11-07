@@ -1,4 +1,4 @@
-// tu_223F70.cpp -- CID100..102 (0x64..0x66), the gadget objects (docs/engine/gameplay-objects.md): tossables, Bentley's
+// tu_223F70.cpp -- CID100..102 (0x64..0x66), the gadget objects (docs/engine.md section 7): tossables, Bentley's
 // trigger bomb / mines (SetCid100State SetTossableState: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
 // extractor) and the guard trap; the blast probe that pushes the bodies around it. Entry points: the CID100 and
 // CID102 vtables, TriggerTossable (gadget button) and the predicates IsThrowableGadget / IsHealthExtractor. TU 0x223F70..0x2259D8 (28 functions,

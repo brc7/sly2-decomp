@@ -18,7 +18,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef union { qword q; float f[4]; } U;
-/* Class ids tested here (docs/reference/class-tree.md). */
+/* Class ids tested here (docs/systems/object-model.md section 1). */
 enum { CID_MS = 0x31, CID_PO = 0x32, CID_STEP = 0x33, CID_STEPPLAYER = 0x34, CID_STEPGUARD = 0x38, CID_SAFEHOUSE = 0x46,
        CID_COVER_C = 0xC, CID_COVER_22 = 0x22 };
 /* DETECTORV::options bits. */

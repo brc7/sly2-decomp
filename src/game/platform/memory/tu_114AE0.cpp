@@ -5,7 +5,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001168F8
 #include "sly2/slotheap.h"
 
-/* The callees keep their current symbols (proposed names from docs/reference/name-confidence.csv, T2). */
+/* The callees keep their current symbols (proposed names from the naming pass, T2). */
 extern "C" {
 void CopyClutHeader(void *clut, void *source);   /* CopyClutHeader */
 void CopyBitmapHeader(void *bmp, void *source);     /* CopyBmpHeader */

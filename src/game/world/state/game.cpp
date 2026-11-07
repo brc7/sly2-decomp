@@ -100,7 +100,7 @@ int IsCurrentTask(TASKV *task);
 }
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-/* Task states (docs/engine/game-progression.md "Task states"); 4 and 5 are only requests (RequestTaskState). */
+/* Task states (docs/systems/progression-and-saves.md section 2); 4 and 5 are only requests (RequestTaskState). */
 enum TASKSTATE {
     TASK_STATE_UNSET = -1,      /* not restored yet (a freshly loaded world) */
     TASK_STATE_LOCKED = 0,

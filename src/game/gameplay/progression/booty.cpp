@@ -1,4 +1,4 @@
-// booty.cpp -- BOOTY (CID 0x67), the carried booty object (docs/engine/game-progression.md section 5): entry table,
+// booty.cpp -- BOOTY (CID 0x67), the carried booty (docs/systems/progression-and-saves.md section 8): entry table,
 // states (idle, in container, transfer, carried, dropped and returning, marker), rendering, and its container
 // CID37 (CID 0x25) with the saved container kind. Entry points: the BOOTY and CID37 vtables, the Splice setters
 // (AddBootyEntry, AddBootyEntryObject, SetBootyContainerKind) and the world callbacks ReturnDroppedBooty /

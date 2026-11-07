@@ -21,7 +21,7 @@
 #include "sly2/util.h"
 
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
-// docs/engine/player.md section 7 except where marked.
+// docs/systems/player.md section 4 except where marked.
 enum BentleyState {
     BENTLEY_IDLE = 0,
     BENTLEY_RUN = 1,              // run button held

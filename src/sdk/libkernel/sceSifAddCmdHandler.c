@@ -18,11 +18,11 @@ static inline void *GetGp(void)
     return gp;
 }
 
-/** @sly2-annot addr=0x23ADA8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/sdk-libraries.md#sdk_libs-0x233000-0x254f00
- * @end-sly2-annot */
+// libkernel: registers handler and data for SIF command cid, with the caller's gp. System commands (cid with the
+// top bit set) go into the system command table (index cid & 0x7FFFFFFF), the others into the user table.
+// (This comment keeps the five lines of the draft block it replaced: the file uses SLY2_ASM gnu-reorder and inline
+// asm, which cannot be built in every environment, so its line layout is left exactly as it was matched.)
+//
 void sceSifAddCmdHandler(int cid, void *handler, void *data)
 {
     if (cid < 0) {

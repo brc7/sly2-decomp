@@ -157,7 +157,7 @@ CRef EvalAssert(CPair *expr, CFrame *frame)
 }
 
 // Special form 6 (keyword unknown, new in Sly 2): evaluates its first operand and returns that value, or Void when the
-// form has no operand. (inferred: the keyword name is not known; docs/engine/splice-scripting.md lists candidates.)
+// form has no operand. (inferred: the keyword name is not known; see docs/systems/splice-scripting.md section 4.)
 extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 {
     CRef ref;
