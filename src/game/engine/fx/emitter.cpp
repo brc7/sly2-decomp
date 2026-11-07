@@ -763,22 +763,22 @@ LActive:   /* near the camera (or not tied to a parent) */
 }
 } // namespace M_UpdateEmitter__FP7EMITTERf
 
-// Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTERf");
+// Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt)
 {
     pemitter->tUnpause = D_002DDED0.t + dt;
 }
 
-// Pauses the emitter until it is explicitly unpaused (tUnpause = the largest float).
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+// Pauses the emitter until it is explicitly unpaused (tUnpause = the largest float).
 void PauseEmitterIndefinite(EMITTERV *pemitter)
 {
     pemitter->tUnpause = D_002A514C;
 }
 
-// Unpauses the emitter now.
 void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
+// Unpauses the emitter now.
 void UnpauseEmitter(EMITTERV *pemitter)
 {
     pemitter->tUnpause = -1.0f;
@@ -803,9 +803,9 @@ extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
 }
 } // namespace M_FPausedEmitter__FP7EMITTER
 
+void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 // Called when the emitter's properties changed: clears the dirty flag, pushes the new emission parameters to its blip
 // and rip groups and restarts the emission timer from the rate range (per minute in mode 3).
-void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 void OnEmitterValuesChanged(EMITTERV *pemitter)
 {
     pemitter->fDirty = 0;
@@ -846,9 +846,9 @@ extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
 }
 } // namespace M_SetEmitterParticleCount__FP7EMITTERi
 
+void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitterAutoPause__FP7EMITTERi");
 // Sets the emitter's auto-pause flag (the condition that pauses it is read elsewhere; inferred to be its source going
 // out of view).
-void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitterAutoPause__FP7EMITTERi");
 void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause)
 {
     pemitter->fAutoPause = fAutoPause;
@@ -2156,8 +2156,8 @@ void ExplodeExplgExplso(S *group, P *explso)
 namespace M_HandleExplsMessage { extern "C" {
 struct O { char pad[0x100]; void *pripg; void *pblipg; };   /* EXPLS: its particle groups (+0x100, +0x104) */
 void UnsubscribeLoObject(void *pv, void *po);
-// EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 } } // namespace M_HandleExplsMessage
+// EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
     using namespace M_HandleExplsMessage;

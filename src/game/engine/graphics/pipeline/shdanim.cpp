@@ -148,9 +148,9 @@ extern "C" int AddSaaCopyRecord(SAAV *saa, void *a1, void *a2)
     return 1;
 }
 
+int FUpdatableSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
-int FUpdatableSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
 int FUpdatableSaa(SAAV *saa) {
     if (saa->updateTime != D_002DDED0.t) {
         saa->updateTime = D_002DDED0.t;
@@ -163,8 +163,8 @@ int FUpdatableSaa(SAAV *saa) {
 extern "C" void UpdateSaa(SAAV *saa) {
 }
 
-// Base completion fraction (0..1) of an animation cycle: always 0.
 float UCompleteSaa(SAAV *p) __asm__("GetSaaCompletion__FP3SAA");
+// Base completion fraction (0..1) of an animation cycle: always 0.
 float UCompleteSaa(SAAV *saa) {
     return 0.0f;
 }
@@ -223,10 +223,10 @@ void LOOP::VSlot7(SAAF *psaa)
     p->pauseRemaining = p->pauseTime = g;
 }
 
+void UpdateLoop(LOOPV *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
 // Advances a LOOP animation: steps the frame index at its rate, and at the end of a cycle picks a new cycle duration
 // and pause from their random ranges (lmLoop, lmPause), waiting out the pause before the next cycle; pushes the frame
 // to the shader instances. Nothing to do with fewer than two frames or no instances.
-void UpdateLoop(LOOPV *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
 void UpdateLoop(LOOPV *ploop, float dt)
 {
     if (FIsSlEmpty(&ploop->instances))
@@ -251,8 +251,8 @@ void UpdateLoop(LOOPV *ploop, float dt)
     SetSaiIframe(ploop, (int)ploop->frame);
 }
 
-// Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
 float UCompleteLoop(LOOPV *p) __asm__("GetLoopCompletion__FP4LOOP");
+// Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
 float UCompleteLoop(LOOPV *loop) {
     float frameRate = loop->frameRate;
     return (loop->frame / frameRate) / (((float)loop->numFrames / frameRate) + loop->pauseTime);
@@ -275,9 +275,9 @@ void PINGPONG::VSlot7(SAAF *psaa)
     p->pauseRemaining = p->pauseTime = g;
 }
 
+void UpdatePingpong(PINGPONGV *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
 // Advances a PINGPONG animation: frames run forward then backward; at frame 0 it picks a new round-trip duration and
 // pause from the random ranges and waits out the pause.
-void UpdatePingpong(PINGPONGV *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
 void UpdatePingpong(PINGPONGV *ppingpong, float dt)
 {
     if (FIsSlEmpty(&ppingpong->instances) || ppingpong->numFrames < 2)
@@ -306,8 +306,8 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     SetSaiIframe(ppingpong, (int)ppingpong->frame);
 }
 
-// Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
 float UCompletePingpong(PINGPONGV *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
+// Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
 float UCompletePingpong(PINGPONGV *ppingpong)
 {
     float absDframe = ppingpong->frameRate;
@@ -337,8 +337,8 @@ void SHUFFLE::VSlot7(SAAF *psaaf)
     pshuffle->pauseMin = dtMin;
 }
 
-// Advances a SHUFFLE animation: after each random pause, jumps to a different random frame.
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt) __asm__("UpdateShuffle__FP7SHUFFLEf");
+// Advances a SHUFFLE animation: after each random pause, jumps to a different random frame.
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 {
     if (FIsSlEmpty(&pshuffle->instances) || pshuffle->numFrames < 2)
@@ -452,8 +452,8 @@ extern "C" int DoesEyesMatchOid(EYESV *eyes, int *pid)
     return f;
 }
 
-// SCROLLER init: base SAA init, then the u/v scroll speeds and wrap ranges; master speed multipliers start at 1.
 void InitScroller(SCROLLERV *p, SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");
+// SCROLLER init: base SAA init, then the u/v scroll speeds and wrap ranges; master speed multipliers start at 1.
 void InitScroller(SCROLLERV *scroller, SAAF *psaaf) {
     func_001ED8E0(scroller, psaaf);
     scroller->uSpeed = psaaf->ag[0];
@@ -475,9 +475,9 @@ void SCROLLER::VSlot8()
     SetSaiDuDv(p, uOffset, vOffset);
 }
 
+float UCompleteScroller(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 // Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
 // axis that does not move).
-float UCompleteScroller(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 float UCompleteScroller(SCROLLERV *pscroller)
 {
     float uComp = 0.0f;
@@ -492,9 +492,9 @@ float UCompleteScroller(SCROLLERV *pscroller)
     return uComp;
 }
 
+void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpeedScale) __asm__("SetScrollerMasterSpeeds__FP8SCROLLERff");
 // Sets the SCROLLER's u and v speed multipliers (lets game code speed up or stop a scrolling texture, e.g. water
 // flow).
-void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpeedScale) __asm__("SetScrollerMasterSpeeds__FP8SCROLLERff");
 void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpeedScale)
 {
     pscroller->uSpeedScale = uSpeedScale;
@@ -510,9 +510,9 @@ void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
     p->vCenter = psaaf->ag[3];
 }
 
+void UpdateCircler(CIRCLERV *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
 // Advances a CIRCLER animation: the uv offset moves around a circle (radius, centre) at radsSpeed, driven by the game
 // clock.
-void UpdateCircler(CIRCLERV *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
 void UpdateCircler(CIRCLERV *pcircler, float dt)
 {
     if (FIsSlEmpty(&pcircler->instances))
@@ -526,8 +526,8 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
     SetSaiDuDv(pcircler, sinOut, cosOut);
 }
 
-// Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
 float UCompleteCircler(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
+// Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
 float UCompleteCircler(CIRCLERV *pcircler)
 {
     float angle = D_002DDED0.t * pcircler->angularSpeed;

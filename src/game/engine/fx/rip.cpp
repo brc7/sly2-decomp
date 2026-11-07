@@ -219,8 +219,8 @@ void InitRipg__FP4RIPG(struct S *ripGroup)
 }
 } } // namespace M_InitRipg__FP4RIPG
 
-// Copy emitb rate into RIPG.
 void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
+// Copy emitb rate into RIPG.
 void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 {
     ripGroup->emitScale = pemitb->ripScale;
@@ -702,9 +702,9 @@ struct RIP { char pad[0x14]; float startTime; float duration; int renderObject; 
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
+} } // namespace M_InitRip
 // RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
 // positions at `pos`, identity orientation.
-} } // namespace M_InitRip
 void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
 {
     using namespace M_InitRip;
@@ -1922,9 +1922,9 @@ extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
+} } // namespace M_FBounceLeaf
 // FLYING FBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
 // the flying rip.
-} } // namespace M_FBounceLeaf
 int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_FBounceLeaf;
@@ -2051,8 +2051,8 @@ struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-// SHRAPNEL FBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
 } } // namespace M_FBounceShrapnel
+// SHRAPNEL FBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
 int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_FBounceShrapnel;
@@ -2303,9 +2303,9 @@ extern struct CLOCK { float t; } D_002DDED0;
 struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
+} } // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
 // render object (vtable slot 8) and removes itself.
-} } // namespace M_UpdateMatch
 void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
@@ -2646,8 +2646,8 @@ struct OBJ {
     void *argument;
 };   /* SMACK */
 extern "C" void RemoveRip__FP3RIP(OBJ *);
-// SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
 } // namespace M_UpdateSmack
+// SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
 void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateSmack;
@@ -2675,8 +2675,8 @@ static inline MATRIX3 MakeBasis(qword vector) return r
 {
     LoadLookAtMatrix(&r, vector);
 }
-// LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
 } // namespace M_PostLeafEmit
+// LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
 void LEAF::PostEmit(void *pv) /* key function (the namespace's views) */
 {
     using namespace M_PostLeafEmit;
@@ -3149,9 +3149,9 @@ typedef struct {
     float accumulated;
 } OBJ;   /* REMIT */
 void UpdateRip(OBJ *);
+} } // namespace M_UpdateRemit
 // REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
 // with only the origin set).
-} } // namespace M_UpdateRemit
 void REMIT::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateRemit;

@@ -1034,8 +1034,8 @@ struct O { int a[3]; struct VTE *vt; };
 struct B { int pad[5]; struct O *po; };
 struct A { int pad[4]; struct B *pb; };
 void ActivateCplcy(struct A *a, int n, struct B *b);
-// Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
 } } // namespace M_ActivateCpcamblend
+// Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
 void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpcamblend;
@@ -1179,8 +1179,8 @@ extern struct G D_002DDF40;
 struct B { char pad[0x1BC]; float turretFov; };
 void ActivateCplcy(void *a, struct B *b);
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
-// CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC. (inferred)
 } } // namespace M_ActivateCpturret
+// CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC. (inferred)
 void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpturret;

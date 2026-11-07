@@ -290,9 +290,9 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     return p;
 }
 
+void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
 // BLIPG vt7 Init: XFM init, an empty blip list (linked at BLIP+0x1090), no OID, never culled by distance (sBusy
 // 1e10), busy level 1, LO flag bits 1-3 set.
-void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
 void InitBlipg(BLIPGV *blipGroup)
 {
     int x;
@@ -306,8 +306,8 @@ void InitBlipg(BLIPGV *blipGroup)
     else blipGroup->flags40 = (x & 1) | 0xe;
 }
 
-// BLIPG vt12: remove all blips, base remove, queue group for freeing.
 void OnBlipgRemove(BLIPGV *p) __asm__("OnBlipgRemove__FP5BLIPG");
+// BLIPG vt12: remove all blips, base remove, queue group for freeing.
 void OnBlipgRemove(BLIPGV *blipGroup)
 {
     DLI dli;
@@ -642,6 +642,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     }
 }
 
+struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 // ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
 // batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
 // velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
@@ -650,7 +651,6 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 ProjectBlipgTransformAccel prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
 // his $v0 and the zero reload $v1. Loop givs: the post-switch copies go through c-based pointers pcs/pcd (laneC2f).
-struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 static inline qwordV AddScaled(qwordV a, qwordV b, VU_FLOATT s)
 {
     qwordV r;
