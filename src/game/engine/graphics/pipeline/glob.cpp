@@ -750,13 +750,8 @@ struct RPL
     uchar *pb;
     void *chain;
 };
-struct G
-{
-    char pad[0x3D5C];
-    int tick;
-};
 extern "C" { extern DMA D_002DEA28; }
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
@@ -867,7 +862,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         prpl->pad4 = 0;
         prpl->chain = descriptor->chain;
     }
-    p->tick = D_003DD490.tick;
+    p->tick = D_003DD490.unknown3D5C;
 }
 } // namespace M_SubmitGlobsetRelight
 
@@ -1164,13 +1159,6 @@ struct VIEW
     qword posCam;
     qword aqwPlane[3];
 };
-struct G
-{
-    char pad[0x3BEC];
-    int fAlt;
-    char pad3BF0[0x16C];
-    int nStamp;
-};
 struct DMA
 {
     char pad[0xC];
@@ -1184,7 +1172,7 @@ struct RPL
     char *pv;
 };
 extern "C" { extern DMA D_002DEA28; }
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern VIEW D_002DDF40; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
@@ -1384,7 +1372,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     if (gVis == 0.0f)
         return;
     pmodel->t = D_002DDED0.time;
-    if (pmodel->nStamp != D_003DD490.nStamp)
+    if (pmodel->nStamp != D_003DD490.unknown3D5C)
         SubmitGlobsetRelight(pmodel);
     int i;
     for (i = 0; i < pmodel->cobj; i++)
@@ -1398,7 +1386,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     }
     int fAlt = 0;
     if (pmodel->grf & 0x400000000UL)
-        fAlt = D_003DD490.fAlt == 0;
+        fAlt = D_003DD490.unknown3BEC == 0;
     for (i = 0; i < pmodel->csub; i++)
     {
         pdesc = &pmodel->asubdesc[i];
