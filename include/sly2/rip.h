@@ -47,7 +47,8 @@ struct RIP
     char padB0[0xD0 - 0xB0];
     float angularVelocity[3];  /* +0xD0 spin (SHRAPNEL: random, from the impact speed) */
     char padDC[0xE0 - 0xDC];
-    LO *touchObject;           /* +0xE0 */
+    SO *touchObject;           /* +0xE0 the object whose volume the rip tests itself against (UpdateRip: its point
+                                  test, slot 73; Init's psoTouch) */
     char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRip");   /* slot 1; key function (parameter order from Sly 1's InitMatch symbol) */

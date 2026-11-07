@@ -1340,36 +1340,27 @@ typedef char layout_cf0a0_33[((unsigned)&((M4*)0)->c==0x20)?1:-1];
 typedef char layout_cf0a0_34[((unsigned)&((M4*)0)->d==0x30)?1:-1];
 } // namespace M_ProjectRipTransform
 
-namespace M_UpdateRip { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
-extern struct CLOCK D_002DDED0;
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::isInWorld */
-struct G { char pad[0x150]; int groupKind; };
-struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
-    char p2[0xE0 - 0x80]; struct LO *touchObject; char p3[0xEC - 0xE4]; struct VTE *vt; };
-void RemoveRip__FP3RIP(struct S *p);
 // RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
-// against its touch object (when that is in the world, through the object's point test, vtable slot 73) and
-// reports the result to Touch (slot 7).
-void UpdateRip(struct S *p)
+// against its touch object (when that is in the world, through the object's point test, vtable slot 73, by hand:
+// so.h's IsPosInside is settled across families separately) and reports the result to Touch (slot 7).
+void RIP::Update()
 {
-    struct LO *touch;
+    SO *touch;
     int isInside;
-    if (D_002DDED0.time - p->startTime > p->duration) {
-        RemoveRip__FP3RIP(p);
+    if (g_clock.time - startTime > duration) {
+        RemoveRip(this);
         return;
     }
-    if (p->pg->groupKind == 1) return;
-    touch = p->touchObject;
+    if (ripGroup->groupKind == 1) return;
+    touch = touchObject;
     if (!touch) return;
-    if (!touch->unknownE8) return;
+    if (!touch->physics) return;
     isInside = 0;
-    if ((int)(touch->loBits >> 60) & 1)
-        if (((int (*)(void *, qword))touch->vt[73].pf)((char *)touch + touch->vt[73].d, p->currentPosition)) isInside = 1;
-    ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, isInside);
+    if ((int)(*(unsigned long *)((char *)touch + 0x28) >> 60) & 1)   /* LO::isInWorld through its whole bit-field word: the
+                                                                     bit-field test compiles to a mask (6 off) */
+        if (((int (*)(void *, qword))VPTR(touch)[73].pf)((char *)touch + VPTR(touch)[73].d, currentPosition)) isInside = 1;
+    Touch(isInside);
 }
-} } // namespace M_UpdateRip
 
 namespace M_RenderRipAtPose {
 typedef int qword __attribute__((mode(TI)));
