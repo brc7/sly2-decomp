@@ -1553,7 +1553,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void DeliverZapToSo(ZPR *pzpr);
 } } // namespace M_InflictBhvguardZap
 // 0x176B80: Inflicts a zap of kind 0x40000 and `amount` on the guard from `source`.
-extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, LO *source)
+extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, SO *source)
 {
     using namespace M_InflictBhvguardZap;
     ZPR f;
@@ -1880,108 +1880,66 @@ typedef char layout_WORK_delta[((unsigned long)&((WORK*)0)->delta==0xB0)?1:-1];
 
 // 0x177618 UpdateBhvguard
 namespace M_UpdateBhvguard {
-struct VE; struct P; struct H; struct STATE; struct C; 
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
-struct P;
-struct VE{short delta,pad;void(*fn)();};
-struct P{char pad0[12];VE*vt;char pad10[0x38C-0x10];P*selected;char pad390[0xE20-0x390];void*extra;};
-struct H{char pad0[0x30];P*object;char pad34[16];P*target;char pad48[8];int mode;char pad54[8];P*extra;};
-struct STATE{int kind,pad4,pad8,padC;union{qword data[6];struct{P*object;float amount;char pad18[0x60-8];}s;}payload;};
-struct C{char pad0[16];P*guard;int pad14;H*helper;char pad1C[0x30-0x1C];STATE state;float started,expires;};
 extern "C"{
- extern CLOCK D_002DDED0;
- extern char D_003DD490[];
- void UpdateBhv(C*);
- int IsBhvBusyAbove(C*);
- int HasBhvguardTargetList(C*);
- int IsBhvguardEscortActive(C*);
- int IsBhvguardModeSame(const STATE*,const STATE*);
- void SetBhvguardMode(C*,const STATE*);
+ int IsBhvguardEscortActive(BHV156*);
+ int HasBhvguardTargetList(BHV*);
+ int IsBhvguardModeSame(const BHVGUARDRECDATA*,const BHVGUARDRECDATA*);
+ void SetBhvguardMode(BHV156*,const BHVGUARDRECDATA*);
  void*func_002333B4(void*,int,unsigned int) __asm__("memset");
- int IsStepguardForceClass(P*,P*);
- float GetRandomStepguardDelay(P*);
- P*ChooseStepguardStimulus(P*,P*);
- void SetBhvSearchWatched(H*,P*);
- int IsBhvSearchIdle(H*);
- int IsBhvanimDone(H*);
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- int IsBhvScriptDone(H*);
- int IsBhvcombatDone(H*);
- P*GetStepguardFromLo(void*);
- qword GetLoWorldPos(P*);
- P*EmitSwNoise(void*,int,qword,P*);
- void RemoveNoise(P*);
- void InflictBhvguardZap(C*,int,P*);
- int IsBhvThrownDone(H*);
- int IsBhvRelocateDone(H*);
- int IsBhvStalkDone(H*);
- void ResumeBhvguard(C*);
+ int IsStepguardForceClass(STEPGUARD*,LO*);
+ float GetRandomStepguardDelay(STEPGUARD*);
+ STIMULUS*ChooseStepguardStimulus(STEPGUARD*,STIMULUS*);
+ void SetBhvSearchWatched(BHV171*,STIMULUS*);
+ int IsBhvSearchIdle(BHV171*);
+ int IsBhvScriptDone(BHV*);
+ LO*EmitSwNoise(SW*,int,qword,STEPGUARD*);
+ void RemoveNoise(LO*);
+ void InflictBhvguardZap(BHV156*,int,SO*);
+ int IsBhvThrownDone(BHV*);
+ int IsBhvRelocateDone(BHV*);
+ int IsBhvStalkDone(BHV*);
+ void ResumeBhvguard(BHV156*);
 }
-// Returns the object's chosen target (vtable slot 88).
-static inline P*Target(P*p){VE*v=&p->vt[88];return ((P*(*)(P*))v->fn)((P*)((char*)p+v->delta));}
-// Returns the object's health state (vtable slot 77).
-static inline int Mode(P*p){VE*v=&p->vt[77];return ((int(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 // Clears a mode record.
-static inline void Clear(STATE*s){func_002333B4(s,0,sizeof(*s));}
+static inline void Clear(BHVGUARDRECDATA*s){func_002333B4(s,0,sizeof(*s));}
 // Fills a mode record to engage `object`: a timed forced-class attack (kind 18, random delay) for forced classes, else plain combat (kind 3).
-static inline void Attack(C *p, STATE *s, P *object)
+static inline void Attack(BHV156 *p, BHVGUARDRECDATA *s, LO *object)
 {
-    if (IsStepguardForceClass(p->guard, object)) {
+    if (IsStepguardForceClass((STEPGUARD *)p->owner, object)) {
         s->kind = 18;
-        s->payload.s.object = object;
-        s->payload.s.amount = GetRandomStepguardDelay(p->guard);
+        s->arg.object = object;
+        s->arg.amount = GetRandomStepguardDelay((STEPGUARD *)p->owner);
     } else {
         s->kind = 3;
-        s->payload.s.object = object;
+        s->arg.object = object;
     }
 }
 typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char VE_Size[sizeof(VE)==8?1:-1];
-typedef char STATE_Size[sizeof(STATE)==112?1:-1];
-typedef char VE_delta_Offset[FIELD_OFFSET(VE,delta)==0?1:-1];
-typedef char VE_fn_Offset[FIELD_OFFSET(VE,fn)==4?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_selected_Offset[FIELD_OFFSET(P,selected)==908?1:-1];
-typedef char P_extra_Offset[FIELD_OFFSET(P,extra)==3616?1:-1];
-typedef char H_object_Offset[FIELD_OFFSET(H,object)==48?1:-1];
-typedef char H_target_Offset[FIELD_OFFSET(H,target)==68?1:-1];
-typedef char H_mode_Offset[FIELD_OFFSET(H,mode)==80?1:-1];
-typedef char H_extra_Offset[FIELD_OFFSET(H,extra)==92?1:-1];
-typedef char STATE_kind_Offset[FIELD_OFFSET(STATE,kind)==0?1:-1];
-typedef char STATE_payload_Offset[FIELD_OFFSET(STATE,payload)==16?1:-1];
-typedef char STATE_payload_s_object_Offset[FIELD_OFFSET(STATE,payload.s.object)==16?1:-1];
-typedef char STATE_payload_s_amount_Offset[FIELD_OFFSET(STATE,payload.s.amount)==20?1:-1];
-typedef char C_actor_Offset[FIELD_OFFSET(C,guard)==16?1:-1];
-typedef char C_helper_Offset[FIELD_OFFSET(C,helper)==24?1:-1];
-typedef char C_state_Offset[FIELD_OFFSET(C,state)==48?1:-1];
-typedef char C_started_Offset[FIELD_OFFSET(C,started)==160?1:-1];
-typedef char C_expires_Offset[FIELD_OFFSET(C,expires)==164?1:-1];
 // 0x177618: BHVGUARD vtable slot 10 (Update): the top-level guard AI: patrol -> (stimulus) search -> (target seen)
 // alert animation -> combat; returns to patrol when the child finishes; also the script, escort and target-list
 // modes.
-extern "C" void UpdateBhvguard(C *behavior)
+extern "C" void UpdateBhvguard(BHV156 *behavior)
 {
     UpdateBhv(behavior);
     while (!IsBhvBusyAbove(behavior)) {
-        STATE previous = behavior->state;
-        STATE *current = &behavior->state;
-        switch (behavior->state.kind) {
+        BHVGUARDRECDATA previous = behavior->modeRec;
+        BHVGUARDRECDATA *current = &behavior->modeRec;
+        switch (behavior->modeRec.kind) {
         case GUARD_MODE_CALM:
         case GUARD_MODE_ESCORT:
         case GUARD_MODE_WATCH: {
-            STATE next;
+            BHVGUARDRECDATA next;
             Clear(&next);
             if (!HasBhvguardTargetList(behavior)) {
-                P *object = Target(behavior->guard);
+                LO *object = ((STEPGUARD *)behavior->owner)->ChooseTarget();
                 if (object)
                     Attack(behavior, &next, object);
                 else {
-                    P *selected = ChooseStepguardStimulus(behavior->guard, 0);
+                    STIMULUS *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, 0);
                     if (selected) {
                         next.kind = GUARD_MODE_SUSPICIOUS;
-                        next.payload.s.object = selected;
-                    } else if (behavior->state.kind == GUARD_MODE_WATCH && D_002DDED0.time < behavior->expires)
+                        next.arg.object = selected;
+                    } else if (behavior->modeRec.kind == GUARD_MODE_WATCH && D_002DDED0.time < behavior->watchEndTime)
                         next.kind = GUARD_MODE_WATCH;
                     else {
                         if (IsBhvguardEscortActive(behavior))
@@ -1997,25 +1955,25 @@ extern "C" void UpdateBhvguard(C *behavior)
         }
         case GUARD_MODE_SUSPICIOUS: {
             if (HasBhvguardTargetList(behavior)) {
-                STATE next;
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_TARGET_LIST;
                 SetBhvguardMode(behavior, &next);
             } else {
-                P *object = Target(behavior->guard);
+                LO *object = ((STEPGUARD *)behavior->owner)->ChooseTarget();
                 if (object) {
-                    STATE next;
+                    BHVGUARDRECDATA next;
                     Clear(&next);
                     Attack(behavior, &next, object);
                     SetBhvguardMode(behavior, &next);
                 } else {
-                    H *h = behavior->helper;
-                    P *old = h->target;
-                    P *selected = ChooseStepguardStimulus(behavior->guard, old);
+                    BHV171 *h = (BHV171 *)behavior->pbhvNext;
+                    STIMULUS *old = h->watched;
+                    STIMULUS *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, old);
                     if (selected != old)
                         SetBhvSearchWatched(h, selected);
                     else if (IsBhvSearchIdle(h)) {
-                        STATE next;
+                        BHVGUARDRECDATA next;
                         Clear(&next);
                         next.kind = GUARD_MODE_CALM;
                         SetBhvguardMode(behavior, &next);
@@ -2026,54 +1984,54 @@ extern "C" void UpdateBhvguard(C *behavior)
         }
         case GUARD_MODE_ALERT_ANIM: {
             if (HasBhvguardTargetList(behavior)) {
-                STATE next;
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_TARGET_LIST;
                 SetBhvguardMode(behavior, &next);
-            } else if (IsBhvanimDone(behavior->helper)) {
-                STATE next;
+            } else if (IsBhvanimDone((BHVANIM *)behavior->pbhvNext)) {
+                BHVGUARDRECDATA next;
                 Clear(&next);
-                if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI)) {
+                if (IsBasicDerivedFrom(behavior->owner, (CID)CID_DIMITRI)) {
                     next.kind = GUARD_MODE_FLEE;
-                    next.payload.s.object = behavior->state.payload.s.object;
+                    next.arg.object = behavior->modeRec.arg.object;
                 } else {
                     next.kind = GUARD_MODE_ALERT;
-                    next.payload.s.object = behavior->state.payload.s.object;
+                    next.arg.object = behavior->modeRec.arg.object;
                 }
                 SetBhvguardMode(behavior, &next);
             }
             break;
         }
         case GUARD_MODE_SCRIPT:
-            if (IsBhvScriptDone(behavior->helper))
+            if (IsBhvScriptDone(behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         case GUARD_MODE_ALERT: {
-            H *h = behavior->helper;
+            BHVCOMBAT *h = (BHVCOMBAT *)behavior->pbhvNext;
             if (HasBhvguardTargetList(behavior)) {
-                STATE next;
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_TARGET_LIST;
                 SetBhvguardMode(behavior, &next);
             } else if (IsBhvcombatDone(h)) {
-                STATE next;
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_CALM;
                 SetBhvguardMode(behavior, &next);
             } else {
-                P *object = Target(behavior->guard);
-                if (object != behavior->guard->selected) {
-                    STATE next;
+                LO *object = ((STEPGUARD *)behavior->owner)->ChooseTarget();
+                if (object != ((STEPGUARD *)behavior->owner)->target) {
+                    BHVGUARDRECDATA next;
                     Clear(&next);
                     if (object)
                         Attack(behavior, &next, object);
                     else {
                         next.kind = GUARD_MODE_CALM;
-                        P *other = h->object;
-                        if (other && IsBasicDerivedFrom__FP5BASIC3CID(other, CID_STEPPLAYER) && Mode(other) == 2) {
-                            P *owner = GetStepguardFromLo(other->extra);
-                            if (owner && owner != behavior->guard) {
-                                next.payload.s.object = owner;
+                        LO *other = h->target;
+                        if (other && IsBasicDerivedFrom(other, (CID)CID_STEPPLAYER) && ((STEPPLAYER *)other)->GetHealthState() == 2) {
+                            STEPGUARD *owner = GetStepguardFromLo(((STEPPLAYER *)other)->jthurt.zpr.ploSource);
+                            if (owner && owner != (STEPGUARD *)behavior->owner) {
+                                next.arg.object = owner;
                                 next.kind = GUARD_MODE_WATCH;
                             }
                         }
@@ -2085,7 +2043,7 @@ extern "C" void UpdateBhvguard(C *behavior)
         }
         case GUARD_MODE_TARGET_LIST: {
             if (!HasBhvguardTargetList(behavior)) {
-                STATE next;
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_CALM;
                 SetBhvguardMode(behavior, &next);
@@ -2093,56 +2051,56 @@ extern "C" void UpdateBhvguard(C *behavior)
             break;
         }
         case GUARD_MODE_START: {
-            STATE next;
+            BHVGUARDRECDATA next;
             Clear(&next);
             next.kind = GUARD_MODE_CALM;
             SetBhvguardMode(behavior, &next);
             break;
         }
         case GUARD_MODE_SLEEP: {
-            if (IsBhvanimDone(behavior->helper)) {
-                P *object = EmitSwNoise(D_003DD490, 0, GetLoWorldPos(behavior->guard), behavior->guard);
-                STATE next;
+            if (IsBhvanimDone((BHVANIM *)behavior->pbhvNext)) {
+                LO *object = EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(behavior->owner), (STEPGUARD *)behavior->owner);
+                BHVGUARDRECDATA next;
                 Clear(&next);
                 next.kind = GUARD_MODE_SUSPICIOUS;
-                next.payload.s.object = object;
+                next.arg.object = object;
                 SetBhvguardMode(behavior, &next);
                 RemoveNoise(object);
             }
             break;
         }
         case GUARD_MODE_JUGGLED: {
-            H *h = behavior->helper;
+            BHVJUGGLED *h = (BHVJUGGLED *)behavior->pbhvNext;
             if (IsBhvanimDone(h)) {
-                if (h->mode != -1) {
-                    if (h->mode == 3)
+                if (h->juggleState != -1) {
+                    if (h->juggleState == 3)
                         ResumeBhvguard(behavior);
                 } else {
-                    InflictBhvguardZap(behavior, -50, h->extra);
-                    if (behavior->state.kind == GUARD_MODE_JUGGLED)
+                    InflictBhvguardZap(behavior, -50, h->holder);
+                    if (behavior->modeRec.kind == GUARD_MODE_JUGGLED)
                         ResumeBhvguard(behavior);
                 }
             }
             break;
         }
         case GUARD_MODE_THROWN:
-            if (IsBhvThrownDone(behavior->helper))
+            if (IsBhvThrownDone(behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         case GUARD_MODE_HURT:
-            if (IsBhvanimDone(behavior->helper))
+            if (IsBhvanimDone((BHVANIM *)behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         case GUARD_MODE_KNOCKDOWN:
-            if (IsBhvanimDone(behavior->helper))
+            if (IsBhvanimDone((BHVANIM *)behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         case GUARD_MODE_RELOCATE:
-            if (IsBhvRelocateDone(behavior->helper))
+            if (IsBhvRelocateDone(behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         case GUARD_MODE_STALK:
-            if (IsBhvStalkDone(behavior->helper))
+            if (IsBhvStalkDone(behavior->pbhvNext))
                 ResumeBhvguard(behavior);
             break;
         }
