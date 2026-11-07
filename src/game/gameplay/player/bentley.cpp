@@ -16,6 +16,7 @@
 #include "sly2/players.h"
 #include "sly2/slotheap.h"
 #include "sly2/classes.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -1977,29 +1978,22 @@ struct PX {
     int a1034[(0x10DC - 0x1034) / 4];
     int interactTarget;
 };
-struct Q {
-    virtual void v1();
-    virtual void v2();
-    virtual void Eval(int n, qword *pv, float g0, float g1);
-};
-struct R { int x0; Q *pq; };
-struct X { char pad[0x78]; float g78; };
-struct S { P *p; int k; float t; int kCur; X *px0; X *px1; };
+struct S { P *p; int k; float t; int kCur; ASEG *px0; ASEG *px1; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
-R *FindAsegChannel(X *px, P *p, int a, int b);
+CHN *FindAsegChannel(ASEG *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, P *p, int n, void *pv, float g0, float g1);
 }
 #define PXOF(p) ((PX *)(p))
 
 // Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
 extern "C" void SetBentleyHelperState(S *s, int k)
 {
-    X *px;
+    ASEG *px;
     if (k == s->k)
         return;
     s->k = k;
@@ -2022,7 +2016,7 @@ extern "C" void SetBentleyHelperState(S *s, int k)
             else
                 px = s->px1;
             FaceStepToward(s->p, PXOF(s->p)->interactTarget);
-            FindAsegChannel(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
+            FindAsegChannel(px, s->p, 1, 1)->pac->Evaluate(0.0f, px->masterSpeed, 0, &v.q);
             s->p->SetVel(PXOF(s->p)->m1B0 * VU_VECTOR(v.q));
             PXOF(s->p)->v190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
             s->kCur = k;
