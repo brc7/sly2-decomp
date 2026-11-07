@@ -2475,10 +2475,6 @@ namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 typedef int qword __attribute__((mode(TI)));
 struct JT;
 union VECTOR {qword q;float f[4];int n[4];};
-struct FACE {qword normal;int pad[4];};
-struct GEO {int n;VECTOR *points;int k;FACE *faces;};
-struct SO {char pad[0x90];GEO geom;};
-struct EDGE {unsigned short a,b,faceA,faceB;};
 extern "C" { extern qword D_002A2DA0; }
 // Normalize *v in place, or use fallback when its length is too small.
 static inline void Normal(VECTOR*v,qword fallback){qword a=v->q;register qword d __asm__("vf1");qword one;float g;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));if(g<0.0001f){a=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"=j"(a):"j"(d),"0"(a));}v->q=a;}
@@ -2489,25 +2485,26 @@ static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni 
 // For an edge between a walkable face (normal z > 0.7) and a wall face (normal z < 0.55) computes the grab direction;
 // returns nonzero if the edge is a ledge Sly can grab. (Sly 1-derived name: FCheckJtSingleEdge.)
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
-extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, EDGE *e, VECTOR *out)
+/* The Sly 1 symbol says SO; in Sly 2 the shape is the part (SOPART::meshWorld). */
+extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SOPART *so, EDGE *e, VECTOR *out)
 {
-    GEO *geom = &so->geom;
-    FACE *chosen;
+    GEOM *geom = &so->meshWorld;
+    SURF *chosen;
     VECTOR d, r, k;
-    FACE *a = &geom->faces[e->faceA];
-    FACE *b = &geom->faces[e->faceB];
-    if (((float *)&a->normal)[2] > 0.7f && ((float *)&b->normal)[2] < 0.55f)
+    SURF *a = &geom->surfaces[e->aisurf[0]];
+    SURF *b = &geom->surfaces[e->aisurf[1]];
+    if (a->normal.z > 0.7f && b->normal.z < 0.55f)
         chosen = b;
-    else if (((float *)&a->normal)[2] < 0.55f && ((float *)&b->normal)[2] > 0.7f)
+    else if (a->normal.z < 0.55f && b->normal.z > 0.7f)
         chosen = a;
     else
         return 0;
-    d.q = VuSub(geom->points[e->b].q, geom->points[e->a].q);
+    d.q = VuSub(((VECTOR *)geom->positions)[e->aipos[1]].q, ((VECTOR *)geom->positions)[e->aipos[0]].q);
     r.n[2] = 0;
     r.f[1] = d.f[0];
     r.f[0] = -d.f[1];
     Normal(&r, D_002A2DA0);
-    if (Dot(r.q, chosen->normal) < 0.0f)
+    if (Dot(r.q, *(qword *)&chosen->normal) < 0.0f)
         r.q = Scale(r.q, -1.0f, k);
     *out = r;
     return 1;
@@ -2657,22 +2654,13 @@ namespace M_func_001999D0 {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 union U { qword q; float f[4]; int i[4]; };
-struct EDGE;
-struct NODE;
-struct FACE { U plane; EDGE *first, *second; int flags; };
-struct EDGE { ushort vertices[2], face, other; EDGE *next, *nextOther; };
-struct GEOMETRY { char pad0[4]; U *points; char pad8[4]; FACE *faces; };
-struct QUERY { int pad0, count, pad8; NODE *tree; };
-struct SHAPE { char pad0[0x68]; QUERY query; char pad78[0x18]; GEOMETRY geometry; };
-struct ACTOR { char pad0[0x258]; SHAPE *shape; };
-struct JT { ACTOR *actor; };
-struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; FACE *firstFace, *lastFace; };
+struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; };
 extern "C" {
 extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
-int CollectEdgesAtGeomPoint(GEOMETRY *, QUERY *, int, int, EDGE **);
-int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
-int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int IsJtEdgeNormalValid(JT *, qword, qword);
+int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **);
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, U *);   // FCheckJtSingleEdge
+int func_00118668(BSP *, int, qword, qword, int, SPAN *);
+int IsJtEdgeNormalValid(JTAIR *, qword, qword);
 }
 
 // Return a + b.
@@ -2694,7 +2682,7 @@ static inline qword Normalize(qword v, qword fallback)
 
 // Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
 // (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
-extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, U *out)
+extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind, void *info, U *out)
 {
     switch (kind) {
     case 1: {
@@ -2702,8 +2690,8 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         U direction;
         int found = 0;
         qword sum = D_002A2DD0.q;
-        GEOMETRY *geometry = &shape->geometry;
-        int count = CollectEdgesAtGeomPoint(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
+        GEOM *geometry = &shape->meshWorld;
+        int count = CollectEdgesAtGeomPoint(geometry, &shape->bspc, (U *)info - (U *)geometry->positions, 64, edges);
         for (int i = 0; i < count; i++) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
                 found = 1;
@@ -2720,28 +2708,28 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
             return 0;
         break;
     case 2: {
-        FACE *face = (FACE *)info;
-        if (face->plane.f[2] < 0.7f)
+        SURF *face = (SURF *)info;
+        if (face->normal.z < 0.7f)
             return 0;
         int found = 0;
         qword sum = D_002A2DD0.q;
         U direction;
         SPAN spans[2];
-        for (EDGE *edge = face->first; edge; edge = edge->next) {
+        for (EDGE *edge = face->pedge; edge; edge = edge->pedgeNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                U *points = shape->geometry.points;
-                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
-                                  points[edge->vertices[1]].q, 2, spans) > 0) {
+                U *points = (U *)shape->meshWorld.positions;
+                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                                  points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
                 }
             }
         }
-        for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
+        for (EDGE *edge = face->pedgeOther; edge; edge = edge->pedgeOtherNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                U *points = shape->geometry.points;
-                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
-                                  points[edge->vertices[1]].q, 2, spans) > 0) {
+                U *points = (U *)shape->meshWorld.positions;
+                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                                  points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
                 }
