@@ -94,16 +94,6 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-struct STUNHOLD
-{
-      int fValid;
-      float gSide;
-      float gUp;
-      undefined4 unk_0x0c;
-      qword qwPos;
-      qword qwVel;
-};
-
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);
@@ -163,15 +153,6 @@ struct CID100V : public SO
       undefined4 unk_0x170[16];
 };
 
-struct PARTLINK
-{
-      undefined4 unk_0x00;
-      void *precA;
-      void *precB;
-      void *precC;
-      undefined4 unk_0x10[0xD0 / 4];
-};
-
 extern "C" int IsAsegaRetracted(ASEGA *pasega);
 
 struct VU_FLOAT
@@ -211,10 +192,9 @@ void InitJtAir(T *t, int a)
 
 //////// 0x1959C0 PostLoadJtAir
 namespace M_PostLoadJtAir { extern "C" {
-struct S { int a; char pad[0x17C-4]; char b[0x1B8-0x17C]; char c[4]; };
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, void *, int, int, int, void *);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **);
 // Post-load: creates the 5-entry dynamic jump animation blend.
-void PostLoadJtAir(struct S *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->a, 0xC, 5, s->b, 0, 0, 0, s->c); }
+void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
 } } // namespace M_PostLoadJtAir
 
 //////// 0x195A00 SetJtAirJump
@@ -1523,40 +1503,36 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
 
 //////// 0x197370 StartJtAirTurn
 namespace M_func_00197370 { extern "C" {
-struct S60 { char pad[0x40]; float x40; float x44; };
-struct S150 { char pad[0x18]; float x18; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct ASEGA *action; char x1034[4]; };
-struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
-#define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, STEPPLAYER *o, int n, ASEGA **b, float g, float h);
+#define Get(p, i) ((p)->state == 2 ? (p)->apasegDoubleJump[i] : (p)->apasegJump[i])
 // Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
-void StartJtAirTurn(struct P *p)
+void StartJtAirTurn(JTAIR *p)
 {
     float d, ad;
-    struct ASEGA *s;
-    void *pv;
-    p->x30 = 1;
-    d = NormalizeAngle__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
+    ASEGA *s;
+    ASEG *pv;
+    p->unknown30 = 1;
+    d = NormalizeAngle__Ff(p->player->controller->leftStickAngle - atan2f(p->player->rootTransform->worldMatrix.mat[0][1], p->player->rootTransform->worldMatrix.mat[0][0]));
     ad = __builtin_fabsf(d);
     if (ad < 1.0995574f)
-        p->x8 = 3;
+        p->unknown08 = 3;
     else if (ad > 2.0420351f)
-        p->x8 = 4;
+        p->unknown08 = 4;
     else if (d > 0.0f)
-        p->x8 = 2;
+        p->unknown08 = 2;
     else
-        p->x8 = 1;
-    s = p->x0->action;
-    pv = Get(p, p->x8);
+        p->unknown08 = 1;
+    s = p->player->activeAnimation;
+    pv = Get(p, p->unknown08);
     if (!pv)
         pv = Get(p, 0);
     if (!pv)
-        pv = p->a120[0];
-    ReleaseSma(p->x0->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->time, s->speed);
+        pv = p->apasegJump[0];
+    ReleaseSma(&p->player->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->player, 1, &p->player->activeAnimation, s->time, s->speed);
 }
 } } // namespace M_func_00197370
 
@@ -1759,12 +1735,12 @@ void UpdateJtAirInput(JTAIR *air)
                 break;
             case 0x12:
             {
-                float tLabel = TFindAsegLabel(D_002F7900->moverec.unknown64, (OID)0x1C7);
+                float tLabel = TFindAsegLabel(D_002F7900->jtthrowAim.unknown64, (OID)0x1C7);
                 float t = *(float *)&air->player->unknown58->reference;
                 t -= tLabel;
-                if (t <= D_002DDED0.time && D_002F7900->moverec.state != 3)
+                if (t <= D_002DDED0.time && D_002F7900->jtthrowAim.state != 3)
                 {
-                    SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
+                    SetJtThrowState(&D_002F7900->jtthrowAim, 3);
                     break;
                 }
                 if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
@@ -4719,15 +4695,13 @@ extern "C" void LandJtAir(JTAIR *air)
 
 //////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 { extern "C" {
-struct O { char pad[0x520]; int x520; };
-struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
-int GetJtAirAdjustRecord(struct S *s, int *pn) {
-    int v;
-    switch (s->x1c) {
-    case 0xB: case 0xC: case 0xD: v = s->p->x520; break;
-    case 0x11: v = s->c4; break;
-    default: v = s->c0; break;
+SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
+    SOPART *v;
+    switch (s->state) {
+    case 0xB: case 0xC: case 0xD: v = s->player->jtgrab.unknown60; break;
+    case 0x11: v = s->precAirWallRun; break;
+    default: v = s->precAir; break;
     }
     *pn = 0;
     return v;
@@ -4745,31 +4719,29 @@ extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 
 //////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 { extern "C" {
-struct O { char pad[0x12F0]; int x12f0; };
-struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
 int IsCameraPolicyActive__FP5CPLCY(void *);
 // Whether gadget/action k can be used in the current air sub-state.
-int CanJtUseGadgetInAir(struct S *p, int k) {
+int CanJtUseGadgetInAir(JTAIR *p, int k) {
     switch (k) {
     case 22:
-        if (p->x4 >= 17) goto L;
-        if (p->x4 < 15) goto L;
+        if (p->jumpKind >= 17) goto L;
+        if (p->jumpKind < 15) goto L;
         return 0;
     case 12:
-        if (p->x2c) goto L;
+        if (p->unknown2C) goto L;
         return 0;
     default:
         return 0;
     case 3:
         {
             int r = 0;
-            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+            if (p->state == 0x11 && p->player->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:
     L:
-        switch (p->x1c) {
+        switch (p->state) {
         case 6: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16:
         case 17: case 18: case 19: case 20: case 21: case 22:
             return 0;

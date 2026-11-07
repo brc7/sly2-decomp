@@ -33,6 +33,18 @@ struct ZPR
       undefined4 unknown58[2];
 };
 
+/* STUNHOLD: where and how a character holds a stunned target (filled by the GetStunHold virtual of STEPPLAYER and its
+   heroes). Lilly names; was copied in jt.cpp and air.cpp. */
+struct STUNHOLD
+{
+      int fValid;     /* the hold is valid */
+      float gSide;    /* side distance (Murray: 200) */
+      float gUp;      /* height */
+      undefined4 unk_0x0c;
+      qword qwPos;    /* hold position (Murray attacking: the predicted attack end, MURRAY +0x1830) */
+      qword qwVel;    /* hold velocity */
+};
+
 /* MRSG: a time window (start and duration) in an animation, used for foot-contact ranges (inferred).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct MRSG
@@ -40,6 +52,8 @@ struct MRSG
     float t;   /* start time (s) */
     float dt;   /* duration (s) */
 };
+
+/* MRSGC (the counted list of these windows) is defined in sly2/aseg.h. */
 
 /* BL: an animation blend entry: a segment and its weight.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
@@ -304,8 +318,8 @@ struct JTAIR
       float unknownB4;
       float smashDistance; /* smash distance */
       struct LO *unknownBC;   /* possibly ignoredHangObject (low-confidence guess: set from phndHang / JT+0x1F18 when leaving a hang; air/grab skip that object) */
-      struct SO *unknownC0;
-      struct SO *unknownC4;
+      SOPART *precAir;   /* +0xC0 STEP parameter record in the air (GetJtAirAdjustRecord) */
+      SOPART *precAirWallRun;   /* +0xC4 the record in air state 0x11 (wall run, inferred) */
       struct JTEDGE *edge;    /* edge being caught */
       undefined4 unknownCC;
       qword edgePosition; /* edge position */
@@ -346,10 +360,24 @@ struct JTAIR
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
 };
 
-/* HURTEND: end-of-hurt record (no fields recovered).
+/* HURTEND: the callback to run when the hurt animation ends (SetJtHurtCallback stores it, RunJtHurtCallback takes and
+   clears it): a g++ 2.95 pointer to member function ({this delta, vtable index or nonzero for a plain function,
+   function}).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct HURTEND
 {
+      short delta;            /* added to the JTHURT pointer to get the object the callback runs on */
+      unsigned short index;   /* nonzero: a callback is set */
+      void (*pfn)(void *);    /* the callback */
+};
+
+/* HURTZ: one of the hurt component's seven transform records (PostLoadJtHurt copies the table D_002BFA30 and looks
+   up each transform on the hero). Placeholder name; the first word is the transform id given to FindSoXf. */
+struct HURTZ
+{
+      int id;          /* transform id (0xD, 0xC, 0x13, 0x12, 0x16, 0xF7, 0x13D) */
+      float duration;  /* 30 or 60 */
+      struct XF *pxf;  /* the hero's transform (PostLoadJtHurt) */
 };
 
 /* JTHURT: the damage/health subsystem: hurt state, hit points and the last zap received.
@@ -361,14 +389,16 @@ struct JTHURT
       undefined4 unknown08;
       int maxHitPoints; /* maximum hit points */
       int *hitPoints; /* current hit points (points at the save variable) */
-      undefined4 unk_0x014[(0x1c - 0x14) / 4];
-      HURTEND hurtend;
+      int churtz;   /* +0x14 number of transform records (7) */
+      HURTZ *ahurtz;   /* +0x18 the transform records (PostLoadJtHurt) */
+      HURTEND hurtend;   /* +0x1C pending callback for the end of the hurt animation */
       undefined4 unk_0x024[(0x30 - 0x24) / 4];
       ZPR zpr;   /* the last zap received */
       int postHitMode;      /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
       undefined4 unknown94[2];
       float unknown9C;
-      undefined4 unk_0x0a0[(0x10c - 0xa0) / 4];
+      undefined4 unk_0x0a0[(0xd4 - 0xa0) / 4];
+      SOPART *aprecHurt[14];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
       struct ASEGA *unknown10C;
 };
 
@@ -413,7 +443,8 @@ struct JTTHROW
       undefined4 unknown3C;
       JTAIRBL abl[2];   /* first blends */
       struct ASEGBL *pasegbl;
-      undefined4 unk_0x5c[(0x68 - 0x5c) / 4];
+      undefined4 unk_0x5c[(0x64 - 0x5c) / 4];
+      struct ASEG *unknown64;   /* an animation whose label 0x1C7 times Murray's aimed-throw release (air.cpp) */
       JTAIRBL ablB[4];   /* second blends */
       struct ASEGBL *pasegblB;
       undefined4 unk_0x9c[(0xa4 - 0x9c) / 4];
@@ -457,31 +488,35 @@ struct STEPPLAYER : public STEP
       struct ASEGA *activeAnimation;
       struct SMA *activeStateMachine;
       int unknown1038;
-      float unknown103C;
-      int unknown1040;
+      float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
+      int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
       int unknown1044;
-      int unknown1048;
+      float unknown1048;   /* +0x1048 125 at init; added to the camera focus height (GetStepplayerCmFocusPos) */
       float unknown104C;
       float unknown1050;
       undefined4 unk_0x1054[(0x1060 - 0x1054) / 4];
       qword unknown1060;
       qword unknown1070;
-      undefined4 unknown1080;
+      float unknown1080;   /* stamped with clock.time while Murray is busy and grabbing (GetMurrayCpdefi) */
       struct JSG *pjsgScript;   /* script (JSG) controlling the hero */
       void *unknown1088;
       int unknown108C;
       LOREF *unknown1090;
       int unknown1094;
-      float unknown1098[4];
+      float waterProbe[4];   /* +0x1098 water-surface probe: [0]/[1] the line's bottom/top offsets above the hero (ProbeStepplayerSurface),
+                                [2] the height offset and [3] the current factor of ResolveStepplayerWaterContact */
       SMPA unknown10A8;
       void *unknown10B8;
-      undefined4 unk_0x10bc[(0x10c8 - 0x10bc) / 4];
-      int unknown10C8;
-      undefined4 unk_0x10cc[(0x10d4 - 0x10cc) / 4];
-      float unknown10D4;
-      float unknown10D8;
+      undefined4 unk_0x10bc[(0x10c4 - 0x10bc) / 4];
+      void *hideNoise;   /* +0x10C4 the noise source TestStepplayerHidden spawns (NewNoise) to ask guards whether the hero is seen */
+      int hideState;   /* +0x10C8 -1 not hiding (or hurt), 0 partly, 1 hidden (UpdateStepplayerHideBlend) */
+      float hideBlend;   /* +0x10CC 0..1, toward 1 while no guard can see the hero (TestStepplayerHidden) */
+      float noiseBuildup;   /* +0x10D0 0..1 by the movement noise class; at 1 the hero makes a noise (CreateNoise) */
+      float renderAlpha;   /* +0x10D4 smoothed opacity factor of the body (RenderStepplayerSelf; lower in grab state 2) */
+      float renderAlpha2;   /* +0x10D8 the second opacity factor RenderSoGlobset takes */
       LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
-      int unknown10E0;
+      int interactBlockFlags;   /* +0x10E0 nonzero: no interaction candidates are scanned (UpdateStepplayerInteractCandidates);
+                                   bit 0 while an AI interact behaviour runs (ai/tu_144B28), bits 1/2 set and cleared by jt.cpp */
       int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in ChooseJtGroundState). Not
                                renamed: STEPPLAYER already has an interactMode member further down */
 
@@ -493,10 +528,10 @@ struct STEPPLAYER : public STEP
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
       undefined4 unk_0x1100[(0x1120 - 0x1100) / 4];
-      RAW8 araw1120[3];
-      float agdtIdle[4];   /* idle animation durations */
+      LM almIdle[3];   /* +0x1120 three idle time ranges (SetStepplayerIdleParams) */
+      float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0, then by idleKind == 0 (ScheduleIdleTimer) */
       int idleKind;    /* idle kind */
-      float idleStartTime; /* time idle started */
+      float tNextIdle; /* +0x114C clock.time of the next idle event (FLT_MAX: never; ScheduleIdleTimer, InitIdleTimer) */
       undefined4 unk_0x1150[(0x1180 - 0x1150) / 4];
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
@@ -552,9 +587,9 @@ struct STEPPLAYER : public STEP
     virtual int CanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepplayerZapLethal");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void UpdateGadget() __asm__("UpdateStepplayerGadget");   /* slot 101: named from its overrides (inferred) */
+    virtual void UpdateGadget(GADGETSLOT *pslot) __asm__("UpdateStepplayerGadget");   /* slot 101: a held gadget's slot each frame (UpdateStepplayerGadgets) */
     virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
-    virtual void GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: named from its overrides (inferred) */
+    virtual void *GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: the character's save-variable root (named from its overrides, inferred) */
     virtual void SendPowerupEvent() __asm__("SendStepplayerPowerupEvent");   /* slot 104: named from its overrides (inferred) */
     virtual void OnGadgetsChanged() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: named from its overrides (inferred) */
 };
@@ -566,6 +601,7 @@ typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jt
 typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.state) == 0x4C8 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.grabbedObject) == 0x4D4 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JTHURT_unknown10C[SLY2_OFFSETOF(JTHURT, unknown10C) == 0x10C ? 1 : -1];
 typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.state) == 0xDF4 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.kind) == 0xF20 ? 1 : -1];    /* CONFIRMED runtime */

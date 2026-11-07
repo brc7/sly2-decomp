@@ -115,13 +115,15 @@ struct EA24   /* three 8-byte blocks read raw (ReadCb8) */
     RAW8 a[3];
 };
 
-/* MRSGC: a time-range record of an ASEGBL (ASEGBL::amrsgc): an offset and a list of MRSG windows (sly2/stepplayer.h). */
+/* MRSGC: a time-range record of an ASEGBL (ASEGBL::amrsgc): a counted list of MRSG windows (MRSG is in
+   sly2/stepplayer.h); ib is the channel/bone index it belongs to (inferred from the Lilly name). */
 struct MRSGC
 {
     int ib;
     int cmrsg;   /* number of windows */
     MRSG *amrsg;   /* the windows */
 };
+typedef char assert_MRSGC_size[sizeof(MRSGC) == 0xC ? 1 : -1];
 
 /* ASEG: an animation segment (clip): per-channel curves for the transforms it animates, overrides, and
    start/frame/end event lists.

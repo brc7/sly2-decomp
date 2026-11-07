@@ -924,15 +924,6 @@ void ResetStepGoal(STEP *pstep, SSG *pssg) __asm__("SetGuardRoutineMode");
 
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm);
 
-struct PARTLINK
-{
-      undefined4 unk_0x00;
-      void *precA;
-      void *precB;
-      void *precC;
-      undefined4 unk_0x10[0xD0 / 4];
-};
-
 JSGV *PjsgStartBlock(RELAYV *relay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("NewRelayJsg");
 
 JSGV *PjsgFindRelayBlock(RELAYV *relay, OID oidLabel, JSGV *pjsgExcept) __asm__("FindRelayBlockScript");
@@ -965,7 +956,7 @@ extern "C" void EnterMurrayThrowAim(MURRAY *pmurray);
 
 void ReleaseJsgSma(JSGV *script) __asm__("ClearJsgSma");
 
-extern "C" void StartJtThrowFlight(MOVEREC *pmr, LO *plo);
+extern "C" void StartJtThrowFlight(JTTHROW *pjtthrow, LO *plo);
 
 void PutSwHeroAtWarp(WARPV *pwarp) __asm__("PutHeroAtWarp");
 
@@ -3110,7 +3101,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->unknown240));
+            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->pivotOffset));
             SetStepRadTarget(pstep, rad);
         }
         else
@@ -3122,7 +3113,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->unknown1048));
+            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pstepplayer->unknown1048));
             if (!prelaycmd->teleportTo.fAir && pstepplayer->unknown12F4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
@@ -3424,7 +3415,7 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->unknown240);
+                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->pivotOffset);
             }
             else
             {
@@ -3806,16 +3797,16 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.state < 7)
+            if (pmurray->jtthrowAim.state < 7)
             {
-                if (pmurray->moverec.state < 4)
+                if (pmurray->jtthrowAim.state < 4)
                 {
                     break;
                 }
                 LO *plo = PloFindJsgObject(script, prelaycmd->unk59.oidShip);
                 if (plo)
                 {
-                    StartJtThrowFlight(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->jtthrowAim, plo);
                 }
             }
         }
@@ -3831,17 +3822,17 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.state < 7)
+            if (pmurray->jtthrowAim.state < 7)
             {
-                if (pmurray->moverec.state < 4)
+                if (pmurray->jtthrowAim.state < 4)
                 {
                     break;
                 }
-                prelaycmd->unk5A.nUnk6 = pmurray->moverec.unknown00;
+                prelaycmd->unk5A.nUnk6 = (int)pmurray->jtthrowAim.player;
                 LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
-                    StartJtThrowFlight(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->jtthrowAim, plo);
                     SetJsgJt(script, prelaycmd, pmurray);
                 }
             }
@@ -4462,9 +4453,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             else
             {
                 fComplete = 0;
-                if (pmurrayShip->moverec.state < 7)
+                if (pmurrayShip->jtthrowAim.state < 7)
                 {
-                    fComplete = pmurrayShip->moverec.state >= 4;
+                    fComplete = pmurrayShip->jtthrowAim.state >= 4;
                 }
             }
         }
@@ -4483,8 +4474,8 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else
             {
-                qword qwNew = pmurray->moverec.newPosition;
-                qword qwOld = pmurray->moverec.oldPosition;
+                qword qwNew = pmurray->jtthrowAim.blendToPosition;
+                qword qwOld = pmurray->jtthrowAim.holdPosition;
                 float gEps = D_002C3628;
                 fComplete = AreFloatsNear(QwordX(qwNew), QwordX(qwOld), gEps) && AreFloatsNear(QwordY(qwNew), QwordY(qwOld), gEps) &&
                             AreFloatsNear(QwordZ(qwNew), QwordZ(qwOld), gEps);
@@ -4504,9 +4495,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 fComplete = 1;
             }
-            else if (pmurray->moverec.state == -1 || pmurray->moverec.state == 0)
+            else if (pmurray->jtthrowAim.state == -1 || pmurray->jtthrowAim.state == 0)
             {
-                if (pmurray->moverec.state == 0)
+                if (pmurray->jtthrowAim.state == 0)
                 {
                     pmurray->SetPlayerState(0);
                 }

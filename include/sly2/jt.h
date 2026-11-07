@@ -74,9 +74,10 @@ struct JT : public STEPPLAYER
       SOPART *aprecJts[JTS_Max];   /* per-movement-state records (indexed by JTS) */
       undefined4 unk_0x1784[(0x17d0 - 0x1784) / 4];
       JTHANDS hands;   /* hand (grab) state */
-      int unknown1880;
+      int cposBounds;   /* +0x1880 number of extra bounds points (UpdateJtWorldTransform: 3 when not attacking, else 0) */
       undefined4 unknown1884[3];
-      qword unknown1890[3];
+      qword aposBounds[3];   /* +0x1890 extra points the SO tree bounds are extended by (UpdateJtExtraEntries): Sly's position and the
+                                hand object's, before and after the transform update */
       LO *attachedTo;       /* +0x18C0 [R] object Sly is attached to (ledge/pole/rope owner); was ploUnk18c0 */
       CID19 *hangHandle;    /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
       JTS state;            /* +0x18C8 [R] movement state: 0 Stand 1 Run 2 Air 3 Hang 4 Hurt 6 Interact 8 Pipe 11 Pickpocket
@@ -96,7 +97,7 @@ struct JT : public STEPPLAYER
       SO *unknown19A0;
       SO *unknown19A4;   /* possibly handObject (low-confidence guess: position used as posHand; its rootTransform for PredictAsegEffect) */
       LO *unknown19A8;
-      float unknown19AC;
+      float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
       undefined4 unk_0x19b4[(0x19c0 - 0x19b4) / 4];
       void *unknown19C0;
@@ -136,7 +137,7 @@ struct JT : public STEPPLAYER
       SOPART *unknown1A98;
       SOPART *unknown1A9C;
       SO *unknown1AA0;
-      float unknown1AA4;
+      float lastMoveTime;   /* +0x1AA4 clock.time while Sly moves or grabs (GetJtCpdefi) */
       struct EXPL *pexplDustLand;   /* dust effect on landing */
       struct EXPL *pexplDustGrab;   /* dust effect on grabbing */
       undefined4 unk_0x1ab0[(0x1ac0 - 0x1ab0) / 4];
@@ -147,7 +148,13 @@ struct JT : public STEPPLAYER
       LO *ploPickpocket;   /* the object being pickpocketed */
       LO *unknown1BD0;
       int unknown1BD4;
-      undefined4 unk_0x1bd8[(0x1c30 - 0x1bd8) / 4];
+      float tPickpocketLabel;   /* +0x1BD8 time of label 0x167 in pasegPickpocket (CacheJtRestPose) */
+      undefined4 unknown1BDC;
+      qword posPickpocketHand;   /* +0x1BE0 the hand object's position at that label (CacheJtRestPose) */
+      qword posPickpocket19CC;   /* +0x1BF0 unknown19CC's position at that label */
+      qword posPickpocket19C0;   /* +0x1C00 unknown19C0's position at that label */
+      qword eulerPickpocket19C0;   /* +0x1C10 unknown19C0's rotation (Euler angles) at that label */
+      qword posPickpocketHandLocal;   /* +0x1C20 posPickpocketHand in unknown19C0's frame */
       undefined4 unk_0x1c30[(0x1ce0 - 0x1c30) / 4];
       ASEG *apasegSwing[13];   /* cane swing animations */
       ASEG *pasegAttackA;   /* first attack animation */
@@ -219,7 +226,7 @@ struct JT : public STEPPLAYER
     virtual int GetMovementNoise() __asm__("GetJtMovementNoise");   /* slot 98 */
     virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
     virtual void StopGadget() __asm__("EndJtGadget");   /* slot 102 */
-    virtual void GetSaveVarRoot() __asm__("GetJtSaveVarRoot");   /* slot 103 */
+    virtual void *GetSaveVarRoot() __asm__("GetJtSaveVarRoot");   /* slot 103 */
     virtual int CanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
     virtual void IsCameraFree() __asm__("IsJtCameraFree");   /* slot 106: named from its overrides (inferred) */
     virtual void AddAttachedObjectAccelerations() __asm__("AddJtExternalAccelerations");   /* slot 107: named from its overrides (inferred) */

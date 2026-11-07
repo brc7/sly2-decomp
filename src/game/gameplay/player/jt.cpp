@@ -153,16 +153,6 @@ struct JTREC
 
 void JtInteractPre(JTREC *prec) __asm__("EndBentleyHelperWhenRetracted");
 
-struct STUNHOLD
-{
-      int fValid;
-      float gSide;
-      float gUp;
-      undefined4 unk_0x0c;
-      qword qwPos;
-      qword qwVel;
-};
-
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 void HeroHurtPre(JTHURT *pjthurt) __asm__("UpdateJtHurtInput");
@@ -929,14 +919,13 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189488 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
-int GetStepplayerMovementNoise(struct S *p);
+int GetStepplayerMovementNoise(JT *p);
 // JT slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1; then 1 (noisy) in JTS_Run/5/JTS_Interact/9, else -1.
-int GetJtMovementNoise(struct S *jt)
+int GetJtMovementNoise(JT *jt)
 {
     int r = GetStepplayerMovementNoise(jt);
     if (r != -1) return r;
-    switch (jt->n) {
+    switch (jt->state) {
     case 1: case 5: case 6: case 9:
         return 1;
     }
@@ -946,11 +935,10 @@ int GetJtMovementNoise(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001894F8 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
 // JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
-int IsJtFreeMoving(struct S *jt)
+int IsJtFreeMoving(JT *jt)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12: case 24:
         return 1;
     }
@@ -960,28 +948,21 @@ int IsJtFreeMoving(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189530 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x19A0]; struct O *a; struct O *b; struct O *c; };
-void IgnoreStepSlot87(struct S *p, int f);
-// Call the object's virtual at vtable slot 21 with n.
-static __inline__ void Call(struct O *o, int n)
-{
-    struct VTE *e = &o->vt[21];
-    e->pfn((char *)o + e->d, n);
-}
+void IgnoreStepSlot87(JT *p, int f);
+// Set the object's flag 8 to n (virtual slot 21).
+static __inline__ void Call(LO *o, int n) { o->SetFlag8(n); }
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
-void SetJtPlayable(struct S *jt, int f)
+void SetJtPlayable(JT *jt, int f)
 {
     IgnoreStepSlot87(jt, f);
     if (f) {
-        Call(jt->a, 0);
-        Call(jt->b, 0);
-        Call(jt->c, 0);
+        Call(jt->unknown19A0, 0);
+        Call(jt->unknown19A4, 0);
+        Call(jt->unknown19A8, 0);
     } else {
-        Call(jt->a, 1);
-        Call(jt->b, 1);
-        Call(jt->c, 1);
+        Call(jt->unknown19A0, 1);
+        Call(jt->unknown19A4, 1);
+        Call(jt->unknown19A8, 1);
     }
 }
 } } // namespace M_func_00189530
@@ -1491,22 +1472,21 @@ extern "C" void RenderJtSelf(JT *jt, void *camera)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int caneState; char p3[0xC8]; void *hookChild; };
 qword GetLoWorldPos(void *p);
-void UpdateSoXfWorld(struct S *p);
+void UpdateSoXfWorld(JT *p);
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
-void UpdateJtWorldTransform(struct S *jt)
+void UpdateJtWorldTransform(JT *jt)
 {
-    jt->b = GetLoWorldPos(jt->hookChild);
-    jt->n = 0;
+    jt->aposBounds[1] = GetLoWorldPos(jt->unknown19A4);
+    jt->cposBounds = 0;
     UpdateSoXfWorld(jt);
-    if (!jt->caneState) {
-        jt->a = GetLoWorldPos(jt);
-        jt->c = GetLoWorldPos(jt->hookChild);
-        jt->n = 3;
+    if (!jt->animState) {
+        jt->aposBounds[0] = GetLoWorldPos(jt);
+        jt->aposBounds[2] = GetLoWorldPos(jt->unknown19A4);
+        jt->cposBounds = 3;
     } else {
-        jt->n = 0;
+        jt->cposBounds = 0;
     }
 }
 } } // namespace M_func_0018A278
@@ -1514,16 +1494,15 @@ void UpdateJtWorldTransform(struct S *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A2E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword aq[3]; char p2[0xEC]; float g; };
-void UpdateSoTreeBounds(struct S *p);
-void ExtendSoTreeBounds(struct S *p, qword q, float g);
+void UpdateSoTreeBounds(JT *p);
+void ExtendSoTreeBounds(JT *p, qword q, float g);
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
-void UpdateJtExtraEntries(struct S *jt)
+void UpdateJtExtraEntries(JT *jt)
 {
     int i;
     UpdateSoTreeBounds(jt);
-    for (i = 0; i < jt->n; i++)
-        ExtendSoTreeBounds(jt, jt->aq[i], jt->g);
+    for (i = 0; i < jt->cposBounds; i++)
+        ExtendSoTreeBounds(jt, jt->aposBounds[i], jt->rBounds);
 }
 } } // namespace M_func_0018A2E0
 
@@ -1532,13 +1511,12 @@ namespace M_func_0018A350 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword GetLoWorldPos(void *p);
-void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
+void GetStepplayerCameraFocusPosition(JT *p, UV *pv);
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
-void GetJtCameraTarget(struct S *jt, UV *pv)
+void GetJtCameraTarget(JT *jt, UV *pv)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 3:
         GetStepplayerCameraFocusPosition(jt, pv);
         pv->v.z = QwordZ(GetLoWorldPos(jt->hangHandle)) + -175.0f;
@@ -1559,19 +1537,18 @@ void GetJtCameraTarget(struct S *jt, UV *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
-struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char pipe[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 extern struct CLOCK D_002DDED0;
-void GetStepplayerCpdefi(struct S *p, int *pf);
+void GetStepplayerCpdefi(JT *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
-void GetJtCpdefi(struct S *jt, int *pf)
+void GetJtCpdefi(JT *jt, int *pf)
 {
-    if (jt->n != 0 && jt->n != 0x12 && jt->x4cc && jt->xf54 != 1)
-        jt->t = D_002DDED0.time;
+    if (jt->state != 0 && jt->state != 0x12 && jt->jtgrab.kind && jt->jtpipe.state != 1)
+        jt->lastMoveTime = D_002DDED0.time;
     GetStepplayerCpdefi(jt, pf);
-    switch (jt->n) {
+    switch (jt->state) {
     case 8:
-        GetJtPipeVelocity(jt->pipe, pf);
+        GetJtPipeVelocity(&jt->jtpipe, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -2201,7 +2178,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                             mat = LoadRotateMatrixRad(jt->unknown1F94 * D_002BF364, D_002A2DA0);
                             *(qword *)&vTarget = TransformPos(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->unknown240), *(qword *)&jt->physics->gravity);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->pivotOffset), *(qword *)&jt->physics->gravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
@@ -2216,20 +2193,19 @@ extern "C" void ChooseJtGroundState(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B2C0 { extern "C" {
-struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
-int IsStepplayerInJtMode(struct S *p);
+int IsStepplayerInJtMode(JT *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
-void UpdateJtModeInput(struct S *p)
+void UpdateJtModeInput(JT *p)
 {
     if (!IsStepplayerInJtMode(p))
         return;
-    if (p->jtModeState == 1 && !p->jtModeKind &&
-        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
-        EndJtMode(&p->xf00);
-    UpdateJtMode(&p->xf00);
+    if (p->jtmode.state == 1 && !p->jtmode.kind &&
+        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->unknown1D40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        EndJtMode(&p->jtmode);
+    UpdateJtMode(&p->jtmode);
 }
 } } // namespace M_func_0018B2C0
 
@@ -2237,12 +2213,8 @@ void UpdateJtModeInput(struct S *p)
 namespace M_func_0018B348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
-struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *hookChild; char pad2[0x19C0 - 0x19A8]; void *p19C0;
-    char pad3[0x19CC - 0x19C4]; void *p19CC; char pad4[0x1BC8 - 0x19D0]; void *p1BC8; char pad5[0x1BD8 - 0x1BCC]; float g1BD8;
-    char pad6[0x1BE0 - 0x1BDC]; qword v1BE0; qword v1BF0; qword v1C00; qword v1C10; qword v1C20; };
-struct X { char pad[0x60]; void *p60; };
 extern float GetAsegLabelTime(void *p, int n);
-extern void PredictAsegTransform(void *a, float g, struct O *p, float h, void *b, void *c, MATRIX4 *pm, int n);
+extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n);
 extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm);
 extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm);
 // Transform point v by the 4x4 matrix pm.
@@ -2254,23 +2226,23 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
     return o;
 }
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
-void CacheJtRestPose(struct O *jt)
+void CacheJtRestPose(JT *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (!jt->p1BC8)
+    if (!jt->pasegPickpocket)
         return;
     z = 0.0f;
-    jt->g1BD8 = GetAsegLabelTime(jt->p1BC8, 0x167);
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
-    jt->v1BE0 = m0.r[3];
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
-    jt->v1BF0 = m1.r[3];
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
-    jt->v1C00 = m2.r[3];
-    jt->v1C10 = DecomposeRotationMatrixToEuler(&m2);
+    jt->tPickpocketLabel = GetAsegLabelTime(jt->pasegPickpocket, 0x167);
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19A4->rootTransform, jt->rootTransform, &m0, 0);
+    jt->posPickpocketHand = m0.r[3];
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19CC, jt->rootTransform, &m1, 0);
+    jt->posPickpocket19CC = m1.r[3];
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19C0, jt->rootTransform, &m2, 0);
+    jt->posPickpocket19C0 = m2.r[3];
+    jt->eulerPickpocket19C0 = DecomposeRotationMatrixToEuler(&m2);
     InvertMatrix4Rigid(&mi, &m2);
-    jt->v1C20 = Mul(&mi, jt->v1BE0);
+    jt->posPickpocketHandLocal = Mul(&mi, jt->posPickpocketHand);
 }
 } } // namespace M_func_0018B348
 
@@ -3114,24 +3086,23 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018C060 { extern "C" {
-struct S { char pad[0x2C0]; char air[0x200]; char grab[0x60]; void *x520; char p1[0x8CC]; char hurt[0x930]; void *a1720[0x6A]; int n; };
-void *GetJtGrabAdjustRecord(void *p, int *pn);
-void *GetJtHurtAdjustRecord(void *p, int *pn);
-void *GetJtAirAdjustRecord(void *p, int *pn);
-void SetStepPhys(struct S *p, void *pv, int n);
+SOPART *GetJtGrabAdjustRecord(JTGRAB *p, int *pn);
+SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pn);
+SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pn);
+void SetStepPhys(JT *p, SOPART *pv, int n);
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
-void ApplyJtStateStepParams(struct S *jt)
+void ApplyJtStateStepParams(JT *jt)
 {
     int n = 0;
-    void *pv;
-    switch (jt->n) {
-    case 7: pv = GetJtGrabAdjustRecord(jt->grab, &n); break;
-    case 4: pv = GetJtHurtAdjustRecord(jt->hurt, &n); break;
-    case 2: pv = GetJtAirAdjustRecord(jt->air, &n); break;
-    case 21: case 22: pv = jt->x520; break;
-    default: pv = jt->a1720[jt->n]; break;
+    SOPART *pv;
+    switch (jt->state) {
+    case 7: pv = GetJtGrabAdjustRecord(&jt->jtgrab, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(&jt->jthurt, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(&jt->jtair, &n); break;
+    case 21: case 22: pv = jt->jtgrab.unknown60; break;
+    default: pv = jt->aprecJts[jt->state]; break;
     }
-    if (!pv) pv = jt->a1720[0];
+    if (!pv) pv = jt->aprecJts[0];
     SetStepPhys(jt, pv, n);
 }
 } } // namespace M_func_0018C060
@@ -3518,7 +3489,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 RollHeroIdleTimer(jt);
                 break;
             case JTS_Pickpocket:
-                jt->unknown10E0 &= ~2;
+                jt->interactBlockFlags &= ~2;
                 break;
             case JTS_Run:
             case JTS_Unk0A:
@@ -3529,7 +3500,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 if (jt->activeAnimation != 0 && !FAsegaStopped(jt->activeAnimation))
                     GuardCapVelocityForPounce((STEPGUARD *)jt->interactTarget);
                 jt->unknown1D2C = 0;
-                jt->unknown10E0 &= ~4;
+                jt->interactBlockFlags &= ~4;
                 break;
             case JTS_Unk12:
             case JTS_Unk13:
@@ -3715,7 +3686,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
                 *(qword *)&jt->unknown190 = D_002A2DD0;
-                jt->unknown10E0 |= 2;
+                jt->interactBlockFlags |= 2;
                 grf = 100;
                 jt->unknown1BD4 = 0;
                 break;
@@ -3726,7 +3697,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
                 break;
             case JTS_Pounce:
-                jt->unknown10E0 |= 4;
+                jt->interactBlockFlags |= 4;
                 if (FPowerUpAcquired(0x1C))
                 {
                     aseg = jt->pasegPouncePowerUp;
@@ -3942,13 +3913,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018D500 { extern "C" {
-struct S { char pad[0xF04]; int n; };
 int IsCameraPolicyActive__FP5CPLCY(void *p);
 // JT slot 106: 0 while the look mode runs (jtmode.state == 1) or the camera policy at g_cm+0x3A0 is on top, else 1 (inferred: the free-camera test, cf. CanJtUseGadget case 3).
-int IsJtCameraFree(struct S *jt)
+int IsJtCameraFree(JT *jt)
 {
     int r = 1;
-    if (jt->n == r) return 0;
+    if (jt->jtmode.state == r) return 0;
     if (IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
@@ -3983,11 +3953,10 @@ void SetJtPlayerState(void *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetJtPlayerState { extern "C" {
-struct S { char pad[0x18C8]; int n; };
 // JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
-int GetJtPlayerState(struct S *jt)
+int GetJtPlayerState(JT *jt)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: return 0;
     case 2: return 1;
     case 7: return 2;
@@ -4367,28 +4336,26 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
 namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "sly"; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DE80 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
-void GetStepplayerStunHold(struct S *p, int *pf);
+void GetStepplayerStunHold(JT *p, STUNHOLD *pf);
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
-void GetJtStunHold(struct S *jt, int *pf)
+void GetJtStunHold(JT *jt, STUNHOLD *pf)
 {
     GetStepplayerStunHold(jt, pf);
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12:
-        *pf = 1;
+        pf->fValid = 1;
     }
 }
 } } // namespace M_func_0018DE80
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
-struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int GetStepplayerGroundProbeFlags(struct S *p);
+int GetStepplayerGroundProbeFlags(JT *p);
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
-int GetJtGroundProbeFlags(struct S *p)
+int GetJtGroundProbeFlags(JT *p)
 {
-    if (p->x204) return 0;
-    switch (p->n) {
+    if (p->unknown204) return 0;
+    switch (p->state) {
     case 3: case 8: case 21: case 22:
         return 0;
     case 13: case 14:

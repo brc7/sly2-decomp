@@ -49,8 +49,11 @@ struct STEP : public PO
 {
       float unknown180;
       undefined4 unknown184[3];
-      VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
-      undefined4 unknown19C;
+      union
+      {
+            VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
+            qword qwUnknown190;  /* the same vector as a VU quadword (the root-motion code stores whole quadwords; mode.cpp, murray.cpp) */
+      };
       float gaitBlend; /* gait blend, 0..1 (walk to run, inferred) */
       int unknown1A4;
       float targetHeading; /* target heading (radians) */
@@ -69,8 +72,10 @@ struct STEP : public PO
       qword *unknown21C;
       float unknown220;
       undefined4 unknown224[3];
-      qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, unknown240)) */
-      qword unknown240;   /* possibly parentOffset (low-confidence guess: ConvertAloPos(psoParent, step, 0)) */
+      qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
+      qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets
+                              (0, 0, -75); grabspot.cpp subtracts it from grab positions; step.cpp sets it from the parent's position
+                              in the step's frame); was unknown230's "possibly parentOffset" */
       undefined4 unknown250[2];
       SOPART *unknown258;
       undefined4 unknown25C;
