@@ -349,7 +349,8 @@ struct SOPART
 /* CID148: a Splice handle object (placeholder name) the script system uses to refer to parts of an SO. */
 struct CID148 : public BASIC
 {
-      undefined4 unknown10[4];
+      int cref;   /* +0x10 reference count (IncrefXfHandle / DecrefXfHandle; the last reference frees it) */
+      undefined4 unknown14[3];
     virtual void AddRef() __asm__("IncrefXfHandle");   /* slot 1; key function (so.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefXfHandle");   /* slot 2 */
@@ -360,7 +361,9 @@ typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class des
 /* CID149: the Splice handle of an XF (placeholder name). */
 struct CID149 : CID148
 {
-    char pad20[0x30 - 0x20];
+    SO *pso;   /* +0x20 the object */
+    XF *pxf;   /* +0x24 its XF (NewSoXfHandle, GetXfFromHandle) */
+    undefined4 unknown28[2];
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID149_size[sizeof(CID149) == 0x30 ? 1 : -1];

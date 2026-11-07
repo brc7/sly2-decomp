@@ -131,17 +131,6 @@ struct VU_VECTOR4
 
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
-/* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
-struct STEPREC { int n0; float g4; float g8; float gC; };
-/* A transform handle (a BASIC with a reference count at +0x10, the object at +0x20 and its XF at +0x24), freed into
-   the slot heap D_003E15CC. */
-struct XFH : public BASIC
-{
-    int cref;               /* +0x10 */
-    int pad14[3];
-    SO *pso;                /* +0x20 */
-    XF *pxf;                /* +0x24 */
-};
 /* Hand-made virtual calls for the slots so.h does not declare with these signatures (g++ 2.95 {delta, pfn}). */
 struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
@@ -176,10 +165,10 @@ void FreeSoContacts(SO *pso);
 int FindTargetRecordById(LO *plo);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void InitTargetRecord(void *ptargetrec, LO *plo);
-STEPREC *EnsureSoPhysRegionRecord(STEP *pstep);
+REGENT *EnsureSoPhysRegionRecord(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
-void UnsubscribeLoAll(XFH *pxfh);
+void UnsubscribeLoAll(CID148 *pxfh);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 }
 
@@ -3829,10 +3818,10 @@ REGENT *EnsureSoPhysRegionRecord(SO *so)
 // Sets the region record's second float. (inferred)
 extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->g8 = g;
+        prec->unknown08 = g;
     }
 }
 
@@ -3846,10 +3835,10 @@ float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->phy
 // Sets the region record's third float. (inferred)
 extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->gC = g;
+        prec->unknown0C = g;
     }
 }
 
@@ -3863,10 +3852,10 @@ float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->phy
 // Sets the region record's first float. (inferred)
 extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->g4 = g;
+        prec->unknown04 = g;
     }
 }
 
@@ -3972,14 +3961,13 @@ void SetSoBit35Hierarchy(struct L *so, long f)
 // Handle slot 0: increments the reference count.
 void CID148::AddRef()   /* key function: CID148's vtable comes out here */
 {
-    XFH *pxfh = (XFH *)this;
-    pxfh->cref = pxfh->cref + 1;
+    cref = cref + 1;
 }
 
 // 0x1F8740 DecrefXfHandle
 /* Drops a reference; the last one clears the splice frame and sidebag, unsubscribes and frees the handle. */
 // Decrements the handle's reference count; at 0 destroys it and returns it to the pool.
-extern "C" void DecrefXfHandle(XFH *pxfh)
+extern "C" void DecrefXfHandle(CID148 *pxfh)
 {
     int cref;
     cref = pxfh->cref - 1;
@@ -3994,64 +3982,43 @@ extern "C" void DecrefXfHandle(XFH *pxfh)
 
 // 0x1F87A0 GetXfHandleParamAC
 namespace M_func_001F87A0 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; unsigned short unknownAC; };
-struct S { char pad[0x24]; struct T *transform; };
 // Returns the XF's 16-bit field +0xAC in thousandths (meaning unknown).
-float GetXfHandleParamAC(struct S *p) { return p->transform->unknownAC * 0.001f; }
+float GetXfHandleParamAC(CID149 *p) { return (unsigned short)p->pxf->stiffness * 0.001f; }
 } } // namespace M_func_001F87A0
 
 // 0x1F87C8 SetXfHandleParamAC
 namespace M_func_001F87C8 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; short unknownAC; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Sets the XF's field +0xAC (value * 1000) and refreshes its mode.
-void SetXfHandleParamAC(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAC(CID149 *p, float g) { p->pxf->stiffness = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F87C8
 
 // 0x1F8808 GetXfHandleParamAE
 namespace M_func_001F8808 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAE]; unsigned short unknownAE; };
-struct S { char pad[0x24]; struct T *transform; };
 // Returns the XF's 16-bit field +0xAE in thousandths.
-float GetXfHandleParamAE(struct S *p) { return p->transform->unknownAE * 0.001f; }
+float GetXfHandleParamAE(CID149 *p) { return (unsigned short)p->pxf->damping * 0.001f; }
 } } // namespace M_func_001F8808
 
 // 0x1F8830 SetXfHandleParamAE
 namespace M_func_001F8830 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAE]; short unknownAE; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Sets the XF's field +0xAE (value * 1000) and refreshes its mode.
-void SetXfHandleParamAE(struct S *p, float g) { p->transform->unknownAE = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAE(CID149 *p, float g) { p->pxf->damping = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F8830
 
 // 0x1F8870 GetXfHandleParamAC2
 namespace M_func_001F8870 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; unsigned short unknownAC; };
-struct S { char pad[0x24]; struct T *transform; };
 // Same as GetXfHandleParamAC for the other handle class.
-float GetXfHandleParamAC2(struct S *p) { return p->transform->unknownAC * 0.001f; }
+float GetXfHandleParamAC2(CID149 *p) { return (unsigned short)p->pxf->stiffness * 0.001f; }
 } } // namespace M_func_001F8870
 
 // 0x1F8898 SetXfHandleParamAC2
 namespace M_func_001F8898 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; short unknownAC; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Same as SetXfHandleParamAC for the other handle class.
-void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAC2(CID149 *p, float g) { p->pxf->stiffness = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F8898
 
 // 0x1F88D8 GetXfFromHandle
 // Returns the handle's XF, refreshing its mode first when asked.
-extern "C" XF *GetXfFromHandle(XFH *pxfh, int n)
+extern "C" XF *GetXfFromHandle(CID149 *pxfh, int n)
 {
     if (n == 1) {
         UnsettleXfSlot(pxfh->pso, pxfh->pxf);
