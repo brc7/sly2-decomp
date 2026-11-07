@@ -141,9 +141,9 @@ namespace M_GetLoChildDl { extern "C" {
 struct G { int a[4]; };
 // Returns the child list an object lives in and its "first removed child" slot: the parent's when there is one, else
 // the world's top-level list.
-void GetLoChildDl(char *parent, void **childList, void **firstRemovedSlot)
+void GetLoChildDl(SO *parent, void **childList, void **firstRemovedSlot)
 {
-    if (parent) { *childList = parent + 0x64; *firstRemovedSlot = parent + 0x70; }
+    if (parent) { *childList = &parent->children; *firstRemovedSlot = &parent->ploRemovedFirst; }
     else { *childList = &(*(struct G *)&g_sw.dlChild); *firstRemovedSlot = (char *)&(*(struct G *)&g_sw.dlChild) + 0xC; }
 }
 } } // namespace M_GetLoChildDl
