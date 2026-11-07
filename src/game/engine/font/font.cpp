@@ -390,16 +390,16 @@ void RegisterFont(CFont *pfont)
 }
 
 // Binary-searches the font glyph table for a character (via remap table D_002BE338)
-GLYPH *FindGlyphForChar(CFont *p, unsigned char ch)
+GLYPH *FindGlyphForChar(CFont *font, unsigned char ch)
 {
     int key = D_002BE338[ch];
     int lo = 0;
-    int hi = p->numGlyphs - 1;
+    int hi = font->numGlyphs - 1;
     while (lo <= hi) {
         int mid = (hi + lo) / 2;
-        int d = key - p->glyphs[mid].ch;
+        int d = key - font->glyphs[mid].ch;
         if (d == 0)
-            return &p->glyphs[mid];
+            return &font->glyphs[mid];
         if (d > 0)
             lo = mid + 1;
         else

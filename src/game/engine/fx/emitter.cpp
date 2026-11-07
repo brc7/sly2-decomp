@@ -1579,7 +1579,7 @@ static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gM
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
     if (px && px->ppprg)
@@ -1590,7 +1590,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c
             return;
         if (px && px->ppprg)
             *px->ppprg = pprg;
-        SetBlipgEmitb(pprg, p);
+        SetBlipgEmitb(pprg, emitter);
         if (px && px->pemitter)
             pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->pemitter);
         if (!pprg)
@@ -1611,14 +1611,14 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c
             pd->color = NRandInRange__Fii(0, pprg->numColors - 1);
             if (pprg->hasColorRanges)
                 pd->color &= ~1u;
-            if (p->hasRandomFrame)
+            if (emitter->hasRandomFrame)
                 pd->frame = NRandInRange__Fii(0, pprg->numFrames - 1);
             if (pprg->renderKind == 2) {
-                float g = GRand(&p->rollSpeed);
+                float g = GRand(&emitter->rollSpeed);
                 pd->rollSpeed = g;
-                if (!p->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
+                if (!emitter->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
                     pd->rollSpeed = -g;
-                if (p->hasRandomRoll)
+                if (emitter->hasRandomRoll)
                     pd->rollAngle = GRandInRange__Fff(-3.14159265f, 3.14159265f);
             }
             if (pprg->motionKind == 2) {

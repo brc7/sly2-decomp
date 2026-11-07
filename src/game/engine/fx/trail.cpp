@@ -138,14 +138,14 @@ extern const float D_002A9244; /* defined below where the ELF has it (.rodata or
 }
 
 // Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0. (inferred)
-extern "C" void InitTrail(TRAIL *p)
+extern "C" void InitTrail(TRAIL *trail)
 {
-    InitSo(p);
-    U *paxis = (U *)&p->axis;
+    InitSo(trail);
+    U *paxis = (U *)&trail->axis;
     paxis->f[0] = 1.0f;
     paxis->n[1] = 0;
     paxis->n[2] = 0;
-    p->followRate = 100.0f;
+    trail->followRate = 100.0f;
 }
 
 // Calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08) (inferred)
@@ -163,22 +163,22 @@ static inline int Wrap(int index, int count)
 }
 // Fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0.
 // (inferred)
-extern "C" void ResetTrailHistory(TRAIL *p)
+extern "C" void ResetTrailHistory(TRAIL *trail)
 {
     float t = D_002DDED0.t;
-    M4 m = *((M4 * (*)(void *)) p->vt[31].pfn)((char *)p + p->vt[31].d);
-    int n = p->count;
+    M4 m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
+    int n = trail->count;
     int i = n + Wrap(0, n);
     t -= i * 0.016666668f;
     for (i--; i >= 0; i--) {
-        Ring *e = &p->ring[p->index];
-        p->index = (p->index + 1) % p->count;
+        Ring *e = &trail->ring[trail->index];
+        trail->index = (trail->index + 1) % trail->count;
         e->t = t;
         e->g = 0.0f;
         t += 0.016666668f;
         e->m = m;
     }
-    p->idle = 0;
+    trail->idle = 0;
 }
 
 // Initialize mesh history and samples.
@@ -259,33 +259,33 @@ extern const float r_D_002A9244 __asm__("D_002A9244") = -3.40282347e+38f;
 }
 // PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and
 // builds per-vertex Sample{pos,fraction} tables. (inferred)
-extern "C" void PostTrailLoad(TRAIL *p)
+extern "C" void PostTrailLoad(TRAIL *trail)
 {
-    PostSoLoad(p);
-    if (!p->count && p->fade == 0.0f)
-        p->fade = 0.5f;
-    if (p->fade != 0.0f)
-        p->count = (int)(p->fade * 60.0f + 0.5f) + 2;
+    PostSoLoad(trail);
+    if (!trail->count && trail->fade == 0.0f)
+        trail->fade = 0.5f;
+    if (trail->fade != 0.0f)
+        trail->count = (int)(trail->fade * 60.0f + 0.5f) + 2;
     else
-        p->fade = (p->count - 2) * 0.016666668f;
+        trail->fade = (trail->count - 2) * 0.016666668f;
     float minimum, maximum;
     N *node;
     {
         REQUEST req;
         qwordV buffer[128];
-        req.alloc.bytes = p->count * sizeof(Ring);
+        req.alloc.bytes = trail->count * sizeof(Ring);
         req.alloc.align = 16;
-        p->ring = (Ring *)func_001AE2A0(&req.alloc);
+        trail->ring = (Ring *)func_001AE2A0(&req.alloc);
         minimum = D_002A9240;
         maximum = D_002A9244;
-        for (node = p->model.nodes; node; node = node->next) {
+        for (node = trail->model.nodes; node; node = node->next) {
             for (int i = 0; i < node->count; i++) {
                 Batch *batch = &node->batches[i];
                 CopyAb__FPvT0Ui(buffer, batch->positions, batch->count * 16);
                 for (int n = batch->count; n > 0;) {
                     qwordV *v = BufferStart(buffer);
                     do {
-                        float dot = Dot(*v, p->axis);
+                        float dot = Dot(*v, trail->axis);
                         if (maximum < dot)
                             maximum = dot;
                         if (dot < minimum)
@@ -299,15 +299,15 @@ extern "C" void PostTrailLoad(TRAIL *p)
     {
         qwordV buffer[128];
         REQUEST req;
-        for (node = p->model.nodes; node; node = node->next) {
+        for (node = trail->model.nodes; node; node = node->next) {
             int bytes;
             unsigned divisor;
             int stride;
             Meta *metadata;
-            RecordOperands(p, node, bytes, divisor, stride, metadata);
+            RecordOperands(trail, node, bytes, divisor, stride, metadata);
             int index = Product(bytes, divisor) >> 2;
             ((Meta *)((char *)metadata + Product(index, stride)))->style = D_002C44F0;
-            ResetGlobAttachment(&p->model, index);
+            ResetGlobAttachment(&trail->model, index);
             for (int i = 0; i < node->count; i++) {
                 Batch *batch = &node->batches[i];
                 CopyAb__FPvT0Ui(buffer, batch->positions, batch->count * 16);
@@ -319,10 +319,10 @@ extern "C" void PostTrailLoad(TRAIL *p)
                     float range, one;
                     SampleInputs(buffer, maximum, minimum, v, range, one);
                     do {
-                        qwordV position = *v, axis = p->axis;
+                        qwordV position = *v, axis = trail->axis;
                         float dot = DotCopy(position, axis);
                         float fraction = (dot - minimum) / range;
-                        qwordV scalar = VuFromFloat<qwordV>((p->scale - one) * dot);
+                        qwordV scalar = VuFromFloat<qwordV>((trail->scale - one) * dot);
                         req.q = scalar;
                         out->position = VuAddScaled(position, axis, req.q);
                         out->fraction = fraction;
@@ -337,34 +337,34 @@ extern "C" void PostTrailLoad(TRAIL *p)
             }
         }
     }
-    ResetTrailHistory(p);
-    if (!p->state) {
-        unsigned int flags = p->flags;
+    ResetTrailHistory(trail);
+    if (!trail->state) {
+        unsigned int flags = trail->flags;
         if ((flags ^ 1) & 1) {
             *(unsigned int *)flags |= 2;
         } else
-            p->flags = flags | 2;
+            trail->flags = flags | 2;
     }
 }
 
 // Ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove)
 // (inferred)
-extern "C" void UpdateTrail(TRAIL *p, float dt)
+extern "C" void UpdateTrail(TRAIL *trail, float dt)
 {
-    UpdateLo(p, dt);
-    if (p->rate != 0.0f) {
-        float t = p->g + D_002DDED0.dt * p->rate;
-        p->g = t;
+    UpdateLo(trail, dt);
+    if (trail->rate != 0.0f) {
+        float t = trail->g + D_002DDED0.dt * trail->rate;
+        trail->g = t;
         if (t <= 0.0f) {
-            p->g = 0.0f;
-            p->rate = 0.0f;
+            trail->g = 0.0f;
+            trail->rate = 0.0f;
         } else if (1.0f <= t) {
-            p->g = 1.0f;
-            p->rate = 0.0f;
+            trail->g = 1.0f;
+            trail->rate = 0.0f;
         }
     }
-    if (p->g <= 0.0f && p->rate <= 0.0f && !(p->idle < p->count))
-        ((void (*)(void *))p->vt[9].pfn)((char *)p + p->vt[9].d);
+    if (trail->g <= 0.0f && trail->rate <= 0.0f && !(trail->idle < trail->count))
+        ((void (*)(void *))trail->vt[9].pfn)((char *)trail + trail->vt[9].d);
 }
 
 static inline float Sqrt(qwordV d)
@@ -376,37 +376,37 @@ static inline float Sqrt(qwordV d)
 }
 // After SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by
 // rate/distance (0x21C5F8) (inferred)
-extern "C" void func_0021C1C8(TRAIL *p)
+extern "C" void func_0021C1C8(TRAIL *trail)
 {
-    func_001F3980(p);
-    if (!p->state) {
-        Ring *e = &p->ring[p->index];
-        p->index = (p->index + 1) % p->count;
+    func_001F3980(trail);
+    if (!trail->state) {
+        Ring *e = &trail->ring[trail->index];
+        trail->index = (trail->index + 1) % trail->count;
         e->t = D_002DDED0.t;
-        e->g = p->g;
-        e->m = *((M4 * (*)(void *)) p->vt[31].pfn)((char *)p + p->vt[31].d);
-        if (p->g <= 0.0f)
-            p->idle++;
+        e->g = trail->g;
+        e->m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
+        if (trail->g <= 0.0f)
+            trail->idle++;
         else
-            p->idle = 0;
-        if (p->follow) {
+            trail->idle = 0;
+        if (trail->follow) {
             qwordV pos;
             float length;
-            if (p->g == 0.0f)
-                p->distance = -4.0f;
-            pos = func_001A62E8(p->follow);
+            if (trail->g == 0.0f)
+                trail->distance = -4.0f;
+            pos = func_001A62E8(trail->follow);
             {
-                float rate = p->followRate;
-                qwordV d = VuSub(p->previous, pos);
-                float dist = p->distance;
+                float rate = trail->followRate;
+                qwordV d = VuSub(trail->previous, pos);
+                float dist = trail->distance;
                 d = VuDot(d, d);
-                p->previous = pos;
+                trail->previous = pos;
                 length = Sqrt(d);
-                p->distance = dist + length / rate;
+                trail->distance = dist + length / rate;
             }
-            e->length = p->distance;
+            e->length = trail->distance;
         }
-        SetTrailMeshPositions(p, func_001A62E8(p));
+        SetTrailMeshPositions(trail, func_001A62E8(trail));
     }
 }
 
@@ -444,12 +444,12 @@ static inline void StoreXYZ(U *dst, qwordV v)
 }
 // Deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and
 // per-vertex alpha, then base render 0x1F3C70. (inferred)
-extern "C" void RenderTrail(TRAIL *p)
+extern "C" void RenderTrail(TRAIL *trail)
 {
     N *node;
     U scalar;
     float saved;
-    for (node = p->model.nodes; node; node = node->next) {
+    for (node = trail->model.nodes; node; node = node->next) {
         int i;
         for (i = 0; i < node->count; i++) {
             Batch *batch = &node->batches[i];
@@ -459,12 +459,12 @@ extern "C" void RenderTrail(TRAIL *p)
             byte *uv = batch->uv;
             int j;
             for (j = 0; j < batch->count; j++, s++) {
-                float t = s->fraction * (p->count - 2);
+                float t = s->fraction * (trail->count - 2);
                 int k = (int)t;
                 float alpha = t - k;
-                int ia = (p->index + p->count - k - 1) % p->count;
-                int ib = (ia + p->count - 1) % p->count;
-                Ring *a = &p->ring[ia], *b = &p->ring[ib];
+                int ia = (trail->index + trail->count - k - 1) % trail->count;
+                int ib = (ia + trail->count - 1) % trail->count;
+                Ring *a = &trail->ring[ia], *b = &trail->ring[ib];
                 qwordV va = s->position, wa = VuFromFloat<qwordV>(alpha), wb = VuFromFloat<qwordV>(1.0f - alpha), pa,
                        pb, pos;
                 scalar.q = wb;
@@ -475,7 +475,7 @@ extern "C" void RenderTrail(TRAIL *p)
                 StoreXYZ(out, pos);
                 out++;
                 if (color) {
-                    float fade = 1.0f - (D_002DDED0.t - a->t) / p->fade;
+                    float fade = 1.0f - (D_002DDED0.t - a->t) / trail->fade;
                     if (fade < 0.0f)
                         fade = 0.0f;
                     else if (1.0f < fade)
@@ -483,7 +483,7 @@ extern "C" void RenderTrail(TRAIL *p)
                     color->b[3] = (int)(a->g * fade * s->color.b[3]);
                     color++;
                 }
-                if (uv && p->follow) {
+                if (uv && trail->follow) {
                     ulong t = (int)(((1.0f - alpha) * a->length + alpha * b->length) * 4096.0f);
                     ulong high = t >> 8;
                     __asm__("sb %1,%0" : "=m"(uv[0]) : "r"(t));
@@ -493,19 +493,19 @@ extern "C" void RenderTrail(TRAIL *p)
             }
         }
     }
-    saved = p->g;
-    p->g = 1.0f;
-    RenderSoSelf(p);
-    p->g = saved;
+    saved = trail->g;
+    trail->g = 1.0f;
+    RenderSoSelf(trail);
+    trail->g = saved;
 }
 
 // Copy a position to each linked mesh record.
 // Copies one position into the vertex record of every linked mesh node. (inferred)
-extern "C" void SetTrailMeshPositions(TRAIL *p, qwordV q)
+extern "C" void SetTrailMeshPositions(TRAIL *trail, qwordV q)
 {
     N *n;
-    for (n = p->model.nodes; n; n = n->next) {
-        OUTV *pv = (OUTV *)((n->record - p->model.records) * sizeof(OUTV) + (int)p->model.output);
+    for (n = trail->model.nodes; n; n = n->next) {
+        OUTV *pv = (OUTV *)((n->record - trail->model.records) * sizeof(OUTV) + (int)trail->model.output);
         qwordV t = q;
         float x = func_00259D98(&t);
         float y = func_00259DA8(&t);

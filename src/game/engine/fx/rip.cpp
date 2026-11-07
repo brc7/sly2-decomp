@@ -940,7 +940,7 @@ static inline SHAPE *CaptureShape(SHAPE *incoming)
     return saved;
 }
 // RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
-int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
+int HandleRipBounce(RIP *rip, SHAPE *incomingShape, qw point, qw normal)
 {
     SHAPE *shape = CaptureShape(incomingShape);
     WORK w;
@@ -949,18 +949,18 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
     {
         register qw incomingNormal __asm__("vf8");
         __asm__("qmtc2.ni %1,%0" : "=j"(incomingNormal) : "r"(normal));
-        if (p->kind == 8) {
+        if (rip->kind == 8) {
             w.contact = point;
-            radius = p->radius;
-            elastic = p->restitution;
-            friction = p->friction;
+            radius = rip->radius;
+            elastic = rip->restitution;
+            friction = rip->friction;
         } else {
             w.contact = point;
             radius = 100.0f;
             elastic = 0.7f;
             friction = 0.8f;
         }
-        radius *= Evaluate(&p->scale, (D_002DDED0.time - p->start) / p->duration);
+        radius *= Evaluate(&rip->scale, (D_002DDED0.time - rip->start) / rip->duration);
         owner = OwnerAndNormal(shape, w, incomingNormal);
     }
     int special = FIsBasicDerivedFrom__FP5BASIC3CID(owner, 0x59);
@@ -972,14 +972,14 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
         CalculateWaterCurrent(sampleOwner, samplePoint, output, 0);
         register unsigned blendPage __asm__("$2");
         register qw original __asm__("vf3");
-        __asm__("lui %0,0x2C\n\tlqc2 %1,%2" : "=r"(blendPage), "=j"(original) : "m"(p->velocity.q));
+        __asm__("lui %0,0x2C\n\tlqc2 %1,%2" : "=r"(blendPage), "=j"(original) : "m"(rip->velocity.q));
         register int bits __asm__("$2") = ((SPECIAL_PAGE *)blendPage)->blend.bits;
         register RIP *fadeArg __asm__("$4");
         register qw scale __asm__("vf4"), sample __asm__("vf1");
         register unsigned durationPage __asm__("$2");
         __asm__("daddu %0,%4,$zero\n\tqmtc2.ni %5,%1\n\tlqc2 %2,%6\n\tlui %3,%%hi(D_002C1F60)"
                 : "=&r"(fadeArg), "=j"(scale), "=j"(sample), "=r"(durationPage)
-                : "r"(p), "r"(bits), "m"(w.temporary.q));
+                : "r"(rip), "r"(bits), "m"(w.temporary.q));
         register qw difference __asm__("vf2");
         register float duration __asm__("$f12");
         __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%%lo(D_002C1F60)(%4)"
@@ -989,11 +989,11 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
                 : "+j"(original), "+j"(sample), "=m"(w.scalar.q)
                 : "j"(difference), "j"(scale));
         __asm__("mfc1 $2,%2\n\tqmtc2.ni $2,%0\n\tsqc2 %3,%1"
-                : "=j"(difference), "=m"(p->velocity.q)
+                : "=j"(difference), "=m"(rip->velocity.q)
                 : "f"(duration), "j"(original)
                 : "$2");
         __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q" : "+j"(sample) : "j"(difference));
-        p->acceleration.q = sample;
+        rip->acceleration.q = sample;
         w.scalar.q = difference;
         ForceRipFade__FP3RIPf(fadeArg, duration);
         return 1;
@@ -1016,14 +1016,14 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
     {
         register qw working __asm__("vf2"), other __asm__("vf5");
         register float ten __asm__("$f0") = 10.0f;
-        __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3" : "=j"(other), "=j"(working) : "r"(packedOther), "m"(p->angular.q));
+        __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3" : "=j"(other), "=j"(working) : "r"(packedOther), "m"(rip->angular.q));
         register qw offset __asm__("vf10");
         __asm__("max.s %0,%2,%0\n\tlqc2 %1,%3" : "+f"(radius), "=j"(offset) : "f"(ten), "m"(w.offset.q));
         register float squared __asm__("$f3"), invInertia __asm__("$f0");
         register qw scratch __asm__("vf1");
         __asm__("mul.s %0,%3,%3\n\t.set noat\n\tlui $at,0x4020\n\tmtc1 $at,%1\n\t.set at\n\tlqc2 %2,%4"
                 : "=f"(squared), "=f"(invInertia), "=j"(scratch)
-                : "f"(radius), "m"(p->velocity.q)
+                : "f"(radius), "m"(rip->velocity.q)
                 : "$1");
         register qw normalValue __asm__("vf8");
         __asm__("vopmula.xyz $ACC,%0,%4\n\tvopmsub.xyz %0,%4,%0\n\tvadd.xyzw %1,%1,%0\n\tlqc2 %2,%5\n\tdiv.s %3,%3,%6"
@@ -1164,7 +1164,7 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
                 : "m"(D_002C1F68), "f"(unit), "m"(w.frictionAxis.q), "f"(fricImpulse));
         __asm__("lqc2 %0,%4\n\tlqc2 %1,%5\n\tmul.s %2,%2,%6\n\tlqc2 %3,%7"
                 : "=j"(tailNormal), "=j"(linear), "+f"(firstWeight), "=j"(angular)
-                : "m"(w.normal.q), "m"(p->velocity.q), "f"(impulse), "m"(p->angular.q));
+                : "m"(w.normal.q), "m"(rip->velocity.q), "f"(impulse), "m"(rip->angular.q));
         register qw second __asm__("vf2"), frictionTorque __asm__("vf7"), first __asm__("vf1");
         __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tlqc2 %1,%4\n\tmfc1 $2,%5\n\tqmtc2.ni $2,%2"
                 : "=j"(second), "=j"(frictionTorque), "=j"(first)
@@ -1172,7 +1172,7 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
                 : "$3", "$2");
         __asm__("vmulax.xyzw $ACC,%4,%5x\n\tvmaddx.xyzw %0,%0,%6x\n\tsqc2 %5,%2\n\tvadd.xyzw %1,%1,%0\n\tlqc2 "
                 "%0,%7\n\tsqc2 %1,%3"
-                : "+j"(axis), "+j"(linear), "=m"(w.scalar.q), "=m"(p->velocity.q)
+                : "+j"(axis), "+j"(linear), "=m"(w.scalar.q), "=m"(rip->velocity.q)
                 : "j"(tailNormal), "j"(first), "j"(second), "m"(w.firstTorque.q));
         __asm__("vmulax.xyzw $ACC,%2,%0x\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1"
                 : "+j"(first), "=m"(w.scalar.q)
@@ -1180,17 +1180,17 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
         register qw inverse __asm__("vf6");
         register float vertical __asm__("$f0");
         __asm__("lqc2 %0,%4\n\tlwc1 %1,%5\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %2,%6,%0x\n\tsqc2 %2,%3"
-                : "=j"(inverse), "=f"(vertical), "+j"(angular), "=m"(p->angular.q)
-                : "m"(w.inertia.q), "m"(p->velocity.f[2]), "j"(first));
+                : "=j"(inverse), "=f"(vertical), "+j"(angular), "=m"(rip->angular.q)
+                : "m"(w.inertia.q), "m"(rip->velocity.f[2]), "j"(first));
         w.scalar.q = inverse;
         if (vertical < minimum) {
             register unsigned fadePage __asm__("$2");
-            __asm__("lui %0,%%hi(D_002C1F6C)\n\tswc1 %2,%1" : "=&r"(fadePage), "=m"(p->velocity.f[2]) : "f"(minimum));
+            __asm__("lui %0,%%hi(D_002C1F6C)\n\tswc1 %2,%1" : "=&r"(fadePage), "=m"(rip->velocity.f[2]) : "f"(minimum));
             register float duration __asm__("$f12");
             register RIP *receiver __asm__("$4");
             __asm__("lwc1 %0,%%lo(D_002C1F6C)(%2)\n\tdaddu %1,%3,$zero"
                     : "=f"(duration), "=r"(receiver)
-                    : "r"(fadePage), "r"(p), "m"(*(float *)(fadePage + 0x1F6C)));
+                    : "r"(fadePage), "r"(rip), "m"(*(float *)(fadePage + 0x1F6C)));
             w.normal.q = tailNormal;
             ForceRipFade__FP3RIPf(receiver, duration);
             __asm__("lqc2 %0,%1" : "=j"(tailNormal) : "m"(w.normal.q));
@@ -1201,7 +1201,7 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
         register qw position __asm__("vf2"), contact __asm__("vf3");
         __asm__("lqc2 %0,%3\n\taddiu %1,$zero,1\n\tlqc2 %2,%4"
                 : "=j"(position), "=&r"(returnValue), "=j"(contact)
-                : "m"(p->position.q), "m"(w.contact));
+                : "m"(rip->position.q), "m"(w.contact));
         register qw difference __asm__("vf1");
         register float zero __asm__("$f1");
         __asm__("vsub.xyzw %0,%2,%3\n\tmtc1 $zero,%1" : "=j"(difference), "=f"(zero) : "j"(contact), "j"(position));
@@ -1212,7 +1212,7 @@ int HandleRipBounce(RIP *p, SHAPE *incomingShape, qw point, qw normal)
         register float distance __asm__("$f0") = Max(SecondProjection(difference), zero) + unit;
         qw scale = DistanceValue(distance);
         __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1\n\tsqc2 %0,%2"
-                : "+j"(position), "=m"(w.scalar.q), "=m"(p->position.q)
+                : "+j"(position), "=m"(w.scalar.q), "=m"(rip->position.q)
                 : "j"(tailNormal), "j"(scale));
     }
     return returnValue;
@@ -2112,18 +2112,18 @@ static inline qword Axis(const qword *p)
     __asm__("lqc2 %0,0(%1)" : "=j"(v) : "r"(p), "m"(*p));
     return v;
 }
-static inline const M3 *MatrixAddress(SHRAPNEL *p)
+static inline const M3 *MatrixAddress(SHRAPNEL *shrapnel)
 {
-    register SHRAPNEL *receiver __asm__("$4") = p;
+    register SHRAPNEL *receiver __asm__("$4") = shrapnel;
     register const M3 *matrix __asm__("$6");
     __asm__("addiu %0,%1,64" : "=r"(matrix) : "r"(receiver));
     return matrix;
 }
-static inline qword Depth(SHRAPNEL *p)
+static inline qword Depth(SHRAPNEL *shrapnel)
 {
     register qword k __asm__("vf2");
     register int bits __asm__("$4");
-    __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0" : "=j"(k), "=&r"(bits) : "r"(p), "m"(p->depth.bits));
+    __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0" : "=j"(k), "=&r"(bits) : "r"(shrapnel), "m"(shrapnel->depth.bits));
     return k;
 }
 // SHRAPNEL Render.
@@ -2460,22 +2460,22 @@ static inline M3 Multiply(const M3 &a, const M3 &b) return r
             : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
 // RIPT 4 Render: large custom draw (fades; RemoveRip when done)
-extern "C" void RenderGlint(RIP *p)
+extern "C" void RenderGlint(RIP *rip)
 {
     M3 basis, rotation, product;
     M4 transform;
-    qword direction = Subtract(D_002DDF40.position, p->position);
-    float time = (D_002DDED0.time - p->start) / p->duration;
+    qword direction = Subtract(D_002DDF40.position, rip->position);
+    float time = (D_002DDED0.time - rip->start) / rip->duration;
     float distance = Length(direction) * 0.001f;
-    float size = Evaluate(p->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
+    float size = Evaluate(rip->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
     if (!FInsideCmFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
-        RemoveRip__FP3RIP(p);
+        RemoveRip__FP3RIP(rip);
         return;
     }
     /* opacity clamp; the result shares lo's register, hi is loaded before the compare */
     float opacity = D_002BBB60[0];
     float hi = D_002BBB60[1];
-    float v = Evaluate(p->opacity, time);
+    float v = Evaluate(rip->opacity, time);
     if (v < opacity) {
     } else if (hi < v)
         opacity = hi;
@@ -2485,8 +2485,8 @@ extern "C" void RenderGlint(RIP *p)
     basis = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
     rotation = func_0011B500(D_002A2DA0, Evaluate(D_002C1FF0, time));
     product = Multiply(basis, rotation);
-    transform = LoadMatrixFromPosRotScalar(p->position, product, size);
-    func_001A5EE8(p->material, transform, opacity, 1.0f);
+    transform = LoadMatrixFromPosRotScalar(rip->position, product, size);
+    func_001A5EE8(rip->material, transform, opacity, 1.0f);
 }
 } // namespace M_RenderGlint
 
@@ -2522,25 +2522,25 @@ qword ConvertCmWorldToScreen(void *, qword);
 float GRandInRange__Fff(float, float);
 // SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
 // definition's bounds, fixed duration, default alpha and the definition's scale curve.
-void InitSmack(OBJ *p, qword q)
+void InitSmack(OBJ *object, qword q)
 {
     DEF *d;
     float x, y;
-    InitRip(p, q);
-    d = p->def;
-    p->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
+    InitRip(object, q);
+    d = object->def;
+    object->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
     x = GRandInRange__Fff(d->spinMin[0], d->spinMax[0]);
     y = GRandInRange__Fff(d->spinMin[1], d->spinMax[1]);
     {
         float z = GRandInRange__Fff(d->spinMin[2], d->spinMax[2]);
-        V3 *v = &p->velocity;
+        V3 *v = &object->velocity;
         v->x = x;
         v->y = y;
         v->z = z;
     }
-    p->duration = D_002C2000;
-    p->alpha = D_002BBB50;
-    p->scale = d->scale;
+    object->duration = D_002C2000;
+    object->alpha = D_002BBB50;
+    object->scale = d->scale;
 }
 } } // namespace M_InitSmack
 
@@ -2567,11 +2567,11 @@ qword ConvertCmScreenToWorld(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 // SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
 // and converts back to world space.
-void ProjectSmackTransform(OBJ *p)
+void ProjectSmackTransform(OBJ *object)
 {
-    EvaluateBezierPos(GMax(p->startTime + p->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->screenPos, p->velocity, p->def->a, p->def->b, &p->screenPos, &p->velocity, 0);
-    p->previousPosition = p->position;
-    p->position = ConvertCmScreenToWorld(D_002DDF40, p->screenPos);
+    EvaluateBezierPos(GMax(object->startTime + object->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
+    object->previousPosition = object->position;
+    object->position = ConvertCmScreenToWorld(D_002DDF40, object->screenPos);
 }
 } } // namespace M_ProjectSmackTransform
 
@@ -2825,18 +2825,18 @@ void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
 // LEAF FBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
 // orientation taken into the hit body's space, and removes the leaf.
-int StickLeafOnBounce(OBJ *p, S *s, qword a, qword b)
+int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
 {
     R *stuck;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
         return 0;
-    stuck = CreateStuck(p, p->renderObject, s->hitObject, a, b);
+    stuck = CreateStuck(object, object->renderObject, s->hitObject, a, b);
     if (stuck) {
         M3 m;
         ConvertAloMat(&m, 0, s->hitBody, &stuck->orientation);
         stuck->orientation = m;
     }
-    RemoveRip__FP3RIP(p);
+    RemoveRip__FP3RIP(object);
     return 1;
 }
 } } // namespace M_StickLeafOnBounce
@@ -2892,16 +2892,16 @@ void TouchRip__FP3RIPi(OBJ *, int);
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
 // render object; then the base TouchRip.
-void UpdateRipt1(OBJ *p, int isTouching)
+void UpdateRipt1(OBJ *object, int isTouching)
 {
     HIT hit;
     int i;
     EMIT *ripple;
-    if (isTouching == 0 || p->nextRenderObject == 0)
+    if (isTouching == 0 || object->nextRenderObject == 0)
         goto done;
-    hit.pos = p->position;
-    for (i = 0; i < p->q->numEdges; i++) {
-        if (ClsgClipEdgeToObject(p->q->edges + i * 0xB0, p->previousPosition, p->position, 1, &hit))
+    hit.pos = object->position;
+    for (i = 0; i < object->q->numEdges; i++) {
+        if (ClsgClipEdgeToObject(object->q->edges + i * 0xB0, object->previousPosition, object->position, 1, &hit))
             goto found;
     }
 found:
@@ -2911,10 +2911,10 @@ found:
         ripple->duration = 0.75f;
         ripple->scaleStart = 40.0f;
         ripple->scaleSlope = 30.0f;
-        ripple->renderObject = p->nextRenderObject;
+        ripple->renderObject = object->nextRenderObject;
     }
 done:
-    TouchRip__FP3RIPi(p, isTouching);
+    TouchRip__FP3RIPi(object, isTouching);
 }
 } } // namespace M_UpdateRipt1
 

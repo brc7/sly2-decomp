@@ -659,7 +659,7 @@ void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS 
 
 // Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the
 // GSB, then TEXFLUSH + FINISH. (inferred)
-void UploadBitmaps(GSB *p)
+void UploadBitmaps(GSB *gsb)
 {
     GIFS gifs;
     STACKSCOPEMK mk;
@@ -667,7 +667,7 @@ void UploadBitmaps(GSB *p)
     STACKSCOPE_ctor(&mk);
     gifs.AllocSw(((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     gifs.AddDmaCnt();
-    if (FBuildUploadBitmapGifs(1, p, &gifs)) {
+    if (FBuildUploadBitmapGifs(1, gsb, &gifs)) {
         gifs.AddPrimPack(0, 1, 0xE);
         gifs.PackAD(0x3F, 0);
         gifs.PackAD(0x61, 0);
@@ -680,7 +680,7 @@ void UploadBitmaps(GSB *p)
 }
 
 // Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) (inferred)
-extern "C" void AllocGsbBitmaps(GSB *p)
+extern "C" void AllocGsbBitmaps(GSB *gsb)
 {
-    FBuildUploadBitmapGifs(1, p, 0);
+    FBuildUploadBitmapGifs(1, gsb, 0);
 }
