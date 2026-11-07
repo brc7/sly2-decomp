@@ -291,7 +291,7 @@ extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct JOY { char pad[0x103C]; float dxLeft; float dyLeft; char pad2[0x1074 - 0x1044]; float dyRight; };   /* sticks (joy.h's JOY) */
+struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
 struct X {
     char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
     struct SND *zoomSound; int pad38; float panMin; float panMax; float tiltMin; float tiltMax;
@@ -346,8 +346,8 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     }
     u = 1.0f - p->zoom;
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
-    gPan = -__builtin_fabsf(pjoy->dxLeft) * pjoy->dxLeft * D_002BD990;
-    gTilt = -__builtin_fabsf(pjoy->dyLeft) * pjoy->dyLeft * D_002BD994;
+    gPan = -__builtin_fabsf(pjoy->leftStickX) * pjoy->leftStickX * D_002BD990;
+    gTilt = -__builtin_fabsf(pjoy->leftStickY) * pjoy->leftStickY * D_002BD994;
     GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
     f = ref.m_n;
     Decref__4CRef(&ref);
@@ -876,7 +876,7 @@ extern "C" CLQ D_002BDA30;
 extern "C" LM D_002BDA40;
 extern "C" LM D_002BDA48, D_002BDA50, D_002BDA58;
 extern "C" float D_002BDA60, D_002BDA64;
-struct JOY { char pad[0x1070]; float dxRight; float dyRight; float sRight; };   /* the right stick: deflection and its magnitude */
+struct JOY { char pad[0x1070]; float dxRight; float dyRight; float rightStickDeflection; }; /* the right stick: deflection and its magnitude */
 struct GS { char pad[0x4CC]; int unknown4CC; };
 struct TGT { char pad[0x20]; qword pos; };
 struct OBJ { char pad[0x40]; int matrix; };   /* the camera XF: its matrix at +0x40 */
@@ -929,7 +929,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
     UpdateCplcy(p, pv, pjoy);
-    if (0.0f < pjoy->sRight) {
+    if (0.0f < pjoy->rightStickDeflection) {
         float sx, sy;
         sx = 1.0f;
         if (0.0f < pjoy->dxRight)

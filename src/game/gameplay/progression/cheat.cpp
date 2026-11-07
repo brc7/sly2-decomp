@@ -94,7 +94,7 @@ extern "C" int AddCode(CODES *codes, CODE *pcode)
     int r = IsEntryInSl(codes, pcode);
     if (r) return r;
     AppendSlEntry(codes, pcode);
-    if (*pcode->buttons == (*(int *)&g_joy.grfbtn)) pcode->numMatched = 1;
+    if (*pcode->buttons == (*(int *)&g_joy.buttonsHeld)) pcode->numMatched = 1;
     else pcode->numMatched = 0;
 }
 

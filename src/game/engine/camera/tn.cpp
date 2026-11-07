@@ -107,47 +107,47 @@ struct RUMBLE
 };
 struct JOY
 {
-      byte abPadDma[0x1000];
-      int nPort;
-      int nSlot;
+      byte padDmaBuffer[0x1000];
+      int port;
+      int slot;
       int term;
       JOYS joys;
       JOYK joyk;
-      float tJoys;
-      float tRead;
+      float stateStartTime;
+      float lastReadTime;
       float tActive;
       int dtIdle;
       undefined4 unk_0x1024;
       undefined4 unk_0x1028;
       undefined4 unk_0x102c[4];
-      float dxLeft;
-      float dyLeft;
-      float uDeflectLeft;
+      float leftStickX;
+      float leftStickY;
+      float leftStickDeflection;
       byte bXLeft;
       byte bYLeft;
-      ushort unk_0x104a;
-      int fStickMovedLeft;
+      ushort unknown104A;
+      int hasLeftStickMoved;
       LM almDeflect[4];
       float dxRight;
       float dyRight;
-      float sRight;
+      float rightStickDeflection;
       byte bXRight;
       byte bYRight;
-      ushort unk_0x107e;
-      int fStickMovedRight;
+      ushort unknown107E;
+      int hasRightStickMoved;
       LM almDeflect2[4];
       float dxdtLeft;
       float dydtLeft;
       float dxdtRight;
       float dydtRight;
-      uint grfbtn;
-      uint grfbtnPressed;
+      uint buttonsHeld;
+      uint buttonsPressed;
       uint grfbtnLatched;
       byte mpbtnpb[12];
       RUMBLE rumble;
-      int fRumbleEnabled;
+      int isRumbleEnabled;
       float uDpad;
-      undefined4 unk_0x10f0[4];
+      undefined4 unknown10F0[4];
 };
 struct CAMEVENT
 {
@@ -1077,14 +1077,14 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     }
     float radPanNew = radPan;
     float radTiltNew = radTilt;
-    if ((grftnm & 4) != 0 && (fRecenter != 0 || pjoy->sRight > 0.0f || dradPan != 0.0f || dradTilt != 0.0f))
+    if ((grftnm & 4) != 0 && (fRecenter != 0 || pjoy->rightStickDeflection > 0.0f || dradPan != 0.0f || dradTilt != 0.0f))
     {
         if (nMode != 4)
         {
             SND *psnd = CreateSfxSound(3);
             SetSndSourceLo(psnd, 0);
         }
-        if (pjoy->sRight > 0.0f)
+        if (pjoy->rightStickDeflection > 0.0f)
             fRecenter = 0;
         if (fRecenter != 0)
         {
@@ -1126,8 +1126,8 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     else if (nMode == 4)
     {
         VECTOR4 vecStick;
-        vecStick.x = pjoy->dxLeft;
-        vecStick.y = pjoy->dyLeft;
+        vecStick.x = pjoy->leftStickX;
+        vecStick.y = pjoy->leftStickY;
         vecStick.z = 0.0f;
         qword qwFallbackStick = D_002A2DA0;
         qword qwStick = *(qword *)&vecStick;

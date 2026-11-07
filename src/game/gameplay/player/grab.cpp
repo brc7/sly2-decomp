@@ -435,7 +435,7 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 
 struct VTE { short delta, pad; void *fn; };
-struct JOY { char pad0[0x1C]; float amount; char pad20[0x10]; uint grfbtn; };
+struct JOY { char pad0[0x1C]; float amount; char pad20[0x10]; uint buttonsHeld; };
 struct SURF;
 struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
 struct XP;
@@ -636,7 +636,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             if (!grab->pactor->pasega || IsAsegaRetracted(grab->pactor->pasega)) {
                 SetControl(grab->pactor, 0);
             } else if (D_002BF5B8 < D_002DDED0.time - grab->tStamp) {
-                if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->grfbtn & 0xD0)) {
+                if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->buttonsHeld & 0xD0)) {
                     SetControl(grab->pactor, 0);
                     return;
                 }
@@ -665,7 +665,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             }
             if (D_002DFBC4 & 1)
                 break;
-            if (joy->grfbtn & GetGadgetButtonMask(grab->pactor, 0x28))
+            if (joy->buttonsHeld & GetGadgetButtonMask(grab->pactor, 0x28))
                 break;
             SetControl(grab->pactor, 0);
             break;
@@ -683,7 +683,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
                 break;
             if (D_002DFBC4 & 1)
                 break;
-            if (joy->grfbtn & 0x20)
+            if (joy->buttonsHeld & 0x20)
                 break;
             SetControl(grab->pactor, 0);
             break;
