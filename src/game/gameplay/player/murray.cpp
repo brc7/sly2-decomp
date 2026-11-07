@@ -409,7 +409,6 @@ typedef int qword __attribute__((mode(TI)));
 struct PL { char pad[0x18]; float g18; float g1C; };
 struct O;
 struct TABLE;
-struct ASEGA {char pad[0x14];struct TABLE*table;struct O*owner;float time;char pad20[0x20];float speed40,scale44,factor48,factor4C;};
 struct BBOX {float min[4],max[4];char pad20[0x40];struct O*owner;};
 struct G;
 struct Q { char pad[0xEC]; struct BBOX *xEC; };
@@ -473,13 +472,6 @@ static inline void Neg2(struct P *p, qword v)
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(struct PL,g18)==24?1:-1];
 typedef char Offset_1[FIELD_OFFSET(struct PL,g1C)==28?1:-1];
-typedef char Offset_2[FIELD_OFFSET(struct ASEGA,table)==20?1:-1];
-typedef char Offset_3[FIELD_OFFSET(struct ASEGA,owner)==24?1:-1];
-typedef char Offset_4[FIELD_OFFSET(struct ASEGA,time)==28?1:-1];
-typedef char Offset_5[FIELD_OFFSET(struct ASEGA,speed40)==64?1:-1];
-typedef char Offset_6[FIELD_OFFSET(struct ASEGA,scale44)==68?1:-1];
-typedef char Offset_7[FIELD_OFFSET(struct ASEGA,factor48)==72?1:-1];
-typedef char Offset_8[FIELD_OFFSET(struct ASEGA,factor4C)==76?1:-1];
 typedef char Offset_9[FIELD_OFFSET(struct BBOX,min)==0?1:-1];
 typedef char Offset_10[FIELD_OFFSET(struct BBOX,max)==16?1:-1];
 typedef char Offset_11[FIELD_OFFSET(struct BBOX,owner)==96?1:-1];
@@ -502,7 +494,6 @@ typedef char Offset_29[FIELD_OFFSET(struct P,x190C)==6412?1:-1];
 typedef char Offset_30[FIELD_OFFSET(struct P,g1AC8)==6856?1:-1];
 typedef char Offset_31[FIELD_OFFSET(struct P,x1ACC)==6860?1:-1];
 typedef char Size_0[sizeof(struct PL)==32?1:-1];
-typedef char Size_1[sizeof(struct ASEGA)==80?1:-1];
 typedef char Size_2[sizeof(struct BBOX)==100?1:-1];
 typedef char Size_3[sizeof(struct Q)==240?1:-1];
 typedef char Size_5[sizeof(struct P)==6864?1:-1];
@@ -1101,7 +1092,6 @@ union U { qword q; float f[4]; int i[4]; };
 struct VE { short delta, pad; void (*fn)(); };
 struct OBJ { char pad[12]; VE *vt; };
 struct COMPONENT;
-struct ENTRY { float value; int kind, key, pad; };
 struct P {
     char pad0[12];
     VE *vt;
@@ -1190,7 +1180,7 @@ void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
-ENTRY *FindAsegLabel(ASEG *, int);
+EA *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
 }
 // Address p + offset.
@@ -1404,9 +1394,9 @@ extern "C" void SetMurrayState(P *murray, int next)
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
             if (clip && duration == position) {
-                ENTRY *e = FindAsegLabel(clip, 0x1AC);
+                EA *e = FindAsegLabel(clip, 0x1AC);
                 if (e)
-                    duration = e->value;
+                    duration = e->time;
             }
             if (duration != 0.0f)
                 SetAsegaChannelWeight(murray->asega, D_002DDED0.time + duration / murray->asega->speed);
@@ -2793,7 +2783,6 @@ namespace M_func_001B8B70 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float angle,time; };   /* the joystick (POCTL) fields read */
-struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
 struct P {
@@ -2807,7 +2796,7 @@ struct P {
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
 qword GetStepAsegaTranslation(struct P*,ASEGA*,float);
-struct PARAM *FindAsegLabel(void*,int);
+struct EA *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
@@ -2870,9 +2859,9 @@ void UpdateMurrayAttackVelocity(struct P*murray){
         {
             register int active __asm__("$3")=murray->blend;
             if(active){
-            struct PARAM *start=FindAsegLabel(murray->source->animation,0x240);
-            struct PARAM *end=FindAsegLabel(murray->source->animation,0x242);
-            float t=(murray->source->time-start->value)/(end->value-start->value);
+            struct EA *start=FindAsegLabel(murray->source->animation,0x240);
+            struct EA *end=FindAsegLabel(murray->source->animation,0x242);
+            float t=(murray->source->time-start->time)/(end->time-start->time);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
@@ -3200,7 +3189,6 @@ struct M4 { U row[4]; };
 struct VTE { short delta,pad; void *fn; };
 struct NODE { M4 local,world; char pad80[0x18]; short state; char pad9A[6]; NODE*parent; };
 struct OWNER { char pad[0xC]; VTE*vt; char pad10[0x18]; ulong flags; char pad30[0x28]; NODE*left,*right; };
-struct EVENT { float time; int kind,tag,pad; };
 struct ROOT { char pad[0x60]; NODE*node; };
 struct PROXY { char pad[0x1C]; int active; };
 struct GOAL { char pad[0xC]; VTE*vt; };
@@ -3211,7 +3199,6 @@ struct P { char pad[0xC]; VTE*vt; char pad10[0x50]; NODE*node; char pad64[0x12C]
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M4_Size[sizeof(M4)==64?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
-typedef char EVENT_Size[sizeof(EVENT)==16?1:-1];
 typedef char STRETCH_Size[sizeof(STRETCH)==208?1:-1];
 typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
 typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
@@ -3222,7 +3209,6 @@ typedef char OWNER_vt_Offset[FIELD_OFFSET(OWNER,vt)==12?1:-1];
 typedef char OWNER_flags_Offset[FIELD_OFFSET(OWNER,flags)==40?1:-1];
 typedef char OWNER_left_Offset[FIELD_OFFSET(OWNER,left)==88?1:-1];
 typedef char OWNER_right_Offset[FIELD_OFFSET(OWNER,right)==92?1:-1];
-typedef char EVENT_time_Offset[FIELD_OFFSET(EVENT,time)==0?1:-1];
 typedef char ROOT_node_Offset[FIELD_OFFSET(ROOT,node)==96?1:-1];
 typedef char PROXY_active_Offset[FIELD_OFFSET(PROXY,active)==28?1:-1];
 typedef char GOAL_vt_Offset[FIELD_OFFSET(GOAL,vt)==12?1:-1];
@@ -3267,7 +3253,7 @@ extern "C" void ReleaseAct(MOTION**);
 extern "C" void SetSoCnstrForce(OWNER*,int);
 extern "C" void SetLoParent(OWNER*,int,int);
 extern "C" void SetSoTreeFlag2(OWNER*,int);
-extern "C" EVENT*FindAsegLabel(ASEG*,int);
+extern "C" EA*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertMat4BetweenLos(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
@@ -3314,7 +3300,7 @@ extern "C" void SetMurrayLiftSubstate(P *murray, int state)
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
         float duration;
-        EVENT *event = FindAsegLabel(murray->anim->animation, 0x1C7);
+        EA *event = FindAsegLabel(murray->anim->animation, 0x1C7);
         duration = (event->time - murray->anim->time) / murray->anim->speed;
         LoadIdentityMatrix4(murray->root->node, murray->node, &predicted, 0, duration);
         M4 work = ConvertMat4BetweenLos(murray, 0, &predicted);
