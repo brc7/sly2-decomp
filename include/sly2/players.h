@@ -38,7 +38,9 @@ struct MURRAY : public STEPPLAYER
       int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
       int unknown13E8;
       undefined4 unknown13EC;
-      LO *ploCarried;   /* object being carried */
+      LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
+                           StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (the views in
+                           murray.cpp read it there) */
       undefined4 unk_0x13f4[(0x1410 - 0x13f4) / 4];
       float unknown1410;
       float unknown1414;
