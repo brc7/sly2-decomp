@@ -33,7 +33,7 @@ struct GAME;
 
 /* An XF (sly2/so.h: mat rows + position, world rows + position, parent, velocity). */
 struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80[0xA0 - 0x80]; XFV *parent; char padA4[0xC]; V velocity; };
-/* SO::psophys and SO::ptree as read here. */
+/* SO::physics and SO::physicsTree as read here. */
 struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float unknownD4; float unknownD8; };   /* acceleration: inferred (PushGuardTrapAway cancels it) */
 /* A contact (elasticity at +0x98). */
 struct XP { char pad[0x98]; float elasticity; };

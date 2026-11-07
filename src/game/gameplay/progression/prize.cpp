@@ -130,8 +130,8 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(prize, pbis);
     *(int *)((char *)EnsureSoInSwList187(prize) + 0xF0) = 1;
-    SetXfRole(prize, prize->pxfUnk58, 0x15);
-    SetXfRole(prize, prize->pxfUnk5c, 0x15);
+    SetXfRole(prize, prize->unknown58, 0x15);
+    SetXfRole(prize, prize->unknown5C, 0x15);
     BindLoOidTable(prize, 1, D_002C0D40);
 }
 
@@ -390,7 +390,7 @@ typedef int qword __attribute__((mode(TI)));
 union U { qword qw; float g[4]; };
 union FLOATWORD { float g; int bits; };
 struct XF { char pad[0x70]; qword pos; };
-struct SOPART { XF *pxf; void *pso; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
+struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
 struct P {
     char pad0[0x150]; int state; char pad154[0x1C]; qword pos; qword v;
@@ -494,11 +494,11 @@ extern "C" void CheckDprizeBounce(P *prize)
     for (int i = 0; i < cpart; i++) {
         SOPART *ppart = appart[i];
         if (ppart->grf & (1UL << 49)) {
-            qword center = ppart->pxf->pos;
+            qword center = ppart->transform->pos;
             qword posCur = GetLoWorldPos(prize);
             float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
             if (g < gDeepest) {
-                vec.qw = QwNormalize(VuSub(prize->pos, ppart->pxf->pos), D_002A2DA0);
+                vec.qw = QwNormalize(VuSub(prize->pos, ppart->transform->pos), D_002A2DA0);
                 if (GDot(prize->v, vec.qw) < 0.0f) {
                     gDeepest = g;
                     normal.qw = vec.qw;

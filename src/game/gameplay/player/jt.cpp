@@ -1474,16 +1474,16 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
         tLocal = pea->tLocal;
     }
     MATRIX4 matExtrem;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->rootTransform, &matExtrem, 0);
     qword posExtrem = AddScaledVec(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
     MATRIX4 matHip;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
-    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
+    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->qwPosIkh);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->posSphere = posSphereCenter;
-    pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
+    pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->reference) ->sUpper + ((IKREC *)((XF *)( paloHip ))->reference) ->sLower + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
     VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
     LSG lsgClip;
@@ -2315,7 +2315,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                             mat = LoadRotateMatrixRad(jt->gUnk1f94 * D_002BF364, D_002A2DA0);
                             *(qword *)&vTarget = TransformPos(jt->phndHang->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->psophys->dvGravity);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->physics->gravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->gUnk1f98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
@@ -3557,7 +3557,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 RemoveNodeBySlot(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
                 if (jt->janim.pxaHang != 0)
                 {
-                    RemoveSoXa(jt->janim.pxaHang->pso, jt->janim.pxaHang);
+                    RemoveSoXa(jt->janim.pxaHang->other, jt->janim.pxaHang);
                     FreeSwXaList(&D_003DD490, jt->janim.pxaHang);
                     jt->janim.pxaHang = 0;
                 }
@@ -3589,8 +3589,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ShowSoPart(jt, jt->precUnk1a90);
                 break;
             case JTS_Stand:
-                SlotSetRole(jt, jt->pxfUnk58, 2);
-                SlotSetRole(jt, jt->pxfUnk5c, 2);
+                SlotSetRole(jt, jt->unknown58, 2);
+                SlotSetRole(jt, jt->unknown5C, 2);
                 switch (jt->jtas)
                 {
                     case 6:
@@ -3631,8 +3631,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk12:
             case JTS_Unk13:
             case JTS_Unk14:
-                SlotSetRole(jt, jt->pxfUnk58, 2);
-                SlotSetRole(jt, jt->pxfUnk5c, 2);
+                SlotSetRole(jt, jt->unknown58, 2);
+                SlotSetRole(jt, jt->unknown5C, 2);
                 break;
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
@@ -3665,8 +3665,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Stand:
             {
                 stateMachine = jt->psmUnk1028;
-                SlotSetRole(jt, jt->pxfUnk58, 1);
-                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                SlotSetRole(jt, jt->unknown58, 1);
+                SlotSetRole(jt, jt->unknown5C, 1);
                 jt->nUnk1514 = 0;
                 switch (jt->jts)
                 {
@@ -3843,7 +3843,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     FixStepAngularVelocity(jt);
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
-                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->pxfRoot, jt->pxfRoot, &matHand, 0);
+                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->rootTransform, jt->rootTransform, &matHand, 0);
                     tLabel /= aseg->svtMaster;
                     qword posHold = PosLoWorld(jt->ploInteract);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->ploInteract->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
@@ -3854,19 +3854,19 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk12:
                 stateMachine = jt->psmUnk102c;
-                SlotSetRole(jt, jt->pxfUnk58, 1);
-                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                SlotSetRole(jt, jt->unknown58, 1);
+                SlotSetRole(jt, jt->unknown5C, 1);
                 ClearXyz(&jt->vUnk190);
                 SetJtAnimState(jt, -1);
             case JTS_Unk13:
-                SlotSetRole(jt, jt->pxfUnk58, 1);
-                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                SlotSetRole(jt, jt->unknown58, 1);
+                SlotSetRole(jt, jt->unknown5C, 1);
                 ClearXyz(&jt->vUnk190);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
-                SlotSetRole(jt, jt->pxfUnk58, 2);
-                SlotSetRole(jt, jt->pxfUnk5c, 2);
+                SlotSetRole(jt, jt->unknown58, 2);
+                SlotSetRole(jt, jt->unknown5C, 2);
                 ClearXyz(&jt->vUnk190);
                 SetJtAnimState(jt, -1);
                 break;

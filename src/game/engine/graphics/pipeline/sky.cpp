@@ -23,7 +23,7 @@ struct SKYV
     char pad10[0x40 - 0x10];
     int flagsOrPointer;     /* +0x40 a flags word, or (low bit clear) a pointer to one */
     char pad44[0x148 - 0x44];
-    unsigned long flags;    /* +0x148 SO flags; bit 35 is SO::fUnk35 */
+    unsigned long flags;    /* +0x148 SO flags; bit 35 is SO::unknownFlag148A */
     int followCameraZ;      /* +0x150 nonzero: also follow the camera's height */
 };
 struct CMV { char pad[0x30]; qword pos; };

@@ -1813,7 +1813,7 @@ void UpdateJtAirInput(JTAIR *air)
             case 6:
                 if (((CID88 *)air->plo)->nUnk17c == 3)
                     SetJtAirState(air, 4, 0);
-                else if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                else if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             case 9:
@@ -1824,25 +1824,25 @@ void UpdateJtAirInput(JTAIR *air)
             case 0xE:
             case 0xF:
             case 0x10:
-                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             case 0x12:
             {
                 float tLabel = TFindAsegLabel(D_002F7900->moverec.pasegUnk64, (OID)0x1C7);
-                float t = *(float *)&air->pstepplayer->pxfUnk58->pxfRef;
+                float t = *(float *)&air->pstepplayer->unknown58->reference;
                 t -= tLabel;
                 if (t <= D_002DDED0.t && D_002F7900->moverec.nState != 3)
                 {
                     SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
                     break;
                 }
-                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             }
             case 8:
-                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
                     SetJtAirState(air, 4, air->plo);
                 break;
             case 5:
@@ -1888,7 +1888,7 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirJump(air, 3, 0, 0);
                     break;
                 }
-                if (((SO *)air->pedge->plo)->ptree == 0)
+                if (((SO *)air->pedge->plo)->physicsTree == 0)
                     SetJtAirState(air, 4, 0);
                 else
                 {
@@ -1911,7 +1911,7 @@ void UpdateJtAirInput(JTAIR *air)
                 break;
             case 0x13:
             case 0x14:
-                if (PxpFirstOfTree(air->pstepplayer->ptree) != 0)
+                if (PxpFirstOfTree(air->pstepplayer->physicsTree) != 0)
                 {
                     SetJtAirState(air, 4, 0);
                     break;
@@ -1958,7 +1958,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                 }
-                if (air->fCanDoubleJump && air->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
+                if (air->fCanDoubleJump && air->pstepplayer->unknown58->velocity.z < 0.0f)
                 {
                     ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
                     air->fCanDoubleJump = 0;
@@ -1968,7 +1968,7 @@ void UpdateJtAirInput(JTAIR *air)
                 if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
                 {
                     qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
-                    air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->pxfUnk58->pxfParent, targetPos), air->pact8->qwGoalVel);
+                    air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->unknown58->parent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
             case 0x16:
@@ -3454,7 +3454,7 @@ namespace M_func_0019A750 {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF8B0 (D_002BF8B0), D_002BF8C0 (D_002BF8C0), D_002BF8C8 (D_002BF8C8), D_002BF8CC (D_002BF8CC), D_002BF8D0 (D_002BF8D0), D_002BF8D4 (D_002BF8D4), D_002BF8D8 (D_002BF8D8), D_002BF8DC (D_002BF8DC), D_002BF73C (g_SheetMovementMiscDoubleJumpHeight), D_002BF738 (g_SheetMovementMiscJumpHeight)
 // 0x0019A750 JtPlanLaunchVz (MATCH, T1312): the velocity the hero gets when a flight of this kind starts. It is the current velocity with its z raised:
-//   z = max(z, vz of the kind), vz from g = the gravity (negative, SOPHYS::dvGravity.z, -1750) and, per kind
+//   z = max(z, vz of the kind), vz from g = the gravity (negative, SOPHYS::gravity.z, -1750) and, per kind
 //   1, 7, 0xF   sqrt(2 g (zLand - zFoot - 215))      the X jump: the apex is 215 above the take-off (zLand - zFoot = *pqwUnk218.z - qwUnk230.z is 0 on flat ground, the radicand is floored at 0)
 //   9, 0xE, 0xD the same with the apex 1200 / 250 / 500
 //   2, 0x12, 3  the constants 700 / 900 / 800 (a launch is never slower than that upwards)
@@ -3515,7 +3515,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
     float vzNew;
     *(qword *)&pos = PosLoWorld(air->pstepplayer);
     *(qword *)&vel = air->pstepplayer->GetVelocity();
-    g = air->pstepplayer->psophys->dvGravity.z;
+    g = air->pstepplayer->physics->gravity.z;
     switch (kind)
     {
         case 2:
@@ -3906,7 +3906,7 @@ struct VU_VECTOR
 };
 struct TRI { int itri; float u, v; };
 
-struct SOPHYS { char pad0[0x80]; VECTOR dvGravity; };
+struct SOPHYS { char pad0[0x80]; VECTOR gravity; };
 struct XF { char pad0[0xA8]; float tGoal; char padAC[0xC0 - 0xAC]; qword posGoal; qword vGoal; };
 
 class LO
@@ -4084,7 +4084,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
             MeasureJtJumpToTarget(air, vLaunch, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
             if (shape != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
@@ -4131,7 +4131,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             VECTOR dpos;
             GetJtRailLanding(ctx.pjtcontrol, curve, &posTarget, &dpos, u);
             MeasureJtJumpToTarget(air, vLaunch, curve, posTarget, dpos, &t, 0, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
             if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
                                                            pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 continue;
@@ -4210,7 +4210,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 if (bestScore <= gMesh)
                     continue;
             }
-            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->pstepplayer->psophys->dvGravity.q, air->pstepplayer->sRadius, t,
+            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->pstepplayer->psophys->gravity.q, air->pstepplayer->sRadius, t,
                           &triHit, &posHit, &vHit);
             if (pmesh != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
                                                            pos.q, v.q, posHit.q, vHit.q, 0))
@@ -4230,7 +4230,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
         MeasureJtJumpToTarget(air, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit,
                               &vHit);
-        vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
         if (D_002F7900->ploPartnerTarget != forcedTarget) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
@@ -4325,7 +4325,7 @@ LPartnerDone:
         VECTOR posPoint;
         shape->GetPoint(air->pstepplayer, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, shape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
         if (shape != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
@@ -4363,7 +4363,7 @@ LPartnerDone:
         VECTOR posPoint;
         curve->GetPoint(air->pstepplayer, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, curve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
         if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
@@ -4383,7 +4383,7 @@ LPartnerDone:
         if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
             continue;
         MeasureJtJumpToTarget(air, v, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
         if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;

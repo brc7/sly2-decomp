@@ -31,10 +31,10 @@ struct BARRIERV
     char pad04[0xC - 0x4];
     VT *vtable;                         /* +0xC */
     char pad10[0xE8 - 0x10];
-    int hasPhysics;                     /* +0xE8 SO::psophys != 0 (inferred) */
+    int hasPhysics;                     /* +0xE8 SO::physics != 0 (inferred) */
     SOTREEV *tree;                      /* +0xEC */
     char padF0[0x148 - 0xF0];
-    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::fTreeRoot in sly2/so.h */
+    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::isTreeRoot in sly2/so.h */
     int numObjects;                     /* +0x150 objects named by the barrier */
     OID objects[4];                     /* +0x154 */
     int numClasses;                     /* +0x164 classes named by the barrier */

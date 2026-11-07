@@ -93,7 +93,7 @@ struct STACK
 struct XF
 {
     char pad[0x40];
-    M4 mat;
+    M4 localMatrix;
 };
 struct SKIN
 {
@@ -514,21 +514,21 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
                 if (pmesh->pmatParent)
                 {
                     M4 mat;
-                    mat = __ml__FRC7MATRIX4T0(*pmesh->pmatParent, pmesh->pxf->mat);
+                    mat = __ml__FRC7MATRIX4T0(*pmesh->pmatParent, pmesh->pxf->localMatrix);
                     UnpackQws<0x6C04C000>(&mat, 16);
                 }
                 else
                 {
-                    UnpackQws<0x6C04C000>(&pmesh->pxf->mat, 16);
+                    UnpackQws<0x6C04C000>(&pmesh->pxf->localMatrix, 16);
                 }
                 SKIN *pskin = pmesh->pskin;
                 if (pskin)
                 {
                     M4 matInv;
                     if (pmesh->pmatParent)
-                        matInv = InvertMatrix4Rigid(__ml__FRC7MATRIX4T0(*pmesh->pmatParent, pmesh->pxf->mat));
+                        matInv = InvertMatrix4Rigid(__ml__FRC7MATRIX4T0(*pmesh->pmatParent, pmesh->pxf->localMatrix));
                     else
-                        matInv = InvertMatrix4Rigid(pmesh->pxf->mat);
+                        matInv = InvertMatrix4Rigid(pmesh->pxf->localMatrix);
                     uint ib = pskin->ib;
                     for (int imat = 0; imat < pskin->cmat; imat++)
                     {

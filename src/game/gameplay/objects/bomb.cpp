@@ -45,7 +45,7 @@ struct BOMBV
     int grfUnk40;
     char pad44[0xE4 - 0x44];
     XE4 *pxa;                  /* +0xE4 */
-    int physics;               /* +0xE8 SO::psophys (non-zero: has physics) */
+    int physics;               /* +0xE8 SO::physics (non-zero: has physics) */
     XEC *pxp;                  /* +0xEC */
     char padF0[0x150 - 0xF0];
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, TakeBombDamage) */

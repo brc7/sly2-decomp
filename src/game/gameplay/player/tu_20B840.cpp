@@ -95,7 +95,7 @@ struct VU_FLOAT
 struct ALO { char pad0[0xC]; VTE *pvt; char pad10[0x48]; XF *space; char pad5C[0xEC]; unsigned long flags; char pad150[0x208 - 0x150];
     int n208; char pad20C[0x498 - 0x20C]; void *control; };
 typedef char assert_ALO_size[sizeof(ALO) == 0x4A0 ? 1 : -1];
-#define POSITION(pxf) (*(qword *)(pxf)->matWorld.mat[3])
+#define POSITION(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
 /* A leap's tuning and the leap itself (0x70 bytes, vtable D_002DAA10 at +0xC). */
 struct LEAPTUNE { int unused0; ASEG *animation; int unused8; float afterStart, afterEnd, flightTime, minimumTime; int unused1C; U acceleration; };
@@ -601,8 +601,8 @@ void SetLeapState(LEAPV *leap, int state)
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
                     : "=m"(finalVelocity.q), "=r"(parentSpace), "=m"(scalar.q)
                     : "j"(timeScalar), "j"(motionVelocity), "m"(launchSubject->space));
-            qword position = TransformXfPos(0, parentSpace->pxfParent, target);
-            qword speed = ConvertXfVec(0, leap->subject->space->pxfParent, finalVelocity.q);
+            qword position = TransformXfPos(0, parentSpace->parent, target);
+            qword speed = ConvertXfVec(0, leap->subject->space->parent, finalVelocity.q);
             leap->constraint = NewBezierAct(leap->subject, leap->subject->space, 5, position, speed, leap->arrival);
             leap->subject->flags |= 0x04000000ul;
             RefreshSwObjectCollisionFilter(&D_003DD490, leap->subject);
@@ -636,7 +636,7 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
     case 2:
         if (leap->ballistic) {
             ACTPOS *pd = (ACTPOS *)leap->constraint;
-            pd->v = TransformXfPos(0, leap->subject->space->pxfParent, v);
+            pd->v = TransformXfPos(0, leap->subject->space->parent, v);
         }
         break;
     }

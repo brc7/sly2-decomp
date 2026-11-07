@@ -69,7 +69,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollec
 // XFM initialization (vtable slot 7): LO init, then identity local matrix and a stale world matrix.
 extern "C" void InitXfm(XFM *xfm)
 {
-    float *m; InitLo(xfm); if (xfm->psoParent) xfm->pxfParent = xfm->psoParent->pxfRoot; m = &xfm->mat.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
+    float *m; InitLo(xfm); if (xfm->psoParent) xfm->pxfParent = xfm->psoParent->rootTransform; m = &xfm->mat.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
 }
 
 // Loads an XFM from the BRX (vtable slot 14): its parent XF reference and local matrix, then its options.
@@ -100,14 +100,14 @@ extern "C" void XFM_RemapClonedXf(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
     if (pxfOld != 0)
     {
         SO *psoBase = pxfmBase->psoParent;
-        int ixf = pxfOld - psoBase->axf;
+        int ixf = pxfOld - psoBase->transforms;
         XF *pxf = 0;
-        if (ixf >= 0 && ixf < psoBase->cxf)
-            pxf = pxfm->psoParent->axf + ixf;
-        if (pxf->pgUnk88 == &pxfOld->gUnk80)
-            pxf->pgUnk88 = &pxf->gUnk80;
-        if (pxf->pgUnk8c == &pxfOld->gUnk84)
-            pxf->pgUnk88 = &pxf->gUnk84;   /* sic: the target stores +0x84 into +0x88 */
+        if (ixf >= 0 && ixf < psoBase->numTransforms)
+            pxf = pxfm->psoParent->transforms + ixf;
+        if (pxf->timeSource == &pxfOld->segmentStartTime)
+            pxf->timeSource = &pxf->segmentStartTime;
+        if (pxf->speedSource == &pxfOld->segmentEndTime)
+            pxf->timeSource = &pxf->segmentEndTime; /* sic: the target stores +0x84 into +0x88 */
         *ppxf = pxf;
     }
 }
@@ -143,9 +143,9 @@ extern "C" void UpdateXfmMatWorld(XFM *xfm)
 {
     XF *pxf = xfm->pxfParent;
     if (pxf) {
-        if (xfm->nStampWorld < pxf->nStampWorld) {
-            xfm->nStampWorld = pxf->nStampWorld;
-            xfm->matWorld = pxf->matWorld * xfm->mat;
+        if (xfm->nStampWorld < pxf->worldStamp) {
+            xfm->nStampWorld = pxf->worldStamp;
+            xfm->matWorld = pxf->worldMatrix * xfm->mat;
         }
     } else if (xfm->nStampWorld < 0) {
         xfm->matWorld = xfm->mat;
@@ -179,7 +179,7 @@ extern "C" qword GetXfmVelocity(XFM *xfm)
 {
     XF *o = xfm->pxfParent;
     if (!o) return D_002A2DD0;
-    return GetXfVelocity(o, 0, MulPos((M4 *)&o->matWorld, *(qword *)xfm->mat.mat[3]));
+    return GetXfVelocity(o, 0, MulPos((M4 *)&o->worldMatrix, *(qword *)xfm->mat.mat[3]));
 }
 
 // XFM's GetAngularVelocity (vtable slot 34): the parent XF's angular velocity.
@@ -232,9 +232,9 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
         } else {
             XF *q;
             m = *(M4 *)&xfm->mat;
-            for (q = xfm->pxfParent; q; q = q->pxfParent)
+            for (q = xfm->pxfParent; q; q = q->parent)
             {
-                MATRIX4 t = q->mat * *(MATRIX4 *)&m;
+                MATRIX4 t = q->localMatrix * *(MATRIX4 *)&m;
                 m = *(M4 *)&t;
             }
         }
@@ -242,7 +242,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
     if (pxfNew)
         xfm->pxfParent = pxfNew;
     else if (psoNew)
-        xfm->pxfParent = psoNew->pxfRoot;
+        xfm->pxfParent = psoNew->rootTransform;
     else
         xfm->pxfParent = 0;
     LO_SetParent(xfm, psoNew, pxfNew, grf);

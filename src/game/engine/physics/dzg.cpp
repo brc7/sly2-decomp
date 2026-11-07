@@ -306,10 +306,10 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
         rowContact->qwNormal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->g10));
         row->nKind = 1;
         if (bestContact->nKind == 14) {
-            SOPHYS *physics = bestContact->sides[0].pso->psophys;
+            SOPHYS *physics = bestContact->sides[0].pso->physics;
             float limit;
             if (flags & 1) {
-                limit = -physics->dvGravity.z * physics->m * D_002DDED0.dt;
+                limit = -physics->gravity.z * physics->m * D_002DDED0.dt;
                 float amount = __builtin_fabsf(row->pdzOther->gC);
                 row->gMax = bestContact->friction * (amount < limit ? limit : amount);
             } else {
@@ -355,15 +355,15 @@ extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)
             object = side->pso;
             if (!object) continue;
             qword *effect = &rowContact->afx[j].qwDv;   /* qwDv, then qwDw at pv[1] */
-            qword dv = AddScale(object->qwDvContact, effect[0], VUF(row->gC));
-            qword dw = object->qwDwContact;
-            __asm__ __volatile__("sqc2 %1, %0" : "=m"(object->qwDvContact) : "j"(dv));
-            object->qwDwContact = AddScale(dw, effect[1], VUF(row->gC));
+            qword dv = AddScale(object->contactVelocityChange, effect[0], VUF(row->gC));
+            qword dw = object->contactAngularVelocityChange;
+            __asm__ __volatile__("sqc2 %1, %0" : "=m"(object->contactVelocityChange) : "j"(dv));
+            object->contactAngularVelocityChange = AddScale(dw, effect[1], VUF(row->gC));
         }
     }
     for (int objectIndex = 0; objectIndex < group->cpso; objectIndex++) {
         object = group->apso[objectIndex];
-        object->qwDvContact = LimitVectorLength(object->qwDvContact, maxDv);
-        object->qwDwContact = LimitVectorLength(object->qwDwContact, maxDw);
+        object->contactVelocityChange = LimitVectorLength(object->contactVelocityChange, maxDv);
+        object->contactAngularVelocityChange = LimitVectorLength(object->contactAngularVelocityChange, maxDw);
     }
 }

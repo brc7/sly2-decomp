@@ -731,7 +731,7 @@ extern "C" void SetLoTagHierarchy(LO *plo, int n)
     plo->nUnk48 = n;
     if (IsBasicDerivedFrom(plo, (CID)0x30))
     {
-        for (ploChild = (LO *)((SO *)plo)->dlChild.head; ploChild; ploChild = (LO *)ploChild->dleChild.next)
+        for (ploChild = (LO *)((SO *)plo)->children.head; ploChild; ploChild = (LO *)ploChild->dleChild.next)
             SetLoTagHierarchy(ploChild, n);
     }
 }

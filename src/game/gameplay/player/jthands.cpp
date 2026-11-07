@@ -266,7 +266,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     if (hands->nKind == 2) {
         MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveB, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         GetClosestPointOnJtHandsCurveB(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
-        ConvertXfMat(&w.stage.late.temporary, 0, hands->pxf->pxfParent, &w.basis);
+        ConvertXfMat(&w.stage.late.temporary, 0, hands->pxf->parent, &w.basis);
         w.stage.late.transformed = w.stage.late.temporary;
         SetActPositionGoal(hands->pact1Euler, DecomposeRotationMatrixToEuler(&w.stage.late.transformed));
     } else {
@@ -340,10 +340,10 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
     XF *pxfHand = hands->ploHand->GetLocalTransform(&matHand);
     hands->matChain = matHand;
     hands->pxf = pxfHand;
-    while (hands->pxf->xfk != 6)
+    while (hands->pxf->kind != 6)
     {
-        hands->matChain = hands->pxf->mat * hands->matChain;
-        hands->pxf = hands->pxf->pxfParent;
+        hands->matChain = hands->pxf->localMatrix * hands->matChain;
+        hands->pxf = hands->pxf->parent;
     }
     int cHands = 0;
     for (int i = 0; i < 2; i++)
@@ -376,7 +376,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
             {
                 MATRIX4 matOut;
                 float u = (float)k / (float)(D_002C1ED0 - 1);
-                PredictAsegEffect(u * aseg->tMax, aseg, hands->pso, 0.0f, pxfEffect, hands->pso->pxfRoot, &matOut, 0);
+                PredictAsegEffect(u * aseg->tMax, aseg, hands->pso, 0.0f, pxfEffect, hands->pso->rootTransform, &matOut, 0);
                 shape->mpicvu[k] = u;
                 qword pos = TransformPos(&matOut, *(qword *)matSample.mat[3]);
                 shape->mpicvpos[k] = *(VECTOR4 *)&pos;
@@ -402,7 +402,7 @@ extern "C" int GetJtHandsIgnoreFlags(JTHANDS *hands, SO *so, int grf)
 {
     if (hands->nMode == 1) {
         SO *psoTarget = GetSoFromLo(hands->ploTarget);
-        if (psoTarget && psoTarget->ptree && so->ptree == psoTarget->ptree)
+        if (psoTarget && psoTarget->physicsTree && so->physicsTree == psoTarget->physicsTree)
             grf = MaxInt(grf, 3);
     }
     return grf;
@@ -514,7 +514,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->tLocal) / anim->svt;
     XF *space = SourceMatrix(p->ploHand, &work.original);
     register M4 *workingBase __asm__("$19") = &work.sample;
-    PredictAsegTransform(motion, time, zero, p->pso, space, p->pso->pxfRoot, SampleOutput(workingBase), 0);
+    PredictAsegTransform(motion, time, zero, p->pso, space, p->pso->rootTransform, SampleOutput(workingBase), 0);
     JTV *owner = (JTV *)p->pso;
     M4 *start = &work.start;
     M3 *basis = &owner->matRot;
@@ -600,7 +600,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         }
     }
     SetLoParent(object, 0, 15);
-    const qword *velocityAddress = object->psophys ? (const qword *)&object->psophys->dvGravity : &D_002C1EE0.q;
+    const qword *velocityAddress = object->physics ? (const qword *)&object->physics->gravity : &D_002C1EE0.q;
     register float unit __asm__("$f20");
     register SO *initialOwner __asm__("$4");
     {
@@ -661,8 +661,8 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         apply(receiver, callbackVelocity);
     }
     float endTime = D_002DDED0.t + phase;
-    qword position = TransformXfPos(0, object->pxfUnk58->pxfParent, work.final.r[3]);
-    qword endVelocity = ConvertXfVec(0, object->pxfUnk58->pxfParent, work.endVelocity);
+    qword position = TransformXfPos(0, object->unknown58->parent, work.final.r[3]);
+    qword endVelocity = ConvertXfVec(0, object->unknown58->parent, work.endVelocity);
     {
         register XF *channel __asm__("$5");
         register qword velocityArgument __asm__("$8"), positionArgument __asm__("$7");
@@ -670,10 +670,10 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         register SO *receiver __asm__("$4");
         __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
                 : "=&r"(channel), "=&r"(velocityArgument), "=f"(timeArgument), "=&r"(positionArgument), "=r"(receiver)
-                : "m"(object->pxfUnk58), "r"(endVelocity), "f"(endTime), "r"(position), "r"(object));
+                : "m"(object->unknown58), "r"(endVelocity), "f"(endTime), "r"(position), "r"(object));
         p->pactPos = NewBezierAct(receiver, channel, 5, timeArgument, positionArgument, velocityArgument);
     }
-    ConvertXfMat(&work.views.basis.converted, 0, object->pxfUnk5c->pxfParent, (M3 *)finalMatrix);
+    ConvertXfMat(&work.views.basis.converted, 0, object->unknown5C->parent, (M3 *)finalMatrix);
     work.views.basis.angles = work.views.basis.converted;
     qword angles = DecomposeRotationMatrixToEuler((M3 *)workingBase);
     register XF *orientationChannel __asm__("$5");
@@ -681,10 +681,10 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     register qword anglesArgument __asm__("$9");
     __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5"
             : "=&r"(orientationChannel), "=&r"(orientationOwner), "=r"(anglesArgument)
-            : "m"(object->pxfUnk5c), "r"(object), "r"(angles));
+            : "m"(object->unknown5C), "r"(object), "r"(angles));
     ACT *job = NewPositionAct(orientationOwner, orientationChannel, 5, 9, 2, anglesArgument);
     p->pactTurn = job;
-    XFACT *pxfact = (XFACT *)object->pxfUnk5c;
+    XFACT *pxfact = (XFACT *)object->unknown5C;
     if (pxfact->pactCur == job)
         pxfact->tEnd = endTime;
     SetSoTreeFlag2(object, 1);
@@ -714,13 +714,13 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
         m = t;
     }
     SetLoXfFromMat(object, &m);
-    if (object->psophys) {
+    if (object->physics) {
         SetSoCnstrForce(object, 1);
         SetSoCnstrTorque(object, 1);
     }
-    XF *pxfAct = object->pxfUnk58;
+    XF *pxfAct = object->unknown58;
     hands->pactHold = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
-    pxfAct = object->pxfUnk5c;
+    pxfAct = object->unknown5C;
     hands->pactTurn = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     FadeSoIn(object, 0.25f);
     hands->psoHeld = object;
@@ -754,10 +754,10 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
     } else {
         SetLoParent(hands->psoHeld, 0, 0xF);
     }
-    XF *pxfAct = hands->psoHeld->pxfUnk58;
-    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->pxfParent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
-    pxfAct = hands->psoHeld->pxfUnk5c;
-    mat = ConvertXfMatR(0, pxfAct->pxfParent, GetLoWorldMatrix(object));
+    XF *pxfAct = hands->psoHeld->unknown58;
+    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->parent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    pxfAct = hands->psoHeld->unknown5C;
+    mat = ConvertXfMatR(0, pxfAct->parent, GetLoWorldMatrix(object));
     hands->pactTurn = NewPositionAct(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
     hands->ploTarget = hands->psoHeld;
     SetJtHandsTarget(hands, 1);

@@ -758,12 +758,12 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 } } // namespace M_func_001459C0
 
 // 0x145AA8: Returns the object the leader is standing on, if any.
-/* The path zone of the followed object: a CID 0x30 object's region (SO::psophys->pregent->pcid17), else the zone
+/* The path zone of the followed object: a CID 0x30 object's region (SO::physics->pregent->pcid17), else the zone
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
-        SOPHYS *physics = behavior->leader->psophys;
+        SOPHYS *physics = behavior->leader->physics;
         REGENT *region = physics ? physics->pregent : 0;
         return region ? region->pcid17 : 0;
     }

@@ -901,12 +901,12 @@ void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
         {
             PROXYREST *pposrest = &proxy->psrc->aposRest[iplo];
             SO *pso = (SO *)plo;
-            if (pso->pxfUnk58)
+            if (pso->unknown58)
             {
                 pso->TranslateToPos(pposrest->pos);
                 pso->SetVelocity(D_002A2DD0);
             }
-            if (pso->pxfUnk5c)
+            if (pso->unknown5C)
             {
                 pso->RotateToMat((MATRIX4 *)&pposrest->mat);
                 pso->SetAngularVelocity(D_002A2DD0);

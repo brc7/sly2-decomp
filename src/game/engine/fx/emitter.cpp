@@ -1605,7 +1605,7 @@ namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 typedef int qword __attribute__((mode(TI)));
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
-struct XF { qword pos; MATRIX3 mat; qword v; qword w; };
+struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
 /* EMITB: the origin's local transform, and EMITV's ring count and tilt range */
 struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int particlesPerRing; char pad2[0x90 - 0x88]; char tilt[1]; };
@@ -1645,11 +1645,11 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
             {
                 register qword *ppos __asm__("$2"); // register pin (target loads gen->apos into v0 and forms &apos[i] there)
                 ppos = gen->apos;
-                ppos[i] = VuAdd(MulRow(pxf->mat, ppos[i]), pxf->pos);
+                ppos[i] = VuAdd(MulRow(pxf->localMatrix, ppos[i]), pxf->pos);
             }
             qword d = VuSub(gen->apos[i], pxf->pos);
             qword x = VuCross(pxf->w, d);
-            qword t = VuAdd(MulRow(pxf->mat, gen->av[i]), pxf->v);
+            qword t = VuAdd(MulRow(pxf->localMatrix, gen->av[i]), pxf->v);
             gen->av[i] = VuAdd(t, x);
         }
         if (gen->convertToWorld)
@@ -2032,7 +2032,7 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
-struct XF { qword pos; MATRIX3 mat; VEC v; VEC w; };
+struct XF { qword pos; MATRIX3 localMatrix; VEC v; VEC w; };
 /* EXPLSO: what to explode with (EXPLSO_* flags say which fields are set) */
 struct P { int fl; void *reference; float scale, radius; qword vector, origin; int touch; XF *pxf; int count, pad3C; };
 struct VTE { short d; short pad; void (*pfn)(void *, P *); };
@@ -2089,12 +2089,12 @@ void ExplodeExplgExplso(S *group, P *explso)
         MATRIX3 &m3 = *(MATRIX3 *)&mRel;
         if (explso->fl & EXPLSO_HAS_XF) {
             XF *px = explso->pxf;
-            xf.mat = px->mat * m3;
-            xf.pos = VuAdd(px->pos, QwRotateVec(&px->mat, mRel.r[3]));
+            xf.localMatrix = px->localMatrix * m3;
+            xf.pos = VuAdd(px->pos, QwRotateVec(&px->localMatrix, mRel.r[3]));
             xf.v = px->v;
             xf.w = px->w;
         } else {
-            xf.mat = m3;
+            xf.localMatrix = m3;
             xf.pos = mRel.r[3];
             xf.v.x = xf.v.y = xf.v.z = 0;
             xf.w.x = xf.w.y = xf.w.z = 0;

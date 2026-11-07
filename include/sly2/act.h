@@ -99,8 +99,8 @@ struct ACT
     ALO *palo;              /* +0x04 the animated object */
     XF *pxf;                /* +0x08 the transform the act drives */
     int nPriority;          /* +0x0C priority among the acts on the same transform */
-    ACT *pactNext;          /* +0x10 next act on the same transform (XF::pactFirst list) */
-    int nRole;              /* +0x14 role of the transform the act drives (inferred, as XF::nRole) */
+    ACT *pactNext;          /* +0x10 next act on the same transform (XF::firstActuator list) */
+    int nRole;              /* +0x14 role of the transform the act drives (inferred, as XF::role) */
     virtual void Attach() __asm__("AttachActBase");   /* slot 1 */
     virtual void Detach() __asm__("DetachActBase");   /* slot 2 */
     virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */

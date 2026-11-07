@@ -46,25 +46,25 @@ void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }
 
-// Initializes a static mesh (vtable slot 7): SO init, then clears SO flag bit 35 (fUnk35).
+// Initializes a static mesh (vtable slot 7): SO init, then clears SO flag bit 35 (unknownFlag148A).
 void MS::Init()
 {
     MSV *mesh = (MSV *)this;
       InitSo(mesh);
-      mesh->fUnk35 = 0;
+      mesh->unknownFlag148A = 0;
 }
 
 // Renders the mesh (vtable slot 19): a posed globset goes through the scene render list (init the stack scratch, then
 // CullSceneRenderList); an unposed one is drawn directly with RenderSoGlobset.
 extern "C" void RenderMsGlobset(MSV *mesh)
 {
-      if (mesh->globset.aposeset) {
+      if (mesh->model.aposeset) {
             // posed (skinned) globs go through the scene render list
             INTSTACK scratch;
             InitBlockStack(&scratch);
-            CullSceneRenderList(&scratch, &mesh->globset);
+            CullSceneRenderList(&scratch, &mesh->model);
       } else {
-            RenderSoGlobset(&mesh->globset, 0, 0, 1.0f, 1.0f);
+            RenderSoGlobset(&mesh->model, 0, 0, 1.0f, 1.0f);
       }
 }
 

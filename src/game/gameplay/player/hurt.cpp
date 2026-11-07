@@ -882,14 +882,14 @@ extern "C" void JtHurtEndCallback(JTHURT *hurt)
     SetJtHurtState(hurt, 8);
 }
 
-/* With hit points left: back to a safe place when the source respawns the hurt player (SO::fHurtRespawns), else air
+/* With hit points left: back to a safe place when the source respawns the hurt player (SO::hurtRespawnsHero), else air
    state 11; without: hurt state 8. */
 // Callback after a hazard fall: if alive, returns to a safe place when the hazard object has flag bit 33, else starts
 // a fall (SetJtAirJump kind 11); dead -> death state.
 extern "C" void JtHurtFallCallback(JTHURT *hurt)
 {
     if (*hurt->php > 0) {
-        if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->fHurtRespawns)
+        if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->hurtRespawnsHero)
             ReturnJtToSafePlaceCallback(hurt);
         else
             SetJtAirJump(&hurt->pstepplayer->jtair, 11, 0, 0);
@@ -915,13 +915,13 @@ extern "C" void JtHurtShockCallback(JTHURT *hurt)
     func_001A15B0L(hurt, D_002A6790.l);
 }
 
-/* With hit points left: back to a safe place when the source respawns the hurt player (SO::fHurtRespawns), else air
+/* With hit points left: back to a safe place when the source respawns the hurt player (SO::hurtRespawnsHero), else air
    state 11; without: hurt state 8. */
 // Same body as JtHurtFallCallback, for another hazard kind.
 extern "C" void JtHurtFallCallback2(JTHURT *hurt)
 {
     if (*hurt->php > 0) {
-        if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->fHurtRespawns)
+        if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->hurtRespawnsHero)
             ReturnJtToSafePlaceCallback(hurt);
         else
             SetJtAirJump(&hurt->pstepplayer->jtair, 11, 0, 0);

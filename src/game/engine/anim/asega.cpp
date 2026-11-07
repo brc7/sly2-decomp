@@ -23,22 +23,22 @@ struct ACTV { int kind; int pad4[2]; int nPriority; ACTV *pactNext; int pad14[4]
 struct XF
 {
     char pad0[0x88];
-    float *pgUnk88;         /* 0x88 */
-    float *pgUnk8c;         /* 0x8C */
-    ACTV *pactFirst;         /* 0x90 */
-    int xfk;                /* 0x94 */
-    short nRole;            /* 0x98 */
-    short nPhase;           /* 0x9A */
+    float *timeSource;      /* 0x88 */
+    float *speedSource;     /* 0x8C */
+    ACTV *firstActuator;     /* 0x90 */
+    int kind;               /* 0x94 */
+    short role;             /* 0x98 */
+    short phase;            /* 0x9A */
     int oid;                /* 0x9C */
     char padA0[8];
-    union { XF *pxfRef; float blendWeight; };   /* 0xA8: the reference slot, or the blend weight in role 9 */
+    union { XF *reference; float blendWeight; }; /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
     int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
-struct SO { char pad0[0x50]; int cxf; XF *axf; };
+struct SO { char pad0[0x50]; int numTransforms; XF *transforms; };
 
 /* What ApplyAseg (aseg.cpp) attaches to an ASEGA: the channel actions and the overrides. TU-private copies of
    aseg.cpp's views, identical; they move to sly2/aseg.h once the per-function Lilly ports that define their own
@@ -594,7 +594,7 @@ void SetAsegaPriority(ASEGA *player, int priority)
 extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
     ACTSEGV *pn;
     for (pn = (ACTSEGV *)player->pactsegFirst; pn; pn = pn->pactsegNext) {
-        if (IsActCurrent(pn) && pn->pxf->nRole == 7) {
+        if (IsActCurrent(pn) && pn->pxf->role == 7) {
             SetXfRole(pn->plo, pn->pxf, 9);
             pn->pxf->blendWeight = weight;
         }
@@ -603,7 +603,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
 
 // Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
-    ACTV *act = pxf->pactFirst;
+    ACTV *act = pxf->firstActuator;
     for (;;) {   /* top-tested on purpose: a while / for loop is rotated to a bottom test and no longer matches */
         if (!act)
             return;
@@ -621,11 +621,11 @@ struct OIDXFK { int oid; int xfk; };
 // (inferred)
 extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
-    for (i = 0; i < p->cxf; i++) {
-        XF *pe = &p->axf[i];
+    for (i = 0; i < p->numTransforms; i++) {
+        XF *pe = &p->transforms[i];
         for (j = 0; j < cp; j++) {
             OIDXFK *pp = &ap[j];
-            if ((pe->oid == pp->oid || pp->oid == -1) && (pe->xfk == pp->xfk || pp->xfk == -1)) {
+            if ((pe->oid == pp->oid || pp->oid == -1) && (pe->kind == pp->xfk || pp->xfk == -1)) {
                 DetachXfActById(pv, p, pe);
                 break;
             }
@@ -641,8 +641,8 @@ void ACTSEG::Attach() {
     ACV *pac;
     pac = p->pacRot;
     if (pac != 0) {
-        p->pxf->pxfRef->rotationCurve = (int)pac;
-        p->pxf->pxfRef->rotationTimePtr = &p->pasega->tLocal;
+        p->pxf->reference->rotationCurve = (int)pac;
+        p->pxf->reference->rotationTimePtr = &p->pasega->tLocal;
         return;
     }
     AttachActBase(p, p);
@@ -651,8 +651,8 @@ void ACTSEG::Attach() {
 // Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
 extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
-        p->pxf->pxfRef->rotationCurve = 0;
-        p->pxf->pxfRef->rotationTimePtr = 0;
+        p->pxf->reference->rotationCurve = 0;
+        p->pxf->reference->rotationTimePtr = 0;
         return;
     }
     DetachActBase(p);
@@ -663,12 +663,12 @@ extern "C" void DetachActseg(ACTSEGV *p) {
 extern "C" void UpdateActseg(ACTSEGV *p) {
     if (p->pac) {
         ACV *pc;
-        p->pxf->pgUnk88 = &p->pasega->tLocal;
-        p->pxf->pgUnk8c = &p->pasega->svt;
+        p->pxf->timeSource = &p->pasega->tLocal;
+        p->pxf->speedSource = &p->pasega->svt;
         pc = p->pac;
         ((void (*)(void *, XF *))(*(VTE **)pc)[2].pfn)((char *)pc + (*(VTE **)pc)[2].d, p->pxf);
     } else {
-        p->pxf->nPhase = 0;
+        p->pxf->phase = 0;
         SetXfRole(p->plo, p->pxf, 0);
         ResetXfValueRef(p->plo, p->pxf);
     }

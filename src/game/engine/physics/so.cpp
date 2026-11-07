@@ -438,14 +438,14 @@ typedef char ancestor_layout[(sizeof(qword)==16 && __alignof__(qword)==16 && siz
 } } // namespace M_EnsureSoBounds
 
 // 0x1F2688 SetSoBoundsScale
-/* Sets gUnk13c, and the bounds record's copy when the record is this object's. */
+/* Sets unknown13C, and the bounds record's copy when the record is this object's. */
 // Stores the bounds scale (+0x13C, 400 by default) and mirrors it into the shared bounds record when this object
 // owns it (inferred meaning).
 extern "C" void SetSoBoundsScale(SO *so, float g)
 {
     SOBOUNDS *psobounds;
     psobounds = so->psobounds;
-    so->gUnk13c = g;
+    so->unknown13C = g;
     if ((psobounds != 0) && (psobounds->pso == so)) {
         psobounds->scale = g;
     }
@@ -472,7 +472,7 @@ void EnsureSoBoundsHierarchy(struct L *so)
 namespace M_func_001F2718 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong a:20; int b:4; ulong c:40; };
-// Sets the 4-bit field at bits 20-23 of the flag word +0x148 (so.h nUnk14a; meaning unknown, a splice option).
+// Sets the 4-bit field at bits 20-23 of the flag word +0x148 (so.h unknownBits148B; meaning unknown, a splice option).
 void SetSoUnknownBits20(struct S *p, int n) { p->b = n; }
 } } // namespace M_func_001F2718
 
@@ -493,9 +493,9 @@ int GetSoIgnoreLocked(struct S *p) { return (int)(p->globsetFlags >> 34) & 1; }
 } } // namespace M_GetSoIgnoreLocked
 
 // 0x1F2768 SetSoIgnoreLocked__FP2SOi
-// SO+0xD0 bit 34 = GLOBSET+0x50 bit 34 (Lilly's port: globset.fUnk34).
+// SO+0xD0 bit 34 = GLOBSET+0x50 bit 34 (Lilly's port: globset.ignoreLocked).
 // Sets the ignore-locked flag (bit 34 of +0xD0). Sly 1 name.
-void SetSoIgnoreLocked(SO *pso, int f) { pso->globset.fUnk34 = f; }
+void SetSoIgnoreLocked(SO *pso, int f) { pso->model.ignoreLocked = f; }
 
 // 0x1F2798 FindSoPhysRoot
 namespace M_PsoFindPhysRoot { extern "C" {
@@ -527,13 +527,13 @@ struct A *FindSoPhysRoot(struct A *so)
 extern "C" void EnsureSoTree(SO *so)
 {
     SO *psoRoot;
-    if (so->ptree == 0) {
+    if (so->physicsTree == 0) {
         psoRoot = FindSoPhysRoot(so);
-        if (psoRoot->ptree == 0) {
-            psoRoot->ptree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
+        if (psoRoot->physicsTree == 0) {
+            psoRoot->physicsTree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
             RefreshSwObjectCollisionFilter(&D_003DD490, psoRoot);
         }
-        so->ptree = psoRoot->ptree;
+        so->physicsTree = psoRoot->physicsTree;
     }
 }
 
@@ -1001,13 +1001,13 @@ extern "C" void InitSoPhysics(SO *so)
 {
     SOPHYS *psophys;
     VECTOR *pdv;
-    psophys = so->psophys;
-    pdv = &psophys->dvGravity;
-    psophys->dvGravity.x = 0.0f;
+    psophys = so->physics;
+    pdv = &psophys->gravity;
+    psophys->gravity.x = 0.0f;
     pdv->z = -1750.0f;
     pdv->y = 0.0f;
-    so->psophys->constrForce.nKind = 3;
-    so->psophys->constrTorque.nKind = 3;
+    so->physics->constrForce.kind = 3;
+    so->physics->constrTorque.kind = 3;
 }
 
 // 0x1F35C8 SetSoMass
@@ -1017,7 +1017,7 @@ extern "C" void SetSoMass(SO *so, float m)
     SOPHYS *psophys;
     float mOld;
     float r;
-    psophys = so->psophys;
+    psophys = so->physics;
     mOld = psophys->m;
     r = m / mOld;
     psophys->m = mOld * r;
@@ -1067,7 +1067,7 @@ extern "C" void PostSoLoad(SO *so)
 {
     PostLoLoadV();
     UpdateSoXfWorldMatrices(so);
-    BindGlobset(&so->globset);
+    BindGlobset(&so->model);
 }
 
 // 0x1F36E0 UpdateSo
@@ -1155,11 +1155,11 @@ void UpdateSoPhysRegionCallback(void *p) { SetSoPhysRegion(p, FindPathzoneAtPos(
 extern "C" void UpdateSoPartGeom(SOPART *part)
 {
     XF *pxf;
-    pxf = part->pxf;
-    if (part->nStampGeom != pxf->nStampWorld) {
-        UpdateGeomWorld(&pxf->matWorld, &part->geomLocal, &part->geomWorld);
-        part->nStampGeom = part->pxf->nStampWorld;
-        InvalidateSoAaox(part->pso);
+    pxf = part->transform;
+    if (part->meshStamp != pxf->worldStamp) {
+        UpdateGeomWorld(&pxf->worldMatrix, &part->meshLocal, &part->meshWorld);
+        part->meshStamp = part->transform->worldStamp;
+        InvalidateSoAaox(part->owner);
     }
 }
 
@@ -1335,8 +1335,8 @@ extern "C" void RenderSoSelf(SO *so)
     float uAlpha;
     if (so->grfvis & (*(int *)&g_cm.grfvis)) {
         RefreshSoBoundsRecord(so);
-        uAlpha = so->uAlpha;
-        RenderSoGlobset(&so->globset, 0, uAlpha, uAlpha, so->psobounds);
+        uAlpha = so->opacity;
+        RenderSoGlobset(&so->model, 0, uAlpha, uAlpha, so->psobounds);
     }
 }
 
@@ -1437,7 +1437,7 @@ void OnSoAdd(struct L *so)
 MATRIX4 * SO::GetWorldMatrix()
 {
     SO *pso = (SO *)this;
-    return &pso->pxfRoot->matWorld;
+    return &pso->rootTransform->worldMatrix;
 }
 
 // 0x1F3FB0 GetSoLocalXf
@@ -1670,7 +1670,7 @@ void SetSoVelocity(struct P *so, qword q)
 // Globals: D_002A2DD0 (g_qwZero)
 // 0x001F4558 GetAngularVelocity__2SO  (MATCHES Sly 2, T0906)
 // Virtual 33: the angular velocity of the rotation XF (xfk 6) in world space, zero without one. The chain's rate matrix (MatDmatOfXfChain,
-// MATCH) is turned by N * inverse(matWorld) (N = matWorld with its rotation orthonormalised: the scale is taken out) and the skew-symmetric
+// MATCH) is turned by N * inverse(worldMatrix) (N = worldMatrix with its rotation orthonormalised: the scale is taken out) and the skew-symmetric
 // part (m12, m20, m01) of the product is the angular velocity, packed into a quadword with the MMI instructions pextlw / pcpyld.
 // HOW IT IS WRITTEN: (1) the result of MatDmatOfXfChain is used through `&MatDmatOfXfChain(pxf, NULL)` (taking the address of the temporary:
 // the compiler warns and keeps the pointer in a register across the call, s0; that is what makes the copy of the temporary read
@@ -1708,8 +1708,8 @@ MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("GetXfAngularVelocity")
 // Slot 34: world-space angular velocity of the rotation XF (when it is dynamic), else zero (Lilly port).
 qword SO::GetAngularVelocity()
 {
-    XF *pxf = pxfUnk5c;
-    if (!pxf || pxf->xfk != 6)
+    XF *pxf = unknown5C;
+    if (!pxf || pxf->kind != 6)
     {
         return D_002A2DD0;
     }
@@ -1717,7 +1717,7 @@ qword SO::GetAngularVelocity()
     MATRIX3 matRate;
     MATRIX4 *pmatDmat = &MatDmatOfXfChain(pxf, 0);
     matRate = *(MATRIX3 *)pmatDmat;
-    MATRIX3 *pmatWorld = (MATRIX3 *)&pxf->matWorld;
+    MATRIX3 *pmatWorld = (MATRIX3 *)&pxf->worldMatrix;
     matNorm = *pmatWorld;
     NormalizeRotateMatrix3(&matNorm);
     matRate = matNorm * InvertMatrix3Cofactor(pmatWorld) * matRate;
@@ -1790,8 +1790,8 @@ extern "C" void SetSoAngularVelocity(P *so,qword position)
 extern "C" void GetSoPosXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = so->pxfUnk58;
-    ConvertXfVec(pxf->pxfParent, so->pxfRoot, *(qword *)&pxf->vUnkB0);
+    pxf = so->unknown58;
+    ConvertXfVec(pxf->parent, so->rootTransform, *(qword *)&pxf->velocity);
 }
 
 // 0x1F4870 GetSoRotXfVelocityLocal
@@ -1799,8 +1799,8 @@ extern "C" void GetSoPosXfVelocityLocal(SO *so)
 extern "C" void GetSoRotXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = so->pxfUnk5c;
-    ConvertXfVec(pxf->pxfParent, so->pxfRoot, *(qword *)&pxf->vUnkB0);
+    pxf = so->unknown5C;
+    ConvertXfVec(pxf->parent, so->rootTransform, *(qword *)&pxf->velocity);
 }
 
 // 0x1F4898 SetSoPosXfVelocityLocal
@@ -1976,11 +1976,11 @@ extern "C" void SetSoXf(struct P *so, struct A *pa)
 extern "C" void MarkSoTreeBoundsDirty(SO *so)
 {
     SOTREE *ptree;
-    ptree = so->ptree;
+    ptree = so->physicsTree;
     if (ptree != 0) {
-        if ((uchar)ptree->fQueued1 == 0) {
-            ptree->fQueued1 = 1;
-            AppendDlEntry(&g_sw.dlSoTreeQueue1, so->ptree);
+        if ((uchar)ptree->isInFirstQueue == 0) {
+            ptree->isInFirstQueue = 1;
+            AppendDlEntry(&g_sw.dlSoTreeQueue1, so->physicsTree);
         }
     }
 }
@@ -2012,11 +2012,11 @@ extern "C" void InvalidateSoAaox(SO *so)
 {
     SOTREE *ptree;
     MarkSoTreeBoundsDirty(so);
-    ptree = so->ptree;
+    ptree = so->physicsTree;
     if (ptree != 0) {
-        if (ptree->fQueued2 == 0) {
-            ptree->fQueued2 = 1;
-            AppendDlEntry(&g_sw.dlSoTreeQueue2, so->ptree);
+        if (ptree->isInSecondQueue == 0) {
+            ptree->isInSecondQueue = 1;
+            AppendDlEntry(&g_sw.dlSoTreeQueue2, so->physicsTree);
         }
     }
 }
@@ -2068,11 +2068,11 @@ extern "C" void ClearSoTreeDirty(SO *so)
 {
     SOTREE *ptree;
     ClearSoTreeBoundsDirty(so);
-    ptree = so->ptree;
+    ptree = so->physicsTree;
     if (ptree != 0) {
-        if (ptree->fQueued2) {
-            ptree->fQueued2 = 0;
-            RemoveDlEntry(&g_sw.dlSoTreeQueue2, so->ptree);
+        if (ptree->isInSecondQueue) {
+            ptree->isInSecondQueue = 0;
+            RemoveDlEntry(&g_sw.dlSoTreeQueue2, so->physicsTree);
         }
     }
 }
@@ -2224,9 +2224,9 @@ extern "C" int IsSoFixed(SO *so)
     SOPHYS *psophys;
     int nKind;
     int f;
-    psophys = so->psophys;
+    psophys = so->physics;
     f = 0;
-    if ((psophys == 0) || ((nKind = psophys->constrForce.nKind, nKind == 3) && (psophys->constrTorque.nKind == nKind))) {
+    if ((psophys == 0) || ((nKind = psophys->constrForce.kind, nKind == 3) && (psophys->constrTorque.kind == nKind))) {
         f = 1;
     }
     return f;
@@ -2238,11 +2238,11 @@ extern "C" int IsSoFixed(SO *so)
 // (inferred)
 extern "C" void WakeSo(SO *so)
 {
-    if (so->ptree != 0) {
+    if (so->physicsTree != 0) {
         ((void (*)(void *, int))PVTE(so)[47].pfn)((char *)so + PVTE(so)[47].d, 4);
-        if (so->psophys != 0) {
-            UnsettleXfSlot(so, so->pxfUnk58);
-            UnsettleXfSlot(so, so->pxfUnk5c);
+        if (so->physics != 0) {
+            UnsettleXfSlot(so, so->unknown58);
+            UnsettleXfSlot(so, so->unknown5C);
         }
     }
 }
@@ -2253,7 +2253,7 @@ struct MATRIX4; struct VECTOR; struct XF; struct GEOM; struct DLE; struct SOPART
 // UpdateSoTreeBounds (0x1F50E0): SO virtual 48 - rebuild the bounds of the SO's tree record (SO+0xEC).
 // Pass 1, the box of every visible collision part: UpdateSoPartGeom (0x1F38A8) first, then a sphere part adds its
 // XF position -/+ radius * D_002A2DE0, a mesh part its world points, and a part whose geometry is stale
-// (nStampGeom != nStampWorld) also its local points from nUnk1c on, moved by the part's matrix.
+// (meshStamp != worldStamp) also its local points from unknown1C on, moved by the part's matrix.
 // Pass 2, the sphere: centre = (min + max) * 0.5, radius = the farthest sphere edge / point from it.
 // Then the world's +0x3CCC flag is set and 0x1F4BA8 is called.
 // MATCH (T1583), no register pins. What it took (details in notes/1F0000.md):
@@ -2268,34 +2268,34 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct MATRIX4 {float mat[4][4];};
 struct VECTOR {float x,y,z,w;};
-struct XF {char pad[0x40];MATRIX4 matWorld;};
+struct XF {char pad[0x40];MATRIX4 worldMatrix;};
 struct GEOM {int cpos;VECTOR *apos;int csurf;void *asurf;int cedge;void *aedge;};
 struct SOPART;
 struct DLE {SOPART *next,*prev;};
 struct SOPART
 {
-    /* 0x00 */ XF *pxf;
-    /* 0x04 */ void *pso;
-    /* 0x08 */ float gUnk08;          // sphere radius (fUnk49 parts)
+    /* 0x00 */ XF *transform;
+    /* 0x04 */ void *owner;
+    /* 0x08 */ float radius;          // sphere radius (unknownFlag10B parts)
     /* 0x0c */ int oid;
     /* 0x10 */ void *plvo;
-    /* 0x14 */ short dhp;
-    /* 0x16 */ ulong fUnk48:1;
-               ulong fUnk49:1;        // the part is a sphere around its XF's position
-               ulong fHidden:1;
-               ulong unk_0x16:13;
-    /* 0x18 */ unsigned grfzpk;
-    /* 0x1c */ int nUnk1c;
+    /* 0x14 */ short damage;
+    /* 0x16 */ ulong unknownFlag10A:1;
+               ulong unknownFlag10B:1; // the part is a sphere around its XF's position
+               ulong isHidden:1;
+               ulong unknownBits10A:13;
+    /* 0x18 */ unsigned zapKindFlags;
+    /* 0x1c */ int unknown1C;
     /* 0x20 */ MATRIX4 matWorld;
     /* 0x60 */ DLE dle;
     /* 0x68 */ char bspc[0x10];
-    /* 0x78 */ GEOM geomLocal;
-    /* 0x90 */ GEOM geomWorld;
-    /* 0xa8 */ int nStampGeom;
-    /* 0xac */ int nStampWorld;
+    /* 0x78 */ GEOM meshLocal;
+    /* 0x90 */ GEOM meshWorld;
+    /* 0xa8 */ int meshStamp;
+    /* 0xac */ int worldStamp;
 };
-struct SOTREE {qword qwMin,qwMax,qwCenter;float sRadius;SOPART *ppartFirst;};
-struct SO {char pad[0xEC];SOTREE *ptree;};
+struct SOTREE {qword boundsMin,boundsMax,boundsCenter;float boundsRadius;SOPART *ppartFirst;};
+struct SO {char pad[0xEC];SOTREE *physicsTree;};
 struct SW {char pad[0x3CCC];int fUnk3CCC;};
 struct VU_FLOAT {qword qw;};
 extern "C" { extern qword D_002A2DE0,D_002A2DF0,D_002A2E00; }
@@ -2369,73 +2369,73 @@ extern "C" void UpdateSoTreeBounds(SO *so)
     qword qwMax = D_002A2E00;
     SOPART *ppart;
     int i;
-    for (ppart = so->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = so->physicsTree->ppartFirst; ppart; ppart = ppart->dle.next)
     {
-        if (ppart->fHidden)
+        if (ppart->isHidden)
             continue;
         UpdateSoPartGeom(ppart);
-        if (ppart->fUnk49)
+        if (ppart->unknownFlag10B)
         {
-            float gRadius = ppart->gUnk08;
-            qword qwLo = QwAddScaledF(*(qword *)ppart->pxf->matWorld.mat[3], D_002A2DE0, -gRadius);
+            float gRadius = ppart->radius;
+            qword qwLo = QwAddScaledF(*(qword *)ppart->transform->worldMatrix.mat[3], D_002A2DE0, -gRadius);
             qwMin = VuMin(qwMin, qwLo);
-            qword qwHi = QwAddScaledF(*(qword *)ppart->pxf->matWorld.mat[3], D_002A2DE0, gRadius);
+            qword qwHi = QwAddScaledF(*(qword *)ppart->transform->worldMatrix.mat[3], D_002A2DE0, gRadius);
             qwMax = VuMax(qwMax, qwHi);
         }
         else
         {
-            for (i = 0; i < ppart->geomWorld.cpos; i++)
+            for (i = 0; i < ppart->meshWorld.cpos; i++)
             {
-                qword qwPos = *(qword *)&ppart->geomWorld.apos[i];
+                qword qwPos = *(qword *)&ppart->meshWorld.apos[i];
                 ExtendBox(qwMin, qwMax, qwPos);
             }
         }
-        if (ppart->nStampGeom != ppart->nStampWorld)
+        if (ppart->meshStamp != ppart->worldStamp)
         {
-            for (i = ppart->nUnk1c; i < ppart->geomWorld.cpos; i++)
+            for (i = ppart->unknown1C; i < ppart->meshWorld.cpos; i++)
             {
-                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->geomLocal.apos[i]);
+                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.apos[i]);
                 ExtendBox(qwMin, qwMax, qwPos);
             }
         }
     }
 
-    so->ptree->qwMin = qwMin;
-    so->ptree->qwMax = qwMax;
+    so->physicsTree->boundsMin = qwMin;
+    so->physicsTree->boundsMax = qwMax;
     VU_FLOAT gHalf = VuFloat(0.5f);
     float sRadius = 0.0f;
     qword qwCenter;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwCenter) : "j"(qwMin), "j"(qwMax), "j"(gHalf.qw));
-    for (ppart = so->ptree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = so->physicsTree->ppartFirst; ppart; ppart = ppart->dle.next)
     {
-        if (ppart->fUnk49)
+        if (ppart->unknownFlag10B)
         {
-            float gDist = GDistance(qwCenter, *(qword *)ppart->pxf->matWorld.mat[3]) + ppart->gUnk08;
+            float gDist = GDistance(qwCenter, *(qword *)ppart->transform->worldMatrix.mat[3]) + ppart->radius;
             if (sRadius < gDist)
                 sRadius = gDist;
         }
         else
         {
-            for (i = 0; i < ppart->geomWorld.cpos; i++)
+            for (i = 0; i < ppart->meshWorld.cpos; i++)
             {
-                float gDist = GDistance(qwCenter, *(qword *)&ppart->geomWorld.apos[i]);
+                float gDist = GDistance(qwCenter, *(qword *)&ppart->meshWorld.apos[i]);
                 if (sRadius < gDist)
                     sRadius = gDist;
             }
         }
-        if (ppart->nStampGeom != ppart->nStampWorld)
+        if (ppart->meshStamp != ppart->worldStamp)
         {
-            for (i = ppart->nUnk1c; i < ppart->geomWorld.cpos; i++)
+            for (i = ppart->unknown1C; i < ppart->meshWorld.cpos; i++)
             {
-                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->geomLocal.apos[i]);
+                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.apos[i]);
                 float gDist = GDistanceFused(qwCenter, qwPos);
                 if (sRadius < gDist)
                     sRadius = gDist;
             }
         }
     }
-    so->ptree->qwCenter = qwCenter;
-    so->ptree->sRadius = sRadius;
+    so->physicsTree->boundsCenter = qwCenter;
+    so->physicsTree->boundsRadius = sRadius;
     D_003DD490.fUnk3CCC = 1;
     ClearSoTreeBoundsDirty(so);
 }
@@ -2443,8 +2443,8 @@ extern "C" void UpdateSoTreeBounds(SO *so)
 typedef char layout_part_size[(sizeof(SOPART)==0xB0)?1:-1];
 typedef char layout_part_matrix[((unsigned)&((SOPART*)0)->matWorld==0x20)?1:-1];
 typedef char layout_part_dle[((unsigned)&((SOPART*)0)->dle==0x60)?1:-1];
-typedef char layout_part_world[((unsigned)&((SOPART*)0)->geomWorld==0x90)?1:-1];
-typedef char layout_part_stamp[((unsigned)&((SOPART*)0)->nStampWorld==0xAC)?1:-1];
+typedef char layout_part_world[((unsigned)&((SOPART*)0)->meshWorld==0x90)?1:-1];
+typedef char layout_part_stamp[((unsigned)&((SOPART*)0)->worldStamp==0xAC)?1:-1];
 typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->ppartFirst==0x34)?1:-1];
 } // namespace M_UpdateSoTreeBounds
 
@@ -2573,14 +2573,14 @@ extern "C" void NewSoTree(SO *so)
 extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
-    if (so->psophys != 0) {
-        pxf = so->pxfUnk58;
-        if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
+    if (so->physics != 0) {
+        pxf = so->unknown58;
+        if ((pxf->firstActuator == 0) && (pxf->role != 2)) {
             SetXfRole(so, pxf, 1);
         }
-        GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrForce);
+        GetSoConstraintAxis(so, pxf, pconstr, &so->physics->constrForce);
         RebuildSoPhysHook(so);
-        if (so->psophys->constrForce.nKind != 3) {
+        if (so->physics->constrForce.kind != 3) {
             SetSoBit35Hierarchy(so, 0);
         }
     }
@@ -2591,14 +2591,14 @@ extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
-    if (so->psophys != 0) {
-        pxf = so->pxfUnk5c;
-        if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
+    if (so->physics != 0) {
+        pxf = so->unknown5C;
+        if ((pxf->firstActuator == 0) && (pxf->role != 2)) {
             SetXfRole(so, pxf, 1);
         }
-        GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrTorque);
+        GetSoConstraintAxis(so, pxf, pconstr, &so->physics->constrTorque);
         RebuildSoPhysHook(so);
-        if (so->psophys->constrTorque.nKind != 3) {
+        if (so->physics->constrTorque.kind != 3) {
             SetSoBit35Hierarchy(so, 0);
         }
     }
@@ -2967,40 +2967,40 @@ inline void *PvAllocStack(int cb)
 void SO::Clone(LO *ploBase)
 {
     SO *psoBase = (SO *)ploBase;
-    SOTREE *ptreeSave = ptree;
+    SOTREE *ptreeSave = physicsTree;
     LO *ploRemovedFirstSave = ploRemovedFirst;
-    DL dlChildSave = dlChild;
+    DL dlChildSave = children;
     int ixf = 0;
     LO::Clone(ploBase);
-    ptree = ptreeSave;
-    dlChild = dlChildSave;
+    physicsTree = ptreeSave;
+    children = dlChildSave;
     ploRemovedFirst = ploRemovedFirstSave;
     psobounds = 0;
-    axf = (XF *)PvAllocSwCopy(cxf * sizeof(XF), axf);
-    for (ixf = 0; ixf < cxf; ixf++)
+    transforms = (XF *)PvAllocSwCopy(numTransforms * sizeof(XF), transforms);
+    for (ixf = 0; ixf < numTransforms; ixf++)
     {
-        XF *pxf = &axf[ixf];
-        CloneXfRef(ploBase, &pxf->pxfParent);
-        switch (pxf->nRole)
+        XF *pxf = &transforms[ixf];
+        CloneXfRef(ploBase, &pxf->parent);
+        switch (pxf->role)
         {
         case 4:
-            CloneXfRef(ploBase, &pxf->pxfRef);
+            CloneXfRef(ploBase, &pxf->reference);
             break;
         case 13:
         {
-            IKLIMB *plimb = (IKLIMB *)PvAllocSwCopy(sizeof(IKLIMB), pxf->pxfRef);
+            IKLIMB *plimb = (IKLIMB *)PvAllocSwCopy(sizeof(IKLIMB), pxf->reference);
             CloneXfRef(ploBase, &plimb->pxfGoal);
             CloneXfRef(ploBase, &plimb->pxfS);
             CloneXfRef(ploBase, &plimb->pxfE);
             CloneXfRef(ploBase, &plimb->pxfEnd);
-            plimb->pxfS->pxfRef = (XF *)plimb;
-            plimb->pxfE->pxfRef = (XF *)plimb;
+            plimb->pxfS->reference = (XF *)plimb;
+            plimb->pxfE->reference = (XF *)plimb;
             break;
         }
         case 15:
         {
-            XFLINK *pxflink = (XFLINK *)PvAllocSwCopy(sizeof(XFLINK), pxf->pxfRef);
-            pxf->pxfRef = (XF *)pxflink;
+            XFLINK *pxflink = (XFLINK *)PvAllocSwCopy(sizeof(XFLINK), pxf->reference);
+            pxf->reference = (XF *)pxflink;
             if (pxflink->pxfFrom != &D_002C44F0)
             {
                 CloneXfRef(ploBase, &pxflink->pxfFrom);
@@ -3010,7 +3010,7 @@ void SO::Clone(LO *ploBase)
         }
         case 16:
         {
-            CHAINLINK *plink = (CHAINLINK *)pxf->pxfRef;
+            CHAINLINK *plink = (CHAINLINK *)pxf->reference;
             CHAIN *pchain = plink->pchain;
             if (plink == pchain->alink)
             {
@@ -3021,16 +3021,16 @@ void SO::Clone(LO *ploBase)
                     CHAINLINK *plinkNew = &pchain->alink[ilink];
                     plinkNew->pchain = pchain;
                     CloneXfRef(ploBase, &plinkNew->pxf);
-                    plinkNew->pxf->pxfRef = (XF *)plinkNew;
+                    plinkNew->pxf->reference = (XF *)plinkNew;
                 }
             }
             break;
         }
         }
-        if (pxf->pactFirst)
+        if (pxf->firstActuator)
         {
             int cact = 0;
-            ACT *pact = pxf->pactFirst;
+            ACT *pact = pxf->firstActuator;
             do
             {
                 pact = pact->pactNext;
@@ -3039,11 +3039,11 @@ void SO::Clone(LO *ploBase)
             STACKSCOPE scope;
             ACT **apact = (ACT **)PvAllocStack(cact * sizeof(ACT *));
             int iact = 0;
-            for (pact = pxf->pactFirst; pact; pact = pact->pactNext)
+            for (pact = pxf->firstActuator; pact; pact = pact->pactNext)
             {
                 apact[iact++] = pact;
             }
-            pxf->pactFirst = 0;
+            pxf->firstActuator = 0;
             for (iact = cact - 1; iact >= 0; iact--)
             {
                 ACT *pactNew = PactNewClone(apact[iact], this, pxf);
@@ -3051,39 +3051,39 @@ void SO::Clone(LO *ploBase)
             }
         }
     }
-    CloneXfRef(ploBase, &pxfUnk58);
-    CloneXfRef(ploBase, &pxfUnk5c);
-    CloneXfRef(ploBase, &pxfRoot);
-    CloneGlobset(&globset, this, ploBase);
+    CloneXfRef(ploBase, &unknown58);
+    CloneXfRef(ploBase, &unknown5C);
+    CloneXfRef(ploBase, &rootTransform);
+    CloneGlobset(&model, this, ploBase);
     int cpartExtra = GetExtraPartCount();
-    apart = (SOPART *)PvAllocSwCopy((cpart + cpartExtra) * sizeof(SOPART), apart);
-    for (int ipart = 0; ipart < cpart; ipart++)
+    parts = (SOPART *)PvAllocSwCopy((numParts + cpartExtra) * sizeof(SOPART), parts);
+    for (int ipart = 0; ipart < numParts; ipart++)
     {
-        SOPART *ppart = &apart[ipart];
-        CloneXfRef(ploBase, &ppart->pxf);
-        ppart->pso = this;
+        SOPART *ppart = &parts[ipart];
+        CloneXfRef(ploBase, &ppart->transform);
+        ppart->owner = this;
         ClearDle(&ppart->dle);
         GEOM geom;
-        CloneGeom(&ppart->geomWorld, 0, &geom);
-        ppart->geomWorld = geom;
-        SOPART *ppartBase = &psoBase->apart[ipart];
-        CloneBspc(&ppartBase->bspc, &ppartBase->geomWorld, &ppart->bspc, &ppart->geomWorld);
+        CloneGeom(&ppart->meshWorld, 0, &geom);
+        ppart->meshWorld = geom;
+        SOPART *ppartBase = &psoBase->parts[ipart];
+        CloneBspc(&ppartBase->bspc, &ppartBase->meshWorld, &ppart->bspc, &ppart->meshWorld);
         if (ppart->plvo)
         {
             int cb = sizeof(LVO);
             ppart->plvo = (LVO *)PvAllocSwCopy(cb, ppart->plvo);
-            ppart->plvo->mpiposvLocal = (VECTOR *)PvAllocSwCopy(ppart->geomLocal.cpos * 0x10, ppart->plvo->mpiposvLocal);
-            ppart->plvo->mpiposdvLocal = (VECTOR *)PvAllocSwCopy(ppart->geomLocal.cpos * 0x10, ppart->plvo->mpiposdvLocal);
-            ppart->plvo->mpisurfsurfx = (SURFX *)PvAllocSwCopy(ppart->geomLocal.csurf * 0xC, ppart->plvo->mpisurfsurfx);
+            ppart->plvo->mpiposvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.cpos * 0x10, ppart->plvo->mpiposvLocal);
+            ppart->plvo->mpiposdvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.cpos * 0x10, ppart->plvo->mpiposdvLocal);
+            ppart->plvo->mpisurfsurfx = (SURFX *)PvAllocSwCopy(ppart->meshLocal.csurf * 0xC, ppart->plvo->mpisurfsurfx);
         }
     }
-    if (psophys)
+    if (physics)
     {
-        psophys = (SOPHYS *)PvAllocSwCopy(sizeof(SOPHYS), psophys);
-        if (psophys->pregent)
+        physics = (SOPHYS *)PvAllocSwCopy(sizeof(SOPHYS), physics);
+        if (physics->pregent)
         {
-            psophys->pregent = (REGENT *)PvAllocSwCopy(sizeof(REGENT), psophys->pregent);
-            psophys->pregent->pso = this;
+            physics->pregent = (REGENT *)PvAllocSwCopy(sizeof(REGENT), physics->pregent);
+            physics->pregent->pso = this;
         }
     }
     if (FIsLoInWorld(this))
@@ -3166,9 +3166,9 @@ int GetSoTreeFlag2(struct S *p) { if (!p->tree) return 1; return (int)((long)(p-
 extern "C" void SetSoTreeFlag2(SO *so, int f)
 {
     SOTREE *ptree;
-    ptree = so->ptree;
+    ptree = so->physicsTree;
     if (ptree != 0) {
-        ptree->fNoUpdate = f;
+        ptree->skipsUpdate = f;
         FreeSoContacts(so);
     }
 }
@@ -3867,28 +3867,28 @@ int GetSoZapMode(struct S *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
 // Sets the hit damage (stored negated in the byte at +0x148; default 10). (inferred)
 extern "C" void SetSoHitDamage(SO *so, int n)
 {
-    so->bUnk148 = -n;
+    so->unknown148 = -n;
 }
 
 // 0x1F7B68 GetSoHitDamage
 // Returns the hit damage. (inferred)
 extern "C" int GetSoHitDamage(SO *so)
 {
-    return -so->bUnk148;
+    return -so->unknown148;
 }
 
 // 0x1F7B78 SetSoHitDamage2
 // Sets the second hit damage (byte +0x149, negated; default 20). (inferred)
 extern "C" void SetSoHitDamage2(SO *so, int n)
 {
-    so->bUnk149 = -n;
+    so->unknown149 = -n;
 }
 
 // 0x1F7B88 GetSoHitDamage2
 // Returns the second hit damage. (inferred)
 extern "C" int GetSoHitDamage2(SO *so)
 {
-    return -so->bUnk149;
+    return -so->unknown149;
 }
 
 // 0x1F7B98 EnsureSoInSwList187
@@ -3905,7 +3905,7 @@ extern "C" void EnsureSoInSwList187(SO *so)
 // The object's physics record (+0xE8).
 extern "C" SOPHYS *GetSoPhys(SO *so)
 {
-    return so->psophys;
+    return so->physics;
 }
 
 // 0x1F7BF8 FadeSoOut
@@ -3961,7 +3961,7 @@ extern "C" void SetSoAlpha(SO *so, float uAlpha)
     } else {
         so->Add();
     }
-    so->uAlpha = uAlpha;
+    so->opacity = uAlpha;
 }
 
 // 0x1F7D90 SetSoFadeRate
@@ -4024,7 +4024,7 @@ int GetSoUnknownBits16(struct S *p) { return p->b; }
 namespace M_func_001F7F08 { extern "C" {
 struct S;
 struct S { char pad[0x148]; ulong flags; };
-// Returns the no-JT-place flag (+0x148 bit 29, so.h fNoJtPlace).
+// Returns the no-JT-place flag (+0x148 bit 29, so.h isNotLandable).
 int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
 } } // namespace M_func_001F7F08
 
@@ -4042,7 +4042,7 @@ struct A;
 typedef unsigned long ulong;
 struct A { char pad[0x148]; ulong a:34; ulong f:1; ulong b:1; };
 void RebuildSoPhysHook(struct A *p);
-// Sets the tree-root flag (+0x148 bit 34, so.h fTreeRoot) and rebuilds the physics hook when it changed. (inferred)
+// Sets the tree-root flag (+0x148 bit 34, so.h isTreeRoot) and rebuilds the physics hook when it changed. (inferred)
 void SetSoTreeRoot(struct A *so, long f)
 {
     if (f != so->f) {
@@ -4270,9 +4270,9 @@ float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->physics) pu 
 } } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi
-// SO+0x148 bit 33 (64-bit unit at 0x148). Lilly's port calls this bit fHurtRespawns; the function name says "iceable".
+// SO+0x148 bit 33 (64-bit unit at 0x148). Lilly's port calls this bit hurtRespawnsHero; the function name says "iceable".
 // Sets the iceable flag (+0x148 bit 33). Sly 1 name.
-void SetSoIceable(SO *pso, int f) { pso->fHurtRespawns = f; }
+void SetSoIceable(SO *pso, int f) { pso->hurtRespawnsHero = f; }
 
 // 0x1F8500 GetSoIceable
 namespace M_GetSoIceable { extern "C" {

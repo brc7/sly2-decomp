@@ -811,8 +811,8 @@ void FaceStepToward(void *step, void *q)
 // Returns the current heading: atan2 of the rotation matrix's first row (y, x).
 extern "C" float GetStepHeading(STEP *step)
 {
-    XF *pxf = step->pxfRoot;
-    return atan2f(pxf->matWorld.mat[0][1], pxf->matWorld.mat[0][0]);
+    XF *pxf = step->rootTransform;
+    return atan2f(pxf->worldMatrix.mat[0][1], pxf->worldMatrix.mat[0][0]);
 }
 
 namespace RO_ORDER { extern const float r_D_002A85F4 __asm__("D_002A85F4") = 3.40282347e+38f; }
@@ -1051,10 +1051,10 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    SetSoMass(step, step->psophys->m * step->rUnk260 / r);
+    SetSoMass(step, step->physics->m * step->rUnk260 / r);
     {
         struct VU_FLOAT vuR;
-        qword qwGrav = *(qword *)&step->psophys->dvGravity;
+        qword qwGrav = *(qword *)&step->physics->gravity;
         __asm__("qmtc2 %1, %0" : "=j"(vuR.qw) : "r"(r));
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwScaled) : "j"(qwGrav), "j"(vuR.qw));
     }
@@ -1063,7 +1063,7 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
         qword qwResult;
         __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->rUnk260));
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qwResult) : "j"(qwScaled), "j"(vuOld.qw));
-        *(qword *)&step->psophys->dvGravity = qwResult;
+        *(qword *)&step->physics->gravity = qwResult;
     }
     step->rUnk260 = r;
 }

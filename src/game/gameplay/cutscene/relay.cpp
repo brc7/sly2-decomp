@@ -4369,7 +4369,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         {
             if (prelaycmd->relayck == RELAYCK_AddObject)
             {
-                if (FIsLoInWorld(script->ploFade) && ((SO *)script->ploFade)->uAlpha == 1.0f)
+                if (FIsLoInWorld(script->ploFade) && ((SO *)script->ploFade)->opacity == 1.0f)
                 {
                     script->ploFade = 0;
                 }

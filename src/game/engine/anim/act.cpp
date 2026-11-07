@@ -956,9 +956,9 @@ int IsActAttached(T *p)
 void ACT1::Update()
 {
     ACTPHASE *act = (ACTPHASE *)this;
-    act->xf->qwRest = act->pos;
-    act->xf->qwUnkD0 = D_002A2DD0;
-    act->xf->nPhase = act->nPhase;
+    act->xf->restValue = act->pos;
+    act->xf->rate = D_002A2DD0;
+    act->xf->phase = act->nPhase;
     ResetXfValueRef(act->object, act->xf);
 }
 
@@ -1140,10 +1140,10 @@ void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
     ACTV *act = (ACTV *)this;
     qword *pv = (qword *)pdvec;
     if (ppos != 0) {
-        *ppos = act->xf->qwRest;
+        *ppos = act->xf->restValue;
     }
     if (pv != 0) {
-        *pv = act->xf->qwUnkD0;
+        *pv = act->xf->rate;
     }
 }
 
@@ -1607,7 +1607,7 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 {
     ACTV *act = (ACTV *)this;
     if (ppos != 0) {
-        *ppos = act->xf->qwRest;
+        *ppos = act->xf->restValue;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1619,10 +1619,10 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 void ACT8::Update()
 {
     ACTREST *act = (ACTREST *)this;
-    *(float *)&act->xf->pxfRef = act->arrivalTime;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
-    act->xf->qwRest = act->pos;
-    act->xf->qwUnkD0 = act->v;
-    act->xf->nPhase = 2;
+    *(float *)&act->xf->reference = act->arrivalTime; /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
+    act->xf->restValue = act->pos;
+    act->xf->rate = act->v;
+    act->xf->phase = 2;
     ResetXfValueRef(act->object, act->xf);
 }
 
@@ -1653,9 +1653,9 @@ extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
     XF *xf = act->xf;
     act->pos = pos;
     act->v = v;
-    if (act == (ACTREST *)xf->pactFirst) {
-        xf->qwRest = pos;
-        act->xf->qwUnkD0 = v;
+    if (act == (ACTREST *)xf->firstActuator) {
+        xf->restValue = pos;
+        act->xf->rate = v;
     }
 }
 

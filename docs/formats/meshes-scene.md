@@ -19,7 +19,7 @@ SO transforms (XFs), visibility mask, GLOBSET, collision parts (GEOM + TREE), ma
 S8 fCompact; VECTOR center; F32 radius; U8 csaa; csaa x SAA (U16 cid, 0xFFFF none, else 0x20 B); U8 n; n x S32; S16 cglob (slot count)
 sub-globs until cglob slots are used (a sub-glob with csub extra instances uses 1 + csub slots):
   S8 cfilter; [cfilter x S16; S32 cbSkip]          (load filter; cbSkip = size of the rest of this sub-glob)
-  S8 type; U16 csub; S16 ixf; S8 kind; F32 g4 (FLT_MAX = none); F32 g0; S32 oid; S8; S8 fHide
+  S8 type; U16 csub; S16 ixf; S8 kind; F32 g4 (FLT_MAX = none); F32 g0; S32 oid; S8; S8 isHidden
   [fCompact == 0: VECTOR center; F32 radius; U32 grf; F32 dist]
   body by type; then csub instance records
 pose sets (0x167870): S16 c; c x up to 4 {S8 kind (4-bit, -1 ends the group); VECTOR; F32; F32; U8; kind 0/1: S16}
@@ -90,7 +90,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
   within 2 units (the exception, `f_skydome`, follows the camera in x/y); all 67 in-world child SOs match; 450 of 464 live in-world SOs have an exported instance
   within 2 units (misses: patrolling guards, Sly, carried dispensers, the sky).
 - Editorial filter used by the exporter `[H]`: proxies nested in actor classes (players, guards, BOMB, ACCMISS, pickups, dispensers, gadget objects) are pooled or carried
-  items and are skipped by default; fHide sub-globs, shdk-3 FX batches and types 1-3 are dropped. The pipe-room interior sits high above the hub (z ~ 4-6k), as in the game.
+  items and are skipped by default; isHidden sub-globs, shdk-3 FX batches and types 1-3 are dropped. The pipe-room interior sits high above the hub (z ~ 4-6k), as in the game.
 
 ## 5. Materials in the exporter
 
@@ -101,6 +101,6 @@ render priority 13, MASK if the texture has binary holes, else OPAQUE; double-si
 
 ## 6. Open
 
-- Which sub-globs are state-dependent (alternative heads, gadget meshes) beyond fHide and filters.
+- Which sub-globs are state-dependent (alternative heads, gadget meshes) beyond isHidden and filters.
 - Skinning export (bones/weights), shader animation, the other CLUT passes, WRBG warps.
 - Mapping of file types 1-3 to render subtypes; collision GEOM export.

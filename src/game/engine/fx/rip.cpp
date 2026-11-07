@@ -373,10 +373,10 @@ void ProjectRipgTransform(S *p)
 /* RIPG slot 49. */
 extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 {
-    ((qword *)ripGroup->ptree)[0] = ripGroup->boundsData[0];
-    ((qword *)ripGroup->ptree)[1] = ripGroup->boundsData[1];
-    ((qword *)ripGroup->ptree)[2] = ripGroup->boundsData[2];
-    ((float *)ripGroup->ptree)[12] = ripGroup->boundsRadius;
+    ((qword *)ripGroup->physicsTree)[0] = ripGroup->boundsData[0];
+    ((qword *)ripGroup->physicsTree)[1] = ripGroup->boundsData[1];
+    ((qword *)ripGroup->physicsTree)[2] = ripGroup->boundsData[2];
+    ((float *)ripGroup->physicsTree)[12] = ripGroup->boundsRadius;
     g_sw.fAaoxUnsorted = 1;
     ClearSoTreeBoundsDirty(ripGroup);
 }

@@ -1098,7 +1098,7 @@ extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 // vtable slot 39: moves the object to the transform held in an XF record.
 extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 {
-    SetLoXfFromMat(plo, &pxf->matWorld);
+    SetLoXfFromMat(plo, &pxf->worldMatrix);
 }
 
 // Moves the object to a world matrix: TranslateToPos (slot 29) to its position, then RotateToMat (slot 30).

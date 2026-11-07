@@ -18,26 +18,26 @@
 struct GLOB
 {
       OID oid;   /* oid of the piece */
-      XF *pxf;   /* transform (XF) the piece is drawn with */
-      MATRIX4 *pmatUnk08;
+      XF *transform; /* transform (XF) the piece is drawn with */
+      MATRIX4 *unknown08;
       union
     {
         uint grf;   /* all flags as one word */
         struct
         {
             uint grfglobType : 3;   /* piece type */
-            uint iUnk0c3 : 5;
-            uint unk_0x0d : 2;
+            uint unknownBits0CA : 5;
+            uint unknownBits0CB : 2;
             uint fLimit : 1;
-            uint fHide : 1;   /* the piece is hidden */
+            uint isHidden : 1; /* the piece is hidden */
             uint fBakedMat : 1;   /* the matrix is baked into the vertices (inferred) */
             uint iUnkFirst : 9;
             uint iUnkEnd : 9;
-            uint unk_0x1f : 1;
+            uint unknownFlag0CA : 1;
         };
     };
-      void *pvUnk10;
-      void *pvUnk14;
+      void *unknown10;
+      void *unknown14;
       BND *abnd;   /* bounding records (BND) */
       WRBG *pwrbg;   /* warp/bend record (WRBG) */
       struct SAA *psaa;   /* shader animation (SAA) */
@@ -48,11 +48,11 @@ struct GLOB
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (8 copies in Lilly ports) */
 struct SUBGLOB
 {
-      char bUnk00;
+      char unknown00;   /* possibly kind (low-confidence guess: S8 read from BRX; <3 / <9 / 7..8 select alpha and draw paths) */
       char cbnd;   /* number of bounding records */
-      int bUnk02 : 8;
+      int unknown02 : 8;   /* possibly flags (low-confidence guess: U8 flag bits from BRX (1: larger qw base, 4: ...)) */
       char type;   /* sub-mesh type */
-      float gUnk04;
+      float unknown04;   /* possibly signedSquare (low-confidence guess: g*|g| of a loaded float, FLT_MAX when absent) */
       void *pvLit;   /* lighting data */
       int iqwBone;   /* first bone matrix (index in quadwords) */
       int cqw;   /* size of its data (quadwords) */
@@ -63,15 +63,15 @@ struct SUBGLOB
 struct POSE
 {
       VECTOR pos;   /* position */
-      float gUnk0c;
-      float gUnk10;
+      float unknown0C;
+      float unknown10;
       long nKind : 4;
-    ulong ucUnk : 8;
-    ulong ibUnk : 6;
-    ulong fHide : 1;   /* hidden in this pose */
+    ulong unknownBits10A : 8;
+    ulong unknownBits10B : 6;
+    ulong isHidden : 1; /* hidden in this pose */
     long iglob : 13;   /* index of the GLOB */
-      void *pvUnk18;
-      undefined4 unk_0x1c;
+      void *unknown18;
+      undefined4 unknown1C;
 };
 
 /* POSESET: four POSE records.
@@ -85,38 +85,38 @@ struct POSESET
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
 {
-      SO *pso;   /* the owning solid object */
-      float tUnk04;
-      undefined4 unk_0x08[2];
-      VECTOR posCenter;   /* centre of the model's bounding sphere (local) */
-      undefined4 unk_0x1c;
-      float sRadius;   /* radius of the bounding sphere */
+      SO *owner; /* the owning solid object */
+      float unknown04;
+      undefined4 unknown08[2];
+      VECTOR boundsCenter; /* centre of the model's bounding sphere (local) */
+      undefined4 unknown1C;
+      float boundsRadius; /* radius of the bounding sphere */
       int cpsaa;   /* number of shader animations */
       SAA **apsaa;   /* the shader animations */
-      int cnUnk2c;
-      int *anUnk30;
-      int nUnk34;
-      int cglob;   /* number of GLOBs */
-      SUBGLOB *asubglob;   /* the sub-meshes */
-      GLOB *aglob;   /* the GLOBs */
+      int unknown2C;   /* possibly numLoadedInts (low-confidence guess: count read from the BRX (U8), sizes unknown30) */
+      int *unknown30;   /* possibly loadedInts (low-confidence guess: int array read from the BRX) */
+      int unknown34;
+      int numPieces; /* number of GLOBs */
+      SUBGLOB *subMeshes;  /* the sub-meshes */
+      GLOB *pieces;  /* the GLOBs */
       SUBGLOBX *asubglobx;   /* per-sub-mesh extra data */
       POSESET *aposeset;   /* the pose sets */
-      int nUnk4c;
+      int unknown4C;
       union
     {
-        float gUnk50;
+        float unknown50;
         struct
         {
-            ulong unk_0x50 : 32;
-            ulong fBoundsUnk32 : 1;
-            ulong fBoundsUnk33 : 1;
-            ulong fUnk34 : 1;
-            ulong unk_0x54 : 29;
+            ulong unknownBits50A : 32;
+            ulong unknownBoundsFlag50 : 1;
+            ulong unknownBoundsFlag50B : 1;
+            ulong ignoreLocked : 1;
+            ulong unknownBits50B : 29;
         };
     };
       WRBG *pwrbgFirst;   /* first warp/bend record */
       void *pbatchrecsFirst;   /* first render batch record */
-    /* Out of line at 0x167310 (glob.cpp): stores -1 into nUnk4c. Called by every constructor of an SO-derived class
+    /* Out of line at 0x167310 (glob.cpp): stores -1 into unknown4C. Called by every constructor of an SO-derived class
        (the New<Class> factories of class_registry.cpp, rip.cpp's NewRipGroup). */
     GLOBSET();
 };
@@ -126,23 +126,23 @@ struct GLOBSET
 struct CONSTR
 {
       qword vecNormal;   /* constraint direction */
-      int nKind;   /* constraint kind (free, locked, ...) */
+      int kind;    /* constraint kind (free, locked, ...) */
 };
 
 /* SOPHYS: the rigid-body state of a physical SO: inertia, velocities, gravity, constraints and mass.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
-      MATRIX3 momintLocal;   /* moment of inertia (local frame) */
-      MATRIX3 momintInvLocal;   /* inverse moment of inertia (local frame) */
-      qword qwVelocity;   /* linear velocity */
-      qword qwAngVelocity;   /* angular velocity */
-      VECTOR dvGravity;   /* gravity acceleration applied to the object */
-      undefined4 unk_0x8c;
+      MATRIX3 inertiaLocal;  /* moment of inertia (local frame) */
+      MATRIX3 inverseInertiaLocal; /* inverse moment of inertia (local frame) */
+      qword velocity;     /* linear velocity */
+      qword angularVelocity; /* angular velocity */
+      VECTOR gravity;     /* gravity acceleration applied to the object */
+      undefined4 unknown8C;
       CONSTR constrTorque;   /* rotation constraint */
       CONSTR constrForce;   /* translation constraint */
       float m;   /* mass */
-      undefined4 unk_0xd4[2];
+      undefined4 unknownD4[2];
       struct REGENT *pregent;   /* the object's REGENT record (see func_00259B20) */
 };
 
@@ -151,53 +151,53 @@ struct SOPHYS
 struct REGENT
 {
       SO *pso;   /* the solid object */
-      undefined4 unk_0x04[3];
+      undefined4 unknown04[3];
       struct CID17 *pcid17;   /* the linked CID17 object */
-      undefined4 unk_0x14[3];
-      undefined4 unk_0x20[20];
+      undefined4 unknown14[3];
+      undefined4 unknown20[20];
 };
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO
 {
-      int cxf;   /* number of transforms */
-      XF *axf;   /* the transforms (XF) of the model hierarchy */
-      XF *pxfUnk58;
-      XF *pxfUnk5c;
-      XF *pxfRoot;   /* root transform; its world matrix holds the object's position (XF+0x70) */
-      DL dlChild;   /* child objects attached to this one */
+      int numTransforms; /* number of transforms */
+      XF *transforms; /* the transforms (XF) of the model hierarchy */
+      XF *unknown58;   /* possibly motionTransform (low-confidence guess: XF put in velocity roles 1/2 by jt.cpp; missile ApplyConstr on it) */
+      XF *unknown5C;   /* possibly actuatorTransform (low-confidence guess: XF driven by actuators (missile func_0012DCA0, SlotUnsettle)) */
+      XF *rootTransform; /* root transform; its world matrix holds the object's position (XF+0x70) */
+      DL children;  /* child objects attached to this one */
       LO *ploRemovedFirst;   /* first removed child (kept for re-adding, inferred) */
-      undefined4 unk_0x74[3];
-      GLOBSET globset;   /* the model */
-      int cpart;   /* number of collision parts */
-      SOPART *apart;   /* the collision parts */
-      SOPHYS *psophys;   /* rigid-body state (0 if not physical) */
-      SOTREE *ptree;   /* the physics tree this object belongs to */
-      qword qwDvContact;   /* velocity change from contacts this frame (inferred) */
-      qword qwDwContact;   /* angular velocity change from contacts this frame (inferred) */
-      uchar agrfZpk[26];   /* per-zap-kind (damage type) flag bits */
-      undefined1 unk_0x12a[2];
-      float uAlpha;   /* opacity, 0..1 */
-      float duAlpha;   /* opacity change per second (fades) */
+      undefined4 unknown74[3];
+      GLOBSET model;     /* the model */
+      int numParts; /* number of collision parts */
+      SOPART *parts;   /* the collision parts */
+      SOPHYS *physics;   /* rigid-body state (0 if not physical) */
+      SOTREE *physicsTree; /* the physics tree this object belongs to */
+      qword contactVelocityChange; /* velocity change from contacts this frame (inferred) */
+      qword contactAngularVelocityChange; /* angular velocity change from contacts this frame (inferred) */
+      uchar zapKindFlags[26]; /* per-zap-kind (damage type) flag bits */
+      undefined1 unknown12A[2];
+      float opacity;  /* opacity, 0..1 */
+      float opacitySpeed; /* opacity change per second (fades) */
       struct SOBOUNDS *psobounds;   /* bounds record */
       XA *pxa;   /* first XA (attachment/interaction) record */
-      float gUnk13c;
-      int nStampUnk140;
-      undefined4 unk_0x144;
-      char bUnk148;
-      char bUnk149;
-      ulong unk_0x14a : 4;
-                long nUnk14a : 4;
-                ulong nZapMode : 2;   /* how zaps (damage) are delivered */
+      float unknown13C;
+      int unknownStamp140;
+      undefined4 unknown144;
+      char unknown148;
+      char unknown149;
+      ulong unknownBits148A : 4;
+                long unknownBits148B : 4;
+                ulong zapMode : 2;    /* how zaps (damage) are delivered */
                 ulong fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
-                ulong unk_0x14c : 2;
-                ulong fNoJtPlace : 1;   /* the hero may not land/place on this object */
-                ulong unk_0x14d : 3;
-                ulong fHurtRespawns : 1;   /* being hurt by this object respawns the hero */
-                ulong fTreeRoot : 1;   /* the object is the root of its physics tree */
-                ulong fUnk35 : 1;
-                ulong fHasIkLimbs : 1;   /* the object has IK limbs */
+                ulong unknownBits148C : 2;
+                ulong isNotLandable : 1; /* the hero may not land/place on this object */
+                ulong unknownBits148D : 3;
+                ulong hurtRespawnsHero : 1; /* being hurt by this object respawns the hero */
+                ulong isTreeRoot : 1;  /* the object is the root of its physics tree */
+                ulong unknownFlag148A : 1;
+                ulong hasIkLimbs : 1;    /* the object has IK limbs */
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
@@ -263,16 +263,16 @@ struct SO : public LO
     virtual void Clone(LO *ploBase) __asm__("CloneSo");   /* override declared in CloneSo.cpp */
 };
 typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
-typedef char assert_SO_pxfRoot[SLY2_OFFSETOF(SO, pxfRoot) == 0x60 ? 1 : -1];   /* position = pxfRoot->matWorld row 3 (CONFIRMED runtime) */
-typedef char assert_SO_dlChild[SLY2_OFFSETOF(SO, dlChild) == 0x64 ? 1 : -1];   /* child DL at SO+0x64 (CONFIRMED runtime) */
-typedef char assert_SO_gUnk13c[SLY2_OFFSETOF(SO, gUnk13c) == 0x13C ? 1 : -1];   /* holds 400.0f (CONFIRMED runtime) */
+typedef char assert_SO_rootTransform[SLY2_OFFSETOF(SO, rootTransform) == 0x60 ? 1 : -1]; /* position = rootTransform->worldMatrix row 3 (CONFIRMED runtime) */
+typedef char assert_SO_children[SLY2_OFFSETOF(SO, children) == 0x64 ? 1 : -1]; /* child DL at SO+0x64 (CONFIRMED runtime) */
+typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline CID17 *func_00259B20(SO *pso)   /* get */
 {
-    REGENT *pregent = pso->psophys ? pso->psophys->pregent : 0;
+    REGENT *pregent = pso->physics ? pso->physics->pregent : 0;
     return pregent ? pregent->pcid17 : 0;
 }
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
@@ -293,26 +293,26 @@ struct LVO
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct SOPART
 {
-      XF *pxf;   /* transform the part moves with */
-      SO *pso;   /* owning solid object */
-      float gUnk08;
+      XF *transform; /* transform the part moves with */
+      SO *owner; /* owning solid object */
+      float radius;
       OID oid;   /* oid of the part */
       LVO *plvo;   /* local vertex data */
-      short dhp;   /* damage (hit points) dealt or taken by the part (inferred: dhp = delta hit points) */
-      ulong fUnk48 : 1;
-               ulong fUnk49 : 1;
-               ulong fHidden : 1;   /* part is hidden */
-               ulong fUnk51 : 1;
-               ulong unk_0x16 : 12;
-      uint grfzpk;   /* zap kinds (damage types) the part delivers or accepts */
-      int nUnk1c;
+      short damage; /* damage (hit points) dealt or taken by the part (inferred: dhp = delta hit points) */
+      ulong unknownFlag10A : 1;   /* possibly collectsZaps (low-confidence guess: mark.cpp: parts with zap kinds (unknownFlag10A / zapKindFlags) collect zap contacts) */
+               ulong unknownFlag10B : 1;   /* possibly isSphere (low-confidence guess: so.cpp view: radius applies to unknownFlag10B parts; mark.cpp sphere tests) */
+               ulong isHidden : 1;  /* part is hidden */
+               ulong unknownFlag10C : 1;
+               ulong unknownBits10A : 12;
+      uint zapKindFlags; /* zap kinds (damage types) the part delivers or accepts */
+      int unknown1C;   /* possibly numSphereVertices (low-confidence guess: compared with meshLocal.cpos in mark.cpp) */
       MATRIX4 matWorld;   /* world matrix of the part */
       DLE dle;   /* link in the physics tree's part list */
       BSPC bspc;   /* BSP of the part mesh */
-      GEOM geomLocal;   /* part mesh (local) */
-      GEOM geomWorld;   /* part mesh (world, updated when stale) */
-      int nStampGeom;   /* frame stamp of the world mesh */
-      int nStampWorld;   /* frame stamp of the world matrix */
+      GEOM meshLocal;   /* part mesh (local) */
+      GEOM meshWorld;   /* part mesh (world, updated when stale) */
+      int meshStamp;    /* frame stamp of the world mesh */
+      int worldStamp;    /* frame stamp of the world matrix */
 };
 
 /* CID148 (CID 0x94 : BASIC, cb 0x20) and CID150 (CID 0x96 : CID148, cb 0x30): placeholder names. A CID150 is the
@@ -320,7 +320,7 @@ struct SOPART
 /* CID148: a Splice handle object (placeholder name) the script system uses to refer to parts of an SO. */
 struct CID148 : public BASIC
 {
-      undefined4 unk_0x10[4];
+      undefined4 unknown10[4];
     virtual void AddRef() __asm__("IncrefXfHandle");   /* slot 1; key function (so.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefXfHandle");   /* slot 2 */
@@ -339,7 +339,7 @@ struct CID150 : public CID148
 {
       SO *pso;              /* +0x20 */
       SOPART *psopart;      /* +0x24 */
-      undefined4 unk_0x28[2];
+      undefined4 unknown28[2];
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid150ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID150_size[sizeof(CID150) == 0x30 ? 1 : -1];   /* class descriptor cb */
@@ -347,63 +347,63 @@ typedef char assert_CID150_size[sizeof(CID150) == 0x30 ? 1 : -1];   /* class des
 /* CID150's option accessors (g_aeopid records 1234, 1233, 1232: get, set), inline as the ones above. Each setter
  * then calls InvalidateSoAaox on the part's object (HYPOTHESIS: marks its tree dirty). */
 extern "C" void InvalidateSoAaox(SO *pso);
-inline float func_002562E0(CID150 *p) { return p->psopart->gUnk08; }
-inline void func_002562B8(CID150 *p, float g) { p->psopart->gUnk08 = g; InvalidateSoAaox(p->pso); }
-inline short func_00256318(CID150 *p) { return p->psopart->dhp; }
-inline void func_002562F0(CID150 *p, short dhp) { p->psopart->dhp = dhp; InvalidateSoAaox(p->pso); }
-inline uint func_00256350(CID150 *p) { return p->psopart->grfzpk; }
-inline void func_00256328(CID150 *p, uint grfzpk) { p->psopart->grfzpk = grfzpk; InvalidateSoAaox(p->pso); }
+inline float func_002562E0(CID150 *p) { return p->psopart->radius; }
+inline void func_002562B8(CID150 *p, float g) { p->psopart->radius = g; InvalidateSoAaox(p->pso); }
+inline short func_00256318(CID150 *p) { return p->psopart->damage; }
+inline void func_002562F0(CID150 *p, short dhp) { p->psopart->damage = dhp; InvalidateSoAaox(p->pso); }
+inline uint func_00256350(CID150 *p) { return p->psopart->zapKindFlags; }
+inline void func_00256328(CID150 *p, uint grfzpk) { p->psopart->zapKindFlags = grfzpk; InvalidateSoAaox(p->pso); }
 
 /* SOTREE: a physics tree: SOs connected for collision/physics, solved together; bounds, part list and contact lists.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (3 copies in Lilly ports) */
 struct SOTREE
 {
-      qword qwMin;   /* bounding box minimum */
-      qword qwMax;   /* bounding box maximum */
-      qword qwCenter;   /* bounding sphere centre */
-      float sRadius;   /* bounding sphere radius */
-      DL dlpart;   /* parts in the tree */
+      qword boundsMin; /* bounding box minimum */
+      qword boundsMax; /* bounding box maximum */
+      qword boundsCenter; /* bounding sphere centre */
+      float boundsRadius; /* bounding sphere radius */
+      DL parts;    /* parts in the tree */
       DLE dleAwake;   /* link in the world's awake-tree list */
       DLE dleAll;   /* link in the list of all trees */
       DLE dleQueue1;   /* link in the first update queue */
       DLE dleQueue2;   /* link in the second update queue */
-      SO *psoRoot;   /* root object */
+      SO *root;      /* root object */
       XPLIST *pxplistFirst;   /* first contact list */
       XP *pxpFirst;   /* first contact point */
-      XP *pxpZap;   /* first contact that delivers a zap (damage) */
-      ulong fQueued1 : 1;   /* in the first queue */
-               ulong fQueued2 : 1;   /* in the second queue */
-               ulong fNoUpdate : 1;   /* skip the physics update */
-               ulong fTouched : 1;   /* touched this frame */
-               ulong fDone : 1;   /* processed this frame */
-               ulong unk_0x70 : 59;
+      XP *firstZapContact; /* first contact that delivers a zap (damage) */
+      ulong isInFirstQueue : 1; /* in the first queue */
+               ulong isInSecondQueue : 1; /* in the second queue */
+               ulong skipsUpdate : 1; /* skip the physics update */
+               ulong wasTouched : 1; /* touched this frame */
+               ulong isDone : 1;  /* processed this frame */
+               ulong unknownBits70A : 59;
 };
 
 /* XF: a transform of an SO's hierarchy: local and world matrix, the actuators that animate it and its parent.
    Layout from src/game/gameplay/player/jt/RebuildJtXmg.cpp (8 copies in Lilly ports) */
 struct XF
 {
-      MATRIX4 mat;   /* local matrix */
-      MATRIX4 matWorld;   /* world matrix (row 3 = world position, XF+0x70) */
-      float gUnk80;
-      float gUnk84;
-      float *pgUnk88;
-      float *pgUnk8c;
-      ACT *pactFirst;   /* first actuator (ACT) animating this transform */
-      int xfk;   /* transform kind */
-      short nRole;   /* role of the transform in the model (inferred) */
-      short nPhase;
+      MATRIX4 localMatrix; /* local matrix */
+      MATRIX4 worldMatrix; /* world matrix (row 3 = world position, XF+0x70) */
+      float segmentStartTime;
+      float segmentEndTime;
+      float *timeSource;
+      float *speedSource;
+      ACT *firstActuator; /* first actuator (ACT) animating this transform */
+      int kind;  /* transform kind */
+      short role;    /* role of the transform in the model (inferred) */
+      short phase;
       OID oid;   /* oid of the transform */
-      XF *pxfParent;   /* parent transform */
-      int nStampWorld;   /* frame stamp of the last world-matrix update */
-      XF *pxfRef;   /* reference transform */
-      short nUnkAc;
-      short nUnkAe;
-      VECTOR4 vUnkB0;
-      qword qwRest;   /* rest position (inferred) */
-      qword qwUnkD0;
-      qword qwRestUnkE0;
-      qword qwUnkF0;
+      XF *parent;      /* parent transform */
+      int worldStamp;    /* frame stamp of the last world-matrix update */
+      XF *reference; /* reference transform */
+      short stiffness;
+      short damping;
+      VECTOR4 velocity;
+      qword restValue; /* rest position (inferred) */
+      qword rate;
+      qword unknownE0;   /* possibly restValue2 (low-confidence guess: second rest/Hermite end value (role-dependent, xf.cpp comment)) */
+      qword acceleration;
 };
 
 /* XA: an attachment between two SOs, kept in two lists: the source's and the target's (inferred from the links).
@@ -411,7 +411,7 @@ struct XF
 struct XA
 {
       uint32_t   _pad_409    [ 1 ] ;
-      SO *pso;   /* the other object */
+      SO *other; /* the other object */
       XA *pxaNextSource;   /* next record in the source object's list */
       XA *pxaNextTarget;   /* next record in the target object's list */
 };

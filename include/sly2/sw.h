@@ -165,7 +165,7 @@ struct SW : public BASIC
       DL dlSoTreeQueue1;   /* physics trees queued for update */
       DL dlSoTreeQueue2;    /* +0x3D34 [S] the dirty SOTREEs (sensor.cpp appends a beam's tree after moving it) */
       SLOTHEAP slotheapXp;   /* contact point records */
-      int nStampXf;   /* frame stamp compared with XF::nStampWorld */
+      int nStampXf;   /* frame stamp compared with XF::worldStamp */
       int nUnk3d5c;
       int nStampLights;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;

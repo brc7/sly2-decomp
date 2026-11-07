@@ -37,7 +37,7 @@ struct XPS
 {
     SOPART *ppart;          /* +0x00 */
     XF *pxf;                /* +0x04 */
-    SO *psoRoot;            /* +0x08 SO::ptree->psoRoot */
+    SO *psoRoot;            /* +0x08 SO::physicsTree->root */
     SO *pso;                /* +0x0C */
     qword pos;              /* +0x10 */
     qword posLocal;         /* +0x20 */
@@ -59,8 +59,8 @@ struct XP
 };
 typedef char assert_XP_size[sizeof(XP) == 0xC0 ? 1 : -1];   /* CloneXpList copies 0xC0 */
 
-/* The world position of a transform (XF::matWorld's translation row) as a quadword. */
-#define QW_XF_POS(pxf) (*(qword *)(pxf)->matWorld.mat[3])
+/* The world position of a transform (XF::worldMatrix's translation row) as a quadword. */
+#define QW_XF_POS(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
 /* Hand-made call of an SO virtual whose so.h declaration has no parameters (slot 55): g++ 2.95 vtable entries
    {delta, pfn}, entry 0 unused, so slot n is entry n + 1. */
@@ -83,7 +83,7 @@ void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword normal, int
 typedef char assert_SW_slotheapXp[FIELD_OFFSET(SW, slotheapXp) == 0x3D40 ? 1 : -1];
 #undef FIELD_OFFSET
 
-/* The collision geometry of a part (SOPART::geomWorld, xfm.h GEOM) and its BSP (SOPART::bspc), as in Lilly's
+/* The collision geometry of a part (SOPART::meshWorld, xfm.h GEOM) and its BSP (SOPART::bspc), as in Lilly's
    IntersectSphereBsp port: an edge joins two vertices (aipos) between two surfaces (aisurf); a surface is a plane
    (normal, gDot) with its edge lists and flags; a BSP node splits by its surface. */
 struct EDGE
@@ -175,9 +175,9 @@ extern "C" void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword 
         else
             pxps->ppart = ppart1;
         if (pxps->ppart) {
-            pxps->pxf = pxps->ppart->pxf;
-            pxps->pso = pxps->ppart->pso;
-            pxps->psoRoot = pxps->pso->ptree->psoRoot;
+            pxps->pxf = pxps->ppart->transform;
+            pxps->pso = pxps->ppart->owner;
+            pxps->psoRoot = pxps->pso->physicsTree->root;
         }
         pxps->posLocal = TransformXfPos(0, pxps->pxf, pxps->pos);
     }
@@ -247,7 +247,7 @@ extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
             if (j == 0) {
                 switch (pxp->kind) {
                 case 4: case 5: case 6:
-                    u.f = -pxps->ppart->gUnk08; f = u.i; position = QW_XF_POS(pxf);
+                    u.f = -pxps->ppart->radius; f = u.i; position = QW_XF_POS(pxf);
                     break;
                 default:
                     goto def;
@@ -255,7 +255,7 @@ extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
             } else {
                 switch (pxp->kind) {
                 case 7: case 9:
-                    position = QW_XF_POS(pxf); f = *(int *)&pxps->ppart->gUnk08;
+                    position = QW_XF_POS(pxf); f = *(int *)&pxps->ppart->radius;
                     break;
                 default:
                     goto def;
@@ -318,9 +318,9 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
 {
     int ilsg = 0;
     int clsg = 0;
-    int iedge = ppart->geomWorld.cedge;
-    EDGE *aedge = ppart->geomWorld.aedge;
-    qword *apos = (qword *)ppart->geomWorld.apos;
+    int iedge = ppart->meshWorld.cedge;
+    EDGE *aedge = ppart->meshWorld.aedge;
+    qword *apos = (qword *)ppart->meshWorld.apos;
     for (iedge--; iedge >= 0; iedge--) {
         EDGE *pedge = &aedge[iedge];
         clsg += ClsgClipEdgeToBsp(absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], clsgMax - clsg, &alsg[clsg]);
@@ -337,8 +337,8 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
 {
     int ilsg = 0;
     int clsg = 0;
-    qword *apos = (qword *)part->geomWorld.apos;
-    SURF *asurf = part->geomWorld.asurf;
+    qword *apos = (qword *)part->meshWorld.apos;
+    SURF *asurf = part->meshWorld.asurf;
     int i;
     for (i = numNodes - 1; i >= 0; i--)
         nodes[i].psurf->grf |= 1;
@@ -912,7 +912,7 @@ namespace M_CsbiIntersectSphereBsp {
 //     to pos (u < 0.0001 -> vertex aipos[0], u > 0.9999 -> vertex aipos[1], else the interior point). Within the radius: unit = normalize(pos - closest),
 //     plane = (unit, unit . closest) (InitPlaneFromNormalPos), point = pos - r*unit. Interior -> contact kind 5 {point, plane, 5, pedge}; a vertex -> a candidate
 //     (at most 0x100 on the stack, no duplicates by vertex index).
-//  5. Vertices: each candidate whose vertex is not an end of one of the edge contacts -> contact kind 4 {point, plane, 4, &geomWorld.apos[ivert]}.
+//  5. Vertices: each candidate whose vertex is not an end of one of the edge contacts -> contact kind 4 {point, plane, 4, &meshWorld.apos[ivert]}.
 //     (The game compares against the edge contacts made in step 4 only.) Reaching ccontactMax in any step skips to the clean-up.
 //  6. All 0xF0 surface flags are cleared again. With no contact and the centre inside the hull (PbspPointInBsp 0x119090) the one contact comes from
 //     ContactInsideBsp 0x1A9108 (our name, MATCH T1305 above: doubles a probe radius from max(r, 100) until a face plane is found, kind 0xC).
@@ -1087,8 +1087,8 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
         ccontactFace = ccontact;
         for (i = cbsp; --i >= 0; )
         {
-            VECTOR4 *apos = (VECTOR4 *)ppart->geomWorld.apos;
-            SURF *asurf = ppart->geomWorld.asurf;
+            VECTOR4 *apos = (VECTOR4 *)ppart->meshWorld.apos;
+            SURF *asurf = ppart->meshWorld.asurf;
             pbspNode = &absp[i];
             psurf = pbspNode->psurf;
             if (psurf->grf & 0x10)
@@ -1195,7 +1195,7 @@ nextedge:
                 pcontact->pos = avert[iv].pos;
                 pcontact->plane = avert[iv].plane;
                 pcontact->kind = 4;
-                pcontact->pv = &((VECTOR4 *)ppart->geomWorld.apos)[ivert];
+                pcontact->pv = &((VECTOR4 *)ppart->meshWorld.apos)[ivert];
                 if (ccontact >= ccontactMax)
                     break;
             }
@@ -1212,7 +1212,7 @@ inside:
         if (ccontact == 0 && PbspPointInBsp(ppart->bspc.absp, pbspLimit, pos) != 0)
         {
             ccontact = 1;
-            ContactInsideBsp(sRadius, ppart->bspc.absp, pbspLimit, &ppart->geomWorld, pos, acontact);
+            ContactInsideBsp(sRadius, ppart->bspc.absp, pbspLimit, &ppart->meshWorld, pos, acontact);
         }
     }
 done:
@@ -1321,7 +1321,7 @@ typedef char layout_ShapeRadius_Width[(sizeof(((S*)0)->radius)==4)?1:-1];
 typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 } // namespace M_MarkSoContactsSphereBsp
 
-/* Two sphere parts (centre: the transform's position, radius gUnk08): one kind-7 contact on ppart0's surface along
+/* Two sphere parts (centre: the transform's position, radius `radius`): one kind-7 contact on ppart0's surface along
    the centre line (D_002A2DC0 when the centres coincide), separation |d| - (r0 + r1). */
 // Sphere part against sphere part: if they overlap adds one contact along the line between the centres.
 extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *part1, XP **listOut)
@@ -1329,11 +1329,11 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
     qword pos1, d, l, one, normal, pos, pos0;
     float rsum, len2, g, r2;
     union { qword q; float f[4]; } u;
-    register XF *pxf1 __asm__("$2") = part1->pxf;
-    register XF *pxf0 __asm__("$3") = part0->pxf;
+    register XF *pxf1 __asm__("$2") = part1->transform;
+    register XF *pxf0 __asm__("$3") = part0->transform;
     pos0 = QW_XF_POS(pxf0);
     pos1 = QW_XF_POS(pxf1);
-    rsum = part0->gUnk08 + part1->gUnk08;
+    rsum = part0->radius + part1->radius;
     r2 = rsum * rsum;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos0), "j"(pos1));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(d));
@@ -1354,7 +1354,7 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
     }
     {
         qword s;
-        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(-part0->gUnk08));
+        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(-part0->radius));
         u.q = s;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(pos) : "j"(pos0), "j"(normal), "j"(u.q));
     }
@@ -1450,7 +1450,7 @@ extern "C" XP *CloneXpList(SW *world, XP *list)
 
 /* 1 when side 0 of pxp is ppart (so the other side is 1), else 0. */
 static inline int IxpsOther(XP *pxp, SOPART *ppart) { int one = 1; int fNe = pxp->axps[0].ppart != ppart; return one - fNe; }
-/* Asks ptree's root object for its own contacts with ppart (SO slot 59). Parts with zap kinds (grfzpk) collect them
+/* Asks ptree's root object for its own contacts with ppart (SO slot 59). Parts with zap kinds (zapKindFlags) collect them
    apart: each one whose other side's object passes FindZapResponder for those kinds is copied onto ptreeOther's zap list,
    then the list goes to *ppxpFirst. so.h declares slot 59's third argument int; it is the BSP here. */
 // Asks the zap responder of the other object (FindZapResponder, slot 0x3C) for its contacts and appends them.
@@ -1460,13 +1460,13 @@ extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, S
 {
     XP *pxpFirst = 0;
     XP *pxp;
-    ptree->psoRoot->AddCustomXps(ppart, cbsp, (int)absp, pbsp, ppart->grfzpk ? &pxpFirst : ppxpFirst);
+    ptree->root->AddCustomXps(ppart, cbsp, (int)absp, pbsp, ppart->zapKindFlags ? &pxpFirst : ppxpFirst);
     if (pxpFirst) { pxp = pxpFirst; do {
-        if (FindZapResponder(pxp->axps[IxpsOther(pxp, ppart)].pso, ppart->grfzpk)) {
+        if (FindZapResponder(pxp->axps[IxpsOther(pxp, ppart)].pso, ppart->zapKindFlags)) {
             XP *pxpNew = (XP *)AllocZeroedFromSlotheap(&psw->slotheapXp);
             *pxpNew = *pxp;
-            pxpNew->pxpNext = ptreeOther->pxpZap;
-            ptreeOther->pxpZap = pxpNew;
+            pxpNew->pxpNext = ptreeOther->firstZapContact;
+            ptreeOther->firstZapContact = pxpNew;
         }
     } while ((pxp = pxp->pxpNext) != 0);
     AppendXpList(psw, pxpFirst, ppxpFirst); }
@@ -1478,9 +1478,9 @@ struct SCOPE2 { char ach[2]; STACKSCOPE scope; };
 struct CBSP { int c; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
-/* A tree's parts (SOTREE::dlpart through SOPART::dle) and its flag word (+0x70: so.h's fQueued1..fDone bit-fields and
+/* A tree's parts (SOTREE::parts through SOPART::dle) and its flag word (+0x70: so.h's isInFirstQueue..isDone bit-fields and
    more; AddSoXps tests bit 5 as a mask). */
-#define PPART_FIRST(ptree) ((SOPART *)(ptree)->dlpart.head)
+#define PPART_FIRST(ptree) ((SOPART *)(ptree)->parts.head)
 #define PPART_NEXT(ppart) ((SOPART *)(ppart)->dle.next)
 #define GRF_SOTREE(ptree) (*(ulong *)((char *)(ptree) + 0x70))
 extern "C" {
@@ -1499,7 +1499,7 @@ static inline float LengthSq(qword v)
     return g;
 }
 /* Pairs every part of the larger tree with every part of the smaller one and marks their contacts: swept vertices
-   when either part moved, else sphere/sphere, sphere/BSP or BSP/BSP. Parts with zap kinds (fUnk48 / grfzpk) collect
+   when either part moved, else sphere/sphere, sphere/BSP or BSP/BSP. Parts with zap kinds (unknownFlag10A / grfzpk) collect
    their contacts apart and hand them to the trees' zap lists (copies where both sides keep them). */
 // Builds all contacts between two objects: orders them by radius, then for each pair of parts dispatches to the
 // sphere/sphere, sphere/BSP, BSP/BSP or swept-vertex marker, and adds the zap responders' contacts.
@@ -1507,7 +1507,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 {
     XP *pxpFirst = 0;
     SOTREE *ptreeT = smallTree;
-    if (smallTree->sRadius > largeTree->sRadius) {
+    if (smallTree->boundsRadius > largeTree->boundsRadius) {
         smallTree = largeTree;
         largeTree = ptreeT;
     }
@@ -1521,14 +1521,14 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
     cnodeMax = MinInt(cnodeMax, 0x1555);
     BSP *absp = (BSP *)AllocFromStack(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
     for (ppart = PPART_FIRST(largeTree); ppart; ppart = PPART_NEXT(ppart)) {
-        int fFilter = ppart->grfzpk != 0;
-        if (ppart->fUnk48 && !fFilter)
+        int fFilter = ppart->zapKindFlags != 0;
+        if (ppart->unknownFlag10A && !fFilter)
             continue;
         BSP *pbspFirst;
         int cnode;
         BSP *pbspLast;
         int status = 2;
-        if (ppart->fUnk49 || (GRF_SOTREE(smallTree) & 0x20)) {
+        if (ppart->unknownFlag10B || (GRF_SOTREE(smallTree) & 0x20)) {
             pbspLast = 0;
             pbspFirst = 0;
             cnode = 0;
@@ -1537,7 +1537,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             query.c = cnodeMax;
             pbspLast = absp;
             pbspFirst = absp;
-            status = PruneBspP(ppart->bspc.absp, (BSP *)0x7FFFFFFF, smallTree->qwCenter, smallTree->sRadius, &query.c, &pbspLast);
+            status = PruneBspP(ppart->bspc.absp, (BSP *)0x7FFFFFFF, smallTree->boundsCenter, smallTree->boundsRadius, &query.c, &pbspLast);
             if (status == 1)
                 continue;
             if (status == 0) {
@@ -1550,51 +1550,51 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             }
         }
         for (ppartOther = PPART_FIRST(smallTree); ppartOther; ppartOther = PPART_NEXT(ppartOther)) {
-            int fFilterOther = ppartOther->grfzpk != 0;
-            if (ppartOther->fUnk48 && !fFilterOther)
+            int fFilterOther = ppartOther->zapKindFlags != 0;
+            if (ppartOther->unknownFlag10A && !fFilterOther)
                 continue;
-            if (ppart->fUnk48 && ppartOther->fUnk48)
+            if (ppart->unknownFlag10A && ppartOther->unknownFlag10A)
                 continue;
             XP *pxpTemp = 0;
             XP **ppxp = &pxpFirst;
             if (fFilter) {
-                int fMatch = FindZapResponder(ppartOther->pso, ppart->grfzpk) != 0;
-                if (ppart->fUnk48) {
+                int fMatch = FindZapResponder(ppartOther->owner, ppart->zapKindFlags) != 0;
+                if (ppart->unknownFlag10A) {
                     if (!fMatch)
                         continue;
                     ppxp = &pxpTemp;
                 } else if (fMatch) {
-                    if (!ppartOther->fUnk48)
+                    if (!ppartOther->unknownFlag10A)
                         ppxp = &pxpTemp;
                 }
             }
             if (fFilterOther) {
-                int fMatch = FindZapResponder(ppart->pso, ppartOther->grfzpk) != 0;
-                if (ppartOther->fUnk48) {
+                int fMatch = FindZapResponder(ppart->owner, ppartOther->zapKindFlags) != 0;
+                if (ppartOther->unknownFlag10A) {
                     if (!fMatch)
                         continue;
                     ppxp = &pxpTemp;
-                } else if (fMatch && !ppart->fUnk48) {
+                } else if (fMatch && !ppart->unknownFlag10A) {
                     ppxp = &pxpTemp;
                 }
             }
             XP *pxpPrev = *ppxp;
-            if (ppartOther->nStampWorld != ppartOther->nStampGeom || ppart->nStampWorld != ppart->nStampGeom) {
-                if (ppartOther->nUnk1c < ppartOther->geomLocal.cpos)
+            if (ppartOther->worldStamp != ppartOther->meshStamp || ppart->worldStamp != ppart->meshStamp) {
+                if (ppartOther->unknown1C < ppartOther->meshLocal.cpos)
                     MarkSoContactsSweptVertices(world, ppartOther, ppart, ppxp);
-                if (ppart->nUnk1c < ppart->geomLocal.cpos)
+                if (ppart->unknown1C < ppart->meshLocal.cpos)
                     MarkSoContactsSweptVertices(world, ppart, ppartOther, ppxp);
             }
             if (*ppxp == pxpPrev) {
-                if (ppart->fUnk49) {
-                    if (ppartOther->fUnk49)
+                if (ppart->unknownFlag10B) {
+                    if (ppartOther->unknownFlag10B)
                         MarkSoContactsSphereSphere(world, ppartOther, ppart, ppxp);
                     else
                         MarkSoContactsSphereBsp(world, ppart, ppartOther, 0, 0, ppxp);
-                } else if (ppartOther->fUnk49) {
+                } else if (ppartOther->unknownFlag10B) {
                     int fFar = 0;
-                    if (!status || 1.0f < LengthSq(VuSub(QW_XF_POS(ppart->pxf), smallTree->qwCenter)) ||
-                        1.0f < __builtin_fabsf(ppart->gUnk08 - smallTree->sRadius))
+                    if (!status || 1.0f < LengthSq(VuSub(QW_XF_POS(ppart->transform), smallTree->boundsCenter)) ||
+                        1.0f < __builtin_fabsf(ppart->radius - smallTree->boundsRadius))
                         fFar = 1;
                     MarkSoContactsSphereBsp(world, ppartOther, ppart, fFar ? 0 : cnode, fFar ? 0 : pbspFirst, ppxp);
                 } else {
@@ -1604,30 +1604,30 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             if (pxpTemp) {
                 int fCopied = 0;
                 if (fFilter) {
-                    if (ppart->fUnk48)
-                        AppendXpList(world, pxpTemp, &largeTree->pxpZap);
-                    else if (!ppartOther->fUnk48) {
+                    if (ppart->unknownFlag10A)
+                        AppendXpList(world, pxpTemp, &largeTree->firstZapContact);
+                    else if (!ppartOther->unknownFlag10A) {
                         fCopied = 1;
-                        AppendXpList(world, CloneXpList(world, pxpTemp), &largeTree->pxpZap);
+                        AppendXpList(world, CloneXpList(world, pxpTemp), &largeTree->firstZapContact);
                     }
                 }
                 if (fFilterOther) {
-                    if (ppartOther->fUnk48)
-                        AppendXpList(world, pxpTemp, &smallTree->pxpZap);
-                    else if (!ppart->fUnk48) {
+                    if (ppartOther->unknownFlag10A)
+                        AppendXpList(world, pxpTemp, &smallTree->firstZapContact);
+                    else if (!ppart->unknownFlag10A) {
                         fCopied = 1;
-                        AppendXpList(world, CloneXpList(world, pxpTemp), &smallTree->pxpZap);
+                        AppendXpList(world, CloneXpList(world, pxpTemp), &smallTree->firstZapContact);
                     }
                 }
                 if (fCopied)
                     AppendXpList(world, pxpTemp, &pxpFirst);
             }
         }
-        if (!ppart->fUnk48)
+        if (!ppart->unknownFlag10A)
             AddZapResponderXps(world, smallTree, largeTree, ppart, ppart->bspc.cbspFull, ppart->bspc.absp, ppart->bspc.absp, &pxpFirst);
     }
     for (ppartOther = PPART_FIRST(smallTree); ppartOther; ppartOther = PPART_NEXT(ppartOther))
-        if (!ppartOther->fUnk48)
+        if (!ppartOther->unknownFlag10A)
             AddZapResponderXps(world, largeTree, smallTree, ppartOther, ppartOther->bspc.cbspFull, ppartOther->bspc.absp, ppartOther->bspc.absp, &pxpFirst);
     return pxpFirst;
 }

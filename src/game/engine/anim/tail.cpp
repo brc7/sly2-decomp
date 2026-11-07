@@ -262,7 +262,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
 {
     CHAIN *chain = chainLink->chain;
     XF *xf = chainLink->pxf;
-    XF *parentXf = xf->pxfParent;
+    XF *parentXf = xf->parent;
     VECTOR4 velocity;
     if (D_002DDED0.t != chain->lastUpdateTime)
     {
@@ -272,7 +272,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
         CHAINLINK *link;
         if (chainLink == chain->links)
         {
-            qword anchor = *(qword *)xf->matWorld.mat[3];
+            qword anchor = *(qword *)xf->worldMatrix.mat[3];
             uint soFlags = *(uint *)so->grfUnk40;
             position = anchor;
             if (soFlags & 0x10)
@@ -284,7 +284,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 *(qword *)&velocity = VuDivByFloat(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
             }
             chain->previousAnchor = anchor;
-            MATRIX3 parentRotation = *(MATRIX3 *)&parentXf->matWorld * chainLink->restMatrix;
+            MATRIX3 parentRotation = *(MATRIX3 *)&parentXf->worldMatrix * chainLink->restMatrix;
             previousDirection = RotateVector(&parentRotation, chainLink->restSegment);
         }
         else
@@ -305,7 +305,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
             }
             else
             {
-                previousDirection = VuSub(position, *(qword *)parentXf->matWorld.mat[3]);
+                previousDirection = VuSub(position, *(qword *)parentXf->worldMatrix.mat[3]);
             }
         }
         float stepDt = D_002DDED0.dt / chain->stepCount;
@@ -374,14 +374,14 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
         chain->lastUpdateTime = D_002DDED0.t;
     }
     qword tipInParent = ConvertXfPos(0, parentXf, chainLink->tipPosition);
-    qword toTip = VuSub(tipInParent, *(qword *)xf->mat.mat[3]);
+    qword toTip = VuSub(tipInParent, *(qword *)xf->localMatrix.mat[3]);
     qword restDirection = RotateVector(&chainLink->restMatrix, chainLink->restSegment);
     MATRIX3 rotation;
     rotation = BuildRotateVectorsMatrix(restDirection, toTip);
-    *(MATRIX3 *)&xf->mat = rotation * chainLink->restMatrix;
-    xf->mat.mat[1][3] = 0.0f;
-    xf->mat.mat[2][3] = 0.0f;
-    xf->mat.mat[0][3] = 0.0f;
+    *(MATRIX3 *)&xf->localMatrix = rotation * chainLink->restMatrix;
+    xf->localMatrix.mat[1][3] = 0.0f;
+    xf->localMatrix.mat[2][3] = 0.0f;
+    xf->localMatrix.mat[0][3] = 0.0f;
     int stamp = ++D_003DD490.nStampXf;
-    xf->nStampWorld = stamp;
+    xf->worldStamp = stamp;
 }
