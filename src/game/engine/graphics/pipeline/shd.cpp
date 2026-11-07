@@ -1093,24 +1093,16 @@ void UpdateShaders(void)
 } } // namespace M_UpdateShaders
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_BuildClutTex2__FP4CLUTi { extern "C" {
-typedef unsigned long ulong;
-struct TEX0 {
-    ulong TBP0 : 14; ulong TBW : 6; ulong PSM : 6; ulong TW : 4; ulong TH : 4; ulong TCC : 1;
-    ulong TFX : 2; ulong CBP : 14; ulong CPSM : 4; ulong CSM : 1; ulong CSA : 5; ulong CLD : 3;
-};
-struct CLUT { int pad[2]; unsigned short c; char pad2[0x18 - 0xA]; struct TEX0 tex0; };
 // Fill TEX2-style CLUT fields.
-void BuildClutTex2__FP4CLUTi(struct CLUT *pclut, int cbp)
+void BuildClutTex2(CLUT *pclut, int cbp)
 {
-    pclut->tex0.CBP = cbp;
-    pclut->tex0.PSM = (pclut->c <= 0x10) ? 0x14 : 0x13;
-    pclut->tex0.CPSM = 0;
-    pclut->tex0.CSM = 0;
-    pclut->tex0.CSA = 0;
-    pclut->tex0.CLD = 1;
+    pclut->tex2.CBP = cbp;
+    pclut->tex2.PSM = (pclut->ccolor <= 0x10) ? 0x14 : 0x13;
+    pclut->tex2.CPSM = 0;
+    pclut->tex2.CSM = 0;
+    pclut->tex2.CSA = 0;
+    pclut->tex2.CLD = 1;
 }
-} } // namespace M_BuildClutTex2__FP4CLUTi
 
 // Existing name kept.
 /* The GS image upload of a colour table: 16 entries per row (8 for 16 or fewer). */
@@ -1135,12 +1127,11 @@ void BuildBmpTex0(BMP *pbmp, int tbp)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildBmpGifs { extern "C" {
-struct BMP { char pad[8]; unsigned short w; unsigned short h; unsigned char psm; unsigned char bw; char pad2[0x18-0xE]; int cqw; };
 void BuildImageGifs__FiiiiiiP4GIFS(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs);
 // BuildImageGifs for a bitmap. (inferred)
-void BuildBmpGifs(struct BMP *pbmp, int dbp, void *pgifs)
+void BuildBmpGifs(BMP *pbmp, int dbp, void *pgifs)
 {
-    BuildImageGifs__FiiiiiiP4GIFS(dbp, pbmp->bw, pbmp->psm, pbmp->w, pbmp->h, pbmp->cqw, pgifs);
+    BuildImageGifs__FiiiiiiP4GIFS(dbp, pbmp->cbw, pbmp->psm, pbmp->cx, pbmp->cy, pbmp->cqw, pgifs);
 }
 } } // namespace M_BuildBmpGifs
 
