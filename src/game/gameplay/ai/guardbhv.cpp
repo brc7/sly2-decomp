@@ -4642,9 +4642,8 @@ int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
 
 // 0x17B750 SetBhvshootState
 namespace M_SetBhvshootState { extern "C" {
-struct VTE; 
+
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
 void PopBhv(void *p);
 BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17B750: BHVSHOOT state change: 0 pushes the shooting animation (flag 0x11) aimed at the target and opens the
@@ -5413,12 +5412,10 @@ extern "C" void CloseBhvrail(BHVRAIL *behavior)
 
 // 0x17CB80 UpdateBhvrail
 namespace M_UpdateBhvrail { extern "C" {
-struct L; struct T; union V;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 extern float D_002BE74C;
-struct L { int pad[2]; void *asega; };
-struct T { char pad[0x40]; struct L *binding; };
+union V;
 union V { qword q; float f[4]; };
 void UpdateBhv(BHVRAIL *p);
 qword GetLoWorldPos(void *p);
@@ -5455,7 +5452,7 @@ void UpdateBhvrail(BHVRAIL *behavior) {
                     { qword v_q; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v_q) : "j"(w), "j"(u.q)); v.q = v_q; }
                 }
                 SetStepguardMoverRadTarget((&((STEPGUARD *)behavior->owner)->mover), atan2f(v.f[1], v.f[0]));
-                SetAsegaSpeed__FP5ASEGAf(((struct T *)behavior->pbhvNext)->binding->asega, behavior->animSpeed);
+                SetAsegaSpeed__FP5ASEGAf(((BHVANIM *)behavior->pbhvNext)->binding->asega, behavior->animSpeed);
             }
         }
     } while (behavior->state != s);
@@ -5464,9 +5461,8 @@ void UpdateBhvrail(BHVRAIL *behavior) {
 
 // 0x17CD00 SetBhvrailState
 namespace M_SetBhvrailState { extern "C" {
-struct VTE; 
+
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
 void PopBhv(void *p);
 BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17CD00: BHVRAIL state change: 0 walk animation (flag 9), 1 stand (flag 2).
@@ -5595,9 +5591,8 @@ void UpdateBhvpipe(BHVPIPE *behavior) {
 
 // 0x17D058 SetBhvpipeState
 namespace M_SetBhvpipeState { extern "C" {
-struct VTE; 
+
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
 void PopBhv(void *p);
 BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17D058: BHVPIPE state change: 0 move animation (flag 9), 1 stand (flag 2).
@@ -5657,29 +5652,25 @@ void BHV187::OnPush()
 
 // 0x17D1F0 StartBhvAttachCid19
 namespace M_func_0017D1F0 { extern "C" {
-struct M3; struct VTE; struct O; struct T; 
-typedef int qword __attribute__((mode(TI)));
+struct M3;
 struct M3 { qword a, b, c; };
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
-struct T { char pad[0x1B0]; struct M3 orientation; char pad2[0xF84 - 0x1E0]; void *attachObject; };
 extern qword D_002A2DC0;
 void StartBhv(BHV187 *p);
-struct O *PushStepBehavior(void *p, int n);
+BHVANIM *PushStepBehavior(void *p, int n);
 qword *GetLoWorldMatrix(void *p);
 struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
 // 0x17D1F0: Attach behaviour (cid 0x13) vtable slot 8 (Start): pushes the stand animation and aligns to the attach
 // object's frame.
 void StartBhvAttachCid19(BHV187 *behavior)
 {
-    struct O *o;
-    struct T *t;
+    BHVANIM *o;
+    STEPGUARD *t;
     StartBhv(behavior);
-    o = PushStepBehavior(((struct T *)behavior->owner), CID_BHVANIM);
+    o = PushStepBehavior(behavior->owner, CID_BHVANIM);
     o->sgf = 2;
     StartPushedBhv(o);
-    t = ((struct T *)behavior->owner);
-    t->orientation = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), D_002A2DC0);
+    t = (STEPGUARD *)behavior->owner;
+    *(M3 *)t->aqwTarget = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), D_002A2DC0);
 }
 } } // namespace M_func_0017D1F0
 
@@ -5702,15 +5693,12 @@ void BHV188::OnPush()
 
 // 0x17D2E0 StartBhvAttachCid39
 namespace M_func_0017D2E0 { extern "C" {
-struct VTE; struct O; 
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
 void StartBhv(BHV188 *p);
-struct O *PushStepBehavior(void *p, int n);
+BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17D2E0: Attach behaviour (cid 0x27) vtable slot 8 (Start): pushes the stand animation.
 void StartBhvAttachCid39(BHV188 *behavior)
 {
-    struct O *o;
+    BHVANIM *o;
     StartBhv(behavior);
     o = PushStepBehavior(behavior->owner, CID_BHVANIM);
     o->sgf = 2;
@@ -6536,9 +6524,8 @@ int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
-struct VTE; 
+
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(void *); };
 struct SEG { qword a; qword b; };
 struct P { char pad[0x60]; struct SEG segments[6]; };
 BHVLEAP *PushStepBehavior(void *p, int n);
