@@ -12,7 +12,7 @@ file's git history (last full version at 3493d772).
 
 The one current table (earlier branches' tables are in this file's history). data/commons-file (from f765bdd8) defines the game's commons in one data-only
 source, src/game/app/commons.cpp, in the original's allocation order (user decision; "Absolute symbols" below and
-[tu-merging.md, "Phase 9: the commons file"](tu-merging.md#phase-9-the-commons-file-branch-datacommons-file-2026-11-06)):
+[tu-merging.md, "Phase 9: the commons file"](tu-merging.md#phase-9-the-commons-file)):
 absolute symbols of class common 69 -> 15 (the SDK sources' buffers), 274 -> 220 in all. Every value from freshly
 built objects (build/link and build/progress_cache.json deleted first); data/address-names-2's in brackets where
 different.
@@ -73,7 +73,7 @@ Left, and who decides:
   hash-table order; the strong definitions take the commons' place, so link.py places that file like any object and
   binds a common to an address only when no object defines it. How the definitions are spelled, and why the pools
   are storage under the mangled name rather than C++ member definitions: [tu-merging.md, "Phase 9: the commons
-  file"](tu-merging.md#phase-9-the-commons-file-branch-datacommons-file-2026-11-06). Left as commons: the 15 of the
+  file"](tu-merging.md#phase-9-the-commons-file). Left as commons: the 15 of the
   SDK sources (989snd's buffers 0x443800..0x448500, libkernel's D_0044EF80), which are not commons of the original
   link but SDK library `.bss` between other SDK objects' data (`_sif_*` 0x44EDD4.., libgcc's `objects` 0x450278):
   they belong to the SDK sources (Mac), as `.bss` of one object per library block, not to a game file.
