@@ -292,7 +292,6 @@ extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
 
 namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
-struct LM { float minValue; float maxValue; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct EMITO { void *palo; };
 struct EMITBV {
@@ -1034,7 +1033,6 @@ struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; fl
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
 struct EMITO { void *referenceObject; MESHO *shapeObject; };
-struct LM { float minValue, maxValue; };
 /* the origin record (EMITB+0x10) */
 struct EP {
     int kind;               /* EMIT_ORIGIN */
@@ -1258,7 +1256,6 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
 
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
-struct LM { float minValue; float maxValue; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
 float RandomFloatInRange(float gMin, float gMax) asm("RandomFloatInRange__Fff");
@@ -1286,7 +1283,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-struct LM { float minValue; float maxValue; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
 float RandomFloatInRange__Fff(float a, float b);
@@ -1502,7 +1498,6 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct LM { float minValue, maxValue; };
 /* EMITB, the blip-related fields (the record at +0xC0 as blips use it; Sly 1's EMITBLIP) */
 struct EMITTERV {
     char pad[0xC8];

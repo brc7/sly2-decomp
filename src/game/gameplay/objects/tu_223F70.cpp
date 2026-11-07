@@ -109,7 +109,6 @@ enum GADGET_KIND
     GADGET_HOMING_29 = 0x29                 /* as 0x1A, and homes on the nearest class-0x38 object */
 };
 
-struct LMV { float gMin, gMax; };
 struct POLY { float a, b, c; };
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -117,7 +116,7 @@ extern SW D_003DD490;
 extern GAME D_002DEB30;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002A2DD0, D_002A2DE0;
 extern float D_002C3C60[];
-extern LMV D_002BBB60;
+extern LM D_002BBB60;
 extern SOV *D_002E1E40;
 extern const float D_002A97A8;   /* defined below where the ELF has it (.rodata order) */
 /* tu_223F70's .data (address order). The two springs' parameters are float[4] (passed as void *). */
@@ -564,7 +563,7 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
     if (!body->physics) return;
     float along = DotP(GetXfVelocity(body->rootXf, 0, hit.point), normal);
     float ratio = along / D_002C4334;
-    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.gMin, D_002BBB60.gMax);
+    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.minValue, D_002BBB60.maxValue);
     float fz = 0.0f;   /* 0, then the fraction of the response applied */
     if (fz < response) {
         bits = BitsOfFloat(response * D_002C4330);
@@ -762,7 +761,7 @@ static inline float LengthL(qwordV d) {
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d)); return f;
 }
 // Clamps *pg to an LM range.
-static inline void ClampLm(float *pg,LMV *plm){float gMax=plm->gMax,gMin=plm->gMin;if(*pg<gMin)*pg=gMin;else if(gMax<*pg)*pg=gMax;}
+static inline void ClampLm(float *pg,LM *plm){float gMax=plm->maxValue,gMin=plm->minValue;if(*pg<gMin)*pg=gMin;else if(gMax<*pg)*pg=gMax;}
 // Broadcasts a float to all four lanes.
 static inline qwordV Splat(float f) {
     int b; qwordV r,t;

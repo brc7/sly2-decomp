@@ -16,7 +16,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct LMV { float gMin; float gMax; };
 struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
 struct LONGU { long l; } __attribute__((packed));   /* an 8-byte callback PMF, passed in one register */
 struct ASEGAV { char pad[0x1C]; float tLocal; };
@@ -95,7 +94,7 @@ struct RHYTHMMGR
     int numCues;                /* 0x1C0 */
     CUE cues[3];                /* 0x1C4 */
     int eventButtons;           /* 0x230 buttons reported with game events 0x34/0x35 */
-    LMV scoreRange;             /* 0x234 */
+    LM scoreRange;             /* 0x234 */
     int numScores;              /* 0x23C */
     float scores[16];           /* 0x240 last scores */
     int averageWindow;          /* 0x280 scores averaged */
@@ -119,7 +118,7 @@ extern char D_002DEB30[];
 extern char D_002DE578[];
 extern const LONGU D_002A5010;
 extern float D_002BDBE0[3];
-extern LMV D_002BBB60;
+extern LM D_002BBB60;
 void RemoveSoHierarchy(DANCERV *p);
 void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
@@ -150,7 +149,7 @@ void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *memmove(void *dst, void *src, int cb);
 int AreFloatsNear__Ffff(float, float, float);
 float GetDifficulty(void *p);
-float ClampToLimits__FP2LMf(LMV *plm, float g);
+float ClampToLimits__FP2LMf(LM *plm, float g);
 
 void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
 void PlayDancerMove(DANCERV *p, int id, int idNew, int j);
@@ -373,16 +372,16 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
     InitLo(manager);
     D_002DE570 = manager;
     {
-        LMV *range = &manager->scoreRange;
-        range->gMin = -1.5f;
-        range->gMax = 1.0f;
+        LM *range = &manager->scoreRange;
+        range->minValue = -1.5f;
+        range->maxValue = 1.0f;
     }
     manager->earlyWindow = 0.4f;
     manager->lateWindow = 0.4f;
     manager->averageWindow = 8;
     {
         SMPV *smoothing = &manager->smoothingParams;
-        smoothing->g = __builtin_fabsf(manager->scoreRange.gMax - manager->scoreRange.gMin) * 0.33333334f;
+        smoothing->g = __builtin_fabsf(manager->scoreRange.maxValue - manager->scoreRange.minValue) * 0.33333334f;
         smoothing->g8 = 5.0f;
         smoothing->n = 0;
     }
@@ -408,7 +407,7 @@ void CID121::PostLoad()
 extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
-    float third = __builtin_fabsf(manager->scoreRange.gMax - manager->scoreRange.gMin) / 3.0f;
+    float third = __builtin_fabsf(manager->scoreRange.maxValue - manager->scoreRange.minValue) / 3.0f;
     float jitter = third * 0.5f;
     for (i = 0; i < manager->numGrades; i++) {
         SMAE *grade = &manager->grades[i];
@@ -422,12 +421,12 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
             continue;
         ReplaceSma(sma, object, grade->gradeOid, 0, &grade->sma);
         grade->gradeIndex = GetGradeIndexForOid(grade->gradeOid);
-        boundary = manager->scoreRange.gMax;
+        boundary = manager->scoreRange.maxValue;
         for (j = 0; j < 2; j++) {
             boundary -= third;
             grade->thresholds[j] = RandomFloatInRange__Fff(boundary - jitter, boundary + jitter);
         }
-        grade->thresholds[2] = manager->scoreRange.gMin;
+        grade->thresholds[2] = manager->scoreRange.minValue;
     }
 }
 
@@ -786,7 +785,7 @@ float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
     } else {
         lateness = (musicTime - cue->time) / manager->lateWindow;
     }
-    return GLerp(D_002BBB60.gMin, D_002BBB60.gMax, 1.0f - lateness);
+    return GLerp(D_002BBB60.minValue, D_002BBB60.maxValue, 1.0f - lateness);
 }
 
 // Returns its float argument (a hook between timing and scoring; inferred).
@@ -801,7 +800,7 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
     float *slot;
     if (score < 0.0f) {
         float difficulty = GetDifficulty(D_002DE578);
-        score *= Clamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
+        score *= Clamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), D_002BBB60.minValue, D_002BBB60.maxValue);
     }
     if (manager->numScores == 16) {
         memmove(&manager->scores[0], &manager->scores[1], 15 * sizeof(float));

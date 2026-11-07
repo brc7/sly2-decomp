@@ -962,7 +962,7 @@ int FilterAttackLineOfSightHit(struct X *x, struct Y *p) {
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
-union U; struct M4; struct VTE; struct NAME; struct SCALE; struct LM; struct ENTRY; struct P; struct LSG; struct LOS; struct CREF; struct POLY; struct CLOCK; struct BASIC;
+union U; struct M4; struct VTE; struct NAME; struct SCALE; struct ENTRY; struct P; struct LSG; struct LOS; struct CREF; struct POLY; struct CLOCK; struct BASIC;
 // ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
@@ -974,7 +974,6 @@ struct M4 { U row[4]; };
 struct VTE { short delta, pad; void *fn; };
 struct NAME { unsigned identity; };
 struct SCALE { char pad[0x20]; float value; };
-struct LM { float low, high; };
 struct ENTRY {
     char pad0[0x50];
     LM distance, height;
@@ -1121,7 +1120,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
-            float lo = D_002BBB60.low, hi = D_002BBB60.high;
+            float lo = D_002BBB60.minValue, hi = D_002BBB60.maxValue;
             if (gain < lo)
                 gain = lo;
             else if (hi < gain)
@@ -3453,12 +3452,11 @@ void BHVWALKPATH::OnPush()
 
 // 0x178EE0 UpdateBhvwalkpath
 namespace M_UpdateBhvwalkpath {
-struct MATRIX3; struct CLQ; struct LM; struct ACTOR; struct MODEL; struct CONTROL; struct CHOICE; struct DRIVER; struct P; struct CLOCK; struct VU_FLOAT;
+struct MATRIX3; struct ACTOR; struct MODEL; struct CONTROL; struct CHOICE; struct DRIVER; struct P; struct CLOCK; struct VU_FLOAT;
 // UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with VuGetX (gcc emits the qmfc2, asm mtc1).
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { float mat[3][4]; };
 struct CLQ { float g0, g1, g2; };
-struct LM { float minValue, maxValue; };
 struct ACTOR { char pad[0xFD0]; char control[1]; };
 struct MODEL { char pad[0x10]; qword velocity; };
 struct CONTROL { char pad[0x24]; void *animation; };

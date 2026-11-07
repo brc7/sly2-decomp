@@ -37,7 +37,6 @@ typedef union { qword q; float f[4]; } U;
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
-struct LMV { float gMin; float gMax; };
 struct SW;
 struct ALLOCREQ { int cb, cbAlign; };
 struct SCOPE { int a[4]; };
@@ -79,7 +78,7 @@ struct GUARDV
 };
 typedef char assert_GUARDV_marker[(unsigned int)&((GUARDV *)0)->marker == 0x1010 ? 1 : -1];
 /* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
-struct ATKENTRY { char pad[0x60]; LMV cooldown; };
+struct ATKENTRY { char pad[0x60]; LM cooldown; };
 /* The behaviour. */
 struct BHVRT
 {
@@ -124,11 +123,11 @@ extern float D_002BD470;
 extern float D_002BD474;
 extern float D_002BD478;
 extern float D_002BD47C;
-extern LMV D_002BD480;
-extern LMV D_002BD488;
-extern LMV D_002BD490;
-extern LMV D_002BD498;
-extern LMV D_002BD4A0;
+extern LM D_002BD480;
+extern LM D_002BD488;
+extern LM D_002BD490;
+extern LM D_002BD498;
+extern LM D_002BD4A0;
 extern float D_002BD4B0[3];
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
@@ -191,7 +190,7 @@ void SetBhvRouteState(BHVRT *p, int n);
 }
 float RandomFloatInRange(float gMin, float gMax);
 int RandomIntInRange(int nMin, int nMax);
-int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
+int IsWithinLimits(LM *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LM: this file's view of LM */
 LOV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 static inline void InitS(ALLOCREQ *ps, int a, int b)
@@ -493,11 +492,11 @@ moveMarker:   // (a shared tail: each search above jumps here with its pick)
 }
 
 // Remaps g through an LM range (inferred: clamped linear mapping).
-static inline float NormalizeToRange(LMV *pr, float g)
+static inline float NormalizeToRange(LM *pr, float g)
 {
-    if (pr->gMin == pr->gMax)
+    if (pr->minValue == pr->maxValue)
         return 0.0f;
-    return (g - pr->gMin) / (pr->gMax - pr->gMin);
+    return (g - pr->minValue) / (pr->maxValue - pr->minValue);
 }
 // 0x14AA30: Returns the index of the route station best placed relative to the hero: each station is scored by its
 // distance along the route from the hero's closest point (weight 0.5), its depth on screen (0.15) and its distance
@@ -591,7 +590,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     case 3: {
         float t = D_002DDED0.time;
-        behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+        behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.minValue, behavior->attack->cooldown.maxValue);
         behavior->attack = 0;
         break;
     }
@@ -796,10 +795,10 @@ float D_002BD470 = 200.0f;
 float D_002BD474 = -75.0f;
 float D_002BD478 = 600.0f;
 float D_002BD47C = 10.0f;
-LMV D_002BD480 = {900.0f, 1400.0f};
-LMV D_002BD488 = {1400.0f, 4000.0f};
-LMV D_002BD490 = {600.0f, 1000.0f};
-LMV D_002BD498 = {1000.0f, 4000.0f};
-LMV D_002BD4A0 = {0.0f, 10.0f};
+LM D_002BD480 = {900.0f, 1400.0f};
+LM D_002BD488 = {1400.0f, 4000.0f};
+LM D_002BD490 = {600.0f, 1000.0f};
+LM D_002BD498 = {1000.0f, 4000.0f};
+LM D_002BD4A0 = {0.0f, 10.0f};
 float D_002BD4B0[3] __attribute__((aligned(16))) = {-400.0f, 0.8f, 0.0f};
 }

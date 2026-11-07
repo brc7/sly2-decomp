@@ -2035,7 +2035,6 @@ struct BASE_E0 { char data[0xE0]; };
 struct BASE_190 { char data[0x190]; };
 struct PATH : BASE_E0, SAMPLER {};
 struct SPLINE : BASE_190, SAMPLER {};
-struct LM { float low, high; };
 struct SMP { float a, b, c; };
 struct VU_FLOAT { qword q; };
 
@@ -2147,7 +2146,7 @@ static inline float NormalizeInPlace(U &v, const qword &vDefault)
         v.q = VuDivByX(v.q, l);
     return QwordX(l);
 }
-static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
+static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.minValue + u * lm.maxValue; }
 static inline int IsMoving(qword v) { return D_002BF848 < LengthXYOf(v); }
 
 // Per-frame update of the jump state (jts 2): stick combo timers, a search for an interceptable jump target among the

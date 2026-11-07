@@ -2863,7 +2863,6 @@ struct VU_VECTOR
     VU_VECTOR(const VECTOR &v) { q = v.q; }
 };
 
-struct LM { float minValue, maxValue; };
 struct GRABSPOT
 {
     char pad0[0x20];

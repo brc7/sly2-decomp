@@ -1411,8 +1411,6 @@ namespace M_SprayDprizes {
 //  * posBase is read before the SetVectorCylind call, so it is a spilled pseudo at sp+0x80 like the game.
 typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
-struct CLQ { float g0, g1, g2, unused; };
-struct LM { float minValue, maxValue; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct LINK { char pad0[0x10]; REGION *pregion; };

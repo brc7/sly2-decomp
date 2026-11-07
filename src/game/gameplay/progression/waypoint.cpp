@@ -21,8 +21,6 @@ struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
 struct MATRIX3V { VECTORV mat[3]; };
 struct MATRIX4V { VECTORV mat[3]; VECTORV pos; };
 struct VU_FLOAT { qwordV qw; };
-struct CLQV { float g0, g1, g2, gUnused; };
-struct LMV { float gMin, gMax; };
 struct RGBAV
 {
     uchar r, g, b, a;
@@ -448,10 +446,10 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
 // with a single result variable and by-value limits, `dz = p ? .. : 0.0f` (splits cse so g_normalZ's hi part is
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
 // float argument of DrawWorldLabel second (invisible in the callee, decides the f12 move's slot).
-extern LMV D_002BBB60;      // g_lmZeroOne
+extern LM D_002BBB60;      // g_lmZeroOne
 float D_002C4494 = 10.0f, D_002C4498 = 10.0f, D_002C449C = 0.1f;   /* waypoint's .data, address order */
-CLQV D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
-LMV D_002C44D0 = {1.0f, 5.0f};
+CLQ D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
+LM D_002C44D0 = {1.0f, 5.0f};
 float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPTV *waypoint);
@@ -470,7 +468,7 @@ void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const 
 static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, FindSwLocalizedString__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
-static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
+static inline float GEvaluateClq(CLQ *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 // Clamps g to [gMin, gMax].
 // Same idiom as sly2/util.h Clamp; kept local because the shared helper changes RenderWaypt (312/376 instructions off).
 static inline float ClampLocal(float g, float gMin, float gMax)
@@ -534,9 +532,9 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
     float fadeStart = Max(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
     fadeStart = D_003DD490.unknown4750 + D_002C449C;
-    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
     switch (waypoint->mode)
     {
     case 0:
@@ -563,7 +561,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
-    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
+    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.minValue, D_002C44D0.maxValue);
     qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;

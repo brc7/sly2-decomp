@@ -350,7 +350,6 @@ namespace M_UpdateBentley { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VUF;
 struct M3 { qword r[3]; };
-struct LM { float minValue; float maxValue; };
 struct POLY { float a; float b; float c; };
 struct S150 { char pad[0x18]; float g18; float g1C; };
 struct S1030 { char pad[0x1C]; float g1C; char pad20[0x20]; float g40; };

@@ -2544,7 +2544,6 @@ void BuildShapeValidRanges(struct S *shape)
 } } // namespace M_func_001EA000
 
 namespace M_func_001EA3B0 { extern "C" {
-struct LM { float minValue; float maxValue; };
 struct S { char pad[0xC]; int c; struct LM alm[1]; };
 // Returns the {min, max} range containing g, or 0.
 struct LM *FindRangeContaining(struct S *table, float value)

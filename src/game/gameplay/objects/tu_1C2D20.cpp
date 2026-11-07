@@ -32,7 +32,6 @@ struct SPRAYER
     int smaIndex;       /* +0x16C */
 };
 typedef char assert_SPRAYER_ismaCur[(unsigned int)&((SPRAYER *)0)->smaIndex == 0x16C ? 1 : -1];
-struct LMV { float gMin, gMax; };
 struct GAME { int dummy; };
 
 /* tu_1C2D20's .data (address order): the sprayer's snip table (Sly 1 SNIP {grfsnip, oid, ib}), then its random ranges. */
@@ -50,9 +49,9 @@ void SelectLootEntry(SOV *plo, int id);
 SOV *FindSoXf(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
-LMV D_002C0CE0 = {0.75f, 1.2f};                     // flight time
+LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
 float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
-LMV D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
+LM D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
 extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
 void *GetHeroPo(GAME *);
 qwordV GetLoWorldPos(void *);
@@ -160,7 +159,7 @@ static inline qwordV Transform(const M3 &m, qwordV q)
     return r;
 }
 // Random float in an LM range.
-static inline float Rand(const LMV &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+static inline float Rand(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
 // vtable slot 76 (SetState).
 static inline void SetState(SOV *object, int state) { VTE *v = object->vt; ((void (*)(void *, int))v[76].fn)((char *)object + v[76].delta, state); }
 // vtable slot 8 (Reset).

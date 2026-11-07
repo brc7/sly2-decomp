@@ -1873,7 +1873,6 @@ namespace M_func_00142AF8 {
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct LM { float minValue; float maxValue; };
 struct R { char pad[0x40]; M3 m40; char pad1[0xA0 - 0x70]; void *pA0; };
 struct Q { char pad[8]; R *p8; };
 struct S {

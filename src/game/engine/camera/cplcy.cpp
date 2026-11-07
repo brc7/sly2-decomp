@@ -283,7 +283,6 @@ struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float t
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
-struct LM { float minValue, maxValue; };
 extern struct POLY D_002BD980;
 extern float D_002BD990, D_002BD994, D_002BD998, D_002BD99C;
 extern char D_002BD9A0[];
@@ -869,7 +868,6 @@ extern "C" CLOCK D_002DDED0;
 struct CM;
 extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float minValue, maxValue; };
 extern "C" CLQ D_002BDA10;
 extern "C" LM D_002BDA20;
 extern "C" CLQ D_002BDA30;

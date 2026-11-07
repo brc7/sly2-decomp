@@ -1874,7 +1874,6 @@ void RenderStuck(S *p)
 namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct LM { float minValue, maxValue; };
 struct SHRAPNEL {
     char pad[0x18]; float duration;
     char pad2[0x90 - 0x1C]; qword v;

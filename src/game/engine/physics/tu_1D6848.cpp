@@ -156,8 +156,6 @@ void CID112::Init() { S *launcher = (S *)this;
 union MATRIX4V { qwordV r[4]; float m[4][4]; };
 struct MATRIX3V { qwordV r[3]; };
 struct XFV { MATRIX4V mat; MATRIX4V matWorld; };
-struct CLQV { float g0, g1, g2, gUnused; };
-struct LMV { float gMin, gMax; };
 struct VECTOR4V { qwordV q; VECTOR4V(const qwordV &v) { q = v; } VECTOR4V(const VECTOR4V &v) { q = v.q; } };
 struct SOV;
 struct BASICV {
@@ -193,12 +191,12 @@ struct LAUNCH {
     qwordV posTarget;            // 0x50
     SOV *psoSource;              // 0x60
     char pad64[0xC];
-    CLQV clqPredict;             // 0x70
-    LMV lmPredict;               // 0x80
+    CLQ clqPredict;             // 0x70
+    LM lmPredict;               // 0x80
     char pad88[8];
-    CLQV clqOffset;              // 0x90
-    LMV lmOffset;                // 0xA0
-    LMV lmSpin;                  // 0xA8
+    CLQ clqOffset;              // 0x90
+    LM lmOffset;                // 0xA0
+    LM lmSpin;                  // 0xA8
     float pitch;                // 0xB0
 };
 extern XFV D_002C44F0;           // identity frame
@@ -223,7 +221,7 @@ qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);         
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
 float RandomFloatInRange__Fff(float, float);                               // RandomFloatInRange
 }
-static inline float RandomFloatInRange(const LMV &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+static inline float RandomFloatInRange(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
 struct VV { qwordV q; VV() {} VV(const qwordV &v) { q = v; } operator qwordV() const { return q; } };
 struct VU_FLOAT {
     qwordV q;
@@ -307,7 +305,7 @@ static inline qwordV AddScaled(VV base, VU_FLOAT g, qwordV v)
 }
 static inline qwordV operator*(qwordV v, VU_FLOAT g) { qwordV r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qwordV operator*(VU_FLOAT g, qwordV v) { qwordV r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
-static inline float GFromClq(const CLQV &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
+static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 
 // Launches pso from the launcher: aims at the target point (optionally advanced by a predicted travel time and
@@ -334,7 +332,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         __ml__FRC7MATRIX4T0(&mat, &pxf->matWorld, &matParent);
         dpos = VuSub(Point(mat, plaunch->posTarget), posStart);
         dist = QwordX(Length(dpos));
-        float t = Clamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
+        float t = Clamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.minValue, plaunch->lmPredict.maxValue);
         if (t != 0.0f) {
             MATRIX4V matPredict;
             LoadIdentityMatrix4(pxf, 0, &mat, 0, t);
@@ -343,7 +341,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         }
     }
     dist = QwordX(Length(dpos));
-    float offset = Clamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.gMin, plaunch->lmOffset.gMax);
+    float offset = Clamp(GFromClq(plaunch->clqOffset, dist), plaunch->lmOffset.minValue, plaunch->lmOffset.maxValue);
     qwordV posAim;
     qwordV posLaunch = AddScaled(posOrigin, VU_FLOAT(offset), Normalize(dpos));
     posAim = QwFromVf(posLaunch);
@@ -368,7 +366,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         qwordV v = CalculateBallisticLaunchVelocity(plaunch->pitch, posStart, posLaunch, vAccel);
         pso->SetVelocity(v);
     }
-    if (plaunch->lmSpin.gMax > 0.0f) {
+    if (plaunch->lmSpin.maxValue > 0.0f) {
         float g = RandomFloatInRange(plaunch->lmSpin);
         float x = RandomFloatInRange__Fff(-1.0f, 1.0f);
         float y = RandomFloatInRange__Fff(-1.0f, 1.0f);

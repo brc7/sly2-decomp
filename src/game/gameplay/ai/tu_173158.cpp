@@ -26,7 +26,6 @@ union U { qwordV q; float f[4]; };
 struct M3 { qwordV row[3]; };
 struct M4 { qwordV r[4]; };
 struct VECTOR4V { float x, y, z, w; } __attribute__((aligned(16)));
-struct LMV { float gMin, gMax; };
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
 struct SCOPE { int a[4]; };
@@ -135,7 +134,7 @@ float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
 extern CMV D_002DDF40;
 extern const float D_002A53E0;   /* defined below where the ELF has it (.rodata order) */
-extern LMV D_002BBB60;
+extern LM D_002BBB60;
 void InitLo(CID119V *p);
 void LoadLoFromBrx(CID119V *p, void *pbis);
 void PostLoLoad(CID119V *p);
@@ -793,7 +792,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
             int numSamples = (int)(GetShapeMaxDistance(object) / D_002BE5E8);
             for (int k = 0; k < numSamples; k++)
             {
-                float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.gMin, D_002BBB60.gMax));
+                float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.minValue, D_002BBB60.maxValue));
                 if (FindRangeContaining(object->curveData, u))
                     continue;
                 EvaluateShapeAtDistance(object, &curvePosition.q, &curveDirection.q, u);
