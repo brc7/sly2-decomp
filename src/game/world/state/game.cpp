@@ -143,7 +143,6 @@ struct CRef : CRefData {
     ~CRef() { Decref__4CRef(this); }
 };
 struct OPT;
-struct JOBTIME { char pad[0x9C]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
@@ -181,11 +180,11 @@ extern "C" void UpdateGameTimers()
             SetFloat(var, episodeTime + D_002DDED0.deltaTime, D_003D4A60);
         }
     }
-    JOBTIME *job = ((JOBTIME *)D_003DD490.currentJob);
+    JOB *job = (JOB *)D_003DD490.currentJob;
     if (job && (float)g_joy.dtIdle < 10.0f) {   /* only while the player is not idle */
-        job->elapsed += D_002DDED0.deltaTime;
-        if (job->start < job->elapsed)
-            ChangeDifficulty(D_002DE578, D_002DDED0.deltaTime / (job->end - job->start));
+        job->dtElapsed += D_002DDED0.deltaTime;
+        if (job->easeStartTime < job->dtElapsed)
+            ChangeDifficulty(D_002DE578, D_002DDED0.deltaTime / (job->easeEndTime - job->easeStartTime));
     }
 }
 
@@ -205,16 +204,11 @@ typedef char CRef_Tag[FIELD_OFFSET(CRef,tag)==0?1:-1];
 typedef char CRef_Float[FIELD_OFFSET(CRef,g)==4?1:-1];
 typedef char CRefCopy_Tag[FIELD_OFFSET(CRefCopy,tag)==0?1:-1];
 typedef char CRefCopy_Float[FIELD_OFFSET(CRefCopy,g)==4?1:-1];
-typedef char H_Size[sizeof(JOBTIME)==0xA8?1:-1];
-typedef char H_Start[FIELD_OFFSET(JOBTIME,start)==0x9C?1:-1];
-typedef char H_End[FIELD_OFFSET(JOBTIME,end)==0xA0?1:-1];
-typedef char H_Elapsed[FIELD_OFFSET(JOBTIME,elapsed)==0xA4?1:-1];
 } // namespace M_UpdateGameTimers
 #undef FIELD_OFFSET
 
 namespace M_NEpisodePercentComplete {
 struct ALLOCREQ { int cb; int nKind; };
-struct X { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; };
 extern "C" { extern SW D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
@@ -235,13 +229,13 @@ extern "C" int GetEpisodePercentComplete()
     STACKSCOPE fr;
     ALLOCREQ req;
     SW *pg = &D_003DD490;
-    X **tasks = (X **)PvAllocReq(&req, pg->ctask * 4, 0x10);
+    TASK **tasks = (TASK **)PvAllocReq(&req, pg->ctask * 4, 0x10);
     int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
     for (int i = 0; i < numFound; i++) {
-        X *task = tasks[i];
-        if (task->numFollowers) {
+        TASK *task = tasks[i];
+        if (task->cptaskSucc) {
             numCounted++;
-            if (task->state == TASK_STATE_COMPLETE)
+            if (task->nState == TASK_STATE_COMPLETE)
                 numComplete++;
         }
     }
@@ -364,21 +358,20 @@ void HideCountdownHud(SW *world)
 } } // namespace M_func_00161958
 
 namespace M_BroadcastGameEvent { extern "C" {
-struct X { char pad[0x7C]; void *job; char pad2[0x88 - 0x80]; struct X *nextActive; };
 extern SW D_003DD490;
 extern char D_002DE578[];
 void HandleGameEvent(void *pv, int n, void *p);
 void HandleDifficultyMessage(void *pv, int n, void *p);
-void SendTaskGameEvent(struct X *task, int n, void *p);
+void SendTaskGameEvent(TASK *task, int n, void *p);
 void HandleJobGameEvent(void *pv, int n, void *p);
 // The game event bus: the game record, the difficulty, every available task of the current job, then the current job.
 void BroadcastGameEvent(void *pv, int n, void *p)
 {
-    struct X *task;
+    TASK *task;
     HandleGameEvent(pv, n, p);
     HandleDifficultyMessage(D_002DE578, n, p);
-    for (task = (struct X *)g_sw.dlTaskActive.head; task; task = task->nextActive) {
-        if (task->job == D_003DD490.currentJob)
+    for (task = (TASK *)g_sw.dlTaskActive.head; task; task = (TASK *)task->dleActive.next) {
+        if (task->pjob == D_003DD490.currentJob)
             SendTaskGameEvent(task, n, p);
     }
     if (D_003DD490.currentJob)
@@ -760,10 +753,9 @@ void JOB::Init()
 namespace M_LoadJobFromBrx {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream;
-struct S { char pad[0x54]; int numCompleteEvents; void *completeEvents; int numFailEvents; void *failEvents; char pad2[0x8C - 0x64]; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
-extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
+extern "C" void LoadLoFromBrx(LO *p, CBinaryInputStream *stream);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -779,49 +771,46 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 }
 // Loads a JOB from the BRX: preallocates its visibility, rsmg and two event-id lists, loads the LO part, then shrinks
 // them to the counts read. Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadJobFromBrx(S *job, CBinaryInputStream *stream)
+extern "C" void LoadJobFromBrx(JOB *job, CBinaryInputStream *stream)
 {
     STACKSCOPE fr;
     ALLOCREQ req;
-    job->visibility = PvAllocReq(&req, 0x200, 0x10);
-    job->rsmgs = PvAllocReq(&req, 0x300, 0x10);
-    job->completeEvents = PvAllocReq(&req, 0x80, 0x10);
-    job->failEvents = PvAllocReq(&req, 0x80, 0x10);
+    job->avis = (STATEVIS *)PvAllocReq(&req, 0x200, 0x10);
+    job->arsmg = (STATERSMG *)PvAllocReq(&req, 0x300, 0x10);
+    job->aeventComplete = (int *)PvAllocReq(&req, 0x80, 0x10);
+    job->aeventFail = (int *)PvAllocReq(&req, 0x80, 0x10);
     LoadLoFromBrx(job, stream);
-    job->visibility = PvShrinkReq(&req, job->numVisibility * 16, 0x10, job->visibility);
-    job->rsmgs = PvShrinkReq(&req, job->numRsmgs * 0x18, 0x10, job->rsmgs);
-    job->completeEvents = PvShrinkReq(&req, job->numCompleteEvents * 4, 0x10, job->completeEvents);
-    job->failEvents = PvShrinkReq(&req, job->numFailEvents * 4, 0x10, job->failEvents);
+    job->avis = (STATEVIS *)PvShrinkReq(&req, job->cvis * 16, 0x10, job->avis);
+    job->arsmg = (STATERSMG *)PvShrinkReq(&req, job->crsmg * 0x18, 0x10, job->arsmg);
+    job->aeventComplete = (int *)PvShrinkReq(&req, job->ceventComplete * 4, 0x10, job->aeventComplete);
+    job->aeventFail = (int *)PvShrinkReq(&req, job->ceventFail * 4, 0x10, job->aeventFail);
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadJobFromBrx
 
 namespace M_AddJobCompleteEvent { extern "C" {
-struct S { char pad[0x54]; int numCompleteEvents; int *completeEvents; };
 // Splice: adds a game-event id that completes the job when it arrives (at most 32).
-void AddJobCompleteEvent(struct S *job, int eventId)
+void AddJobCompleteEvent(JOB *job, int eventId)
 {
-    if (job->numCompleteEvents < 32) {
-        job->completeEvents[job->numCompleteEvents++] = eventId;
+    if (job->ceventComplete < 32) {
+        job->aeventComplete[job->ceventComplete++] = eventId;
     }
 }
 } } // namespace M_AddJobCompleteEvent
 
 namespace M_func_00162630 { extern "C" {
-struct S { char pad[0x5C]; int numFailEvents; int *failEvents; };
 // Splice: adds a game-event id that fails the job when it arrives (at most 32).
-void AddJobFailEvent(struct S *job, int eventId)
+void AddJobFailEvent(JOB *job, int eventId)
 {
-    if (job->numFailEvents < 32) {
-        job->failEvents[job->numFailEvents++] = eventId;
+    if (job->ceventFail < 32) {
+        job->aeventFail[job->ceventFail++] = eventId;
     }
 }
 } } // namespace M_func_00162630
 
 namespace M_func_00162660 { extern "C" {
-struct S { char pad[0xAC]; int completionWidgetOid; int introLabel; int outroLabel; };
 // Splice: sets the job's completion widget oid and its intro and outro labels.
-void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int outroLabel)
+void SetJobCompletionWidget(JOB *job, int widgetOid, int introLabel, int outroLabel)
 {
     job->completionWidgetOid = widgetOid;
     job->introLabel = introLabel;
@@ -830,44 +819,39 @@ void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int ou
 } } // namespace M_func_00162660
 
 namespace M_FJobLive { extern "C" {
-struct S { char pad[0x50]; int isDisabled; char pad2[0xF0 - 0x54]; int stateSource; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 // True when the job is enabled, its state source is not 2/3 and no world transition is in progress.
-int IsJobLive(struct S *job)
+int IsJobLive(JOB *job)
 {
-    if (job->isDisabled == 0 && job->stateSource != STATE_SOURCE_GO_TO_TASK && job->stateSource != STATE_SOURCE_LOAD_RESET)
+    if (job->fDisabled == 0 && job->stateSource != STATE_SOURCE_GO_TO_TASK && job->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FJobLive
 
 namespace M_func_001626C0 { extern "C" {
-struct E { int object, context, stateMask, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0x8C - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateBit(int i);
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
-void AddJobStateVisibility(struct S *job, int object, int state, int context, int level)
+void AddJobStateVisibility(JOB *job, int object, int state, int context, int level)
 {
-    if (job->isDisabled == 0 && job->numVisibility < 32) {
-        struct E *pe = &job->visibility[job->numVisibility++];
-        pe->object = object;
-        pe->context = context;
-        pe->stateMask = GetStateBit(state);
+    if (job->fDisabled == 0 && job->cvis < 32) {
+        STATEVIS *pe = &job->avis[job->cvis++];
+        pe->oidObject = object;
+        pe->oidContext = context;
+        pe->grfState = GetStateBit(state);
         pe->level = level;
     }
 }
 } } // namespace M_func_001626C0
 
 namespace M_func_00162728 { extern "C" {
-struct E { int state, root, stateMachine, goal, restoreOnly, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0x94 - 0x54]; int numRsmgs; struct E *rsmgs; };
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
-void AddJobStateRsmg(struct S *job, int state, int root, int stateMachine, int goal, int level)
+void AddJobStateRsmg(JOB *job, int state, int root, int stateMachine, int goal, int level)
 {
-    if (job->isDisabled == 0 && job->numRsmgs < 32) {
-        struct E *pe = &job->rsmgs[job->numRsmgs++];
-        pe->level = level; pe->state = state; pe->root = root; pe->stateMachine = stateMachine; pe->goal = goal; pe->restoreOnly = 0;
+    if (job->fDisabled == 0 && job->crsmg < 32) {
+        STATERSMG *pe = &job->arsmg[job->crsmg++];
+        pe->level = level; pe->nState = state; pe->oidRoot = root; pe->oidSm = stateMachine; pe->oidGoal = goal; pe->fRestoreOnly = 0;
     }
 }
 } } // namespace M_func_00162728
