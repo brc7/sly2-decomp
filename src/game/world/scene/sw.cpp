@@ -711,7 +711,7 @@ typedef unsigned int uint;
 struct HEADER {int words[16];};
 struct REQUEST {int flags;HEADER header;int objectId,objectKey;};
 struct KEY {int name,tag,kind;char data[0x104];};
-struct WIDGET {char pad0[0x58];int shown;};
+struct WIDGET : LO { char pad0[0x58 - 0x50]; int shown;};
 struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
@@ -1287,7 +1287,7 @@ int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 
 namespace M_func_0020FA10 { extern "C" {
 struct O { char pad[0x70]; long fl; };
-struct P { char pad[0xEC]; struct O *po; };
+struct P : LO { char pad[0xEC - 0x50]; struct O *po; };
 struct S { int a; struct P *pp; char pad[8]; long fl; };
 // Intersection filter: keeps objects that are not the context object and do not have flag 4.
 int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
@@ -1410,7 +1410,7 @@ void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void 
 } } // namespace M_IntersectSwBoundingSphere
 
 namespace M_func_0020FDC8 { extern "C" {
-struct O { char pad[0x148]; long fl; };
+struct O : LO { char pad[0x148 - 0x50]; long fl; };
 struct A { int pad; struct O *po; };
 struct M { int cb; int align; int pad[2]; };
 void *AllocFromStack(struct M *pm);
