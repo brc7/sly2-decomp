@@ -379,15 +379,14 @@ extern "C" float GetShapeMaxDistance(SHAPE *shape)
 }
 
 namespace M_UWrapShape { extern "C" {
-struct S { char pad[0xE4]; int isClosed; int numPoints; float *times; };
 float ModPositive__Fff(float g, float gMax);
 // On a closed shape wraps u into the parameter range; open shapes return u unchanged.
-float WrapShapeParam(struct S *shape, float param)
+float WrapShapeParam(SHAPE *shape, float param)
 {
     float gMin, gMax;
     if (!shape->isClosed) return param;
-    gMin = shape->times[0];
-    gMax = shape->times[shape->numPoints - 1];
+    gMin = shape->vertexParams[0];
+    gMax = shape->vertexParams[shape->numControlVertices - 1];
     if (gMin <= param && param <= gMax) return param;
     return gMin + ModPositive__Fff(param - gMin, gMax - gMin);
 }
@@ -709,23 +708,22 @@ extern "C" { void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPA
 
 namespace M_func_001E6DB8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0xE4]; int isClosed; int numPoints; float *times; };
 struct SPACE;
-struct CTX { struct X *p; struct SPACE *space; int pad[2]; qword q; };
+struct CTX { SHAPE *p; struct SPACE *space; int pad[2]; qword q; };
 extern float D_002A8130;
 extern float D_002A8134;
 float GetShapeDistanceSquaredAtParam(void *pv, float g);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*pfn)(void *, float), void *pv, float g, float dg, float gMin, float gMax, float *pg, float *pgOut);
-float WrapShapeParam(struct X *p, float g);
-void EvaluateShapeAtParam(struct X *p, float g, qword *a, qword *b);
-float GetShapeDistanceAtParam(struct X *p, float g);
+float WrapShapeParam(SHAPE *p, float g);
+void EvaluateShapeAtParam(SHAPE *p, float g, qword *a, qword *b);
+float GetShapeDistanceAtParam(SHAPE *p, float g);
 // Closest point on a curved shape by minimizing the distance around a starting parameter (step = segment / 10).
-void FindShapeClosestPointCurveFromParam(struct X *shape, qword pos, struct SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
+void FindShapeClosestPointCurveFromParam(SHAPE *shape, qword pos, struct SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
     struct CTX ctx;
     float gRes;
     ctx.space = space; ctx.q = pos; ctx.p = shape;
-    MinimizeRange__FPFPvf_fPvffffPfT6(GetShapeDistanceSquaredAtParam, &ctx, startParam, (shape->times[1] - shape->times[0]) * 0.1f, shape->isClosed ? D_002A8130 : shape->times[0], shape->isClosed ? D_002A8134 : shape->times[shape->numPoints - 1], &gRes, 0);
+    MinimizeRange__FPFPvf_fPvffffPfT6(GetShapeDistanceSquaredAtParam, &ctx, startParam, (shape->vertexParams[1] - shape->vertexParams[0]) * 0.1f, shape->isClosed ? D_002A8130 : shape->vertexParams[0], shape->isClosed ? D_002A8134 : shape->vertexParams[shape->numControlVertices - 1], &gRes, 0);
     gRes = WrapShapeParam(shape, gRes);
     if (posOut || dirOut) EvaluateShapeAtParam(shape, gRes, posOut, dirOut);
     if (paramOut) *paramOut = gRes;
@@ -890,19 +888,18 @@ void FindShapeClosestPointFromDistance(void *shape, qword pos, void *space, qwor
 } } // namespace M_FindShapeClosestPointFromS
 
 namespace M_func_001E7410 { extern "C" {
-struct X { char pad[0xE8]; int numPoints; float *times; };
 extern float D_002A813C;
-void EvaluateShapeAtParam(struct X *p, int a, int b, float g);
-float GetShapeDistanceAtParam(struct X *p, float g);
+void EvaluateShapeAtParam(SHAPE *p, int a, int b, float g);
+float GetShapeDistanceAtParam(SHAPE *p, float g);
 // Picks the vertex whose parameter minimizes a callback and evaluates position, direction and distance there.
 // (inferred)
-void FindShapeBestVertex(struct X *shape, float (*score)(float, void *), void *context, int a, int b, float *paramOut, float *distanceOut)
+void FindShapeBestVertex(SHAPE *shape, float (*score)(float, void *), void *context, int a, int b, float *paramOut, float *distanceOut)
 {
     int i;
     float gBest = 0.0f;
     float dMin = D_002A813C;
-    for (i = 0; i < shape->numPoints; i++) {
-        float g = shape->times[i];
+    for (i = 0; i < shape->numControlVertices; i++) {
+        float g = shape->vertexParams[i];
         float d = score(g, context);
         if (d < dMin) {
             dMin = d;
@@ -916,23 +913,21 @@ void FindShapeBestVertex(struct X *shape, float (*score)(float, void *), void *c
 } } // namespace M_func_001E7410
 
 namespace M_IsegFindShapeU { extern "C" {
-struct X { char pad[0xE8]; int numPoints; float *times; char pad2[0x178 - 0xF0]; int segmentHint; };
-float WrapShapeParam(struct X *p, float g);
+float WrapShapeParam(SHAPE *p, float g);
 // Index of the segment containing u (searching from the cached hint), with the offset into it and its span.
-int FindShapeSegmentAtParam(struct X *shape, float *offsetOut, float *spanOut, float param)
+int FindShapeSegmentAtParam(SHAPE *shape, float *offsetOut, float *spanOut, float param)
 {
     int i;
     param = WrapShapeParam(shape, param);
     i = shape->segmentHint;
-    if (shape->times[i] < param) { int n = shape->numPoints - 1; while (i < n) { if (param < shape->times[i]) break; i++; } i--; } else { while (i > 0) { if (shape->times[i] <= param) break; i--; } } { float g0 = shape->times[i]; if (offsetOut) *offsetOut = param - g0; if (spanOut) *spanOut = shape->times[i + 1] - g0; }
+    if (shape->vertexParams[i] < param) { int n = shape->numControlVertices - 1; while (i < n) { if (param < shape->vertexParams[i]) break; i++; } i--; } else { while (i > 0) { if (shape->vertexParams[i] <= param) break; i--; } } { float g0 = shape->vertexParams[i]; if (offsetOut) *offsetOut = param - g0; if (spanOut) *spanOut = shape->vertexParams[i + 1] - g0; }
     shape->segmentHint = i;
     return i;
 }
 } } // namespace M_IsegFindShapeU
 
 namespace M_IsegFindShapeS { extern "C" {
-struct X { char pad[0xE8]; int numPoints; float *times; float *distances; char pad2[0x178 - 0xF4]; int segmentHint; };
-float WrapShapeDistance(struct X *p, float g);
+float WrapShapeDistance(SHAPE *p, float g);
 
 static inline int Before(int a, int b)
 {
@@ -948,39 +943,39 @@ static inline int LoopEnd(int value)
     return result;
 }
 
-static inline int Count(struct X *p)
+static inline int Count(SHAPE *p)
 {
     register int value __asm__("$3");
-    __asm__("lw %0,%1" : "=r"(value) : "m"(p->numPoints));
+    __asm__("lw %0,%1" : "=r"(value) : "m"(p->numControlVertices));
     return value;
 }
 
 // Index of the segment containing arc length s.
-int FindShapeSegmentAtDistance(struct X *shape, float *offsetOut, float *spanOut, float distance)
+int FindShapeSegmentAtDistance(SHAPE *shape, float *offsetOut, float *spanOut, float distance)
 {
     int i;
     distance = WrapShapeDistance(shape, distance);
     i = shape->segmentHint;
-    if (shape->distances[i] < distance) {
+    if (shape->vertexArcLengths[i] < distance) {
         int limit = Count(shape) - 1;
         if (!Before(i, limit)) goto forwardDone;
-        if (distance < shape->distances[i]) goto forwardDone;
+        if (distance < shape->vertexArcLengths[i]) goto forwardDone;
         {
             int end = LoopEnd(limit);
             do {
                 ++i;
                 if (i >= end) break;
-                if (distance < shape->distances[i]) break;
+                if (distance < shape->vertexArcLengths[i]) break;
             } while (1);
         }
 forwardDone:
         --i;
     } else {
         for (; i > 0; i--)
-            if (shape->distances[i] <= distance) break;
+            if (shape->vertexArcLengths[i] <= distance) break;
     }
-    if (offsetOut) *offsetOut = distance - shape->distances[i];
-    if (spanOut) *spanOut = shape->distances[i + 1] - shape->distances[i];
+    if (offsetOut) *offsetOut = distance - shape->vertexArcLengths[i];
+    if (spanOut) *spanOut = shape->vertexArcLengths[i + 1] - shape->vertexArcLengths[i];
     shape->segmentHint = i;
     return i;
 }
@@ -1000,39 +995,35 @@ qword GetShapeClosestPoint(void *a, int b)
 
 namespace M_DuGetShapeSearchIncrement { extern "C" {
 
-struct S { char pad[0xE8]; int numPoints; };
-float GetShapeMaxParam(struct S *p);
-float GetShapeMinParam(struct S *p);
 // 0x1E77E0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xa0");
 
 // Parameter step for searches: (uMax - uMin) / (count * 10).
-float GetShapeParamSearchStep(struct S *shape)
+float GetShapeParamSearchStep(SHAPE *shape)
 {
     float a = GetShapeMaxParam(shape);
-    return (a - GetShapeMinParam(shape)) / (shape->numPoints * 10.0f);
+    return (a - GetShapeMinParam(shape)) / (shape->numControlVertices * 10.0f);
 }
 } } // namespace M_DuGetShapeSearchIncrement
 
 namespace M_func_001E7840 { extern "C" {
-struct P { char pad[0x40]; int flags; char pad2[0x17C - 0x44]; void *chain; };
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void *InitChain(void *pv, struct P *p);
-void MeasureShape(struct P *p);
-void SetLoBusyKind(struct P *p, int n);
+void *InitChain(void *pv, SHAPE *p);
+void MeasureShape(SHAPE *p);
+void SetLoBusyKind(SHAPE *p, int n);
 // Creates the shape's chain (rope simulation) if missing, measures it and marks the LO busy; f = 1 re-arms an
 // existing chain.
-void *EnsureShapeChain(struct P *shape, int rearm)
+void *EnsureShapeChain(SHAPE *shape, int rearm)
 {
     if (!shape->chain) {
         shape->chain = InitChain(func_001AE4F8(0x90), shape);
         MeasureShape(shape);
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->flags = v & ~0x20; }
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->flags = v | 0xC; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->unknown40 = v & ~0x20; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->unknown40 = v | 0xC; }
     } else if (rearm == 1) {
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0x4; else shape->flags = v | 0x4; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0x4; else shape->unknown40 = v | 0x4; }
     }
     return shape->chain;
 }
@@ -1060,13 +1051,12 @@ void SetShapeChainEndObject(void *shape, int object)
 
 namespace M_func_001E79A0 { extern "C" {
 struct O { char pad[0x5C]; float *distances; };
-struct S { char pad[0xE8]; int numPoints; };
-struct O *EnsureShapeChain(struct S *p, int n);
+struct O *EnsureShapeChain(SHAPE *p, int n);
 // Current length of the shape's chain (last sample; 0 without points).
-float GetShapeChainLength(struct S *shape)
+float GetShapeChainLength(SHAPE *shape)
 {
     float g;
-    if (shape->numPoints > 0) g = EnsureShapeChain(shape, 0)->distances[shape->numPoints - 1];
+    if (shape->numControlVertices > 0) g = EnsureShapeChain(shape, 0)->distances[shape->numControlVertices - 1];
     else g = 0.0f;
     return g;
 }
@@ -1105,10 +1095,8 @@ void SetShapeChainMode(struct P *shape, int mode)
 } } // namespace M_SetShapeChainMode
 
 namespace M_func_001E7B38 { extern "C" {
-struct S { char pad[0xE4]; int isClosed; };
-float GetShapeMaxDistance(struct S *p);
 // Signed distance from a to b along the shape, taken the shorter way round on closed shapes.
-float GetShapeDistanceBetween(struct S *shape, float from, float to)
+float GetShapeDistanceBetween(SHAPE *shape, float from, float to)
 {
     float d = to - from;
     if (shape->isClosed) {
@@ -1381,13 +1369,11 @@ static inline float StoreEndpointAndUpperBits(float *endpoint,float upper,unsign
             :"=m"(*endpoint),"=f"(bound),"=&r"(bits):"f"(upper),"i"(highHalf));
     return bound;
 }
-struct P { char pad[0xE4]; int isClosed; };
 extern int D_002C3650;
-float GetShapeMaxDistance(struct P *);
 float RandomFloatInRange__Fff(float, float);
-float WrapShapeDistance(struct P *, float);
+float WrapShapeDistance(SHAPE *, float);
 // Random arc length within +-range of center, wrapped or clamped to the shape; the distribution is chosen by a table.
-float GetRandomShapeDistanceInRange(struct P *shape, float center, float range)
+float GetRandomShapeDistanceInRange(SHAPE *shape, float center, float range)
 {
     float r[2];
     float t,u,upper,minimum;
@@ -1432,8 +1418,7 @@ float GetRandomShapeDistanceInRange(struct P *shape, float center, float range)
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_int[(sizeof(int)==4)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];
-typedef char layout_P[(sizeof(struct P)==0xE8)?1:-1];
-typedef char layout_P_closed[((unsigned)&((struct P*)0)->isClosed==0xE4)?1:-1];
+typedef char layout_P_closed[((unsigned)&((SHAPE*)0)->isClosed==0xE4)?1:-1];
 } } // namespace M_SRandomShapeRange
 
 namespace M_InitChain { extern "C" {
@@ -2395,10 +2380,9 @@ namespace M_func_001EA000 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; } __attribute__((aligned(16)));
 struct SEG { float a, b; };
-struct O { char pad[0xE4]; int isClosed; };
 struct PV { char pad[0x114]; int version; };
 struct S {
-    struct O *po;
+    SHAPE *po;
     int c4;              // number of segments in aseg
     struct SEG *aseg;    // input segments
     int cC;              // number of segments in aseg10 (output)
@@ -2411,11 +2395,9 @@ struct X { char pad[0x40]; float a; float b; char pad2[0x18]; } __attribute__((a
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 extern float D_002C367C;
-float GetShapeMinDistance(struct O *);
-float GetShapeMaxDistance(struct O *);
-void EvaluateShapeAtDistance(struct O *, float, qword *, qword *);
+void EvaluateShapeAtDistance(SHAPE *, float, qword *, qword *);
 void *FindValidObjectAtPos(qword);
-int FindShapeFreeRange(void *, struct O *, float, int, qword *, float *);
+int FindShapeFreeRange(void *, SHAPE *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int);
 
