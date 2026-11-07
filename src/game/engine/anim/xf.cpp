@@ -2026,8 +2026,6 @@ int IsXfRoleVelocity(int n)
 namespace M_func_002303A0 { extern "C" {
 typedef struct MATRIX4 M4;
 struct V { float x, y, z; } __attribute__((aligned(16)));   /* mat.h/vec.h VECTOR (16-byte aligned), not basic.h's */
-typedef struct VT { short d; short pad; void (*pfn)(void *, int); } VT;
-typedef struct S { char pad[0xC]; VT *vt; } S;
 typedef struct P {
     char pad0[0x94];
     int valueKind;
@@ -2048,12 +2046,12 @@ M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrixDerivative");
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
-void ResetXfValueRef(S *, P *);
+void ResetXfValueRef(SO *, P *);
 
 // Sets a slot's motion role: entering a moving role from a non-moving one captures the slot's current velocity
 // (+0xB0, read off its derivative matrix: translation, shear, scale or the rotation rate), velocity roles clear
 // +0xF0, and the SO is woken unless the new role is at rest. (inferred) Lilly's jtstate.c port calls it SlotSetRole.
-void SetXfRole(S *so, P *xf, int role)
+void SetXfRole(SO *so, P *xf, int role)
 {
     if (role == xf->role)
         return;
@@ -2094,7 +2092,7 @@ void SetXfRole(S *so, P *xf, int role)
     }
     xf->role = role;
     if (!IsXfRoleAtRest(role))
-        so->vt[47].pfn((char *)so + so->vt[47].d, 4);
+        so->SetFlags(4);
 }
 } } // namespace M_func_002303A0
 
