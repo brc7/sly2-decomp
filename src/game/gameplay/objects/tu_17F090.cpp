@@ -31,10 +31,9 @@ struct HACKE
     LO *stateMachine;       /* +0x8 or its SM (cid 0x6F) */
     int nC;
 };
-/* HACK (CID 0x47 : SO): the base of the hack objects. */
-struct HACKV : public SO
+/* HACK (CID 0x47 : PO): the base of the hack objects. */
+struct HACKV : public PO
 {
-    char pad150[0x180 - 0x150];
     int cHealthMax;         /* +0x180 */
     int cHealth;            /* +0x184 */
     int f188;
@@ -44,10 +43,9 @@ struct HACKV : public SO
     float tState;           /* +0x1C4 */
 };
 /* The hack classes keep class-specific words at +0x1C8, inside HACK's 16-byte tail padding, so each class is a
-   separate view over SO (a derived struct would start at sizeof(HACK) = 0x1D0); calls into the HACK base functions
+   separate view over PO (a derived struct would start at sizeof(HACK) = 0x1D0); calls into the HACK base functions
    pass them as HACK *. */
 #define HACK_WORDS \
-    char pad150[0x180 - 0x150]; \
     int cHealthMax;         /* +0x180 */ \
     int cHealth;            /* +0x184 */ \
     int f188; \
@@ -55,7 +53,7 @@ struct HACKV : public SO
     char pad190[0x1C0 - 0x190]; \
     int nState;             /* +0x1C0 */ \
     float tState;           /* +0x1C4 */
-struct HACKSHIPV : public SO     /* CID 0x48 */
+struct HACKSHIPV : public PO     /* CID 0x48 */
 {
     HACK_WORDS
     HACKE ahacke[5];        /* +0x1C8 */
@@ -66,14 +64,14 @@ struct HACKSHIPV : public SO     /* CID 0x48 */
     char pad298[0x2A8 - 0x298];
     int nSound;             /* +0x2A8 */
 };
-struct HACKENEMYV : public SO    /* CID 0x49 */
+struct HACKENEMYV : public PO    /* CID 0x49 */
 {
     HACK_WORDS
     char pad1C8[0x378 - 0x1C8];
     float aScale[3];        /* +0x378 */
     float sRange;           /* +0x384 */
 };
-struct HACKLOCKV : public SO     /* CID 0x4B */
+struct HACKLOCKV : public PO     /* CID 0x4B */
 {
     HACK_WORDS
     HACKSHIPV *ship;    /* +0x1C8 */
