@@ -398,26 +398,21 @@ void SetStepplayerCtlState(char *player, int n)
 namespace M_func_00140750 { extern "C" {
 /* UpdateStepplayerHideBlend (Claude agent): matched. MinF/MaxF as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; int (*pfn)(void *); };
-struct P {
-    char pad[0xC]; struct VTE *vt; char pad1[0xDF4 - 0x10]; int xDF4;
-    char pad2[0x10C4 - 0xDF8]; void *hideVolumes; int x10C8; float hideBlend; float x10D0;
-};
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
-int TestStepplayerHidden(struct P *p);
-qword GetLoWorldPos(struct P *p);
-void CreateNoise(void *a, qword pos, struct P *p, int n);
+int TestStepplayerHidden(STEPPLAYER *p);
+qword GetLoWorldPos(STEPPLAYER *p);
+void CreateNoise(void *a, qword pos, STEPPLAYER *p, int n);
 
 
 static inline float MaxF(float a, float b) { return b > a ? b : a; }
 
-// If a hide volume set exists (+0x10C4): smooths the hide blend (+0x10CC) toward 1 inside, 0 outside.
-void UpdateStepplayerHideBlend(struct P *player)
+// If a hide noise source exists: smooths the hide blend toward 1 while hidden, 0 otherwise.
+void UpdateStepplayerHideBlend(STEPPLAYER *player)
 {
     int k;
     float g;
-    if (!player->hideVolumes) return;
+    if (!player->hideNoise) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
         { float dt = D_002DDED0.dt; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
@@ -429,24 +424,24 @@ void UpdateStepplayerHideBlend(struct P *player)
         player->hideBlend = 0.0f;
         break;
     }
-    if (player->xDF4 != -1 || (g = player->hideBlend) == 0.0f) player->x10C8 = -1;
-    else if (g == 1.0f || (player->x10C8 == 1 && 0.0f < g)) player->x10C8 = 1;
-    else player->x10C8 = 0;
-    k = player->vt[98].pfn((char *)player + player->vt[98].d);
-    if (player->x10C8 != 1 && k == 1) k = 2;
+    if (player->jthurt.state != -1 || (g = player->hideBlend) == 0.0f) player->hideState = -1;
+    else if (g == 1.0f || (player->hideState == 1 && 0.0f < g)) player->hideState = 1;
+    else player->hideState = 0;
+    k = player->GetMovementNoise();
+    if (player->hideState != 1 && k == 1) k = 2;
     switch (k) {
     case 0:
-        player->x10D0 = 0.0f;
+        player->noiseBuildup = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.dt; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
-    if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
+    if (player->noiseBuildup == 1.0f) CreateNoise(player->hideNoise, GetLoWorldPos(player), player, 0);
 }
 } } // namespace M_func_00140750
 
@@ -1084,24 +1079,17 @@ void LaunchStepplayer(struct P *player, qword v, float g, float h)
 } } // namespace M_func_00141968
 
 namespace M_UpdateStepplayerGadgets { extern "C" {
-struct VTE { short d; short pad; int (*pfn)(void *, ...); };
-struct E { int id; int state; int x; };
-struct X150 { char pad[0x30]; int grf; };
 struct T { int x0; int x4; int x8; int xC; char pad[0x10]; };
-struct P {
-    char pad[0xC]; struct VTE *vt; char pad1[0x150 - 0x10]; struct X150 *controller; char pad2[0x1180 - 0x154];
-    struct E ae[3]; char pad3[0x1304 - 0x11A4]; float t1304;
-};
 extern struct CLOCK D_002DDED0;
 extern int D_002C3258[];
 extern struct T D_002BCD00[];
-int ConsumeButtonsPressedWithin__5POCTLUif(struct X150 *p, int mask, float g);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, int mask, float g);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
-int GetStepplayerMp(struct P *p);
-void SetGadgetSlotState(struct P *p, struct E *pe, int n);
+int GetStepplayerMp(STEPPLAYER *p);
+void SetGadgetSlotState(STEPPLAYER *p, GADGETSLOT *pe, int n);
 // Per frame for the three gadget slots (buttons 4/1/2): starts, updates and stops held gadgets.
-void UpdateStepplayerGadgets(struct P *player)
+void UpdateStepplayerGadgets(STEPPLAYER *player)
 {
     int i;
     int *pmask;
@@ -1110,18 +1098,18 @@ void UpdateStepplayerGadgets(struct P *player)
     pmask = D_002C3258;
     do {
         int mask = *pmask;
-        struct E *pe = &player->ae[i];
-        int id = pe->id;
+        GADGETSLOT *pe = &player->gadgetSlots[i];
+        int id = pe->idGadget;
         switch (pe->state) {
         case 0:
             if (ConsumeButtonsPressedWithin__5POCTLUif(player->controller, mask, 0.15f)) {
-                if (!player->vt[99].pfn((char *)player + player->vt[99].d, id)) {
+                if (!player->CanUseGadget(id)) {
                     SetSndSourceLo(CreateSfxSound(0x2E), 0);
                 } else {
                     int n = GetStepplayerMp(player);
                     if (n < D_002BCD00[id].xC) {
                         SetSndSourceLo(CreateSfxSound(0x2E), 0);
-                        player->t1304 = D_002DDED0.time;
+                        player->lastGadgetUseTime = D_002DDED0.time;
                     } else {
                         SetGadgetSlotState(player, pe, D_002BCD00[id].x0);
                     }
@@ -1129,10 +1117,10 @@ void UpdateStepplayerGadgets(struct P *player)
             }
             break;
         case 1:
-            if (!(player->controller->grf & mask) || !((int (*)(void *, int))player->vt[99].pfn)((char *)player + player->vt[99].d, id))
+            if (!(player->controller->buttonsHeld & mask) || !player->CanUseGadget(id))
                 SetGadgetSlotState(player, pe, 0);
             else
-                ((void (*)(void *, struct E *))player->vt[101].pfn)((char *)player + player->vt[101].d, pe);
+                player->UpdateGadget(pe);
             break;
         }
         pmask++;

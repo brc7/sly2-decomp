@@ -500,8 +500,9 @@ struct STEPPLAYER : public STEP
       void *unknown10B8;
       undefined4 unk_0x10bc[(0x10c4 - 0x10bc) / 4];
       void *hideNoise;   /* +0x10C4 the noise source TestStepplayerHidden spawns (NewNoise) to ask guards whether the hero is seen */
-      int unknown10C8;
-      undefined4 unk_0x10cc[(0x10d4 - 0x10cc) / 4];
+      int hideState;   /* +0x10C8 -1 not hiding (or hurt), 0 partly, 1 hidden (UpdateStepplayerHideBlend) */
+      float hideBlend;   /* +0x10CC 0..1, toward 1 while no guard can see the hero (TestStepplayerHidden) */
+      float noiseBuildup;   /* +0x10D0 0..1 by the movement noise class; at 1 the hero makes a noise (CreateNoise) */
       float unknown10D4;
       float unknown10D8;
       LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
@@ -577,7 +578,7 @@ struct STEPPLAYER : public STEP
     virtual int CanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepplayerZapLethal");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void UpdateGadget() __asm__("UpdateStepplayerGadget");   /* slot 101: named from its overrides (inferred) */
+    virtual void UpdateGadget(GADGETSLOT *pslot) __asm__("UpdateStepplayerGadget");   /* slot 101: a held gadget's slot each frame (UpdateStepplayerGadgets) */
     virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
     virtual void *GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: the character's save-variable root (named from its overrides, inferred) */
     virtual void SendPowerupEvent() __asm__("SendStepplayerPowerupEvent");   /* slot 104: named from its overrides (inferred) */
