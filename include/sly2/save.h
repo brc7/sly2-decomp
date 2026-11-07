@@ -107,7 +107,8 @@ struct SAVE
     int freeClusters;       /* +0x1C */
     int isFormatted;        /* +0x20 */
     char aslot[3][0x5464];  /* +0x24 the slots (kept as bytes: the matched code addresses them by offset) */
-    int currentSlot;        /* +0xFD50 the slot in use (0: none) */
+    int currentSlot;        /* +0xFD50 the slot in use (0: none); memcard.cpp's save-page functions read it, and
+                               selectedSlot, as a pointer to one of aslot (their views keep that form for now) */
     void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
     int selectedSlot;       /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
     MEMCARD memcard;        /* +0xFD5C */

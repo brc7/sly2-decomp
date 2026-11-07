@@ -253,7 +253,9 @@ struct SW : public BASIC
       DL dlCid23;           /* +0x3FF0 [S] class list of CID 23, the volumes (vol.cpp OnCid23Add / Remove, detector.cpp walks) */
       DL dlStimulus;   /* live stimuli (noises, sights guards react to) */
       SLOTHEAP slotheapStimulus;   /* stimulus records */
-      struct STIMK *apstimk[7];   /* stimulus kinds */
+      struct STIMK *apstimk[7];   /* +0x4020 stimulus (noise) kinds, made by noise.cpp CreateSwNoiseTypes; by use: [0] guard yell,
+                                     [2] guard hit (guardbhv.cpp), [3] bomb / tossed gadget, [4] guard default (stepguard.cpp),
+                                     [5] headset microphone (sound.cpp), [6] player hurt (hurt.cpp) */
       SLOTHEAP slotheapRipg; /* +0x403C [S] RIPG (ripple group) records (rip.cpp NewRipGroup / OnRipgRemove); was unknown403C */
       SLOTHEAP slotheapRip;  /* +0x4054 [S] RIP records (rip.cpp NewRipInGroup / ReleaseRip); was unknown4054 */
       struct RIPG *pripgDefault; /* +0x406C [S] the shared kind-0 ripple group, made on first use (rip.cpp); was _pad_318 */
