@@ -2062,23 +2062,19 @@ extern "C" void AddRelayFace(RELAYV *relay, OID oidFace, OID oidActor, float dtW
 }
 
 // 0x1E0B90 AddRelayGoTo
-namespace M_AddRelayGoTo { extern "C" {
-struct S;
-typedef struct S { char pad[0x10]; int a; float f; float g; int c; int d; int e; } S;
-S *AddRelayCommand(void *p, int cb);
-// Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
-// its args. (inferred)
-void AddRelayGoTo(void *relay, int a, int b, int c, int d, float f, float g)
+// Splice builtin: appends a GoTo command (RELAYCK 0x24): oidActor goes to oidTarget at run fraction uRun, arriving
+// within gArrive, playing clip idClip (fUnk9 set; the _1E0C08 variant clears it). The old view called AddRelayCommand
+// with two arguments: fAsync was simply already in the third argument register.
+extern "C" void AddRelayGoTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
-    S *s = AddRelayCommand(relay, 0x24);
-    s->a = a;
-    s->f = f;
-    s->g = g;
-    s->c = c;
-    s->d = d;
-    s->e = 1;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_GoTo, fAsync);
+    prelaycmd->goTo.oidTarget = oidTarget;
+    prelaycmd->goTo.uRun = uRun;
+    prelaycmd->goTo.gArrive = gArrive;
+    prelaycmd->goTo.oidActor = oidActor;
+    prelaycmd->goTo.idClip = idClip;
+    prelaycmd->goTo.fUnk9 = 1;
 }
-} } // namespace M_AddRelayGoTo
 
 // 0x1E0C08 AddRelayGoTo_1E0C08
 // Splice builtin: the GoTo variant with an explicit fAsync (RELAYCK 0x24): oidActor goes to oidTarget at run fraction
