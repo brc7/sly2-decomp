@@ -14,6 +14,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/util.h"
 #include "sly2/cref.h"
+#include "sly2/widget.h"
 extern "C" void Decref__4CRef(void *);
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's
@@ -34,8 +35,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef unsigned int uint;
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(); };
-/* A widget pool (an LO): its virtual calls. */
-struct POOL { char pad[0xC]; VTE *vt; };
 struct JOY;
 /* A menu item (0x20): its message kind, callbacks, an option list (c values at a), flags (bit 1 keep the page open). */
 struct ITEM { int kind; void (*select)(ITEM *); int c; int *a; void (*update)(ITEM *); void (*init)(ITEM *); int subpageMeta; uint flags; };   /* subpageMeta: the META of the page it opens */
@@ -43,7 +42,7 @@ struct ITEM { int kind; void (*select)(ITEM *); int c; int *a; void (*update)(IT
    back, forward, reverse, state7. */
 struct META { int showOnOpen, showOnState7, showOnClose; int ready; int state7; int back; int forward; int reverse; };
 /* A page (0x1C). */
-struct PAGE { int count; ITEM *items; POOL *pool; int back; int unknown10; int index; META *meta; };
+struct PAGE { int count; ITEM *items; WIDGET *pool; int back; int unknown10; int index; META *meta; };
 /* The pause menu. */
 struct PMENU
 {
@@ -51,7 +50,7 @@ struct PMENU
     VTE *vt;                    /* 0x00C */
     JOY *input;                 /* 0x010 */
     char pad14[0x20 - 0x14];
-    POOL *pool;                 /* 0x020: the menu's widget pool */
+    WIDGET *pool;               /* 0x020: the menu's widget */
     int depth;                  /* 0x024: pages open */
     PAGE ae[16];                /* 0x028 */
     int state;                  /* 0x1E8 */
@@ -102,7 +101,7 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-POOL *FindSwObject__FP2SWi3OIDP2LO(SW *world, int a, int b, int c);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *world, int a, int b, int c);
 void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void ShowScreen(void);
@@ -111,10 +110,10 @@ void IncrementSwHandsOff(SW *p, int n);
 void DecrementSwHandsOff(SW *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
 void HideScreen(PMENU *p);
-void PlayWidgetAnim(POOL *, int);
-void SetWidgetAnimPhase(POOL *, int, float);
+void PlayWidgetAnim(WIDGET *, int);
+void SetWidgetAnimPhase(WIDGET *, int, float);
 void UpdateScreenDefault();
-int IsWidgetAnimPlaying(POOL *, int);
+int IsWidgetAnimPlaying(WIDGET *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
@@ -142,7 +141,7 @@ void WipeToWorldWarp(SW *pg, void *s, int a, int b, int c, int d);
 void SetPauseMenuState(PMENU *s, int st);
 void ReplacePauseMenuPage(PMENU *s, int n, ITEM *af);
 void GoBackPauseMenuPage(PMENU *p);
-void PushPauseMenuPage(PMENU *s, int n, ITEM *af, POOL *pool, META *meta);
+void PushPauseMenuPage(PMENU *s, int n, ITEM *af, WIDGET *pool, META *meta);
 void PopPauseMenuPage(PMENU *p);
 void PopPauseMenuToRoot(PMENU *p);
 void EnterPauseMenuState11(PMENU *p);
@@ -158,7 +157,7 @@ void GetGlobalSaveVarInto(CRefData *r, int a, void *b) __asm__("GetGlobalSaveVar
 
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
-    menu->pool = (POOL *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
+    menu->pool = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
     menu->pending = -1;
     menu->state = 0;
 }
@@ -231,8 +230,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     switch (st) {
     case 1:
         if (pe && pe->pool) {
-            POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnOpen);
+            pe->pool->Show(pe->meta->showOnOpen);
             PlayWidgetAnim(pe->pool, pe->meta->ready);
         }
         break;
@@ -247,8 +245,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     case 2:
     case 8:
         if (pe && pe->pool) {
-            POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnClose);
+            pe->pool->Show(pe->meta->showOnClose);
             PlayWidgetAnim(pe->pool, pe->meta->back);
         }
         break;
@@ -291,8 +288,7 @@ void SetPauseMenuState(PMENU *menu, int st)
         break;
     case 7:
         if (pe && pe->pool) {
-            POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnState7);
+            pe->pool->Show(pe->meta->showOnState7);
             PlayWidgetAnim(pe->pool, pe->meta->state7);
         }
         break;
@@ -339,7 +335,7 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
  case 8:{
   if(IsWidgetAnimPlaying(group->pool,0x314))break;
  close:
-  POOL*pool=group->pool;VTE*method=&pool->vt[50];((void(*)(POOL*))method->pfn)((POOL*)((char*)pool+method->d));
+  group->pool->Hide();
   SetPauseMenuState(menu,0);
   break;
  }
@@ -426,7 +422,7 @@ void ReplacePauseMenuPage(PMENU *menu, int n, ITEM *af)
     e = PPAGE(menu, k + 1);
     func_002333B4(e, 0, sizeof(*e));
     e->items = af;
-    e->pool = (POOL *)pool;
+    e->pool = (WIDGET *)pool;
     e->back = 1;
     e->meta = (META *)meta;
     e->count = n;
@@ -447,7 +443,7 @@ void GoBackPauseMenuPage(PMENU *menu)
 }
 
 // Pushes a page (items, count, widget pool, title) on the menu stack, runs the items' init callbacks and enters state 1.
-void PushPauseMenuPage(PMENU *menu, int n, ITEM *af, POOL *pool, META *meta)
+void PushPauseMenuPage(PMENU *menu, int n, ITEM *af, WIDGET *pool, META *meta)
 {
     PAGE *e;
     int i;
