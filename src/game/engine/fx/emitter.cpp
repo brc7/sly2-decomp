@@ -224,12 +224,6 @@ void *AllocClearedFromWorldHeap(AL *pal);
 extern "C" { extern qword D_002A2DC0; }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
 static inline void *AllocZeroedFromHeap(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -277,7 +271,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
         pemitmesh->sArea += ptri->sArea;
         qword *apos = pemitmesh->apos;
         qword p0 = apos[ptri->aipos[0]];
-        qword normal = Cross(VuSub(apos[ptri->aipos[1]], p0), VuSub(apos[ptri->aipos[2]], p0));
+        qword normal = VuCross(VuSub(apos[ptri->aipos[1]], p0), VuSub(apos[ptri->aipos[2]], p0));
         for (i = 0; i < 3; i++) {
             qword *pn = &pemitmesh->anormal[ptri->aipos[i]];
             *pn = VuAdd(*pn, normal);
@@ -1071,12 +1065,6 @@ float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 static inline qword Combo3(VU_FLOAT f0, VU_VECTOR v0, VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword d;
@@ -1172,7 +1160,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
             goto normalize;
         case EMIT_NORMAL_CURVE_NORMAL: {
             EvaluateShapeAtDistance(curve, g, ppos, &av[0].q);
-            *pdir = Cross(av[0].q, emitb->ep.vector);
+            *pdir = VuCross(av[0].q, emitb->ep.vector);
             goto normalize;
         }
         }
@@ -1645,12 +1633,6 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
     __asm__("vmulax.xyz ACC, %2, %1x\n\tvmadday.xyz ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword d;
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
-    return d;
-}
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
@@ -1674,7 +1656,7 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
                 ppos[i] = VuAdd(MulRow(pxf->mat, ppos[i]), pxf->pos);
             }
             qword d = VuSub(gen->apos[i], pxf->pos);
-            qword x = Cross(pxf->w, d);
+            qword x = VuCross(pxf->w, d);
             qword t = VuAdd(MulRow(pxf->mat, gen->av[i]), pxf->v);
             gen->av[i] = VuAdd(t, x);
         }

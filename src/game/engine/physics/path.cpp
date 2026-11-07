@@ -629,7 +629,6 @@ extern qword D_002A2DC0; // (0, 0, 1, 0)
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 qword GetClosestPointOnNavTriangle(T *t, qword p);
 }
-static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Z(qword a) { float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(z) : "j"(a)); return z; }
 static inline qword Dot(qword a, qword b)
 {
@@ -660,11 +659,11 @@ extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
     qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
     qword ab = VuSub(b, a);
     VU_VECTOR va(a), vc(c);
-    if (0.0f < Z(Cross(VuSub(pos, a), ab))) FindClosestPointOnLineSegment(pos, a, b, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(VuSub(pos, b), VuSub(c, b)))) FindClosestPointOnLineSegment(pos, b, c, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(VuSub(pos, c), VuSub(a, c)))) FindClosestPointOnLineSegment(pos, c, a, &result.q, 0, 0);
+    if (0.0f < Z(VuCross(VuSub(pos, a), ab))) FindClosestPointOnLineSegment(pos, a, b, &result.q, 0, 0);
+    else if (0.0f < Z(VuCross(VuSub(pos, b), VuSub(c, b)))) FindClosestPointOnLineSegment(pos, b, c, &result.q, 0, 0);
+    else if (0.0f < Z(VuCross(VuSub(pos, c), VuSub(a, c)))) FindClosestPointOnLineSegment(pos, c, a, &result.q, 0, 0);
     else {
-        qword n = Cross(ab, VuSub(vc.q, va.q));
+        qword n = VuCross(ab, VuSub(vc.q, va.q));
         qword dv = Dot(VuSub(va.q, pos), n);
         float nz = QwordZ(n);
         float dot = QwordX(dv);

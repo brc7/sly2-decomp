@@ -278,7 +278,6 @@ static inline qword AddScaledVec(qword base,qword vec,VUF k){qword r;__asm__("va
 static inline qword SqrtVec(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword DivVec(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
 static inline qword DivVecBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
-static inline qword CrossVec(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword RotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
 static inline qword CombineVec(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
 static inline qword AddScaledVec2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
@@ -318,13 +317,13 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     relative.q = VuSubRef(GetVelocityOf(jt), anchorVelocity.q);
     float radial = SplitVectorAlongAxis(relative.q, axis.q, &parallel.q, &perpendicular.q);
     U firstAxis, angularFirst;
-    firstAxis.q = NormalizeVec(CrossVec(axis.q, perpendicular.q), D_002A2DA0.q);
+    firstAxis.q = NormalizeVec(VuCross(axis.q, perpendicular.q), D_002A2DA0.q);
     float ratio = LengthOf(perpendicular.q) / distance;
     angularFirst.q = ScaleVecX(firstAxis.q, VuFloat(ratio));
     U projected;
     projected.q = ProjectOutVec(jt->accel->value.q, axis.q);
     U secondAxis, angularSecond;
-    secondAxis.q = NormalizeVec(CrossVec(axis.q, projected.q), D_002A2DB0.q);
+    secondAxis.q = NormalizeVec(VuCross(axis.q, projected.q), D_002A2DB0.q);
     angularSecond.q = ScaleVecX(secondAxis.q, VuFloat(LengthOf(projected.q) / distance));
     float drag = GClamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
     float bias;
@@ -379,14 +378,14 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         state.position = D_002A2DD0;
         state.velocity.q = dt;
         qword arm = VuSubRef(point, GetLoWorldPos(object));
-        velocity.q = AddScaledVec2Q(base, spin, CrossVec(spin, arm), dt);
+        velocity.q = AddScaledVec2Q(base, spin, VuCross(spin, arm), dt);
     } else
         velocity = anchorVelocity;
     state.rotation = BuildRotationMatrixFromVector(ScaleVecX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->dt * 0.5f)));
     state.direction.q = RotateVec(&state.rotation, axis.q);
     qword radius = ScaleVecXK(state.direction.q, VuFloat(next));
     state.position.q = VuAdd(anchor.q, radius);
-    qword final = VuAdd(VuAdd(velocity.q, CrossVec(angular.q, radius)),
+    qword final = VuAdd(VuAdd(velocity.q, VuCross(angular.q, radius)),
                         ScaleVecX(state.direction.q, VufFromMemWord(*(int *)&speedOut)));
     state.velocity.q = final;
     qword current = GetVelocityOf(jt);

@@ -1828,7 +1828,6 @@ int ShouldKeepSoNotSelfSlot62(void *,void *);
 int SnapToGround(qword *,float,float,int,void *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
-static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float GFromVf(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
 static inline qword QwLength(qword v){qword qw;qword vfOne;__asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qw),"=j"(vfOne):"j"(v));__asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qw):"0"(qw));return qw;}
 static inline float GLength(qword v){return GFromVf(QwLength(v));}
@@ -1904,7 +1903,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
         qword origin=points[0].q;
         qword first=VuSub(points[1].q,origin);
         qword second=VuSub(points[2].q,origin);
-        qword qwCross=QwCross(first,second);
+        qword qwCross=VuCross(first,second);
         qword qwFallback=*pFallback;
         qword qwLen=QwLengthUntied(qwCross);
         qword normal;

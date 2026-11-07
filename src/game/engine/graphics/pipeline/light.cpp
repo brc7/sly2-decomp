@@ -664,7 +664,6 @@ static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 static inline VV Divide(VV v, VU_FLOAT g) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
 static inline VV Normalize(VV v) { return DivideQ(v, Length(v)); }
-static inline VV Cross(VV a, VV b) { qword r; __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /* f1 * v1 + f2 * v2 */
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 {
@@ -699,11 +698,11 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         VV dpos = VuSub(p, ps0->pos);
         VV axis = VuSub(ps1->pos, ps0->pos);
         VV len = Length(axis);
-        VV c1 = Cross(dpos, axis);
+        VV c1 = VuCross(dpos, axis);
         float sLen = GFromVf(len);
         VV u = Divide(axis, VU_FLOAT(sLen));
         float s = (ps0->sRadius - ps1->sRadius) / sLen;
-        VV perp = Normalize(Cross(u, c1));
+        VV perp = Normalize(VuCross(u, c1));
         float root = SqrtF(1.0f - s * s);
         VV n = VecCombo(VU_FLOAT(s), u, VU_FLOAT(root), perp);
         VV posA = AddScaled(ps0->pos, VU_FLOAT(ps0->sRadius), n);

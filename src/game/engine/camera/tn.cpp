@@ -213,12 +213,6 @@ static inline qword QwDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline qword QwCross(qword a, qword b)
-{
-    qword qw;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
-    return qw;
-}
 struct CPD
 {
       CID cid;
@@ -1206,7 +1200,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         switch (nTurnAxis)
         {
         case 0:
-            *(qword *)&vecAxis = QwCross(*(qword *)&D_002A2DC0, *(qword *)&vecView);
+            *(qword *)&vecAxis = VuCross(*(qword *)&D_002A2DC0, *(qword *)&vecView);
             break;
         case 1:
             vecAxis = vecView;
@@ -1596,7 +1590,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     qword qwUp = D_002A2DC0q;
     aqw[10] = qwUp;
     qword qwToHero = VuSub(GetLoWorldPos(plo), *(qword *)&D_002DDF40.pos);
-    qword qwCross = QwCross(qwUp, qwToHero);
+    qword qwCross = VuCross(qwUp, qwToHero);
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
     qword qwSide;
@@ -1609,7 +1603,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
         qwSide = ScaleByInverse(qwCross, qwLen);
     }
     aqw[9] = qwSide;
-    aqw[8] = QwCross(aqw[10], qwSide);
+    aqw[8] = VuCross(aqw[10], qwSide);
     qword *pqw; // the current sample
     for (i = 0; i < 5; i++)
     {

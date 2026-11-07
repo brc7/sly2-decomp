@@ -184,12 +184,6 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
@@ -237,7 +231,7 @@ extern "C" qword GetNormalVector(qword v)
             w = u.q = Make(y, -x, 0.0f);
     }
     }
-    return Normalize(Cross(v, w));
+    return Normalize(VuCross(v, w));
 }
 }
 
@@ -262,12 +256,6 @@ static inline float Dot(qword a, qword b)
     d = VuDot(a, b);
     f = VuToFloat(d);
     return f;
-}
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
 }
 static inline qword LenV(qword v)
 {
@@ -303,7 +291,7 @@ extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
         return 0.0f;
     }
     if (outAxis) {
-        qword axis = Cross(a, b);
+        qword axis = VuCross(a, b);
         qword dl = LenV(axis);
         float l;
         __asm__("mtc1 %1, %0" : "=f"(l) : "r"(dl));
@@ -323,12 +311,6 @@ namespace V_FindClosestPointBetweenLines {
    so gcc emits the qmfc2 moves itself; the commented barrier sits after ba (not ca). One pin (d). */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -364,14 +346,14 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
     ba = VuSub(b, a);
     __asm__ volatile(""); /* emulates toolchain order */
     pc = VuSub(pos, c);
-    n = Cross(ba, pc);
+    n = VuCross(ba, pc);
     lenSq = Dot(n, n);
     if (lenSq < eps) {
         outParams[0] = outParams[1] = 0.0f;
         n = ca;
     } else {
-        float u = DotG(Cross(ca, pc), n) / lenSq;
-        float v = DotG(Cross(ca, ba), n) / lenSq;
+        float u = DotG(VuCross(ca, pc), n) / lenSq;
+        float v = DotG(VuCross(ca, ba), n) / lenSq;
         outParams[0] = u;
         outParams[1] = v;
         if (Dot(ca, n) < 0.0f) {
@@ -616,12 +598,6 @@ extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *o
 namespace V_IntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -659,7 +635,7 @@ extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, q
     float det, inv, u, v, t;
     e1.q = VuSub(v1, v0);
     e2.q = VuSub(v2, v0);
-    pvec.q = Cross(dir, e2.q);
+    pvec.q = VuCross(dir, e2.q);
     det = Dot(e1.q, pvec.q);
     if (det > -1e-6f && det < 1e-6f)
         return 0;
@@ -668,7 +644,7 @@ extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, q
     u = DotS(tvec.q, pvec.q) * inv;
     if (u < 0.0f || u > 1.0f)
         return 0;
-    qvec.q = Cross(tvec.q, e1.q);
+    qvec.q = VuCross(tvec.q, e1.q);
     v = Dot(dir, qvec.q) * inv;
     if (v < 0.0f || u + v > 1.0f)
         return 0;

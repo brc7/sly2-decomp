@@ -263,12 +263,6 @@ static inline qword VuLengthUntied(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
-static inline qword VuCross(qword a, qword b)
-{
-    qword qw;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
-    return qw;
-}
 extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float AngleBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");

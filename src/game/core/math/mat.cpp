@@ -149,12 +149,6 @@ static inline qword NormalizeN(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 /** @sly2-annot addr=0x11B3D0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name NormalizeRotateMatrix3__FP7MATRIX3 (EXISTING); TU mat
@@ -166,10 +160,10 @@ static inline qword Cross(qword a, qword b)
 void NormalizeRotateMatrix3(MATRIX3 *matrix)
 {
     qword v0 = NormalizeN(matrix->r[0]);
-    qword c = Cross(v0, matrix->r[1]);
+    qword c = VuCross(v0, matrix->r[1]);
     matrix->r[0] = v0;
     qword v2 = NormalizeN(c);
-    c = Cross(v2, v0);
+    c = VuCross(v2, v0);
     matrix->r[2] = v2;
     matrix->r[1] = NormalizeN(c);
 }
@@ -418,7 +412,7 @@ M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
         xn = fb;
     else
         xn = Div1(direction, l);
-    z = Cross(up, xn);
+    z = VuCross(up, xn);
     outMatrix->r[1] = z;
     l2 = LenZ(z);
     outMatrix->r[0] = xn;
@@ -426,7 +420,7 @@ M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
     outMatrix->r[1] = Div(z, l2);
     if (QwordX(l2) < 1.0e-4f)
         outMatrix->r[1] = GetNormalVector(xn);
-    outMatrix->r[2] = Cross(outMatrix->r[0], outMatrix->r[1]);
+    outMatrix->r[2] = VuCross(outMatrix->r[0], outMatrix->r[1]);
     return outMatrix;
 }
 

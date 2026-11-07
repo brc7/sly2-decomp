@@ -883,12 +883,6 @@ struct PO { char pad[0xC]; struct VT *pvt; };
 struct E { char pad[0xC]; struct PO *po; qword v10; qword v20; qword v30; };
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
 extern qword GetLoWorldPos(void *p);
-static __inline__ qword VCross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 /** @sly2-annot addr=0x188E78
  * Purpose: JT vt57 (p, entries, i): base STEP 0x2044B0; if entry's object is self, v30 -= angvel x (pos -
  *   PosLoWorld)
@@ -910,7 +904,7 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
     qword v = pe->v30;
     qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
     qword x = pe->v10;
-    pe->v30 = VuSub(v, VCross(w, VuSub(x, GetLoWorldPos(object))));
+    pe->v30 = VuSub(v, VuCross(w, VuSub(x, GetLoWorldPos(object))));
 }
 } } // namespace M_func_00188E78
 
@@ -1338,12 +1332,6 @@ static inline qword NormalizeVec(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;
 }
-static inline qword CrossVec(qword a, qword b)
-{
-    qword qw;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
-    return qw;
-}
 extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
 extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("SplitVectorAlongAxis");
 extern "C" { extern qword D_002A2DC0; }
@@ -1462,7 +1450,7 @@ void UpdateJtLean(JT *jt)
                     *(qword *)&vecDv = VuSub(*(qword *)&vecLocal, *(qword *)&vecLean);
                     if (jt->jtgrab.pasegblC) {
                         VECTOR4 vecAcross;
-                        *(qword *)&vecAcross = NormalizeVecViaDot(CrossVec(D_002A2DC0, *(qword *)&vecDir));
+                        *(qword *)&vecAcross = NormalizeVecViaDot(VuCross(D_002A2DC0, *(qword *)&vecDir));
                         float gAcross = SProjectVector(*(qword *)&vecDv, *(qword *)&vecAcross, 0, (qword *)&vecDv);
                         float g = ClampToRange(gAcross / D_002BF2D4, -1.0f, 1.0f);
                         if (jt->jtgrab.fFlip)

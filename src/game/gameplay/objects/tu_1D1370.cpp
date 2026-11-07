@@ -2061,8 +2061,6 @@ static inline VV NormalizeSafe(VV v, VV fallback)
         return fallback;
     return DivideQ(v, len);
 }
-// Cross product.
-static inline VV Cross(VV a, VV b) { qword r; __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /* v * g with the scale (x) first */
 static inline VV ScaleV(VV g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
 static inline VV operator*(VU_FLOAT g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
@@ -2111,7 +2109,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
         float horizontal = Random(D_002C21D0);
         float vertical = Random(D_002C21D8);
         linear.q = SetVectorCylind(angle, horizontal, vertical);
-        angular.q = VuFloat(Random(D_002C21E0)) * NormalizeSafe(Cross(D_002A2DC0, linear.q), D_002A2DA0);
+        angular.q = VuFloat(Random(D_002C21E0)) * NormalizeSafe(VuCross(D_002A2DC0, linear.q), D_002A2DA0);
         break;
     }
     case 0x1000:
@@ -2124,7 +2122,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
         linear.q = VecCombo(first, direction.q, VuFloat(Random(D_002C21F0)), D_002A2DC0);
         VU_FLOAT second(Random(D_002C21F8));
         VU_VECTOR4 side;
-        side.q = Cross(D_002A2DC0, direction.q);
+        side.q = VuCross(D_002A2DC0, direction.q);
         angular.q = VecCombo(second, side.q, VuFloat(Random(D_002C2200)), D_002A2DC0);
         break;
     }

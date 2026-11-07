@@ -382,7 +382,6 @@ int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int
  * operand twice, and the case-4 constant is a variable set before the switch (the game has it in v1 in the beqz delay slot). */
 struct QUERY {int count;RECONTGT **objects;};
 
-static inline qword Cross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Scale(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 // v / |v|: the dot product names v twice (the side vector's registers only match that way)
 static inline qword Normalize(qword v)
@@ -422,7 +421,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
         qword k, side;
         __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(radius));
         scale.q = k;
-        side = Normalize(Cross(up, direction));
+        side = Normalize(VuCross(up, direction));
         SCALE_IN_PLACE(direction, scale.q);
         origin = VuAdd(origin, direction);
         SCALE_IN_PLACE(up, scale.q);

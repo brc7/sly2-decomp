@@ -2143,12 +2143,6 @@ static inline qword DivF(qword v, VU_FLOATM f)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f.q));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword AddScaled(qword a, qword v, VU_FLOAT f)
 {
     qword r;
@@ -2223,7 +2217,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     n.q = VuSub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
-    qword c = Cross(n.q, dv);
+    qword c = VuCross(n.q, dv);
     float len = QwordX(qlen);
     float cz = QwordZ(c);
     float dot = GetX(Dot(dv, n.q));

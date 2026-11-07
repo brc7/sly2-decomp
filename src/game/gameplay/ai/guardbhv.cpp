@@ -3000,12 +3000,6 @@ static inline qword VuIntegrateStep(qword pos, qword v, const VU_FLOAT &g1, qwor
     return qw;
 }
 // VU0 helper: cross product.
-static inline qword VuCross(qword a, qword b)
-{
-    qword qw;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
-    return qw;
-}
 // VU0 helper: z component of a quadword vector.
 // Evaluates a CLQ curve at x clamped to an LM range.
 static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)

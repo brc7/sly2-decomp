@@ -333,12 +333,6 @@ static inline qword Normalize(qword v)
     __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(r) : "j"(t), "j"(v));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 static inline qword Normalize1(qword v)
 {
@@ -357,10 +351,10 @@ static inline qword Normalize1(qword v)
 // direction. UpdateCmMat4 calls it for the real and the widened culling frustum.
 void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal)
 {
-    anormal[0] = Cross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));
-    anormal[1] = Cross(Normalize(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(-gx))), pmat->r[2]);
-    anormal[2] = Cross(Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(gy))), pmat->r[1]);
-    anormal[3] = Cross(pmat->r[1], Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(-gy))));
+    anormal[0] = VuCross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));
+    anormal[1] = VuCross(Normalize(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(-gx))), pmat->r[2]);
+    anormal[2] = VuCross(Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(gy))), pmat->r[1]);
+    anormal[3] = VuCross(pmat->r[1], Normalize(AddScaled(pmat->r[0], pmat->r[2], VU_FLOAT(-gy))));
 }
 } // namespace M_BuildFrustrum
 

@@ -199,12 +199,6 @@ static inline qword Transform(const M3 &m, qword q)
             : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(q));
     return r;
 }
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 struct WORK { M3 basis; qword tangent, first, direction; };
 
@@ -255,13 +249,13 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, D_002A2DC0);
         w.basis.r[2] = up;
-        back.q = Cross(up, fwd.q);
+        back.q = VuCross(up, fwd.q);
         w.basis.r[1] = back.q;
         qword len = Length(back.q);
         w.basis.r[1] = Unit(back.q, len);
         if (QwordX(len) < 0.0001f)
             w.basis.r[1] = GetNormalVector(up);
-        w.basis.r[0] = Cross(w.basis.r[1], w.basis.r[2]);
+        w.basis.r[0] = VuCross(w.basis.r[1], w.basis.r[2]);
     }
     if (!forward) {
         w.basis.r[1] = VU_FLOAT(-1.0f) * VU_VECTOR(w.basis.r[1]);

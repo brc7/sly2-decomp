@@ -556,12 +556,6 @@ extern "C" void CloneBspc(TREE *srcTree, OWNER *srcOwner, TREE *dstTree, OWNER *
 /* plane from 3 points; qmfc2+sw in one asm puts the d store first; normal copied via float temps (load x,y,z, store y,z,x) */
 typedef struct { float x, y, z; } V3;
 typedef union { qword q; V3 v; } UV;
-static inline qword Cross(qword a, qword b)
-{
-    qword r;
-    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
@@ -583,7 +577,7 @@ extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword 
     UV u;
     qword d;
     int n;
-    u.q = Normalize(Cross(VuSub(b, a), VuSub(c, a)));
+    u.q = Normalize(VuCross(VuSub(b, a), VuSub(c, a)));
     d = VuDot(u.q, a);
     __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(outPlane->d) : "j"(d));
     { float tx = u.v.x, ty = u.v.y, tz = u.v.z; outPlane->y = ty; outPlane->z = tz; outPlane->x = tx; }
