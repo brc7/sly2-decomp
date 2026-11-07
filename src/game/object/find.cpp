@@ -296,7 +296,7 @@ LO *FindSwObject(SW *world, int flags, OID oid, LO *context)
 }
 
 /** @sly2-annot addr=0x15E958
- * Purpose: FindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso|0x200, ..., 1,
+ * Purpose: FindSwObject overload with the extra Sly 2 parameter: FindSwObjectsInProxyScope(grffso|0x200, ..., 1,
  *   &plo)
  * Info: proposed name FindSwObjectInProxyScope (T1); TU find
  * Notes: names_v2 v1 proposed FUN_0015c188 (0.000) | COLLISION: FindSwObject already used (same name

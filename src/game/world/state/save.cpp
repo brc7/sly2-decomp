@@ -155,7 +155,7 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
     return sum;
 }
 
-static inline int NFindSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
+static inline int FindSchemaSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
 
 /** @sly2-annot addr=0x1D7B88
  * Purpose: Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry
@@ -423,7 +423,7 @@ CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
     return ref;
 }
 
-static inline int NGetSaveVar(SVKEY *key, SVSET *saveSet)
+static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
 {
     CRef ref = GetGlobalSaveVar(key, saveSet);
     return ref.u.n;
@@ -461,7 +461,7 @@ extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
         int w = D_002C2DC0[i];
         total += w * 100;
         if (key)
-            sum += NGetSaveVar(key, saveSet) * w;
+            sum += GetSaveVarInt(key, saveSet) * w;
     }
     symid = FindSaveSymbol(&schema->symtab, D_002A78F0);
     total += 0xD0;
@@ -513,7 +513,7 @@ extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
     int symid;
     int i;
     *saveSet = D_003D4A60;
-    symid = NFindSymbol(schema, D_002A78F8);
+    symid = FindSchemaSymbol(schema, D_002A78F8);
     if (symid == -1)
         return;
     for (i = 0; i < schema->cent; i++)
@@ -631,7 +631,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
-            int symid = NFindSymbol((SVSTORE *)&g_sw.savevars, pchzT);
+            int symid = FindSchemaSymbol((SVSTORE *)&g_sw.savevars, pchzT);
             if (symid == -1)
                 key->ash[i] = atoi(pchzT);
             else
@@ -690,8 +690,8 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 }
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
-static inline CRef RefGetSaveVarGlobal(SVKEY *key, SVSET *saveSet) { return GetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
-static inline CRef RefSetSaveVarGlobal(SVKEY *key, const CRef &ref, SVSET *saveSet)
+static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SVSET *saveSet) { return GetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
+static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet)
 {
     return SetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
 }
@@ -715,7 +715,7 @@ extern "C" CRef GetSaveVarByName(const char *pchz, ...)
     VA_LIST ap;
     VA_START(ap, pchz);
     BuildSaveKeyV(pchz, ap, &key);
-    ref = RefGetSaveVarGlobal(&key, &D_003D4A60);
+    ref = GetGlobalStoreSaveVar(&key, &D_003D4A60);
     return ref;
 }
 
@@ -736,7 +736,7 @@ extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
     VA_LIST ap;
     VA_START(ap, pchz);
     BuildSaveKeyV(pchz, ap, &key);
-    ref = RefSetSaveVarGlobal(&key, refVal, &D_003D4A60);
+    ref = SetGlobalStoreSaveVar(&key, refVal, &D_003D4A60);
     return ref;
 }
 
@@ -784,7 +784,7 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     return key;
 }
 
-static inline CRef RefSetGlobal(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
+static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
 /** @sly2-annot addr=0x1D8D80
  * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
@@ -813,7 +813,7 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
     if (fKeepSettings)
     {
         for (i = 0; i < 11; i++)
-            aref[i] = RefGetSaveVarGlobal(apkey[i], saveSet);
+            aref[i] = GetGlobalStoreSaveVar(apkey[i], saveSet);
     }
     memset(saveSet, 0, 0x5400);
     ResetRumbleSaveVar();
@@ -822,13 +822,13 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
         for (i = 0; i < 11; i++)
         {
             CRef ref(aref[i]);
-            const CRef &refT = RefSetGlobal(apkey[i], &ref, saveSet);
+            const CRef &refT = SetGlobalSaveVarRef(apkey[i], &ref, saveSet);
         }
     }
 }
 
-static inline int NGetGlobal(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
-static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
+static inline int GetGlobalSaveVarInt(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
+static inline float GetGlobalSaveVarFloat(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 /** @sly2-annot addr=0x1D8FF8
  * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at
@@ -843,27 +843,27 @@ static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return GetGlobalSav
 extern "C" void ApplyGsSettings(SVSET *saveSet)
 {
     if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)
-        SetLanguage(NGetGlobal((SVKEY *)g_sw.psvpLang, saveSet));
+        SetLanguage(GetGlobalSaveVarInt((SVKEY *)g_sw.psvpLang, saveSet));
     if ((SVKEY *)g_sw.psvpMixerMode)
-        SetSndmgrPlaybackMode(D_003DD040, NGetGlobal((SVKEY *)g_sw.psvpMixerMode, saveSet));
+        SetSndmgrPlaybackMode(D_003DD040, GetGlobalSaveVarInt((SVKEY *)g_sw.psvpMixerMode, saveSet));
     if ((SVKEY *)g_sw.psvpMusicVolume)
-        SetSndmgrChannelVolume(D_003DD040, 1, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpMusicVolume, saveSet));
+        SetSndmgrChannelVolume(D_003DD040, 1, 1, 1.0f - GetGlobalSaveVarFloat((SVKEY *)g_sw.psvpMusicVolume, saveSet));
     if ((SVKEY *)g_sw.psvpEffectsVolume)
     {
-        SetSndmgrChannelVolume(D_003DD040, 0, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
-        SetSndmgrChannelVolume(D_003DD040, 3, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
+        SetSndmgrChannelVolume(D_003DD040, 0, 1, 1.0f - GetGlobalSaveVarFloat((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
+        SetSndmgrChannelVolume(D_003DD040, 3, 1, 1.0f - GetGlobalSaveVarFloat((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
     }
     if ((SVKEY *)g_sw.psvpUseHeadset)
-        D_003DD050 = NGetGlobal((SVKEY *)g_sw.psvpUseHeadset, saveSet);
+        D_003DD050 = GetGlobalSaveVarInt((SVKEY *)g_sw.psvpUseHeadset, saveSet);
     if ((SVKEY *)g_sw.psvpScreenCenterX)
     {
-        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterX, saveSet);
+        float g = GetGlobalSaveVarFloat((SVKEY *)g_sw.psvpScreenCenterX, saveSet);
         GSREGS *p = &D_002DEB80;
         p->d1.dx = p->d2.dx = fptoui(g + 636.0f);
     }
     if ((SVKEY *)g_sw.psvpScreenCenterY)
     {
-        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterY, saveSet);
+        float g = GetGlobalSaveVarFloat((SVKEY *)g_sw.psvpScreenCenterY, saveSet);
         GSREGS *p = &D_002DEB80;
         p->d1.dy = p->d2.dy = fptoui(g + 50.0f) & ~1;
     }

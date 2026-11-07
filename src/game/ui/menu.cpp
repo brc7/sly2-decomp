@@ -180,7 +180,7 @@ int IsPauseMenuOnSavePage(PMENU *p);
 }
 /* Callers' views (asm labels). */
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
-void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("GetGlobalSaveVar");
+void GetGlobalSaveVarInto(CREFP *r, int a, void *b) __asm__("GetGlobalSaveVar");
 
 /** @sly2-annot addr=0x1AE928
  * Purpose: Find menu widget object (oid 0x370) into +0x20; state 0, selection -1
@@ -1109,7 +1109,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
         CREFP r;
         int v;
         D_002E6550.followUpAction = 1;
-        RefGetGlobalSaveVarP(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
+        GetGlobalSaveVarInto(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
         v = r.tag;
         Decref__4CRef(&r);
         if (v == 0) {

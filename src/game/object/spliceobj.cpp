@@ -61,8 +61,8 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 PVREC *FindOptionRecord(BASIC *object, int optionId);
 }
 /* CRef_CoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
-CRef RefCoerceS32(const CRef *pref) __asm__("CRef_CoerceS32");
-CRef RefCoerceF32(const CRef *pref) __asm__("CRef_CoerceF32");
+CRef CoerceS32(const CRef *pref) __asm__("CRef_CoerceS32");
+CRef CoerceF32(const CRef *pref) __asm__("CRef_CoerceF32");
 CRef GetOptionRecordValue(void *pv, PVREC *record) __asm__("GetOptionRecordValue");
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptionRecordValue");
 CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
@@ -293,7 +293,7 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
             else
             {
                 CRef refInt;
-                refInt = RefCoerceS32(pref);
+                refInt = CoerceS32(pref);
                 n = refInt.u.n;
             }
             (pobj->*record->pmfSetN)(n);
@@ -309,7 +309,7 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
             else
             {
                 CRef refF;
-                refF = RefCoerceF32(pref);
+                refF = CoerceF32(pref);
                 g = refF.u.g;
             }
             (pobj->*record->pmfSetF)(g);
@@ -538,7 +538,7 @@ CRef RefSetPvsFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
                 *(int *)pv = ref.u.n;
             } else {
                 CRef t;
-                t = RefCoerceS32(&ref);
+                t = CoerceS32(&ref);
                 *(int *)pv = t.u.n;
             }
             break;
@@ -547,7 +547,7 @@ CRef RefSetPvsFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
                 *(float *)pv = ref.u.g;
             } else {
                 CRef t;
-                t = RefCoerceF32(&ref);
+                t = CoerceF32(&ref);
                 *(float *)pv = t.u.g;
             }
             break;

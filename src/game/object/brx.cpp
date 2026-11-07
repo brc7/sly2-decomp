@@ -170,7 +170,7 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
 LO *FindSwObject(SW *world, int grf, OID oid, LO *ploCtx);
 /* The same function called with a fifth argument (the target loads a4 before the call; 0x15E938 passes 0 on to
    FindSwObjectInProxyScope): an asm-labelled second form, as frm's PropagateSaisF. */
-LO *PloFindSwObjectPch(SW *world, int grf, OID oid, LO *ploCtx, void *pchList) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+LO *FindSwObjectExtraArg(SW *world, int grf, OID oid, LO *ploCtx, void *unusedA4) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 int GetCurrentLevelIndex();
@@ -395,7 +395,7 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 //  3. otherwise a typed SETTER (pointer to member function) is called with the value: the one at +0x18 when grf & 0x100, else the one at +0x10, on pv
 //     (or pmfObj(1)). A 0x2xxx object reference is queued on the run list as {oid, the +0x18 setter} -> PostLoadOidSetter (grf & 0x100) or the +0x10
 //     setter is called at once with the object found by PostLoadOidSetter; either way the object is FindSwObject(&g_sw, 4, oid, the loading object):
-//     the nearest object with that oid (mode 4 of CploFindSwObjects, relative to the loading object), found AFTER the whole level is loaded for files.
+//     the nearest object with that oid (mode 4 of FindSwObjectsInProxyScope, relative to the loading object), found AFTER the whole level is loaded for files.
 // The two MMI arms (types 2 and 3) pack a vector4 with mfc1 / pextlw / pcpyld and pass it by value in $a1. Found on the way: the incoming pvStruct is
 // `void *const` (assign_parms marks a const parameter's pseudo RTX_UNCHANGING_P, so reload_cse and the schedulers move its reloads across the record stores:
 // 91.1% -> 97.7%); the setters of non-int types are CASTS of the int setter (`(void (BASIC::*)(float))pmfSet`: gcc's cast of a pointer to member function is
@@ -861,7 +861,7 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
  *   docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
  *   docs/formats/meshes-scene.md#devtools-findings-v3-2026-11-01
  * @end-sly2-annot */
-// True when no load filter is active (D_003E1110 == -1) or the active filter id is in the object's filter list.
+// True when no load filter is active (GetCurrentLevelIndex() = g_sw.nLoadFilter, D_003E1110, is -1) or it is in the list.
 int IsCurrentLevelInList(int c, short *aid)
 {
     int ilevel = GetCurrentLevelIndex();
@@ -939,7 +939,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             r = FindProxyRefPath(world->ppxrRoot, 1, &t);
             if (k == -2)
             {
-                if (PloFindSwObjectPch(world, 0x405, (OID)oid, 0, (void *)r))
+                if (FindSwObjectExtraArg(world, 0x405, (OID)oid, 0, (void *)r))
                 {
                     goto skip;
                 }

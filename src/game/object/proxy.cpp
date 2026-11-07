@@ -364,7 +364,7 @@ int MakeProxyId(int isrc, int icopy);
 int FindProxySourceIndex(SW *world, int idSource);
 PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
 void AddProxyCopy(SW *world, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("AddProxyCopy");
-int CploFindSwObjects(SW *world, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
+int FindSwObjectsWithProxyRef(SW *world, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
 
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
@@ -499,7 +499,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
             }
             else
             {
-                CploFindSwObjects(world, (GRFFSO)0xA05, (OID)kind, 0, ppxr, 1, &plo);
+                FindSwObjectsWithProxyRef(world, (GRFFSO)0xA05, (OID)kind, 0, ppxr, 1, &plo);
             }
             if (plo && !IsBasicDerivedFrom(plo, cidTarget))
             {
