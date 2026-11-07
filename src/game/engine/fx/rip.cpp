@@ -14,6 +14,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
+#include "sly2/rip.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -30,123 +31,6 @@ struct RIPGV : public SO
     char pad168[0x170 - 0x168];
     qword boundsData[3];     /* +0x170 */
     float boundsRadius;          /* +0x1A0 */
-};
-/* A subscription node (pool D_003E1144). */
-struct RIPSUB
-{
-    LO *plo;
-    int pad4;
-    RIPSUB *pnext;          /* +0x08 */
-};
-/* a rotation as three quadword rows (copied whole) */
-struct RIPM3 { qword r[3]; };
-/* RIP: share count, owning group, start time and the per-kind fields used by the m2c bodies; the vtable pointer
-   follows the fields (+0xEC). Sly 2's RIP kinds (RIPT, PvtripFromRipt) are real classes with the eight slots of Sly 1's
-   VTRIP table; rip.cpp is their key TU (docs/systems/rendering.md section 8). */
-struct RIP
-{
-    int kind;
-    int refCount;               /* +0x04 */
-    RIPGV *ripGroup;            /* +0x08 */
-    char padC[0x14 - 0xC];
-    float startTime;           /* +0x14 game time the rip starts (it is skipped until then) */
-    float duration;            /* +0x18 */
-    LO *renderObject;          /* +0x1C */
-    union
-    {
-        qword scale;           /* +0x20 the scale curve as one quadword */
-        float scaleStart;      /* +0x20 its first coefficient (the initial scale) */
-    };
-    qword alpha;            /* +0x30 */
-    RIPM3 orientation;      /* +0x40 */
-    qword currentPosition;           /* +0x70 */
-    qword previousPosition;          /* +0x80 */
-    qword velocity;            /* +0x90 */
-    qword acceleration;          /* +0xA0 */
-    char padB0[0xD0 - 0xB0];
-    float angularVelocity[3];  /* +0xD0 spin (SHRAPNEL: random, from the impact speed) */
-    char padDC[0xE0 - 0xDC];
-    LO *touchObject;           /* +0xE0 */
-    char padE4[4];
-    RIPSUB *firstSubscription;      /* +0xE8 */
-    virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
-    virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
-    virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
-    virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
-    virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
-    virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
-    virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
-    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
-};
-typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
-/* The kinds, in the reverse of their emission order (vtables 0x2D7738 .. 0x2D7468; RIP's 0x2D7788 last). DRAFT
-   names: FLYING, STUCK, GLINT, SMACK, LEAF, REMIT after their functions, RIPT0/RIPT1 after their kind numbers; MATCH and
-   SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
-struct RIPF : RIP
-{
-    LO *followObject;          /* +0xF0 (GLINT) */
-    int nextRenderObject;       /* +0xF4 (RIPT1): the EMITB's next-render object, what the rip leaves on touching */
-};
-struct FLYING : RIP   /* RIPT 3 */
-{
-    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostFlyingEmit");
-    virtual void Render(CM *pcm) __asm__("RenderFlying");
-};
-struct STUCK : RIP   /* RIPT 10 */
-{
-    virtual void Update(float dt) __asm__("UpdateStuck");   /* key function */
-    virtual void Render(CM *pcm) __asm__("RenderStuck");
-};
-struct SHRAPNEL : RIP   /* RIPT 8 */
-{
-    VECTOR dir;                /* +0xF0 the emitter record's direction (PostShrapnelEmit) */
-    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
-    virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
-};
-struct MATCH : RIP   /* RIPT 6 */
-{
-    virtual void Update(float dt) __asm__("UpdateMatch");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
-    virtual void Project() __asm__("ProjectMatchTransform");
-    virtual void Render(CM *pcm) __asm__("RenderMatch");
-};
-struct GLINT : RIP   /* RIPT 4 */
-{
-    virtual void Init(qword pos, int n, float g) __asm__("InitGlint");   /* key function */
-    virtual void Project() __asm__("ProjectGlint");
-    virtual void Render(CM *pcm) __asm__("RenderGlint");
-};
-struct SMACK : RIP   /* RIPT 9 */
-{
-    virtual void Update(float dt) __asm__("UpdateSmack");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitSmack");
-    virtual void Project() __asm__("ProjectSmackTransform");
-    virtual void Render(CM *pcm) __asm__("RenderSmack");
-};
-struct RIPT1 : RIP   /* RIPT 1 */
-{
-    virtual void Init(qword pos, int n, float g) __asm__("InitRipt1");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostRipt1Emit");
-    virtual void Touch(int fRemove) __asm__("UpdateRipt1");
-};
-struct RIPT0 : RIP   /* RIPT 0 */
-{
-    virtual void Touch(int fRemove) __asm__("TouchBublet");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitBublet");
-    virtual void Project() __asm__("ProjectBubletTransform");
-};
-struct LEAF : RIP   /* RIPT 5 */
-{
-    virtual void PostEmit(void *pv) __asm__("PostLeafEmit");   /* key function */
-    virtual void Project() __asm__("ProjectLeafTransform");
-    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("StickLeafOnBounce");
-};
-struct REMIT : RIP   /* RIPT 2 */
-{
-    virtual void Update(float dt) __asm__("UpdateRemit");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostRemitEmit");
 };
 extern "C" {
 extern qword D_002C1F90, D_002C1FA0, D_002C1F40;
@@ -718,7 +602,7 @@ void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes 
 // Unlink from RIPG dl + ReleaseRip.
 void RemoveRip(RIP *prip)
 {
-    RemoveDlEntry(&prip->ripGroup->ripList, prip);
+    RemoveDlEntry(&((RIPGV *)prip->ripGroup)->ripList, prip);
     ReleaseRip(prip);
 }
 
