@@ -216,12 +216,12 @@ struct JT : public STEPPLAYER
     virtual int VUnk93() __asm__("IsJtFreeMoving");   /* slot 94 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetJtStunHold");   /* slot 96 */
     virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetJtCameraTarget");   /* slot 97 */
-    virtual int VUnk97() __asm__("JtVirtual98");   /* slot 98 */
+    virtual int VUnk97() __asm__("GetJtMovementNoise");   /* slot 98 */
     virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
     virtual void VSlot102() __asm__("EndJtGadget");   /* slot 102 */
     virtual void VSlot103() __asm__("GetJtSaveVarRoot");   /* slot 103 */
     virtual int FCanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
-    virtual void VSlot106() __asm__("JtVirtual106");   /* slot 106: not yet identified */
+    virtual void VSlot106() __asm__("IsJtCameraFree");   /* slot 106: not yet identified */
     virtual void VSlot107() __asm__("AddJtExternalAccelerations");   /* slot 107: not yet identified */
 };
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

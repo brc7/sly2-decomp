@@ -1170,7 +1170,7 @@ extern "C" int TryFaceBentleyAttachedObject()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135E40 { extern "C" {
 struct S { char pad[0x13d0]; int st; };
-int StepplayerVirtual98(struct S *);
+int GetStepplayerMovementNoise(struct S *);
 /** @sly2-annot addr=0x135E40
  * Purpose: BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise
  * Info: proposed name BENTLEY_VUnk97 (T2); class BENTLEY slot98; TU bentley
@@ -1179,8 +1179,8 @@ int StepplayerVirtual98(struct S *);
  * @end-sly2-annot */
 // BENTLEY slot 98: the STEPPLAYER base result; when that is 0, 1 in states 1/5/14 and -1 otherwise (meaning of the
 // slot not identified).
-int BentleyVirtual98(struct S *bentley) {
-    int r = StepplayerVirtual98(bentley);
+int GetBentleyMovementNoise(struct S *bentley) {
+    int r = GetStepplayerMovementNoise(bentley);
     if (r != -1) return r;
     switch (bentley->st) {
     case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_ADRENALINE: return 1;

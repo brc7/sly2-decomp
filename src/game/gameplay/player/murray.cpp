@@ -2811,7 +2811,7 @@ extern "C" int TryFaceMurrayAttachedObject()
 
 namespace M_func_001B8100 { extern "C" {
 struct S { char pad[0x13D0]; int n; char pad2[0x17F4 - 0x13D4]; int strafeSubstate; };
-int StepplayerVirtual98(struct S *p);
+int GetStepplayerMovementNoise(struct S *p);
 /** @sly2-annot addr=0x1B8100
  * Purpose: MURRAY vt98: base 0x1409B8; if -1 return 1 for states 1/12 or strafe with substate set
  * Info: proposed name MURRAY_vt98 (T2); class MURRAY slot98; TU murray
@@ -2820,9 +2820,9 @@ int StepplayerVirtual98(struct S *p);
  * @end-sly2-annot */
 // MURRAY slot 98: the STEPPLAYER base result; when 0, 1 for states 1/12 or strafing with a sub-state (meaning of the
 // slot not identified).
-int MurrayVirtual98(struct S *murray)
+int GetMurrayMovementNoise(struct S *murray)
 {
-    int v = StepplayerVirtual98(murray);
+    int v = GetStepplayerMovementNoise(murray);
     if (v != -1) return v;
     switch (murray->n) {
     case MURRAY_RUN: case MURRAY_POWER_MOVE:

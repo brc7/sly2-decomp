@@ -1548,7 +1548,7 @@ GetBentleyPlayerState,0x135D08,30,match,src/game/gameplay/player/bentley.cpp
 ApplyBentleyStateStepParams,0x135D80,43,match,src/game/gameplay/player/bentley.cpp
 EndBentleyMeleeAttack,0x135E30,2,match,src/game/gameplay/player/bentley.cpp
 TryFaceBentleyAttachedObject,0x135E38,2,match,src/game/gameplay/player/bentley.cpp
-BentleyVirtual98,0x135E40,27,match,src/game/gameplay/player/bentley.cpp
+GetBentleyMovementNoise,0x135E40,27,match,src/game/gameplay/player/bentley.cpp
 UpdateBentleyPlaces,0x135EB0,49,match,src/game/gameplay/player/bentley.cpp
 IsBentleyInvulnerable,0x135F78,30,match,src/game/gameplay/player/bentley.cpp
 IsBentleyFreeMoving,0x135FF0,20,match,src/game/gameplay/player/bentley.cpp
@@ -1701,12 +1701,12 @@ UpdateStepplayerInteractCandidates,0x140558,72,match,src/game/gameplay/player/st
 SetStepplayerPlayerInteractMode,0x140678,28,match,src/game/gameplay/player/stepplayer.cpp
 SetStepplayerCtlState,0x1406E8,25,match,src/game/gameplay/player/stepplayer.cpp
 UpdateStepplayerHideBlend,0x140750,154,match,src/game/gameplay/player/stepplayer.cpp
-StepplayerVirtual98,0x1409B8,11,match,src/game/gameplay/player/stepplayer.cpp
+GetStepplayerMovementNoise,0x1409B8,11,match,src/game/gameplay/player/stepplayer.cpp
 TestStepplayerHidden,0x1409E8,68,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerNearInteractTarget,0x140AF8,77,match,src/game/gameplay/player/stepplayer.cpp
-StepplayerVirtual82,0x140C30,21,match,src/game/gameplay/player/stepplayer.cpp
+AddStepplayerAxisXps,0x140C30,21,match,src/game/gameplay/player/stepplayer.cpp
 SetStepplayerTnOverride,0x140C88,29,match,src/game/gameplay/player/stepplayer.cpp
-StepplayerVirtual59,0x140D00,27,match,src/game/gameplay/player/stepplayer.cpp
+AddStepplayerComponentXps,0x140D00,27,match,src/game/gameplay/player/stepplayer.cpp
 func_00140D70,0x140D70,15,match,src/game/gameplay/player/stepplayer.cpp
 HandleStepplayerContactImpulse,0x140DB0,64,match,src/game/gameplay/player/stepplayer.cpp
 OnStepplayerHeroDied,0x140EB0,10,match,src/game/gameplay/player/stepplayer.cpp
@@ -1778,8 +1778,8 @@ GetStepplayerMp,0x1441A0,7,match,src/game/gameplay/player/stepplayer.cpp
 SetStepplayerMp,0x1441C0,9,match,src/game/gameplay/player/stepplayer.cpp
 DrainStepplayerMp,0x1441E8,32,match,src/game/gameplay/player/stepplayer.cpp
 AddStepplayerHpMp,0x144268,25,match,src/game/gameplay/player/stepplayer.cpp
-StepplayerVirtual83,0x1442D0,26,match,src/game/gameplay/player/stepplayer.cpp
-StepplayerVirtual84,0x144338,20,match,src/game/gameplay/player/stepplayer.cpp
+AddStepplayerDialogSmRefs,0x1442D0,26,match,src/game/gameplay/player/stepplayer.cpp
+RemoveStepplayerDialogSmRefs,0x144338,20,match,src/game/gameplay/player/stepplayer.cpp
 ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO,0x144388,20,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerInJtMode,0x1443D8,3,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeBinocucom,0x1443E8,3,match,src/game/gameplay/player/stepplayer.cpp
@@ -3015,7 +3015,7 @@ AdjustJtXp,0x188CC8,108,match,src/game/gameplay/player/jt.cpp
 AdjustJtXpVelocity,0x188E78,41,match,src/game/gameplay/player/jt.cpp
 HandleJtMessage,0x188F20,334,match,src/game/gameplay/player/jt.cpp
 TryFaceJtAttachedObject,0x189458,11,match,src/game/gameplay/player/jt.cpp
-JtVirtual98,0x189488,27,match,src/game/gameplay/player/jt.cpp
+GetJtMovementNoise,0x189488,27,match,src/game/gameplay/player/jt.cpp
 IsJtFreeMoving,0x1894F8,14,match,src/game/gameplay/player/jt.cpp
 SetJtPlayable,0x189530,57,match,src/game/gameplay/player/jt.cpp
 UpdateJtLean__FP2JT,0x189618,394,match,src/game/gameplay/player/jt.cpp
@@ -3037,7 +3037,7 @@ UpdateJt,0x18BCE0,223,match,src/game/gameplay/player/jt.cpp
 ApplyJtStateStepParams,0x18C060,47,match,src/game/gameplay/player/jt.cpp
 EnableJtLeanActs,0x18C120,76,match,src/game/gameplay/player/jt.cpp
 SetJtState__FP2JT3JTS4JTBS,0x18C250,1195,match,src/game/gameplay/player/jt.cpp
-JtVirtual106,0x18D500,17,match,src/game/gameplay/player/jt.cpp
+IsJtCameraFree,0x18D500,17,match,src/game/gameplay/player/jt.cpp
 func_0018D548,0x18D548,7,match,src/game/gameplay/player/jt.cpp
 SetJtPlayerState,0x18D568,46,match,src/game/gameplay/player/jt.cpp
 GetJtPlayerState,0x18D620,30,match,src/game/gameplay/player/jt.cpp
@@ -3648,7 +3648,7 @@ GetMurrayPlayerState,0x1B7F90,30,match,src/game/gameplay/player/murray.cpp
 ApplyMurrayStateStepParams,0x1B8008,57,match,src/game/gameplay/player/murray.cpp
 EndMurrayMeleeAttack,0x1B80F0,2,match,src/game/gameplay/player/murray.cpp
 TryFaceMurrayAttachedObject,0x1B80F8,2,match,src/game/gameplay/player/murray.cpp
-MurrayVirtual98,0x1B8100,31,match,src/game/gameplay/player/murray.cpp
+GetMurrayMovementNoise,0x1B8100,31,match,src/game/gameplay/player/murray.cpp
 func_001B8180,0x1B8180,13,match,src/game/gameplay/player/murray.cpp
 SetMurrayPlayable,0x1B81B8,58,match,src/game/gameplay/player/murray.cpp
 UpdateMurrayPlaces,0x1B82A0,49,match,src/game/gameplay/player/murray.cpp

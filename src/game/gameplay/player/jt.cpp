@@ -1146,7 +1146,7 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189488 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
-int StepplayerVirtual98(struct S *p);
+int GetStepplayerMovementNoise(struct S *p);
 /** @sly2-annot addr=0x189488
  * Purpose: JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1
  * Info: proposed name JT_vt98 (T2); class JT slot98; TU jt
@@ -1154,9 +1154,9 @@ int StepplayerVirtual98(struct S *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 98: the STEPPLAYER base result; when 0, 1 for states 1/5/6/9 and -1 otherwise (meaning not identified).
-int JtVirtual98(struct S *jt)
+int GetJtMovementNoise(struct S *jt)
 {
-    int r = StepplayerVirtual98(jt);
+    int r = GetStepplayerMovementNoise(jt);
     if (r != -1) return r;
     switch (jt->n) {
     case 1: case 5: case 6: case 9:
@@ -4426,7 +4426,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 106: 0 if in state 1 or the camera check says so, else 1 (meaning not identified).
-int JtVirtual106(struct S *jt)
+int IsJtCameraFree(struct S *jt)
 {
     int r = 1;
     if (jt->n == r) return 0;

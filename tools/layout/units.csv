@@ -1557,7 +1557,7 @@ GetBentleyPlayerState,0x135D08,bentley
 ApplyBentleyStateStepParams,0x135D80,bentley
 EndBentleyMeleeAttack,0x135E30,bentley
 TryFaceBentleyAttachedObject,0x135E38,bentley
-BentleyVirtual98,0x135E40,bentley
+GetBentleyMovementNoise,0x135E40,bentley
 UpdateBentleyPlaces,0x135EB0,bentley
 IsBentleyInvulnerable,0x135F78,bentley
 IsBentleyFreeMoving,0x135FF0,bentley
@@ -1710,12 +1710,12 @@ UpdateStepplayerInteractCandidates,0x140558,stepplayer
 SetStepplayerPlayerInteractMode,0x140678,stepplayer
 SetStepplayerCtlState,0x1406E8,stepplayer
 UpdateStepplayerHideBlend,0x140750,stepplayer
-StepplayerVirtual98,0x1409B8,stepplayer
+GetStepplayerMovementNoise,0x1409B8,stepplayer
 TestStepplayerHidden,0x1409E8,stepplayer
 IsStepplayerNearInteractTarget,0x140AF8,stepplayer
-StepplayerVirtual82,0x140C30,stepplayer
+AddStepplayerAxisXps,0x140C30,stepplayer
 SetStepplayerTnOverride,0x140C88,stepplayer
-StepplayerVirtual59,0x140D00,stepplayer
+AddStepplayerComponentXps,0x140D00,stepplayer
 func_00140D70,0x140D70,stepplayer
 HandleStepplayerContactImpulse,0x140DB0,stepplayer
 OnStepplayerHeroDied,0x140EB0,stepplayer
@@ -1787,8 +1787,8 @@ GetStepplayerMp,0x1441A0,stepplayer
 SetStepplayerMp,0x1441C0,stepplayer
 DrainStepplayerMp,0x1441E8,stepplayer
 AddStepplayerHpMp,0x144268,stepplayer
-StepplayerVirtual83,0x1442D0,stepplayer
-StepplayerVirtual84,0x144338,stepplayer
+AddStepplayerDialogSmRefs,0x1442D0,stepplayer
+RemoveStepplayerDialogSmRefs,0x144338,stepplayer
 ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO,0x144388,stepplayer
 IsStepplayerInJtMode,0x1443D8,stepplayer
 IsStepplayerJtModeBinocucom,0x1443E8,stepplayer
@@ -3026,7 +3026,7 @@ AdjustJtXp,0x188CC8,jt
 AdjustJtXpVelocity,0x188E78,jt
 HandleJtMessage,0x188F20,jt
 TryFaceJtAttachedObject,0x189458,jt
-JtVirtual98,0x189488,jt
+GetJtMovementNoise,0x189488,jt
 IsJtFreeMoving,0x1894F8,jt
 SetJtPlayable,0x189530,jt
 UpdateJtLean__FP2JT,0x189618,jt
@@ -3048,7 +3048,7 @@ UpdateJt,0x18BCE0,jt
 ApplyJtStateStepParams,0x18C060,jt
 EnableJtLeanActs,0x18C120,jt
 SetJtState__FP2JT3JTS4JTBS,0x18C250,jt
-JtVirtual106,0x18D500,jt
+IsJtCameraFree,0x18D500,jt
 func_0018D548,0x18D548,jt
 SetJtPlayerState,0x18D568,jt
 GetJtPlayerState,0x18D620,jt
@@ -3659,7 +3659,7 @@ GetMurrayPlayerState,0x1B7F90,murray
 ApplyMurrayStateStepParams,0x1B8008,murray
 EndMurrayMeleeAttack,0x1B80F0,murray
 TryFaceMurrayAttachedObject,0x1B80F8,murray
-MurrayVirtual98,0x1B8100,murray
+GetMurrayMovementNoise,0x1B8100,murray
 func_001B8180,0x1B8180,murray
 SetMurrayPlayable,0x1B81B8,murray
 UpdateMurrayPlaces,0x1B82A0,murray

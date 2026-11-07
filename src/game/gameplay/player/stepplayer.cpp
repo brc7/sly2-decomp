@@ -533,7 +533,7 @@ void UpdateStepplayerHideBlend(struct P *player)
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 98 base: 0 normally, -1 while the world is hands-off (meaning of the slot not identified).
-extern "C" int StepplayerVirtual98()
+extern "C" int GetStepplayerMovementNoise()
 {
     return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
 }
@@ -649,7 +649,7 @@ void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void StepplayerVirtual82(struct X *player, void *a, struct Y *b, qword v)
+void AddStepplayerAxisXps(struct X *player, void *a, struct Y *b, qword v)
 {
     qword d;
     if ((((b->fl >> 60) & 1) == 0)) {
@@ -696,7 +696,7 @@ void UpdateJtInternalXpsPipe(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
-void StepplayerVirtual59(char *player)
+void AddStepplayerComponentXps(char *player)
 {
     IgnoreSoSlot59(player);
     if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
@@ -3378,7 +3378,7 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
-void StepplayerVirtual83(char *player, int a, int b)
+void AddStepplayerDialogSmRefs(char *player, int a, int b)
 {
     AddStepDialogSmRefs(player, a, b);
     if (!b)
@@ -3400,7 +3400,7 @@ void StopStepplayerScriptAnim(void *p);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
-void StepplayerVirtual84(char *player, int a, int b)
+void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
 {
     RemoveStepDialogSmRefs(player, a, b);
     if (b) {

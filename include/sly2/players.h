@@ -118,7 +118,7 @@ struct MURRAY : public STEPPLAYER
     virtual void VUnk90() __asm__("EndMurrayMeleeAttack");   /* slot 91 */
     virtual int VUnk91() __asm__("TryFaceMurrayAttachedObject");   /* slot 92 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetMurrayStunHold");   /* slot 96 */
-    virtual int VUnk97() __asm__("MurrayVirtual98");   /* slot 98 */
+    virtual int VUnk97() __asm__("GetMurrayMovementNoise");   /* slot 98 */
     virtual int FCanUseGadget(int idGadget) __asm__("CanMurrayUseGadget__6MURRAYi");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("UseMurrayGadget");   /* slot 100 */
     virtual void VSlot103() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
@@ -202,7 +202,7 @@ struct BENTLEY : public STEPPLAYER
     virtual void VUnk90() __asm__("EndBentleyMeleeAttack");   /* slot 91 */
     virtual int VUnk91() __asm__("TryFaceBentleyAttachedObject");   /* slot 92 */
     virtual int VUnk93() __asm__("IsBentleyFreeMoving");   /* slot 94 */
-    virtual int VUnk97() __asm__("BentleyVirtual98");   /* slot 98 */
+    virtual int VUnk97() __asm__("GetBentleyMovementNoise");   /* slot 98 */
     virtual int FCanUseGadget(int idGadget) __asm__("CanBentleyUseGadget");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("StartBentleyGadget");   /* slot 100 */
     virtual void VSlot103() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
