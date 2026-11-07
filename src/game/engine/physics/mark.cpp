@@ -410,7 +410,7 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
  * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
  * @end-sly2-annot */
 // Sorts clipped spans into categories (inside, touching, crossing) for the BSP/BSP marker. Sly 1 name:
-// CategorizeClippedSegments.
+// CategorizeAlsg.
 void CategorizeClippedSegments(int count, LSG *segments, int *numPointsOut, int *pointIndices, LSG **categorized, LSG **bothOut)
 {
     LSG *plsgNone = 0;
@@ -489,7 +489,7 @@ void CategorizeClippedSegments(int count, LSG *segments, int *numPointsOut, int 
    (cleared again). Kept as the C-linkage definition of its literal symbol. */
 struct EDGEPATHNODE { EDGEPATHNODE *pnodeParent; LSG *plsg; int isurf; };
 // Breadth-first search (64 nodes) for a chain of spans connecting two positions along shared edges; used to find
-// edge/edge contacts. Sly 1 name.
+// edge/edge contacts. Sly 1 name: CplsgFindEdgePath.
 extern "C" int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *surfaces, int startSurface, int endSurface, LSG *first, LSG **pathOut)
 {
     EDGEPATHNODE anode[64];

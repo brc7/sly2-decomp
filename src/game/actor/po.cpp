@@ -575,7 +575,7 @@ void SetPoctlStateValue(POCTLV *poctl, int state) {
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name.
+// POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name: GrfPressedWithin.
 int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
 {
     int grfRet = 0;
@@ -598,7 +598,7 @@ int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, floa
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name.
+// POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name: GrfConsumePressed.
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) {
     int grfRet = GetButtonsPressedWithin__5POCTLUif(poctl, buttons, dt);
     ClearPoctlJoyPressed(poctl, grfRet);
@@ -852,7 +852,7 @@ extern "C" POV *FindClosestSwPo(SWP *world,qword pos) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// Fills up to cMax pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
+// Fills up to maxCount pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
 // other in-world player characters that pass the check. Returns the count (used by the HUD, inferred).
 extern "C" int CollectActivePickupInfos(SWP *world, int maxCount, void **pzis)
 {

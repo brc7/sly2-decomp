@@ -209,7 +209,7 @@ namespace M_CbskFromG__Ff { extern "C" {
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name.
+// Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name: CbskFromG.
 int ClassifyPlaneDistance__Ff(float distance)
 {
 extern float D_002C0C00;

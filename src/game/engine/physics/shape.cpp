@@ -4,8 +4,8 @@
 // per-segment sample cache, conversion between u and s and their limits/wrapping (closed shapes), evaluation of
 // position and tangent, closest-point searches, bounds; shape chains (a simulated rope that follows the shape with
 // ends pinned to objects); CID 106, a mesh deformed along a shape; and the volume / valid-range tables of a shape
-// against the path zones. Naming: the Sly 1 S/U API is kept (GetShapeDistanceAtParam = arc length at parameter u,
-// GetShapeParamAtDistance, GetShapeMaxDistance = total length, ...).
+// against the path zones. Naming: "Param" is the parameter u and "Distance" the arc length s (Sly 1 names were
+// SFromShapeU = GetShapeDistanceAtParam, UFromShapeS, SMaxShape = GetShapeMaxDistance = total length, ...).
 // Entry points: LoadShapeFromBrx, EvaluateShapeAtParam / EvaluateShapeAtDistance, GetShapeDistanceAtParam / GetShapeParamAtDistance,
 // FindShapeClosestPoint*, SetShapeChainMode, GetRandomShapeDistanceInRange.
 // TU 0x1E5D80..0x1EA568 (56 functions, address order).
@@ -1716,7 +1716,7 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-// Random arc length within +-b of a, wrapped or clamped to the shape; the distribution is chosen by a table.
+// Random arc length within +-range of center, wrapped or clamped to the shape; the distribution is chosen by a table.
 float GetRandomShapeDistanceInRange(struct P *shape, float center, float range)
 {
     float r[2];
