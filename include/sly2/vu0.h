@@ -97,4 +97,122 @@ template <class QW> inline QW VuMulMatrix4(QW r0, QW r1, QW r2, QW r3, QW v)
     return r;
 }
 
+/* ---- Added by the wave-4 helper pass (appended below the earlier asm so their line numbers stay put). ---- */
+
+/* a x b (cross product over xyz; w of the result is scratch): ACC = a.yzx * b.zxy, r = ACC - b.yzx * a.zxy */
+template <class QW> inline QW VuCross(QW a, QW b)
+{
+    QW r;
+    __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
+    return r;
+}
+
+/* v * k.x, all four lanes (k: a VF register whose x holds the scale) */
+template <class QW> inline QW VuScaleByX(QW v, QW k)
+{
+    QW r;
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(k));
+    return r;
+}
+
+/* v / d.x, all four lanes (Q = 1 / d.x via vdiv, then v * Q) */
+template <class QW> inline QW VuDivByX(QW v, QW d)
+{
+    QW r;
+    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(d));
+    return r;
+}
+
+/* per-lane minimum / maximum over xyz (w of the result is scratch) */
+template <class QW> inline QW VuMin(QW a, QW b)
+{
+    QW r;
+    __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    return r;
+}
+
+template <class QW> inline QW VuMax(QW a, QW b)
+{
+    QW r;
+    __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    return r;
+}
+
+/* the zero vector (vf0 - vf0); the type is the template argument: VuZero<qword>() */
+template <class QW> inline QW VuZero()
+{
+    QW r;
+    __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r));
+    return r;
+}
+
+/* sqrt(v.x) in x of the result (the other lanes are scratch) */
+template <class QW> inline QW VuSqrtX(QW v)
+{
+    QW r;
+    __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v));
+    return r;
+}
+
+/* |v| over xyz in x of the result (VuDot(v, v), then vsqrt as a second asm statement) */
+template <class QW> inline QW VuLength(QW v)
+{
+    QW d, one;
+    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
+            : "=j"(d), "=j"(one) : "j"(v));
+    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "0"(d));
+    return d;
+}
+
+/* |v| over xy (the horizontal length) in x of the result */
+template <class QW> inline QW VuLengthXY(QW v)
+{
+    QW d;
+    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));
+    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "0"(d));
+    return d;
+}
+
+/* ---- EE core (not VU0) idioms that sit next to the VU0 ones: a quadword held in a 128-bit GPR, and the FPU. ---- */
+
+/* x, y, z lane of a quadword in a GPR, as a float: mtc1 moves the low word to an FPR; prot3w / pextuw bring lane 1 /
+ * lane 2 down to the low word of a GPR (the compiler adds the mtc1 where the float goes to an FPR) */
+template <class QW> inline float QwordX(QW q)
+{
+    float g;
+    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q));
+    return g;
+}
+
+template <class QW> inline float QwordY(QW q)
+{
+    float g;
+    __asm__("prot3w %0, %1" : "=r"(g) : "r"(q));
+    return g;
+}
+
+template <class QW> inline float QwordZ(QW q)
+{
+    float g;
+    __asm__("pextuw %0, $0, %1" : "=r"(g) : "r"(q));
+    return g;
+}
+
+/* (x, y, z, scratch) packed into a quadword GPR; the type is the template argument: QwordFromFloats<qword>(x, y, z) */
+template <class QW> inline QW QwordFromFloats(float x, float y, float z)
+{
+    QW q, t;
+    __asm__("mfc1 %0, %2\n\tmfc1 %1, %3\n\tpextlw %0, %1, %0\n\tmfc1 %1, %4\n\tpcpyld %0, %1, %0"
+            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
+    return q;
+}
+
+/* sqrt.s as volatile asm (the per-function sites spell sqrtf this way; the compiler's own sqrtf would differ) */
+inline float SqrtFloat(float g)
+{
+    float r;
+    __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g));
+    return r;
+}
+
 #endif /* SLY2_VU0_H */
