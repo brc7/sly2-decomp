@@ -2764,7 +2764,6 @@ extern "C" { extern JOY D_002DFC00; }
 
 
 
-extern "C" { extern CM D_002DDF40; }
 
 
 extern "C" { extern SW D_003DD490; }
@@ -3207,7 +3206,7 @@ void NextJsgCommand(JSGV *script)
         break;
     }
     case RELAYCK_CutCamera:
-        CutCm(&D_002DDF40);
+        CutCm(&g_cm);
         break;
     case RELAYCK_SetTunnel:
     {
@@ -3337,7 +3336,7 @@ void NextJsgCommand(JSGV *script)
             LO *ploDir;
             if (prelaycmd->stepCmd22.nMode == 3)
             {
-                CM *pcm = &D_002DDF40;
+                CM *pcm = &g_cm;
                 qword qwCm = *(qword *)&pcm->pos;
                 SetStepRadTowardDir(pstep, VuSub(qwCm, PosLoWorld(pstep)));
                 ploDir = 0;
@@ -3565,7 +3564,7 @@ void NextJsgCommand(JSGV *script)
                           (ASEG *)script->relay);
         break;
     case RELAYCK_Unk32:
-        JoltCm(&D_002DDF40, prelaycmd->unk32.nUnk4);
+        JoltCm(&g_cm, prelaycmd->unk32.nUnk4);
         break;
     case RELAYCK_Rumble:
         TriggerJoyRumbleRumk(&D_002DFC00, (RUMK)prelaycmd->rumble.rumk, prelaycmd->rumble.dtRumble);
@@ -3669,23 +3668,23 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_TweenPosObj:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->tweenPosObj.oidObj);
-        D_002DDF40.cpzoom.SetOwner(plo);
+        g_cm.cpzoom.SetOwner(plo);
         break;
     }
     case RELAYCK_TweenAimObj:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->tweenAimObj.oidObj);
-        D_002DDF40.cpzoom.SetFocus(plo);
+        g_cm.cpzoom.SetFocus(plo);
         break;
     }
     case RELAYCK_TweenTarget:
-        D_002DDF40.cpzoom.SetPose(prelaycmd->tweenTarget.qwPos, *(qword *)&prelaycmd->tweenTarget.radX, prelaycmd->tweenTarget.gFov);
+        g_cm.cpzoom.SetPose(prelaycmd->tweenTarget.qwPos, *(qword *)&prelaycmd->tweenTarget.radX, prelaycmd->tweenTarget.gFov);
         break;
     case RELAYCK_TweenTime:
-        D_002DDF40.cpzoom.SetZoom(prelaycmd->tweenTime.gUnk4);
+        g_cm.cpzoom.SetZoom(prelaycmd->tweenTime.gUnk4);
         break;
     case RELAYCK_TweenStart:
-        D_002DDF40.cpzoom.Reset();
+        g_cm.cpzoom.Reset();
         break;
     case RELAYCK_ButtonPrompt:
         D_004435F0.grfbtnPrompt = prelaycmd->buttonPrompt.grfbtn & 0xF0;
@@ -3989,7 +3988,6 @@ extern "C" { extern JOY D_002DFC00; }
 
 
 
-extern "C" { extern CM D_002DDF40; }
 
 
 
@@ -4399,13 +4397,13 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_TweenPosObj:
-        fComplete = D_002DDF40.cpzoom.FAtTargetFocus();
+        fComplete = g_cm.cpzoom.FAtTargetFocus();
         break;
     case RELAYCK_TweenAimObj:
-        fComplete = D_002DDF40.cpzoom.FAtTargetEye();
+        fComplete = g_cm.cpzoom.FAtTargetEye();
         break;
     case RELAYCK_TweenTime:
-        fComplete = D_002DDF40.cpzoom.FAtTargetZoom();
+        fComplete = g_cm.cpzoom.FAtTargetZoom();
         break;
     case RELAYCK_ButtonPrompt:
         if (prelaycmd->buttonPrompt.oidWho == -1)
