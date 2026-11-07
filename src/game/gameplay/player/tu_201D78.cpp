@@ -30,8 +30,6 @@ struct VTE { short d; short pad; void *pfn; };
 
 /* A world object as far as this TU reads one (LO: vtable, fInWorld in bit 60 of the word at +0x28, grf at +0x40). */
 struct LOV { int x0, x4, x8; VTE *pvt; char pad10[0x28 - 0x10]; unsigned long fl28; char pad30[0x40 - 0x30]; uint grf40; };
-/* The task a target is linked to (state at +0x54: 1 open, 2 ...). */
-struct LINK { char pad0[0x54]; int state; };
 
 /* A recon target (CID 0x2E, an XFM). */
 struct RECONTGT
@@ -46,7 +44,7 @@ struct RECONTGT
     float sRadius;          /* 0xE0 selection radius (75) */
     float sHead;            /* 0xE4 head offset / visibility radius (defaults to sRadius) */
     float threshold;        /* 0xE8 (0.25) */
-    LINK *link;             /* 0xEC */
+    TASK *link;             /* 0xEC */
     int fDone;              /* 0xF0 done without a task */
     int id;                 /* 0xF4 text */
     int idPending;          /* 0xF8 (defaults to id) */
@@ -138,12 +136,12 @@ int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void InitXfm(RECONTGT *p);
 void LoadXfmFromBrx(RECONTGT *p, void *pbis);
 void PostLoLoad(RECONTGT *p);
-void SubscribeLoObject(LINK *plink, RECONTGT *p);
+void SubscribeLoObject(TASK *plink, RECONTGT *p);
 void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
 PLAYER *GetHeroPo(SW *psw);
-void RequestTaskState(LINK *plink, int n, RECONTGT *p);
+void RequestTaskState(TASK *plink, int n, RECONTGT *p);
 void GatherJtModeHudTags(void *pv);
-int IsTaskComplete(LINK *plink);
+int IsTaskComplete(TASK *plink);
 
 void ResetReconTargets(RECONSEL *p);
 void NotifyReconTargets(RECONSEL *p);
@@ -243,8 +241,8 @@ void RefreshReconPendingTargets(RECONSEL *reconSel)
     for (i = 0; i < reconSel->count; i++) {
         RECONTGT *o = reconSel->items[i];
         if (o->idPending != -1) {
-            LINK *q = o->link;
-            if (!q || q->state == 1 || q->state == 2) {
+            TASK *q = o->link;
+            if (!q || q->nState == 1 || q->nState == 2) {
                 if (reconSel->cPending < 5) reconSel->apending[reconSel->cPending++] = o;
             }
         }
@@ -792,7 +790,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
                 RECONTGT *actor = reconSel->items[i];
                 int done = IsReconTargetDone(actor);
                 // an actor whose link is missing or in state 1 must be done before the refresh
-                int linkReady = !actor->link || actor->link->state == 1;
+                int linkReady = !actor->link || actor->link->nState == 1;
                 if (!done && linkReady) {
                     ready = 0;
                     break;
@@ -860,7 +858,7 @@ extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
 void CID46::PostLoad()
 {
     RECONTGT *p = (RECONTGT *)this;
-    LINK *link;
+    TASK *link;
     PostLoLoad(p);
     link = p->link;
     if (link != 0) {
@@ -898,10 +896,10 @@ int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplet
 // Whether the target is visible and its task is in state 1.
 int IsReconTargetSelectable(RECONTGT *target)
 {
-    LINK *o;
+    TASK *o;
     if (BIT60(target) == 0) return 0;
     if (target->plo100 && BIT60(target->plo100)) return 0;
     o = target->link;
-    if (o && o->state != 1) return 0;
+    if (o && o->nState != 1) return 0;
     return 1;
 }
