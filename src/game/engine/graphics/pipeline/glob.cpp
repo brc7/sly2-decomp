@@ -2165,8 +2165,8 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
 } } // namespace M_CopyRelocateDmaChain
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-// The warp/bend record of a GLOB (GLOB::pwrbg, GLOBSET::pwrbgFirst; ::WRBG is only declared by sly2/basic.h), completed
-// here for LoadSubglobType0FromBrx; wr.cpp keeps a view of the same 0x9C-byte layout under its own names. Not in a
+// The warp/bend record of a GLOB (GLOB::pwrbg, GLOBSET::pwrbgFirst; ::WRBG is only declared by sly2/basic.h) and its
+// batch entries, completed here for LoadSubglobType0FromBrx; wr.cpp keeps views of the same layouts under its own names. Not in a
 // shared header yet (no render-family header owns it).
 struct WR;
 enum WEK
@@ -2198,6 +2198,14 @@ struct WRBG
     SL slBatch;
     WRBG *pwrbgNextGlobset;
     WRBG *pwrbgNextWr;
+};
+/* an entry of WRBG::slBatch: one batch's positions and its warp targets */
+struct WRBGBATCH
+{
+    int cvtx;
+    void *pvPos;
+    void *apvWarp[4];
+    WRBGBATCH *pwrbgbatchNext;
 };
 
 namespace M_LoadSubglobType0FromBrx {
@@ -2266,13 +2274,6 @@ struct BATCHHDR0
       ushort iqwWarp;
       ushort aiqwBone[4];
       BATCHPART0 apart[2];
-};
-struct WRBGBATCH
-{
-    int cvtx;
-    void *pvPos;
-    void *apvWarp[4];
-    WRBGBATCH *pwrbgbatchNext;
 };
 struct BATCHREC
 {
