@@ -40,7 +40,7 @@ BMP *D_003DCFF4;            /* bitmaps */
 int D_003DCFF8;             /* colour table count */
 CLUT *D_003DCFFC;           /* colour tables */
 int D_003DD000;
-void *D_003DD004;
+SAA **D_003DD004;           /* shader animations */
 int D_003DD008;             /* named by no code; keeps the layout */
 int D_003DD00C;
 void *D_003DD010;
@@ -462,45 +462,23 @@ void LoadTexFromBrx(void *pbis, TEX *ptex)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadShdFromBrx { extern "C" {
 struct MSG { int cb; int nKind; };
-struct L;
-struct C { char pad[6]; unsigned char numFrames; char pad7; struct L *pshd; char pad2[0x14 - 0xC]; };   /* TEX */
-struct ENT { int n; void *p; };
-/* SHD (glob.cpp's SHDF / SHD) */
-struct L {
-    char pad[4];
-    unsigned char kind;     /* +0x04 shdk */
-    unsigned char flags;    /* +0x05 grfshd */
-    char pad6[2];
-    int rgba;               /* +0x08 */
-    int rgbaVolume;         /* +0x0C */
-    int rgba2;              /* +0x10 */
-    char pad14[3];
-    unsigned char numTextures;   /* +0x17 */
-    struct C *ac;           /* +0x18 textures */
-    int numPasses;          /* +0x1C upload records, by kind */
-    struct ENT *ae;         /* +0x20 */
-    int numFrames;          /* +0x24 the first texture's frame count */
-    void *psaa;             /* +0x28 shader animation */
-};
-extern void **D_003DD004;
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
-void ColorCorrectRgba(int *);
 int S16Read__18CBinaryInputStream(void *);
 void *AllocClearedFromWorldHeap(struct MSG *);
-void LoadTexFromBrx(void *, struct C *);
-static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
+void LoadTexFromBrx(void *, TEX *);
+static inline void InitEnt(SHDP *pe, int n, struct MSG *pmsg)
 {
-    pe->n = n;
+    pe->cqw = n;
     pmsg->cb = n * 16;
     pmsg->nKind = 0x10;
-    pe->p = (__typeof__(pe->p))AllocClearedFromWorldHeap(pmsg);
+    pe->aqw = (QW *)AllocClearedFromWorldHeap(pmsg);
 }
 // Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data.
-void LoadShdFromBrx(void *pbis, struct L *p)
+void LoadShdFromBrx(void *pbis, SHD *p)
 {
     struct MSG msg;
     int i, j;
-    struct ENT *ae, *pe;
+    SHDP *ae, *pe;
     Read__18CBinaryInputStreamiPv(pbis, 0x18, p);
     ColorCorrectRgba(&p->rgba);
     ColorCorrectRgba(&p->rgbaVolume);
@@ -508,47 +486,47 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     i = S16Read__18CBinaryInputStream(pbis);
     if (i >= 0)
         p->psaa = D_003DD004[i];
-    msg.cb = p->numTextures * 0x14;
+    msg.cb = p->ctex * 0x14;
     msg.nKind = 0x10;
-    p->ac = (__typeof__(p->ac))AllocClearedFromWorldHeap(&msg);
-    for (j = 0; j < p->numTextures; j++) {
-        struct C *pc = &p->ac[j];
-        LoadTexFromBrx(pbis, pc);
-        pc->pshd = p;
+    p->atex = (__typeof__(p->atex))AllocClearedFromWorldHeap(&msg);
+    for (j = 0; j < p->ctex; j++) {
+        TEX *ptex = &p->atex[j];
+        LoadTexFromBrx(pbis, ptex);
+        ptex->pshd = p;
     }
-    p->numFrames = p->ac->numFrames;
-    switch (p->kind) {
+    p->cframe = p->atex->cbmp;
+    switch (p->shdk) {
     case 0:
     case 4:
     case 5:
     case 6:
-        p->numPasses = 1;
+        p->cshdp = 1;
         break;
     case 1:
     case 2:
-        p->numPasses = 2;
+        p->cshdp = 2;
         break;
     case 7:
-        p->numPasses = (p->flags & 0x20) ? 2 : 3;
+        p->cshdp = (p->grfshd & 0x20) ? 2 : 3;
         break;
     case 3:
-        p->numPasses = 4;
+        p->cshdp = 4;
         break;
     }
-    msg.cb = p->numPasses * 8;
+    msg.cb = p->cshdp * 8;
     msg.nKind = 0x10;
     ae = (__typeof__(ae))AllocClearedFromWorldHeap(&msg);
-    p->ae = ae;
-    switch (p->kind) {
+    p->ashdp = ae;
+    switch (p->shdk) {
     case 0:
     case 4:
     case 5:
     case 6:
-        InitEnt(ae, p->ac->pshd->numFrames + 8, &msg);
+        InitEnt(ae, p->atex->pshd->cframe + 8, &msg);
         break;
     case 3:
     {
-        int n = (p->flags & 2) ? p->ac->pshd->numFrames + 2 : 0;
+        int n = (p->grfshd & 2) ? p->atex->pshd->cframe + 2 : 0;
         InitEnt(ae, n + 6, &msg);
         pe = &ae[1];
         InitEnt(pe, 6, &msg);
@@ -565,7 +543,7 @@ void LoadShdFromBrx(void *pbis, struct L *p)
         break;
     case 1:
     {
-        int n = p->ac->pshd->numFrames + 8;
+        int n = p->atex->pshd->cframe + 8;
         InitEnt(ae, n, &msg);
         pe = &ae[1];
         InitEnt(pe, n, &msg);
@@ -573,12 +551,12 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     }
     case 7:
     {
-        int n = p->ac->pshd->numFrames + 8;
+        int n = p->atex->pshd->cframe + 8;
         InitEnt(ae, n, &msg);
         pe = &ae[1];
         InitEnt(pe, n, &msg);
         pe = &ae[2];
-        if (!(p->flags & 0x20))
+        if (!(p->grfshd & 0x20))
             InitEnt(pe, n, &msg);
         break;
     }
@@ -586,39 +564,33 @@ void LoadShdFromBrx(void *pbis, struct L *p)
 }
 } } // namespace M_LoadShdFromBrx
 
-// Keeps its per-function views in a namespace of its own (see the file header).
+// Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_BuildShaderTex0List { extern "C" {
-typedef unsigned long ulong;
-struct B4 { char a[4]; };
 struct MSG { int cb; int nKind; };
-struct S3 { char pad[6]; unsigned char numFrames; };   /* TEX */
-struct Src { int oid; char pad4; unsigned char flags; unsigned char unknown6; char pad7; struct B4 rgba; char padc[0xC]; struct S3 *atex; };   /* SHD */
-struct Dst { int oid; int unknown4; int flags; struct B4 rgba; int c; ulong *a; };   /* the compact shader blips use: c TEX0 words */
 void *AllocClearedFromWorldHeap(struct MSG *);
-ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
 // Builds the compact shader record blips use from a SHD: its OID, flags and colour, and one TEX0 register word per
 // frame of its first texture (Tex0FromTexIframeCtk).
-void BuildShaderTex0List(struct Src *ps, struct Dst *pd)
+void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
 {
-    struct S3 *p;
+    TEX *ptex;
     struct MSG msg;
     int i;
-    pd->oid = ps->oid;
-    pd->unknown4 = ps->unknown6;
-    pd->flags = ps->flags;
-    pd->rgba = ps->rgba;
-    p = ps->atex;
+    pshdblip->oid = pshd->oid;
+    pshdblip->unknown4 = pshd->unknown06;
+    pshdblip->grfshd = pshd->grfshd;
+    pshdblip->rgba = pshd->rgba;
+    ptex = pshd->atex;
     {
-        int c = p->numFrames;
-        pd->c = c;
+        int c = ptex->cbmp;
+        pshdblip->cframe = c;
         msg.cb = c * 8;
     }
     msg.nKind = 0x10;
-    pd->a = (__typeof__(pd->a))AllocClearedFromWorldHeap(&msg);
-    for (i = 0; i < pd->c; i++)
+    pshdblip->atex0 = (ulong *)AllocClearedFromWorldHeap(&msg);
+    for (i = 0; i < pshdblip->cframe; i++)
     {
-        ulong *pe = (ulong *)((i << 3) + (int)pd->a);
-        *pe = Tex0FromTexIframeCtk(p, i, 0);
+        ulong *pe = (ulong *)((i << 3) + (int)pshdblip->atex0);
+        *pe = Tex0FromTexIframeCtk(ptex, i, 0);
     }
 }
 } } // namespace M_BuildShaderTex0List
@@ -626,24 +598,18 @@ void BuildShaderTex0List(struct Src *ps, struct Dst *pd)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadShadersFromBrx { extern "C" {
 struct MSG { int cb; int nKind; };
-struct E { char pad[5]; unsigned char b5; char pad2[0x2C - 6]; };
-extern int D_003DD000;
-extern void **D_003DD004;
-extern int D_003DCFE8;
-extern struct E *D_003DCFEC;
-extern int D_003DCFA0;
-extern void *D_003DCFA8[16];
+extern void *D_003DCFA8[16];   /* the permanent uploads (the file-scope definition is a char block) */
 void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *);
 void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
 void *AllocClearedFromStack(struct MSG *);
 void *AllocClearedFromWorldHeap(struct MSG *);
-void *LoadSaaFromBrx(int, void *);
-void LoadShdFromBrx(void *, struct E *);
+SAA *LoadSaaFromBrx(int, void *);
+void LoadShdFromBrx(void *, SHD *);
 void LoadSwSharedDataFromBrx(void *, void *);
 void *UploadPermShaders(int, int);
 void BuildShaderGifPackets(void);
-void BuildShaderTex0List(struct E *, void *);
+void BuildShaderTex0List(SHD *, SHDBLIP *);
 void AppendSlEntry(void *, void *);
 // Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures
 // (0x1ECE58); build shader packets.
@@ -657,13 +623,13 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
     D_003DD000 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DD000 * 4;
     msg.nKind = 0x10;
-    D_003DD004 = (__typeof__(D_003DD004))AllocClearedFromStack(&msg);
+    D_003DD004 = (SAA **)AllocClearedFromStack(&msg);
     for (i = 0; i < D_003DD000; i++)
         D_003DD004[i] = LoadSaaFromBrx(0, pbis);
     D_003DCFE8 = U16Read__18CBinaryInputStream(pbis);
-    msg.cb = D_003DCFE8 * 0x2C;
+    msg.cb = D_003DCFE8 * sizeof(SHD);
     msg.nKind = 0x10;
-    D_003DCFEC = (__typeof__(D_003DCFEC))AllocClearedFromStack(&msg);
+    D_003DCFEC = (SHD *)AllocClearedFromStack(&msg);
     for (j = 0; j < D_003DCFE8; j++)
         LoadShdFromBrx(pbis, &D_003DCFEC[j]);
     LoadSwSharedDataFromBrx(p, pbis);
@@ -672,14 +638,14 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
         D_003DCFA8[D_003DCFA0++] = pv;
     BuildShaderGifPackets();
     for (i = 0; i < D_003DCFE8; i++) {
-        struct E *pe = &D_003DCFEC[i];
-        if (pe->b5 & 0x40) {
-            void *q;
+        SHD *pshd = &D_003DCFEC[i];
+        if (pshd->grfshd & 0x40) {
+            SHDBLIP *pshdblip;
             msg.cb = 0x1C;
             msg.nKind = 0x10;
-            q = (__typeof__(q))AllocClearedFromWorldHeap(&msg);
-            BuildShaderTex0List(pe, q);
-            AppendSlEntry((*(char (*)[])&g_sw.slShd), q);
+            pshdblip = (SHDBLIP *)AllocClearedFromWorldHeap(&msg);
+            BuildShaderTex0List(pshd, pshdblip);
+            AppendSlEntry((*(char (*)[])&g_sw.slShd), pshdblip);
         }
     }
 }
@@ -687,31 +653,22 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildShaderGifPackets {
-#include "gifs.h"
-struct RGBA {uchar r,g,b,a;};
-struct PACKET {int count;QW*data;};
-struct TEXTURE;
-struct ENTRY {char unknown0[4];uchar kind,flags;char unknown6[6];RGBA color,secondary;char unknown14[4];TEXTURE*texture;int unknown1C;PACKET*packets;char unknown24[8];};
-extern "C" { extern int D_003DCFE8; }
-extern "C" { extern ENTRY *D_003DCFEC; }
-extern "C" { 
- }
-extern "C" void PackTexGifs(TEXTURE*,int,GIFS*);
+extern "C" void PackTexGifs(TEX*,int,GIFS*);
 extern "C" void BuildShaderGifPackets();
-static inline ulong ColorWord(const RGBA&color,const ENTRY*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->flags&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
+static inline ulong ColorWord(const SHDRGBA&color,const SHD*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->grfshd&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
 static inline void Pair(GIFS&q,int first,ulong regs){q.AddPrimBulk(first,0,4,regs,0);q.AddPrimBulk(first+1,0,4,regs,0);}
 static inline void Packed(GIFS&q){q.AddPrimPack(0,1,0xE);}
 static inline void End(GIFS&q){q.GIFS::EndPrim(1);q.EndDmaCnt();}
 union BLEND_WORD {ulong value;struct {ulong first:2;ulong second:2;ulong third:2;ulong fourth:2;ulong remaining:56;} fields;};
-static inline ulong Alpha(ENTRY*e){BLEND_WORD word;word.value=0;word.fields.second=(e->flags&1)?2UL:1UL;word.fields.fourth=1;return word.value;}
+static inline ulong Alpha(SHD*e){BLEND_WORD word;word.value=0;word.fields.second=(e->grfshd&1)?2UL:1UL;word.fields.fourth=1;return word.value;}
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
-typedef char packet_layout[(sizeof(void*)==4 && sizeof(ulong)==8 && sizeof(QW)==16 && sizeof(DMAS)==28 && sizeof(GIFS)==40 && sizeof(RGBA)==4 && sizeof(PACKET)==8 && sizeof(ENTRY)==44 && sizeof(BLEND_WORD)==8 && OFF(PACKET,count)==0x0 && OFF(PACKET,data)==0x4 && OFF(RGBA,r)==0x0 && OFF(RGBA,g)==0x1 && OFF(RGBA,b)==0x2 && OFF(RGBA,a)==0x3 && OFF(ENTRY,kind)==0x4 && OFF(ENTRY,flags)==0x5 && OFF(ENTRY,color)==0xC && OFF(ENTRY,secondary)==0x10 && OFF(ENTRY,texture)==0x18 && OFF(ENTRY,packets)==0x20 && OFF(GIFS,m_pbMax)==0x0 && OFF(GIFS,m_ab)==0x4 && OFF(GIFS,m_pqwCnt)==0x8 && OFF(GIFS,m_pb)==0xC && OFF(GIFS,m_fPad)==0x10 && OFF(GIFS,m_fEndPrim)==0x14 && OFF(GIFS,m_pqwPrim)==0x1C && OFF(GIFS,m_creg)==0x20 && OFF(GIFS,m_cregAll)==0x24)?1:-1];
+typedef char packet_layout[(sizeof(void*)==4 && sizeof(ulong)==8 && sizeof(QW)==16 && sizeof(DMAS)==28 && sizeof(GIFS)==40 && sizeof(SHDRGBA)==4 && sizeof(SHDP)==8 && sizeof(SHD)==44 && sizeof(BLEND_WORD)==8 && OFF(SHDP,cqw)==0x0 && OFF(SHDP,aqw)==0x4 && OFF(SHDRGBA,r)==0x0 && OFF(SHDRGBA,g)==0x1 && OFF(SHDRGBA,b)==0x2 && OFF(SHDRGBA,a)==0x3 && OFF(SHD,shdk)==0x4 && OFF(SHD,grfshd)==0x5 && OFF(SHD,rgbaVolume)==0xC && OFF(SHD,rgba2)==0x10 && OFF(SHD,atex)==0x18 && OFF(SHD,ashdp)==0x20 && OFF(GIFS,m_pbMax)==0x0 && OFF(GIFS,m_ab)==0x4 && OFF(GIFS,m_pqwCnt)==0x8 && OFF(GIFS,m_pb)==0xC && OFF(GIFS,m_fPad)==0x10 && OFF(GIFS,m_fEndPrim)==0x14 && OFF(GIFS,m_pqwPrim)==0x1C && OFF(GIFS,m_creg)==0x20 && OFF(GIFS,m_cregAll)==0x24)?1:-1];
 static inline ulong TestWordOr(uint base,ulong bits){
  register ulong result __asm__("$6");register uint input __asm__("$5")=base;register ulong mask __asm__("$2")=bits;
  __asm__("or %0,%1,%2":"=r"(result):"r"(input),"r"(mask));return result;
 }
-static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKind,uint &flags4){
- register uint rawKind __asm__("$2")=entry->kind;
+static inline ulong TestBaseAndKind(const SHD *entry,uint flags,uint &depthKind,uint &flags4){
+ register uint rawKind __asm__("$2")=entry->shdk;
  register uint retained __asm__("$3")=0x7EB;
  register ulong base __asm__("$5")=0x7E1;
  register uint marked __asm__("$4")=flags;
@@ -723,19 +680,19 @@ static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKin
 void BuildShaderGifPackets(){
  int i;
  for(i=0;i<D_003DCFE8;i++){
-  ENTRY*e=D_003DCFEC+i;
-  PACKET*p=e->packets;
-  switch(e->kind){
+  SHD*e=D_003DCFEC+i;
+  SHDP*p=e->ashdp;
+  switch(e->shdk){
   case 0:case 4:case 5:case 6:{
    GIFS q;
-   q.AllocStatic(p->count,p->data);
+   q.AllocStatic(p->cqw,p->aqw);
    Pair(q,0x7C,0x4F12);
    Packed(q);
-   PackTexGifs(e->texture,0,&q);
-   uint capturedFlags=e->flags;
+   PackTexGifs(e->atex,0,&q);
+   uint capturedFlags=e->grfshd;
    if(capturedFlags&0x20){
     ulong test=(capturedFlags&4)?0x13001UL:0x11001UL;
-    test|=e->kind?0x20000UL:0x60000UL;
+    test|=e->shdk?0x20000UL:0x60000UL;
     q.PackAD(0x47,test);q.PackAD(0x42,0);
    }else if(capturedFlags&0x10){
     uint depthKind,flags4;
@@ -743,7 +700,7 @@ void BuildShaderGifPackets(){
     ulong test=(ulong)testBase|0x11000UL;
     if(flags4)test=(ulong)testBase|0x13000UL;
     test|=depthKind?0x20000UL:0x60000UL;
-    q.PackAD(0x47,test);q.PackAD(0x42,((ulong)(e->flags&1)<<3)|1);
+    q.PackAD(0x47,test);q.PackAD(0x42,((ulong)(e->grfshd&1)<<3)|1);
    }else if(capturedFlags&0x80){
     q.PackAD(0x47,0x77000);q.PackAD(0x42,0x54);
    }else{
@@ -758,11 +715,11 @@ void BuildShaderGifPackets(){
    break;
   }
   case 3:{
-   GIFS q;RGBA rounded,color;
-   q.AllocStatic(p->count,p->data);
-   if(e->flags&2){
+   GIFS q;SHDRGBA rounded,color;
+   q.AllocStatic(p->cqw,p->aqw);
+   if(e->grfshd&2){
     Pair(q,0x7C,0x4F12);Packed(q);
-    PackTexGifs(e->texture,0,&q);
+    PackTexGifs(e->atex,0,&q);
     q.PackAD(0x47,0x71001);q.PackAD(0x42,Alpha(e));
     q.PackAD(0x3D,(ulong)(*(uint *)&g_cm.rgbaFog));
    }else{
@@ -771,15 +728,15 @@ void BuildShaderGifPackets(){
     q.PackAD(1,(1UL<<32)|0x20);
    }
    End(q);++p;ulong one=1,two=2,mask=0x40;q.Clear();
-   q.AllocStatic(p->count,p->data);++p;
+   q.AllocStatic(p->cqw,p->aqw);++p;
    Pair(q,0x4C,0x4FFF);Packed(q);
    q.PackAD(0x47,0x71001);q.PackAD(0x42,0x6A);
    q.PackAD(1,(1UL<<32)|0x80002000UL);End(q);q.Clear();
-   q.AllocStatic(p->count,p->data);++p;
+   q.AllocStatic(p->cqw,p->aqw);++p;
    Pair(q,0x6C,0x4FFF);q.AddPrimPack(0,5,0x12EEE);
    q.PackAD(0x47,0x75001);{
  register uint blendFlags __asm__("$2");register ulong blendSource __asm__("$6");
- __asm__("lbu %0,%2\n\taddiu %1,$zero,1":"=r"(blendFlags),"=r"(blendSource):"m"(e->flags));
+ __asm__("lbu %0,%2\n\taddiu %1,$zero,1":"=r"(blendFlags),"=r"(blendSource):"m"(e->grfshd));
  register int blendRegister __asm__("$5");
  __asm__("addiu %0,$zero,0x42\n\tandi %1,%1,1":"=r"(blendRegister),"+r"(blendFlags));
  if(blendFlags)blendSource=two;
@@ -789,46 +746,46 @@ void BuildShaderGifPackets(){
    q.PackSTQ(0.f,0.f,1.f);
    {
 
-    rounded.r=(e->color.r+1)>>1;rounded.g=(e->color.g+1)>>1;
-    rounded.b=(e->color.b+1)>>1;rounded.a=(e->color.a+1)>>1;
+    rounded.r=(e->rgbaVolume.r+1)>>1;rounded.g=(e->rgbaVolume.g+1)>>1;
+    rounded.b=(e->rgbaVolume.b+1)>>1;rounded.a=(e->rgbaVolume.a+1)>>1;
     q.PackRGBA(*(uint*)&rounded);
    }
    End(q);q.Clear();
-   q.AllocStatic(p->count,p->data);
+   q.AllocStatic(p->cqw,p->aqw);
    q.AddPrimBulk(0x4D,0,1,4,0);
    {
-    color=e->secondary;
-    Packed(q);if(e->flags&1)one=two;q.PackAD(0x42,(one<<2)|mask);
+    color=e->rgba2;
+    Packed(q);if(e->grfshd&1)one=two;q.PackAD(0x42,(one<<2)|mask);
     q.PackAD(1,ColorWord(color,e));
    }
    End(q);break;
   }
   case 2:{
    GIFS q;
-   q.AllocStatic(p->count,p->data);
+   q.AllocStatic(p->cqw,p->aqw);
    q.AddGifTag(0x44,0,2,0x41,1);q.AddGifTag(0x45,0,2,0x41,1);
    Packed(q);
-   if(e->flags&8)q.PackAD(0x47,0x71001);else q.PackAD(0x47,0x75001);
+   if(e->grfshd&8)q.PackAD(0x47,0x71001);else q.PackAD(0x47,0x75001);
    q.PackAD(0x42,(1UL<<39)|0x62);++p;End(q);q.Clear();
-   q.AllocStatic(p->count,p->data);
+   q.AllocStatic(p->cqw,p->aqw);
    q.AddGifTag(0x44,0,2,0x41,1);q.AddGifTag(0x45,0,2,0x41,1);
    Packed(q);
-   if(e->flags&8)q.PackAD(0x47,0x31001);else q.PackAD(0x47,0x35001);
+   if(e->grfshd&8)q.PackAD(0x47,0x31001);else q.PackAD(0x47,0x35001);
    q.PackAD(0x42,(1UL<<39)|0x68);End(q);break;
   }
   case 1:{
    GIFS q;
-   q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->texture,1,&q);
-   if(e->flags&0x80){
+   q.AllocStatic(p->cqw,p->aqw);
+   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->atex,1,&q);
+   if(e->grfshd&0x80){
     q.PackAD(0x47,0x77000);q.PackAD(0x42,0x54);
    }else{
-    q.PackAD(0x47,(e->flags&4)?0x737EB:0x717EB);q.PackAD(0x42,Alpha(e));
+    q.PackAD(0x47,(e->grfshd&4)?0x737EB:0x717EB);q.PackAD(0x42,Alpha(e));
    }
    q.PackAD(0x3D,(ulong)(*(uint *)&g_cm.rgbaFog));++p;End(q);q.Clear();
-   q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,0,&q);
-   if(e->flags&0x80){
+   q.AllocStatic(p->cqw,p->aqw);
+   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->atex,0,&q);
+   if(e->grfshd&0x80){
     q.PackAD(0x47,0x57000);q.PackAD(0x42,0x58);
    }else{
     q.PackAD(0x47,0x51001);q.PackAD(0x42,0x48);
@@ -837,18 +794,18 @@ void BuildShaderGifPackets(){
   }
   case 7:{
    GIFS q;
-   if(!(e->flags&0x20)){
-    q.AllocStatic(p->count,p->data);++p;
-    Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,2,&q);
+   if(!(e->grfshd&0x20)){
+    q.AllocStatic(p->cqw,p->aqw);++p;
+    Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->atex,2,&q);
     q.PackAD(0x47,0x5000D);q.PackAD(0x42,0x40);q.PackAD(0x3D,0);
     End(q);q.Clear();
    }
-   q.AllocStatic(p->count,p->data);++p;
-   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->texture,1,&q);
+   q.AllocStatic(p->cqw,p->aqw);++p;
+   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->atex,1,&q);
    q.PackAD(0x47,0x53001);q.PackAD(0x42,Alpha(e));q.PackAD(0x3D,(ulong)(*(uint *)&g_cm.rgbaFog));
    End(q);q.Clear();
-   q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,0,&q);
+   q.AllocStatic(p->cqw,p->aqw);
+   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->atex,0,&q);
    q.PackAD(0x47,0x53001);q.PackAD(0x42,0x48);q.PackAD(0x3D,0);End(q);break;
   }
   }

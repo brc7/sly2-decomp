@@ -68,7 +68,7 @@ struct BMP
 };
 typedef char assert_BMP_size[sizeof(BMP) == 0x28 ? 1 : -1];
 
-struct SHD; struct SAA;
+struct SHD; struct SAA; union QW;
 
 /* TEX: one texture of a shader (0x14; LoadTexFromBrx reads its first 8 bytes from the level): its frames' bitmaps
    and colour tables (Tex0FromTexIframeCtk combines frame i's BMP TEX0 with pass j's CLUT TEX2) */
@@ -86,7 +86,7 @@ struct TEX
 typedef char assert_TEX_size[sizeof(TEX) == 0x14 ? 1 : -1];
 
 /* SHDP: one upload record of a shader (cqw quadwords at pv; the count of records depends on the shader kind) */
-struct SHDP { int cqw; void *pv; };
+struct SHDP { int cqw; QW *aqw; };
 
 /* SHD: a shader (0x2C), the level's D_003DCFEC array (LoadShdFromBrx) */
 struct SHD
