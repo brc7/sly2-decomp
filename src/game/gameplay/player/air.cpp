@@ -531,7 +531,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     if (kind != 0x11)
         air->unknown2C = air->canDoubleJump;
     if (IsBasicDerivedFrom(air->player, (CID)0x35))
-        ((JT *)air->player)->janim.nUnk10 = -1;
+        ((JT *)air->player)->janim.unknown10 = -1;
     air->zStart = QwordZ(PosLoWorld(air->player));
 }
 } // namespace M_func_00195A00
@@ -1936,14 +1936,14 @@ void UpdateJtAirInput(JTAIR *air)
                     if (IsBasicDerivedFrom(air->player, (CID)0x35))
                     {
                         jt = (JT *)air->player;
-                        nUnk10 = jt->janim.nUnk10;
+                        nUnk10 = jt->janim.unknown10;
                     }
                     *(qword *)&vec = air->player->GetVelocity();
                     vec.x = vec.y = 0.0f;
                     air->player->SetVelocity(*(qword *)&vec);
                     SetJtAirJump(air, 0xB, 0, 0);
                     if (jt != 0)
-                        jt->janim.nUnk10 = nUnk10;
+                        jt->janim.unknown10 = nUnk10;
                     break;
                 }
                 if (air->placeTarget.grabSpot != 0 && air->pact8->tEnd < D_002DDED0.time + 0.25f)

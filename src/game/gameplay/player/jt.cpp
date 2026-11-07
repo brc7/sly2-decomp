@@ -895,8 +895,8 @@ void HandleJtMessage(char *p, int msg, void *pv)
     HandleStepplayerMessage(p, msg, pv);
     switch (msg) {
     case 3:
-        if (pv == AsJt(p)->janim.pasega) {
-            if (AsJt(p)->jtas == 10)
+        if (pv == AsJt(p)->janim.animationPlayback) {
+            if (AsJt(p)->animState == 10)
                 SetJtCaneState__FP2JTi(p, 2);
             else
                 SetJtCaneState__FP2JTi(p, -1);
@@ -904,15 +904,15 @@ void HandleJtMessage(char *p, int msg, void *pv)
         }
         if (pv != F(void *, 0x1030))
             break;
-        switch (AsJt(p)->jts) {
+        switch (AsJt(p)->state) {
         case 9:
         case JTS_Pickpocket: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
         case JTS_Grab:
         case JTS_SurfaceClimb: F(int, 0x1038) = -1; break;
         case 5:
 
-            if (AsJt(p)->jtbs < 10) {
-                if (AsJt(p)->jtbs >= 8)
+            if (AsJt(p)->bodyState < 10) {
+                if (AsJt(p)->bodyState >= 8)
                     SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
             }
 
@@ -922,16 +922,16 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 9: {
         MSG9 *pm = (MSG9 *)pv;
         void *x = pm->x0;
-        if (x == F(void *, 0x1030) || x == AsJt(p)->janim.pasega || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
+        if (x == F(void *, 0x1030) || x == AsJt(p)->janim.animationPlayback || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
             switch (pm->x8) {
-            case 0x16E: DetachXfActById(AsJt(p)->janim.pasega, p, F(int, 0x10B8)); break;
-            case 0x16F: DetachSoActsMatching(AsJt(p)->janim.pasega, p, 3, D_002BF2A0); break;
-            case 0x170: DetachSoActsMatching(AsJt(p)->janim.pasega, p, 3, D_002BF2B8); break;
-            case 0x164: AsJt(p)->janim.fInputOpen = 1; break;
-            case 0x166: AsJt(p)->janim.fLandAlt = 1; break;
+            case 0x16E: DetachXfActById(AsJt(p)->janim.animationPlayback, p, F(int, 0x10B8)); break;
+            case 0x16F: DetachSoActsMatching(AsJt(p)->janim.animationPlayback, p, 3, D_002BF2A0); break;
+            case 0x170: DetachSoActsMatching(AsJt(p)->janim.animationPlayback, p, 3, D_002BF2B8); break;
+            case 0x164: AsJt(p)->janim.isInputOpen = 1; break;
+            case 0x166: AsJt(p)->janim.useAltLanding = 1; break;
             case 0x165:
                 if (F(int, 0x18EC)) {
-                    switch (AsJt(p)->jtas) {
+                    switch (AsJt(p)->animState) {
                     case 0xC:
                     case 0xE:
                     case 0x10:
@@ -985,10 +985,10 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 1: {
         E *pe;
         int i;
-        switch (AsJt(p)->jts) {
+        switch (AsJt(p)->state) {
         case JTS_Hang:
         case JTS_HangFollow:
-            if (AsJt(p)->phndHang == pv)
+            if (AsJt(p)->hangHandle == pv)
                 SetJtAirJump(A(0x2C0), 0, 0, 0);
             break;
         case JTS_Grab:
@@ -1014,7 +1014,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         k = pm->x8->xC;
         if (k & 2) {
-            switch (AsJt(p)->jtas) {
+            switch (AsJt(p)->animState) {
             case 4:
             case 6:
             case 0xC:
@@ -1052,7 +1052,7 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 {
     LO *lo;
     int f;
-    lo = jt->ploAttached;
+    lo = jt->attachedTo;
     f = 0;
     if (lo != 0) {
         FaceStepToward(jt, lo);
@@ -1269,7 +1269,7 @@ void UpdateJtLean(JT *jt)
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, D_002A2DD0);
         return;
     }
-    switch (jt->jts) {
+    switch (jt->state) {
     case JTS_Stand:
         if (jt->pxpFloor)
             lo = jt->pxpFloor->axpd[1].psoLeaf;
@@ -1362,7 +1362,7 @@ lComputeLean:
         gFootR = gFootL;
     SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e4, MakeVec(vecLean.x, vecLean.y, gFootR));
     qword qwHalf = ScaleVec(*(qword *)&vecLean, VuFloatFromMemWord(*(int *)&D_002BF2E0));
-    if (jt->jtas == -1) {
+    if (jt->animState == -1) {
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, qwHalf);
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, qwHalf);
     } else {
@@ -1380,12 +1380,12 @@ namespace M_RebuildJtXmg {
 // 0x00189C40 RebuildJtXmg__FP2JTP3ALOfT1P4ACT5P3XMG  (T1460 MATCH; T0983 had it at 77 %)  Sly 1's RebuildJtXmg (JT.c): Sly's foot placement for one foot. When the clip his feet follow
 // changes (pxmg->paseg) the foot's XMG is rebuilt. The clip's label 0x16A (a time) is asked three times where the XFs stand then (PredictAsegEffect 0x1300B8, relative to his root XF):
 // paloExtrem = the foot's ball XF, paloHip = the leg's root XF (its slot +0xA8 holds the leg's IK record, IKREC: the limb's goal XF with the IK handle's point, the two bone lengths) and
-// the record's goal XF (the heel's IK handle). posExtrem = the ball lowered by sRadius (5: ball to sole) along g_normalZ; the sphere the foot can reach is centred on posSphere = the
-// hip + (posExtrem - the handle's goal point) with the radius sSphere = both bones of the leg + 10; the vertical line posExtrem + g_normalZ * 50 .. posExtrem - g_normalZ * 50 is clipped to
-// that sphere (0x14C748, ClsgClipEdgeToSphere's Sly 2 form: the first piece goes to posUp / posDown, fValid = it hit) and posSphereLow = the sphere's lowest point (Sly 2 only).
+// the record's goal XF (the heel's IK handle). extremePosition = the ball lowered by sRadius (5: ball to sole) along g_normalZ; the sphere the foot can reach is centred on spherePosition = the
+// hip + (extremePosition - the handle's goal point) with the radius sphereRadius = both bones of the leg + 10; the vertical line extremePosition + g_normalZ * 50 .. extremePosition - g_normalZ * 50 is clipped to
+// that sphere (0x14C748, ClsgClipEdgeToSphere's Sly 2 form: the first piece goes to upPosition / downPosition, isValid = it hit) and sphereLowPosition = the sphere's lowest point (Sly 2 only).
 // UpdateJtStand (every frame, the two feet) and JT::Update call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
 // Match notes (decomp/learnings.md "T1460"): the two pool constants are `extern int` words read with VuFloatFromMemWord(D) (by-value param); the source order that keeps the game's
-// schedule is "sphere centre store, radius store, then the two constants, then the two AddScaledVec into locals, then the call", and the posExtrem store before the two clip stores.
+// schedule is "sphere centre store, radius store, then the two constants, then the two AddScaledVec into locals, then the call", and the extremePosition store before the two clip stores.
 inline qword TransformPos(MATRIX4 *matrix, qword pos)
 {
     qword result;
@@ -1445,12 +1445,12 @@ void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *p
 void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
 {
     ASEGA *asega;
-    if (jt->jts == 0)
+    if (jt->state == 0)
     {
-        switch (jt->jtas)
+        switch (jt->animState)
         {
         case 6: case 7: case 8: case 9: case 12: case 13:
-            asega = jt->janim.pasega;
+            asega = jt->janim.animationPlayback;
             break;
         default:
             asega = jt->activeStateMachine->pasegaCur;
@@ -1464,9 +1464,9 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
         else
             asega = jt->activeAnimation;
     }
-    if (asega->animation == pxmg->paseg)
+    if (asega->animation == pxmg->animation)
         return;
-    pxmg->paseg = asega->animation;
+    pxmg->animation = asega->animation;
     float tLocal = 0.0f;
     EA *pea = PeaFindAsegLabel(asega->animation, (OID)0x16A);
     if (pea != 0)
@@ -1482,18 +1482,18 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
     qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->qwPosIkh);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
-    pxmg->posSphere = posSphereCenter;
-    pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->reference) ->sUpper + ((IKREC *)((XF *)( paloHip ))->reference) ->sLower + 10.0f;
+    pxmg->spherePosition = posSphereCenter;
+    pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->sUpper + ((IKREC *)((XF *)( paloHip ))->reference) ->sLower + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
     VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
     LSG lsgClip;
     qword posLineUp = AddScaledVec(posExtrem, D_002A2DC0, vfUp);
     qword posLineDown = AddScaledVec(posExtrem, D_002A2DC0, vfDown);
-    pxmg->fValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sSphere, posLineUp, posLineDown, 1, &lsgClip) > 0;
-    pxmg->posExtrem = posExtrem;
-    pxmg->posUp = lsgClip.apos[0];
-    pxmg->posDown = lsgClip.apos[1];
-    pxmg->posSphereLow = AddScaledVec(pxmg->posSphere, D_002A2DC0, VuFloat(-pxmg->sSphere));
+    pxmg->isValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sphereRadius, posLineUp, posLineDown, 1, &lsgClip) > 0;
+    pxmg->extremePosition = posExtrem;
+    pxmg->upPosition = lsgClip.apos[0];
+    pxmg->downPosition = lsgClip.apos[1];
+    pxmg->sphereLowPosition = AddScaledVec(pxmg->spherePosition, D_002A2DC0, VuFloat(-pxmg->sphereRadius));
 }
 } // namespace M_RebuildJtXmg
 
@@ -1602,7 +1602,7 @@ void UpdateJtStand(struct S *jt)
 // JT render (slot 19): while hanging (state 3) applies the hand IK first, then the STEPPLAYER render.
 extern "C" void RenderJtSelf(JT *jt, void *camera)
 {
-    if (jt->jts == 3) {
+    if (jt->state == 3) {
         func_00190D10V();   /* the C file called it without arguments: a0/a1 still hold the JT and pcm */
     }
     RenderStepplayerSelf1(jt);
@@ -2048,8 +2048,8 @@ extern "C" void ChooseJtGroundState(JT *jt)
     JTBS jtbsOld;
     do
     {
-        jtsOld = jt->jts;
-        jtbsOld = jt->jtbs;
+        jtsOld = jt->state;
+        jtbsOld = jt->bodyState;
         if (jtsOld >= 0 && jtsOld < JTS_Max)
         {
             switch (jtsOld)
@@ -2075,7 +2075,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Gait2:
                 case JTS_Throw:
                 case JTS_Unk18:
-                    if (jt->jtas != 8 && jt->jtas != 9 || jt->janim.fInputOpen)
+                    if (jt->animState != 8 && jt->animState != 9 || jt->janim.isInputOpen)
                     {
     fell:
                         if (D_002DDED0.time - jt->tUnk20c > 0.1f)
@@ -2083,11 +2083,11 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     break;
             }
-            switch (jt->jts)
+            switch (jt->state)
             {
                 case JTS_Air:
                     UpdateJtAirInput(&jt->jtair);
-                    if (jt->nUnk1d30)
+                    if (jt->unknown1D30)
                     {
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
@@ -2109,7 +2109,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     UpdateJtThrow(&jt->jtthrow);
                     break;
                 case JTS_Interact:
-                    JtInteractPre((JTREC *)&jt->unk_0x1ff0);
+                    JtInteractPre((JTREC *)&jt->unknown1FF0);
                     break;
                 case JTS_Unk08:
                     UpdateJtActivePipe(&jt->jtpipe);
@@ -2118,14 +2118,14 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Run:
                 case JTS_Unk0A:
                 case JTS_Gait2:
-                    if (jt->nUnk1d30)
+                    if (jt->unknown1D30)
                     {
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (jt->jtas == 8 || jt->jtas == 9)
+                    if (jt->animState == 8 || jt->animState == 9)
                     {
-                        if (!jt->janim.fInputOpen)
+                        if (!jt->janim.isInputOpen)
                             break;
                     }
                     if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
@@ -2156,7 +2156,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     {
                         float sLeft = jt->pctl->sLeft;
-                        if (jt->jts == 0 ? sLeft > 0.1f : sLeft > 0.0f)
+                        if (jt->state == 0 ? sLeft > 0.1f : sLeft > 0.0f)
                         {
                             if (jt->pctl->grfbtn & 8)
                                 SetJtState(jt, JTS_Run, JTBS_Nil);
@@ -2170,7 +2170,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     break;
                 case JTS_Unk18:
-                    if (jt->nUnk1d30)
+                    if (jt->unknown1D30)
                     {
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
@@ -2190,7 +2190,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->jtbs == JTBS_13)
+                    if (jt->bodyState == JTBS_13)
                     {
                         qword velocity = jt->GetVelocity();
                         int fStill = QwordX(VuDot(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
@@ -2199,12 +2199,12 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     break;
                 case JTS_Unk05:
-                    if (jt->nUnk1d30)
+                    if (jt->unknown1D30)
                     {
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if ((uint)(jt->jtbs - 6) < 4)
+                    if ((uint)(jt->bodyState - 6) < 4)
                         break;
                     if (jt->pctl->grfbtn & 8)
                     {
@@ -2238,7 +2238,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
-                    if (D_002DDED0.time - jt->tJts > 0.25f)
+                    if (D_002DDED0.time - jt->stateStartTime > 0.25f)
                     {
                         if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
@@ -2252,7 +2252,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z)
                     {
-                        if (D_002DDED0.time - jt->tJts > 0.4f)
+                        if (D_002DDED0.time - jt->stateStartTime > 0.4f)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
@@ -2262,9 +2262,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.time - jt->tJts > 0.4f)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.time - jt->stateStartTime > 0.4f)
                     {
-                        float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
+                        float tLabel = TFindAsegLabel(jt->unknown1A84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;
                         if (asega->time < tLabel)
                             SeekAsega(asega, SEEK_Start, tLabel, asega->speed);
@@ -2287,7 +2287,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     break;
                 }
                 case JTS_Unk11:
-                    if (!jt->nUnk1d30 || D_002DDED0.time - jt->tJts > D_002BF360)
+                    if (!jt->unknown1D30 || D_002DDED0.time - jt->stateStartTime > D_002BF360)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
@@ -2298,25 +2298,25 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
-                        LO *ploTarget = jt->phndHang->ploUnk138;
+                        LO *ploTarget = jt->hangHandle->ploUnk138;
                         if (ploTarget && IsBasicDerivedFrom(ploTarget, (CID)10))
                         {
-                            SHAPE *shape = (SHAPE *)jt->phndHang->ploUnk138;
-                            EvaluateShapeAtDistance(shape, GetShapeMaxDistance(shape) * (0.5f - jt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
+                            SHAPE *shape = (SHAPE *)jt->hangHandle->ploUnk138;
+                            EvaluateShapeAtDistance(shape, GetShapeMaxDistance(shape) * (0.5f - jt->unknown1F94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
                             VECTOR4 vLocal;
-                            if (jt->phndHang->ploUnk138)
-                                *(qword *)&vLocal = ConvertLoPos(0, jt->phndHang, PosLoWorld(jt->phndHang->ploUnk138));
+                            if (jt->hangHandle->ploUnk138)
+                                *(qword *)&vLocal = ConvertLoPos(0, jt->hangHandle, PosLoWorld(jt->hangHandle->ploUnk138));
                             else
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
-                            mat = LoadRotateMatrixRad(jt->gUnk1f94 * D_002BF364, D_002A2DA0);
-                            *(qword *)&vTarget = TransformPos(jt->phndHang->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
+                            mat = LoadRotateMatrixRad(jt->unknown1F94 * D_002BF364, D_002A2DA0);
+                            *(qword *)&vTarget = TransformPos(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
                         qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->physics->gravity);
-                        VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->gUnk1f98);
+                        VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
                         jt->jtair.unknownA0 = ProjectOutVec(velocity, D_002A2DC0);
@@ -2324,7 +2324,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     break;
             }
         }
-    } while (jt->jts != jtsOld || jt->jtbs != jtbsOld);
+    } while (jt->state != jtsOld || jt->bodyState != jtbsOld);
 }
 } // namespace M_JtChooseGroundState
 
@@ -3108,7 +3108,7 @@ void UpdateJt(char *p)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
-    switch (AsJt(p)->jts) {
+    switch (AsJt(p)->state) {
     case JTS_Run: {
         qword s, motion;
         SetStepTargetHeading(p, F(struct X150 *, 0x150)->g18);
@@ -3127,7 +3127,7 @@ void UpdateJt(char *p)
         break;
     }
     case 5:
-        if (AsJt(p)->jtbs == 5) {
+        if (AsJt(p)->bodyState == 5) {
             qword s, motion;
             UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
             {
@@ -3159,7 +3159,7 @@ void UpdateJt(char *p)
         break;
     }
     UpdateJtCane__FP2JT(p);
-    if (AsJt(p)->jtas == 0) {
+    if (AsJt(p)->animState == 0) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
             void *po2 = AsJt(p)->hands.ploTarget;
             for (i = 0; i < 3; i++)
@@ -3465,30 +3465,30 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     SM *stateMachine = 0;
     int grfRoute = 0xFFFC;
     int fKeep = 0;
-    if (jt->jts == jts && jt->jtbs == jtbs)
+    if (jt->state == jts && jt->bodyState == jtbs)
         return;
-    if (jt->jts != jts)
+    if (jt->state != jts)
     {
         if (jts == JTS_Air)
         {
-            switch (jt->jts)
+            switch (jt->state)
             {
                 case JTS_Hang:
                 case JTS_HangFollow:
-                    jt->jtair.unknownBC = (LO *)jt->phndHang;
+                    jt->jtair.unknownBC = (LO *)jt->hangHandle;
                     break;
                 case JTS_Unk08:
                     jt->jtair.unknownBC = (LO *)jt->jtpipe.pipeCurve;
                     break;
                 case JTS_SurfaceClimb:
-                    jt->jtair.unknownBC = jt->ploUnk1f18;
+                    jt->jtair.unknownBC = jt->unknown1F18;
                     break;
                 default:
                     jt->jtair.unknownBC = 0;
                     break;
             }
         }
-        switch (jt->jts)
+        switch (jt->state)
         {
             case JTS_Air:
                 switch (jts)
@@ -3509,7 +3509,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     }
                     break;
                 }
-                if (jt->jtas == 0)
+                if (jt->animState == 0)
                 {
                     if (jts != JTS_Unk08 && jts != JTS_Hang && jts != JTS_HangFollow)
                         SetJtAnimState(jt, -1);
@@ -3551,10 +3551,10 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtAirState(&jt->jtair, -1, 0);
                 break;
             case JTS_Hang:
-                jt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                UnsubscribeLoObject(jt->phndHang, jt);
+                jt->hangHandle->HandleSpliceEvent(6, 0, 0, 0, 0);
+                UnsubscribeLoObject(jt->hangHandle, jt);
                 SetJtAnimState(jt, -1);
-                RemoveNodeBySlot(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
+                RemoveNodeBySlot(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
                 if (jt->janim.pxaHang != 0)
                 {
                     RemoveSoXa(jt->janim.pxaHang->other, jt->janim.pxaHang);
@@ -3567,7 +3567,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             {
                 SetJtPipeState(&jt->jtpipe, -1);
                 int jtas = -1;
-                if (jts == JTS_Air && jt->pasegUnk14d8 != 0)
+                if (jts == JTS_Air && jt->unknown14D8 != 0)
                     jtas = 0xB;
                 SetJtAnimState(jt, jtas);
             }
@@ -3582,16 +3582,16 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtThrowState(&jt->jtthrow, -1);
                 break;
             case JTS_Interact:
-                SetJtRecState((JTREC *)&jt->unk_0x1ff0, -1);
+                SetJtRecState((JTREC *)&jt->unknown1FF0, -1);
                 break;
             case JTS_Unk09:
-                jt->ploAttached = 0;
-                ShowSoPart(jt, jt->precUnk1a90);
+                jt->attachedTo = 0;
+                ShowSoPart(jt, jt->unknown1A90);
                 break;
             case JTS_Stand:
                 SlotSetRole(jt, jt->unknown58, 2);
                 SlotSetRole(jt, jt->unknown5C, 2);
-                switch (jt->jtas)
+                switch (jt->animState)
                 {
                     case 6:
                         SetJtAnimState(jt, 4);
@@ -3625,7 +3625,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Pounce:
                 if (jt->activeAnimation != 0 && !FAsegaStopped(jt->activeAnimation))
                     GuardCapVelocityForPounce((STEPGUARD *)jt->interactTarget);
-                jt->nUnk1d2c = 0;
+                jt->unknown1D2C = 0;
                 jt->unknown10E0 &= ~4;
                 break;
             case JTS_Unk12:
@@ -3636,20 +3636,20 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
-                jt->ploUnk1f18->HandleSpliceEvent(6, 0, 0, 0, 0);
-                if (jt->unknown1024 == *(TN **)((char *)jt->ploUnk1f18 + 0x110))
+                jt->unknown1F18->HandleSpliceEvent(6, 0, 0, 0, 0);
+                if (jt->unknown1024 == *(TN **)((char *)jt->unknown1F18 + 0x110))
                     SetPlayerTn(jt, 0);
-                jt->ploUnk1f18 = 0;
+                jt->unknown1F18 = 0;
                 break;
             case JTS_HangFollow:
                 SetSoCnstrForce(jt, 0);
-                jt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                UnsubscribeLoObject(jt->phndHang, jt);
-                jt->phndHang = 0;
+                jt->hangHandle->HandleSpliceEvent(6, 0, 0, 0, 0);
+                UnsubscribeLoObject(jt->hangHandle, jt);
+                jt->hangHandle = 0;
                 SetPlayerTn(jt, 0);
                 break;
             case JTS_Unk11:
-                jt->nUnk1d30 = 0;
+                jt->unknown1D30 = 0;
                 OnGameEvent(&D_002DEB30, 0x38, jt);
                 break;
             case JTS_Unk18:
@@ -3657,7 +3657,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->pctl->radLeft = jt->radTarget;
                 break;
             case JTS_Unk0D:
-                jt->ploAttached = 0;
+                jt->attachedTo = 0;
                 break;
         }
         switch (jts)
@@ -3667,8 +3667,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 stateMachine = jt->unknown1028;
                 SlotSetRole(jt, jt->unknown58, 1);
                 SlotSetRole(jt, jt->unknown5C, 1);
-                jt->nUnk1514 = 0;
-                switch (jt->jts)
+                jt->unknown1514 = 0;
+                switch (jt->state)
                 {
                     case JTS_Unk0A:
                         oid = (OID)0x177;
@@ -3678,7 +3678,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                         break;
                     case JTS_Air:
                     {
-                        int fHigh = jt->janim.nUnk10;
+                        int fHigh = jt->janim.unknown10;
                         if (fHigh == -1)
                             fHigh = D_002BF3E0 < jt->jtair.zStart - QwordZ(PosLoWorld(jt));
                         oid = (fHigh == 1) ? (OID)0x179 : (OID)0x178;
@@ -3692,9 +3692,9 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
                 ClearXyz(&jt->vUnk190);
-                if (jt->pasegblUnk1a54 != 0 && jt->pasegblUnk1a70 != 0)
+                if (jt->unknown1A54 != 0 && jt->unknown1A70 != 0)
                 {
-                    switch (jt->jtas)
+                    switch (jt->animState)
                     {
                         case 4:
                             SetJtAnimState(jt, 6);
@@ -3709,66 +3709,66 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             }
             break;
             case JTS_Run:
-                aseg = ((GAIT *)jt->unk_0x1320)->blendedAnimation;
+                aseg = ((GAIT *)jt->gait)->blendedAnimation;
                 grfapl = 9;
                 tStart = jt->uGait * aseg->duration;
-                ClearGaitFootDown((GAIT *)jt->unk_0x1320);
+                ClearGaitFootDown((GAIT *)jt->gait);
                 break;
             case JTS_Interact:
                 fKeep = 1;
-                SetJtRecState((JTREC *)&jt->unk_0x1ff0, NJtRecSide((JTREC *)&jt->unk_0x1ff0));
+                SetJtRecState((JTREC *)&jt->unknown1FF0, NJtRecSide((JTREC *)&jt->unknown1FF0));
                 break;
             case JTS_Hang:
             {
-                jt->janim.nUnk18 = -1;
-                jt->gUnk199c = 1.0f;
-                jt->gUnk1998 = 1.0f;
-                ACT1 *pact1 = (ACT1 *)jt->nUnk1a00;
+                jt->janim.unknown18 = -1;
+                jt->unknown199C = 1.0f;
+                jt->unknown1998 = 1.0f;
+                ACT1 *pact1 = (ACT1 *)jt->unknown1A00;
                 svt = 0.0f;
-                jt->janim.tHang = D_002DDED0.time;
+                jt->janim.hangStartTime = D_002DDED0.time;
                 aseg = jt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->qwRest);
                 tStart = 0.5f;
-                AddXfAct(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
-                qword posHand = PosLoWorld(jt->psoUnk19a4);
+                AddXfAct(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
+                qword posHand = PosLoWorld(jt->unknown19A4);
                 jt->janim.dposHang = VuSub(posHand, GetJtHangHandlePosition(jt));
                 UpdateJtHangPlace(jt);
-                jt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                SubscribeLoObject(jt->phndHang, jt);
+                jt->hangHandle->HandleSpliceEvent(5, 0, 0, 0, 0);
+                SubscribeLoObject(jt->hangHandle, jt);
                 float radFrame;
                 JtHangFrame(jt, &radFrame);
                 float radBack = NormalizeAngle(radFrame + 3.1415927f);
                 int kind = 1;
-                if (jt->phndHang != 0)
-                    kind = jt->phndHang->nHangKind;
+                if (jt->hangHandle != 0)
+                    kind = jt->hangHandle->nHangKind;
                 switch (kind)
                 {
                     case 1:
                         SetStepRadTarget(jt, radFrame);
-                        jt->janim.fHangBack = 0;
+                        jt->janim.isHangingBackward = 0;
                         break;
                     case 2:
                         SetStepRadTarget(jt, radBack);
-                        jt->janim.fHangBack = 1;
+                        jt->janim.isHangingBackward = 1;
                         break;
                     case 0:
                         if (fabsf(NormalizeAngle(radFrame - jt->pctl->radLeft)) < 1.5707964f)
                         {
                             SetStepRadTarget(jt, radFrame);
-                            jt->janim.fHangBack = 0;
+                            jt->janim.isHangingBackward = 0;
                         }
                         else
                         {
                             SetStepRadTarget(jt, radBack);
-                            jt->janim.fHangBack = 1;
+                            jt->janim.isHangingBackward = 1;
                         }
                         break;
                 }
-                sfxid = jt->phndHang->sfxidHangStart;
+                sfxid = jt->hangHandle->sfxidHangStart;
                 SetJtAnimState(jt, 1);
                 ClearXyz(&jt->vUnk190);
                 CalculateJtHangAccel(jt);
-                SetPlayerTn(jt, jt->phndHang->ptn);
+                SetPlayerTn(jt, jt->hangHandle->ptn);
             }
             break;
             case JTS_Unk08:
@@ -3789,22 +3789,22 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk09:
                 SetJtAnimState(jt, -1);
                 ChooseJtRushTarget(jt);
-                aseg = jt->pasegUnk1a7c;
+                aseg = jt->unknown1A7C;
                 break;
             case JTS_Unk0D:
                 SetJtAnimState(jt, -1);
                 ClearXyz(&jt->vUnk190);
                 ChooseJtSmashTarget(jt);
-                aseg = jt->pasegUnk1a80;
-                jt->tUnk19b0 = D_002DDED0.time + D_002BF3E4;
+                aseg = jt->unknown1A80;
+                jt->unknown19B0 = D_002DDED0.time + D_002BF3E4;
                 break;
             case JTS_Unk0E:
                 SetJtAnimState(jt, -1);
                 ClearXyz(&jt->vUnk190);
-                aseg = jt->pasegUnk1a84;
+                aseg = jt->unknown1A84;
                 break;
             case JTS_Unk0A:
-                aseg = jt->pasegblUnk1bc0;
+                aseg = jt->unknown1BC0;
                 grfapl = 9;
                 tStart = jt->uGait * aseg->duration;
                 jt->unknown1038 = -1;
@@ -3814,7 +3814,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 *(qword *)&jt->vUnk190 = D_002A2DD0;
                 jt->unknown10E0 |= 2;
                 grf = 100;
-                jt->nUnk1bd4 = 0;
+                jt->unknown1BD4 = 0;
                 break;
             case JTS_Gait2:
                 aseg = ((GAIT *)jt->unk_0x1c30)->blendedAnimation;
@@ -3835,7 +3835,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 }
                 else
                 {
-                    aseg = jt->pasegUnk1d1c;
+                    aseg = jt->unknown1D1C;
                     qword targetPos = PosLoWorld(jt->interactTarget);
                     float gZero = 0.0f;
                     qword dpos = VuSub(targetPos, PosLoWorld(jt));
@@ -3843,7 +3843,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     FixStepAngularVelocity(jt);
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
-                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->rootTransform, jt->rootTransform, &matHand, 0);
+                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->unknown19A4->rootTransform, jt->rootTransform, &matHand, 0);
                     tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
@@ -3871,31 +3871,31 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk11:
-                aseg = jt->pasegUnk1d34;
+                aseg = jt->unknown1D34;
                 grfapl = 9;
                 OnGameEvent(&D_002DEB30, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
-                ((CLIMBSURF *)jt->ploUnk1f18)->FindClosestPoint(PosLoWorld(jt), 0, (SURFLOC *)&jt->unk_0x1f1c, 0, 0);
+                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, (SURFLOC *)&jt->unk_0x1f1c, 0, 0);
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&jt->vUnk190);
-                jt->ploUnk1f18->HandleSpliceEvent(5, 0, 0, 0, 0);
-                if (*(TN **)((char *)jt->ploUnk1f18 + 0x110) != 0)
-                    SetPlayerTn(jt, *(TN **)((char *)jt->ploUnk1f18 + 0x110));
+                jt->unknown1F18->HandleSpliceEvent(5, 0, 0, 0, 0);
+                if (*(TN **)((char *)jt->unknown1F18 + 0x110) != 0)
+                    SetPlayerTn(jt, *(TN **)((char *)jt->unknown1F18 + 0x110));
                 break;
             case JTS_HangFollow:
-                aseg = jt->pasegblUnk1f90;
+                aseg = jt->unknown1F90;
                 grfapl = 9;
                 SetJtAnimState(jt, -1);
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&jt->vUnk190);
-                jt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                SubscribeLoObject(jt->phndHang, jt);
-                SetPlayerTn(jt, jt->phndHang->ptn);
+                jt->hangHandle->HandleSpliceEvent(5, 0, 0, 0, 0);
+                SubscribeLoObject(jt->hangHandle, jt);
+                SetPlayerTn(jt, jt->hangHandle->ptn);
                 break;
             case JTS_Unk18:
             {
@@ -3905,8 +3905,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->ablLean[2].weight = gZero;
                 jt->ablLean[0].weight = gZero;
                 jt->ablLean[1].weight = 1.0f;
-                ReblendAsegbl(jt->pasegblUnk2038);
-                aseg = jt->pasegblUnk2038;
+                ReblendAsegbl(jt->unknown2038);
+                aseg = jt->unknown2038;
                 SetStepRadTarget(jt, jt->pctl->radLeft);
                 qword velocity = SetVectorCylind(jt->radTarget, D_002BF3E8, gZero);
                 jt->SetVelocity(velocity);
@@ -3915,7 +3915,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             break;
         }
     }
-    if (jt->jtbs != jtbs)
+    if (jt->bodyState != jtbs)
     {
         switch (jtbs)
         {
@@ -3942,12 +3942,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 stateMachine = jt->janim.psmHang;
                 break;
             case JTBS_4:
-                stateMachine = jt->psmUnk1bc4;
+                stateMachine = jt->unknown1BC4;
                 ClearXyz(&jt->vUnk190);
                 break;
             case JTBS_5:
                 jt->unknown1038 = -1;
-                aseg = jt->pasegblUnk14d0;
+                aseg = jt->unknown14D0;
                 ClearXyz(&jt->vUnk190);
                 grfapl = 9;
                 break;
@@ -3955,30 +3955,30 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[10];
                 ClearXyz(&jt->vUnk190);
-                jt->janim.fLandAlt = 0;
-                jt->janim.fInputOpen = 0;
+                jt->janim.useAltLanding = 0;
+                jt->janim.isInputOpen = 0;
                 break;
             case JTBS_7:
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[11];
                 ClearXyz(&jt->vUnk190);
-                jt->janim.fLandAlt = 0;
-                jt->janim.fInputOpen = 0;
+                jt->janim.useAltLanding = 0;
+                jt->janim.isInputOpen = 0;
                 break;
             case JTBS_8:
             case JTBS_9:
                 if (jtbs == JTBS_8)
                     aseg = jt->apasegSwing[12];
                 else
-                    aseg = jt->pasegUnk1fe8;
-                jt->janim.fInputOpen = 0;
+                    aseg = jt->unknown1FE8;
+                jt->janim.isInputOpen = 0;
                 ClearXyz(&jt->vUnk190);
                 break;
             case JTBS_10:
-                stateMachine = jt->psmUnk1f14;
+                stateMachine = jt->unknown1F14;
                 break;
             case JTBS_11:
-                aseg = jt->pasegblUnk1f10;
+                aseg = jt->unknown1F10;
                 grfapl = 9;
                 break;
             case JTBS_12:
@@ -3992,15 +3992,15 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
         }
     }
-    if (jts != jt->jts)
+    if (jts != jt->state)
     {
-        jt->jts = jts;
-        jt->tJts = D_002DDED0.time;
+        jt->state = jts;
+        jt->stateStartTime = D_002DDED0.time;
     }
-    if (jtbs != jt->jtbs)
+    if (jtbs != jt->bodyState)
     {
-        jt->jtbs = jtbs;
-        jt->tJtbs = D_002DDED0.time;
+        jt->bodyState = jtbs;
+        jt->bodyStateStartTime = D_002DDED0.time;
     }
     jt->ApplyStateStepParams();
     SetJtChannelMask(jt, grf);
@@ -4138,7 +4138,7 @@ void *GetJtGadgetRecord(char *p, int n)
 // air / grab / pipe records say (FJtairCanUseGadget, FJtgrabCanUseGadget, FJtpipeCanUseGadget), hang (3) allows only the look mode, the ground states (0, 1, 5, 10, 0xC) allow the
 // gadget tests below, the throw state (0x17, aiming) allows only the pocket item he carries; every other state allows nothing. The gadget tests: 1, 2, 0x19, 0x1E, 0x1F, 0x21, 0x22,
 // 0x23, 0x27 always; 3 needs the pad flag and the camera policy on top; 0x17 needs its proxy to have a spare; 0x18 only in jts 5 (fight stance), 0x1B only in jts 2 (air); 0x28 only on the ground
-// with no animation state, no interaction (interactMode 4) and nUnk1d30 clear; the pocket items (0x1A, 0x25, 0x26, 0x29): an item in use must be carried, else the row's proxy needs a spare.
+// with no animation state, no interaction (interactMode 4) and unknown1D30 clear; the pocket items (0x1A, 0x25, 0x26, 0x29): an item in use must be carried, else the row's proxy needs a spare.
 // (jump2: the failing call tests, the throw state and the pocket arm share the return-0 block because `return 1` is the LAST arm and the pocket arm falls into `default:`.)
 extern CLOCK D_002DDED0;
 
@@ -4171,13 +4171,13 @@ int JT::CanUseGadget(int gadgetId)
         return 0;
     if (gadgetId == 0x1D || gadgetId == 0x2A)
     {
-        if (jts == JTS_Unk04)
+        if (state == JTS_Unk04)
             return 0;
         if (D_002DDED0.art[CRK_PowerUp] == 1.0f)
             return 1;
         return D_002DDED0.art[CRK_PowerUp] == (gadgetId == 0x1D ? D_002BF3EC : D_002BF3F0);
     }
-    switch (jts)
+    switch (state)
     {
         case JTS_Air:
             if (!FJtairCanUseGadget(&jtair, gadgetId))
@@ -4221,11 +4221,11 @@ int JT::CanUseGadget(int gadgetId)
     switch (gadgetId)
     {
         case 0x17:
-            return pproxyUnk2010 != 0 && FCanAcquireProxy(pproxyUnk2010);
+            return unknown2010 != 0 && FCanAcquireProxy(unknown2010);
         case 0x18:
-            return jts == 5;
+            return state == 5;
         case 0x1B:
-            return jts == 2;
+            return state == 2;
         case 0x1A:
         case 0x25:
         case 0x26:
@@ -4239,9 +4239,9 @@ int JT::CanUseGadget(int gadgetId)
             }
             else
             {
-                if (ppocket->pproxy == 0)
+                if (ppocket->proxy == 0)
                     return 0;
-                if (PspareChoose(ppocket->pproxy, 2))
+                if (PspareChoose(ppocket->proxy, 2))
                     return 1;
             }
         }
@@ -4250,13 +4250,13 @@ int JT::CanUseGadget(int gadgetId)
         case 3:
             return unknown12F0 != 0 && (D_002DFBC0 & 2) && !D_002DDF40.part3a0.FIsTop();
         case 0x28:
-            if (nUnk1d30 != 0)
+            if (unknown1D30 != 0)
                 return 0;
             if (interactMode == 4)
                 return 0;
-            if (jtas != -1)
+            if (animState != -1)
                 return 0;
-            switch (jts)
+            switch (state)
             {
                 case JTS_Stand:
                 case JTS_Run:
@@ -4501,7 +4501,7 @@ int GetJtGroundProbeFlags(struct S *p)
 // Stores an int at x1D30 (meaning not identified).
 extern "C" void SetJtUnknown1D30(JT *jt, int n)
 {
-    jt->nUnk1d30 = n;
+    jt->unknown1D30 = n;
 }
 
 // Stores a vector at x1FA0 (meaning not identified).

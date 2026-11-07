@@ -3547,7 +3547,7 @@ void NextJsgCommand(JSGV *script)
             }
             if (IsBasicDerivedFrom(pstepplayer, (CID)53))
             {
-                ((JT *)pstepplayer)->janim.nUnk10 = prelaycmd->respawn.nUnk6;
+                ((JT *)pstepplayer)->janim.unknown10 = prelaycmd->respawn.nUnk6;
             }
             SetJsgJt(script, prelaycmd, pstepplayer);
         }
@@ -4182,13 +4182,13 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             switch (prelaycmd->heroState.nState)
             {
             case 2:
-                fComplete = pjt->jtas == -1;
+                fComplete = pjt->animState == -1;
                 break;
             case 4:
-                fComplete = pjt->jts != JTS_Air;
+                fComplete = pjt->state != JTS_Air;
                 break;
             case 8:
-                fComplete = pjt->jts != 9;
+                fComplete = pjt->state != 9;
                 break;
             default:
                 fComplete = 1;

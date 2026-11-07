@@ -976,7 +976,7 @@ void AddJtHurtCpdefiFlags(struct S *hurt, struct Q *q)
 // STEPPLAYER base (ShouldStepplayerIgnoreZap).
 extern "C" int IsJtInvulnerable(JT *jt, int zpk)
 {
-    switch (jt->jts) {
+    switch (jt->state) {
     case 3:
     case 8:
     case 21:

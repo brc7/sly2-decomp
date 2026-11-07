@@ -2429,9 +2429,9 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         return;
     if (player == (STEPPLAYER *)D_002E1E40)
     {
-        if (lo == ((JT *)player)->phndHang)
+        if (lo == ((JT *)player)->hangHandle)
             return;
-        if (lo == ((JT *)player)->ploUnk1f18)
+        if (lo == ((JT *)player)->unknown1F18)
             return;
     }
     if (!(player->unknown1000 & spot->grfUnk1c))
@@ -2444,9 +2444,9 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
             return;
         if (player == (STEPPLAYER *)D_002E1E40)
         {
-            if (((JT *)player)->phndHang)
+            if (((JT *)player)->hangHandle)
                 return;
-            if (((JT *)player)->ploUnk1f18)
+            if (((JT *)player)->unknown1F18)
                 return;
         }
     }

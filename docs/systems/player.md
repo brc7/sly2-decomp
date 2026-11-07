@@ -107,8 +107,8 @@ control.
 
 ### Sly (JT)
 
-Sly's state is the pair `jts` (movement state, enum `JTS`) and `jtbs` (body sub-state, enum `JTBS`), with the times they
-were entered (`tJts`, `tJtbs`). There is a third, independent axis, `jtas`, for cane/attack animations (section 6).
+Sly's state is the pair `state` (movement state, enum `JTS`) and `bodyState` (body sub-state, enum `JTBS`), with the times they
+were entered (`stateStartTime`, `bodyStateStartTime`). There is a third, independent axis, `animState`, for cane/attack animations (section 6).
 States seen at runtime include stand, run, air, hang, hurt, interact, grab, pipe, pickpocket, walk, surface climb,
 hang-follow and throw/aim; several enumerators are still unnamed (`JTS_UnkNN`).
 
@@ -118,7 +118,7 @@ hang-follow and throw/aim; several enumerators are still unnamed (`JTS_UnkNN`).
   when he goes airborne (so a jump off a rope or pipe does not immediately re-grab it), picks the animation, state
   machine, sound and channel mask for the new state, stamps the entry time, calls slot 90
   (`ApplyJtStateStepParams`: per-state step tuning), and finally retracts the previous animation and applies the new
-  ASEG or SM. Code that needs Sly in a state calls this function; it never writes `jts` directly.
+  ASEG or SM. Code that needs Sly in a state calls this function; it never writes `JT::state` directly.
 - **`ChooseJtGroundState`** runs every frame and, from the current state, the stick, the buttons and the floor,
   decides transitions between the grounded states (stand, run, walk, fight stance, ...). It loops until the state is
   stable, so one frame can chain several transitions.
@@ -204,8 +204,8 @@ meanings are in `player_input.h` (`BUTTON_JUMP`, `BUTTON_ACTION`, `BUTTON_ATTACK
 are (inferred). A PO whose control state is not "current" still has a POCTL: the AI partner and scripts write into it
 (section 8). Hands-off and the input lock (engine.md section 5) make the hero ignore input and be invulnerable.
 
-The cane (`cane.cpp`) is an overlay on Sly's ground states rather than a `jts` state: `SetJtCaneState` switches the
-attack state (`jtas`) with its animation, sound and timing window, `UpdateJtActiveCane` reads input, and
+The cane (`cane.cpp`) is an overlay on Sly's ground states rather than a `JTS` state: `SetJtCaneState` switches the
+attack state (`animState`) with its animation, sound and timing window, `UpdateJtActiveCane` reads input, and
 `ChooseJtAttackTarget` (with sweep, rush and smash variants) picks what the swing homes in on.
 
 ## 7. Grab spots and grabbable objects
@@ -263,7 +263,7 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
 - **Intent in Update, motion in the preset.** Velocities written in slot 16 are consumed by the slot-70 preset during
   `SolveSw`. Teleports go through `TranslateToPos` / `TranslateStepplayerToPos` so the step's cached base and the
   broad-phase box follow.
-- **`JTS_Max` sizes an array in JT.** JT holds one record per movement state indexed by `jts`; adding a state means
+- **`JTS_Max` sizes an array in JT.** JT holds one record per movement state indexed by `JT::state`; adding a state means
   that array grows and JT's layout changes (fine in a port, not in the matching build).
 - **Hurt gates input.** While the hurt component is active (`state` not -1), `UpdateStepplayer` skips the AI input and
   the walk-to goal.

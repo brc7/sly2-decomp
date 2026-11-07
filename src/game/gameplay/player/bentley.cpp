@@ -1211,7 +1211,7 @@ extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
         *(BENTLEY **)((char *)PLO186C(bentley) + 0x16C) = bentley;
         SetGadgetRecordObject(bentley, bentley->ppocketCur, PLO186C(bentley));
     }
-    UnlockProxyObject(bentley->ppocketCur->pproxy, PLO186C(bentley));
+    UnlockProxyObject(bentley->ppocketCur->proxy, PLO186C(bentley));
     PLO186C(bentley) = 0;
     bentley->ppocketCur = 0;
 }
