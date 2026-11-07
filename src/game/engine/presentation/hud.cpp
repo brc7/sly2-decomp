@@ -1122,12 +1122,12 @@ struct S {
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
 struct G { char pad[0x3BEC]; int numShownWidgets; };
-struct Clock { char pad[0x3C]; float time; float dt; };
+struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: as UpdateWidget's: the view keeps &g_clock in a register (address folding) */
 extern struct G D_003DD490;
-extern struct Clock D_002DDED0;
+extern struct CLOCKIsland D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
-void SetClockRate(struct Clock *,int,float);
+void SetClockRate(struct CLOCKIsland *,int,float);
 void LoadWidgetSprites(struct S *);
 void UnloadWidgetSprites(struct S *);
 void StopWidgetMainAnim(struct S *);
@@ -1177,8 +1177,8 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct Clock { char pad[0x3C]; float time; float dt; };
-extern struct Clock D_002DDED0;
+struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: a view based at +0x3C keeps &g_clock in a register; the full CLOCK folds the offset (UpdateWidget 107/123 off) */
+extern struct CLOCKIsland D_002DDED0;
 void UpdateLo(struct S *);
 int IsWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -3617,7 +3617,7 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
 struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
-struct CLOCK { unsigned long ticks; };
+struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void ResetSpriteSlotItems(struct S *p, int i);
@@ -3637,7 +3637,7 @@ void StopSpriteSlot(struct S *group, int slot)
         float t=state->time;
         group->lastStartAnim = state->animIndex;
         group->lastStartTime = t;
-        group->lastStartFrame = (*(struct CLOCK *)&g_clock.frameTick).ticks;
+        group->lastStartFrame = (*(struct CLOCKIsland *)&g_clock.frameTick).ticks;
         group->pendingAnim = -1;
         state->animIndex = -1;
         state->isFinished = 0;
