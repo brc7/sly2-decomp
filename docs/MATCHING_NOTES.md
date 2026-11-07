@@ -531,3 +531,15 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   through `p` itself matches (NewRelayJsg's SetBlockEnd).
 - **Duplicated selector branches stay.** `switch (n) { case A: q = x; if (q) q->vt[8](); ... default: ... vt[9] }`
   does not collapse into a computed slot (SetDprizeDprizes).
+
+## 2026-11-06 (readability pass r3, objects/progression/cutscene): more of what a logic cleanup may change
+- **Free:** one-call `static inline` vtable helpers (SendSpliceEvent, SetStateVirtual for a `VCALL` macro), the tagged LO
+  flag set as `SetTaggedFlags(unsigned *word, bits)`, `*(int *)&f = 0` as `f = 0.0f`, `(T *)((char *)p + i * 0x1C + 0x2AC)`
+  as `&p->arr[i]`, `((float *)&q)[0]` as a union's `.x`, per-function command views replaced by the shared RELAYCMD union
+  (relay builders; a two-argument `AddRelayCommand` view was just fAsync already sitting in a2), whole-function reflow.
+- **A `do { ...; goto next; ... next: i = n; } while (i < 3)` loop** became `for (...; i = n) { ...; continue; }` with the
+  same code (DrawFrameCaptureScreen); but **`if (j < n) do {} while (++j < n)`** does not become a `for` (UpdateVolbtn).
+- **Range tests stay nested.** `if (s < 3) if (s >= 0)` written `s < 3 && s >= 0` turns into one unsigned compare.
+- **A goto out of a nested contact walk** to the code after it does not become a helper that returns the result: the
+  frame and registers change (UpdateButton, SendBarrierImpactMessages).
+- **`&verts[i]` is not `(P4 *)((i << 4) + (int)verts)`** in CalculateWayptCurtainDz (different schedule).
