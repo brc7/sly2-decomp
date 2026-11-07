@@ -892,36 +892,34 @@ dispatch:
 namespace M_func_00180EE8 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
-struct O : PO { char pad2[0x1C0 - 0x180]; int state;
-    char pad3[0x204 - 0x1C4]; float heading; char pad4[0x210 - 0x208]; qword stepVelocity; char pad5[0x378 - 0x220]; char scale[0xC]; float range; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
-extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
-extern "C" void AccelSoTowardMatBounded(struct O *p, MATRIX3 *pm, void *pv);
-extern "C" void AddSoAcceleration(struct O *p, qword v);
+extern "C" MATRIX3 ConvertXfMat(XF *pxf, int n, MATRIX3 *pm);
+extern "C" void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv);
+extern "C" void AddSoAcceleration(SO *pso, qword v);
 // Helpers VSub, Bc (small asm wrappers/accessors shaped for the match).
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 // Broadcast int bits into a VU0 register.
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
-extern "C" void PresetHackenemyAccel(struct O *p);
+extern "C" void PresetHackenemyAccel(HACKENEMY *enemy);
 // vtable slot 70 override. (inferred)
-void PresetHackenemyAccel(struct O *enemy)
+void PresetHackenemyAccel(HACKENEMY *enemy)
 {
     if (enemy->state != 4) {
         MATRIX3 mat;
         mat = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
         if (enemy->state != 3)
             mat = ConvertXfMat(enemy->unknown5C->parent, 0, &mat);
-        AccelSoTowardMatBounded(enemy, &mat, enemy->scale);
+        AccelSoTowardMatBounded(enemy, &mat, enemy->aScale);
     }
     if (enemy->state == 3) {
-        qword v = enemy->stepVelocity;
+        qword v = enemy->desiredVelocity;
         qword w = enemy->GetVelocity();
         qword d, s, r;
         union { qword q; float f[4]; } u;
         d = VSub(v, w);
         {
-        s = Bc(*(int *)&enemy->range);
+        s = Bc(*(int *)&enemy->sRange);
         }
         u.q = s;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(d), "j"(s));
@@ -931,16 +929,15 @@ void PresetHackenemyAccel(struct O *enemy)
 } // namespace M_func_00180EE8
 
 namespace M_func_00180FF0 { extern "C" {
-struct E { int a; int b; int x8; char pad[0x34]; };
-struct S : PO { char pad180[0x188 - 0x180]; int n; };
+struct E { int a; int b; int x8; char pad[0x34]; };   /* an XP contact side (0x40) */
 extern int D_002DFB80;
-void AdjustHackNewXp(struct S *p, struct E *ae, int i);
-void StartHackDying(struct S *p, int n);
-// vtable slot 55: base then start dying. (inferred)
-void AdjustHackenemyNewXp(struct S *enemy, struct E *ae, int i)
+void AdjustHackNewXp(HACK *hack, struct E *ae, int i);
+void StartHackDying(HACK *hack, int n);
+// vtable slot 55: base, then start dying when it touches the ship. (inferred)
+void AdjustHackenemyNewXp(HACKENEMY *enemy, struct E *ae, int i)
 {
     AdjustHackNewXp(enemy, ae, i);
-    if (enemy->n) {
+    if (enemy->cDamage) {
         struct E *pe = &ae[1 - i];
         if (pe->x8 == D_002DFB80)
             StartHackDying(enemy, pe->x8);
@@ -951,45 +948,42 @@ void AdjustHackenemyNewXp(struct S *enemy, struct E *ae, int i)
 namespace M_func_00181060 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } MATRIX3;
-struct ANIMATION;
-struct X { char pad[0x30]; ANIMATION *asega; };
-struct O : PO { char pad1[0x194 - 0x180]; ANIMATION *asega; struct X *sma; char pad2[0x1C8 - 0x19C];
-    int animEventFlagA; int animEventFlagB; char pad3[0x204 - 0x1D0]; float heading; char pad4[0x210 - 0x208]; qword stepVelocity; };
-struct MSG { ANIMATION *animation; float time; int kind; };
-extern "C" void HandlePoMessage(struct O *p, int msg, struct MSG *pm);
+struct MSG { ASEGA *pasega; float time; int kind; };   /* message 9: an animation event */
+extern "C" void HandlePoMessage(PO *ppo, int msg, struct MSG *pm);
 extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
-extern "C" qword GetStepAsegaTranslation(struct O *p, ANIMATION *animation, float time);
+extern "C" qword GetStepAsegaTranslation(SO *pso, ASEGA *pasega, float time);
 extern "C" qword D_002A2DC0;
-extern "C" void HandleHackenemyMessage(struct O *p, int msg, struct MSG *pm);
-// vtable slot 5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step. (inferred)
-void HandleHackenemyMessage(struct O *enemy, int msg, struct MSG *pm)
+extern "C" void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm);
+// vtable slot 5: HandlePoMessage; on events of its current animation: 0x15E applies a translation step, 0x25..0x28
+// set and clear the two hold flags. (inferred)
+void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm)
 {
     HandlePoMessage(enemy, msg, pm);
     if (msg == 9) {
-        if (pm->animation == enemy->asega || (enemy->sma && pm->animation == enemy->sma->asega)) {
+        if (pm->pasega == enemy->pasega || (enemy->psma && pm->pasega == enemy->psma->pasegaCur)) {
             switch (pm->kind) {
             case 0x15E: {
                 MATRIX3 m;
                 qword v, r;
                 m = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
-                v = GetStepAsegaTranslation(enemy, pm->animation, pm->time);
+                v = GetStepAsegaTranslation(enemy, pm->pasega, pm->time);
                 __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                     : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
-                enemy->stepVelocity = r;
-                enemy->SetVelocity(enemy->stepVelocity);
+                enemy->desiredVelocity = r;
+                enemy->SetVelocity(enemy->desiredVelocity);
                 break;
             }
             case 0x25:
-                enemy->animEventFlagA = 1;
+                enemy->fHoldAim = 1;
                 break;
             case 0x26:
-                enemy->animEventFlagA = 0;
+                enemy->fHoldAim = 0;
                 break;
             case 0x27:
-                enemy->animEventFlagB = 1;
+                enemy->fHoldState = 1;
                 break;
             case 0x28:
-                enemy->animEventFlagB = 0;
+                enemy->fHoldState = 0;
                 break;
             }
         }
@@ -1000,31 +994,20 @@ typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_MATRIX3[(sizeof(MATRIX3)==0x30)?1:-1];
 typedef char layout_MSG[(sizeof(MSG)==12)?1:-1];
-typedef char layout_MSG_animation[((unsigned long)&((MSG*)0)->animation==0x0)?1:-1];
+typedef char layout_MSG_animation[((unsigned long)&((MSG*)0)->pasega==0x0)?1:-1];
 typedef char layout_MSG_time[((unsigned long)&((MSG*)0)->time==0x4)?1:-1];
 typedef char layout_MSG_kind[((unsigned long)&((MSG*)0)->kind==0x8)?1:-1];
-typedef char layout_X_x30[((unsigned long)&((X*)0)->asega==0x30)?1:-1];
-typedef char layout_O_x194[((unsigned long)&((O*)0)->asega==0x194)?1:-1];
-typedef char layout_O_p198[((unsigned long)&((O*)0)->sma==0x198)?1:-1];
-typedef char layout_O_x1C8[((unsigned long)&((O*)0)->animEventFlagA==0x1c8)?1:-1];
-typedef char layout_O_x1CC[((unsigned long)&((O*)0)->animEventFlagB==0x1cc)?1:-1];
-typedef char layout_O_g204[((unsigned long)&((O*)0)->heading==0x204)?1:-1];
-typedef char layout_O_v210[((unsigned long)&((O*)0)->stepVelocity==0x210)?1:-1];
 } // namespace M_func_00181060
 
 namespace M_func_001811B8 { extern "C" {
-struct S : PO { char pad180[0x184 - 0x180]; int health; char p1[0x38]; int state; };
-extern char D_002DEB30[];
-int TakeHackDamage(struct S *p, void *message);
-void BroadcastGameEvent(void *g, int event, struct S *p);
-void SetHackenemyState(struct S *p, int state);
-// vtable slot 75: CID47::TakeDamage + state change. (inferred)
-int TakeHackenemyDamage(struct S *enemy, void *message)
+int TakeHackDamage(HACK *hack, ZPR *pzpr);
+// vtable slot 75: HACK's TakeDamage + state change. (inferred)
+int TakeHackenemyDamage(HACKENEMY *enemy, ZPR *pzpr)
 {
     register int four __asm__("$2") = 4; if (enemy->state == four) return 0;
-    if (!TakeHackDamage(enemy, message)) return 0;
-    if (enemy->health < 0) return 1;
-    if (enemy->health <= 0) BroadcastGameEvent(D_002DEB30, 0x18, enemy);
+    if (!TakeHackDamage(enemy, pzpr)) return 0;
+    if (enemy->cHealth < 0) return 1;
+    if (enemy->cHealth <= 0) BroadcastGameEvent(D_002DEB30, 0x18, enemy);
     SetHackenemyState(enemy, 4);
     return 1;
 }
@@ -1040,71 +1023,59 @@ void HACKENEMY::Reset()
 
 namespace M_func_00181268 { extern "C" {
 struct X { int x; int y; int z; };
-struct E { int a[4]; };
-struct S : PO { int maxHealth; int health; char p1[0x38]; int state; float stateTime; char p2[0x48]; struct X stepVelocity; int p3; struct E animEntries[1]; };
-extern struct CLOCK D_002DDED0;
-// Zeroes the step velocity that animation event 0x15E sets (HandleHackenemyMessage).
+// Zeroes the step velocity that animation event 0x15E sets (HandleHackenemyMessage): its x, y, z words.
 static __inline__ void ClearStepVelocity(struct X *px) { px->x = px->y = px->z = 0; }
-void StartHackAnim(struct S *p, struct E *pe);
-// State switch; from -1 reset health; start state clip (StartCid47Anim). (inferred)
-void SetHackenemyState(struct S *enemy, int state)
+// State switch; from -1 reset health; start state clip (StartHackAnim). (inferred)
+void SetHackenemyState(HACKENEMY *enemy, int state)
 {
     if (enemy->state == state) return;
-    if (enemy->state == -1) enemy->health = enemy->maxHealth;
+    if (enemy->state == -1) enemy->cHealth = enemy->cHealthMax;
     enemy->state = state;
     enemy->stateTime = D_002DDED0.time;
     switch (state) {
     case 0: case 1: case 2: case 4:
-        ClearStepVelocity(&enemy->stepVelocity);
+        ClearStepVelocity((struct X *)&enemy->desiredVelocity);
         break;
     case 3:
         break;
     }
-    StartHackAnim(enemy, state == -1 ? 0 : &enemy->animEntries[state]);
+    StartHackAnim(enemy, state == -1 ? 0 : &enemy->ahacke[state]);
 }
 } } // namespace M_func_00181268
 
 namespace M_func_00181308 { extern "C" {
-struct E { int a; int b; int c; int d; };
-struct S : PO { char pad180[0x220 - 0x180]; struct E ae[5]; };
-// Set entry i (<5). (inferred)
-void SetHackenemyEntry(struct S *enemy, unsigned int i, int a, int d)
+// Set entry i (<5): oid and flags. (inferred)
+void SetHackenemyEntry(HACKENEMY *enemy, unsigned int i, OID oid, int grf)
 {
     if (i < 5) {
-        enemy->ae[i].a = a;
-        enemy->ae[i].d = d;
+        enemy->ahacke[i].oid = oid;
+        enemy->ahacke[i].grf = grf;
     }
 }
 } } // namespace M_func_00181308
 
 namespace M_func_00181330 { extern "C" {
-struct K { int a; int b; };
-struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
-struct S : PO { char pad180[0x270 - 0x180]; struct E ae[5]; };
-// Set two 8-byte fields of entry i. (inferred)
-void SetHackenemyEntryVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
+// Enable state i's distance test with its enter and stay limits. (inferred)
+void SetHackenemyEntryVectors(HACKENEMY *enemy, unsigned int i, LM *plmEnter, LM *plmStay)
 {
     if (i < 5) {
-        struct E *pe = &enemy->ae[i];
-        pe->a = 1;
-        pe->k1 = *pk1;
-        pe->k2 = *pk2;
+        HACKRULE *prule = &enemy->arule[i];
+        prule->fDistance = 1;
+        prule->lmEnterDistance = *plmEnter;
+        prule->lmStayDistance = *plmStay;
     }
 }
 } } // namespace M_func_00181330
 
 namespace M_func_00181378 { extern "C" {
-struct K { int a; int b; };
-struct E { int a; int b; struct K k1; struct K k2; struct K k3; struct K k4; };
-struct S : PO { char pad180[0x270 - 0x180]; struct E ae[5]; };
-// Twin setter. (inferred)
-void SetHackenemyEntrySecondVectors(struct S *enemy, unsigned int i, struct K *pk1, struct K *pk2)
+// Enable state i's angle test with its enter and stay limits. (inferred)
+void SetHackenemyEntrySecondVectors(HACKENEMY *enemy, unsigned int i, LM *plmEnter, LM *plmStay)
 {
     if (i < 5) {
-        struct E *pe = &enemy->ae[i];
-        pe->b = 1;
-        pe->k3 = *pk1;
-        pe->k4 = *pk2;
+        HACKRULE *prule = &enemy->arule[i];
+        prule->fAngle = 1;
+        prule->lmEnterAngle = *plmEnter;
+        prule->lmStayAngle = *plmStay;
     }
 }
 } } // namespace M_func_00181378
