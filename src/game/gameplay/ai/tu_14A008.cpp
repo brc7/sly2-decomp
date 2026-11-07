@@ -41,12 +41,10 @@ struct SW;
 struct ALLOCREQ { int cb, cbAlign; };
 struct SCOPE { int a[4]; };
 
-/* A path shape (SHAPE: +0xE8 point count, +0xF0 s per point, +0xF4 positions). */
-struct SHAPEV { char pad[0xE8]; int pointCount; int padEC; float *pointDistances; qword *pointPositions; };
 /* A route station: its kind (0 walk, 1 jump), the oid of its object, the object. */
 struct RTE { int k; int oid; void *object; };
 /* The route (an LO, which ends at +0x50). */
-struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPEV *shape; };
+struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPE *shape; };
 typedef char assert_ROUTE_shape[(unsigned int)&((ROUTE *)0)->shape == 0x5C ? 1 : -1];
 /* The guard's detector: its targets. */
 struct DTE { LO *object; int state; int pad[2]; };
@@ -61,7 +59,7 @@ struct GUARDV
     char pad19C[0x208 - 0x19C];
     int isOnGround;
     char pad20C[0x294 - 0x20C];
-    SHAPEV *path;
+    SHAPE *path;
     char pad298[0x38C - 0x298];
     LO *target;
     LO *forcedTarget;
@@ -133,10 +131,10 @@ RTE *AllocClearedFromStack(ALLOCREQ *preq);
 RTE *AllocCopyFromWorldHeap(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
-SHAPEV *NewSampledShape(int oid, int c);
+SHAPE *NewSampledShape(int oid, int c);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
 qword GetLoWorldPos(void *p);
-void MeasureShape(SHAPEV *shape);
+void MeasureShape(SHAPE *shape);
 void InitBhv(BHVRT *p);
 void StartBhv(BHVRT *p);
 void CloseBhv(BHVRT *p);
@@ -163,13 +161,13 @@ qword SetVectorSphere(float a, float b, float c);
 float AngleBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
-void FindShapeClosestPoint(SHAPEV *, qword, int, int, int, int, float *);
+void FindShapeClosestPoint(SHAPE *, qword, int, int, int, int, float *);
 qword ConvertCmWorldToScreen(void *, qword);
 void SetStepguardAimAct(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
 void *PushStepBehavior(GUARDV *, int);
-void SetBhvpathShape(OA7 *, SHAPEV *, int);
+void SetBhvpathShape(OA7 *, SHAPE *, int);
 void InitStepguard(GUARDV *p);
 void PostStepguardLoad(GUARDV *p);
 void HandleStepguardMessage(GUARDV *p, int msgid, void *pv);
@@ -219,13 +217,13 @@ void CID123::PostLoad()
     int i;
     PostLoLoad(route);
     route->shape = NewSampledShape(0x62C, route->stationCount);
-    route->shape->pointCount = route->stationCount;
+    route->shape->numControlVertices = route->stationCount;
     for (i = 0; i < route->stationCount; i++) {
         RTE *e = &route->stations[i];
         void *o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
         e->object = o;
         if (o) {
-            qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);   // (byte arithmetic: an indexed store does not match)
+            qword *pq = (qword *)((i << 4) + (int)route->shape->vertexPositions);   // (byte arithmetic: an indexed store does not match)
             *pq = GetLoWorldPos(o);
         }
     }
@@ -512,7 +510,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
         RTE *station = &behavior->route->stations[i];
         if (!station->object)
             continue;
-        g = ag[0] - behavior->route->shape->pointDistances[i];
+        g = ag[0] - behavior->route->shape->vertexArcLengths[i];
         if (behavior->route->isReversed == 1)
             g = -g;
         if (IsWithinLimits(&D_002BD480, g))
@@ -521,7 +519,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
             u1 = 1.0f - NormalizeToRange(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->route->shape->pointPositions[i]);
+        v.q = ConvertCmWorldToScreen(D_002DDF40, *(qword *)&behavior->route->shape->vertexPositions[i]);
         if (IsWithinLimits(&D_002BD490, v.f[2]))
             u2 = NormalizeToRange(&D_002BD490, v.f[2]);
         else if (IsWithinLimits(&D_002BD498, v.f[2]))
@@ -617,13 +615,13 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 1: {
-        SHAPEV *psp = behavior->guard->path;
+        SHAPE *psp = behavior->guard->path;
         struct OA7 *po;
-        psp->pointCount = 2;
+        psp->numControlVertices = 2;
         {
-            qword *pq = psp->pointPositions;
+            qword *pq = (qword *)psp->vertexPositions;
             *pq = GetLoWorldPos(behavior->guard);
-            pq = psp->pointPositions;
+            pq = (qword *)psp->vertexPositions;
             pq[1] = GetLoWorldPos(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
