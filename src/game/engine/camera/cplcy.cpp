@@ -753,12 +753,6 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
 qword PosCpzoomCenter(struct S *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
-static __inline__ float GetY(qword q)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(q));
-    return y;
-}
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -773,7 +767,7 @@ int HasZoomCenterArrived(struct S *p)
     qword a = p->smoothedFocus;
     qword b = PosCpzoomCenter(p);
     if (FNear(QwordX(a), QwordX(b)))
-        if (FNear(GetY(a), GetY(b)))
+        if (FNear(QwordY(a), QwordY(b)))
             if (FNear(GetZ(a), GetZ(b)))
                 f = 1;
     return f;
@@ -785,12 +779,6 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
 qword PosCpzoomEye(struct S *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
-static __inline__ float GetY(qword q)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(q));
-    return y;
-}
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -805,7 +793,7 @@ int HasZoomEyeArrived(struct S *p)
     qword a = p->smoothedEye;
     qword b = PosCpzoomEye(p);
     if (FNear(QwordX(a), QwordX(b)))
-        if (FNear(GetY(a), GetY(b)))
+        if (FNear(QwordY(a), QwordY(b)))
             if (FNear(GetZ(a), GetZ(b)))
                 f = 1;
     return f;

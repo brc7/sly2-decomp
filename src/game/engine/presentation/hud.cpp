@@ -4267,7 +4267,6 @@ extern "C" G D_002DDF40;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
-static inline float GetY(qword q) {float f; __asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -4293,7 +4292,7 @@ extern "C" void AdvanceWidgetSprite(S *group,float dt) {
         if(group->owner->followObject) {
             qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&D_002DDF40,worldPos);
             m.a[4] = QwordX(screenPos)*320.0f+320.0f;
-            m.a[5] = GetY(screenPos)*-246.40001f+246.40001f;
+            m.a[5] = QwordY(screenPos)*-246.40001f+246.40001f;
         }
         if(group->owner->xform) m=Mul(m,*group->owner->xform);
         UpdateSpriteSlot(group,0,&m,dt,RGBA(0x7F7F7F7F),RGBA(0xFFFFFFFF));

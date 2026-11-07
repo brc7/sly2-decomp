@@ -62,7 +62,6 @@ void InitDl(DL *pdl, int ibDle);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspQuick { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -96,7 +95,7 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
     union { qword q; float f; } u;
     NODE *pn, *pnEnd, *anode;
     int mask;
-    u.q = Make(QwordX(pos), GetY(pos), -1.0f);
+    u.q = Make(QwordX(pos), QwordY(pos), -1.0f);
     pn = graph->anode;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;
@@ -122,7 +121,6 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspSafe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -158,7 +156,7 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
     NODE *pnEnd, *anode;
     int mask;
     qword q;
-    q = Make(QwordX(pos), GetY(pos), -1.0f);
+    q = Make(QwordX(pos), QwordY(pos), -1.0f);
     u.q = q;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;
@@ -1673,7 +1671,6 @@ void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
 static inline qword Max(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline float Z(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 /** @sly2-annot addr=0x1C1700
  * Purpose: Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box
@@ -1694,7 +1691,7 @@ int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int 
  if(cursor->version!=zone->version)InitObstacleQueryCursor(zone,cursor);
  lo=Min(from,to);hi=Max(from,to);
  SweepObstacleRange(zone->xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,QwordX(lo),QwordX(hi));
- SweepObstacleRange(zone->zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,Z(lo),Z(hi));
+ SweepObstacleRange(zone->zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,QwordY(lo),QwordY(hi));
  copy.q=And(cursor->x,cursor->z);mask=copy;
  {void**cursor=out;
  for(i=0,n=0;i<zone->obstacleCapacity;i++){

@@ -136,7 +136,6 @@ static inline float SavedHeight(float value)
     return height;
 }
 // x, y and z components of a quadword vector.
-static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 // Draws a text label anchored at a world position: projects it to the screen (skipped when nearer than the near
@@ -158,7 +157,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unu
     float w, h;
     CRichText_GetExtents(&rt, &w, &h);
     float x = (QwordX(screen) * 0.5f + 0.5f) * SCREEN_WIDTH;     /* normalized [-1, 1] -> screen */
-    float y = (0.5f - Y(screen) * 0.5f) * SCREEN_HEIGHT;
+    float y = (0.5f - QwordY(screen) * 0.5f) * SCREEN_HEIGHT;
     int marginX = D_002C1F30, marginY = D_002C1F34;
     config.x = x - w * 0.5f - marginX;
     config.y = y - h - 2 * marginY;

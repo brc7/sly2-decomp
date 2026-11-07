@@ -1455,7 +1455,6 @@ static inline bool Less(int n, int limit) { return n < limit; }   // as in SetJt
 // no C construct gives a 32-bit store of the low word of a TImode GPR (unions go through the stack, casts sign-extend).
 // Same StoreX/GetY/GetZ helpers as the matched func_001E9AC0.cpp.
 static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "r"(q)); }
-static inline float GetY(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 // a + b * g
@@ -1770,7 +1769,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
                         ResetJtGrabTnParams(grab);
                         qword v = Transform(*GetLoWorldMatrix(source), D_002BF650);
                         SetX(&grab->aux->data->x, v);
-                        grab->aux->data->y = GetY(v);
+                        grab->aux->data->y = QwordY(v);
                         grab->aux->data->z = GetZ(v);
                         SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }

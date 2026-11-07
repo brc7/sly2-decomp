@@ -157,7 +157,6 @@ int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float
 
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /* The world matrix: virtual slot 31. */
 static inline M4 *GetMat(CID14V *p) { return ((M4 *(*)(CID14V *))p->vt[31].pfn)((CID14V *)((char *)p + p->vt[31].d)); }
 static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
@@ -270,8 +269,8 @@ int ComparePosXY(qword a, qword b)
 {
     if (QwordX(a) < QwordX(b)) return -1;
     if (QwordX(b) < QwordX(a)) return 1;
-    if (GetY(a) < GetY(b)) return -1;
-    if (GetY(b) < GetY(a)) return 1;
+    if (QwordY(a) < QwordY(b)) return -1;
+    if (QwordY(b) < QwordY(a)) return 1;
     return 0;
 }
 
@@ -285,7 +284,7 @@ int ComparePosXY(qword a, qword b)
 // Sign of the 2D cross product of (a - b) and (b - c) with an epsilon: -1, 0 or 1 for a right turn, straight, left.
 int GetTurnSignXY(qword a, qword b, qword c)
 {
-    float g = (QwordX(a) - QwordX(b)) * (GetY(b) - GetY(c)) - (GetY(a) - GetY(b)) * (QwordX(b) - QwordX(c));
+    float g = (QwordX(a) - QwordX(b)) * (QwordY(b) - QwordY(c)) - (QwordY(a) - QwordY(b)) * (QwordX(b) - QwordX(c));
     if (g < -D_002C0AB0) return -1;
     if (D_002C0AB0 < g) return 1;
     return 0;

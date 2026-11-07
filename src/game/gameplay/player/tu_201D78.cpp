@@ -746,7 +746,6 @@ static inline qword ScaleVecX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1
 static inline qword LengthXYInX(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
 static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
-static inline float LaneY(qword qw){float y;__asm__("prot3w %0,%1":"=r"(y):"r"(qw));return y;}
 static inline float LaneZ(qword qw){float z;__asm__("pextuw %0,$0,%1":"=r"(z):"r"(qw));return z;}
 // screen position of a projected point: x and y from [-1,1] to pixels, z kept
 static inline VU_FLOAT ScreenFromProjected(qword q)
@@ -754,7 +753,7 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
     VU_FLOAT v;
     int t;
     float x=QwordX(q)*320.0f+320.0f;
-    float y=LaneY(q)*-246.40000915527344f+246.40000915527344f;
+    float y=QwordY(q)*-246.40000915527344f+246.40000915527344f;
     float z=LaneZ(q);
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(v.qw),"=&r"(t):"f"(x),"f"(y),"f"(z));
     return v;

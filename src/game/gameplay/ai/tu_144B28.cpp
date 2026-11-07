@@ -149,7 +149,6 @@ int IsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
 // VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LenXY(qword d)
@@ -217,7 +216,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         clampedSpeed = Clamp(speed, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < clampedSpeed) {
             poctl->speed = clampedSpeed * behavior->speedScale;
-            poctl->heading = atan2f(GetY(v), QwordX(v));
+            poctl->heading = atan2f(QwordY(v), QwordX(v));
         }
         if (behavior->forcesButton8)
             poctl->grfbtn |= 8;
@@ -983,7 +982,6 @@ float atan2f(float y, float x);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
 void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
 {
@@ -998,7 +996,7 @@ void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
         if (behavior->state == 0)
             speed = 0.1f;
         poctl->speed = speed;
-        poctl->heading = atan2f(GetY(toTarget), QwordX(toTarget));
+        poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1173,7 +1171,6 @@ float atan2f(float y, float x);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
 void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
 {
@@ -1188,7 +1185,7 @@ void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
         if (behavior->state == 0)
             speed = 0.1f;
         poctl->speed = speed;
-        poctl->heading = atan2f(GetY(toTarget), QwordX(toTarget));
+        poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1570,7 +1567,6 @@ float ClampAbs__Fff(float g, float dg);
 void SetStepTargetHeading(struct MURRAYV *step, float heading);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
 // (the current player, inferred) and remembers that heading; in 1 he keeps turning toward it (at most 15 rad/s) while
 // it stays within 0.5 rad of the remembered heading.
@@ -1595,7 +1591,7 @@ void UpdateBhvMurray(struct P *behavior)
             playerPos = GetLoWorldPos(D_002E1E40);
             murrayPos = GetLoWorldPos(behavior->murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
-            headingToPlayer = atan2f(GetY(toPlayer), QwordX(toPlayer));
+            headingToPlayer = atan2f(QwordY(toPlayer), QwordX(toPlayer));
             if (__builtin_fabsf(NormalizeAngle__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
                 heading = GetStepHeading(behavior->murray);
                 {

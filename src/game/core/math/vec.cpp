@@ -464,7 +464,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11E958
@@ -478,9 +477,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
-        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), QwordX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(QwordY(v), QwordX(v)));
     if (outTilt)
-        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(QwordX(v) * QwordX(v) + GetY(v) * GetY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(QwordX(v) * QwordX(v) + QwordY(v) * QwordY(v))));
 }
 }
 
@@ -816,7 +815,6 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
 //////// 0x11EF08 GetVectorCylind
 namespace V_GetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x11EF00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
@@ -831,7 +829,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
-        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), QwordX(v)));
+        *outAngle = NormalizeAngle__Ff(atan2f(QwordY(v), QwordX(v)));
     if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));

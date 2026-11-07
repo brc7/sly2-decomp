@@ -282,7 +282,6 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
     return outMatrix;
 }
 
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 /** @sly2-annot addr=0x11B628
  * Purpose: Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products)
@@ -299,7 +298,7 @@ extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *outMatrix, qword v)
     float sx, cx, sy, cy, sz, cz;
     float sxsy, cxsy;
     CalculateSinCos__FfPfT1(QwordX(v), &sx, &cx);
-    CalculateSinCos__FfPfT1(GetY(v), &sy, &cy);
+    CalculateSinCos__FfPfT1(QwordY(v), &sy, &cy);
     CalculateSinCos__FfPfT1(GetZ(v), &sz, &cz);
     sxsy = sx * sy;
     cxsy = cx * sy;

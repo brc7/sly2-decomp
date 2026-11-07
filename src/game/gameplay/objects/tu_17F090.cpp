@@ -720,7 +720,6 @@ extern "C" float NormalizeAngle__Ff(float);
 extern "C" float ClampAbs__Fff(float,float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Helpers Sub, X, Y, Transform (small asm wrappers/accessors shaped for the match).
-static inline float Y(qword v){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(v));return f;}
 static inline qword Transform(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 // 3x3 matrix product.
 static inline M3 Mul(const M3&a,const M3&b) return r
@@ -739,9 +738,9 @@ extern "C" void UpdateHackbullet(P*bullet){
  qword position;
  position=GetLoWorldPos(bullet->target);
  qword displacement=VuSub(position,GetLoWorldPos(bullet));
- float desired=atan2f(Y(displacement),QwordX(displacement));
+ float desired=atan2f(QwordY(displacement),QwordX(displacement));
  qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
- float current=atan2f(Y(direction),QwordX(direction));
+ float current=atan2f(QwordY(direction),QwordX(direction));
  float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
  ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));

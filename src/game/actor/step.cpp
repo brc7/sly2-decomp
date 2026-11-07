@@ -944,7 +944,6 @@ namespace M_SetStepRadTargetVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 float atan2f(float y, float x);
 void SetStepTargetHeading(void *p, float g);
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x2046B0
  * Purpose: SetStepRadTarget(atan2(v.y, v.x)) for a direction vector
  * Info: proposed name SetStepTargetHeadingFromVector (T1); TU step
@@ -952,7 +951,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Sets the target heading toward a direction vector (atan2 of its y and x).
-void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(GetY(v), QwordX(v))); }
+void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(QwordY(v), QwordX(v))); }
 } } // namespace M_SetStepRadTargetVec
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1426,7 +1425,6 @@ static inline qword Rotate(const M3 &m, qword v) {
         : "=&j"(one), "=&j"(a), "=&j"(b), "=&j"(c), "=&j"(r) : "j"(m.r[0]), "j"(v), "r"(&m) : "vf1", "vf2");
     return r;
 }
-static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 /** @sly2-annot addr=0x205008
@@ -1470,8 +1468,8 @@ extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, q
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((flags & 1) || ((flags & 8) && QwordX(posLocal) < 0.0001f))
         AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[0], QwordX(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
-    if ((flags & 2) || ((flags & 0x10) && Y(posLocal) < 0.0001f))
-        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
+    if ((flags & 2) || ((flags & 0x10) && QwordY(posLocal) < 0.0001f))
+        AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[1], QwordY(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
     if ((flags & 4) || ((flags & 0x20) && Z(posLocal) < 0.0001f))
         AddXp(D_003DD490, object->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;

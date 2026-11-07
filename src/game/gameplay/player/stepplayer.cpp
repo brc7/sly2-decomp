@@ -2538,7 +2538,6 @@ extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float AbsF(float g) { return g < 0.0f ? -g : g; }
 /** @sly2-annot addr=0x1430C8
  * Purpose: From lean target direction (atan2 in local space, quadrants) and nLeanKind return a bitmask (8,
@@ -2555,7 +2554,7 @@ int GetStepplayerLeanFlags(struct P *player)
     int r;
     if (player->leanTarget) {
         qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->leanTarget));
-        float g = atan2f(GetY(v), QwordX(v));
+        float g = atan2f(QwordY(v), QwordX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
         else if (D_002BD2C4 < a) n = 3;

@@ -273,11 +273,10 @@ struct P { char pad[0x1C]; void *source; qword position; char pad2[0x40 - 0x30];
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
-static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB0C0
  * Purpose: vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused,
@@ -368,11 +367,10 @@ struct P { char pad[0x1C]; struct SOURCE *source; qword position; };
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, unsigned short, unsigned short);
-static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB2F8
  * Purpose: Attach sound to an ALO (positional), flag 0x200
@@ -397,11 +395,10 @@ struct P { char pad[0x1C]; void *source; qword position;   /* SND: the followed 
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
-static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB3F0
  * Purpose: Set world position (positional unless zero vector), flag 0x200
@@ -1426,11 +1423,10 @@ qword GetLoWorldPos(struct LO *);
 void CalculateSndVolPan(struct P *,qword,const struct RANGE *,float *,int *);
 void SetStreamGroupPan(struct P *,int,int);
 void SetStreamsndGroupVolume(struct P *,int,float);
-static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FC9B0
  * Purpose: vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan

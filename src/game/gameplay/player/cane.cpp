@@ -641,7 +641,6 @@ extern "C" void UpdateJtCane__FP2JT(JT *jt)
         UpdateJtHands(jt->track);
 }
 
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x18ED98
  * Purpose: Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target
  *   behind) -> 1
@@ -668,7 +667,7 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     u.q = s;
     __asm__("vmulax.xyzw ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(d) : "j"(a), "j"(s), "j"(b));
     f = 1;
-    if (GetY(d) > 0.0f) {
+    if (QwordY(d) > 0.0f) {
     } else
         f = 0;
     return f;

@@ -896,7 +896,6 @@ extern "C" void DeactivateCptn(CMPART2 *p) {
     DeactivateCplcy(p);
 }
 
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // Positions tn target via FillCrvcCache or atan2 heading. (inferred)
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 {
@@ -911,7 +910,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
         qword v = ConvertPosBetweenLos(0, ps, q), d;
         float g;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(*(qword *)&ps->posCenter));
-        g = atan2f(GetY(d), QwordX(d));
+        g = atan2f(QwordY(d), QwordX(d));
         if (g < 0.0f) g += 6.2831855f;
         ps->uProgress = g * ps->sRadius;
     }

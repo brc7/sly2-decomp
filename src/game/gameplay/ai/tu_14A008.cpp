@@ -392,7 +392,6 @@ static inline float Len2(qword a)
 }
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static inline float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 // VU0 helper: z component of a vector.
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // VU0 helper: a plus the normalized direction of v scaled by s.
@@ -479,7 +478,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     }
     if (IsLess(Len2(v), D_002BD460)) {
         qword entry = VuSub(posMe, posPlayer);
-        float rad = atan2f(GetY(entry), QwordX(entry));
+        float rad = atan2f(QwordY(entry), QwordX(entry));
         qword pp = GetLoWorldPos(hero);
         pos = VuAdd(pp, SetVectorCylind(RandomFloatInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {

@@ -324,7 +324,6 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
 
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // VU0 helper: z component of a vector.
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x173588: True if a projected point is in front of the camera (z > 1e-4) and within +-`extent` in x and y.
@@ -333,7 +332,7 @@ extern "C" int IsInScreenRect(qwordV v, float extent) {
     if (GetZ(v) > 0.0001f) {
         float x = QwordX(v);
         if (-extent < x && x < extent) {
-            float y = GetY(v);
+            float y = QwordY(v);
             if (-extent < y && y < extent) isInside = 1;
         }
     }

@@ -141,7 +141,6 @@ int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BA
 
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
 // 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
 // timers off (FLT_MAX).
@@ -219,7 +218,7 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                 qword b = GetLoWorldPos(behavior->guard);
                 qword d;
                 d = VuSub(a, b);
-                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
+                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
             }
             break;
         case 3:
@@ -298,7 +297,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             qword b = GetLoWorldPos(behavior->guard);
             qword d;
             d = VuSub(a, b);
-            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
+            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
             {
                 BHVO *child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
                 StartPushedBhv(child);

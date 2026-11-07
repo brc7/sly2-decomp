@@ -420,12 +420,6 @@ extern "C" void *ChooseBhvDimitriAttackRouteEnd(BHVATK *behavior)
 
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qwordV q)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(q));
-    return y;
-}
 namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.40282347e+38f; }
 // 0x155AE0: Dimitri attack state change: 0 turn away from the chosen route end (alert animation), 1 face the
 // target, 2 walk a two-point path to the route end (BHV167), 3 attack (BHVATTACK with the chosen attack entry);
@@ -457,7 +451,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         child->sgf = 0xB;
         d = VuSub(GetLoWorldPos(behavior->goal), GetLoWorldPos(behavior->guard));
         {
-            float g = atan2f(GetY(d), QwordX(d)) + 3.1415927f;
+            float g = atan2f(QwordY(d), QwordX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(behavior->guard->mover, g);
         }
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);

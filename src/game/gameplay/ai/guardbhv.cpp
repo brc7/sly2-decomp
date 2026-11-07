@@ -542,7 +542,6 @@ float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
 // root motion (else zero) and faces the look-at object.
 void UpdateBhvanimMotion(struct S *behavior)
@@ -557,7 +556,7 @@ void UpdateBhvanimMotion(struct S *behavior)
         qword b = GetLoWorldPos(behavior->guard);
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
+        SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
     }
 }
 } } // namespace M_UpdateBhvanimMotion
@@ -1073,12 +1072,6 @@ static inline float VectorLength(qword v)
 }
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
-static inline float VuGetY(qword qw)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
-    return y;
-}
 // VU0 helper: z component of a quadword vector.
 static inline float VuGetZ(qword qw)
 {
@@ -1144,7 +1137,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
             continue;
         {
             qword local = ConvertPosBetweenLos(0, guard, to);
-            angle = __builtin_fabsf(atan2f(VuGetY(local), QwordX(local)));
+            angle = __builtin_fabsf(atan2f(QwordY(local), QwordX(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
@@ -3561,12 +3554,6 @@ static inline float VuXToFloat(qword qw)
 }
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
-static inline float VuGetY(qword qw)
-{
-    float y;
-    __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
-    return y;
-}
 // VU0 helper: vector difference.
 // VU0 helper: dot product (in x).
 static inline qword VuDotProduct(qword a, qword b)
@@ -3676,7 +3663,7 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
         {
         case 0:
             SetAsegaSpeed__FP5ASEGAf(pchoice->control, behavior->rate * g);
-            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(VuGetY(dpos), QwordX(dpos)));
+            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(QwordY(dpos), QwordX(dpos)));
             break;
         case 3:
         {
@@ -7422,7 +7409,6 @@ extern "C" {
 }
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
 extern "C" void RegoalBhvStalk(struct S *behavior) {
     union { qword q; } hit;
@@ -7442,7 +7428,7 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
     dd = c ? c->unknownDC : 0;
     q = dd ? dd->pathzone : 0;
     best = 0.0f;
-    ang = atan2f(GetY(d), QwordX(d));
+    ang = atan2f(QwordY(d), QwordX(d));
     r = GetPathlinkEndpointPos(&t->goal, b);
     for (i = 0; i < 16; i++) {
         qword o = SetVectorCylind(ang + D_002BE770[i], D_002BE76C, 0.0f);

@@ -376,11 +376,10 @@ extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, void *pv)
 }
 
 // MATCH (Claude agent, laneC10 2026-10-23): from v4; p->maxSize stored in each branch of the if/else (gcc cross-jumps the two stores into one join block), which lets the g8C load schedule first. One commented register pin (r in InitS).
-static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ int FVecsNear(qwordV a, qwordV b)
 {
-    return AreFloatsNear(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear(GetY(a), GetY(b), 1e-4f) &&
+    return AreFloatsNear(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear(GetZ(a), GetZ(b), 1e-4f);
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }

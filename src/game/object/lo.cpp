@@ -1085,7 +1085,6 @@ extern "C" void GetLoWorldMatrix(LO *plo)
 
 namespace M_func_001A6340 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -1107,7 +1106,7 @@ qword GetLoEulerDegrees(void)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(GetLoWorldMatrix());
-    r.q = Make(QwordX(v) * 57.2957763671875f, GetY(v) * 57.2957763671875f, GetZ(v) * 57.2957763671875f);
+    r.q = Make(QwordX(v) * 57.2957763671875f, QwordY(v) * 57.2957763671875f, GetZ(v) * 57.2957763671875f);
     return r.q;
 }
 } } // namespace M_func_001A6340
@@ -1115,7 +1114,6 @@ qword GetLoEulerDegrees(void)
 namespace M_func_001A63B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -1144,7 +1142,7 @@ void SetLoEulerDegrees(struct LO *object, qword v)
     M3 c;
     union { qword q; float f; } r;
     M3 m;
-    r.q = Make(QwordX(v) * 0.017453294f, GetY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
+    r.q = Make(QwordX(v) * 0.017453294f, QwordY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
     object->vt[30].pfn((struct LO *)((char *)object + object->vt[30].d), &c);

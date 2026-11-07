@@ -1213,7 +1213,6 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
 
 namespace M_ChooseMurrayThrowTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
 struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
@@ -3012,7 +3011,6 @@ extern "C" int CanMurrayAttack(MURRAY *murray)
 
 namespace M_StartMurrayPunch { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; char pad2[0x190C - 0x1808]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
@@ -3036,7 +3034,7 @@ void StartMurrayPunch(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 1;
         else k = 0;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
+        if (QwordY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
         else k = 1;
     } else
         k = 1;
@@ -3046,7 +3044,6 @@ void StartMurrayPunch(struct P *murray)
 
 namespace M_StartMurrayAltAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; int x1808; char pad2[0x190C - 0x180C]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
@@ -3072,7 +3069,7 @@ void StartMurrayAltAttack(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 3;
         else k = 2;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
+        if (QwordY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
         else k = 3;
     } else
         k = 3;
@@ -3082,7 +3079,6 @@ void StartMurrayAltAttack(struct P *murray)
 
 namespace M_SetMurrayAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
@@ -3146,7 +3142,7 @@ void SetMurrayAttack(struct P *murray, int k)
     if (murray->interactTarget && murray->interactKind >= 2 && !(murray->pl->x30 & 8)) {
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
-        g = atan2f(GetY(d), QwordX(d));
+        g = atan2f(QwordY(d), QwordX(d));
         if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->g1A8)) < D_002C09F0) {
             SetStepTargetHeading(murray, g);
             FixStepAngularVelocity(murray);

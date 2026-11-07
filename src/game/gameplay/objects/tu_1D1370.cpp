@@ -856,8 +856,6 @@ extern float D_002C20E0[2];
 qword GetLoWorldPos(void *);
 void FindShapeClosestPointFromDistance(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
-// Helpers GetX, GetY (small asm wrappers/accessors shaped for the match).
-static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 // Distance between two points in the xy plane.
 static inline float Dist2D(qword a, qword b)
 {
@@ -925,7 +923,7 @@ void SteerRobottankAlongPath(OBJ *tank)
     v=AddScaled(point,fallback,f);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(w) : "j"(v), "j"(pos));
     dir=NormalizeOr(w,fallback);
-    tank->goalHeading = atan2f(GetY(dir), QwordX(dir));
+    tank->goalHeading = atan2f(QwordY(dir), QwordX(dir));
     tank->drive = tank->maxDrive * 0.75f;
 }
 } } // namespace M_func_001D2490
@@ -999,7 +997,6 @@ int IsPointInVol(void *, qword);
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
 // Helpers Sub, Add, GetX, GetY, GetZ (small asm wrappers/accessors shaped for the match).
-static inline float GetY(VV q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(VV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // Length of the xy part of a vector.
 static inline float Length2D(VV v)
@@ -1134,7 +1131,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         // attack: stop, turn the wheels towards the target, fire when the selected attachment is aimed
         tank->drive = 0.0f;
         tank->goalHeading = tank->heading;
-        tank->wheelAngle = atan2f(GetY(delta), QwordX(delta));
+        tank->wheelAngle = atan2f(QwordY(delta), QwordX(delta));
         if (tank->nextAttack < D_002DDED0.t) {
             ATTACH *attach = FindReadyRobottankWeapon(tank);
             if (attach) {
@@ -1167,7 +1164,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         break;
     }
     case 3:
-        tank->goalHeading = atan2f(-GetY(delta), -QwordX(delta));
+        tank->goalHeading = atan2f(-QwordY(delta), -QwordX(delta));
         tank->wheelAngle = tank->heading;
         tank->drive = tank->slip * 0.85f;
         break;
