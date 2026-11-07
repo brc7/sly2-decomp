@@ -1164,10 +1164,6 @@ struct VIEW
     qword posCam;
     qword aqwPlane[3];
 };
-struct CLOCK
-{
-    float time, deltaTime;
-};
 struct G
 {
     char pad[0x3BEC];
