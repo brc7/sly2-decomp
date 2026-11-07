@@ -2375,45 +2375,55 @@ static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1
 // three layers of the current music stream toward it, keeping their total power constant. (inferred)
 void UpdateMusicMix(struct P *input)
 {
-    struct P *p=input;
+    struct P *soundManager = input;
     struct REF *music;
     int i;
-    float sum,selectedSquare;
-    p->selectedMusicLayer=1;
-    if(p->musicLayer2Requests)p->selectedMusicLayer=2;
-    else if(p->musicLayer0Requests)p->selectedMusicLayer=0;
-    else if(PpoCur(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(PpoCur(D_003DD490),0x34)){
-        struct PLAYER *player=PpoCur(D_003DD490);
-        if(player->state==3)p->selectedMusicLayer=0;
-        else if(player->state==4)p->selectedMusicLayer=2;
-        else if(player->mode!=-1)p->selectedMusicLayer=0;
-        else if(player->action>=0){if(player->action<3 || player->action==13)p->selectedMusicLayer=0;}
+    float sum, selectedSquare;
+    soundManager->selectedMusicLayer = 1;
+    if (soundManager->musicLayer2Requests) soundManager->selectedMusicLayer = 2;
+    else if (soundManager->musicLayer0Requests) soundManager->selectedMusicLayer = 0;
+    else if (PpoCur(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(PpoCur(D_003DD490), 0x34)) {
+        struct PLAYER *player = PpoCur(D_003DD490);
+        if (player->state == 3) soundManager->selectedMusicLayer = 0;
+        else if (player->state == 4) soundManager->selectedMusicLayer = 2;
+        else if (player->mode != -1) soundManager->selectedMusicLayer = 0;
+        else if (player->action >= 0) { if (player->action < 3 || player->action == 13) soundManager->selectedMusicLayer = 0; }
     }
-    if(p->musicStackCount>0)music=((struct REF **)&p->musicStackCount)[p->musicStackCount];   /* the top of the music stack (this form matches) */else music=0;
+    /* the top of the music stack (this form matches; musicStack[count - 1] does not) */
+    if (soundManager->musicStackCount > 0) music = ((struct REF **)&soundManager->musicStackCount)[soundManager->musicStackCount];
+    else music = 0;
     /* a stream that is still starting jumps straight to the selected layer, a playing one cross-fades (the goto shape
        is the one that matches: the smoothing call is emitted after the jump) */
-    if(music){
-        int isStarting=0;
-        if(music->playState || (music->flags&1))isStarting=1;
-        if(!isStarting)goto smooth;
+    if (music) {
+        int isStarting = 0;
+        if (music->playState || (music->flags & SND_START)) isStarting = 1;
+        if (!isStarting) goto smooth;
     }
-    p->musicLayerWeights[p->selectedMusicLayer]=1.0f;
+    soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = 1.0f;
     goto normalize;
 smooth:
-    p->musicLayerWeights[p->selectedMusicLayer]=GSmooth__FfffP3SMPPf(p->musicLayerWeights[p->selectedMusicLayer],1.0f,g_clock.dtReal,&p->musicLayerSmoothing[p->selectedMusicLayer],0);
+    soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = GSmooth__FfffP3SMPPf(soundManager->musicLayerWeights[soundManager->selectedMusicLayer],
+        1.0f, g_clock.dtReal, &soundManager->musicLayerSmoothing[soundManager->selectedMusicLayer], 0);
 normalize:
     /* scale the other layers so the squares of the weights sum to 1 (constant power) */
-    sum=0.0f;selectedSquare=p->musicLayerWeights[p->selectedMusicLayer]*p->musicLayerWeights[p->selectedMusicLayer];
-    for(i=0;i<3;i++)if(i!=p->selectedMusicLayer)sum+=p->musicLayerWeights[i]*p->musicLayerWeights[i];
-    if(sum<0.0001f){
-        for(i=0;i<3;i++){
-            p->musicLayerWeights[i]=(i==p->selectedMusicLayer)?1.0f:0.0f;
+    sum = 0.0f;
+    selectedSquare = soundManager->musicLayerWeights[soundManager->selectedMusicLayer] * soundManager->musicLayerWeights[soundManager->selectedMusicLayer];
+    for (i = 0; i < 3; i++)
+        if (i != soundManager->selectedMusicLayer) sum += soundManager->musicLayerWeights[i] * soundManager->musicLayerWeights[i];
+    if (sum < 0.0001f) {
+        for (i = 0; i < 3; i++) {
+            soundManager->musicLayerWeights[i] = (i == soundManager->selectedMusicLayer) ? 1.0f : 0.0f;
         }
-    }else{
-        float gain=Sqrt((1.0f-selectedSquare)/sum);
-        for(i=0;i<3;i++)if(i!=p->selectedMusicLayer)p->musicLayerWeights[i]*=gain;
+    } else {
+        float gain = Sqrt((1.0f - selectedSquare) / sum);
+        for (i = 0; i < 3; i++)
+            if (i != soundManager->selectedMusicLayer) soundManager->musicLayerWeights[i] *= gain;
     }
-    if(music){SetStreamsndGroupVolume(music,0,p->musicLayerWeights[0]);SetStreamsndGroupVolume(music,1,p->musicLayerWeights[1]);SetStreamsndGroupVolume(music,2,p->musicLayerWeights[2]);}
+    if (music) {
+        SetStreamsndGroupVolume(music, 0, soundManager->musicLayerWeights[0]);
+        SetStreamsndGroupVolume(music, 1, soundManager->musicLayerWeights[1]);
+        SetStreamsndGroupVolume(music, 2, soundManager->musicLayerWeights[2]);
+    }
 }
 
 }
