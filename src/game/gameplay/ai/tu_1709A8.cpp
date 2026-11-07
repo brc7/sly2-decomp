@@ -853,11 +853,11 @@ namespace M_func_00171AF8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x10]; void *guard; char pad2[0x1C]; void *script; };
 qword func_001A62E8(void *p);
-void GetGuardScriptTargetPose(void *p, qword q, int a, int b, int c);
+void GetGuardScriptTargetPose(void *script, qword pos, int target, int posOut, int headingOut);
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
-void GetBhvScriptTargetPose(struct S *behavior, int a, int b, int c)
+void GetBhvScriptTargetPose(struct S *behavior, int target, int posOut, int headingOut)
 {
-    GetGuardScriptTargetPose(behavior->script, func_001A62E8(behavior->guard), a, b, c);
+    GetGuardScriptTargetPose(behavior->script, func_001A62E8(behavior->guard), target, posOut, headingOut);
 }
 } } // namespace M_func_00171AF8
 
@@ -866,41 +866,48 @@ namespace M_func_00171B60 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 struct VTE { short d; short pad; void (*pfn)(); };
-struct T { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char a1B0[0x10]; };
-struct S { char pad[0x10]; struct T *pt; };
-void DetachStepguard(struct T *t);
-void func_00204660(struct T *t, float g);
+struct GUARD { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char unknown1B0[0x10]; };
+struct S { char pad[0x10]; struct GUARD *guard; };
+void DetachStepguard(struct GUARD *guard);
+void func_00204660(struct GUARD *guard, float heading);
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
-void TeleportBhvScriptGuard(struct S *behavior, qword q, float g) {
-    struct T *t = behavior->pt;
+void TeleportBhvScriptGuard(struct S *behavior, qword pos, float heading)
+{
+    struct GUARD *guard = behavior->guard;
     struct VTE *entry;
-    DetachStepguard(t);
-    entry = &t->vt[0x1D]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, q);
-    func_00204660(t, g);
-    entry = &t->vt[0x1E]; ((void (*)(void *, void *))entry->pfn)((char *)t + entry->d, t->a1B0);
-    entry = &t->vt[0x23]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
-    entry = &t->vt[0x24]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
+    DetachStepguard(guard);
+    entry = &guard->vt[0x1D];   /* set position */
+    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, pos);
+    func_00204660(guard, heading);
+    entry = &guard->vt[0x1E];   /* set orientation */
+    ((void (*)(void *, void *))entry->pfn)((char *)guard + entry->d, guard->unknown1B0);
+    entry = &guard->vt[0x23];   /* set velocity */
+    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
+    entry = &guard->vt[0x24];   /* set angular velocity */
+    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
 }
 } } // namespace M_func_00171B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171C18 { extern "C" {
-struct K { int k; };
-struct R { struct K *pk; int n; float g; };
-struct U { char pad[0x38]; float g38; };
-struct T { char pad[0xF80]; int nF80; };
-struct S { char pad[0x10]; struct T *pt; int pad1; struct U *child; char pad2[0x18]; int context; struct K *currentCommand; };
+struct COMMAND { int kind; };
+struct RESUME { struct COMMAND *command; int context; float pathParam; };
+struct BHVPATROLPATHV { char pad[0x38]; float pathParam; };
+struct GUARD { char pad[0xF80]; int attachKind; };
+struct S { char pad[0x10]; struct GUARD *guard; int pad1; struct BHVPATROLPATHV *child; char pad2[0x18]; int context; struct COMMAND *currentCommand; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
-void SaveBhvScriptResumeState(struct S *behavior, struct R *r) {
-    switch (behavior->pt->nF80) {
+void SaveBhvScriptResumeState(struct S *behavior, struct RESUME *resume)
+{
+    switch (behavior->guard->attachKind) {
     case -1:
-        r->pk = behavior->currentCommand;
-        r->n = behavior->context;
-        if (r->pk && r->pk->k == 6) r->g = behavior->child->g38;
+        resume->command = behavior->currentCommand;
+        resume->context = behavior->context;
+        if (resume->command && resume->command->kind == SSGK_FOLLOW_PATH)
+            resume->pathParam = behavior->child->pathParam;
         break;
-    case 0: case 1:
-        func_002333B4(r, 0, sizeof(*r));
+    case 0: case 1:   /* on a rail or pipe: no resume point */
+        func_002333B4(resume, 0, sizeof(*resume));
         break;
     }
 }
@@ -921,39 +928,39 @@ extern "C" void JumpBhvScriptToLabel(BHVSSG *behavior, int id)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171CF8 { extern "C" {
-struct F { int a[0x1C]; };
-void *FindStepBhv(void *p, int n);
+struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
+void *FindStepBhv(void *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *p, struct F *pf);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
-void StartGuardScript(void *p, int n)
+void StartGuardScript(void *guard, int script)
 {
-    struct F f;
-    void *o = FindStepBhv(p, CID_BHVGUARD);
-    if (o) {
-        func_002333B4(&f, 0, sizeof(f));
-        f.a[4] = n;
-        f.a[0] = 5;
-        SetBhvguardMode(o, &f);
+    struct MODEREC mode;
+    void *bhv = FindStepBhv(guard, CID_BHVGUARD);
+    if (bhv) {
+        func_002333B4(&mode, 0, sizeof(mode));
+        mode.value = script;
+        mode.kind = 5;
+        SetBhvguardMode(bhv, &mode);
     }
 }
 } } // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171D58 { extern "C" {
-struct F { int a[0x1C]; };
-void *FindStepBhv(void *p, int n);
+struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
+void *FindStepBhv(void *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *p, struct F *pf);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
-void SetGuardRoutineMode(void *p)
+void SetGuardRoutineMode(void *guard)
 {
-    struct F f;
-    void *o = FindStepBhv(p, CID_BHVGUARD);
-    if (o) {
-        func_002333B4(&f, 0, sizeof(f));
-        f.a[0] = 1;
-        SetBhvguardMode(o, &f);
+    struct MODEREC mode;
+    void *bhv = FindStepBhv(guard, CID_BHVGUARD);
+    if (bhv) {
+        func_002333B4(&mode, 0, sizeof(mode));
+        mode.kind = 1;
+        SetBhvguardMode(bhv, &mode);
     }
 }
 } } // namespace M_func_00171D58
@@ -962,13 +969,13 @@ void SetGuardRoutineMode(void *p)
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */
 extern "C" int IsGuardRunningScript(LO *object, int id)
 {
-    BHVGUARDV *pbhvguard;
-    int f;
-    pbhvguard = (BHVGUARDV *)FindStepBhv(object, CID_BHVGUARD);
-    f = 0;
-    if ((pbhvguard != 0) && (pbhvguard->mode == 5)) {
-        f = pbhvguard->argument == id;
+    BHVGUARDV *bhv;
+    int running;
+    bhv = (BHVGUARDV *)FindStepBhv(object, CID_BHVGUARD);
+    running = 0;
+    if ((bhv != 0) && (bhv->mode == 5)) {
+        running = bhv->argument == id;
     }
-    return f;
+    return running;
 }
 
