@@ -374,51 +374,37 @@ void UpdateMurrayJtModeInput(MURRAY *murray)
 } } // namespace M_func_001B5038
 
 namespace M_UpdateMurray { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct PL { char pad[0x18]; float g18; float g1C; };
-struct O;
-struct TABLE;
-struct ASEGA {char pad[0x14];struct TABLE*table;struct O*owner;float time;char pad20[0x20];float speed40,scale44,factor48,factor4C;};
-struct BBOX {float min[4],max[4];char pad20[0x40];struct O*owner;};
 struct G;
-struct Q { char pad[0xEC]; struct BBOX *xEC; };
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern struct G D_003DD490;
 extern float D_002C08E4;
 extern qword D_002C08F0;
 extern qword D_002A2DE0;
-struct P {
-    char pad0[0x28]; unsigned long x28; char pad1[0xEC - 0x30]; struct BBOX *xEC; char pad1b[0x150 - 0xF0]; struct PL *pl;
-    char pad2[0x190 - 0x154]; qword v190; char pad3[0x2C0 - 0x1A0]; char air[0x4C0 - 0x2C0]; char grab[0xDF0 - 0x4C0];
-    char hurt[0x1030 - 0xDF0]; struct ASEGA *action; void *p1034; char pad4[0x1320 - 0x1038]; char x1320[0x13D0 - 0x1320];
-    int state; char pad5[0x1430 - 0x13D4]; struct Q *p1430; float g1434; char pad6[0x1540 - 0x1438]; char x1540[0x190C - 0x1540];
-    struct O *x190C; char pad7[0x1AC8 - 0x1910]; float g1AC8; void *x1ACC;
-};
-void UpdateStepplayer(struct P *p);
-int IsAsegaRetracted(struct O *p);
-void DropAsegaRef(struct O **pp);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
-void UpdateMurrayJtModeInput(struct P *p);
-void UpdateMurrayStateMachine(struct P *p);
-int GetStepplayerLeanFlags(struct P *p);
-void SetSmaMask(void *p, int n);
-void SetStepTargetHeading(struct P *p, float g);
-qword GetStepAsegaTranslation(struct P *p, struct ASEGA *pl, float g);
-void UpdateGaitBlend(void *p, float g);
-void UpdateGaitFootsteps(void *p);
-void UpdateJtActiveJump(void *p);
-void UpdateJtActiveHide(void *p);
-void UpdateMurrayAttackVelocity(struct P *p);
-void UpdateMurrayPowerVelocity(struct P *p);
-void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
-void UpdateMurrayPlaces(struct P *p);
-void UpdateJtActiveZap(void *p);
-int ShouldSwPairObjects(struct G *pg,struct BBOX *a,struct BBOX *b);
-void RefreshSwObjectCollisionFilter(struct G *pg, struct P *p);
-void SetActPositionGoal(void *p, qword v);
-// Store -v (v scaled by a broadcast -1) into the actor's v190.
-static inline void Neg(struct P *p, qword v)
+void UpdateStepplayer(MURRAY *p);
+int IsAsegaRetracted(ASEGA *p);
+void DropAsegaRef(ASEGA **pp);
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, MURRAY *p, int n);
+void UpdateMurrayJtModeInput(MURRAY *p);
+void UpdateMurrayStateMachine(MURRAY *p);
+int GetStepplayerLeanFlags(MURRAY *p);
+void SetSmaMask(SMA *p, int n);
+void SetStepTargetHeading(MURRAY *p, float g);
+qword GetStepAsegaTranslation(MURRAY *p, ASEGA *pl, float g);
+void UpdateGaitBlend(GAIT *p, float g);
+void UpdateGaitFootsteps(GAIT *p);
+void UpdateJtActiveJump(JTAIR *p);
+void UpdateJtActiveHide(JTGRAB *p);
+void UpdateMurrayAttackVelocity(MURRAY *p);
+void UpdateMurrayPowerVelocity(MURRAY *p);
+void SetAsegaSpeed__FP5ASEGAf(ASEGA *p,float g);
+void UpdateMurrayPlaces(MURRAY *p);
+void UpdateJtActiveZap(JTHURT *p);
+int ShouldSwPairObjects(struct G *pg,SOTREE *a,SOTREE *b);
+void RefreshSwObjectCollisionFilter(struct G *pg, MURRAY *p);
+void SetActPositionGoal(ACT1 *p, qword v);
+// Store -v (v scaled by a broadcast -1) into the actor's qwUnknown190.
+static inline void Neg(MURRAY *p, qword v)
 {
     union { qword q; float f[4]; } u;
     qword b = VuFromFloat<qword>(-1.0f);
@@ -426,94 +412,59 @@ static inline void Neg(struct P *p, qword v)
     {
         qword qwpv190Out;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwpv190Out) : "j"(v), "j"(u.q));
-        p->v190 = qwpv190Out;
+        p->qwUnknown190 = qwpv190Out;
     }
 }
-// Store -v into the actor's v190 and set the action's speed from the PL's g1C.
-static inline void Neg2(struct P *p, qword v)
+// Store -v into the actor's qwUnknown190 and set the action's speed from the stick deflection.
+static inline void Neg2(MURRAY *p, qword v)
 {
-    struct ASEGA *pl = p->action;
+    ASEGA *pl = p->activeAnimation;
     volatile qword u; /* scalar stack copy of the -1 broadcast (target stores it to 0(sp) last) */
     qword b = VuFromFloat<qword>(-1.0f); qword r;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(b));
-    p->v190 = r;
+    p->qwUnknown190 = r;
     u = b;
-    SetAsegaSpeed__FP5ASEGAf(pl,p->pl->g1C);
+    SetAsegaSpeed__FP5ASEGAf(pl,p->controller->leftStickDeflection);
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char Offset_0[FIELD_OFFSET(struct PL,g18)==24?1:-1];
-typedef char Offset_1[FIELD_OFFSET(struct PL,g1C)==28?1:-1];
-typedef char Offset_2[FIELD_OFFSET(struct ASEGA,table)==20?1:-1];
-typedef char Offset_3[FIELD_OFFSET(struct ASEGA,owner)==24?1:-1];
-typedef char Offset_4[FIELD_OFFSET(struct ASEGA,time)==28?1:-1];
-typedef char Offset_5[FIELD_OFFSET(struct ASEGA,speed40)==64?1:-1];
-typedef char Offset_6[FIELD_OFFSET(struct ASEGA,scale44)==68?1:-1];
-typedef char Offset_7[FIELD_OFFSET(struct ASEGA,factor48)==72?1:-1];
-typedef char Offset_8[FIELD_OFFSET(struct ASEGA,factor4C)==76?1:-1];
-typedef char Offset_9[FIELD_OFFSET(struct BBOX,min)==0?1:-1];
-typedef char Offset_10[FIELD_OFFSET(struct BBOX,max)==16?1:-1];
-typedef char Offset_11[FIELD_OFFSET(struct BBOX,owner)==96?1:-1];
-typedef char Offset_12[FIELD_OFFSET(struct Q,xEC)==236?1:-1];
 typedef char Offset_13[FIELD_OFFSET(struct CLOCK,time)==0?1:-1];
 typedef char Offset_14[FIELD_OFFSET(struct CLOCK,deltaTime)==4?1:-1];
-typedef char Offset_15[FIELD_OFFSET(struct P,x28)==40?1:-1];
-typedef char Offset_16[FIELD_OFFSET(struct P,xEC)==236?1:-1];
-typedef char Offset_17[FIELD_OFFSET(struct P,pl)==336?1:-1];
-typedef char Offset_18[FIELD_OFFSET(struct P,v190)==400?1:-1];
-typedef char Offset_19[FIELD_OFFSET(struct P,air)==704?1:-1];
-typedef char Offset_20[FIELD_OFFSET(struct P,grab)==1216?1:-1];
-typedef char Offset_21[FIELD_OFFSET(struct P,hurt)==3568?1:-1];
-typedef char Offset_22[FIELD_OFFSET(struct P,action)==4144?1:-1];
-typedef char Offset_23[FIELD_OFFSET(struct P,p1034)==4148?1:-1];
-typedef char Offset_24[FIELD_OFFSET(struct P,x1320)==4896?1:-1];
-typedef char Offset_25[FIELD_OFFSET(struct P,state)==5072?1:-1];
-typedef char Offset_26[FIELD_OFFSET(struct P,p1430)==5168?1:-1];
-typedef char Offset_27[FIELD_OFFSET(struct P,g1434)==5172?1:-1];
-typedef char Offset_28[FIELD_OFFSET(struct P,x1540)==5440?1:-1];
-typedef char Offset_29[FIELD_OFFSET(struct P,x190C)==6412?1:-1];
-typedef char Offset_30[FIELD_OFFSET(struct P,g1AC8)==6856?1:-1];
-typedef char Offset_31[FIELD_OFFSET(struct P,x1ACC)==6860?1:-1];
-typedef char Size_0[sizeof(struct PL)==32?1:-1];
-typedef char Size_1[sizeof(struct ASEGA)==80?1:-1];
-typedef char Size_2[sizeof(struct BBOX)==100?1:-1];
-typedef char Size_3[sizeof(struct Q)==240?1:-1];
 typedef char Size_4[sizeof(struct CLOCK)==8?1:-1];
-typedef char Size_5[sizeof(struct P)==6864?1:-1];
 typedef char Size_6[sizeof(qword)==16?1:-1];
 typedef char Size_7[sizeof(unsigned long)==8?1:-1];
 typedef char Size_8[sizeof(float)==4?1:-1];
 typedef char Size_9[sizeof(int)==4?1:-1];
 typedef char Size_10[sizeof(void*)==4?1:-1];
 // MURRAY Update (slot 16): STEPPLAYER update, grab candidates, the state machine, then per-state updates.
-void UpdateMurray(struct P *murray)
+void UpdateMurray(MURRAY *murray)
 {
     UpdateStepplayer(murray);
-    if ((((int)(murray->x28 >> 60) & 1) == 0))
+    if ((((int)murray->isInWorld & 1) == 0))
         return;
-    if (murray->x190C && IsAsegaRetracted(murray->x190C))
-        DropAsegaRef(&murray->x190C);
+    if (murray->unknown190C && IsAsegaRetracted(murray->unknown190C))
+        DropAsegaRef(&murray->unknown190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
     UpdateMurrayStateMachine(murray);
     switch (murray->state) {
     case MURRAY_IDLE:
-        SetSmaMask(murray->p1034, GetStepplayerLeanFlags(murray));
+        SetSmaMask(murray->activeStateMachine, GetStepplayerLeanFlags(murray));
         break;
     case MURRAY_RUN:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1320, 1.0f);
-        UpdateGaitFootsteps(murray->x1320);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitA, 1.0f);
+        UpdateGaitFootsteps(&murray->gaitA);
         break;
     case MURRAY_WALK:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1540, murray->pl->g1C);
-        UpdateGaitFootsteps(murray->x1540);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitC, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitC);
         break;
     case MURRAY_JUMP:
-        UpdateJtActiveJump(murray->air);
+        UpdateJtActiveJump(&murray->jtair);
         break;
     case MURRAY_GRAB:
-        UpdateJtActiveHide(murray->grab);
+        UpdateJtActiveHide(&murray->jtgrab);
         break;
     case MURRAY_ATTACK:
         UpdateMurrayAttackVelocity(murray);
@@ -522,27 +473,27 @@ void UpdateMurray(struct P *murray)
         UpdateMurrayPowerVelocity(murray);
         break;
     case MURRAY_SCRIPT_ANIM:
-        Neg(murray, GetStepAsegaTranslation(murray, murray->action, murray->action->time));
+        Neg(murray, GetStepAsegaTranslation(murray, murray->activeAnimation, murray->activeAnimation->time));
         break;
     case MURRAY_SCRIPT_SMA:
-        Neg2(murray, GetStepAsegaTranslation(murray, murray->action, murray->action->time));
-        SetStepTargetHeading(murray, murray->pl->g18);
+        Neg2(murray, GetStepAsegaTranslation(murray, murray->activeAnimation, murray->activeAnimation->time));
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
         break;
     }
     UpdateMurrayPlaces(murray);
-    UpdateJtActiveZap(murray->hurt);
-    if (murray->p1430 && murray->g1434 + 0.1f < D_002DDED0.time) {
-        if (!murray->p1430->xEC || !ShouldSwPairObjects(&D_003DD490, murray->xEC, murray->p1430->xEC))
-            murray->p1430 = 0;
-        if (!murray->p1430)
+    UpdateJtActiveZap(&murray->jthurt);
+    if (murray->ploReleased && murray->releaseTime + 0.1f < D_002DDED0.time) {
+        if (!((SO *)murray->ploReleased)->physicsTree || !ShouldSwPairObjects(&D_003DD490, murray->physicsTree, ((SO *)murray->ploReleased)->physicsTree))
+            murray->ploReleased = 0;
+        if (!murray->ploReleased)
             RefreshSwObjectCollisionFilter(&D_003DD490, murray);
     }
-    if (!murray->x1ACC)
+    if (!murray->pact1Unk1acc)
         return;
-    if (D_002DDED0.time - murray->g1AC8 < D_002C08E4)
-        SetActPositionGoal(murray->x1ACC, D_002C08F0);
+    if (D_002DDED0.time - murray->unknown1AC8 < D_002C08E4)
+        SetActPositionGoal(murray->pact1Unk1acc, D_002C08F0);
     else
-        SetActPositionGoal(murray->x1ACC, D_002A2DE0);
+        SetActPositionGoal(murray->pact1Unk1acc, D_002A2DE0);
 }
 } } // namespace M_UpdateMurray
 #undef FIELD_OFFSET
