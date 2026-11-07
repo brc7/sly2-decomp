@@ -155,7 +155,7 @@ void UpdateCmLast__FP2CM(struct CM *cm)
     }
     cm->cutCount = 0;
     if (D_003DD490.unknown3E38)   /* stereo mode (draw.cpp) */
-        cm->stereoEyeOffset = GSmooth__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.dtCm, D_002BD810, 0);
+        cm->stereoEyeOffset = GSmooth__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
 
@@ -1169,7 +1169,7 @@ float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.dtCm, D_002BD8E0, &r);
+    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, D_002BD8E0, &r);
     return GDot(&vIn, pl->plane) - r;
 }
 } } // namespace M_SvSquishCmEyeConstraint

@@ -633,7 +633,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.musicVolume + f * g_clock.dtReal * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.musicVolume + f * g_clock.realDeltaTime * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 1, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
         break;
@@ -643,7 +643,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.soundVolume + f * g_clock.dtReal * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.soundVolume + f * g_clock.realDeltaTime * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 0, g, 1);
         SetSndmgrChannelVolume(&D_003DD040, 3, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);

@@ -11,7 +11,7 @@
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 struct LM { float low, high; };
-struct CLOCK { float t; float dt; char pad[0x34]; float tReal; };   /* +0x3C: real (unscaled) time, inferred */
+struct CLOCK { float t; float dt; char pad[0x34]; float realTime; }; /* +0x3C: real (unscaled) time, inferred */
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
 struct K { uint offsetScrambled, lengthScrambled, idScrambled; char pad[0x34 - 0xC]; uint offsetKey, idKey, lengthKey; };   /* each value = scrambled ^ key */
 /* The subtitle shown over a movie: its text id and the time window. */
@@ -236,7 +236,7 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
-        if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.tReal - D_002F66B0.t10C))
+        if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.realTime - D_002F66B0.t10C))
             x = (QW *)((unsigned)D_002F66B0.pb + 0x41DC00);
         Draw(x, &D_002F66B0);
         Draw(x, &D_002F66B0);
@@ -815,7 +815,7 @@ void Update__5CMpeg(CMPEG *player)
     while (player->stage == 1) CbDemuxed__5CMpegi(player, 0);
     if (sceMpegGetPicture(&player->mpeg, player->pb + 0x285A80, 0x5CD) < 0) return;
     if (player->mpeg.frameCount == 0) {
-        player->t10C = D_002DDED0.tReal;
+        player->t10C = D_002DDED0.realTime;
         BuildMpegGifs(player);
         DrawMpegSubtitles(player);
         func_00234CA0(0);

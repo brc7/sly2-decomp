@@ -1188,12 +1188,12 @@ extern "C" void ResetScreen(SCREENV *screen)
 extern "C" void ResetScreenMode(SCREENV *screen)
 {
     screen->mode = -1;
-    screen->modeTime = D_002DDED0.tReal;
+    screen->modeTime = D_002DDED0.realTime;
     SetScreenMode(screen, -1, -1);
 }
 
 namespace M_func_001DA808 { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct S { char p0[0x34]; float closeTime; };
 void UpdateScreenDefault(struct S *p);
 void SetScreenMode(struct S *p, int a, int b);
@@ -1207,7 +1207,7 @@ void SetScreenMode(struct S *p, int a, int b);
 // Screen update that closes the screen when its mode timer expires. (inferred)
 void UpdateTimedScreen(struct S *p) {
     UpdateScreenDefault(p);
-    if (p->closeTime <= D_002DDED0.tReal) SetScreenMode(p, -1, -1);
+    if (p->closeTime <= D_002DDED0.realTime) SetScreenMode(p, -1, -1);
 }
 } } // namespace M_func_001DA808
 
@@ -1254,7 +1254,7 @@ void UpdateScreenStickDir(OBJ *p)
 } } // namespace M_UpdateScreenStickDir
 
 namespace M_func_001DA950 { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
 struct S { char p0[0x30]; int timerKind; float closeTime; int modeArg; };
 void *PsndStartSound(int timerKind);
@@ -1279,7 +1279,7 @@ void SetScreenMode(struct S *p, int timerKind, int modeArg) {
         break;
     case 1:
     default:
-        p->closeTime = D_002DDED0.tReal + D_002C3254;
+        p->closeTime = D_002DDED0.realTime + D_002C3254;
         SetSndSourceLo(PsndStartSound(0x36), 0);
         break;
     }
@@ -1338,7 +1338,7 @@ void GADGETMENU::VSlot13()   /* key function */
 extern "C" void ClearGadgetMenu(GADGETMENUV *gadgetMenu)
 {
     gadgetMenu->nState = -1;
-    gadgetMenu->tState = D_002DDED0.tReal;
+    gadgetMenu->tState = D_002DDED0.realTime;
 }
 
 /* Gadget menu pages (SetGadgetMenuState): closed, or the page of Sly, Bentley or Murray. */
@@ -1660,7 +1660,7 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
-struct CLOCK { char pad[0x3C]; float tReal; };
+struct CLOCK { char pad[0x3C]; float realTime; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
@@ -1723,7 +1723,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
     if (mode == sel->mode)
         return;
     sel->mode = mode;
-    sel->tChanged = D_002DDED0.tReal;
+    sel->tChanged = D_002DDED0.realTime;
     if (mode == -1 || sel->selected == -1)
         return;
     ITEM *current = FindScreenEntry(sel, sel->selected);
@@ -1876,7 +1876,7 @@ typedef struct OBJ {
     int itemCount;
     E *items;
 } OBJ;
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
@@ -1909,7 +1909,7 @@ void SetGadgetMenuState(OBJ *p, int s)
     }
     SelectGadgetMenuItem(p, -1);
     p->state = s;
-    p->stateTime = D_002DDED0.tReal;
+    p->stateTime = D_002DDED0.realTime;
     switch (s) {
     case GADGETMENU_CLOSED: {
         int i;
@@ -2010,7 +2010,7 @@ void THIEFNET::VSlot13()   /* key function */
 }
 
 namespace M_ClearThiefnet { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct P { int id, iconAnim; };
 struct S { char p0[0x40]; int tab; float tabTime; int pad; struct P items[64]; char p1[0x25C-0x24C]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 /** @sly2-annot addr=0x1DB820
@@ -2023,7 +2023,7 @@ struct S { char p0[0x40]; int tab; float tabTime; int pad; struct P items[64]; c
 void ClearThiefnet(struct S *p) {
     unsigned int i;
     p->tab = -1;
-    p->tabTime = D_002DDED0.tReal;
+    p->tabTime = D_002DDED0.realTime;
     p->popupAnim = -1;
     p->scrollUpAnim = -1;
     p->scrollDownAnim = -1;
@@ -2466,7 +2466,7 @@ typedef struct OBJ {
     int scrollUpAnim;
     int scrollDownAnim;
 } OBJ;
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void SetClockRate(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
@@ -2503,7 +2503,7 @@ void SetThiefnetTab(OBJ *p, int s)
     }
     old = p->tab;
     p->tab = s;
-    p->tabTime = D_002DDED0.tReal;
+    p->tabTime = D_002DDED0.realTime;
     switch (s) {
     case -1:
         VCALL(p->widget, 50);
@@ -2564,7 +2564,7 @@ namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.4
 namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -2593,7 +2593,7 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     if (n == p->state)
         return;
     p->state = n;
-    p->t = D_002DDED0.tReal;
+    p->t = D_002DDED0.realTime;
     switch (n) {
     case 0:
         SetThiefnetTab(p, 1);
@@ -2967,7 +2967,7 @@ extern "C" void ResetJobList(SCREENV *screen)
 }
 
 namespace M_ClearJobList { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct S { char p0[0x40]; int page; float pageTime; char p1[0x11C-0x48]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 /** @sly2-annot addr=0x1DCD08
  * Purpose: Job list: state -1, timestamp, anim handles -1
@@ -2978,7 +2978,7 @@ struct S { char p0[0x40]; int page; float pageTime; char p1[0x11C-0x48]; int pop
 // Job list: state -1, time stamp, no animation handles.
 void ClearJobList(struct S *p) {
     p->page = -1; //P
-    p->pageTime = D_002DDED0.tReal; //P
+    p->pageTime = D_002DDED0.realTime; //P
     p->popupAnim = -1; //P
     p->scrollUpAnim = -1; //P
     p->scrollDownAnim = -1; //P
@@ -3283,7 +3283,7 @@ typedef struct OBJ {
     int scrollUpAnim;
     int scrollDownAnim;
 } OBJ;
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
@@ -3313,7 +3313,7 @@ void SetJobListPage(OBJ *p, int s)
     }
     old = p->page;
     p->page = s;
-    p->pageTime = D_002DDED0.tReal;
+    p->pageTime = D_002DDED0.realTime;
     switch (s) {
     case -1:
         DecrementSwHandsOff(D_003DD490, 0);
@@ -3372,7 +3372,7 @@ namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ":
 namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
-extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
+extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -3398,7 +3398,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     if (n == p->state)
         return;
     p->state = n;
-    p->stateTime = D_002DDED0.tReal;
+    p->stateTime = D_002DDED0.realTime;
     switch (n) {
     case 0:
         if (p->entryCount)
@@ -3548,7 +3548,7 @@ extern "C" void SetScreenState(SCREENV *screen, int mode)
 {
     if (mode != screen->mode) {
         screen->mode = mode;
-        screen->modeTime = D_002DDED0.tReal;
+        screen->modeTime = D_002DDED0.realTime;
     }
 }
 
@@ -3791,7 +3791,7 @@ void TITLE::SetMode(int mode)   /* key function */
     SCREENV *screen = (SCREENV *)this;
     if (mode != screen->mode) {
         screen->mode = mode;
-        screen->modeTime = D_002DDED0.tReal;
+        screen->modeTime = D_002DDED0.realTime;
     }
 }
 

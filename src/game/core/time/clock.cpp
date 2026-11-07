@@ -43,9 +43,9 @@ extern "C" void StartupClock(void)
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
     countHistory[0] = count;
     D_002DDED0.tickLastRaw = countHistory[0];
-    D_002DDED0.tickFrame = TickNow(&D_002DDED0);
+    D_002DDED0.frameTick = TickNow(&D_002DDED0);
     for (i = 0; i < 9; i++) D_002DDED0.art[i] = 1.0f;
-    D_002DDED0.rt = 1.0f;
+    D_002DDED0.rate = 1.0f;
     D_002DDED0.rtCm = 1.0f;
     ResetClock(&D_002DDED0);
 }
@@ -91,20 +91,20 @@ extern "C" void ResetClock(CLOCK *clock)
 extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
     TICK tick = TickNow(clock);
-    float dt = GClamp((float)(tick - clock->tickFrame) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
-    clock->dtCm = dt * clock->rtCm;
-    clock->tCm += clock->dtCm;
+    float dt = GClamp((float)(tick - clock->frameTick) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
+    clock->cameraDeltaTime = dt * clock->rtCm;
+    clock->cameraTime += clock->cameraDeltaTime;
     {
     float dtReal = dt * clock->art[3];
-    clock->dtReal = dtReal;
+    clock->realDeltaTime = dtReal;
     if (!isPaused) {
-        clock->dt = dtReal * clock->rt;
+        clock->dt = dtReal * clock->rate;
         clock->t += clock->dt;
         UpdateGameTimers(D_002DEB30);
     }
     }
-    clock->tickFrame = tick;
-    clock->tReal += clock->dtReal;
+    clock->frameTick = tick;
+    clock->realTime += clock->realDeltaTime;
 }
 
 /** @sly2-annot addr=0x14D1D0
@@ -133,9 +133,9 @@ extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
 extern "C" void RecalcClockRate(CLOCK *clock)
 {
     unsigned int i;
-    clock->rt = 1.0f;
+    clock->rate = 1.0f;
     for (i = 0; i < 9; i++) {
-        clock->rt *= clock->art[i];
+        clock->rate *= clock->art[i];
     }
     clock->rtCm = clock->art[8];
 }
@@ -153,9 +153,9 @@ extern "C" TICK TickNow(CLOCK *clock)
     unsigned long count;
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
     count &= 0xFFFFFFFF;
-    if (count < clock->tickLastRaw) clock->cWrapAround++;
+    if (count < clock->tickLastRaw) clock->numTickWraps++;
     clock->tickLastRaw = count;
-    return ((unsigned long)clock->cWrapAround << 32) | count;
+    return ((unsigned long)clock->numTickWraps << 32) | count;
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

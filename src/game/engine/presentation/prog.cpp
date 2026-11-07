@@ -255,7 +255,7 @@ static inline float *Receiver(float *p)
 // thread and signals the thread's start semaphore.
 extern "C" void BeginLoadingScreen(float *startTime)
 {
-    float now = g_clock.tReal;
+    float now = g_clock.realTime;
     float *startTimeRef = Receiver(startTime);
     int sema = D_003D3A3C;
     *startTimeRef = now;
@@ -354,7 +354,7 @@ extern "C" void LoadingScreenThread(void *)
             BeginFrame();
             ReferSemaStatus(D_003D3A40,&status);
             if(status.count!=0)break;
-            float t=-*D_002DD314+D_002DDED0.tReal;
+            float t=-*D_002DD314+D_002DDED0.realTime;
             float scale=1.0f+D_002C10B0*sinf(t*D_002C10B4);
             matrix.Identity();
             matrix.a[0]=D_002C10A0*scale;

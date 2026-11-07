@@ -120,7 +120,7 @@ void InitRumble(RUMBLE *rumble, int port, int slot)
 void UpdateRumble(RUMBLE *rumble)
 {
     byte actuators[6];
-    float dtReal = D_002DDED0.dtReal;
+    float dtReal = D_002DDED0.realDeltaTime;
     switch (rumble->state) {
     case RUMS_Rumble:
         if (rumble->timeLeft > 0.0f) {
@@ -210,7 +210,7 @@ void SetRumbleRums(RUMBLE *rumble, RUMS state)
     case RUMS_Stop:
     case RUMS_Kill:
         StopRumbleActuators(rumble);
-        rumble->instructionTimeLeft = g_clock.dtReal * 4.0f;
+        rumble->instructionTimeLeft = g_clock.realDeltaTime * 4.0f;
     case RUMS_Dead:
     case RUMS_Idle:
     default:

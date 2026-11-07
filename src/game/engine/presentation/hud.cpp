@@ -691,7 +691,7 @@ void UpdateModalBoxWidget(struct S *widget)
     if (IsWidgetIdle(widget))
         return;
     UpdateWidget(widget);
-    if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.tReal - widget->stateTime && !FScreenShown(D_002E6550)
+    if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - widget->stateTime && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (widget->keepsGamePaused == 0 && D_003DD490.pausedClockOwner) {
@@ -1349,7 +1349,7 @@ extern "C" void HideWidget(WIDGETV *widget)
 extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 {
     if (widget->state == WIDGET_STATE_VISIBLE)
-        widget->stateTime = D_002DDED0.tReal;
+        widget->stateTime = D_002DDED0.realTime;
 }
 
 // 0x212A50 SetWidgetRequest
@@ -1368,7 +1368,7 @@ extern "C" void SetWidgetRequest(WIDGETV *widget, int request)
 {
     if (widget->request != request) {
         widget->request = request;
-        widget->requestTime = D_002DDED0.tReal;
+        widget->requestTime = D_002DDED0.realTime;
     }
 }
 
@@ -1513,7 +1513,7 @@ void UpdateWidget(struct S *widget)
     }
     SetWidgetState(widget, state);
     if (widget->mainAnimId != -1) {
-        float dt = g_clock.dtReal;
+        float dt = g_clock.realDeltaTime;
         widget->mainAnimTime += dt;
         AdvanceWidgetSprite(widget->spriteGroups, dt);
     }
@@ -4014,7 +4014,7 @@ extern "C" void StartSpriteAnimSlot(S *group, int animId, int slot, void *matrix
         i = group->pendingAnim;
         if (i != -1) {
             group->pendingAnim = -1;
-        } else if (group->lastStartFrame == (*(unsigned long *)&g_clock.tickFrame)) {
+        } else if (group->lastStartFrame == (*(unsigned long *)&g_clock.frameTick)) {
             t = group->lastStartTime;
             i = group->lastStartAnim;
         } else {
@@ -4430,7 +4430,7 @@ void StopSpriteSlot(struct S *group, int slot)
         float t=state->time;
         group->lastStartAnim = state->animIndex;
         group->lastStartTime = t;
-        group->lastStartFrame = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
+        group->lastStartFrame = (*(struct CLOCK *)&g_clock.frameTick).ticks;
         group->pendingAnim = -1;
         state->animIndex = -1;
         state->isFinished = 0;

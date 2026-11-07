@@ -124,7 +124,7 @@ extern "C" void _MatchCodes(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
             else pcode->numMatched = 0;
         }
     }
-    codes->checkTime = D_002DDED0.tReal + 1.0f;
+    codes->checkTime = D_002DDED0.realTime + 1.0f;
 }
 
 // One second after the last press: removes one-shot codes that already fired, picks the longest completed code,
@@ -134,7 +134,7 @@ extern "C" void UpdateCodes(CODES *codes)
     SLI sli;
     CODE *pcode, *pcodeBest;
     if (codes->checkTime == 0.0f) return;
-    if (codes->checkTime <= D_002DDED0.tReal) {
+    if (codes->checkTime <= D_002DDED0.realTime) {
         InitSli(&sli, &codes->sl);
         pcodeBest = 0;
         while ((pcode = (CODE *)PvNextSli(&sli)) != 0) {

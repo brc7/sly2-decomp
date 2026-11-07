@@ -684,7 +684,7 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
     if (FMemcardThreadValid__FP7MEMCARD(saveManager->memcard))
         return;
     if (saveManager->state == saveManager->nextState) {
-        if (saveManager->tNextPoll <= g_clock.tReal)
+        if (saveManager->tNextPoll <= g_clock.realTime)
             CreateMemcardThreadJob(saveManager->memcard, &MCJOB::GetInfo);
         else
             ReloadSaveSlots(saveManager);
@@ -697,7 +697,7 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
         return;
     if (D_002E6550.phase != 1)
         return;
-    if (0.3f <= g_clock.tReal - saveManager->tStateChanged) {
+    if (0.3f <= g_clock.realTime - saveManager->tStateChanged) {
     if (IsPauseMenuOnLoadPageB(D_003D9ED0)) {
         if (saveManager->state != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
@@ -769,7 +769,7 @@ struct MC {
     int currentSlot; SLOT *newestSlot; int selectedSlot; THR *thr[1];
 };
 struct G { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw: id of the slot-in-use save variable */
-struct CLOCK { char pad[0x3C]; float tReal; };
+struct CLOCK { char pad[0x3C]; float realTime; };
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern "C" {
 extern G D_003DD490;
@@ -840,7 +840,7 @@ void SetSaveState(MC *saveManager, int state)
         break;
     }
     saveManager->state = state;
-    saveManager->tStateChanged = D_002DDED0.tReal;
+    saveManager->tStateChanged = D_002DDED0.realTime;
 }
 } // namespace M_SetSaveState
 
@@ -1712,7 +1712,7 @@ int McJobGetInfo(struct S *saveManager)
             saveManager->nextState = 1;
         }
     }
-    saveManager->tNextPoll = g_clock.tReal + 0.3f;
+    saveManager->tNextPoll = g_clock.realTime + 0.3f;
     return r;
 }
 } } // namespace M_McJobGetInfo
@@ -2007,14 +2007,14 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 {
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = D_002DDED0.tReal;
+        dialog->tMode = D_002DDED0.realTime;
     }
 }
 
 namespace M_func_001ACC38 { extern "C" {
 struct H { char pad[0xFD50]; int currentSlot; };
 extern struct H D_002E65E0;
-struct CLOCK { float t; float dt; char pad[0x34]; float tReal; };
+struct CLOCK { float t; float dt; char pad[0x34]; float realTime; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 /** @sly2-annot addr=0x1ACC38
@@ -2033,7 +2033,7 @@ void SetMcDialogPhase(struct S *dialog, int phase)
     if (phase == dialog->phase) return;
     switch (phase) { case 2: case 3: D_002E65E0.currentSlot = 0; }
     dialog->phase = phase;
-    dialog->tPhase = D_002DDED0.tReal;
+    dialog->tPhase = D_002DDED0.realTime;
 }
 } } // namespace M_func_001ACC38
 extern SAVE D_002E65E0;
@@ -2069,7 +2069,7 @@ struct PMF { short delta; short index; void (*pfn)(void *); };
 struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
-struct CLOCK { char pad[0x3C]; float tReal; };
+struct CLOCK { char pad[0x3C]; float realTime; };
 extern struct MC D_002E65E0;
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -2111,7 +2111,7 @@ void CMemcardDialog_Update(struct S *dialog)
         return;
     if (IsSwTransitionBusy(D_003DD490))
         return;
-    if (D_002DDED0.tReal - dialog->child->tDisplayState <= 0.1f)
+    if (D_002DDED0.realTime - dialog->child->tDisplayState <= 0.1f)
         return;
     buttonKind = GetMcDialogButtonKind(dialog);
     if (buttonKind != 1) {
@@ -2918,7 +2918,7 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
     UpdateTimedScreen(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        if (pchild->displayState == 2 && pchild->targetDisplayState == pchild->displayState && D_002DDED0.tReal - pchild->tDisplayState > 1.0f &&
+        if (pchild->displayState == 2 && pchild->targetDisplayState == pchild->displayState && D_002DDED0.realTime - pchild->tDisplayState > 1.0f &&
             FMemcardThreadValid(&D_002F633C) == 0) {
             HideMcDialogWidget(dialog);
         }
@@ -2941,7 +2941,7 @@ void CMcStatus::SetMode(int nMode)
     MCDLG *dialog = (MCDLG *)this;
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = D_002DDED0.tReal;
+        dialog->tMode = D_002DDED0.realTime;
     }
 }
 

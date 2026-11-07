@@ -1328,7 +1328,7 @@ namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
 typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern struct CLOCK { float t; float dt; float pad8[14]; float dtReal; float pad44[3]; } D_002DDED0;
+extern struct CLOCK { float t; float dt; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
 extern DLI *D_002DD2FC;
 typedef struct {
     char pad[0x40];
@@ -1380,7 +1380,7 @@ void UpdateRelay(OBJ *relay)
         return;
     fl = GetLoFlags(relay);
     if (fl & LO_FLAG_UNPAUSED)
-        relay->firedTime += D_002DDED0.dtReal;
+        relay->firedTime += D_002DDED0.realDeltaTime;
     else
         relay->firedTime += D_002DDED0.dt;
     InitDli(&dli, &relay->scripts);
@@ -3959,7 +3959,7 @@ void NextJsgCommand(JSGV *script)
     }
     if (GrfUpdateLo(script->relay) & 0x100)
     {
-        script->tCommand = D_002DDED0.tReal;
+        script->tCommand = D_002DDED0.realTime;
     }
     else
     {
@@ -4116,7 +4116,7 @@ static inline float TJsgNow(JSGV *script)
 {
     if (GrfUpdateLo(script->relay) & 0x100)
     {
-        return D_002DDED0.tReal;
+        return D_002DDED0.realTime;
     }
     return D_002DDED0.t;
 }

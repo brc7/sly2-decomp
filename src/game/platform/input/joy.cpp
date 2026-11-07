@@ -186,7 +186,7 @@ void UpdateJoy(JOY *joy)
 
 
     if (joy->joys != 3 && joy->joyk != 0) {
-        if (D_002DDED0.tReal - joy->tJoys >= 2.0f)
+        if (D_002DDED0.realTime - joy->tJoys >= 2.0f)
             state = 0;
     }
 
@@ -351,7 +351,7 @@ void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
     }
     joy->joys = state;
     joy->joyk = kind;
-    joy->tJoys = D_002DDED0.tReal;
+    joy->tJoys = D_002DDED0.realTime;
 }
 
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
@@ -476,26 +476,26 @@ extern "C" int ReadJoy(JOY *joy)
                 joy->uDeflectLeft = 1.0f;
             }
         }
-        joy->dxdtLeft = (joy->dxLeft - prevLeftX) / D_002DDED0.dtReal;
-        joy->dydtLeft = (joy->dyLeft - prevLeftY) / D_002DDED0.dtReal;
-        joy->dxdtRight = (joy->dxRight - prevRightX) / D_002DDED0.dtReal;
-        joy->dydtRight = (joy->dyRight - prevRightY) / D_002DDED0.dtReal;
+        joy->dxdtLeft = (joy->dxLeft - prevLeftX) / D_002DDED0.realDeltaTime;
+        joy->dydtLeft = (joy->dyLeft - prevLeftY) / D_002DDED0.realDeltaTime;
+        joy->dxdtRight = (joy->dxRight - prevRightX) / D_002DDED0.realDeltaTime;
+        joy->dydtRight = (joy->dyRight - prevRightY) / D_002DDED0.realDeltaTime;
         _MatchCodes(D_002DDEC0, joy, prevButtons & 0xFFFF);
-        joy->tRead = D_002DDED0.tReal;
+        joy->tRead = D_002DDED0.realTime;
         if (joy->grfbtn != 0 || joy->uDeflectLeft != 0.0f || joy->sRight != 0.0f) {
 
-            joy->tActive = D_002DDED0.tReal;
+            joy->tActive = D_002DDED0.realTime;
             joy->dtIdle = 0;
 
-            if (D_002DDED0.tReal - D_002DEB30.t > 15.0f) {
+            if (D_002DDED0.realTime - D_002DEB30.t > 15.0f) {
                 BroadcastGameEvent(&D_002DEB30, 0xE, GetHeroPo(D_003DD490));
-                D_002DEB30.t = D_002DDED0.tReal;
+                D_002DEB30.t = D_002DDED0.realTime;
             }
         } else {
-            joy->dtIdle = (int)(D_002DDED0.tReal - joy->tActive);
+            joy->dtIdle = (int)(D_002DDED0.realTime - joy->tActive);
         }
     } else {
-        if (D_002DDED0.tReal - joy->tRead >= 2.0f)
+        if (D_002DDED0.realTime - joy->tRead >= 2.0f)
             result = 0;
     }
     return result;
@@ -616,7 +616,7 @@ extern "C" int GetJoySelectionStepX(JOY *joy)
         if (joy->dirX) {
             g = 0.3333f;
             joy->tRepX = g;
-            joy->tNextX = D_002DDED0.tReal + g;
+            joy->tNextX = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
@@ -631,10 +631,10 @@ extern "C" int GetJoySelectionStepX(JOY *joy)
         }
         if (!fHeld) {
             joy->dirX = 0;
-        } else if (joy->tNextX <= D_002DDED0.tReal) {
+        } else if (joy->tNextX <= D_002DDED0.realTime) {
             g = GClamp(2.0f * joy->tRepX / 3.0f, 0.1f, 0.3333f);
             joy->tRepX = g;
-            joy->tNextX = D_002DDED0.tReal + g;
+            joy->tNextX = D_002DDED0.realTime + g;
         } else {
             return 0;
         }
@@ -664,7 +664,7 @@ extern "C" int GetJoySelectionStepY(JOY *joy)
         if (joy->dirY) {
             g = 0.3333f;
             joy->tRepY = g;
-            joy->tNextY = D_002DDED0.tReal + g;
+            joy->tNextY = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
@@ -679,10 +679,10 @@ extern "C" int GetJoySelectionStepY(JOY *joy)
         }
         if (!fHeld) {
             joy->dirY = 0;
-        } else if (joy->tNextY <= D_002DDED0.tReal) {
+        } else if (joy->tNextY <= D_002DDED0.realTime) {
             g = GClamp(2.0f * joy->tRepY / 3.0f, 0.1f, 0.3333f);
             joy->tRepY = g;
-            joy->tNextY = D_002DDED0.tReal + g;
+            joy->tNextY = D_002DDED0.realTime + g;
         } else {
             return 0;
         }

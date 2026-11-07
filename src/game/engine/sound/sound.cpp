@@ -2202,7 +2202,7 @@ struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
 /* SNDMGR (layout: see SNDMGRV); +0x15C is volumes[2][0], the pause-fade category's weight on the ambience channel */
 struct P { char pad[0x4C]; struct Q *firstDirty; char pad1[0x58 - 0x50]; int isPaused; char pad2[0x15C - 0x5C]; float pauseFadeVolume; char pad3[0x1F0 - 0x160];
     long tickNow; long tickLast; struct X *dialogSound; int musicStackCount; struct X *musicStack[8]; struct X *ambienceSound; };
-struct CLOCK { float t; float dt; char pad[0x40 - 8]; float dtReal; };
+struct CLOCK { float t; float dt; char pad[0x40 - 8]; float realDeltaTime; };
 extern struct CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
@@ -2261,7 +2261,7 @@ void UpdateSndmgr(struct P *soundManager)
     smoothing = D_002A8288;
     /* game time stopped (inferred: the pause menu): fade the ambience and music out, cut the dialog */
     if (ShouldFadeWhenTimeStops(soundManager) && D_002DDED0.dt == 0.0f) targetVolume = 0.0f;
-    fadeVolume = GSmooth__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.dtReal, &smoothing, 0);
+    fadeVolume = GSmooth__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_AMBIENCE, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_MUSIC, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_DIALOG, targetVolume, VOLUME_CATEGORY_PAUSE_FADE);
@@ -2403,7 +2403,7 @@ void UpdateMusicMix(struct P *input)
     goto normalize;
 smooth:
     soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = GSmooth__FfffP3SMPPf(soundManager->musicLayerWeights[soundManager->selectedMusicLayer],
-        1.0f, g_clock.dtReal, &soundManager->musicLayerSmoothing[soundManager->selectedMusicLayer], 0);
+        1.0f, g_clock.realDeltaTime, &soundManager->musicLayerSmoothing[soundManager->selectedMusicLayer], 0);
 normalize:
     /* scale the other layers so the squares of the weights sum to 1 (constant power) */
     sum = 0.0f;
@@ -2472,7 +2472,7 @@ void UpdateDialog(struct P *soundManager)
     dialog = soundManager->dialogSound;
     if (dialog->pauseCount > 0) return;
     record = dialog->record;
-    soundManager->dialogElapsed += g_clock.dtReal;
+    soundManager->dialogElapsed += g_clock.realDeltaTime;
     /* no voice and not starting: the stream is over (or never started) */
     hasEnded = 0;
     if (!dialog->voiceHandle) {

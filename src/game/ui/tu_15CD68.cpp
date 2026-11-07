@@ -265,7 +265,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
             void *pkey = D_003DD490.episodePercentVars[menu->episode];
             if ((pkey && GetSaveInt(pkey) >= 100) || D_002BE26C)
                 isFinished = 1;
-            if (movieKey && isFinished && 10.0f < D_002DDED0.tReal - menu->promptTime)
+            if (movieKey && isFinished && 10.0f < D_002DDED0.realTime - menu->promptTime)
                 SetEpisodeMenuHighlight(menu, 1);
             return;
         }
@@ -276,7 +276,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
                 PlaySound(SOUND_MENU_CONFIRM);
                 return;
             }
-            if (2.0f < D_002DDED0.tReal - menu->promptTime)
+            if (2.0f < D_002DDED0.realTime - menu->promptTime)
                 SetEpisodeMenuHighlight(menu, 0);
             return;
         }
@@ -424,7 +424,7 @@ extern "C" void SetEpisodeMenuMode(EPMENU *menu, int state, int sub)
         SetWidgetState(menu, 1);
         menu->state = state;
         menu->sub = sub;
-        menu->stateTime = D_002DDED0.tReal;
+        menu->stateTime = D_002DDED0.realTime;
         int labelOid = GetEpisodeMenuLabelOid(menu);
         if (labelOid != -1)   /* slot 49: show with the label */
             ((void (*)(void *, int))menu->vt[49].pfn)((char *)menu + menu->vt[49].d, labelOid);
@@ -480,7 +480,7 @@ extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int promptState)
             PlayWidgetAnim(menu, 0x5BE);
         }
         menu->promptState = promptState;
-        menu->promptTime = D_002DDED0.tReal;
+        menu->promptTime = D_002DDED0.realTime;
     }
 }
 
