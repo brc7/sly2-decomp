@@ -168,12 +168,7 @@ struct CRef : CRefData {
 };
 struct OPT;
 struct JOBTIME { char pad[0x9C]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
-struct G {
-    char pad[0x3B0C]; JOBTIME *currentJob;
-    char pad10[0xC]; OPT *playTimeVar;
-    char pad20[0x38]; OPT *episodePlayTimeVars[9];
-};
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
 extern "C" CRef GetGlobalSaveVar(OPT *, void *);
@@ -198,19 +193,19 @@ static inline void SetPlayTimeFloat(OPT *p, float value, void *context)
 // job's elapsed time, and eases the difficulty when the job takes long.
 extern "C" void UpdateGameTimers()
 {
-    if (!D_003DD490.playTimeVar)
+    if (!D_003DD490.psvpDt)
         return;
-    float playTime = GetFloat(D_003DD490.playTimeVar, D_003D4A60);
-    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.deltaTime, D_003D4A60);
+    float playTime = GetFloat(((OPT *)D_003DD490.psvpDt), D_003D4A60);
+    SetPlayTimeFloat(((OPT *)D_003DD490.psvpDt), playTime + D_002DDED0.deltaTime, D_003D4A60);
     unsigned int episode = GetCurrentWorld();
     if (episode < 9) {
-        OPT *var = D_003DD490.episodePlayTimeVars[episode];
+        OPT *var = ((OPT **)D_003DD490.apsvpEpisodeDt)[episode];
         if (var) {
             float episodeTime = GetFloat(var, D_003D4A60);
             SetFloat(var, episodeTime + D_002DDED0.deltaTime, D_003D4A60);
         }
     }
-    JOBTIME *job = D_003DD490.currentJob;
+    JOBTIME *job = ((JOBTIME *)D_003DD490.currentJob);
     if (job && (float)g_joy.dtIdle < 10.0f) {   /* only while the player is not idle */
         job->elapsed += D_002DDED0.deltaTime;
         if (job->start < job->elapsed)
@@ -238,11 +233,6 @@ typedef char H_Size[sizeof(JOBTIME)==0xA8?1:-1];
 typedef char H_Start[FIELD_OFFSET(JOBTIME,start)==0x9C?1:-1];
 typedef char H_End[FIELD_OFFSET(JOBTIME,end)==0xA0?1:-1];
 typedef char H_Elapsed[FIELD_OFFSET(JOBTIME,elapsed)==0xA4?1:-1];
-typedef char G_Size[sizeof(G)==0x3B7C?1:-1];
-typedef char G_CurrentJob[FIELD_OFFSET(G,currentJob)==0x3B0C?1:-1];
-typedef char G_PlayTimeVar[FIELD_OFFSET(G,playTimeVar)==0x3B1C?1:-1];
-typedef char G_EpisodePlayTimeVars[FIELD_OFFSET(G,episodePlayTimeVars)==0x3B58?1:-1];
-typedef char G_EpisodeCount[sizeof(((G*)0)->episodePlayTimeVars)/sizeof(OPT*)==9?1:-1];
 } // namespace M_UpdateGameTimers
 #undef FIELD_OFFSET
 
@@ -324,15 +314,14 @@ struct O;
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(O *, const CRef &, void *);
 static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=SetGlobalSaveVar(pv,arg,D_003D4A60);}
-struct G { char pad[0x3B20]; O *coinCountVar; };
-extern "C" { extern G D_003DD490; }
-extern "C" void RestartHudWidget1(G *pg);
+extern "C" { extern SW D_003DD490; }
+extern "C" void RestartHudWidget1(SW *pg);
 // Sets the coin count (loot.ccoin) and restarts its HUD widget (ahudstack[1], RestartHudWidget1).
 extern "C" void SetCoinCount(void *pv, int n)
 {
-    G *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     {
-        O *var = pg->coinCountVar;
+        O *var = ((O *)pg->psvpCcoin);
         CRef ref(n);
         SetPv(var, ref, D_003D4A60);
     }
@@ -431,24 +420,18 @@ struct P{
 };
 struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
 struct CHECK{int words[16];};
-struct G{
- char pad0[0x3B0C];P*currentJob;P*currentTask;P*pendingTask;void*failedJob;void*playTimeVar;
- char pad1[0x3BF4-0x3B20];int transitionFlags;
- char pad2[0x3C88-0x3BF8];int returnWarpOid,returnWarpContext;
- char pad3[0x3E38-0x3C90];int unknown3E38;
-};
 struct BANK{
  char pad0[8];int mode;char pad1[0xFD50-12];int selectedSlot;void*currentSlotData;
 };
 struct LEASE;
 struct CRef;
 extern "C"{
- extern G D_003DD490;
+ extern SW D_003DD490;
 extern BANK D_002E65E0;
  extern CHECK D_002A37E8;
 
  extern char D_003D4A60[];
- int FindSwObjectsByClass(G*,int,int,P*,int,P**);
+ int FindSwObjectsByClass(SW*,int,int,P*,int,P**);
  int GetCurrentBootyEntryId(void*);
  void*ClearStepplayerBootySave(P*,int);
  void InitGame(P*);
@@ -462,14 +445,14 @@ extern BANK D_002E65E0;
  void SortTasksTopologically(int*,P***);
  void RestoreTaskState(P*);
  void UpdateTaskSaveVars(P*);
- P*FindSwObject__FP2SWi3OIDP2LO(G*,int,int,P*);
- void SetSwJobCur(G*,P*);
- void SetSwTaskCur(G*,P*);
- void SetSwTaskPending(G*,P*);
+ P*FindSwObject__FP2SWi3OIDP2LO(SW*,int,int,P*);
+ void SetSwJobCur(SW*,P*);
+ void SetSwTaskCur(SW*,P*);
+ void SetSwTaskPending(SW*,P*);
  void BeginJob(P*);
  void BeginTask(P*);
  void AnnounceTaskJob(P*);
- void WipeToWorldWarp(G*,CHECK*,int,int,int,int);
+ void WipeToWorldWarp(SW*,CHECK*,int,int,int,int);
  CRef*__4CRefRC4CRef(CRef*,const CRef*);
  void Decref__4CRef(CRef*);
 }
@@ -510,14 +493,6 @@ typedef char P_widget_Offset[FIELD_OFFSET(P,widget)==4520?1:-1];
 typedef char CONTEXT_stateSource_Offset[FIELD_OFFSET(CONTEXT,stateSource)==240?1:-1];
 typedef char CONTEXT_stateRequester_Offset[FIELD_OFFSET(CONTEXT,stateRequester)==244?1:-1];
 typedef char CHECK_words_Offset[FIELD_OFFSET(CHECK,words)==0?1:-1];
-typedef char G_currentJob_Offset[FIELD_OFFSET(G,currentJob)==15116?1:-1];
-typedef char G_currentTask_Offset[FIELD_OFFSET(G,currentTask)==15120?1:-1];
-typedef char G_pendingTask_Offset[FIELD_OFFSET(G,pendingTask)==15124?1:-1];
-typedef char G_playTimeVar_Offset[FIELD_OFFSET(G,playTimeVar)==15132?1:-1];
-typedef char G_transitionFlags_Offset[FIELD_OFFSET(G,transitionFlags)==15348?1:-1];
-typedef char G_returnWarpOid_Offset[FIELD_OFFSET(G,returnWarpOid)==15496?1:-1];
-typedef char G_returnWarpContext_Offset[FIELD_OFFSET(G,returnWarpContext)==15500?1:-1];
-typedef char G_ready_Offset[FIELD_OFFSET(G,unknown3E38)==15928?1:-1];
 typedef char BANK_mode_Offset[FIELD_OFFSET(BANK,mode)==8?1:-1];
 typedef char BANK_selected_Offset[FIELD_OFFSET(BANK,selectedSlot)==64848?1:-1];
 typedef char BANK_current_Offset[FIELD_OFFSET(BANK,currentSlotData)==64852?1:-1];
@@ -552,19 +527,19 @@ extern "C" void HandleGameEvent(P *game, int action)
         break;
     }
     case 3: {   /* reset: a new game, or the save data loaded from a slot */
-        if (D_003DD490.transitionFlags & 1) {
+        if (D_003DD490.grfTransition & 1) {
             InitGame(game);
             D_002E65E0.selectedSlot = 0;
-        } else if (D_003DD490.transitionFlags & 0x40)
+        } else if (D_003DD490.grfTransition & 0x40)
             ApplyPendingSaveData();
         ReloadSaveSlots(&D_002E65E0);
         if (GetCurrentWorld())
             break;
         if (D_002E65E0.mode != 6 || D_002E65E0.selectedSlot || !D_002E65E0.currentSlotData)
             break;
-        if (GetFloat(D_003DD490.playTimeVar, D_003D4A60) != 0.0f)
+        if (GetFloat(D_003DD490.psvpDt, D_003D4A60) != 0.0f)
             break;
-        if (GetFloat(D_003DD490.playTimeVar, D_002E65E0.currentSlotData) != 0.0f)
+        if (GetFloat(D_003DD490.psvpDt, D_002E65E0.currentSlotData) != 0.0f)
             ApplyGsSettings(D_002E65E0.currentSlotData);
         break;
     }
@@ -582,19 +557,19 @@ extern "C" void HandleGameEvent(P *game, int action)
             OVERRIDE restoring(task, STATE_SOURCE_RESTORE, 0);
             RestoreTaskState(task);
         }
-        G *world = &D_003DD490;
+        SW *world = &D_003DD490;
         SetSwJobCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[0], 0));
         SetSwTaskCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[1], 0));
         SetSwTaskPending(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[2], 0));
         if (world->currentJob)
-            BeginJob(world->currentJob);
+            BeginJob(((P *)world->currentJob));
         if (world->currentTask)
-            BeginTask(world->currentTask);
-        if (world->transitionFlags & 4) {
+            BeginTask(((P *)world->currentTask));
+        if (world->grfTransition & 4) {
             if (world->pendingTask)
-                AnnounceTaskJob(world->pendingTask);
+                AnnounceTaskJob(((P *)world->pendingTask));
             else if (world->currentJob)
-                AnnounceTaskJob(world->currentJob->startTask);
+                AnnounceTaskJob(((P *)world->currentJob)->startTask);
         }
         for (int j = 0; j < count; j++) {
             P *task = tasks[j];
@@ -605,9 +580,9 @@ extern "C" void HandleGameEvent(P *game, int action)
         break;
     }
     case 16: {   /* no job: back to the return warp */
-        G *world = &D_003DD490;
+        SW *world = &D_003DD490;
         if (!world->currentJob)
-            WipeToWorldWarp(world, 0, world->returnWarpOid, world->returnWarpContext, world->unknown3E38 ? 0x20 : 0, 0x30A);
+            WipeToWorldWarp(world, 0, world->unknown3C88, world->unknown3C8C, world->unknown3E38 ? 0x20 : 0, 0x30A);
         break;
     }
     case 2: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:
@@ -1857,8 +1832,7 @@ public:
         }
     }
 };
-struct G { char pad[0x3B10]; X *currentTask; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" int IsCurrentTask(X *px);
 extern "C" void DeactivateTask(X *px);
 extern "C" void BeginTask(X *px);
@@ -1867,8 +1841,8 @@ extern "C" void ActivateTask(X *task)
 {
     if (IsCurrentTask(task)) return;
     if (D_003DD490.currentTask) {
-        StateSourceScope scope(D_003DD490.currentTask, task->stateSource, task->stateRequester);
-        DeactivateTask(D_003DD490.currentTask);
+        StateSourceScope scope(((X *)D_003DD490.currentTask), task->stateSource, task->stateRequester);
+        DeactivateTask(((X *)D_003DD490.currentTask));
     }
     BeginTask(task);
 }
@@ -2464,9 +2438,8 @@ extern "C" void ForceTaskState(X *task, int newState, int requester)
 
 namespace M_UpdateCurrentJob { extern "C" {
 struct X { char pad[0x64]; void *startTask; void *completeTask; };
-struct G { char pad[0x3B0C]; struct X *currentJob; };
-extern struct G D_003DD490;
-int FindSwObjectsByClass(struct G *pg, int kind, int n, int m, int c, void **apv);
+extern SW D_003DD490;
+int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
 int IsTaskComplete(void *p);
 void EndCurrentJob(struct X *p);
 void SetCurrentJob(struct X *p);
@@ -2482,9 +2455,9 @@ void UpdateCurrentJob(void)
         if (IsTaskComplete(job->startTask) && !IsTaskComplete(job->completeTask))
             found = job;
     }
-    if (found != D_003DD490.currentJob) {
+    if (found != ((struct X *)D_003DD490.currentJob)) {
         if (D_003DD490.currentJob)
-            EndCurrentJob(D_003DD490.currentJob);
+            EndCurrentJob(((struct X *)D_003DD490.currentJob));
         if (found)
             SetCurrentJob(found);
     }
@@ -3027,8 +3000,7 @@ inline StateSourceScope::~StateSourceScope()
     }
 }
 struct CRef { int m_tagk; int m_tag; };
-struct G { char pad[0x3B0C]; X *currentJob; char pad2[0x3E38 - 0x3B10]; int unknown3E38; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
 extern "C" void AbortJob(X *p);
 extern "C" void SetCurrentJob(X *p);
@@ -3038,17 +3010,17 @@ extern "C" void SetSaveVarByName(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
 extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" void *GetLevelFileRecord(int n);
-extern "C" void WipeToWorldWarp(G *pg, void *p, int a, int b, int c, int d);
+extern "C" void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d);
 // Goes to a task: switches to its job, makes it available and current, picks its character and wipes to its level and
 // warp.
 extern "C" void GoToTask(X *task)
 {
     StateSourceScope scope(task, STATE_SOURCE_GO_TO_TASK, 0);
     StateSourceScope jobScope(task->job, STATE_SOURCE_GO_TO_TASK, 0, 1);
-    if (task->job != D_003DD490.currentJob) {
+    if (task->job != ((X *)D_003DD490.currentJob)) {
         if (D_003DD490.currentJob) {
-            StateSourceScope currentJobScope(D_003DD490.currentJob, STATE_SOURCE_GO_TO_TASK, 0, 1);
-            AbortJob(D_003DD490.currentJob);
+            StateSourceScope currentJobScope(((X *)D_003DD490.currentJob), STATE_SOURCE_GO_TO_TASK, 0, 1);
+            AbortJob(((X *)D_003DD490.currentJob));
         }
         if (task->job)
             SetCurrentJob(task->job);
