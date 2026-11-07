@@ -2072,9 +2072,6 @@ typedef int qword __attribute__((mode(TI)));
 struct MAT3 { qword a[3]; };
 struct MAT4 { qword a[4]; };
 union U { qword q; float g; };
-struct LO;
-struct LOV { int pad[18]; short d9; short p9; void (*pfn9)(LO *); };
-struct LO { int a[3]; LOV *pvt; };
 struct X { char pad[0x60]; void *motion; };   /* the render object: its motion record (LoadIdentityMatrix4) */
 struct S {
     char pad[0x18]; float dt; X *px;
@@ -2082,7 +2079,6 @@ struct S {
     char pad3[0xF0 - 0xB0]; qword axis; float rad; LO *plo;
 };
 extern "C" {
-qword GetLoWorldPos(LO *plo);
 MAT3 *GetLoWorldMatrix(LO *plo);
 void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g);
 MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2);
@@ -2117,7 +2113,7 @@ void LaunchMatch__FP5MATCH(S *p)
         p->rad += 6.28318548f;
     else
         p->rad -= 6.28318548f;
-    p->plo->pvt->pfn9((LO *)((char *)p->plo + p->plo->pvt->d9));
+    p->plo->Remove();
     p->plo = 0;
 }
 } // namespace M_LaunchMatch__FP5MATCH
