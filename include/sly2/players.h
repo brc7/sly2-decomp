@@ -154,7 +154,7 @@ struct BTBLENDS
    Layout from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (2 copies in Lilly ports) */
 struct BENTLEY : public STEPPLAYER
 {
-      undefined4 unk_0x1320[(0x13d0 - 0x1320) / 4];
+      GAIT gaitA;   /* +0x1320 locomotion gaits (PostBentleyLoad) */
       int state;    /* Bentley's state */
       undefined4 unk_0x13d4[(0x13e0 - 0x13d4) / 4];
       BLDIR abldirA[8];   /* first set of directional blends */
@@ -163,15 +163,17 @@ struct BENTLEY : public STEPPLAYER
       BLDIR abldirB[8];   /* second set of directional blends */
       ASEGBL *pasegblB;   /* its blended segment */
       undefined4 unk_0x15f4[(0x1600 - 0x15f4) / 4];
-      undefined4 unk_0x1600[(0x16b0 - 0x1600) / 4];
+      GAIT gaitB;   /* +0x1600 */
       int unknown16B0;
       JTPOCKET *ppocketCur;   /* the current gadget slot */
       undefined4 unknown16B8;
       int unknown16BC;
-      undefined4 unk_0x16c0[(0x1710 - 0x16c0) / 4];
+      undefined4 unk_0x16c0[(0x16f0 - 0x16c0) / 4];
+      qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
+      undefined4 unk_0x1700[(0x1710 - 0x1700) / 4];
       BTBLENDS btblends;   /* blend set */
       undefined4 unk_0x17f0[(0x1800 - 0x17f0) / 4];
-      int unknown1800;
+      int unknown1800;   /* +0x1800 a small state: 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
       undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
     union
     {

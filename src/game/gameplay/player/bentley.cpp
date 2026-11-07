@@ -141,27 +141,25 @@ extern "C" void LoadBentleyFromBrx(BENTLEY *bentley, CBinaryInputStream *pbis)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostBentleyLoad { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
-struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char gaitA[0xc0]; char a13e0[0x100]; char a14e0[0x10];
-    char a14f0[0x100]; char a15f0[0x10]; char gaitB[0x110]; char crosshair[0x10]; };
 union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
 extern VQ D_002BC920;
-void PostLoadStepplayer(struct S *);
-int FindSoXf(struct S *, int, int);
-void InitDirectionalBlend(struct S *, void *, void *);
+void PostLoadStepplayer(BENTLEY *);
+void *FindSoXf(BENTLEY *, int, int);
+void InitDirectionalBlend(BENTLEY *, void *, void *);
 void PostJtLoadGait(void *);
-void InitBentleyCrosshair(void *, struct S *, ti128, float, float);
-void AttachStepplayerToStartMarker(struct S *, int);
-void SetBentleyState(struct S *, int);
+void InitBentleyCrosshair(void *, BENTLEY *, ti128, float, float);
+void AttachStepplayerToStartMarker(BENTLEY *, int);
+void SetBentleyState(BENTLEY *, int);
 // BENTLEY post-load (slot 15): STEPPLAYER post-load, finds child SO 0xB, binds the animation blends, initializes the
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
-void PostBentleyLoad(struct S *bentley) {
+void PostBentleyLoad(BENTLEY *bentley) {
     PostLoadStepplayer(bentley);
-    bentley->f10b8 = FindSoXf(bentley, 0xb, 1);
-    InitDirectionalBlend(bentley, bentley->a13e0, bentley->a14e0);
-    InitDirectionalBlend(bentley, bentley->a14f0, bentley->a15f0);
-    PostJtLoadGait(bentley->gaitA);
-    PostJtLoadGait(bentley->gaitB);
-    InitBentleyCrosshair(bentley->crosshair, bentley, D_002BC920.q, -50.0f, 50.0f);
+    bentley->unknown10B8 = FindSoXf(bentley, 0xb, 1);
+    InitDirectionalBlend(bentley, bentley->abldirA, &bentley->pasegblA);
+    InitDirectionalBlend(bentley, bentley->abldirB, &bentley->pasegblB);
+    PostJtLoadGait(&bentley->gaitA);
+    PostJtLoadGait(&bentley->gaitB);
+    InitBentleyCrosshair(&bentley->btblends, bentley, D_002BC920.q, -50.0f, 50.0f);
     AttachStepplayerToStartMarker(bentley, 0x16);
     SetBentleyState(bentley, BENTLEY_IDLE);
 }
@@ -754,7 +752,6 @@ namespace M_func_001356E8 { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct C { int a[4]; };
 struct LSG { ti128 pos; int pad[0x14]; };
-struct S { char pad[0xec]; int fec; char pad2[0x16f0 - 0xf0]; ti128 v16f0; };
 union VQ { float af[4]; ti128 q; };
 extern VQ D_002BC970;    /* screen points for ConvertCmScreenToWorld */
 extern VQ D_002BC980;
@@ -764,11 +761,11 @@ ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void ShouldKeepSoNotSelf();
-void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
+void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, int *);
 int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *);
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
-void UpdateBentleyAimPoint(struct S *bentley) {
+void UpdateBentleyAimPoint(BENTLEY *bentley) {
     struct C ctx;
     struct LSG lsg;
     int cso;
@@ -776,9 +773,9 @@ void UpdateBentleyAimPoint(struct S *bentley) {
     ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970.q);
     ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
-    IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, bentley->fec, &cso, &aso);
-    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->v16f0 = lsg.pos;
-    else bentley->v16f0 = v2;
+    IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, bentley->physicsTree, &cso, &aso);
+    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->aimPoint = lsg.pos;
+    else bentley->aimPoint = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 } } // namespace M_func_001356E8
@@ -1379,24 +1376,22 @@ void SetBentleyHoverState(struct P *bentley, int k)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001367D8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(); };
-struct S { int pad[3]; struct VTE *vt; char pad2[0x208 - 0x10]; int f208; char pad3[0x1800 - 0x20c]; int st; };
-void SetBentleyState(struct S *, int);
+void SetBentleyState(BENTLEY *, int);
 // Small transition loop: state 1 returns to 0 and makes Bentley the current player object.
-void UpdateBentleyStateMisc(struct S *bentley) {
+void UpdateBentleyStateMisc(BENTLEY *bentley) {
     int st;
     do {
-        st = bentley->st;
+        st = bentley->unknown1800;
         switch (st) {
         case 0: break;
         case 1:
-            if (bentley->f208) {
+            if (bentley->floorContact) {
                 SetBentleyState(bentley, BENTLEY_IDLE);
-                ((void (*)(void *, int))bentley->vt[79].pfn)((char *)bentley + bentley->vt[79].d, 1);
+                bentley->SetCtlState(1);
             }
             break;
         }
-    } while (bentley->st != st && bentley->st != -1);
+    } while (bentley->unknown1800 != st && bentley->unknown1800 != -1);
 }
 } } // namespace M_func_001367D8
 
