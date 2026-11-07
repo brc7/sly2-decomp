@@ -43,6 +43,7 @@ typedef struct TRIREF { int index; float u, v; } TRIREF;
 /* Planes gathered by CollectMeshContacts for the solve in SolveMeshConstraints. */
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
 struct SMPV { float svFast, svSlow, dtFast; };
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 /* The player (JT) while attached to a mesh: view of the fields UpdateJtMeshAttachment and SetJtMeshProbePoints use. */
 struct CONTROL{char pad0[0x10];float y,z;int pad18;float speed;};
@@ -108,6 +109,7 @@ void CID8::Init()
     InitXfm(pmesh);
 }
 
+// Fill the heap message and allocate cb bytes (kind nKind) from the world heap.
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return AllocFromWorldHeap(pmsg); }
 // CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
 // neighbours) into world-heap memory, then the object's options.
@@ -139,6 +141,7 @@ extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 }
 
 typedef struct WORK{M4 matrix;TRIREF candidate;TRIREF best __attribute__((aligned(16)));U closest,scalar;float parameter;U bestNormal,input,normal;}WORK;
+// Unit vector along input (register-pinned).
 static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __asm__("vf1"),r __asm__("vf1");d = VuDot(a, a);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"j"(d));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(d));return r;}
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -236,18 +239,21 @@ extern "C" void ClearMeshContactList(MESH *mesh, LIST *list)
 // (addu operand order, 1 -> 0 aligned). (6) `for (int i ...)`: i's pseudo number moves the gcse PRE hash order of
 // i+1 / 2i, which fixes the 0xD0/0xD4 spill slots (MATCH).
 extern "C" {
+// Transform point p by the 4x4 matrix m.
 static inline qword Transform(const M4 &m, qword p)
 {
     qword r;
     r = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, p);
     return r;
 }
+// Cross product a x b.
 static inline qword Cross(const qword &a, const qword &b)
 {
     qword r;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Unit vector along a.
 static inline qword Normalize(const qword &a)
 {
     qword d, one, r;
@@ -256,6 +262,7 @@ static inline qword Normalize(const qword &a)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(a), "j"(d));
     return r;
 }
+// Dot product of a and b as a float.
 static inline float Dot(const qword &a, const qword &b)
 {
     qword d;
@@ -265,19 +272,24 @@ static inline float Dot(const qword &a, const qword &b)
     return f;
 }
 }
+// Closest point to point on the segment [start, end], and its distance.
 static inline void ClosestPoint(const qword &point, const qword &start, const qword &end, qword *closest, float *dist)
 {
     FindClosestPointOnLineSegment(point, start, end, closest, 0, dist);
 }
+// Advance a smoothed value (SmoothValue) toward d over dt.
 static inline void Evaluate(const float &r, const float &d, const float &dt, SMPV *params, float *out)
 {
     SmoothValue(r, d, dt, params, out);
 }
+// Set plane from its normal and offset g.
 static inline void BuildPlane(qword *plane, const qword &normal, const float &g)
 {
     SetPlane(plane, normal, g);
 }
+// Identity accessor (keeps the original address arithmetic).
 static inline U *Addr(U *p) { return p; }
+// Append q to the plane list.
 static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->count++]; *p = q; }
 // Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
 // inequality solve.
@@ -345,20 +357,25 @@ static inline qword DotQ(qword a, qword b)
     return d;
 }
 struct VUFM { qword q; };
+// Broadcast the float word n into a VU0 register.
 static inline VUFM VufmFromMemWord(int n) { VUFM v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "rV"(n)); return v; }
+// Return a + b * s.
 static inline qword AddScaledM(qword a, qword b, VUFM s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(b), "j"(s.q));
     return r;
 }
+// Identity accessor (keeps the original address arithmetic).
 static inline qword *AddrQ(qword *q) { return q; }
+// x lane of d as raw int bits.
 static inline int Bits(qword d)
 {
     int r;
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
+// x lane of d as raw int bits (the memory clobber keeps the original load order).
 static inline int BitsM(qword d)
 {
     int r;
@@ -457,13 +474,16 @@ extern "C" void PostCid9Load(MESH *mesh)
 // wins its sched2 tie with the acc reload and keeps `li v0,1` after the asm (0). The "r"(ptr), "r"(pvel) operands
 // are allocation-only (local-alloc order ptr s0, pvel s1, ppos s2).
 struct VUFQ { qword q; VUFQ(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(*(int *)&f)); } VUFQ() {} };
+// Broadcast the float f (register or memory) into a VU0 register.
 static inline VUFQ VufqFromMem(float f) { VUFQ v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "rV"(f)); return v; }
+// Return a + b * s.
 static inline qword AddScaledQ(qword a, qword b, VUFQ s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(b), "j"(s.q));
     return r;
 }
+// Return a + b*sb + c*sc.
 static inline qword AddScaled2(qword a, qword b, VUFQ sb, qword c, VUFQ sc)
 {
     qword r;
@@ -517,36 +537,65 @@ extern "C" void SetJtMeshProbePoints(JTV *jt, qword point0, qword point1, qword 
 // UpdateJtMeshAttachment laneH9v1 (Claude agent lane H9): laneH7v5 + const-ref QwAdd and BuildM4 pos (78 -> 75).
 /* laneH7v5 (Claude agent): fresh Lilly-style rewrite of UpdateJtMeshAttachment, no pins, VU helper asms only. */
 struct VU_FLOAT{qword qw;VU_FLOAT(){}VU_FLOAT(float f){__asm__("mfc1 %0,%1":"=r"(qw):"f"(f));}};
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
+// Broadcast the float g (register or memory) into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemF(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(g));return v;}
+// Divide a by the x lane of g (f only influences allocation).
 static inline qword QwDivideR(qword a,qword g,const qword&f){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g),"r"(f));return r;}
+// Broadcast the float word n into v.
 static inline void LoadVuFloatFromMemWord(VU_FLOAT&v,int n){__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));}
+// Return a + b (s only influences allocation).
 static inline qword QwAddP(const qword&a,const qword&b,U*s){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"r"(s));return r;}static inline qword QwAdd(const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Return a scaled by g.
 static inline qword QwScaleX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
+// Broadcast a float into a VU0 register (with a vf1 clobber for allocation).
 static inline VU_FLOAT VuFloatC1(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g):"vf1");return v;} // clobber of the dead vf1: allocation only
+// Return base + vec * k.
 static inline qword QwAddScaled(qword base,qword vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
+// Return base + vec * k (f only influences allocation).
 static inline qword QwAddScaledJ(qword base,qword vec,VU_FLOAT k,qword f){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw),"j"(f));return r;}
+// Return base + vec * k (vec by reference).
 static inline qword QwAddScaledRef(qword base,const qword&vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
+// x lane of qw as a float (f only influences allocation).
 static inline float GXOfQwR(qword qw,const qword&f){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"r"(f));return x;}
+// Rotate the vector at pv by the 3x3 matrix m.
 static inline qword QwRotateVecAt(const M3*m,const qword*pv){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
+// Rotate v by the 3x3 matrix m.
 static inline qword QwRotateVecJ(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v),"j"(v),"j"(m->r[1].q));return r;}static inline qword QwRotateVec(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
+// Transform point v by the 4x4 matrix m.
 static inline qword QwTransformPos(M4*m,qword v){qword r;r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v);return r;}
+// Return a*ka + b*kb.
 static inline qword QwCombo(qword a,qword b,VU_FLOAT ka,VU_FLOAT kb){qword r;__asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x":"=j"(r):"j"(a),"j"(b),"j"(ka.qw),"j"(kb.qw));return r;}
+// Build a 4x4 matrix from rotation m and translation pos.
 static inline void BuildM4L(const M3&m,const qword&pos,M4*d){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
+// Build a 4x4 matrix from rotation m and translation pos.
 static inline void BuildM4(M4*d,const M3&m,const qword&pos){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
+// 3x3 matrix product a * b (column by column).
 static inline M3 operator*(const M3&a,const M3&b) return r{
  r.r[2].q=QwRotateVec(&a,b.r[2].q);r.r[0].q=QwRotateVec(&a,b.r[0].q);r.r[1].q=QwRotateVec(&a,b.r[1].q);
 }
+// Store q to d.
 static inline void StoreQ(U*d,const qword&q){d->q=q;}
+// Store a + b into d.
 static inline void StoreAddM(U*d,const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"m"(d->q));d->q=r;} // "m"(d->q): allocation-only
+// Store a + b into d (d's address only influences allocation).
 static inline void StoreAddR(U*d,const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"r"(d));d->q=r;} // "r"(d): allocation-only
+// Store a + m * (*pv) into d.
 static inline void StoreAddRot(U*d,const qword&a,const M3*m,const qword*pv){StoreAddM(d,a,QwRotateVecAt(m,pv));}
+// Zero the xyz floats of pv.
 static inline void ClearXyz(U*pv){pv->f[2]=0.0f;pv->f[1]=0.0f;pv->f[0]=0.0f;}
+// Rotate v by the 3x3 matrix m.
 static inline qword QwRotateVecR(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
+// Rotate v by the 3x3 matrix m (inline asm).
 static inline qword QwRotateVecRJ(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v),"j"(v),"j"(v),"j"(m->r[1].q));return r;}
+// Store the 3x3 matrix product a * b into r.
 static inline void MulM3(M3*r,const M3*a,const M3*b){qword c0=QwRotateVecR(a,b->r[0].q),c1=QwRotateVecR(a,b->r[1].q),c2=QwRotateVecR(a,b->r[2].q);r->r[0].q=c0;r->r[1].q=c1;r->r[2].q=c2;}
+// Rotate v by the 3x3 matrix m (by value).
 static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
+// Call p's vector-setter virtual at vtable slot `slot` with q.
 static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(void*,qword))e->fn)((char*)p+e->delta,q);}
 // Per-frame update of the player (JT) attached to a sticky mesh: finds the closest mesh point, orients the body to
 // the surface under the three probe points (smoothed), turns the stick into a camera-relative acceleration along

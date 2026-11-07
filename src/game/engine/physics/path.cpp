@@ -62,6 +62,7 @@ void InitDl(DL *pdl, int ibDle);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspQuick { extern "C" {
 typedef int qword __attribute__((mode(TI)));
+// Dot product of the xyz parts of a and b as a float.
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
@@ -106,6 +107,7 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspSafe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
+// Dot product of the xyz parts of a and b as a float.
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
@@ -208,7 +210,9 @@ typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
 extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
 extern "C" int ClassifyPlaneDistance__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
 
+// x lane of q as a float.
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// y lane of q as a float (prot3w rotates it into the low word).
 static inline float GetY(const qword &q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // volatile (as in many matched VU helpers): keeps both qmfc2 moves after the second dot product.
 static inline qword Dot(const qword &a, const qword &b)
@@ -218,9 +222,11 @@ static inline qword Dot(const qword &a, const qword &b)
                      : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR {
     qword q;
+    // Wrap a qword as a VU_VECTOR.
     VU_VECTOR(const qword &v) { q = v; }
     VU_VECTOR(float x, float y, float z)
     {
@@ -229,12 +235,14 @@ struct VU_VECTOR {
                 : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     }
 };
+// Return v1 * f1 + v2 * f2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
 }
+// Linear interpolation (1-t)*a + t*b.
 static inline VU_VECTOR Lerp(const qword &a, const qword &b, float t)
 {
     return VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(a), VU_FLOAT(t), VU_VECTOR(b));
@@ -399,6 +407,7 @@ int GetCgVertexIndex(CG *graph, CGV *vertex)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindPathAStar {
 typedef int qword __attribute__((mode(TI)));
+// Allocation request: byte count and alignment.
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct V;
 struct E { V *pv; float cost; };
@@ -410,8 +419,11 @@ void *AllocFromStack(const AREQ &r);
 void *AllocClearedFromStack(const AREQ &r);
 int GetCgVertexIndex__FP2CGP3CGV(G *p, V *pv);
 }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQ(cb, 0x10)); }
+// Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQ(cb, 0x10)); }
+// Distance between a and b in the XY plane.
 static inline float Dist2(const qword &a, const qword &b)
 {
     qword d;
@@ -502,6 +514,7 @@ void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(struct REQ *r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
+// Fill the request and allocate cb bytes (alignment nKind) from the frame stack.
 static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
 void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
@@ -555,19 +568,23 @@ namespace M_ClosestPointOnCgt {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct T { qword *a, *b, *c; };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern "C" {
 extern qword D_002A2DC0; // (0, 0, 1, 0)
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 qword GetClosestPointOnNavTriangle(T *t, qword p);
 }
+// z lane of a as a float.
 static inline float Z(qword a) { float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(z) : "j"(a)); return z; }
+// Dot product of the xyz parts of a and b (x lane).
 static inline qword Dot(qword a, qword b)
 {
     qword d = a, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "0"(d), "j"(b));
     return d;
 }
+// Return a + b * g.
 static inline qword AddScaled(qword a, qword b, float g)
 {
     U u; qword s, r;
@@ -620,6 +637,7 @@ struct V { U pos; int cEdge; E *aEdge; };
 struct TRI { V *apv[3]; };
 struct BSP;
 struct G { int pad0[3]; TRI *atri; int cv; BSP *pbsp; };
+// Allocation request; Set(n) fills it for n bytes, 16-byte aligned.
 struct AREQ { int cb, align; AREQ() {} AREQ *Set(int n) { cb = n; align = 16; return this; } };
 extern "C" { extern const float D_002C0C04; } // minimum spacing between route points (50.0f)
 extern "C" { extern qword D_002A2DA0; }       // (1, 0, 0, 0)
@@ -635,6 +653,7 @@ int FindPathPoints(G *, qword, qword, int, U *);
 }
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
 static inline qword ToVF(qword v) { qword r; int dummy; __asm__("qmtc2.ni %2,%0" : "=j"(r), "=r"(dummy) : "r"(v)); return r; }
+// Distance between a and b in the XY plane, returned as raw float bits.
 static inline int Dist2DI(qword a, qword b)
 {
     qword d; int r;
@@ -644,6 +663,7 @@ static inline int Dist2DI(qword a, qword b)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(d));
     return r;
 }
+// Distance between a and b in the XY plane.
 static inline float Dist2D(qword a, qword b)
 {
     qword d; float r;
@@ -658,6 +678,7 @@ struct VU_FLOAT {
     // never-chosen "V" alternative: allocation-only (the word stays a MEM until reload)
     VU_FLOAT(const float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(f)); }
 };
+// Return p + axis * s.
 static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
 {
     qword r;
@@ -943,6 +964,7 @@ typedef int qword __attribute__((mode(TI)));
 struct F { qword *pq; int d; };
 struct E { qword pos; int c; struct F *af; };
 struct A { int c; struct E *ae; };
+// Distance between a and b in the XY plane, returned as raw float bits.
 static inline int Dist(qword a, qword b)
 {
     qword d;
@@ -1062,7 +1084,9 @@ qword ConvertPosBetweenLos(void*,void*,qword);
 int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 int FindPathzoneClosestPoint(struct S*,qword,qword*,int);
+// Spill vertex to home and store point's z into home->f[2]; returns that z as a float.
 static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;}
+// Load p->count.
 static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;}
 // Closest point to pos that is walkable in the zone and outside every obstacle.
 int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
@@ -1116,6 +1140,7 @@ struct B { int c; struct N *an; int numPlanes, planes; int numZones; int zoneIds
 struct G { char pad[0x45C8]; void *defaultPathzone; struct B *zoneBsp; };
 extern struct G D_003DD490;
 void InitVuTemp(void *p);
+// 1 if pos is strictly in front of the plane (plane.xyz . pos - plane.w > 0), else 0.
 static __inline__ int ISide(qword plane, qword pos)
 {
     U d, one;
@@ -1262,9 +1287,13 @@ extern char D_003DD490[];
 struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
 int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
 void *AllocCopyFromWorldHeap(const struct AL *pal, const void *pv);
+// Zero in $7 (the null scope argument of the following call).
 static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;}
+// Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
+// High address page of the world D_003DD490.
 static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_003DD490));return page;}
+// Address of the world D_003DD490 from its high page.
 static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(D_003DD490));return world;}
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
 void BindSwPathzones(struct S *world)
@@ -1306,7 +1335,9 @@ int STACKSCOPE_ctor(struct H *p);
 void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
 int *AllocClearedFromStack(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
+// Allocate the request zeroed, 16-byte aligned, from the frame stack.
 static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return AllocClearedFromStack(pa); }
+// Allocate the request 16-byte aligned from the world heap.
 static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); }
 // Buckets the path links by the zone of their first endpoint, for FindPathlinkRoute.
 void BuildPathzoneLinkLists(struct S *world)
@@ -1430,6 +1461,7 @@ struct C {qword x,z;int version;int xmin,xmax,zmin,zmax;};
 struct S {char pad[0xFC];int obstacleCapacity,numEvents;void*xEvents,*zEvents;void**obstacles;int unknown110,version;};
 void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
+// Bitwise AND of two 128-bit values (pand).
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the obstacleCapacity.
 int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
@@ -1512,6 +1544,7 @@ namespace M_func_001C1A38 { extern "C" {
    target's "pointer copied into a0/a1, then a0 += 16" argument setup. */
 struct E { float t; unsigned short k; unsigned short bit; };
 void *memmove(void *dst, const void *src, unsigned int cb);
+// memmove cb bytes.
 static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, pvSrc, cb); }
 // Inserts an obstacle's begin/end events into a sorted event array.
 void InsertObstacleEvents(int count, struct E *events, int bit, float begin, float end)
@@ -1833,8 +1866,11 @@ int CanUsePathlink(GRAPH *pgraph, EDGE *pedge, void *pvActor);
 int IsPosInPathzone(NAV *pnav, qword pos, int f);
 }
 
+// Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocZeroedFromHeap(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocFromStack(&msg); }
+// Length of the xyz part of v, in the x lane.
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -1846,12 +1882,18 @@ static inline qword QwLength(qword v)
 }
 // Unknown object at sp+0x30 with an empty destructor (see the header comment)
 struct EMPTY { ~EMPTY() {} };
+// Path zone containing pos.
 static inline NAV *PnavFind(const qword &pos) { return FindPathzoneAtPos(pos, 0); }
+// Append a node to a doubly linked list.
 static inline void AppendNode(DL *pdl, NODE *pnode) { AppendDlEntry__FP2DLPv(pdl, pnode); }
+// Remove a node from a doubly linked list.
 static inline void RemoveNode(DL *pdl, NODE *pnode) { RemoveDlEntry__FP2DLPv(pdl, pnode); }
+// Insert pnode before pnodeNext in a doubly linked list.
 static inline void InsertNode(DL *pdl, NODE *pnodeNext, NODE *pnode) { InsertDlEntryBefore__FP2DLPvT1(pdl, pnodeNext, pnode); }
+// Distance between a and b (xyz).
 static inline float GDistX(const qword &a, const qword &b) { return QwordX(QwLength(VuSub(a, b))); }
 
+// Store the x lane of q to *p.
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
 // A* over path zones connected by path links, from an actor's zone to a goal; returns the chain of links.
 extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)

@@ -20,8 +20,11 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct M3
 {
+    // Uninitialised 3x3 matrix.
     qword r[3]; M3() {}
+    // Copy the three rows.
     M3(const M3 &other) { r[0] = other.r[0]; r[1] = other.r[1]; r[2] = other.r[2]; }
+    // Assign the three rows.
     M3 &operator=(const M3 &other) { r[0] = other.r[0]; r[1] = other.r[1]; r[2] = other.r[2]; return *this; }
     M3(M3 &source, qword a, qword b, qword c)
     {
@@ -48,6 +51,7 @@ struct Entry { int a, b; SURFV *poly; };
 /* The geometry's spatial tree view (+0x4 count, +0xC tree). */
 struct GEOMTREE { int pad, count; void *pad8; void *tree; };
 
+// Allocation request: byte count and kind/alignment.
 struct REQ { int cb, kind; REQ() {} REQ(int cb_, int kind_) : cb(cb_), kind(kind_) {} };
 struct FRAME { int pad[4]; };
 extern "C" {
@@ -61,10 +65,12 @@ void *AllocFromStack(REQ *);
 int PruneBspBySphere(void *, int, qword, int *, Entry **, float);
 }
 
+// Transform point p by the 4x4 matrix m.
 static inline qword Transform(const MATRIX4 *m,qword p) {
  qword r;
  r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], p);return r;
 }
+// Rotate p by the 3x3 part of m.
 static inline qword Rotate(const MATRIX4 *m,qword p) {
  register qword a0 __asm__("vf6")=m->r[0];
  register qword a1 __asm__("vf5")=m->r[1];
@@ -72,6 +78,7 @@ static inline qword Rotate(const MATRIX4 *m,qword p) {
  __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z"
  :"+j"(p):"j"(a0),"j"(a1),"j"(a2));return p;
 }
+// Unit vector along v.
 static inline qword Normalize(qword v) {
  qword r; register qword l __asm__("vf2");
  l = VuDot(v, v);
@@ -151,6 +158,8 @@ extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
 
 // Transform points and inverse-transpose plane normals.
 static __inline__ qword ReadCPU(const qword*source){qword value;__asm__("lq %0,%1":"=r"(value):"m"(*source));return value;}
+// Transpose the 3x3 matrix input (EE parallel word shuffles) and read the geometry's plane count in the same asm
+// block.
 static __inline__ M3 Transpose(const M3&input,GEOM*source,int&planeCount){
  M3 out;
  register qword row0 __asm__("$3"),row1 __asm__("$6"),row2 __asm__("$7");
@@ -161,6 +170,7 @@ static __inline__ M3 Transpose(const M3&input,GEOM*source,int&planeCount){
   :"m"(input),"m"(source->numSurfaces));
  planeCount=count;return M3(out,row0,row1,row2);
 }
+// Load the plane's normal and compute the address of its reference point in the geometry's point array.
 static inline const qword *PrefetchAddress(const PLANE *input,const GEOM *destination,qword &normal){
  register const qword *address asm("$2");
  register qword nextNormal asm("$19");
@@ -169,6 +179,7 @@ static inline const qword *PrefetchAddress(const PLANE *input,const GEOM *destin
      :"m"(input->pointIndex),"m"(destination->points),"m"(input->normal):"$3");
  normal=nextNormal;return address;
 }
+// Address of the last 32-byte plane in the count-plane array at base.
 static inline PLANE *FinalPlane(PLANE *base,int count){
  register PLANE *afterAddress asm("$2");
  register PLANE *last asm("$4");

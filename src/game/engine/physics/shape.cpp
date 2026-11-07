@@ -152,6 +152,7 @@ struct PATH {
 void EvaluateBezierPos(float duration, float t, float scale, qword start, qword startTangent, qword end, qword endTangent,
                    qword *pos, qword *vel, qword *acc);
 
+// Rotate v by the 3x3 matrix with rows m0..m2.
 static inline qword Dir(qword m0, qword m1, qword m2, qword v)
 {
     qword r;
@@ -159,6 +160,7 @@ static inline qword Dir(qword m0, qword m1, qword m2, qword v)
             : "=j"(r) : "j"(m0), "j"(m1), "j"(m2), "j"(v));
     return r;
 }
+// Transform point v by the 4x4 matrix with rows m0..m3.
 static inline qword Point(qword m0, qword m1, qword m2, qword m3, qword v)
 {
     qword r;
@@ -166,6 +168,7 @@ static inline qword Point(qword m0, qword m1, qword m2, qword m3, qword v)
             : "=j"(r) : "j"(m0), "j"(m1), "j"(m2), "j"(m3), "j"(v));
     return r;
 }
+// Length of the xyz part of a as a float.
 static inline float Len(qword a)
 {
     qword one;
@@ -224,12 +227,15 @@ struct S {
 void InvalidateShapeCache(struct S*);
 void CacheShapeSegment(struct S*,int);
 void SyncChainDistances(void*);
+// Transform point a by the 4x4 matrix m.
 static inline qword Point(struct M *m,qword a) {
  qword r;
  __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));
  return r;
 }
+// Copy a VU0 register (vmove).
 static inline qword Move(qword a) { qword r; __asm__("vmove.xyzw %0,%1":"=j"(r):"j"(a));return r; }
+// Length of the xyz part of a, in the x lane.
 static inline qword LenVec(qword a) {
  qword d,one;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=j"(one):"j"(a));
@@ -307,6 +313,7 @@ namespace M_SFromShapeU { extern "C" {
 struct X { char pad[0xE0]; int mode; char pad1[0xF0 - 0xE4]; float *distances; char pad2[0x14C - 0xF4]; float segmentDistances[11]; };
 int FindShapeSegmentAtParam(struct X *p, float *pa, float *pb);
 void CacheShapeSegment(struct X *p, int i);
+// Linear interpolation (1-t)*a + t*b.
 static __inline__ float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Arc length at parameter u, interpolated from the distance table (sub-sampled inside curve segments).
 float GetShapeDistanceAtParam(struct X *shape)
@@ -332,11 +339,13 @@ struct X {
 int FindShapeSegmentAtDistance(struct X *p, float *pa, float *pb, float time);
 void CacheShapeSegment(struct X *p, int i);
 
+// Linear interpolation (1-t)*a + t*b.
 static __inline__ float GLerp(float a, float b, float t)
 {
     return (1.0f - t) * a + t * b;
 }
 
+// Return value through $f4 (register-pinned move for matching).
 static inline float ReturnValue(float value)
 {
     register float input __asm__("$f4") = value;
@@ -453,17 +462,29 @@ struct S { char pad[0xC]; struct VTE *vt; char pad2[0xE0-0x10]; int mode; char p
 union U { qword q; float f; };
 int FindShapeSegmentAtParam(struct S*,float,float*,float*);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
+// Load the tangent vector at p into vf2.
 static inline qword ReadTangent(const qword*p){register qword a __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(a):"m"(*p));return a;}
+// Load the second linear point at p into vf2.
 static inline qword ReadLinearSecond(const qword*p){register qword value __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(value):"m"(*p));return value;}
+// Return next - first (vf2/vf1).
 static inline qword Sub(qword next,qword first){register qword a __asm__("vf2")=next,b __asm__("vf1")=first;__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// Return a*w0 + b*w1.
 static inline qword Lerp(qword a,qword b,qword w0,qword w1) { __asm__("vmulax.xyzw $ACC,%1,%0x\n\tvmaddx.xyzw %0,%2,%3x":"+j"(w0):"j"(a),"j"(b),"j"(w1));return w0; }
+// Evaluate a point on the Hermite segment: transform value by the basis matrix m (register-pinned).
 static inline qword HermitePoint(struct M*m,qword value){register qword keep __asm__("vf2")=m->a,row1 __asm__("vf4")=m->b,row2 __asm__("vf3")=m->c,translation __asm__("vf1")=m->d,point __asm__("vf5")=value;__asm__("vmulax.xyz $ACC,%0,%4x\n\tvmadday.xyz $ACC,%1,%4y\n\tvmaddaz.xyz $ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(keep):"j"(row1),"j"(row2),"j"(translation),"j"(point));return keep;}
+// Transform point a by the 4x4 matrix m, keeping keep live in its register.
 static inline qword PointKept(qword keep,struct M *m,qword a) {__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(keep):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));return keep;}
+// Broadcast the high blend weight f into vf4.
 static inline qword HighWeight(float f){register qword value __asm__("vf4");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(f));return value;}
+// Broadcast the low blend weight f into vf1 and spill it to home.
 static inline qword LowWeight(float f,union U*home){register qword value __asm__("vf1");__asm__("qmtc2.ni %2,%0\n\tsqc2 %0,%1":"=j"(value),"=m"(home->q):"r"(f));return value;}
+// Load the first point into vf3 and spill weight to home.
 static inline qword FirstPointAndWeight(const qword*first,qword weight,union U*home){register qword point __asm__("vf3");__asm__("lqc2 %0,%2\n\tsqc2 %3,%1":"=&j"(point),"=m"(home->q):"m"(*first),"j"(weight));return point;}
+// Byte offset of point i (i * 16).
 static inline unsigned PointOffset(int i){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,4":"=r"(bytes):"r"(i));return bytes;}
+// Load the first tangent point at p into vf1.
 static inline qword TangentFirst(const qword*p){register qword point __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(point):"m"(*p));return point;}
+// Copy the segment index into callee-saved $18.
 static inline int SegmentIndex(int value){register int index __asm__("$18");__asm__("daddu %0,%1,$zero":"=r"(index):"r"(value));return index;}
 // Position and tangent at parameter u (linear interpolation or Hermite evaluation), in world space.
 void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut)
@@ -534,11 +555,13 @@ struct X; struct SPACE;
 struct S { struct X *a0; struct SPACE *a4; int pad[2]; qword v; };
 void EvaluateShapeAtParam(struct X *, float, qword *, qword *);
 qword ApplyConstrNoTransform(struct SPACE *, qword);
+// Squared length of the xyz part of a (x lane, vf1).
 static inline qword SquareBits(qword a) {
     register qword d __asm__("vf1"),one __asm__("vf3");
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a));
     return d;
 }
+// Move a GPR qword into vf4 and return its squared length (x lane).
 static inline qword ConvertedSquareBits(qword a) {
     register qword value __asm__("vf4");
     register qword square __asm__("vf1"),one __asm__("vf2");
@@ -592,6 +615,7 @@ namespace M_func_001E6A30 {
 //  * Normalize output is tied to the length operand ("+j"), DotInto ties the result to the second operand (the point delta).
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { U rows[4]; };
 struct VTE { short delta, pad; void *fn; };
@@ -607,8 +631,10 @@ float GetShapeDistanceAtParam(PATH *, float);
 }
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
+// Transform point v by the 4x4 matrix m.
 static inline VV TransformPoint(const M4 &m, VV v)
 {
     qword r;
@@ -616,6 +642,7 @@ static inline VV TransformPoint(const M4 &m, VV v)
             : "=j"(r) : "j"(m.rows[0].q), "j"(m.rows[1].q), "j"(m.rows[2].q), "j"(m.rows[3].q), "j"(v));
     return r;
 }
+// Rotate v by the rows of m (row 0) and b (rows 1 and 2).
 static inline VV Rotate(const M4 &m, const M4 *b, VV v)
 {
     qword r = v;
@@ -630,12 +657,14 @@ static inline VV VuSub(VV a, VV b)
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Return v1 * f1 + v2 * f2.
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
+// Dot product of the xyz parts of a and b (x lane), computed in b's register.
 static inline VV DotInto(VV a, VV b)
 {
     qword one;
@@ -643,11 +672,13 @@ static inline VV DotInto(VV a, VV b)
             : "+j"(b), "=j"(one) : "j"(a));
     return b;
 }
+// Square root of the x lane of a.
 static inline VV Root(VV a)
 {
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
+// Length of the xyz part of v (x lane).
 static inline VV LengthOf(const U &v)
 {
     qword d, one;
@@ -656,12 +687,14 @@ static inline VV LengthOf(const U &v)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d));
     return d;
 }
+// Divide a by the x lane of length.
 static inline VV NormalizeTo(U a, VV length)
 {
     qword r = length;
     __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(r) : "j"(a.q));
     return r;
 }
+// Unit vector along a.
 static inline VV Normalize(VV a)
 {
     qword length = Root(VuDot(a, a));
@@ -792,6 +825,7 @@ namespace M_FindShapeClosestPoint {
 //  * The empty asm on `time` is allocation-only (see the comment at its use).
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { qword a, b, c, d; };
 struct VTE { short delta, pad; void *fn; };
@@ -808,8 +842,10 @@ void FindShapeClosestPointFromParam(PATH *, qword, SPACE *, qword *, qword *, fl
 }
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
+// Transform point v by the 4x4 matrix m.
 static inline VV TransformPoint(const M4 &m, VV v)
 {
     qword r;
@@ -824,21 +860,28 @@ static inline VV VuSub(VV a, VV b)
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Return v1 * f1 + v2 * f2.
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
+// x lane of v as raw int bits.
 static inline int Bits(qword v) { int b; __asm__("qmfc2.ni %0,%1" : "=r"(b) : "j"(v)); return b; }
+// Reinterpret int bits as a float.
 static inline float FromBits(int b) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(b)); return f; }
+// x lane of v as a float.
 static inline float ToFloat(qword v) { return FromBits(Bits(v)); }
+// Square root of the x lane of a.
 static inline VV Root(VV a)
 {
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
+// Length of the xyz part of a as a float.
 static inline float Length(VV a) { return QwordX(Root(VuDot(a, a))); }
+// Unit vector along a.
 static inline VV Normalize(VV a)
 {
     qword length = Root(VuDot(a, a));
@@ -960,6 +1003,7 @@ namespace M_IsegFindShapeS { extern "C" {
 struct X { char pad[0xE8]; int numPoints; float *times; float *distances; char pad2[0x178 - 0xF4]; int segmentHint; };
 float WrapShapeDistance(struct X *p, float g);
 
+// a < b (slt) in a pinned register.
 static inline int Before(int a, int b)
 {
     register int result __asm__("$2");
@@ -967,6 +1011,7 @@ static inline int Before(int a, int b)
     return result;
 }
 
+// Copy the loop bound into $5.
 static inline int LoopEnd(int value)
 {
     register int result __asm__("$5");
@@ -974,6 +1019,7 @@ static inline int LoopEnd(int value)
     return result;
 }
 
+// Load p->numPoints into $3.
 static inline int Count(struct X *p)
 {
     register int value __asm__("$3");
@@ -1153,6 +1199,7 @@ union U {qword q;float f[4];};
 struct M4 {qword r[4];};
 struct S {char pad[0xA0];struct M4 mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct S*);
+// Transform point p by the matrix rows r0..r3 (old only influences register allocation).
 static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p){__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(old):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(p));return old;}
 // World-space axis-aligned bounds of the transformed points and curve control points.
 void GetShapeBounds(struct S*shape,qword*minOut,qword*maxOut){
@@ -1266,12 +1313,17 @@ struct M4 {qword r[4];};
 struct BASIS3 {qword r[3];};
 struct P {char padA0[0xA0];struct M4 matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct P*);
+// Load the point at source into vf1.
 static inline qword ReadPoint(const qword*source){register qword value __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(value):"m"(*source));return value;}
+// Rotate a in place by the 3x3 matrix rows m0..m2.
 static inline qword DirInPlace(qword m0,qword m1,qword m2,qword a){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m0),"j"(m1),"j"(m2));return a;}
+// Squared length of the xyz part of a as a float.
 static inline float LenSq(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 /* returns the larger (C++: an inline taking &squared would put the pinned register on the stack) */
 static inline float MaxR(float g,float value){if(g<value)g=value;return g;}
+// Broadcast f into vf4 and store it to *out.
 static inline qword Scalar(float f,union U*out){register int bits __asm__("$10");register qword q __asm__("vf4");__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));out->q=q;return out->q;}
+// Square root of f.
 static inline float Sqrt(float f){return __builtin_sqrtf(f);}
 // Bounding radius from the transformed vertices and Bezier controls (after the world matrix update).
 float UpdateShapeBoundingSphere(struct P*shape)
@@ -1399,6 +1451,7 @@ extern "C" int GetShapeChainMode(SHAPE *shape)
 }
 
 namespace M_SRandomShapeRange { extern "C" {
+// Store upper to *endpoint and load the float whose high half is highHalf (lui + mtc1), in one asm block.
 static inline float StoreEndpointAndUpperBits(float *endpoint,float upper,unsigned highHalf)
 {
     register unsigned bits __asm__("$1");
@@ -1472,6 +1525,7 @@ struct S {int unknown0,unknown4;float gravity;char padC[0x20-0xC];qword start,en
 extern char D_002C44F0[];
 void *AllocClearedFromWorldHeap(struct AL*);
 void SyncChainDistances(struct S*);
+// Transform point a by the 4x4 matrix m.
 static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->unknown0),"j"(m->unknown4),"j"(m->c),"j"(m->d),"j"(a));return r;}
 // Initialises a chain for a shape: a private copy of the points and distances and the rest lengths.
 struct S *InitChain(struct S *chain,struct PATH *path) {
@@ -1506,14 +1560,20 @@ namespace M_func_001E8378 {
  * Repeated "j" inputs are allocation-only (local-alloc priority). */
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
+    // Wrap an existing qword.
     VU_FLOAT(const qword &v) { q = v; }
+    // Broadcast raw int bits into a VU0 register.
     VU_FLOAT(int w) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(w)); }
+    // Broadcast the float word at pf into a VU0 register.
     VU_FLOAT(const float *pf) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "rV"(*(const int *)pf)); }  /* a float word from memory */
 };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct M4 { qword r[4]; };
 struct SPACE { char pad[0x40]; M4 matrix; };
@@ -1553,6 +1613,7 @@ void InvalidateShapeCache(PATH *);
 void StepChainRk4(CHAIN *);
 }
 
+// Transform point v by the 4x4 matrix m.
 static inline VV TransformPoint(const M4 &m, VV v)
 {
     qword r;
@@ -1575,6 +1636,7 @@ static inline VV VuDot(VV a, VV b)
             : "=j"(r), "=j"(one) : "j"(a), "j"(b));
     return r;
 }
+// Length of v (x lane).
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 // Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuDivByX(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
@@ -1604,6 +1666,7 @@ static inline VV VecCombo3S1(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
             : "=j"(r) : "j"(base), "j"(g1.q), "j"(v1), "j"(g2.q), "j"(v2), "j"(v2));
     return r;
 }
+// Return base + v1*g1 + v2*g2.
 static inline VV VecCombo3S2(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
 {
     qword r;
@@ -1662,12 +1725,18 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
         pv->q = VuDivByX(vf, len);
     return QwordX(len);
 }
+// True when a and b are closer than s.
 static inline int FWithin(VV a, VV b, float s) { return QwordX(Length(VuSub(a, b))) < s; }
 
+// Store v to pd.
 static inline void Store(U *pd, VV v) { pd->q = v; }
+// The qword in p.
 static inline const qword &Q(const U *p) { return p->q; }
+// Return a - b.
 static inline VV SubP(const U *a, const U *b) { return VuSub(a->q, b->q); }
+// Store the interpolation (1-t)*pa + t*b into pd.
 static inline void Blend(U *pd, const U *pa, const qword &b, float t) { pd->q = VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(pa->q), VU_FLOAT(t), VU_VECTOR(b)); }
+// Store the interpolation (1-t)*pa + t*pb into pd.
 static inline void LerpP(U *pd, const U *pa, const U *pb, float t) { pd->q = VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(pa->q), VU_FLOAT(t), VU_VECTOR(pb->q)); }
 
 // One fourth-order (RK4-style) step of the spring rope chain.
@@ -1832,7 +1901,9 @@ namespace M_func_001E9090 {
  */
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M4 { qword r[4]; };
 struct SPACE { char pad[0x40]; M4 matrix; };
@@ -1864,6 +1935,7 @@ void InvalidateShapeCache(PATH *);
 void StepChain(CHAIN *);
 }
 
+// Transform point v by the 4x4 matrix m.
 static inline VV TransformPoint(const M4 &m, VV v)
 {
     qword r;
@@ -1881,6 +1953,7 @@ static inline VV DotVf1(VV a, VV b)
             : "=j"(r) : "j"(a), "j"(b) : "vf1");
     return r;
 }
+// Length of v (x lane).
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 /* base + v * g */
 static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
@@ -1890,6 +1963,7 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
             : "=j"(r) : "j"(base), "j"(g.q), "j"(v), "j"(v));   /* second "j"(v): allocation only */
     return r;
 }
+// Unit vector along v, or fallback when its length is below 1e-4.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Length(v);
@@ -2034,8 +2108,11 @@ struct S {char pad[0x48];PATH*path;int mode;int pad50;U*positions;U*previousPosi
 extern "C" { extern float D_002C3678; }
 extern "C" void InvalidateShapeCache(PATH*);
 extern "C" void AddChainSample(S*,float);
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Return v1 * f1 + v2 * f2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
@@ -2154,6 +2231,7 @@ static inline qword Transform(const M3 &m, qword v)
             : "+j"(v) : "j"(m.a.q), "j"(m.b.q), "j"(m.c.q));
     return v;
 }
+// Return world - hit.
 static inline qword PointDifference(qword world, qword hit)
 {
     qword value = world;
@@ -2243,11 +2321,15 @@ void EvaluateShapeAtParam(void*,float,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 void RenderCid106Self(S*);
 }
+// Rotate a by the 3x3 matrix m.
 static inline qword Transform(M3 *m,qword a) { __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m->a),"j"(m->b),"j"(m->c));return a; }
 // Store the low packed word directly; higher words remain available for Y/Z extraction.
 static inline void StoreX(float *p,qword q) {__asm__("sw %1,%0":"=m"(*p):"r"(q));}
+// z lane of q as a float.
 static inline float GetZ(qword q) {float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+// y lane of q as a float.
 static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
+// Smaller of a and b.
 static inline float StdMinLocal(float a,float b) {return b<a?b:a;} // util.h StdMin's spelling; kept local: folding it moves func_001E9AC0's lines (1 instruction off)
 } // namespace M_func_001E9AC0
 // CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeAtParam per sample).
@@ -2324,6 +2406,7 @@ void *FindPathzoneAtPos(qword, int);
 int IsPosInPathzone(void *, qword, int);
 void *AllocCopyFromWorldHeap(struct MSG *, void *);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
+// Fill the heap message and reallocate pv as a cb-byte copy (kind nKind) on the world heap.
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 // Samples the shape and records the distinct path zones (FindPathzoneAtPos) it passes through with their parameter
 // ranges. (inferred)

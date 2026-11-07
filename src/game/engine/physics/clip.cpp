@@ -15,6 +15,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qword __attribute__((mode(TI)));
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 
 /* A clipped segment (0x60): end points, the planes there, the parameters along the edge, its kind and two per-end
@@ -71,11 +72,17 @@ static inline qword Combo(const VU_FLOAT &f1, const qword &v1, const VU_FLOAT &f
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
+// Square root of the x lane of a.
 static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(a)); return r; }
+// Divide v by the x lane of l.
 static inline qword QwDivide(const qword &v, const qword &l) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
+// x lane of a qword as a float.
 static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
+// x lane of a VU0 register as a float (the extra "j" operand keeps the value in a VF register).
 static inline float GXOfVf(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q), "j"(q)); return x; } /* allocation-only "j": the value stays in a VF register */
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(const qword &a, const qword &b) { return GXOfVf(VuDot(a, b)); }
+// Unit vector along v; falls back to D_002A2DA0 when its length is below 1e-4.
 static inline qword Normalize(const qword &v)
 {
     qword l = QwSqrt(VuDot(v, v));
