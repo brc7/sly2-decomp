@@ -1,6 +1,6 @@
 # `src/game/platform/memory/`
 
-**Layer 1.** heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), PvAllocClear, malloc/free
+**Layer 1.** heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), AllocZeroedFromHeap, malloc/free
 
 | Directory | Files |
 | --- | --- |

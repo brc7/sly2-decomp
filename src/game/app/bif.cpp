@@ -1,13 +1,13 @@
-// bif.cpp -- the Splice builtin functions (RefOp*: list, arithmetic, comparison, vector/matrix, world queries).
+// bif.cpp -- the Splice builtin functions (Builtin*: list, arithmetic, comparison, vector/matrix, world queries).
 // TU 0x11F440..0x1258F0 (155 functions, address order; then the three linkonce VU math copies 0x256CE8..0x256D28).
 // Splice is the game's Scheme-like scripting language (splice/). The evaluator (splice/eval.cpp) calls a builtin
 // through the 169-entry table D_002BBB90 at the end of this file ({function, minimum argument count, takes rest
 // arguments}) with the evaluated arguments as a CRef array and returns its CRef result. Sly 1's builtin table gives
 // most script spellings; docs/engine/splice-scripting.md maps the slots.
-// Entry points: the table D_002BBB90 and the RefOp* functions.
+// Entry points: the table D_002BBB90 and the Builtin* functions (Sly 1 named them RefOp*; the suffix is the script op).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001258D0
-// Every builtin is `CRef RefOpX(int cref, CRef *args, CFrame *pframe)` (the mangled symbols say so); the per-function
+// Every builtin is `CRef BuiltinX(int cref, CRef *args, CFrame *pframe)` (the mangled symbols say so); the per-function
 // files define them under their literal symbols with C linkage and private CRef views, and keep those views in
 // namespaces named after the function (docs/guides/tu-merging.md "Representation decisions"). The former m2c bodies
 // follow the same convention at file scope: C linkage under the literal symbol, the hidden result pointer passed by
@@ -86,7 +86,7 @@ void CancelSwSpliceCallback(char *psw, int n);
 }
 
 // 0x11F440 BuiltinAdd__FiP4CRefP6CFrame
-namespace M_RefOpAdd__FiP4CRefP6CFrame {
+namespace M_BuiltinAdd__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct CRef; struct NODE;
 // (Claude agent, lane A9, 2026-10-23) script `+` builtin (probably). The first node is read through an inline accessor in an
 // if/else: the inline blocks jump.c's "x = b; if (c) x = a" rewrite, so `pn = 0` is laid out after the branch and
@@ -177,10 +177,10 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpAdd__FiP4CRefP6CFrame
+} // namespace M_BuiltinAdd__FiP4CRefP6CFrame
 
 // 0x11F6D0 BuiltinSubtract__FiP4CRefP6CFrame
-namespace M_RefOpSub__FiP4CRefP6CFrame {
+namespace M_BuiltinSubtract__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct CRef; struct NODE;
 // (Claude agent, lane A9, 2026-10-23) script `-` builtin (probably), same shape as BuiltinAdd: the inline accessor in the
 // if/else keeps `pn = 0` after the branch (no jump.c rewrite), so reorg puts it in the beqz delay slot.
@@ -269,10 +269,10 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpSub__FiP4CRefP6CFrame
+} // namespace M_BuiltinSubtract__FiP4CRefP6CFrame
 
 // 0x11F960 BuiltinMultiply__FiP4CRefP6CFrame
-namespace M_RefOpMult__FiP4CRefP6CFrame {
+namespace M_BuiltinMultiply__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR; struct CRef; struct NODE;
 // BuiltinMultiply MATCH (Claude agent, lane A12, 2026-10-23), from fresh4 (6): 0x1A/0x16 MulVectorR builds the VU float from the int bits with ONE commented pin ($17, pr's register, as the target), and MulMatrix (0x1B/0x16) has a commented volatile empty asm that keeps &mat after the mtc1. The other old pins were removed.
 typedef int qword __attribute__((mode(TI)));
@@ -503,10 +503,10 @@ CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args)
         ref = (int)ref.u.g;
     return ref;
 }
-} // namespace M_RefOpMult__FiP4CRefP6CFrame
+} // namespace M_BuiltinMultiply__FiP4CRefP6CFrame
 
 // 0x11FEC8 BuiltinDivide__FiP4CRefP6CFrame
-namespace M_RefOpDiv__FiP4CRefP6CFrame {
+namespace M_BuiltinDivide__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct CRef; struct NODE; struct VU_FLOAT_V;
 // `/` script builtin (Claude agent). The int-matrix path builds its VU_FLOAT temp in the caller, before the inline scale
 // helper frame, so the temp reuses the freed CRef slot at sp+0x10 as in the original.
@@ -657,7 +657,7 @@ CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
         ref = (int)ref.u.g;
     return ref;
 }
-} // namespace M_RefOpDiv__FiP4CRefP6CFrame
+} // namespace M_BuiltinDivide__FiP4CRefP6CFrame
 
 // 0x1202D0 BuiltinPrint__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x1202D0
@@ -688,7 +688,7 @@ extern "C" CREFV *BuiltinPrintFrame__FiP4CRefP6CFrame(CREFV *pref)
 }
 
 // 0x120330 BuiltinPrintSidebag__FiP4CRefP6CFrame
-namespace M_RefOpPrintSidebag__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -708,10 +708,10 @@ CRef *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRef *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpPrintSidebag__FiP4CRefP6CFrame
+} } // namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame
 
 // 0x120370 BuiltinIntEqual__FiP4CRefP6CFrame
-namespace M_RefOpIntEqual__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIntEqual__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120370
@@ -732,10 +732,10 @@ CRef *BuiltinIntEqual__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     ret->m_tag = a == b;
     return ret;
 }
-} } // namespace M_RefOpIntEqual__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIntEqual__FiP4CRefP6CFrame
 
 // 0x120398 CompareNumericArgs__FP4CRef4CMPK
-namespace M_RefCmp__FP4CRef4CMPK { extern "C" {
+namespace M_CompareNumericArgs__FP4CRef4CMPK { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 /** @sly2-annot addr=0x120398
@@ -775,7 +775,7 @@ CRef *CompareNumericArgs__FP4CRef4CMPK(CRef *ret, CRef *args, int op)
     ret->m_tagk = TAGK_BOOL;
     return ret;
 }
-} } // namespace M_RefCmp__FP4CRef4CMPK
+} } // namespace M_CompareNumericArgs__FP4CRef4CMPK
 
 // 0x120488 BuiltinLess__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x120488
@@ -838,7 +838,7 @@ extern "C" CREFV *BuiltinGreaterOrEqual__FiP4CRefP6CFrame(CREFV *pref, int cref,
 }
 
 // 0x120548 BuiltinEqv__FiP4CRefP6CFrame
-namespace M_RefOpEqv__FiP4CRefP6CFrame {
+namespace M_BuiltinEqv__FiP4CRefP6CFrame {
 struct CRef;
 // MATCH (Claude agent laneB14, 2026-10-23), from BuiltinEqv__FiP4CRefP6CFrame.cpp (6). FEq body written out with one commented register pin (pb in a1)
 // plus one empty asm whose only job is extra uses of f (f is live from entry on the default path, so its priority was below the return pointer's).
@@ -881,10 +881,10 @@ CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     __asm__ __volatile__("" : : "r"(f), "r"(f), "r"(f));  /* allocation-only operands: raise f's global-alloc priority above the return pointer (f a3, ret t0 as in the target) */
     return CRef(f, TAGK_BOOL);
 }
-} // namespace M_RefOpEqv__FiP4CRefP6CFrame
+} // namespace M_BuiltinEqv__FiP4CRefP6CFrame
 
 // 0x1205B8 AreRefsStructurallyEqual__FP4CRefT0
-namespace M_RefEqualHelper__FP4CRefT0 {
+namespace M_AreRefsStructurallyEqual__FP4CRefT0 {
 struct CRef; struct NODE; struct W; struct X;
 // CRef equality (recursive). Matched by Claude agent (2026-10-17): case 0x22 as `f = n8 == n8 && nC == nC`.
 struct NODE;
@@ -982,7 +982,7 @@ CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
     }
     return CRef(f, TAGK_BOOL);
 }
-} // namespace M_RefEqualHelper__FP4CRefT0
+} // namespace M_AreRefsStructurallyEqual__FP4CRefT0
 
 // 0x1207F0 BuiltinEqual__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x1207F0
@@ -1000,7 +1000,7 @@ extern "C" CREFV *BuiltinEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *a
 }
 
 // 0x120820 BuiltinIsBoolean__FiP4CRefP6CFrame
-namespace M_RefOpIsBoolean__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120820
@@ -1017,10 +1017,10 @@ CRef *BuiltinIsBoolean__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_BOOL;
     return ret;
 }
-} } // namespace M_RefOpIsBoolean__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame
 
 // 0x120840 BuiltinIsNum__FiP4CRefP6CFrame
-namespace M_RefOpIsNum__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsNum__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120840
@@ -1037,10 +1037,10 @@ CRef *BuiltinIsNum__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_S32 || tagk == TAGK_F32;
     return ret;
 }
-} } // namespace M_RefOpIsNum__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsNum__FiP4CRefP6CFrame
 
 // 0x120860 BuiltinIsFloat__FiP4CRefP6CFrame
-namespace M_RefOpIsFloat__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsFloat__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120860
@@ -1057,10 +1057,10 @@ CRef *BuiltinIsFloat__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_F32;
     return ret;
 }
-} } // namespace M_RefOpIsFloat__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsFloat__FiP4CRefP6CFrame
 
 // 0x120880 BuiltinIsInteger__FiP4CRefP6CFrame
-namespace M_RefOpIsInteger__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsInteger__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120880
@@ -1077,10 +1077,10 @@ CRef *BuiltinIsInteger__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_S32;
     return ret;
 }
-} } // namespace M_RefOpIsInteger__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsInteger__FiP4CRefP6CFrame
 
 // 0x1208A0 BuiltinIsSymbol__FiP4CRefP6CFrame
-namespace M_RefOpIsSymbol__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x1208A0
@@ -1098,10 +1098,10 @@ CRef *BuiltinIsSymbol__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_SYMID;
     return ret;
 }
-} } // namespace M_RefOpIsSymbol__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame
 
 // 0x1208C0 BuiltinIsVector__FiP4CRefP6CFrame
-namespace M_RefOpIsVector__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsVector__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x1208C0
@@ -1118,10 +1118,10 @@ CRef *BuiltinIsVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_VECTOR;
     return ret;
 }
-} } // namespace M_RefOpIsVector__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsVector__FiP4CRefP6CFrame
 
 // 0x1208E0 BuiltinIsMatrix__FiP4CRefP6CFrame
-namespace M_RefOpIsMatrix__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x1208E0
@@ -1138,10 +1138,10 @@ CRef *BuiltinIsMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_MATRIX;
     return ret;
 }
-} } // namespace M_RefOpIsMatrix__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame
 
 // 0x120900 BuiltinIsClq__FiP4CRefP6CFrame
-namespace M_RefOpIsClq__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsClq__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120900
@@ -1158,10 +1158,10 @@ CRef *BuiltinIsClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_CLQ;
     return ret;
 }
-} } // namespace M_RefOpIsClq__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsClq__FiP4CRefP6CFrame
 
 // 0x120920 BuiltinIsLm__FiP4CRefP6CFrame
-namespace M_RefOpIsLm__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120920
@@ -1178,10 +1178,10 @@ CRef *BuiltinIsLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_LM;
     return ret;
 }
-} } // namespace M_RefOpIsLm__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsLm__FiP4CRefP6CFrame
 
 // 0x120940 BuiltinIsSmp__FiP4CRefP6CFrame
-namespace M_RefOpIsSmp__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsSmp__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120940
@@ -1198,10 +1198,10 @@ CRef *BuiltinIsSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_SMP;
     return ret;
 }
-} } // namespace M_RefOpIsSmp__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsSmp__FiP4CRefP6CFrame
 
 // 0x120960 BuiltinIsList__FiP4CRefP6CFrame
-namespace M_RefOpIsList__FiP4CRefP6CFrame {
+namespace M_BuiltinIsList__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk;
@@ -1224,10 +1224,10 @@ CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
     int tagk = pref->m_tagk;
     return CRef(tagk == TAGK_PAIR || tagk == 0);
 }
-} // namespace M_RefOpIsList__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsList__FiP4CRefP6CFrame
 
 // 0x120990 BuiltinIsNull__FiP4CRefP6CFrame
-namespace M_RefOpIsNull__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsNull__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120990
@@ -1244,10 +1244,10 @@ CRef *BuiltinIsNull__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == 0;
     return ret;
 }
-} } // namespace M_RefOpIsNull__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsNull__FiP4CRefP6CFrame
 
 // 0x1209B0 BuiltinIsObject__FiP4CRefP6CFrame
-namespace M_RefOpIsObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x1209B0
@@ -1264,7 +1264,7 @@ CRef *BuiltinIsObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_BASIC;
     return ret;
 }
-} } // namespace M_RefOpIsObject__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsObject__FiP4CRefP6CFrame
 
 // 0x1209D0 BuiltinIsNullObj__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x1209D0
@@ -1288,7 +1288,7 @@ extern "C" CREFV *BuiltinIsNullObj__FiP4CRefP6CFrame(CREFV *pref, int cref, CREF
 }
 
 // 0x120A00 BuiltinIsMethod__FiP4CRefP6CFrame
-namespace M_RefOpIsMethod__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsMethod__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x120A00
@@ -1305,10 +1305,10 @@ CRef *BuiltinIsMethod__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
     ret->m_tag = tagk == TAGK_METHOD;
     return ret;
 }
-} } // namespace M_RefOpIsMethod__FiP4CRefP6CFrame
+} } // namespace M_BuiltinIsMethod__FiP4CRefP6CFrame
 
 // 0x120A20 BuiltinIsProcedure__FiP4CRefP6CFrame
-namespace M_RefOpIsProcedure__FiP4CRefP6CFrame {
+namespace M_BuiltinIsProcedure__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk;
@@ -1332,10 +1332,10 @@ CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
     int tagk = pref->m_tagk;
     return CRef(tagk == TAGK_PROC || tagk == TAGK_BIFK);
 }
-} // namespace M_RefOpIsProcedure__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsProcedure__FiP4CRefP6CFrame
 
 // 0x120A58 BuiltinAreNear__FiP4CRefP6CFrame
-namespace M_RefOpAreNear__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinAreNear__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 int AreFloatsNear__Ffff(float a, float b, float c);
@@ -1361,7 +1361,7 @@ CRef *BuiltinAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     ret->u.n = f;
     return ret;
 }
-} } // namespace M_RefOpAreNear__FiP4CRefP6CFrame
+} } // namespace M_BuiltinAreNear__FiP4CRefP6CFrame
 
 // 0x120AE0 BuiltinNot__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x120AE0
@@ -1385,7 +1385,7 @@ extern "C" CREFV *BuiltinNot__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x120B08 BuiltinCons__FiP4CRefP6CFrame
-namespace M_RefOpCons__FiP4CRefP6CFrame {
+namespace M_BuiltinCons__FiP4CRefP6CFrame {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -1419,7 +1419,7 @@ CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
         sp->next = (CPair *)pref->u.pv;
     return CRef(sp.p);
 }
-} // namespace M_RefOpCons__FiP4CRefP6CFrame
+} // namespace M_BuiltinCons__FiP4CRefP6CFrame
 
 // 0x120BD0 BuiltinCar__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x120BD0
@@ -1457,7 +1457,7 @@ extern "C" CREFV *BuiltinCdr__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x120C48 BuiltinSetCadr__FiP4CRefP6CFrame4BIFK
-namespace M_RefOpSetCadr__FiP4CRefP6CFrame4BIFK { extern "C" {
+namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
@@ -1483,10 +1483,10 @@ CRef *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *args,
     SetTag__4CRef4TAGK(ret, 0x24);
     return ret;
 }
-} } // namespace M_RefOpSetCadr__FiP4CRefP6CFrame4BIFK
+} } // namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK
 
 // 0x120CC8 BuiltinSetCar__FiP4CRefP6CFrame
-namespace M_RefOpSetCar__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinSetCar__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -1503,10 +1503,10 @@ CRef *BuiltinSetCar__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *a
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x23);
     return ret;
 }
-} } // namespace M_RefOpSetCar__FiP4CRefP6CFrame
+} } // namespace M_BuiltinSetCar__FiP4CRefP6CFrame
 
 // 0x120CF8 BuiltinSetCdr__FiP4CRefP6CFrame
-namespace M_RefOpSetCdr__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinSetCdr__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -1523,7 +1523,7 @@ CRef *BuiltinSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *a
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x24);
     return ret;
 }
-} } // namespace M_RefOpSetCdr__FiP4CRefP6CFrame
+} } // namespace M_BuiltinSetCdr__FiP4CRefP6CFrame
 
 // 0x120D28 BuiltinLength__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x120D28
@@ -1553,7 +1553,7 @@ extern "C" CREFV *BuiltinLength__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *
 }
 
 // 0x120D78 BuiltinNth__FiP4CRefP6CFrame
-namespace M_RefOpNth__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinNth__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct PAIR;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct PAIR { int a; int b; CRef ref; struct PAIR *pnext; } PAIR;
@@ -1587,10 +1587,10 @@ CRef *BuiltinNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpNth__FiP4CRefP6CFrame
+} } // namespace M_BuiltinNth__FiP4CRefP6CFrame
 
 // 0x120E10 BuiltinIsMember__FiP4CRefP6CFrame
-namespace M_RefOpIsMember__FiP4CRefP6CFrame {
+namespace M_BuiltinIsMember__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -1635,7 +1635,7 @@ CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
     }
     return res;
 }
-} // namespace M_RefOpIsMember__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsMember__FiP4CRefP6CFrame
 
 // 0x120F80 BuiltinList__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x120F80
@@ -1653,7 +1653,7 @@ extern "C" CREFV *BuiltinList__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x120FB0 BuiltinShuffle
-namespace M_RefOpShuffle {
+namespace M_BuiltinShuffle {
 struct SPN;
 // (Claude agent, laneB10) MATCH: the !fShuffle reassign goes through an inline SetSpn(SPN*, CPair*) so &spRes is substituted directly (no pseudo for gcse to share with pspHead).
 
@@ -1746,10 +1746,10 @@ CRef BuiltinShuffle(void *pbasic, CRef *args)
     }
     return CRef(spRes.p);
 }
-} // namespace M_RefOpShuffle
+} // namespace M_BuiltinShuffle
 
 // 0x1212F8 BuiltinAppend__FiP4CRefP6CFrame
-namespace M_RefOpAppend__FiP4CRefP6CFrame {
+namespace M_BuiltinAppend__FiP4CRefP6CFrame {
 struct SP;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -1806,10 +1806,10 @@ CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
         return CRef(0);
     return CRef(result->ref.u.ppair);
 }
-} // namespace M_RefOpAppend__FiP4CRefP6CFrame
+} // namespace M_BuiltinAppend__FiP4CRefP6CFrame
 
 // 0x121578 BuildCallListForTwoArgs
-namespace M_func_00121578 {
+namespace M_BuildCallListForTwoArgs {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -1859,10 +1859,10 @@ SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
     *ppref2 = &pn3->next.p->ref;
     return SPN(sp.p);
 }
-} // namespace M_func_00121578
+} // namespace M_BuildCallListForTwoArgs
 
 // 0x121710 BuiltinMap__FiP4CRefP6CFrame
-namespace M_RefOpMap__FiP4CRefP6CFrame {
+namespace M_BuiltinMap__FiP4CRefP6CFrame {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -1920,10 +1920,10 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     }
     return CRef((CPair *)result->ref.u.pv);
 }
-} // namespace M_RefOpMap__FiP4CRefP6CFrame
+} // namespace M_BuiltinMap__FiP4CRefP6CFrame
 
 // 0x121938 BuiltinFilter__FiP4CRefP6CFrame
-namespace M_RefOpFilter__FiP4CRefP6CFrame {
+namespace M_BuiltinFilter__FiP4CRefP6CFrame {
 struct SP; struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -1994,10 +1994,10 @@ CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         return CRef(0);
     return CRef(result->ref.u.ppair);
 }
-} // namespace M_RefOpFilter__FiP4CRefP6CFrame
+} // namespace M_BuiltinFilter__FiP4CRefP6CFrame
 
 // 0x121C20 BuiltinForEach__FiP4CRefP6CFrame
-namespace M_RefOpForEach__FiP4CRefP6CFrame {
+namespace M_BuiltinForEach__FiP4CRefP6CFrame {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -2041,10 +2041,10 @@ CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     }
     return CRef(TAGK_VOID);
 }
-} // namespace M_RefOpForEach__FiP4CRefP6CFrame
+} // namespace M_BuiltinForEach__FiP4CRefP6CFrame
 
 // 0x121D20 BuiltinEval__FiP4CRefP6CFrame
-namespace M_RefOpEval__FiP4CRefP6CFrame {
+namespace M_BuiltinEval__FiP4CRefP6CFrame {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -2076,10 +2076,10 @@ CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
     sp->ref = *pref;
     return RefEval__FP5CPairP6CFrame(sp.p, args);
 }
-} // namespace M_RefOpEval__FiP4CRefP6CFrame
+} // namespace M_BuiltinEval__FiP4CRefP6CFrame
 
 // 0x121DD8 BuiltinVector__FiP4CRefP6CFrame
-namespace M_RefOpVector__FiP4CRefP6CFrame {
+namespace M_BuiltinVector__FiP4CRefP6CFrame {
 struct CRef; struct VECTOR; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -2141,10 +2141,10 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
     }
     return ref;
 }
-} // namespace M_RefOpVector__FiP4CRefP6CFrame
+} // namespace M_BuiltinVector__FiP4CRefP6CFrame
 
 // 0x121F00 BuiltinMatrix__FiP4CRefP6CFrame
-namespace M_RefOpMatrix__FiP4CRefP6CFrame {
+namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
 struct MATRIX4; struct CRef; struct NODE;
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float m[4][4]; };
@@ -2212,10 +2212,10 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
     }
     return ref;
 }
-} // namespace M_RefOpMatrix__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrix__FiP4CRefP6CFrame
 
 // 0x1220B8 BuiltinClq__FiP4CRefP6CFrame
-namespace M_RefOpClq__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinClq__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -2247,10 +2247,10 @@ CRef *BuiltinClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpClq__FiP4CRefP6CFrame
+} } // namespace M_BuiltinClq__FiP4CRefP6CFrame
 
 // 0x122168 BuiltinLm__FiP4CRefP6CFrame
-namespace M_RefOpLm__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -2282,10 +2282,10 @@ CRef *BuiltinLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpLm__FiP4CRefP6CFrame
+} } // namespace M_BuiltinLm__FiP4CRefP6CFrame
 
 // 0x122218 BuiltinSmp__FiP4CRefP6CFrame
-namespace M_RefOpSmp__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinSmp__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -2317,10 +2317,10 @@ CRef *BuiltinSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpSmp__FiP4CRefP6CFrame
+} } // namespace M_BuiltinSmp__FiP4CRefP6CFrame
 
 // 0x1222C8 BuiltinGetElement__FiP4CRefP6CFrame
-namespace M_RefOpGetElement__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinGetElement__FiP4CRefP6CFrame { extern "C" {
 struct VECTOR; struct CRef; struct IDX;
 /* MATCH (Claude agent laneB9, 2026-10-23): v3 + second commented pin, pv in $5 (a1), pf = (i << 4) + pv. */
 /* v3 (Claude agent laneB8, 2026-10-23): aligned 10 -> 2. ONE commented register pin: pf in $2 (v0), plus the tail written as `pf += j; f(*pf)` in all three arms (the sum then reuses pf like the target). Left: 1B-else `sll v0,a1,4; lw a1,pv` (target puts i<<4 in pf/v0, pv in a1; ours sll a1 in place, pv in v0). Tried: (i<<4)+char*, int sums, pf = base + i*4, &[i].x, j pin instead, i pin: 2-18. */
@@ -2380,10 +2380,10 @@ CRef *BuiltinGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpGetElement__FiP4CRefP6CFrame
+} } // namespace M_BuiltinGetElement__FiP4CRefP6CFrame
 
 // 0x1223C0 BuiltinRandom__FiP4CRefP6CFrame
-namespace M_RefOpRandom__FiP4CRefP6CFrame {
+namespace M_BuiltinRandom__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -2422,10 +2422,10 @@ CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpRandom__FiP4CRefP6CFrame
+} // namespace M_BuiltinRandom__FiP4CRefP6CFrame
 
 // 0x1224A8 ApplyUnaryFloatOp__FP4CRef4UFOK
-namespace M_RefUfo__FP4CRef4UFOK { extern "C" {
+namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef float (*PFNG)(float);
@@ -2456,7 +2456,7 @@ CRef *ApplyUnaryFloatOp__FP4CRef4UFOK(CRef *ret, CRef *parg, int i)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefUfo__FP4CRef4UFOK
+} } // namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK
 
 // 0x122530 BuiltinSqrt__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x122530
@@ -2579,7 +2579,7 @@ extern "C" CREFV *BuiltinRadNormalize__FiP4CRefP6CFrame(CREFV *pref, int cref, C
 }
 
 // 0x1226B0 BuiltinAtan2__FiP4CRefP6CFrame
-namespace M_RefOpAtan2__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinAtan2__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 float atan2f(float y, float x);
@@ -2605,10 +2605,10 @@ CRef *BuiltinAtan2__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     ret->m_tagk = TAGK_F32;
     return ret;
 }
-} } // namespace M_RefOpAtan2__FiP4CRefP6CFrame
+} } // namespace M_BuiltinAtan2__FiP4CRefP6CFrame
 
 // 0x122730 BuiltinVectorDotProduct__FiP4CRefP6CFrame
-namespace M_RefOpVectorDotProduct__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -2640,10 +2640,10 @@ CRef *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *a
     *(volatile int *)&ret->m_tag = g;
     return ret;
 }
-} } // namespace M_RefOpVectorDotProduct__FiP4CRefP6CFrame
+} } // namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame
 
 // 0x122770 BuiltinVectorCrossProduct__FiP4CRefP6CFrame
-namespace M_RefOpVectorCrossProduct__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -2670,10 +2670,10 @@ CRef *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef 
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpVectorCrossProduct__FiP4CRefP6CFrame
+} } // namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame
 
 // 0x1227D0 BuiltinVectorLength__FiP4CRefP6CFrame
-namespace M_RefOpVectorLth__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorLength__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -2706,10 +2706,10 @@ CRef *BuiltinVectorLength__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     *(volatile int *)&ret->m_tag = g;
     return ret;
 }
-} } // namespace M_RefOpVectorLth__FiP4CRefP6CFrame
+} } // namespace M_BuiltinVectorLength__FiP4CRefP6CFrame
 
 // 0x122810 BuiltinVectorDistance__FiP4CRefP6CFrame
-namespace M_RefOpVectorDistance__FiP4CRefP6CFrame {
+namespace M_BuiltinVectorDistance__FiP4CRefP6CFrame {
 struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -2765,10 +2765,10 @@ CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpVectorDistance__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorDistance__FiP4CRefP6CFrame
 
 // 0x1228F0 BuiltinVectorDistanceSquared__FiP4CRefP6CFrame
-namespace M_RefOpVectorDistanceSquared__FiP4CRefP6CFrame {
+namespace M_BuiltinVectorDistanceSquared__FiP4CRefP6CFrame {
 struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -2821,10 +2821,10 @@ CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return result;
 }
-} // namespace M_RefOpVectorDistanceSquared__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorDistanceSquared__FiP4CRefP6CFrame
 
 // 0x1229B8 BuiltinVectorNormalize__FiP4CRefP6CFrame
-namespace M_RefOpVectorNormalize__FiP4CRefP6CFrame {
+namespace M_BuiltinVectorNormalize__FiP4CRefP6CFrame {
 struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -2893,10 +2893,10 @@ CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
         Normalize(result.u.pq, ((W *)args[1].u.pv)->pv);
     return result;
 }
-} // namespace M_RefOpVectorNormalize__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorNormalize__FiP4CRefP6CFrame
 
 // 0x122B08 BuiltinVectorProjectNormal__FiP4CRefP6CFrame
-namespace M_RefOpVectorProjectNormal__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -2926,10 +2926,10 @@ CRef *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpVectorProjectNormal__FiP4CRefP6CFrame
+} } // namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame
 
 // 0x122B70 BuiltinVectorProjectTangent__FiP4CRefP6CFrame
-namespace M_RefOpVectorProjectTangent__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -2961,10 +2961,10 @@ CRef *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRe
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpVectorProjectTangent__FiP4CRefP6CFrame
+} } // namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame
 
 // 0x122BE0 BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame
-namespace M_RefOpVectorBallisticVelocity__FiP4CRefP6CFrame {
+namespace M_BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame {
 struct CRef; union VQ; struct XFM; struct O; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -3012,10 +3012,10 @@ CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     *pq = CalculateBallisticLaunchVelocity(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, v.q, CRef_RefCoerceF32(&args[2]).u.g);
     return ref;
 }
-} // namespace M_RefOpVectorBallisticVelocity__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame
 
 // 0x122CE0 BuiltinVectorRadianNormal__FiP4CRefP6CFrame
-namespace M_RefOpVectorRadianNormal__FiP4CRefP6CFrame {
+namespace M_BuiltinVectorRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 typedef int qword __attribute__((mode(TI)));
 
@@ -3050,10 +3050,10 @@ CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     sp->ref.SetF32(AngleBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
     return CRef(sp.p);
 }
-} // namespace M_RefOpVectorRadianNormal__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorRadianNormal__FiP4CRefP6CFrame
 
 // 0x122DE0 BuiltinMatrixTranspose__FiP4CRefP6CFrame
-namespace M_RefOpMatrixTranspose__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct MATRIX4;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -3080,7 +3080,7 @@ CRef *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpMatrixTranspose__FiP4CRefP6CFrame
+} } // namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame
 
 // 0x122E40 BuiltinMatrixInvert__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x122E40
@@ -3119,7 +3119,7 @@ extern "C" CREFV *BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame(CREFV *pref, int 
 }
 
 // 0x122F00 BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame
-namespace M_RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame {
+namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame {
 struct MATRIX4; struct CRef;
 // Script matrix-slerp builtin. Matched by Claude agent (2026-10-17): MulM3 uses the g++ named return value (`return m`),
 // stores each row right after its asm, and also writes a second (dead) M3 copy t, which is the target's 0xB0 slot.
@@ -3177,7 +3177,7 @@ CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
     *(M3 *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * args[2].u.g, normal.q), (M3 *)args[0].u.pv);
     return ref;
 }
-} // namespace M_RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame
 
 // 0x123038 BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame
 /** @sly2-annot addr=0x123038
@@ -3214,7 +3214,7 @@ extern "C" CREFV *BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame(CREFV *pref, 
 }
 
 // 0x1230C8 BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame
-namespace M_RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int TI __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -3237,10 +3237,10 @@ CRef *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, C
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame
+} } // namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame
 
 // 0x123118 BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame
-namespace M_RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame {
+namespace M_BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -3277,10 +3277,10 @@ CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *
     sp->ref.SetF32(g.g);
     return CRef(sp.p);
 }
-} // namespace M_RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame
 
 // 0x123208 BuiltinMatrixLookAt__FiP4CRefP6CFrame
-namespace M_RefOpMatrixLookAt__FiP4CRefP6CFrame {
+namespace M_BuiltinMatrixLookAt__FiP4CRefP6CFrame {
 struct CRef; struct VECTOR; struct MATRIX3; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -3332,10 +3332,10 @@ CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     pmat->mat[0].w = 0.0f;
     return ref;
 }
-} // namespace M_RefOpMatrixLookAt__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixLookAt__FiP4CRefP6CFrame
 
 // 0x1232D0 BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
-namespace M_RefOpMatrixTiltUpright__FiP4CRefP6CFrame {
+namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame {
 struct CRef; struct VECTOR; struct MATRIX3; struct MATRIX4; struct XF;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -3378,10 +3378,10 @@ CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     pmat->pos.w = 1.0f;
     return ref;
 }
-} // namespace M_RefOpMatrixTiltUpright__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
 
 // 0x123380 BuiltinClqEvaluate__FiP4CRefP6CFrame
-namespace M_RefOpClqEvaluate__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *p; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -3406,10 +3406,10 @@ CRef *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpClqEvaluate__FiP4CRefP6CFrame
+} } // namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame
 
 // 0x1233F0 BuiltinClqEvaluateLm__FiP4CRefP6CFrame
-namespace M_RefOpClqEvaluateLm__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct LM;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct LM { float gMin; float gMax; } LM;
@@ -3444,10 +3444,10 @@ CRef *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpClqEvaluateLm__FiP4CRefP6CFrame
+} } // namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame
 
 // 0x123498 BuiltinClqFit__FiP4CRefP6CFrame
-namespace M_RefOpClqFit__FiP4CRefP6CFrame {
+namespace M_BuiltinClqFit__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -3488,10 +3488,10 @@ CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpClqFit__FiP4CRefP6CFrame
+} // namespace M_BuiltinClqFit__FiP4CRefP6CFrame
 
 // 0x1235A8 BuiltinLmLimit__FiP4CRefP6CFrame
-namespace M_RefOpLmLimit__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinLmLimit__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -3516,10 +3516,10 @@ CRef *BuiltinLmLimit__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpLmLimit__FiP4CRefP6CFrame
+} } // namespace M_BuiltinLmLimit__FiP4CRefP6CFrame
 
 // 0x123608 BuiltinLmCheck__FiP4CRefP6CFrame
-namespace M_RefOpLmCheck__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinLmCheck__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -3545,10 +3545,10 @@ CRef *BuiltinLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpLmCheck__FiP4CRefP6CFrame
+} } // namespace M_BuiltinLmCheck__FiP4CRefP6CFrame
 
 // 0x123668 BuiltinFloor__FiP4CRefP6CFrame
-namespace M_RefOpFloor__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFloor__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 /** @sly2-annot addr=0x123668
@@ -3565,10 +3565,10 @@ CRef *BuiltinFloor__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     *(int *)&ret->m_g = (int)g;
     return ret;
 }
-} } // namespace M_RefOpFloor__FiP4CRefP6CFrame
+} } // namespace M_BuiltinFloor__FiP4CRefP6CFrame
 
 // 0x123688 BuiltinCeiling__FiP4CRefP6CFrame
-namespace M_RefOpCeiling__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinCeiling__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 /** @sly2-annot addr=0x123688
@@ -3586,10 +3586,10 @@ CRef *BuiltinCeiling__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     *(int *)&ret->m_g = (int)(g + 1.0f);
     return ret;
 }
-} } // namespace M_RefOpCeiling__FiP4CRefP6CFrame
+} } // namespace M_BuiltinCeiling__FiP4CRefP6CFrame
 
 // 0x1236B0 BuiltinRound__FiP4CRefP6CFrame
-namespace M_RefOpRound__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinRound__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 /** @sly2-annot addr=0x1236B0
@@ -3606,10 +3606,10 @@ CRef *BuiltinRound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     *(int *)&ret->m_g = (int)(g + 0.5f);
     return ret;
 }
-} } // namespace M_RefOpRound__FiP4CRefP6CFrame
+} } // namespace M_BuiltinRound__FiP4CRefP6CFrame
 
 // 0x1236D8 BuiltinTruncate__FiP4CRefP6CFrame
-namespace M_RefOpTruncate__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinTruncate__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 /** @sly2-annot addr=0x1236D8
@@ -3626,10 +3626,10 @@ CRef *BuiltinTruncate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     *(int *)&ret->m_g = (int)g;
     return ret;
 }
-} } // namespace M_RefOpTruncate__FiP4CRefP6CFrame
+} } // namespace M_BuiltinTruncate__FiP4CRefP6CFrame
 
 // 0x1236F8 BuiltinAbs__FiP4CRefP6CFrame
-namespace M_RefOpAbs__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinAbs__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void SetS32__4CRefi(CRef *pref, int n);
@@ -3660,10 +3660,10 @@ CRef *BuiltinAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpAbs__FiP4CRefP6CFrame
+} } // namespace M_BuiltinAbs__FiP4CRefP6CFrame
 
 // 0x123788 BuiltinMaximum__FiP4CRefP6CFrame
-namespace M_RefOpMaximum__FiP4CRefP6CFrame {
+namespace M_BuiltinMaximum__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
 // same shape as BuiltinMinimum (max instead of min): list pointer reuses the args parameter variable
 struct CRef {
@@ -3716,10 +3716,10 @@ CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpMaximum__FiP4CRefP6CFrame
+} // namespace M_BuiltinMaximum__FiP4CRefP6CFrame
 
 // 0x1238B0 BuiltinMinimum__FiP4CRefP6CFrame
-namespace M_RefOpMinimum__FiP4CRefP6CFrame {
+namespace M_BuiltinMinimum__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
 // pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
 struct CRef {
@@ -3772,10 +3772,10 @@ CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     }
     return ref;
 }
-} // namespace M_RefOpMinimum__FiP4CRefP6CFrame
+} // namespace M_BuiltinMinimum__FiP4CRefP6CFrame
 
 // 0x1239D8 BuiltinModulo__FiP4CRefP6CFrame
-namespace M_RefOpModulo__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinModulo__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 /** @sly2-annot addr=0x1239D8
@@ -3792,10 +3792,10 @@ CRef *BuiltinModulo__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     ret->m_tag = r;
     return ret;
 }
-} } // namespace M_RefOpModulo__FiP4CRefP6CFrame
+} } // namespace M_BuiltinModulo__FiP4CRefP6CFrame
 
 // 0x123A08 BuiltinCurrentTime__FiP4CRefP6CFrame
-namespace M_RefOpCurrentTime__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 extern float D_002DDED0;
@@ -3812,7 +3812,7 @@ CRef *BuiltinCurrentTime__FiP4CRefP6CFrame(CRef *ret)
     ret->m_g = D_002DDED0;
     return ret;
 }
-} } // namespace M_RefOpCurrentTime__FiP4CRefP6CFrame
+} } // namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame
 
 // 0x123A28 BuiltinCurrentLevel
 /** @sly2-annot addr=0x123A28
@@ -3965,7 +3965,7 @@ extern "C" CREFV *BuiltinGetDevFlag(CREFV *pref)
 }
 
 // 0x123BD8 BuiltinScheduleCallback__FiP4CRefP6CFrame
-namespace M_RefOpScheduleCallback__FiP4CRefP6CFrame {
+namespace M_BuiltinScheduleCallback__FiP4CRefP6CFrame {
 struct R; struct SPN;
 
 struct OBJ;
@@ -4025,7 +4025,7 @@ CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
     result.SetS32(callback->handle);
     return result;
 }
-} // namespace M_RefOpScheduleCallback__FiP4CRefP6CFrame
+} // namespace M_BuiltinScheduleCallback__FiP4CRefP6CFrame
 
 // 0x123DD8 BuiltinCancelCallback
 /** @sly2-annot addr=0x123DD8
@@ -4046,7 +4046,7 @@ extern "C" CREFV *BuiltinCancelCallback(CREFV *pref, int cref, CREFV *args)
 }
 
 // 0x123E18 BuiltinDeferObjectUpdate__FiP4CRefP6CFrame
-namespace M_RefOpDeferObjectUpdate__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -4077,10 +4077,10 @@ CRef *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpDeferObjectUpdate__FiP4CRefP6CFrame
+} } // namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame
 
 // 0x123EB0 BuiltinObjectOption__FiP4CRefP6CFrame4BIFK
-namespace M_RefOpObjectOption__FiP4CRefP6CFrame4BIFK {
+namespace M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4131,10 +4131,10 @@ CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *
     }
     return ref;
 }
-} // namespace M_RefOpObjectOption__FiP4CRefP6CFrame4BIFK
+} // namespace M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK
 
 // 0x123FB8 BuiltinAddOption__FiP4CRefP6CFrame
-namespace M_RefOpAddO__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinAddOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -4151,10 +4151,10 @@ CRef *BuiltinAddOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
     return ret;
 }
-} } // namespace M_RefOpAddO__FiP4CRefP6CFrame
+} } // namespace M_BuiltinAddOption__FiP4CRefP6CFrame
 
 // 0x123FE8 BuiltinEnsureOption__FiP4CRefP6CFrame
-namespace M_RefOpEnsureO__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -4171,10 +4171,10 @@ CRef *BuiltinEnsureOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, C
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
     return ret;
 }
-} } // namespace M_RefOpEnsureO__FiP4CRefP6CFrame
+} } // namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame
 
 // 0x124018 BuiltinSetOption__FiP4CRefP6CFrame
-namespace M_RefOpSetO__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinSetOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -4191,10 +4191,10 @@ CRef *BuiltinSetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
     return ret;
 }
-} } // namespace M_RefOpSetO__FiP4CRefP6CFrame
+} } // namespace M_BuiltinSetOption__FiP4CRefP6CFrame
 
 // 0x124048 BuiltinGetOption__FiP4CRefP6CFrame
-namespace M_RefOpGetO__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinGetOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
@@ -4211,10 +4211,10 @@ CRef *BuiltinGetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
     return ret;
 }
-} } // namespace M_RefOpGetO__FiP4CRefP6CFrame
+} } // namespace M_BuiltinGetOption__FiP4CRefP6CFrame
 
 // 0x124078 BuildListFromObjects__FiPP2LO
-namespace M_RefPairFromAplo__FiPP2LO {
+namespace M_BuildListFromObjects__FiPP2LO {
 struct CRef; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4261,10 +4261,10 @@ CRef BuildListFromObjects__FiPP2LO(int c, O **apo)
     }
     return ref;
 }
-} // namespace M_RefPairFromAplo__FiPP2LO
+} // namespace M_BuildListFromObjects__FiPP2LO
 
 // 0x124150 BuiltinFindObject__FiP4CRefP6CFrame
-namespace M_RefOpFindObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct LO; struct G;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
@@ -4304,10 +4304,10 @@ CRef *BuiltinFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpFindObject__FiP4CRefP6CFrame
+} } // namespace M_BuiltinFindObject__FiP4CRefP6CFrame
 
 // 0x1241E8 BuiltinFindObjects__FiP4CRefP6CFrame
-namespace M_RefOpFindObjects__FiP4CRefP6CFrame {
+namespace M_BuiltinFindObjects__FiP4CRefP6CFrame {
 struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4356,10 +4356,10 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
-} // namespace M_RefOpFindObjects__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindObjects__FiP4CRefP6CFrame
 
 // 0x1242B8 BuiltinFindObjectsFromOids
-namespace M_RefOpFindObjectsFromOids {
+namespace M_BuiltinFindObjectsFromOids {
 struct SPN; struct SW; struct OW; struct G;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
@@ -4429,10 +4429,10 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     result = CRef((CPair *)list->ref.u.pv);
     return result;
 }
-} // namespace M_RefOpFindObjectsFromOids
+} // namespace M_BuiltinFindObjectsFromOids
 
 // 0x1244E8 BuiltinFindNearestObject__FiP4CRefP6CFrame
-namespace M_RefOpFindNearestObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct LO; struct G;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
@@ -4471,10 +4471,10 @@ CRef *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpFindNearestObject__FiP4CRefP6CFrame
+} } // namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame
 
 // 0x124578 BuiltinFindNearestObjects__FiP4CRefP6CFrame
-namespace M_RefOpFindNearestObjects__FiP4CRefP6CFrame {
+namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame {
 struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4523,10 +4523,10 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
-} // namespace M_RefOpFindNearestObjects__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame
 
 // 0x124640 BuiltinFindWorldObject__FiP4CRefP6CFrame
-namespace M_RefOpFindWorldObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -4550,10 +4550,10 @@ CRef *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRef *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpFindWorldObject__FiP4CRefP6CFrame
+} } // namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame
 
 // 0x124690 BuiltinFindSoundObject
-namespace M_RefOpFindSoundObject { extern "C" {
+namespace M_BuiltinFindSoundObject { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -4582,10 +4582,10 @@ CRef *BuiltinFindSoundObject(CRef *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpFindSoundObject
+} } // namespace M_BuiltinFindSoundObject
 
 // 0x1246E0 BuiltinFindCameraObject__FiP4CRefP6CFrame
-namespace M_RefOpFindCameraObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -4608,10 +4608,10 @@ CRef *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRef *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpFindCameraObject__FiP4CRefP6CFrame
+} } // namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame
 
 // 0x124730 BuiltinFindClassObjects__FiP4CRefP6CFrame
-namespace M_RefOpFindClassObjects__FiP4CRefP6CFrame {
+namespace M_BuiltinFindClassObjects__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4643,10 +4643,10 @@ CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
-} // namespace M_RefOpFindClassObjects__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindClassObjects__FiP4CRefP6CFrame
 
 // 0x1247D8 BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame
-namespace M_RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame {
+namespace M_BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -4687,10 +4687,10 @@ CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     ref = BuildListFromObjects__FiPP2LO(c1, ap1);
     return ref;
 }
-} // namespace M_RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame
 
 // 0x1248B0 BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame
-namespace M_RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame {
+namespace M_BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
@@ -4736,10 +4736,10 @@ CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *ar
     ref = BuildListFromObjects__FiPP2LO(c1, ap1);
     return ref;
 }
-} // namespace M_RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame
 
 // 0x1249A8 BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
-namespace M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
+namespace M_BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
 struct SPN; struct SO; struct LO; struct HIT;
 /* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClipEdgeToObject) vs every SO of each LO in list aref[0].
    pv==0x7B returns a list of (lo pos normal) for all hits, else (lo normal) of the first hit (the original stores &hit.normal there). */
@@ -4845,10 +4845,10 @@ extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, 
     }
     return ref;
 }
-} // namespace M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
+} // namespace M_BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
 
 // 0x124F00 BuiltinHitTestObjects__FiP4CRefP6CFrame
-namespace M_RefOpHitTestObjects__FiP4CRefP6CFrame {
+namespace M_BuiltinHitTestObjects__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4877,10 +4877,10 @@ CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c)
     ref = BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7B, a, b, c);
     return ref;
 }
-} // namespace M_RefOpHitTestObjects__FiP4CRefP6CFrame
+} // namespace M_BuiltinHitTestObjects__FiP4CRefP6CFrame
 
 // 0x124F80 BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame
-namespace M_RefOpHitTestObjectsFirst__FiP4CRefP6CFrame {
+namespace M_BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -4908,10 +4908,10 @@ CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c)
     ref = BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7C, a, b, c);
     return ref;
 }
-} // namespace M_RefOpHitTestObjectsFirst__FiP4CRefP6CFrame
+} // namespace M_BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame
 
 // 0x125000 BuiltinConvertObjectPosition__FiP4CRefP6CFrame
-namespace M_RefOpConvertObjectPosition__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int TI __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -4935,10 +4935,10 @@ CRef *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CR
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpConvertObjectPosition__FiP4CRefP6CFrame
+} } // namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame
 
 // 0x125060 BuiltinConvertObjectVector__FiP4CRefP6CFrame
-namespace M_RefOpConvertObjectVector__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int TI __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
@@ -4966,10 +4966,10 @@ CRef *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpConvertObjectVector__FiP4CRefP6CFrame
+} } // namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame
 
 // 0x1250D8 BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
-namespace M_RefOpConvertObjectMatrix__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -4999,10 +4999,10 @@ CRef *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpConvertObjectMatrix__FiP4CRefP6CFrame
+} } // namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
 
 // 0x125168 BuiltinNearClipCenter__FiP4CRefP6CFrame
-namespace M_RefOpNearClipCenter__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct VECTOR; struct CM;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -5047,10 +5047,10 @@ CRef *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRef *ret)
     }
     return ret;
 }
-} } // namespace M_RefOpNearClipCenter__FiP4CRefP6CFrame
+} } // namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame
 
 // 0x1251E8 BuiltinStartSound__FiP4CRefP6CFrame
-namespace M_RefOpStartSound__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinStartSound__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -5075,10 +5075,10 @@ CRef *BuiltinStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     CRef_ctor_BASIC(ret, p);
     return ret;
 }
-} } // namespace M_RefOpStartSound__FiP4CRefP6CFrame
+} } // namespace M_BuiltinStartSound__FiP4CRefP6CFrame
 
 // 0x125248 BuiltinStartRumble__FiP4CRefP6CFrame
-namespace M_RefOpStartRumble__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinStartRumble__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -5108,7 +5108,7 @@ CRef *BuiltinStartRumble__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpStartRumble__FiP4CRefP6CFrame
+} } // namespace M_BuiltinStartRumble__FiP4CRefP6CFrame
 
 // 0x1252D0 FillAsFromPair
 namespace M_FillAsFromPair { extern "C" {
@@ -5151,7 +5151,7 @@ void FillAsFromPair(NODE *pnode, ARR *parr)
 } } // namespace M_FillAsFromPair
 
 // 0x125398 BuiltinGetSaveVar
-namespace M_RefOpGetSaveVar {
+namespace M_BuiltinGetSaveVar {
 struct CRef; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -5191,10 +5191,10 @@ CRef BuiltinGetSaveVar(void *pbasic, CRef *args)
     ref = RefGetSaveVar(&g_sw.savevars, &x, D_003D4A60);
     return ref;
 }
-} // namespace M_RefOpGetSaveVar
+} // namespace M_BuiltinGetSaveVar
 
 // 0x125450 BuiltinSetSaveVar
-namespace M_RefOpSetSaveVar {
+namespace M_BuiltinSetSaveVar {
 struct CRef; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -5230,10 +5230,10 @@ CRef BuiltinSetSaveVar(void *pbasic, CRef *args)
     ref = RefSetSaveVar(&g_sw.savevars, &x, &args[1], D_003D4A60);
     return ref;
 }
-} // namespace M_RefOpSetSaveVar
+} // namespace M_BuiltinSetSaveVar
 
 // 0x125510 BuiltinFindBindingOrNoop
-namespace M_RefOpFindBindingOrNoop {
+namespace M_BuiltinFindBindingOrNoop {
 struct CRef; struct O; class CFrame;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -5282,7 +5282,7 @@ CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, O *frame)
 unbound:
     return CRef(BIFK_NOOP, TAGK_BIFK);
 }
-} // namespace M_RefOpFindBindingOrNoop
+} // namespace M_BuiltinFindBindingOrNoop
 
 // 0x1255C0 BuiltinNoop
 /** @sly2-annot addr=0x1255C0
@@ -5392,7 +5392,7 @@ CRef *BuiltinFindHintboxObject(CRef *ret)
 } } // namespace M_func_00125690
 
 // 0x1256E0 BuiltinIsPowerUpAcquired
-namespace M_RefOpIsPowerUpAcquired { extern "C" {
+namespace M_BuiltinIsPowerUpAcquired { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -5417,10 +5417,10 @@ CRef *BuiltinIsPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpIsPowerUpAcquired
+} } // namespace M_BuiltinIsPowerUpAcquired
 
 // 0x125738 BuiltinSetPowerUpAcquired
-namespace M_RefOpSetPowerUpAcquired { extern "C" {
+namespace M_BuiltinSetPowerUpAcquired { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
@@ -5446,7 +5446,7 @@ CRef *BuiltinSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_RefOpSetPowerUpAcquired
+} } // namespace M_BuiltinSetPowerUpAcquired
 
 
 
@@ -5455,7 +5455,7 @@ CRef *BuiltinSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 // definition: its callers reach it only through asm-labelled declarations of other views, and g++ 2.95 emits an
 // inline free function only when a call or reference names that function itself (an asm label naming its symbol does
 // not count, nor does taking its address inside an unemitted inline); calling it through the real declaration
-// changes the RefOp* code. Its declaration gives it what g++ gives an inline function's out-of-line copy: a weak
+// changes the Builtin* code. Its declaration gives it what g++ gives an inline function's out-of-line copy: a weak
 // symbol in .gnu.linkonce.t.<symbol>.
 // 0x256CE8 __8VU_FLOATf
 /** @sly2-annot addr=0x256CE8

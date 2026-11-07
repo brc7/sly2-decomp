@@ -89,7 +89,7 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 }
 
 //////// 0x11E290 SplitVectorAlongAxis
-namespace V_func_0011E290 {
+namespace V_SplitVectorAlongAxis {
 typedef int qword __attribute__((mode(TI)));
 /** @sly2-annot addr=0x11E290
  * Purpose: Scalar projection of a on b; optionally returns parallel and perpendicular components
@@ -244,7 +244,7 @@ extern "C" qword GetNormalVector(qword v)
 }
 
 //////// 0x11E4B0 AngleBetweenVectors
-namespace V_RadBetweenVectors {
+namespace V_AngleBetweenVectors {
 /* AngleBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -522,7 +522,7 @@ extern "C" qword LimitVectorLength(qword v, float maxLength)
 }
 
 //////// 0x11EA60 ClosestPointsOfLines
-namespace V_func_0011EA60 {
+namespace V_ClosestPointsOfLines {
 /* ClosestPointsOfLines (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -619,7 +619,7 @@ extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *o
 }
 
 //////// 0x11EBB0 IntersectRayTriangle
-namespace V_FIntersectRayTriangle {
+namespace V_IntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
 static inline qword Cross(qword a, qword b)
@@ -988,7 +988,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 }
 
 //////// 0x11F198 GetCosineBetweenVectors
-namespace V_func_0011F198 {
+namespace V_GetCosineBetweenVectors {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline float Len(qword v)
