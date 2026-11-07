@@ -2133,7 +2133,7 @@ void SetBhvguardMode(BHVGUARD *p, BHVGUARDREC *f);
 // being hit, else patrol.
 void ResumeBhvguard(BHVGUARD *behavior) {
     BHVGUARDREC f;   /* cleared by its constructor (memset) */
-    if (IsBasicDerivedFrom__FP5BASIC3CID((STEPGUARD *)behavior->owner, CID_DIMITRI) && ((DIMITRI *)behavior->owner)->fleeCount > 0) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID((STEPGUARD *)behavior->owner, CID_DIMITRI) && ((DIMITRI *)behavior->owner)->routeCount > 0) {
         f.kind = GUARD_MODE_FLEE;
         f.arg.object = GetHeroPo(&D_003DD490);
     } else if (((STEPGUARD *)behavior->owner)->specialState == 0x15) {

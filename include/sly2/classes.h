@@ -434,11 +434,29 @@ struct CID122 : LO
 };
 typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 
+/* One of Dimitri's escape routes (0x24 bytes, tu_1553F0.cpp): two ends with a volume around each, given as oids by
+   the Splice option AddDimitriRoute and resolved by PostDimitriLoad. */
+struct DIMITRIROUTE
+{
+    int oidFirst;           /* +0x00 */
+    LO *first;              /* +0x04 */
+    int oidFirstVolume;     /* +0x08 */
+    VOL *firstVolume;       /* +0x0C the volume around the first end */
+    int oidSecond;          /* +0x10 */
+    LO *second;             /* +0x14 */
+    int oidSecondVolume;    /* +0x18 */
+    VOL *secondVolume;      /* +0x1C */
+    int isUsed;             /* +0x20 */
+};
+typedef char assert_DIMITRIROUTE_size[sizeof(DIMITRIROUTE) == 0x24 ? 1 : -1];
+
 /* 59 DIMITRI (0x1020); vtable 0x2CDE40, 89 slots */
 struct DIMITRI : GUARD
 {
-    int fleeCount;          /* +0x1010 > 0: ResumeBhvguard flees from the hero (inferred) */
-    int unknown1014[3];
+    int routeCount;         /* +0x1010 escape routes (> 0: ResumeBhvguard flees from the hero) */
+    DIMITRIROUTE *routes;   /* +0x1014 (LoadDimitriFromBrx allocates 32) */
+    int hitPointsAtLastEscape; /* +0x1018 hit points when the last escape started */
+    int unknown101C;
     virtual void PostLoad() __asm__("PostDimitriLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetDimitriClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDimitriFromBrx");   /* slot 14 */
@@ -448,9 +466,10 @@ typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 /* 180 BHV180 (0x40): DIMITRI flee; vtable 0x2CDDC0, 14 slots */
 struct BHV180 : BHV
 {
-    char pad30[0x38 - 0x30];
+    int state;              /* +0x30 0 run the attack behaviour on the route, 1 fight */
+    float stateTime;        /* +0x34 */
     LO *target;             /* +0x38 [S] what Dimitri escapes from (SetBhvguardMode: the mode's object) */
-    char pad3C[0x40 - 0x3C];
+    DIMITRIROUTE *route;    /* +0x3C the chosen route */
     virtual void OnPush() __asm__("InitBhvDimitriEscape");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvDimitriEscape");   /* slot 8 */
@@ -462,7 +481,17 @@ typedef char assert_BHV180_size[sizeof(BHV180) == 0x40 ? 1 : -1];
 /* 181 BHV181 (0x60): DIMITRI flee; vtable 0x2CDD40, 14 slots */
 struct BHV181 : BHV
 {
-    char pad30[0x60 - 0x30];
+    int state;              /* +0x30 0 turn, 1 face the target, 2 walk to the route end, 3 attack */
+    float stateTime;        /* +0x34 */
+    DIMITRIROUTE *route;    /* +0x38 */
+    float unknown3C;
+    LO *goal;               /* +0x40 the route end to go to (ChooseBhvDimitriAttackRouteEnd) */
+    float lastAttackTime;   /* +0x44 */
+    float arrivalTime;      /* +0x48 */
+    LO *target;             /* +0x4C */
+    int attackCount;        /* +0x50 */
+    CID120 *attack;         /* +0x54 the chosen attack */
+    int unknown58[2];
     virtual void Start() __asm__("StartBhvDimitriAttack");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvDimitriAttack");   /* slot 7 */
