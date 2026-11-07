@@ -504,27 +504,25 @@ void BHVIDLE::OnPush()
 
 // 0x174FF8 StartBhvidle
 namespace M_StartBhvidle { extern "C" {
-struct T; struct S;
+
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x58]; int xfRolesIdle; int xfRolesUngrounded; char pad2[0xF64 - 0x60]; void *detector; char pad3[0xFCC - 0xF68]; int handsOffLookAt; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; int lookAt; };
-void StartBhvanim(struct S *p);
-int StepguardHasSgf(struct T *t, int n);
-void SetStepguardAttack(struct T *t, int a, int b, qword q);
+void StartBhvanim(BHVIDLE *p);
+int StepguardHasSgf(STEPGUARD *t, int n);
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
 void ResetDetectorTargets(void *p);
-void SetXfRole(struct T *t, int a, int b);
+void SetXfRole(STEPGUARD *t, XF *a, int b);
 // 0x174FF8: BHVIDLE vtable slot 8 (Start): BHVANIM Start; with the hands-off flag (1) also cancels the attack and
 // resets the detector targets; sets the XF roles.
-void StartBhvidle(struct S *behavior) {
+void StartBhvidle(BHVIDLE *behavior) {
     StartBhvanim(behavior);
-    if (StepguardHasSgf(behavior->guard, 1)) {
-        SetStepguardAttack(behavior->guard, 0, 0, D_002A2DD0);
-        ResetDetectorTargets(behavior->guard->detector);
-        if (behavior->guard->handsOffLookAt) behavior->lookAt = behavior->guard->handsOffLookAt;
+    if (StepguardHasSgf(((STEPGUARD *)behavior->owner), 1)) {
+        SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
+        ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
+        if (((STEPGUARD *)behavior->owner)->handsOffLookAt) behavior->lookAt = ((STEPGUARD *)behavior->owner)->handsOffLookAt;
     }
-    SetXfRole(behavior->guard, behavior->guard->xfRolesIdle, 1);
-    if (!behavior->lookAt) SetXfRole(behavior->guard, behavior->guard->xfRolesUngrounded, 1);
+    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown58, 1);
+    if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 1);
 }
 } } // namespace M_StartBhvidle
 

@@ -221,7 +221,7 @@ struct STEPGUARD : public STEP
       float specialStartTime; /* +0xFC0 [S] */
       void *scale;          /* +0xFC4 [S] a scale record (value at +0x20) */
       int isHandsOff;       /* +0xFC8 [S] (IsStepguardHandsOff) */
-      int handsOffLookAt;   /* +0xFCC [S] */
+      LO *handsOffLookAt;   /* +0xFCC [S] object faced while hands-off (BHVIDLE lookAt) */
       GUARDMOVER mover;     /* +0xFD0 [S] movement arbiter */
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint capabilityFlags; /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
