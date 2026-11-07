@@ -173,7 +173,6 @@ struct G {
     char pad10[0xC]; OPT *playTimeVar;
     char pad20[0x38]; OPT *episodePlayTimeVars[9];
 };
-struct CLOCK { float time, deltaTime; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
@@ -244,9 +243,6 @@ typedef char G_CurrentJob[FIELD_OFFSET(G,currentJob)==0x3B0C?1:-1];
 typedef char G_PlayTimeVar[FIELD_OFFSET(G,playTimeVar)==0x3B1C?1:-1];
 typedef char G_EpisodePlayTimeVars[FIELD_OFFSET(G,episodePlayTimeVars)==0x3B58?1:-1];
 typedef char G_EpisodeCount[sizeof(((G*)0)->episodePlayTimeVars)/sizeof(OPT*)==9?1:-1];
-typedef char Clock_Size[sizeof(CLOCK)==8?1:-1];
-typedef char Clock_Time[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char Clock_Delta[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 } // namespace M_UpdateGameTimers
 #undef FIELD_OFFSET
 
