@@ -279,8 +279,7 @@ void StartHackDying(struct S *p, int n) { if (p->isDying) return; p->isDying = 1
 
 namespace M_func_0017F5F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void *pfn; };
-struct S { char pad[0xC]; struct VTE *vt; char pad2[0x178]; int blastDamage; int pad3; void *explosion; };
+struct S : PO { char pad180[0x188 - 0x180]; int blastDamage; int pad3; void *explosion; };
 struct F { struct S *source; int unknown4; int zapKind; int zapFlags; int damage; int pad[3]; qword position; qword velocity; qword pad2[2]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(void *p);
@@ -291,19 +290,17 @@ void ExplodeWithDefaults(void *p);
 void KillHack(struct S *hack, int n) {
     if (n && hack->blastDamage) {
         struct F f;
-        struct VTE *e;
         func_002333B4(&f, 0, sizeof(f));
         f.zapKind = n;
         f.source = hack;
         f.position = GetLoWorldPos(hack);
-        e = &hack->vt[0x21];
-        f.velocity = ((qword (*)(void *))e->pfn)((char *)hack + e->d);
+        f.velocity = hack->GetVelocity();
         f.zapFlags = 0x100;
         f.damage = -hack->blastDamage;
         DeliverZapToSo(&f);
     }
     if (hack->explosion) ExplodeWithDefaults(hack->explosion);
-    { struct VTE *e = &hack->vt[9]; ((void (*)(void *))e->pfn)((char *)hack + e->d); }
+    hack->Remove();
 }
 } } // namespace M_func_0017F5F8
 
@@ -1401,32 +1398,26 @@ void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
 } } // namespace M_func_001816E8
 
 namespace M_func_00181728 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
-struct S { char pad[0xC]; struct VTE *vt; char p2[0x1B8]; void *ship; };
+struct S : PO { char pad180[0x1C8 - 0x180]; void *ship; };
 void SetHackshipState(void *p, int n);
 // SetCid48State(singleton x1C8, 1) and own vt call. (inferred)
 void ActivateHackshipFromHacklock(struct S *ship)
 {
-    struct VTE *e;
     SetHackshipState(ship->ship, 1);
     ship->ship = 0;
-    e = &ship->vt[3];
-    e->pfn((char *)ship + e->d, 6, 0, 0, 0, 0);
+    ship->HandleSpliceEvent(6, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181728
 
 namespace M_func_00181780 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
-struct S { char pad[0xC]; struct VTE *vt; char p2[0x1F0]; int a; int b; };
+struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
 extern char D_003DD490[];
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
 // TriggerRsmg on its table. (inferred)
 void TriggerHacklockRsmg(struct S *lock)
 {
-    struct VTE *e;
     TriggerRsmg(D_003DD490, lock->a, &lock->b, lock, 1);
-    e = &lock->vt[3];
-    e->pfn((char *)lock + e->d, 5, 0, 0, 0, 0);
+    lock->HandleSpliceEvent(5, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181780
 
