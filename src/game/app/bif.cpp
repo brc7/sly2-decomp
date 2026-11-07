@@ -97,10 +97,12 @@ struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
@@ -111,6 +113,7 @@ struct CRef {
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
 
+// The node a script reference points to.
 static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
 // Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion).
 CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
@@ -183,10 +186,12 @@ struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
@@ -197,6 +202,7 @@ struct CRef {
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args);
 
+// The node a script reference points to.
 static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
 // Splice builtin "-": n-ary subtract, same shape as +.
 CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
@@ -269,25 +275,32 @@ struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
 struct VU_FLOAT {
     qword q;
+    // Carry a float's bits in a GPR qword (no instruction).
     VU_FLOAT(const float &f) { __asm__("" : "=r"(q) : "0"(*(const int *)&f)); }
+    // The value as an FPU float.
     float F() const { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 };
 struct VU_FLOAT_M {
     qword q;
+    // Move a float's bits into a GPR qword (mfc1).
     VU_FLOAT_M(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
+    // The value as an FPU float.
     float F() const { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 };
 struct VU_FLOAT_V {
     qword q;
+    // Broadcast the float f (by its bits) into a VU0 register.
     VU_FLOAT_V(const float &f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(*(const int *)&f)); }
 };
 struct VU_FLOAT_I {
     qword q;
+    // Broadcast int bits into a VU0 register.
     VU_FLOAT_I(int n) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(n)); }
 };
 struct VU_FLOAT_D { qword q; };
 struct VU_FLOAT_F {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT_F(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
 struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
@@ -297,10 +310,12 @@ extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 extern "C" { MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b); }
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
@@ -312,6 +327,7 @@ struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
 extern "C" CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args);
 
+// Return *pv scaled by g.
 static inline qword MulVF(const qword *pv, float g)
 {
     VU_FLOAT_F s(g);
@@ -319,6 +335,7 @@ static inline qword MulVF(const qword *pv, float g)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(s.q), "j"(*pv));
     return r;
 }
+// Return the vector the reference points to, scaled by g.
 static inline qword MulVFR(const CRef *pr, float g)
 {
     VU_FLOAT_F s(g);
@@ -326,6 +343,7 @@ static inline qword MulVFR(const CRef *pr, float g)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(s.q), "j"(*(const qword *)pr->u.pv));
     return r;
 }
+// Scale *pq in place by g (g's bits pinned to $17).
 static inline void MulVectorR(qword *pq, const float &g)
 {
     register int bits __asm__("$17") = *(const int *)&g; /* pin */
@@ -335,6 +353,7 @@ static inline void MulVectorR(qword *pq, const float &g)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(s.q), "j"(*pq));
     *pq = r;
 }
+// Scale *pq in place by g.
 static inline void MulVector(qword *pq, float g)
 {
     VU_FLOAT_F s(g);
@@ -342,6 +361,7 @@ static inline void MulVector(qword *pq, float g)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(s.q), "j"(a));
     *pq = r;
 }
+// Scale all 16 entries of *pm by d.
 static inline void MulMatrixM(MATRIX4 *pm, float d)
 {
     MATRIX4 mat;
@@ -350,6 +370,7 @@ static inline void MulMatrixM(MATRIX4 *pm, float d)
         mat.af[i] = g * pm->af[i];
     *pm = mat;
 }
+// Scale all 16 entries of *pm by d.
 static inline void MulMatrix(MATRIX4 *pm, const float &d)
 {
     MATRIX4 mat;
@@ -359,6 +380,7 @@ static inline void MulMatrix(MATRIX4 *pm, const float &d)
         mat.af[i] = g * pm->af[i];
     *pm = mat;
 }
+// Transform the point *pv by the 4x4 matrix pm.
 static inline qword MulMatVec(const MATRIX4 *pm, const qword *pv)
 {
     const qword *aq = (const qword *)pm;
@@ -368,6 +390,7 @@ static inline qword MulMatVec(const MATRIX4 *pm, const qword *pv)
     return r;
 }
 
+// Scale the x and y of p by d.
 static inline void Mul2(V8 *p, float d)
 {
     p->x *= d;
@@ -498,7 +521,9 @@ struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
 struct VU_FLOAT {
     qword q;
+    // Move a float's bits into a GPR qword (mfc1).
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
+    // The value as an FPU float.
     float F() const { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 };
 struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
@@ -507,10 +532,12 @@ qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
@@ -522,8 +549,10 @@ extern "C" CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 struct VU_FLOAT_V {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT_V(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
+// Divide *pq in place by d.
 static inline void DivVector(qword *pq, float d)
 {
     VU_FLOAT_V s(1.0f / d);
@@ -532,6 +561,7 @@ static inline void DivVector(qword *pq, float d)
     *pq = r;
 }
 
+// Scale all 16 entries of *pm by g.
 static inline void ScaleM(MATRIX4 *pm, float g)
 {
     MATRIX4 mat;
@@ -539,6 +569,7 @@ static inline void ScaleM(MATRIX4 *pm, float g)
         mat.af[i] = g * pm->af[i];
     *pm = mat;
 }
+// Divide all 16 entries of *pm by d.
 static inline void DivMatrix(MATRIX4 *pm, float d)
 {
     MATRIX4 mat;
@@ -759,6 +790,7 @@ struct CRef;
 // plus one empty asm whose only job is extra uses of f (f is live from entry on the default path, so its priority was below the return pointer's).
 struct CRef {
     int m_tagk; int m_tag;
+    // Script reference with value n and tag kind tagk.
     CRef(int n, int tagk) { m_tag = n; m_tagk = tagk; }
 };
 extern "C" CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args);
@@ -798,11 +830,14 @@ struct NODE;
 struct CRef {
     int m_tagk;
     union { int n; void *pv; NODE *pnode; struct W *pw; struct X *px; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference with value n and tag kind tagk.
     CRef(int n, int tagk) { u.n = n; m_tagk = tagk; }
     CRef(NODE *p) __asm__("CRef_ctor_CPair");                  /* 0x129480 */
     CRef(const CRef &r);            /* 0x1291A8 */
     void Decref() __asm__("Decref__4CRef");                  /* 0x129EC8 */
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef"); /* 0x129658 */
 };
@@ -1038,7 +1073,9 @@ struct CRef;
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Uninitialised script reference.
     CRef() {}
+    // Script reference holding a bool.
     CRef(bool f) { m_tagk = TAGK_BOOL; m_tag = f; }
     CRef(const CRef &);
 };
@@ -1115,7 +1152,9 @@ struct CRef;
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Uninitialised script reference.
     CRef() {}
+    // Script reference holding a bool.
     CRef(bool f) { m_tagk = TAGK_BOOL; m_tag = f; }
     CRef(const CRef &);
 };
@@ -1179,7 +1218,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
@@ -1323,11 +1364,14 @@ namespace M_BuiltinIsMember__FiP4CRefP6CFrame {
 struct CRef; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference holding a bool.
     CRef(bool f) { m_tagk = TAGK_BOOL; u.n = f; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -1382,13 +1426,17 @@ int RandomIntInRange__Fii(int nLo, int nHi);
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    // Access the held pair.
     CPair *operator->() { return p; }
     int pad[3];
 };
 extern "C" CRef BuiltinShuffle(void *pbasic, CRef *args);
+// Assign pn to a pair pointer.
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
+// Insert the pair held by sp at the front of the list psp.
 static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->next = psp->p; *psp = sp.p; }
 // Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element changes; Nil entry
 // pins tail. Scripts use it to reshuffle dialogue line lists.
@@ -1464,10 +1512,13 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
+    // Empty pair pointer.
     SP() { p = 0; }
     SP(const SP &);
+    // Drop the held pair's reference, deleting it on the last one.
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
@@ -1518,10 +1569,14 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Uninitialised pair pointer.
     SPN() {}
+    // Hold pn (adds a reference).
     SPN(CPair *pn) { Set(pn); }
     SPN(const SPN &);
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
@@ -1562,7 +1617,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1614,16 +1671,21 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
+    // Empty pair pointer.
     SP() { p = 0; }
     SP(const SP &);
+    // Drop the held pair's reference, deleting it on the last one.
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1682,7 +1744,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn);
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
@@ -1722,7 +1786,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
@@ -1742,11 +1808,14 @@ namespace M_BuiltinVector__FiP4CRefP6CFrame {
 struct CRef; struct VECTOR; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -1802,11 +1871,14 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -2005,11 +2077,14 @@ namespace M_BuiltinRandom__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g) __asm__("SetF32__4CReff");
@@ -2154,6 +2229,7 @@ namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
+// Dot product of the xyz parts of *pa and *pb, as raw float bits.
 static __inline__ int DotProduct3(qword *pa, qword *pb)
 {
     register qword a __asm__("vf1") = *pa;
@@ -2206,6 +2282,7 @@ namespace M_BuiltinVectorLength__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
+// Length of the xyz part of *pa, as raw float bits.
 static __inline__ int VectorLength3(qword *pa)
 {
     register qword a __asm__("vf1") = *pa;
@@ -2237,11 +2314,14 @@ struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g) __asm__("SetF32__4CReff");
@@ -2251,6 +2331,7 @@ extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
+// Distance between *pa and *pb.
 static inline float SDist(qword *pa, qword *pb)
 {
     register qword a __asm__("vf1") = *pa;
@@ -2290,11 +2371,14 @@ struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g) __asm__("SetF32__4CReff");
@@ -2304,6 +2388,7 @@ extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
+// Squared distance between *pa and *pb.
 static inline float SDistSq(qword *pa, qword *pb)
 {
     register qword a __asm__("vf1") = *pa;
@@ -2339,17 +2424,20 @@ struct CRef; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; qword *pq; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const qword *pq) __asm__("CRef_ctor_VECTOR");
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
 extern "C" CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -2357,6 +2445,7 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Normalize *pv in place, or replace it with *pdef when its length is below 1e-4.
 static __inline__ void Normalize(qword *pv, qword *pdef)
 {
     __asm__("" : "+r"(pdef));
@@ -2372,6 +2461,7 @@ static __inline__ void Normalize(qword *pv, qword *pdef)
         *pv = rn;
     }
 }
+// Normalize *pv in place, or replace it with *pdef when its length is below 1e-4.
 static __inline__ void Normalize1(qword *pv, qword *pdef)
 {
     qword c;
@@ -2461,11 +2551,14 @@ struct CRef; union VQ; struct XFM; struct O; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -2513,7 +2606,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" float AngleBetweenVectors(qword a, qword b, void *pvec);
@@ -2589,11 +2684,14 @@ typedef union { qword q; float g; } UF;
 struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
 };
 extern "C" {
@@ -2602,6 +2700,7 @@ void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword
 M3 BuildAxisAngleRotationMatrix(float rad, qword axis);
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 }
+// Return the 3x3 matrix product a * *pb.
 static inline M3 MulM3(const M3 &a, M3 *pb) return m
 {
     M3 t;
@@ -2688,7 +2787,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
@@ -2714,11 +2815,14 @@ struct CRef; struct VECTOR; struct MATRIX3; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -2730,6 +2834,7 @@ extern "C" {
 MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
+// Return *pb - *pa.
 static inline qword SubtractVectors(qword *pb, qword *pa)
 {
     register qword a __asm__("vf2") = *pa;
@@ -2763,11 +2868,14 @@ struct CRef; struct VECTOR; struct MATRIX3; struct MATRIX4; struct XF;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -2847,11 +2955,14 @@ namespace M_BuiltinClqFit__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -3012,11 +3123,14 @@ struct CRef; struct NODE;
 // same shape as BuiltinMinimum (max instead of min): list pointer reuses the args parameter variable
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
@@ -3062,11 +3176,14 @@ struct CRef; struct NODE;
 // pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
@@ -3228,7 +3345,9 @@ R *ScheduleSwSpliceCallback(G *pg, int n, CPair *pnode, float t);
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args);
@@ -3306,11 +3425,14 @@ namespace M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
@@ -3404,11 +3526,14 @@ namespace M_BuildListFromObjects__FiPP2LO {
 struct CRef; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -3485,10 +3610,12 @@ namespace M_BuiltinFindObjects__FiP4CRefP6CFrame {
 struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -3539,7 +3666,9 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held pair.
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -3629,10 +3758,12 @@ namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame {
 struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -3735,9 +3866,11 @@ namespace M_BuiltinFindClassObjects__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -3765,11 +3898,14 @@ struct CRef;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
@@ -3803,11 +3939,14 @@ struct CRef;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
@@ -3857,9 +3996,12 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Hold pn (adds a reference).
     SPN(CPair *pn) { Set(pn); }
+    // Drop the held pair's reference, deleting it on the last one.
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    // Access the held pair.
     CPair *operator->() { return p; }
     int pad;
 };
@@ -3947,9 +4089,11 @@ namespace M_BuiltinHitTestObjects__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -3971,9 +4115,11 @@ namespace M_BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame {
 struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -4069,6 +4215,7 @@ typedef struct VECTOR { float x, y, z, w; } __attribute__((aligned(16))) VECTOR;
 typedef struct CM { char pad[0x4C]; float g; char pad2[0x10]; qword mat[4]; } CM;
 extern CM D_002DDF40;
 CRef *CRef_ctor(CRef *pref, qword v);
+// Set *pv to (x, y, z) with a packed 128-bit store.
 static __inline__ void SetVector(VECTOR *pv, float x, float y, float z)
 {
     register qword t __asm__("$6");
@@ -4183,10 +4330,12 @@ namespace M_BuiltinGetSaveVar {
 struct CRef; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -4214,10 +4363,12 @@ namespace M_BuiltinSetSaveVar {
 struct CRef; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
@@ -4245,12 +4396,16 @@ namespace M_BuiltinFindBindingOrNoop {
 struct CRef; struct O; class CFrame;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
+    // Script reference with value n and tag kind tagk.
     CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }
     CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref();
     void InitTag(int tagk);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -4418,6 +4573,7 @@ inline VU_VECTOR::VU_VECTOR(const VECTORQ &vec)
 // 0x256D28 __ml__FG8VU_FLOATG9VU_VECTOR
 // Scales a VU vector by a VU float (out-of-line inline copy of the operator).
 qword operator*(VU_FLOAT f, VU_VECTOR v) __attribute__((weak, section(".gnu.linkonce.t.__ml__FG8VU_FLOATG9VU_VECTOR")));
+// Return v scaled by f.
 qword operator*(VU_FLOAT f, VU_VECTOR v)
 {
     qword r;
