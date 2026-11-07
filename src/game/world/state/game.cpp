@@ -381,11 +381,7 @@ void BroadcastGameEvent(void *pv, int n, void *p)
 
 namespace M_HandleGameEvent {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-struct P{
- char pad0[0x10];int savedOids[3];char pad1[0x64-0x1C];P*startTask;
- char pad2[0xF4-0x68];int stateSource,stateRequester;char pad3[0x11A8-0xFC];void*widget;
-};
-struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
+struct P{char pad[0x11A8];void*widget;};   /* a step player (its booty widget) */
 struct CHECK{int words[16];};
 struct LEASE;
 struct CRef;
@@ -398,33 +394,31 @@ extern SAVE D_002E65E0;
  int FindSwObjectsByClass(SW*,int,int,P*,int,P**);
  int GetCurrentBootyEntryId(void*);
  void*ClearStepplayerBootySave(P*,int);
- void InitGame(P*);
+ void InitGame(GAME*);
  void ApplyPendingSaveData();
  void ReloadSaveSlots(SAVE*);
  int GetCurrentWorld();
  void ApplyGsSettings(void*);
- void RestoreTasksAfterLoad(P*);
+ void RestoreTasksAfterLoad(GAME*);
  LEASE*STACKSCOPE_ctor(LEASE*);
  void STACKSCOPE_ctor_1AE4A0(LEASE*,int) __asm__("_$_10STACKSCOPE");
- void SortTasksTopologically(int*,P***);
- void RestoreTaskState(P*);
- void UpdateTaskSaveVars(P*);
- P*FindSwObject__FP2SWi3OIDP2LO(SW*,int,int,P*);
- void SetSwJobCur(SW*,P*);
- void SetSwTaskCur(SW*,P*);
- void SetSwTaskPending(SW*,P*);
- void BeginJob(P*);
- void BeginTask(P*);
- void AnnounceTaskJob(P*);
+ void SortTasksTopologically(int*,TASK***);
+ void RestoreTaskState(TASK*);
+ void UpdateTaskSaveVars(TASK*);
+ LO*FindSwObject__FP2SWi3OIDP2LO(SW*,int,int,LO*);
+ void SetSwJobCur(SW*,LO*);
+ void SetSwTaskCur(SW*,LO*);
+ void BeginTask(TASK*);
+ void AnnounceTaskJob(TASK*);
  void WipeToWorldWarp(SW*,CHECK*,int,int,int,int);
  CRef*__4CRefRC4CRef(CRef*,const CRef*);
  void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-/* Sets a task's state source / requester for a scope (the CONTEXT pointer is the unused JOB-layout half). */
+/* Sets a task's state source / requester for a scope (the job half is unused here). */
 struct OVERRIDE {
-    CONTEXT *context; P *object; int oldSource, oldRequester;
-    OVERRIDE(P *p, int source, int requester) : context(0), object(p)
+    JOB *context; TASK *object; int oldSource, oldRequester;
+    OVERRIDE(TASK *p, int source, int requester) : context(0), object(p)
     {
         if (object) {
             oldSource = object->stateSource; object->stateSource = source;
@@ -449,13 +443,7 @@ typedef char CHECK_Size[sizeof(CHECK)==64?1:-1];
 typedef char OVERRIDE_Size[sizeof(OVERRIDE)==16?1:-1];
 typedef char CRef_Size[sizeof(CRef)==8?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
-typedef char P_selections_Offset[FIELD_OFFSET(P,savedOids)==16?1:-1];
-typedef char P_startTask_Offset[FIELD_OFFSET(P,startTask)==100?1:-1];
-typedef char P_stateSource_Offset[FIELD_OFFSET(P,stateSource)==244?1:-1];
-typedef char P_stateRequester_Offset[FIELD_OFFSET(P,stateRequester)==248?1:-1];
 typedef char P_widget_Offset[FIELD_OFFSET(P,widget)==4520?1:-1];
-typedef char CONTEXT_stateSource_Offset[FIELD_OFFSET(CONTEXT,stateSource)==240?1:-1];
-typedef char CONTEXT_stateRequester_Offset[FIELD_OFFSET(CONTEXT,stateRequester)==244?1:-1];
 typedef char CHECK_words_Offset[FIELD_OFFSET(CHECK,words)==0?1:-1];
 typedef char OVERRIDE_context_Offset[FIELD_OFFSET(OVERRIDE,context)==0?1:-1];
 typedef char OVERRIDE_object_Offset[FIELD_OFFSET(OVERRIDE,object)==4?1:-1];
@@ -466,7 +454,7 @@ typedef char CRef_g_Offset[FIELD_OFFSET(CRef,g)==4?1:-1];
 // The game record's event handler: world teardown (1) saves widget state, reset (3) applies the pending save data and
 // reloads the slots, load (4) restores the tasks, 5 re-resolves the current job, task and pending task from the saved
 // oids.
-extern "C" void HandleGameEvent(P *game, int action)
+extern "C" void HandleGameEvent(GAME *game, int action)
 {
     switch (action) {
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
@@ -511,29 +499,29 @@ extern "C" void HandleGameEvent(P *game, int action)
         int i = 0;
         LEASE mark;
         int count;
-        P **tasks;
+        TASK **tasks;
         SortTasksTopologically(&count, &tasks);
         for (; i < count; i++) {
-            P *task = tasks[i];
+            TASK *task = tasks[i];
             OVERRIDE restoring(task, STATE_SOURCE_RESTORE, 0);
             RestoreTaskState(task);
         }
         SW *world = &D_003DD490;
-        SetSwJobCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[0], 0));
-        SetSwTaskCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[1], 0));
-        SetSwTaskPending(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[2], 0));
+        SetSwJobCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->oidJobCur, 0));
+        SetSwTaskCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->oidTaskCur, 0));
+        SetSwTaskPending(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->oidTaskPending, 0));
         if (world->currentJob)
-            BeginJob(((P *)world->currentJob));
+            BeginJob((JOB *)world->currentJob);
         if (world->currentTask)
-            BeginTask(((P *)world->currentTask));
+            BeginTask((TASK *)world->currentTask);
         if (world->transition.flags & 4) {
             if (world->pendingTask)
-                AnnounceTaskJob(((P *)world->pendingTask));
+                AnnounceTaskJob((TASK *)world->pendingTask);
             else if (world->currentJob)
-                AnnounceTaskJob(((P *)world->currentJob)->startTask);
+                AnnounceTaskJob(((JOB *)world->currentJob)->ptaskStart);
         }
         for (int j = 0; j < count; j++) {
-            P *task = tasks[j];
+            TASK *task = tasks[j];
             OVERRIDE gameplay(task, STATE_SOURCE_GAMEPLAY, 0);
             UpdateTaskSaveVars(task);
         }
