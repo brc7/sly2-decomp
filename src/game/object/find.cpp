@@ -63,57 +63,24 @@ int FindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCo
 int GetSourceIndexFromProxyId(int id);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-/** @sly2-annot addr=0x15E380
- * Purpose: Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF
- * Info: proposed name GetSwOidBucket (T1); TU find
- * Notes: runtime: oid hash SW+0x38, bucket (oid*0x95675)&0x1FF confirmed (8146 objects)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r3_1539A8+runtime
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/object-model.md#8-source-files,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Returns the world's hash bucket for an oid (512 buckets, hash (oid * 0x95675) & 0x1FF).
 extern "C" SLV *GetSwOidBucket(char *world, int oid)
 {
     return &((SLV *)(world + 0x38))[(oid * 0x95675) & 0x1FF];
 }
 
-/** @sly2-annot addr=0x15E3A8
- * Purpose: Returns the per-class object DL of the SW (SW+0x3038 + 8*cid)
- * Info: proposed name GetSwClassList (T1); TU find
- * Notes: runtime: per-class SL at SW+0x3038 + 12*cid (stride 12, SL {first,last,ibNext}; NOT 8) | runtime:
- *   per-class list stride at SW+0x3038 is 12 bytes
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources:
- *   r3_1539A8+runtime+runtime-corrected
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
-// Returns the world's list of objects of a class.
+// Returns the world's list of objects of a class. The class lists are 12 bytes apart from SW+0x3038.
 extern "C" SLV *GetSwClassList(char *world, int cid)
 {
     return &((SLV *)(world + 0x3038))[cid];
 }
 
-/** @sly2-annot addr=0x15E3C0
- * Purpose: Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash)
- * Info: proposed name GetSwProxyRefBucket (T1); TU find
- * Notes: verifier PLAUSIBLE: -> GetSwProxyRefBucket | names_v2 C proposed PdlFromSwOid__FP2SW3OID (0.438)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // Returns the bucket for an oid in the world's second hash table (proxy references, same hash).
 extern "C" SLV *GetSwProxyRefBucket(char *world, int oid)
 {
     return &((SLV *)(world + 0x1838))[(oid * 0x95675) & 0x1FF];
 }
 
-/** @sly2-annot addr=0x15E3E8
- * Purpose: Tests one candidate LO against the search flags/context and records it in the result array
- *   (best-distance logic)
- * Info: proposed name MatchSwObject (T1); TU find
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // Tests one candidate object against the search flags, the context object and the context's proxy chain, and records
 // it in the result array (scope 4 keeps only the matches nearest the context in the hierarchy).
 extern "C" void MatchSwObject(void *world, LO *candidate, CH *candidateChain, unsigned int flags, LO *context, CH *contextChain, int maxCount, int *count,
@@ -191,16 +158,6 @@ extern "C" void MatchSwObject(void *world, LO *candidate, CH *candidateChain, un
     }
 }
 
-/** @sly2-annot addr=0x15E650
- * Purpose: Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra
- *   arg 0)
- * Info: proposed name FindSwObjects (T1); TU find
- * Notes: COLLISION: CploFindSwObjects already used (same name proposed for 0x15E678); renamed to
- *   FindSwObjects
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // Finds up to maxCount objects with an oid, relative to a context object; returns the count (the context's own proxy
 // chain is used).
 extern "C" int FindSwObjects(void *world, int flags, int oid, LO *context, int maxCount, LO **results)
@@ -208,14 +165,6 @@ extern "C" int FindSwObjects(void *world, int flags, int oid, LO *context, int m
     return FindSwObjectsInProxyScope(world, flags, oid, context, 0, maxCount, results);
 }
 
-/** @sly2-annot addr=0x15E678
- * Purpose: Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter
- *   between ploContext and cploMax
- * Info: proposed name CploFindSwObjects (T1); TU find
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // The object search: walks the oid hash bucket (and the proxy-ref table) and matches each candidate (MatchSwObject).
 // The extra Sly 2 parameter is the proxy chain to match against (default: the context's, or the world's root):
 // objects inside proxy copies are found only from the same copy unless flag 0x400 is set. Returns the number found
@@ -282,29 +231,12 @@ extern "C" int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *co
     return count;
 }
 
-/** @sly2-annot addr=0x15E938
- * Purpose: Returns the first LO matching grffso/oid relative to a context LO (or NULL)
- * Info: proposed name FindSwObject (T1); TU find
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/object-model.md#6-finding-objects, docs/engine/object-model.md#9-key-functions,
- *   docs/engine/overview.md#6-subsystem-map
- * @end-sly2-annot */
 // Returns the first object matching the flags and oid relative to a context object, or null.
 LO *FindSwObject(SW *world, int flags, OID oid, LO *context)
 {
     return FindSwObjectInProxyScope(world, flags, oid, context, 0);
 }
 
-/** @sly2-annot addr=0x15E958
- * Purpose: FindSwObject overload with the extra Sly 2 parameter: FindSwObjectsInProxyScope(grffso|0x200, ..., 1,
- *   &plo)
- * Info: proposed name FindSwObjectInProxyScope (T1); TU find
- * Notes: names_v2 v1 proposed FUN_0015c188 (0.000) | COLLISION: FindSwObject already used (same name
- *   proposed for 0x15E938); renamed to FindSwObjectInProxyScope
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // FindSwObject with an explicit proxy chain: the first match, or null.
 extern "C" LO *FindSwObjectInProxyScope(SW *world, int flags, int oid, LO *context, void *contextChain)
 {
@@ -314,15 +246,6 @@ extern "C" LO *FindSwObjectInProxyScope(SW *world, int flags, int oid, LO *conte
     return result;
 }
 
-/** @sly2-annot addr=0x15E988
- * Purpose: Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches
- *   cidAncestor
- * Info: proposed name IsCidDerivedFrom (T1); TU find
- * Notes: names_v2 v1 proposed FUN_0015c1c0 (0.000)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // True when class cid is cidBase or derives from it (walks the class-descriptor parent chain).
 extern "C" int IsCidDerivedFrom(int cid, int cidBase)
 {
@@ -333,13 +256,6 @@ extern "C" int IsCidDerivedFrom(int cid, int cidBase)
     return 0;
 }
 
-/** @sly2-annot addr=0x15E9C8
- * Purpose: Collects up to cploMax LOs of a class (or derived) relative to a context
- * Info: proposed name FindSwObjectsByClass (T1); TU find
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/camera.md#5-key-functions, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
 // Collects up to maxCount objects of a class (or a derived class) relative to a context object; returns the count.
 extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results)
 {
@@ -429,13 +345,6 @@ extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context
     return count;
 }
 
-/** @sly2-annot addr=0x15ED78
- * Purpose: First LO of a class: FindSwObjectsByClass(grffso|0x200, cid, ctx, 1, &plo)
- * Info: proposed name FindSwObjectByClass (T1); TU find
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
- * @end-sly2-annot */
 // Returns the first object of a class relative to a context object, or null.
 LO *FindSwObjectByClass(SW *world, int flags, CID cid, LO *context)
 {

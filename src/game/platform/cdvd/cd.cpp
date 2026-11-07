@@ -46,12 +46,6 @@ void HideScreen52D(void *p);
 int IsPs2DvdInDrive();
 int IsCdCommandComplete(int wait);
 
-/** @sly2-annot addr=0x14B7F8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
- *   docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Rewrites a path in place into ISO 9660 form: upper case, ';1' version appended to a file name, separators
 // become NULs (so the path turns into consecutive component strings), names cut to 8.3 and characters outside
 // [A-Z0-9] replaced by '_'. Returns the number of components.
@@ -120,14 +114,8 @@ int CpchzTokenizePath(char *path)
 // 0x14B9B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $2, $2, 0xb8");
 
-/** @sly2-annot addr=0x14B9C0
- * Purpose: sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source
- * Info: proposed name IsPs2DvdInDrive (T1); TU cd
- * Confidence: high [T1 1.00] - evidence: static naming pass; sources: names_v2:A+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in D_002BD4C4.
+// Identical to Sly 1's source.
 int IsPs2DvdInDrive()
 {
     int diskType = sceCdGetDiskType();
@@ -137,11 +125,6 @@ int IsPs2DvdInDrive()
     return D_002BD4C4 == 0x14;
 }
 
-/** @sly2-annot addr=0x14BA00
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Puts the drive in DVD media mode (sceCdMmode(2)) if the last disc seen was a PS2 DVD.
 void SetCdMmode()
 {
@@ -150,11 +133,6 @@ void SetCdMmode()
     }
 }
 
-/** @sly2-annot addr=0x14BA30
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/overview.md#1-boot, docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Boot step for the CD layer; empty in the retail build.
 void StartupCd()
 {
@@ -174,12 +152,6 @@ static inline unsigned int ComputeCrc32(unsigned char *data, int size)
     return crc;
 }
 
-/** @sly2-annot addr=0x14BA38
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/engine/overview.md#2-the-frame-loop-exact-order, docs/formats/disc-records.md#2-the-read-path
- * @end-sly2-annot */
 // Per-frame disc-identity poll (state D_002BD4C0: 3 idle, 1 read, 2 wait). Idle: if the sound manager exists
 // and the disc is not a PS2 DVD, pause the disc users (func_001DD6C8 on D_003DA4F0, inferred) and go to read. Read: once
 // func_001DD780 allows it, start reading the identity sector (LSN 0x132AA3 + 0xCA0) into D_002DD680. Wait: when
@@ -233,11 +205,6 @@ extern const char r_D_002A4FB0[] __asm__("D_002A4FB0") = "No Disc";
 extern const char r_D_002A4FB8[] __asm__("D_002A4FB8") = "Unknown";
 extern const char r_D_002A4FC0[] __asm__("D_002A4FC0") = "    %#x = %s\n";
 }
-/** @sly2-annot addr=0x14BBB0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Builds the device path for a game file: ISO-tokenizes `path`, rejoins the components with a backslash and
 // prefixes "cdrom0:" when useCdromPrefix is set (otherwise a bare "\PATH" for the host). Writes to `out`.
 void CdPath(char *out, char *path, int useCdromPrefix)
@@ -255,17 +222,9 @@ void CdPath(char *out, char *path, int useCdromPrefix)
     sprintf(out, "%s\\%s", useCdromPrefix ? "cdrom0:" : "", isoPath);
 }
 
-/** @sly2-annot addr=0x14BC78
- * Purpose: Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg
- *   choosing the read mode
- * Info: proposed name ReadCdDirect (T1); TU cd
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: names_v2:A+verdicts_A1
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/engine/core-library.md#7-key-functions, docs/formats/disc-records.md#2-the-read-path
- * @end-sly2-annot */
 // Starts an asynchronous read of sectorCount sectors at `sector` into `buffer`, retrying until the drive
 // accepts the command (sceCdRead returns 1); readMode 1 selects spindle mode 0, anything else mode 1. Records the
-// last result and error in D_002DDE80 / D_002DDE84.
+// last result and error in D_002DDE80 / D_002DDE84. Sly 1: ReadCdDirect, plus the read-mode argument.
 extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void *buffer, int readMode)
 {
     void *cdReadMode;
@@ -279,12 +238,8 @@ extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void
     } while (1);
 }
 
-/** @sly2-annot addr=0x14BD30
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
- * @end-sly2-annot */
 // Returns whether the pending CD command has completed (wait != 0 blocks until it has).
+// (Sly 1-derived name: FCdCompleted.)
 int IsCdCommandComplete(int wait)
 {
     return sceCdSync(wait == 0) == 0;

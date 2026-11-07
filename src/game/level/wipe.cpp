@@ -67,13 +67,6 @@ static inline int IsSameFileRecord(FILEREC *first, FILEREC *second)
     return (first->aw[2] ^ first->aw[14]) == (second->aw[2] ^ second->aw[14]);
 }
 
-/** @sly2-annot addr=0x22B050
- * Purpose: wipes fields, state -1, SetWipeWipes(0)
- * Info: proposed name InitWipe (T1); TU wipe
- * Notes: agent qualifier: WIPE ctor
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
- * @end-sly2-annot */
 // Initializes the wipe (the constructor of the global D_00443740): clears it and sets the idle state.
 extern "C" WIPE *InitWipe(WIPE *wipe)
 {
@@ -84,12 +77,6 @@ extern "C" WIPE *InitWipe(WIPE *wipe)
     return wipe;
 }
 
-/** @sly2-annot addr=0x22B090
- * Purpose: state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint)
- * Info: proposed name SetWipeWipes (T1); TU wipe
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
- * @end-sly2-annot */
 // Changes the wipe state (0 idle, 1 wiping out, 2 wiping in, 3 transition pending): idle clears the stored transition
 // and hides the widget, 1 and 2 play the widget's out/in labels (0x311/0x30F), 3 hands the stored transition to the
 // world (SetSwTransition).
@@ -119,13 +106,6 @@ extern "C" void SetWipeWipes(WIPE *wipe, int newState)
     }
 }
 
-/** @sly2-annot addr=0x22B198
- * Purpose: advances wipe state machine (1->3, 2->0 when sprite done)
- * Info: proposed name UpdateWipe (T1); TU wipe
- * Notes: runtime5b: WIPE k 0..3 state machine observed (S56)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
- * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
- * @end-sly2-annot */
 // Advances the wipe state machine each frame: wiping out becomes "transition pending" and wiping in becomes idle once
 // the wipe widget's animation has finished.
 extern "C" void UpdateWipe(WIPE *wipe)
@@ -146,12 +126,6 @@ extern "C" void UpdateWipe(WIPE *wipe)
     SetWipeWipes(wipe, newState);
 }
 
-/** @sly2-annot addr=0x22B220
- * Purpose: starts a transition to a level/warp, comparing checkpoints
- * Info: proposed name ActivateWipe (T2); TU wipe
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
- * @end-sly2-annot */
 // Starts a wiped level transition: marks whether the destination is the current level, finds the wipe widget by oid
 // and stores the transition so it is handed to SetSwTransition after the wipe-out; without a widget the transition
 // starts at once. Ignored while a wipe-out or a pending transition is in progress. (Sly 1: ActivateWipe.)
@@ -183,13 +157,6 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
     SetWipeWipes(wipe, newState);
 }
 
-/** @sly2-annot addr=0x22B420
- * Purpose: sets wipes 0 or 2 by world lookup
- * Info: TU wipe
- * Notes: descriptive only: wipe from level transition | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/world-sw.md#2-loading-a-level
- * @end-sly2-annot */
 // After a level load, finds the wipe widget again and continues with the wipe-in when a transition was pending;
 // otherwise returns the wipe to idle. Called at the end of the world load (sw.cpp). (inferred)
 extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
@@ -202,23 +169,9 @@ extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
     SetWipeWipes(wipe, WIPE_IN);
 }
 
-/** @sly2-annot addr=0x22B490
- * Purpose: Request a level transition: build a TRANS {flags, CHK of target level (default current), warp
- *   args}; mark "same level" (flags|=2); if wipek != -1 ActivateWipe(g_wipe,&trans,wipek,1) else
- *   SetSwTransition directly
- * Info: proposed name WipeToWorldWarp (T1); TU wipe
- * Notes: top50_round (0.75): Sly 1 wipe.h WipeToWorldWarp(world, oidWarp, wipek) does the same (build TRANS,
- *   ActivateWipe). Callers: CheatWarpEpisode/CheatResetEpisode, FailJob, GoToTask, StartTaskByOid,
- *   PlayGameFromGs, RunNextBootStep, PauseItemRet | runtime5b: transition request =
- *   WipeToWorldWarp(GetWorldEntry(7), 0x189, ..., 0x30A) from WIDGET131 (S55/S56)
- * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); Sly 1 / Lilly reference; semantic review;
- *   sources: r8_21BB88+top50_round+runtime
- * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,
- *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue
- * @end-sly2-annot */
 // Requests a level transition: builds a TRANS for the target level (the current one when filerec is null) with the
 // warp arguments, marks "same level", then starts a wipe (when a wipe widget oid is given) or the transition directly.
-// The common entry point for warps, exits, cheats, job failure and the boot queue.
+// The common entry point for warps, exits, cheats, job failure and the boot queue. Same as Sly 1's WipeToWorldWarp.
 extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int warpContextOid, int flags, int wipeWidgetOid)
 {
     TRANS trans;

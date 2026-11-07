@@ -34,14 +34,7 @@ CSwHeapG D_002DD590;
 // (inlined, 7 instructions) and the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/** @sly2-annot addr=0x116918
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name AllocZeroedFromHeap__FP4HEAPii (EXISTING); TU heap
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/core-library.md#core-library-memory-containers-math-streams-cd-threads-text,
- *   docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files
- * @end-sly2-annot */
-// Allocates `size` bytes from `heap` at `alignment` and zero-fills them.
+// Allocates `size` bytes from `heap` at `alignment` and zero-fills them. (Sly 1-derived name: PvAllocClear.)
 void *AllocZeroedFromHeap(HEAP *heap, int size, int alignment)
 {
     void *block = heap->Alloc(size, alignment);
@@ -49,11 +42,6 @@ void *AllocZeroedFromHeap(HEAP *heap, int size, int alignment)
     return block;
 }
 
-/** @sly2-annot addr=0x116970
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Allocates `size` bytes from `heap` at `alignment` and copies `source` into them.
 void *AllocCopyFromHeap(HEAP *heap, int size, void *source, int alignment)
 {
@@ -62,24 +50,12 @@ void *AllocCopyFromHeap(HEAP *heap, int size, void *source, int alignment)
     return block;
 }
 
-/** @sly2-annot addr=0x1169D8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Duplicates a NUL-terminated string into `heap`.
 char *PchzAllocCopy(HEAP *heap, char *str, int alignment)
 {
     return (char *)AllocCopyFromHeap(heap, strlen(str) + 1, str, alignment);
 }
 
-/** @sly2-annot addr=0x116A30
- * Purpose: Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from
- *   the SW bump allocator 0x1AE1D0 (alignment arg ignored)
- * Info: proposed name CSwHeap_Alloc (T1); class CSwHeap; TU heap
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // CSwHeap::Alloc: allocates from the SW (level) heap, always 16-aligned (the alignment argument is ignored).
 void *CSwHeap::Alloc(int size, int alignment)   /* key function: CSwHeap's vtable comes out here */
 {
@@ -89,14 +65,6 @@ void *CSwHeap::Alloc(int size, int alignment)   /* key function: CSwHeap's vtabl
     return AllocFromWorldHeap(&request);
 }
 
-/** @sly2-annot addr=0x116A58
- * Purpose: vtable slot 2: ignores old pointer, re-dispatches to slot-1 Alloc with alignment = this->+4
- *   unless it is -1
- * Info: proposed name CSwHeap_Realloc (T1); class CSwHeap; TU heap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // CSwHeap::Realloc: allocates a new block (at the heap's own alignment unless it is -1, then the caller's); the
 // old block is neither copied nor freed.
 extern "C" void *CSwHeap_Realloc(CSwHeap *swHeap, void *block, int size, int alignment)
@@ -104,35 +72,17 @@ extern "C" void *CSwHeap_Realloc(CSwHeap *swHeap, void *block, int size, int ali
     return ((HEAP *)swHeap)->Alloc(size, swHeap->cbAlign != -1 ? swHeap->cbAlign : alignment);
 }
 
-/** @sly2-annot addr=0x116A90
- * Purpose: vtable slot 3: no-op (bump heap never frees)
- * Info: proposed name CSwHeap_Free (T1); class CSwHeap; TU heap
- * Notes: names_v2 C proposed SetCptn__FP4CPTNPv (0.668)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // CSwHeap::Free: does nothing (the SW heap is released with the level).
 extern "C" void CSwHeap_Free(CSwHeap *swHeap, void *block)
 {
 }
 
-/** @sly2-annot addr=0x116A98
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name __11CLinearHeapiPUc (EXISTING); TU heap
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Sets up a linear heap over the caller's buffer of maxSize bytes, empty.
 CLinearHeap::CLinearHeap(int maxSize, byte *buffer) : m_cbMax(maxSize), m_pbBase(buffer)
 {
     m_ib = 0;
 }
 
-/** @sly2-annot addr=0x116AB8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Bump-allocates size bytes (rounded up to 16) from the buffer; null when it is full. The alignment is ignored.
 void *CLinearHeap::Alloc(int size, int alignment)
 {
@@ -144,24 +94,12 @@ void *CLinearHeap::Alloc(int size, int alignment)
     return m_pbBase + offset;
 }
 
-/** @sly2-annot addr=0x116AF8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Allocates a new block; the old one is neither copied nor freed.
 void *CLinearHeap::Realloc(void *block, int size, int alignment)
 {
     return Alloc(size, alignment);
 }
 
-/** @sly2-annot addr=0x116B28
- * Purpose: vtable slot 3 of CLinearHeap: no-op
- * Info: proposed name CLinearHeap_Free (T1); class CLinearHeap; TU heap
- * Notes: names_v2 C proposed RevokeCptn__FP4CPTNPv (0.668)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
- * @end-sly2-annot */
 // Does nothing (a linear heap frees only by being discarded).
 void CLinearHeap::Free(void *block)
 {

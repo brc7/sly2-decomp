@@ -190,13 +190,6 @@ struct OIDPMF
 };
 
 
-/** @sly2-annot addr=0x13E368
- * Purpose: Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found
- * Info: proposed name FindSwLocalizedString (T1); TU brx
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#9-source-files, docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Returns the localized string with the given id from the world's string table, or "" when id is -1 or not found.
 char *FindSwLocalizedString(SW *world, int id)
 {
@@ -209,18 +202,6 @@ char *FindSwLocalizedString(SW *world, int id)
     return (char *)D_002A4BE0;
 }
 
-/** @sly2-annot addr=0x13E3C8
- * Purpose: Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from
- *   isplice; append to SW oid and cid hash lists; vt7 Init; vt11 if fInWorld; vt23 if frozen-list member;
- *   record in SW load list (+0x39E4)
- * Info: proposed name CreateLo (T1); TU brx
- * Notes: runtime: links into SW oid hash + per-class list confirmed
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/object-model.md#3-creation-hierarchy-and-removal,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/overview.md#3-world--level-lifecycle
- * @end-sly2-annot */
 // Creates an object of class cid: allocates it through the class descriptor, sets parent, oid and Splice frame, links
 // it into the world's oid and class lists, runs Init (slot 7) and the in-world callbacks, and records it in the
 // current load collector. The general object factory.
@@ -244,18 +225,8 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
     return plo;
 }
 
-/** @sly2-annot addr=0x13E510
- * Purpose: Clone object: CreateLo(GetClassInfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for
- *   SO also clones children via CloneLoWithParent)
- * Info: proposed name CloneLoWithParent (T1); TU brx
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.93] - evidence: semantic review; sources: r2_131F70+parse-verified
- * See: docs/engine/object-model.md#3-creation-hierarchy-and-removal,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
- *   docs/engine/world-sw.md#10-key-functions
- * @end-sly2-annot */
 // Clones an object under a new parent: a new object of the same class and oid, then CloneHierarchy (slot 40), which for
-// an SO also clones the children.
+// an SO also clones the children. Layout parse-verified: a parser following it reads every byte of 4 levels.
 LO *CloneLoWithParent(LO *plo, SO *psoParent)
 {
     CLASSINFO *pclassinfo;
@@ -267,12 +238,6 @@ LO *CloneLoWithParent(LO *plo, SO *psoParent)
     return ploNew;
 }
 
-/** @sly2-annot addr=0x13E590
- * Purpose: LORUN callback: *(OID-resolved LO*)(plo + ib) = FindSwObject(g_sw, 4, oid, plo)
- * Info: proposed name PostLoadOidField (T1); TU brx
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // Deferred post-load callback: resolves a stored oid to an object (FindSwObject relative to the object) and writes the
 // pointer into the object's field.
 void PostLoadOidField(LO *plo, void *pv)
@@ -281,13 +246,6 @@ void PostLoadOidField(LO *plo, void *pv)
     *(LO **)((char *)plo + poidfield->ib) = FindSwObject(&D_003DD490, 4, poidfield->oid, plo);
 }
 
-/** @sly2-annot addr=0x13E5E0
- * Purpose: LORUN callback: finds object by oid (FindSwObject mode 4) and calls the stored
- *   pointer-to-member setter with it
- * Info: proposed name PostLoadOidSetter (T1); TU brx
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // Deferred post-load callback: resolves a stored oid to an object and calls the stored member-function setter with it.
 void PostLoadOidSetter(LO *plo, void *pv)
 {
@@ -296,19 +254,9 @@ void PostLoadOidSetter(LO *plo, void *pv)
 }
 
 /* RefFromBrx: one typed value of a method option's argument list as a CRef (returned through the hidden pointer). */
-/** @sly2-annot addr=0x13E690
- * Purpose: Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23
- *   S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else null tag 0x24
- * Info: proposed name RefFromBrx (T1); TU brx
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels;
- *   METHOD option argument reader (2.2-2.8k method options per level now parsed)
- * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70+parse-verified
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
- *   docs/formats/world-file.md#37-options-of-g_sw-and-g_cm-func_0013f810---func_0013e818
- * @end-sly2-annot */
 // Reads one typed option argument from the level stream into a CRef by object type (bool, float, ints, vectors, 2D
 // vectors, object ids, ...; unknown types give the null tag). (Sly 1: RefFromBrx.)
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *stream)
 {
     float ag[3];
@@ -402,21 +350,9 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 // the idx > 0 ? ... : ... conditional that gives the bgtz in the game); the record arms are switches (jump tables 0x2A4C50 / 0x2A4CB0 / 0x2A4BF0).
 // See re/notes/decomp-compiler-quirks.md sections 31, 37 and 41 for everything tried.
 void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, CBinaryInputStream *stream) __asm__("LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream");
-/** @sly2-annot addr=0x13E818
- * Purpose: Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs
- *   deferred to LORUN)
- * Info: proposed name LoadOptionFromBrx (T1); TU brx
- * Notes: names_v2 C proposed LoadGlobsetFromBrx__FP7GLOBSETP18CBinaryInputStreamP3ALO (0.638) | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels; per-option value
- *   reader by otyp
- * Confidence: high [T1 0.97] - evidence: semantic review; static naming pass; sources:
- *   r2_131F70+parse-verified
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
- *   docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // Reads one option value from the level stream and applies it through its g_aeopid record (method call, direct member
 // or setter); object-id references are deferred to post-load callbacks.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, CBinaryInputStream *stream)
 {
     int fNever = 0;
@@ -742,17 +678,8 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
     }
 }
 
-/** @sly2-annot addr=0x13F810
- * Purpose: Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf &
- *   0x2580, pbis)
- * Info: proposed name LoadOptionsFromBrx (T1); TU brx
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels;
- *   reads every object option list (LEVEL_FORMAT 3.1)
- * Confidence: high [T1 0.97] - evidence: semantic review; sources: r2_131F70+parse-verified
- * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#5-objects-and-scripts,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
- * @end-sly2-annot */
 // Reads an object's option list: option ids (S16) until a negative one, each applied with LoadOptionFromBrx.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream)
 {
     int eopid;
@@ -763,13 +690,6 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream)
     }
 }
 
-/** @sly2-annot addr=0x13F888
- * Purpose: CLoadCollectorArray ctor: vptr(+0)=D_002CBE50, cMax=c=0, a=0
- * Info: proposed name CLoadCollectorArray_ctor (T1); class CLoadCollectorArray; TU brx
- * Notes: mangled dropped (base does not match final name): __19CLoadCollectorArray
- * Confidence: high [T1 0.88] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // CLoadCollectorArray constructor: an empty growable array of loaded objects.
 extern "C" CLoadCollectorArray *CLoadCollectorArray_ctor(CLoadCollectorArray *plca)
 {
@@ -780,12 +700,6 @@ extern "C" CLoadCollectorArray *CLoadCollectorArray_ctor(CLoadCollectorArray *pl
     return plca;
 }
 
-/** @sly2-annot addr=0x13F8A8
- * Purpose: Append c LO* to growable array (capacity doubles, min 32, PvAllocStack 0x1AE318 + CopyAb)
- * Info: proposed name CLoadCollectorArray_Add (T1); class CLoadCollectorArray; TU brx
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // Appends objects to the collector's array, doubling its capacity (at least 32) when full.
 void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
 {
@@ -809,14 +723,6 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
     c += cAdd;
 }
 
-/** @sly2-annot addr=0x13F990
- * Purpose: Sets 4-bit LO field at +0x28 bits 48..51 (Lilly nUnk48) on plo and, if plo is an SO (cid 0x30
- *   range), recursively on its children (+0x64 list, +0x24 next)
- * Info: proposed name SetLoNUnk48Hierarchy (T2); TU brx
- * Notes: v2: demoted to T2 (placeholder token in name: Unk)
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // Sets the 4-bit field at bits 48..51 of the object's flag word, and recursively on the children of an SO. Used by the
 // proxy collector. (inferred: the field's meaning is not known.)
 extern "C" void SetLoTagHierarchy(LO *plo, int n)
@@ -830,13 +736,6 @@ extern "C" void SetLoTagHierarchy(LO *plo, int n)
     }
 }
 
-/** @sly2-annot addr=0x13FA30
- * Purpose: Collector used for k=-1/-2 objects: per object vt10 SetParent(0,0,0), SetLoNUnk48Hierarchy(x4),
- *   and if x8!=-1 vt25 SetIdProxy(x8,1)
- * Info: proposed name CLoadCollectorProxy_Add (T1); class CLoadCollectorProxy; TU brx
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
- * @end-sly2-annot */
 // The proxy collector's Add: detaches each loaded object from any parent, sets its 4-bit tag field and, when the
 // collector has a proxy id, registers that id on the object (slot 25).
 void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollectorProxy's vtable comes out here */
@@ -853,14 +752,6 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
     }
 }
 
-/** @sly2-annot addr=0x13FAD0
- * Purpose: True if global D_003E1110 == -1 or appears in the object's S16 filter list
- * Info: proposed name IsCurrentLevelInList (T1); TU brx
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#loadswobjectsfrombrx-0x13fb40-matched,
- *   docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
- *   docs/formats/meshes-scene.md#devtools-findings-v3-2026-11-01
- * @end-sly2-annot */
 // True when no load filter is active (GetCurrentLevelIndex() = g_sw.nLoadFilter, D_003E1110, is -1) or it is in the list.
 int IsCurrentLevelInList(int c, short *aid)
 {
@@ -881,19 +772,9 @@ int IsCurrentLevelInList(int c, short *aid)
 /* LoadSwObjectsFromBrx (Claude agent, laneC11 2026-10-23): matched from wip v3. One commented register pin (pbis in
    s5). The plo1->unk50 = 1 store is written in both arms of `if (cid == 0x84)`: gcc cross-jumps them and leaves the
    dead `li v1,0x84` the target has. */
-/** @sly2-annot addr=0x13FB40
- * Purpose: Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload
- *   via vt14 LoadFromBrx}, proxies (IsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped
- *   by cb
- * Info: proposed name LoadSwObjectsFromBrx (T1); TU brx
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.97] - evidence: semantic review; sources: r2_131F70+parse-verified
- * See: docs/engine/object-model.md#9-key-functions, docs/engine/overview.md#3-world--level-lifecycle,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
- * @end-sly2-annot */
 // Reads an object list from the level stream: per object a kind, an optional filter list, cid, oid, Splice index and
 // payload size; creates the object and calls its LoadFromBrx (slot 14). Proxies go through LoadProxyFromBrx and
-// filtered-out objects are skipped by size.
+// filtered-out objects are skipped by size. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadCollector *plcParent)
 {
     register CBinaryInputStream *stream asm("$21") = pbisArg; /* register pin (Claude agent): target keeps pbis in s5 */

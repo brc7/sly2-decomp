@@ -21,28 +21,12 @@ void Shutdown__t6CGcObj1Z8CSidebag();
 void Shutdown__t6CGcObj1Z7CMethod();
 }
 
-/** @sly2-annot addr=0x12AE18
- * Purpose: Sets Splice-active flag D_002DD5B8 = 1
- * Info: proposed name StartupSplice (T1); TU spliceutils
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources:
- *   r1_116918+verdicts_tu_r1r2+verdicts_B
- * See: docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#spliceutils-0x12ae18-0x12b0e8,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // Marks the Splice VM as running (D_002DD5B8 = 1).
 extern "C" void StartupSplice()
 {
       D_002DD5B8 = 1;
 }
 
-/** @sly2-annot addr=0x12AE28
- * Purpose: Clears D_002DD5B8 and shuts down/reset the 6 splice splotheaps (0x257E88..0x257FC8) + 0x11CDB8
- * Info: proposed name ShutdownSplice (T1); TU spliceutils
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#spliceutils-0x12ae18-0x12b0e8,
- *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
 // Shuts the Splice VM down: clears the running flag, shuts down the six node pools and resets the five value-box
 // heaps.
 extern "C" void ShutdownSplice()

@@ -67,16 +67,6 @@ CRef GetOptionRecordValue(void *pv, PVREC *record) __asm__("GetOptionRecordValue
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptionRecordValue");
 CRef SetValuesFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
 
-/** @sly2-annot addr=0x1FFCF8
- * Purpose: Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id;
- *   return its record
- * Info: proposed name FindOptionRecord (T1); TU spliceobj
- * Notes: names_v2 B proposed RefGetObjectList__FP5BASIC4OTYPPFPv_v (0.885)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verify_side
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Finds the option record for option id opid in the object's class option table (binary search); null when absent.
 extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
 {
@@ -99,13 +89,6 @@ extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
    code's. Match notes: the getter is called through the typed PMF members without a cast (see sly2/eopid.h);
    `CRef ref;` is a plain store of -1; the method pointer is constructed from the new method (CRefPtr(T *) calls Attach;
    CRefPtr() clears, so a default construction and a separate Attach would add a store); the matrix pointer is read once. */
-/** @sly2-annot addr=0x1FFD98
- * Purpose: Splice value of an object option (method, direct member or getter; by type
- *   bool/float/vector/matrix/int/clq/lm/smp)
- * Info: proposed name GetOptionRecordValue (T1); TU spliceobj
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verify_side
- * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Returns an object option as a Splice value: calls the getter method, reads the member directly or calls the
 // getter, converting by type (bool, float, vector, matrix, int, clq, lm, smp, object).
 CRef GetOptionRecordValue(void *pv, PVREC *record)
@@ -250,13 +233,6 @@ CRef GetOptionRecordValue(void *pv, PVREC *record)
    reference (tag 0x24). grf bit 0x10: the member is written directly through SetValuesFromSplice (which converts the
    value to the record's type); else the setter gets the value by type (int and float coerced, the other payloads
    passed as they are). */
-/** @sly2-annot addr=0x200598
- * Purpose: Setter twin: write a Splice value into an object option
- * Info: proposed name SetOptionRecordValue (T1); TU spliceobj
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Writes a Splice value into an object option (method, direct member or setter, converting by type).
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
 {
@@ -348,14 +324,6 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
     return ref;
 }
 
-/** @sly2-annot addr=0x200BA0
- * Purpose: Option id <=0x4D0: GetOptionRecordValue(FindOptionRecord); else sidebag binding
- * Info: proposed name GetBasicOption (T1); TU spliceobj
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r7_1F8DD8+verdicts_A2+names_v2-signature(verified)
- * See: docs/formats/splice-scripts.md#3-names,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Splice option get: built-in options (id <= 0x4D0) through their option record, others from the object's sidebag.
 CRef GetBasicOption(BASIC *object, int optionId)
 {
@@ -367,12 +335,8 @@ CRef GetBasicOption(BASIC *object, int optionId)
     return ref;
 }
 
-/** @sly2-annot addr=0x200C28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Splice option set: built-in options through their record, others into the sidebag binding.
+// (Sly 1-derived name: RefSetOption.)
 CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     if (optionId < 0x4D1)
@@ -380,24 +344,16 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
     return object->psidebag->AssignSidebagBinding(optionId, pref);
 }
 
-/** @sly2-annot addr=0x200CA8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Adds an option value: for built-in options a call of the record's add form, else a new sidebag binding.
+// (Sly 1-derived name: RefAddOption.)
 CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
     return CSidebag_AddBinding(object->psidebag, optionId, pref);
 }
 
-/** @sly2-annot addr=0x200D10
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Sets an option only when it has no value yet (built-in or sidebag); the EnsureLoSidebag* helpers use it.
+// (Sly 1-derived name: RefEnsureOption.)
 CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
@@ -445,12 +401,6 @@ inline SPPAIR::~SPPAIR()
 
 /* BuildSpliceListFromValues (RefSetArgListFromPvs): a Splice list of c values read directly (grfeopid 2) from apv[i] as type
    aotyp[i]; the void reference for none. */
-/** @sly2-annot addr=0x200DA0
- * Purpose: Build a Splice list CRef from c (otype, pv) pairs (empty -> void)
- * Info: proposed name RefSetArgListFromPvs (T1); TU spliceobj
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Builds a Splice list from count (type, pointer) pairs, converting each value by its type; Void when empty.
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
@@ -476,13 +426,6 @@ CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
 }
 
 /* BuildSpliceListFromUniformValues: the same for c consecutive words of one type at pv. */
-/** @sly2-annot addr=0x200F58
- * Purpose: Same as BuildSpliceListFromValues with one otype for all values
- * Info: proposed name RefSetArgListFromPvsUniform (T2); TU spliceobj
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Builds a Splice list from count values that all have the same type.
 CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv) __asm__("BuildSpliceListFromUniformValues");
 CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv)
@@ -513,11 +456,6 @@ CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv)
 struct M3Q { qword a[3]; };
 struct V2 { int a, b; };
 struct V3 { int a, b, c; };
-/** @sly2-annot addr=0x201110
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU spliceobj
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * @end-sly2-annot */
 // Stores each of count Splice values into the pointed-to variables as their given types (ints and floats coerced,
 // vector/matrix/clq/lm/smp payloads copied, CRefs assigned); returns Void.
 CRef SetValuesFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
@@ -587,12 +525,6 @@ typedef char *va_list;
 #define va_start(ap, last) (ap = ((char *)__builtin_next_arg(last) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8)))
 
 /* The c destination pointers come as variable arguments. */
-/** @sly2-annot addr=0x201360
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Varargs form of SetValuesFromSplice: the destination pointers follow the type array.
 CRef RefSetArgsFromSplice(int c, CRef *aref, OTYP *aotyp, ...)
 {
@@ -609,13 +541,6 @@ CRef RefSetArgsFromSplice(int c, CRef *aref, OTYP *aotyp, ...)
 
 /* Convert each element of a Splice list into apv[*pc] (one type for all); returns the void reference. */
 struct SPLLIST { int c; CPair *ppairFirst; };
-/** @sly2-annot addr=0x2013D8
- * Purpose: Convert each element of a Splice list into dest[] via RefSetArgsFromSplice; returns void ref
- * Info: proposed name RefSetArgsFromSpliceList (T2); TU spliceobj
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30,
- *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
- * @end-sly2-annot */
 // Converts each element of a Splice list into the destination array with one type; returns Void.
 CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("SetValuesFromSpliceList");
 CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)

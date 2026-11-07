@@ -74,25 +74,12 @@ static inline void SetG(SVKEY *key, float g) { CRef ref; ref.m_tagk = 0x16; ref.
 static inline CRef Get(SVKEY *key) { SVSET *saveSet = &D_003D4A60; return GetSaveVar(&(*(SVSTORE *)&g_sw.savevars), key, saveSet); }
 static inline float GGet(SVKEY *key) { CRef ref = GetGlobalSaveVar(key, &D_003D4A60); return ref.u.g; }
 
-/** @sly2-annot addr=0x154A60
- * Purpose: Zeroes the 0x18-byte DIFFICULTY object
- * Info: proposed name InitDifficulty (T1); TU difficulty
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/game-progression.md#7-source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
- * @end-sly2-annot */
 // Zeroes the difficulty object.
 extern "C" void InitDifficulty(DIFFICULTY *difficulty)
 {
     memset(difficulty, 0, sizeof(DIFFICULTY));
 }
 
-/** @sly2-annot addr=0x154A80
- * Purpose: Clears the three difficulty sample references (p8/pC/p10)
- * Info: proposed name ClearDifficulty (T2); TU difficulty
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
- * @end-sly2-annot */
 // Clears the three difficulty sample references.
 extern "C" void ClearDifficulty(DIFFICULTY *difficulty)
 {
@@ -101,15 +88,6 @@ extern "C" void ClearDifficulty(DIFFICULTY *difficulty)
     difficulty->historyKey2 = 0;
 }
 
-/** @sly2-annot addr=0x154A90
- * Purpose: Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the
- *   samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00
- * Info: proposed name HandleDifficultyMessage (T1); TU difficulty
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
- *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
- * @end-sly2-annot */
 // The difficulty's game-event handler: event 3 binds the three saved sample slots, 34 shifts the samples (a rolling
 // window of the last three jobs), 37/16/29 apply the deltas from the D_002BDC00 table.
 extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TASKV *task)
@@ -137,13 +115,6 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TAS
     }
 }
 
-/** @sly2-annot addr=0x154C90
- * Purpose: Current difficulty: override value if set, else average of the last three samples
- * Info: proposed name GetDifficulty (T1); TU difficulty
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Returns the current difficulty: the override when set, else the average of the last three samples.
 extern "C" float GetDifficulty(DIFFICULTY *difficulty)
 {
@@ -162,24 +133,12 @@ extern "C" float GetDifficulty(DIFFICULTY *difficulty)
     return g;
 }
 
-/** @sly2-annot addr=0x154D88
- * Purpose: Adds a delta to the current difficulty (SetDifficulty(GetDifficulty()+d))
- * Info: proposed name ChangeDifficulty (T1); TU difficulty
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
- * @end-sly2-annot */
 // Adds a delta to the current difficulty.
 extern "C" void ChangeDifficulty(DIFFICULTY *difficulty, float delta)
 {
     SetDifficulty(difficulty, GetDifficulty(difficulty) + delta);
 }
 
-/** @sly2-annot addr=0x154DC8
- * Purpose: Stores the difficulty clamped by the DIFFICULTY LM range (ClampToLimits) into the current sample
- * Info: proposed name SetDifficulty (T1); TU difficulty
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
- * @end-sly2-annot */
 // Stores the difficulty, clamped to the object's range, into the current sample.
 extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 {
@@ -189,13 +148,6 @@ extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 }
 
 
-/** @sly2-annot addr=0x154E10
- * Purpose: Difficulty-dependent gameplay helper (uses GetDifficulty, random 0x11D3F8)
- * Info: TU difficulty
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
 // Sprays prizes from a destroyed or searched object with difficulty-scaled counts: two countdowns are refilled with
 // random values interpolated by the difficulty; when one runs out it adds bonus prizes (types 0x5B and 0x5D).
 // (inferred)
@@ -228,12 +180,6 @@ extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, in
         SprayDprizes(&D_003DD490, 0x5D, position, source, 1);
 }
 
-/** @sly2-annot addr=0x155228
- * Purpose: Interpolates n between two LM scale factors (g20..g24) by the current difficulty
- * Info: proposed name NScaleByDifficulty (T2); TU difficulty
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
- * @end-sly2-annot */
 // Scales n by a factor interpolated between two range ends by the current difficulty.
 extern "C" int ScaleByDifficulty(DIFFICULTY *difficulty, int n)
 {

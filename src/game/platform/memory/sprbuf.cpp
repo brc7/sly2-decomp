@@ -55,12 +55,6 @@ ulong D_003DD380[16] __attribute__((aligned(64))), D_003DD400[16] __attribute__(
 
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/** @sly2-annot addr=0x201620
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/splice-scripting.md#6-source-files
- * @end-sly2-annot */
 // Queues the next scratchpad half to be filled: the varargs are (size, source) pairs ending with size 0 (a null
 // source reserves space without loading it). Lays the pieces out 16-aligned with a DMA tag before each, builds the
 // toSPR tag list and starts the transfer.
@@ -101,11 +95,6 @@ void LoadSprBuf(int size, ...)
     va_end(args);
 }
 
-/** @sly2-annot addr=0x2017A0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
- * @end-sly2-annot */
 // Writes the current scratchpad half back: the varargs are destination addresses, null-terminated, one for each of
 // the last loaded pieces. Patches their DMA tags and starts the fromSPR transfer.
 void SaveSprBuf(void *dest, ...)
@@ -139,13 +128,6 @@ void SaveSprBuf(void *dest, ...)
     va_end(args);
 }
 
-/** @sly2-annot addr=0x201998
- * Purpose: sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2
- * Info: proposed name SwapSprBuf (T2); TU sprbuf
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/engine/save-memcard.md#3-scratchpad-buffers-sprbufcpp,
- *   docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
- * @end-sly2-annot */
 // Waits for the pending fill, then makes the other half current (state 2).
 extern "C" void SwapSprBuffers(void)
 {

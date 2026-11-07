@@ -72,28 +72,14 @@ extern "C" void InitXfm(XFM *xfm)
     float *m; InitLo(xfm); if (xfm->psoParent) xfm->pxfParent = xfm->psoParent->pxfRoot; m = &xfm->mat.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
 }
 
-/** @sly2-annot addr=0x231170
- * Purpose: 0x231768 (XF ref + matrix) then LoadOptionsFromBrx
- * Info: proposed name LoadXfmFromBrx (T1); class XFM slot14; TU xform
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+parse-verified
- * See: docs/engine/animation.md#7-key-functions, docs/engine/object-model.md#9-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
- * @end-sly2-annot */
 // Loads an XFM from the BRX (vtable slot 14): its parent XF reference and local matrix, then its options.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadXfmFromBrx(XFM *pxfm, CBinaryInputStream *stream)
 {
     LoadXfmXfFromBrx(pxfm, stream);
     LoadOptionsFromBrx(pxfm, stream);
 }
 
-/** @sly2-annot addr=0x2311B0
- * Purpose: CloneLo 0x1A6730 then invalidate world
- * Info: proposed name CloneXfm (T1); class XFM slot41; TU xform
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
 // XFM's Clone (vtable slot 41): LO clone, then marks the world matrix stale.
 extern "C" void CloneXfm(XFM *pxfm, XFM *pxfmBase)
 {
@@ -106,13 +92,6 @@ extern "C" void CloneXfm(XFM *pxfm, XFM *pxfmBase)
 
 /* Rebases *ppxf from the base object's parent SO's XF array to this object's parent's (clone), and the XF's
    self-pointers at +0x88/+0x8C with it. */
-/** @sly2-annot addr=0x231220
- * Purpose: unknown
- * Info: class XFM slot50; TU xform
- * Notes: names_v2 C proposed SetAloRotationDamping__FP3ALOf (0.253) | descriptive only: other-class vt slot2
- *   (0x2DB84C) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.15] - evidence: static naming pass; sources: r8_21BB88
- * @end-sly2-annot */
 // vtable slot 50: after cloning, remaps an XF pointer that pointed into the source's parent XF array to the same index
 // in this object's parent array (and fixes the XF's self-referencing pointers). (inferred)
 extern "C" void XFM_RemapClonedXf(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
@@ -152,12 +131,6 @@ static inline void SetM(M3 *pm, M3 m)
     pm->r[1].w = 0;
     pm->r[2].w = 0;
 }
-/** @sly2-annot addr=0x231300
- * Purpose: store rotation rows (w=0), invalidate
- * Info: proposed name RotateXfmToMat (T1); class XFM slot30; TU xform
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's RotateToMat (vtable slot 30): stores the rotation rows (w = 0) and invalidates the world matrix.
 extern "C" void RotateXfmToMat(XFM *xfm, MATRIX4 *matrix)
 {
@@ -165,12 +138,6 @@ extern "C" void RotateXfmToMat(XFM *xfm, MATRIX4 *matrix)
     InvalidateXfm(xfm);
 }
 
-/** @sly2-annot addr=0x231368
- * Purpose: recompute matWorld when parent stamp newer
- * Info: proposed name UpdateXfmMatWorld (T1); TU xform
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // Recomputes the cached world matrix when the parent XF's stamp is newer than the cached one.
 extern "C" void UpdateXfmMatWorld(XFM *xfm)
 {
@@ -185,12 +152,6 @@ extern "C" void UpdateXfmMatWorld(XFM *xfm)
     }
 }
 
-/** @sly2-annot addr=0x2313F0
- * Purpose: marks world stamp stale and flags
- * Info: proposed name InvalidateXfm (T2); TU xform
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // Marks the world matrix stale and, for a top-level object in the world, re-sorts its busy-list entry.
 extern "C" void InvalidateXfm(XFM *xfm)
 {
@@ -199,12 +160,6 @@ extern "C" void InvalidateXfm(XFM *xfm)
         ResortSwBusyEntry(&D_003DD490, xfm->ploroot);
 }
 
-/** @sly2-annot addr=0x231440
- * Purpose: UpdateXfmMatWorld then return &matWorld (+0xA0)
- * Info: proposed name GetXfmWorldMatrix (T1); class XFM slot31; TU xform
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's world matrix (vtable slot 31): brings the cache up to date and returns it.
 MATRIX4 * XFM::GetWorldMatrix()
 {
@@ -219,13 +174,6 @@ static inline qword MulPos(const M4 *m, qword v)
     r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v);
     return r;
 }
-/** @sly2-annot addr=0x231468
- * Purpose: velocity via GetXfVelocity of parent XF
- * Info: proposed name GetXfmVelocity (T2); class XFM slot33; TU xform
- * Notes: names_v2 C proposed EnsureAloThrob__FP3ALO (0.253)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's GetVelocity (vtable slot 33): the velocity of the object's point on the parent XF.
 extern "C" qword GetXfmVelocity(XFM *xfm)
 {
@@ -234,12 +182,6 @@ extern "C" qword GetXfmVelocity(XFM *xfm)
     return GetXfVelocity(o, 0, MulPos((M4 *)&o->matWorld, *(qword *)xfm->mat.mat[3]));
 }
 
-/** @sly2-annot addr=0x2314D0
- * Purpose: via GetXfAngularVelocity
- * Info: proposed name GetXfmAngularVelocity (T2); class XFM slot34; TU xform
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's GetAngularVelocity (vtable slot 34): the parent XF's angular velocity.
 extern "C" qword GetXfmAngularVelocity(XFM *xfm)
 {
@@ -258,13 +200,6 @@ extern "C" qword GetXfmAngularVelocity(XFM *xfm)
     }
 }
 
-/** @sly2-annot addr=0x231550
- * Purpose: copies local matrix out; returns parent XF or default
- * Info: proposed name XFM_PxfLocal (T2); class XFM slot32; TU xform
- * Notes: names_v2 C proposed SetAloThrobInColor__FP3ALOP6VECTOR (0.253) | agent qualifier: / GetXf
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's local transform (vtable slot 32): copies the local matrix out and returns the parent XF (or a default).
 extern "C" XF *XFM_GetLocalTransform(XFM *xfm, MATRIX4 *matrix)
 {
@@ -287,12 +222,6 @@ extern "C" XF *XFM_GetLocalTransform(XFM *xfm, MATRIX4 *matrix)
 // matrix.
 extern "C" void XFM_ApplyTransform(XFM *xfm, M4 *matrix) { M4 t; MulMatrix4Ret(&t, matrix, (M4 *)&xfm->mat); *(M4 *)&xfm->mat = t; InvalidateXfm(xfm); }
 
-/** @sly2-annot addr=0x2315F0
- * Purpose: re-parent keeping world matrix (0x1A5900)
- * Info: proposed name SetXfmParent (T1); class XFM slot10; TU xform
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // XFM's SetParent (vtable slot 10): reparents the object (LO_SetParent) keeping its world matrix when asked.
 extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 {
@@ -334,18 +263,9 @@ extern "C" void LoadXfmXfFromBrx(XFM *xfm, CBinaryInputStream *q)
     SetLoVisMask(xfm, q->U32Read());
 }
 
-/** @sly2-annot addr=0x2317E0
- * Purpose: pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37)
- * Info: proposed name LoadXfmChildObjectsFromBrx (T1); TU xform
- * Notes: names_v2 C proposed SetAloForceCameraFade__FP3ALOi (0.438) | level_parser CONFIRMED-parse: payload
- *   layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r8_21BB88+parse-verified
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
- * @end-sly2-annot */
 // Loads the child objects listed under an XFM: pushes the XF context, reads the object list, pops it and applies the
 // XFM's matrix to each loaded object (slot 37).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadXfmChildObjectsFromBrx(XFM *xfm, CBinaryInputStream *stream, CLoadCollectorArray *pl)
 {
     int i;

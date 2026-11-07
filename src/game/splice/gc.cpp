@@ -131,14 +131,6 @@ void CGc_MarkRootRef(CGc *pgc, CRef *pref);
 void CGc_UpdateRecyclable();
 }
 
-/** @sly2-annot addr=0x128138
- * Purpose: Constructor of the global GC object (zeroes first field)
- * Info: proposed name CGc_ctor (T1); class CGc; TU gc
- * Notes: mangled dropped (base does not match final name): __3CGc
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
- * @end-sly2-annot */
 // Constructor of the global Splice garbage collector g_gc (clears its mark state).
 extern "C" CGc *CGc_ctor(CGc *pgc)
 {
@@ -146,13 +138,6 @@ extern "C" CGc *CGc_ctor(CGc *pgc)
     return pgc;
 }
 
-/** @sly2-annot addr=0x128148
- * Purpose: Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10)
- * Info: proposed name CGc_UpdateRecyclable (T1); class CGc; TU gc
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
- * @end-sly2-annot */
 // Resets the "recyclable" cursor of each of the six Splice node pools to the start of the pool, so allocation reuses
 // freed slots first (inferred).
 extern "C" void CGc_UpdateRecyclable()
@@ -185,12 +170,6 @@ static inline void PushFrame(CGc *pgc, CFrame *pf) { pgc->apFrame[pgc->cFrame++]
     case 0x22: STMT22; break; \
     }
 
-/** @sly2-annot addr=0x1281B0
- * Purpose: Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked
- * Info: proposed name CGc_MarkLiveObjects (T1); class CGc; TU gc
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
- * @end-sly2-annot */
 // Mark phase: drains the frame, proc and pair work stacks, marking every reachable child with the current mark bit and
 // pushing the ones not yet marked.
 void CGc::MarkLiveObjects()
@@ -266,12 +245,6 @@ void CGc::MarkLiveObjects()
 
 #undef MARKREF
 
-/** @sly2-annot addr=0x1285D8
- * Purpose: Marks one root CRef (pair/proc/method) and pushes it on the GC stacks
- * Info: proposed name CGc_MarkRootRef (T2); class CGc; TU gc
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
- * @end-sly2-annot */
 // Marks one root value: a pair or proc not yet marked is marked and pushed on its work stack; a method is just marked.
 extern "C" void CGc_MarkRootRef(CGc *pgc, CRef *pref)
 {
@@ -320,13 +293,6 @@ static inline void InitMarkStack(int *pc, void ***pap, int c)
 }
 
 
-/** @sly2-annot addr=0x1286E0
- * Purpose: Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots
- *   (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps
- * Info: proposed name CGc_Collect (T1); class CGc; TU gc
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
- * @end-sly2-annot */
 // Full Splice garbage collection: flips the mark bit, allocates the work stacks, clears the marks of all six pools,
 // marks the roots (live frames, object sidebags and the stack's values), runs MarkLiveObjects and frees every unmarked
 // node.

@@ -78,17 +78,6 @@ struct S {
 void EnsureLoroot(struct S *s);
 void GetLoChildDl(struct S *p, void **a, void ***b);
 void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
-/** @sly2-annot addr=0x1A5270
- * Purpose: LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit
- *   loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21, ppxr x3C from parent else (*(int *)&g_sw.ppxrRoot),
- *   prepend to parent child DL (in-world region)
- * Info: proposed name InitLo (T1); class LO slot7; TU lo
- * Notes: runtime: LO +0x28 nibble48/busyk/bit60, +0x38 sBusy 1e10, +0x3C ppxr, +0x40 grf 0x21 confirmed
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r4_17F090+verdicts_tu_r4r6+runtime
- * See: docs/engine/animation.md#7-key-functions, docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#8-source-files
- * @end-sly2-annot */
 // LO initialization (vtable slot 7): sets the busy defaults (busy kind 2 "never", busy distance 1e10), inherits the
 // root record and the in-world bit from the parent (or makes its own root), sets the default flags and proxy-ref list,
 // and links the object into its parent's child list. Every object class calls it from its own Init.
@@ -116,13 +105,6 @@ void LO::Init()
     InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
 }
 
-/** @sly2-annot addr=0x1A53A0
- * Purpose: If plo->ploroot(x14)==0 alloc a LOROOT from pool g_sw+0x398C (g_sw.slotheapLoroot) and set root->plo=plo
- * Info: proposed name EnsureLoroot (T1); TU lo
- * Notes: names_v2 v1 proposed SetLightFallOff__FP5LIGHTP2LM (0.012)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Gives the object a root record (LOROOT, from the world's pool) when it has none; the root tracks a top-level object
 // in the world's busy and in-world lists.
 extern "C" void EnsureLoroot(LO *plo)
@@ -141,14 +123,6 @@ int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void RemoveFromSwBusyList(void *, void *);
 void FreeSlotheapSlot(void *, void *);
-/** @sly2-annot addr=0x1A53E0
- * Purpose: Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool
- *   g_sw+0x398C, clear x14
- * Info: proposed name FreeLoroot (T1); TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Unlinks the object's root record from the world's root and busy lists, frees it and clears the object's pointer.
 void FreeLoroot(struct S *p)
 {
@@ -163,14 +137,6 @@ void FreeLoroot(struct S *p)
 
 namespace M_GetLoChildDl { extern "C" {
 struct G { int a[4]; };
-/** @sly2-annot addr=0x1A5448
- * Purpose: (LO *ploParent, DL **ppdl, LO ***pploRemovedFirst): parent? &parent->dlChild(+0x64),&parent+0x70 :
- *   &g_sw dl(+0x10),&g_sw+0x1C
- * Info: proposed name GetLoChildDl (T1); TU lo
- * Notes: names_v2 v1 proposed SetLightFrustrumUp__FP5LIGHTP6VECTOR (0.003)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the child list an object lives in and its "first removed child" slot: the parent's when there is one, else
 // the world's top-level list.
 void GetLoChildDl(char *parent, void **childList, void **firstRemovedSlot)
@@ -193,16 +159,6 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, struct S *firstRemoved, struct S *s
 void ResortSwBusyEntry(void *g, int n);
 int IsLoInWorld(struct S *s);
 void UpdateSoBusy(void *g, struct S *s);
-/** @sly2-annot addr=0x1A5478
- * Purpose: LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call
- *   vt11 AddHierarchy if parent in world, root not-busyk2 -> g_sw busy list, add children (vt8), then vt23 if
- *   in world else 0x148300
- * Info: proposed name AddLo (T1); class LO slot8; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Adds the object to the world (vtable slot 8): clears the removed bit, moves it into the in-world part of its parent's
 // child list, runs AddHierarchy when the parent is in the world, registers its root in the busy list and adds the
 // children recursively, then calls OnAdd.
@@ -256,16 +212,6 @@ void RemoveDlEntry__FP2DLPv(void *a, void *firstRemoved);
 void RemoveFromSwBusyList(void *a, int b);
 void GetLoChildDl(void *p, void **a, struct S ***firstRemoved);
 void AppendDlEntry__FP2DLPv(void *a, struct S *s);
-/** @sly2-annot addr=0x1A5630
- * Purpose: LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to
- *   removed tail of child DL, set bit56, remove children (vt9), then vt12 RemoveHierarchy if it was in world
- * Info: proposed name RemoveLo (T1); class LO slot9; TU lo
- * Notes: names_v2 v1 proposed UpdateLightBeamGrfzon__FP5LIGHT (0.008)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Removes the object from the world (vtable slot 9): unregisters it, moves it to the removed tail of its parent's child
 // list, sets the removed bit, removes the children recursively and runs RemoveHierarchy when it was in the world.
 void RemoveLo(struct S *object)
@@ -307,12 +253,6 @@ void RemoveLo(struct S *object)
 }
 } } // namespace M_RemoveLo
 
-/** @sly2-annot addr=0x1A57A8
- * Purpose: Unlink plo from its parent child DL (fixing ploRemovedFirst) without hierarchy callbacks
- * Info: proposed name SnipLo (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Unlinks the object from its parent's child list without any add/remove callbacks.
 extern "C" void SnipLo(LO *plo)
 {
@@ -329,15 +269,6 @@ namespace M_AddLoHierarchy { extern "C" {
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(void *, int, void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x18]; ulong fl; };
-/** @sly2-annot addr=0x1A5800
- * Purpose: LO vt11: set in-world bit60, then vt4(0,plo) notify (MSGID added)
- * Info: proposed name AddLoHierarchy (T1); class LO slot11; TU lo
- * Notes: names_v2 v1 proposed SetLightDiffuse_Old__FP5LIGHTf (0.001)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
 // vtable slot 11: sets the in-world bit and sends the "added" notification (vtable slot 4, message 0).
 void AddLoHierarchy(struct O *object)
 {
@@ -354,15 +285,6 @@ struct VT { struct VTE e[8]; };
 struct S { int frame, sidebag, firstRefNode; struct VT *vt; char pad[0x18]; unsigned long bits; };
 extern char D_003DD490[];
 void RemoveSwPlacesOf(void *g, struct S *s, int n);
-/** @sly2-annot addr=0x1A5848
- * Purpose: LO vt12: clear bit60; if bit59 clear references via 0x1A00D0(g_sw); vt4(1,plo) notify (MSGID
- *   removed)
- * Info: proposed name RemoveLoHierarchy (T1); class LO slot12; TU lo
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
 // vtable slot 12: clears the in-world bit, clears references to the object when it is flagged for that, and sends the
 // "removed" notification (vtable slot 4, message 1).
 void RemoveLoHierarchy(struct S *object)
@@ -377,15 +299,6 @@ void RemoveLoHierarchy(struct S *object)
 namespace M_SetLoParent_1A58D0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int, int, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
-/** @sly2-annot addr=0x1A58D0
- * Purpose: Non-virtual wrapper: vt10(paloParent, 0, b)
- * Info: proposed name SetLoParent (T1); TU lo
- * Notes: COLLISION: SetLoParent already used (same name proposed for 0x1A5900); renamed to SetLoParent
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
 void SetLoParent(struct O *object, int a, int b) { struct VTE *e = &object->vt[10]; e->pfn((char *)object + e->d, a, 0, b); }
 } } // namespace M_SetLoParent_1A58D0
@@ -404,15 +317,6 @@ void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
 int IsLoInWorld(ALO *p);
 void UpdateSoBusy(void *g, ALO *p);
-/** @sly2-annot addr=0x1A5900
- * Purpose: LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set
- *   psoParent, vt13 UpdateLoroot, recurse to children (vt10), re-add/notify as needed
- * Info: proposed name SetLoParent (T1); class LO slot10; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // LO's SetParent (vtable slot 10): moves the object from the old to the new parent's child list keeping its in-world
 // state, freezes it while in the world, sets the parent pointer, updates the root record (slot 13) and the children,
 // and re-adds or notifies as needed.
@@ -471,14 +375,6 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
 #undef VFN
 #undef VTHIS
 
-/** @sly2-annot addr=0x1A5B80
- * Purpose: LO vt13 (plo, ploOld?, f): with parent -> share parent loroot (free own if it was a root); no
- *   parent and f -> EnsureLoroot
- * Info: proposed name UpdateLoroot (T1); class LO slot13; TU lo
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 13: with a parent, shares the parent's root record (freeing its own if it had one); without a parent and
 // when makeRoot is set, makes its own root.
 /* LO slot UpdateLoroot: share the parent's root, or make one of its own. */
@@ -497,14 +393,6 @@ extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, int fRoot)
     }
 }
 
-/** @sly2-annot addr=0x1A5BE8
- * Purpose: LO vt28 default: no children (return 0)
- * Info: proposed name LO_GetChildren (T1); class LO slot28; TU lo
- * Notes: names_v2 v1 proposed GetLightDiffuse_Old__FP5LIGHTPf (0.002)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's child list query (vtable slot 28): a plain LO has no children; returns 0. (inferred: derived classes return
 // the count and fill the array.)
 extern "C" int LO_GetChildren()
@@ -515,28 +403,12 @@ extern "C" int LO_GetChildren()
 namespace M_PsoFromLo { extern "C" {
 struct S { char pad[0x10]; struct S *parent; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-/** @sly2-annot addr=0x1A5BF0
- * Purpose: Return plo if it is an SO (IsBasicDerivedFrom CID 0x30) else plo->psoParent
- * Info: proposed name GetSoFromLo (T1); TU lo
- * Notes: names_v2 v1 proposed SetLightSaturate_Old__FP5LIGHTP6VECTOR (0.000)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
 struct S *GetSoFromLo(struct S *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return object; return object->parent; }
 } } // namespace M_PsoFromLo
 
-/** @sly2-annot addr=0x1A5C28
- * Purpose: LO vt14: LoadOptionsFromBrx loop (0x13F810)
- * Info: proposed name LoadLoFromBrx (T1); class LO slot14; TU lo
- * Notes: names_v2 v1 proposed GetLightSaturate_Old__FP5LIGHTP6VECTOR (0.002) | level_parser CONFIRMED-parse:
- *   payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: static naming pass; sources:
- *   r4_17F090+verdicts_tu_r4r6+parse-verified
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
- * @end-sly2-annot */
 // Loads an LO from the BRX (vtable slot 14): reads its option records until the end marker.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *stream)
 {
     LoadOptionsFromBrx(plo, stream);
@@ -553,14 +425,6 @@ extern float D_002A6A40;
 void RunLoDeferredCallbacks(struct S *s);
 int FindBindingPtr__6CFrameUii(void *p, int a, int b);
 void SetLoBusyKind(struct S *s, int n);
-/** @sly2-annot addr=0x1A5C48
- * Purpose: LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf
- *   x40|=2 (wants Splice update) else tSplice(x30)=D_002A6A40
- * Info: proposed name PostLoLoad (T1); class LO slot15; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
- * @end-sly2-annot */
 // After the level load (vtable slot 15): runs the deferred callbacks and sends Splice message 0; an object whose Splice
 // frame binds an update handler becomes busy and wants Splice updates, others get the default next Splice time.
 void PostLoLoad(struct S *object)
@@ -585,37 +449,16 @@ void PostLoLoad(struct S *object)
 namespace M_DeferLoRemoveCallback { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
-/** @sly2-annot addr=0x1A5D08
- * Purpose: Callback body: vt9 Remove(plo)
- * Info: proposed name DeferLoRemoveCallback (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // The deferred-callback body that removes the object (its Remove, vtable slot 9).
 void DeferLoRemoveCallback(struct O *object) { struct VTE *e = &object->vt[9]; e->pfn((char *)object + e->d); }
 } } // namespace M_DeferLoRemoveCallback
 
-/** @sly2-annot addr=0x1A5D30
- * Purpose: Queue Remove of plo to run later (pushes callback 0x1A5D08 on plo deferred list)
- * Info: proposed name DeferLoRemove (T1); TU lo
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#3-creation-hierarchy-and-removal,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Queues the object's removal to run with its deferred callbacks instead of immediately.
 extern "C" void DeferLoRemove(LO *plo)
 {
     AddLoDeferredCallback(plo)->pfn = DeferLoRemoveCallback;
 }
 
-/** @sly2-annot addr=0x1A5D58
- * Purpose: Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34
- *   list
- * Info: proposed name AddLoDeferredCallback (T1); TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Allocates a deferred-callback record {function, argument, next} from the world's array and pushes it on the
 // object's callback list; returns the record for the caller to fill.
 /* A new deferred callback record on the object's list. */
@@ -630,12 +473,6 @@ extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 namespace M_RunLoDeferredCallbacks { extern "C" {
 typedef struct E { void (*pfn)(void *, void *); void *arg; struct E *next; } E;
 struct S { char pad[0x34]; E *first; };
-/** @sly2-annot addr=0x1A5D98
- * Purpose: Call every node of plo->x34 list in insertion order (reverse of push)
- * Info: proposed name RunLoDeferredCallbacks (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Runs every deferred callback queued on the object, in the order they were added.
 void RunLoDeferredCallbacks(struct S *object)
 {
@@ -654,14 +491,6 @@ namespace M_UpdateLo { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int, int, int, int, int); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; float tNextSplice; };
 extern float D_002DDED0;
-/** @sly2-annot addr=0x1A5E28
- * Purpose: LO vt16 Update: if tSplice(x30) <= g_clock.t send vt3 message 1 (Splice update event)
- * Info: proposed name UpdateLo (T1); class LO slot16; TU lo
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's per-frame update (vtable slot 16): when the object's next Splice time has come, sends Splice message 1 (the
 // update event).
 void UpdateLo(struct O *object)
@@ -684,13 +513,6 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
     else p->flags = v & ~fl;
 }
-/** @sly2-annot addr=0x1A5E80
- * Purpose: LO vt17: clear grf bit 4 unless parent grf has bit 4
- * Info: proposed name LO_vt17_InheritFlag4 (T2); class LO slot17; TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known). (inferred)
 void InheritLoFlag4(struct S *object)
@@ -699,29 +521,13 @@ void InheritLoFlag4(struct S *object)
 }
 } } // namespace M_func_001A5E80
 
-/** @sly2-annot addr=0x1A5ED8
- * Purpose: LO vt19 default: no-op
- * Info: proposed name RenderLoSelf (T1); class LO slot19; TU lo
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's RenderSelf (vtable slot 19): a plain LO draws nothing.
 /* default (empty) virtual */
 extern "C" void RenderLoSelf()
 {
 }
 
-/** @sly2-annot addr=0x1A5EE0
- * Purpose: LO slot 20 default (no-op); SO override RenderSoAll 0x1F3CC8
- * Info: proposed name RenderLoAll (T2); class LO slot20; TU lo
- * Notes: v3: superseded LO_vt20 | top50_round (0.40): [extra: knock-on fix] Slot 20 called by RenderLoAtMat
- *   with (mat,0,a,b); Sly 1 RenderAloAll | v2 draft was LO_vt20
- * Confidence: low (draft) [T2 0.40] - evidence: Sly 1 / Lilly reference; semantic review; sources:
- *   r4_17F090+top50_round
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
-// LO's RenderAll (vtable slot 20): a plain LO draws nothing; SO overrides it with RenderSoAll.
+// LO's RenderAll (vtable slot 20): a plain LO draws nothing; SO overrides it with RenderSoAll. Sly 1: RenderAloAll.
 /* default (empty) virtual */
 extern "C" void RenderLoAll()
 {
@@ -734,17 +540,6 @@ struct VTE { short d; short pad; void *pfn; };
 struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
 void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
-/** @sly2-annot addr=0x1A5EE8
- * Purpose: Draw an LO hierarchy at an explicit world matrix: m * inverse(GetWorldMatrix()) then RenderAll (vt20)
- *   with that matrix and two alpha/show factors
- * Info: proposed name RenderLoAtMat (T2); TU lo
- * Notes: v3: superseded SetLoMatWorldRel | top50_round (0.50): Body: vt31 GetWorldMatrix, InvertMatrix4Rigid,
- *   MultiplyMatrix4Matrix4, vt20(&m,0,a,b). SO slot 20 is RenderSoAll. All callers are Render*Self functions
- *   drawing child SOs at computed matrices (RenderWaypt draws marker/base wit
- * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r4_17F090+top50_round
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
 void RenderLoAtMatrix(struct O *object, void *m, float a, float b)
@@ -773,14 +568,6 @@ qword *VECTOR_opAssign(qword *p, qword v);
 void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
 static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
 static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
-/** @sly2-annot addr=0x1A5FB8
- * Purpose: Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos
- *   D_002DDF40+0x90) and apply via 0x1A5EE8
- * Info: proposed name SetLoBeamXf (T2); TU lo
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090+verdicts_B
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
 void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
@@ -816,39 +603,18 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
 }
 } } // namespace M_func_001A5FB8
 
-/** @sly2-annot addr=0x1A6110
- * Purpose: LO vt29 default no-op
- * Info: proposed name TranslateLoToPos (T1); class LO slot29; TU lo
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's TranslateToPos (vtable slot 29): a plain LO has no position to change.
 /* default (empty) virtual */
 extern "C" void TranslateLoToPos()
 {
 }
 
-/** @sly2-annot addr=0x1A6118
- * Purpose: LO vt30 default no-op
- * Info: proposed name RotateLoToMat (T1); class LO slot30; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's RotateToMat (vtable slot 30): a plain LO has no orientation to change.
 /* default (empty) virtual */
 extern "C" void RotateLoToMat()
 {
 }
 
-/** @sly2-annot addr=0x1A6120
- * Purpose: LO vt33: return zero vector D_002A2DD0
- * Info: proposed name GetLoVelocity (T2); class LO slot33; TU lo
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's GetVelocity (vtable slot 33): a plain LO does not move; returns the zero vector.
 /* LO GetVelocity default: zero. */
 extern "C" qword GetLoVelocity()
@@ -856,72 +622,30 @@ extern "C" qword GetLoVelocity()
     return D_002A2DD0;
 }
 
-/** @sly2-annot addr=0x1A6130
- * Purpose: LO vt35 default no-op
- * Info: proposed name SetLoVelocity (T2); class LO slot35; TU lo
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's SetVelocity (vtable slot 35): no-op for a plain LO.
 /* default (empty) virtual */
 extern "C" void SetLoVelocity()
 {
 }
 
-/** @sly2-annot addr=0x1A6138
- * Purpose: LO vt34: return zero vector
- * Info: proposed name GetLoAngularVelocity (T1); class LO slot34; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's GetAngularVelocity (vtable slot 34): returns the zero vector.
 extern "C" qword GetLoAngularVelocity()
 {
     return D_002A2DD0;
 }
 
-/** @sly2-annot addr=0x1A6148
- * Purpose: LO vt36 default no-op
- * Info: proposed name SetLoAngularVelocity (T1); class LO slot36; TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's SetAngularVelocity (vtable slot 36): no-op.
 /* default (empty) virtual */
 extern "C" void SetLoAngularVelocity()
 {
 }
 
-/** @sly2-annot addr=0x1A6150
- * Purpose: LO vt22: unregister from g_sw per-object update table (0x210268: clear entry, dead++)
- * Info: proposed name OnLoRemove (T1); class LO slot22; TU lo
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was LO_Freeze) | runtime: update-list membership consistent with
- *   OnAdd/OnRemove (RAM cannot discriminate)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); arbitration; sources:
- *   arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // LO's OnRemove (vtable slot 22): unregisters the object from the world's per-object update table.
 extern "C" void OnLoRemove(LO *plo)
 {
     RemoveLoFromSwUpdateList(&D_003DD490, plo);
 }
 
-/** @sly2-annot addr=0x1A6178
- * Purpose: LO vt23: register in g_sw update table (0x210140, compacts when >10% dead)
- * Info: proposed name OnLoAdd (T1); class LO slot23; TU lo
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was LO_Unfreeze) | runtime: update-list membership consistent with OnAdd/OnRemove
- *   (RAM cannot discriminate)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); arbitration; sources:
- *   arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // LO's OnAdd (vtable slot 23): registers the object in the world's per-object update table.
 extern "C" void OnLoAdd(LO *plo)
 {
@@ -933,14 +657,6 @@ typedef unsigned long ulong;
 struct DL { void *a, *b; int c; };
 int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv);
 struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
-/** @sly2-annot addr=0x1A61A0
- * Purpose: bit60 set and plo->ploroot is in g_sw+0x2C list
- * Info: proposed name FIsLoInWorld (T1); TU lo
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // True when the object's in-world bit is set and its root record is in the world's in-world list.
 int IsLoInWorld(struct S *object)
 {
@@ -965,17 +681,6 @@ typedef char CRef_ValueOffset[FIELD_OFFSET(CRef,value)==4?1:-1];
 typedef char CRef_Size[sizeof(struct CRef)==8?1:-1];
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Int_Size[sizeof(int)==4?1:-1];
-/** @sly2-annot addr=0x1A61E0
- * Purpose: LO vt3: BASIC Splice-event post (0x1331F8) then for msg 5/6 notify D_002DEB30 with 0x1A/0x1B
- * Info: proposed name HandleLoSpliceEvent (T1); class LO slot3; TU lo
- * Notes: COLLISION: SendLoMessage already used (same name proposed for 0x133508); renamed to
- *   SendLoMessage_1A61E0 | superseded: SendLoMessage_1A61E0 (arbitration) | arbitration adopt r2b: CONFIRMED
- *   static: LO vtable slot 3 override; calls BASIC slot-3 base 0x1331F8 with the same args, then
- *   BroadcastGameEvent 0x1A/0x1B for event 5/6. Slot-3 dispat
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: r4_17F090+arbitration
- * See: docs/engine/game-progression.md#2-the-game-event-bus,
- *   docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // LO's Splice event handler (vtable slot 3): the BASIC handling, then the trigger (5) and untrigger (6) events are also
 // reported to the game progress object (as game events 0x1A/0x1B).
 void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
@@ -997,12 +702,6 @@ void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
 namespace M_OidProxyLo { extern "C" {
 struct Q { int proxyId; struct Q *next; int oid; int unknownC; void *object; };   /* a proxy-ref node (PXR) */
 struct S { char pad[0x3C]; struct Q *proxy; };
-/** @sly2-annot addr=0x1A6260
- * Purpose: Walk ppxr list (x3C) while node owner==plo, return last oid or -1
- * Info: proposed name GetLoProxyOid (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the oid of the proxy the object was cloned from (the last proxy-ref node owned by it), or -1.
 int GetLoProxyOid(struct S *object)
 {
@@ -1020,13 +719,6 @@ int GetLoProxyOid(struct S *object)
 namespace M_FMatchesLoName { extern "C" {
 struct Q { int proxyId; struct Q *next; int oid; int unknownC; void *object; };   /* a proxy-ref node (PXR) */
 struct S { char pad[0x18]; int oid; char pad2[0x20]; struct Q *proxy; };
-/** @sly2-annot addr=0x1A6290
- * Purpose: True if plo->oid==oid or any proxy-alias node owned by plo has that oid
- * Info: proposed name HasLoOid (T1); TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // True when the object's oid, or the oid of one of its proxy-alias nodes, equals oid.
 int HasLoOid(struct S *object, int oid)
 {
@@ -1038,26 +730,12 @@ int HasLoOid(struct S *object, int oid)
 }
 } } // namespace M_FMatchesLoName
 
-/** @sly2-annot addr=0x1A62D8
- * Purpose: LO vt31 default: return static identity D_002A2D30
- * Info: proposed name LO_GetWorldMatrix (T1); class LO slot31; TU lo
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's world matrix (vtable slot 31): a plain LO returns the identity.
 extern "C" MATRIX4 *LO_GetWorldMatrix()
 {
     return &D_002A2D30;
 }
 
-/** @sly2-annot addr=0x1A62E8
- * Purpose: Return vt31 GetWorldMatrix()->pos (row 3, +0x30)
- * Info: proposed name PosLoWorld (T1); TU lo
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
 // Returns the object's world position (the translation row of its world matrix, slot 31).
 /* The object's world position (row 3 of its world matrix). */
 extern "C" qword GetLoWorldPos(LO *plo)
@@ -1065,14 +743,6 @@ extern "C" qword GetLoWorldPos(LO *plo)
     return ((qword *)plo->GetWorldMatrix())[3];
 }
 
-/** @sly2-annot addr=0x1A6318
- * Purpose: Return vt31 GetWorldMatrix()
- * Info: proposed name PmatLoWorld (T1); TU lo
- * Notes: names_v2 C proposed SetShadowFrustrumUp__FP6SHADOWP6VECTOR (0.438)
- * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the object's world matrix (vtable slot 31).
 extern "C" void GetLoWorldMatrix(LO *plo)
 {
@@ -1083,12 +753,6 @@ namespace M_func_001A6340 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern void *GetLoWorldMatrix(void);
 extern qword DecomposeRotationMatrixToEuler(void *p);
-/** @sly2-annot addr=0x1A6340
- * Purpose: Decompose PmatLoWorld into Euler angles (0x11BFF0) and convert rad->deg (57.2958)
- * Info: proposed name GetLoEulerDeg (T2); TU lo
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the object's world orientation as Euler angles in degrees.
 qword GetLoEulerDegrees(void)
 {
@@ -1117,12 +781,6 @@ struct LO;
 typedef struct { short d; short pad; void (*pfn)(struct LO *, M3 *); } VT;
 struct LO { int frame, sidebag, firstRefNode; VT *vt; };
 void LoadRotateMatrixEuler(M3 *pm, qword v);
-/** @sly2-annot addr=0x1A63B0
- * Purpose: Degrees->radians (0.0174533), build M3 (0x11B628), vt30 RotateToMat
- * Info: proposed name SetLoEulerDeg (T2); TU lo
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
 void SetLoEulerDegrees(struct LO *object, qword v)
 {
@@ -1139,12 +797,6 @@ void SetLoEulerDegrees(struct LO *object, qword v)
 namespace M_func_001A6450 { extern "C" {
 struct VTE { short d; short pad; void *pfn; };
 struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
-/** @sly2-annot addr=0x1A6450
- * Purpose: LO vt37: call vt37(arg) on each child from vt28
- * Info: proposed name ApplyLoProxyHierarchy (T2); class LO slot37; TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's ApplyTransform (vtable slot 37: premultiply by a matrix; XFM_ApplyTransform is the XFM version): a plain LO
 // has no transform of its own, so it forwards the matrix to every child returned by slot 28. (inferred)
 void LO_ApplyTransform(struct O *object, void *arg)
@@ -1175,15 +827,6 @@ void HideSoPart(struct ALO*, void*);
 void*FindSoGlob(struct ALO*,int);
 void HideSoGlobsById(struct ALO*,int);
 struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
-/** @sly2-annot addr=0x1A64E8
- * Purpose: Resolve a table {grf,id,ib} of OID refs into fields at plo+ib: grf&0x10 part by id, 0x20/0x40 SO
- *   sub-objects (0x1F6030/0x1F5FF8), else FindSwObject 0x15E938 (kind 4/5/1); grf&0x200 -> vt9 Remove the
- *   found object
- * Info: proposed name BindLoOidTable (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/engine/object-model.md#3-creation-hierarchy-and-removal, docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // Resolves a table of {flags, id, field offset} object references into pointer fields of the object: parts by id,
 // SO sub-objects, or objects found by oid in the world; flag 0x200 removes the object found.
 void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
@@ -1269,13 +912,6 @@ typedef char layout_pointer_size[sizeof(void*)==4?1:-1];
 
 namespace M_func_001A66C8 { extern "C" {
 struct S { char pad[0x40]; unsigned int flags; };
-/** @sly2-annot addr=0x1A66C8
- * Purpose: LO vt47: grf(x40 tagged word) |= fl
- * Info: proposed name SetLoGrf (T2); class LO slot47; TU lo
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 47: sets bits in the object's flag word.
 void SetLoFlags(struct S *object, unsigned int fl)
 {
@@ -1287,13 +923,6 @@ void SetLoFlags(struct S *object, unsigned int fl)
 
 namespace M_func_001A66F8 { extern "C" {
 struct S { char pad[0x40]; unsigned int flags; };
-/** @sly2-annot addr=0x1A66F8
- * Purpose: grf(x40) &= ~fl (XFM vt48)
- * Info: proposed name ClearLoGrf (T2); class LO slot48; TU lo
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/physics-collision.md#1-so-the-solid-object-socpp-0x1f2108-0x1f8dd8-174-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 48: clears bits in the object's flag word.
 void ClearLoFlags(struct S *object, unsigned int fl)
 {
@@ -1385,15 +1014,6 @@ typedef char FieldRefSize[sizeof(RF)==4?1:-1];
 typedef char RootRefSize[sizeof(RR)==4?1:-1];
 static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)AllocCopyFromWorldHeap(r,n);}
 static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delta));}
-/** @sly2-annot addr=0x1A6730
- * Purpose: LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone
- *   proxy nodes when g_sw phase==-2; CopyAb the class body past 0x50 (size from classinfo)
- * Info: proposed name CloneLo (T1); class LO slot41; TU lo
- * Notes: runtime: LO slot 41 = CloneLo 0x1A6730 confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's Clone (vtable slot 41): copies the Splice frame and sidebag references, scale, flag bits and tag word from the
 // source, clones the proxy nodes during proxy instantiation and copies the class body past the LO header (size from
 // the class info).
@@ -1437,26 +1057,12 @@ extern "C" void CloneLo(P*object,const P*source){
 namespace M_CloneLoHierarchy { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
-/** @sly2-annot addr=0x1A6AD0
- * Purpose: LO vt40: forwards to vt41 Clone
- * Info: proposed name CloneLoHierarchy (T1); class LO slot40; TU lo
- * Notes: runtime: LO slot 40 = CloneLoHierarchy 0x1A6AD0 confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 40: clones the hierarchy by forwarding to Clone (slot 41).
 void CloneLoHierarchy(struct O *object, int a) { struct VTE *e = &object->vt[41]; e->pfn((char *)object + e->d, a); }
 } } // namespace M_CloneLoHierarchy
 
 namespace M_FFindLoParent { extern "C" {
 struct O { char pad[0x10]; struct O *parent; };
-/** @sly2-annot addr=0x1A6AF8
- * Purpose: True if b is plo or one of its ancestors (walk psoParent)
- * Info: proposed name IsLoSelfOrDescendantOf (T1); TU lo
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // True when other is the object itself or one of its ancestors.
 int IsLoSelfOrDescendantOf(struct O *a, struct O *b)
 {
@@ -1472,12 +1078,6 @@ namespace M_func_001A6B30 { extern "C" {
 struct M { float a[16]; };
 extern struct M D_002C44F0;
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-/** @sly2-annot addr=0x1A6B30
- * Purpose: LO vt32: optionally write identity into M4 arg, return static D_002C44F0
- * Info: proposed name LO_PxfLocal (T2); class LO slot32; TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's local transform (vtable slot 32): writes the identity into *matrix when given and returns a static identity.
 struct M *LO_GetLocalTransform(void *unused, struct M *pm)
 {
@@ -1489,37 +1089,18 @@ struct M *LO_GetLocalTransform(void *unused, struct M *pm)
 }
 } } // namespace M_func_001A6B30
 
-/** @sly2-annot addr=0x1A6B88
- * Purpose: LO vt38(ploOther): SetLoXfFromMat(plo, ploOther->GetWorldMatrix())
- * Info: proposed name MatchLoXf (T2); class LO slot38; TU lo
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 38: moves the object onto another object's world transform (warps and relays use it to place objects).
 extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 {
     SetLoXfFromMat(plo, ploOther->GetWorldMatrix());
 }
 
-/** @sly2-annot addr=0x1A6BC8
- * Purpose: LO vt39(XF*): SetLoXfFromMat(plo, pxf+0x40)
- * Info: proposed name SetLoXf (T2); class LO slot39; TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 39: moves the object to the transform held in an XF record.
 extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 {
     SetLoXfFromMat(plo, &pxf->matWorld);
 }
 
-/** @sly2-annot addr=0x1A6BE8
- * Purpose: vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat)
- * Info: proposed name SetLoXfFromMat (T1); TU lo
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Moves the object to a world matrix: TranslateToPos (slot 29) to its position, then RotateToMat (slot 30).
 extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
 {
@@ -1533,12 +1114,6 @@ struct G;
 extern struct G D_003DD490;
 void ResortSwBusyEntry(struct G *g, void *p);
 struct S { char pad[0x10]; int parent; void *root; char pad2[0x10]; ulong fl; int pad3[2]; float busyDistance; };
-/** @sly2-annot addr=0x1A6C48
- * Purpose: LO vt42: store float x38 (init 1e10) and re-sort root in g_sw busy list
- * Info: proposed name SetLoSBusy (T2); class LO slot42; TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 42: sets the busy distance (default 1e10) and re-sorts the root in the world's busy list.
 void SetLoBusyDistance(struct S *object, float g)
 {
@@ -1547,12 +1122,6 @@ void SetLoBusyDistance(struct S *object, float g)
 }
 } } // namespace M_func_001A6C48
 
-/** @sly2-annot addr=0x1A6C90
- * Purpose: Return signed 4-bit field bits 52-55 of x28
- * Info: proposed name GetLoBusyKind (T2); TU lo
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Returns the busy kind (signed 4-bit field: 0 busy near the camera, 1 always, 2 never, 3 busy near the hero).
 extern "C" int GetLoBusyKind(LO *plo)
 {
@@ -1572,18 +1141,6 @@ struct O {
 };
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
-/** @sly2-annot addr=0x1A6CA8
- * Purpose: Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2
- *   never busy, 3 busy within sBusy of the hero) and re-sort the root in the SW busy list if it is in the
- *   world
- * Info: proposed name SetLoBusyKind (T1); TU lo
- * Notes: top50_round (0.80): UpdateLoBusy 0x148300 switch on the same nibble: case1 fIn=1, case2 fIn=0, case0
- *   dist(PosLoWorld,camera pos D_002DDF40)<sBusy(+0x38), case3 dist to GetHeroPo. InitLo sets 2, InitSo 0,
- *   InitTarget/InitGrabspot 3, relays 1 wh
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r4_17F090+top50_round
- * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/guards-ai.md#9-key-functions,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
 void SetLoBusyKind(struct O *object, int busyk)
@@ -1616,13 +1173,6 @@ struct O {
 };
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
-/** @sly2-annot addr=0x1A6D28
- * Purpose: Re-sort root, vt46(b) on plo, then OR b into grfvis(x2D) of following siblings
- * Info: proposed name SetLoVisMaskHierarchy (T2); TU lo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
 // Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into every ancestor.
 void SetLoVisMask(struct O *object, int b)
 {
@@ -1638,13 +1188,6 @@ void SetLoVisMask(struct O *object, int b)
 }
 } } // namespace M_func_001A6D28
 
-/** @sly2-annot addr=0x1A6DC0
- * Purpose: LO vt46: grfvis(byte x2D)=b
- * Info: proposed name SetLoVisMask (T1); class LO slot46; TU lo
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's SetVisMask (vtable slot 46): stores the visibility mask byte.
 extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 {
@@ -1655,12 +1198,6 @@ namespace M_SetSoVisMask { extern "C" {
 typedef unsigned long ulong;
 struct O { char pad[0x24]; struct O *pNext; ulong grf; char pad2[0x34]; struct O *pFirst; };
 void SetLoVisMask(struct O *, int);
-/** @sly2-annot addr=0x1A6DC8
- * Purpose: SO vt46: grfvis=b and propagate to children without bit58
- * Info: proposed name SetSoVisMask (T1); class SO slot46; TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // SO's SetVisMask (vtable slot 46): stores the mask and propagates it to the children that do not keep their own.
 void SetSoVisMask(struct O *object, int b)
 {
@@ -1676,12 +1213,6 @@ void SetSoVisMask(struct O *object, int b)
 namespace M_func_001A6E38 { extern "C" {
 typedef unsigned long ulong;
 struct S { char pad[0x28]; ulong fl; };
-/** @sly2-annot addr=0x1A6E38
- * Purpose: Set/clear bit58 of x28
- * Info: proposed name SetLoFNoVisInherit (T2); TU lo
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Sets or clears the "keeps its own visibility mask" bit (a parent's SetVisMask then skips it).
 void SetLoOwnVisMask(struct S *object, int f) { object->fl = (object->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
 } } // namespace M_func_001A6E38
@@ -1689,12 +1220,6 @@ void SetLoOwnVisMask(struct S *object, int f) { object->fl = (object->fl & ~((ul
 namespace M_func_001A6E70 { extern "C" {
 typedef unsigned long ulong;
 struct S { char pad[0x28]; ulong fl; };
-/** @sly2-annot addr=0x1A6E70
- * Purpose: Return bit58 of x28
- * Info: proposed name FLoNoVisInherit (T2); TU lo
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // True when the object keeps its own visibility mask.
 int HasLoOwnVisMask(struct S *object) { return (int)(object->fl >> 58) & 1; }
 } } // namespace M_func_001A6E70
@@ -1713,12 +1238,6 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
     else p->flags = v & ~fl;
 }
-/** @sly2-annot addr=0x1A6E80
- * Purpose: LO vt21(f): set/clear grf bit 8
- * Info: proposed name SetLoFlag8 (T2); class LO slot21; TU lo
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
 void SetLoFlag8(struct S *object, int f)
 {
@@ -1727,37 +1246,18 @@ void SetLoFlag8(struct S *object, int f)
 }
 } } // namespace M_func_001A6E80
 
-/** @sly2-annot addr=0x1A6EE8
- * Purpose: LO vt43 default: return 0
- * Info: proposed name LO_vt43 (T2); class LO slot43; TU lo
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's default for vtable slot 43: returns 0 (the slot's meaning is not known).
 extern "C" int LO_Slot43Default()
 {
     return 0;
 }
 
-/** @sly2-annot addr=0x1A6EF0
- * Purpose: LO vt44 default no-op
- * Info: proposed name LO_vt44 (T2); class LO slot44; TU lo
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's default for vtable slot 44: no-op (meaning not known).
 /* default (empty) virtual */
 extern "C" void LO_Slot44Default()
 {
 }
 
-/** @sly2-annot addr=0x1A6EF8
- * Purpose: LO vt45 default no-op
- * Info: proposed name LO_vt45 (T2); class LO slot45; TU lo
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // LO's default for vtable slot 45: no-op (meaning not known).
 /* default (empty) virtual */
 extern "C" void LO_Slot45Default()
@@ -1771,14 +1271,6 @@ struct LO;
 typedef struct { short d; short pad; M4 *(*pfn)(struct LO *); } VT;
 struct LO { int frame, sidebag, firstRefNode; VT *vt; };
 void InvertMatrix4Rigid(M4 *pm, M4 *pn);
-/** @sly2-annot addr=0x1A6F00
- * Purpose: Transform a point from paloFrom space to world (GetWorldMatrix) then into paloTo space (inverse);
- *   vector by value
- * Info: proposed name ConvertPosBetweenLos (T1); TU lo
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Converts a point from one object's space to another's (through world space; a null object means world space).
 qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
@@ -1802,13 +1294,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 M3 *GetLoWorldMatrix(void *p);
 void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
-/** @sly2-annot addr=0x1A6FC0
- * Purpose: Same for direction vectors (rotation only, M3)
- * Info: proposed name ConvertVecBetweenLos (T1); TU lo
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Converts a direction vector from one object's space to another's (rotation only).
 qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
@@ -1842,12 +1327,6 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
-/** @sly2-annot addr=0x1A7050
- * Purpose: Same for a 3x3 matrix
- * Info: proposed name ConvertMatBetweenLos (T1); TU lo
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Converts a 3x3 matrix from one object's space to another's.
 extern "C" { M3 ConvertMatBetweenLos(void *a, void *b, const M3 *m)
 {
@@ -1868,13 +1347,6 @@ struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
 void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
-/** @sly2-annot addr=0x1A71B0
- * Purpose: Same for a 4x4 matrix (vt31 + inverse 0x11C318)
- * Info: proposed name ConvertMat4BetweenLos (T1); TU lo
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Converts a 4x4 matrix from one object's space to another's.
 M4 ConvertMat4BetweenLos(struct O *o1, struct O *o2, M4 *m)
 {
@@ -1905,12 +1377,6 @@ namespace M_func_001A72D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pm);
-/** @sly2-annot addr=0x1A72D0
- * Purpose: Convert point through explicit M4 from/to matrices (to inverted)
- * Info: proposed name ConvertMatPos (T2); TU lo
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Converts a point through an explicit matrix, or through its inverse when inverse is set. (inferred)
 qword ConvertMatPos(M4 *pm, int f, qword v)
 {
@@ -1932,12 +1398,6 @@ namespace M_func_001A7348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 void InvertMatrix3Cofactor(M3 *pm);
-/** @sly2-annot addr=0x1A7348
- * Purpose: Same for vectors with M3
- * Info: proposed name ConvertMatVec (T2); TU lo
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
- * @end-sly2-annot */
 // Converts a direction vector through an explicit 3x3 matrix or its inverse. (inferred)
 qword ConvertMatVec(M3 *pm, int f, qword v)
 {

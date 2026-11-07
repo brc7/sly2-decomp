@@ -34,15 +34,6 @@ struct SPW
 
 extern "C" SPW CVarb_CloneTo(CVarb *source, void *a, void *b);
 
-/** @sly2-annot addr=0x12B0E8
- * Purpose: Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone
- * Info: proposed name CVarb_CloneTo (T1); class CVarb; TU varb
- * Notes: agent qualifier: (returns clone)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138,
- *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
- * @end-sly2-annot */
 // Clones a binding chain: a new binding per entry with the same symbol and a deep-copied value (CRef_CloneTo).
 SPW CVarb_CloneTo(CVarb *source, void *a, void *b)
 {

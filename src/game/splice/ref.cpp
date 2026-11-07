@@ -113,13 +113,6 @@ SPO CProc_CloneTo(CProc *proc, void *a);
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 
-/** @sly2-annot addr=0x1291A8
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // CRef copy constructor: copies the tag and payload and takes a reference on boxed or counted payloads.
 /* The copy constructor (CRef(const CRef &)). */
 extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
@@ -130,15 +123,6 @@ extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
     return pref;
 }
 
-/** @sly2-annot addr=0x1291E0
- * Purpose: Constructor: tag 0x1A, allocates refcounted VECTOR box from pool D_00452188 (0x11CCC0) and copies
- *   *pv
- * Info: proposed name CRef_ctor_VECTOR (T1); class CRef; TU ref
- * Notes: C++ signature hint (const VECTOR *) | COLLISION: CRef_ctor already used (same name proposed for
- *   0x129248); renamed to CRef_ctor_VECTOR
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a vector value (tag 0x1A): allocates a reference-counted VECTOR box and copies *vector into it.
 extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
 {
@@ -152,14 +136,6 @@ extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
     return pref;
 }
 
-/** @sly2-annot addr=0x129248
- * Purpose: Constructor: tag 0x1A from a vector passed by value in a qword register
- * Info: proposed name CRef_ctor (T1); class CRef; TU ref
- * Notes: C++ signature hint (VU_VECTOR)
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a vector value (tag 0x1A) from a vector passed by value in a quadword register.
 extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
 {
@@ -173,14 +149,6 @@ extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
     return pref;
 }
 
-/** @sly2-annot addr=0x1292B0
- * Purpose: Constructor: tag 0x1B, MATRIX4 box (pool D_004521A0, cref at +0x40)
- * Info: proposed name CRef_ctor_MATRIX4 (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed Decref__4CRef (0.003) | C++ signature hint (const MATRIX4 *) | COLLISION:
- *   CRef_ctor already used (same name proposed for 0x129248); renamed to CRef_ctor_MATRIX4
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a matrix value (tag 0x1B) in a new MATRIX4 box.
 extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
 {
@@ -194,14 +162,6 @@ extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
     return pref;
 }
 
-/** @sly2-annot addr=0x129330
- * Purpose: Constructor: tag 0x1C (CLQ, 16 B box, pool D_004521B8)
- * Info: proposed name CRef_ctor_CLQ (T1); class CRef; TU ref
- * Notes: C++ signature hint (const CLQ *) | COLLISION: CRef_ctor already used (same name proposed for
- *   0x129248); renamed to CRef_ctor_CLQ
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a CLQ value (tag 0x1C, four floats) in a new box.
 extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
 {
@@ -215,14 +175,6 @@ extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
     return pref;
 }
 
-/** @sly2-annot addr=0x129398
- * Purpose: Constructor: tag 0x1D (LM, 8 B box, pool D_004521D0)
- * Info: proposed name CRef_ctor_LM (T1); class CRef; TU ref
- * Notes: C++ signature hint (const LM *) | COLLISION: CRef_ctor already used (same name proposed for
- *   0x129248); renamed to CRef_ctor_LM
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs an LM value (tag 0x1D, a {min, max} float range) in a new box.
 extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
 {
@@ -236,14 +188,6 @@ extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
     return pref;
 }
 
-/** @sly2-annot addr=0x129408
- * Purpose: Constructor: tag 0x1E (SMP, 12 B box, pool D_004521E8)
- * Info: proposed name CRef_ctor_SMP (T1); class CRef; TU ref
- * Notes: C++ signature hint (const SMP *) | COLLISION: CRef_ctor already used (same name proposed for
- *   0x129248); renamed to CRef_ctor_SMP
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs an SMP value (tag 0x1E, three smoothing floats) in a new box.
 extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
 {
@@ -257,14 +201,6 @@ extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
     return pref;
 }
 
-/** @sly2-annot addr=0x129480
- * Purpose: Constructor: tag 0x1F, stores node pointer and increments its refcount
- * Info: proposed name CRef_ctor_CPair (T1); class CRef; TU ref
- * Notes: C++ signature hint (CPair *) | COLLISION: CRef_ctor already used (same name proposed for 0x129248);
- *   renamed to CRef_ctor_CPair
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a pair value (tag 0x1F), taking a reference on the pair.
 extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *pair)
 {
@@ -274,14 +210,6 @@ extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *pair)
     return pref;
 }
 
-/** @sly2-annot addr=0x1294A0
- * Purpose: Constructor: tag 0x20 (proc), increments refcount
- * Info: proposed name CRef_ctor_CProc (T1); class CRef; TU ref
- * Notes: C++ signature hint (CProc *) | COLLISION: CRef_ctor already used (same name proposed for 0x129248);
- *   renamed to CRef_ctor_CProc
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a procedure value (tag 0x20), taking a reference on the proc.
 extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
 {
@@ -291,14 +219,6 @@ extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
     return pref;
 }
 
-/** @sly2-annot addr=0x1294C0
- * Purpose: Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null
- * Info: proposed name CRef_ctor_BASIC (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed SetBool__4CRefi (0.002) | C++ signature hint (BASIC *) | COLLISION: CRef_ctor
- *   already used (same name proposed for 0x129248); renamed to CRef_ctor_BASIC
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Constructs a game-object value (tag 0x21), taking a reference through the object's vtable slot 1 when non-null.
 extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
 {
@@ -309,14 +229,6 @@ extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
     return pref;
 }
 
-/** @sly2-annot addr=0x129518
- * Purpose: Decref then tag 0x15 = n
- * Info: proposed name CRef_SetS32 (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r1_116918+verdicts_A1+verify_side+names_v2-signature(verified)
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns an integer (tag 0x15) after releasing the old payload.
 CRef &CRef::SetS32(int n)
 {
@@ -326,14 +238,6 @@ CRef &CRef::SetS32(int n)
     return *this;
 }
 
-/** @sly2-annot addr=0x129558
- * Purpose: Decref then tag 0x16 = g
- * Info: proposed name CRef_SetF32 (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r1_116918+verdicts_A1+verify_side+names_v2-signature(verified)
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a float (tag 0x16) after releasing the old payload.
 CRef &CRef::SetF32(float g)
 {
@@ -343,13 +247,6 @@ CRef &CRef::SetF32(float g)
     return *this;
 }
 
-/** @sly2-annot addr=0x129598
- * Purpose: Decref then tag 0x17
- * Info: proposed name CRef_SetBool (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_A1+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a boolean (tag 0x17) after releasing the old payload.
 extern "C" CRef *CRef_SetBool(CRef *pref, int f)
 {
@@ -359,13 +256,6 @@ extern "C" CRef *CRef_SetBool(CRef *pref, int f)
     return pref;
 }
 
-/** @sly2-annot addr=0x1295D8
- * Purpose: Decref then tag 0x18
- * Info: proposed name CRef_SetSymid (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed SetProc__4CRefP5CProc (0.000)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a symbol id (tag 0x18) after releasing the old payload.
 extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
 {
@@ -375,13 +265,6 @@ extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
     return pref;
 }
 
-/** @sly2-annot addr=0x129618
- * Purpose: Decref then tag 0x19
- * Info: proposed name CRef_SetBifk (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a built-in function index (tag 0x19) after releasing the old payload.
 extern "C" CRef *CRef_SetBifk(CRef *pref, int bifk)
 {
@@ -391,12 +274,6 @@ extern "C" CRef *CRef_SetBifk(CRef *pref, int bifk)
     return pref;
 }
 
-/** @sly2-annot addr=0x129658
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name __as__4CRefRC4CRef (EXISTING); TU ref
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // CRef assignment: references the source payload, releases the old one, then copies tag and payload.
 CRef &CRef::operator=(const CRef &r)
 {
@@ -407,12 +284,6 @@ CRef &CRef::operator=(const CRef &r)
     return *this;
 }
 
-/** @sly2-annot addr=0x1296A8
- * Purpose: Decref, tag 0x1A, new box, copy *pv
- * Info: proposed name CRef_SetVector (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a vector (tag 0x1A): releases the old payload, allocates a new box and copies *vector.
 extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
 {
@@ -427,14 +298,6 @@ extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
     return pref;
 }
 
-/** @sly2-annot addr=0x129718
- * Purpose: Same as SetVector but vector passed by value
- * Info: proposed name CRef_SetVector_VU_VECTOR (T1); class CRef; TU ref
- * Notes: C++ signature hint (VU_VECTOR) | COLLISION: CRef_SetVector already used (same name proposed for
- *   0x1296A8); renamed to CRef_SetVector_VU_VECTOR
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a vector (tag 0x1A) passed by value in a quadword register.
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
 {
@@ -449,12 +312,6 @@ extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
     return pref;
 }
 
-/** @sly2-annot addr=0x129780
- * Purpose: Decref, tag 0x1B, new box, copy
- * Info: proposed name CRef_SetMatrix (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a matrix (tag 0x1B) in a new box.
 extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
 {
@@ -469,13 +326,6 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
     return pref;
 }
 
-/** @sly2-annot addr=0x129808
- * Purpose: Decref, tag 0x1C
- * Info: proposed name CRef_SetClq (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a CLQ (tag 0x1C) in a new box.
 extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
 {
@@ -490,12 +340,6 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
     return pref;
 }
 
-/** @sly2-annot addr=0x129878
- * Purpose: Decref, tag 0x1D
- * Info: proposed name CRef_SetLm (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns an LM range (tag 0x1D) in a new box.
 extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
 {
@@ -510,12 +354,6 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
     return pref;
 }
 
-/** @sly2-annot addr=0x1298F0
- * Purpose: Decref, tag 0x1E
- * Info: proposed name CRef_SetSmp (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns an SMP (tag 0x1E) in a new box.
 extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
 {
@@ -530,13 +368,6 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
     return pref;
 }
 
-/** @sly2-annot addr=0x129970
- * Purpose: Incref new node, Decref old, tag 0x1F
- * Info: proposed name CRef_SetPair (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed SetMatrix__4CRefP7MATRIX4 (0.050)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a pair (tag 0x1F): references the new pair before releasing the old payload.
 extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
 {
@@ -547,13 +378,6 @@ extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
     return pref;
 }
 
-/** @sly2-annot addr=0x1299C0
- * Purpose: Incref, Decref, tag 0x20
- * Info: proposed name CRef_SetProc (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed SetClq__4CRefP3CLQ (0.002)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a procedure (tag 0x20).
 extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 {
@@ -564,12 +388,6 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
     return pref;
 }
 
-/** @sly2-annot addr=0x129A10
- * Purpose: Object vtable Incref (slot 1), Decref old, tag 0x21
- * Info: proposed name CRef_SetBasic (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a game object (tag 0x21), referencing it through vtable slot 1.
 extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
 {
@@ -581,13 +399,6 @@ extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
     return pref;
 }
 
-/** @sly2-annot addr=0x129A70
- * Purpose: Incref, Decref, tag 0x22
- * Info: proposed name CRef_SetMethod (T1); class CRef; TU ref
- * Notes: names_v2 v1 proposed SetSmp__4CRefP3SMP (0.002)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Assigns a native method (tag 0x22).
 extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *method)
 {
@@ -601,11 +412,6 @@ extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *method)
 struct VECTOR3V { float x, y, z; };
 struct VECTOR2V { float x, y; };
 
-/** @sly2-annot addr=0x129AC0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Value equality: same tag and equal payload (numbers, symbols, objects by identity, boxed vectors and matrices by
 // contents).
 bool CRef::operator==(const CRef &ref)
@@ -633,14 +439,6 @@ bool CRef::operator==(const CRef &ref)
     return true;
 }
 
-/** @sly2-annot addr=0x129BC8
- * Purpose: Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects
- *   re-referenced
- * Info: proposed name CRef_CloneTo (T1); class CRef; TU ref
- * Notes: agent qualifier: (returns clone)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Deep copy of a value: boxes are re-allocated, pairs and procs cloned recursively (CPair_CloneTo, CProc_CloneTo),
 // objects re-referenced. Used when cloning objects with their Splice state.
 CRef CRef_CloneTo(CRef *pref, void *a, void *b)
@@ -662,12 +460,6 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b)
 // 0x129D50: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x129D58
- * Purpose: Returns S32 copy (float truncated)
- * Info: proposed name CRef_CoerceS32 (T1); class CRef; TU ref
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Returns the value coerced to an integer (floats truncated).
 extern "C" CRef *CRef_CoerceS32(CRef *pref, CRef *source)
 {
@@ -684,12 +476,6 @@ extern "C" CRef *CRef_CoerceS32(CRef *pref, CRef *source)
     return pref;
 }
 
-/** @sly2-annot addr=0x129DA8
- * Purpose: Returns F32 copy (int promoted); used by most numeric builtins
- * Info: proposed name CRef_CoerceF32 (T1); class CRef; TU ref
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Returns the value coerced to a float (integers promoted); the numeric built-ins use it.
 extern "C" CRef *CRef_CoerceF32(CRef *pref, CRef *source)
 {
@@ -705,13 +491,6 @@ extern "C" CRef *CRef_CoerceF32(CRef *pref, CRef *source)
     return pref;
 }
 
-/** @sly2-annot addr=0x129DF8
- * Purpose: Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p,
- *   objects vtable slot 1)
- * Info: proposed name CRef_Incref (T1); class CRef; TU ref
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Takes a reference on the payload according to its tag (box counts, pair/proc/method counts, objects via vtable
 // slot 1).
 void CRef::Incref()
@@ -746,12 +525,6 @@ void CRef::Incref()
     }
 }
 
-/** @sly2-annot addr=0x129EC8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Releases the payload according to its tag; a box, pair, proc or method whose count reaches zero is freed into its
 // pool, objects are released through their vtable.
 void CRef::Decref()
@@ -827,14 +600,6 @@ void CRef::Decref()
     }
 }
 
-/** @sly2-annot addr=0x12A0B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name SetTag__4CRef4TAGK (EXISTING); TU ref
- * Notes: RENAME proposed -> SetTag__4CRef4TAGK (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.65]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Releases the old payload and sets a new tag; boxed tags (0x1A..0x1E) get a fresh box from their pool.
 void CRef::SetTag(TAGK tagk)
 {

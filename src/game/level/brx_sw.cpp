@@ -100,20 +100,10 @@ static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; pre
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromWorldHeap(preq); }
 static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromStack(preq); }
 
-/** @sly2-annot addr=0x13DA18
- * Purpose: Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells,
- *   g_sw/g_cm options, then per proxy source: refs+shader/texture blob+object list, cloned ccopy-1 times
- * Info: proposed name LoadSwFromBrx (T1); TU brx_sw
- * Notes: names_v2 C proposed LoadOptionFromBrx__FPvP5EOPIDP18CBinaryInputStream (0.438) | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.97] - evidence: semantic review; static naming pass; sources:
- *   r2_131F70+parse-verified
- * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#3-world--level-lifecycle
- * @end-sly2-annot */
 // Loads a level body from the BRX world file: the proxy-source table, sound banks, save variables, the level table,
 // the localized strings, the cell BSP and the world/camera options, then for each proxy source its references,
 // shader/texture blob and object list (cloned count-1 times). The top-level level loader, called by the level load.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream)
 {
     union { AREQ req; RGBAPOD rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;
@@ -235,14 +225,6 @@ struct SWLANG { char pad[0x4640]; int c; LANGSTR *ae; };
 extern int D_002E1E54;
 extern char D_002DD590[];
 extern char D_003E1C20[];
-/** @sly2-annot addr=0x13DF80
- * Purpose: Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the
- *   g_nLang (D_002E1E54) string into SW.alangstr (+0x4640/+0x4644)
- * Info: proposed name LoadSwLocalizedStringsFromBrx (T1); TU brx_sw
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
- *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
- * @end-sly2-annot */
 // Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
 // and keeps only the current language's strings (g_nLang) in the world's string array.
 extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
@@ -281,14 +263,6 @@ extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *
 /* Cells as LoadSwCellsFromBrx sees the SW (offsets only). */
 struct CELL { char pad[0x10]; CELL *front; CELL *back; int frontLeaf; int backLeaf; };   /* a BSP node: plane, then children or leaf indices */
 struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *leaves; };
-/** @sly2-annot addr=0x13E0E0
- * Purpose: Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index;
- *   allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (cleaf x 0x20)
- * Info: proposed name LoadSwCellsFromBrx (T1); TU brx_sw
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
- *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
- * @end-sly2-annot */
 // Reads the cell BSP: per node a plane (VECTOR4) and front/back children (a negative child starts a new leaf).
 // Allocates the world's cell and leaf arrays (0x20 bytes each).
 extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)

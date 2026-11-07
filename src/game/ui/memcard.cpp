@@ -209,13 +209,6 @@ extern "C" {
 int sprintf(char *, const char *, ...);
 char *strcpy(char *, const char *);
 }
-/** @sly2-annot addr=0x1AA978
- * Purpose: Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0)
- * Info: proposed name StartupMemcard (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/overview.md#1-boot, docs/engine/physics-collision.md#6-source-files,
- *   docs/engine/save-memcard.md#4-source-files
- * @end-sly2-annot */
 // Startup-table entry: resets the game-progress object, clears the save request flag and initializes the save
 // manager g_save.
 void StartupMemcard()
@@ -225,16 +218,6 @@ void StartupMemcard()
     InitSave(&D_002E65E0, 0, 0);
 }
 
-/** @sly2-annot addr=0x1AA9B8
- * Purpose: memset + fill a save-directory info block from sceMcGetDir results
- * Info: proposed name FillMcDirInfo (EXISTING); TU memcard
- * Notes: agent/verifier proposes FillMcDirInfo for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> FillMcDirInfo (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Converts a card directory entry (sceMcGetDir) into the game's SAVEINFO record (attribute bits renumbered).
 /* Converts a card directory entry into the game's record (attribute bits renumbered). */
 extern "C" void FillMcDirInfo(MCTBLDIR *pdir, SAVEINFO *psi)
@@ -292,17 +275,6 @@ enum
 };
 
 namespace M_FUN_0018b910__Fi {
-/** @sly2-annot addr=0x1AAB48
- * Purpose: sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F
- * Info: proposed name McResFromSyncState (EXISTING); TU memcard
- * Notes: agent/verifier proposes McResFromSyncState for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> McResFromSyncState
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Maps a sceMcSync state to the internal result: 0 -> 0x1D (done), positive -> 0x1E (busy), negative -> 0x1F (error).
 extern "C" int McResultFromSyncState(int n)
 {
@@ -312,17 +284,6 @@ extern "C" int McResultFromSyncState(int n)
 } // namespace M_FUN_0018b910__Fi
 
 namespace M_FUN_0018b930__Fi {
-/** @sly2-annot addr=0x1AAB68
- * Purpose: sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F
- * Info: proposed name McResFromSyncCmd (EXISTING); TU memcard
- * Notes: agent/verifier proposes McResFromSyncCmd for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> McResFromSyncCmd
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Maps a sceMcSync command result to the internal result: 0 -> 0x21, 1 -> 0x22, -1 -> 0x20, else 0x1F.
 extern "C" int McResultFromSyncCommand(int n)
 {
@@ -346,16 +307,6 @@ namespace M_MsgFromMcError { extern "C" {
    the original.  Kind 1's `result = 9` is plain.  No register pin or asm is needed. */
 static inline int Fallback(int err) { int msg = 11; if (err >= -9) msg = 31; return msg; }
 
-/** @sly2-annot addr=0x1AABC0
- * Purpose: (kind 1..21, sceMc error) -> message id for the UI
- * Info: proposed name GetMcErrorMessageId (EXISTING); TU memcard
- * Notes: agent/verifier proposes GetMcErrorMessageId for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> GetMcErrorMessageId (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Returns the UI message id for a card error (operation kind 1..21 and the sceMc error code).
 int GetMcErrorMessageId(int kind, int err)
 {
@@ -455,13 +406,6 @@ done:
 }
 } } // namespace M_MsgFromMcError
 
-/** @sly2-annot addr=0x1AAED8
- * Purpose: MEMCARD init: SemaCreate(1,1), thread id -1, job result 0x20
- * Info: proposed name InitMemcard (T1); TU memcard
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4_17F090+verdicts_A2
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Initializes the memory card worker: semaphore (1, 1), no thread yet, job result 0x20 (idle).
 void InitMemcard(MEMCARD *worker)
 {
@@ -479,15 +423,6 @@ void func_00234A60(int) __asm__("WaitSema");
 void func_00234A40(int) __asm__("SignalSema");
 void ExitDeleteThread(void);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-/** @sly2-annot addr=0x1AAF18
- * Purpose: Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear
- *   job, signal, ExitThread
- * Info: proposed name MemcardThreadMain (T1); TU memcard
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/main-loop-startup.md#6-threads,
- *   docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/engine/save-memcard.md#5-key-functions
- * @end-sly2-annot */
 // Body of the memory card worker thread: waits on the semaphore, runs the queued SAVE member-function job on g_save,
 // clears it, signals and exits.
 void MemcardThreadMain(struct S *worker)
@@ -515,13 +450,6 @@ void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *worker);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 int func_00234820(struct ThreadParam *tp);
 void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
-/** @sly2-annot addr=0x1AAF90
- * Purpose: Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, _iDisableIntc+_iEnableDmac
- * Info: proposed name CreateMemcardThread (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6+verdicts_A2
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Queues a job (a pointer to a SAVE member function) for the worker thread and starts the thread, after waiting for
 // the previous job.
 void CreateMemcardThread(struct S *worker, struct PMF pmf)
@@ -542,14 +470,6 @@ void CreateMemcardThread(struct S *worker, struct PMF pmf)
 }
 } } // namespace M_CreateMemcardThread
 
-/** @sly2-annot addr=0x1AB040
- * Purpose: If thread valid iReleaseAlarm(id,1); then wait/signal sema (block until job finishes)
- * Info: proposed name SetMemcardThreadHighPrio (T1); TU memcard
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
- *   r4_17F090+verdicts_A2+names_v2-signature(verified)
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Raises the worker thread's priority when it is running, then blocks until its job has finished.
 void SetMemcardThreadHighPrio(MEMCARD *worker)
 {
@@ -560,15 +480,7 @@ void SetMemcardThreadHighPrio(MEMCARD *worker)
     SignalSema(worker->sema);
 }
 
-/** @sly2-annot addr=0x1AB088
- * Purpose: Thread id (+4) != -1
- * Info: proposed name IsMemcardThreadValid__FP7MEMCARD (EXISTING); TU memcard
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
-// True when the worker thread exists (thread id != -1).
+// True when the worker thread exists (thread id != -1). (Sly 1-derived name: FMemcardThreadValid.)
 int IsMemcardThreadValid(MEMCARD *worker)
 {
     return ~worker->tid != 0;
@@ -579,16 +491,6 @@ int McResultFromSyncState(void *p) __asm__("McResultFromSyncState");
 int sceMcSync(int mode, int *cmd, int *result);
 int McResultFromSyncCommand(int n) __asm__("McResultFromSyncCommand");
 int GetMcErrorMessageId(void *p, int n);
-/** @sly2-annot addr=0x1AB098
- * Purpose: Poll sceMcSync(0,&cmd,&res) and map to result; on error map through GetMcErrorMessageId
- * Info: proposed name McSyncResult (EXISTING); TU memcard
- * Notes: agent/verifier proposes McSyncResult for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> McSyncResult (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Polls sceMcSync and maps the outcome to an internal result; errors are mapped to a UI message through
 // GetMcErrorMessageId.
 int McSyncResult(void *worker, void *syncState, void *operationKind, int *errorOut)
@@ -620,12 +522,6 @@ struct SAVE {
 };
 extern "C" void sceMcInit(void);
 extern "C" void InitMemcard__FP7MEMCARD(void *);
-/** @sly2-annot addr=0x1AB128
- * Purpose: sceMcInit, InitMemcard(+0xFD5C), zero SAVE header
- * Info: proposed name InitSave__FP4SAVEii (EXISTING); TU memcard
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Initializes the save manager: sceMcInit, the worker (MEMCARD) and the SAVE header.
 extern "C" void InitSave__FP4SAVEii(SAVE *saveManager, int port, int slot)
 {
@@ -663,14 +559,6 @@ void SetSaveState(struct S *s, int);
 int IsMpegActive(void *p);
 int IsPauseMenuOnLoadPageB(void *p);
 void SetMcDialogState(struct H *h, int n);
-/** @sly2-annot addr=0x1AB1A0
- * Purpose: Per-frame save state machine: skip during transitions/when thread busy; poll card (job McJobGetInfo)
- *   or advance state (0x1AB418); autosave trigger with 0.3s debounce
- * Info: proposed name UpdateSave (T1); TU memcard
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090+verdicts_A2
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Per-frame save state machine: skipped during transitions or while the worker is busy; polls the card (McJobGetInfo)
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
 void UpdateSave__FP4SAVE(struct S *saveManager)
@@ -721,14 +609,6 @@ void UpdateSave__FP4SAVE(struct S *saveManager)
 }
 } } // namespace M_UpdateSave__FP4SAVE
 
-/** @sly2-annot addr=0x1AB398
- * Purpose: existing
- * Info: proposed name CompareSaves__FP4SAVET0 (EXISTING); TU memcard
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Orders two directory records by modification date (year, day/month bytes as stored, hour, minute, second).
 /* Orders two records by modification date (year, day/month bytes as stored, hour, minute, second). */
 extern "C" int CompareSaves__FP4SAVET0(SAVEINFO *psi0, SAVEINFO *psi1)
@@ -787,14 +667,6 @@ void SetSaveState(MC *saveManager, int state);
 CRef Eval(int, SLOT *) __asm__("GetGlobalSaveVar");
 static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
 
-/** @sly2-annot addr=0x1AB418
- * Purpose: SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state
- *   updates, ResetGs on load
- * Info: proposed name SetSaveState (T1); TU memcard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Changes the save state, with per-state actions on the three slots (Splice evaluations), UI updates and a GS reset
 // on load.
 void SetSaveState(MC *saveManager, int state)
@@ -844,13 +716,6 @@ void SetSaveState(MC *saveManager, int state)
 }
 } // namespace M_SetSaveState
 
-/** @sly2-annot addr=0x1AB630
- * Purpose: If state 5 and (*(int *)&g_sw.savevars): wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to
- *   state 6
- * Info: proposed name ReloadSaveSlots (T2); TU memcard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Once the worker is idle in state 5 with save variables present, re-initializes the three slots and goes to state 6.
 /* Reloads the three slots once the worker is idle (state 5 and (*(int *)&g_sw.savevars) set). */
 extern "C" void ReloadSaveSlots(SAVE *saveManager)
@@ -871,14 +736,6 @@ extern "C" void ReloadSaveSlots(SAVE *saveManager)
     }
 }
 
-/** @sly2-annot addr=0x1AB6C0
- * Purpose: Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state
- * Info: proposed name McJobFormat (T1); TU memcard
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: formats the card (sceMcFormat) and sets the next save state and UI state from the result.
 extern "C" int McJobFormat(SAVE *saveManager)
 {
@@ -911,17 +768,6 @@ struct K { int sector; int size; int mode; char pad[0x104];
       return size != 0;
   }
 };
-/** @sly2-annot addr=0x1AB750
- * Purpose: Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670
- * Info: proposed name GetDiscFileEntrySize (EXISTING); TU memcard
- * Notes: agent/verifier proposes GetDiscFileEntrySize for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> GetDiscFileEntrySize
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.35] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Opens the save icon file on the disc (a FLOC built from the file entry); returns false when the entry is not set.
 extern "C" { int GetDiscFileEntrySize(S *entry)
 {
@@ -937,13 +783,6 @@ void *McMkdir(void *saveManager, char *dir);
 void *McWriteFile(void *saveManager, char *path, char *data, int size);
 void *WriteIconSys(void *saveManager, char *dir, char *title);
 void *load_sly_icon_from_disc(void *saveManager, char *dir);
-/** @sly2-annot addr=0x1AB7D0
- * Purpose: mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc
- *   (load_sly_icon_from_disc)
- * Info: proposed name CreateSaveDir (T1); TU memcard
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Creates the save directory (/BASCUS-97316YAOTWTD!) with the data file, icon.sys and the icon copied from the disc.
 void *CreateSaveDir(void *saveManager)
 {
@@ -972,14 +811,6 @@ int WriteSaveSlotFileReset(struct S *s, struct B *b);
 void BuildSaveFilePath(struct S *s, struct B *b, char *path);
 void McDelete(struct S *s, char *path);
 void SetMcDialogPhase(void *p, int n);
-/** @sly2-annot addr=0x1AB868
- * Purpose: Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files
- * Info: proposed name McJobCreateSave (T1); TU memcard
- * Notes: names_v2 v1 proposed FUN_0018c250 (0.000)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: checks the free space, deletes a stale save, creates the directory and writes the slot files.
 int McJobCreateSave(struct S *saveManager)
 {
@@ -1036,17 +867,6 @@ int sceMcGetDir(int a, int b, char *c, int d, int e, int f);
 int McSyncResult(void *p, int a, int b, int *c);
 int McGetInfoSync(struct S *s, int *out);
 int ReadSaveSlotHeaders(struct S *s, struct B *b);
-/** @sly2-annot addr=0x1ABA10
- * Purpose: Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8)
- * Info: proposed name McJobGetDir (EXISTING); TU memcard
- * Notes: agent/verifier proposes McJobGetDir for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> McJobGetDir (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: reads the card info and the save directory, then each slot's header.
 int McJobGetDir(struct S *saveManager)
 {
@@ -1073,13 +893,6 @@ namespace M_BuildSaveFilePath { extern "C" {
 struct SAVE { char ab[0x5464]; };
 struct M { char pad[0x24]; struct SAVE slots[4]; };
 int sprintf(char *buf, char *fmt, ...);
-/** @sly2-annot addr=0x1ABB10
- * Purpose: sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i)
- * Info: proposed name BuildSaveFilePath (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Builds a slot's file path: "/BASCUS-97316YAOTWTD!/save<i>".
 void BuildSaveFilePath(struct M *saveManager, struct SAVE *slot, char *buf)
 {
@@ -1094,14 +907,6 @@ void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
 void *WriteSaveSlotFile(struct S *s, void *x);
 void SetMcDialogPhase(void *p, int n);
-/** @sly2-annot addr=0x1ABB60
- * Purpose: Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420)
- * Info: proposed name McJobSaveSlot (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: checks the card, creates the save directory when needed and writes one slot file.
 void *McJobSaveSlot(struct S *saveManager)
 {
@@ -1113,14 +918,6 @@ void *McJobSaveSlot(struct S *saveManager)
 }
 } } // namespace M_McJobSaveSlot
 
-/** @sly2-annot addr=0x1ABBE0
- * Purpose: Thread job: card info check, set UI/SAVE state
- * Info: proposed name McJobCheckCard (T2); TU memcard
- * Notes: names_v2 v1 proposed FUN_0018c770 (0.000)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job of the autosave: checks the card and rewrites the current slot; on failure shows the dialog's error
 // state (0x23) and hides the status widget.
 /* Thread job: check the card, then write the current slot. */
@@ -1142,14 +939,6 @@ void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
 void *WriteSaveSlotFileReset(struct S *s, void *x);
 void SetMcDialogPhase(void *p, int n);
-/** @sly2-annot addr=0x1ABC68
- * Purpose: Thread job: card check, CreateSaveDir, write via 0x1AC468 (with ResetGs)
- * Info: proposed name McJobWriteSave (T2); TU memcard
- * Notes: names_v2 v1 proposed FUN_0018c7f8__FP4SAVE (0.000)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: like McJobSaveSlot, but the slot is written with a GS reset first (WriteSaveSlotFileReset).
 void *McJobSaveSlotResetGs(struct S *saveManager)
 {
@@ -1169,12 +958,6 @@ struct S { char pad[0xFD50]; int currentSlot; int pad2[2]; char memcard[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void BuildMemcardGsMask(void *p, int n);
 void CreateMemcardThread(void *p, long k);
-/** @sly2-annot addr=0x1ABCE8
- * Purpose: Build GS mask (BuildMemcardGsMask) and CreateMemcardThread for a save
- * Info: proposed name StartSaveJobA (T2); TU memcard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Starts the autosave: resets the rumble save variable, stores the save variables into the current slot and queues
 // McJobAutosave.
 void StartAutosaveJob(struct S *saveManager)
@@ -1193,12 +976,6 @@ struct S { char pad[0xFD50]; int currentSlot; int pad2[2]; char memcard[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void BuildMemcardGsMask(void *p, int n);
 void CreateMemcardThread(void *p, long k);
-/** @sly2-annot addr=0x1ABD40
- * Purpose: Same as 0x1ABCE8 with other job
- * Info: proposed name StartSaveJobB (T2); TU memcard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Starts a save to the current slot: same preparation as the autosave, then queues McJobSaveSlot.
 void StartSaveSlotJob(struct S *saveManager)
 {
@@ -1224,15 +1001,6 @@ void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void StartAutosaveJob(struct S *s);
 void ShowMcDialogWidget(void *p);
-/** @sly2-annot addr=0x1ABD98
- * Purpose: If a slot is current and not in transition: eval Splice flag; if card missing show UI state 0x22
- *   else start save job
- * Info: proposed name AutoSaveGame (T2); TU memcard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
- *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Autosaves when a slot is current and no transition is running (Splice save flag unless forced): shows the "no card"
 // dialog (state 0x22) when the card is missing, else starts the autosave job.
 void AutosaveGame(struct S *saveManager, int force)
@@ -1274,17 +1042,6 @@ int sceMcGetDir(int, int, char *, int, int, ENT *);
 int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
 
-/** @sly2-annot addr=0x1ABE78
- * Purpose: sceMcGetDir into table, then FillMcDirInfo
- * Info: proposed name ReadMcDir (EXISTING); TU memcard
- * Notes: agent/verifier proposes ReadMcDir for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> ReadMcDir
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Reads a card directory listing (sceMcGetDir) into an array of records (FillMcDirInfo).
 int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
 {
@@ -1314,17 +1071,6 @@ int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *n
 
 namespace M_ReadMcDirWrapper { extern "C" {
 int ReadMcDir(int saveManager, int path, int maxEntries, int records, int *numRecords);
-/** @sly2-annot addr=0x1ABFC0
- * Purpose: wrapper of 0x1ABE78
- * Info: proposed name ReadMcDirWrapper (EXISTING); TU memcard
- * Notes: agent/verifier proposes ReadMcDirWrapper for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> ReadMcDirWrapper
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.35] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Wrapper of ReadMcDir.
 int ReadMcDirWrapper(int saveManager, int path, int record)
 {
@@ -1370,16 +1116,6 @@ void *memset_(void *, int, unsigned int) __asm__("memset");
 void ConvertStringToSjis(char *, unsigned char *);
 int McWriteFile(void *saveManager, char *path, void *data, int size);
 
-/** @sly2-annot addr=0x1AC008
- * Purpose: Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it
- * Info: proposed name WriteIconSys (EXISTING); TU memcard
- * Notes: agent/verifier proposes WriteIconSys for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> WriteIconSys (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+verdicts_tu_r4r6+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Builds the PS2 icon.sys for the save (title "Sly 2") and writes it into the save directory.
 int WriteIconSys(void *saveManager, char *dir, char *title)
 {
@@ -1431,14 +1167,6 @@ int WriteIconSys(void *saveManager, char *dir, char *title)
 }
 } } // namespace M_WriteIconSys
 
-/** @sly2-annot addr=0x1AC238
- * Purpose: existing: load memcard_icon.ico from disc and write to card
- * Info: proposed name load_sly_icon_from_disc (EXISTING); TU memcard
- * Confidence: high [EXISTING 0.70] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/formats/disc-records.md#3-static-records-in-the-elf,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Loads the save icon (memcard_icon.ico) from the disc and writes it to the card.
 extern "C" void load_sly_icon_from_disc(int n0, int n1)
 {
@@ -1523,13 +1251,6 @@ typedef char Size_4[sizeof(Y)==112?1:-1];
 typedef char Size_5[sizeof(uint)==4?1:-1];
 typedef char Size_6[sizeof(int)==4?1:-1];
 typedef char Size_7[sizeof(void*)==4?1:-1];
-/** @sly2-annot addr=0x1AC260
- * Purpose: Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close
- * Info: proposed name load_file_from_disc (T1); TU memcard
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_A2
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Reads the disc file "<dir>/<name>" into memory and writes it to the card (sceMcOpen/Write/Close).
 int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char *fileName)
 {
@@ -1579,17 +1300,6 @@ namespace M_WriteSaveSlotFile { extern "C" {
 struct B { int a[20]; };   /* the file path buffer (0x50 bytes) */
 void BuildSaveFilePath(void *saveManager, void *slot, struct B *path);
 void McWriteFile(void *saveManager, struct B *path, void *data, int size);
-/** @sly2-annot addr=0x1AC420
- * Purpose: BuildSaveFilePath + McWriteFile
- * Info: proposed name WriteSaveSlotFile (EXISTING); TU memcard
- * Notes: agent/verifier proposes WriteSaveSlotFile for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> WriteSaveSlotFile
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.40] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Writes one slot's file (BuildSaveFilePath + McWriteFile).
 void WriteSaveSlotFile(void *saveManager, void *slot)
 {
@@ -1604,17 +1314,6 @@ struct B { char pad[0x5408]; char infoName[0x44]; int infoSize; int infoAttribut
 void ResetSaveGs(struct B *p, int n);
 void BuildSaveFilePath(void *saveManager, void *slot, char *path);
 int McWriteFile(void *saveManager, char *path, void *data, int size);
-/** @sly2-annot addr=0x1AC468
- * Purpose: ResetGs then BuildSaveFilePath + McWriteFile
- * Info: proposed name WriteSaveSlotFileReset (EXISTING); TU memcard
- * Notes: agent/verifier proposes WriteSaveSlotFileReset for this existing name (see
- *   existing_name_changes.csv) | arbitration: draft replacement (not re-derived) | RENAME proposed ->
- *   WriteSaveSlotFileReset (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.35] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Resets the GS state, then writes one slot's file.
 int WriteSaveSlotFileReset(void *saveManager, struct B *slot)
 {
@@ -1631,14 +1330,6 @@ void memset_(void *p, int c, int n) __asm__("memset");
 void BuildSaveFilePath(void *saveManager, void *slot, char *path);
 int ReadMcDirWrapper(void *saveManager, char *path, void *record);
 int McReadFile(void *saveManager, char *path, void *data, int size);
-/** @sly2-annot addr=0x1AC4C8
- * Purpose: For each slot: BuildSaveFilePath, read dir entry, McReadFile
- * Info: proposed name ReadSaveSlotHeaders (T2); TU memcard
- * Notes: names_v2 v1 proposed McWriteFile (0.000)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Reads each slot's directory entry and file header from the card.
 int ReadSaveSlotHeaders(void *saveManager, struct B *slot)
 {
@@ -1657,13 +1348,6 @@ int ReadSaveSlotHeaders(void *saveManager, struct B *slot)
 }
 } } // namespace M_func_001AC4C8
 
-/** @sly2-annot addr=0x1AC570
- * Purpose: Thin wrapper over ResetGsIfSchemaChanged for a slot
- * Info: proposed name ResetSaveSlot (T2); TU memcard
- * Notes: names_v2 C proposed Clear__13CFileLocation (0.200)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Resets a slot when its schema changed (ResetGsIfSchemaChanged).
 extern "C" int ResetSaveSlot(SAVE *saveManager, void *pslot)
 {
@@ -1675,13 +1359,6 @@ namespace M_McJobGetInfo { extern "C" {
 struct S { int port; int slot; int state; int nextState; int tStateChanged; float tNextPoll; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
-/** @sly2-annot addr=0x1AC598
- * Purpose: Thread job: sceMcGetInfo + sync -> card type/free/format state
- * Info: proposed name McJobGetInfo (T1); TU memcard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Worker job: reads the card info (type, free space, formatted) and records it.
 int McJobGetInfo(struct S *saveManager)
 {
@@ -1721,12 +1398,6 @@ namespace M_func_001AC6A0 { extern "C" {
 struct S { int port; int slot; int pad[4]; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
-/** @sly2-annot addr=0x1AC6A0
- * Purpose: sceMcGetInfo + McSyncResult
- * Info: proposed name McGetInfoSync (T2); TU memcard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcGetInfo followed by McSyncResult; returns the result.
 int McGetInfoSync(struct S *saveManager, int *freeBytes)
 {
@@ -1751,13 +1422,6 @@ int McGetInfoSync(struct S *saveManager, int *freeBytes)
 }
 } } // namespace M_func_001AC6A0
 
-/** @sly2-annot addr=0x1AC748
- * Purpose: sceMcMkdir wrapper + sync
- * Info: proposed name McMkdir (T1); TU memcard
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcMkdir and wait for the result.
 extern "C" int McMkdir(SAVE *saveManager, const char *pchz)
 {
@@ -1765,26 +1429,12 @@ extern "C" int McMkdir(SAVE *saveManager, const char *pchz)
     return ((nResult ^ 0x18) == 0) ? 0 : nResult;
 }
 
-/** @sly2-annot addr=0x1AC7A0
- * Purpose: sceMcOpen wrapper + sync
- * Info: proposed name McOpen (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcOpen and wait for the result.
 extern "C" void McOpen(SAVE *saveManager, const char *pchz, int mode, int n)
 {
     McSyncResult(&saveManager->memcard, sceMcOpen(saveManager->port, saveManager->slot, pchz, mode), 2, n);
 }
 
-/** @sly2-annot addr=0x1AC808
- * Purpose: sceMcClose wrapper + sync
- * Info: proposed name McClose (T1); TU memcard
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcClose and wait for the result.
 extern "C" void McClose(SAVE *saveManager, int fd)
 {
@@ -1798,13 +1448,6 @@ namespace M_McRead { extern "C" {
 int sceMcRead(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
 struct S { char pad[0xFD5C]; char memcard[4]; };
-/** @sly2-annot addr=0x1AC850
- * Purpose: sceMcRead + McSyncResult
- * Info: proposed name McRead (T1); TU memcard
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcRead and wait for the result.
 void McRead(struct S *saveManager, int fd, int buffer, int size, int numRead)
 {
@@ -1816,13 +1459,6 @@ namespace M_McWrite { extern "C" {
 int sceMcWrite(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
 struct S { char pad[0xFD5C]; char memcard[4]; };
-/** @sly2-annot addr=0x1AC8A8
- * Purpose: sceMcWrite + McSyncResult
- * Info: proposed name McWrite (T1); TU memcard
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcWrite and wait for the result.
 void McWrite(struct S *saveManager, int fd, int buffer, int size, int numWritten)
 {
@@ -1834,16 +1470,6 @@ namespace M_McWriteFile { extern "C" {
 int McOpen(void *saveManager, void *path, int mode, int *fd);
 int McWrite(void *saveManager, int fd, void *data, int size, int *numWritten);
 void McClose(void *saveManager, int fd);
-/** @sly2-annot addr=0x1AC900
- * Purpose: McOpen(create) + McWrite + McClose
- * Info: proposed name McWriteFile (EXISTING); TU memcard
- * Notes: agent/verifier proposes McWriteFile for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> McWriteFile (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+arbitration
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Writes a whole file: open (create), write, close.
 int McWriteFile(void *saveManager, void *path, void *data, int size)
 {
@@ -1864,12 +1490,6 @@ namespace M_McReadFile { extern "C" {
 int McOpen(void *saveManager, void *path, int mode, int *fd);
 int McRead(void *saveManager, int fd, void *data, int size, int *numRead);
 void McClose(void *saveManager, int fd);
-/** @sly2-annot addr=0x1AC9A0
- * Purpose: McOpen + McRead + McClose
- * Info: proposed name McReadFile (T1); TU memcard
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Reads a whole file: open, read, close.
 int McReadFile(void *saveManager, void *path, void *data, int size)
 {
@@ -1886,13 +1506,6 @@ int McReadFile(void *saveManager, void *path, void *data, int size)
 }
 } } // namespace M_McReadFile
 
-/** @sly2-annot addr=0x1ACA40
- * Purpose: sceMcDelete wrapper
- * Info: proposed name McDelete (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // sceMcDelete and wait for the result.
 extern "C" int McDelete(SAVE *saveManager, const char *pchz)
 {
@@ -1900,12 +1513,6 @@ extern "C" int McDelete(SAVE *saveManager, const char *pchz)
     return ((nResult ^ 0xE) == 0) ? 0 : nResult;
 }
 
-/** @sly2-annot addr=0x1ACA98
- * Purpose: ctor: UI base ctor 0x1DA728, vptr 0x2D3750, id 0x52C, state x40=-1, register 0x1DA7D0
- * Info: proposed name CMemcardDialog_ctor (T1); class CMemcardDialog; TU memcard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMemcardDialog constructor: UI base, vtable, text id 0x52C, no state.
 extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
 {
@@ -1917,12 +1524,6 @@ extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
     return dialog;
 }
 
-/** @sly2-annot addr=0x1ACAE8
- * Purpose: UI slot 12: base 0x1DA770 then SetMcDialogState
- * Info: proposed name CMemcardDialog_vt12 (T2); class CMemcardDialog; TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMemcardDialog slot 12 (post-load): base version, then re-applies the current dialog state.
 /* CMemcardDialog slot 12. */
 void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes out here */
@@ -1939,12 +1540,6 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
     }
 }
 
-/** @sly2-annot addr=0x1ACB38
- * Purpose: UI slot 13: forwards to 0x1DA7B0
- * Info: proposed name CMemcardDialog_vt13 (T2); class CMemcardDialog; TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMemcardDialog slot 13: forwards to the UI base (0x1DA7B0).
 /* CMemcardDialog slot 13. */
 extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
@@ -1955,13 +1550,6 @@ extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
 namespace M_SetMcDialogState { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *child; char pad3[0x18]; int state; };
-/** @sly2-annot addr=0x1ACB58
- * Purpose: x40 = state; if shown (x24) call vt10 and child vt49(-1)
- * Info: proposed name SetMcDialogState (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions, docs/engine/save-memcard.md#open-questions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Sets the dialog state; when the dialog is shown, refreshes it (slot 10) and shows its child widget.
 void SetMcDialogState(struct O *dialog, int state)
 {
@@ -1976,13 +1564,6 @@ void SetMcDialogState(struct O *dialog, int state)
 namespace M_ClearMcDialogState { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *child; char pad3[0x18]; int state; };
-/** @sly2-annot addr=0x1ACBB8
- * Purpose: x40=-1; vt11 and child vt50
- * Info: proposed name ClearMcDialogState (T1); TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Clears the dialog state and hides the dialog (slot 11) and its child widget.
 void ClearMcDialogState(struct O *dialog)
 {
@@ -1994,13 +1575,6 @@ void ClearMcDialogState(struct O *dialog)
 }
 } } // namespace M_ClearMcDialogState
 
-/** @sly2-annot addr=0x1ACC18
- * Purpose: vt14: x28=mode, x2C=time if changed
- * Info: proposed name CMemcardDialog_SetMode (T2); class CMemcardDialog; TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMemcardDialog slot 14: sets the mode, stamping the real time when it changes.
 /* slot 14: set the mode (stamping the real time). */
 extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
@@ -2017,16 +1591,6 @@ extern struct H D_002E65E0;
 struct CLOCK { float t; float dt; char pad[0x34]; float realTime; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
-/** @sly2-annot addr=0x1ACC38
- * Purpose: Memcard dialog (D_002E6550): set phase +0x44 and its start time +0x48 (g_clock t3C); phases 2/3
- *   clear g_save+0xFD50
- * Info: proposed name SetMcDialogPhase (T2); TU memcard
- * Notes: v3: superseded SetMcUiPhase | top50_round (0.45): Body. Neighbours SetMcDialogState 0x1ACB58
- *   (+0x40), CMemcardDialog_SetMode (+0x28). All callers pass D_002E6550 (memcard job/dialog code: McJob*,
- *   OnMcDialogChoice, RunNextBootStep, UpdateTitleScreen). Phase meaning unkno
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r4_17F090+top50_round
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
 void SetMcDialogPhase(struct S *dialog, int phase)
 {
@@ -2040,12 +1604,6 @@ extern SAVE D_002E65E0;
 
 namespace M_func_001ACC80 { extern "C" {
 struct S { char pad[0x40]; int state; };
-/** @sly2-annot addr=0x1ACC80
- * Purpose: State -> 1 (one-button) / 2 (two-choice) / 0
- * Info: proposed name KMcDialogButtons (T2); TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Returns the button layout of the dialog state: 1 one button, 2 two choices, 0 none.
 int GetMcDialogButtonKind(struct S *dialog)
 {
@@ -2087,14 +1645,6 @@ void SetMcDialogState(struct S *s, int n);
 void ClearMcDialogState(struct S *s);
 void ResetGameSequence(void);
 void PopPauseMenuToRoot(void *p);
-/** @sly2-annot addr=0x1ACCC8
- * Purpose: vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs
- *   (CreateMemcardThread), transition (0x1ACFE0)
- * Info: proposed name CMemcardDialog_Update (T1); class CMemcardDialog; TU memcard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMemcardDialog's per-frame update (slot 7): once the dialog has been shown for 0.1 s, handles the pad per the button
 // layout, starts the card jobs and moves to the follow-up state.
 void CMemcardDialog_Update(struct S *dialog)
@@ -2239,13 +1789,6 @@ void OnMcDialogChoice(S *s);
 CRef SetGlobalSaveVar(O *, const CRef &, void *);                   // O::Set(const CRef &, context), returns a CRef
 }
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, D_003D4A60); }
-/** @sly2-annot addr=0x1ACFE0
- * Purpose: Switch on dialog state x40 and run follow-up (UI hooks, SAVE jobs, 0x1ABD40)
- * Info: proposed name OnMcDialogChoice (T2); TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
 void OnMcDialogChoice(S *dialog)
 {
@@ -2298,12 +1841,6 @@ extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 void SaveToCurrentSlot(void);
 void CreateMemcardThread(void *t, long pmf);
 void SetMcDialogState(struct S *s, int n);
-/** @sly2-annot addr=0x1AD168
- * Purpose: Confirm path: 0x1AD3E0 or CreateMemcardThread
- * Info: proposed name McDialogConfirm (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
 void ConfirmMcDialog(struct S *dialog)
 {
@@ -2339,13 +1876,6 @@ void ResetSaveGs(struct B *b, int n);
 void StartGameFromSave(struct B *b);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
-/** @sly2-annot addr=0x1AD250
- * Purpose: Menu action slot i: if slot empty (Splice eval) make it current and start (0x1D8D80, 0x165E38)
- *   else error sound 0x36
- * Info: proposed name SelectSaveSlotNew (T2); TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Menu action for slot i on the new-game page: when the slot is empty, makes it current and starts a new game;
 // otherwise plays the error sound.
 void StartNewGameInSlot(struct S *item)
@@ -2379,12 +1909,6 @@ void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void ResetSaveGs(struct B *b, int n);
 void StartGameFromSave(struct B *b);
-/** @sly2-annot addr=0x1AD320
- * Purpose: Menu action slot i: make current, ResetGs, start (0x165E38)
- * Info: proposed name SelectSaveSlotLoad (T2); TU memcard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Menu action for slot i on the load page: makes it current, resets the GS state and starts the game from it.
 void LoadGameFromSlot(struct S *item)
 {
@@ -2418,12 +1942,6 @@ void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void StartSaveSlotJob(struct G *g);
-/** @sly2-annot addr=0x1AD3E0
- * Purpose: Eval slot, set dialog state, start save job (0x1ABD40)
- * Info: proposed name SaveToSlot (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
 void SaveToCurrentSlot(void)
 {
@@ -2458,12 +1976,6 @@ void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void SaveToCurrentSlot(void);
-/** @sly2-annot addr=0x1AD480
- * Purpose: Menu action slot i (group 3): confirm overwrite or SaveToSlot
- * Info: proposed name SelectSaveSlotSave (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Menu action for slot i on the save page: asks to confirm an overwrite, or saves directly to an empty slot.
 void SelectSaveSlotToSave(struct S *item)
 {
@@ -2506,12 +2018,6 @@ int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
 static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).m_tag; }
-/** @sly2-annot addr=0x1AD538
- * Purpose: Menu hook: eval 3 slots' Splice values and update entries
- * Info: proposed name UpdateSaveMenuSlots (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
 extern "C" void UpdateSaveMenuSlots(void)
 {
@@ -2571,12 +2077,6 @@ struct S { int unknown0, unknown4; char *slotIndex; };   /* the menu item */
 void PopPauseMenuPage(struct G *g);
 int IsPauseMenuOnSavePage(struct G *g);
 void PlayWidgetAnim(void *a, char *b);
-/** @sly2-annot addr=0x1AD740
- * Purpose: Menu hook: set text id 0x5C8+i or 0x5C5+i for slot i
- * Info: proposed name SetSaveSlotLabel (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Menu hook: sets slot i's label text (0x5C8+i for a used slot, 0x5C5+i for an empty one).
 void SetSaveSlotLabel(struct S *item)
 {
@@ -2596,12 +2096,6 @@ void SetSaveSlotLabel(struct S *item)
 } } // namespace M_func_001AD740
 #undef D_003D9EDC
 
-/** @sly2-annot addr=0x1AD7E0
- * Purpose: Dynamic text provider (langstr 0x2F2): strcpy name lookup
- * Info: proposed name TextMcCardName (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text (string 0x2F2): the memory card's name.
 /* Dynamic text: the card name. */
 extern "C" void FormatMcCardNameText(char *pch)
@@ -2622,12 +2116,6 @@ extern char D_002E6550[], D_003DD490[];
 int GetMcDialogButtonKind(void *p);
 char *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy1(char *a, const char *b);
-/** @sly2-annot addr=0x1AD820
- * Purpose: Dynamic text provider (0x2F3) depending on dialog state
- * Info: proposed name TextMcDialog (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text (string 0x2F3): the dialog's message for its state.
 void FormatMcDialogText(char *buf)
 {
@@ -2647,12 +2135,6 @@ void FormatMcDialogText(char *buf)
 }
 } } // namespace M_func_001AD820
 
-/** @sly2-annot addr=0x1AD928
- * Purpose: Dynamic text provider (0x5CB)
- * Info: proposed name TextSaveA (T2); TU memcard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text (string 0x5CB) of the save page. (inferred: content not identified)
 extern "C" void FormatSavePageTextA(char *pch)
 {
@@ -2669,12 +2151,6 @@ int GetWorldNameTextId(void *p);
 char *FindSwLocalizedString__FP2SWi(void *p, int n);
 char *GetCompletionPercent(void *p, void *q);
 void sprintf(char *buf, char *fmt, ...);
-/** @sly2-annot addr=0x1AD980
- * Purpose: Text '%s : %d%%' with GetCompletionPercent
- * Info: proposed name TextSaveCompletion (T2); TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text: "<label> : <n>%" with the game's completion percentage.
 void FormatSaveCompletionText(char *buf)
 {
@@ -2708,12 +2184,6 @@ void Decref__4CRef(struct CRef *);
 char *FindSwLocalizedString__FP2SWi(void *p, int n);
 char *strcpy(char *d, const char *s);
 char *strcpy1(char *d, const char *s);
-/** @sly2-annot addr=0x1ADA20
- * Purpose: Dynamic text provider (0x5CD)
- * Info: proposed name TextSaveB (T2); TU memcard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text (string 0x5CD) of the save page. (inferred: content not identified)
 void FormatSavePageTextB(char *buf)
 {
@@ -2761,12 +2231,6 @@ int GetPauseMenuTopPageId(void *p);
 void *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy(void *s, void *q);
 void strcpy1(void *s, void *q);
-/** @sly2-annot addr=0x1ADBB8
- * Purpose: Dynamic text provider (0x5CE) with ' : &2T&.' format
- * Info: proposed name TextSaveTime (T2); TU memcard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Dynamic text (string 0x5CE): the play time, formatted " : &2T&.".
 void FormatSaveTimeText(void *s)
 {
@@ -2804,12 +2268,6 @@ extern "C" {
 }
 static inline float GetG(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
 static inline int GetN(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
-/** @sly2-annot addr=0x1ADC40
- * Purpose: Per-slot text (0x5CF..0x5D1, arg=slot): episode best key + completion %
- * Info: proposed name TextSaveSlotSummary (T2); TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
  REF ref;
@@ -2850,12 +2308,6 @@ namespace M_func_001ADE38 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x24]; struct O *child; };
-/** @sly2-annot addr=0x1ADE38
- * Purpose: small
- * Info: TU memcard
- * Notes: descriptive only: (McStatus helper) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
- * @end-sly2-annot */
 // Shows the status widget's child (slot 49 with -1).
 void ShowMcDialogWidget(struct S *dialog) 
 {
@@ -2868,14 +2320,6 @@ namespace M_HideMcDialogWidget { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x24]; struct O *child; };
-/** @sly2-annot addr=0x1ADE70
- * Purpose: small
- * Info: proposed name HideMcDialogWidget (T1); TU memcard
- * Notes: verifier PLAUSIBLE: (McStatus show/hide) -> HideMcDialogWidget
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Hides the status widget's child (slot 50).
 void HideMcDialogWidget(struct S *dialog) 
 {
@@ -2887,12 +2331,6 @@ void HideMcDialogWidget(struct S *dialog)
 namespace M_func_001ADEA8 {
 struct O { char pad[0x58]; int displayState; int pad2[2]; int targetDisplayState; };
 struct S { char pad[0x24]; O *child; };
-/** @sly2-annot addr=0x1ADEA8
- * Purpose: child x58>=2 or x64>=2
- * Info: proposed name FMcStatusVisible (T2); TU memcard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // True when the status widget's child is shown or showing.
 extern "C" int IsMcStatusVisible(S *dialog)
 {
@@ -2903,12 +2341,6 @@ extern "C" int IsMcStatusVisible(S *dialog)
 }
 } // namespace M_func_001ADEA8
 
-/** @sly2-annot addr=0x1ADEE8
- * Purpose: vt7 (vtable 0x2D36D0): base 0x1DA808; when shown >1s and thread idle hide (0x1ADE70)
- * Info: proposed name CMcStatus_Update (T2); class CMcStatus; TU memcard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMcStatus's per-frame update (slot 7): hides the status once it has been shown for over a second and the worker
 // is idle.
 /* CMcStatus slot 7: hide once shown for over a second and the worker is idle. */
@@ -2925,15 +2357,6 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
     }
 }
 
-/** @sly2-annot addr=0x1ADF78
- * Purpose: vt14 same body as 0x1ACC18
- * Info: proposed name CMcStatus_SetMode (T2); class CMcStatus; TU memcard
- * Notes: runtime4 CORRECTION: x1AC4 = Fists of Flame overlay ASEG (oid 0x156); x1AC8/x1ACC are constants
- * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); sources:
- *   r4_17F090+runtime-corrected
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // CMcStatus slot 14: sets the mode, stamping the real time when it changes (same body as CMemcardDialog's).
 /* slot 14: set the mode (stamping the real time). */
 void CMcStatus::SetMode(int nMode)
@@ -2946,12 +2369,6 @@ void CMcStatus::SetMode(int nMode)
 }
 
 
-/** @sly2-annot addr=0x258248
- * Purpose: memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)]
- * Info: proposed name InitFileKey (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // Clears a file key (zeroed, index -1). A linkonce inline homed here.
 /* linkonce copy (0x258248): clears a file key. */
 extern "C" inline void InitFileKey(FILEKEY *pfk)

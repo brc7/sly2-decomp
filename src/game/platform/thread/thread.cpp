@@ -42,12 +42,6 @@ int func_00234820(ThreadParam *threadParam);             /* CreateThread */
 }
 void FrameRenderLoop(void *);
 
-/** @sly2-annot addr=0x21EFD0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#6-source-files, docs/engine/main-loop-startup.md#6-threads,
- *   docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
- * @end-sly2-annot */
 // Creates a kernel semaphore with the given initial and maximum counts; returns its id.
 int SemaCreate(int initCount, int maxCount)
 {
@@ -61,11 +55,6 @@ int SemaCreate(int initCount, int maxCount)
 // 0x21F020: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x50");
 
-/** @sly2-annot addr=0x21F028
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
- * @end-sly2-annot */
 // Initialises a recursive critical section: no owner, backed by a binary semaphore.
 void InitCritSect(CRITSECT *critSect)
 {
@@ -73,11 +62,6 @@ void InitCritSect(CRITSECT *critSect)
     critSect->semaphore = SemaCreate(1, 1);
 }
 
-/** @sly2-annot addr=0x21F060
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
- * @end-sly2-annot */
 // Enters a recursive critical section: the owning thread just bumps the count, any other thread waits on the
 // semaphore and then takes ownership.
 void EnterCritSect(CRITSECT *critSect)
@@ -95,13 +79,6 @@ void EnterCritSect(CRITSECT *critSect)
     }
 }
 
-/** @sly2-annot addr=0x21F0C0
- * Purpose: decrement enter count; at 0 clear owner and SignalSema
- * Info: proposed name LeaveCritSect (T1); TU thread
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
- * @end-sly2-annot */
 // Leaves a recursive critical section; the last leave clears the owner and signals the semaphore.
 void LeaveCritSect(CRITSECT *critSect)
 {
@@ -115,13 +92,6 @@ void LeaveCritSect(CRITSECT *critSect)
 // 0x21F0F8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x21F100
- * Purpose: creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5
- * Info: proposed name StartupThread (T1); TU thread
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
- * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#open-questions,
- *   docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Boot step: records the main thread id (D_004425D0), raises the main thread to priority 5 and creates the render
 // thread (FrameRenderLoop, 0x1000-byte stack D_004425F0, priority 2: a lower number is a higher EE priority, so
 // it preempts the main thread); its id goes to D_004425D4. The thread is only created here, not started.

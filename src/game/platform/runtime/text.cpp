@@ -81,13 +81,8 @@ int PrintfToStream(OSTRM *out, char *format, char *args);
 void UpperizePchz(char *str);
 
 static inline int IsDecimalDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
-/** @sly2-annot addr=0x21D638
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#6-source-files, docs/engine/gameplay-objects.md#source-files,
- *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Parses an optionally negative decimal integer at str into *outValue; returns the characters consumed.
+// (Sly 1-derived name: CchParsePchzInt.)
 int ParseDecimalInt(char *str, int *outValue)
 {
     unsigned char *p = (unsigned char *)str;
@@ -109,14 +104,9 @@ static inline int Upper(unsigned char c) { return D_002AA6A1[c] & 1; }
 static inline int Lower(unsigned char c) { int r = c + 0x20; if (!Upper(c)) r = c; return r; }
 /* ParseFormatSpec's parser states, in the order the parts of a specification appear. */
 enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSION, TFT_DONE };
-/** @sly2-annot addr=0x21D6B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Parses one conversion specification starting at '%' (flags, width or '*', '.precision' or '.*', length h/l/ll/
 // L/q, the m/M/v/V matrix-vector modifiers, conversion character) into *spec, taking '*' values from the argument
-// list. "%%" yields conversion '%'. Returns the length of the specification.
+// list. "%%" yields conversion '%'. Returns the length of the specification. (Sly 1-derived name: CchParsePchzTft.)
 int ParseFormatSpec(char *format, TFT *spec, char **args)
 {
     int state = TFT_START;
@@ -242,11 +232,6 @@ static inline void WritePad(OSTRM *out, char padChar, int count)
 /* .rodata order: g++ emits a named constant where it is defined and a function's literals and jump tables when
  * the function is compiled, so each string the original had as a literal is defined right before its function. */
 extern "C" const char D_002A9370[] = "(null)";
-/** @sly2-annot addr=0x21D9F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Writes a string for %s: null prints "(null)", precision truncates, width pads with spaces (or zeros with the
 // '0' flag) on the left, or on the right with '-'.
 void WriteTftPchz(TFT *spec, OSTRM *out, char *str)
@@ -277,13 +262,8 @@ void WriteTftPchz(TFT *spec, OSTRM *out, char *str)
     WritePad(out, ' ', padRight);
 }
 
-/** @sly2-annot addr=0x21DB38
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Narrows the integer argument to its length modifier (int, short or long) and, for %d/%i, makes it non-negative.
-// Returns whether it was negative.
+// Returns whether it was negative. (Sly 1-derived name: FNegTftUl.)
 int NarrowIntegerArgument(TFT *spec, UL *value)
 {
     int isNegative = 0;
@@ -322,11 +302,6 @@ int NarrowIntegerArgument(TFT *spec, UL *value)
     return isNegative;
 }
 
-/** @sly2-annot addr=0x21DC18
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Returns the radix of an integer conversion character: b/B 2, o 8, x 16, anything else 10.
 int UnRadixFromChConversion(unsigned char conversion)
 {
@@ -347,13 +322,8 @@ int UnRadixFromChConversion(unsigned char conversion)
     }
 }
 
-/** @sly2-annot addr=0x21DC70
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Converts `value` to digits in `radix` (lower-case), right-aligned at the end of buffer[0..capacity) and then
-// moved to its start. Returns the number of digits.
+// moved to its start. Returns the number of digits. (Sly 1-derived name: CchAchFromUl.)
 int FormatUnsignedDigits(char *buffer, int capacity, unsigned long value, unsigned int radix)
 {
     char *end = buffer + capacity;
@@ -369,11 +339,6 @@ int FormatUnsignedDigits(char *buffer, int capacity, unsigned long value, unsign
 }
 
 // WriteTftUl(TFT*, OSTRM*, ulong): unsigned printf conversion (Claude agent)
-/** @sly2-annot addr=0x21DD40
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Writes an integer conversion: '-', '+' or ' ' for %d/%i, the "0b"/"0"/"0x" prefix with '#', precision as the
 // minimum digit count, then width padding (zeros with '0', or spaces left/right); %X/%B upper-case prefix and digits.
 void WriteTftUl(TFT *spec, OSTRM *out, unsigned long value)
@@ -444,11 +409,6 @@ void WriteTftUl(TFT *spec, OSTRM *out, unsigned long value)
     WritePad(out, ' ', right);
 }
 
-/** @sly2-annot addr=0x21E048
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Returns the decimal exponent of the leading digit of g (floor(log10 g)); 0 for g <= 0.
 int ExpFirstFromG(double g)
 {
@@ -465,13 +425,6 @@ int ExpFirstFromG(double g)
 }
 
 /* Digit of g at decimal position a (precision b): 0 outside [b, b+15). */
-/** @sly2-annot addr=0x21E0D8
- * Purpose: digit character of g at decimal position a (precision b)
- * Info: proposed name GetDecimalDigitChar (T1); TU text
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Returns the decimal digit character of g at power-of-ten `position`, or '0' outside the ~15 significant
 // digits that start at `precision`.
 unsigned char GetDecimalDigitChar(double g, int position, int precision)
@@ -488,13 +441,8 @@ unsigned char GetDecimalDigitChar(double g, int position, int precision)
 }
 
 extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)"; /* .rodata order (see WriteTftPchz) */
-/** @sly2-annot addr=0x21E1B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Formats `value` for %e/%f/%g into buffer (at most capacity characters) per the spec's precision and flags,
-// printing "(nan)" / "(inf)" for non-finite values. Returns the length.
+// printing "(nan)" / "(inf)" for non-finite values. Returns the length. (Sly 1-derived name: CchAchFromDouble.)
 int FormatDouble(char *buffer, int capacity, TFT *spec, double value)
 {
     union {
@@ -561,11 +509,6 @@ int FormatDouble(char *buffer, int capacity, TFT *spec, double value)
     return p - buffer;
 }
 
-/** @sly2-annot addr=0x21E4B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Writes a floating-point conversion: formats with FormatDouble, then applies sign, width and justification.
 void WriteTftDouble(TFT *spec, OSTRM *out, double value)
 {
@@ -638,11 +581,6 @@ static inline short *ShortDestination(const char *slot)
     asm("lw %0,%1" : "=r"(value) : "m"(*(short *const *)slot));
     return value;
 }
-/** @sly2-annot addr=0x21E718
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Writes one parsed conversion, consuming its argument: %c %s, integers (%p is %.8x), %e/%f/%g (with %m/%v: a
 // braced row-by-row dump of the floats the argument points to), %n stores the count written so far; anything else
 // is copied through literally.
@@ -723,13 +661,8 @@ void WriteTft(TFT *spec, OSTRM *out, char **args, char *text, int count)
     }
 }
 
-/** @sly2-annot addr=0x21EAC8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // The printf engine: copies literal text up to each '%', parses and writes each conversion, and stops early if
-// the stream refuses bytes. Returns the stream's total bytes written.
+// the stream refuses bytes. Returns the stream's total bytes written. (Sly 1-derived name: CchOstrmPrintf.)
 int PrintfToStream(OSTRM *out, char *format, char *args)
 {
     TFT spec;
@@ -755,11 +688,6 @@ int PrintfToStream(OSTRM *out, char *format, char *args)
     return out->totalWritten;
 }
 
-/** @sly2-annot addr=0x21EBB8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // vprintf to the debug console (an OSTRM on fd -1).
 extern "C" int vprintf(char *fmt, char *args)
 {
@@ -771,11 +699,6 @@ extern "C" int vprintf(char *fmt, char *args)
     return written;
 }
 
-/** @sly2-annot addr=0x21EC18
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // printf to the debug console.
 extern "C" int printf(char *fmt, ...)
 {
@@ -784,11 +707,6 @@ extern "C" int printf(char *fmt, ...)
     return vprintf(fmt, ap);
 }
 
-/** @sly2-annot addr=0x21EC60
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // vsprintf: formats into dest (unbounded) and NUL-terminates it; returns the length.
 extern "C" int s1_vsprintf(char *dest, char *fmt, char *args)
 {
@@ -801,11 +719,6 @@ extern "C" int s1_vsprintf(char *dest, char *fmt, char *args)
     return len;
 }
 
-/** @sly2-annot addr=0x21ECD8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // sprintf: formats into the buffer passed as the first argument; returns the length.
 extern "C" int sprintf(void *f, char *fmt, ...)
 {
@@ -817,11 +730,6 @@ extern "C" int sprintf(void *f, char *fmt, ...)
 // 0x21ED20: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x450");
 
-/** @sly2-annot addr=0x21ED28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Returns the length of a NUL-terminated string.
 extern "C" int strlen(const char *str)
 {
@@ -836,11 +744,6 @@ extern "C" int strlen(const char *str)
     return length;
 }
 
-/** @sly2-annot addr=0x21ED58
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Copies src (with its NUL) to dest; returns dest.
 extern "C" char *strcpy(char *dest, const char *src)
 {
@@ -848,11 +751,6 @@ extern "C" char *strcpy(char *dest, const char *src)
     return dest;
 }
 
-/** @sly2-annot addr=0x21EDA0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Appends src to dest (strcat; the symbol is strcpy1); returns dest.
 extern "C" char *strcpy1(char *dest, char *src)
 {
@@ -863,13 +761,6 @@ extern "C" char *strcpy1(char *dest, char *src)
 }
 
 /* strchr (libc-style; Sly 2 game copy). */
-/** @sly2-annot addr=0x21EDF8
- * Purpose: libc-style strchr game copy
- * Info: proposed name strchr (T1); TU text
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Returns the first occurrence of character ch in p (the terminating NUL counts), or null.
 extern "C" char *strchr(const char *p, int ch)
 {
@@ -883,11 +774,6 @@ extern "C" char *strchr(const char *p, int ch)
 // 0x21EE28: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/** @sly2-annot addr=0x21EE30
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
- * @end-sly2-annot */
 // Upper-cases a string in place (ASCII lower-case letters per the ctype table).
 void UpperizePchz(char *str)
 {

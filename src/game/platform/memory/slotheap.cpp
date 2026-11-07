@@ -22,14 +22,6 @@ void *AllocFromWorldHeap(ALLOCREQ *request);                        /* world hea
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /* memset; a prototype named memset becomes a builtin */
 }
 
-/** @sly2-annot addr=0x11CCA8
- * Purpose: Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on
- *   first alloc
- * Info: proposed name InitSlotheap (T1); TU slotheap
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
- *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
- * @end-sly2-annot */
 // Initialises a pool of `count` slots of slotSize bytes at `alignment`; the storage is allocated lazily.
 SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
 {
@@ -40,15 +32,6 @@ SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
       return pool;
 }
 
-/** @sly2-annot addr=0x11CCC0
- * Purpose: Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first
- *   use), increments count, memsets to 0
- * Info: proposed name AllocZeroedFromSlotheap (T1); TU slotheap
- * Notes: names_v2 C proposed StartAloSound__FP3ALO5SFXIDfffP2LM (0.167)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Takes a zero-filled slot from the free list, allocating the pool's block from the level heap and threading the
 // free list through it on first use.
 void *AllocZeroedFromSlotheap(SLOTHEAP *pool)
@@ -79,12 +62,6 @@ void *AllocZeroedFromSlotheap(SLOTHEAP *pool)
       return slot;
 }
 
-/** @sly2-annot addr=0x11CD98
- * Purpose: Pushes a slot back on the free list, count--
- * Info: proposed name FreeSlotheapPv (T1); TU slotheap
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
- * @end-sly2-annot */
 // Returns a slot to the pool's free list.
 void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
 {
@@ -95,17 +72,6 @@ void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
       pool->pslotFree = slot;
 }
 
-/** @sly2-annot addr=0x11CDB8
- * Purpose: Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates
- * Info: proposed name ResetSlotheap (T1); TU slotheap
- * Notes: names_v2 C proposed ResetGsb__FP3GSB (0.200) | top50_round (0.60): Body; callers ShutdownSplice
- *   0x12AE28, ResetSndmgr 0x1FD700 (per-level teardown). Sly 1 slotheap API (InitSlotheap/PvAllocSlotheap*
- *   /FreeSlotheapPv) has no reset; coined in that style
- * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; semantic review; static naming pass;
- *   sources: r1_116918+top50_round
- * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
- *   docs/reference/functions/splice-scripting.md#spliceutils-0x12ae18-0x12b0e8
- * @end-sly2-annot */
 // Forgets the pool's block and free list (after the level heap was released) so the next allocation starts over.
 void ResetSlotheap(SLOTHEAP *pool)
 {
@@ -118,12 +84,6 @@ void ResetSlotheap(SLOTHEAP *pool)
 SLY2_SCRAP("daddu $2, $3, $0");
 SLY2_SCRAP("nop");
 
-/** @sly2-annot addr=0x11CDD8
- * Purpose: Allocates and immediately frees one slot (forces the block allocation now)
- * Info: proposed name PrimeSlotheap (T2); TU slotheap
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
- * @end-sly2-annot */
 // Allocates and immediately frees one slot, forcing the pool's block to be allocated now (at a known point in the
 // level heap) rather than on first use.
 void PrimeSlotheap(SLOTHEAP *pool)

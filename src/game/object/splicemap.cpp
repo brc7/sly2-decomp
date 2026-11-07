@@ -106,14 +106,6 @@ void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
 }
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 
-/** @sly2-annot addr=0x1FF7E8
- * Purpose: Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88)
- * Info: proposed name InitSwSpliceFrame (T2); TU splicemap
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/splice-scripting.md#6-source-files,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
- * @end-sly2-annot */
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
 extern "C" void InitSwSpliceFrame(SW *world)
 {
@@ -122,25 +114,12 @@ extern "C" void InitSwSpliceFrame(SW *world)
     MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->pframe.m_p);
 }
 
-/** @sly2-annot addr=0x1FF828
- * Purpose: SW+0x3A14 = 0
- * Info: proposed name ClearSwSpliceStub (T2); TU splicemap
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
 // Clears the world's Splice table pointer before a level load. (inferred)
 extern "C" void ClearSwSpliceTable(SW *world)
 {
     world->fUnk3a14 = 0;
 }
 
-/** @sly2-annot addr=0x1FF830
- * Purpose: Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28)
- * Info: proposed name DeleteSwSplice (T2); TU splicemap
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.
 extern "C" void DeleteSwSplice(SW *world)
 {
@@ -148,19 +127,8 @@ extern "C" void DeleteSwSplice(SW *world)
     ShutdownSplice();
 }
 
-/** @sly2-annot addr=0x1FF858
- * Purpose: Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table
- * Info: proposed name LoadSwSpliceFromBrx (T1); TU splicemap
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   splice_scripts format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources:
- *   r7_1F8DD8+parse-verified+format-doc:splice_scripts
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
- * @end-sly2-annot */
 // Reads the level's Splice section: the entry count, then each entry's frame and value (LoadSpliceEntryFromBrx), into
-// a table on the world heap.
+// a table on the world heap. Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
 {
     int c = U32Read__18CBinaryInputStream(stream);
@@ -200,15 +168,6 @@ extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
     CGc_UpdateRecyclable(g_gc);
 }
 
-/** @sly2-annot addr=0x1FFA40
- * Purpose: Splice table entry n -> frame (NULL for -1)
- * Info: proposed name PframeFromIsplice (T1); TU splicemap
- * Notes: splice_scripts format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7_1F8DD8+format-doc:splice_scripts
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/formats/splice-scripts.md#1-where-the-scripts-live-cstatic--cparse,
- *   docs/formats/world-file.md#4-per-world-entry-data-after-the-head
- * @end-sly2-annot */
 // Returns the Splice frame of table entry index (null for -1); objects get their frame from it at creation.
 extern "C" FRAMEV *GetSpliceFrame(SW *world, int i)
 {
@@ -219,14 +178,6 @@ extern "C" FRAMEV *GetSpliceFrame(SW *world, int i)
 // 0x1FFA68: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("daddu $2, $0, $0");
 
-/** @sly2-annot addr=0x1FFA70
- * Purpose: Build one splice table entry: new frame, CRef InitTag, bind
- * Info: proposed name LoadSpliceEntryFromBrx (T1); TU splicemap
- * Notes: splice_scripts format doc cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7_1F8DD8+format-doc:splice_scripts
- * See: docs/formats/splice-scripts.md#1-where-the-scripts-live-cstatic--cparse,
- *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
 // Builds one Splice table entry: a new frame under the root frame, the expression read from the stream evaluated
 // once in it.
 extern "C" CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i)

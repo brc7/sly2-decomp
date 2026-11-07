@@ -68,15 +68,6 @@ void UpdateRumble(RUMBLE *prumble);
 void TriggerRumbleRumk(RUMBLE *prumble, RUMK rumk, float dt);
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
-/** @sly2-annot addr=0x187030
- * Purpose: UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0
- *   (0x14C2D8)
- * Info: proposed name StartupJoy (T1); TU joy
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/animation.md#6-source-files,
- *   docs/engine/main-loop-startup.md#3-pad-input-joycpp-0x187030-0x188488,
- *   docs/engine/main-loop-startup.md#7-source-files
- * @end-sly2-annot */
 // Boot step: derives the input-type flags, initialises the pad library and g_joy on port 0 slot 0, and starts the
 // button-code (cheat) recogniser D_002DDEC0 (StartupCodes).
 void StartupJoy()
@@ -87,13 +78,6 @@ void StartupJoy()
     StartupCodes(D_002DDEC0);
 }
 
-/** @sly2-annot addr=0x187078
- * Purpose: g_grfusr (D_002DFBC4)
- * Info: proposed name AddGrfusr (T1); TU joy
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest+verdicts_A1+verdicts_followups
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Sets user-state bits in g_grfusr (D_002DFBC4) and re-derives the input-type flags.
 void AddGrfusr(int mask)
 {
@@ -101,13 +85,6 @@ void AddGrfusr(int mask)
     UpdateGrfjoytFromGrfusr();
 }
 
-/** @sly2-annot addr=0x1870A0
- * Purpose: g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr
- * Info: proposed name RemoveGrfusr (T1); TU joy
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest+verdicts_A1
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Clears user-state bits in g_grfusr and re-derives the input-type flags.
 void RemoveGrfusr(int mask)
 {
@@ -115,14 +92,6 @@ void RemoveGrfusr(int mask)
     UpdateGrfjoytFromGrfusr();
 }
 
-/** @sly2-annot addr=0x1870D0
- * Purpose: g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset
- *   (*(int *)&g_joy.grfbtnLatched)=0xFFFF
- * Info: proposed name UpdateGrfjoytFromGrfusr (T1); TU joy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Derives g_grfjoyt (which input kinds are accepted) from the user-state bits; when bit 2 is clear, also resets
 // the latched-button mask.
 void UpdateGrfjoytFromGrfusr()
@@ -136,13 +105,6 @@ void UpdateGrfjoytFromGrfusr()
     if ((D_002DFBC0 & 2) == 0) (*(int *)&g_joy.grfbtnLatched) = 0xFFFF;
 }
 
-/** @sly2-annot addr=0x187150
- * Purpose: SetJoyJoys(searching), store port/slot, scePadPortOpen, enable rumble, gain 1.0
- * Info: proposed name InitJoy (T1); TU joy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Initialises a controller: searching state, port and slot, opens the pad port (the JOY is the library's DMA
 // buffer), enables vibration and sets uDpad to 1.
 void InitJoy(JOY *joy, int port, int slot)
@@ -155,13 +117,6 @@ void InitJoy(JOY *joy, int port, int slot)
     joy->uDpad = 1.0f;
 }
 
-/** @sly2-annot addr=0x1871C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/main-loop-startup.md#3-pad-input-joycpp-0x187030-0x188488,
- *   docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/guides/port-plan.md#11-known-facts-that-drive-the-design
- * @end-sly2-annot */
 // Per-frame controller update: tracks the pad library state (disconnect after 2 s without progress), then steps
 // the setup state machine (detect mode, switch to analog and lock it, query and enable the actuators, enable
 // pressure sensitivity) and, once ready, reads the pad and updates its rumble.
@@ -307,15 +262,6 @@ void UpdateJoy(JOY *joy)
     SetJoyJoys(joy, (JOYS)joys, (JOYK)joyk);
 }
 
-/** @sly2-annot addr=0x1875B8
- * Purpose: Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4
- *   changes, reset button state when state changes to/from 3
- * Info: proposed name SetJoyJoys (T1); TU joy
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Changes the controller state/kind: a DualShock (kind >= 3) gets its rumble initialised, kind-4 changes clear the
 // analog block, entering or leaving the ready state resets the button masks; records the time of the change.
 void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
@@ -356,11 +302,6 @@ void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
 }
 
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
-/** @sly2-annot addr=0x187768
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Converts one stick's raw bytes into x/y in -1..1 with a dead zone, its deflection, and whether it moved (compared
 // with the previous bytes); the LM ranges shape the response.
 void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *outY, float *outDeflection,
@@ -408,13 +349,6 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
     *prevRawY = rawY;
 }
 
-/** @sly2-annot addr=0x187998
- * Purpose: Read the pad (scePadRead), compute pressed/released masks, analog deflection via
- *   GetJoyXYDeflection, broadcast game event on activity
- * Info: proposed name FReadJoy (T2); TU joy
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Reads the pad (scePadRead): updates held/pressed/released masks, the stick and pressure values and their
 // deflection, and broadcasts a game event on activity. Returns 0 when the pad's terminal id changed (a different controller),
 // else 1.
@@ -501,14 +435,6 @@ extern "C" int ReadJoy(JOY *joy)
     return result;
 }
 
-/** @sly2-annot addr=0x187D80
- * Purpose: Return pressed&mask and mark those buttons handled (SetJoyBtnHandled)
- * Info: proposed name HandleJoyButtons (T1); TU joy
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Returns the buttons in `mask` pressed this frame and marks them handled.
 extern "C" int HandleJoyButtons(JOY *joy, int mask)
 {
@@ -517,25 +443,12 @@ extern "C" int HandleJoyButtons(JOY *joy, int mask)
     return grfPressed;
 }
 
-/** @sly2-annot addr=0x187DD0
- * Purpose: Return x10B8 (pressed this frame) & mask
- * Info: proposed name GetJoyButtonsPressed (T1); TU joy
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Returns the buttons in `mask` pressed this frame.
 extern "C" int GetJoyButtonsPressed(JOY *joy, int mask)
 {
     return joy->grfbtnPressed & mask;
 }
 
-/** @sly2-annot addr=0x187DE0
- * Purpose: Clear mask from pressed (x10B8) and add held&mask to handled (x10BC)
- * Info: proposed name SetJoyBtnHandled (T1); TU joy
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Marks the buttons in `mask` handled: clears them from the pressed mask and remembers them as held-and-handled.
 extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
 {
@@ -543,13 +456,6 @@ extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
     joy->grfbtnLatched |= joy->grfbtn & mask;
 }
 
-/** @sly2-annot addr=0x187E08
- * Purpose: Clear mask from held (x10B4) and handled (x10BC)
- * Info: proposed name ClearJoyBtn (T2); TU joy
- * Notes: names_v2 v1 proposed SetJoyBtnHandled__FP3JOYUs (0.200)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Forgets the buttons in `mask`: clears them from the held and handled masks.
 extern "C" void ClearJoyButtons(JOY *joy, int mask)
 {
@@ -558,15 +464,6 @@ extern "C" void ClearJoyButtons(JOY *joy, int mask)
     joy->grfbtnLatched &= grfKeep;
 }
 
-/** @sly2-annot addr=0x187E28
- * Purpose: If rumble enabled and pad is a ready dualshock (joys>=3, joyk==3) TriggerRumbleRumk on the JOY's
- *   RUMBLE
- * Info: proposed name TriggerJoyRumbleRumk (T1); TU joy
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/animation.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
- * @end-sly2-annot */
 // Plays a predefined rumble pattern on the controller if it is a ready DualShock and vibration is enabled.
 void TriggerJoyRumbleRumk(JOY *joy, RUMK kind, float duration)
 {
@@ -578,14 +475,6 @@ void TriggerJoyRumbleRumk(JOY *joy, RUMK kind, float duration)
 // 0x187E70: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x187E78
- * Purpose: Reset the menu selection repeat state (two fields = 0)
- * Info: proposed name StartJoySelection (T1); TU joy
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Resets the menu selection auto-repeat state.
 void StartJoySelection(JOY *joy)
 {
@@ -593,13 +482,6 @@ void StartJoySelection(JOY *joy)
     joy->dirY = 0;
 }
 
-/** @sly2-annot addr=0x187E88
- * Purpose: Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8,
- * Info: proposed name GetJoySelectionStepX (T1); TU joy
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Menu left/right step with auto-repeat: returns -1, 0 or +1 from the d-pad left/right or the left stick (magnitude
 // >= 0.8), repeating while held.
 extern "C" int GetJoySelectionStepX(JOY *joy)
@@ -642,13 +524,6 @@ extern "C" int GetJoySelectionStepX(JOY *joy)
     return joy->dirX;
 }
 
-/** @sly2-annot addr=0x1880D8
- * Purpose: Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick
- * Info: proposed name GetJoySelectionStepY (T1); TU joy
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
- * @end-sly2-annot */
 // Menu up/down step with auto-repeat: as GetJoySelectionStepX for the d-pad up/down or the stick.
 extern "C" int GetJoySelectionStepY(JOY *joy)
 {

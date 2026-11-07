@@ -86,14 +86,6 @@ static inline void SetPv2(void *saveVar, const RAW &r)
     const CRef &ret = SetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
 
-/** @sly2-annot addr=0x1D5150
- * Purpose: Init RUMBLE: state Idle (or Stop if already active), store port/slot
- * Info: proposed name InitRumble__FP6RUMBLEii (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/main-loop-startup.md#7-source-files,
- *   docs/engine/main-loop-startup.md#8-key-functions
- * @end-sly2-annot */
 // Binds a rumble controller to a pad port/slot and resets it: Idle if it was Dead, otherwise Stop (which zeroes
 // the motors first).
 void InitRumble(RUMBLE *rumble, int port, int slot)
@@ -106,14 +98,6 @@ void InitRumble(RUMBLE *rumble, int port, int slot)
     rumble->slot = slot;
 }
 
-/** @sly2-annot addr=0x1D51B8
- * Purpose: Step rumble pattern instructions by real dt, stop when done
- * Info: proposed name UpdateRumble__FP6RUMBLE (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Per-frame update. Rumbling: advance through the pattern's instructions (looping) by real frame time, sending
 // each to the actuators, until the requested duration runs out, then Stop. Stop/Kill: keep the motors at zero for
 // a few frames, then settle in Idle (Stop) or Dead (Kill).
@@ -152,26 +136,12 @@ void UpdateRumble(RUMBLE *rumble)
     }
 }
 
-/** @sly2-annot addr=0x1D5310
- * Purpose: Trigger predefined pattern D_002C2260[rumk]
- * Info: proposed name TriggerRumbleRumk__FP6RUMBLE4RUMKf (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Plays one of the predefined patterns (D_002C2260, indexed by RUMK) for `duration` seconds.
 void TriggerRumbleRumk(RUMBLE *rumble, RUMK kind, float duration)
 {
     TriggerRumbleRumpat(rumble, &D_002C2260[kind], duration);
 }
 
-/** @sly2-annot addr=0x1D5340
- * Purpose: Start a rumble pattern for dt if pad active and IsRumbleEnabled
- * Info: proposed name TriggerRumbleRumpat__FP6RUMBLEP6RUMPATf (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
- * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Plays `pattern` for `duration` seconds if the pad can rumble, the pattern is not empty and vibration is
 // enabled; restarts from the first instruction even if already rumbling.
 void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration)
@@ -186,12 +156,6 @@ void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration)
     }
 }
 
-/** @sly2-annot addr=0x1D53C0
- * Purpose: Rumble state machine transition (scePadSetActDirect)
- * Info: proposed name SetRumbleRums__FP6RUMBLE4RUMS (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
- * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // State transition: entering Rumble sends the first instruction; entering Stop/Kill zeroes the motors and holds
 // them for 4 frames of real time; Dead/Idle just record the state.
 void SetRumbleRums(RUMBLE *rumble, RUMS state)
@@ -219,14 +183,6 @@ void SetRumbleRums(RUMBLE *rumble, RUMS state)
     }
 }
 
-/** @sly2-annot addr=0x1D5468
- * Purpose: Zero both motors
- * Info: proposed name StopRumbleActuators__FP6RUMBLE (EXISTING); TU rumble
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Turns both motors off.
 void StopRumbleActuators(RUMBLE *rumble)
 {
@@ -236,16 +192,6 @@ void StopRumbleActuators(RUMBLE *rumble)
     scePadSetActDirect(rumble->port, rumble->slot, actuators);
 }
 
-/** @sly2-annot addr=0x1D5498
- * Purpose: If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting)
- * Info: proposed name EnsureRumbleModeDefault (EXISTING); TU rumble
- * Notes: agent/verifier proposes EnsureRumbleModeDefault for this existing name (see
- *   existing_name_changes.csv) | RENAME proposed -> EnsureRumbleModeDefault (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r6_1D5150+arbitration
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Makes the forced vibration mode follow the save option (mode 1) if no mode was set.
 extern "C" void EnsureRumbleModeDefault(void)
 {
@@ -254,12 +200,6 @@ extern "C" void EnsureRumbleModeDefault(void)
 }
 
 // (Claude agent) matched: the CRef copy ctor (__4CRefRC4CRef) must be declared returning this, not void.
-/** @sly2-annot addr=0x1D54B8
- * Purpose: Mode 2: store save var (g_sw.psvpNoVibration) = 0; mode 3: = 1
- * Info: proposed name ResetRumbleSaveVar (T1); TU rumble
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Writes a forced vibration mode into the save option: mode 2 (forced on) clears g_sw.psvpNoVibration, mode 3
 // (forced off) sets it; mode 1 leaves it.
 extern "C" void ResetRumbleSaveVar(void)
@@ -272,14 +212,6 @@ extern "C" void ResetRumbleSaveVar(void)
     }
 }
 
-/** @sly2-annot addr=0x1D55B8
- * Purpose: Mode 2 -> 1; 0/3 -> 0; else !save var g_sw.psvpNoVibration
- * Info: proposed name IsRumbleEnabled (T1); TU rumble
- * Notes: names_v2 C proposed RumbleUnknown4__FP2GS (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/engine/main-loop-startup.md#8-key-functions,
- *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
- * @end-sly2-annot */
 // Returns whether vibration is enabled: forced on (mode 2), forced off (modes 0 and 3), otherwise the inverse of
 // the save option g_sw.psvpNoVibration.
 extern "C" int IsRumbleEnabled(void)

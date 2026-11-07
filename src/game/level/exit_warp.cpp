@@ -121,17 +121,6 @@ void TakeExit(EXITV *exitVolume);
 void AddWarpOidAlias(WARPV *warp, OID oid);
 }
 
-/** @sly2-annot addr=0x227FE8
- * Purpose: finds a WARP by oid (0x15E938) else searches class 0x2A (WARP) by id or alias list +0x16C
- *   (0x15E9C8(sw, a, 0x2A, ...)); Sly 1 WARP oidAlias lookup
- * Info: proposed name FindWarpByOid (T1); TU exit_warp
- * Notes: v3 purpose fix (class review): falls back over cid 0x2A WARP, not 0x1A
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/engine/physics-collision.md#6-source-files,
- *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#9-source-files
- * @end-sly2-annot */
 // Finds the WARP with the given oid, or else the WARP that lists oid among its aliases. (Sly 1: PwarpFromOid.)
 extern "C" WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid)
 {
@@ -166,16 +155,6 @@ extern "C" WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid)
     return result;
 }
 
-/** @sly2-annot addr=0x2280D0
- * Purpose: Return the last EXIT (cid 0x1A) whose +0x130 (Sly 1 EXIT.fDefault) is set
- * Info: proposed name FindDefaultExit (T1); TU exit_warp
- * Notes: names_v2 C proposed BindStepguard__FP9STEPGUARD (0.638) | v3: superseded PwarpDefault | CONFIRMED
- *   (fields): Sly 1 FindDefaultExit; v2 PwarpDefault
- * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Returns the last EXIT whose "default" flag is set, or null. (Sly 1: PexitDefault.)
 extern "C" EXITV *FindDefaultExit(SW *world)
 {
@@ -189,17 +168,8 @@ extern "C" EXITV *FindDefaultExit(SW *world)
     return result;
 }
 
-/** @sly2-annot addr=0x228140
- * Purpose: LoadXfmFromBrx + 0x118420 extra read
- * Info: proposed name LoadCid41FromBrx (T2); class CID41 slot14; TU exit_warp
- * Notes: names_v2 B proposed PostStepguardLoadCallback__FP9STEPGUARD5MSGIDPv (0.951) | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static naming pass; sources: r8_21BB88+parse-verified
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Loads the in-level teleport destination (cid 41) from the BRX: the XFM part, then skips a string.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void CID41::LoadFromBrx(CBinaryInputStream *stream)
 {
     WARPV *warp = (WARPV *)this;
@@ -207,19 +177,6 @@ void CID41::LoadFromBrx(CBinaryInputStream *stream)
     CBinaryInputStream_SkipStringSw(stream);
 }
 
-/** @sly2-annot addr=0x228170
- * Purpose: Cid41 TRIGGER (optid 235): current player vt38 MatchStepXf(player, this) then splice event 5;
- *   Cid41 = in-level teleport destination (strings WARP_start/WARP_end/WARP_safehouse)
- * Info: proposed name TriggerCid41 (T2); TU exit_warp
- * Notes: names_v2 B proposed FIgnoreStepguardIntersection__FP9STEPGUARDP2SO (0.859) | descriptive only:
- *   warp-TU splice fn: hand player to object | no usable identifier; purpose only | class review: in-level
- *   teleport point; class coinage (WARPPT/TELEPORT) not adopted -> placeholder, T2 | T2: placeholder token
- *   Cid41
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/reference/class-tree.md#class-tree-all-199-cids,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice trigger event (5). A Splice-callable
 // method; cutscene relays call it too.
 extern "C" void PutHeroAtWarp(WARPV *warp)
@@ -233,16 +190,6 @@ extern "C" void PutHeroAtWarp(WARPV *warp)
     }
 }
 
-/** @sly2-annot addr=0x2281E8
- * Purpose: EXIT (cid 0x1A) slot 7 Init: InitXfm; oidWarp +0x150 = 0x189, +0x154 = -1; busyk 0; grf |= 2
- * Info: proposed name InitExit (T1); class EXIT slot7; TU exit_warp
- * Notes: names_v2 C proposed DradEnemyStepguard__FP9STEPGUARD (0.438) | v3: superseded InitWarp | CONFIRMED
- *   (vtable slot + fields): EXIT slot 7, not WARP; v2 InitWarp
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // EXIT initialization (vtable slot 7): XFM init, default target warp oid 0x189 and wipe oid -1, not busy.
 void EXIT::Init()
 {
@@ -259,16 +206,8 @@ void EXIT::Init()
         exitVolume->flagWord = grf | 2;
 }
 
-/** @sly2-annot addr=0x228250
- * Purpose: reads 0x40-byte header and allocates a copy if non-empty
- * Info: proposed name LoadWarpBlobFromBrx (T1); TU exit_warp
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88+parse-verified
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Reads a 0x40-byte warp blob header from the BRX and allocates a copy when it is not empty (the exit's target world).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
 {
     WARPBLOB blob;
@@ -287,21 +226,8 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
         *blobOut = 0;
 }
 
-/** @sly2-annot addr=0x2282B0
- * Purpose: LoadVolFromBrx then blob + U8 count of entries
- * Info: proposed name LoadExitFromBrx (T1); class EXIT slot14; TU exit_warp
- * Notes: verifier WRONG: LoadWarpFromBrx -> LoadExitFromBrx | verifier: purpose partly wrong: CID 0x1A slot
- *   14, a VOL child: LoadVolFromBrx, then a 0x40-byte file record (0x228250), a U8 count, and that many more
- *   records. The class is Sly 1's EXIT, not W | names_v2 C proposed SetStepguardGoal__FP9STEPGUARDP6VECTOR
- *   (0.638) | CID26 is EXIT (VOL child), not WARP | level_parser CONFIRMED-parse: payload layout followed by
- *   the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   verify_r7r8+CONFLICTS#11+verdicts_tu_r7r8+parse-verified
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
- * @end-sly2-annot */
 // Loads an EXIT from the BRX: the VOL part, its target-world blob and the list of movies played before the wipe.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadExitFromBrx(EXITV *exitVolume, CBinaryInputStream *stream)
 {
     int i = 0;
@@ -318,17 +244,6 @@ extern "C" void LoadExitFromBrx(EXITV *exitVolume, CBinaryInputStream *stream)
         LoadWarpBlobFromBrx(stream, &exitVolume->movies[i]);
 }
 
-/** @sly2-annot addr=0x228358
- * Purpose: EXIT state change (Sly 1 SetExitExits): state 4 -> busyk 1, IncrementSwHandsOff(g_sw,3),
- *   g_sw+0x3C84 = this; time stamp
- * Info: proposed name SetExitExits (T1); TU exit_warp
- * Notes: v3: superseded SetWarpState | CONFIRMED (fields; TriggerWarp resets every EXIT through it with 0, as
- *   Sly 1 SetExitExits(pexit, EXITS_Blocked)); v2 SetWarpState
- * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Changes the exit state (0 player inside, 1 left, 2 off, 3 armed, 4 warping) and stamps the time; entering state 4
 // takes control from the player (hands-off) and records the exit as the one being taken. (Sly 1: SetExitExits.)
 extern "C" void SetExitExits(EXITV *exitVolume, int newState)
@@ -346,14 +261,6 @@ extern "C" void SetExitExits(EXITV *exitVolume, int newState)
     }
 }
 
-/** @sly2-annot addr=0x2283D0
- * Purpose: state 3 handling: find default, heading, revoke cm policy
- * Info: proposed name UpdateWarpTriggered (T2); TU exit_warp
- * Notes: names_v2 B proposed UpdateStepguardSgs__FP9STEPGUARD (0.913)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Takes an armed exit: a redirecting exit hands over to the default exit; otherwise applies the exit's task states,
 // revokes two camera policies, switches to the warping state, schedules the wipe and sends the Splice trigger event (5).
 extern "C" void TakeExit(EXITV *exitVolume)
@@ -377,15 +284,6 @@ extern "C" void TakeExit(EXITV *exitVolume)
     ((void (*)(void *, int, int, int, int, int))exitVolume->vtable[3].pfn)((char *)exitVolume + exitVolume->vtable[3].d, 5, 0, 0, 0, 0);
 }
 
-/** @sly2-annot addr=0x2284E0
- * Purpose: Add an RSMG entry to the EXIT 4-slot list (+0x164 count/+0x168 array) via 0x161F10
- * Info: proposed name AddExitTaskState (T1); TU exit_warp
- * Notes: names_v2 C proposed SetStepguardSgsExternal__FP9STEPGUARD3SGSP4ASEG (0.200) | v3: superseded
- *   AddWarpRsmgSm | CONFIRMED (optid 527 on EXIT; fields inside the 0x190-byte EXIT); v2 AddWarpRsmgSm
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
- *   r8_21BB88+class_review(master_names_v2_1)
- * See: docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Adds a task-state entry to the exit's four-entry list (applied when the exit is taken). Splice-callable; the name
 // was AddExitRsmg, but the list it fills is the task-state list.
 extern "C" void AddExitTaskState(EXITV *exitVolume, int d, int e)
@@ -393,32 +291,15 @@ extern "C" void AddExitTaskState(EXITV *exitVolume, int d, int e)
     AppendBoundedPair(D_002DEB30, exitVolume->taskStates, 4, &exitVolume->taskStateCount, d, e);
 }
 
-/** @sly2-annot addr=0x228518
- * Purpose: 0x2109D0(p->0x144)
- * Info: TU exit_warp
- * Notes: names_v2 C proposed SggsGetStepguard__FP9STEPGUARD (0.638) | descriptive only: warp-TU splice fn on
- *   field 0x144 | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r8_21BB88
- * @end-sly2-annot */
 // Returns the index of the exit's target level in the level table (IlevelFromRec on its world blob). (inferred)
 extern "C" void GetExitTargetLevelIndex(EXITV *exitVolume)
 {
     FindLevelIndexByFileRecord(exitVolume->targetWorld);
 }
 
-/** @sly2-annot addr=0x228538
- * Purpose: UpdateLo then player inside test (BSP) and trigger handling
- * Info: proposed name UpdateExit (T1); class EXIT slot16; TU exit_warp
- * Notes: CID26 EXIT Update = Sly1 UpdateExit (player-in-volume state machine, wipe after tWipe) (was
- *   UpdateWarp)
- * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; sources:
- *   verify_B+verify_r7r8_summary+verdicts_B
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Per-frame EXIT update: after the LO update, tests whether the hero is inside the exit volume and steps the state
 // machine (re-arms after the hero has been out for dtRearm, takes the exit when entered while armed); in the warping
-// state, queues the movies and wipes to the target world when the wipe time arrives.
+// state, queues the movies and wipes to the target world when the wipe time arrives. Sly 1: UpdateExit.
 extern "C" void UpdateExit(EXITV *exitVolume, float dt)
 {
     UpdateLo(exitVolume, dt);
@@ -469,17 +350,8 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
     }
 }
 
-/** @sly2-annot addr=0x228720
- * Purpose: LoadXfmFromBrx + 0x118420
- * Info: proposed name LoadWarpFromBrx (T1); class WARP slot14; TU exit_warp
- * Notes: CID42 WARP (crsmg/arsmg[4] at +0xE0) LoadFromBrx; r8 LoadCid42FromBrx | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: verify_r7r8_summary+parse-verified
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Loads a WARP from the BRX: the XFM part, then skips a string.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void WARP::LoadFromBrx(CBinaryInputStream *stream)
 {
     WARPV *warp = (WARPV *)this;
@@ -487,18 +359,6 @@ void WARP::LoadFromBrx(CBinaryInputStream *stream)
     CBinaryInputStream_SkipStringSw(stream);
 }
 
-/** @sly2-annot addr=0x228750
- * Purpose: WARP method (Sly 1 TriggerWarp): apply its oid pairs (+0x14C, vt38), trigger its RSMGs
- *   (+0xE0/+0xE4), apply list +0x124, reset every EXIT (SetExitExits 0), splice event 5
- * Info: proposed name TriggerWarp (T1); TU exit_warp
- * Notes: v3: superseded TeleportSwPlayer | class review: WARP fields xE0/aE4/x124/apr@0x14C, single WARP*
- *   arg; body matches Sly 1 TriggerWarp (TriggerRsmg + exit reset loop); v2 TeleportSwPlayer
- * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   r8_21BB88+verdicts_A2+class_review(master_names_v2_1)
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Triggers a warp on arrival: moves each paired object to its target, triggers the warp's rsmgs, applies its task
 // states, re-arms every exit that is not off, cuts the camera and sends the Splice trigger event (5). (Sly 1: TriggerWarp.)
 extern "C" void TriggerWarp(WARPV *warp)
@@ -530,45 +390,20 @@ extern "C" void TriggerWarp(WARPV *warp)
     ((void (*)(void *, int, int, int, int, int))warp->vtable[3].pfn)((char *)warp + warp->vtable[3].d, 5, 0, 0, 0, 0);
 }
 
-/** @sly2-annot addr=0x2288D8
- * Purpose: AddOrUpdateRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger
- * Info: proposed name SetWarpRsmg (T1); TU exit_warp
- * Notes: verifier WRONG: SetCid41Rsmg -> SetWarpRsmg | Sly1 SetWarpRsmg; class is CID 0x2A=42 WARP (r8
- *   SetCid41Rsmg was CID 0x29)
- * Confidence: high [T1 0.80] - evidence: Sly 1 / Lilly reference; sources:
- *   verify_r7r8+CONFLICTS#11+verdicts_tu_r7r8
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Adds a rsmg (a message sent when the warp triggers) to the warp's four-entry list when the trigger kind is set.
+// Sly 1: SetWarpRsmg.
 extern "C" void SetWarpRsmg(WARPV *warp, int d, OID e, OID f, OID g)
 {
     if (d)
         AddOrUpdateRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
 }
 
-/** @sly2-annot addr=0x228920
- * Purpose: 0x161F10(D_002DEB30, p+0x128, 4, p+0x124, c, d)
- * Info: TU exit_warp
- * Notes: descriptive only: Add to 4-slot list at 0x124 | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
 // Adds a task-state entry to the warp's four-entry list (applied when the warp triggers).
 extern "C" void AddWarpTaskState(WARPV *warp, int d, int e)
 {
     AppendBoundedPair(D_002DEB30, warp->taskStates, 4, &warp->taskStateCount, d, e);
 }
 
-/** @sly2-annot addr=0x228958
- * Purpose: if count<4 append (a,b) at 0x14C
- * Info: proposed name AddWarpOidPair (EXISTING); TU exit_warp
- * Notes: descriptive only: Add oid pair to 4-slot list at 0x148 | RENAME proposed -> AddWarpOidPair
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r8_21BB88+arbitration
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Adds an (object, target) pair to the warp: on trigger the object is moved to the target. At most four pairs.
 extern "C" void AddWarpOidPair(WARPV *warp, OID objectOid, OID targetOid)
 {
@@ -583,16 +418,6 @@ extern "C" void AddWarpOidPair(WARPV *warp, OID objectOid, OID targetOid)
     }
 }
 
-/** @sly2-annot addr=0x228988
- * Purpose: if c<4 a[c++]=v
- * Info: proposed name AddWarpOid (T2); TU exit_warp
- * Notes: descriptive only: Add oid to 4-slot list | no usable identifier; purpose only | arbitration knock-on
- *   rename: CONFIRMED static: WARP 4-entry OID list (+0x16C count, +0x170); thunk optid 20 on WARP;
- *   0x2289B0/0x2289D0 add fixed OIDs 0x189/0x18A.
- * Confidence: low (draft) [T2 0.45] - evidence: arbitration; sources: r8_21BB88+arbitration
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
- * @end-sly2-annot */
 // Adds an alias oid the warp also answers to in FindWarpByOid. At most four.
 extern "C" void AddWarpOidAlias(WARPV *warp, OID oid)
 {
@@ -600,24 +425,12 @@ extern "C" void AddWarpOidAlias(WARPV *warp, OID oid)
         warp->aliases[warp->aliasCount++] = oid;
 }
 
-/** @sly2-annot addr=0x2289B0
- * Purpose: 0x228988(p,0x189)
- * Info: TU exit_warp
- * Notes: descriptive only: Add oid 0x189 | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
 // Makes the warp answer to oid 0x189, the default start warp (the oid EXITs target by default). (inferred)
 extern "C" void AddWarpAliasStart(WARPV *warp)
 {
     AddWarpOidAlias(warp, (OID)0x189);
 }
 
-/** @sly2-annot addr=0x2289D0
- * Purpose: 0x228988(p,0x18A)
- * Info: TU exit_warp
- * Notes: descriptive only: Add oid 0x18A | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
 // Makes the warp answer to oid 0x18A, the second well-known warp oid (inferred: the "end" warp).
 extern "C" void AddWarpAliasEnd(WARPV *warp)
 {

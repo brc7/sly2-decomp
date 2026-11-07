@@ -1,10 +1,5 @@
 /* crt0: EE startup code (hand-written assembly in the original).
    The ELF entry point. Entry point: _start (the kernel jumps here after loading the ELF). */
-/** @sly2-annot addr=0x100008
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 /* _start: clears every GPR (all 128 bits), HI/LO (both pipelines), SA and the FPU registers; zeroes .bss
    (0x2DD280..0x472200); sets up the main thread (syscall 0x3C SetupThread: gp 0x2E5270, stack 0x452200 of 0x20000
    bytes, argument block D_002DD380) and the heap (syscall 0x3D SetupHeap from 0x472200, size -1: all); calls

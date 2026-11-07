@@ -52,14 +52,6 @@ void AppendDlEntry(DL *pdl, void *pv);                      /* AppendDlEntry__FP
 void RemoveDlEntry(DL *pdl, void *pv);                      /* RemoveDlEntry__FP2DLPv */
 void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBefore__FP2DLPvT1 */
 
-/** @sly2-annot addr=0x147E20
- * Purpose: Remove an object from the SW busy list (+0x20), advancing the update cursor (+0x39A4) if it points
- *   at it
- * Info: proposed name RemoveSwBusyObject (T2); TU busy
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/cutscenes.md#4-source-files, docs/engine/object-model.md#8-source-files,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
 extern "C" void RemoveFromSwBusyList(SWBUSY *world, ITEM *entry)
 {
@@ -70,14 +62,6 @@ extern "C" void RemoveFromSwBusyList(SWBUSY *world, ITEM *entry)
     }
 }
 
-/** @sly2-annot addr=0x147E88
- * Purpose: Remove then insert the object before the update cursor in the busy list
- * Info: proposed name ReinsertSwBusyObject (T2); TU busy
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100,
- *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
 // Re-sorts a root record: removes it and inserts it just before the incremental-pass cursor, so the next pass checks
 // it soon.
 extern "C" void ResortSwBusyEntry(SWBUSY *world, ITEM *entry)
@@ -86,24 +70,12 @@ extern "C" void ResortSwBusyEntry(SWBUSY *world, ITEM *entry)
     InsertDlEntryBefore(&world->busyList, world->cursor, entry);
 }
 
-/** @sly2-annot addr=0x147EC8
- * Purpose: RemoveDlEntry(psw+0x20, x)
- * Info: proposed name RemoveSwBusyEntry (T2); TU busy
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
- * @end-sly2-annot */
 // Unlinks an entry from the world's busy list without touching the cursor.
 extern "C" void UnlinkSwBusyEntry(SWBUSY *world, void *pv)
 {
     RemoveDlEntry(&world->busyList, pv);
 }
 
-/** @sly2-annot addr=0x147EE8
- * Purpose: Move entry to the end of a sub-list, recording the first
- * Info: proposed name MoveBusyEntryToEnd (T2); TU busy
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
- * @end-sly2-annot */
 // Moves an entry to the end of the busy list (it becomes the cursor when the cursor is unset).
 extern "C" void MoveSwBusyEntryToEnd(SWBUSY *world, void *pv)
 {
@@ -139,15 +111,6 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 
-/** @sly2-annot addr=0x147F40
- * Purpose: Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current
- *   player, and move them between busy/idle lists
- * Info: proposed name UpdateSwBusyList (T1); TU busy
- * Notes: runtime: update list = compacting {grf,plo} array at SW+0x3F20 confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
- * @end-sly2-annot */
 // Per-frame busy update: walks the busy list up to the cursor, testing each object against the camera or the hero and
 // moving it in or out of the "in zone" list (enter = vtable slot 23, leave = slot 22). Objects further than
 // D_002BD450 (500) from their zone edge are moved behind the cursor and skipped until the camera or the
@@ -238,14 +201,6 @@ static __inline__ float GDistSq(qword a, qword b)
     return g;
 }
 
-/** @sly2-annot addr=0x148300
- * Purpose: Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it
- * Info: proposed name UpdateLoBusy (T2); TU busy
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620
- * @end-sly2-annot */
 // Decides whether one object is in its activity zone (busy kind: always, never, within its busy distance of the camera
 // or of the hero, gated by the camera's zone mask) and sends the enter (slot 23) or leave (slot 22) notification
 // when that changed.

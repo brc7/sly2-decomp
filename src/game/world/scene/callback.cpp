@@ -78,15 +78,6 @@ void EvalSpliceEventCallback(void *pv, CPair *ppair, CFrame *pframe, int n);
 void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
 }
 
-/** @sly2-annot addr=0x149A50
- * Purpose: Append a deferred callback {object, pointer-to-member, arg} from pool g_sw+0x3C90 to the SW
- *   callback list (+0x3CA8)
- * Info: proposed name PostSwCallback (T1); TU callback
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
- *   docs/engine/world-sw.md#9-source-files
- * @end-sly2-annot */
 // Queues a deferred callback {object, member function, argument} on the world (node from the world's pool); it runs
 // once in ProcessSwCallbacks.
 extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
@@ -98,14 +89,6 @@ extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
     AppendSlEntry(&world->callbacks, callback);
 }
 
-/** @sly2-annot addr=0x149AB8
- * Purpose: PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued
- * Info: proposed name EnsureSwCallback (T1); TU callback
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
- *   docs/engine/world-sw.md#10-key-functions
- * @end-sly2-annot */
 // Queues the callback unless an identical {object, member function, argument} is already queued.
 extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
@@ -118,13 +101,6 @@ extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
     PostSwCallback(world, object, method, arg);
 }
 
-/** @sly2-annot addr=0x149B58
- * Purpose: Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail
- * Info: proposed name ClearSwCallbacks (T1); TU callback
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
- *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
 // Removes the queued callbacks that match the selected fields (flag 1 object, 2 member function, 4 argument).
 extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *object, PMFCB method, int arg)
 {
@@ -148,16 +124,6 @@ extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *objec
         world->callbacks.last = 0;
 }
 
-/** @sly2-annot addr=0x149C80
- * Purpose: Drain the deferred-callback list (calling each member function, repeating while new ones are
- *   posted), then run all Splice scheduled callbacks whose time has come (EvalSpliceEventCallback) and free
- *   them
- * Info: proposed name ProcessSwCallbacks (T1); TU callback
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#5-per-frame-update-and-render,
- *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule
- * @end-sly2-annot */
 // Runs the queued callbacks (again while running them queues new ones), then every scheduled Splice callback whose time
 // has come (EvalSpliceEventCallback), freeing each. Called once per frame by the world update.
 extern "C" void ProcessSwCallbacks(SW *world)

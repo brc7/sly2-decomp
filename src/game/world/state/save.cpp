@@ -158,17 +158,6 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
 
 static inline int FindSchemaSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
 
-/** @sly2-annot addr=0x1D7B88
- * Purpose: Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry
- *   count -> c*10-byte trie entries; then reset g_gs if schema checksum changed
- * Info: proposed name LoadSaveSchemaFromBrx (T1); TU save
- * Notes: runtime: schema at g_sw+0x3A18 (5461 entries, 960 symbols) confirmed | splice_scripts format doc
- *   cites this function by this name (CONFIRMED(code) in the doc)
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
- *   r6_1D5150+runtime+format-doc:splice_scripts
- * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
- *   docs/engine/save-memcard.md#4-source-files, docs/engine/save-memcard.md#5-key-functions
- * @end-sly2-annot */
 // Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
 // the save blob when the schema changed.
 extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *stream)
@@ -195,14 +184,6 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *strea
     ResetGsIfSchemaChanged(schema, &D_003D4A60);
 }
 
-/** @sly2-annot addr=0x1D7C80
- * Purpose: Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS
- *   0x5400 bytes and store new version/sum
- * Info: proposed name ResetGsIfSchemaChanged (T1); TU save
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
- *   docs/engine/save-memcard.md#5-key-functions, docs/engine/save-memcard.md#open-questions
- * @end-sly2-annot */
 // Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
 // ones.
 extern "C" void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet)
@@ -216,13 +197,6 @@ extern "C" void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet)
     saveSet->nSchemaSum = sum;
 }
 
-/** @sly2-annot addr=0x1D7D30
- * Purpose: True if GS stored version/checksum (+0x5400/+0x5404) equal schema's
- * Info: proposed name DoesGsMatchSchema (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // True when the save blob's stored schema version and checksum match the loaded schema.
 extern "C" int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet)
 {
@@ -231,14 +205,6 @@ extern "C" int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet)
            sum == saveSet->nSchemaSum;
 }
 
-/** @sly2-annot addr=0x1D7DA0
- * Purpose: Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling})
- *   along a key of symbol ids; outputs entry + array index
- * Info: proposed name FindSaveVar (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
 // false when the key does not name a variable.
 extern "C" int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result)
@@ -282,13 +248,6 @@ extern "C" int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result)
     }
 }
 
-/** @sly2-annot addr=0x1D7E80
- * Purpose: Address of a save var in a GS blob: pb + ib + index*size[kind]
- * Info: proposed name GetSaveVarAddress (T1); TU save
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
 extern "C" void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 {
@@ -300,13 +259,6 @@ extern "C" void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 struct LMV { int a[2]; };
 struct SMPV { int a[3]; };
 
-/** @sly2-annot addr=0x1D7ED8
- * Purpose: Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...)
- * Info: proposed name GetSaveVar (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
 CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 {
@@ -362,14 +314,6 @@ CRef GetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
     return ref;
 }
 
-/** @sly2-annot addr=0x1D80C8
- * Purpose: Write a CRef into a save var by kind (bitfield set/clear for packed bools)
- * Info: proposed name SetSaveVar (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
 CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
 {
@@ -431,15 +375,6 @@ static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
 }
 
 
-/** @sly2-annot addr=0x1D82B8
- * Purpose: Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set
- *   'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
- * Info: proposed name GetCompletionPercent (T1); TU save
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
 // clamped to 1..99.
 extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
@@ -491,14 +426,6 @@ extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
     }
 }
 
-/** @sly2-annot addr=0x1D84B0
- * Purpose: Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is
- *   'from_memcard'
- * Info: proposed name BuildMemcardGsMask (T2); TU save
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
 // "from_memcard". (inferred)
 extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
@@ -517,12 +444,6 @@ extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
     }
 }
 
-/** @sly2-annot addr=0x1D8600
- * Purpose: Allocate c 16-byte hash entries for the symbol table at schema+0xD4
- * Info: proposed name InitSaveSymbolTable (T1); TU save
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Allocates the save symbol table's entries.
 extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
 {
@@ -535,13 +456,6 @@ extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
 
 static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch; }
 
-/** @sly2-annot addr=0x1D8640
- * Purpose: Case-insensitive string hash h=h*33+toupper(c)
- * Info: proposed name HashSaveSymbolName (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Save-name hash, save's copy of HashStringCaseInsensitive (core/containers) without the null check: h*33+toupper(c).
 extern "C" unsigned int HashSaveSymbolName(const char *pchz)
 {
@@ -555,14 +469,6 @@ extern "C" unsigned int HashSaveSymbolName(const char *pchz)
     return hash;
 }
 
-/** @sly2-annot addr=0x1D8690
- * Purpose: Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the
- *   preallocated array
- * Info: proposed name AddSaveSymbol (T1); TU save
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
 extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
 {
@@ -577,13 +483,6 @@ extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
     symbolTable->apsym[ihash] = psym;
 }
 
-/** @sly2-annot addr=0x1D8720
- * Purpose: Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent
- * Info: proposed name FindSaveSymbol (T1); TU save
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Returns the symbol id of a name in the save symbol table, or -1.
 extern "C" int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz)
 {
@@ -597,14 +496,6 @@ extern "C" int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz)
     return -1;
 }
 
-/** @sly2-annot addr=0x1D87C0
- * Purpose: Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols
- *   via atoi as array indices)
- * Info: proposed name BuildSaveKeyV (T1); TU save
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Turns a null-terminated list of strings into a key: symbol names become their ids, numbers become array indices.
 extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
 {
@@ -633,13 +524,6 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
     }
 }
 
-/** @sly2-annot addr=0x1D88D0
- * Purpose: Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238
- *   (realloc-like)
- * Info: proposed name NewSaveKey (T1); TU save
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Builds a key from a varargs list of strings on the heap.
 extern "C" SVKEY *NewSaveKey(const char *pchz, ...)
 {
@@ -662,12 +546,6 @@ extern "C" SVKEY *NewSaveKey(const char *pchz, ...)
     return key;
 }
 
-/** @sly2-annot addr=0x1D89A8
- * Purpose: Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV
- * Info: proposed name AllocSaveKey (T1); TU save
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Builds a key from a varargs list of strings in a slot-heap allocation.
 extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 {
@@ -689,16 +567,6 @@ static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SVSET *sav
     return SetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
 }
 
-/** @sly2-annot addr=0x1D8A38
- * Purpose: CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60
- * Info: proposed name GetSaveVarByName (T1); TU save
- * Notes: runtime: save-var trie walk yields 4472 named vars
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
- *   r6_1D5150+verdicts_tu_r4r6+runtime
- * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
- *   docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Reads the named save variable (varargs path) from the global save blob as a Splice value.
 extern "C" CRef GetSaveVarByName(const char *pchz, ...)
 {
@@ -712,14 +580,6 @@ extern "C" CRef GetSaveVarByName(const char *pchz, ...)
     return ref;
 }
 
-/** @sly2-annot addr=0x1D8B20
- * Purpose: CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs
- * Info: proposed name SetSaveVarByName (T1); TU save
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
- *   docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Writes a Splice value into the named save variable (varargs path) of the global save blob.
 extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
 {
@@ -733,13 +593,6 @@ extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
     return ref;
 }
 
-/** @sly2-annot addr=0x1D8C10
- * Purpose: Varargs: address of a named save var inside g_gs
- * Info: proposed name GetSaveVarAddressV (T1); TU save
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Returns the address of the named save variable (varargs path) in the global save blob.
 extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
 {
@@ -752,12 +605,6 @@ extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
     return GetSaveVarAddress((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
 }
 
-/** @sly2-annot addr=0x1D8CC8
- * Purpose: Allocate a new key = concatenation of two keys' id arrays
- * Info: proposed name ConcatSaveKeys (T1); TU save
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Returns a new key: the concatenation of two keys.
 extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 {
@@ -779,16 +626,6 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 
 static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
-/** @sly2-annot addr=0x1D8D80
- * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
- *   (keys in global +0x3B2C) across the clear
- * Info: proposed name ResetSaveGs (T2); TU save
- * Notes: save-TU g_gs blob reset; ResetGs__Fv (0x16F868, GS graphics) is a different function; integrator
- *   name (was ResetGs)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
 // settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
@@ -823,15 +660,6 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
 static inline int GetGlobalSaveVarInt(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
 static inline float GetGlobalSaveVarFloat(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
-/** @sly2-annot addr=0x1D8FF8
- * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at
- *   D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50)
- * Info: proposed name ApplyGsSettings (T1); TU save
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
 extern "C" void ApplyGsSettings(SVSET *saveSet)
 {

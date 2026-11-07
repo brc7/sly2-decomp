@@ -86,14 +86,6 @@ CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref);
 SPS CSidebag_CloneTo(CSidebag *source, void *q);
 }
 
-/** @sly2-annot addr=0x12A980
- * Purpose: Prepends BINDING {n, ref} to sidebag list
- * Info: proposed name CSidebag_AddBinding (T1); class CSidebag; TU sidebag
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
 extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
@@ -107,12 +99,8 @@ extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
     return CRef(0x24);
 }
 
-/** @sly2-annot addr=0x12AA70
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
- * @end-sly2-annot */
 // Assigns a new value to the sidebag's existing binding of sym (nothing happens when unbound); returns Void.
+// (Sly 1-derived name: CSidebag::RefSetBinding.)
 CRef CSidebag::AssignSidebagBinding(int sym, CRef *pref)
 {
     CVarb *pb;
@@ -133,12 +121,8 @@ CRef CSidebag::AssignSidebagBinding(int sym, CRef *pref)
     }
 }
 
-/** @sly2-annot addr=0x12AB28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
- * @end-sly2-annot */
 // Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
+// (Sly 1-derived name: CSidebag::FFindBinding.)
 int CSidebag::FindSidebagBinding(int sym, CRef *pref)
 {
     for (CVarb *p = firstBinding.p; p; p = p->pnext.p) {
@@ -151,13 +135,6 @@ int CSidebag::FindSidebagBinding(int sym, CRef *pref)
     return 0;
 }
 
-/** @sly2-annot addr=0x12AB78
- * Purpose: New sidebag (0x257D80) with cloned binding list (0x12B0E8)
- * Info: proposed name CSidebag_CloneTo (T1); class CSidebag; TU sidebag
- * Notes: agent qualifier: (returns clone)
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
- * @end-sly2-annot */
 // Clones a sidebag: a new sidebag holding a deep copy of the binding list.
 extern "C" SPS CSidebag_CloneTo(CSidebag *source, void *q)
 {

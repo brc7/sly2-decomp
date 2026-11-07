@@ -48,25 +48,12 @@ void FreeStackImpl();
 void CopyAqw(void *pvDst, void *pvSrc, int cqw);
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
-/** @sly2-annot addr=0x1AE150
- * Purpose: Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388)
- * Info: proposed name GetFreeMemorySize (T1); TU memory
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
- *   docs/engine/save-memcard.md#4-source-files
- * @end-sly2-annot */
 // Returns the bytes still free between the top of the SW heap and the bottom of the stack heap.
 extern "C" int GetFreeMemorySize()
 {
     return D_002F6388 - D_002F6384;
 }
 
-/** @sly2-annot addr=0x1AE168
- * Purpose: Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect
- * Info: proposed name StartupMemMgr__Fv (EXISTING); TU memory
- * Confidence: high [EXISTING 0.98] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/engine/overview.md#1-boot, docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Boot step: the SW heap starts at the 16-aligned end of the program image, the stack heap at 32 MB (the top of
 // EE RAM) with no marks pushed; initialises the critical section the stack scopes use.
 void StartupMemMgr()
@@ -78,27 +65,11 @@ void StartupMemMgr()
     InitCritSect(&D_002F6390);
 }
 
-/** @sly2-annot addr=0x1AE1C8
- * Purpose: Empty out-of-memory hook (release build)
- * Info: proposed name CheckForOutOfMemory__Fv (EXISTING); TU memory
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Out-of-memory hook; empty in the retail build.
 void CheckForOutOfMemory()
 {
 }
 
-/** @sly2-annot addr=0x1AE1D0
- * Purpose: World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb)
- * Info: proposed name PvAllocSwImpl (T1); TU memory
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0,
- *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
- *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Bump-allocates request->size bytes (rounded up to 16) from the SW (level) heap at request->alignment alignment.
 extern "C" void *AllocFromWorldHeap(AREQ *request)
 {
@@ -111,13 +82,6 @@ extern "C" void *AllocFromWorldHeap(AREQ *request)
     return (void*)pv;
 }
 
-/** @sly2-annot addr=0x1AE238
- * Purpose: PvAllocSwImpl then CopyAb(dst src cb)
- * Info: proposed name PvAllocSwCopyImpl (T1); TU memory
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0,
- *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
- * @end-sly2-annot */
 // AllocFromWorldHeap, then copies request->size bytes from source into the new block.
 extern "C" void *AllocCopyFromWorldHeap(AREQ *request, void *source)
 {
@@ -127,15 +91,6 @@ extern "C" void *AllocCopyFromWorldHeap(AREQ *request, void *source)
     return p;
 }
 
-/** @sly2-annot addr=0x1AE2A0
- * Purpose: PvAllocSwImpl then memset 0
- * Info: proposed name PvAllocSwClearImpl (T1); TU memory
- * Notes: names_v2 v1 proposed PvAllocSwImpl__Fi (0.001)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
- *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // AllocFromWorldHeap, then zero-fills the block.
 extern "C" void *AllocClearedFromWorldHeap(AREQ *request)
 {
@@ -145,29 +100,12 @@ extern "C" void *AllocClearedFromWorldHeap(AREQ *request)
     return p;
 }
 
-/** @sly2-annot addr=0x1AE300
- * Purpose: Reset world heap top to world heap min (level unload)
- * Info: proposed name FreeSw__Fv (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Releases the whole SW heap (level unload): its top returns to its base.
 void FreeSw()
 {
     D_002F6384 = D_002F6380;
 }
 
-/** @sly2-annot addr=0x1AE318
- * Purpose: Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down
- * Info: proposed name PvAllocStackImpl (EXISTING); TU memory
- * Notes: names_v2 v1 proposed PvAllocSwCopyImpl__FiPv (0.002) | agent/verifier proposes PvAllocStackImpl for
- *   this existing name (see existing_name_changes.csv) | RENAME proposed -> PvAllocStackImpl
- *   (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.90] - evidence: arbitration; static naming pass; pre-existing symbol in
- *   symbol_addrs.txt; sources: r5_1AE130+verdicts_tu_r3r5+arbitration
- * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#7-key-functions,
- *   docs/engine/world-sw.md#10-key-functions
- * @end-sly2-annot */
 // Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
 // alignment (PvAllocStackImpl in Sly 1 terms; this symbol was misnamed PvAllocSlot__FP8ALLOCREQ before).
 extern "C" void *AllocFromStack(AREQ *request)
@@ -182,13 +120,6 @@ extern "C" void *AllocFromStack(AREQ *request)
     return (void *)pv;
 }
 
-/** @sly2-annot addr=0x1AE378
- * Purpose: PvAllocStackImpl then memset 0
- * Info: proposed name PvAllocStackClearImpl (T1); TU memory
- * Notes: names_v2 C proposed PvAllocSwCopyImpl__FiPv (0.438)
- * Confidence: high [T1 0.92] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Stack-heap allocation (AllocFromStack), then zero-fills the block.
 extern "C" void *AllocClearedFromStack(AREQ *request)
 {
@@ -198,12 +129,6 @@ extern "C" void *AllocClearedFromStack(AREQ *request)
     return p;
 }
 
-/** @sly2-annot addr=0x1AE3D8
- * Purpose: EnterCritSect and push stack-heap mark
- * Info: proposed name InitStackImpl__Fv (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Opens a stack-heap scope: enters the memory critical section and pushes the current stack-heap position.
 void InitStackImpl()
 {
@@ -211,12 +136,6 @@ void InitStackImpl()
     D_002F63A0[++D_002F639C] = D_002F6388;
 }
 
-/** @sly2-annot addr=0x1AE428
- * Purpose: Pop stack-heap mark and LeaveCritSect
- * Info: proposed name FreeStackImpl__Fv (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Closes a stack-heap scope: pops the saved position (freeing everything allocated since) and leaves the
 // critical section.
 void FreeStackImpl()
@@ -226,87 +145,39 @@ void FreeStackImpl()
 }
 
 /* STACKSCOPE's constructor and destructor (sly2/stackscope.h; g++ adds the destructor's in-charge test and delete). */
-/** @sly2-annot addr=0x1AE478
- * Purpose: RAII scope ctor: InitStackImpl; returns this
- * Info: proposed name STACKSCOPE_ctor (T1); class STACKSCOPE; TU memory
- * Notes: agent qualifier: (ctor) | mangled dropped (base does not match final name): __10STACKSCOPE
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // STACKSCOPE constructor: opens a stack-heap scope (InitStackImpl) for the object's lifetime.
 STACKSCOPE::STACKSCOPE()
 {
     InitStackImpl();
 }
 
-/** @sly2-annot addr=0x1AE4A0
- * Purpose: RAII scope dtor: FreeStackImpl; deletes if (flags&1)
- * Info: proposed name STACKSCOPE_ctor_1AE4A0 (T1), now the mangled destructor _$_10STACKSCOPE; class STACKSCOPE; TU memory
- * Notes: agent qualifier: (dtor) | COLLISION: STACKSCOPE_ctor already used (same name proposed for 0x1AE478);
- *   was STACKSCOPE_ctor_1AE4A0 until sly2/stackscope.h (types/views-1)
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // STACKSCOPE destructor: closes the scope (FreeStackImpl); deletes the object when asked to (flag bit 0).
 STACKSCOPE::~STACKSCOPE()
 {
     FreeStackImpl();
 }
 
-/** @sly2-annot addr=0x1AE4E8
- * Purpose: Returns NULL (libc malloc disabled)
- * Info: proposed name malloc (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // libc malloc, disabled: always returns null (the game allocates through its own heaps).
 extern "C" void *malloc(unsigned int cb)
 {
     return 0;
 }
 
-/** @sly2-annot addr=0x1AE4F0
- * Purpose: No-op
- * Info: proposed name free (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // libc free, disabled: does nothing.
 extern "C" void free(void *pv)
 {
 }
 
-/** @sly2-annot addr=0x1AE4F8
- * Purpose: operator new: PvAllocSwClearImpl({cb 16})
- * Info: proposed name __builtin_new (T1); TU memory
- * Notes: mangled dropped: __builtin_new
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Global operator new: a zero-filled, 16-aligned block from the SW heap (freed only with the level).
 /* ::operator new (g++ 2.95's symbol for it is __builtin_new). */
 void *operator new(unsigned int cb) { AREQ m; m.size = cb; m.alignment = 0x10; return AllocClearedFromWorldHeap(&m); }
 
 /* ::operator delete (g++ 2.95's symbol for it is __builtin_delete): nothing to free. */
-/** @sly2-annot addr=0x1AE520
- * Purpose: operator delete no-op
- * Info: proposed name __builtin_delete (EXISTING); TU memory
- * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
- *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Global operator delete: does nothing (SW-heap blocks are released with the level).
 void operator delete(void *pv)
 {
 }
 
-/** @sly2-annot addr=0x1AE528
- * Purpose: Quadword copy (remainder then 4x unrolled)
- * Info: proposed name CopyAqw__FPvT0i (EXISTING); TU memory
- * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // Copies `count` quadwords (16 bytes each; the remainder first, then four at a time).
 void CopyAqw(void *dst, void *src, int count)
 {
@@ -332,12 +203,6 @@ void CopyAqw(void *dst, void *src, int count)
     }
 }
 
-/** @sly2-annot addr=0x1AE5A0
- * Purpose: Byte/word memcpy
- * Info: proposed name CopyAb (EXISTING); TU memory
- * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
- * @end-sly2-annot */
 // memcpy: byte loop for unaligned arguments, word loop for 4-aligned ones, CopyAqw for 16-aligned ones.
 void CopyAb(void *dst, void *src, uint size)
 {

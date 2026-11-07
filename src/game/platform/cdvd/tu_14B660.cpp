@@ -19,27 +19,12 @@ struct CDREQ
 extern int D_002BD4C0;
 extern const char D_002A4EF0[] = "fid:#unknown";
 
-/** @sly2-annot addr=0x14B660
- * Purpose: D_002BD4C0 = 3
- * Info: proposed name SetCdModeDefault (T2); TU tu_14B660
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
- *   docs/engine/guards-ai.md#8-source-files
- * @end-sly2-annot */
 // Boot stage: puts the disc-identity poll (cd.cpp's UpdateCd, state D_002BD4C0) in its idle state.
 extern "C" void SetCdPollStateIdle()
 {
       D_002BD4C0 = 3;
 }
 
-/** @sly2-annot addr=0x14B670
- * Purpose: size (+4) of a file record if kind (+8) == 2 else 0
- * Info: proposed name CbFileRecord (T2); TU tu_14B660
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/save-memcard.md#5-key-functions,
- *   docs/reference/functions/core-library.md#tu_14b660-0x14b660-0x14b7f8,
- *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
- * @end-sly2-annot */
 // Returns the size in bytes of the file a key names if it is a disc file (kind 2), else 0.
 extern "C" int GetFileKeySize(CDREQ *key)
 {
@@ -50,13 +35,6 @@ extern "C" int GetFileKeySize(CDREQ *key)
       return size;
 }
 
-/** @sly2-annot addr=0x14B690
- * Purpose: returns the constant string 'fid:#unknown' (retail stub of a file-id name lookup)
- * Info: proposed name PchzFromFid (T2); TU tu_14B660
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
- *   docs/formats/disc-records.md#2-the-read-path, docs/formats/world-file.md#31-world-entry-table
- * @end-sly2-annot */
 // Returns the printable name of a file id; the retail build compiled the lookup out and always returns
 // "fid:#unknown".
 extern "C" char *GetFileIdName()

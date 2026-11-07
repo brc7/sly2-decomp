@@ -24,14 +24,6 @@ char D_003B3980[0x1C000];
 char D_003CF980[0x4000];
 int D_003D3980;                     /* g_phase */
 extern "C" void FlushCacheAsm(int mode) __asm__("FlushCache");
-/** @sly2-annot addr=0x1C2A78
- * Purpose: if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers
- * Info: proposed name SetPhase (T1); TU phasemem
- * Notes: names_v2 v1 proposed UpdateJtDrive__FP2JT (0.022)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#9-source-files, docs/engine/world-sw.md#10-key-functions
- * @end-sly2-annot */
 // Switches the memory phase: no-op if unchanged; otherwise flushes the data cache (the blocks change owner) and
 // re-points both render frames' packet buffers at the new phase's blocks (or clears them).
 void SetPhase(PHASE phase)
@@ -72,14 +64,6 @@ void SetPhase(PHASE phase)
     }
 }
 
-/** @sly2-annot addr=0x1C2BA8
- * Purpose: SetPhase(PHASE_None=0)
- * Info: proposed name ClearPhase (T1); TU phasemem
- * Notes: names_v2 C proposed ClearCmCut__FP2CM (0.638)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#phasemem-0x1c2a78-0x1c2d20
- * @end-sly2-annot */
 // Leaves every phase: SetPhase(PHASE_Nil), which detaches the render frames' packet buffers.
 extern "C" void ClearPhase()
 {

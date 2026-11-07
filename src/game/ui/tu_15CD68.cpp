@@ -143,14 +143,6 @@ static inline void PlaySound(int n)
     SetSndSourceLo(CreateSfxSound(n), 0);
 }
 
-/** @sly2-annot addr=0x15CD68
- * Purpose: LO::Init, four ids = -1, registers itself as the singleton g_sw.pepmenu
- * Info: proposed name InitWidget131 (T2); class WIDGET131 slot7; TU tu_15CD68
- * Notes: names_v2 v1 proposed InitExpls__FP5EXPLS (0.638) | Cid83->Widget131 (CID 0x83=131, vtable)
- * Confidence: low (draft) [T2 0.75] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/engine/hud-ui.md#4-source-files, docs/engine/particles-effects.md#5-source-files,
- *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Episode menu initialization (slot 7): LO init, four ids cleared, registers itself as the world's episode menu.
 void WIDGET131::Init()
 {
@@ -163,14 +155,6 @@ void WIDGET131::Init()
     g_sw.pepmenu = p;
 }
 
-/** @sly2-annot addr=0x15CDA8
- * Purpose: WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays
- * Info: proposed name PostWidget131Load (T2); class WIDGET131 slot15; TU tu_15CD68
- * Notes: Cid83->Widget131 (CID 0x83=131, vtable)
- * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
- *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // After the level load (slot 15): widget post-load, then picks the first empty slot index from the world arrays.
 extern "C" void PostEpisodeMenuLoad(EPMENU *menu)
 {
@@ -205,15 +189,6 @@ extern "C" void PostEpisodeMenuLoad(EPMENU *menu)
     StartJoySelection((struct JOY *)D_002DFC00);
 }
 
-/** @sly2-annot addr=0x15CF30
- * Purpose: Per-frame update of the WIDGET131 HUD element
- * Info: proposed name UpdateWidget131 (T2); class WIDGET131 slot16; TU tu_15CD68
- * Notes: Cid83->Widget131 (CID 0x83=131, vtable) | runtime5b: WIDGET131 episode menu mode 10 (S55) | T2:
- *   placeholder token 131
- * Confidence: low (draft) [T2 0.70] - evidence: runtime (save-state RAM); sources: r3_1539A8+runtime
- * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
- *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Per-frame update of the episode menu (slot 16): state machine, joystick navigation and actions (save variables,
 // movie replay, warps).
 extern "C" void UpdateEpisodeMenu(EPMENU *menu)
@@ -369,12 +344,6 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
     }
 }
 
-/** @sly2-annot addr=0x15D5C8
- * Purpose: Label id for the widget's current mode/sub-mode from tables D_002BE080/D_002BE1B8 (-1 if none)
- * Info: proposed name OidWidget131Label (T2); TU tu_15CD68
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Returns the label oid of the current mode/sub-mode from the label tables, or -1.
 extern "C" int GetEpisodeMenuLabelOid(EPMENU *menu)
 {
@@ -386,13 +355,6 @@ extern "C" int GetEpisodeMenuLabelOid(EPMENU *menu)
     return D_002BE080[menu->episode][menu->state];
 }
 
-/** @sly2-annot addr=0x15D648
- * Purpose: Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6),
- *   resets labels and shows the new label (vt49)
- * Info: proposed name SetWidget131Mode (T2); TU tu_15CD68
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Switches the menu mode: autosaves when leaving mode 0, restores the selection in modes 4 and 6, resets the labels
 // and shows the new one (slot 49).
 extern "C" void SetEpisodeMenuMode(EPMENU *menu, int state, int sub)
@@ -431,14 +393,6 @@ extern "C" void SetEpisodeMenuMode(EPMENU *menu, int state, int sub)
     }
 }
 
-/** @sly2-annot addr=0x15D798
- * Purpose: Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus
- *   1 if under 100%
- * Info: proposed name CEpisodeMenuItems (T2); TU tu_15CD68
- * Notes: names_v2 v1 proposed BindExpls__FP5EXPLS (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Number of menu items for the selected episode: the table value, minus 2 when it was never played, minus 1 when it is
 // under 100%.
 extern "C" int GetEpisodeMenuItemCount(EPMENU *menu)
@@ -462,13 +416,6 @@ extern "C" int GetEpisodeMenuItemCount(EPMENU *menu)
     return n;
 }
 
-/** @sly2-annot addr=0x15D880
- * Purpose: Plays label 0x5BD/0x5BE when the highlight flag changes
- * Info: proposed name SetWidget131Highlight (T2); TU tu_15CD68
- * Notes: names_v2 v1 proposed HandleExplsMessage__FP5EXPLS5MSGIDPv (0.823)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Plays label 0x5BD or 0x5BE when the highlight flag changes.
 extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int promptState)
 {
@@ -484,15 +431,6 @@ extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int promptState)
     }
 }
 
-/** @sly2-annot addr=0x15D8F8
- * Purpose: Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is
- *   set)
- * Info: proposed name FormatEpisodePercent (T1); TU tu_15CD68
- * Notes: names_v2 v1 proposed ExplodeExplsExplso__FP5EXPLSP6EXPLSO (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3b_rest
- * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
- *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Text callback: "<n>%" for the selected episode (95% scale, +5 when its bonus flag is set).
 extern "C" void FormatEpisodePercent(char *pch)
 {
@@ -507,12 +445,6 @@ extern "C" void FormatEpisodePercent(char *pch)
     }
 }
 
-/** @sly2-annot addr=0x15D9C0
- * Purpose: Text callback: '%01d:%02d' hours:minutes of the selected episode's play time
- * Info: proposed name FormatEpisodePlayTime (T1); TU tu_15CD68
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Text callback: the selected episode's play time as h:mm.
 extern "C" void FormatEpisodePlayTime(char *pch)
 {
@@ -528,12 +460,6 @@ extern "C" void FormatEpisodePlayTime(char *pch)
     }
 }
 
-/** @sly2-annot addr=0x15DA88
- * Purpose: Text callback: string 0x77 or 0x78 depending on the parity of the widget's page
- * Info: proposed name SetEpisodeMenuPageText (T2); TU tu_15CD68
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
- * @end-sly2-annot */
 // Text callback: string 0x77 or 0x78 by the parity of the menu page.
 extern "C" void FormatEpisodeMenuPageText(char *pch, int f)
 {

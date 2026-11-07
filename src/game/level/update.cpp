@@ -65,13 +65,6 @@ static __inline__ unsigned int GetLoFlags(ASEGQ *object) { unsigned int x = obje
 enum { ENTRY_UPDATE = 0x2, ENTRY_PAUSED_CALL = 0x4, ENTRY_PAUSED_CALL_OFF = 0x20, ENTRY_UPDATE_WHEN_PAUSED = 0x100 };
 enum { SLOT_UPDATE = 16, SLOT_PAUSED_UPDATE = 17 };
 
-/** @sly2-annot addr=0x226550
- * Purpose: per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ...
- * Info: proposed name UpdateSw (T1); class SW slot7; TU update
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#5-per-frame-update-and-render
- * @end-sly2-annot */
 // The per-frame world update (SW vtable slot 7): runs callbacks, updates the objects (UpdateSwObjects), lights, sound
 // and the camera. Called once per game frame by the main loop.
 void SW::Update()
@@ -120,13 +113,6 @@ void SW::Update()
     CGc_UpdateRecyclable(g_gc);
 }
 
-/** @sly2-annot addr=0x2267C0
- * Purpose: iterates the SW object DL (0x3D88) calling each object update / asega 0x130918
- * Info: proposed name UpdateSwObjects (T1); TU update
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
- * @end-sly2-annot */
 // Walks the world's list of objects that want updates and calls each one's update (and its animation segments).
 extern "C" void UpdateSwObjects(SWVIEW *world)
 {

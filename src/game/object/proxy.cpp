@@ -214,13 +214,6 @@ struct SWALLOC
     int cbAlign;
 };
 
-/** @sly2-annot addr=0x1C9940
- * Purpose: (isrc<<16)|(icopy&0xFFFF)
- * Info: proposed name MakeProxyId (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/hud-ui.md#4-source-files, docs/engine/object-model.md#8-source-files,
- *   docs/engine/object-model.md#9-key-functions
- * @end-sly2-annot */
 // Makes a proxy id: the source index in the high half, the copy index in the low half.
 /* A proxy id: the source index in the high half, the copy index in the low half. */
 int MakeProxyId(int isrc, int icopy)
@@ -228,37 +221,18 @@ int MakeProxyId(int isrc, int icopy)
     return (isrc << 0x10) | (icopy & 0xFFFF);
 }
 
-/** @sly2-annot addr=0x1C9950
- * Purpose: idProxy>>16
- * Info: proposed name GetSourceIndexFromProxyId (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the source index of a proxy id (high half).
 int GetSourceIndexFromProxyId(int id)
 {
     return id >> 0x10;
 }
 
-/** @sly2-annot addr=0x1C9958
- * Purpose: (short)idProxy
- * Info: proposed name GetCopyIndexFromProxyId (T1); TU proxy
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the copy index of a proxy id (low half).
 extern "C" short GetCopyIndexFromProxyId(int id)
 {
     return id;
 }
 
-/** @sly2-annot addr=0x1C9968
- * Purpose: aproxysrc[isrc].aoid[icopy] or -1
- * Info: proposed name GetOidFromProxyId (T1); TU proxy
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the oid of a proxy id's copy, or -1 when there is no copy.
 /* The oid of a proxy id's copy (-1 for no copy). */
 extern "C" OID GetOidFromProxyId(int id)
@@ -280,13 +254,6 @@ void InitSl(struct DL *pdl, int ib);
 int GetOidFromProxyId(int id);
 struct DL *GetSwProxyRefBucket(void *p, int id);
 void AppendSlEntry(struct DL *pl, void *pv);
-/** @sly2-annot addr=0x1C99D8
- * Purpose: Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR
- * Info: proposed name FindPxr (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Finds the proxy-reference (PXR) node for the id path ids[0..count) under a parent node, creating the missing nodes
 // from the world heap. Proxy objects keep their path so they can be found by their source's oids.
 struct N *FindProxyRefPath(struct N *parentNode, int c, const int *aid)
@@ -388,17 +355,9 @@ inline void *PvAllocSw(int cb, int cbAlign)
     return PvAllocSwImpl(pswalloc);
 }
 void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream, CLoadCollector *pcollector) __asm__("LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector");
-/** @sly2-annot addr=0x1C9B08
- * Purpose: read one proxy record (source id/mode/placement) and instantiate copy or PROXY object
- * Info: proposed name LoadProxyFromBrx (T1); TU proxy
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r5_1AE130+parse-verified
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/engine/world-sw.md#loadswobjectsfrombrx-0x13fb40-matched,
- *   docs/formats/level-objects.md#3-object-list-and-object-record
- * @end-sly2-annot */
 // Loads one proxy record from the level stream (source id, mode, placement) and instantiates the next copy of the
 // source at it, or creates a PROXY object that acquires spare copies at run time.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream, CLoadCollector *pcollector)
 {
     int idSource = stream->S32Read();
@@ -638,12 +597,6 @@ namespace M_SetSoIdProxy { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x14]; struct O *pNext; char pad2[0x3C]; struct O *pFirst; };
 void SetLoIdProxy(struct O *p, void *a);
-/** @sly2-annot addr=0x1CA308
- * Purpose: SO vt25: LO::SetIdProxy then recurse into child objects
- * Info: proposed name SetSoIdProxy (T1); class SO slot25; TU proxy
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // SO's SetIdProxy (vtable slot 25): LO's version, then the same on every child.
 void SetSoIdProxy(struct O *object, void *a)
 {
@@ -662,15 +615,6 @@ struct Z { struct VTE *vt; };
 struct R { int n; struct LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
 struct G { char pad[0x3F08]; struct R *ar; };
 void *MakeProxyId__Fii(int i, int c);
-/** @sly2-annot addr=0x1CA370
- * Purpose: Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object;
- *   notify collector; icopyNext++
- * Info: proposed name AddProxyCopy (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Takes the next unused copy of proxy source sourceIndex: sets its proxy id, adds and reparents its objects, applies
 // the placement (slot 37) to each, reports them to the load collector and advances the source's next-copy index.
 void AddProxyCopy(struct G *world, int i, int a, int b, void *x, int y, struct Z *pz)
@@ -712,14 +656,6 @@ struct MAT3 *GetLoWorldMatrix(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
-/** @sly2-annot addr=0x1CA500
- * Purpose: After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest,
- *   PROXYSPARE array, identity mats)
- * Info: proposed name InitSwProxySpares (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // After the level load, turns every unused copy of each proxy source into a spare (records the objects' rest poses
 // and builds the spare array).
 void InitSwProxySpares(struct G *world)
@@ -759,14 +695,6 @@ void InitSwProxySpares(struct G *world)
 }
 } } // namespace M_InitSwProxySpares
 
-/** @sly2-annot addr=0x1CA788
- * Purpose: PROXY::Init (vt7): InitXfm + flag
- * Info: proposed name InitProxy (T1); class PROXY slot7; TU proxy
- * Notes: names_v2 C proposed SetAloAngularVelocityXYZ__FP3ALOfff (0.438)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // PROXY initialization (vtable slot 7): XFM init plus the proxy flag.
 void PROXY::Init()
 {
@@ -787,12 +715,6 @@ struct E *AllocCopyFromWorldHeap(struct AL *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
-/** @sly2-annot addr=0x1CA7B8
- * Purpose: PROXY::Clone (vt41): clone XFM base and copy init records
- * Info: proposed name CloneProxy (T1); class PROXY slot41; TU proxy
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // PROXY's Clone (vtable slot 41): clones the XFM part and copies the init records.
 void CloneProxy(struct S *proxy, struct S *source)
 {
@@ -818,27 +740,12 @@ void CloneProxy(struct S *proxy, struct S *source)
 }
 } } // namespace M_CloneProxy
 
-/** @sly2-annot addr=0x1CA8C0
- * Purpose: wrapper: AcquireProxySpare(this,2)
- * Info: proposed name AcquireProxyCopy2 (T2); TU proxy
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Acquires a spare copy for the proxy with the normal minimum rating 2 (AcquireProxySpare). Splice-callable.
 extern "C" void AcquireProxy(PROXY *proxy)
 {
     AcquireProxySpare(proxy, 2);
 }
 
-/** @sly2-annot addr=0x1CA8E0
- * Purpose: PROXY vt23: LO::OnAdd then 0x149AB8
- * Info: proposed name OnProxyAdd (T1); class PROXY slot23; TU proxy
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was PROXY_Unfreeze)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // PROXY's OnAdd (vtable slot 23): unfreezes the object and registers it (0x149AB8).
 /* The 8-byte callback passed by value (B4): read through a packed view so it goes straight into a2 (ldl/ldr). */
 struct LONGU { long l; } __attribute__((packed));
@@ -853,13 +760,6 @@ extern "C" void OnProxyAdd(PROXY *proxy)
     if (!proxy->nUnkE4) EnsureSwCallback(&D_003DD490, proxy, D_002A77C0.l, 0);
 }
 
-/** @sly2-annot addr=0x1CA930
- * Purpose: (pspare - aspare)/0x50 + first spare copy index
- * Info: proposed name GetCopyIndexFromProxySpare (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the copy index of a spare: its index in the source's spare array past the source's placed copies.
 /* The copy index of a spare: its index in the source's spare array, past the source's copies. */
 int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare)
@@ -867,25 +767,12 @@ int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare)
     return (spare - proxy->psrc->aspare) + proxy->psrc->icopyNext;
 }
 
-/** @sly2-annot addr=0x1CA958
- * Purpose: inverse of GetCopyIndexFromProxySpare
- * Info: proposed name GetProxySpareFromCopyIndex (T1); TU proxy
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the spare of a copy index (the inverse of GetCopyIndexFromProxySpare).
 extern "C" PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *proxy, int icopy)
 {
     return &proxy->psrc->aspare[icopy - proxy->psrc->icopyNext];
 }
 
-/** @sly2-annot addr=0x1CA978
- * Purpose: Score a spare 0..5 (locked=0, free=4, objects in world/visible levels)
- * Info: proposed name NRatePspare (T2); TU proxy
- * Notes: names_v2 C proposed RetractAloDrive__FP3ALO (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Rates how usable a spare is: 0 locked, 4 free, otherwise the worst of its objects (3 not in the world, 2 in the
 // world, 1 when one is in the world now).
 /* How usable a spare is: 0 locked, 4 free, else the worst of its objects (3 not in the world, 2 in the world,
@@ -938,13 +825,6 @@ void SetLoParent(LO *plo, SO *psoParent, int grf) __asm__("SetLoParent");
 
 int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
 void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare) __asm__("ReleaseProxySpare__FP5PROXYP10PROXYSPARE");
-/** @sly2-annot addr=0x1CAA60
- * Purpose: return a copy to the spare pool and restore its objects
- * Info: proposed name ReleaseProxySpare (T1); TU proxy
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns a copy to the spare pool: detaches it from its owner and restores its objects to the rest pose.
 void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
 {
@@ -1041,12 +921,6 @@ struct T { int unknown0; int unknown4; int c; int i0; };   /* the proxy source: 
 struct S { char pad[0xE0]; struct T *pt; int isPlaced; void *currentSpare; };   /* PROXY; isPlaced (inferred) */
 int RateProxySpare(struct S *p, void *pa);
 void *GetProxySpareFromCopyIndex(struct S *p, int i);
-/** @sly2-annot addr=0x1CADE0
- * Purpose: pick the best-rated spare >= vMin (or the current one)
- * Info: proposed name PspareChoose (T2); TU proxy
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Picks the best-rated spare with a rating of at least minRating (keeping the current one when it qualifies); null
 // when none does.
 void *ChooseProxySpare(struct S *proxy, int minRating)
@@ -1111,15 +985,6 @@ static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const
 static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.fn)(Adjusted(p,v));}
 static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.fn)(Adjusted(p,v),parent);}
 static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.fn)(Adjusted(p,v),14,0,1,cursor,0);}
-/** @sly2-annot addr=0x1CAEC8
- * Purpose: Acquire a spare copy for the proxy: choose, release from previous owner, attach objects at proxy
- *   placement, apply init records
- * Info: proposed name AcquireProxySpare (T1); TU proxy
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#5-proxies-and-spares-object-pools,
- *   docs/formats/world-file.md#world-file-brx-format-sly-2-ps2-scus-97316,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Acquires a spare copy for the proxy: chooses one, takes it from its previous owner, places its objects at the
 // proxy and applies the init records (slot 26 on each object). Returns the spare or null.
 extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
@@ -1166,18 +1031,6 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
 typedef char attach_layout[(sizeof(void*)==4 && sizeof(qword)==16 && sizeof(VTE)==8 && sizeof(M4)==0x40 && sizeof(TABLE)==0x6C && sizeof(BIND)==0x18 && sizeof(DESC)==0x28 && sizeof(STREAM)==0x3C && OFF(VTE,delta)==0 && OFF(VTE,fn)==4 && OFF(NODE,owner)==0 && OFF(NODE,next)==4 && OFF(NODE,matrix)==0x10 && OFF(TREE,owner)==0x10 && OFF(BIND,kind)==0 && OFF(BIND,resource)==8 && OFF(BIND,begin)==0xC && OFF(BIND,end)==0x10 && OFF(BIND,object)==0x14 && OFF(TABLE,count)==0 && OFF(TABLE,objects)==4 && OFF(TABLE,states)==0x64 && OFF(TABLE,nodes)==0x68 && OFF(P,resource)==0 && OFF(P,vt)==0xC && OFF(P,context)==0x10 && OFF(P,scale)==0x38 && OFF(P,channel)==0x50 && OFF(P,matrix)==0x60 && OFF(P,table)==0xE0 && OFF(P,disabled)==0xE4 && OFF(P,head)==0xE8 && OFF(P,bindCount)==0xEC && OFF(P,binds)==0xF0 && OFF(SW,tables)==0x3F08 && OFF(SW,root)==0x3F0C && OFF(DESC,flags)==4 && OFF(STREAM,vt)==0x30 && OFF(STREAM,begin)==0x34 && OFF(STREAM,end)==0x38 && OFF(WORK,id)==0 && OFF(WORK,found)==4 && OFF(WORK,child)==8 && OFF(WORK,cursor)==0xC && OFF(WORK,owner)==0x10)?1:-1];
 } // namespace M_PspareAcquire
 
-/** @sly2-annot addr=0x1CB250
- * Purpose: For a single-object PROXY: acquire a spare copy (AcquireProxySpare, mode 1 if f else 2) and return
- *   that copy's first object (aploSource[GetCopyIndexFromProxySpare]) or NULL
- * Info: proposed name AcquireProxyObject (T1); TU proxy
- * Notes: top50_round (0.60): Body: requires p->pt->n==1, then
- *   p->pt->ap[GetCopyIndexFromProxySpare(p,AcquireProxySpare(p,f?1:2))]. Callers spawn pooled objects:
- *   FireBentleyProjectile, SpawnBootyInContainer, SpawnCid119Guard, UseJtGadget, PloAcquireJt. Sibling FCan
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r5_1AE130+top50_round
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/engine/object-model.md#5-proxies-and-spares-object-pools,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
 // For a single-object proxy, acquires a spare (rating 1 when forced, else 2) and returns its object, or null.
 /* The object of an acquired spare copy (single-object sources only). */
 extern "C" LO *AcquireProxyObject(PROXY *proxy, int fForce)
@@ -1185,14 +1038,6 @@ extern "C" LO *AcquireProxyObject(PROXY *proxy, int fForce)
     PROXYSPARE *spare; if (proxy->psrc->cplo != 1) return 0; spare = AcquireProxySpare(proxy, fForce ? 1 : 2); if (!spare) return 0; return proxy->psrc->aplo[GetCopyIndexFromProxySpare(proxy, spare)];
 }
 
-/** @sly2-annot addr=0x1CB2C0
- * Purpose: PspareChoose(this 2)!=0
- * Info: proposed name FCanAcquireProxy (T1); TU proxy
- * Notes: verifier CORRECT: FCanAcquirePspare -> FCanAcquireProxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // True when a spare rated at least 2 is available.
 /* Whether a spare rated at least 2 is available. */
 extern "C" int CanAcquireProxy(PROXY *proxy)
@@ -1200,13 +1045,6 @@ extern "C" int CanAcquireProxy(PROXY *proxy)
     return ChooseProxySpare(proxy, 2) != 0;
 }
 
-/** @sly2-annot addr=0x1CB2E0
- * Purpose: first object of current spare (+0xE8) or NULL
- * Info: proposed name PloCurProxy (T2); TU proxy
- * Notes: names_v2 C proposed PshadowAloEnsure__FP3ALO (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the object of the proxy's current spare, or null.
 /* The object of the proxy's current spare, or 0. */
 extern "C" LO *GetProxyCurrentObject(PROXY *proxy)
@@ -1214,13 +1052,6 @@ extern "C" LO *GetProxyCurrentObject(PROXY *proxy)
     int icopy; if (!proxy->pspareFirst) return 0; icopy = GetCopyIndexFromProxySpare(proxy, proxy->pspareFirst); return proxy->psrc->aplo[icopy];
 }
 
-/** @sly2-annot addr=0x1CB328
- * Purpose: if no current copy acquire one
- * Info: proposed name EnsureProxyCopy (T1); TU proxy
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Acquires a copy unless the proxy already has a current one.
 /* Acquires a copy unless the proxy already has a current one. */
 extern "C" void EnsureProxyCopy(PROXY *proxy)
@@ -1240,13 +1071,6 @@ extern "C" {
 int GetCopyIndexFromProxySpare__FP5PROXYP10PROXYSPARE(S *p, N *pn);
 R GetProxyCopyObjects(S *p);
 }
-/** @sly2-annot addr=0x1CB360
- * Purpose: return CRef list (tag 0x2002) of objects of all held spares
- * Info: proposed name RefProxyCopies (T2); TU proxy
- * Notes: names_v2 C proposed PostSmLoadCallback__FP2SM5MSGIDPv (0.420)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns a Splice list of the objects of every spare the proxy holds.
 R GetProxyCopyObjects(S *proxy)
 {
@@ -1261,12 +1085,6 @@ R GetProxyCopyObjects(S *proxy)
 }
 } // namespace M_func_001CB360
 
-/** @sly2-annot addr=0x1CB410
- * Purpose: find spare whose object is plo
- * Info: proposed name PspareFromPlo (T2); TU proxy
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the spare whose object is plo (single-object sources), or null.
 /* The spare whose object is plo (single-object sources only), or 0. */
 extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *proxy, LO *plo)
@@ -1274,12 +1092,6 @@ extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *proxy, LO *plo)
     int icopy; PROXYSPARE *spare; if (proxy->psrc->cplo != 1) return 0; spare = 0; for (icopy = proxy->psrc->icopyNext; icopy < proxy->psrc->ccopy; icopy++) { if (plo == proxy->psrc->aplo[icopy]) { spare = GetProxySpareFromCopyIndex(proxy, icopy); break; } } return spare;
 }
 
-/** @sly2-annot addr=0x1CB488
- * Purpose: spare(plo)->fLocked=1
- * Info: proposed name LockProxyObject (T1); TU proxy
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Locks the spare holding plo so it cannot be taken by another proxy.
 extern "C" void LockProxyObject(PROXY *proxy, LO *plo)
 {
@@ -1289,12 +1101,6 @@ extern "C" void LockProxyObject(PROXY *proxy, LO *plo)
     }
 }
 
-/** @sly2-annot addr=0x1CB4B8
- * Purpose: spare(plo)->fLocked=0
- * Info: proposed name UnlockProxyObject (T1); TU proxy
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Unlocks the spare holding plo.
 extern "C" void UnlockProxyObject(PROXY *proxy, LO *plo)
 {
@@ -1309,14 +1115,6 @@ namespace M_func_001CB4E0 { extern "C" {
 struct A { char pad[0x2D]; unsigned char b; };
 struct S { char pad[0x28]; unsigned long fl; };
 void SetLoVisMask(struct S *p, int n);
-/** @sly2-annot addr=0x1CB4E0
- * Purpose: LO slot 26 base: copy the proxy grfvis (+0x2D) onto the hierarchy unless flag bit58
- * Info: proposed name ResetLoForProxy (T2); class LO slot26; TU proxy
- * Notes: v3: superseded LO_VUnk26Proxy | top50_round (0.50): [extra: knock-on fix] Called through vt26 by
- *   AcquireProxySpare with the PROXY; see ResetSoForProxy 0x1CB518 | v2 draft was LO_VUnk26Proxy
- * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r5_1AE130+top50_round
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // LO's ResetForProxy (vtable slot 26, run when a spare copy is placed): copies the proxy's visibility mask onto the
 // object unless it keeps its own.
 void LO_ResetForProxy(struct S *object, struct A *pa)
@@ -1337,19 +1135,6 @@ void SetSoZapMode(struct S *p, int n);
 qword GetLoWorldPos(void *p);
 void *FindPathzoneAtPos(qword q, int n);
 void SetSoPhysRegion(struct S *p, void *pv);
-/** @sly2-annot addr=0x1CB518
- * Purpose: SO slot 26 (called by AcquireProxySpare with the PROXY when a spare copy is placed): ResetLoForProxy
- *   base, SetSoZapMode(0), clear +0xCC, re-pick the physics region from FindPathzoneAtPos when needed, then
- *   slot 26 on children
- * Info: proposed name ResetSoForProxy (T2); class SO slot26; TU proxy
- * Notes: v3: superseded SO_VUnk26Proxy | top50_round (0.50): AcquireProxySpare 0x1CAEC8 calls vt37(matrix) then
- *   vt26(proxy) on each copy object; vt37 is the existing ApplySoProxy 0x1F4010 (Sly 1 ApplyAloProxy =
- *   transform by the proxy), so slot 26 is the separate reset step. LO base 0x
- * Confidence: low (draft) [T2 0.50] - evidence: Sly 1 / Lilly reference; semantic review; sources:
- *   r5_1AE130+top50_round
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // SO's ResetForProxy (vtable slot 26): LO's version, zap mode off, clears a state word, re-picks the physics region
 // from the position when needed, then the same on every child.
 void SO_ResetForProxy(struct S *object, int n)
@@ -1369,12 +1154,6 @@ void SO_ResetForProxy(struct S *object, int n)
 }
 } } // namespace M_func_001CB518
 
-/** @sly2-annot addr=0x1CB5C8
- * Purpose: LO vt27 default: empty
- * Info: proposed name LO_VUnk27Proxy (T2); class LO slot27; TU proxy
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // LO's default for vtable slot 27 (empty; meaning not known).
 extern "C" void LO_Slot27Default()
 {
@@ -1405,12 +1184,6 @@ void LO_Slot27Default(LO *p, int n);
 void SetSoPhysRegion(LO *p, int n);
 void SO_Slot27(LO *p, int n);
 }
-/** @sly2-annot addr=0x1CB5D0
- * Purpose: SO vt27
- * Info: proposed name SO_VUnk27Proxy (T2); class SO slot27; TU proxy
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // SO's vtable slot 27: LO's default, then clears the physics region (SetSoPhysRegion(this, 0)) when a flag of its +0xE8
 // record is set, and the same slot on every child. (inferred: the slot's meaning is not known.)
 void SO_Slot27(LO *object, int n)
@@ -1432,12 +1205,6 @@ struct A { int id; int pad[8]; int isCopy; };   /* the proxy id record; isCopy (
 struct S { char pad[0x3C]; struct A *pa; };
 int GetSourceIndexFromProxyId__Fi(int id);
 int GetCopyIndexFromProxyId(int id);
-/** @sly2-annot addr=0x1CB658
- * Purpose: per-copy value from aproxysrc[isrc] table for the object's proxy id
- * Info: proposed name GetProxyCopyValue (T2); TU proxy
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the per-copy value stored in the proxy source table for the object's proxy id (0 when the object is not a
 // proxy copy). (inferred)
 int GetProxyCopyValue(struct S *proxy)
@@ -1465,13 +1232,6 @@ struct SL;
 void ReleaseProxySpare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
 int IsEntryInDl__FP2DLPv(struct SL *pl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
-/** @sly2-annot addr=0x1CB6D8
- * Purpose: PROXY vt24: release all held spares; unregister from SW list (*(struct SL *)&g_sw.dlBusy) and OnRemove
- * Info: proposed name PROXY_VUnk24 (T2); class PROXY slot24; TU proxy
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // PROXY's vtable slot 24: releases every held spare and, when the proxy is in its activity zone, sends the leave
 // notification (slot 22) and drops it from the zone list. (inferred)
 void PROXY_ReleaseSpares(struct S *proxy)
@@ -1486,14 +1246,6 @@ void PROXY_ReleaseSpares(struct S *proxy)
 }
 } } // namespace M_func_001CB6D8
 
-/** @sly2-annot addr=0x1CB770
- * Purpose: index of proxy source with id or -1
- * Info: proposed name FindProxySourceIndex (T1); TU proxy
- * Notes: names_v2 C proposed SetAloThrobOutColor__FP3ALOP6VECTOR (0.195)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/object-model.md#9-key-functions,
- *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
- * @end-sly2-annot */
 // Returns the index of the proxy source with the given id, or -1.
 int FindProxySourceIndex(SW *world, int id)
 {

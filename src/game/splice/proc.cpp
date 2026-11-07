@@ -35,15 +35,6 @@ extern "C" {
 CProc *PtNew__t6CGcObj1Z5CProc();
 SPO CProc_CloneTo(CProc *source, X *frame);
 }
-/** @sly2-annot addr=0x128F70
- * Purpose: New proc (0x256F48) copying frame pointer and param/body lists
- * Info: proposed name CProc_CloneTo (T1); class CProc; TU proc
- * Notes: agent qualifier: (returns clone)
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#proc-0x128f70-0x1291a8,
- *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
- * @end-sly2-annot */
 // Clones a closure: a new proc with the given frame (or the source's frame when none is given) and the source's
 // parameter count, rest flag, parameter list and body. Returns an owning pointer.
 SPO CProc_CloneTo(CProc *source, X *frame)

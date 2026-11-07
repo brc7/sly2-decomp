@@ -34,12 +34,6 @@ public:
     int CbWrite(void *data, int size);
 };
 
-/** @sly2-annot addr=0x20D5D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/core-library.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
- * @end-sly2-annot */
 // Stream to a file descriptor (a negative fd sends the text to the debug console instead).
 OSTRM::OSTRM(int fileDescriptor)
 {
@@ -51,11 +45,6 @@ OSTRM::OSTRM(int fileDescriptor)
     bufferedBytes = 0;
 }
 
-/** @sly2-annot addr=0x20D5F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
- * @end-sly2-annot */
 // Stream into a caller's memory block of `size` bytes (writes past the end are truncated).
 OSTRM::OSTRM(void *data, int size)
 {
@@ -67,19 +56,9 @@ OSTRM::OSTRM(void *data, int size)
     bufferedBytes = 0;
 }
 
-/** @sly2-annot addr=0x20D618
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
- * @end-sly2-annot */
 // Flushes whatever is still buffered.
 OSTRM::~OSTRM() { Flush(); }
 
-/** @sly2-annot addr=0x20D660
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
- * @end-sly2-annot */
 // Writes `size` bytes. Memory streams copy straight into the block (clipped to the space left); file/debug
 // streams stage through the 0x400-byte buffer, flushing each time it fills. Returns the (possibly clipped) size
 // requested, and adds the bytes actually written to totalWritten.
@@ -122,11 +101,6 @@ nothing:
     return size;
 }
 
-/** @sly2-annot addr=0x20D798
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
- * @end-sly2-annot */
 // Sends the staged bytes to the file (sceWrite) or, for fd < 0, to the debug console with printf("%s") in
 // NUL-terminated pieces of at most 0x80 bytes. Memory streams have nothing to flush.
 void OSTRM::Flush()
