@@ -1457,30 +1457,26 @@ ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qwor
 
 namespace M_func_0012DEF0 {
 typedef int qword __attribute__((mode(TI)));
-struct BONE { char pad[0x40]; MATRIX4 mat; };
-struct Y { char pad[0x9A]; short segmentKind; char pad2[0xA0 - 0x9C]; BONE *parent; char pad3[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
-#define XFV(p) ((Y *)(p)->transform)
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
-qword GetXfValueFromMatrix(Y *xf, MATRIX4 mat);
+qword GetXfValueFromMatrix(XF *xf, MATRIX4 mat);
 void UpdateMatrixAct(ACT6 *x);
 }
 // Matrix act update: the transform's local matrix from a world matrix relative to its parent. (inferred)
 void UpdateMatrixAct(ACT6 *x)
 {
     MATRIX4 m;
-    if (XFV(x)->parent)
-        m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(XFV(x)->parent->mat), ((BONE *)x->pxfBase)->mat), *(MATRIX4 *)x->mat);
+    if (x->transform->parent)
+        m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->transform->parent->worldMatrix), x->pxfBase->worldMatrix), *(MATRIX4 *)x->mat);
     else
-        m = __ml__FRC7MATRIX4T0(((BONE *)x->pxfBase)->mat, *(MATRIX4 *)x->mat);
-    Y *xf = XFV(x);
-    xf->goalValue = GetXfValueFromMatrix(xf, m);
-    XFV(x)->goalVelocity = D_002A2DD0;
-    XFV(x)->segmentKind = 3;
+        m = __ml__FRC7MATRIX4T0(x->pxfBase->worldMatrix, *(MATRIX4 *)x->mat);
+    XF *xf = x->transform;
+    xf->restValue = GetXfValueFromMatrix(xf, m);
+    x->transform->rate = D_002A2DD0;
+    x->transform->phase = 3;
 }
-#undef XFV
 } // namespace M_func_0012DEF0
 
 // Matrix act goal (slot 5).
