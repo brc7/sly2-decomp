@@ -31,22 +31,42 @@ struct EMITV2 { float a[2]; };
 struct EMITV3 { float a[3]; };
 struct EMITV4 { float a[4]; };
 
-/* a 0x40-byte variant record: a kind, and its payload at +0x30; the defaults it is reset from are whole records.
-   +0x08..+0x14 hold OIDs that func_002586D8 resolves (record 1: +0x08, +0x0C, +0x10; record 0: +0x14);
-   LoadEmitblipColorsFromBrx stores a byte it reads at +0x0C and its colour list at +0x1C. */
+/* a scale or alpha curve over a particle's life (Sly 1's CLQ: three coefficients) */
+struct EMITCLQ { float g0, g1, g2, gUnused; };
 struct EMITBLIPCLRS { int c; RGBA argba[1]; };   /* count, then c colours (0x10-aligned allocation) */
-/* EMITV: see the comment above EMITBLIPCLRS. */
+/* EMITV: the particle record at EMITB+0xC0 (0x40 bytes): a kind, the per-particle-kind fields (a union: EMITB's
+   particleKind selects which record the slot holds; func_002586D8 resolves record 1's OIDs at +0x08..+0x10 and record
+   0's at +0x14), and a payload at +0x30 whose shape the kind gives. The defaults it is reset from are whole records
+   (D_002BDE10: record 0, D_002BDE70: record 1). The name is the one its accessors' mangled names carry. */
 struct EMITV
 {
-    int k;                  /* +0x00 kind of the payload (-1 or 0: unset) */
-    char pad04[4];
-    int oid08;              /* +0x08 an OID (record 1) */
-    int n0C;                /* +0x0C an OID (record 1); the blip colour byte (LoadEmitblipColorsFromBrx) */
-    int oid10;              /* +0x10 an OID (record 1) */
-    int oid14;              /* +0x14 an OID (record 0) */
-    char pad18[4];
-    EMITBLIPCLRS *pblipclrs; /* +0x1C the blip colour list */
-    char pad20[0x10];
+    int k;                  /* +0x00 kind (rips: the RIPT of each particle; blips: render kind, 1 flying, 2 rolling;
+                               -1 or 0: unset) */
+    union
+    {
+        struct              /* record 1 (particleKind 1): rips (Sly 1's EMITRIP, objects as OIDs) */
+        {
+            int ripGroupKind;   /* +0x04 kind of the RIPG they go into */
+            int oid08;          /* +0x08 render object (EMITREF_Render) */
+            int n0C;            /* +0x0C next-render object (EMITREF_RenderNext) */
+            int oid10;          /* +0x10 touch object (EMITREF_Touch) */
+            float ripScale;     /* +0x14 the group's emit scale (SetRipgEmitb) */
+            EMITCLQ scaleRange; /* +0x18 g0/g1: initial scale range (EmitRips) */
+            int unknown28;
+            int unknown2C;
+        };
+        struct              /* record 0 (particleKind 0): blips (Sly 1's EMITBLIP) */
+        {
+            int motionKind;     /* +0x04 0: EMITDV motion, 1: straight, 2: spline */
+            int hasRandomFrame; /* +0x08 */
+            int hasColorRanges; /* +0x0C the byte LoadEmitblipColorsFromBrx reads before its colours */
+            int oidShader;      /* +0x10 */
+            int oid14;          /* +0x14 render object (EMITREF_Render) */
+            float shaderLoopTime; /* +0x18 one pass through the texture frames (0: the lifetime) */
+            EMITBLIPCLRS *pblipclrs; /* +0x1C the blip colour list */
+            EMITCLQ scale;      /* +0x20 scale over the blip's life */
+        };
+    };
     union
     {
         float g;
@@ -54,8 +74,11 @@ struct EMITV
         EMITV2 v2;
         EMITV3 v3;
         EMITV4 v4;
-    } u;                    /* +0x30 the payload (shape given by k) */
+    } u;                    /* +0x30 the payload (shape given by k; blips: flying scale, shrapnel: direction) */
 } __attribute__((aligned(16)));
+typedef char assert_EMITV_oid14[SLY2_OFFSETOF(EMITV, oid14) == 0x14 ? 1 : -1];
+typedef char assert_EMITV_ripScale[SLY2_OFFSETOF(EMITV, ripScale) == 0x14 ? 1 : -1];
+typedef char assert_EMITV_u[SLY2_OFFSETOF(EMITV, u) == 0x30 ? 1 : -1];
 typedef char assert_EMITV_size[sizeof(EMITV) == 0x40 ? 1 : -1];
 
 /* indices into EMITB::aploRef, the objects the block's OIDs resolve to (func_002586D8) */
@@ -249,7 +272,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     u.req.cbAlign = 0x10;
     pclrs = (EMITBLIPCLRS *)PvAllocLevelHeapUncleared(&u.req);
     pv->pblipclrs = pclrs;
-    pv->n0C = BisU8Read(pbis);
+    pv->hasColorRanges = BisU8Read(pbis);
     pclrs->c = MinInt(n, 32);
     for (i = 0; i < n; i++)
     {
