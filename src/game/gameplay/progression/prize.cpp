@@ -923,30 +923,26 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
-    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
-    char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft;
-};
 struct X {
-    char pad[0x1C]; struct S *attachedLo; char p1[0x40 - 0x20]; struct MAT mat;
-    char p2[0xEC - 0x70]; struct VTE *vt; void *smackDef; struct S *smackTarget; int smackArg;
+    char pad[0x1C]; LO *attachedLo; char p1[0x40 - 0x20]; struct MAT mat;
+    char p2[0xEC - 0x70]; struct VTE *vt; void *smackDef; LO *smackTarget; int smackArg;
 };
-struct M { int n; struct S *p; int pad[14]; };
+struct M { int n; DPRIZE *p; int pad[14]; };
 extern char D_003DD490[];
 extern char D_002C0DA0[];
 extern char D_002DEB30[];
 float RandomFloatInRange__Fff(float a, float b);
 struct X *NewRipInGroup(void *pg, int a, int b);
-qword GetLoWorldPos(struct S *p);
-struct MAT *GetLoWorldMatrix(struct S *p);
-void AwardCoin(struct S *p, int n);
+qword GetLoWorldPos(COIN *p);
+struct MAT *GetLoWorldMatrix(COIN *p);
+void AwardCoin(COIN *p, int n);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
-void BroadcastGameEvent(void *p, int n, struct S *ps);
-void SetDprizeDprizes(struct S *p, int n);
+void BroadcastGameEvent(void *p, int n, COIN *ps);
+void SetDprizeDprizes(DPRIZE *p, int n);
 // CID 91 state setter: on collect play sound, emit rip, award (AwardCoin). (inferred)
-void SetCoinDprizes(struct S *coin, int n)
+void SetCoinDprizes(COIN *coin, int n)
 {
     if (coin->state == n) return;
     switch (n) {
@@ -969,7 +965,7 @@ void SetCoinDprizes(struct S *coin, int n)
             AwardCoin(coin, 0);
         }
         SetSndSourceLo(CreateSfxSound(0x29), 0);
-        plo = coin->collectListener;
+        plo = (struct LISTENER *)coin->collectListener;
         if (plo) {
             struct M m;
             m.n = 1;
@@ -994,11 +990,8 @@ extern "C" void AwardCoin()
 }
 
 namespace M_func_001C67D8 { extern "C" {
-struct S { char p0[0x1A0]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse;
-    char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; int lifetimeLeft; int healArg0; int healArg1; };
-void InitDprize(struct S *p);
 // CID 93 Init (sprayable pickup 0x5D). (inferred)
-void InitMedicine(struct S *medicine)
+void InitMedicine(MEDICINE *medicine)
 {
     InitDprize(medicine);
     medicine->bounceRadius = 45.0f;
@@ -1016,18 +1009,16 @@ void InitMedicine(struct S *medicine)
 } } // namespace M_func_001C67D8
 
 namespace M_func_001C6880 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
-void UpdateDprize(struct O *p);
+void UpdateDprize(DPRIZE *p);
 // MEDICINE Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C6880
 // MEDICINE::Update: prize update, then while idle count the lifetime down and vanish at zero.
-void MEDICINE::Update() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
-    UpdateDprize(p);
-    if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
+void MEDICINE::Update() { using namespace M_func_001C6880;
+    UpdateDprize(this);
+    if (!state) {
+        lifetimeLeft -= D_002DDED0.deltaTime;
+        if (lifetimeLeft <= 0.0f) SetState(5);
     }
 }
 
@@ -1036,31 +1027,27 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
-    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
-    char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft; int healArg0; int healArg1;
-};
 struct X {
-    char pad[0x1C]; struct S *attachedLo; char p1[0x40 - 0x20]; struct MAT mat;
-    char p2[0xEC - 0x70]; struct VTE *vt; void *smackDef; struct S *smackTarget; int smackArg;
+    char pad[0x1C]; LO *attachedLo; char p1[0x40 - 0x20]; struct MAT mat;
+    char p2[0xEC - 0x70]; struct VTE *vt; void *smackDef; LO *smackTarget; int smackArg;
 };
-struct M { int n; struct S *p; int pad[14]; };
+struct M { int n; DPRIZE *p; int pad[14]; };
 extern char D_003DD490[];
 extern char D_002C0E10[];
 extern char D_002DEB30[];
 float RandomFloatInRange__Fff(float a, float b);
 struct X *NewRipInGroup(void *pg, int a, int b);
 PO *GetHeroPo(void *pg);
-qword GetLoWorldPos(struct S *p);
-struct MAT *GetLoWorldMatrix(struct S *p);
-void OnMedicineSmackDone(struct S *p, int n);
+qword GetLoWorldPos(MEDICINE *p);
+struct MAT *GetLoWorldMatrix(MEDICINE *p);
+void OnMedicineSmackDone(MEDICINE *p, int n);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
-void BroadcastGameEvent(void *p, int n, struct S *ps);
-void SetDprizeDprizes(struct S *p, int n);
+void BroadcastGameEvent(void *p, int n, MEDICINE *ps);
+void SetDprizeDprizes(DPRIZE *p, int n);
 // CID 93 setter (uses GetCurrentPo - gives to current character). (inferred)
-void SetMedicineDprizes(struct S *medicine, int n)
+void SetMedicineDprizes(MEDICINE *medicine, int n)
 {
     if (medicine->state == n) return;
     switch (n) {
@@ -1089,7 +1076,7 @@ void SetMedicineDprizes(struct S *medicine, int n)
             OnMedicineSmackDone(medicine, 0);
         }
         q->AddHpMp(medicine->healArg0, medicine->healArg1);
-        plo = medicine->collectListener;
+        plo = (struct LISTENER *)medicine->collectListener;
         if (plo) {
             struct M m;
             m.n = 1;
@@ -1110,32 +1097,25 @@ extern "C" void OnMedicineSmackDone()
 {
 }
 
-namespace M_func_001C6AB8 { extern "C" {
-struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char pad2[0x2C]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; };
-void InitDprize(struct S *p);
-// CID 92 Init. (inferred)
-} } // namespace M_func_001C6AB8
 // KEY::Init: prize init with the key's bounce and collection tuning.
-void KEY::Init() { using namespace M_func_001C6AB8; M_func_001C6AB8::S *p = (M_func_001C6AB8::S *)this;
-    InitDprize(p);
-    p->bounceRadius = 35.0f; //P
-    p->collectRadius = 35.0f; //P
-    p->bounceBoostThreshold = 500.0f; //P
-    p->bounceBoost = 250.0f; //P
-    p->tangentResponse = 0.6f; //P
-    p->normalResponse = 0.6f; //P
-    p->glintChance = 0.75f; //P
+void KEY::Init() {
+    InitDprize(this);
+    bounceRadius = 35.0f;
+    collectRadius = 35.0f;
+    bounceBoostThreshold = 500.0f;
+    bounceBoost = 250.0f;
+    tangentResponse = 0.6f;
+    normalResponse = 0.6f;
+    glintChance = 0.75f;
 }
 
 namespace M_func_001C6B28 { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct KEYV : SO { int state; char pad3[0x230 - 0x154]; void *task; };
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
-void RequestTaskState(void *p, int n, struct KEYV *plo);
-void SetDprizeDprizes(struct KEYV *p, int n);
+void RequestTaskState(void *p, int n, KEY *plo);
+void SetDprizeDprizes(KEY *p, int n);
 // CID 92 setter (sound on collect). (inferred)
-void SetKeyDprizes(struct KEYV *key, int n)
+void SetKeyDprizes(KEY *key, int n)
 {
     if (key->state == n) return;
     if (n == 1) {
@@ -1153,9 +1133,7 @@ typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
 extern char D_002A2D00[];
 extern const float D_002A7758;
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x160 - 0x150]; float animSkipTime;
-    char p3[0x180 - 0x164]; qword velocity; char p4[0x1C4 - 0x190]; int hasBoosted; int isCollectable; float expireTime; };
-void SetLoParent(struct S *p, int a, int b);
+void SetLoParent(DPRIZE *p, int a, int b);
 // Zeroes a 3-float vector.
 static inline void Zero(VECTOR4 *pv)
 {
@@ -1164,7 +1142,7 @@ static inline void Zero(VECTOR4 *pv)
     pv->x = 0.0f;
 }
 // re-parent spawned prize (SetLoParent) and init motion. (inferred)
-void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
+void LaunchSprayedDprize(DPRIZE *prize, qword q1, qword q2, float f1, float f2)
 {
     prize->Add();
     SetLoParent(prize, 0, 0);
