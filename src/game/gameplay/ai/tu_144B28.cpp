@@ -78,10 +78,10 @@ struct BHVFOLLOWV : public BHVB
     char pad14[0x30 - 0x14];
     SO *pso;                /* +0x30 */
 };
-/* Guard words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and a flag
-   word (+0x10E0). */
+/* Owner words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and, on a
+   player, a flag word whose bit 0 is set while one of the AI interact behaviours runs (+0x10E0, inferred). */
 #define PJTGOAL(guard) ((JTGOAL *)((char *)(guard) + 0xFD0))
-#define GRFSG(guard) (*(int *)((char *)(guard) + 0x10E0))
+#define AI_INTERACT_FLAGS(player) (*(int *)((char *)(player) + 0x10E0))
 
 extern CLOCK D_002DDED0;
 extern "C" {
@@ -852,33 +852,35 @@ void SetBhvfollowState(struct P *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145CD0 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x145CD0: Interact behaviour (BHV195) vtable slot 7 (OnPush): base, state -1.
-void InitBhvInteract(char *p)
+void InitBhvInteract(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_00145CD0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145D00 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteractState(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteractState(struct BHVINTERACTV *behavior, int state);
 // 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
 // (SetPlayerInteractMode) and sets the owner's +0x10E0 bit 1.
-void StartBhvInteract(char *p)
+void StartBhvInteract(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteractState(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteractState(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_00145D00
 
@@ -887,7 +889,7 @@ void BHV195::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x145DA0: True if the interact behaviour is idle (state -1).
@@ -902,80 +904,81 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
-struct { float a; float b; } D_002BD348 = {250.0f, 350.0f};
+struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct Q { char pad[0x330]; int x330; };
-struct R { char pad[0xDF4]; int xDF4; char pad2[0x1810 - 0xDF8]; int x1810; };
-struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1810 - 0xDF8]; int attackState; };
+struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
+int func_001A61A0(struct TARGET *);   /* object still valid/in the world (inferred) */
 qword func_001A62E8(void *);
 qword *func_001A6318(void *);
 void SetBhvInteractState(struct P *, int);
 
 // 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38) and interacts; aborts when
-// hurt or the target is gone.
+// the owner is busy (+0xDF4 action state) or the target is gone or knocked out. State 0 walks up and interacts
+// (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
 void UpdateBhvInteract(struct P *behavior)
 {
-    VU d;
-    qword a, b, c, l, one, n;
-    float g;
+    VU toTarget;
+    qword targetPos, ownerPos, delta, length, one, normalized;
+    float distance;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !func_001A61A0(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !func_001A61A0(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteractState(behavior, -1);
         return;
     }
-    a = func_001A62E8(behavior->target);
-    b = func_001A62E8(behavior->owner);
-    { qword *pk = &D_002A2DA0;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
-    d.q = c;
-    d.f[2] = 0.0f;
+    targetPos = func_001A62E8(behavior->target);
+    ownerPos = func_001A62E8(behavior->owner);
+    { qword *fallback = &D_002A2DA0;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(targetPos), "j"(ownerPos));
+    toTarget.q = delta;
+    toTarget.f[2] = 0.0f;   /* horizontal direction */
     {
         register qword l1 __asm__("vf1");
         register qword r2 __asm__("vf2");
         float gl;
-        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(d.q));
+        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(toTarget.q));
         __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(r2), "+j"(l1));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(r2) : "j"(l1));
-        l = r2;
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        length = r2;
+        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(length));
         if (gl < 1e-4f) {
-        d.q = *pk;
-    } else {
-        __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(n) : "j"(d.q), "j"(l));
-        d.q = n;
+            toTarget.q = *fallback;
+        } else {
+            __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(normalized) : "j"(toTarget.q), "j"(length));
+            toTarget.q = normalized;
+        }
     }
     }
-    }
-    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
+    __asm__("mtc1 %1, %0" : "=f"(distance) : "r"(length)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
         int state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD344) {
-                qword *pm = func_001A6318(behavior->owner);
+            if (distance < D_002BD344) {
+                qword *forward = func_001A6318(behavior->owner);   /* first row of the owner's orientation */
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
-                t = *pm;
-                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(d.q));
+                t = *forward;
+                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(toTarget.q));
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
                     SetBhvInteractState(behavior, 2);
-            } else if (D_002BD348.b < g) {
+            } else if (D_002BD348.far < distance) {
                 SetBhvInteractState(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD348.a)
+            if (distance < D_002BD348.near)
                 SetBhvInteractState(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x1810 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteractState(behavior, -1);
             break;
         }
@@ -1026,11 +1029,11 @@ void SteerBhvInteract(struct P *behavior, struct Q *q)
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 {
-    int nStatePrev;
-    nStatePrev = behavior->state;
-    if (state == nStatePrev)
+    int previous;
+    previous = behavior->state;
+    if (state == previous)
         return;
-    if (nStatePrev == 2) {
+    if (previous == 2) {
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
@@ -1042,32 +1045,34 @@ extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461C8 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x1461C8: Second interact behaviour (BHV196, the same shape as BHV195) vtable slot 7 (OnPush).
-void InitBhvInteract2(char *p)
+void InitBhvInteract2(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_001461C8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteract2State(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteract2State(struct BHVINTERACTV *behavior, int state);
 // 0x1461F8: Second interact behaviour vtable slot 8 (Start).
-void StartBhvInteract2(char *p)
+void StartBhvInteract2(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteract2State(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteract2State(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001461F8
 
@@ -1076,7 +1081,7 @@ void BHV196::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x146298: True if the second interact behaviour is idle (state -1).
@@ -1091,13 +1096,13 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
-struct { float a; float b; } D_002BD358 = {250.0f, 350.0f};
+struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct Q { char pad[0x330]; int x330; };
-struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
-struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1714 - 0xDF8]; int attackState; };
+struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
+int func_001A61A0(struct TARGET *);   /* object still valid/in the world (inferred) */
 qword func_001A62E8(void *);
 qword *func_001A6318(void *);
 void SetBhvInteract2State(struct P *, int);
@@ -1105,65 +1110,65 @@ void SetBhvInteract2State(struct P *, int);
 // 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions.
 void UpdateBhvInteract2(struct P *behavior)
 {
-    VU d;
-    qword a, b, c, l, one, n;
-    float g;
+    VU toTarget;
+    qword targetPos, ownerPos, delta, length, one, normalized;
+    float distance;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !func_001A61A0(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !func_001A61A0(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteract2State(behavior, -1);
         return;
     }
-    a = func_001A62E8(behavior->target);
-    b = func_001A62E8(behavior->owner);
-    { qword *pk = &D_002A2DA0;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
-    d.q = c;
-    d.f[2] = 0.0f;
+    targetPos = func_001A62E8(behavior->target);
+    ownerPos = func_001A62E8(behavior->owner);
+    { qword *fallback = &D_002A2DA0;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(targetPos), "j"(ownerPos));
+    toTarget.q = delta;
+    toTarget.f[2] = 0.0f;   /* horizontal direction */
     {
         register qword l1 __asm__("vf1");
         register qword r2 __asm__("vf2");
         float gl;
-        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(d.q));
+        __asm__("vmul.xyz %0, %1, %1" : "=j"(l1) : "j"(toTarget.q));
         __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(r2), "+j"(l1));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(r2) : "j"(l1));
-        l = r2;
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        length = r2;
+        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(length));
         if (gl < 1e-4f) {
-        d.q = *pk;
-    } else {
-        __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(n) : "j"(d.q), "j"(l));
-        d.q = n;
+            toTarget.q = *fallback;
+        } else {
+            __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(normalized) : "j"(toTarget.q), "j"(length));
+            toTarget.q = normalized;
+        }
     }
     }
-    }
-    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
+    __asm__("mtc1 %1, %0" : "=f"(distance) : "r"(length)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
         int state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD350) {
-                qword *pm = func_001A6318(behavior->owner);
+            if (distance < D_002BD350) {
+                qword *forward = func_001A6318(behavior->owner);   /* first row of the owner's orientation */
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
-                t = *pm;
-                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(d.q));
+                t = *forward;
+                __asm__("vmul.xyz %0, %0, %1" : "+j"(t) : "j"(toTarget.q));
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
                     SetBhvInteract2State(behavior, 2);
-            } else if (D_002BD358.b < g) {
+            } else if (D_002BD358.far < distance) {
                 SetBhvInteract2State(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD358.a)
+            if (distance < D_002BD358.near)
                 SetBhvInteract2State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x1714 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteract2State(behavior, -1);
             break;
         }
@@ -1214,11 +1219,11 @@ void SteerBhvInteract2(struct P *behavior, struct Q *q)
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
 extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 {
-    int nStatePrev;
-    nStatePrev = behavior->state;
-    if (state == nStatePrev)
+    int previous;
+    previous = behavior->state;
+    if (state == previous)
         return;
-    if (nStatePrev == 2) {
+    if (previous == 2) {
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
@@ -1230,32 +1235,34 @@ extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466C0 { extern "C" {
-void InitBhv(void *p);
+struct BHVINTERACTV { char pad[0x30]; int state; };
+void InitBhv(struct BHVINTERACTV *behavior);
 // 0x1466C0: Third interact behaviour (BHV197) vtable slot 7 (OnPush).
-void InitBhvInteract3(char *p)
+void InitBhvInteract3(struct BHVINTERACTV *behavior)
 {
-    InitBhv(p);
-    *(int *)(p + 0x30) = -1;
+    InitBhv(behavior);
+    behavior->state = -1;
 }
 } } // namespace M_func_001466C0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466F0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-void StartBhv(void *p);
-void SetBhvInteract3State(void *p, int n);
+struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
+struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
+void StartBhv(struct BHVINTERACTV *behavior);
+void SetBhvInteract3State(struct BHVINTERACTV *behavior, int state);
 // 0x1466F0: Third interact behaviour vtable slot 8 (Start).
-void StartBhvInteract3(char *p)
+void StartBhvInteract3(struct BHVINTERACTV *behavior)
 {
-    struct O *o;
+    struct OWNER *owner;
     struct VTE *entry;
-    StartBhv(p);
-    SetBhvInteract3State(p, 0);
-    o = *(struct O **)(p + 0x10);
-    entry = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
-    *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
+    StartBhv(behavior);
+    SetBhvInteract3State(behavior, 0);
+    owner = behavior->owner;
+    entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    behavior->owner->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001466F0
 
@@ -1264,7 +1271,7 @@ void BHV197::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->owner) &= ~1;
+    AI_INTERACT_FLAGS(behavior->owner) &= ~1;
 }
 
 // 0x146790: True if the third interact behaviour is idle (state -1).
