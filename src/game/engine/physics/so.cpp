@@ -2699,7 +2699,6 @@ struct SPACE;
 struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
@@ -2769,7 +2768,6 @@ typedef char check_owner_parent[((unsigned)&((OWNER*)0)->parent==0xA0)?1:-1];
 typedef char check_owner_velocity[((unsigned)&((OWNER*)0)->velocity==0xB0)?1:-1];
 typedef char check_owner_force[((unsigned)&((OWNER*)0)->force==0xF0)?1:-1];
 typedef char check_object_owner[((unsigned)&((P*)0)->owner==0x5C)?1:-1];
-typedef char check_clock_dt[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 } // namespace M_func_001F59A0
 
 // 0x1F5C30 AccelSoTowardMatSpring
@@ -2781,7 +2779,6 @@ struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];r
 struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -2839,8 +2836,7 @@ struct COEF {float a,b,c;};
 struct VE {short d,pad;qword(*fn)(void*);};
 struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
 struct S {char pad[0xC];struct VE *vt;char pad10[0x48];struct OWNER *owner;};
-struct CLOCK {float time,deltaTime;};
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
 static inline qword Sub(qword x,qword y){register qword a __asm__("vf1")=x,b __asm__("vf2")=y,r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
