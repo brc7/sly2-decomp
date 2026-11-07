@@ -754,13 +754,9 @@ namespace M_RenderDprizeSelf {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword a, b, c, d; };
 struct V { float x, y, z, w; } __attribute__((aligned(16)));
-struct VTE { short d; short pad; void (*pf)(); };
-struct OBJ { VTE *vt; };
-struct H { int x0; OBJ *pobj; };
-struct R { char pad[0x30]; ASEGA *currentSegment; };
-struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; R *sma; };
+struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; SMA *sma; };
 extern "C" {
-H *FindAsegChannel(void *p, LO *plo, int a, int b);
+CHN *FindAsegChannel(void *p, LO *plo, int a, int b);
 qword GetLoWorldPos(LO *plo);
 void *GetLoWorldMatrix(LO *plo);
 void RenderSoSelf(LO *plo);
@@ -772,14 +768,13 @@ extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
 void RenderDprizeSelf(LO *prize)
 {
     ASEGA *q;
-    H *ph;
+    CHN *ph;
     if (prize->state == 2) return;
-    if (prize->sma && (q = prize->sma->currentSegment) != 0) {
+    if (prize->sma && (q = prize->sma->pasegaCur) != 0) {
         ph = FindAsegChannel(q->animation, prize, 0xC, 1);
         if (ph) {
             V v;
-            OBJ *pobj = ph->pobj;
-            ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->time, q->speed);
+            ph->pac->Evaluate(q->time, q->speed, &v, 0);
             M4 m;
             m = LoadMatrixFromPosRotScale(GetLoWorldPos(prize), GetLoWorldMatrix(prize), &v);
             RenderLoAtMatrix(prize, m, prize->unknown12C, prize->unknown12C);
