@@ -218,10 +218,7 @@ struct P {
     char pad60[0xF0]; int state; char pad154[0x14]; HOLDER *holder; char pad16C[4];
     qword coordinate, velocity, acceleration;
 };
-union FLOATWORD { float value; int bits; };
-struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 extern "C" {
-extern CLOCKIsland D_002DDED0;
 extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
@@ -299,10 +296,10 @@ extern "C" void ProjectDprizeTransform(P *prize)
 {
     if (prize->state == 6) { UpdateSoXfWorld(prize); return; }
     float factor;
-    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.deltaTime.value;
+    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * g_clock.deltaTime;
     else factor = 1.0f;
-    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.deltaTime.bits), VU_VECTOR(prize->acceleration));
-    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.deltaTime.bits));
+    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(g_clock.deltaTimeBits), VU_VECTOR(prize->acceleration));
+    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(g_clock.deltaTimeBits));
     CHANNEL *channel = prize->position;
     prize->coordinate = newPosition;
     VECTOR_opAssign(&channel->position, newPosition);

@@ -2652,10 +2652,6 @@ union FLOATWORD {
     float value;
     int bits;
 };
-struct CLOCKIsland {   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
-    float time;
-    union FLOATWORD deltaTime;
-};
 void ProjectRipTransform(struct S*);
 float RandomFloatInRange__Fff(float,float);
 int AreFloatsNear__Ffff(float,float,float);
@@ -2786,8 +2782,6 @@ typedef char layout_basis_y[(MIX_OFF(struct B,y)==0x10)?1:-1];
 typedef char layout_owner_position[(MIX_OFF(struct S,pos)==0x70)?1:-1];
 typedef char layout_owner_velocity[(MIX_OFF(struct S,vel)==0x90)?1:-1];
 typedef char layout_word_size[(sizeof(union FLOATWORD)==4)?1:-1];
-typedef char layout_clock_size[(sizeof(struct CLOCKIsland)==8)?1:-1];
-typedef char layout_clock_dt[(MIX_OFF(struct CLOCKIsland,deltaTime)==4)?1:-1];
 typedef char layout_int_size[(sizeof(int)==4)?1:-1];
 typedef char layout_float_size[(sizeof(float)==4)?1:-1];
 typedef char layout_state_size[(sizeof(struct MIX_STATE)==32)?1:-1];
@@ -2806,7 +2800,6 @@ typedef char layout_union_qword[(MIX_OFF(union U,q)==0)?1:-1];
 typedef char layout_union_float[(MIX_OFF(union U,f)==0)?1:-1];
 typedef char layout_word_float[(MIX_OFF(union FLOATWORD,value)==0)?1:-1];
 typedef char layout_word_integer[(MIX_OFF(union FLOATWORD,bits)==0)?1:-1];
-typedef char layout_clock_time[(MIX_OFF(struct CLOCKIsland,time)==0)?1:-1];
 } } // namespace M_ProjectBubletTransform
 #undef MIX_OFF
 

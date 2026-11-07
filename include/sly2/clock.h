@@ -14,7 +14,10 @@
 struct CLOCK
 {
       float time;           /* +0x00 [R] game time (s); < realTime in every state (does not advance while rate == 0) */
-      float deltaTime;      /* +0x04 [R] game frame delta (s) = realDeltaTime * rate in all 73 states; 1/60 in gameplay */
+      union {
+            float deltaTime;  /* +0x04 [R] game frame delta (s) = realDeltaTime * rate in all 73 states; 1/60 in gameplay */
+            int deltaTimeBits; /* the same word as raw bits: handed to VU0 (qmtc2) or VU_FLOAT as an int (cm, rip, prize, step) */
+      };
       float rate;           /* +0x08 [R] game rate (rDt) = product of art[] in all 73 states (1.0 normally, 0 paused) */
       float cameraRate;     /* +0x0C [R] camera rate (rDtCm; independent of the game-rate slots) */
       float cameraDeltaTime; /* +0x10 [R] camera frame delta (s) */
