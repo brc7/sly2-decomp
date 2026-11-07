@@ -2550,15 +2550,15 @@ AddGuardScriptSetPauseTimes,0x170BA0,15,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptTeleport,0x170BE0,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptMessage,0x170C00,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptWait,0x170C20,12,match,src/game/gameplay/ai/tu_1709A8.cpp
-AddGuardScriptGoto,0x170C50,16,match,src/game/gameplay/ai/tu_1709A8.cpp
-AddGuardScriptLookAt,0x170C90,16,match,src/game/gameplay/ai/tu_1709A8.cpp
+AddGuardScriptFollowPath,0x170C50,16,match,src/game/gameplay/ai/tu_1709A8.cpp
+AddGuardScriptGoto,0x170C90,16,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptAnim,0x170CD0,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptLabel,0x170CF0,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptJump,0x170D10,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptBusyOn,0x170D30,8,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptBusyOff,0x170D50,8,match,src/game/gameplay/ai/tu_1709A8.cpp
-AddGuardScriptKind13,0x170D70,12,match,src/game/gameplay/ai/tu_1709A8.cpp
-AddGuardScriptKind14,0x170DA0,12,match,src/game/gameplay/ai/tu_1709A8.cpp
+AddGuardScriptLeap,0x170D70,12,match,src/game/gameplay/ai/tu_1709A8.cpp
+AddGuardScriptPlayBinding,0x170DA0,12,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptEnsureRelayAlarm,0x170DD0,12,match,src/game/gameplay/ai/tu_1709A8.cpp
 AddGuardScriptCommand,0x170E00,26,match,src/game/gameplay/ai/tu_1709A8.cpp
 StartGuardScriptOnGuard,0x170E68,10,match,src/game/gameplay/ai/tu_1709A8.cpp
@@ -5194,7 +5194,7 @@ UnlockStepguardMover,0x2097D8,2,match,src/game/gameplay/ai/stepguard.cpp
 UpdateStepguardMover,0x2097E0,13,match,src/game/gameplay/ai/stepguard.cpp
 SetStepguardMoverRadTarget,0x209818,10,match,src/game/gameplay/ai/stepguard.cpp
 SetStepguardMoverTargetMatrix,0x209840,12,match,src/game/gameplay/ai/stepguard.cpp
-SetStepguardGrfsgf,0x209870,7,match,src/game/gameplay/ai/stepguard.cpp
+SetStepguardSgfMask,0x209870,7,match,src/game/gameplay/ai/stepguard.cpp
 AddStepguardSgf,0x209890,56,match,src/game/gameplay/ai/stepguard.cpp
 RemoveStepguardSgf,0x209970,32,match,src/game/gameplay/ai/stepguard.cpp
 MaskHasSgf,0x2099F0,13,match,src/game/gameplay/ai/stepguard.cpp
@@ -5217,7 +5217,7 @@ CompareStepguardStimuli,0x20A168,75,match,src/game/gameplay/ai/stepguard.cpp
 IsStepguardTargetValid,0x20A298,56,match,src/game/gameplay/ai/stepguard.cpp
 IsStepguardTargetValidEx,0x20A378,36,match,src/game/gameplay/ai/stepguard.cpp
 ChooseStepguardStimulus,0x20A408,68,match,src/game/gameplay/ai/stepguard.cpp
-AddStepguardClassE94,0x20A518,10,match,src/game/gameplay/ai/stepguard.cpp
+AddStepguardAllowedPathZone,0x20A518,10,match,src/game/gameplay/ai/stepguard.cpp
 SetStepguardPatrolScript,0x20A540,46,match,src/game/gameplay/ai/stepguard.cpp
 InitTargetRecord,0x20A5F8,23,match,src/game/gameplay/ai/stepguard.cpp
 FindTargetRecordGuardIndex,0x20A658,14,match,src/game/gameplay/ai/stepguard.cpp

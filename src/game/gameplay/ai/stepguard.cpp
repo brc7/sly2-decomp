@@ -357,7 +357,7 @@ void InitStuckWatch(void *pv, struct S *p);
 void InitHazardWatch(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void AddGuardScriptLookAt(struct O *po, int a, int b, float f);
+void AddGuardScriptGoto(struct O *po, int a, int b, float f);
 void *FindSoXf(struct S *p, int n, int m);
 void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
 
@@ -380,7 +380,7 @@ void PostStepguardLoad(struct S *guard)
     if (!guard->unknown3C->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
     guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
-    AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
+    AddGuardScriptGoto(guard->alternatePatrolScript, -1, -1, 40.0f);
     guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
     guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
     if (guard->pickpocketIndicator0)
@@ -502,7 +502,7 @@ extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
 void SO_ResetForProxy(struct S *p);
 void ClearBhvstk__FP6BHVSTK(void *p);
 void ClearStepguardMover(void *p);
-void SetStepguardGrfsgf(struct S *p, int n);
+void SetStepguardSgfMask(struct S *p, int n);
 void ResetStuckWatch(void *p);
 void ResetHazardWatch(void *p);
 void EnableStuckWatch(void *p);
@@ -531,7 +531,7 @@ void ResetStepguardToHome(struct S *guard)
     guard->staggerProgress = guard->staggerCapacity;
     ClearBhvstk__FP6BHVSTK(guard->bhvstk);
     ClearStepguardMover(guard->mover);
-    SetStepguardGrfsgf(guard, 0);
+    SetStepguardSgfMask(guard, 0);
     ResetStuckWatch(guard->stuckWatch);
     ResetHazardWatch(guard->hazardWatch);
     EnableStuckWatch(guard->stuckWatch);
@@ -2723,9 +2723,9 @@ extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *mover, MATRIX3 *matrix
     }
 }
 
-// 0x209870 SetStepguardGrfsgf
+// 0x209870 SetStepguardSgfMask
 // 0x209870: Stores the guard flag word and re-evaluates the pickpocket state.
-extern "C" void SetStepguardGrfsgf(STEPGUARD *guard, unsigned long grfsg)
+extern "C" void SetStepguardSgfMask(STEPGUARD *guard, unsigned long grfsg)
 {
     guard->grfsg = grfsg;
     UpdateStepguardPickpocket(guard);
@@ -2741,7 +2741,7 @@ extern char D_002DEB30[];
 struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long grfsg; };
 struct ARGS { int *sgf; int *state; };
 long GetSgfMask(int n);
-void SetStepguardGrfsgf(struct S *p, long grfsg);
+void SetStepguardSgfMask(struct S *p, long grfsg);
 int MaskHasSgf(long mask, int sgf);
 void BroadcastGameEvent(void *p, int gameEvent, struct S *source);
 // 0x209890: Raises guard flag `sgf`: sends itself message 7 (raised, -1) and broadcasts the game event tied to some
@@ -2752,7 +2752,7 @@ void AddStepguardSgf(struct S *guard, int sgf)
     struct ARGS args;
     int state;
     unsigned int i;
-    SetStepguardGrfsgf(guard, guard->grfsg | mask);
+    SetStepguardSgfMask(guard, guard->grfsg | mask);
     state = -1;
     args.sgf = &sgf;
     args.state = &state;
@@ -2770,13 +2770,13 @@ class OBase; class O;
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
 class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long grfsg; };
 extern "C" unsigned long GetSgfMask(int n);
-extern "C" void SetStepguardGrfsgf(O *p, unsigned long grfsg);
+extern "C" void SetStepguardSgfMask(O *p, unsigned long grfsg);
 // 0x209970: Lowers guard flag `sgf` and sends itself message 7 (-1, lowered).
 extern "C" void RemoveStepguardSgf(O *guard, int sgf)
 {
     int state;
     void *args[2];
-    SetStepguardGrfsgf(guard, guard->grfsg & ~GetSgfMask(sgf));
+    SetStepguardSgfMask(guard, guard->grfsg & ~GetSgfMask(sgf));
     state = -1;
     args[0] = &state;
     args[1] = &sgf;
@@ -3233,15 +3233,17 @@ struct STIMULUS *ChooseStepguardStimulus(struct S *guard, struct STIMULUS *fallb
 }
 } } // namespace M_func_0020A408
 
-// 0x20A518 AddStepguardClassE94
+// 0x20A518 AddStepguardAllowedPathZone
 namespace M_func_0020A518 { extern "C" {
 struct S;
-struct S { char pad[0xE94]; unsigned int count; int classes[8]; };
-// 0x20A518: Adds a class to the +0xE94 list (at most 8; meaning unknown).
-void AddStepguardClassE94(struct S *guard, int cid)
+struct S { char pad[0xE94]; unsigned int numAllowedZones; int allowedZones[8]; };
+// 0x20A518: Splice option: adds a path zone to the guard's allowed-zone list at +0xE94 (at most 8; ignored when
+// full). CanUsePathlink (path.cpp) reads the same list: when it is non-empty, route planning only uses path links
+// whose two end zones are on it (inferred: confines the guard to these zones).
+void AddStepguardAllowedPathZone(struct S *guard, int zone)
 {
-    if (guard->count < 8)
-        guard->classes[guard->count++] = cid;
+    if (guard->numAllowedZones < 8)
+        guard->allowedZones[guard->numAllowedZones++] = zone;
 }
 } } // namespace M_func_0020A518
 

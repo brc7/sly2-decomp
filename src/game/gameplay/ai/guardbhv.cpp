@@ -1036,14 +1036,14 @@ void SetStepguardAttack(P *, ENTRY *, void *, qword);
 void SetTargetRecordState(void *, int);
 }
 // VU0 helper: vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
+static inline qword VuSubtract(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 /* the second "j"(v) is allocation-only (same helper as GetHeroInteractDistance): it fixes the from/to lqc2 reloads */
-static inline qword QwLengthXY(qword v)
+static inline qword VuLengthXY(qword v)
 {
     qword qw;
     __asm__("vmul.xy %0, %1, %2\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v), "j"(v));
@@ -1051,7 +1051,7 @@ static inline qword QwLengthXY(qword v)
     return qw;
 }
 // VU0 helper: length of a vector (in x).
-static inline qword QwLength(qword v)
+static inline qword VuLength(qword v)
 {
     qword qw;
     qword vfOne;
@@ -1061,38 +1061,38 @@ static inline qword QwLength(qword v)
     return qw;
 }
 // VU0 helper: the x component of a VU register as a float.
-static inline float GFromVf(qword qw)
+static inline float VuXToFloat(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float GLengthXY(qword v)
+static inline float VectorLengthXY(qword v)
 {
-    return GFromVf(QwLengthXY(v));
+    return VuXToFloat(VuLengthXY(v));
 }
 // VU0 helper: length of a vector.
-static inline float GLength(qword v)
+static inline float VectorLength(qword v)
 {
-    return GFromVf(QwLength(v));
+    return VuXToFloat(VuLength(v));
 }
 // VU0 helper: x component of a quadword vector.
-static inline float GXOfQw(qword qw)
+static inline float VuGetX(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
 // VU0 helper: y component of a quadword vector.
-static inline float GYOfQw(qword qw)
+static inline float VuGetY(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
 // VU0 helper: z component of a quadword vector.
-static inline float GZOfQw(qword qw)
+static inline float VuGetZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
@@ -1102,7 +1102,7 @@ static inline float GZOfQw(qword qw)
 // True if the line test hit something nearer than `limit` to the line start.
 static inline int Blocked(LOS *line, float limit)
 {
-    return GLength(QwSub(line->start.q, line->hit.point.q)) < limit;
+    return VectorLength(VuSubtract(line->start.q, line->hit.point.q)) < limit;
 }
 
 // 0x1758A0: Picks the first enabled attack whose range, height, angle and line of sight accept the target, confirms
@@ -1134,9 +1134,9 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
     from = GetLoWorldPos(guard);
     to = GetLoWorldPos(target);
     {
-        qword d = QwSub(to, from);
-        distance = GLengthXY(d);
-        height = GZOfQw(d);
+        qword d = VuSubtract(to, from);
+        distance = VectorLengthXY(d);
+        height = VuGetZ(d);
     }
     if (IsrcFromIdProxy__Fi(target->name->identity) == IsrcFromIdProxy__Fi(guard->name->identity))
         distance += ((unsigned)target < (unsigned)guard) ? 75.0f : -75.0f;
@@ -1156,7 +1156,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
             continue;
         {
             qword local = ConvertAloPos(0, guard, to);
-            angle = __builtin_fabsf(atan2f(GYOfQw(local), GXOfQw(local)));
+            angle = __builtin_fabsf(atan2f(VuGetY(local), VuGetX(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
@@ -2785,8 +2785,8 @@ union VEC; struct VTENT; struct CURVE; struct CONTEXT; struct BODY; struct GROUP
 //    VecCombo (0x258480, matched as src/game/gameplay/ai/tu_1553F0/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) inlined with by-value params and
 //    the weight evaluated first. No "memory" clobber is needed; the old QwBlendF(dv, w1, dp, w2) order could not give
 //    the target lqc2 p->v / lui / lw / vsub / qmtc2 / lqc2 p->pos / sqc2 / lui schedule.
-//  - dpos = QwSub(posActor, posOther) (plain, not the VSub VV wrapper): the posActor/pctx spill slots 0x90/0xA0.
-//  - dirNow length through QwLength2 (the vmul.xyz reads its input as two "j" operands, allocation only): the extra
+//  - dpos = VuSubtract(posActor, posOther) (plain, not the VSub VV wrapper): the posActor/pctx spill slots 0x90/0xA0.
+//  - dirNow length through VuLengthAlt (the vmul.xyz reads its input as two "j" operands, allocation only): the extra
 //    refs give the VLength copy a higher global.c priority than the projected dpos, so the copy takes vf5 and dpos vf7.
 // Earlier keys (lilly15):
 //  - FindShapeClosestPointFromS takes the float right after the position (pcrv, pos, s, pv, ...): arg-move order f12 before a2.
@@ -2798,7 +2798,7 @@ union VEC; struct VTENT; struct CURVE; struct CONTEXT; struct BODY; struct GROUP
 //  - Loop helpers take/return the VV class by value (VSub, VAddScaled, VProjectOut, VCross, VDot, VLength): the extra
 //    16-byte copies raise the loop to ~339 RTL insns, so loop.c no longer hoists hi(D_002BE664); that drops a0 from the
 //    reload spill set and the later reload registers (a2/v0/v1) match.
-//  - plain-C GMax (`a < b ? b : a`) instead of a max.s asm; qmfc2 asm for the GPR copy of vGoal (fInit store).
+//  - plain-C MaxFloat (`a < b ? b : a`) instead of a max.s asm; qmfc2 asm for the GPR copy of vGoal (fInit store).
 // One register pin: qwActor (s2) - the target copies the spilled posActor into s2 with a plain lq in a delay slot,
 // which an asm copy cannot give (reorg stops at asms) and a plain copy is propagated away (without it: 285 differ).
 typedef int qword __attribute__((mode(TI)));
@@ -2908,21 +2908,21 @@ struct VU_FLOAT
 
 };
 // VU0 helper: x component of a quadword vector.
-static inline float GXOfQw(qword qw)
+static inline float VuGetX(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
 // VU0 helper: x component of a quadword vector (VU register operand variant for the match).
-static inline float GXOfQwJ(qword qw)
+static inline float VuGetXKeepInVf(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw)); /* allocation-only "j"(qw): the vector stays in a VF register */
     return x;
 }
 // VU0 helper: x component of a quadword vector (operand order variant for the match).
-static inline float GXOfQwA0A1(qword qw)
+static inline float VuGetXClobberA0A1(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw) : "$4", "$5"); /* allocation-only "j"(qw); clobbers of the dead a0/a1 */
@@ -2934,14 +2934,14 @@ struct VUF
     VUF(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(*(const int *)pg)); }
 };
 // VU0 helper: vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
+static inline qword VuSubtract(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 // VU0 helper: dot product (in x).
-static inline qword QwDot(const qword &a, const qword &b)
+static inline qword VuDotProduct(const qword &a, const qword &b)
 {
     qword qw;
     qword vfOne;
@@ -2950,16 +2950,16 @@ static inline qword QwDot(const qword &a, const qword &b)
     return qw;
 }
 // VU0 helper: v minus its projection on n.
-static inline qword QwProjectOut(qword v, qword n)
+static inline qword VuProjectOut(qword v, qword n)
 {
-    qword d = QwDot(v, n);
+    qword d = VuDotProduct(v, n);
     qword al, ac;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(al) : "j"(d), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
     return ac;
 }
 // VU0 helper: length of a vector (in x).
-static inline qword QwLength(qword v)
+static inline qword VuLength(qword v)
 {
     qword qw;
     qword vfOne;
@@ -2978,7 +2978,7 @@ static inline qword QwLength(qword v)
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(qwSq_)); \
     }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword QwLengthXY(qword v)
+static inline qword VuLengthXY(qword v)
 {
     qword qw;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
@@ -2986,7 +2986,7 @@ static inline qword QwLengthXY(qword v)
     return qw;
 }
 // VU0 helper: v divided by a given length.
-static inline qword QwDivLength(qword v, qword qwLen)
+static inline qword VuDivideByLength(qword v, qword qwLen)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qw) : "j"(qwLen), "j"(v));
@@ -3002,34 +3002,34 @@ struct VV
 // VU0 helper: normalized v, or `fallback` for a zero vector.
 static inline VV NormalizeSafeN(VV v, VV fallback)
 {
-    qword len = QwLength(v);
-    if (GXOfQw(len) < 0.0001f)
+    qword len = VuLength(v);
+    if (VuGetX(len) < 0.0001f)
         return fallback;
-    return QwDivLength(v, len);
+    return VuDivideByLength(v, len);
 }
 // VU0 helper: v / len, or `fallback` when the length is zero.
 static inline VV DivSafe(VV v, VV len, VV fallback)
 {
-    if (GXOfQw(len) < 0.0001f)
+    if (VuGetX(len) < 0.0001f)
         return fallback;
-    return QwDivLength(v, len);
+    return VuDivideByLength(v, len);
 }
 // VU0 helper: vector scaled by the x of a VU float.
-static inline qword QwScaleX(qword v, const VU_FLOAT &g)
+static inline qword VuScaleByX(qword v, const VU_FLOAT &g)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(v), "j"(g.qw));
     return qw;
 }
 // VU0 helper: base + vector * scale.
-static inline qword QwAddScaled(qword a, qword b, const VU_FLOAT &g)
+static inline qword VuMulAdd(qword a, qword b, const VU_FLOAT &g)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(a), "j"(b), "j"(g.qw));
     return qw;
 }
 // VU0 helper: one integration step pos + v * g1 + a * g2.
-static inline qword QwIntegrate(qword pos, qword v, const VU_FLOAT &g1, qword a, const VU_FLOAT &g2)
+static inline qword VuIntegrateStep(qword pos, qword v, const VU_FLOAT &g1, qword a, const VU_FLOAT &g2)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddax.xyzw $ACC, %2, %3x\n\tvmaddx.xyzw %0, %4, %5x"
@@ -3037,21 +3037,21 @@ static inline qword QwIntegrate(qword pos, qword v, const VU_FLOAT &g1, qword a,
     return qw;
 }
 // VU0 helper: cross product.
-static inline qword QwCross(qword a, qword b)
+static inline qword VuCross(qword a, qword b)
 {
     qword qw;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
 // VU0 helper: z component of a quadword vector.
-static inline float GZOfQw(qword qw)
+static inline float VuGetZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $zero, %1" : "=r"(z) : "r"(qw));
     return z;
 }
 // Evaluates a CLQ curve at x clamped to an LM range.
-static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
+static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
     float gMin = plm->gMin;
@@ -3063,7 +3063,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
     return g;
 }
 // Clamps g to [gMin, gMax].
-static inline float GClamp(float g, float gMin, float gMax)
+static inline float Clamp(float g, float gMin, float gMax)
 {
     if (g < gMin)
         return gMin;
@@ -3072,13 +3072,13 @@ static inline float GClamp(float g, float gMin, float gMax)
     return g;
 }
 // The larger of two floats.
-static inline float GMax(float a, float b)
+static inline float MaxFloat(float a, float b)
 {
     return a < b ? b : a;
 
 }
 // Returns an object's velocity through its vtable.
-static inline qword QwVelocity(void *pv)
+static inline qword GetObjectVelocity(void *pv)
 {
     OBJECT *pobj = (OBJECT *)pv;
     VTENT *pvte = &pobj->pvt[33];
@@ -3086,19 +3086,19 @@ static inline qword QwVelocity(void *pv)
 }
 
 // VU0 helper: vector difference.
-static inline VV VSub(VV a, VV b) { return QwSub(a, b); }
+static inline VV VSub(VV a, VV b) { return VuSubtract(a, b); }
 // VU0 helper: a + b * s.
-static inline VV VAddScaled(VV a, VV b, const VU_FLOAT &g) { return QwAddScaled(a, b, g); }
+static inline VV VAddScaled(VV a, VV b, const VU_FLOAT &g) { return VuMulAdd(a, b, g); }
 // VU0 helper: v minus its projection on n.
-static inline VV VProjectOut(VV v, VV n) { return QwProjectOut(v, n); }
+static inline VV VProjectOut(VV v, VV n) { return VuProjectOut(v, n); }
 // VU0 helper: cross product.
-static inline VV VCross(VV a, VV b) { return QwCross(a, b); }
+static inline VV VCross(VV a, VV b) { return VuCross(a, b); }
 // VU0 helper: dot product.
-static inline VV VDot(VV a, VV b) { return QwDot(a.q, b.q); }
+static inline VV VDot(VV a, VV b) { return VuDotProduct(a.q, b.q); }
 // VU0 helper: length of a vector.
-static inline VV VLength(VV v) { return QwLength(v); }
+static inline VV VLength(VV v) { return VuLength(v); }
 // VU0 helper: length of a vector (second instruction pattern for the match).
-static inline qword QwLength2(qword v)
+static inline qword VuLengthAlt(qword v)
 {
     qword qw;
     qword vfOne;
@@ -3109,7 +3109,7 @@ static inline qword QwLength2(qword v)
     return r;
 }
 // VU0 helper: length of a vector (alternate pattern).
-static inline VV VLength2(VV v) { return QwLength2(v); }
+static inline VV VLength2(VV v) { return VuLengthAlt(v); }
 struct VU_VECTOR
 {
     qword q;
@@ -3155,9 +3155,9 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         float sCurve = SWrapShape(behavior->pcrvExtra, s);
         FindShapeClosestPointFromS(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
     }
-    dir.qw = NormalizeSafeN(QwProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
-    behavior->sSeparation = GXOfQw(QwLengthXY(QwSub(point.qw, posActor)));
-    float ds = GEvaluateClqLm(&D_002BE640, &D_002BE650, behavior->sSeparation);
+    dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
+    behavior->sSeparation = VuGetX(VuLengthXY(VuSubtract(point.qw, posActor)));
+    float ds = EvaluateClampedQuadratic(&D_002BE640, &D_002BE650, behavior->sSeparation);
     if (fReverse)
         ds = -ds;
     float gSpeed;
@@ -3179,10 +3179,10 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             {
                 float sMin = -behavior->s;
                 float sMax = SMaxShape(behavior->pcrv) - behavior->s;
-                float dsClamp = GClamp(ds, sMin, sMax);
+                float dsClamp = Clamp(ds, sMin, sMax);
                 if (ds != dsClamp)
                     gSpeed = 0.0f;
-                next.qw = QwAddScaled(point.qw, dir.qw, VU_FLOAT(dsClamp));
+                next.qw = VuMulAdd(point.qw, dir.qw, VU_FLOAT(dsClamp));
                 nextDir.qw = dir.qw;
             }
             else
@@ -3196,7 +3196,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 {
                     float sMin = -behavior->s;
                     float sMax = SMaxShape(behavior->pcrv) - behavior->s;
-                    float dsClamp = GClamp(ds, sMin, sMax);
+                    float dsClamp = Clamp(ds, sMin, sMax);
                     if (ds != dsClamp)
                         gSpeed = 0.0f;
                     sNext = behavior->s + dsClamp;
@@ -3206,14 +3206,14 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             break;
         case 1:
         case 4:
-            next.qw = QwAddScaled(point.qw, dir.qw, VU_FLOAT(ds));
+            next.qw = VuMulAdd(point.qw, dir.qw, VU_FLOAT(ds));
             nextDir.qw = dir.qw;
             break;
         }
     }
     if (fReverse)
-        nextDir.qw = QwScaleX(nextDir.qw, VU_FLOAT(-1.0f));
-    qword vGoal = QwScaleX(nextDir.qw, VU_FLOAT(gSpeed));
+        nextDir.qw = VuScaleByX(nextDir.qw, VU_FLOAT(-1.0f));
+    qword vGoal = VuScaleByX(nextDir.qw, VU_FLOAT(gSpeed));
     qword vGoalCopy;
     __asm__("qmfc2.ni %0, %1" : "=r"(vGoalCopy) : "j"(vGoal)); /* GPR copy of vGoal */
 
@@ -3223,7 +3223,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         behavior->pos = next.qw;
         behavior->fInit = 0;
     }
-    qword accel = VecCombo(VUF(&D_002BE658), QwSub(vGoal, behavior->v), VUF(&D_002BE65C), QwSub(next.qw, behavior->pos));
+    qword accel = VecCombo(VUF(&D_002BE658), VuSubtract(vGoal, behavior->v), VUF(&D_002BE65C), VuSubtract(next.qw, behavior->pos));
     if (!behavior->fNoCollide)
     {
         BODY *pbodySelf = behavior->guard->pgroup->pbody;
@@ -3240,10 +3240,10 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             VEC vecUnused;
             posOther.qw = GetLoWorldPos(pobj);
             posOther.f[2] += pbodyOther->dz;
-            qword dpos = QwSub(posActor, posOther.qw);
-            if (__builtin_fabsf(GZOfQw(dpos)) > D_002BE660)
+            qword dpos = VuSubtract(posActor, posOther.qw);
+            if (__builtin_fabsf(VuGetZ(dpos)) > D_002BE660)
                 continue;
-            qword vOther = QwVelocity(pobj);
+            qword vOther = GetObjectVelocity(pobj);
             qword posPredict = VAddScaled(posOther.qw, vOther, VU_FLOAT(&D_002BE664));
             dpos = VProjectOut(dpos, D_002A2DC0);
 
@@ -3255,12 +3255,12 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             qword normalCopy;
             qword qwLen;
             QW_LENGTH_COPY(qwLen, normalCopy, normal.qw);
-            if (GXOfQw(qwLen) < 0.0001f)
+            if (VuGetX(qwLen) < 0.0001f)
                 normal.qw = *pqwZeroHere;
             else
-                normal.qw = QwDivLength(normalCopy, qwLen);
-            float sGap = GXOfQwJ(qwLen);
-            sGap = GMax(0.0f, sGap - pbodyOther->sRadius - pbodySelf->sRadius);
+                normal.qw = VuDivideByLength(normalCopy, qwLen);
+            float sGap = VuGetXKeepInVf(qwLen);
+            sGap = MaxFloat(0.0f, sGap - pbodyOther->sRadius - pbodySelf->sRadius);
             float gMass = pbodyOther->gMass / (pbodyOther->gMass + pbodySelf->gMass);
             float g;
             if (sGap < D_002BE668)
@@ -3279,12 +3279,12 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 pqwZero = &D_002A2DA0;
                 qword dirNow = DivSafe(dpos, VLength2(dpos), *pqwZero);
 
-                g *= GEvaluateClqLm(&D_002BE680, &D_002BBB60, GXOfQw(VDot(dirNow, behavior->guard->axis)));
+                g *= EvaluateClampedQuadratic(&D_002BE680, &D_002BBB60, VuGetX(VDot(dirNow, behavior->guard->axis)));
                 if (g == 0.0f)
                     continue;
                 VEC side;
                 side.qw = VCross(D_002A2DC0, nextDir.qw);
-                if (behavior->pcrv != behavior->guard->pcrvPrimary && GXOfQw(VDot(normal.qw, side.qw)) < 0.0f)
+                if (behavior->pcrv != behavior->guard->pcrvPrimary && VuGetX(VDot(normal.qw, side.qw)) < 0.0f)
                     g = -g;
                 accel = VAddScaled(accel, VCross(normal.qw, D_002A2DC0), VU_FLOAT(gMass * g * D_002BE674));
             }
@@ -3292,9 +3292,9 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
     }
     float half = 0.5f;
     float dt = D_002DDED0.dt;
-    accel = QwProjectOut(accel, D_002A2DC0);
-    qword posNext = QwIntegrate(behavior->pos, behavior->v, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
-    qword vNew = QwAddScaled(behavior->v, accel, VU_FLOAT(dt));
+    accel = VuProjectOut(accel, D_002A2DC0);
+    qword posNext = VuIntegrateStep(behavior->pos, behavior->v, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
+    qword vNew = VuMulAdd(behavior->v, accel, VU_FLOAT(dt));
     qword vNext = vNew;
     if (!behavior->fNoCollide)
     {
@@ -3304,18 +3304,18 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         {
             VEC normal;
             pqwZero = &D_002A2DA0;
-            normal.qw = QwProjectOut(QwSub(posHit.qw, posNext), D_002A2DC0);
-            qword qwLen = QwLength(normal.qw);
-            if (GXOfQw(qwLen) < 0.0001f)
+            normal.qw = VuProjectOut(VuSubtract(posHit.qw, posNext), D_002A2DC0);
+            qword qwLen = VuLength(normal.qw);
+            if (VuGetX(qwLen) < 0.0001f)
                 normal.qw = *pqwZero;
             else
-                normal.qw = QwDivLength(normal.qw, qwLen);
-            if (D_002BE690 < GXOfQwA0A1(qwLen))
+                normal.qw = VuDivideByLength(normal.qw, qwLen);
+            if (D_002BE690 < VuGetXClobberA0A1(qwLen))
             {
-                float gClose = GXOfQwJ(QwDot(vNew, normal.qw));
+                float gClose = VuGetXKeepInVf(VuDotProduct(vNew, normal.qw));
                 posNext = posHit.qw;
                 if (gClose < 0.0f)
-                    vNext = QwAddScaled(vNew, normal.qw, VU_FLOAT(-gClose));
+                    vNext = VuMulAdd(vNew, normal.qw, VU_FLOAT(-gClose));
             }
         }
     }
@@ -3538,7 +3538,7 @@ void BHVWALKPATH::OnPush()
 // 0x178EE0 UpdateBhvwalkpath
 namespace M_UpdateBhvwalkpath {
 struct MATRIX3; struct CLQ; struct LM; struct ACTOR; struct MODEL; struct CONTROL; struct CHOICE; struct DRIVER; struct P; struct CLOCK; struct VU_FLOAT;
-// UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with GXOfQw (gcc emits the qmfc2, asm mtc1).
+// UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with VuGetX (gcc emits the qmfc2, asm mtc1).
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { float mat[3][4]; };
 struct CLQ { float g0, g1, g2; };
@@ -3577,35 +3577,35 @@ static inline VU_FLOAT VuFloat(float g)
     return v;
 }
 // VU0 helper: the x component of a VU register as a float.
-static inline float GFromVf(qword qw)
+static inline float VuXToFloat(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
 // VU0 helper: x component of a quadword vector.
-static inline float GXOfQw(qword qw)
+static inline float VuGetX(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
 // VU0 helper: y component of a quadword vector.
-static inline float GYOfQw(qword qw)
+static inline float VuGetY(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
 // VU0 helper: vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
+static inline qword VuSubtract(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 // VU0 helper: dot product (in x).
-static inline qword QwDot(qword a, qword b)
+static inline qword VuDotProduct(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -3614,16 +3614,16 @@ static inline qword QwDot(qword a, qword b)
     return qw;
 }
 // VU0 helper: v minus its projection on n.
-static inline qword QwProjectOut(qword v, qword n)
+static inline qword VuProjectOut(qword v, qword n)
 {
-    qword d = QwDot(v, n);
+    qword d = VuDotProduct(v, n);
     qword al, ac;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(al) : "j"(d), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
     return ac;
 }
 // VU0 helper: length of a vector (in x).
-static inline qword QwLength(qword v)
+static inline qword VuLength(qword v)
 {
     qword qw;
     qword vfOne;
@@ -3633,7 +3633,7 @@ static inline qword QwLength(qword v)
     return qw;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword QwLengthXY(qword v)
+static inline qword VuLengthXY(qword v)
 {
     qword qw;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
@@ -3641,7 +3641,7 @@ static inline qword QwLengthXY(qword v)
     return qw;
 }
 // VU0 helper: length of a vector (operands not tied, for the match).
-static inline qword QwLengthUntied(qword v)
+static inline qword VuLengthUntied(qword v)
 {
     qword qwSq;
     qword vfOne;
@@ -3652,25 +3652,25 @@ static inline qword QwLengthUntied(qword v)
     return qwLen;
 }
 // VU0 helper: length via a dot product.
-static inline qword QwLengthDot(qword v)
+static inline qword VuLengthFromDot(qword v)
 {
-    qword qw = QwDot(v, v);
+    qword qw = VuDotProduct(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
 // VU0 helper: length of a vector.
-static inline float GLength(qword v) { return GFromVf(QwLength(v)); }
+static inline float VectorLength(qword v) { return VuXToFloat(VuLength(v)); }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float GLengthXY(qword v) { return GFromVf(QwLengthXY(v)); }
+static inline float VectorLengthXY(qword v) { return VuXToFloat(VuLengthXY(v)); }
 // VU0 helper: vector scaled by the x of a VU float.
-static inline qword QwScaleX(qword qwVec, VU_FLOAT g)
+static inline qword VuScaleByX(qword qwVec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
     return qw;
 }
 // VU0 helper: dot products of a vector with the rows of a 3x3 matrix.
-static inline qword QwDotRowsMatP(MATRIX3 *pmat, qword qwV)
+static inline qword VuDotMatrixRows(MATRIX3 *pmat, qword qwV)
 {
     qword qwLocal;
     qword qwTmp0, qwTmp1, qwTmp2, qwOnes;
@@ -3680,7 +3680,7 @@ static inline qword QwDotRowsMatP(MATRIX3 *pmat, qword qwV)
     return qwLocal;
 }
 // Evaluates a CLQ curve at x clamped to an LM range.
-static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
+static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
     float gMin = plm->gMin;
@@ -3692,9 +3692,9 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
     return g;
 }
 // True if a position moved measurably since the last one.
-static inline int FMoved(qword qwPos, qword qwPosLast)
+static inline int HasMoved(qword qwPos, qword qwPosLast)
 {
-    return D_002BE6B0 < GLength(QwSub(qwPos, qwPosLast));
+    return D_002BE6B0 < VectorLength(VuSubtract(qwPos, qwPosLast));
 }
 
 // 0x178EE0: BHVWALKPATH vtable slot 10 (Update): BHVPATH update, then sets the walk animation speed and the mover
@@ -3705,25 +3705,25 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
     if (behavior->mode < 2)
     {
         qword pos = GetLoWorldPos(behavior->guard);
-        qword dpos = QwProjectOut(QwSub(behavior->target, pos), D_002A2DC0);
-        float g = GEvaluateClqLm(&D_002BE6A0, &D_002BBB60, GXOfQw(QwLengthXY(dpos)));
+        qword dpos = VuProjectOut(VuSubtract(behavior->target, pos), D_002A2DC0);
+        float g = EvaluateClampedQuadratic(&D_002BE6A0, &D_002BBB60, VuGetX(VuLengthXY(dpos)));
         CHOICE *pchoice = behavior->driver->choice;
         switch (pchoice->kind)
         {
         case 0:
             SetAsegaSpeed__FP5ASEGAf(pchoice->control, behavior->rate * g);
-            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(GYOfQw(dpos), GXOfQw(dpos)));
+            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(VuGetY(dpos), VuGetX(dpos)));
             break;
         case 3:
         {
-            qword qwLocal = QwDotRowsMatP(GetLoWorldMatrix(behavior->guard), dpos);
+            qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->guard), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = behavior->rate * g;
-            gSpeed *= GXOfQw(QwLengthXY(pchoice->model->velocity));
-            qword qwLen = QwLengthUntied(qwLocal);
+            gSpeed *= VuGetX(VuLengthXY(pchoice->model->velocity));
+            qword qwLen = VuLengthUntied(qwLocal);
             VU_FLOAT vuSpeed(gSpeed);
             qword qwDir;
-            if (GXOfQw(qwLen) < 0.0001f)
+            if (VuGetX(qwLen) < 0.0001f)
             {
                 qwDir = qwFallback;
             }
@@ -3732,12 +3732,12 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
                 __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
             }
-            SelectDirAnim(pchoice->control, QwScaleX(qwDir, vuSpeed));
+            SelectDirAnim(pchoice->control, VuScaleByX(qwDir, vuSpeed));
             SetAsegaSpeed__FP5ASEGAf(pchoice->control->animation, g);
             break;
         }
         }
-        if (FMoved(pos, behavior->cached))
+        if (HasMoved(pos, behavior->cached))
         {
             behavior->cached = pos;
             behavior->timeout = D_002BE694;
@@ -5995,8 +5995,8 @@ namespace M_func_0017BFF8 {
 union U; struct LM; struct TUNING; struct SCALE; struct ACTOR; struct P; struct FLOW; struct SEGMENT; struct VU_FLOAT;
 // ChooseBhvCirclePosition MATCH (Claude agent lane H14), no pins: laneH13v2 with the inner loop as `int k=0;int i=hits;do{SEGMENT*base=segments;Closest(target,&base[k],...);...;k++;}while(--i);`. base is its own pseudo inside the do-body (cse block after the loop label, so not shared with the 1C0A40 call arg, which stays `addiu t0,sp,0x50`); loop.c hoists it to the inner preheader, the &base[k] giv is then initialised as a copy of it, and pass 1 hoists base once more into the index-loop preheader (s4), like the target.
 // ChooseBhvCirclePosition laneH13v2 (Claude agent lane H13): inner loop `SEGMENT*segment=base;int i=hits;do{...segment++;}while(--i);` with a function-scope `SEGMENT*base=segments;` so cse cannot share &segments with the 1C0A40 call arg (rematerialized like the target), 22 -> 17. Left: base is set before the mode loop (s6) instead of the index-loop preheader (target s4), which shifts s-reg roles.
-// ChooseBhvCirclePosition laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (QwFromMemWord) into QwOffset(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
-// ChooseBhvCirclePosition laneH11v2 (Claude agent lane H11): laneH6v1 + 11EE08 call via inline Closest(qword,const SEGMENT*,U&,float&) (55->33) + plain QwAddScaled with `U point` declared mid-block before `if(hits>0)` (frame 0x460 exact, 33->26).
+// ChooseBhvCirclePosition laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (VuFromMemWord) into VuMulAddViaScratch(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
+// ChooseBhvCirclePosition laneH11v2 (Claude agent lane H11): laneH6v1 + 11EE08 call via inline Closest(qword,const SEGMENT*,U&,float&) (55->33) + plain VuMulAdd with `U point` declared mid-block before `if(hits>0)` (frame 0x460 exact, 33->26).
 // ChooseBhvCirclePosition laneH6v1 (Claude agent lane H6): fresh Lilly-style rewrite, no pins, VU helper asms only. aligned 55 (old .c 81, which used lw/lqc2 instruction asms).
 // Left: frame 0x480 vs 0x460 (VU_FLOAT temps get their own slot 0x370; target stores them into point at 0x40), region spilled instead of fp, &point/&distance hoisted by loop.c into s-regs (target rematerializes them).
 typedef int qword __attribute__((mode(TI)));
@@ -6022,11 +6022,11 @@ struct VU_FLOAT{qword qw;};
 // VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 // VU0 helper: vector sum.
-static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword VuSum(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: vector difference.
-static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword VuSubtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: base + v * g, using a scratch slot (for the match).
-static inline qword QwOffset(qword base, qword v, const qword &g, U *scratch)
+static inline qword VuMulAddViaScratch(qword base, qword v, const qword &g, U *scratch)
 {
     scratch->q = g;
     qword r;
@@ -6034,9 +6034,9 @@ static inline qword QwOffset(qword base, qword v, const qword &g, U *scratch)
     return r;
 }
 // VU0 helper: loads a float constant from a .data word into a VU register.
-static inline qword QwFromMemWord(int n){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"rV"(n));return v;}
+static inline qword VuFromMemWord(int n){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"rV"(n));return v;}
 // VU0 helper: base + vector * scale.
-static inline qword QwAddScaled(qword base, qword v, VU_FLOAT g)
+static inline qword VuMulAdd(qword base, qword v, VU_FLOAT g)
 {
     qword r;
     __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base), "j"(v), "j"(g.qw));
@@ -6068,11 +6068,11 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
         }
     }
     tuning = behavior->guard->tuning;
-    GetVectorCylind(QwSub(GetLoWorldPos(behavior->guard), origin), &flow.polarAngle, &flow.polarLength, 0);
+    GetVectorCylind(VuSubtract(GetLoWorldPos(behavior->guard), origin), &flow.polarAngle, &flow.polarLength, 0);
     float angle = heading + GLimitAbs__Fff(RadNormalize__Ff(flow.polarAngle - heading), tuning->narrow);
     float length = GLimitLm__FP2LMf(&first, flow.polarLength);
-    if (FindPathzoneClosestFreePoint(region, QwAdd(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
-        GetVectorCylind(QwSub(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
+    if (FindPathzoneClosestFreePoint(region, VuSum(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
+        GetVectorCylind(VuSubtract(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
         if (__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle - heading)) < tuning->wide
             && IsWithinLimits__FP2LMf(&second, flow.candidateLength))
             return closest.q;
@@ -6107,8 +6107,8 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
         for (index = 0; index < count; index++) {
             qword direction = SetVectorCylind(heading + (-1.0f + index / ((count - 1) * 0.5f)) * limit, 1.0f, 0.0f);
             int hits =
-                FindPathzoneSegmentBlocker(region, QwOffset(origin, direction, QwFromMemWord(*(int *)&selected.low), &point),
-                              QwOffset(origin, direction, QwFromMemWord(*(int *)&selected.high), &point), 8, segments);
+                FindPathzoneSegmentBlocker(region, VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.low), &point),
+                              VuMulAddViaScratch(origin, direction, VuFromMemWord(*(int *)&selected.high), &point), 8, segments);
             if (hits > 0) {
                 int k = 0;
                 int i = hits;
@@ -6931,7 +6931,7 @@ struct EDGE; struct SURF; struct LSG; struct VU_FLOAT;
 // Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), D_002A2DC0 (g_normalZ)
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
-// hit piece and 1 is returned. BHV191::Start (0x17E9B0) tries it when GuardSpawnerGroundSnap finds no floor under the target.
+// hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
 struct EDGE
 {
     ushort aipos[2];
@@ -6977,10 +6977,10 @@ extern "C" {
 void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso);
 }
 extern "C" {
-SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
+SOPART *HitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
 }
 // VU0 helper: base + vector * scale.
-static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
+static inline qword VuMulAdd(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
@@ -6994,10 +6994,10 @@ int SnapPositionToSurfaceAbove(qword *ppos)
     int cpso;
     SOPART **apso;
     CollectVisibleMsGlobs(&cpso, &apso);
-    qword posBottom = QwAddScaled(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE750));
-    qword posTop = QwAddScaled(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE754));
+    qword posBottom = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE750));
+    qword posTop = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE754));
     LSG lsg;
-    if (PsoHitTestLineObjects(0, posBottom, posTop, cpso, apso, &lsg))
+    if (HitTestLineObjects(0, posBottom, posTop, cpso, apso, &lsg))
     {
         *ppos = lsg.apos[1];
         return 1;

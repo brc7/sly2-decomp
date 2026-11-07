@@ -355,7 +355,7 @@ extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
 }
 
 // a < b (kept as a helper for the match).
-static inline int FLess(float a, float b) { return a < b; }
+static inline int IsLess(float a, float b) { return a < b; }
 // VU0 helper: vector difference.
 static inline qword SubX(qword a, qword b)
 {
@@ -423,7 +423,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         VTE *entry = &hero->vt[33];
         v = ((qword (*)(void *))entry->pfn)((char *)hero + entry->d);
     }
-    if (FLess(D_002BD460, Len(v)))
+    if (IsLess(D_002BD460, Len(v)))
         behavior->lastFastHeroTime = D_002DDED0.t;
     float dt = D_002DDED0.t - behavior->lastFastHeroTime;
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
@@ -460,14 +460,14 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                 posT = GetLoWorldPos(pt);
                 r = *(float *)&pt->hidingInfo;
             }
-            if (!FLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
+            if (!IsLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
                 float pan = GRandInRange(-3.1415927f, 3.1415927f);
                 float tilt = GRandInRange(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
                 q = Add(posT, SetVectorSphere(pan, tilt, GRandInRange(0.0f, r)));
                 qword entry = SubX(q, posMe);
                 posT = q;
-                if (FLess(Len2(entry), Len2(d))) {
+                if (IsLess(Len2(entry), Len2(d))) {
                     pos = posT;
                     goto moveMarker;
                 }
@@ -479,7 +479,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
             }
         }
     }
-    if (FLess(Len2(v), D_002BD460)) {
+    if (IsLess(Len2(v), D_002BD460)) {
         qword entry = VuSub(posMe, posPlayer);
         float rad = atan2f(GetY(entry), GetX(entry));
         qword pp = GetLoWorldPos(hero);
@@ -497,7 +497,7 @@ moveMarker:   // (a shared tail: each search above jumps here with its pick)
 }
 
 // Remaps g through an LM range (inferred: clamped linear mapping).
-static inline float GRemap(LMV *pr, float g)
+static inline float NormalizeToRange(LMV *pr, float g)
 {
     if (pr->gMin == pr->gMax)
         return 0.0f;
@@ -524,21 +524,21 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
         if (behavior->route->isReversed == 1)
             g = -g;
         if (IsWithinLimits(&D_002BD480, g))
-            u1 = GRemap(&D_002BD480, g);
+            u1 = NormalizeToRange(&D_002BD480, g);
         else if (IsWithinLimits(&D_002BD488, g))
-            u1 = 1.0f - GRemap(&D_002BD488, g);
+            u1 = 1.0f - NormalizeToRange(&D_002BD488, g);
         else
             u1 = 0.0f;
         v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->route->shape->pointPositions[i]);
         if (IsWithinLimits(&D_002BD490, v.f[2]))
-            u2 = GRemap(&D_002BD490, v.f[2]);
+            u2 = NormalizeToRange(&D_002BD490, v.f[2]);
         else if (IsWithinLimits(&D_002BD498, v.f[2]))
-            u2 = 1.0f - GRemap(&D_002BD498, v.f[2]);
+            u2 = 1.0f - NormalizeToRange(&D_002BD498, v.f[2]);
         else
             u2 = 0.0f;
         { float l2 = v.f[0] * v.f[0] + v.f[1] * v.f[1]; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(g) : "f"(l2)); }
         if (IsWithinLimits(&D_002BD4A0, g))
-            u3 = 1.0f - GRemap(&D_002BD4A0, g);
+            u3 = 1.0f - NormalizeToRange(&D_002BD4A0, g);
         else
             u3 = 0.0f;
         s = u1 * 0.5f + u2 * 0.15f + u3 * 0.35f;
@@ -709,7 +709,7 @@ extern "C" void HandleCarmelitaMessage(GUARDV *guard, int msgid, void **ppv)
 }
 
 // VU0 helper: distance between two points.
-static __inline__ float GDist(qword a, qword b)
+static __inline__ float Distance(qword a, qword b)
 {
     qword d;
     float g;
@@ -756,7 +756,7 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
             k = 1;
         else
             k = 2;
-        g = GDist(pos, GetLoWorldPos(pe->object));
+        g = Distance(pos, GetLoWorldPos(pe->object));
         if (pe->object == guard->target)
             g = D_002BD4B0[0] + g * (D_002BD4B0[1] + g * D_002BD4B0[2]);
         if (k < kBest || (k == kBest && g < gBest)) {

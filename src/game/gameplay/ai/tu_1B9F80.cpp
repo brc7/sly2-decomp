@@ -360,7 +360,7 @@ static inline float Dist(qword a, qword b) {
     return f;
 }
 // Evaluates a quadratic c0 + x (c1 + x c2).
-static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
+static inline float EvaluateQuadratic(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
 // 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
 // once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to
 // the player.
@@ -396,7 +396,7 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
     if (behavior->state == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
         float d = Dist(GetLoWorldPos(behavior->guard), GetLoWorldPos(D_002E1E40));
         NEELAV *neela = behavior->guard;
-        float r = GClamp(GEval(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
+        float r = GClamp(EvaluateQuadratic(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
         Q1 *q1 = (Q1 *)FindStepBehavior(behavior->guard, CID_BHVWALKPATH);
         Q2 *q2 = (Q2 *)FindStepBehavior(behavior->guard, CID_BHVRAIL);
         if (q1)

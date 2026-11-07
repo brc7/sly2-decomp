@@ -185,13 +185,13 @@ float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
 
 // Fills an allocation request and allocates from the world heap.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static inline void *AllocWithRequest(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 // 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
 // +0x1018 to INT_MAX.
 extern "C" void LoadDimitriFromBrx(DIMITRIV *dimitri, void *pbis)
 {
     MSG msg;
-    dimitri->routes = (ESC *)PvAllocMsg(&msg, 0x480, 0x10);
+    dimitri->routes = (ESC *)AllocWithRequest(&msg, 0x480, 0x10);
     LoadStepFromBrx(dimitri, pbis);
     dimitri->hitPointsAtLastEscape = 0x7FFFFFFF;
 }
@@ -336,7 +336,7 @@ static inline qwordV Sqrt(qwordV v)
     return d;
 }
 // VU0 helper: x of a VU register as a float.
-static inline float GFromQ(qwordV v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
+static inline float VuXToFloat(qwordV v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -369,8 +369,8 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
             la = Sqrt(la);
             lb = Sqrt(lb);
             {
-                float ga = GFromQ(la);
-                float gb = GFromQ(lb);
+                float ga = VuXToFloat(la);
+                float gb = VuXToFloat(lb);
                 g = GMin(ga, gb);
             }
             if (gBest < g) {
@@ -608,10 +608,10 @@ static inline float Len(qwordV a)
     return g;
 }
 // Clamps g into a range.
-static inline float GClampR(float g, LMV *plm) { if (g < plm->gMin) return plm->gMin; if (plm->gMax < g) return plm->gMax; return g; }
+static inline float ClampToRange(float g, LMV *plm) { if (g < plm->gMin) return plm->gMin; if (plm->gMax < g) return plm->gMax; return g; }
 
 // True if a velocity is faster than the .data limit.
-static inline int FFast(qwordV v) { return D_002BDC98 < Len(v); }
+static inline int IsMovingFast(qwordV v) { return D_002BDC98 < Len(v); }
 
 namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.40282347e+38f; }
 // 0x155FB0: Chooses an escape position: projects the player's motion ahead by a difficulty-scaled time and picks
@@ -634,7 +634,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     int c;
     void *av;
     unsigned int i;
-    if (FFast(vel)) {
+    if (IsMovingFast(vel)) {
         float u1 = 1.0f - u;
         float g;
         VECTORV *pv0 = &D_002BDC60;
@@ -646,7 +646,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
         lm.gMax = u1 * D_002BDC70[1] + u * D_002BDC90[1];
         {
             qwordV t;
-            t = VuFromFloat<qwordV>(GClampR(g, &lm));
+            t = VuFromFloat<qwordV>(ClampToRange(g, &lm));
             sc.q = t;
         }
         off.q = ScaleR(vel, sc);

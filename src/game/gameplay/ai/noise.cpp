@@ -459,7 +459,7 @@ static __inline__ float DistXY(qword d)
     return dist;
 }
 // True if a vector's horizontal length is below g.
-static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }
+static __inline__ int IsWithinXY(qword d, float g) { return DistXY(d) < g; }
 // 0x156FE8: True if the listener is in the world and the noise is audible (its type not muted) with the listener
 // inside its height window and range.
 extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
@@ -471,7 +471,7 @@ extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
         if (!type->isMuted) {
             listenerPos = GetLoWorldPos(listener);
             offset = VuSub(listenerPos, noise->pos);
-            if (IsWithinLimits__FP2LMf(&type->heightRange, GetZ(offset)) && FIn(offset, type->range))
+            if (IsWithinLimits__FP2LMf(&type->heightRange, GetZ(offset)) && IsWithinXY(offset, type->range))
                 return 1;
         }
     }

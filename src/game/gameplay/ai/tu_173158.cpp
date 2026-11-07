@@ -149,7 +149,7 @@ void *AllocFromStack(AI *pa);
 void *AllocCopyFromWorldHeap(AI *pa, void *pv);
 void *AllocClearedFromWorldHeap(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
-void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
+void AddGuardScriptFollowPath(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
@@ -302,7 +302,7 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
                 SCRIPTV *script;
                 selector->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
                 script = PloNew(0x71, 0, 0x2CB, -1);
-                AddGuardScriptGoto(script, selector->oid, 1, -1);
+                AddGuardScriptFollowPath(script, selector->oid, 1, -1);
                 selector->scriptCommand = script->firstCommand;
                 selector->script = script;
             }
@@ -342,7 +342,7 @@ extern "C" int IsInScreenRect(qwordV v, float extent) {
 }
 
 // VU0 helper: p + up * s.
-static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
+static __inline__ qwordV VuMulAddScalar(qwordV p, qwordV up, float s) {
     U u;
     qwordV uq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
     qwordV r;
@@ -359,8 +359,8 @@ extern "C" int SnapToGround(qwordV *position, float top, float bottom, int accep
     int firstObject, numObjects;
     qwordV start, end;
     STACKSCOPE_ctor(&scope);
-    start = MAdd(*position, D_002A2DC0, top);   // D_002A2DC0: the up axis
-    end = MAdd(*position, D_002A2DC0, bottom);
+    start = VuMulAddScalar(*position, D_002A2DC0, top);   // D_002A2DC0: the up axis
+    end = VuMulAddScalar(*position, D_002A2DC0, bottom);
     if (!filter) filter = ShouldKeepSoNotSelfSlot62;
     {
         HITY hit;
@@ -671,35 +671,35 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     return v;
 }
 // VU0 helper: vector difference qw0 - qw1.
-static inline qwordV QwSubFrom(const qwordV &qw0, qwordV qw1)
+static inline qwordV VuDifference(const qwordV &qw0, qwordV qw1)
 {
     qwordV qw;
     qw = VuSub(qw0, qw1);
     return qw;
 }
 // VU0 helper: vector sum.
-static inline qwordV QwAdd(qwordV qw0, qwordV qw1)
+static inline qwordV VuSum(qwordV qw0, qwordV qw1)
 {
     qwordV qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 // VU0 helper: x component of a quadword vector.
-static inline float GXOfQw(qwordV qw)
+static inline float VuGetX(qwordV qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
 // VU0 helper: vector scaled by the x of a VU float.
-static inline qwordV QwScaleX(qwordV qwVec, const VU_FLOAT &g)
+static inline qwordV VuScaleByX(qwordV qwVec, const VU_FLOAT &g)
 {
     qwordV qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
     return qw;
 }
 // VU0 helper: rotates a vector by a 3x3 matrix.
-static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
+static inline qwordV VuRotateByMatrix(M3 *pmat, qwordV *pqwVec)
 {
     qwordV qwResult;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
@@ -708,12 +708,12 @@ static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
     return qwResult;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float SLengthXY(qwordV qw)
+static inline float VectorLengthXY(qwordV qw)
 {
     qwordV qwT;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qwT) : "j"(qw));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwT) : "j"(qwT));
-    return GXOfQw(qwT);
+    return VuGetX(qwT);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -781,12 +781,12 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 rotation = *(M3 *)GetLoWorldMatrix(selector->object);
                 break;
             }
-            float distance = SLengthXY(QwSubFrom(pos, spotPosition));
+            float distance = VectorLengthXY(VuDifference(pos, spotPosition));
             if (distance < D_002BE5E4 || bestDistance < distance)
                 continue;
             for (int j = 0; j < spawner->offsetCount; j++)
             {
-                if (!GetSpawnPointConcealment(spawner, QwAdd(spotPosition, QwRotateVecAt(&rotation, &spawner->offsets[j])), numObjects, objects, radius))
+                if (!GetSpawnPointConcealment(spawner, VuSum(spotPosition, VuRotateByMatrix(&rotation, &spawner->offsets[j])), numObjects, objects, radius))
                     goto nextSelector;   // some test point is visible: try the next selector
             }
             bestDistance = distance;
@@ -806,21 +806,21 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
                 if (FindRangeContaining(object->curveData, u))
                     continue;
                 EvaluateShapeS(object, &curvePosition.q, &curveDirection.q, u);
-                float distance = SLengthXY(QwSubFrom(pos, curvePosition.q));
+                float distance = VectorLengthXY(VuDifference(pos, curvePosition.q));
                 if (distance < D_002BE5E4 || bestDistance < distance)
                     continue;
                 // Face along the curve, toward the camera's x axis.
-                int isFlipped = GXOfQw(VuDot(D_002DDF40.mat.r[0], curveDirection.q)) < 0.0f;
+                int isFlipped = VuGetX(VuDot(D_002DDF40.mat.r[0], curveDirection.q)) < 0.0f;
                 if (!isFlipped)
                 {
                     VU_FLOAT minusOne = VuFloatFromMemWord(0xBF800000);   // -1.0f
-                    curveDirection.q = QwScaleX(curveDirection.q, minusOne);
+                    curveDirection.q = VuScaleByX(curveDirection.q, minusOne);
                 }
                 M3 rotation = BuildAxisAngleRotationMatrix(atan2f(curveDirection.v.y, curveDirection.v.x), D_002A2DC0);
                 int j;
                 for (j = 0; j < spawner->offsetCount; j++)
                 {
-                    if (!GetSpawnPointConcealment(spawner, QwAdd(curvePosition.q, QwRotateVecAt(&rotation, &spawner->offsets[j])), numObjects, objects, minRadius))
+                    if (!GetSpawnPointConcealment(spawner, VuSum(curvePosition.q, VuRotateByMatrix(&rotation, &spawner->offsets[j])), numObjects, objects, minRadius))
                         break;
                 }
                 if (j >= spawner->offsetCount)
