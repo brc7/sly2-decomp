@@ -128,6 +128,10 @@ extern ulong D_003DD480;        /* declared first: .bss is emitted in first-decl
 extern int D_003DD488;
 extern LO *D_003DD48C;          /* the guard manager */
 extern LO *D_002DD648;
+extern float D_002A8600;
+extern float D_002A8604;
+extern float D_002A8610;
+extern int D_002C3CF0;
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int n);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
@@ -138,7 +142,10 @@ void CloneStep(STEPGUARD *guard, STEPGUARD *pstepguardBase);
 void CloneLoV() __asm__("CloneLo");                      /* a0/a1 passed through */
 void RemoveSoHierarchyV() __asm__("RemoveSoHierarchy");  /* a0 passed through */
 void ReleaseAsega(ASEGA **ppasega);
-void SetLoBusyKind(STEPGUARD *guard, int busyk);
+void SetLoBusyKind(LO *plo, int busyk);
+void ReleaseStepguardZapReactions(STEPGUARD *guard);
+void InitStepguardMover(GUARDMOVER *mover, STEPGUARD *guard);
+void EnsureStepguardManager(void);
 int MaskHasSgf(unsigned long grfsg, int sgf);
 void UpdateStepguardPickpocket(STEPGUARD *guard);
 int TryAddStepguardDetectTarget(STEPGUARD *guard, LO *object, int n);
@@ -186,81 +193,54 @@ extern "C" void EnsureStepguardManager(void)
 }
 
 // 0x205EB8 InitStepguard
-namespace M_InitStepguard { extern "C" {
-struct BLOCK; struct F64; struct S;
-// (Claude agent, nonvu16, 2026-10-17) plain stores, no register pins; store order tuned (see notes/200000.md).
-struct S;
-struct BLOCK {char unknown[0xC];struct S *owner;char tail[0x14];};
-struct F64 { char pad[0x40]; int unknownFlags40; };
-struct S {
-    char pad0[0x148]; unsigned long u148_lo : 16; unsigned long u148_f : 4; unsigned long u148_hi : 44;
-    char pad1[0x260 - 0x150]; float gravityRatio; char pad2[0x2CC - 0x264]; float walkTimeMin; float walkTimeMax;
-    char pad3[0x314 - 0x2D4]; float attackRangeClose; float attackRangeFar; float unknownRangeMin; float unknownRangeMax; float circleDistanceMin; float circleDistanceMax;
-    char pad4[0x350 - 0x32C]; int hurtZapMask; int knockdownZapMask; int koZapMask; int pad35C; float pulseStartTime; int unknown364; char pad5[0x370 - 0x368];
-    float unknown370; float unknown374; float closeRange; int canInteract; float unknown380; float unknown384; float interactRange;
-    char pad6[0x3D8 - 0x38C]; int coinCountOverride; char pad7[0x3F0 - 0x3DC]; int unknown3F0; char pad8[0x3FC - 0x3F4]; int unknown3FC;
-    char pad9[0x4A0 - 0x400]; int unknown4A0; char padA[0xE64 - 0x4A4]; int sensesEnabled; int minStimulusLevel; float unknownE6C; float unknownE70;
-    char padB[0xE78 - 0xE74]; int searchMode; float sleepTimeMin; float sleepTimeMax; int sleepDartCapacity; char padC[0xF40 - 0xE88]; int unknownF40; int padF44;
-    float shootRangeMin; float shootRangeMax; float shootPanMin; float shootPanMax; float shootTiltMin; float shootTiltMax; char padD[0xF64 - 0xF60]; struct F64 *detector;
-    char padE[0xF80 - 0xF68]; int attachKind; char padF[0xFBC - 0xF84]; int specialState; char padG[0xFD0 - 0xFC0]; struct BLOCK block;
-    float unknownFF4; char padH[0x1000 - 0xFF8]; int removalMode;
-};
-extern float D_002A8600;
-extern float D_002A8604;
-extern int D_002C3CF0;
-void InitStep(struct S *p);
-void EnsureStepguardManager(void);
-struct F64 *CreateLo__F3CIDP2SO3OIDi(int a, void *b, int c, int d);
-void SetLoBusyKind(struct F64 *p, int n);
-void ReleaseStepguardZapReactions(struct S *p);
-void InitStepguardMover(struct BLOCK *p, struct S *s);
-
 // 0x205EB8: STEPGUARD vtable slot 7 (Init): step Init, ensures the guard manager, creates the vision detector (cid
 // 0x10) and sets the default vision ranges and angles, hit points, flag masks and the behaviour stack.
-void InitStepguard(struct S *guard)
+// (Claude agent, nonvu16, 2026-10-17) plain stores, no register pins; store order tuned (see notes/200000.md).
+void STEPGUARD::Init()
 {
+    STEPGUARD *guard = this;
     int v;
     float a, b, limit, medium, high, extent;
-    InitStep(guard);
+    STEP::Init();
     EnsureStepguardManager();
-    guard->detector = CreateLo__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
-    SetLoBusyKind(guard->detector, 2);
-    v = guard->detector->unknownFlags40;
+    guard->pdetector = (DETECTOR *)CreateLo((CID)0x10, 0, (OID)0x288, -1);
+    SetLoBusyKind(guard->pdetector, 2);
+    v = guard->pdetector->unknown40;
     if (!(v & 1))
         *(int *)v &= -3;
     else
-        guard->detector->unknownFlags40 = v & -3;
+        guard->pdetector->unknown40 = v & -3;
     a = 0.785398245f;
     b = 1.30899704f;
     limit = D_002A8600;
     medium = 300.0f;
     high = 1200.0f;
     extent = 800.0f;
-    guard->shootPanMin = -a;
-    guard->shootPanMax = a;
-    guard->shootTiltMin = -b;
-    guard->shootTiltMax = b;
-    guard->shootRangeMin = medium;
-    guard->shootRangeMax = high;
-    guard->attackRangeClose = extent;
-    guard->unknownRangeMin = medium;
+    guard->shootPan.minValue = -a;
+    guard->shootPan.maxValue = a;
+    guard->shootTilt.minValue = -b;
+    guard->shootTilt.maxValue = b;
+    guard->shootRange.minValue = medium;
+    guard->shootRange.maxValue = high;
+    guard->attackRange.minValue = extent;
+    guard->unknownRange31C.minValue = medium;
     guard->walkTimeMin = D_002A8600;
-    guard->attackRangeFar = high;
-    guard->unknownRangeMax = 450.0f;
-    guard->circleDistanceMin = medium;
-    guard->circleDistanceMax = 600.0f;
+    guard->attackRange.maxValue = high;
+    guard->unknownRange31C.maxValue = 450.0f;
+    guard->circleDistance.minValue = medium;
+    guard->circleDistance.maxValue = 600.0f;
     guard->walkTimeMax = limit;
-    guard->unknown370 = -100.0f;
-    guard->unknown374 = 350.0f;
+    guard->closeAngleRange.minValue = -100.0f;
+    guard->closeAngleRange.maxValue = 350.0f;
     guard->closeRange = 1000.0f;
-    guard->unknown380 = -800.0f;
-    guard->unknown384 = extent;
+    guard->interactAngleRange.minValue = -800.0f;
+    guard->interactAngleRange.maxValue = extent;
     guard->interactRange = 3000.0f;
     guard->sleepTimeMin = 16.0f;
     guard->sleepTimeMax = 20.0f;
     guard->sleepDartCapacity = 50;
-    guard->unknownE6C = 5.5f;
-    guard->unknownE70 = 6.5f;
+    guard->unknownRangeE6C.minValue = 5.5f;
+    guard->unknownRangeE6C.maxValue = 6.5f;
     guard->knockdownZapMask = 0x29FF7E;
     guard->unknown364 = 1;
     guard->canInteract = 1;
@@ -272,19 +252,18 @@ void InitStepguard(struct S *guard)
     guard->koZapMask = 0xF800;
     guard->pulseStartTime = -10.0f;
     guard->unknown4A0 = 1;
-    guard->gravityRatio = 1.5f;
-    guard->u148_f = 2;
+    guard->unknown260 = 1.5f;
+    guard->unknownBits148A = 2;
     guard->unknown3F0 = -200;
     guard->coinCountOverride = -1;
     guard->attachKind = -1;
     guard->unknown3FC = -1;
     guard->specialState = -1;
-    guard->unknownFF4 = D_002A8604;
+    guard->walkPhaseTime = D_002A8604;
     guard->removalMode = D_002C3CF0;
     ReleaseStepguardZapReactions(guard);
-    InitStepguardMover(&guard->block, guard);
+    InitStepguardMover(&guard->mover, guard);
 }
-} } // namespace M_InitStepguard
 
 // 0x206100 CloneStepguard
 // 0x206100: STEPGUARD vtable slot 41 (Clone): step clone keeping its own detector, re-owning the mover, copying the
