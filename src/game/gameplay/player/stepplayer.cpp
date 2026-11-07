@@ -134,8 +134,7 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 typedef int qword __attribute__((mode(TI)));
 struct K { int a; int b; };
 extern const struct LONGU D_002A4D10;
-struct G { char pad[0x3BF4]; int grf; char pad2[0x3D58 - 0x3BF8]; int cid; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct VTE { short d; short pad; void *pfn; };
 struct M3 { qword r[3]; };
 struct AREQ { int cb; int cbAlign; };
@@ -155,7 +154,7 @@ void PostLoadJtHurt(void *);
 void PostLoadJtMode(void *);
 void PostJtThrowLoad(void *);
 void PostJtLoadPipe(void *);
-int FindSwObjects(struct G *, int, int, struct P *, int, void **);
+int FindSwObjects(SW *, int, int, struct P *, int, void **);
 void *AllocClearedFromWorldHeap(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
@@ -164,7 +163,7 @@ void SetSoMass(struct P *, float);
 qword GetLoWorldPos(struct P *);
 struct M3 *GetLoWorldMatrix(struct P *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void PostSwCallback(struct G *, struct P *, long, int);
+void PostSwCallback(SW *, struct P *, long, int);
 
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
 void PostLoadStepplayer(struct P *player)
@@ -208,7 +207,7 @@ void PostLoadStepplayer(struct P *player)
         ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
     LoadStepplayerGadgets(player);
-    BindStepplayerHpMp(player, D_003DD490.grf & 4);
+    BindStepplayerHpMp(player, D_003DD490.grfTransition & 4);
     player->x1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->pso->x94 == 0) {
@@ -217,8 +216,8 @@ void PostLoadStepplayer(struct P *player)
         struct SO *so = player->pso;
         func_002333B4(so, 0, 0x40);
         so->m[0] = so->m[5] = so->m[10] = so->m[15] = 1.0f;
-        D_003DD490.cid++;
-        player->pso->id = D_003DD490.cid;
+        D_003DD490.transformStamp++;
+        player->pso->id = D_003DD490.transformStamp;
         {
             struct VTE *e = &player->vt[18];
             ((void (*)(void *))e->pfn)((char *)player + e->d);
