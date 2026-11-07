@@ -65,7 +65,7 @@ CRef CoerceS32(const CRef *pref) __asm__("CRef_CoerceS32");
 CRef CoerceF32(const CRef *pref) __asm__("CRef_CoerceF32");
 CRef GetOptionRecordValue(void *pv, PVREC *record) __asm__("GetOptionRecordValue");
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptionRecordValue");
-CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
+CRef SetValuesFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
 
 /** @sly2-annot addr=0x1FFCF8
  * Purpose: Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id;
@@ -247,7 +247,7 @@ CRef GetOptionRecordValue(void *pv, PVREC *record)
 }
 
 /* SetOptionRecordValue (Lilly's port): the setter twin; writes *pref into option ppvrec of the object pv and returns the void
-   reference (tag 0x24). grf bit 0x10: the member is written directly through RefSetPvsFromSplice (which converts the
+   reference (tag 0x24). grf bit 0x10: the member is written directly through SetValuesFromSplice (which converts the
    value to the record's type); else the setter gets the value by type (int and float coerced, the other payloads
    passed as they are). */
 /** @sly2-annot addr=0x200598
@@ -271,7 +271,7 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
             pv = (((BASIC *)pv)->*record->pmfObj)(1);
         }
         void *pvTarget = (char *)pv + record->ibSet;
-        ref = RefSetPvsFromSplice(1, pref, (OTYP *)record, &pvTarget);
+        ref = SetValuesFromSplice(1, pref, (OTYP *)record, &pvTarget);
     }
     else
     {
@@ -452,8 +452,8 @@ inline SPPAIR::~SPPAIR()
  * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Builds a Splice list from count (type, pointer) pairs, converting each value by its type; Void when empty.
-CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
-CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
+CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
+CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
 {
     if (c == 0) {
         return CRef(0);
@@ -477,15 +477,15 @@ CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
 
 /* BuildSpliceListFromUniformValues: the same for c consecutive words of one type at pv. */
 /** @sly2-annot addr=0x200F58
- * Purpose: Same as RefSetArgListFromPvs with one otype for all values
+ * Purpose: Same as BuildSpliceListFromValues with one otype for all values
  * Info: proposed name RefSetArgListFromPvsUniform (T2); TU spliceobj
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50,
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Builds a Splice list from count values that all have the same type.
-CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv) __asm__("BuildSpliceListFromUniformValues");
-CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv)
+CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv) __asm__("BuildSpliceListFromUniformValues");
+CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv)
 {
     if (c == 0) {
         return CRef(0);
@@ -520,7 +520,7 @@ struct V3 { int a, b, c; };
  * @end-sly2-annot */
 // Stores each of count Splice values into the pointed-to variables as their given types (ints and floats coerced,
 // vector/matrix/clq/lm/smp payloads copied, CRefs assigned); returns Void.
-CRef RefSetPvsFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
+CRef SetValuesFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
 {
     CRef ref;
     int i;
@@ -604,7 +604,7 @@ CRef RefSetArgsFromSplice(int c, CRef *aref, OTYP *aotyp, ...)
         ap += 8;
         apv[i] = *(void **)(ap - 8);
     }
-    return RefSetPvsFromSplice(c, aref, aotyp, apv);
+    return SetValuesFromSplice(c, aref, aotyp, apv);
 }
 
 /* Convert each element of a Splice list into apv[*pc] (one type for all); returns the void reference. */
@@ -617,8 +617,8 @@ struct SPLLIST { int c; CPair *ppairFirst; };
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Converts each element of a Splice list into the destination array with one type; returns Void.
-CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("SetValuesFromSpliceList");
-CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)
+CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("SetValuesFromSpliceList");
+CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)
 {
     if (plist->c == 0) {
         *pc = 0;

@@ -73,7 +73,7 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
-CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
+CRef BuildSpliceListFromValues(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 struct OIDFIELD
 {
     OID oid;
@@ -386,7 +386,7 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 // option's record peopid of g_aeopid (brx.h EOPID, 0x28 bytes). grfeopid is the record's flags MASKED by the caller: LoadOptionsFromBrx
 // (level files, 0x13F810) passes grf & 0x2580, AcquireProxySpare (0x1CAEC8, options of a copy's objects) grf & 0x2031. Four shapes:
 //  1. grf & 0x401 - a METHOD option (g_aeopid[26] = Remove, otyp 0x12, grf 0x4401): record +0x18 arguments are read (each: a u16 type, bit 0x8000 = a u8
-//     count of elements of type & 0x7fff -> a splice list by RefSetArgListFromPvs; else one RefFromBrx value) into 32 CRefs, then the record's
+//     count of elements of type & 0x7fff -> a splice list by BuildSpliceListFromValues; else one RefFromBrx value) into 32 CRefs, then the record's
 //     splice thunk is called: +8 when grf has 0x400 (FILE options: SplLoRemoveDeferred 0x100B10 = DeferLoRemove), else +0x10 (the thunk scripts call:
 //     SplLoRemove 0x100B88 = LO::Remove NOW). So a level file's option 26 is a deferred Remove; AcquireProxySpare (mask 0x2031 has no 0x400) removes at once.
 //  2. grf & 0x90 - the value is stored straight into a C member at pv + record +0x18 (pv = pmfObj(1) when grf & 0x2000), by type (the same type codes
@@ -440,7 +440,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                     apv[iElt] = &arefElt[iElt].u;
                     aotyp[iElt] = (OTYP)otyp;
                 }
-                aref[iarg] = RefSetArgListFromPvs(cElt, aotyp, apv);
+                aref[iarg] = BuildSpliceListFromValues(cElt, aotyp, apv);
             }
             else
             {
