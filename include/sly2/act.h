@@ -172,15 +172,22 @@ struct ACT9 : ACT
 /* The classes whose slot functions other TUs define (their vtables lie in those TUs' part of the linkonce area;
    act.cpp's factories only construct them). */
 
-/* ACTSEG (0x2C; vtable 0x2CAF08, asega.cpp's): an animation segment's act (kind 0) */
+/* ACTSEG (0x2C; vtable 0x2CAF08, asega.cpp's): an animation segment's channel act (kind 0), built by aseg.cpp's
+   ApplyAsegCore (AllocAct(0x2C), vtable stored by hand) for each CHN of the segment and linked on its ASEGA. */
 struct ACTSEG : ACT
 {
-    char pad1C[0x2C - 0x1C];
+    AC *pac;                /* +0x1C the channel's vector curve (a CHN without isScalar), or 0 */
+    ACG *pacg;              /* +0x20 the channel's float curve (CHN::isScalar); Attach binds it and the ASEGA's time
+                               into the reference XF (asega.cpp's "rotation curve"), or 0 */
+    ASEGA *pasega;          /* +0x24 the segment application; DetachXfActById finds an ASEGA's acts by it */
+    ACTSEG *pactsegNext;    /* +0x28 next channel act of the same ASEGA (ASEGA::pactsegFirst list) */
     virtual void Attach() __asm__("AttachActseg");   /* slot 1 */
     virtual void Detach() __asm__("DetachActseg");   /* slot 2 */
     virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
 };
+typedef char assert_ACTSEG_size[sizeof(ACTSEG) == 0x2C ? 1 : -1];
+typedef char assert_ACTSEG_pac[SLY2_OFFSETOF(ACTSEG, pac) == 0x1C ? 1 : -1];
 
 /* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): kind 3 */
 struct ACT3 : ACT

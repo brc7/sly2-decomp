@@ -17,15 +17,14 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
-/* The XF an ACTSEGV drives and the SO that owns XFs, as far as this TU reads them (sly2/so.h has the full XF; it reads
+/* The XF an ACTSEG drives and the SO that owns XFs, as far as this TU reads them (sly2/so.h has the full XF; it reads
    +0xA8 as a float here and as the reference XF elsewhere, so a private view). */
-struct ACTV { int kind; int pad4[2]; int nPriority; ACTV *pactNext; int pad14[4]; void *pvId; };
 struct XF
 {
     char pad0[0x88];
     float *timeSource;      /* 0x88 */
     float *speedSource;     /* 0x8C */
-    ACTV *firstActuator;     /* 0x90 */
+    ACT *firstActuator;     /* 0x90 */
     int kind;               /* 0x94 */
     short role;             /* 0x98 */
     short phase;            /* 0x9A */
@@ -33,24 +32,12 @@ struct XF
     char padA0[8];
     union { XF *reference; float blendWeight; }; /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
-    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::Attach) */
+    int rotationCurve;      /* 0xD0: the ACG * of a float-curve channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
 struct SO { char pad0[0x50]; int numTransforms; XF *transforms; };
-
-/* What ApplyAseg (aseg.cpp) attaches to an ASEGA: the channel actions and the overrides. TU-private copies of
-   aseg.cpp's views, identical; they move to sly2/aseg.h once the per-function Lilly ports that define their own
-   CHN/OVR/OVRA/KEY are merged (adding them now breaks those includers). */
-struct ACV
-{
-    virtual void Load(CBinaryInputStream *pbis);
-    virtual void Prepare();
-    virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
-};
-struct ACTSEGV { int kind; LO *plo; XF *pxf; int nPriority; int pad10; int role; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };
-
 
 struct G { ASEGA *p; };
 
@@ -64,20 +51,20 @@ void FramePtr_Assign(ASEGA *p, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrame
 void UnsubscribeLoAll(ASEGA *p);
 void RcPtr_Assign(CRefPtr<SND> *pref, int n);
 void SendLoMessage(ASEGA *p, int msg, ASEGA *player);
-void RemoveXfAct(LO *plo, XF *pxf, ACTSEGV *channel);
-void FreeAct(ACTSEGV *channel);
+void RemoveXfAct(ALO *palo, XF *pxf, ACTSEG *channel);
+void FreeAct(ACTSEG *channel);
 void FreeOvra(OVRA *povra);
-int IsActCurrent(ACTSEGV *channel);
-void UnsettleXfSlot(LO *plo, XF *pxf);
+int IsActCurrent(ACTSEG *channel);
+void UnsettleXfSlot(ALO *palo, XF *pxf);
 void EvaluateXfSlotValue(ASEGA *p, int n);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
 void SortXfActs(SO *pso, XF *pxf);
-void SetXfRole(LO *plo, XF *pxf, int n);
-void ResetXfValueRef(LO *plo, XF *pxf);
-void AttachActBase(ACTSEGV *channel, ACTSEGV *p);
-void DetachActBase(ACTSEGV *channel);
-void GetActGoalDefault(ACTSEGV *channel, qword *pq1, qword *pq2);
+void SetXfRole(ALO *palo, XF *pxf, int n);
+void ResetXfValueRef(ALO *palo, XF *pxf);
+void AttachActBase(ACTSEG *channel, ACTSEG *p);
+void DetachActBase(ACTSEG *channel);
+void GetActGoalDefault(ACTSEG *channel, qword *pq1, qword *pq2);
 void StartSwAsegSound(SW *, int, int, int, int, ALO *, LO *, ASEG *, CRefPtr<SND> *, float, float, float);
 void StopSwAsegSound(SW *, EASND *, ASEG *, CRefPtr<SND> *);
 void JoltCamera(void *, void *);
@@ -187,7 +174,7 @@ void RetractAsega(ASEGA *player)
         return;
     {
         G g;
-        ACTSEGV *pl1, *pl1Next;
+        ACTSEG *pl1, *pl1Next;
         OVRA *pl2, *pl2Next;
         g.p = player;
         __asm__ __volatile__("" : : "r"(&g) : "memory");
@@ -201,9 +188,9 @@ void RetractAsega(ASEGA *player)
         SetAsegaHandsOff(player, 0);
         RemoveDlEntry(&g_sw.dlAsega, player);
         RemoveDlEntry(&player->animation->dlAsega, player);
-        for (pl1 = (ACTSEGV *)player->pactsegFirst; pl1; pl1 = pl1Next) {
+        for (pl1 = player->pactsegFirst; pl1; pl1 = pl1Next) {
             pl1Next = pl1->pactsegNext;
-            RemoveXfAct(pl1->plo, pl1->pxf, pl1);
+            RemoveXfAct(pl1->palo, pl1->pxf, pl1);
             FreeAct(pl1);
         }
         player->pactsegFirst = 0;
@@ -239,17 +226,17 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
     case 2: t = player->animation->duration + time; break;
     }
     if (t != player->time) {
-        ACTSEGV *ps;
+        ACTSEG *ps;
         player->time = t;
         WrapAsegaTime(player, &player->time, &player->speed);
         SyncAsegaEventCursor(player);
-        for (ps = (ACTSEGV *)player->pactsegFirst; ps; ps = ps->pactsegNext) {
+        for (ps = player->pactsegFirst; ps; ps = ps->pactsegNext) {
             if (IsActCurrent(ps)) {
                 R80 *pr = (R80 *)ps->pxf;
                 float v = *pr->pg;
                 if (v < pr->gMin || pr->gMax < v)
-                    ((void (*)(void *))ps->pvt[4].pfn)((char *)ps + ps->pvt[4].d);
-                UnsettleXfSlot(ps->plo, ps->pxf);
+                    ps->Update();
+                UnsettleXfSlot(ps->palo, ps->pxf);
             }
         }
         EvaluateXfSlotValue(player, 0);
@@ -573,12 +560,12 @@ extern "C" void SetAsegaMasterSpeed(ASEGA *player, float masterSpeed)
 // transforms.
 void SetAsegaPriority(ASEGA *player, int priority)
 {
-    ACTSEGV *channel;
-    channel = (ACTSEGV *)player->pactsegFirst;
+    ACTSEG *channel;
+    channel = player->pactsegFirst;
     if (channel != 0) {
         do {
             channel->nPriority = priority;
-            SortXfActs((SO *)channel->plo, channel->pxf);
+            SortXfActs((SO *)channel->palo, channel->pxf);
             channel = channel->pactsegNext;
         } while (channel != 0);
     }
@@ -587,10 +574,10 @@ void SetAsegaPriority(ASEGA *player, int priority)
 // For the player's live channels on role-7 transforms: switches the transform to blend mode 9 and sets its blend weight
 // (inferred).
 extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
-    ACTSEGV *pn;
-    for (pn = (ACTSEGV *)player->pactsegFirst; pn; pn = pn->pactsegNext) {
+    ACTSEG *pn;
+    for (pn = player->pactsegFirst; pn; pn = pn->pactsegNext) {
         if (IsActCurrent(pn) && pn->pxf->role == 7) {
-            SetXfRole(pn->plo, pn->pxf, 9);
+            SetXfRole(pn->palo, pn->pxf, 9);
             pn->pxf->blendWeight = weight;
         }
     }
@@ -598,11 +585,11 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
 
 // Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
-    ACTV *act = pxf->firstActuator;
+    ACT *act = pxf->firstActuator;
     for (;;) {   /* top-tested on purpose: a while / for loop is rotated to a bottom test and no longer matches */
         if (!act)
             return;
-        if (act->kind == 0 && act->pvId == pvId) {
+        if (act->ack == 0 && ((ACTSEG *)act)->pasega == pvId) {
             act->nPriority = -1;
             SortXfActs(pso, pxf);
             return;
@@ -632,20 +619,19 @@ extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
 // Attaches a segment channel action (slot 1): a rotation-curve channel binds its curve and the player's local time into
 // the transform's reference record; other channels use the base attach.
 void ACTSEG::Attach() {
-    ACTSEGV *p = (ACTSEGV *)this;
-    ACV *pac;
-    pac = p->pacRot;
-    if (pac != 0) {
-        p->pxf->reference->rotationCurve = (int)pac;
-        p->pxf->reference->rotationTimePtr = &p->pasega->time;
+    ACG *pacg;
+    pacg = this->pacg;
+    if (pacg != 0) {
+        pxf->reference->rotationCurve = (int)pacg;
+        pxf->reference->rotationTimePtr = &pasega->time;
         return;
     }
-    AttachActBase(p, p);
+    AttachActBase(this, this);
 }
 
 // Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
-extern "C" void DetachActseg(ACTSEGV *p) {
-    if (p->pacRot != 0) {
+extern "C" void DetachActseg(ACTSEG *p) {
+    if (p->pacg != 0) {
         p->pxf->reference->rotationCurve = 0;
         p->pxf->reference->rotationTimePtr = 0;
         return;
@@ -655,30 +641,30 @@ extern "C" void DetachActseg(ACTSEGV *p) {
 
 // Per-frame channel update (slot 4): a curve channel points the transform at the player's time and speed and lets the
 // curve drive it; a channel without a curve resets the transform's phase and refreshes it. (inferred)
-extern "C" void UpdateActseg(ACTSEGV *p) {
+extern "C" void UpdateActseg(ACTSEG *p) {
     if (p->pac) {
-        ACV *pc;
+        AC *pc;
         p->pxf->timeSource = &p->pasega->time;
         p->pxf->speedSource = &p->pasega->speed;
         pc = p->pac;
-        ((void (*)(void *, XF *))(*(VTE **)pc)[2].pfn)((char *)pc + (*(VTE **)pc)[2].d, p->pxf);
+        pc->Prepare(p->pxf);
     } else {
         p->pxf->phase = 0;
-        SetXfRole(p->plo, p->pxf, 0);
-        ResetXfValueRef(p->plo, p->pxf);
+        SetXfRole(p->palo, p->pxf, 0);
+        ResetXfValueRef(p->palo, p->pxf);
     }
 }
 
 // Returns the channel's goal position and velocity at the player's (wrapped) time (slot 5), for code that predicts where
 // the animation is heading.
-extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
+extern "C" void GetActsegGoal(ACTSEG *p, qword *pq1, qword *pq2, float g) {
     if (p->pac) {
         ASEGA *po = p->pasega;
         float t, dt;
         dt = po->speed;
         t = po->time + g * dt;
         WrapAsegaTime(po, &t, &dt);
-        p->pac->Eval(t, dt, pq1, pq2);
+        p->pac->Evaluate(pq1, pq2, t, dt);
     } else {
         GetActGoalDefault(p, pq1, pq2);
     }

@@ -52,8 +52,7 @@ struct AC;
 /* CHN: ASEG::achn entry: the target object (OID, 20 bits), the sub-object index of the animated XF (10 bits), two
    flags (bit 30 isStripped: skipped by the stand-alone evaluation, PredictAsegTransform; bit 31 isScalar: the curve
    is a float curve from PacNewKind2 rather than a vector curve from PacNewKind; Sly 1's fStripped/fScalar) and the
-   curve. The matched code reads the key word three ways (unsigned fields, signed fields, whole word), and copies the
-   curve into ACTSEG as a plain word, so both are unions. */
+   curve. The matched code reads the key word three ways (unsigned fields, signed fields, whole word): a union. */
 struct CHN
 {
     union
@@ -62,7 +61,7 @@ struct CHN
         struct { int oid : 20; int subIndex : 10; unsigned isStripped : 1; unsigned isScalar : 1; } s;   /* signed reads */
         unsigned int grf;
     };
-    union { AC *pac; int curveBits; };
+    AC *pac;   /* the curve (an ACG when isScalar) */
 };
 typedef char assert_CHN_size[sizeof(CHN) == 0x8 ? 1 : -1];   /* LoadAsegFromBrx allocates cchn * 8 */
 
@@ -71,14 +70,14 @@ struct OVR
 {
     int slot;
     OID oid;
-    union { AC *pac; int curveBits; };   /* ApplyAsegCore copies it into OVRA as a word */
+    AC *pac;   /* the float curve (PacNewKind2) */
 };
 typedef char assert_OVR_size[sizeof(OVR) == 0xC ? 1 : -1];   /* LoadAsegFromBrx allocates covr * 12 */
 
 /* OVRA: an override being applied (ASEGA::povraFirst list; AllocOvra(0x14), ApplyAsegCore). */
 struct OVRA
 {
-    union { AC *pac; int curveBits; };   /* the OVR's curve */
+    AC *pac;   /* the OVR's curve */
     int targetIndex;   /* what the target's slot 43 resolved the override to */
     LO *plo;   /* the target object */
     int slot;   /* the OVR's slot */
