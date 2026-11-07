@@ -19,6 +19,7 @@
 #include "sly2/po.h"
 #include "sly2/step.h"
 #include "sly2/stepplayer.h"
+#include "sly2/jt.h"
 #include "sly2/guard.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
@@ -1508,41 +1509,34 @@ void StartStepplayerFollow(char *player, int a, qword q)
 } } // namespace M_StartStepplayerFollow
 
 namespace M_RenderStepplayerSelf { extern "C" {
-struct Y { char pad[0x12C]; float g; };
-struct P {
-    char pad0[0x2D]; unsigned char b2D; char pad1[0x80 - 0x2E]; char m80[0x12C - 0x80]; float g12C;
-    char pad2[0x134 - 0x130]; int x134; char pad3[0x4C8 - 0x138]; int grabState; char pad4[0xF04 - 0x4CC]; int jtModeState;
-    char pad5[0xF20 - 0xF08]; int jtModeKind; char pad6[0x10D4 - 0xF24]; float g10D4; float g10D8;
-    char pad7[0x19A0 - 0x10DC]; struct Y *py0; struct Y *py1;
-};
 extern struct CLOCK D_002DDED0;
-extern struct P *D_002E1E40;
+extern JT *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
-void RefreshSoBoundsRecord(struct P *p);
+void RefreshSoBoundsRecord(STEPPLAYER *p);
 float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
-void RenderSoGlobset(void *p, int n, int m, float a, float b);
+void RenderSoGlobset(GLOBSET *p, int n, struct SOBOUNDS *m, float a, float b);
 // Slot 19: renders when visible to the current camera; smooths the transparency.
-void RenderStepplayerSelf(struct P *player)
+void RenderStepplayerSelf(STEPPLAYER *player)
 {
     float g0, g1;
-    if (!(player->b2D & (*(int *)&g_cm.grfvis))) return;
+    if (!(player->visibilityMask & (*(int *)&g_cm.grfvis))) return;
     RefreshSoBoundsRecord(player);
-    if (player->jtModeState == 1 && player->jtModeKind != 2) return;
-    if (player->grabState == 2) {
+    if (player->jtmode.state == 1 && player->jtmode.kind != 2) return;
+    if (player->jtgrab.state == 2) {
         g0 = D_002BD268;
         g1 = D_002BD26C;
     } else {
         g1 = 1.0f;
         g0 = g1;
     }
-    player->g10D4 = SmoothValue__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.deltaTime, D_002BD270, 0);
-    player->g10D8 = SmoothValue__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.deltaTime, D_002BD270, 0);
+    player->renderAlpha = SmoothValue__FfffP3SMPPf(player->renderAlpha, g0, D_002DDED0.deltaTime, D_002BD270, 0);
+    player->renderAlpha2 = SmoothValue__FfffP3SMPPf(player->renderAlpha2, g1, D_002DDED0.deltaTime, D_002BD270, 0);
     if (player == D_002E1E40) {
-        player->py0->g = player->g10D4;
-        player->py1->g = player->g10D4;
+        ((JT *)player)->unknown19A0->opacity = player->renderAlpha;
+        ((JT *)player)->unknown19A4->opacity = player->renderAlpha;
     }
-    RenderSoGlobset(player->m80, 0, player->x134, player->g12C * player->g10D4, player->g12C * player->g10D8);
+    RenderSoGlobset(&player->model, 0, player->psobounds, player->opacity * player->renderAlpha, player->opacity * player->renderAlpha2);
 }
 } } // namespace M_RenderStepplayerSelf
 

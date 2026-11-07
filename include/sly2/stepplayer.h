@@ -503,8 +503,8 @@ struct STEPPLAYER : public STEP
       int hideState;   /* +0x10C8 -1 not hiding (or hurt), 0 partly, 1 hidden (UpdateStepplayerHideBlend) */
       float hideBlend;   /* +0x10CC 0..1, toward 1 while no guard can see the hero (TestStepplayerHidden) */
       float noiseBuildup;   /* +0x10D0 0..1 by the movement noise class; at 1 the hero makes a noise (CreateNoise) */
-      float unknown10D4;
-      float unknown10D8;
+      float renderAlpha;   /* +0x10D4 smoothed opacity factor of the body (RenderStepplayerSelf; lower in grab state 2) */
+      float renderAlpha2;   /* +0x10D8 the second opacity factor RenderSoGlobset takes */
       LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
       int interactBlockFlags;   /* +0x10E0 nonzero: no interaction candidates are scanned (UpdateStepplayerInteractCandidates);
                                    bit 0 while an AI interact behaviour runs (ai/tu_144B28), bits 1/2 set and cleared by jt.cpp */
