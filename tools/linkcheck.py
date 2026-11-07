@@ -78,7 +78,7 @@ def check_markdown():
     return bad
 
 
-SRCREF = re.compile(r'(docs/[A-Za-z0-9_./-]*[A-Za-z0-9_-])(#[A-Za-z0-9_.-]+)?'
+SRCREF = re.compile(r'(?<![\w/.-])(docs/[A-Za-z0-9_./-]*[A-Za-z0-9_-])(#[A-Za-z0-9_.-]+)?'
                     r'(?:[ ,:(]{0,3}(?:"([^"]+)"|(?:section|§) ?([0-9]+)))?')
 
 
