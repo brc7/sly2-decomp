@@ -280,58 +280,21 @@ namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
 struct LM { float minValue; float maxValue; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
-struct EMITO { void *palo; };
-struct EMITBV {
-    int cref;                   /* +0x00 share count */
-    int pad4;
-    struct EMITO *pemito;       /* +0x08 the origin record (its first word: the object emitted from) */
-    int padC;
-    int originKind;             /* +0x10 EMITOK: 1 = box */
-    char pad14[0x20 - 0x14];
-    int originOid;              /* +0x20 */
-    char pad24[0x30 - 0x24];
-    struct BOX *pbox;           /* +0x30 the origin box (box kind) */
-};
-struct VTE { short delta; short pad; void (*pfn)(void *, void *); };
-/* EMITTER (field meanings from Sly 1's EMITTER, same members in the same order) */
-struct EMITTERV {
-    char pad0[0xC]; struct VTE *pvt; char pad10[0x40 - 0x10];
-    int flags40;                /* +0x40 LO flags, or (bit 0 clear) a pointer to them */
-    char pad44[0xE0 - 0x44];
-    int isDirty;                /* +0xE0 */
-    struct EMITBV *pemitb;      /* +0xE4 */
-    char padE8[0xF0 - 0xE8];
-    int emitMode;               /* +0xF0 EMITRK */
-    int particleCount;          /* +0xF4 */
-    struct LM rate;             /* +0xF8 particles per second (burst modes: per burst) */
-    int isCountDensity;         /* +0x100 scale the rate by the origin box (volume for constant count, else area) */
-    float pauseChance;          /* +0x104 probability of a pause after a burst */
-    struct LM pauseTime;        /* +0x108 pause duration range */
-    float constantCount;        /* +0x110 particles to keep alive (constant-count mode) */
-    int autoPause;              /* +0x114 */
-    int groupOid;               /* +0x118 */
-    char pad11C[0x130 - 0x11C]; /* +0x11C group list, +0x128 group link */
-    float currentRate;          /* +0x130 rate drawn from `rate` */
-    float rateRedrawInterval;   /* +0x134 */
-    float rateRedrawTime;       /* +0x138 */
-    float density;              /* +0x13C rate multiplier (box volume or area when isCountDensity) */
-    float boxRadius;            /* +0x140 half the largest box extent */
-};
 struct ALLOCREQ { int cb; int kind; };
 extern char D_003DD490[];
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
-void PostSwCallback(void *pg, struct EMITTERV *p, long k, int n);
+void PostSwCallback(void *pg, EMITTER *p, long k, int n);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void PauseEmitterIndefinite__FP7EMITTER(struct EMITTERV *p);
-void PauseEmitter__FP7EMITTERf(struct EMITTERV *p, float g);
-struct EMITTERV *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
-struct EMITTERV *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
+void PauseEmitterIndefinite__FP7EMITTER(EMITTER *p);
+void PauseEmitter__FP7EMITTERf(EMITTER *p, float g);
+EMITTER *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
+EMITTER *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv);
-void SetLoBusyKind(struct EMITTERV *p, int n);
-void *GetLoWorldMatrix(struct EMITTERV *p);
-void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
+void SetLoBusyKind(EMITTER *p, int n);
+void *GetLoWorldMatrix(EMITTER *p);
+void AppendDlEntry__FP2DLPv(void *pv, EMITTER *p);
 
 static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 {
@@ -347,10 +310,10 @@ static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 // one, else continuous), draws the first rate and pause, computes the box density / radius, and when the emitter
 // belongs to a group (groupOid) links it into the group emitter, creating that emitter from this one's settings if
 // the level has none.
-void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
+void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
-    if (pemitter->pemitb->pemito->palo)
+    if (pemitter->pemitb->aploRef[EMITREF_Reference])
         PostSwCallback(D_003DD490, pemitter, D_002A5140.l, 0);
     if (pemitter->emitMode == EMIT_MODE_UNSET) {
         if (pemitter->pauseChance != 0.0f || pemitter->autoPause)
@@ -384,9 +347,9 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
         break;
     }
     pemitter->density = 1.0f;
-    if (pemitter->pemitb->originKind == 1) {
-        struct BOX *pbox = pemitter->pemitb->pbox;
-        if (pemitter->pemitb->pemito->palo) {
+    if (pemitter->pemitb->originKind == EMIT_ORIGIN_BOX) {
+        struct BOX *pbox = (struct BOX *)pemitter->pemitb->pvEmito;
+        if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
             float dx = __builtin_fabsf(pbox->xMax - pbox->xMin);
             float dy = __builtin_fabsf(pbox->yMax - pbox->yMin);
             float dz = __builtin_fabsf(pbox->zMax - pbox->zMin);
@@ -407,17 +370,15 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
         }
     }
     if (pemitter->groupOid != -1) {
-        struct EMITTERV *group = FindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
+        EMITTER *group = FindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
         if (!group) {
-            struct VTE *pvte;
-            void *pthis;
             group = CreateLo__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
             group->pemitb = (__typeof__(group->pemitb))AllocCopyFromHeap(0x100, pemitter->pemitb);
             group->pemitb->cref = 1;
-            if (pemitter->pemitb->pemito->palo) {
-                group->pemitb->pemito = (__typeof__(group->pemitb->pemito))AllocCopyFromHeap(0x14, pemitter->pemitb->pemito);
+            if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
+                group->pemitb->aploRef = (LO **)AllocCopyFromHeap(0x14, pemitter->pemitb->aploRef);
                 group->pemitb->originOid = -1;
-                group->pemitb->pemito->palo = 0;
+                group->pemitb->aploRef[EMITREF_Reference] = 0;
             }
             group->emitMode = pemitter->emitMode;
             group->particleCount = pemitter->particleCount;
@@ -428,16 +389,14 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
             group->constantCount = pemitter->constantCount;
             group->autoPause = pemitter->autoPause;
             SetLoBusyKind(group, 1);
-            pvte = &group->pvt[30];     /* place it at this emitter's transform (func_001A6318) */
-            pthis = (char *)group + pvte->delta;
-            pvte->pfn(pthis, GetLoWorldMatrix(pemitter));
+            group->RotateToMat((MATRIX4 *)GetLoWorldMatrix(pemitter));   /* place it at this emitter's transform */
         }
-        pemitter->isDirty = 0;
-        AppendDlEntry__FP2DLPv((char *)group + 0x11C /* group list */, pemitter);
-        if (IsPointer(pemitter->flags40))
-            *(int *)pemitter->flags40 &= ~2;
+        pemitter->fDirty = 0;
+        AppendDlEntry__FP2DLPv(&group->groupList, pemitter);
+        if (IsPointer(pemitter->unknown40))   /* LO flags, or (bit 0 clear) a pointer to them */
+            *(int *)pemitter->unknown40 &= ~2;
         else
-            pemitter->flags40 &= ~2;
+            pemitter->unknown40 &= ~2;
     }
 }
 } } // namespace M_PostEmitterLoad__FP7EMITTER
