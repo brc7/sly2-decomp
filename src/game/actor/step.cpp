@@ -512,9 +512,9 @@ extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
     POCTL *pctl;
     RotateSoToMat(step, matrix);
     SetStepTargetHeading(step, GetStepHeading(step));
-    pctl = step->pctl;
+    pctl = step->controller;
     if (pctl != 0) {
-        pctl->radLeft = step->targetHeading;
+        pctl->leftStickAngle = step->targetHeading;
     }
 }
 

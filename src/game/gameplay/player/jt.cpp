@@ -2094,9 +2094,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (!jt->CanUseGadget(2))
                         break;
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
-                    else if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f))
+                    else if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
@@ -2128,37 +2128,37 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (!jt->janim.isInputOpen)
                             break;
                     }
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(jt->pctl->grfbtn & 8) && FFightStanceInRange(jt, 0))
+                    if (!(jt->controller->buttonsHeld & 8) && FFightStanceInRange(jt, 0))
                     {
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
+                    if (jt->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
-                        jt->pctl->ClearJoyPressed(BUTTON_LOOK);
+                        jt->controller->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->nUnk10e4 == 3 && jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f))
+                    if (jt->nUnk10e4 == 3 && jt->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f))
                     {
                         SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
                     }
                     {
-                        float sLeft = jt->pctl->sLeft;
+                        float sLeft = jt->controller->leftStickDeflection;
                         if (jt->state == 0 ? sLeft > 0.1f : sLeft > 0.0f)
                         {
-                            if (jt->pctl->grfbtn & 8)
+                            if (jt->controller->buttonsHeld & 8)
                                 SetJtState(jt, JTS_Run, JTBS_Nil);
                             else if (jt->nUnk10e4 == 3)
                                 SetJtState(jt, JTS_Unk0A, JTBS_Nil);
@@ -2180,12 +2180,12 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(jt->pctl->grfbtn & GrfMatchingSlots(jt, 0x19)))
+                    if (!(jt->controller->buttonsHeld & GrfMatchingSlots(jt, 0x19)))
                     {
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
@@ -2206,7 +2206,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if ((uint)(jt->bodyState - 6) < 4)
                         break;
-                    if (jt->pctl->grfbtn & 8)
+                    if (jt->controller->buttonsHeld & 8)
                     {
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
@@ -2216,23 +2216,23 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
+                    if (jt->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
-                        jt->pctl->ClearJoyPressed(BUTTON_LOOK);
+                        jt->controller->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
                     }
-                    if (0.0f < jt->pctl->sLeft)
+                    if (0.0f < jt->controller->leftStickDeflection)
                         SetJtState(jt, JTS_Unk05, JTBS_5);
                     else
                         SetJtState(jt, JTS_Unk05, JTBS_4);
@@ -2240,7 +2240,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Hang:
                     if (D_002DDED0.time - jt->stateStartTime > 0.25f)
                     {
-                        if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
+                        if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
                     }
                     break;
@@ -2291,11 +2291,11 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                         SetJtAirJump(&jt->jtair, 0x12, 0, 0);
                     break;
                 case JTS_HangFollow:
-                    if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
+                    if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
                         LO *ploTarget = jt->hangHandle->ploUnk138;
@@ -3654,7 +3654,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk18:
                 jt->unknown200 = 1.0f;
-                jt->pctl->radLeft = jt->targetHeading;
+                jt->controller->leftStickAngle = jt->targetHeading;
                 break;
             case JTS_Unk0D:
                 jt->attachedTo = 0;
@@ -3752,7 +3752,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                         jt->janim.isHangingBackward = 1;
                         break;
                     case 0:
-                        if (fabsf(NormalizeAngle(radFrame - jt->pctl->radLeft)) < 1.5707964f)
+                        if (fabsf(NormalizeAngle(radFrame - jt->controller->leftStickAngle)) < 1.5707964f)
                         {
                             SetStepRadTarget(jt, radFrame);
                             jt->janim.isHangingBackward = 0;
@@ -3907,7 +3907,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->ablLean[1].weight = 1.0f;
                 ReblendAsegbl(jt->unknown2038);
                 aseg = jt->unknown2038;
-                SetStepRadTarget(jt, jt->pctl->radLeft);
+                SetStepRadTarget(jt, jt->controller->leftStickAngle);
                 qword velocity = SetVectorCylind(jt->targetHeading, D_002BF3E8, gZero);
                 jt->SetVelocity(velocity);
                 ClearXyz(&jt->unknown190);

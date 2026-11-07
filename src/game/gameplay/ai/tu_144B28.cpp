@@ -130,7 +130,7 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 namespace M_UpdateBhvwalkgoalPoctl { extern "C" {
 // NEAR MISS (Claude agent): 4/150. Hard-reg VF vars in Dot fixed the first block; remaining: 2nd block vsub scheduled before the lui of D_002BD2F0 (target lui first).
 typedef int qword __attribute__((mode(TI)));
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
 struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int grfbtn; char pad3[0x7C - 0x34]; struct O *po; };   /* a POCTL (+0x30 buttons, +0x7C its PO) or a PO */
@@ -219,7 +219,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
             poctl->heading = atan2f(QwordY(v), QwordX(v));
         }
         if (behavior->forcesButton8)
-            poctl->grfbtn |= 8;
+            poctl->buttonsHeld |= 8;
         if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.time - behavior->pathStateTime) {
             int mirror = 1;
             struct O *leader = behavior->mirrorPoctl->po;
@@ -227,11 +227,11 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
             __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(GetLoWorldPos(behavior->guard)));
             __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(GetLoWorldPos(leader)));
             if (IsFarApart(own, other))
-                poctl->grfbtn |= 8;
+                poctl->buttonsHeld |= 8;
             if (IsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
                 mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
             if (mirror) {
-                poctl->grfbtn |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
+                poctl->buttonsHeld |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
                 UpdatePoctlPressed(poctl);
             }
         }
@@ -973,7 +973,7 @@ void UpdateBhvInteract(struct P *behavior)
 namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
@@ -998,7 +998,7 @@ void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
         poctl->speed = speed;
         poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
-            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            poctl->buttonsHeld |= 0x80; /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
         }
     }
@@ -1162,7 +1162,7 @@ void UpdateBhvInteract2(struct P *behavior)
 namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
@@ -1187,7 +1187,7 @@ void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
         poctl->speed = speed;
         poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
-            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            poctl->buttonsHeld |= 0x80; /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
         }
     }
@@ -1386,7 +1386,7 @@ namespace M_func_00146B18 { extern "C" {
 // stack: poctl->speed = ClampToLimits(&lm, EvaluateQuadratic(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct PO { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
@@ -1458,7 +1458,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         poctl->speed = 1.0f;
         poctl->heading = AngleXY(d);
         if (D_002DDED0.time - behavior->stateTime < 0.1f) {
-            poctl->grfbtn |= 0x80;
+            poctl->buttonsHeld |= 0x80;
             UpdatePoctlPressed(poctl);
         }
         break;
@@ -1482,7 +1482,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         poctl->speed = s;
         poctl->heading = AngleXYKeepAlive(d, b);
         if (D_002DDED0.time - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
-            poctl->grfbtn |= 0x40;   /* jump (state 3: the jump attack) */
+            poctl->buttonsHeld |= 0x40; /* jump (state 3: the jump attack) */
             UpdatePoctlPressed(poctl);
         }
         break;
@@ -1492,7 +1492,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         poctl->speed = 1.0f;
         poctl->heading = AngleXY(d);
         if (D_002DDED0.time - behavior->stateTime < 0.1f) {
-            poctl->grfbtn |= 0x80;
+            poctl->buttonsHeld |= 0x80;
             UpdatePoctlPressed(poctl);
         }
         break;

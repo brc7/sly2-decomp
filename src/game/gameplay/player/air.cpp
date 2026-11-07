@@ -400,7 +400,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
             air->speedRatio = 1.0f;
             break;
         case 3:
-            if (air->player->pctl->sLeft < 0.2f)
+            if (air->player->controller->leftStickDeflection < 0.2f)
             {
                 qword dvel;
                 air->unknown40 = 3;
@@ -467,11 +467,11 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
             air->unknown34 = D_002BF764;
             air->unknown24 = 0;
             air->speedRatio = gRatio;
-            if (air->player->pctl->sLeft < 0.2f)
+            if (air->player->controller->leftStickDeflection < 0.2f)
             {
                 qword dvel;
                 air->unknown40 = 3;
-                dvel = SetVectorCylind(air->player->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
+                dvel = SetVectorCylind(air->player->controller->leftStickAngle, D_002BF730 * gRatio, 0.0f);
                 air->player->SetVelocity(VuAdd(vel, dvel));
             }
             break;
@@ -1734,7 +1734,7 @@ void UpdateJtAirInput(JTAIR *air)
     POCTL *pctl;
     *(qword *)&posHero = PosLoWorld(air->player);
     *(qword *)&vel = air->player->GetVelocity();
-    pctl = air->player->pctl;
+    pctl = air->player->controller;
     pxpFloor = air->player->floorContact;
     if (pxpFloor != 0 && pxpFloor->normal.z > 0.7f)
         fFloor = 1;
@@ -1792,17 +1792,17 @@ void UpdateJtAirInput(JTAIR *air)
             case 0:
                 if (D_002DDED0.time - air->stateStartTime > D_002BF818)
                 {
-                    if (!(pctl->grfbtn & 0x40) && air->unknown40 != 3)
+                    if (!(pctl->buttonsHeld & 0x40) && air->unknown40 != 3)
                         air->unknown24 = 1;
                     SetJtAirState(air, 1, air->jumpObject);
                 }
-                else if (!air->unknown30 && pctl->sLeft > 0.5f)
+                else if (!air->unknown30 && pctl->leftStickDeflection > 0.5f)
                     SteerJtAirClip(air);
                 break;
             case 2:
                 if (D_002DDED0.time - air->stateStartTime > D_002BF81C)
                     SetJtAirState(air, 3, air->jumpObject);
-                else if (!air->unknown30 && pctl->sLeft > 0.5f)
+                else if (!air->unknown30 && pctl->leftStickDeflection > 0.5f)
                     SteerJtAirClip(air);
                 break;
             case 1:
@@ -1916,7 +1916,7 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirState(air, 4, 0);
                     break;
                 }
-                if (!(pctl->grfbtn & (GrfMatchingSlots(air->player, 0x1B) | 8)))
+                if (!(pctl->buttonsHeld & (GrfMatchingSlots(air->player, 0x1B) | 8)))
                 {
                     SetJtAirState(air, 4, 0);
                     break;
@@ -1976,7 +1976,7 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirState(air, 4, 0);
                 else if (D_002DDED0.time - air->stateStartTime > D_002BF82C && fFloor)
                     air->player->SetPlayerState(0);
-                else if (D_002DDED0.time - air->stateStartTime > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->player, 0xC)))
+                else if (D_002DDED0.time - air->stateStartTime > D_002BF82C && !(pctl->buttonsHeld & GrfMatchingSlots(air->player, 0xC)))
                     SetJtAirState(air, 4, 0);
                 else if (D_002DDED0.time - air->stateStartTime > D_002BF830)
                     SetJtAirState(air, 4, 0);

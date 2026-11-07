@@ -442,11 +442,11 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
     } while (n != jtMode->state);
     if (jtMode->kind != 0)
         return;
-    POCTL *v = jtMode->player->pctl;
-    if (v->nState != 1)
+    POCTL *v = jtMode->player->controller;
+    if (v->state != 1)
         return;
-    v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
-    v->dyRight = v->radRight = v->sRight = 0.0f;
+    v->dxLeft = v->dyLeft = v->leftStickAngle = v->leftStickDeflection = 0.0f;
+    v->dyRight = v->rightStickAngle = v->rightStickDeflection = 0.0f;
     v->dxRight = 0.0f;
 }
 

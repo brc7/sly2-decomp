@@ -4438,9 +4438,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         else
         {
             POCTL *ppoctl;
-            for (ppoctl = (POCTL *)D_003DD490.slPoctl.head; ppoctl; ppoctl = (POCTL *)ppoctl->pvUnk84)
+            for (ppoctl = (POCTL *)D_003DD490.slPoctl.head; ppoctl; ppoctl = (POCTL *)ppoctl->next)
             {
-                if (FObjHasTarget(ppoctl->ppo, prelaycmd->buttonPrompt.oidWho))
+                if (FObjHasTarget(ppoctl->controlled, prelaycmd->buttonPrompt.oidWho))
                 {
                     break;
                 }

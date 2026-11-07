@@ -68,7 +68,7 @@ template <> CRefPtr<SND>::~CRefPtr();
    enclosing object (s0-based) only this way. */
 inline BASIC::BASIC() : scriptFrame(refptrNull), scriptVariables(refptrNull) {}
 /* PO (sly2/po.h): the one PO field construction sets. */
-inline PO::PO() { pvUnk174 = 0; }
+inline PO::PO() { unknown174 = 0; }
 
 /* The grab-spot mix-in (second base of the grab-spot classes): GRABSPOTDATA (0x20 bytes, object/proxy.cpp) and
    its own vptr at +0x20 (vtable 0x2D28D8, 6 slots; hidden-types.md B2.12). Slot names from gameplay/player/grabspot.cpp;

@@ -1707,8 +1707,8 @@ namespace M_HeroInteractDistance {
 // HeroPickInteractGuard minimises *psDist) and the interact-target pick 0x142AF8 (three calls, *pploCur = &hero->ploLean).
 // The biases are CLQs (c0 + c1 d + c2 d^2) from 0x2BD280: (1) for the current target: xy D_002BD280(d) = -200 - 0.2 d, height D_002BD290(dz) = -0.2 dz (hysteresis: the
 // target already chosen looks nearer). (2) while the hero is steered (pctl) and d > 0.0001: rAway = (stick . (hero - plo)) / d with the stick vector = SetVectorCylind
-// (radLeft, sLeft, 0) (|stick| = sLeft); xy += clamp01(D_002BD2A0(rAway) = 0.5 - 0.5 rAway) * D_002BD2B0(d) (= -500 - 0.5 d): pushing the stick toward the object (rAway
-// = -sLeft) takes up to 500 + d/2 off its distance, away from it nothing, no stick half.
+// (leftStickAngle, leftStickDeflection, 0) (|stick| = leftStickDeflection); xy += clamp01(D_002BD2A0(rAway) = 0.5 - 0.5 rAway) * D_002BD2B0(d) (= -500 - 0.5 d): pushing the stick toward the object (rAway
+// = -leftStickDeflection) takes up to 500 + d/2 off its distance, away from it nothing, no stick half.
 // NOTE as compiled the hysteresis test compares the HERO (a0) with the current target (`lw v0,0(s1); bnel s2,v0`, s2 = a0), not the object (a1): both callers pass a
 // field of the hero (+0x10DC / +0x10F8) that never holds the hero himself, so bias (1) is never added by the game (it looks like a typo for plo in the original source).
 #include "sly2/basic.h"
@@ -1855,10 +1855,10 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
         sBias = EvaluateClq(&D_002BD280, sXY);
         zBias = EvaluateClq(&D_002BD290, dz);
     }
-    POCTL *pctl = player->pctl;
+    POCTL *pctl = player->controller;
     if (pctl != 0 && sXY > 0.0001f)
     {
-        qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
+        qword qwStick = SetVectorCylind(pctl->leftStickAngle, pctl->leftStickDeflection, 0.0f);
         float rAway = LaneXKeepVf(VuDot(qwStick, vec)) / sXY;
         sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
