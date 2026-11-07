@@ -20,8 +20,8 @@ warps, exits and wipes request a level change. The objects inside the world are 
   - progression: the save-variable store `savevars`, cached save-variable handles (`psvp...` fields such as the coin
     count and the settings keys), the current job, task and pending task (`currentJob`, `currentTask`,
     `pendingTask`), the active task list;
-  - the transition request: `isTransitionPending`, `grfTransition`, `destinationLevel`, `oidWarpDest`, `oidWarpContext`, and
-    the current level's file record `currentLevel`;
+  - the transition request: `isTransitionPending` and `transition` (a TRANS: `flags`, `destinationLevel`, `oidWarpDest`,
+    `oidWarpContext`), and the current level's file record `currentLevel`;
   - players: `playerObjects` (the playable objects of the level), `currentPlayer` (the one with control), `overridePlayer`;
   - control counters: `handsOffCount`, `noPauseCount`, letterbox and input-lock counts;
   - lighting (illumination HSV, midtone, light scale) and the HUD stacks.
