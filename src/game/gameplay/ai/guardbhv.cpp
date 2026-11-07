@@ -397,7 +397,6 @@ struct ANIMATION;
 extern struct G D_003DD490;
 extern void *D_002F7900;
 extern char D_002DFC00[];
-extern char D_002DDF40[];
 struct VTE { short d; short pad; void *pfn; };
 struct A {
     char pad[0xC]; struct VTE *vt; char pad2[0x190 - 0x10]; qword desiredVelocity; char pad3[4]; int animGroundFlag; char pad4[8];
@@ -477,7 +476,7 @@ int HandleBhvanimMessage(struct S *behavior, int msg, struct M *pm) {
             struct O *o = FindStepBehavior(behavior->guard, CID_BHVHIT);
             if (o && IsLoSelfOrDescendantOf(o->parent, g) && g == D_002F7900) {
                 switch (pm->event) {
-                case 0x35: JoltCamera(D_002DDF40, 0); break;
+                case 0x35: JoltCamera(&g_cm, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
                 }
             }
@@ -3783,7 +3782,6 @@ struct CLOCK; struct V; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-extern char D_002DDF40[];
 struct V { char pad[0x20]; qword position; };
 struct T { char pad[0x35C]; struct V *heldNoise; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x9C]; float cameraJoltTime; float zapModeTime; };
@@ -3802,7 +3800,7 @@ void UpdateBhvhit(struct S *behavior) {
         v->position = GetLoWorldPos(pt);
     }
     t = D_002DDED0.time + 0.0001f;
-    if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; JoltCamera(D_002DDF40, 0); }
+    if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; JoltCamera(&g_cm, 0); }
     if (behavior->zapModeTime < t) { behavior->zapModeTime = 3.40282346638528859812e+38f; SetSoZapMode(behavior->guard, 2); }
 }
 } } // namespace M_UpdateBhvhit

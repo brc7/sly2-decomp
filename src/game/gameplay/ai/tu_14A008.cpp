@@ -112,7 +112,6 @@ struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 extern CLOCK D_002DDED0;
 extern SW D_003DD490;
 extern char D_003DD040[];
-extern char D_002DDF40[];
 void *D_002DD648;   /* the registered guard (tu_14A008's .bss; medium: by layout, just before cd's .bss) */
 extern qword D_002A2DD0;
 extern const float D_002A4EE8;   /* defined below where the ELF has it (.rodata order) */
@@ -525,7 +524,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
             u1 = 1.0f - NormalizeToRange(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->route->shape->pointPositions[i]);
+        v.q = ConvertCmWorldToScreen(&g_cm, behavior->route->shape->pointPositions[i]);
         if (IsWithinLimits(&D_002BD490, v.f[2]))
             u2 = NormalizeToRange(&D_002BD490, v.f[2]);
         else if (IsWithinLimits(&D_002BD498, v.f[2]))
