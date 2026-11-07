@@ -1182,10 +1182,9 @@ void StartupSound(void)
 } } // namespace M_StartupSound
 
 namespace M_func_001FCF70 { extern "C" {
-struct S { char pad[0x6C]; int isMicLevelQueryBusy; int micLevel; };   /* SNDMGR (micLevel: a float, stored as its bits) */
 // Async callback of the headset microphone level query (SUKR command 0xB, UpdateHeadsetMicrophone): stores the level and
 // clears the busy flag. (inferred)
-void OnMicLevelResult(int result, long context) { struct S *soundManager = (struct S *)(int)context; soundManager->micLevel = result; soundManager->isMicLevelQueryBusy = 0; }
+void OnMicLevelResult(int result, long context) { SNDMGR *soundManager = (SNDMGR *)(int)context; *(int *)&soundManager->micLevel = result;   /* the float's bits */ soundManager->isMicLevelQueryBusy = 0; }
 } } // namespace M_func_001FCF70
 
 namespace M_func_001FCF88 { extern "C" {
@@ -1249,16 +1248,14 @@ extern "C" int GetSoundIndex(SNDMGR *soundManager, int *pn)
 }
 
 namespace M_func_001FD080 { extern "C" {
-struct T { char pad[0x44]; struct T *next; };
-struct S { char pad[0xF0]; struct T *firstMusicFile; struct T *ambienceRecord; };   /* SNDMGR */
 // Which volume channel a stream belongs to: 1 for a music track, 0 for the ambience stream, 2 for anything else (the
 // dialog streams). SetSndmgrChannelVolume confirms the mapping: channel 0 drives the ambience sound, 1 the music stack,
 // 2 the dialog sound.
-int GetStreamVolumeChannel(struct S *soundManager, struct T *record)
+int GetStreamVolumeChannel(SNDMGR *soundManager, FILEREC *record)
 {
-    struct T *file;
+    SNDFILE *file;
     for (file = soundManager->firstMusicFile; file; file = file->next)
-        if (file == record)
+        if (&file->record == record)
             return 1;
     return soundManager->ambienceRecord != record ? 2 : 0;
 }
@@ -1919,14 +1916,11 @@ extern "C" void StopMusic(P *soundManager, int id)
 
 namespace M_TMusicCur { extern "C" {
 typedef unsigned long ulong;
-struct Q { char pad[0x68]; ulong playTime; };   /* a STREAMSND */
-struct S { int count; struct Q *entries[8]; };   /* the music stack */
-struct P { char pad[0x204]; struct S musicStack; };   /* SNDMGR */
 // Play time of the current music track in seconds.
-float GetMusicTime(struct P *soundManager)
+float GetMusicTime(SNDMGR *soundManager)
 {
-    struct Q *music;
-    if (soundManager->musicStack.count > 0) { music = *(soundManager->musicStack.entries + soundManager->musicStack.count - 1); }
+    STREAMSND *music;
+    if (soundManager->musicStackCount > 0) { music = *(soundManager->musicStack + soundManager->musicStackCount - 1); }
     else music = 0;
     if (!music) return 0.0f;
     return (float)music->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND);
@@ -2106,16 +2100,14 @@ typedef char guard_pointer_size[(sizeof(void*)==4)?1:-1];
 
 namespace M_func_001FE888 { extern "C" {
 typedef unsigned long ulong;
-struct X { char pad[0x40]; int voiceHandle; char pad2[0x50 - 0x44]; unsigned short flags; unsigned short playState; char pad3[0x68 - 0x54]; ulong playTime; };   /* STREAMSND */
-struct P { char pad[0x200]; struct X *dialogSound; char pad2[0x24C - 0x204]; float dialogElapsed; };   /* SNDMGR */
-static inline float PlaySeconds(struct X *sound) { return (float)sound->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND); }
+static inline float PlaySeconds(STREAMSND *sound) { return (float)sound->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND); }
 // Play time of the current dialog in seconds; when the stream reports none and has no voice (not started yet, or a line
 // without audio), the time measured by UpdateDialog instead. (inferred)
-float GetDialogTime(struct P *soundManager)
+float GetDialogTime(SNDMGR *soundManager)
 {
     if (!soundManager->dialogSound) return 0.0f;
     if (PlaySeconds(soundManager->dialogSound) == 0.0f) {
-        struct X *dialog = soundManager->dialogSound;
+        STREAMSND *dialog = soundManager->dialogSound;
         int isStopped = 0;
         if (!dialog->voiceHandle) { isStopped = dialog->playState || (dialog->flags & SND_START); isStopped ^= 1; }
         if (isStopped) return soundManager->dialogElapsed;
