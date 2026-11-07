@@ -490,7 +490,7 @@ struct STEPPLAYER : public STEP
       struct SM *unknown102C;
       struct ASEGA *activeAnimation;
       struct SMA *activeStateMachine;
-      int unknown1038;
+      int blendSide;   /* +0x1038 side of the directional blend: -1 none, 0 negative, 1 positive (dirblend.cpp; jt.cpp resets it) */
       float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
       int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
       int unknown1044;

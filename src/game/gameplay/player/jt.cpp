@@ -3631,7 +3631,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 aseg = jt->unknown1BC0;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                jt->unknown1038 = -1;
+                jt->blendSide = -1;
                 break;
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
@@ -3770,7 +3770,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearXyz(&jt->unknown190);
                 break;
             case JTBS_5:
-                jt->unknown1038 = -1;
+                jt->blendSide = -1;
                 aseg = jt->unknown14D0;
                 ClearXyz(&jt->unknown190);
                 grfapl = 9;
