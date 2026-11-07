@@ -238,7 +238,7 @@ void STEPGUARD::Init()
     guard->unknown3F0 = -200;
     guard->coinCountOverride = -1;
     guard->attachKind = -1;
-    guard->unknown3FC = -1;
+    guard->pickpocketState = -1;
     guard->specialState = -1;
     guard->walkPhaseTime = D_002A8604;
     guard->removalMode = D_002C3CF0;
@@ -469,7 +469,7 @@ void STEPGUARD::OnProxyAcquire(LO *plo)
     UpdateDetectorTrackedObject(guard->pdetector, guard, D_002F7900);
     UpdateDetectorTrackedObject(guard->pdetector, guard, D_002DD5BC);
     UpdateDetectorTrackedObject(guard->pdetector, guard, D_002DD648);
-    if (guard->lootEnabled) {
+    if (guard->lootPouch) {
         GenerateStepguardLoot(guard);
         StageStepguardLoot(guard);
     }
@@ -507,7 +507,7 @@ void STEPGUARD::OnProxyRelease(LO *plo)
     guard->numLoot = 0;
     guard->firstLoot = 0;
     guard->isLootStaged = 0;
-    guard->unknown490 = 0;
+    guard->isLootFixed = 0;
     guard->designatedTargetCount = 0;
     guard->avoidObjectCount = 0;
     guard->forcedTarget = 0;

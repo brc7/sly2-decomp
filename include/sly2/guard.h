@@ -18,7 +18,8 @@ struct CID147;   /* NOISE: a noise event heard by the guards' listeners (noise.c
 struct GUARDLOOT
 {
       OID oid;              /* +0x0 [R] loot object oid */
-      undefined4 unknown04[2]; /* [?] */
+      int flags;            /* +0x4 [S] (pickpocket.cpp) */
+      int key;              /* +0x8 [S] the item key (GenerateStepguardLoot) */
       int count;            /* +0xC [S] how many (StartBhvko sums the coin entries, oid 0x2B3) */
 };
 
@@ -306,14 +307,14 @@ struct STEPGUARD : public STEP
       int unknown3F0;       /* +0x3F0 [S] (InitStepguard -200) */
       VOL *pickpocketIndicator0; /* +0x3F4 [S] */
       VOL *pickpocketIndicator1; /* +0x3F8 [S] */
-      int unknown3FC;       /* +0x3FC [S] (InitStepguard -1) */
-      undefined4 unk_0x400;
+      int pickpocketState;  /* +0x3FC [S] -1 none, 0 alert, 1 coins, 2 an item (SetStepguardPickpocketState; InitStepguard -1) */
+      float pickpocketStateTime; /* +0x400 [S] */
       GUARDLOOT loot[8];    /* +0x404 [R] pickpocket loot list */
       int numLoot;          /* +0x484 [R] entries used in aloot */
-      int firstLoot;        /* +0x488 [S] */
-      int isLootStaged;     /* +0x48C [S] */
-      int unknown490;       /* +0x490 [S] */
-      int lootEnabled;      /* +0x494 [S] */
+      int firstLoot;        /* +0x488 [S] the next entry to hand out */
+      int isLootStaged;     /* +0x48C [S] the next entry is staged in the pouch */
+      int isLootFixed;      /* +0x490 [S] loot set by script (no generation) */
+      LO *lootPouch;        /* +0x494 [S] the object the loot comes from (its +0x158 non-zero: pickpocketing possible) */
       struct STUCKWATCH *stuckWatch;  /* +0x498 [S] (InitStepguard allocates it) */
       struct HAZARDWATCH *hazardWatch; /* +0x49C [S] */
       int unknown4A0;       /* +0x4A0 [S] */
@@ -451,7 +452,8 @@ typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xF
 typedef char assert_STEPGUARD_attackRange[SLY2_OFFSETOF(STEPGUARD, attackRange) == 0x314 ? 1 : -1];
 typedef char assert_STEPGUARD_hurtZapMask[SLY2_OFFSETOF(STEPGUARD, hurtZapMask) == 0x350 ? 1 : -1];
 typedef char assert_STEPGUARD_coinCountOverride[SLY2_OFFSETOF(STEPGUARD, coinCountOverride) == 0x3D8 ? 1 : -1];
-typedef char assert_STEPGUARD_unknown3FC[SLY2_OFFSETOF(STEPGUARD, unknown3FC) == 0x3FC ? 1 : -1];
+typedef char assert_STEPGUARD_pickpocketState[SLY2_OFFSETOF(STEPGUARD, pickpocketState) == 0x3FC ? 1 : -1];
+typedef char assert_STEPGUARD_lootPouch[SLY2_OFFSETOF(STEPGUARD, lootPouch) == 0x494 ? 1 : -1];
 typedef char assert_STEPGUARD_lookTimes[SLY2_OFFSETOF(STEPGUARD, lookTimes) == 0xE6C ? 1 : -1];
 typedef char assert_STEPGUARD_unknownF40[SLY2_OFFSETOF(STEPGUARD, unknownF40) == 0xF40 ? 1 : -1];
 typedef char assert_STEPGUARD_removalMode[SLY2_OFFSETOF(STEPGUARD, removalMode) == 0x1000 ? 1 : -1];
