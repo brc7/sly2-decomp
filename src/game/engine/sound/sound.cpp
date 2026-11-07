@@ -21,6 +21,7 @@
 #include "sly2/cm.h"
 #include "sly2/snd.h"
 #include "sly2/vu0.h"
+#include "sly2/sw.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -1814,11 +1815,10 @@ struct CLQ { float c0, c1, c2; float pad; };   /* c0 + c1 t + c2 t^2 */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
 /* SNDMGR (layout: see SNDMGRV) */
 struct P { char pad[0x10]; int isHeadsetEnabled; char pad2[0x6C - 0x14]; int isMicLevelQueryBusy; float micLevel; char micNoise[0xC]; struct CLQ micNoiseRangeCurve; struct CLQ micNoiseHeightCurve; };
-struct SW { char pad[0x4034]; struct O *micNoiseType; };   /* the world's noise type for the headset microphone */
-extern struct SW D_003DD490;
+extern SW D_003DD490;
 void OnMicLevelResult(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
-void *GetHeroPo(struct SW *);
+void *GetHeroPo(SW *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 void ReplaceHeldNoise(struct O *, qword, void *, void *);
@@ -1846,7 +1846,7 @@ void UpdateHeadsetMicrophone(struct P *soundManager)
     hero = GetHeroPo(&D_003DD490);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && 0.5f < soundManager->micLevel) {
         float height;
-        noiseType = D_003DD490.micNoiseType;
+        noiseType = (O *)D_003DD490.apstimk[5];
         position = GetLoWorldPos(hero);
         noiseType->range = Eval(&soundManager->micNoiseRangeCurve, soundManager->micLevel);
         height = Eval(&soundManager->micNoiseHeightCurve, soundManager->micLevel);
