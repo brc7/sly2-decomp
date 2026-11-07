@@ -65,7 +65,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
 
 ## 3. Transforms `[C:static]`
 
-- XF world = `local * parent` in row-vector storage (`UpdateSoXfWorldMatrices` 0x22FAA0 uses VU0 `MultiplyMatrix4` with (parent, local)). The root has a NULL parent.
+- XF world = `local * parent` in row-vector storage (`UpdateSoXfWorldMatrices` 0x22FAA0 uses a VU0 4x4 matrix product with (parent, local)). The root has a NULL parent.
 - XF parent reference (0x22D6B0): -1 -> NULL; 0x0nnn own XF n; 0x1nnn XF n of the **parent SO** (child SOs); 0x2000 -> XF-context stack top. In L02, XF[0] is the root and every
   other XF points at an earlier own XF. Kinds 8/14 (pivot = -origin) do not occur in L02.
 - Sub-glob geometry is in XF[ixf] space; extra instances = instance MATRIX4 * XF[inst.ixf].
@@ -82,11 +82,11 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
   `SetSoParent` 0x1F21B8 re-points every NULL-parent XF of the copy to pxf (or the parent SO's XF[0]); `ApplySoProxy` 0x1F4010 sets `XF[0].local = matProxy * XF[0].local`.
   So `world(XF0) = local0 . matProxy . pxfWorld` (row form). A top-level proxy inside a WE that is itself copied inherits the outer copy's transform
   (`matProxy_inner . matProxy_outer`; needed for `f_tree_ring -> f_tree`) `[C:static]`.
-- Mode 1 (or -1 when the source WE has x60): a PROXY object stands at the placement and borrows one of the c8 spare copies at runtime (`PspareAcquire` calls LO/SO slot 26
-  `ResetLoForProxy`/`ResetSoForProxy` after slot 37 `ApplySoProxy`) `[H top50]`; every live spare copy sits exactly on one of the PROXY placements `[C:runtime]`.
+- Mode 1 (or -1 when the source WE has x60): a PROXY object stands at the placement and borrows one of the c8 spare copies at runtime (`AcquireProxySpare` calls LO/SO slot 26
+  `LO_ResetForProxy`/`SO_ResetForProxy` after slot 37 `ApplySoProxy`) `[H top50]`; every live spare copy sits exactly on one of the PROXY placements `[C:runtime]`.
 - **Shaders** come from the WE whose object list holds the SO; a proxy copy uses its source WE's shaders. Texture = SHD.atex[0], frame 0, pass 0 ([textures.md](textures.md)).
 - **Load filter** = level index (2 in the Paris hub; D_003E1110) applied to object records (k > 0, k < -2) and sub-glob cfilter lists exactly as `IsCurrentLevelInList` 0x13FAD0 `[C:runtime]`.
-- **Runtime check** (`textured/verify_runtime_S02.txt`) `[C:runtime]`: all 31 directly loaded and 142 of 143 proxy-copied root SOs coincide with a live object of the same oid
+- **Runtime check** (`textured/verify_runtime_S02.txt`, research workspace, not in this repo) `[C:runtime]`: all 31 directly loaded and 142 of 143 proxy-copied root SOs coincide with a live object of the same oid
   within 2 units (the exception, `f_skydome`, follows the camera in x/y); all 67 in-world child SOs match; 450 of 464 live in-world SOs have an exported instance
   within 2 units (misses: patrolling guards, Sly, carried dispensers, the sky).
 - Editorial filter used by the exporter `[H]`: proxies nested in actor classes (players, guards, BOMB, ACCMISS, pickups, dispensers, gadget objects) are pooled or carried

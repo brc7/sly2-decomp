@@ -289,7 +289,7 @@ set too after introducing a helper (see the last items).
   early `return` instead of `goto leaf` (FindPathzoneAtPos, moves the leaf block): keep such gotos, give the label a meaning,
   and say why. (A `goto test;` into a rotated `for (;;)` did become a plain `for`: RemoveObstacleEvents.)
 - Dropping a redundant test: `if (r == 3) return; if (r != 4) return;` keeps the first test (PostCid14Load).
-- Merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal, four cases in UpdateHackship: one jump-table
+- Merging switch cases with identical bodies (three cases of a player jump-goal switch, four cases in UpdateHackship: one jump-table
   target instead of separate blocks); keep one call per case (a helper keeps it short). Duplicated selector branches
   (`switch (n) { case A: q = x; if (q) q->vt[8](); ... default: ... vt[9] }`) do not collapse into a computed slot either
   (SetDprizeDprizes).

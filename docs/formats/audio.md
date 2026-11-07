@@ -49,7 +49,7 @@ groups 0-3 (120 s, no loop); `sndfile28` = mono stem (group 0) + two stereo pair
 ## 5. 989snd bank ('SBlk' v3)
 
 File: `u32 3 (type); u32 nchunks (2); nchunks x {u32 offset, u32 size}`: chunk 0 = SBlk header/tables, chunk 1 = SPU sample image; the chunks end at the file size
-`[C:parse]` (same outer header as Sly 1's `Parse989SfxBank`).
+`[C:parse]` (same outer header as Sly 1's 989snd effect banks).
 
 SBlk (offsets relative to chunk 0): `+0 "SBlk"; +4 version 3; +8 4; +0xC bank id; +0x16 u16 nsound (383); +0x18 u16 ngrain (3028); +0x1A u16 nwave (460);
 +0x1C sound table offset; +0x20 grain table offset; +0x24 0x5040 (?); +0x28 sample size; +0x2C SPU RAM size; +0x30 next block; +0x34 grain-data offset; +0x38 names (0)`

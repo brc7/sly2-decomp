@@ -155,7 +155,7 @@ called from the owner's slot 70, and sometimes an `UpdateJtInternalXps*` constra
 - **Air** (`JTAIR`, `air.cpp`): every launch into the air goes through `SetJtAirJump` (jump kind, launch presets,
   double-jump availability); `SetJtAirState` switches air sub-states; `UpdateJtAirInput` and `UpdateJtActiveJump` run
   per frame and `PresetJtAccelJump` integrates the arc. Landing target choice is `ChooseJtLanding`; ledge and edge
-  catches are `FindJtBestEdge` / `FCheckJtSingleEdge`; `IsJtStuck` detects being wedged. Also the jump-target object
+  catches are `FindJtBestEdge` / `IsJtSingleEdgeGrabbable`; `IsJtStuck` detects being wedged. Also the jump-target object
   (JMT).
 - **Grab** (`JTGRAB`, `grab.cpp`): the world keeps a short list of grab candidates that `GatherJtGrabCandidates`
   refreshes each frame from the grab spots near the hero (section 7) and filters by a per-character mask. Grabbing

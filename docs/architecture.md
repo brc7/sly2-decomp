@@ -45,7 +45,7 @@ Rules:
    upward dependency should be avoided; if one is unavoidable, add it to the table in section 3 with the reason.
 6. Naming reflects layering: all children of a directory are in the same layer (the only exception is `src/game/` itself).
    Max depth under `src/game` = 3 directories (`engine/graphics/pipeline/`). `platform/memory/heap.cpp` also holds 2 functions
-   of the `dynarray` span because they live in the real file `src/P2/heap.cpp` (suggests the heap/dynarray span boundary is
+   of the `dynarray` span because the original game keeps them in its `heap.cpp` (suggests the heap/dynarray span boundary is
    off by those functions - HYPOTHESIS).
 
 ## 2. The tree (one line per directory, then its files)
@@ -143,7 +143,7 @@ src/
 | UI-PUSH | 16 | 69 | Lower layers (world/state, world/scene, level, object, platform) call HUD widget animation (PlayWidgetAnim, SetWidgetState), Show/Hide screens and memcard UI directly. Sucker Punch had no event bus; the HUD reads game state and the game pokes the HUD. Since review round 1 the HUD is a L6 service, so gameplay->HUD is downward; what remains comes from L5 and below (game->hud 10, sw->screen 7) and gameplay->front-end screens. |
 | WORLD | 5 | 43 | Code below the world layer touches g_sw (LO add/remove, BRX load queues, splice built-ins asking for the current level/world/episode) or session state. Inherent: g_sw is the global context of the engine. Header fix: declare `struct SW` + the `g_sw` extern (0x3DD490) in `world/scene/sw.h` and allow it as a sanctioned include for engine/object and splice/builtins. |
 | C-RUNTIME | 13 | 36 | SDK code calls game-provided runtime functions (libgcc EH -> malloc/free in memory; 989snd -> printf-family in text; libc -> 0x100218 in the crt0 block). Inherent to how the ELF was linked; in a port these become host libc. |
-| ONE-HIERARCHY | 7 | 31 | BASIC/LO/XFM base methods call SO/XF/ACT/CPLCY services (BindLoOidTable -> PsopartFindSo, TranslateXfmToPos -> ConvertXfPos). The object model and engine classes are one C++ hierarchy split over many files; xf could join engine/object at the cost of xf->act/so up-edges (tried: no gain). |
+| ONE-HIERARCHY | 7 | 31 | BASIC/LO/XFM base methods call SO/XF/ACT/CPLCY services (BindLoOidTable -> FindSoPart, TranslateXfmToPos -> ConvertXfPos). The object model and engine classes are one C++ hierarchy split over many files; xf could join engine/object at the cost of xf->act/so up-edges (tried: no gain). |
 | SCRIPT-API | 1 | 15 | Splice is the game's scripting API: values wrap BASIC objects (CRef_SetBasic -> BASIC vtable), frames/eval resolve proxies, built-ins query the world. The VM part could be decoupled by a vtable-only interface; the built-ins cannot. |
 | BINDING | 4 | 6 | Option/property binding records in the crt0-block .data prefix (0x2AC880-0x2BAAE8, app/class_registry_options.inc) point at generated wrappers; brx/proxy/emitter/so read them by address. |
 | REGISTRY | 1 | 1 | Class descriptor table D_002BAAE8 / factories live in the crt0-block registry; IsBasicDerivedFrom (basic) and CreateLo (brx) read it. Header fix: declare the descriptor record type and an extern for the table in object/; only the definition stays in app/. |

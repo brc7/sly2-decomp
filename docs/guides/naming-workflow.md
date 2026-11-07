@@ -64,7 +64,7 @@ value. When a name turns out wrong, check its neighbours: errors come in shifted
 
 Runtime observation overturned several confident static readings (JTMODE kind 1 is recon, not binocucom; `g_pjt` is always
 Sly, not the current player; Bentley's "bombs" are a dart and a gadget object; the "checkpoint manager" is the transition
-request; `AddSoVelocity` is `AddSoAcceleration`). Lesson: a structural reading of a single code path is not a role; get a
+request; the function once named `AddSoVelocity` is `AddSoAcceleration`). Lesson: a structural reading of a single code path is not a role; get a
 second signal before naming with confidence, otherwise write `(inferred)`.
 
 ## 3. Applying names: `tools/rename.py`

@@ -60,9 +60,9 @@ from an oid list, 41 shuffle. Most used `~` builtins: `find-sound-object~` 1454,
 - ids <= 0x4D0: class options via per-class tables `g_mpcidarysplopt` D_00279AD0 (199 x {c, SPLOPT*}) -> `g_aeopid` D_002AC880. 1,091 distinct optids; 210 bind to different
   records on different classes (polymorphic: TRIGGER, APPLY, SEEK, state; e.g. 446 = `StartStepplayerFollow` on STEPPLAYER, the root BHV point on STEPGUARD) `[C:static]`.
 - ids > 0x4D0: the object's sidebag (`GetBasicOption` 0x200BA0); scripts use 1255-1875 (`sidebag-N`; N = symid of the custom name `[H]`).
-- Label resolution order (`splnames.py`): hand overrides, Sly 1 option names, the native target of the option's thunk, getter/setter pointer-to-member names, documented
-  fields, else `Class+0xOFF`. Full table: `splice_scripts/OPTION_TABLE.tsv` (1,449 bindings). Whole game: 1,016 option ids used, 142 still offset-labelled (top: ASEGA+0x18
-  x3358 = option 251 ASEGA/SMA root object, TASK+0x7C x1642 = the task's job, JOB+0x7C, JOB+0xF0, BOMB+0x1F0) (`whole_game/splice/options_used.csv`;
+- Label resolution order (`splnames.py`, research workspace, not in this repo): hand overrides, Sly 1 option names, the native target of the option's thunk, getter/setter pointer-to-member names, documented
+  fields, else `Class+0xOFF`. Full table (research workspace, not in this repo): `splice_scripts/OPTION_TABLE.tsv` (1,449 bindings). Whole game: 1,016 option ids used, 142 still offset-labelled (top: ASEGA+0x18
+  x3358 = option 251 ASEGA/SMA root object, TASK+0x7C x1642 = the task's job, JOB+0x7C, JOB+0xF0, BOMB+0x1F0) (research workspace, not in this repo: `whole_game/splice/options_used.csv`;
   `top50_round/splice_builtins_options.csv` proposes names for 29).
 
 **Object ids**: the first argument of `find-object(s)` / `find-nearest-object(s)` is an oid; oids are global (sly 7, bentley 8, murray 9; the same jobs/relays in
@@ -71,12 +71,12 @@ every Paris level). The listing prints `@oid<Class:WE>`; L02 names 529 of 611 oi
 ## 4. What the scripts do (Paris hub, readings `[H]` unless the text shows it)
 
 - Mission logic lives in WE `f_nightclub_macro` (91 TASK, 28 RELAY, 11 JOB entries): JOB evt17 handlers restart on hero death and advance tasks; TASK evt19 handlers fire
-  RELAYs (`FireRelayPlayer`), show ticker hints, start radio lines (`StartDialog`), and call `RequestTaskState` 2-5. This matches the live mission (runtime6): e.g.
+  RELAYs (`FireRelayFromPlayer`), show ticker hints, start radio lines (`StartDialog`), and call `RequestTaskState` 2-5. This matches the live mission (runtime6): e.g.
   `t1_sat_dish1` evt19 fires RELAY 0x6E3; `t1_recon_brawl` evt19 calls option 446 on Murray to follow Sly `[C:runtime]`.
 - Level rigs: volume buttons add/remove objects; ASEG label scripts choreograph ambushes; handlers call the base handler first (`(find-binding-or-noop~ 'evt5)`,
   script "inheritance").
 - Props: breakables (CID98) free physics constraints on hit; awnings bounce the player (`LaunchStepplayer`); the pipe-room puzzle propagates a sidebag "pressure".
-  Per-WE summaries: `splice_scripts/PARIS_HUB_SCRIPTS_SUMMARY.txt`, `whole_game/splice/script_index_by_we.txt`.
+  Per-WE summaries (research workspace, not in this repo): `splice_scripts/PARIS_HUB_SCRIPTS_SUMMARY.txt`, `whole_game/splice/script_index_by_we.txt`.
 
 ## 5. Modding notes
 

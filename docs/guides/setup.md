@@ -7,9 +7,9 @@ with the original 2004-era PS2 compilers and comparing the result with the retai
 ## Why the toolchain is unusual
 | Code | Compiler | Kind of binary | Runs via |
 |---|---|---|---|
-| Game code (~6,300 files: `src/hand`, `src/auto`, `src/splicewrap`, `src/P2`) | SN/Sony `ee-gcc.exe` 2.95.3-136 + SN `ps2eeas.exe` | 32-bit **Windows** | [wibo](https://github.com/decompals/wibo) (minimal Win32 loader) |
-| Sony SDK libraries (~280 files in `src/lib`) | ee-gcc 2.96 / 2.9-991111 / 3.2 + GNU as 2.10 | 32-bit **x86 Linux** | directly (needs 32-bit glibc) |
-| Mixed SDK files (54, `// SLY2_ASM: gnu-reorder*`) | Windows ee-gcc → GNU as 2.10 | both | wibo, then Linux `as` |
+| Game code (`src/game`, with the generated `src/generated/splicewrap` thunks) | SN/Sony `ee-gcc.exe` 2.95.3-136 + SN `ps2eeas.exe` | 32-bit **Windows** | [wibo](https://github.com/decompals/wibo) (minimal Win32 loader) |
+| Sony SDK libraries (`src/sdk`) | ee-gcc 2.96 / 2.9-991111 / 3.2 + GNU as 2.10 | 32-bit **x86 Linux** | directly (needs 32-bit glibc) |
+| Mixed SDK files (`// SLY2_ASM: gnu-reorder*`) | Windows ee-gcc → GNU as 2.10 | both | wibo, then Linux `as` |
 
 wibo emulates the Windows thread block with custom x86 segment descriptors. That works on x86 Linux and under
 **macOS Rosetta 2**, but **not** under Rosetta-for-Linux or QEMU, i.e. not inside Docker on Apple Silicon.
@@ -63,7 +63,7 @@ result is meant to change.
 | Symptom | Cause / fix |
 |---|---|
 | `rosetta error: invalid gdt selector` / `qemu: uncaught target signal 11` from wibo | wibo inside Docker on Apple Silicon — expected; use native wibo-macos |
-| `m2c_macros.h: No such file` (all of `src/auto`) | clone https://github.com/matt-kempster/m2c to `~/m2c` or set `SLY2_M2C_INC` |
+| `m2c_macros.h: No such file` (sources that include `m2c_prelude.h`) | clone https://github.com/matt-kempster/m2c to `~/m2c` or set `SLY2_M2C_INC` |
 | `ModuleNotFoundError: rabbitizer` | `python3 -m pip install rabbitizer` (or `SLY2_PYTHONPATH` to a checkout) |
 | mixed SDK files fail on macOS with a docker error | start Docker Desktop; build the image (`tools/dev.sh image`) |
 | `tty[@]: unbound variable` | old dev.sh on macOS bash 3.2 — update |

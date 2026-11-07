@@ -40,7 +40,7 @@ time by oid (`find-object` and friends) and pass them around.
 ## 3. Frames, sidebags and the script tables
 
 - **`CFrame`** (`include/sly2/cframe.h`): a list of bindings (`CVarb`: symbol id -> value) and up to four parent frames
-  searched after it (`CFrame::FindBindingPtr`, `FFindBinding`, `RefSetBinding`, `CFrame_AddBinding`). Lookup is
+  searched after it (`CFrame::FindBindingPtr`, `CFrame::FindBinding`, `CFrame::AssignBinding`, `CFrame_AddBinding`). Lookup is
   depth-first through the parents with a visited flag against cycles.
 - **The world's root frame** is created by `InitSwSpliceFrame` when a level body is loaded and released by
   `DeleteSwSplice` when the world is deleted, which also shuts the VM down (`ShutdownSplice`); `StartupSplice` runs at
@@ -54,7 +54,7 @@ time by oid (`find-object` and friends) and pass them around.
   objects with the same index share one frame**, so a `define` executed at run time in a handler is visible to every
   object of that entry.
 - **Sidebags** (`CSidebag`, `BASIC::psidebag`): per-object extra bindings, used for script-defined custom properties.
-  `EnsureLoSidebag` creates one; the `EnsureLoSidebag*` helpers in `basic.cpp` set typed defaults only when no value
+  `EnsureBasicSidebag` creates one; the `EnsureLoSidebag*` helpers in `basic.cpp` set typed defaults only when no value
   exists yet.
 - **Proxies** add the frames of their init records as extra parents of a copy's frames and remove them when the copy is
   released (`CFrame_AddParent` / `CFrame_RemoveParent`, see [object-model.md](object-model.md)).
@@ -147,7 +147,7 @@ Messages (`SendLoMessage`) are a separate, purely native mechanism; see [object-
 ## 7. The builtin library
 
 The builtin table in `app/bif.cpp` holds `{function, minimum argument count, accepts rest arguments}` per index; every
-builtin has the signature `CRef RefOpX(int cargs, CRef *args, CFrame *frame)`. Groups, in table order:
+builtin has the signature `CRef Builtin<Name>(int cargs, CRef *args, CFrame *frame)`. Groups, in table order:
 
 - the Sly 1 core: arithmetic, comparisons, type predicates, list operations (`cons`, `car`, `map`, `filter`,
   `for-each`, ...), `eval`, constructors for vectors, matrices, CLQ, LM and SMP, math, vector and matrix algebra, CLQ

@@ -44,7 +44,7 @@ the blob. What changed, by class (start 492, integrate/round10):
 
 | class | before | after | how |
 |---|---:|---:|---|
-| reference to a name whose address an object defines under another name | 70 + 30 | 0 | asm labels to the defined symbol (58 vtable names, `__builtin_new`, `_$_10CStreamBis`, `g_pfrmOpen`, `CopyAb__FPvT0Ui`, `__pure_virtual`, ...), the defining object renamed where config names it so (`__4CRefRC4CRef`, `PvAllocSlot__FP8ALLOCREQ`, printf/sprintf, the GC pool words' template statics) |
+| reference to a name whose address an object defines under another name | 70 + 30 | 0 | asm labels to the defined symbol (58 vtable names, `__builtin_new`, `_$_10CStreamBis`, `g_pfrmOpen`, `CopyAb__FPvT0Ui`, `__pure_virtual`, ...), the defining object renamed where config names it so (`__4CRefRC4CRef`, `AllocFromStack`, printf/sprintf, the GC pool words' template statics) |
 | interior of a defined object | 11 | 0 | gs's double buffer as four objects; elsewhere an asm label with an addend (`__asm__("D_002DDF40+0x60")`): a separate symbol to g++, the owner to the assembler (tu-merging.md, Phase 8) |
 | vtables no object emitted (address-named references) | 45 | 0 | emitted by their key TUs (57 with the unreferenced ones) |
 | other game objects not defined | 33 | 9 | bsp's sentinel planes/leaves, util's limits, mat's/vec's matrix and vector constants, hud's M23, grabspot's flag, emitter's empty reference blocks |

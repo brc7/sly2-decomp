@@ -163,7 +163,7 @@ train, sawmill (Canada), blimp. The disc's world files are the `Lnn` levels plus
 ### Hands-off and locks
 
 Four SW counters, each paired with a `g_grfusr` bit `[C:runtime]`: **hands-off** (`IncrementSwHandsOff` /
-`DecrementSwHandsOff` / `IsSwHandsOff`; RELAY `HandsOff`, the job banner, the pause menu), **no-pause**
+`DecrementSwHandsOff` / `IsSwHandsOff`; RELAY hands-off commands (`AddRelayHandsOff`), the job banner, the pause menu), **no-pause**
 (`IncrementSwNoPause`; RELAY hands-off, recon mode), **letterbox** (cutscenes) and **input lock** (cutscenes, job banner,
 recon mode). Observed `[handsoff, nopause, letterbox, input]`: free roam [0,0,0,0]; recon dialogue [0,1,0,1]; cutscene
 [1,1,1,1]. `IsPoInvulnerable` is true while hands-off. **Deferred callbacks**: `PostSwCallback` queues
@@ -235,8 +235,8 @@ No systems guide yet; this section is the reference.
   list SL used by the SW class lists, oid hash and scheduled callbacks. `CByteQueue` for streaming.
 - **Math**: mat/vec/util/bez/crout/bsp/dzg (LCP) in Sly 1 order. Sly 2 passes VU vectors **by value** where Sly 1 passed
   `VECTOR*`, so Sly 1 mangled signatures must not be applied blindly `[C:verified]`.
-- **Streams and CD**: `CBinaryInputStream` (typed readers, `Align`, LZSS `SetDecompress`); a CD-backed subclass for all
-  world loads (`FOpenSector`); `CBinaryAsyncStream` spools FMV. The only sector reader is `sceCdRead` through a retry
+- **Streams and CD**: `CBinaryInputStream` (typed readers, `Align`, LZSS `SetDecompress`); CD-backed reads for all
+  world loads (`CBinaryInputStream::OpenCdSectors`); `CBinaryAsyncStream` spools FMV. The only sector reader is `sceCdRead` through a retry
   wrapper. There are no file names on disc (`GetFileIdName` returns "fid:#unknown"); files are found by FILEREC
   ([formats/disc-records.md](formats/disc-records.md)).
 
@@ -367,7 +367,7 @@ behaviour).
 `m<N>_<name>` = JOB, `t<N>_<name>` = TASK. Tasks form a dependency graph with states (locked, available, complete within
 the job, complete after the job) `[C:runtime]`; visibility records put objects in the world only in some task states, so
 objective order is fixed. `BroadcastGameEvent` is the game event bus (startup, post-load, hero died, guard defeated, job
-finished, ...). Difficulty averages saved samples (`NScaleByDifficulty`). Collectibles are the DPRIZE family
+finished, ...). Difficulty averages saved samples (`GetDifficulty`); `ScaleByDifficulty` scales a count by it. Collectibles are the DPRIZE family
 (`prize.cpp`).
 
 Guide: [systems/progression-and-saves.md](systems/progression-and-saves.md).
@@ -485,7 +485,7 @@ static. Methods read `<Verb><Class><Noun>`: `FindSwObject` = "pointer to LO: fin
 | FRM, RPL, GSB | a frame for the render thread, render-list entry, GS memory block |
 | FILEREC **(team)** | 64-byte disc file record |
 | CID, OID, EOPID, SYMID, BIF, TAGK | class id, object id, option id, Splice symbol id, builtin, value tag |
-| JTS, JTBS, JTCS | Sly's state, sub-state, cane state |
+| JTS, JTBS, JTCS | Sly's state, sub-state, cane state (JTCS is Sly 1's; Sly 2 has no separate cane-state type) |
 | BRX, BIS | the world file format and its loaders (`Load...FromBrx`); binary input stream |
 | LM, CLQ, SMP | limits, quadratic coefficients, smoothing parameters (Splice value kinds) |
 | DL/DLE, SL/SLE | doubly / singly linked list and entry |

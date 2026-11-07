@@ -187,7 +187,7 @@ The darkening is proportional to the surface's direct light, so ambient-only sur
 - **Per object**: `grfvis` on each LO against `g_cm.grfvis`; the camera's mask comes from the `VIS` zone it is in
   (`UpdateVisInside`, `SetCmVisZone`; see [camera.md](camera.md)). Objects that are not live (see
   [engine.md section 6](../engine.md#6-the-object-model)) never get RenderSelf at all.
-- **Per sub-glob**: a VU0 microprogram sphere test (`GCullSphere` in glob.cpp) against the frustum planes CM keeps in a
+- **Per sub-glob**: a VU0 microprogram sphere test (`GetSphereVisibility` in glob.cpp) against the frustum planes CM keeps in a
   transposed form; it also returns the fade used for distance fade-out. `IsInCameraFrustum` / `IsWithinCameraRenderDistance` are the
   C-side equivalents used by gameplay code.
 - **Scene render tree** (the unit holding `CullSceneRenderList`, `AddLoToRenderTree`, `InsertRenderEntry`): a sphere

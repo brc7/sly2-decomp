@@ -30,9 +30,9 @@ BASIC                    script context + message subscribers; the vptr follows 
 ```
 
 **There is no ALO in Sly 2.** Sly 1's ALO ("actor level object": an LO with a transform and children) was split: the
-transform part became `XFM`, the child list moved to `SO`. Some code views and functions still say `Alo`
-(`ConvertPosBetweenLos`, `ConvertMat4BetweenLos`, local `ALO` structs inside `lo.cpp`); they operate on any `LO` and the name is
-historical.
+transform part became `XFM`, the child list moved to `SO`. Some code views still say `ALO` (local `ALO` structs, e.g.
+inside `lo.cpp`); they operate on any `LO` and the name is historical. Functions Sly 1 named for ALO now say `Lo`
+(`ConvertPosBetweenLos`, `ConvertMat4BetweenLos`).
 
 **Where the classes are declared.** `include/sly2/basic.h` (BASIC, CLASSINFO, lists, value types), `lo.h` (LO, LOROOT,
 LORUN, PXR), `xfm.h` (XFM, PROXY and other light classes), `so.h`, `po.h`, `step.h`, `stepplayer.h`, `jt.h`,

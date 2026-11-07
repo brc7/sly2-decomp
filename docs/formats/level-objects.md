@@ -85,7 +85,7 @@ the first one. RELAY command lists arrive this way.
 | PATHZONE 0x11 | `LoadPathzoneFromBrx` 0x1C03C0 | XFM; U16 cpt; U16 ctri; cpt x {VECTOR; U8 c; c x U16 neighbour}; ctri x 3 x U16; U16 c3; c3 x {3 x F32, U16, U16} (navigation mesh `[H]`) | [C:parse] |
 | VOL 0x16, CID23 0x17, CID27 0x1B; VOLBTN 0x18/0x19 | `LoadVolFromBrx` 0x227BB8 (0x18/0x19: 0x149358) | XFM; GEOM; TREE | [C:parse] |
 | EXIT 0x1A | `LoadExitFromBrx` 0x2282B0 | VOL; FILEREC; U8 c; c x FILEREC (`LoadWarpBlobFromBrx` 0x228250) | [C:parse] |
-| EMITTER 0x1D; EXPLO/EXPLS 0x20/0x21 | 0x258598 / 0x259030 (linkonce: `LoadEmitterFromBrx`, `LoadExploFromBrx`) | XFM; [EMITB+0x10 == 3 (set by option 483 / 536): U16 n; n x VECTOR; U16 m; m x {3 x U16, F32}; VECTOR]; U16 n; [n: U8; n x U32 RGBA] (3 = emit from a triangle mesh `[H]`; 14 objects, all and only those with the option = 3) | [C:parse] |
+| EMITTER 0x1D; EXPLO/EXPLS 0x20/0x21 | 0x258598 / 0x259030 (linkonce: the EMITTER and EXPLO instances of the `LoadEmitterFromBrx` template) | XFM; [EMITB+0x10 == 3 (set by option 483 / 536): U16 n; n x VECTOR; U16 m; m x {3 x U16, F32}; VECTOR]; U16 n; [n: U8; n x U32 RGBA] (3 = emit from a triangle mesh `[H]`; 14 objects, all and only those with the option = 3) | [C:parse] |
 | EXPLG 0x1F | `LoadExplgFromBrx` 0x15C1E8 | XFM; nested list | [C:parse] |
 | CID41 0x29, WARP 0x2A | `LoadTeleportDestinationFromBrx` 0x228140 / `LoadWarpFromBrx` 0x228720 | XFM; string16 (skipped by the game: `WARP_*` / `entrance_*`) | [C:parse] |
 | SO base and direct users (SO 0x30, MS 0x31, BOMB 0x4F, BARRIER 0x56, WATER 0x59, SKY 0x61, CID99 0x63, CID104 0x68, CID105 0x69, CID106 0x6A, WAYPT 0x6B, CID88 0x58) | `LoadSoFromBrx` 0x1F31E0 | section 6 | [C:parse] |
@@ -137,7 +137,7 @@ Events: `U8 c; c x {S8 kind; [timed: S16 t]; kind 0: S16, 3 x S32, 3 x F32 | 3: 
 ## 8. WIDGET payload (`LoadWidgetFromBrx` 0x212298) `[C:parse]`
 
 `options; S8 fStreamed; F32; U32; U32; U32;` then `fStreamed: FILEREC` (a "ZRB." sprite file on disc) or the inline sprite data:
-- `LoadSpriteTable` 0x214398: `U16 n; n x {U16 id; U32 kind; 4: U16 | 8: SpriteTable (recursive), U32 c, c x U32, U32 c, c x F32 | 3: U32, U32, F32, F32, F32, S8, S8 mode, [mode 0/1: S32] | 2: MATRIX3, U16 c, c x 0x18 B | 6, 7: 4 x S16, S32 texture | 1: U16 c; c x {U8 n, U8, U8, U8, U8; n x {U32, U8, S16, S16}} | 0, 5, 9, other: nothing}` (`LoadSpriteDescriptor` 0x2149D8).
+- `LoadSpriteTable` 0x214398: `U16 n; n x {U16 id; U32 kind; 4: U16 | 8: a nested sprite table (recursive), U32 c, c x U32, U32 c, c x F32 | 3: U32, U32, F32, F32, F32, S8, S8 mode, [mode 0/1: S32] | 2: MATRIX3, U16 c, c x 0x18 B | 6, 7: 4 x S16, S32 texture | 1: U16 c; c x {U8 n, U8, U8, U8, U8; n x {U32, U8, S16, S16}} | 0, 5, 9, other: nothing}` (`LoadSpriteDescriptor` 0x2149D8).
 - `LoadSpriteGroups` 0x214460: `U16 ng; ng x {U16 creuse; U16 cframe; U16 canim; canim x {F32; S32; U16 ckey; ckey x {F32 t; U8 ci; ci x {U16, U16, U16, S16, U8, U8, S32, MATRIX3}; U8 cc; cc x 2 x U32 RGBA; U8 cs; cs x U16; U8 cb; cb x U8; U8 ct; ct x {U8 kind, S32}}}}`.
 
 `[H]`: a Flash-like 2D UI (sprites, shapes, keyframed groups); WIDGET131 in the front-end world is 3.5 MB.
@@ -147,7 +147,7 @@ Events: `U8 c; c x {S8 kind; [timed: S16 t]; kind 0: S16, 3 x S32, 3 x F32 | 3: 
 - Byte budget (L02): meshes 41%, texture blobs 20%, animation (ASEG) 19%, collision 9.6%, UI sprites 3.3%, rest 7% `[C:parse]`.
 - Whole game: 488,840,496 stream bytes, 7,753 WEs (1,900 distinct names; 66 names in >= 42 levels = the shared character/FX/pickup kit), 121,153 object
   records, 10,930 Splice entries `[C:parse]`. Per-level x class counts and every WE: `reports/whole_game/{objects_by_level,objects_matrix,we_names_by_level}.csv`.
-- Class identities from the object data (WE names and object strings; `whole_game/class_name_hints.csv`) are the source of the v2 class names in
+- Class identities from the object data (WE names and object strings; `whole_game/class_name_hints.csv` in the research workspace, not in this repo) are the source of the v2 class names in
   [`include/sly2/classes.h`](../../include/sly2/classes.h).
 
 ## 10. Open

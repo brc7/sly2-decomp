@@ -54,8 +54,8 @@ Sly 2 port (section 14). Facts only; that code is all rights reserved, so none o
 |---|---|---|
 | K1 | All 6,662 functions match byte for byte. `functions.csv` has 6,816 rows; the remainder are dead-code scraps (`config/junk.csv`, 168 entries) plus other non-function rows. I did not reconcile the exact count. | decomp `README.md`; counted while writing this plan |
 | K2 | **Data is not decompiled.** Code refers to 2,643 distinct `D_00xxxxxx` globals through ~20k `extern` declarations; only 3 are defined in source. Vtables, class descriptors (D_002BAAE8), pass tables (D_002BDD20/88), strings and `.rodata` jump tables all come from the ELF. | grep over `src/` while writing this plan; MATCHING_NOTES.md:88 |
-| K3 | Each function is its own file with ad-hoc struct views (`char pad[0xC]; struct VE *vt; ...`), built on 32-bit pointers and ee-gcc 2.95 vtables (8-byte entries `{short delta; short pad; void *pfn}`, vptr at +0xC). 924 files still use `M2C_FIELD` (2,554 uses). | samples in `src/hand`; common_context.md; docs_v2 overview §4 |
-| K4 | Inline asm: 790 game files have `__asm__` (5,371 statements). Most are VU0 macro-mode ops (`vmul`, `vsub`, `qmtc2`, `vsqrt`, `vdiv`, ...), MMI (`pextuw`, `prot3w`, `lq`), and ~90 symbol-alias asm labels (`__asm__("func_...")`, which are harmless). 45 files have 20 or more statements. Fully hand-written asm: only 3 game files (crt0: `_start`, 0x100218, 0x100220) plus 185 Sony SDK files in `src/lib`. | grep while writing this plan |
+| K3 | Each function is its own file with ad-hoc struct views (`char pad[0xC]; struct VE *vt; ...`), built on 32-bit pointers and ee-gcc 2.95 vtables (8-byte entries `{short delta; short pad; void *pfn}`, vptr at +0xC). 924 files still use `M2C_FIELD` (2,554 uses). | samples in the pre-merge per-function tree; common_context.md; docs_v2 overview §4 |
+| K4 | Inline asm: 790 game files have `__asm__` (5,371 statements). Most are VU0 macro-mode ops (`vmul`, `vsub`, `qmtc2`, `vsqrt`, `vdiv`, ...), MMI (`pextuw`, `prot3w`, `lq`), and ~90 symbol-alias asm labels (`__asm__("func_...")`, which are harmless). 45 files have 20 or more statements. Fully hand-written asm: only 3 game files (crt0: `_start`, 0x100218, 0x100220) plus the hand-written Sony SDK files in `src/sdk`. | grep while writing this plan |
 | K5 | Memory map: `.text` 0x100000 (0x159DF0 B), `.vutext` 0x259DF0, `.rodata` 0x262380, `.data` 0x2AC880, `.bss` 0x2DD380 (+0x174E80); second LOAD 0x472200 (0x73C40 B). World heap grows up from `_end`; stack heap grows down from 0x2000000; `malloc` returns NULL and `free` is a no-op. | `readelf`; docs_v2 engine/core-library.md §1 |
 | K6 | Boot is a 19-entry startup table (D_002BFCE0). The frame loop is fixed (§2 of overview). A render thread `FrameRenderLoop` 0x160B70 DMAs VIF1 then GIF chains and swaps buffers. Threads: main, render, loading screen (0x1C9190), memcard worker (0x1AAF18), MPEG. | docs_v2 engine/overview.md §1-2; main-loop-startup.md §6 |
 | K7 | Rendering is fully characterised: RPL entries `{kind, z, pqwA, pqwB}` in `g_arpl` D_003B3980; 26 kinds map to 12 passes; 7 microprograms (VU0 helpers 84 instructions; VU1 blip 472, HUD 280, cel border 292, projected volume 972, relight 186, main glob 1932). Per-vertex maths, relight formula, outline silhouette test and green-channel Z-fail shadows are all written down. | docs_v2 engine/rendering.md; vu_microcode/MICROCODE.txt |
@@ -117,7 +117,7 @@ flowchart TB
     D["dispatch table: guest addr -> host fn<br/>(direct + indirect calls, overrides)"]
     MEM["guest arena 32 MB + scratchpad 16 KB<br/>ELF segments loaded at original vaddrs"]
     CPU["R5900 ctx: 32x128-bit GPR, FPU, VU0 regs/ACC/Q, HI/LO/HI1/LO1"]
-    VU0["VU0 micro HLE (g_vu0Micro entries) + macro-op helpers (NEON)"]
+    VU0["VU0 micro HLE (microprogram entries) + macro-op helpers (NEON)"]
     K["EE kernel HLE: threads (baton), semas, INTC/DMA callbacks, syscalls"]
   end
   subgraph HLE["HLE layers (native overrides, by guest address)"]
@@ -207,14 +207,14 @@ READMEs already state for their `out/` dirs.
   and for curve and rope integration; divide by zero gives ±FLT_MAX; multiply and add saturate instead of reaching
   Inf; denormals flush to zero in guard pursuit.
 - COP2 macro ops: an emulated VU0 register file (`vf[32]` as float32x4, `vi[16]`, ACC, Q, P, MAC/status flags only
-  where read) using NEON intrinsics. `vcallms`/`vcallmsr` into `g_vu0Micro` (D_00259DF0, 84 instructions; the 0x1C0
+  where read) using NEON intrinsics. `vcallms`/`vcallmsr` into the VU0 microcode (start of `.vutext`, 84 instructions; the 0x1C0
   sphere-visibility routine and matrix/point helpers, rendering.md §4) are HLE'd as hand-written C++ per entry point,
   checked against a tiny VU0 micro interpreter in tests (we already have the decoder, vu_microcode/vudis.py).
 
 ### 4.3 Kernel and threads **[K6]**
 - Implement the EE kernel calls the game uses (CreateThread, StartThread, Sleep/WakeupThread,
   RotateThreadReadyQueue, CreateSema/WaitSema/SignalSema/PollSema, iSignalSema, AddIntcHandler/EnableIntc,
-  AddDmacHandler, SetAlarm, FlushCache) at the libkernel function level (`src/lib`), not at syscall level, wherever a
+  AddDmacHandler, SetAlarm, FlushCache) at the libkernel function level (`src/sdk`), not at syscall level, wherever a
   matched wrapper exists.
 - Each guest thread is a host thread with its own `ctx`. One **baton** (mutex + condvar, with priority-ordered
   handoff) means only one guest thread runs at a time, and switches happen only at blocking kernel calls or rotates.
@@ -249,7 +249,7 @@ READMEs already state for their `out/` dirs.
 - `StartupSif`'s IRX loading (`ioprp300.img`, 9 embedded modules) becomes a no-op that reports success.
 
 ### 5.2 Pad → GameController **[K14]**
-- Override `scePadInit/PortOpen/Read/GetState/Info*/SetActDirect` (libpad in `src/lib`). Build the 32-byte DualShock
+- Override `scePadInit/PortOpen/Read/GetState/Info*/SetActDirect` (libpad in `src/sdk`). Build the 32-byte DualShock
   2 report (buttons, 4 analog axes, pressure bytes) from `GCExtendedGamepad`, plus a keyboard mapping. Rumble comes
   from `SetActDirect`, through `GCDeviceHaptics`. The game sees "DualShock ready" (joys ≥3, joyk 3), so
   `SetJoyJoys`/`InitRumble` paths run unmodified.
@@ -258,14 +258,14 @@ READMEs already state for their `out/` dirs.
 - Override `sceMcInit/GetInfo/Open/Read/Write/Close/Mkdir/Delete/GetDir/Format/Sync`. Use a directory per virtual
   card under `~/Library/Application Support/Sly2/mc0/BASCUS-97316YAOTWTD!/` with `save0..2` and `icon.sys`. Keep the
   game's own save format: byte-compatible with PS2 saves, so PCSX2 `.ps2` card import becomes a small tool.
-  `McSync` returns immediately with success. The worker thread still runs, so UI flow is unchanged.
+  `sceMcSync` returns immediately with success. The worker thread still runs, so UI flow is unchanged.
 
 ### 5.4 Native overrides of game functions (when, and how)
 - Mechanism: `PORT_OVERRIDE(0x1FBB90, CreateSfxSound)`. A generated adapter unpacks `a0..a3`, `t0..t3`, `f12..f19`
   from `ctx` per the signature taken from the decomp header and stores `v0`/`f0` on return. Signatures come from
   `include/port/*.h`, which are generated from decomp declarations (6.2).
 - Use overrides only at hardware boundaries, for hot spots found by profiling (A1), and for host features
-  (widescreen FOV in `BuildCmEyeViewProj` 0x14F768, a debug camera, a level-select).
+  (widescreen FOV in `BuildStereoEyeViewProj`, a debug camera, a level-select).
 - Every override has a **differential test**: run the recompiled original and the override on the same arena
   snapshot and args, then compare arena diffs and return values (section 10).
 
@@ -376,9 +376,9 @@ Notes:
 - Movie audio (`snd_StartMovieSound` etc.) comes from the FFmpeg-decoded PSS audio track (A6).
 
 ### 6.5 FMV **[A6]**
-Override `CMpeg` playback (src/lib libmpeg + the MPEG display thread). Demux PSS, decode MPEG-2 with FFmpeg
-(dynamically linked, LGPL), upload YUV to Metal and convert in the shader. Audio goes to 6.4. `CbFreeMem` gating
-(core-library.md §1) stays as is.
+Override `CMpeg` playback (`src/sdk` libmpeg + the MPEG display thread). Demux PSS, decode MPEG-2 with FFmpeg
+(dynamically linked, LGPL), upload YUV to Metal and convert in the shader. Audio goes to 6.4. Free-memory gating
+(`GetFreeMemorySize`, core-library.md §1) stays as is.
 
 ---
 
@@ -418,7 +418,7 @@ code we choose to nativize:
 | `long` is 64-bit on EE gcc (m2c_prelude) | n/a | same on arm64 LP64. `int`/`short` are identical; `wchar_t`/`bool` are not used in data **[A]** |
 | Endianness | both little-endian: no swaps | same |
 | Struct layout / alignment | identical (guest bytes) | `#pragma pack` not needed for scalar-only structs; `qword` alignment 16 on both |
-| Sony SDK (`src/lib`, 530 files, 185 asm) | **not recompiled**: every SDK function is either overridden (HLE) or marked "should never run" (traps) | n/a |
+| Sony SDK (`src/sdk`) | **not recompiled**: every SDK function is either overridden (HLE) or marked "should never run" (traps) | n/a |
 
 ### 7.3 Prerequisite decomp work (small, and mostly done)
 1. **Port-facing typed headers** (`include/port/`) for ~30 engine structs the HLE layers read: FRM, DMAS/VIFS/GIFS
@@ -538,7 +538,7 @@ parallel. T9 and T13 merge them. T14-T19 are the playable-Paris set. T20 locks i
 
 ## 12. Open questions to resolve early
 1. Does any game path read back GS memory, apart from the replaced passes (A8)? Grep for GS→EE transfers
-   (`sceGsExecStoreImage`, BUSDIR) in `src/lib` callers.
+   (`sceGsExecStoreImage`, BUSDIR) in `src/sdk` callers.
 2. Exact SUKR command semantics 0-12 (sound.md open questions): log them live with PINE on 0x232838 and the SUKR
    CallRpc site before T18.
 3. Splice script runtime: does any builtin call through computed addresses outside the descriptor and BIF tables (R3)?

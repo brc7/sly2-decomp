@@ -39,7 +39,7 @@ shared types.
 tuning, keeps them verbatim in `namespace M_<function> { ... }`. Plain-named definitions stay `extern "C"` inside. A
 function whose symbol is mangled cannot live in a namespace under its own types (the namespace would change the
 mangling), so it becomes a C-linkage definition of its literal mangled symbol
-(`extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *p)`); the symbol string is unchanged, so this is reversible.
+(`extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)`); the symbol string is unchanged, so this is reversible.
 *Where:* most large TUs (`grep -l "namespace M_" src/game`). *Status:* temporary: each namespace empties when its
 views move to shared types.
 

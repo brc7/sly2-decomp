@@ -22,7 +22,7 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 
 | Offset | Field | Notes |
 |---|---|---|
-| +0 | U32 id | hash key; CLUTs are shared across WEs (`AddClutHash` / `PclutFindHash` 0x1ED560/0x1ED5D0) |
+| +0 | U32 id | hash key; CLUTs are shared across WEs (`AddClutToHash` / `FindClutInHash`) |
 | +4 | U8 kind | 1 = colours in the blob (+0xC = blob offset, 16-aligned); otherwise inline (c x 4 bytes follow). Kind 3 = the "permanent" set uploaded every frame (all four kind-3 CLUTs in L02 belong to `f_skydome`) |
 | +5 | S8 cch | if > 0, cch x S16 load-filter ids follow; the record is dropped unless the current filter matches (`IsCurrentLevelInList` 0x13FAD0) |
 | +8 | U16 c | colour count: <= 16 -> PSMT4 palette, else PSMT8 (`BuildClutTex2` 0x1EC9D0) |
@@ -45,7 +45,7 @@ data is in **linear host order, not pre-swizzled** into GS block layout `[C:stat
 then `S16 isaa` (index into the SAA list, -1 none) and `ctex x TEX`. TEX: 8-byte header `{+0 U32 ?, +4 U16 ?, +6 U8 cbmp, +7 U8 cclut}`, then cbmp x U16 bitmap
 index and cclut x U16 CLUT index (0xFFFF none).
 
-- **Passes per frame**: `CpassShd` 0x1EA688: shdk 1 -> 2 CLUTs, shdk 7 -> 3 (2 if grf & 0x20), else 1. TEX0 for frame i, pass j = `bmp[i].TEX0 | clut[i*cpass + j].TEX0`
+- **Passes per frame**: `GetShaderPassCount`: shdk 1 -> 2 CLUTs, shdk 7 -> 3 (2 if grf & 0x20), else 1. TEX0 for frame i, pass j = `bmp[i].TEX0 | clut[i*cpass + j].TEX0`
   (`Tex0FromTexIframeCtk` 0x1EA6C8). A TEX with several bitmaps is a flip-book animation driven by the SAA (EYES, LOOP, ...); each frame has cpass palettes over the
   same index image.
 - L02 shdk counts: 1:1303, 0:153, 2:73, 3:29, 7:16, 4:4; ctex = 1 everywhere. shdk 3 batches are flat-colour FX volumes (blast domes, glows, blob shadows) `[H]`.
@@ -65,7 +65,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 
 ## 6. Runtime notes
 
-After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTexHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
+After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTextureHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
 GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../systems/rendering.md).
 
 ## 7. Open
