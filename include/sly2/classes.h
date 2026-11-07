@@ -1764,48 +1764,8 @@ typedef char assert_RIPG_ripList[SLY2_OFFSETOF(RIPG, ripList) == 0x15C ? 1 : -1]
 typedef char assert_RIPG_boundsRadius[SLY2_OFFSETOF(RIPG, boundsRadius) == 0x1A0 ? 1 : -1];
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
-/* 77 ROBOTTANK (0x5D0): single instance; vtable 0x2D7CA8, 81 slots */
-struct ROBOTTANK : PO
-{
-    char pad180[0x598 - 0x180];
-    int nUnk598;
-    char pad59C[0x5D0 - 0x59C];
-    ROBOTTANK();
-    virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetRobottankClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitRobottank");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostRobottankLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateRobottank");   /* slot 16 */
-    virtual void RenderSelf() __asm__("RenderRobottankSelf");   /* slot 19 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottank");   /* slot 26 */
-    virtual void Clone(LO *ploBase) __asm__("CloneRobottank");   /* slot 41 */
-    virtual void UpdateBounds() __asm__("UpdateRobottankBounds");   /* slot 49 */
-    virtual void OnContactFreed(SO *pso) __asm__("RemoveRobottankContactsWith");   /* slot 54 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustRobottankNewXp");   /* slot 55 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
-    virtual void PresetAccel() __asm__("PresetRobottankAccel");   /* slot 70 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeRobottankDamage");   /* slot 75 */
-};
-typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
-/* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
-   its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_ROBOTTANK and sees
-   only the declaration. */
-#ifndef SLY2_KEY_TU_ROBOTTANK
-// ROBOTTANK constructor: clears nUnk598.
-inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
-#endif
-
-/* 108 CID108 (0x170): robot-tank ammo pickup; vtable 0x2D7A40, 75 slots */
-struct CID108 : SO
-{
-    char pad150[0x170 - 0x150];
-    virtual void Update() __asm__("UpdateRcPickup");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetCid108ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitRcPickup");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostRcPickupLoad");   /* slot 15 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottankPickup");   /* slot 26 */
-};
-typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
+/* 77 ROBOTTANK and 108 CID108 (key TU tu_1D1370): sly2/tank.h */
+#include "sly2/tank.h"
 
 /* 112 CID112 (0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
 struct CID112 : LO
