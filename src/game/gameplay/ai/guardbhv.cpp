@@ -3709,24 +3709,21 @@ void BHV161::OnPush()
 
 // 0x1796D0 StartBhvHurt
 namespace M_func_001796D0 { extern "C" {
-struct E; struct T; struct T2; struct S;
-struct E { int kind; int a, b, c; };
-struct T { char pad[0xA70]; struct E hurtReactions[1]; };
+struct T2; 
 struct T2 { char pad[0xF64]; void *detector; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct E *binding; char pad3[0xC]; int attacker; char pad4[8]; void *zapKind; };
 extern char D_002DEB30[];
-int GetZapKindIndex(void *p);
-void StartBhvhit(struct S *p);
+int GetZapKindIndex(int p);
+void StartBhvhit(BHV161 *p);
 void BroadcastGameEvent(void *g, int event, void *p);
-void SetDetectorTargetStateById(void *p, int a, int b);
+void SetDetectorTargetStateById(void *p, LO *a, int b);
 // 0x1796D0: Hurt behaviour vtable slot 8 (Start): picks the reaction from the hurt table by zap kind, BHVHIT Start,
 // broadcasts game event 0x15 and marks the attacker on the detector.
-void StartBhvHurt(struct S *behavior) {
-    behavior->binding = &behavior->guard->hurtReactions[GetZapKindIndex(behavior->zapKind)];
+void StartBhvHurt(BHV161 *behavior) {
+    behavior->binding = &((STEPGUARD *)behavior->owner)->hurtReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
-    BroadcastGameEvent(D_002DEB30, 0x15, behavior->guard);
-    SetDetectorTargetStateById(((struct T2 *)behavior->guard)->detector, behavior->attacker, 2);
+    BroadcastGameEvent(D_002DEB30, 0x15, ((STEPGUARD *)behavior->owner));
+    SetDetectorTargetStateById(((struct T2 *)((STEPGUARD *)behavior->owner))->detector, behavior->attacker, 2);
 }
 } } // namespace M_func_001796D0
 
