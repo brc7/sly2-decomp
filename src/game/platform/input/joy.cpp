@@ -301,6 +301,7 @@ void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
     joy->tJoys = D_002DDED0.realTime;
 }
 
+// Single-precision square root (sqrt.s).
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 // Converts one stick's raw bytes into x/y in -1..1 with a dead zone, its deflection, and whether it moved (compared
 // with the previous bytes); the LM ranges shape the response.

@@ -156,6 +156,7 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
     return sum;
 }
 
+// Index of the symbol pchz in the schema's symbol table.
 static inline int FindSchemaSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
 
 // Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
@@ -368,6 +369,7 @@ CRef SetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
     return ref;
 }
 
+// Read the save variable key as an int.
 static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
 {
     CRef ref = GetGlobalSaveVar(key, saveSet);
@@ -454,6 +456,7 @@ extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
     symbolTable->asym = (SVSYM *)AllocFromWorldHeap(&memreq);
 }
 
+// Upper-case form of ch.
 static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch; }
 
 // Save-name hash, save's copy of HashStringCaseInsensitive (core/containers) without the null check: h*33+toupper(c).
@@ -562,6 +565,7 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
 static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SVSET *saveSet) { return GetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
+// Write the save variable key into the world's global save store.
 static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet)
 {
     return SetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
@@ -624,6 +628,7 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     return key;
 }
 
+// Write *pref into the global save variable key.
 static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
@@ -657,7 +662,9 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
     }
 }
 
+// Read the global save variable key as an int.
 static inline int GetGlobalSaveVarInt(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
+// Read the global save variable key as a float.
 static inline float GetGlobalSaveVarFloat(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.

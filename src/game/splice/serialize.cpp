@@ -14,10 +14,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct NODE; struct OBJ; struct T18; struct T19; struct BIS;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; float *ag; NODE *pnode; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &r);
     void Decref();
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(int n) __asm__("SetS32__4CRefi");
@@ -27,6 +29,7 @@ struct CRef {
     CRef &operator=(T18 *p) __asm__("CRef_SetSymid");     // tag 0x18
     CRef &operator=(T19 *p) __asm__("CRef_SetBifk");      // tag 0x19
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
+    // Release the current value and retag the reference.
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 extern int D_003E1C34;
@@ -55,15 +58,20 @@ struct NODE {
     int x4;
     CRef ref;
     CPairPtr pnext;
+    // Unlink the pair from the GC list and free it back to its slot pool.
     void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };
 struct SPN {
     NODE *p;
     void Set(NODE *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Uninitialised counted pointer.
     SPN() {}
+    // Hold the object (adds a reference).
     SPN(NODE *pn) { Set(pn); }
     SPN(const SPN &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    // Access the held object.
     NODE *operator->() { return p; }
 };
 extern "C" SPN DeserializePair__FP18CBinaryInputStream(BIS *pbis);

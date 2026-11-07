@@ -17,6 +17,7 @@ extern char D_002A28D0[];   /* the BMP header the global BMP is copied from */
 struct RGBA
 {
     unsigned char r, g, b, a;
+    // Color from its four components.
     RGBA(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) { r = red; g = green; b = blue; a = alpha; }
 };
 
@@ -24,11 +25,13 @@ struct RGBA
 struct CLUT
 {
     int words[8];
+    // Color lookup table header copied from source.
     CLUT(void *source) { CopyClutHeader(this, source); }
 };
 struct BMP
 {
     int words[10];
+    // Bitmap header copied from source.
     BMP(void *source) { CopyBitmapHeader(this, source); }
 };
 

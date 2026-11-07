@@ -60,6 +60,7 @@ LO *FindSwObject(SW *world, int findFlags, OID oid, LO *context);
 WIPE D_00443740;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
+// True when two file records name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int IsSameFileRecord(FILEREC *first, FILEREC *second)
 {
     if (first == second) return 1;

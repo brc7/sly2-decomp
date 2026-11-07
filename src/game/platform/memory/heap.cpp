@@ -26,6 +26,7 @@ void *AllocFromWorldHeap(MSG *request);   /* SW bump allocator */
    definition's own derived type: an inline member of CSwHeap would get an out-of-line copy here, CSwHeap's key TU. */
 struct CSwHeapG : CSwHeap
 {
+    // Heap with no alignment set yet (-1).
     CSwHeapG() { cbAlign = -1; }
 };
 CSwHeapG D_002DD590;

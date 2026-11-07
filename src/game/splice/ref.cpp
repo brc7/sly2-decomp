@@ -64,6 +64,7 @@ template <class T>
 struct SPREL
 {
     T *p;
+    // Drop the held object's reference, deleting it on the last one.
     ~SPREL() { T *pt = p; if (pt && --pt->cref == 0) delete pt; }
 };
 
@@ -99,12 +100,14 @@ struct SPW
 {
     CPair *p;
     SPW(const SPW &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPW() { CPair *pair = p; if (pair && --pair->cref == 0) delete pair; }
 };
 struct SPO
 {
     CProc *p;
     SPO(const SPO &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPO() { CProc *proc = p; if (proc && --proc->m_cref == 0) delete proc; }
 };
 extern "C" {

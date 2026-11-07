@@ -150,8 +150,11 @@ extern "C" void CGc_UpdateRecyclable()
     CGcObj<CMethod>::s_ptRecycle = CGcObj<CMethod>::s_ptFirst;
 }
 
+// Push a pair onto the GC's node mark stack.
 static inline void PushNode(CGc *pgc, CPair *pn) { pgc->apNode[pgc->cNode++] = pn; }
+// Push a closure onto the GC's mark stack.
 static inline void PushClo(CGc *pgc, CProc *pc) { pgc->apClo[pgc->cClo++] = pc; }
+// Push a frame onto the GC's mark stack.
 static inline void PushFrame(CGc *pgc, CFrame *pf) { pgc->apFrame[pgc->cFrame++] = pf; }
 
 /* Mark one reference: pairs (tag 0x1F) and procs (0x20) are pushed, methods (0x22) only marked. In MarkLiveObjects
@@ -276,6 +279,7 @@ extern "C" void CGc_MarkRootRef(CGc *pgc, CRef *pref)
     }
 }
 
+// Allocate the GC mark stack for c entries.
 static inline void *PvAllocMarkStack(int c)
 {
     MSG msg;

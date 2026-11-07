@@ -64,22 +64,29 @@ extern "C" int IsRumbleEnabled(void);
 /* The CRef spelling ResetRumbleSaveVar matched with: an empty default constructor, a copy constructor through
    __4CRefRC4CRef declared returning this (void did not match), and a raw {tagk, tag} source type. */
 struct RAW { int m_tagk; int m_tag; };
+// Store a bool into a raw script reference (tag 0x17).
 static inline void SetBool2(RAW *p, int f) { p->m_tag = f; p->m_tagk = 0x17; }
 struct CRef {
     int m_tagk; int m_tag;
+    // Uninitialised script reference.
     CRef() {}
+    // Script reference holding an int (tag 0x15).
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
     CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
+    // Copy a script reference (adds a reference).
     CRef(const RAW &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" CRef SetGlobalSaveVar(void *saveVar, const CRef &ref, void *p);
 extern "C" CRef GetGlobalSaveVar(void *saveVar, void *p);
+// Store a script reference into a global save variable.
 static inline void SetPv(void *saveVar, const RAW &r, void *)
 {
     CRef arg(r);
     const CRef &ret = SetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
+// Store the raw script reference into the save variable.
 static inline void SetPv2(void *saveVar, const RAW &r)
 {
     CRef arg(r);
