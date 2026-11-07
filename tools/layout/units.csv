@@ -2962,7 +2962,7 @@ GetGrabspotFromLo,0x184670,grabspot
 StaticInit_grabspot,0x184750,grabspot
 func_00184888,0x184888,grabspot
 CStreamBis_ctor,0x1848A8,tu_1848A8
-func_00184950,0x184950,tu_1848A8
+_$_10CStreamBis,0x184950,tu_1848A8
 RefillStreamFromCd,0x1849A0,tu_1848A8
 RefillStreamFromFile,0x184C60,tu_1848A8
 CStreamBis_Refill,0x184CA0,tu_1848A8

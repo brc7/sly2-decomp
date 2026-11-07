@@ -1083,7 +1083,7 @@ typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *CStreamBis_ctor(BIS *,int,void *,int);
-extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
+extern "C" void DestroyCStreamBis(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void InitFileKey(KEY *);
 extern "C" void *AllocFromStack(MSG *);
 extern "C" int OpenStreamFromFileKey(BIS *,KEY *);
@@ -1158,7 +1158,7 @@ extern "C" void LoadWidgetSprites(S *widget) {
     version=U16Read__18CBinaryInputStream(bs);
     if(!strncmp(work.tmp.magic,D_002A8AE8,4)&&version==6)goto load;
 fail:
-    func_00184950(bs,2);
+    DestroyCStreamBis(bs,2);
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
     return;
 load:
@@ -1166,7 +1166,7 @@ load:
     LoadSpriteTable(widget,bs,widget,&widget->spriteCount,&widget->sprites);
     LoadSpriteGroups(widget,bs,widget);
     widget->deferredLoad->lastPriority=D_003E1C70.priority;
-    func_00184950(bs,2);
+    DestroyCStreamBis(bs,2);
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
 }
 } // namespace M_LoadWidgetSprites

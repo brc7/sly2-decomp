@@ -63,7 +63,7 @@ void BuildWorldBackgroundImage(void *world, void *pzpr);
 void InitFileKey(void *p);
 void *GetFileIdName(void *p);
 void CStreamBis_ctor(void *p, int k, void *pv, int n);
-void func_00184950(void *p, int n);
+void DestroyCStreamBis(void *p, int n);
 void LoadSwSharedHeaderFromBrx(int n, BIS *stream);
 void LoadSwSpliceFromBrx(void *world, int n, BIS *stream);
 void LoadShadersFromBrx(void *pa, void *pb, BIS *stream);

@@ -804,7 +804,7 @@ void SetPhase__F5PHASE(int);
 void InitFileKey(KEY *);
 STREAM *CStreamBis_ctor(STREAM *,int,void *,int);
 int OpenStreamFromFileKey(STREAM *,KEY *);
-void func_00184950(STREAM *,int) __asm__("_$_10CStreamBis");
+void DestroyCStreamBis(STREAM *,int) __asm__("_$_10CStreamBis");
 void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
@@ -889,7 +889,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     register STREAM *reader __asm__("$21");
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
     CStreamBis_ctor(argument,0xD8000,D_002F7980,0);
-    if(hasFile&&!OpenStreamFromFileKey(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
+    if(hasFile&&!OpenStreamFromFileKey(reader,&key)){DestroyCStreamBis(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(world);
@@ -941,7 +941,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     ClearPhase(2);
     ResumeWipeAfterLoad(D_00443740);
     if(!hasFile)RunNextStartupStep(D_002E1E88);
-    func_00184950(reader,2);
+    DestroyCStreamBis(reader,2);
     STACKSCOPE_ctor_1AE4A0(scope,2);
 }
 } // namespace M_ExecuteSwTransition
