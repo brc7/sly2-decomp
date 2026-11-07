@@ -1815,14 +1815,6 @@ static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
         v.q = VuDivByX(v.q, len);
 }
 
-#define V4(a) virtual void a##0(); virtual void a##1(); virtual void a##2(); virtual void a##3();
-struct BASE { int x0, x4, x8; };
-struct P : BASE {
-    V4(a) V4(b) V4(c) V4(d) V4(e) V4(f) V4(g) V4(h)
-    virtual qword GetVel();            /* 33 */
-};
-struct PX { char pad[0x10DC]; P *py; };
-struct S { P *p; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002BC998;
@@ -1830,25 +1822,25 @@ extern float D_002BC99C;
 extern float D_002BC9A0;
 extern SMP D_002BC9A8;
 extern qword D_002A2DC0, D_002A2DA0;
-qword GetLoWorldPos(P *p);
+qword GetLoWorldPos(LO *p);
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float ClampAbs__Fff(float g, float gMax);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
-void AddSoAcceleration(P *p, qword v);
+void AddSoAcceleration(STEPPLAYER *p, qword v);
 }
 
 // Corrects Bentley's relative velocity and position against the object he rides. (inferred)
-extern "C" void CorrectBentleyRideVelocity(S *s)
+extern "C" void CorrectBentleyRideVelocity(JTREC *s)
 {
-    P *p = s->p;
-    P *py = ((PX *)p)->py;
+    STEPPLAYER *p = s->player;
+    SO *py = (SO *)p->interactTarget;
     if (py == 0)
         return;
     float maxValue = D_002BC99C * D_002BC99C / D_002BC998 + D_002BC9A0;
-    qword dv = VuSub(p->GetVel(), py->GetVel());
+    qword dv = VuSub(p->GetVelocity(), py->GetVelocity());
     UQ n;
-    qword d0 = VuSub(GetLoWorldPos(s->p), GetLoWorldPos(py));
+    qword d0 = VuSub(GetLoWorldPos(s->player), GetLoWorldPos(py));
     n.q = VuSub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
@@ -1865,7 +1857,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.deltaTime);
     mc = m;
     qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.deltaTime));
-    AddSoAcceleration(s->p, LimitVectorLength(r, maxValue));
+    AddSoAcceleration(s->player, LimitVectorLength(r, maxValue));
 }
 } // namespace M_func_00137248
 
