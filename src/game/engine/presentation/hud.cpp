@@ -978,26 +978,21 @@ namespace RO_ORDER { extern const char r_D_002A8AE0[] __asm__("D_002A8AE0") = "&
 namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "ZRB."; }
 // 0x212A70 SetWidgetState
 namespace M_SetWidgetState { extern "C" {
-struct S {
-    char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
-    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
-    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
-};
 struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: as UpdateWidget's: the view keeps &g_clock in a register (address folding) */
-extern SW D_003DD490;
 extern struct CLOCKIsland D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
 void SetClockRate(struct CLOCKIsland *,int,float);
-void LoadWidgetSprites(struct S *);
-void UnloadWidgetSprites(struct S *);
-void StopWidgetMainAnim(struct S *);
-void StartWidgetMainAnim(struct S *,int);
+void LoadWidgetSprites(WIDGET *);
+void StopWidgetMainAnim(WIDGET *);
+void StartWidgetMainAnim(WIDGET *,int);
+} } // namespace M_SetWidgetState
 // The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
 // widget count and pauses the clock for pausing widgets.
-void SetWidgetState(struct S *widget, int state)
+extern "C" void SetWidgetState(WIDGET *widget, int state)
 {
+    using M_SetWidgetState::D_002DDED0;
+    using namespace M_SetWidgetState;
     if (widget->state == state)
         return;
     /* states >= VISIBLE are on screen */
@@ -1029,69 +1024,60 @@ void SetWidgetState(struct S *widget, int state)
     case WIDGET_STATE_DISAPPEARING: StartWidgetMainAnim(widget, widget->hideAnimId); break;
     }
 }
-} } // namespace M_SetWidgetState
 
 // 0x212C50 UpdateWidget
 namespace M_UpdateWidget { extern "C" {
-struct S {
-    char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
-    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
-    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
-};
 struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: a view based at +0x3C keeps &g_clock in a register; the full CLOCK folds the offset (UpdateWidget 107/123 off) */
 extern struct CLOCKIsland D_002DDED0;
-void UpdateLo(struct S *);
-int IsWidgetAnimPlaying(struct S *,int);
-void SetWidgetRequest(struct S *,int);
-void SetWidgetState(struct S *,int);
 void AdvanceWidgetSprite(void *,float);
+} } // namespace M_UpdateWidget
 // Per-frame widget update: advances the state machine from requests, animation completion and duration, and advances
 // the main sprite. Runtime-checked: state 1 hidden, 2 visible.
-void UpdateWidget(struct S *widget)
+void WIDGET::Update()
 {
-    int state;
-    UpdateLo(widget);
-    state = widget->state;
-    if (state == WIDGET_STATE_HIDDEN) {
-        if (widget->request == WIDGET_REQUEST_SHOW)
-            state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
-    } else if (widget->requestTime != D_002DDED0.time) {   /* not requested this frame */
-        switch (state) {
+    using M_UpdateWidget::D_002DDED0;
+    using namespace M_UpdateWidget;
+    int nextState;
+    LO::Update();
+    nextState = state;
+    if (nextState == WIDGET_STATE_HIDDEN) {
+        if (request == WIDGET_REQUEST_SHOW)
+            nextState = showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
+    } else if (requestTime != D_002DDED0.time) {   /* not requested this frame */
+        switch (nextState) {
         case WIDGET_STATE_VISIBLE:
-            if (!IsWidgetAnimPlaying(widget, widget->mainAnimId))
-                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-            if (widget->visibleTimeout > 0.0f && widget->visibleTimeout < D_002DDED0.time - widget->stateTime)
-                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-            if (widget->request == WIDGET_REQUEST_HIDE)
-                state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
+            if (!IsWidgetAnimPlaying(this, mainAnimId))
+                SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+            if (visibleTimeout > 0.0f && visibleTimeout < D_002DDED0.time - stateTime)
+                SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+            if (request == WIDGET_REQUEST_HIDE)
+                nextState = hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
             break;
         case WIDGET_STATE_APPEARING:
-            if (!IsWidgetAnimPlaying(widget, widget->showAnimId)) {
-                switch (widget->request) {
-                case WIDGET_REQUEST_HIDE: state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING; break;
-                case WIDGET_REQUEST_SHOW: state = WIDGET_STATE_VISIBLE; break;
+            if (!IsWidgetAnimPlaying(this, showAnimId)) {
+                switch (request) {
+                case WIDGET_REQUEST_HIDE: nextState = hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING; break;
+                case WIDGET_REQUEST_SHOW: nextState = WIDGET_STATE_VISIBLE; break;
                 }
             }
             break;
         case WIDGET_STATE_DISAPPEARING:
-            if (!IsWidgetAnimPlaying(widget, widget->hideAnimId)) {
-                switch (widget->request) {
-                case WIDGET_REQUEST_HIDE: state = WIDGET_STATE_HIDDEN; break;
-                case WIDGET_REQUEST_SHOW: state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING; break;
+            if (!IsWidgetAnimPlaying(this, hideAnimId)) {
+                switch (request) {
+                case WIDGET_REQUEST_HIDE: nextState = WIDGET_STATE_HIDDEN; break;
+                case WIDGET_REQUEST_SHOW: nextState = showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING; break;
                 }
             }
             break;
         }
     }
-    SetWidgetState(widget, state);
-    if (widget->mainAnimId != -1) {
+    SetWidgetState(this, nextState);
+    if (mainAnimId != -1) {
         float dt = g_clock.realDeltaTime;
-        widget->mainAnimTime += dt;
-        AdvanceWidgetSprite(widget->spriteGroups, dt);
+        mainAnimTime += dt;
+        AdvanceWidgetSprite(spriteGroups, dt);
     }
 }
-} } // namespace M_UpdateWidget
 
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
