@@ -275,11 +275,6 @@ struct CMMATQ
     qword rot[3];   /* rotation rows (row 0 the view direction, rows 1/2 the other two axes) */
     qword pos;      /* the camera position (CM::pos) */
 };
-/* The position row read through a pointer to the matrix: the original reads it at base &g_cm.mat, offset 0x30, where
- * g_cm.matq.pos is base &g_cm, offset 0x90 (sky's UpdateSky, relay's StartRelayScriptCamBlend). A template only so
- * that TUs which do not call it compile as before (a plain inline shifts g++'s local label numbers: cm.cpp's
- * function-static names s_rgba.N). */
-template <class MATQ> inline qword PosOfCmMatq(MATQ *pmatq) { return pmatq->pos; }
 
 /* CM: the camera: the policy stack, the view matrix, projection and frustum, fog, and the embedded policy objects.
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */

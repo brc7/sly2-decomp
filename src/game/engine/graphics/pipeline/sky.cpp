@@ -57,7 +57,8 @@ extern "C" void UpdateSky(SKYV *sky)
 {
     union V target;
     UpdateSo(sky);
-    target.q = PosOfCmMatq(&g_cm.matq);
+    CMMATQ *pmatq = &g_cm.matq;   /* through a pointer: read at base &g_cm.mat, offset 0x30 (g_cm.matq.pos is base &g_cm, offset 0x90) */
+    target.q = pmatq->pos;
     if (!sky->followCameraZ) target.f[2] = QwordZ(GetLoWorldPos(sky));
     sky->vtable[29].function((char *)sky + sky->vtable[29].delta, target.q);
 }

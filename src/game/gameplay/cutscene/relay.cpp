@@ -5410,7 +5410,10 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
         for (j = 0; j < 2; j++, ppt++) {
             CAMPOSE *pt = *ppt;
             if (FNear(*(qword *)&pt->pos, *zero))
-                *(qword *)&pt->pos = PosOfCmMatq(&g_cm.matq);
+            {
+                CMMATQ *pmatq = &g_cm.matq;   /* through a pointer: read at base &g_cm.mat, offset 0x30 */
+                *(qword *)&pt->pos = pmatq->pos;
+            }
             if (FNear(*(qword *)&pt->eul, *zero))
                 *(qword *)&pt->eul = DecomposeRotationMatrixToEuler(&g_cm.matq);
             if (pt->radFov == 0.0f)
