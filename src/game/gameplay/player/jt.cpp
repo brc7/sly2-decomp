@@ -1046,14 +1046,13 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189488 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
-int GetStepplayerMovementNoise(struct S *p);
+int GetStepplayerMovementNoise(JT *p);
 // JT slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1; then 1 (noisy) in JTS_Run/5/JTS_Interact/9, else -1.
-int GetJtMovementNoise(struct S *jt)
+int GetJtMovementNoise(JT *jt)
 {
     int r = GetStepplayerMovementNoise(jt);
     if (r != -1) return r;
-    switch (jt->n) {
+    switch (jt->state) {
     case 1: case 5: case 6: case 9:
         return 1;
     }
@@ -1063,11 +1062,10 @@ int GetJtMovementNoise(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001894F8 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
 // JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
-int IsJtFreeMoving(struct S *jt)
+int IsJtFreeMoving(JT *jt)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12: case 24:
         return 1;
     }
@@ -1077,27 +1075,20 @@ int IsJtFreeMoving(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189530 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x19A0]; struct O *a; struct O *b; struct O *c; };
-void IgnoreStepSlot87(struct S *p, int f);
-static __inline__ void Call(struct O *o, int n)
-{
-    struct VTE *e = &o->vt[21];
-    e->pfn((char *)o + e->d, n);
-}
+void IgnoreStepSlot87(JT *p, int f);
+static __inline__ void Call(LO *o, int n) { o->SetFlag8(n); }
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
-void SetJtPlayable(struct S *jt, int f)
+void SetJtPlayable(JT *jt, int f)
 {
     IgnoreStepSlot87(jt, f);
     if (f) {
-        Call(jt->a, 0);
-        Call(jt->b, 0);
-        Call(jt->c, 0);
+        Call(jt->unknown19A0, 0);
+        Call(jt->unknown19A4, 0);
+        Call(jt->unknown19A8, 0);
     } else {
-        Call(jt->a, 1);
-        Call(jt->b, 1);
-        Call(jt->c, 1);
+        Call(jt->unknown19A0, 1);
+        Call(jt->unknown19A4, 1);
+        Call(jt->unknown19A8, 1);
     }
 }
 } } // namespace M_func_00189530
@@ -1594,22 +1585,21 @@ extern "C" void RenderJtSelf(JT *jt, void *camera)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int caneState; char p3[0xC8]; void *hookChild; };
 qword GetLoWorldPos(void *p);
-void UpdateSoXfWorld(struct S *p);
+void UpdateSoXfWorld(JT *p);
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
-void UpdateJtWorldTransform(struct S *jt)
+void UpdateJtWorldTransform(JT *jt)
 {
-    jt->b = GetLoWorldPos(jt->hookChild);
-    jt->n = 0;
+    jt->aposBounds[1] = GetLoWorldPos(jt->unknown19A4);
+    jt->cposBounds = 0;
     UpdateSoXfWorld(jt);
-    if (!jt->caneState) {
-        jt->a = GetLoWorldPos(jt);
-        jt->c = GetLoWorldPos(jt->hookChild);
-        jt->n = 3;
+    if (!jt->animState) {
+        jt->aposBounds[0] = GetLoWorldPos(jt);
+        jt->aposBounds[2] = GetLoWorldPos(jt->unknown19A4);
+        jt->cposBounds = 3;
     } else {
-        jt->n = 0;
+        jt->cposBounds = 0;
     }
 }
 } } // namespace M_func_0018A278
@@ -1617,16 +1607,15 @@ void UpdateJtWorldTransform(struct S *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A2E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword aq[3]; char p2[0xEC]; float g; };
-void UpdateSoTreeBounds(struct S *p);
-void ExtendSoTreeBounds(struct S *p, qword q, float g);
+void UpdateSoTreeBounds(JT *p);
+void ExtendSoTreeBounds(JT *p, qword q, float g);
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
-void UpdateJtExtraEntries(struct S *jt)
+void UpdateJtExtraEntries(JT *jt)
 {
     int i;
     UpdateSoTreeBounds(jt);
-    for (i = 0; i < jt->n; i++)
-        ExtendSoTreeBounds(jt, jt->aq[i], jt->g);
+    for (i = 0; i < jt->cposBounds; i++)
+        ExtendSoTreeBounds(jt, jt->aposBounds[i], jt->rBounds);
 }
 } } // namespace M_func_0018A2E0
 
@@ -1635,13 +1624,12 @@ namespace M_func_0018A350 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword GetLoWorldPos(void *p);
-void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
+void GetStepplayerCameraFocusPosition(JT *p, UV *pv);
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
-void GetJtCameraTarget(struct S *jt, UV *pv)
+void GetJtCameraTarget(JT *jt, UV *pv)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 3:
         GetStepplayerCameraFocusPosition(jt, pv);
         pv->v.z = QwordZ(GetLoWorldPos(jt->hangHandle)) + -175.0f;
@@ -1662,19 +1650,18 @@ void GetJtCameraTarget(struct S *jt, UV *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
-struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char pipe[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 extern struct CLOCK D_002DDED0;
-void GetStepplayerCpdefi(struct S *p, int *pf);
+void GetStepplayerCpdefi(JT *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
-void GetJtCpdefi(struct S *jt, int *pf)
+void GetJtCpdefi(JT *jt, int *pf)
 {
-    if (jt->n != 0 && jt->n != 0x12 && jt->x4cc && jt->xf54 != 1)
-        jt->t = D_002DDED0.time;
+    if (jt->state != 0 && jt->state != 0x12 && jt->jtgrab.kind && jt->jtpipe.state != 1)
+        jt->lastMoveTime = D_002DDED0.time;
     GetStepplayerCpdefi(jt, pf);
-    switch (jt->n) {
+    switch (jt->state) {
     case 8:
-        GetJtPipeVelocity(jt->pipe, pf);
+        GetJtPipeVelocity(&jt->jtpipe, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -2313,20 +2300,19 @@ extern "C" void ChooseJtGroundState(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B2C0 { extern "C" {
-struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
-int IsStepplayerInJtMode(struct S *p);
+int IsStepplayerInJtMode(JT *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
-void UpdateJtModeInput(struct S *p)
+void UpdateJtModeInput(JT *p)
 {
     if (!IsStepplayerInJtMode(p))
         return;
-    if (p->jtModeState == 1 && !p->jtModeKind &&
-        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
-        EndJtMode(&p->xf00);
-    UpdateJtMode(&p->xf00);
+    if (p->jtmode.state == 1 && !p->jtmode.kind &&
+        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->unknown1D40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        EndJtMode(&p->jtmode);
+    UpdateJtMode(&p->jtmode);
 }
 } } // namespace M_func_0018B2C0
 
@@ -4022,13 +4008,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018D500 { extern "C" {
-struct S { char pad[0xF04]; int n; };
 int IsCameraPolicyActive__FP5CPLCY(void *p);
 // JT slot 106: 0 while the look mode runs (jtmode.state == 1) or the camera policy at g_cm+0x3A0 is on top, else 1 (inferred: the free-camera test, cf. CanJtUseGadget case 3).
-int IsJtCameraFree(struct S *jt)
+int IsJtCameraFree(JT *jt)
 {
     int r = 1;
-    if (jt->n == r) return 0;
+    if (jt->jtmode.state == r) return 0;
     if (IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
@@ -4063,11 +4048,10 @@ void SetJtPlayerState(void *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetJtPlayerState { extern "C" {
-struct S { char pad[0x18C8]; int n; };
 // JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
-int GetJtPlayerState(struct S *jt)
+int GetJtPlayerState(JT *jt)
 {
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: return 0;
     case 2: return 1;
     case 7: return 2;
@@ -4448,28 +4432,26 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
 namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "sly"; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DE80 { extern "C" {
-struct S { char pad[0x18C8]; int n; };
-void GetStepplayerStunHold(struct S *p, int *pf);
+void GetStepplayerStunHold(JT *p, STUNHOLD *pf);
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
-void GetJtStunHold(struct S *jt, int *pf)
+void GetJtStunHold(JT *jt, STUNHOLD *pf)
 {
     GetStepplayerStunHold(jt, pf);
-    switch (jt->n) {
+    switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12:
-        *pf = 1;
+        pf->fValid = 1;
     }
 }
 } } // namespace M_func_0018DE80
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
-struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int GetStepplayerGroundProbeFlags(struct S *p);
+int GetStepplayerGroundProbeFlags(JT *p);
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
-int GetJtGroundProbeFlags(struct S *p)
+int GetJtGroundProbeFlags(JT *p)
 {
-    if (p->x204) return 0;
-    switch (p->n) {
+    if (p->unknown204) return 0;
+    switch (p->state) {
     case 3: case 8: case 21: case 22:
         return 0;
     case 13: case 14:

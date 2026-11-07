@@ -74,9 +74,10 @@ struct JT : public STEPPLAYER
       SOPART *aprecJts[JTS_Max];   /* per-movement-state records (indexed by JTS) */
       undefined4 unk_0x1784[(0x17d0 - 0x1784) / 4];
       JTHANDS hands;   /* hand (grab) state */
-      int unknown1880;
+      int cposBounds;   /* +0x1880 number of extra bounds points (UpdateJtWorldTransform: 3 when not attacking, else 0) */
       undefined4 unknown1884[3];
-      qword unknown1890[3];
+      qword aposBounds[3];   /* +0x1890 extra points the SO tree bounds are extended by (UpdateJtExtraEntries): Sly's position and the
+                                hand object's, before and after the transform update */
       LO *attachedTo;       /* +0x18C0 [R] object Sly is attached to (ledge/pole/rope owner); was ploUnk18c0 */
       CID19 *hangHandle;    /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
       JTS state;            /* +0x18C8 [R] movement state: 0 Stand 1 Run 2 Air 3 Hang 4 Hurt 6 Interact 8 Pipe 11 Pickpocket
@@ -96,7 +97,7 @@ struct JT : public STEPPLAYER
       SO *unknown19A0;
       SO *unknown19A4;   /* possibly handObject (low-confidence guess: position used as posHand; its rootTransform for PredictAsegEffect) */
       LO *unknown19A8;
-      float unknown19AC;
+      float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
       undefined4 unk_0x19b4[(0x19c0 - 0x19b4) / 4];
       void *unknown19C0;
@@ -136,7 +137,7 @@ struct JT : public STEPPLAYER
       SOPART *unknown1A98;
       SOPART *unknown1A9C;
       SO *unknown1AA0;
-      float unknown1AA4;
+      float lastMoveTime;   /* +0x1AA4 clock.time while Sly moves or grabs (GetJtCpdefi) */
       struct EXPL *pexplDustLand;   /* dust effect on landing */
       struct EXPL *pexplDustGrab;   /* dust effect on grabbing */
       undefined4 unk_0x1ab0[(0x1ac0 - 0x1ab0) / 4];
