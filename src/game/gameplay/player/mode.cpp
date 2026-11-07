@@ -247,7 +247,7 @@ extern "C" void PostLoadJtMode(JTMODE *jtMode)
  * Purpose: Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1)
  *   first; store kind (+0x20) and enter state 0
  * Info: proposed name StartJtMode (T1); TU mode
- * Notes: runtime4: started by 0x400 + FCanUseGadget(3) in Murray switch = JTMODE look mode | runtime5a
+ * Notes: runtime4: started by 0x400 + CanUseGadget(3) in Murray switch = JTMODE look mode | runtime5a
  *   #9-#11: JTMODE kind 0 = binocucom for Sly/Murray/Bentley (shared component +0xF00)
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
@@ -326,11 +326,11 @@ void SetJtModeState(JTMODE *jtMode, int state)
                         STEP *step = jtMode->pstepOther;
                         if (step)
                         {
-                            step->VUnk83(0x3F, 1);
+                            step->RemoveDialogSmRefs(0x3F, 1);
                             SetSoCnstrForce(step, 0);
                         }
                     }
-                    jtMode->pstepplayer->VUnk83(0x3F, 0);
+                    jtMode->pstepplayer->RemoveDialogSmRefs(0x3F, 0);
                     break;
                 case 2:
                     RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, jtMode->pstepOther, 0);
@@ -340,7 +340,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
             SetSndmgrChannelVolume(&D_003DD040, 0, 1.0f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 1.0f, 3);
             if (jtMode->nKind != 2)
-                jtMode->pstepplayer->VUnk86(0);
+                jtMode->pstepplayer->SetPlayable(0);
             jtMode->nState = state;
             break;
         case -1:
@@ -389,7 +389,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                         STEP *step = jtMode->pstepOther;
                         if (step)
                         {
-                            step->VUnk82(0x3F, 1);
+                            step->AddDialogSmRefs(0x3F, 1);
                             SetSoCnstrForce(step, 1);
                             ClearXyz(&step->vUnk190);
                             step->SetVelocity(D_002A2DD0);
@@ -398,7 +398,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     }
                     jtMode->hud.SetWidgetCur(jtMode->ploHudOverride);
                     jtMode->hud.SetState(0);
-                    jtMode->pstepplayer->VUnk82(0x3F, 0);
+                    jtMode->pstepplayer->AddDialogSmRefs(0x3F, 0);
                     break;
                 case 2:
                     SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)jtMode->pstepOther, 0);
@@ -412,7 +412,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
             SetSndmgrChannelVolume(&D_003DD040, 0, 0.6f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 0.6f, 3);
             if (jtMode->nKind != 2)
-                jtMode->pstepplayer->VUnk86(1);
+                jtMode->pstepplayer->SetPlayable(1);
             break;
         case 2:
             jtMode->hud.SetState(2);
@@ -440,7 +440,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
             jtMode->nKind = -1;
             break;
     }
-    if (aseg && !jtMode->pstepplayer->VUnk93())
+    if (aseg && !jtMode->pstepplayer->IsFreeMoving())
         aseg = 0;
     ReplaceCurrentAseg(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
 }

@@ -98,7 +98,7 @@ struct MURRAY : public STEPPLAYER
       struct ACT1 *pact1Unk1acc;
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
-    virtual int VUnk93() __asm__("func_001B8180");   /* slot 94 */
+    virtual int IsFreeMoving() __asm__("func_001B8180");   /* slot 94 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */
@@ -109,19 +109,19 @@ struct MURRAY : public STEPPLAYER
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustMurrayNewXp");   /* slot 55 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMurrayIgnoreIntersection");   /* slot 61 */
     virtual void PresetAccel() __asm__("PresetMurrayAccel");   /* slot 70 */
-    virtual int FInvulnerable(ZPK zpk) __asm__("IsMurrayInvulnerable");   /* slot 76 */
-    virtual int VUnk84() __asm__("GetMurrayModeCode");   /* slot 85 */
-    virtual void VUnk86(int fOn) __asm__("SetMurrayPlayable");   /* slot 87 */
-    virtual void VUnk87(int n) __asm__("SetMurrayPlayerState");   /* slot 88 */
-    virtual int VUnk88() __asm__("GetMurrayPlayerState");   /* slot 89 */
-    virtual void VUnk89() __asm__("ApplyMurrayStateStepParams");   /* slot 90 */
-    virtual void VUnk90() __asm__("EndMurrayMeleeAttack");   /* slot 91 */
-    virtual int VUnk91() __asm__("TryFaceMurrayAttachedObject");   /* slot 92 */
+    virtual int IsInvulnerable(ZPK zpk) __asm__("IsMurrayInvulnerable");   /* slot 76 */
+    virtual int GetGroundProbeFlags() __asm__("GetMurrayModeCode");   /* slot 85 */
+    virtual void SetPlayable(int fOn) __asm__("SetMurrayPlayable");   /* slot 87 */
+    virtual void SetPlayerState(int n) __asm__("SetMurrayPlayerState");   /* slot 88 */
+    virtual int GetPlayerState() __asm__("GetMurrayPlayerState");   /* slot 89 */
+    virtual void ApplyStateStepParams() __asm__("ApplyMurrayStateStepParams");   /* slot 90 */
+    virtual void EndMeleeAttack() __asm__("EndMurrayMeleeAttack");   /* slot 91 */
+    virtual int TryFaceAttachedObject() __asm__("TryFaceMurrayAttachedObject");   /* slot 92 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetMurrayStunHold");   /* slot 96 */
-    virtual int VUnk97() __asm__("GetMurrayMovementNoise");   /* slot 98 */
-    virtual int FCanUseGadget(int idGadget) __asm__("CanMurrayUseGadget__6MURRAYi");   /* slot 99 */
+    virtual int GetMovementNoise() __asm__("GetMurrayMovementNoise");   /* slot 98 */
+    virtual int CanUseGadget(int idGadget) __asm__("CanMurrayUseGadget__6MURRAYi");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("UseMurrayGadget");   /* slot 100 */
-    virtual void VSlot103() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
+    virtual void GetSaveVarRoot() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_MURRAY_size[sizeof(MURRAY) == 0x1B00 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -184,7 +184,7 @@ struct BENTLEY : public STEPPLAYER
       int nUnk1870;
       int nUnk1874;
       undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
-    virtual void VSlot105() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
+    virtual void OnGadgetsChanged() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBentleyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBentleyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBentley");   /* slot 7 */
@@ -194,18 +194,18 @@ struct BENTLEY : public STEPPLAYER
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetBentleyCpdefi");   /* slot 50 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustBentleyXp");   /* slot 55 */
     virtual void PresetAccel() __asm__("PresetBentleyAccel");   /* slot 70 */
-    virtual int FInvulnerable(ZPK zpk) __asm__("IsBentleyInvulnerable");   /* slot 76 */
-    virtual int VUnk84() __asm__("GetBentleyModeCode");   /* slot 85 */
-    virtual void VUnk87(int n) __asm__("SetBentleyPlayerState");   /* slot 88 */
-    virtual int VUnk88() __asm__("GetBentleyPlayerState");   /* slot 89 */
-    virtual void VUnk89() __asm__("ApplyBentleyStateStepParams");   /* slot 90 */
-    virtual void VUnk90() __asm__("EndBentleyMeleeAttack");   /* slot 91 */
-    virtual int VUnk91() __asm__("TryFaceBentleyAttachedObject");   /* slot 92 */
-    virtual int VUnk93() __asm__("IsBentleyFreeMoving");   /* slot 94 */
-    virtual int VUnk97() __asm__("GetBentleyMovementNoise");   /* slot 98 */
-    virtual int FCanUseGadget(int idGadget) __asm__("CanBentleyUseGadget");   /* slot 99 */
+    virtual int IsInvulnerable(ZPK zpk) __asm__("IsBentleyInvulnerable");   /* slot 76 */
+    virtual int GetGroundProbeFlags() __asm__("GetBentleyModeCode");   /* slot 85 */
+    virtual void SetPlayerState(int n) __asm__("SetBentleyPlayerState");   /* slot 88 */
+    virtual int GetPlayerState() __asm__("GetBentleyPlayerState");   /* slot 89 */
+    virtual void ApplyStateStepParams() __asm__("ApplyBentleyStateStepParams");   /* slot 90 */
+    virtual void EndMeleeAttack() __asm__("EndBentleyMeleeAttack");   /* slot 91 */
+    virtual int TryFaceAttachedObject() __asm__("TryFaceBentleyAttachedObject");   /* slot 92 */
+    virtual int IsFreeMoving() __asm__("IsBentleyFreeMoving");   /* slot 94 */
+    virtual int GetMovementNoise() __asm__("GetBentleyMovementNoise");   /* slot 98 */
+    virtual int CanUseGadget(int idGadget) __asm__("CanBentleyUseGadget");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("StartBentleyGadget");   /* slot 100 */
-    virtual void VSlot103() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
+    virtual void GetSaveVarRoot() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

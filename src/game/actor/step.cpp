@@ -1406,7 +1406,7 @@ void LinkStepAttachment(struct O *step, void *pv, int f)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepAxisXps {
-// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
+// STEP::AddAxisXps (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
 // against the three axes of the frame BuildOrthonormalMatrixZ(direction, g_normalZ) builds. The contacts go
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.

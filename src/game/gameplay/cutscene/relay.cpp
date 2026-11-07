@@ -4213,7 +4213,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else if (pstepplayer->jtgrab.nKind != -1 && (pstepplayer->jtgrab.nState == 0 || pstepplayer->jtgrab.nState == 0xD))
             {
-                pstepplayer->VUnk87(0);
+                pstepplayer->SetPlayerState(0);
                 fComplete = 1;
             }
             else
@@ -4515,7 +4515,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
-            if (((STEPPLAYER *)script->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
+            if (((STEPPLAYER *)script->ploActor)->GetPlayerState() == prelaycmd->unk43.nUnk4)
             {
                 fComplete = 1;
             }
@@ -4655,7 +4655,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 if (pmurray->moverec.nState == 0)
                 {
-                    pmurray->VUnk87(0);
+                    pmurray->SetPlayerState(0);
                 }
                 fComplete = ((STEPPLAYER *)prelaycmd->unk5A.nUnk6)->jtair.nState == -1;
             }

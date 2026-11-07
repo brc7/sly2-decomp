@@ -134,13 +134,13 @@ struct STEPGUARD : public STEP
     virtual void AddExtraXps() __asm__("AddStepguardAttachContacts");   /* slot 59 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldStepguardIgnoreIntersection");   /* slot 61 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeStepguardDamage");   /* slot 75 */
-    virtual int FInvulnerable(ZPK zpk) __asm__("IsStepguardInvulnerable");   /* slot 76 */
-    virtual int JthsCurrent() __asm__("GetStepguardHealthState");   /* slot 77 */
-    virtual int VUnk84() __asm__("GetStepguardGroundProbeFlags");   /* slot 85 */
-    virtual int VUnk85(ZPR *pzpr) __asm__("IsStepguardZapLethal");   /* slot 86 */
-    virtual void VUnk86(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
-    virtual void VSlot87() __asm__("ChooseStepguardTarget");   /* slot 87: not yet identified (STEPGUARD adds 2 slots to STEP's 87) */
-    virtual void VSlot88() __asm__("CanStepguardSenseStimulus");   /* slot 88: not yet identified */
+    virtual int IsInvulnerable(ZPK zpk) __asm__("IsStepguardInvulnerable");   /* slot 76 */
+    virtual int GetHealthState() __asm__("GetStepguardHealthState");   /* slot 77 */
+    virtual int GetGroundProbeFlags() __asm__("GetStepguardGroundProbeFlags");   /* slot 85 */
+    virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepguardZapLethal");   /* slot 86 */
+    virtual void SetPlayable(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
+    virtual void ChooseTarget() __asm__("ChooseStepguardTarget");   /* slot 87: STEPGUARD adds 2 slots to STEP's 87; named from its overrides (inferred) */
+    virtual void CanSenseStimulus() __asm__("CanStepguardSenseStimulus");   /* slot 88: named from its overrides (inferred) */
 };
 typedef char assert_STEPGUARD_size[sizeof(STEPGUARD) == 0x1010 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_STEPGUARD_grfsg[SLY2_OFFSETOF(STEPGUARD, grfsg) == 0x2C0 ? 1 : -1];   /* CONFIRMED runtime */

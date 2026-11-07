@@ -360,8 +360,8 @@ struct CARMELITA : STEPGUARD
     virtual CLASSINFO *Pclassinfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */
     virtual void PostLoad() __asm__("PostCarmelitaLoad");   /* slot 15 */
-    virtual int VUnk85(ZPR *pzpr) __asm__("IsCarmelitaZapLethal");   /* slot 86 */
-    virtual void VSlot87() __asm__("ChooseCarmelitaTarget");   /* slot 88 */
+    virtual int IsZapLethal(ZPR *pzpr) __asm__("IsCarmelitaZapLethal");   /* slot 86 */
+    virtual void ChooseTarget() __asm__("ChooseCarmelitaTarget");   /* slot 88 */
 };
 typedef char assert_CARMELITA_size[sizeof(CARMELITA) == 0x1020 ? 1 : -1];
 
@@ -1589,8 +1589,8 @@ struct RAJAN : STEPGUARD
     char pad1010[0x1020 - 0x1010];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRajanClassDesc");   /* slot 6 */
-    virtual void VSlot88() __asm__("CanRajanSenseStimulus");   /* slot 89 */
-    virtual void VSlot90() __asm__("SetRajanCameraFocus");   /* slot 90 */
+    virtual void CanSenseStimulus() __asm__("CanRajanSenseStimulus");   /* slot 89 */
+    virtual void SetCameraFocus() __asm__("SetRajanCameraFocus");   /* slot 90 */
 };
 typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 

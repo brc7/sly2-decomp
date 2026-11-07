@@ -384,7 +384,7 @@ struct CRef {
 };
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int, void *, int, void **, CRef *); };
 /** @sly2-annot addr=0x1C41B8
- * Purpose: PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and
+ * Purpose: PO virtual slot 80 (Lilly CanBeHealed): sends message 0xD with a bool CRef (default 1) and
  *   returns the answer
  * Info: proposed name CanPoBeHealed (T1); class PO slot80; TU po
  * Notes: names_v2 C proposed InitRoh__FP3ROH (0.638)

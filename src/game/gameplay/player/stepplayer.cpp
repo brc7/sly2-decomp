@@ -7,7 +7,7 @@
 //
 // Types: sly2/stepplayer.h's STEPPLAYER and its sub-records (jtgrab, jthurt, jtmode, jtthrow, agadgetslot...) for
 // the m2c bodies, with real virtual calls (slots 87, 88, 99, 101); three unnamed words through macros (as
-// tu_144B28.cpp does). The slots JthsCurrent, FCanUseGadget and FCanBeHealed are STEPPLAYER members here (symbols
+// tu_144B28.cpp does). The slots GetHealthState, CanUseGadget and CanBeHealed are STEPPLAYER members here (symbols
 // GetStepplayerHealthState__10STEPPLAYER etc.). The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepplayer
@@ -642,7 +642,7 @@ struct X { char pad[0x1010]; qword pos; };
 void SetJtAirJump(void *p, int a, int b, int c);
 void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
 /** @sly2-annot addr=0x140C30
- * Purpose: vt82 (STEP VUnk81(grf,plo,qw..)): if other LO not in world (bit60 of +0x28) reset jtair (0x195A00
+ * Purpose: vt82 (STEP AddAxisXps(grf,plo,qw..)): if other LO not in world (bit60 of +0x28) reset jtair (0x195A00
  *   state 0), else call STEP base 0x205008 with v - pos
  * Info: proposed name STEPPLAYER_VUnk81 (T2); class STEPPLAYER slot82; TU stepplayer
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
@@ -829,7 +829,7 @@ extern "C" void TakeStepplayerDamage(STEPPLAYER *player, ZPR *damage)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 77: the hurt component status (GetJtHurtStatus).
-int STEPPLAYER::JthsCurrent()
+int STEPPLAYER::GetHealthState()
 {
     return GetJtHurtStatus(&jthurt);
 }
@@ -1322,7 +1322,7 @@ int GetStepplayerMp(struct P *p);
 void SetGadgetSlotState(struct P *p, struct E *pe, int n);
 /** @sly2-annot addr=0x141A50
  * Purpose: Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99
- *   FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - error sound 0x2E or start; while held call
+ *   CanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - error sound 0x2E or start; while held call
  *   vt101, release -> stop
  * Info: proposed name UpdateStepplayerGadgets (T1); TU stepplayer
  * Notes: runtime3/4: 3 gadget slots, buttons {4,1,2}
@@ -1377,7 +1377,7 @@ void UpdateStepplayerGadgets(struct P *player)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 99 default: no gadget is usable (returns 0).
-int STEPPLAYER::FCanUseGadget(int gadgetId)
+int STEPPLAYER::CanUseGadget(int gadgetId)
 {
     return 0;
 }
@@ -1678,7 +1678,7 @@ extern "C" void SetStepplayerGrabTarget(STEPPLAYER *player, LO *lo)
     if (lo != 0) {
         SetJtGrabState(&player->jtgrab, 5, lo, 0);
     } else if (player->jtgrab.nState == 5) {
-        player->VUnk87(0);
+        player->SetPlayerState(0);
     }
 }
 
@@ -1712,7 +1712,7 @@ extern "C" void SetStepplayerGrabTargetAlt(STEPPLAYER *player, LO *lo)
         SetJtGrabState(&player->jtgrab, 5, lo, 0);
         SetJtHandsTargetAttached(&player->jtgrab.hands, lo);
     } else if (player->jtgrab.nState == 5) {
-        player->VUnk87(0);
+        player->SetPlayerState(0);
     }
 }
 
@@ -1789,7 +1789,7 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
     if (lo != 0) {
         SetJtGrabState(&player->jtgrab, 9, lo, 0);
     } else if (player->jtgrab.nState == 9) {
-        player->VUnk87(0);
+        player->SetPlayerState(0);
     }
 }
 
@@ -3191,7 +3191,7 @@ void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
 extern "C" void StopStepplayerScriptAnim(STEPPLAYER *player)
 {
     if (IsStepplayerInScriptState(player) != 0) {
-        player->VUnk87(0);
+        player->SetPlayerState(0);
     }
 }
 
@@ -3204,7 +3204,7 @@ extern "C" void StopStepplayerScriptAnim(STEPPLAYER *player)
 // Whether the generic player state (slot 89) is 5 or 6.
 extern "C" int IsStepplayerInScriptState(STEPPLAYER *player)
 {
-    return (unsigned int)(player->VUnk88() - 5) < 2;
+    return (unsigned int)(player->GetPlayerState() - 5) < 2;
 }
 
 /** @sly2-annot addr=0x144068
@@ -3230,7 +3230,7 @@ extern "C" int IsStepplayerPushing(STEPPLAYER *player)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 80: PO heal check, and not dead (hurt status != 2).
-int STEPPLAYER::FCanBeHealed()
+int STEPPLAYER::CanBeHealed()
 {
     if (CanPoBeHealed(this) == 0) {
         return 0;
@@ -3371,7 +3371,7 @@ void AddStepDialogSmRefs(void *p, int a, int b);
 void PlayStepplayerScriptAnim(void *p, int a, int b, int c);
 void SetJtModeState__FP6JTMODEi(void *p, int a);
 /** @sly2-annot addr=0x1442D0
- * Purpose: vt83 (STEP VUnk82(grf,fCount)): base 0x205478; when counting and +0x12F4 goes 0->1 play script
+ * Purpose: vt83 (STEP AddDialogSmRefs(grf,fCount)): base 0x205478; when counting and +0x12F4 goes 0->1 play script
  *   anim 0x60B and reset jtmode
  * Info: proposed name STEPPLAYER_VUnk82 (T2); class STEPPLAYER slot83; TU stepplayer
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
@@ -3394,7 +3394,7 @@ namespace M_func_00144338 { extern "C" {
 void RemoveStepDialogSmRefs(void *p, int a, int b);
 void StopStepplayerScriptAnim(void *p);
 /** @sly2-annot addr=0x144338
- * Purpose: vt84 (STEP VUnk83(grf,fCount)): base 0x205588; when +0x12F4 drops to 0 stop the script anim
+ * Purpose: vt84 (STEP RemoveDialogSmRefs(grf,fCount)): base 0x205588; when +0x12F4 drops to 0 stop the script anim
  * Info: proposed name STEPPLAYER_VUnk83 (T2); class STEPPLAYER slot84; TU stepplayer
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
@@ -3488,7 +3488,7 @@ namespace M_func_00144418 { extern "C" {
 /* only diff: original assembler padded a backward branch (to a jr) with a nop at 0x14443C; asfix.py does not pad when a jump is in between. Code otherwise identical. */
 struct Q { char pad[0xC]; int c; int n; };
 /** @sly2-annot addr=0x144418
- * Purpose: vt86 (STEP VUnk85(ZPR*)->int): 0 if damage below hp max or zap kind in {0,1,0x80000,0x100000},
+ * Purpose: vt86 (STEP IsZapLethal(ZPR*)->int): 0 if damage below hp max or zap kind in {0,1,0x80000,0x100000},
  *   else 1
  * Info: proposed name STEPPLAYER_VUnk85 (T2); class STEPPLAYER slot86; TU stepplayer
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest

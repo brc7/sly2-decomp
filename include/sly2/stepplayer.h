@@ -527,36 +527,36 @@ struct STEPPLAYER : public STEP
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void CalculateContactResponse(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
     virtual void AddWaterAcceleration() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
-    virtual void VUnk87(int n) __asm__("__pure_virtual");
-    virtual int VUnk88() __asm__("__pure_virtual");
-    virtual void VUnk89() __asm__("__pure_virtual");
-    virtual void VUnk90() __asm__("__pure_virtual");
-    virtual int VUnk91() __asm__("__pure_virtual");
+    virtual void SetPlayerState(int n) __asm__("__pure_virtual");
+    virtual int GetPlayerState() __asm__("__pure_virtual");
+    virtual void ApplyStateStepParams() __asm__("__pure_virtual");
+    virtual void EndMeleeAttack() __asm__("__pure_virtual");
+    virtual int TryFaceAttachedObject() __asm__("__pure_virtual");
       virtual void OnHeroDied() __asm__("OnStepplayerHeroDied");
-    virtual int VUnk93() __asm__("__pure_virtual");
+    virtual int IsFreeMoving() __asm__("__pure_virtual");
       virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight) __asm__("SetStepplayerPlayerInteractMode");
       virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetStepplayerStunHold");
-      virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCameraFocusPosition");
-    virtual int VUnk97() __asm__("GetStepplayerMovementNoise");
-      virtual int FCanUseGadget(int idGadget) __asm__("CanStepplayerUseGadget__10STEPPLAYERi");
+      virtual void GetCameraFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCameraFocusPosition");
+    virtual int GetMovementNoise() __asm__("GetStepplayerMovementNoise");
+      virtual int CanUseGadget(int idGadget) __asm__("CanStepplayerUseGadget__10STEPPLAYERi");
       virtual void StartGadget(int idGadget) __asm__("StartStepplayerGadget");
     virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeStepplayerDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int FInvulnerable(ZPK zpk) __asm__("IsStepplayerInvulnerable");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int JthsCurrent() __asm__("GetStepplayerHealthState__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepplayerAxisXps");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk82(uint grf, int fCount) __asm__("AddStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk83(uint grf, int fCount) __asm__("RemoveStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk84() __asm__("GetStepplayerModeCode");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int FCanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int IsInvulnerable(ZPK zpk) __asm__("IsStepplayerInvulnerable");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int GetHealthState() __asm__("GetStepplayerHealthState__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void AddAxisXps(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepplayerAxisXps");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void AddDialogSmRefs(uint grf, int fCount) __asm__("AddStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void RemoveDialogSmRefs(uint grf, int fCount) __asm__("RemoveStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int GetGroundProbeFlags() __asm__("GetStepplayerModeCode");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int CanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk85(ZPR *pzpr) __asm__("ShouldStepplayerVetoDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual void VSlot101() __asm__("UpdateStepplayerGadget");   /* slot 101: not yet identified */
-    virtual void VSlot102() __asm__("StopStepplayerGadget");   /* slot 102: not yet identified */
-    virtual void VSlot103() __asm__("__pure_virtual");   /* slot 103: not yet identified */
-    virtual void VSlot104() __asm__("SendStepplayerPowerupEvent");   /* slot 104: not yet identified */
-    virtual void VSlot105() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: not yet identified */
+    virtual int IsZapLethal(ZPR *pzpr) __asm__("ShouldStepplayerVetoDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void UpdateGadget() __asm__("UpdateStepplayerGadget");   /* slot 101: named from its overrides (inferred) */
+    virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
+    virtual void GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: named from its overrides (inferred) */
+    virtual void SendPowerupEvent() __asm__("SendStepplayerPowerupEvent");   /* slot 104: named from its overrides (inferred) */
+    virtual void OnGadgetsChanged() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: named from its overrides (inferred) */
 };
 typedef char assert_STEPPLAYER_size[sizeof(STEPPLAYER) == 0x1320 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.nHpMax) == 0xDFC ? 1 : -1];   /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */

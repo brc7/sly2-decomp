@@ -99,12 +99,12 @@ struct STEP : public PO
     virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
     virtual int GetExtraPartCount() __asm__("GetStepExtraPartCount");   /* slot 63 */
     virtual void PresetAccel() __asm__("PresetStepAccel");   /* slot 70 */
-      virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
-      virtual void VUnk82(uint grf, int fCount) __asm__("AddStepDialogSmRefs");
-      virtual void VUnk83(uint grf, int fCount) __asm__("RemoveStepDialogSmRefs");
-      virtual int VUnk84() __asm__("GetStepGroundProbeFlags");
-      virtual int VUnk85(ZPR *pzpr) __asm__("IsStepHitByLethalZap");
-      virtual void VUnk86(int fOn) __asm__("IgnoreStepSlot87");
+      virtual void AddAxisXps(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
+      virtual void AddDialogSmRefs(uint grf, int fCount) __asm__("AddStepDialogSmRefs");
+      virtual void RemoveDialogSmRefs(uint grf, int fCount) __asm__("RemoveStepDialogSmRefs");
+      virtual int GetGroundProbeFlags() __asm__("GetStepGroundProbeFlags");
+      virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepHitByLethalZap");
+      virtual void SetPlayable(int fOn) __asm__("IgnoreStepSlot87");
 };
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1];   /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */

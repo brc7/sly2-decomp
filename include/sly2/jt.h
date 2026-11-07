@@ -190,7 +190,7 @@ struct JT : public STEPPLAYER
       ASEG *pasegPouncePowerUp;   /* pounce animation of the power-up */
       undefined4 unk_0x2054[3];
     JT() __asm__("JT_ctor");   /* inline in the game (linkonce copy at 0x2563E8), called by NewJt: defined in app/class_registry.cpp */
-    virtual void VUnk90() __asm__("func_0018D548");   /* slot 91 */
+    virtual void EndMeleeAttack() __asm__("func_0018D548");   /* slot 91 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetJtClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJtMessage");   /* slot 5 */
     virtual void Init() __asm__("InitJt");   /* slot 7 */
@@ -204,25 +204,25 @@ struct JT : public STEPPLAYER
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustJtXp");   /* slot 55 */
     virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustJtXpVelocity");   /* slot 57 */
     virtual void PresetAccel() __asm__("PresetJtAccel");   /* slot 70 */
-    virtual int FInvulnerable(ZPK zpk) __asm__("IsJtInvulnerable");   /* slot 76 */
+    virtual int IsInvulnerable(ZPK zpk) __asm__("IsJtInvulnerable");   /* slot 76 */
     virtual void OnActive(int fActive) __asm__("OnJtActive");   /* slot 78 */
-    virtual int VUnk84() __asm__("GetJtModeCode");   /* slot 85 */
-    virtual void VUnk86(int fOn) __asm__("SetJtPlayable");   /* slot 87 */
-    virtual void VUnk87(int n) __asm__("SetJtPlayerState");   /* slot 88 */
-    virtual int VUnk88() __asm__("GetJtPlayerState");   /* slot 89 */
-    virtual void VUnk89() __asm__("ApplyJtStateStepParams");   /* slot 90 */
-    virtual int VUnk91() __asm__("TryFaceJtAttachedObject");   /* slot 92 */
+    virtual int GetGroundProbeFlags() __asm__("GetJtModeCode");   /* slot 85 */
+    virtual void SetPlayable(int fOn) __asm__("SetJtPlayable");   /* slot 87 */
+    virtual void SetPlayerState(int n) __asm__("SetJtPlayerState");   /* slot 88 */
+    virtual int GetPlayerState() __asm__("GetJtPlayerState");   /* slot 89 */
+    virtual void ApplyStateStepParams() __asm__("ApplyJtStateStepParams");   /* slot 90 */
+    virtual int TryFaceAttachedObject() __asm__("TryFaceJtAttachedObject");   /* slot 92 */
     virtual void OnHeroDied() __asm__("OnJtDeath");   /* slot 93 */
-    virtual int VUnk93() __asm__("IsJtFreeMoving");   /* slot 94 */
+    virtual int IsFreeMoving() __asm__("IsJtFreeMoving");   /* slot 94 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetJtStunHold");   /* slot 96 */
-    virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetJtCameraTarget");   /* slot 97 */
-    virtual int VUnk97() __asm__("GetJtMovementNoise");   /* slot 98 */
+    virtual void GetCameraFocusPos(VECTOR4 *ppos) __asm__("GetJtCameraTarget");   /* slot 97 */
+    virtual int GetMovementNoise() __asm__("GetJtMovementNoise");   /* slot 98 */
     virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
-    virtual void VSlot102() __asm__("EndJtGadget");   /* slot 102 */
-    virtual void VSlot103() __asm__("GetJtSaveVarRoot");   /* slot 103 */
-    virtual int FCanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
-    virtual void VSlot106() __asm__("IsJtCameraFree");   /* slot 106: not yet identified */
-    virtual void VSlot107() __asm__("AddJtExternalAccelerations");   /* slot 107: not yet identified */
+    virtual void StopGadget() __asm__("EndJtGadget");   /* slot 102 */
+    virtual void GetSaveVarRoot() __asm__("GetJtSaveVarRoot");   /* slot 103 */
+    virtual int CanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
+    virtual void IsCameraFree() __asm__("IsJtCameraFree");   /* slot 106: named from its overrides (inferred) */
+    virtual void AddAttachedObjectAccelerations() __asm__("AddJtExternalAccelerations");   /* slot 107: named from its overrides (inferred) */
 };
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_JT_jts[SLY2_OFFSETOF(JT, jts) == 0x18C8 ? 1 : -1];   /* 0 standing / 11 pickpocket (CONFIRMED runtime) */

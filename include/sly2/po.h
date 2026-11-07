@@ -64,11 +64,11 @@ struct PO : public SO
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */
     virtual void Init() __asm__("InitPo");   /* slot 7 */
     virtual void Clone(LO *ploBase) __asm__("ClonePo");   /* slot 41 */
-      virtual int FInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
-      virtual int JthsCurrent() __asm__("GetPoJtHoldState");
+      virtual int IsInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
+      virtual int GetHealthState() __asm__("GetPoJtHoldState");
       virtual void OnActive(int fActive) __asm__("OnPoActive");
       virtual void SetCtlState(int nState) __asm__("SetPoCtlState");
-      virtual int FCanBeHealed() __asm__("CanPoBeHealed");
+      virtual int CanBeHealed() __asm__("CanPoBeHealed");
       virtual void AddHpMp(int dhp, int dmp) __asm__("AddPoHpMp");
 };
 typedef char assert_PO_size[sizeof(PO) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

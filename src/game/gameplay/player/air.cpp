@@ -407,7 +407,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     if (kind != 6)
         air->nKind = kind;
     air->n2 = n2;
-    air->pstepplayer->VUnk87(1);
+    air->pstepplayer->SetPlayerState(1);
     if (kind != 6)
     {
         air->nUnk40 = 0;
@@ -1954,7 +1954,7 @@ void UpdateJtAirInput(JTAIR *air)
             case 5:
                 if (D_002DDED0.t - air->tState > 0.25f && fFloor)
                 {
-                    air->pstepplayer->VUnk87(0);
+                    air->pstepplayer->SetPlayerState(0);
                     break;
                 }
                 if (FJtAirWedged(air->tState, air->pstepplayer, &air->pstepplayer->tUnk131c))
@@ -1967,7 +1967,7 @@ void UpdateJtAirInput(JTAIR *air)
                     if (air->nKind == 0xE)
                         SetJtGrabState(&air->pstepplayer->jtgrab, 0xA, 0, 0);
                     else
-                        air->pstepplayer->VUnk87(0);
+                        air->pstepplayer->SetPlayerState(0);
                     break;
                 }
                 else
@@ -2008,7 +2008,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                     SetStepTargetHeadingFromVector(air->pstepplayer, ScaleVec(air->normalEdge, VuFloat(-1.0f)));
-                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
+                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->CanUseGadget(3))
                     {
                         pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
@@ -2081,7 +2081,7 @@ void UpdateJtAirInput(JTAIR *air)
                 if (GetStepplayerMp(air->pstepplayer) <= 0)
                     SetJtAirState(air, 4, 0);
                 else if (D_002DDED0.t - air->tState > D_002BF82C && fFloor)
-                    air->pstepplayer->VUnk87(0);
+                    air->pstepplayer->SetPlayerState(0);
                 else if (D_002DDED0.t - air->tState > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->pstepplayer, 0xC)))
                     SetJtAirState(air, 4, 0);
                 else if (D_002DDED0.t - air->tState > D_002BF830)

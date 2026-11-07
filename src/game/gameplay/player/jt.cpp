@@ -5,7 +5,7 @@
 // ChooseJtGroundState, HandleJtMessage, UseJtGadget and the STEPPLAYER virtual overrides.
 //
 // Types: sly2 headers (jt.h JT/JTPOCKET, stepplayer.h, step.h, po.h, so.h...); the file-scope types after the
-// includes are the union of five Lilly ports' private declarations; JT::FCanUseGadget (a member) and the ports
+// includes are the union of five Lilly ports' private declarations; JT::CanUseGadget (a member) and the ports
 // that define members stay at file scope, the other ports and the per-function files keep their views in
 // namespaces named after each function (as vec.cpp and mark.cpp do). The m2c bodies are written on the headers.
 // A JT key function is defined here (no __tf2JT typeinfo extra since -fno-rtti).
@@ -2366,7 +2366,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (!jt->FCanUseGadget(2))
+                    if (!jt->CanUseGadget(2))
                         break;
                     if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
@@ -2412,7 +2412,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
@@ -2495,7 +2495,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
@@ -4380,7 +4380,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
         jt->jtbs = jtbs;
         jt->tJtbs = D_002DDED0.t;
     }
-    jt->VUnk89();
+    jt->ApplyStateStepParams();
     SetJtChannelMask(jt, grf);
     if (sfxid != -1)
     {
@@ -4442,7 +4442,7 @@ int IsJtCameraFree(struct S *jt)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 91: cancels the cane state (SetJtCaneState(-1)).
-void JT::VUnk90()
+void JT::EndMeleeAttack()
 {
     JT *jt = (JT *)this;
     SetJtCaneState(jt, -1);
@@ -4586,7 +4586,7 @@ extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
  * @end-sly2-annot */
 // JT slot 99: whether Sly can use the gadget now (per-state allow lists; the aiming state allows only the carried
 // gadget).
-int JT::FCanUseGadget(int gadgetId)
+int JT::CanUseGadget(int gadgetId)
 {
     if (FJtModeActive(this))
         return 0;
