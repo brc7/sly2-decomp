@@ -557,12 +557,12 @@ void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *
 } } // namespace M_func_00183818
 
 // Barrel (CID88, a liftable object) Init: SO init, its GRABSPOT part, state 0, radius 300, free flag, zap mask.
-extern "C" void InitBarrel(BARRELV *barrel)
+extern "C" void InitBarrel(BARREL *barrel)
 {
     InitSo(barrel);
-    InitGrabspot((char *)barrel + 0x150);
-    barrel->nState = 0;
-    barrel->s158 = 300.0f;
+    InitGrabspot(&barrel->ptn);   /* its GRABSPOT, addressed by its first field */
+    barrel->carryState = 0;
+    barrel->sBusy = 300.0f;
     barrel->isFree = 1;
     SetSoZapResponse(barrel, 0x03FFFFFF, 8);
     SetSoZapResponse(barrel, 0x03188001, 0);
@@ -570,10 +570,10 @@ extern "C" void InitBarrel(BARRELV *barrel)
 
 /* BARREL slot 26. */
 // SO slot 26 base, then carry state 0. (inferred)
-extern "C" void ResetBarrel(BARRELV *barrel)
+extern "C" void ResetBarrel(BARREL *barrel)
 {
     SO_ResetForProxy(barrel);
-    barrel->nState = 0;
+    barrel->carryState = 0;
 }
 
 // OnAdd for the barrel (OnBarrelAdd): unfreeze, then joins its grab list.
@@ -604,15 +604,15 @@ void CloneBarrel(BARREL *barrel)
 
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
 // Intersection filter (slot 61): SO base, and ignores a player that is holding this barrel (grab state 1 on it).
-extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
+extern "C" int ShouldBarrelIgnoreIntersection(BARREL *barrel, LO *lo)
 {
     int grf = ShouldSoIgnoreIntersection(barrel, lo);
     if (IsBasicDerivedFrom(lo, (CID)0x34) != 0) {
         STEPPLAYER *player = (STEPPLAYER *)lo;
-        if (player->jtgrab.state == 1 && barrel == (BARRELV *)player->jtgrab.grabbedObject) {
+        if (player->jtgrab.state == 1 && barrel == (BARREL *)player->jtgrab.grabbedObject) {
             grf = MaxInt(grf, 1);
         }
-        if ((unsigned int)(player->jtair.state - 6) < 2 && barrel == (BARRELV *)player->jtair.jumpObject) {
+        if ((unsigned int)(player->jtair.state - 6) < 2 && barrel == (BARREL *)player->jtair.jumpObject) {
             grf = MaxInt(grf, 1);
         }
     }
@@ -622,15 +622,14 @@ extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
 namespace M_func_00183B00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { float a[12]; };
-struct S { char pad[0x17C]; int carryState; char p1[0xC]; int isFree; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
-void PresetSoAccel(struct S *p);
-void *GetLoWorldMatrix(struct S *p);
+void PresetSoAccel(BARREL *p);
+void *GetLoWorldMatrix(BARREL *p);
 void TiltMatUpright(void *p, int n, struct M *pm);
-void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b);
+void AccelSoTowardMatSpring(BARREL *p, struct M *pm, void *a, qword q, void *b);
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
-void PresetBarrelAccel(struct S *barrel)
+void PresetBarrelAccel(BARREL *barrel)
 {
     PresetSoAccel(barrel);
     if (!barrel->isFree || barrel->carryState)
@@ -644,36 +643,30 @@ void PresetBarrelAccel(struct S *barrel)
 namespace M_func_00183B80 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
-struct VTE { short d; short pad; void *pfn; };
-struct X { char pad[0x9A]; short partFlags; char pad1[0xA0 - 0x9C]; void *pA0; char pad2[0xC0 - 0xA4]; qword vC0; };
 struct XV { int x, y; float z; int w; };
-struct T { char pad[0x60]; void *p60; char pad1[0x10BC - 0x64]; void *p10BC; };
-struct S2 { char pad[0x70]; qword v70; };
-struct O {
-    char pad[0xC]; struct VTE *vtable; char pad1[0x58 - 0x10]; struct X *partA; struct X *partB;
-    char pad2[0x17C - 0x60]; int carryState; float unknown180; char pad3[0x18C - 0x184]; int isFree; struct T *carrier;
-};
+/* The carrier (a STEPPLAYER) as the barrel reads it: two candidate attach transforms. */
+struct T { char pad[0x60]; XF *p60; char pad1[0x10BC - 0x64]; XF *p10BC; };
 extern "C" {
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
-void SetLoParent(struct O *p, int a, int b);
-void SetXfRole(struct O *p, struct X *px, int n);
-void SetSoCnstrForce(struct O *p, int n);
-void SetSoCnstrTorque(struct O *p, int n);
-void SetSoPartsBit48(struct O *p, int n);
+void SetLoParent(BARREL *p, int a, int b);
+void SetXfRole(BARREL *p, XF *px, int n);
+void SetSoCnstrForce(BARREL *p, int n);
+void SetSoCnstrTorque(BARREL *p, int n);
+void SetSoPartsBit48(BARREL *p, int n);
 void UpdateSwBusyList(void *p);
-void *GetLoWorldMatrix(struct O *p);
+void *GetLoWorldMatrix(BARREL *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 qword TransformXfPos(void *pv, void *pvA0, qword v);
-void SetBarrelState(struct O *p, int n);
+void SetBarrelState(BARREL *p, int n);
 }
 
 // Carry state switch (0 free .. 3): reparents to/from the carrier, force/torque constraints, part flags.
-void SetBarrelState(struct O *barrel, int n)
+void SetBarrelState(BARREL *barrel, int n)
 {
 
     if (barrel->carryState == n)
@@ -681,57 +674,57 @@ void SetBarrelState(struct O *barrel, int n)
     if (barrel->carryState == 2) {
         if (barrel->isFree != 0) {
             SetLoParent(barrel, 0, 0xF);
-            SetXfRole(barrel, barrel->partA, 1);
-            barrel->partA->partFlags = 0;
-            SetXfRole(barrel, barrel->partB, 1);
-            barrel->partB->partFlags = 0;
-            { struct VTE *e = &barrel->vtable[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
+            SetXfRole(barrel, barrel->unknown58, 1);
+            barrel->unknown58->phase = 0;
+            SetXfRole(barrel, barrel->unknown5C, 1);
+            barrel->unknown5C->phase = 0;
+            barrel->SetVelocity(D_002A2DD0);
             SetSoCnstrForce(barrel, 0);
             SetSoCnstrTorque(barrel, 0);
             SetSoPartsBit48(barrel, 0);
         }
-        { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 6, 0, 0, 0, 0); }
+        barrel->HandleSpliceEvent(6, 0, 0, 0, 0);
         UpdateSwBusyList(D_003DD490);
         barrel->carrier = 0;
     }
     if (n == 2) {
         if (barrel->isFree != 0) {
-            struct S2 *ps;
+            XF *ps;
             MATRIX3 m;
             qword q;
             SetSoCnstrForce(barrel, 1);
             SetSoCnstrTorque(barrel, 1);
-            ps = (struct S2 *)barrel->carrier->p10BC;
+            ps = ((struct T *)barrel->carrier)->p10BC;
             if (!ps)
-                ps = (struct S2 *)barrel->carrier->p60;
-            { struct VTE *e = &barrel->vtable[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)barrel + e->d, barrel->carrier, ps, 3); }
+                ps = ((struct T *)barrel->carrier)->p60;
+            barrel->SetParent((SO *)barrel->carrier, ps, 3);
             TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
-            m = ConvertXfMat(0, barrel->partB->pA0, &m);
+            m = ConvertXfMat(0, barrel->unknown5C->parent, &m);
 
             q = DecomposeRotationMatrixToEuler(&m);
-            SetXfRole(barrel, barrel->partB, 7);
+            SetXfRole(barrel, barrel->unknown5C, 7);
             {
 
-                struct XV *pv = (struct XV *)&barrel->partB->vC0;
+                struct XV *pv = (struct XV *)&barrel->unknown5C->restValue;
                 pv->x = 0;
                 pv->z = QwordZ(q);
                 pv->y = 0;
             }
-            barrel->partB->partFlags = n;
+            barrel->unknown5C->phase = n;
 
             {
-            qword q2 = TransformXfPos(0, barrel->partA->pA0, VuAdd(ps->v70, D_002BE8F0));
-            SetXfRole(barrel, barrel->partA, 7);
-            barrel->partA->vC0 = q2;
+            qword q2 = TransformXfPos(0, barrel->unknown58->parent, VuAdd(*(qword *)ps->worldMatrix.mat[3], D_002BE8F0));
+            SetXfRole(barrel, barrel->unknown58, 7);
+            barrel->unknown58->restValue = q2;
             }
 
-            barrel->partA->partFlags = n;
+            barrel->unknown58->phase = n;
             SetSoPartsBit48(barrel, 1);
         }
-        { struct VTE *e = &barrel->vtable[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
+        barrel->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
     barrel->carryState = n;
-    barrel->unknown180 = D_002DDED0.time;
+    barrel->carryStateTime = D_002DDED0.time;
 }
 } // namespace M_func_00183B80
 
