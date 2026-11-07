@@ -611,7 +611,7 @@ void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ClosestPointOnCgt {
-// ClosestPointOnCgt: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
+// GetClosestPointOnNavTriangle: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
 // If p lies outside an edge in the XY plane (z of cross(p - v0, v1 - v0) > 0, tested a-b, b-c, c-a in turn), the result
 // is the closest point on that edge (FindClosestPointOnLineSegment); otherwise p is projected along D_002A2DC0 (world up) onto the
 // triangle's plane.
@@ -630,7 +630,7 @@ struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern "C" {
 extern qword D_002A2DC0; // (0, 0, 1, 0)
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
-qword ClosestPointOnCgt(T *t, qword p);
+qword GetClosestPointOnNavTriangle(T *t, qword p);
 }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -654,13 +654,13 @@ static inline qword AddScaled(qword a, qword b, float g)
 
 /** @sly2-annot addr=0x1BFDB0
  * Purpose: Closest point of a navigation triangle to p (edge clamp or vertical projection)
- * Info: proposed name ClosestPointOnCgt (T1); TU path
+ * Info: proposed name GetClosestPointOnNavTriangle (T1); TU path
  * Notes: names_v2 v1 proposed InitJt__FP2JT (0.000)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
-extern "C" { qword ClosestPointOnCgt(T *triangle, qword pos)
+extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
 {
     U result;
     qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
@@ -684,7 +684,7 @@ extern "C" { qword ClosestPointOnCgt(T *triangle, qword pos)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CposFindPath {
 // FindPathPoints: build a route between two points over the navigation graph (wave-3 lane 4, from w2lane6.v1).
-// Finds the triangles containing both points, projects the points onto them (ClosestPointOnCgt), links a temporary start
+// Finds the triangles containing both points, projects the points onto them (GetClosestPointOnNavTriangle), links a temporary start
 // vertex to the start triangle's corners and the goal vertex to the goal triangle's corners, runs the path search
 // (FindPathAStar) and the path simplifier (SimplifyPathByLineOfSight), copies the route out, drops points closer than the minimum
 // spacing, and returns a two-point route (offset along +X) when only one point is left.
@@ -707,7 +707,7 @@ extern "C" { extern const float D_002C0C04; } // minimum spacing between route p
 extern "C" { extern qword D_002A2DA0; }       // (1, 0, 0, 0)
 extern "C" {
 TRI *FindNavTriangleSafe(G *, BSP *, qword, int);
-qword ClosestPointOnCgt(TRI *, qword);
+qword GetClosestPointOnNavTriangle(TRI *, qword);
 void STACKSCOPE_ctor(void *);
 void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(AREQ *);
@@ -761,10 +761,10 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
 {
     TRI *first = FindNavTriangleSafe(graph, graph->pbsp, from, 1);
     if (!first) return 0;
-    qword start = ClosestPointOnCgt(first, from);
+    qword start = GetClosestPointOnNavTriangle(first, from);
     TRI *last = FindNavTriangleSafe(graph, graph->pbsp, to, 1);
     if (!last) return 0;
-    qword finish = ClosestPointOnCgt(last, to);
+    qword finish = GetClosestPointOnNavTriangle(last, to);
     U *write;
     int count;
     if (first == last) {
@@ -871,9 +871,9 @@ namespace M_FindClosestPointInCg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { int a[5]; int bspNodes; };
 void *FindNavTriangleSafe(struct S *p, int n, qword q);
-qword ClosestPointOnCgt(void *p, qword q);
+qword GetClosestPointOnNavTriangle(void *p, qword q);
 /** @sly2-annot addr=0x1C0320
- * Purpose: FindNavTriangleSafe then ClosestPointOnCgt; returns found
+ * Purpose: FindNavTriangleSafe then GetClosestPointOnNavTriangle; returns found
  * Info: proposed name FindClosestPointInCg (T1); TU path
  * Notes: names_v2 v1 proposed LoadJtFromBrx__FP2JTP18CBinaryInputStream (0.001)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5b_rest
@@ -884,7 +884,7 @@ int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
     void *pv = FindNavTriangleSafe(graph, graph->bspNodes, pos);
     if (!pv) return 0;
-    *closest = ClosestPointOnCgt(pv, pos);
+    *closest = GetClosestPointOnNavTriangle(pv, pos);
     return 1;
 }
 } } // namespace M_FindClosestPointInCg
@@ -1229,7 +1229,7 @@ struct HIT {qword pos[2];char pad[0x40];};
 struct S {char pad[0xE0];char bsp[8];int count;int padEC;int padF0;qword*vertices;};
 extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata order) */
 void *FindNavTriangleQuick(void*,qword,int);
-qword ClosestPointOnCgt(void*,qword);
+qword GetClosestPointOnNavTriangle(void*,qword);
 int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
 int IsPosInConvexObstacle(void*,qword);
 qword ConvertAloPos(void*,void*,qword);
@@ -1258,7 +1258,7 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  float z,bestDistance;
  leaf=FindNavTriangleQuick(zone->bsp,point,1);
  if(!leaf)return 0;
- projected=ClosestPointOnCgt(leaf,point);poly=0;
+ projected=GetClosestPointOnNavTriangle(leaf,point);poly=0;
  {int j=0;
  n=FindPathzoneObstacles(zone,0,projected,projected,128,objects);
  for(;j<n;j++){if(IsPosInConvexObstacle(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}

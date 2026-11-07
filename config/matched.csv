@@ -3783,7 +3783,7 @@ IsEdgeBlockedByCbsp,0x1BF900,27,match,src/game/engine/physics/path.cpp
 GetCgVertexIndex__FP2CGP3CGV,0x1BF970,4,match,src/game/engine/physics/path.cpp
 FindPathAStar,0x1BF980,165,match,src/game/engine/physics/path.cpp
 SimplifyPathByLineOfSight,0x1BFC18,101,match,src/game/engine/physics/path.cpp
-ClosestPointOnCgt,0x1BFDB0,93,match,src/game/engine/physics/path.cpp
+GetClosestPointOnNavTriangle,0x1BFDB0,93,match,src/game/engine/physics/path.cpp
 FindPathPoints,0x1BFF28,233,match,src/game/engine/physics/path.cpp
 FindPathzonePathCurve,0x1C02D0,20,match,src/game/engine/physics/path.cpp
 FindClosestPointInCg,0x1C0320,22,match,src/game/engine/physics/path.cpp

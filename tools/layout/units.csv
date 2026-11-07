@@ -3794,7 +3794,7 @@ IsEdgeBlockedByCbsp,0x1BF900,path
 GetCgVertexIndex__FP2CGP3CGV,0x1BF970,path
 FindPathAStar,0x1BF980,path
 SimplifyPathByLineOfSight,0x1BFC18,path
-ClosestPointOnCgt,0x1BFDB0,path
+GetClosestPointOnNavTriangle,0x1BFDB0,path
 FindPathPoints,0x1BFF28,path
 FindPathzonePathCurve,0x1C02D0,path
 FindClosestPointInCg,0x1C0320,path
