@@ -1858,22 +1858,49 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 }
 } // namespace M_BuildModelDrawPackets
 
-struct SORTREC { int fileVertex; int firstBatch; int firstVertex; int batch; int vertex; };
-// qsort comparator for the 0x14-byte vertex records (LoadSubglobType0FromBrx's VERTREC), grouping vertices by batch:
-// by the first batch (+4, a pointer compared in 0x40 units), the first vertex, the batch (+0xC, likewise), then the
-// vertex.
-extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
+// BATCH: one draw batch of a type-0 sub-glob (0x40), built by LoadSubglobType0FromBrx; VERTREC: its 0x14-byte vertex
+// sort record (CompareSortRecs orders them by batch and vertex).
+struct BATCH
 {
-    int d = (prec0->firstBatch - prec1->firstBatch) >> 6;
+      int cvtx;
+      SHD *pshd;
+      int grf;
+      SAA *psaa;
+      int ivtxOwn;
+      int *aivtx;
+      void *pvPos;
+      void *pvUv;
+      void *pvUvLink;
+      int obColorA;
+      int obColorB;
+      uchar *pbAlpha;
+      int obAlpha;
+      uchar *pbRgb;
+      uchar *pbNorm;
+      uchar *pbWeights;
+};
+struct VERTREC
+{
+      int ivtxFile;
+      BATCH *pbatchFirst;
+      int ivtxFirst;
+      BATCH *pbatch;
+      int ivtx;
+};
+// qsort comparator for the vertex records, grouping vertices by batch: by the first batch, the first vertex, the batch,
+// then the vertex.
+extern "C" int CompareSortRecs(VERTREC *prec0, VERTREC *prec1)
+{
+    int d = prec0->pbatchFirst - prec1->pbatchFirst;
     if (d != 0)
         return d;
-    d = prec0->firstVertex - prec1->firstVertex;
+    d = prec0->ivtxFirst - prec1->ivtxFirst;
     if (d != 0)
         return d;
-    d = (prec0->batch - prec1->batch) >> 6;
+    d = prec0->pbatch - prec1->pbatch;
     if (d != 0)
         return d;
-    return prec0->vertex - prec1->vertex;
+    return prec0->ivtx - prec1->ivtx;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -2194,25 +2221,6 @@ void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-struct BATCH
-{
-      int cvtx;
-      SHD *pshd;
-      int grf;
-      SAA *psaa;
-      int ivtxOwn;
-      int *aivtx;
-      void *pvPos;
-      void *pvUv;
-      void *pvUvLink;
-      int obColorA;
-      int obColorB;
-      uchar *pbAlpha;
-      int obAlpha;
-      uchar *pbRgb;
-      uchar *pbNorm;
-      uchar *pbWeights;
-};
 struct SPECPARAMS
 {
     float unknown00[3];     /* [1] read as /127, [2] as *6.2e-5 */
@@ -2262,14 +2270,6 @@ struct BATCHHDR0
       ushort iqwWarp;
       ushort aiqwBone[4];
       BATCHPART0 apart[2];
-};
-struct VERTREC
-{
-      int ivtxFile;
-      BATCH *pbatchFirst;
-      int ivtxFirst;
-      BATCH *pbatch;
-      int ivtx;
 };
 struct WRBGBATCH
 {
