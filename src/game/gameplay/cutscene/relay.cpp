@@ -326,33 +326,6 @@ void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoo
 
 void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("SetSwAsegEyesClosed");
 
-struct WIDGETV : public LO
-{
-      undefined4 unk_0x50[2];
-      int nState;
-      float tState;
-      int cframeState;
-      int nStateStamped;
-      float tStateStamped;
-      undefined4 unk_0x6c;
-      int idLabelHold;
-      int idLabelIn;
-      int idLabelOut;
-      int idLabelPlaying;
-      ushort cclip;
-      WIDGETCLIP *aclip;
-      undefined4 unk_0x88;
-      undefined4 unk_0x8c[6];
-      int nPriority;
-      int fHidden;
-      int unk_0xac;
-      int fFreezeClock;
-      DLE dleDraw;
-      undefined4 unk_0xbc[0x15];
-    virtual void Show(int idLabel);
-    virtual void Hide();
-};
-
 struct SUBTITLE
 {
       int idString;
@@ -2284,7 +2257,7 @@ void NextJsgCommand(RELAYJSG *script)
         {
             if (prelaycmd->relayck == RELAYCK_WidgetShow)
             {
-                ((WIDGETV *)plo)->Show(prelaycmd->widgetShow.idLabel);
+                ((WIDGET *)plo)->Show(prelaycmd->widgetShow.idLabel);
                 if (!prelaycmd->fAsync)
                 {
                     script->ploWidget = plo;
@@ -2292,7 +2265,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
             else
             {
-                ((WIDGETV *)plo)->Hide();
+                ((WIDGET *)plo)->Hide();
             }
         }
         break;
