@@ -32,6 +32,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/game.h"
+#include "sly2/joy.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -1079,77 +1080,6 @@ struct JSGENT
 struct SLOT
 {
       SLOT *pslotNext;
-};
-
-struct RUMINS
-{
-      byte fHighSpeedMotor;
-      byte bLowSpeedMotor;
-      byte unk1;
-      byte unk2;
-      float dt;
-};
-
-struct RUMPAT
-{
-      int crumins;
-      RUMINS arumins[32];
-};
-
-struct RUMBLE
-{
-      int nPort;
-      int nSlot;
-      RUMS rums;
-      RUMPAT *prumpat;
-      int irumins;
-      float dtRumble;
-      float dtRumins;
-};
-
-struct JOY
-{
-      byte padDmaBuffer[0x1000];
-      int port;
-      int slot;
-      int term;
-      JOYS joys;
-      JOYK joyk;
-      float stateStartTime;
-      float lastReadTime;
-      float tActive;
-      int dtIdle;
-      undefined4 unk_0x1024;
-      undefined4 unk_0x1028;
-      undefined4 unk_0x102c[4];
-      float leftStickX;
-      float leftStickY;
-      float leftStickDeflection;
-      byte bXLeft;
-      byte bYLeft;
-      ushort unknown104A;
-      int hasLeftStickMoved;
-      LM almDeflect[4];
-      float dxRight;
-      float dyRight;
-      float rightStickDeflection;
-      byte bXRight;
-      byte bYRight;
-      ushort unknown107E;
-      int hasRightStickMoved;
-      LM almDeflect2[4];
-      float dxdtLeft;
-      float dydtLeft;
-      float dxdtRight;
-      float dydtRight;
-      uint buttonsHeld;
-      uint buttonsPressed;
-      uint grfbtnLatched;
-      byte mpbtnpb[12];
-      RUMBLE rumble;
-      int isRumbleEnabled;
-      float uDpad;
-      undefined4 unknown10F0[4];
 };
 
 void LatchButtonEdges(JOY *pjoy, uint grfbtn) __asm__("SetJoyBtnHandled");

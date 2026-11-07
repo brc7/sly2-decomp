@@ -251,7 +251,7 @@ void UpdateJoy(JOY *joy)
     case 3:
         if (ReadJoy(joy)) {
             if (joy->isRumbleEnabled && joy->joyk >= 3)
-                UpdateRumble((RUMBLE *)&joy->rumble);
+                UpdateRumble(&joy->rumble);
         } else {
             joys = 1;
             joyk = 0;
