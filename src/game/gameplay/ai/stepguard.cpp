@@ -2737,38 +2737,31 @@ extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 
 // 0x209EE0 StunStepguardThrownOp2
 namespace M_func_00209EE0 { extern "C" {
-struct BHVJUGGLED; struct S;
-typedef int qword __attribute__((mode(TI)));
-typedef struct { short d; short pad; void *pfn; } VTE;
 extern float D_002C3DA8;
-struct BHVJUGGLED { char pad[0x50]; int state; };
-struct S { char pad[0xC]; VTE *vt; };
-int StepguardHasSgf(struct S *p, int n);
-struct BHVJUGGLED *FindStepBehavior(struct S *p, int n);
-void SetBhvThrownState(struct BHVJUGGLED *o, int n);
-void SetBhvjuggledState(struct BHVJUGGLED *o, int n);
+void SetBhvjuggledState(BHVJUGGLED *o, int n);
 qword LimitVectorLength(qword v, float g);
+} }
 // 0x209EE0: Thrown-behaviour operation 2 (flags 0x12/0x13), or juggled-behaviour operation 2 while stunned; then
 // clamps the velocity's length (inferred).
-void StunStepguardThrownOp2(struct S *guard)
+extern "C" void StunStepguardThrownOp2(STEPGUARD *guard)
 {
+    using namespace M_func_00209EE0;
     if (StepguardHasSgf(guard, 0x12) || StepguardHasSgf(guard, 0x13)) {
         SetBhvThrownState(FindStepBehavior(guard, CID_BHV176), 2);
     } else {
-        struct BHVJUGGLED *juggled;
+        BHVJUGGLED *juggled;
         if (!StepguardHasSgf(guard, SGF_JUGGLED))
             return;
-        juggled = FindStepBehavior(guard, CID_BHVJUGGLED);
-        if (juggled->state != 3 && juggled->state != 6)
+        juggled = (BHVJUGGLED *)FindStepBehavior(guard, CID_BHVJUGGLED);
+        if (juggled->juggleState != 3 && juggled->juggleState != 6)
             SetBhvjuggledState(juggled, 2);
     }
     {
-        qword velocity = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);   /* get velocity */
+        qword velocity = guard->GetVelocity();
         velocity = LimitVectorLength(velocity, D_002C3DA8);
-        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, velocity);   /* set velocity */
+        guard->SetVelocity(velocity);
     }
 }
-} } // namespace M_func_00209EE0
 
 // 0x209FB8 StunStepguardThrownOp3
 // 0x209FB8: Thrown-behaviour operation 3 (flags 0x16/0x13) (inferred).
@@ -2780,19 +2773,13 @@ extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 }
 
 // 0x20A010 GetStepguardJuggledValue
-namespace M_func_0020A010 { extern "C" {
-struct BHVJUGGLED;
-struct BHVJUGGLED { char pad[0x58]; int unknown58; };
-int StepguardHasSgf(void *p, int n);
-struct BHVJUGGLED *FindStepBehavior(void *p, int oid);
-// 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *guard)
+// 0x20A010: Returns the juggled behaviour's hit count while stunned (flag 0x17), else 0 (inferred).
+extern "C" int GetStepguardJuggledValue(STEPGUARD *guard)
 {
     if (StepguardHasSgf(guard, SGF_JUGGLED))
-        return FindStepBehavior(guard, CID_BHVJUGGLED)->unknown58;
+        return ((BHVJUGGLED *)FindStepBehavior(guard, CID_BHVJUGGLED))->hitCount;
     return 0;
 }
-} } // namespace M_func_0020A010
 
 // 0x20A058 SetStepguardTargetLists
 namespace M_func_0020A058 { extern "C" {
@@ -2929,90 +2916,77 @@ extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 
 // 0x20A408 ChooseStepguardStimulus
 namespace M_func_0020A408 { extern "C" {
-struct STIMULUS; struct S; struct VE; struct VT; struct ENTRY;
-struct STIMULUS { char pad[0x44]; int subject; char pad2[0x54 - 0x48]; int level; struct STIMULUS *next; };
-struct VT;
-struct S { char pad[0xC]; struct VT *vt; char pad2[0xF04 - 0x10]; float tAttackNext; char pad3[0xF64 - 0xF08]; void *detector; };
-struct VE { short d; short pad; int (*pf)(void *, struct STIMULUS *); };
-struct VT { struct VE e[90]; };
-struct ENTRY { int object; int state; };
-struct STIMLIST_VIEW { char pad[0x148C]; struct STIMULUS *first; };   /* first at g_sw+0x3FFC */
-extern float D_002DDED0;
+struct STIMLIST_VIEW { char pad[0x148C]; STIMULUS *first; };   /* first at g_sw+0x3FFC */
 extern float D_002C3DB0;
-int AreStepguardSensesEnabled(struct S *guard);
-int CompareStepguardStimuli(struct S *guard, struct STIMULUS *a, struct STIMULUS *b);
-struct ENTRY *FindDetectorTarget(void *detector, int object);
-void SetDetectorTargetState(void *detector, struct ENTRY *entry, int state);
+int CompareStepguardStimuli(STEPGUARD *guard, STIMULUS *a, STIMULUS *b);
+DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object);
+void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state);
 
 // 0x20A408: Chooses the most important stimulus this guard can sense from the world's stimulus list; a stimulus
 // already tracked re-marks the detector entry lost.
-struct STIMULUS *ChooseStepguardStimulus(struct S *guard, struct STIMULUS *fallback)
+} }
+int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
+extern "C" STIMULUS *ChooseStepguardStimulus(STEPGUARD *guard, STIMULUS *fallback)
 {
-    struct STIMULUS *stimulus, *best;
+    using namespace M_func_0020A408;
+    STIMULUS *stimulus, *best;
     int unused[4];
     if (!AreStepguardSensesEnabled(guard))
         return fallback;
     best = fallback;
     for (stimulus = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; stimulus; stimulus = stimulus->next) {
-        if (guard->vt->e[89].pf((char *)guard + guard->vt->e[89].d, stimulus)) {   /* CanStepguardSenseStimulus */
+        if (guard->CanSenseStimulus(stimulus)) {   /* CanStepguardSenseStimulus */
             if (!best || CompareStepguardStimuli(guard, stimulus, best) < 0)
                 best = stimulus;
         }
     }
     if (best && best->level == 4) {
-        struct ENTRY *entry = FindDetectorTarget(guard->detector, best->subject);
+        DETECTORTARGET *entry = FindDetectorTarget(guard->pdetector, best->subject);
         if (entry) {
             if (!entry->state) {
-                SetDetectorTargetState(guard->detector, entry, 2);
-                guard->tAttackNext = D_002DDED0 + D_002C3DB0;
+                SetDetectorTargetState(guard->pdetector, entry, 2);
+                guard->nextAttackTime = D_002DDED0.time + D_002C3DB0;
             }
             return fallback;
         }
     }
     return best;
 }
-} } // namespace M_func_0020A408
+// (end of ChooseStepguardStimulus: M_func_0020A408)
 
 // 0x20A518 AddStepguardAllowedPathZone
-namespace M_func_0020A518 { extern "C" {
-struct S;
-struct S { char pad[0xE94]; unsigned int numAllowedZones; int allowedZones[8]; };
 // 0x20A518: Splice option: adds a path zone to the guard's allowed-zone list at +0xE94 (at most 8; ignored when
 // full). CanUsePathlink (path.cpp) reads the same list: when it is non-empty, route planning only uses path links
 // whose two end zones are on it (inferred: confines the guard to these zones).
-void AddStepguardAllowedPathZone(struct S *guard, int zone)
+extern "C" void AddStepguardAllowedPathZone(STEPGUARD *guard, int zone)
 {
-    if (guard->numAllowedZones < 8)
+    if ((unsigned int)guard->numAllowedZones < 8)
         guard->allowedZones[guard->numAllowedZones++] = zone;
 }
-} } // namespace M_func_0020A518
 
 // 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
-struct BHVGUARD; struct MODEREC; struct S;
-struct BHVGUARD { char pad[0x30]; int modeKind; };
+struct MODEREC;
 struct MODEREC { int kind; int rest[27]; };
-struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int scriptResumePoint[3]; int patrolScript; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct BHVGUARD *FindBhvInBhvstk(void *stack, int cid);
-void SetBhvguardMode(struct BHVGUARD *bhv, struct MODEREC *mode);
+void SetBhvguardMode(BHV156 *bhv, struct MODEREC *mode);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
-void SetStepguardPatrolScript(struct S *guard, int script)
+void SetStepguardPatrolScript(STEPGUARD *guard, int script)
 {
     if (guard->patrolScript == script)
         return;
-    struct BHVGUARD *bhv;
+    BHV156 *bhv;
     guard->patrolScript = script;
-    func_002333B4(guard->scriptResumePoint, 0, 0xC);
-    bhv = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
+    func_002333B4(&guard->scriptResumePoint, 0, 0xC);
+    bhv = (BHV156 *)FindBhvInBhvstk(&guard->behaviors, CID_BHVGUARD);
     if (bhv) {
-        int modeKind = bhv->modeKind;
+        int modeKind = bhv->mode;
         if (modeKind == 1) {   /* patrolling: leave the mode and re-enter it so the new script starts */
             struct MODEREC mode;
             func_002333B4(&mode, 0, sizeof(mode));
             mode.kind = -1;
             SetBhvguardMode(bhv, &mode);
-            func_002333B4(guard->scriptResumePoint, 0, 0xC);
+            func_002333B4(&guard->scriptResumePoint, 0, 0xC);
             mode.kind = modeKind;
             SetBhvguardMode(bhv, &mode);
         }
@@ -3035,11 +3009,8 @@ extern "C" TARGETREC *InitTargetRecord(TARGETREC *record, LO *object)
 }
 
 // 0x20A658 FindTargetRecordGuardIndex
-namespace M_func_0020A658 { extern "C" {
-struct TARGETREC;
-struct TARGETREC { char pad[0x28]; int guardCount; int guards[1]; };
 // 0x20A658: Returns the guard's index in an engagement record's guard list (-1 if absent).
-int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
+extern "C" int FindTargetRecordGuardIndex(TARGETREC *record, STEPGUARD *guard)
 {
     int i;
     for (i = 0; i < record->guardCount; i++)
@@ -3047,20 +3018,15 @@ int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
             return i;
     return -1;
 }
-} } // namespace M_func_0020A658
 
 // 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
-struct LOV; struct TARGETREC; struct CAMERA;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct LOV { char pad[0xC]; VTE *vt; };
-struct TARGETREC { char pad[0xC]; struct LOV *target; int facingKind; };
+struct CAMERA;
 struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
 extern struct CAMERA D_002DDF40;
 float atan2f(float y, float x);
-#define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
-float GetTargetRecordFacing(struct TARGETREC *record)
+float GetTargetRecordFacing(TARGETREC *record)
 {
     float heading = 0.0f;
     switch (record->facingKind) {
@@ -3068,9 +3034,9 @@ float GetTargetRecordFacing(struct TARGETREC *record)
         heading = atan2f(D_002DDF40.y, D_002DDF40.x);
         break;
     case 1: {
-        float *forwardY = VCALL31(record->target);   /* the target's facing direction (vtable slot 31) */
-        float *forwardX = VCALL31(record->target);
-        heading = atan2f(forwardY[1], forwardX[0]);
+        MATRIX4 *forwardY = record->target->GetWorldMatrix();   /* the target's facing direction (slot 31) */
+        MATRIX4 *forwardX = record->target->GetWorldMatrix();
+        heading = atan2f(forwardY->mat[0][1], forwardX->mat[0][0]);
         break;
     }
     case -1:
@@ -3111,29 +3077,20 @@ extern "C" void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 }
 
 // 0x20A7E0 IsTargetRecordStale
-namespace M_func_0020A7E0 { extern "C" {
-struct TARGETREC;
-extern struct CLOCK D_002DDED0;
-extern float D_002C3DB4;
-struct TARGETREC { float firstEngageTime; float stateTime; };
+namespace M_func_0020A7E0 { extern "C" { extern float D_002C3DB4; } }
 // 0x20A7E0: True if the engagement record has not been refreshed for longer than the timeout.
-int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.time - record->stateTime > D_002C3DB4; }
-} } // namespace M_func_0020A7E0
+extern "C" int IsTargetRecordStale(TARGETREC *record) { return D_002DDED0.time - record->stateTime > M_func_0020A7E0::D_002C3DB4; }
 
 // 0x20A818 DoesTargetRecordAllowGuard
 namespace M_func_0020A818 {
-union U; struct GUARD; struct TARGETREC; struct Camera;
-typedef int qword __attribute__((mode(TI)));
+union U; struct Camera;
 union U { qword q; float f[4]; };
-struct GUARD { char pad[0xF30]; int ignoresBusyGuards,ready,padF38,isStriking; /* (inferred) */ };
-struct TARGETREC { char pad[0xC]; GUARD *target; int facingKind; float unknown14,facingTolerance; int isDisabled; char pad20[8]; int guardCount; GUARD *guards[1]; };
 struct Camera { char pad[0x90]; qword position; };
 extern "C" { extern Camera D_002DDF40; }
 extern "C" {
-qword GetLoWorldPos(GUARD *);
+qword GetLoWorldPos(LO *);
 int IsInCameraFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
-float GetTargetRecordFacing(TARGETREC *);
 float NormalizeAngle__Ff(float);
 }
 // Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
@@ -3157,8 +3114,11 @@ static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j
 // guard striking; facing kind 0 needs the guard ready, or in view of the camera and within the tolerance of
 // the camera heading as seen from the target; kind 1 within the tolerance of the target's facing).
 // (The failures share one `return 0` inside case 0 through `goto fail`: separate returns do not match.)
-extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
+} // namespace M_func_0020A818
+extern "C" float GetTargetRecordFacing(TARGETREC *record);
+extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, STEPGUARD *guard)
 {
+    using namespace M_func_0020A818;
     U scalar;
     float angle[2];
     U position0, position1;
@@ -3167,7 +3127,7 @@ extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
     if (!guard->ignoresBusyGuards) {
         int i, n = record->guardCount;
         for (i = 0; i < n; i++)
-            if (record->guards[i]->isStriking)
+            if (record->guards[i]->isEngagedBusy)
                 goto fail;
     }
     switch (record->facingKind) {
@@ -3207,20 +3167,14 @@ fail:
     }
     return 1;
 }
-} // namespace M_func_0020A818
 
 // 0x20A9A8 SetTargetRecordState
-namespace M_func_0020A9A8 { extern "C" {
-struct TARGETREC;
-extern struct CLOCK D_002DDED0;
-struct TARGETREC { float firstEngageTime; float stateTime; int state; };
 // 0x20A9A8: Sets an engagement record's state and its time.
-void SetTargetRecordState(struct TARGETREC *record, int state)
+extern "C" void SetTargetRecordState(TARGETREC *record, int state)
 {
     record->stateTime = D_002DDED0.time;
     record->state = state;
 }
-} } // namespace M_func_0020A9A8
 
 // 0x20A9C0 GetStepguardDefaultAttack
 namespace M_func_0020A9C0 { extern "C" {
