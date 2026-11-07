@@ -1843,11 +1843,12 @@ struct RIPG : SO
 {
     int groupKind;          /* +0x150 [S] NewRipGroup's kind: 0 the world's shared group, 1 one with its own tree
                                (InitRipg; CanRipgStayAsleep: never sleeps) */
-    int unknown154;
+    float boundsPadding;    /* +0x154 [S] ProjectRipgTransform grows the rips' bounds by it on every side */
     float emitScale;        /* +0x158 [S] */
     DL ripList;             /* +0x15C [S] the group's RIPs */
     int unknown168[2];
-    qword boundsData[3];    /* +0x170 [S] the group's bounds (UpdateRipgBounds) */
+    qword boundsData[3];    /* +0x170 [S] the group's bounds: min and max corner, centre (ProjectRipgTransform; UpdateRipgBounds
+                               copies them with the radius into its tree record) */
     float boundsRadius;     /* +0x1A0 [S] */
     int unknown1A4[3];
     virtual int IsFixed() __asm__("CanRipgStayAsleep");   /* slot 62 */

@@ -137,18 +137,13 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPG *ripGroup)
 } // namespace M_OnRipgRemove__FP4RIPG
 
 namespace M_ProjectRipgTransform { extern "C" {
-// Recompute the bounds of an object from its list of child objects: run the due children's update, accumulate the
-// min/max of their two corner vectors, optionally grow by the object's size, then derive the center and radius and notify.
+// Recompute the group's bounds from its rips: run the due rips' project step, accumulate the min/max of their current
+// and previous positions, grow by boundsPadding, then (when the group has a tree record) store the corners, centre and
+// radius and mark the tree's bounds dirty.
 union U { qword q; float f[4]; };
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; } VT;
-typedef struct S {
-    char pad0[0x14]; float time; char pad18[0x70 - 0x18]; qword cornerA; qword cornerB; char pad90[0xEC - 0x90];
-    VT *vt; char padF0[0x154 - 0xF0]; float size; int pad158; DL children; char pad168[8];
-    union U lo; union U hi; union U center; float radius;
-} S;
 extern CLOCK D_002DDED0;
 extern const float D_002A77D0, D_002A77D4;
-void MarkSoTreeBoundsDirty(S *);
+void MarkSoTreeBoundsDirty(SO *);
 // (a + b) * k.x.  The second "j"(k) operand is allocation-only: it gives k the register priority the original had.
 static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(r) : "j"(a), "j"(b), "j"(k), "j"(k)); return r; }
 // Length of a vector in two steps (sum of squares, then sqrt).  The "memory" clobbers keep the stores around the steps in source order.
@@ -156,14 +151,14 @@ static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xy
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
 // RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set
 // center/radius. (inferred)
-void ProjectRipgTransform(S *p)
+void ProjectRipgTransform(RIPG *p)
 {
     DLI dli;
     union U lo, hi, t, half;
     // y/z of each bound are written through pointers (the original did too: it changes how the DLI fields are reloaded)
     union U *plo = &lo, *phi = &hi;
     RIP *q;
-    InitDli(&dli, &p->children);
+    InitDli(&dli, &p->ripList);
     plo->f[1] = plo->f[2] = D_002A77D0;
     lo.f[0] = D_002A77D0;
     phi->f[1] = phi->f[2] = D_002A77D4;
@@ -174,12 +169,12 @@ void ProjectRipgTransform(S *p)
         lo.q = VuMin(lo.q, VuMin(q->currentPosition, q->previousPosition));
         hi.q = VuMax(hi.q, VuMax(q->currentPosition, q->previousPosition));
     }
-    if (p->size != 0) {
-        t.f[0] = t.f[1] = t.f[2] = p->size;
+    if (p->boundsPadding != 0) {
+        t.f[0] = t.f[1] = t.f[2] = p->boundsPadding;
         lo.q = VuSub(lo.q, t.q);
         hi.q = VuSub(hi.q, t.q);
     }
-    if (p->vt) {
+    if (p->physicsTree) {
         float h = 0.5f;
         int r;
         qword k, mid, d, one, lv = lo.q, hv = hi.q;
@@ -187,13 +182,13 @@ void ProjectRipgTransform(S *p)
         mid = Mid(lv, hv, k);
         half.q = k;
         LEN1(d, one, VuSub(mid, hv));
-        p->lo.q = lv;
+        p->boundsData[0] = lv;
         LEN2(d);
         t.q = mid;
         __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(d) : "memory");
-        p->hi.q = hv;
-        *(int *)&p->radius = r;
-        p->center.q = mid;
+        p->boundsData[1] = hv;
+        *(int *)&p->boundsRadius = r;
+        p->boundsData[2] = mid;
         MarkSoTreeBoundsDirty(p);
     }
     D_002DD2FC = dli.m_pdliNext;
