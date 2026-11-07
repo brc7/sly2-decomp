@@ -143,6 +143,9 @@ struct STRIKE { char pad0[0x60]; int unknown60; int unknown64; };
 struct MSGLO { int n0; LO *plo; };
 
 extern SW D_003DD490;           /* g_sw */
+/* The 64-bit word at LO +0x28 whose bit 60 is LO::isInWorld (a bitfield test of the member compiles to a mask test,
+   the original shifts the doubleword). */
+#define LO_FLAGWORD28(plo) (*(unsigned long *)((char *)(plo) + 0x28))
 extern CLOCK D_002DDED0;        /* g_clock */
 extern float D_002BE610;        /* attack retry delay */
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -860,7 +863,7 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
     if (!target)
         return 0;
     {
-        int enabled = (int)(*(unsigned long *)((char *)target + 0x28) >> 60) & 1;   /* LO's flag word, bit 60 */
+        int enabled = (int)(LO_FLAGWORD28(target) >> 60) & 1;
         if (!enabled)
             return 0;
     }
@@ -975,7 +978,7 @@ extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     int mustShootNow;
     JT *t;
     STEPGUARD *a = ((STEPGUARD *)behavior->owner);
-    if ((a->capabilityFlags & 8) == 0 || a->currentAttack || behavior->attack || !behavior->target || (((int)(*(unsigned long *)((char *)behavior->target + 0x28) >> 60) & 1) == 0)) return 0;
+    if ((a->capabilityFlags & 8) == 0 || a->currentAttack || behavior->attack || !behavior->target || (((int)(LO_FLAGWORD28(behavior->target) >> 60) & 1) == 0)) return 0;
     if (IsBasicDerivedFrom(behavior->target, (CID)CID_PO)) {
         if (((PO *)behavior->target)->GetHealthState() == 2) return 0;
     }
@@ -2186,19 +2189,15 @@ extern "C" int HasBhvguardTargetList(BHV *behavior)
 }
 
 // 0x177D48 IsBhvguardEscortActive
-namespace M_FBhvguardEscortActive { extern "C" {
-struct T; 
-struct T { char pad[0x28]; unsigned long loFlags; };
 // 0x177D48: True if the guard's escort object exists and is in the world.
-int IsBhvguardEscortActive(BHVGUARD *behavior)
+extern "C" int IsBhvguardEscortActive(BHVGUARD *behavior)
 {
-    struct T *t = ((struct T *)((STEPGUARD *)behavior->owner)->escortObject);
+    LO *t = ((STEPGUARD *)behavior->owner)->escortObject;
     int f = 0;
     if (t)
-        f = (int)(t->loFlags >> 60) & 1;
+        f = (int)(LO_FLAGWORD28(t) >> 60) & 1;
     return f;
 }
-} } // namespace M_FBhvguardEscortActive
 
 // 0x177D70 ShouldBhvguardUseNeelaBehavior
 // 0x177D70: True if the guard is Neela (cid 0x3C) and her +0x108C option is set (inferred: use her chase
@@ -2215,39 +2214,33 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
 
 namespace RO_ORDER { extern const float r_D_002A54D0 __asm__("D_002A54D0") = 3.40282347e+38f; }
 // 0x177DC0 IsBhvguardModeSame
-namespace M_FBhvguardModeSame { extern "C" {
-struct S;
-struct S { int kind; int a[3]; int arg; int b[2]; int zapKind; };
-// 0x177DC0: True if two mode records are the same (kind plus the kind's key field).
-int IsBhvguardModeSame(struct S *a, struct S *b) {
+// 0x177DC0: True if two mode records are the same (kind plus the kind's key field: the zap kind of the zap modes,
+// else the mode's object).
+extern "C" int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b) {
     if (a->kind != b->kind) return 0;
     switch (a->kind) {
-    case 9: case 10: case 11: return a->zapKind == b->zapKind;
-    case 4: return a->arg == b->arg;
-    case 5: return a->arg == b->arg;
-    case 3: return a->arg == b->arg;
-    case 13: return a->arg == b->arg;
-    case 2: return a->arg == b->arg;
-    case 14: return a->arg == b->arg;
-    case 18: return a->arg == b->arg;
-    case 6: return a->arg == b->arg;
+    case 9: case 10: case 11: return a->zap.zpk == b->zap.zpk;
+    case 4: return a->arg.object == b->arg.object;
+    case 5: return a->arg.object == b->arg.object;
+    case 3: return a->arg.object == b->arg.object;
+    case 13: return a->arg.object == b->arg.object;
+    case 2: return a->arg.object == b->arg.object;
+    case 14: return a->arg.object == b->arg.object;
+    case 18: return a->arg.object == b->arg.object;
+    case 6: return a->arg.object == b->arg.object;
     }
     return 1;
 }
-} } // namespace M_FBhvguardModeSame
 
 // 0x177E80 InitBhvpath
 namespace M_InitBhvpath { extern "C" {
-struct S;
-struct S { char pad[0x34]; float pathParam; char pad2[0x10]; float startParamHint; int state; char pad3[0x8]; int isBlocked; char pad4[0x8]; float arrivalRadius; float nearRadius; float farRadius; char pad5[0x30]; int unknownA0; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
-void InitBhv(struct S *p);
 } } // namespace M_InitBhvpath
 // 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
 void BHVPATH::OnPush()
 {
     using namespace M_InitBhvpath;
-    M_InitBhvpath::S *p = (M_InitBhvpath::S *)this;
+    BHVPATH *p = this;
     InitBhv(p);
     p->pathParam = p->startParamHint = -1.0f;
     p->arrivalRadius = D_002BE62C;
@@ -2255,7 +2248,7 @@ void BHVPATH::OnPush()
     p->farRadius = D_002BE628;
     p->state = -1;
     p->isBlocked = 0;
-    p->unknownA0 = 1;
+    p->isInitialized = 1;
 }
 
 // 0x177EF0 StartBhvpath
@@ -2926,28 +2919,25 @@ extern "C" int IsBhvpathFinished(BHVPATH *behavior)
 
 // 0x178D90 SetBhvpathShape
 namespace M_SetBhvpathShape { extern "C" {
-struct O; struct S;
-typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
-struct O { char pad[0xE4]; int isClosed; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *shape; float pathParam; int isReversed; int hasEnd; int pad3; float endParam; float startParamHint; char pad4[0xB0 - 0x4C]; char endPoint[0x10]; };
-qword GetLoWorldPos(void *p);
-void FindShapeClosestPointFromDistance(struct O *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-void FindShapeClosestPoint(struct O *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float GetShapeMinDistance(struct O *shape);
-float GetShapeMaxDistance(struct O *shape);
-void EvaluateShapeAtDistance(struct O *shape, float g, void *pv, int n);
+void FindShapeClosestPointFromDistance(SHAPE *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(SHAPE *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+float GetShapeMinDistance(SHAPE *shape);
+float GetShapeMaxDistance(SHAPE *shape);
+void EvaluateShapeAtDistance(SHAPE *shape, float g, qword *pv, int n);
+} } // namespace M_SetBhvpathShape
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
-void SetBhvpathShape(struct S *behavior, struct O *shape, int n) {
+extern "C" void SetBhvpathShape(BHVPATH *behavior, SHAPE *shape, int n) {
+    using namespace M_SetBhvpathShape;
     behavior->isReversed = n;
     behavior->shape = shape;
     if (behavior->startParamHint >= 0.0f) {
-        FindShapeClosestPointFromDistance(shape, behavior->startParamHint, GetLoWorldPos(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromDistance(shape, behavior->startParamHint, GetLoWorldPos(behavior->owner), &D_003DD020, 0, 0, 0, &behavior->pathParam);
         behavior->startParamHint = -1.0f;
     } else {
-        FindShapeClosestPoint(shape, GetLoWorldPos(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        FindShapeClosestPoint(shape, GetLoWorldPos(behavior->owner), &D_003DD020, 0, 0, 0, &behavior->pathParam);
     }
     if (shape->isClosed) {
         behavior->hasEnd = 0;
@@ -2955,26 +2945,23 @@ void SetBhvpathShape(struct S *behavior, struct O *shape, int n) {
         behavior->hasEnd = 1;
         if (behavior->isReversed) behavior->endParam = GetShapeMinDistance(shape);
         else behavior->endParam = GetShapeMaxDistance(shape);
-        EvaluateShapeAtDistance(shape, behavior->endParam, behavior->endPoint, 0);
+        EvaluateShapeAtDistance(shape, behavior->endParam, &behavior->endPoint, 0);
     }
 }
-} } // namespace M_SetBhvpathShape
 
 // 0x178E98 InitBhvwalkpath
 namespace M_InitBhvwalkpath { extern "C" {
-struct S;
-struct S { char pad[0xC0]; int animSgf; float animRate; char pad2[0x18]; float stuckTimer; };
 extern float D_002BE694;
-void InitBhvpath(struct S *p);
+void InitBhvpath(BHVPATH *p);
 } } // namespace M_InitBhvwalkpath
 // 0x178E98: BHVWALKPATH vtable slot 7 (OnPush): BHVPATH OnPush, walk animation flag 9, rate 1.
 void BHVWALKPATH::OnPush()
 {
     using namespace M_InitBhvwalkpath;
-    M_InitBhvwalkpath::S *p = (M_InitBhvwalkpath::S *)this;
+    BHVWALKPATH *p = this;
     InitBhvpath(p);
     p->stuckTimer = D_002BE694;
-    p->animRate = 1.0f;
+    p->rate = 1.0f;
     p->animSgf = 9;
 }
 
