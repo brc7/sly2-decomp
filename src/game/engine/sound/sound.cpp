@@ -429,58 +429,42 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
 } } // namespace M_CalculateSndVolPan
 
 namespace M_UpdateSnd {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; VTE *vtable; float volume; char pad2[0x40 - 0x14]; int voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; unsigned short playState; };
-extern "C" void SetSndFlags(P *, int, int);
-#define VCALL(p, n) ((p)->vtable[n].pfn((char *)(p) + (p)->vtable[n].d))
-#define ICALL(p, n) (((int (*)(void *))(p)->vtable[n].pfn)((char *)(p) + (p)->vtable[n].d))
-/* virtual slots of SND (BANKSND / STREAMSND override them) */
-#define SLOT_INCREF 1
-#define SLOT_DECREF 2
-#define SLOT_GET_KIND 8
-#define SLOT_PLAY 9
-#define SLOT_STOP 10
-#define SLOT_PAUSE 11
-#define SLOT_CONTINUE 12
-#define SLOT_APPLY_PARAMS 13
-#define SLOT_QUERY_STATUS 14
-#define SLOT_UPDATE_POSITIONAL 16
 /* holds a reference for the duration of the update */
 struct Lock {
-    P *sound;
-    Lock(P *locked) { sound = locked; VCALL(sound, SLOT_INCREF); }
-    ~Lock() { VCALL(sound, SLOT_DECREF); }
+    CID151 *sound;
+    Lock(CID151 *locked) { sound = locked; sound->AddRef(); }
+    ~Lock() { sound->Release(); }
 };
 // Flushes a dirty sound to the sound hardware: positional update, then start, stop, status query, parameters, pause and
-// continue by its request bits (each through its virtual slot).
-extern "C" void UpdateSnd(P *sound)
+// continue by its request bits (each through its virtual member).
+extern "C" void UpdateSnd(CID151 *sound)
 {
     Lock lock(sound);
     unsigned short flags;
-    if (sound->flags & SND_POSITIONAL) VCALL(sound, SLOT_UPDATE_POSITIONAL);
+    if (sound->flags & SND_POSITIONAL) sound->UpdatePositional();
     else sound->effectiveVolume = sound->volume;
     flags = sound->flags;
     if (flags & SND_START) {
-        VCALL(sound, SLOT_PLAY);
-        if (ICALL(sound, SLOT_GET_KIND) == 1) SetSndFlags(sound, SND_QUERY_PLAYING, SND_QUERY_PLAYING);   /* one-shot: watch for its end */
+        sound->Play();
+        if (sound->GetKind() == 1) SetSndFlags(sound, SND_QUERY_PLAYING, SND_QUERY_PLAYING);   /* one-shot: watch for its end */
     } else if (sound->voiceHandle) {
         if (flags & SND_STOP) {
-            VCALL(sound, SLOT_STOP);
+            sound->Stop();
             sound->voiceHandle = 0;
             SetSndFlags(sound, SND_ALL & ~SND_POSITIONAL, 0);
         } else {
-            if (flags & SND_QUERIES) VCALL(sound, SLOT_QUERY_STATUS);
+            if (flags & SND_QUERIES) sound->QueryStatus();
             if (sound->playState) return;   /* still starting */
             if (sound->flags & SND_DIRTY_PARAMS) {
-                VCALL(sound, SLOT_APPLY_PARAMS);
+                sound->ApplyParams();
                 SetSndFlags(sound, SND_DIRTY_PARAMS, 0);
             }
             flags = sound->flags;
             if (flags & SND_PAUSE) {
-                VCALL(sound, SLOT_PAUSE);
+                sound->Pause();
                 SetSndFlags(sound, SND_PAUSE, 0);
             } else if (flags & SND_CONTINUE) {
-                VCALL(sound, SLOT_CONTINUE);
+                sound->Resume();
                 SetSndFlags(sound, SND_CONTINUE, 0);
             }
         }

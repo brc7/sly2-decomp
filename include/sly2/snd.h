@@ -39,7 +39,7 @@ struct CID151 : BASIC
     int unknown54[3];           /* +0x54 */
     virtual void Start() __asm__("StartSnd");   /* slot 7 (the first new virtual); key function (sound.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid151ClassDesc");   /* slot 6 */
-    virtual void GetKind() __asm__("__pure_virtual");   /* slot 8 (pure) */
+    virtual int GetKind() __asm__("__pure_virtual");   /* slot 8 (pure) */
     virtual void Play() __asm__("__pure_virtual");   /* slot 9 (pure) */
     virtual void Stop() __asm__("__pure_virtual");   /* slot 10 (pure) */
     virtual void Pause() __asm__("__pure_virtual");   /* slot 11 (pure) */
@@ -59,7 +59,7 @@ struct BANKSND : CID151
     int sfxId;                  /* +0x60 */
     virtual void AddRef() __asm__("IncrefBanksnd");   /* slot 1; key function (sound.cpp) */
     virtual void Release() __asm__("DecrefBanksnd");   /* slot 2 */
-    virtual void GetKind() __asm__("GetBanksndKind");   /* slot 8 */
+    virtual int GetKind() __asm__("GetBanksndKind");   /* slot 8 */
     virtual void Play() __asm__("PlayBanksnd");   /* slot 9 */
     virtual void Stop() __asm__("StopBanksnd");   /* slot 10 */
     virtual void Pause() __asm__("PauseBanksnd");   /* slot 11 */
@@ -88,7 +88,7 @@ struct STREAMSND : CID151
     virtual void AddRef() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
     virtual void Release() __asm__("DecrefStreamsnd");   /* slot 2 */
     virtual void Start() __asm__("StartStreamsnd");   /* slot 7 */
-    virtual void GetKind() __asm__("GetStreamSoundKind");   /* slot 8 */
+    virtual int GetKind() __asm__("GetStreamSoundKind");   /* slot 8 */
     virtual void Play() __asm__("PlayStreamsnd");   /* slot 9 */
     virtual void Stop() __asm__("StopStreamSound");   /* slot 10 */
     virtual void Pause() __asm__("PauseStreamSound");   /* slot 11 */
