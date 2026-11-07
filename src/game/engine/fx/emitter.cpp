@@ -916,7 +916,6 @@ namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3 {
 // ChooseEmitoPos: EMITB choose emit position/direction (Claude agent, lanes E3-E11).
 // Notes: the unused case-1 VU_VECTOR[3] frees the stack slot that case 3's an[] reuses; VLen = one length-squared asm
 // plus a separate vsqrt asm; Normalize returns its VU_VECTOR by value (gives dir its stack slot).
-typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR { qword q; };
 static inline VU_VECTOR V(qword q) { VU_VECTOR v; v.q = q; return v; }
@@ -928,25 +927,6 @@ struct TRI { int aipos[3]; float sArea; };
 struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; };
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
-struct EMITO { void *referenceObject; MESHO *shapeObject; };
-struct LM { float minValue, maxValue; };
-/* the origin record (EMITB+0x10) */
-struct EP {
-    int kind;               /* EMIT_ORIGIN */
-    int normalKind;         /* +0x14 EMIT_NORMAL */
-    int pad18[3];
-    LM offset;              /* +0x24 random distance moved along the chosen direction */
-    int pad2C;
-    void *data;             /* +0x30 the point itself (point), BOXE (box) or EMITMESH (mesh) */
-    int pad34[3];
-    qword vector;           /* +0x40 direction, centre or tangent partner, by normalKind */
-};
-struct EMITBV {
-    int pad0, pad4;
-    EMITO *pemito;
-    int padC;
-    struct EP ep;
-};
 extern "C" {
 float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
@@ -1007,19 +987,19 @@ static inline VU_VECTOR Normalize(qword d)
 // random point in a box, evenly spaced (jittered) along the curve shape, or on a random mesh triangle weighted by
 // area; the direction per normalKind. Both are then normalized / offset: the position moves a random distance
 // along the direction.
-extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, int count, qword *ppos, qword *pdir)
+extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *emitb, int index, int count, qword *ppos, qword *pdir)
 {
-    EP *origin = &emitb->ep;
+    ::EMITO *origin = &emitb->emito;
     LM *offset;
     {
     VU_VECTOR av[3];
-    switch (emitb->ep.kind) {
+    switch (emitb->emito.originKind) {
     case EMIT_ORIGIN_POINT:
-        *ppos = *(qword *)&origin->data;
+        *ppos = *(qword *)&origin->pvEmito;   /* the point itself */
         break;
     case EMIT_ORIGIN_BOX: {
         { VU_VECTOR avUnused[3]; } // unused 48-byte local: frees the slot an[] reuses in case 3
-        BOXE *box = (BOXE *)origin->data;
+        BOXE *box = (BOXE *)origin->pvEmito;
         float *pf = (float *)ppos;
         pf[0] = RandomFloatInRange__Fff(box->xMin, box->xMax);
         pf[1] = RandomFloatInRange__Fff(box->yMin, box->yMax);
@@ -1027,7 +1007,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         break;
     }
     case EMIT_ORIGIN_CURVE: {
-        MESHO *curve = emitb->pemito->shapeObject;
+        MESHO *curve = (MESHO *)emitb->aploRef[EMITREF_Shape];
         if (!curve) {
             float *pf = (float *)ppos;
             pf[2] = 0.0f;
@@ -1047,14 +1027,14 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
             goto normalize;
         case EMIT_NORMAL_CURVE_NORMAL: {
             EvaluateShapeAtDistance(curve, g, ppos, &av[0].q);
-            *pdir = VuCross(av[0].q, emitb->ep.vector);
+            *pdir = VuCross(av[0].q, emitb->emito.direction);
             goto normalize;
         }
         }
         break;
     }
     case EMIT_ORIGIN_MESH: {
-        EMITMESH *mesh = (EMITMESH *)origin->data;
+        EMITMESH *mesh = (EMITMESH *)origin->pvEmito;
         float s = RandomFloatInRange__Fff(0.0f, 1.0f) * mesh->sArea;
         TRI *ptri;
         int itri;
@@ -1085,18 +1065,18 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
 
     switch (origin->normalKind) {
     case EMIT_NORMAL_VECTOR:
-        *pdir = origin->vector;
+        *pdir = origin->direction;
         break;
     case EMIT_NORMAL_RADIAL:
-        *pdir = VuSub(*ppos, origin->vector);
+        *pdir = VuSub(*ppos, origin->direction);
         break;
     case EMIT_NORMAL_SCREEN: {
-        void *reference = emitb->pemito->referenceObject;
+        void *reference = emitb->aploRef[EMITREF_Reference];
         if (reference) {
             MATRIX3 *pm = GetLoWorldMatrix(reference);
-            *pdir = MulTMat(*pm, MulCam(&D_002DDF40, origin->vector));
+            *pdir = MulTMat(*pm, MulCam(&D_002DDF40, origin->direction));
         } else {
-            *pdir = MulCam(&D_002DDF40, origin->vector);
+            *pdir = MulCam(&D_002DDF40, origin->direction);
         }
         break;
     }
@@ -1107,12 +1087,12 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
     }
 
 normalize:
-    offset = &emitb->ep.offset;
+    offset = &emitb->emito.lmOffset;
     {
         VU_VECTOR dir = Normalize(*pdir);
         *pdir = dir.q;
         qword pos = *ppos;
-        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.minValue, offset->maxValue)), dir));
+        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->lmOffset.minValue, offset->maxValue)), dir));
     }
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
