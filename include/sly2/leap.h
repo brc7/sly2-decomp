@@ -11,7 +11,9 @@
    145 LEAP (0x70); vtable 0x2DAA10, 6 slots */
 struct LEAP : BASIC
 {
-    char pad10[0x70 - 0x10];
+    char pad10[0x38 - 0x10];
+    ASEGA *pasegaCur;       /* +0x38 [S] the animation the leap plays (stepguard GetAnimBindingInstance) */
+    char pad3C[0x70 - 0x3C];
     LEAP() __asm__("ConstructLeap");              /* out of line: player/tu_20B840.cpp */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleLeapMessage");   /* slot 5; key function (tu_20B840) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLeapClassDesc");   /* slot 6 */
@@ -21,7 +23,9 @@ typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1];
    146 CID146 (0x40): DIRANIM; vtable 0x2DA9D0, 6 slots */
 struct CID146 : BASIC
 {
-    char pad10[0x40 - 0x10];
+    char pad10[0x24 - 0x10];
+    ASEGA *pasegaCur;       /* +0x24 [S] the animation the directional animation plays (stepguard GetAnimBindingInstance) */
+    char pad28[0x40 - 0x28];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCid146Message");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid146ClassDesc");   /* slot 6 */
 };

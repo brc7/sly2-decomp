@@ -169,8 +169,7 @@ void ResetCameraPolicies(CM *p)
 namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
 typedef int qword __attribute__((mode(TI)));
-// Color bytes from a packed 32-bit word.
-struct RGBA { unsigned char r, g, b, a; RGBA(unsigned int n) { *(unsigned int *)this = n; } };
+
 extern "C" {
 extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
@@ -720,13 +719,11 @@ namespace M_ApplyCameraSpring { extern "C" {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCKIsland { float time; union { float g; int n; } deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (union view of one float) */
-extern struct CLOCKIsland D_002DDED0;
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
 void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
-    register struct CLOCKIsland *pclock __asm__("v0");
+    register CLOCK *pclock __asm__("v0");
     register qword s1 __asm__("vf3");
     register qword s2 __asm__("vf4");
     register qword s3 __asm__("vf5");
@@ -739,12 +736,12 @@ void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, 
         pvel[0] = 0.0f;
         return;
     }
-    pclock = &D_002DDED0;
+    pclock = &g_clock;
     __asm__("qmtc2.ni %1, %0" : "=j"(s1) : "r"(k1));
     d = *ppos;
     __asm__("qmtc2.ni %1, %0" : "=j"(s2) : "r"(k2));
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(target));
-    __asm__("qmtc2.ni %1, %0" : "=j"(s3) : "r"(pclock->deltaTime.n));
+    __asm__("qmtc2.ni %1, %0" : "=j"(s3) : "r"(pclock->deltaTimeBits));
     v = *(qword *)pvel;
     __asm__("vmulax.xyzw ACC, %0, %2x\n\tvmaddx.xyzw %0, %1, %3x" : "+j"(d) : "j"(v), "j"(s1), "j"(s2));
     { VU u; u.q = s1; }
@@ -754,7 +751,7 @@ void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, 
     {
         register qword s4 __asm__("vf3");
         qword x;
-        { register int n __asm__("v0") = pclock->deltaTime.n;
+        { register int n __asm__("v0") = pclock->deltaTimeBits;
         __asm__("qmtc2.ni %1, %0" : "=j"(s4) : "r"(n)); }
         x = *ppos;
         { VU u; u.q = s3; }
@@ -1150,7 +1147,7 @@ static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v)));
 // VEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt.
 qword ClipCameraEye(void *p, qword pos, qword posTarget)
 {
-    CLOCK *pclock = &D_002DDED0;
+    CLOCK *pclock = &g_clock;
     int ii, jj;
     qword dpos = VuSub(posTarget, pos);
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->cameraDeltaTime));

@@ -26,6 +26,10 @@
 #define LO_CLEAR_REFS_BIT 0x0800000000000000UL   /* bit 59: clear world references to it on removal */
 #define LO_IN_WORLD_BIT   0x1000000000000000UL   /* bit 60 (isInWorld) */
 #define LO_IN_WORLD_SHIFT 60
+/* The 64-bit unit at +0x28 that holds lo.h's bit-fields, read whole (bits 0..31 overlap siblingLink.prev, so it is not
+   a union member). InitLo copies the parent's isInWorld through it: the bit-field copy compiles to a same-position mask
+   (and), where the original extracts and reinserts the bit with shifts (14/75 off). */
+#define LO_FLAG_WORD(plo) (*(ulong *)((char *)(plo) + 0x28))
 
 /* LO vtable slots the m2c bodies call through (index into the vtable; vt[n]). */
 enum
@@ -67,22 +71,9 @@ void RemoveDlEntry(DL *pdl, void *pv);
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
 namespace M_InitLo { extern "C" {
-/* LOIsland: lo.h LO with the +0x28 word as one bit-field unit (matching-only island: on lo.h LO the parent's in-world
-   bit is copied with a mask instead of the original shift pair, 14/75 instructions off). */
-struct LOIsland {
-    int frame, sidebag, firstRefNode, xC;
-    struct LOIsland *parent;
-    int root;
-    char pad[0x10];
-    union { unsigned long u; struct { unsigned long lowBits : 40; unsigned long visMask : 8; unsigned long unknown48 : 4; long busyk : 4; unsigned long removedBits : 4; unsigned long isInWorld : 1; unsigned long unknown61 : 3; } b; } bits;
-    int tNextSplice, firstDeferred;
-    float busyDistance;
-    int proxy;
-    int flags;
-};
-void EnsureLoroot(struct LOIsland *s);
-void GetLoChildDl(struct LOIsland *p, void **a, void ***b);
-void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct LOIsland *s);
+void EnsureLoroot(LO *s);
+void GetLoChildDl(SO *p, void **a, void ***b);
+void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, LO *s);
 // LO initialization (vtable slot 7): sets the busy defaults (busy kind 2 "never", busy distance 1e10), inherits the
 // root record and the in-world bit from the parent (or makes its own root), sets the default flags and proxy-ref list,
 // and links the object into its parent's child list. Every object class calls it from its own Init.
@@ -92,24 +83,23 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct LOIsland *s);
 void LO::Init()
 {
     using namespace M_InitLo;
-    M_InitLo::LOIsland *s = (M_InitLo::LOIsland *)this;
     void *a;
     void **b;
-    s->bits.b.unknown48 = 0xF;
-    s->busyDistance = 1e10f;
-    s->bits.b.busyk = 2;
-    s->bits.b.visMask = 0xFF;
-    if (s->parent) {
-        s->root = s->parent->root;
-        s->bits.b.isInWorld = (int)(s->parent->bits.u >> LO_IN_WORLD_SHIFT);
+    unknownBits28A = 0xF;
+    busyRadius = 1e10f;
+    busyKind = 2;
+    visibilityMask = 0xFF;
+    if (parent) {
+        root = parent->root;
+        isInWorld = (int)(LO_FLAG_WORD(parent) >> LO_IN_WORLD_SHIFT);   /* whole word (LO_FLAG_WORD) */
     } else {
-        EnsureLoroot(s);
-        s->bits.b.isInWorld = 1;
+        M_InitLo::EnsureLoroot(this);
+        isInWorld = 1;
     }
-    s->flags = 0x21;
-    s->proxy = s->parent ? s->parent->proxy : (*(int *)&g_sw.ppxrRoot);
-    GetLoChildDl(s->parent, &a, &b);
-    InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
+    unknown40 = 0x21;
+    proxyRecord = parent ? parent->proxyRecord : g_sw.ppxrRoot;
+    M_InitLo::GetLoChildDl(parent, &a, &b);
+    InsertDlEntryBefore__FP2DLPvT1(a, *b, this);
 }
 
 // Gives the object a root record (LOROOT, from the world's pool) when it has none; the root tracks a top-level object

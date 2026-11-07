@@ -266,9 +266,7 @@ void UpdateStepplayer(STEPPLAYER *player)
         UpdateJtgoal(pl);
         if (!IsJtgoalHolding(pl)) {
             if (player->behaviors.depth > 0) {
-                struct O *object = (struct O *)player->behaviors.behaviors[player->behaviors.depth - 1];
-                struct VTE *e = &object->vt[14];
-                e->pfn((char *)object + e->d, player->controller);
+                ((BHV *)player->behaviors.behaviors[player->behaviors.depth - 1])->UpdateSteering((POCTL *)player->controller);
             } else if (player->pjsgScript) {
                 UpdateJsgJtControl(player->pjsgScript, player->controller);
             }

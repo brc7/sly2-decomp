@@ -2257,27 +2257,14 @@ int IsAnimBindingDone(ANIMBINDING *binding)
 
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
-struct INSTANCE; struct ANIMBINDINGIsland;
-struct ANIMATION;
-struct INSTANCE {
-    char pad[0x24];
-    struct ANIMATION *animation24;
-    char pad2[8];
-    struct ANIMATION *animation30;
-    int pad3;
-    struct ANIMATION *animation38;
-};
-/* island: the LEAP +0x38 / DIRANIM +0x24 animation words are padding in leap.h (other family) */
-struct ANIMBINDINGIsland { int kind; int resource; struct INSTANCE *instance; };
-
 // 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
-struct ANIMATION *GetAnimBindingInstance(struct ANIMBINDINGIsland *binding)
+ASEGA *GetAnimBindingInstance(ANIMBINDING *binding)
 {
     switch (binding->kind) {
-    case BINDING_ASEG: return (struct ANIMATION *)binding->instance;
-    case BINDING_SM: return binding->instance->animation30;
-    case BINDING_LEAP: return binding->instance->animation38;
-    case BINDING_DIRANIM: return binding->instance->animation24;
+    case BINDING_ASEG: return binding->asega;
+    case BINDING_SM: return binding->sma->pasegaCur;
+    case BINDING_LEAP: return binding->leap->pasegaCur;
+    case BINDING_DIRANIM: return binding->diranim->pasegaCur;
     }
     return 0;
 }
@@ -3434,16 +3421,11 @@ extern "C" void SetAndResolveGuardAttackBindingKind2(CID120 *attack)
 
 // 0x20B090 GetStepguardGroundProbeFlags
 namespace M_func_0020B090 { extern "C" {
-struct DRIVER; struct STEPGUARDIsland;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct DRIVER { char pad[0xC]; VTE *vt; };
-/* island: the mover driver called through BHV slot 12, which step.h declares void (other family) */
-struct STEPGUARDIsland : STEP { long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
 long GetSgfMask(int n);
-int GetStepGroundProbeFlags(struct STEPGUARDIsland *p);
+int GetStepGroundProbeFlags(STEP *p);
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
 // else the mover driver's or the step's.
-int GetStepguardGroundProbeFlags(struct STEPGUARDIsland *guard)
+int GetStepguardGroundProbeFlags(STEPGUARD *guard)
 {
     long thrownMask;
     if (guard->grfsg & GetSgfMask(0x14))
@@ -3451,8 +3433,8 @@ int GetStepguardGroundProbeFlags(struct STEPGUARDIsland *guard)
     thrownMask = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
     if (guard->grfsg & thrownMask)
         return 0;
-    if (guard->moverDriver)
-        return ((int (*)(void *))guard->moverDriver->vt[12].pfn)((char *)guard->moverDriver + guard->moverDriver->vt[12].d);
+    if (guard->mover.driver)
+        return guard->mover.driver->GetGroundProbeFlags();
     return GetStepGroundProbeFlags(guard);
 }
 } } // namespace M_func_0020B090

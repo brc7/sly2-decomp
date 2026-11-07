@@ -61,9 +61,6 @@ extern "C" void FillScreenRect(RGBA *color, GIFS *gifs, float x0, float y0, floa
                    (int)((y1 * SCREEN_TO_GS_Y + GS_OFFSET_Y) * GS_FIXED_ONE), 0, 0);
 }
 
-/* RGBA with a bit-pattern constructor (basic.h's RGBA has none; the constructors are what DrawWorldLabel's code
-   was compiled with). */
-struct RGBAIsland { unsigned char r, g, b, a; RGBAIsland() {} RGBAIsland(uint bits) { *(uint *)this = bits; } };
 /* Views used by DrawWorldLabel: a limit, the rich-text object and the text box it is drawn in. */
 struct LMV { float low, high; };
 struct RT
@@ -71,7 +68,7 @@ struct RT
     const char *text;
     char *current;
     void *font, *baseFont, *alternateFont;
-    RGBAIsland color, baseColor, alternateColor;
+    RGBA color, baseColor, alternateColor;
     char pad20[0x20];
     qword color0, color1;
     int changed;
@@ -81,20 +78,20 @@ struct RT
 struct CONFIG;
 extern "C" void CTextBox_SetPos(CONFIG *, float, float);
 extern "C" void CTextBox_SetSize(CONFIG *, float, float);
-extern "C" void CTextBox_SetTextColor(CONFIG *, const RGBAIsland *);
+extern "C" void CTextBox_SetTextColor(CONFIG *, const RGBA *);
 extern "C" void CTextBox_SetHorizontalJust(CONFIG *, int);
 extern "C" void CTextBox_SetVerticalJust(CONFIG *, int);
 /* A CTextBox: the whole screen, grey text, left / top aligned by default. */
 struct CONFIG
 {
     float x, y, width, height;
-    RGBAIsland color;
+    RGBA color;
     int hAlign, vAlign;
     CONFIG(uint bits = 0xFF808080)
     {
         CTextBox_SetPos(this, 0.0f, 0.0f);
         CTextBox_SetSize(this, SCREEN_WIDTH, SCREEN_HEIGHT);
-        RGBAIsland gray(bits);
+        RGBA gray(bits);
         CTextBox_SetTextColor(this, &gray);
         CTextBox_SetHorizontalJust(this, 0);
         CTextBox_SetVerticalJust(this, 0);
@@ -125,7 +122,7 @@ static inline float SavedHeight(float value)
 // plane), scales the text with distance (clamped to D_002C1F28 = 0.4..1.5), centres a padded box just above the point
 // and draws the text with the given colour. The first colour argument is unused. Used for debug/world labels
 // (inferred).
-extern "C" void DrawWorldLabel(qword position, const char *text, const RGBAIsland *unusedColor, const RGBAIsland *color, float inputHeight)
+extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unusedColor, const RGBA *color, float inputHeight)
 {
     float height = SavedHeight(inputHeight);
     CM *camera = &g_cm;
@@ -148,7 +145,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBAIslan
     config.height = h + 2 * marginY;
     config.x += marginX;
     config.y += marginY;
-    RGBAIsland rgba = *color;
+    RGBA rgba = *color;
     config.color = rgba;
     DrawRichText2(&rt, &config, 6);
 }

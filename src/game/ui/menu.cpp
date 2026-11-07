@@ -14,6 +14,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/util.h"
 #include "sly2/cref.h"
+#include "sly2/save.h"
 extern "C" void Decref__4CRef(void *);
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's

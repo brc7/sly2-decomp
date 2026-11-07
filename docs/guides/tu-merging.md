@@ -620,6 +620,36 @@ Rules found on the way:
   `GetEmitterClassDesc_linkonce<T>`, a second table per class that needs the template class the header comment
   mentions; 848 bytes).
 
+### Matching-only islands
+
+A view that unification could not replace without changing code is kept as `<Type>Island` (decisions 1.4) and logged. The island review (names/island-review) reconsidered every logged island by root cause; most were dissolved and the rest are listed below as matching-only.
+
+Before keeping an island, try these spellings; many islands needed nothing else:
+- the bit-field test idiom `(int)p->bit & 1`, or `!!p->bit`
+- putting the iterator pop where a destructor would run
+- reading a global into a local first
+- removing a second declaration of the same global from the namespace
+
+Representation levers that dissolve whole classes:
+- **A bit-field's declared type sets its extraction width.** A `uint` field in a 64-bit unit extracts as a 32-bit value (`dsll`/`dsra32`). Use it where the getters do; so.h's flag bits at +0x148 and SOTREE::skipsUpdate are examples.
+- **Raw-bit and quadword reads go through a union member, not a cast.** A cast folds the offset into the address constant (CLOCK::deltaTimeBits, like CM::matq).
+- **A constructor over a C function is inline, not asm-labelled.** g++ treats an asm-labelled constructor as returning `this` and keeps the object live (PATHLINKEND).
+- **An inlined construction sequence is written as placement `new`** (NewRipGroup).
+- **In a widely included header, a constructor that some includers never call is a member template.** An inline member renumbers function-static labels in every includer (RGBA).
+
+Still matching-only, and why:
+- Hand-scheduled asm transcriptions that load vtable entries, pinned vptrs or matrix rows themselves. They go only when the asm is rewritten in C.
+- emitter.cpp's initializer views. A brace initializer fills only a union's first member, and the unions are scheduling barriers.
+- UpdateStepplayerBootySave's CRef. It needs an inline copy constructor, but the real one is ref.cpp's out-of-line copy.
+- InitLo's copy of the parent's isInWorld (whole-word read). Every bit-field copy becomes a mask.
+- The 12-byte CLQ data objects.
+- murray's slot-29 call, whose object is not statically an SO.
+
+Fixable later, outside the owning family:
+- BASIC's destructor as a real member, which retires sw.cpp's SWG and cm.cpp's CMG.
+- A qword-row matrix row type (murray, RenderStepguardSelf).
+- glob.cpp's and blend.cpp's Lilly namespaces.
+
 ## Views unified
 
 Each view-unification slice replaced private per-file views (structs that re-declare a shared type's layout for one

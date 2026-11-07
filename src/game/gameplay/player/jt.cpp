@@ -290,7 +290,7 @@ void InitJt(JT *jt)
 {
     InitStepplayer(jt);
     jt->rBounds = 15.0f;
-    *(int *)&jt->state = -1;   /* JTS has no negative enumerator (an unsigned enum): stored as the int -1 */
+    jt->state = JTS_Nil;
     jt->animState = -1;
     jt->bodyState = JTBS_Nil;
     InitGait(&jt->gait, jt, 0x6F);

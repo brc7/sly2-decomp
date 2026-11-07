@@ -197,10 +197,13 @@ struct SO : public LO
       char unknown149;
       int unknownBits148A : 4;   /* int-typed like the next field (so.cpp's getter sign-extends it) */
                 int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
-                ulong zapMode : 2;    /* how zaps (damage) are delivered */
-                ulong fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
-                ulong unknownBits148C : 2;
-                ulong isNotLandable : 1; /* the hero may not land/place on this object */
+                /* zapMode..isNotLandable are uint-typed (bits 24..29 of the 64-bit unit at +0x148): their so.cpp getters
+                   read them as 32-bit fields (ld, dsll, dsra32, andi), which a ulong field does not give (it shifts
+                   logically). unknownBits148D crosses bit 32, so it and the fields after it stay ulong. */
+                uint zapMode : 2;    /* how zaps (damage) are delivered */
+                uint fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
+                uint unknownBits148C : 2;
+                uint isNotLandable : 1; /* the hero may not land/place on this object */
                 ulong unknownBits148D : 3;
                 ulong hurtRespawnsHero : 1; /* being hurt by this object respawns the hero */
                 ulong isTreeRoot : 1;  /* the object is the root of its physics tree */
@@ -384,7 +387,7 @@ struct SOTREE
       XP *firstZapContact; /* first contact that delivers a zap (damage) */
       ulong isInFirstQueue : 1; /* in the first queue */
                ulong isInSecondQueue : 1; /* in the second queue */
-               ulong skipsUpdate : 1; /* skip the physics update */
+               uint skipsUpdate : 1; /* skip the physics update (uint-typed: GetSoTreeFlag2 reads it as a 32-bit field; the queue bits stay ulong: MarkSoTreeBoundsDirty tests them with ld) */
                ulong wasTouched : 1; /* touched this frame */
                ulong isDone : 1;  /* processed this frame */
                ulong unknownBits70A : 59;

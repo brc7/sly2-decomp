@@ -370,12 +370,9 @@ void PostHackshipLoad(HACKSHIPV *p) { PostHackLoad((HACKV *)p); p->SetCtlState(0
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
-/* LO's flag word as one 64-bit value: lo.h's isInWorld bit-field compiles to a different test (matching-only). */
-struct LOIsland { char pad[0x28]; unsigned long fl; };
-void OnPoActive(LOIsland *p, int f);
-void SetHackshipState(LOIsland *p, int f);
+void OnPoActive(PO *p, int f);
 // vtable slot 78: base then SetCid48State. (inferred)
-void OnHackshipActive(LOIsland *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
+void OnHackshipActive(HACKSHIPV *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)p->isInWorld & 1) SetHackshipState(p, 0); }
 } } // namespace M_func_0017F8C8
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is

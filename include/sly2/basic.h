@@ -78,7 +78,7 @@ enum CID { };
 enum CRK { CRK_Max = 9, CRK_PowerUp = 1 };
 enum CPP { };
 enum CRVK { };
-enum JTS { JTS_Stand = 0, JTS_Grab = 7, JTS_Max = 25, JTS_Run = 1, JTS_Air = 2, JTS_Hang = 3, JTS_Unk04 = 4, JTS_Unk05 = 5, JTS_Interact = 6, JTS_Unk08 = 8, JTS_Unk0A = 10, JTS_Pickpocket = 11, JTS_Gait2 = 12, JTS_Unk0D = 13, JTS_Unk0E = 14, JTS_Pounce = 16, JTS_Unk11 = 17, JTS_Unk13 = 19, JTS_SurfaceClimb = 21, JTS_HangFollow = 22, JTS_Throw = 23, JTS_Unk18 = 24, JTS_Unk09 = 9, JTS_Unk12 = 18, JTS_Unk14 = 20 };
+enum JTS { JTS_Nil = -1, JTS_Stand = 0, JTS_Grab = 7, JTS_Max = 25, JTS_Run = 1, JTS_Air = 2, JTS_Hang = 3, JTS_Unk04 = 4, JTS_Unk05 = 5, JTS_Interact = 6, JTS_Unk08 = 8, JTS_Unk0A = 10, JTS_Pickpocket = 11, JTS_Gait2 = 12, JTS_Unk0D = 13, JTS_Unk0E = 14, JTS_Pounce = 16, JTS_Unk11 = 17, JTS_Unk13 = 19, JTS_SurfaceClimb = 21, JTS_HangFollow = 22, JTS_Throw = 23, JTS_Unk18 = 24, JTS_Unk09 = 9, JTS_Unk12 = 18, JTS_Unk14 = 20 };
 enum JTBS { JTBS_Nil = -1, JTBS_0 = 0, JTBS_1 = 1, JTBS_2 = 2, JTBS_3 = 3, JTBS_4 = 4, JTBS_5 = 5, JTBS_6 = 6, JTBS_7 = 7, JTBS_8 = 8, JTBS_9 = 9, JTBS_10 = 10, JTBS_11 = 11, JTBS_12 = 12, JTBS_13 = 13 };
 enum ZPK { };
 enum SEEK { SEEK_Start = 0 };
@@ -108,6 +108,13 @@ struct RGBA
     uchar green;    /* green, 0..255 */
     uchar blue;    /* blue, 0..255 */
     uchar alpha;    /* alpha (opacity), 0..255 */
+    /* The constructors: render.cpp's DrawWorldLabel and the TU-private RGBA views (hud, cm, glob, tu_15DC80, the
+       startup palettes) were compiled with them (a user constructor changes how g++ copies and allocates the
+       struct). The pattern constructor is a template only so that it costs no local label numbers in includers
+       that never call it (an inline member renumbers function-static symbols such as cm.cpp's s_rgba.87). */
+    RGBA() {}
+    // The colour from its 32-bit pattern (byte order as stored: red in the low byte).
+    template <class T> RGBA(T bits) { *(uint *)this = bits; }
     // Set the color from a packed 0xRRGGBBAA word.
     inline void operator=(const int rgba)
     {

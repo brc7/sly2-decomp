@@ -100,8 +100,10 @@ struct BLIP
 };
 
 struct PATHLINK;
-/* A path-link endpoint / go-to goal (0x20), constructed out of line by ClearPointerPair (guardbhv; it zeroes the
-   first two words): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
+void ClearPathlinkend(void *pv) __asm__("ClearPointerPair");   /* guardbhv: zeroes the first two words (C name ClearPointerPair, declared differently by its callers) */
+/* A path-link endpoint / go-to goal (0x20), constructed by an inline constructor that calls ClearPointerPair
+   (guardbhv; it zeroes the first two words; as an asm-labelled out-of-line constructor g++ keeps `this` live across
+   the call: one move more in ExecuteBhvScriptCommand, two swapped in SetBhvcombatState): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
    waypoint, relocate goal), BHV191 one; tu_1709A8/tu_171F58 build goals on the stack for SetBhvgotoGoal. */
 struct PATHLINKEND
 {
@@ -109,7 +111,7 @@ struct PATHLINKEND
     LO *object;             /* +0x04 the goal object */
     int unknown8[2];
     qword pos;              /* +0x10 the goal point */
-    PATHLINKEND() __asm__("ClearPointerPair");
+    PATHLINKEND() { ClearPathlinkend(this); }
 };
 
 /* BHVGUARD's mode record (0x70, at +0x30; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the
@@ -629,7 +631,7 @@ struct BHVANIM : BHV
     virtual void Start() __asm__("StartBhvanim");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvanim");   /* slot 10 */
     virtual void UpdateMotion() __asm__("UpdateBhvanimMotion");   /* slot 11 */
-    virtual void GetGroundProbeFlags() __asm__("GetBhvanimGroundProbeFlags");   /* slot 12 */
+    virtual int GetGroundProbeFlags() __asm__("GetBhvanimGroundProbeFlags");   /* slot 12 */
     virtual void HandleBehaviorMessage() __asm__("HandleBhvanimMessage");   /* slot 13 */
 };
 typedef char assert_BHVANIM_size[sizeof(BHVANIM) == 0x50 ? 1 : -1];
@@ -757,7 +759,7 @@ struct BHVWALKGOAL : BHVPATH
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvwalkgoalClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvwalkgoal");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvwalkgoal");   /* slot 10 */
-    virtual void UpdateSteering() __asm__("UpdateBhvwalkgoalPoctl");   /* slot 14 */
+    virtual void UpdateSteering(POCTL *ppoctl) __asm__("UpdateBhvwalkgoalPoctl");   /* slot 14 */
 };
 typedef char assert_BHVWALKGOAL_size[sizeof(BHVWALKGOAL) == 0xE0 ? 1 : -1];
 
@@ -813,7 +815,7 @@ struct BHV195 : BHV
     virtual void OnPush() __asm__("InitBhvInteract");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvInteract");   /* slot 10 */
-    virtual void UpdateSteering() __asm__("SteerBhvInteract");   /* slot 14 */
+    virtual void UpdateSteering(POCTL *ppoctl) __asm__("SteerBhvInteract");   /* slot 14 */
 };
 typedef char assert_BHV195_size[sizeof(BHV195) == 0x40 ? 1 : -1];
 
@@ -829,7 +831,7 @@ struct BHV196 : BHV
     virtual void OnPush() __asm__("InitBhvInteract2");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract2");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvInteract2");   /* slot 10 */
-    virtual void UpdateSteering() __asm__("SteerBhvInteract2");   /* slot 14 */
+    virtual void UpdateSteering(POCTL *ppoctl) __asm__("SteerBhvInteract2");   /* slot 14 */
 };
 typedef char assert_BHV196_size[sizeof(BHV196) == 0x40 ? 1 : -1];
 
@@ -845,7 +847,7 @@ struct BHV197 : BHV
     virtual void OnPush() __asm__("InitBhvInteract3");   /* slot 7 */
     virtual void Start() __asm__("StartBhvInteract3");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvInteract3");   /* slot 10 */
-    virtual void UpdateSteering() __asm__("SteerBhvInteract3");   /* slot 14 */
+    virtual void UpdateSteering(POCTL *ppoctl) __asm__("SteerBhvInteract3");   /* slot 14 */
 };
 typedef char assert_BHV197_size[sizeof(BHV197) == 0x40 ? 1 : -1];
 
@@ -978,7 +980,7 @@ struct BHVJUGGLED : BHVANIM
     virtual void OnPush() __asm__("InitBhvjuggled");   /* slot 7 */
     virtual void Start() __asm__("StartBhvjuggled");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvjuggled");   /* slot 10 */
-    virtual void GetGroundProbeFlags() __asm__("GetBhvjuggledGroundProbeFlags");   /* slot 12 */
+    virtual int GetGroundProbeFlags() __asm__("GetBhvjuggledGroundProbeFlags");   /* slot 12 */
     virtual void HandleBehaviorMessage() __asm__("HandleBhvjuggledMessage");   /* slot 13 */
 };
 typedef char assert_BHVJUGGLED_size[sizeof(BHVJUGGLED) == 0x70 ? 1 : -1];

@@ -2873,11 +2873,7 @@ struct N *FindLiveSma(int n, int m)
 // 0x1F6838 GetSoTreeFlag2
 namespace M_func_001F6838 { extern "C" {
 // Bit 2 of the tree flags; 1 when the object has no tree. (inferred)
-/* SOTREEIsland / SOIsland: the tree flag word and the SO as whole words (matching-only island: the shift pair of the
-   original is a sign-extending read of the word; the so.h bit-field reads with a logical shift, 7/10 off). */
-struct SOTREEIsland { char pad[0x70]; ulong flags; };
-struct SOIsland { char pad[0xEC]; struct SOTREEIsland *tree; };
-int GetSoTreeFlag2(struct SOIsland *p) { if (!p->tree) return 1; return (int)((long)(p->tree->flags << 30) >> 32) & 1; }
+int GetSoTreeFlag2(SO *p) { if (!p->physicsTree) return 1; return p->physicsTree->skipsUpdate; }
 } } // namespace M_func_001F6838
 
 // 0x1F6860 SetSoTreeFlag2
@@ -2914,9 +2910,7 @@ void SetSoIgnoreFixed(SO *p, int f) { p->fIgnoreFixed = f; RefreshSwObjectCollis
 // 0x1F6960 GetSoIgnoreFixed
 namespace M_func_001F6960 { extern "C" {
 // Returns the ignore-fixed flag.
-/* SOIsland: the +0x148 word whole (matching-only island: sign-extending shift pair, 4/5 off with the bit-field). */
-struct SOIsland { char pad[0x148]; ulong flags; };
-int GetSoIgnoreFixed(struct SOIsland *p) { return (int)((long)(p->flags << 6) >> 32) & 1; }
+int GetSoIgnoreFixed(SO *p) { return p->fIgnoreFixed; }
 } } // namespace M_func_001F6960
 
 // 0x1F6978 ShowSoGlobsById
@@ -3521,7 +3515,7 @@ namespace M_func_001F7B40 { extern "C" {
 // Returns the zap mode.
 /* SO's +0x148 word whole: the getter sign-extends through a shift pair the zapMode bit-field does not give (matching-only). */
 struct SOIsland { char pad[0x148]; ulong flags; };
-int GetSoZapMode(SOIsland *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
+int GetSoZapMode(SO *p) { return p->zapMode & 3; }
 } } // namespace M_func_001F7B40
 
 // 0x1F7B58 SetSoHitDamage
@@ -3668,9 +3662,7 @@ int GetSoUnknownBits16(SO *p) { return p->unknownBits148A; }
 // 0x1F7F08 GetSoNoJtPlace
 namespace M_func_001F7F08 { extern "C" {
 // Returns the no-JT-place flag (+0x148 bit 29, so.h isNotLandable).
-/* SO's +0x148 word whole (as GetSoZapMode; matching-only). */
-struct SOIsland { char pad[0x148]; ulong flags; };
-int GetSoNoJtPlace(SOIsland *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
+int GetSoNoJtPlace(SO *p) { return p->isNotLandable; }
 } } // namespace M_func_001F7F08
 
 // 0x1F7F20 SetSoNoJtPlace
