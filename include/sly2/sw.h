@@ -252,9 +252,9 @@ struct SW : public BASIC
       DL dlStimulus;   /* live stimuli (noises, sights guards react to) */
       SLOTHEAP slotheapStimulus;   /* stimulus records */
       struct STIMK *apstimk[7];   /* stimulus kinds */
-      SLOTHEAP unknown403C;
-      SLOTHEAP unknown4054;
-      uint32_t   _pad_318    [ 1 ] ;
+      SLOTHEAP slotheapRipg; /* +0x403C [S] RIPG (ripple group) records (rip.cpp NewRipGroup / OnRipgRemove); was unknown403C */
+      SLOTHEAP slotheapRip;  /* +0x4054 [S] RIP records (rip.cpp NewRipInGroup / ReleaseRip); was unknown4054 */
+      struct RIPG *pripgDefault; /* +0x406C [S] the shared kind-0 ripple group, made on first use (rip.cpp); was _pad_318 */
       SLOTHEAP slotheapBlipg;
       SLOTHEAP unknown4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
       SLOTHEAP unknown40A0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
@@ -357,6 +357,7 @@ typedef char assert_SW_dlCid21[SLY2_OFFSETOF(SW, dlCid21) == 0x3FE4 ? 1 : -1];
 typedef char assert_SW_dlCid23[SLY2_OFFSETOF(SW, dlCid23) == 0x3FF0 ? 1 : -1];
 typedef char assert_SW_dlStimulus[SLY2_OFFSETOF(SW, dlStimulus) == 0x3FFC ? 1 : -1];
 typedef char assert_SW_unknown40A0[SLY2_OFFSETOF(SW, unknown40A0) == 0x40A0 ? 1 : -1];
+typedef char assert_SW_pripgDefault[SLY2_OFFSETOF(SW, pripgDefault) == 0x406C ? 1 : -1];
 typedef char assert_SW_slotheapJsg[SLY2_OFFSETOF(SW, slotheapJsg) == 0x40D0 ? 1 : -1];
 typedef char assert_SW_slShd[SLY2_OFFSETOF(SW, slShd) == 0x4100 ? 1 : -1];
 typedef char assert_SW_slSaa[SLY2_OFFSETOF(SW, slSaa) == 0x410C ? 1 : -1];

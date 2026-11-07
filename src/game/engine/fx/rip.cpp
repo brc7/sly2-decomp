@@ -159,23 +159,22 @@ void TouchRip(RIP *prip, int fRemove);
 namespace M_NewRipGroup { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
-struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
 extern struct VTE D_002D9978[] __asm__("_vt$2SO");
 extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *AllocZeroedFromSlotheap(void *pool);
 void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
-void *GetSwClassList(struct G *sw, int n);
+void *GetSwClassList(SW *sw, int n);
 void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 // Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
 // kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
-struct O *NewRipGroup(struct G *sw, int kind)
+struct O *NewRipGroup(SW *sw, int kind)
 {
     struct O *ripGroup;
-    if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
-    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(sw->pool);
+    if (!kind && sw->pripgDefault) return (struct O *)sw->pripgDefault;
+    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(&sw->slotheapRipg);
     if (!ripGroup) return 0;
     func_002333B4(ripGroup, 0, 0x1B0);
     ripGroup->basic0 = 0;
@@ -188,7 +187,7 @@ struct O *NewRipGroup(struct G *sw, int kind)
     VCALL0(ripGroup, 7);
     VCALL0(ripGroup, 11);
     VCALL0(ripGroup, 15);
-    if (!kind) sw->defaultRipGroup = ripGroup;
+    if (!kind) sw->pripgDefault = (RIPG *)ripGroup;
     return ripGroup;
 }
 } } // namespace M_NewRipGroup
@@ -233,8 +232,6 @@ struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
 struct RIPGV { char pad[0x10]; int psoParent; char p1[0xEC - 0x14]; void *aaobrEntry; char p2[0x15C - 0xF0]; DL dl; };
-struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *defaultRipGroup; };
-extern "C" { extern SW D_003DD490; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
@@ -269,8 +266,8 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     SW *psw;
     InitDli(&dli, &ripGroup->dl);
     while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(rip);
-    psw = &D_003DD490;
-    if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
+    psw = &g_sw;
+    if (ripGroup == (RIPGV *)psw->pripgDefault) psw->pripgDefault = 0;
     RemoveSoHierarchy(ripGroup);
     if (ripGroup->aaobrEntry) {
         RemoveObjectFromBroadPhase(psw, ripGroup->aaobrEntry);
@@ -279,7 +276,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     SnipLo(ripGroup);
     RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
     if (!ripGroup->psoParent) FreeLoroot(ripGroup);
-    FreeSlotheapSlot(psw->pool, ripGroup);
+    FreeSlotheapSlot(&psw->slotheapRipg, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -668,7 +665,6 @@ struct X *PvtripFromRipt(struct X *p, unsigned int k)
 
 namespace M_NewRipInGroup { extern "C" {
 struct R { int a, b; void *p8; };
-struct G { char pad[0x4054]; char pool[4]; };
 struct Q { char pad[0x15C]; char dl[4]; };
 extern char D_003DD490[];
 struct Q *NewRipGroup(void *pg, int n);
@@ -677,13 +673,13 @@ struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
 // Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
-struct R *NewRipInGroup(struct G *p, void *a, struct Q *q)
+struct R *NewRipInGroup(SW *p, void *a, struct Q *q)
 {
     void *pv;
     struct R *r;
     if (!q) q = NewRipGroup(D_003DD490, 0);
     if (!q) return 0;
-    pv = AllocZeroedFromSlotheap(p->pool);
+    pv = AllocZeroedFromSlotheap(&p->slotheapRip);
     if (pv) {
     r = PvtripFromRipt(pv, a);
     r->p8 = q;
@@ -755,7 +751,7 @@ void ReleaseRip__FP3RIP(struct S *p)
             FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        FreeSlotheapSlot((*(char (*)[])&g_sw.unknown4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRip), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP
