@@ -446,7 +446,7 @@ namespace M_UpdateJtGrabInput {
 //   loop.c moves the `{ FreeSwXpList(); return; }` block out of the contact loop into the default case.
 // - case 2 has its own SetControl for the `<= 0` test: the shared SetControl then has no label in front of it, so
 //   jump2's cross-jumping makes a new label there and does not merge the step-8 / case-11 anim tests afterwards.
-// - VecLength takes a const reference (gcse hash table size, i.e. the order of the &cso / &apso copies: s4 / s6).
+// - LengthOf takes a const reference (gcse hash table size, i.e. the order of the &cso / &apso copies: s4 / s6).
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -521,26 +521,26 @@ static inline void *AllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swall
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in ClipCameraEye).
 static inline VU_FLOAT VuFloat(const float *pg) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)pg)); return v; }
-static inline qword VecAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword VecSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword VecScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
+static inline qword AddVec(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword SubVec(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 // a * g0 + b * g1
-static inline qword VecCombine(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
+static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(g0.q), "j"(b), "j"(g1.q));
     return r;
 }
-static inline float VecX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
-static inline float VecLength(const qword &v)
+static inline float LaneX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
+static inline float LengthOf(const qword &v)
 {
     qword qw, one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(qw), "=j"(one) : "j"(v));
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(qw) : "0"(qw));
-    return VecX(qw);
+    return LaneX(qw);
 }
 static inline int Min(int a, int b) { return a < b ? a : b; }
-static inline int IsWithinDistance(qword a, qword b, float s) { return VecLength(VecSub(a, b)) < s; }
+static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(SubVec(a, b)) < s; }
 
 static inline void ProbeGround(CONTEXT *p)
 {
@@ -548,8 +548,8 @@ static inline void ProbeGround(CONTEXT *p)
     LSG alsg[8];
     int i;
     qword pos = GetLoWorldPos(p->pactor);
-    qword posBase = VecAdd(pos, p->pactor->posOffset);
-    qword posEnd = VecAdd(posBase, VecScale(D_002A2DC0, VuFloat(&D_002BF5B0)));
+    qword posBase = AddVec(pos, p->pactor->posOffset);
+    qword posEnd = AddVec(posBase, ScaleVec(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
@@ -572,8 +572,8 @@ static inline void ProbeGround(CONTEXT *p)
             cbspMax = apso[i]->cbsp;
     cbspMax = Min(cbspMax, 0x1555);
     BSP *absp = (BSP *)AllocStack(cbspMax * sizeof(BSP));
-    qword posMid = VecCombine(posMin, posMax, VuFloat(0.5f), VuFloat(0.5f));
-    float sRadius = VecLength(VecSub(posMid, posMin));
+    qword posMid = CombineVec(posMin, posMax, VuFloat(0.5f), VuFloat(0.5f));
+    float sRadius = LengthOf(SubVec(posMid, posMin));
     for (i = 0; i < cso; i++) {
         SO *so = apso[i];
         XP *xp = 0;
@@ -741,11 +741,11 @@ namespace M_UpdateJtActiveHide {
 // animation / axis weights for the resulting step.
 //
 // Matched from w5lane7's near-miss (3/953). Notes on the forms that matter (each verified against the target):
-// - VecLength takes a VU_VECTOR by value: the inlined parameter copy is a store to an ADDRESSOF slot during cse1
+// - LengthOf takes a VU_VECTOR by value: the inlined parameter copy is a store to an ADDRESSOF slot during cse1
 //   (it may alias ctx->actor), and a plain register copy after purge_addressof, so only cse2 sees the case-0 lean
 //   test's ctx->actor reload as the earlier one. That leaves the target's `daddu v0,v1` copy in the vy test.
-// - VecDiv: vdiv as its own volatile no-output asm, so jump.c cannot hoist the Normalize fallback copy.
-// - VecX: one mtc1 asm from a TI qword (gcc emits the qmfc2 itself and schedules it).
+// - DivVec: vdiv as its own volatile no-output asm, so jump.c cannot hoist the Normalize fallback copy.
+// - LaneX: one mtc1 asm from a TI qword (gcc emits the qmfc2 itself and schedules it).
 // - SqrtF: the usual volatile "=&f" sqrt.s helper (local-alloc must not tie it to its input).
 // - case 2 falls through into case 4; slow-path step choice is a ternary (blocks thread_jumps).
 typedef int qword __attribute__((mode(TI)));
@@ -833,42 +833,42 @@ static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
 }
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
-static inline qword VecZero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
-static inline qword VecAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword VecScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
-static inline qword VecScaleX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
-static inline float VecX(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
-static inline qword VecDot(qword a, qword b)
+static inline qword ZeroVec() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
+static inline qword AddVec(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
+static inline qword ScaleVecX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
+static inline float LaneX(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
+static inline qword DotVec(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
-static inline qword VecSqrt(qword d) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(d)); return r; }
+static inline qword SqrtVec(qword d) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(d)); return r; }
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
-static inline float VecLength(VU_VECTOR v) { return VecX(VecSqrt(VecDot(v.q, v.q))); }
-static inline float VecLengthXY(qword v)
+static inline float LengthOf(VU_VECTOR v) { return LaneX(SqrtVec(DotVec(v.q, v.q))); }
+static inline float LengthXYOf(qword v)
 {
     qword l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(l) : "j"(v));
-    return VecX(VecSqrt(l));
+    return LaneX(SqrtVec(l));
 }
-static inline qword VecDiv(qword v, qword l)
+static inline qword DivVec(qword v, qword l)
 {
     qword r;
     __asm__ __volatile__("vdiv $Q,$vf0w,%0x\n\tvwaitq" : : "j"(l));
     __asm__("vmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v));
     return r;
 }
-static inline qword VecNormalize(qword v, qword fallback)
+static inline qword NormalizeVec(qword v, qword fallback)
 {
-    qword l = VecSqrt(VecDot(v, v));
-    if (VecX(l) < 0.0001f)
+    qword l = SqrtVec(DotVec(v, v));
+    if (LaneX(l) < 0.0001f)
         return fallback;
-    return VecDiv(v, l);
+    return DivVec(v, l);
 }
 // M * v (rows of M dotted with v); w comes from row 0
-static inline qword VecMulM3(M3 *pm, qword v)
+static inline qword MulM3Vec(M3 *pm, qword v)
 {
     qword r = pm->r[0].q;
     qword t0, t1, t2, one;
@@ -913,9 +913,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         GetGrabspotPositionNear(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
         float speedMax;
         if (ctx->actor->role == 1)
-            speedMax = VecLength(ctx->axes[2].direction.q) * ctx->actor->anim->rate;
+            speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->anim->rate;
         else
-            speedMax = VecLength(ctx->axes[4].direction.q) * ctx->actor->anim->rate;
+            speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->anim->rate;
         goal.f[2] = pos.f[2];
         SMP smp;
         smp.svFast = speedMax;
@@ -926,7 +926,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         float lateral;
         qword offset;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
-            offset = VecZero();
+            offset = ZeroVec();
             lateral = 0.0f;
         } else {
             U side;
@@ -938,12 +938,12 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             side.q = SetVectorCylind(angle, 1.0f, 0.0f);
             U input;
             input.q = SetVectorCylind(joy->heading, 1.0f, 0.0f);
-            float g = ClampF(D_002BF5BC * VecX(VecDot(side.q, input.q)), -1.0f, 1.0f);
+            float g = ClampF(D_002BF5BC * LaneX(DotVec(side.q, input.q)), -1.0f, 1.0f);
             g *= joy->amount;
             if (__builtin_fabsf(g) < 0.2f)
                 g = 0.0f;
             lateral = g * speedMax;
-            lateral = MinF(SqrtF(speedMax * speedMax - VecX(VecDot(vel.q, vel.q))), lateral);
+            lateral = MinF(SqrtF(speedMax * speedMax - LaneX(DotVec(vel.q, vel.q))), lateral);
             float s;
             FOCUS *focus;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
@@ -954,15 +954,15 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             } else {
                 s = lateral;
             }
-            offset = VecScale(side.q, VuFloat(s));
+            offset = ScaleVec(side.q, VuFloat(s));
         }
         ACTOR *actor = ctx->actor;
-        actor->velocity.q = VecScale(VecMulM3(&actor->local, VecAdd(vel.q, offset)), VuFloat(-1.0f));
+        actor->velocity.q = ScaleVec(MulM3Vec(&actor->local, AddVec(vel.q, offset)), VuFloat(-1.0f));
         int step;
-        if (25.0f < VecLength(ctx->actor->velocity.q)) {
+        if (25.0f < LengthOf(ctx->actor->velocity.q)) {
             step = 1;
             if (ctx->action == 0) {
-                if (45.0f < VecLength(vel.q)) {
+                if (45.0f < LengthOf(vel.q)) {
                     SetJtHideFacingKind__FP2JT4HFDK(ctx, 0);
                 } else if (20.0f < ctx->actor->velocity.f[1]) {
                     if (ctx->actor->role == 1)
@@ -1028,7 +1028,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             break;
         }
         tangent.f[2] = 0.0f;
-        tangent.q = VecNormalize(tangent.q, D_002A2DA0);
+        tangent.q = NormalizeVec(tangent.q, D_002A2DA0);
         float heading = atan2f(tangent.f[1], tangent.f[0]);
         U dir;
         U input;
@@ -1038,8 +1038,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         else
             FindShapeClosestPoint(focus->other, *ctx->actor->ppos, 0, 0, &dir, 0, 0);
         dir.f[2] = 0.0f;
-        dir.q = VecNormalize(dir.q, D_002A2DA0);
-        float g = VecX(VecDot(input.q, dir.q));
+        dir.q = NormalizeVec(dir.q, D_002A2DA0);
+        float g = LaneX(DotVec(input.q, dir.q));
         switch (ctx->index) {
         case 0:
             if (joy->amount < 0.25f)
@@ -1123,11 +1123,11 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ENTRY *e = &ctx->axes2[3];
                 if (!e->active)
                     e = &ctx->axes2[2];
-                SetXYZ(&ctx->actor->velocity, -joy->y * VecLengthXY(e->direction.q), joy->x * VecLengthXY(ctx->axes2[1].direction.q), 0.0f);
+                SetXYZ(&ctx->actor->velocity, -joy->y * LengthXYOf(e->direction.q), joy->x * LengthXYOf(ctx->axes2[1].direction.q), 0.0f);
                 UpdateDirectionalBlend(ctx->actor, ctx->axes2, ctx->request2);
                 ACTOR *actor = ctx->actor;
                 float turn = -actor->velocity.f[1] / D_002BF5CC;
-                actor->velocity.q = VecScaleX(D_002A2DA0, VecDot(actor->velocity.q, D_002A2DA0));
+                actor->velocity.q = ScaleVecX(D_002A2DA0, DotVec(actor->velocity.q, D_002A2DA0));
                 SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * D_002DDED0.dt);
             } else {
                 SetJtGrabKind(ctx, 9);
@@ -1150,7 +1150,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             BINDING *b = FindAsegChannel(anim->table, actor, 1, 1);
             if (b) {
                 ReadBinding(b, anim, &v);
-                v.q = VecScale(v.q, VuFloat(-1.0f));
+                v.q = ScaleVec(v.q, VuFloat(-1.0f));
             }
         }
         ctx->actor->velocity = v;
@@ -2591,19 +2591,19 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 
 
 
-static inline qword VecSub(qword qw0, qword qw1)
+static inline qword SubVec(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline float VecX(qword qw)
+static inline float LaneX(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword VecLengthInX(qword v)
+static inline qword LengthInX(qword v)
 {
     qword qw;
     qword vfOne;
@@ -2612,11 +2612,11 @@ static inline qword VecLengthInX(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline float VecLength(qword v)
+static inline float LengthOf(qword v)
 {
-    return VecX(VecLengthInX(v));
+    return LaneX(LengthInX(v));
 }
-static inline qword VecDot(qword a, qword b)
+static inline qword DotVec(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -2630,8 +2630,8 @@ extern "C" { extern int D_002E1E4C; }   // C symbol: this view has no extern "C"
 extern "C" { extern float D_002BF664; }
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
-    qword qwDiff = VecSub(PosLoWorld(lo), pos);
-    return lo->sBusy * lo->sBusy < VecX(VecDot(qwDiff, qwDiff));
+    qword qwDiff = SubVec(PosLoWorld(lo), pos);
+    return lo->sBusy * lo->sBusy < LaneX(DotVec(qwDiff, qwDiff));
 }
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
 {
@@ -2691,7 +2691,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     spot->GetClosestParam((JT *)player, &cand.sParam);
     spot->GetPos(cand.sParam, (JT *)player, (VECTOR *)&cand.qwPos, 0);
     cand.nPriority = spot->nPriority;
-    cand.sDist = VecLength(VecSub(qwPosJt, cand.qwPos));
+    cand.sDist = LengthOf(SubVec(qwPosJt, cand.qwPos));
     spot->AdjustDist(&cand.sDist);
     if (cand.sDist > D_002BF664)
         return;
@@ -2787,19 +2787,19 @@ extern "C" { extern SW D_003DD490; }
 
 
 PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
-static inline qword VecSub(qword qw0, qword qw1)
+static inline qword SubVec(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline float VecX(qword qw)
+static inline float LaneX(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword VecLengthInX(qword v)
+static inline qword LengthInX(qword v)
 {
     qword qw;
     qword vfOne;
@@ -2808,9 +2808,9 @@ static inline qword VecLengthInX(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline float VecLength(qword v)
+static inline float LengthOf(qword v)
 {
-    return VecX(VecLengthInX(v));
+    return LaneX(LengthInX(v));
 }
 extern "C" {
 int IsPoCurrent(STEPPLAYER *pstepplayer);
@@ -2924,7 +2924,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     int fFar;
     if (pswG->cjtgrabcand == 0)
         idHint = -1;
-    else if (fFar = D_002BF660 < VecLength(VecSub(qwPosJt, pswG->ajtgrabcand[0].qwPos)), fFar)
+    else if (fFar = D_002BF660 < LengthOf(SubVec(qwPosJt, pswG->ajtgrabcand[0].qwPos)), fFar)
         idHint = -1;
     else
     {

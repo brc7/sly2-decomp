@@ -1409,7 +1409,7 @@ extern void PostLoLoad(struct O *p);
 extern qword GetLoWorldPos(void *p);
 extern qword ConvertAloPos(void *p, void *q, qword v);
 extern float D_002BE904;
-static __inline__ float VecDistance(qword a, qword b)
+static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, one;
     float g;
@@ -1431,7 +1431,7 @@ void PostTableGrabspotLoad(struct O *table)
 {
     PostLoLoad(table);
     if (table->g38 == 1e10f) {
-        table->g38 = VecDistance(GetLoWorldPos(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
+        table->g38 = DistanceBetween(GetLoWorldPos(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
     }
 }
 } } // namespace M_func_001843F0

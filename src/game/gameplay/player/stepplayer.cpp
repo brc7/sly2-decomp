@@ -902,7 +902,7 @@ static inline void *NextDliItem(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-static inline qword VecSub(qword a, qword b)
+static inline qword SubVec(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
@@ -976,7 +976,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         case 0x162: {
             qword v = F(qword, player, 0x1060);
             F(int, player, 0x1044) = 0;
-            F(qword, player, 0x1070) = VecSub(v, GetLoWorldPos(player));
+            F(qword, player, 0x1070) = SubVec(v, GetLoWorldPos(player));
             F(int, player, 0x1078) = 0;
             break;
         }
@@ -1814,7 +1814,7 @@ static __inline__ qword Mul(M4 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
 }
-static __inline__ float VecDistance(qword a, qword b)
+static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, t;
     float g;
@@ -1845,7 +1845,7 @@ int IsStepplayerGrabReady(struct P *player)
     if (player->grabState != 5 || !player->x4D4) return 1;
     LoadIdentityMatrix4(player->po->vt[32].pfn((char *)player->po + player->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
-    if (5.0f < VecDistance(GetLoWorldPos(player->po), v)) return 0;
+    if (5.0f < DistanceBetween(GetLoWorldPos(player->po), v)) return 0;
     if (player->x9A4 != 1) return 1;
     if (D_002DDED0.t < player->p994->t) return 0;
     return 1;
@@ -2240,19 +2240,19 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline qword VecSub(qword qw0, qword qw1)
+static inline qword SubVec(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline float VecX(qword qw)
+static inline float LaneX(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword VecDot(qword a, qword b)
+static inline qword DotVec(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -2260,7 +2260,7 @@ static inline qword VecDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float VecZ(qword qw)
+static inline float LaneZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
@@ -2274,17 +2274,17 @@ extern "C" { extern LM D_002BBB60; }
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
-    r.qw = VecSub(a, b);
+    r.qw = SubVec(a, b);
     return r;
 }
-static inline qword VecLengthXYInX2(qword v)
+static inline qword LengthXYInX2(qword v)
 {
     qword qw;
     __asm__("vmul.xy %0, %1, %2\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v), "j"(v));
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline float VecXKeepVf(qword qw)
+static inline float LaneXKeepVf(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));
@@ -2318,8 +2318,8 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     qword posHero = PosLoWorld(player);
     VU_VECTOR4 vecS = SubPos(posHero, PosLoWorld(lo));
     qword vec = vecS.qw;
-    float dz = VecZ(vec);
-    float sXY = VecX(VecLengthXYInX2(vec));
+    float dz = LaneZ(vec);
+    float sXY = LaneX(LengthXYInX2(vec));
     if ((LO *)player == *pploCur)
     {
         sBias = EvaluateClq(&D_002BD280, sXY);
@@ -2329,7 +2329,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     if (pctl != 0 && sXY > 0.0001f)
     {
         qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
-        float rAway = VecXKeepVf(VecDot(qwStick, vec)) / sXY;
+        float rAway = LaneXKeepVf(DotVec(qwStick, vec)) / sXY;
         sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
     sXY += sBias;

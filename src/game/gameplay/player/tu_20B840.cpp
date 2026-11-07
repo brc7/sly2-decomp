@@ -213,13 +213,13 @@ extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
 // After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlAmrsg), each clip's root movement per second
 // ((position at the end - position at the start) / length), the blend (EnsureAsegBlendDynamic with the two marker arrays). Then every blended channel is told
 // which marker array keeps it in step: XFs with oid 0x10 / 0x12 / 0x14 the second foot's (amrsgc[1]), 0x11 / 0x13 / 0x15 the first's (the default), any other none.
-static inline qword VecSub(qword qw0, qword qw1)
+static inline qword SubVec(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword VecDiv(qword qw, VU_FLOAT g)
+static inline qword DivVec(qword qw, VU_FLOAT g)
 {
     qword qwRet;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwRet) : "j"(g.qw), "j"(qw));
@@ -249,10 +249,10 @@ void PostJtLoadGait(GAIT *gait)
             VECTOR4 vStart, vEnd;
             ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
             ((VECKEY *)pchn->pkey)->GetValue(aseg->tMax, 1.0f, (qword *)&vEnd, 0);
-            qword qwDiff = VecSub(*(qword *)&vEnd, *(qword *)&vStart);
+            qword qwDiff = SubVec(*(qword *)&vEnd, *(qword *)&vStart);
             VU_FLOAT vuT;
             __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->tMax )) ;
-            pblgait->vRoot = VecDiv(qwDiff, vuT);
+            pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
     EnsureAsegBlendDynamic((ALO *)gait->pstepplayer, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->pasegbl);

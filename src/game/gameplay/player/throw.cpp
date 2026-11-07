@@ -584,29 +584,29 @@ struct VU_VECTOR {qword q;VU_VECTOR(){}VU_VECTOR(qword qw){q=qw;}};
 // A float in x of a VU0 register; by value it has a stack home (the game's dead sqc2)
 struct VU_FLOAT {qword q;};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.q):"r"(g));return v;}
-static inline qword VecSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline VU_VECTOR VuSub(VU_VECTOR a,VU_VECTOR b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a.q),"j"(b.q));return VU_VECTOR(r);}
-static inline qword VecMin(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword VecMax(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline float VecX(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
-static inline float VecZ(qword v){float g;__asm__("pextuw %0,$zero,%1":"=r"(g):"r"(v));return g;}
-static inline float VecLengthXY(qword v)
+static inline qword MinVec(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword MaxVec(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline float LaneX(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
+static inline float LaneZ(qword v){float g;__asm__("pextuw %0,$zero,%1":"=r"(g):"r"(v));return g;}
+static inline float LengthXYOf(qword v)
 {
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y" : "+j"(v));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(v));
-    return VecX(v);
+    return LaneX(v);
 }
-static inline float VecLength(VU_VECTOR w)
+static inline float LengthOf(VU_VECTOR w)
 {
     qword v = w.q;
     qword one;
     __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
             : "+j"(v), "=&j"(one));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(v));
-    return VecX(v);
+    return LaneX(v);
 }
 // pos + v * t + a * t2
-static inline qword VecBallisticPos(const qword &pos, const qword &a, const qword &v, VU_FLOAT t, VU_FLOAT t2)
+static inline qword BallisticPos(const qword &pos, const qword &a, const qword &v, VU_FLOAT t, VU_FLOAT t2)
 {
     qword r;
     __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddax.xyzw ACC,%2,%3x\n\tvmaddx.xyzw %0,%4,%5x"
@@ -615,9 +615,9 @@ static inline qword VecBallisticPos(const qword &pos, const qword &a, const qwor
     return r;
 }
 // Where the arc is after t seconds
-static inline qword PosOnArc(const qword &pos,const qword &a,const qword &v,float t,float gHalf){return VecBallisticPos(pos,a,v,VuFloat(t),VuFloat(t*(t*gHalf)));}
+static inline qword PosOnArc(const qword &pos,const qword &a,const qword &v,float t,float gHalf){return BallisticPos(pos,a,v,VuFloat(t),VuFloat(t*(t*gHalf)));}
 // a * g0 + b * g1
-static inline qword VecCombine(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
+static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
 {
     qword r;
     __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(g0.q), "j"(b), "j"(g1.q));
@@ -647,10 +647,10 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     qword vAccel = thrower->selected->pgravity->vAccel.q;
     qword posHero = GetLoWorldPos(thrower->owner);
     float uFar =
-        ClampF((VecLengthXY(VecSub(posHold, posHero)) - thrower->bounds.lo) / (thrower->bounds.hi - thrower->bounds.lo),
+        ClampF((LengthXYOf(SubVec(posHold, posHero)) - thrower->bounds.lo) / (thrower->bounds.hi - thrower->bounds.lo),
                0.0f, 1.0f);
     qword vLaunch = CalculateBallisticLaunchVelocity(posLaunch, thrower->targetWorld.q, vAccel, EvaluateClq(D_002C40F0, uFar));
-    float tApex = MaxF(-VecZ(vLaunch) / VecZ(vAccel), 0.0f);
+    float tApex = MaxF(-LaneZ(vLaunch) / LaneZ(vAccel), 0.0f);
     qword posApex = PosOnArc(posLaunch, vAccel, vLaunch, tApex, 0.5f);
     float t;
     if (FPowerupAcquired(0x24))
@@ -659,10 +659,10 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
         t = thrower->tPredict;
     qword posEnd = PosOnArc(posLaunch, vAccel, vLaunch, t, 0.5f);
     STACKSCOPE stackscope;
-    qword posMin = VecMin(posApex, posEnd);
-    qword posMax = VecMax(posApex, posEnd);
-    posMax = VecMax(posLaunch, posMax);
-    posMin = VecMin(posLaunch, posMin);
+    qword posMin = MinVec(posApex, posEnd);
+    qword posMax = MaxVec(posApex, posEnd);
+    posMax = MaxVec(posLaunch, posMax);
+    posMin = MinVec(posLaunch, posMin);
     int cso;
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posMin, posMax, FilterJtThrowArcObject, thrower->selected->pvFilter, &cso,
@@ -679,14 +679,14 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
         if (FindFirstObjectHitByLine(1, posPrev, pos, cso, apso, &hit)) {
             V at;
             int ct =
-                CSolveQuadratic__FfffPf(VecZ(vAccel) * 0.5f, VecZ(vLaunch), VecZ(posLaunch) - hit.pos.f[2], at.f);
+                CSolveQuadratic__FfffPf(LaneZ(vAccel) * 0.5f, LaneZ(vLaunch), LaneZ(posLaunch) - hit.pos.f[2], at.f);
             float tBest = 0.0f, sBest = D_002A96A0;
             for (int it = 0; it < ct; it++) {
                 float tRoot = at.f[it];
                 if (tRoot < 0.0f)
                     continue;
                 qword posRoot = PosOnArc(posLaunch, vAccel, vLaunch, tRoot, 0.5f);
-                float s = VecLength(VuSub(posRoot, hit.pos.q));
+                float s = LengthOf(VuSub(posRoot, hit.pos.q));
                 if (s < sBest) {
                     sBest = s;
                     tBest = tRoot;
@@ -713,7 +713,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     int cpos = i + 1;
     if (thrower->effect) {
         ARCFRAME *pframe = thrower->effect->aframe + thrower->effect->cframe;
-        qword posBefore = VecCombine(apos[0].q, apos[1].q, VuFloat(2.0f), VuFloat(-1.0f));
+        qword posBefore = CombineVec(apos[0].q, apos[1].q, VuFloat(2.0f), VuFloat(-1.0f));
         V *posOut = apos;
         M4 mat;
         M3 matRot;
@@ -722,7 +722,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
             if (iframe < cpos) {
                 V *pposCur = posOut++;
                 qword pos = pposCur->q;
-                qword dpos = VecSub(pos, posBefore);
+                qword dpos = SubVec(pos, posBefore);
                 BuildOrthonormalMatrixZ(&matRot, dpos, D_002A2DC0.q);
                 M4 *matrix = &mat;
                 VECTOR_opAssign(&mat.position, pos);
@@ -744,7 +744,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     qword posAim = thrower->targetWorld.q;
     qword posHeroNow = GetLoWorldPos(thrower->owner);
     V dpos;
-    dpos.q = VecSub(posAim, posHeroNow);
+    dpos.q = SubVec(posAim, posHeroNow);
     float rad = atan2f(dpos.f[1], dpos.f[0]);
     float radHero = GetStepHeading(thrower->owner);
     rad = RadNormalize__Ff(rad - radHero);

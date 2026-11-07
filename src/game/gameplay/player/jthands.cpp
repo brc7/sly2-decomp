@@ -343,7 +343,7 @@ inline void SetMatrix4Identity(MATRIX4 *matrix)
     matrix->mat[0][0] = 1.0f;
 }
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
-inline qword VecTransformPos(MATRIX4 *matrix, qword pos)
+inline qword TransformPos(MATRIX4 *matrix, qword pos)
 {
     qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -427,7 +427,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
                 float u = (float)k / (float)(D_002C1ED0 - 1);
                 PredictAsegEffect(u * aseg->tMax, aseg, hands->pso, 0.0f, pxfEffect, hands->pso->pxfRoot, &matOut, 0);
                 shape->mpicvu[k] = u;
-                qword pos = VecTransformPos(&matOut, *(qword *)matSample.mat[3]);
+                qword pos = TransformPos(&matOut, *(qword *)matSample.mat[3]);
                 shape->mpicvpos[k] = *(VECTOR4 *)&pos;
             }
             shape->Remove();
